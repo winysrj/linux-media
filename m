@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fmmailgate03.web.de ([217.72.192.234])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hubblest@web.de>) id 1JNEAG-0002zm-FU
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 22:20:12 +0100
-From: Peter Meszmer <hubblest@web.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JLW2X-0006do-7w
+	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 05:01:09 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Date: Thu, 7 Feb 2008 22:19:40 +0100
-References: <47AB228E.3080303@gmail.com> <200802072013.41966.zzam@gentoo.org>
-In-Reply-To: <200802072013.41966.zzam@gentoo.org>
+Date: Sun, 3 Feb 2008 03:14:21 +0100
+References: <47A360FE.2070105@brenken.org>
+In-Reply-To: <47A360FE.2070105@brenken.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802072219.40759.hubblest@web.de>
-Subject: Re: [linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]
+Message-Id: <200802030314.22178@orion.escape-edv.de>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Subject: Re: [linux-dvb] TT-1401 budget card support broken since 2.6.24-rc6
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,54 +27,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Donnerstag, 7. Februar 2008 schrieben Sie:
-> @Peter:
-> 1. Maybe you want to start a page in the wiki dedicated to your card.
-> Or should we check for similarity and merge both of these cards into one
-> page?
+Dirk Brenken wrote:
+> Hi,
+> I'm running a "budget-only" (Technotrend S-1401) vdr system (1.5.13) 
+> with xinelibouput plugin (latest cvs checkout).  It's based on debian 
+> sid and it runs fine with kernel 2.6.23.14 ... up to kernel 2.6.24-rc5. 
+> After that version, my budget card system stops working ... here some 
+> log file stuff:
 >
-> At least I am interested in the eeprom content of your card.
->
-> I should request some schematics from Avermedia to maybe get gpio
-> controlling correct. (Like resetting chips, ir ...)
->
-> Regards
-> Matthias
+> ...
+> 
+> The problem also occurs with kernel 2.6.23.14 plus latest v4l-dvb 
+> checkout. Any idea how to track down this error? Any help is appreciated!
 
-Hello Matthias,
+Could you please check whether patch
+    http://linuxtv.org/hg/v4l-dvb/rev/816f256c2973
+broke the driver?
 
-the eeprom content is slightly different form the one shown on the wiki:
+CU
+Oliver
 
-saa7133[0]: found at 0000:02:07.0, rev: 209, irq: 18, latency: 64, mmio: 
-0xd3024000
-saa7133[0]: subsystem: 1461:a7a2, board: Avermedia A700 
-[card=132,autodetected]
-saa7133[0]: board init: gpio is 48a00
-saa7133[0]: i2c eeprom 00: 61 14 a2 a7 ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: 00 01 81 af d7 09 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-DVB: registering new adapter (saa7133[0])
-
-Writing a page in the wiki sounds interesting, but I think, I shouldn't start 
-this project. So I would prefer to merge the information of both cards.
-
-Best regards
-Peter Meszmer
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
