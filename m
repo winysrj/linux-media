@@ -1,26 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.238])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JUrT6-0003fq-Ru
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 23:43:13 +0100
-Received: by wr-out-0506.google.com with SMTP id 68so5473940wra.13
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 14:43:09 -0800 (PST)
-Message-ID: <d9def9db0802281443o60d211e4t6f1060a301c830b8@mail.gmail.com>
-Date: Thu, 28 Feb 2008 23:43:07 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
+	(envelope-from <jkolom@gmail.com>) id 1JLcFU-0004Ec-78
+	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 11:38:56 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so1589128fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 03 Feb 2008 02:38:55 -0800 (PST)
+Message-ID: <f829f02d0802030238i6cd6dad8k3eb6f1330cc127be@mail.gmail.com>
+Date: Sun, 3 Feb 2008 11:38:54 +0100
+From: "Josep Colom Ikuno" <jkolom@gmail.com>
+To: "Arris [ML]" <arris@gmx.net>
+In-Reply-To: <34575.84.113.215.192.1201822131.squirrel@www.zsolttech.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47C7329F.7030705@powercraft.nl>
-	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>
-	<47C73457.1030901@powercraft.nl>
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>
-	<47C7360E.9030908@powercraft.nl>
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Going though hell here,
-	please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+References: <34575.84.113.215.192.1201822131.squirrel@www.zsolttech.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] What is the MAC of a DVB card?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,113 +21,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1642761509=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/28/08, Markus Rechberger <mrechberger@gmail.com> wrote:
-> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > Markus Rechberger wrote:
-> > > On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > >> Markus Rechberger wrote:
-> > >>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > >>>> This message contains the following attachment(s):
-> > >>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
-> > >>>>
-> > >>>> Spent my hole day trying to get a dvd-t device up and running, this
-> is
-> > >>>> device number two I tried.
-> > >>>>
-> > >>>> Can somebody please tell me how to get this device working on:
-> > >>>>
-> > >>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
-> > >>>>
-> > >>>> I have to get some sleep now, because this is getting on my health
-> and
-> > >>>> that does not happen often....
-> > >>>>
-> > >>> Jelle, it's really easy to install it actually.
-> > >>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
-> > >>>
-> > >>> this is the correct "howto" for it.
-> > >>>
-> > >>> You need the linux kernel sources for your kernel, if you experience
-> > >>> any problems just post them to the em28xx ML.
-> > >>>
-> > >>> Markus
-> > >> Hi Markus,
-> > >>
-> > >> I tried that two times,
-> > >>
-> > >> The seconds build blows up in my face, I need specified dependecies to
-> > >> be able to compile the seconds driver...
-> > >>
-> > >
-> > > there are not so many dependencies, just submit the errors you get.
-> > >
-> > > Markus
+--===============1642761509==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1353_3250101.1202035134380"
+
+------=_Part_1353_3250101.1202035134380
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+There's a nicie guide about how to get DVB-H in
+http://amuse.ftw.at/downloads/dvbh-relay. It explains how to do that (and
+relay the video) quite well. And about receiving the MPEG-TS from the
+network... I don't know I suppose the way would be to receive it in VLC and
+then stream it.
+
+Josep
+
+On Feb 1, 2008 12:28 AM, Arris [ML] <arris@gmx.net> wrote:
+
+> > Hi,
 > >
-> > Here you go, lets see I will try it for 40 more minutes with your help
+> > I've always wanted to ask, but always forgotten...
 > >
+> > I've got a Hauppauge WinTV NOVA T USB2 and it has a MAC address.
+> >
+> > What is it useful for? Was it an attempt to access the card over the
+> network?
+> > Just curiosity.
 >
-> jelle@xubutu-en12000e:~$ hg clone
-> http://mcentral.de/hg/~mrec/em28xx-userspace2
-> destination directory: em28xx-userspace2
-> requesting all changes
-> adding changesets
-> adding manifests
-> adding file changes
-> added 21 changesets with 65 changes to 20 files
-> 18 files updated, 0 files merged, 0 files removed, 0 files unresolved
-> jelle@xubutu-en12000e:~$ cd em28xx-userspace2
-> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
-> if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
-> grep v4l_dvb_stub_attach
-> ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
-> fi
-> make -C /lib/modules/2.6.22-14-generic/build
-> SUBDIRS=/home/jelle/em28xx-userspace2 modules
-> make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
-> CC [M] /home/jelle/em28xx-userspace2/em2880-dvb.o
-> In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
-> /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
-> such file or directory
-> /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
-> such file or directory
-> /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
-> such file or directory
-> /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
-> No such file or directory
 >
-> there we go, the linux kernel sources aren't installed for your system.
+> u can use it for dvb-h downstream channels.
+> http://en.wikipedia.org/wiki/DVB-H
 >
-> apt-get install linux-source linux-headers-`uname -r`
+> senseless but funny thing here in vienna
 >
-> I'm not sure if the kernel sources are decompressed in /usr/src you
-> might have a look at it.
+> zsolt
 >
-> /lib/modules/`uname -r`/build should be a symlink to the root of the
-> extracted kernelsources.
 >
-> the root of your kernelsources should also contain a .config file.
 >
-> You can find the config file for your current kernel in /boot
 >
-> /boot/config-`uname -r`
 >
-> copy this file to the kernelroot and rename it to ".config"
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-oh wait someone already provided precompiled packages for that device
-for the same ubuntu version as you use.
+------=_Part_1353_3250101.1202035134380
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-http://mcentral.de/pipermail/em28xx/2008-February/001277.html
+There&#39;s a nicie guide about how to get DVB-H in <a href="http://amuse.ftw.at/downloads/dvbh-relay">http://amuse.ftw.at/downloads/dvbh-relay</a>. It explains how to do that (and relay the video) quite well. And about receiving the MPEG-TS from the network... I don&#39;t know I suppose the way would be to receive it in VLC and then stream it.<br>
+<br>Josep<br><br><div class="gmail_quote">On Feb 1, 2008 12:28 AM, Arris [ML] &lt;<a href="mailto:arris@gmx.net">arris@gmx.net</a>&gt; wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class="Ih2E3d">&gt; Hi,<br>&gt;<br>&gt; I&#39;ve always wanted to ask, but always forgotten...<br>&gt;<br>&gt; I&#39;ve got a Hauppauge WinTV NOVA T USB2 and it has a MAC address.<br>&gt;<br></div><div class="Ih2E3d">
+&gt; What is it useful for? Was it an attempt to access the card over the<br>network?<br>&gt; Just curiosity.<br><br><br></div>u can use it for dvb-h downstream channels.<br><a href="http://en.wikipedia.org/wiki/DVB-H" target="_blank">http://en.wikipedia.org/wiki/DVB-H</a><br>
+<br>senseless but funny thing here in vienna<br><br>zsolt<br><div><div></div><div class="Wj3C7c"><br><br><br><br><br>_______________________________________________<br>linux-dvb mailing list<br><a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></div></div></blockquote></div><br>
 
-Markus
+------=_Part_1353_3250101.1202035134380--
+
+
+--===============1642761509==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1642761509==--
