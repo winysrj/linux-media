@@ -1,23 +1,17 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from ti-out-0910.google.com ([209.85.142.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYO-00082D-FD
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 09:16:16 +0100
-Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
-	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYI-0004Rg-Nm
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 18:16:10 +1000
-Received: from korath.teln.shikadi.net ([192.168.0.14])
-	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYH-0004Q0-UN
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 18:16:09 +1000
-Message-ID: <47BFD5F4.3030805@shikadi.net>
-Date: Sat, 23 Feb 2008 18:14:44 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
+	(envelope-from <lwtbenben@gmail.com>) id 1JLUv1-0004Be-QN
+	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 03:49:20 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so46358tia.13
+	for <linux-dvb@linuxtv.org>; Sat, 02 Feb 2008 18:49:15 -0800 (PST)
+Message-ID: <9618a85a0802021849u26d9ee73j799d7194fe12cc62@mail.gmail.com>
+Date: Sun, 3 Feb 2008 10:49:15 +0800
+From: "kevin liu" <lwtbenben@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Is there a daemon style program for scheduled DVB
-	recording?
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Issues about mt2131 tuner driver.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,35 +22,19 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everyone,
+Hi,
+    I am testing mt2131 tuner driver these days until I encountered a problem.
+    I can tune to channel 10 but I can not tune to 30.
+    I compared the 01-06 registers of mt2131 then(assume channel 10), I found
+they are different when using windows driver.
+    Did anybody have the same problem?
+    Please give me some advice.
+    And does mt2131 work the same way when tuning to NTSC or ATSC???
 
-I'm currently setting up a new server that will (among other things)
-record TV shows for me.  In the past I've used cron to schedule
-recording jobs, and I've used dvbrecord to do the actual recording.
-
-This set up has served me well for many years, but unfortunately
-dvbrecord doesn't seem to exist any more, and it never supported
-programs with AC3 audio anyway (which is pretty much all the HDTV
-channels here in Australia.)
-
-If you were setting up a headless machine to record TV shows, what
-programs would you use to do this?  Ideally I'd like the shows dumped
-into a local directory, so that I can watch them over NFS with mplayer,
-but I'm open to alternatives.
-
-I really want to avoid running a whole "media centre" program like
-MythTV, VDR, etc. as I'd like this to be lean and clean and I don't mind
-using the command line for playback.
-
-Any suggestions?  I'd be happy to document the final system,
-installation, configuration, etc. on the LinuxTV wiki, as I couldn't
-find any info about this sort of thing on there at the moment.
-
-Many thanks,
-Adam.
+    With all best wishes!
 
 _______________________________________________
 linux-dvb mailing list
