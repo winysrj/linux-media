@@ -1,37 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1JGdkWc021053
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 11:39:46 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1JGdA88013025
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 11:39:10 -0500
-Date: Tue, 19 Feb 2008 13:38:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080219133845.56fc5e7c@gaivota>
-In-Reply-To: <20080219065109.199ee966@gaivota>
-References: <20080127173132.551401d9@tux.abusar.org.br>
-	<20080128165403.1f7137e0@gaivota>
-	<20080128182634.345bd4e8@tux.abusar.org.br>
-	<20080128184534.7af7a41b@gaivota>
-	<20080128192230.59921445@tux.abusar.org.br>
-	<20080129004104.17e20224@gaivota>
-	<20080129021904.1d3047d1@tux.abusar.org.br>
-	<20080129025020.60fa33de@gaivota>
-	<20080129050103.2fae9d61@tux.abusar.org.br>
-	<20080129122547.63214371@gaivota>
-	<37219a840802182044k5a24bcbbm3646560c595df564@mail.gmail.com>
-	<20080219065109.199ee966@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>,
-	=?UTF-8?B?RMOibmllbA==?= Fraga <fragabr@gmail.com>,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>,
-	Michael Krufky <mkrufky@linuxtv.org>, LinuxTV-DVB <linux-dvb@linuxtv.org>
-Subject: Re: [EXPERIMENTAL] cx88+xc3028 - tests are required - was: Re: When
- xc3028/xc2028 will be supported?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m13IH8ki003979
+	for <video4linux-list@redhat.com>; Sun, 3 Feb 2008 13:17:08 -0500
+Received: from anchor-post-31.mail.demon.net (anchor-post-31.mail.demon.net
+	[194.217.242.89])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m13IGcHN017727
+	for <video4linux-list@redhat.com>; Sun, 3 Feb 2008 13:16:38 -0500
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-31.mail.demon.net with esmtp (Exim 4.67)
+	id 1JLjOP-000PVV-5t
+	for video4linux-list@redhat.com; Sun, 03 Feb 2008 18:16:37 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1JLjOL-00065g-Gr
+	for video4linux-list@redhat.com; Sun, 03 Feb 2008 18:16:37 +0000
+Date: Sun, 03 Feb 2008 18:06:42 +0000
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: video4linux-list@redhat.com
+Message-ID: <4F70E0B1F8%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <200802031035.20278.tobias.lorenz@gmx.net>
+References: <200802021620.15038.tobias.lorenz@gmx.net>
+	<200802021657.35685.tobias.lorenz@gmx.net>
+	<4F7055831C%linux@youmustbejoking.demon.co.uk>
+	<200802031035.20278.tobias.lorenz@gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Subject: Re: [PATCH] Trivial printf warning fix (radio-si470)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,40 +39,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 19 Feb 2008 06:51:09 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+I demand that Tobias Lorenz may or may not have written...
 
-> > The repository is broken after and including changeset ce6afd207b71 -
-> That's said, maybe SET_TUNER_CONFIG is being called too early. Maybe the way to
-> fix this is to create an special function to initialize it, that would be
-> called later by cx8800 or cx8802.
+>> If that's right, can you explain why the warning which I saw mentioned
+>> "long unsigned int"...?
 
-After analysing the code, I noticed that "tuner" module is requested too late,
-o both cx88 and saa7134 drivers. This explains why there are some instabilities
-on those drivers with certain tuners.
+[snip]
+> Is guess your amd64 is a ia64 architecture.
 
-I've did some changesets fixing both drivers at:
-	http://linuxtv.org/hg/~mchehab/cx88-xc2028/
+No, it's amd64 (a.k.a. x86_64).
 
-I expect that we should have better results after those changes. I also added
-some newer printk's to cx88 driver. This way, we'll have a cleaner idea if an
-error is still occurring.
+> Therefore ssize_t should be a long int on your machine.
 
-Guys, please test.
+ssize_t, yes (actually, signed long int, not that there's any difference).
+But sizeof() returns size_t.
 
-Daniel Gimpelevich,
+[snip]
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + At least 4000 million too many people. POPULATION LEVEL IS UNSUSTAINABLE.
 
-Could you please rebase your changesets fixing the gpio's for PowerColor Real
-Angel 330 and send them to me?
-
-Dâniel Fraga,
-
-Please test if the gpio's from Daniel Gimpelvinch works for you, against the
-newer tree. I suspect it will work. However, is it not uncommon to have two
-cards with the same brand name, but needing different gpio settings.
-
-Cheers,
-Mauro
+A project not worth doing at all is not worth doing well.
 
 --
 video4linux-list mailing list
