@@ -1,17 +1,16 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rino4tv@gmail.com>) id 1JTIi4-0003eG-Cn
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 16:24:12 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so832990fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 07:24:08 -0800 (PST)
-Message-ID: <45a844ef0802240724t62dc196ap1ba774e72a2365b5@mail.gmail.com>
-Date: Sun, 24 Feb 2008 16:24:08 +0100
-From: "Salvatore De Astis" <rino4tv@gmail.com>
-To: linux-dvb@linuxtv.org
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Date: Sun, 3 Feb 2008 18:05:06 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Bodo Eggert <7eggert@gmx.de>
+In-Reply-To: <E1JLi7A-0003bn-5Y@be1.7eggert.dyndns.org>
+Message-ID: <Pine.LNX.4.64.0802031802530.25263@pub6.ifh.de>
+References: <9Sxa6-6B-7@gated-at.bofh.it>
+	<E1JLi7A-0003bn-5Y@be1.7eggert.dyndns.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] Pinnacle Hybrid Pro Stick 330e - DVB - Micronas
-	DRX3975D/DRX3977D based
+Cc: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org,
+	Roel Kluin <12o3l@tiscali.nl>
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [PATCH]
+ [rivers/media/video/tvaudio.c] add parentheses
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,44 +18,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0031847113=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0031847113==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_4238_22369288.1203866648900"
-
-------=_Part_4238_22369288.1203866648900
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
 Hi,
-I bouth the hardware in object and I would like support to use it for
-digital tv.
-Anyone can help me?
 
-------=_Part_4238_22369288.1203866648900
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sun, 3 Feb 2008, Bodo Eggert wrote:
 
-Hi,<br>I bouth the hardware in object and I would like support to use it for digital tv. <br>Anyone can help me? <br>
+> Roel Kluin <12o3l@tiscali.nl> wrote:
+> 
+> > '!' has a higher priority than '&': bitanding has no effect.
+> 
+> > +++ b/drivers/media/video/tvaudio.c
+> > @@ -1571,14 +1571,14 @@ static int tvaudio_get_ctrl(struct CHIPSTATE *chip,
+> >  ctrl->value=chip->muted;
+> >  return 0;
+> >  case V4L2_CID_AUDIO_VOLUME:
+> > -             if (!desc->flags & CHIP_HAS_VOLUME)
+> > +             if (!(desc->flags & CHIP_HAS_VOLUME))
+> 
+> This is a cosmetic change, because:
+> 
+> !1100101 & 0000100 == 0011010 & 0000100 == 0 /* false */
+> !(1100101 & 0000100) == !0000100 == 0 /* false */
+> 
+> !1100001 & 0000100 == 0011110 & 0000100 == 0000100 /* non-false */
+> !(1100001 & 0000100) == !0000000 == 1 /* non-false */
+> 
+> 
+> OTOH, your change may result in better code by using a negated jump instead of
+> explicitely negating the value.
 
-------=_Part_4238_22369288.1203866648900--
+If I'm not totally wrong, ! is negating integers: !123 == 0. At least I 
+hope that, otherwise I have to go through a lot of code ;)
 
+Your interpretation of ! is actually achieved by using ~ .
 
---===============0031847113==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Patrick.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0031847113==--
