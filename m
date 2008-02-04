@@ -1,25 +1,16 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fides.aptilo.com ([62.181.224.35])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jonas@anden.nu>) id 1JRkpD-0006Qv-Rf
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 10:01:11 +0100
-Received: from [192.168.1.8] (h-49-157.A157.cust.bahnhof.se [79.136.49.157])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(No client certificate requested)
-	by fides.aptilo.com (Postfix) with ESMTP id 4F7CF1F9065
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 10:00:32 +0100 (CET)
-From: Jonas Anden <jonas@anden.nu>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
-References: <1203434275.6870.25.camel@tux>
-	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
-	<1203457264.8019.6.camel@anden.nu> <1203459408.28796.19.camel@youkaida>
-	<Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
-Date: Wed, 20 Feb 2008 10:00:27 +0100
-Message-Id: <1203498027.10076.13.camel@anden.nu>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
-	ir	receiver
+	(envelope-from <tkrantz@stahurabrenner.com>) id 1JM5l7-0002ca-NC
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 19:09:33 +0100
+From: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
+To: "'Chaogui Zhang'" <czhang1974@gmail.com>, <linux-dvb@linuxtv.org>
+References: <20080128172009.GA15773@gauss.marywood.edu>
+Date: Mon, 4 Feb 2008 13:07:54 -0500
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAGiow9eC/plOkJFZOiAHb4MBAAAAAA==@stahurabrenner.com>
+MIME-Version: 1.0
+In-Reply-To: <20080128172009.GA15773@gauss.marywood.edu>
+Subject: Re: [linux-dvb] [PATCH] XC5000 tuner improvement/clean up
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,37 +21,31 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > Wouldn't going away from an event interface kill a possible direct link
-> > between the remote and X?
+> On Jan 27, 2008 6:50 PM, Chaogui Zhang <czhang1974@gmail.com> wrote:
+> > 
+> > Download the newest v4l-dvb tree from http://linuxtv.org/hg/v4l-dvb 
+> > and apply the patch against it.
+> > 
+> 
+> I just noticed that the previous patch that fixed the kernel 
+> oops has been merged into the master tree, which conflicts 
+> with the patch for tuner performance improvement(which 
+> contains the oops fixes too). I regenerated the patch against 
+> the master tree and it is below. Please use this one instead.
+> 
+> --
+> Chaogui Zhang
 
-Yes, it would.
 
-> > The way I see it, LIRC is an additional layer that may be one too many
-> > in most cases. From my point of view, it is a relative pain I could do
-> > without. But I may have tunnel vision by lack of knowledge.
->
-> I agree with you. I'm more looking for a solution with existing things. 
-> LIRC is not in kernel. I don't think we should do something specific, new. 
-> If there is nothing which can be done with the event system I think we 
-> should either extend it or just drop this idea.
+Any idea when this will me merged with the main tree?
 
-IMHO, the event interface does not match well with the reduced key set
-on a remote control. The keys are mapped in the driver which makes it
-difficult to customize. I'm not talking about the current problem with
-the mappings being hardcoded -- that could probably be solved without
-too much work.
+It is working great for me.
 
-The problem I see with the mapping taking place in the driver, is that
-the interpretation of the key presses and releases should be
-application-specific. If I'm in MythTV, I want one interpretation. In
-Evolution, the same keypress should be interpreted differently. Firefox
-has a third set of mappings. Lircd solves this problem for me, while the
-event interface creates one static mapping.
+Tim
 
-  // J
 
 
 _______________________________________________
