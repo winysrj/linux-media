@@ -1,21 +1,24 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.226])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from py-out-1112.google.com ([64.233.166.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JV6lu-0006Yo-RU
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 16:03:39 +0100
-Received: by wr-out-0506.google.com with SMTP id 68so6118917wra.13
-	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 07:03:04 -0800 (PST)
-Message-ID: <d9def9db0802290703x1094eb64l8accec0f2da2bc7f@mail.gmail.com>
-Date: Fri, 29 Feb 2008 16:03:03 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47C81C1E.5080400@powercraft.nl>
+	(envelope-from <eduardhc@gmail.com>) id 1JM96A-0004qH-QA
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 22:43:30 +0100
+Received: by py-out-1112.google.com with SMTP id a29so2443367pyi.0
+	for <linux-dvb@linuxtv.org>; Mon, 04 Feb 2008 13:43:29 -0800 (PST)
+Message-ID: <617be8890802041343x1acf5412yfd46bbbe3dc9eb5e@mail.gmail.com>
+Date: Mon, 4 Feb 2008 22:43:28 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Matthias Schwarzott" <zzam@gentoo.org>
+In-Reply-To: <200802042213.38495.zzam@gentoo.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47C81C1E.5080400@powercraft.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] how can I create a czap config file without an
-	sample config file for my environment
+References: <617be8890801290207t77149e2fh73c753501c39e835@mail.gmail.com>
+	<617be8890801290513i31dbd438gd259dad054ee4223@mail.gmail.com>
+	<617be8890801290523y14ac536dle7d26c0624cae1b5@mail.gmail.com>
+	<200802042213.38495.zzam@gentoo.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Patch for analog part for Avermedia A700 fails to
+	apply
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,60 +29,53 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Jelle,
+Great!! Many thanks! I'll give it a try as soon as possible.
+Thank you very much for your dedication :D
 
-On Fri, Feb 29, 2008 at 3:52 PM, Jelle de Jong
-<jelledejong@powercraft.nl> wrote:
-> Hello all,
->
->  I wanted to create the channel config files for my environment, but
->  there is no scan example configuration that works for my environment, I
->  do have the websites with tabels of the frequencys. How do i create my
->  channel.conf ....
->
->  sudo apt-get install dvb-utils
->
->  # dvb-c channels:
->  firefox http://www.upc.nl/frequencies_gm.php?GM=0493 &
->
->  # dvb-t channels:
->  firefox http://www.digitenne.nl/pagina_49.html &
->
->  # make directorys to store channel configurations
->  mkdir --verbose ~/.{t,c}zap
->
->  scan --help
->  sudo scan -A 1/usr/share/doc/dvb-utils/examples/scan/dvb-t/..... >
->  ~/.tzap/channels.conf
->  sudo scan -A 2 /usr/share/doc/dvb-utils/examples/scan/dvb-c/.... >
->  ~/.czap/channels.conf
->
+Best regards,
+  Eduard
 
-In case you want to use DVB-C, the Pinnacle Hybrid Pro 330e does NOT
-support DVB-C, only analogue TV.
-This device only supports DVB-T and analogue TV (which has nothing to
-do with DVB-C or DVB-S)
-You might try kaffeine for scanning for DVB-T channels.
 
-for creating a custom scanfile you need some information about the
-dvb-t transponder.
-T 482000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-T 762000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
 
-the Pinnacle 330e is capable of autodetecting everything beside the
-first 2 entries (frequency, bandwidth)
-
-There are tools available for creating scanfiles and running the
-bruteforce method:
-http://www.johannes-bauer.com/dvbt/
-look at Schritt 4, or tar xfvj dvbt-scanaid-0.03.tar.bz2
-
-http://www.johannes-bauer.com/dvbt/dvbt-scanaid-0.03.tar.bz2
-
-Markus
+2008/2/4, Matthias Schwarzott <zzam@gentoo.org>:
+> On Dienstag, 29. Januar 2008, Eduard Huguet wrote:
+> > 2008/1/29, Matthias Schwarzott <zzam@gentoo.org>:
+> > >
+> > > Sure the patch is too old. There was added a new card to saa7134 driver.
+> > > So I
+> > > needed to update the patch.
+> > > You can now get the patch from my last mail (it was attached).
+> > > http://thread.gmane.org/gmane.linux.drivers.dvb/38943/focus=38952
+> > >
+> > > Or you re-download the file linked from the wiki. I uploaded the new
+> > > version.
+> > >
+> > > Greetings
+> > > Matthias
+> > >
+> > > --
+> > > Matthias Schwarzott (zzam)
+> >
+> > Ok, thanks. I'll try it later.
+> >
+> > Best regards,
+> >   Eduard Huguet
+>
+> Hi Eduard!
+> The full patch can be found here: http://dev.gentoo.org/~zzam/dvb/
+>
+> It is now also linked from here:
+> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_(A700)
+>
+> Regards
+> Matthias
+>
+> --
+> Matthias Schwarzott (zzam)
+>
 
 _______________________________________________
 linux-dvb mailing list
