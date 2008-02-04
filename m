@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JPHk5-00067m-0L
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 14:33:41 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Eduard Huguet <eduardhc@gmail.com>
-Date: Wed, 13 Feb 2008 14:33:09 +0100
-References: <47ADC81B.4050203@gmail.com> <200802092214.06946.zzam@gentoo.org>
-	<47AECFEF.3010503@gmail.com>
-In-Reply-To: <47AECFEF.3010503@gmail.com>
+Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <CityK@rogers.com>) id 1JM3sR-00014O-8y
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 17:08:59 +0100
+Message-ID: <47A73879.5060604@rogers.com>
+Date: Mon, 04 Feb 2008 11:08:25 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802131433.09531.zzam@gentoo.org>
+To: Christoph Mockenhaupt <linux-dvb@mockies.de>
+References: <200802041105.53095.linux-dvb@mockies.de>
+In-Reply-To: <200802041105.53095.linux-dvb@mockies.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Some tests on Avermedia A700
+Subject: Re: [linux-dvb] [Bulk]  Terratec Cinergy DT XS Diversity remote
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,64 +25,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sonntag, 10. Februar 2008, Eduard Huguet wrote:
-> En/na Matthias Schwarzott ha escrit:
-> > On Samstag, 9. Februar 2008, Eduard Huguet wrote:
-> >> Hi, Matthias
-> >
-> > Hi Eduard!
-> >
-> >>     I've been performing some tests using your patch for this card.
-> >> Right now neither dvbscan nor kaffeine are able to find any channel on
-> >> Astra (the sat. my dish points to).
-> >>
-> >> However, Kaffeine has been giving me some interesting results: with your
-> >> driver "as is" it's getting me a 13-14% signal level and ~52% SNR when
-> >> scanning. Then, thinking that the problem is related to the low signal I
-> >> have I've changed the gain levels used to program the tuner: you were
-> >> using default values of 0 for all (in zl1003x_set_gain_params()
-> >> function, variables "rfg", "ba" and "bg"), and I've changed them top the
-> >> maximum (according to the documentation: rfg=1, ba=bg=3). With that, I'm
-> >> getting a 18% signal level, which is higher but still too low apparently
-> >> to get a lock.
-> >>
-> >> I've stopped here, because I really don't have the necessary background
-> >> to keep tweaking the driver. I just wanted to share it with you, as
-> >> maybe you have some idea on how to continue or what else could be done.
-> >
-> > So I can do only this guess:
-> > I changed demod driver to invert the Polarization voltage for a700 card.
-> > This is controlled by member-variable voltage_inverted.
-> >
-> > static struct mt312_config avertv_a700_mt312 = {
-> >         .demod_address = 0x0e,
-> >         .voltage_inverted = 1,
-> > };
-> >
-> > Can you try to comment the voltage_inverted line here (saa7134-dvb.c:
-> > line 865).
-> >
-> > BUT: If this helps we need to find out how to detect which card needs
-> > this enabled/disabled.
-> >
-> > Regards
-> > Matthias
+Christoph Mockenhaupt wrote:
+> Unfortunately this does not have the desired effect. The problem is that 
+> sometimes just "00 00 00 00" is received, sometimes the last bit _is_ toggled 
+> and staying at "00" or key[3] does not change to 0 at all even if a key is 
+> pressed.
 >
-> Hi,
->   Nothing :(. Removing (or setting it to 0) the voltage_inverted member
-> doesn't seem to make any difference. I'm starting to suspect that there
-> is something wrong with my antennae setup, so I'll test it later using
-> an standalone STB or by plugging the card into a Windows computer and
-> using the supplied drivers.
->
-Even better: Tune to a channel and measure the voltage the card outputs on LNB 
-connector.
+> Could this be a problem of the firmware? Currently I'm using 
+> dvb-usb-dib0700-1.10.fw
+> This seems to be the latest one available. Unfortunately the "generate 
+> firmware" function on Patricks webpages does not work (or at least I don't 
+> know which file to upload) and www.thadathil.net is down. Is there any way I 
+> can extract the firmware myself?
+> Is anybody using this receiver along with the remote successfully?
+> Any idea?
+>   
 
-Regards
-Matthias
-
--- 
-Matthias Schwarzott (zzam)
+For firmware, see: http://www.linuxtv.org/wiki/index.php/Firmware
 
 _______________________________________________
 linux-dvb mailing list
