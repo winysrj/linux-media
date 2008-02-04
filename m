@@ -1,21 +1,25 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.243])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from fides.aptilo.com ([62.181.224.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jklaas@appalachian.dyndns.org>) id 1JSGWW-0003fw-Oa
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 19:52:01 +0100
-Received: by an-out-0708.google.com with SMTP id d18so42571and.125
-	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 10:51:56 -0800 (PST)
-Message-ID: <18b102300802211051m3823e365v1fa025ac46edca0b@mail.gmail.com>
-Date: Thu, 21 Feb 2008 13:51:55 -0500
-From: "James Klaas" <jklaas@appalachian.dyndns.org>
-To: CityK <CityK@rogers.com>
-In-Reply-To: <47BDB0FA.7080500@rogers.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
-	<47BDB0FA.7080500@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HD capture
+	(envelope-from <jonas@anden.nu>) id 1JM63n-0004U4-O2
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 19:28:51 +0100
+Received: from [192.168.1.8] (h-134-69.A157.cust.bahnhof.se [81.170.134.69])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by fides.aptilo.com (Postfix) with ESMTP id E06E51F9063
+	for <linux-dvb@linuxtv.org>; Mon,  4 Feb 2008 19:28:19 +0100 (CET)
+From: Jonas Anden <jonas@anden.nu>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1202031541.17762.23.camel@anden.nu>
+References: <BC723861-F3E2-4B1C-BA54-D74B8960579A@firshman.co.uk>
+	<47A38A25.2030804@firshman.co.uk> <1201902231.935.12.camel@youkaida>
+	<200802021020.20298.shaun@saintsi.co.uk>
+	<1202031541.17762.23.camel@anden.nu>
+Content-Type: multipart/mixed; boundary="=-Rvk/wPbKDufuSIBvaJFH"
+Date: Mon, 04 Feb 2008 19:28:09 +0100
+Message-Id: <1202149689.6981.10.camel@anden.nu>
+Mime-Version: 1.0
+Subject: [linux-dvb] [PATCH] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,107 +27,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-First, let me say that This is not in my near term purchase plans, but
-I was mostly curious to know the possiblities of support of this (or
-something like it) long term. This is the thread that got me
-interested in asking
-http://www.gossamer-threads.com/lists/mythtv/users/317435.
 
-Partly what piqued my interest is there has been a great deal of talk
-about how capturing HD streams without compression is very difficult
-without very high end components, very expensive capture cards etc,
-etc.  It was surprising to me that you could in fact find something
-like this for less than $1000.  With a card like this, it would be
-conceivable to create a HD capture system for well under a $1000.
+--=-Rvk/wPbKDufuSIBvaJFH
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On 2/21/08, CityK <CityK@rogers.com> wrote:
-> James Klaas wrote:
->  > HD capture ...... HDMI/component/composite
->  >
->
->  Whether it be done through an analog connection (eg. component) or
->  digital connection (eg. HDMI/DVI/SDI), it all falls under the realm of
->  the V4L subsystem, not DVB.
+Hi all, 
 
-Is that because it purports to capture the streams without
-compression?  Or does that have more to do with a lack of a tuner?
+> I have a hunch about this problem...
+...
+> This, ... leads me to believe that this is timer-induced. Something
+> can't keep up. Adding debugging makes the operations slightly slower
+> (the module needs to do additional IO to speak to syslogd), and this
+> delay seems to be enough to keep it operational.
 
->  V4L API's current facilities may not even extend far enough for such
->  applications anyway .... I'm not certain, nor really qualified to
->  comment (so someone with a more authoritative opinion should be listened
->  to/consulted), but I expect that this would be rather pioneering with
->  the current API and, hence, would require some additions/extensions to
->  be made before such tasks could be realized.
+Attached is an extremely simple patch which seems to resolve the issue
+for me. Before turning streaming on/off, I have inserted a tiny delay or
+10 ms-
 
->  > There was a discussion over on the mythtv-users forum on HD capture
->  > that devolved into another discussion, but there was an article on
->  > converting your HD-DVDs to Blue-Ray
->  > (http://howto.wired.com/wiki/Convert_Your_HD_DVDs_to_Blu-Ray).  They
->  > pointed to a HDMI/component/composite capture card at
->  > http://www.blackmagic-design.com/products/intensity/.
->  >
->  > While I wouldn't expect this to be supported anytime soon, has anyone
->  > even looked at this?
->
->
-> - By chance, in that discussion on the mythtv-users forum to which you
->  refer, did any of the contributers/posters search that m/l's own
->  archives in respect to the Intensity? If not, then in this thread (
->  http://www.gossamer-threads.com/lists/mythtv/users/223410#223410 ) you
->  will see that Blackmagic reportedly expressed some openness towards the
->  idea of Linux support. I haven't heard of anything further on the matter
->  than that ... that doesn't mean that there hasn't been anything else
->  said, and perhaps there is indeed some follow up ... I don't know ...
->  but either way, that will require some searching, and that I leave as an
->  exercise for someone else.
+Just using 'debug=1' wasn't enough to keep tuner 2 from dying. I set it
+up yesterday morning with debug=1, and when I got back home in the
+evening the second tuner was dead again. I then made the attached patch
+and the system has been stable since then (~24 hrs).
 
-That particular thread did not mention the Intensity.  But it did
-mention the HD-PVR at one point at least.
+I also made a slight change by removing a "| 0x00" from the code. It
+performs absolutely nothing (and is probably removed by the compiler in
+optimization) but confuse when reading the code, imho... Patrick, if you
+really want it there I can recreate the patch with the or statement
+back ;)
 
->  - in regards to whether anyone around here has looked at this, I don't
->  think any of the regulars ever have ... let alone ever considered it ...
->  most people wouldn't even be aware of it (and the other existing
->  alternatives ) ... in addition, it would be new territory, and likely a
->  difficult development process ... so if there is anyone working on that
->  device, or looking at it, its likely they are not directly associated or
->  involved around here.
->
->  - in addition to BM's Intensity and Intensity Pro, there are a few other
->  "cheaper" solutions that are available. This thread on Doom9 (and
->  despite its title) makes mention of them and provides examples of some
->  of them in use: http://forum.doom9.org/showthread.php?p=1044824#post1044824
->
->  - as far as I know, the more expensive professional and prosumer
->  solutions (i.e the AJA xena's, BM Decklinks, Accustreams, Bluefish444
->  cards etc etc) do have Linux support ... albeit, it is through
->  proprietary SDKs or developed inhouse by the production studios using
->  such products . There was a brief discussion about these on the V4L
->  mailing list a few years ago; see/read through this thread:
->  http://marc.info/?l=linux-video&m=115374256412690&w=2
->
->  - lastly, did that MythTV-users thread mention the forthcoming Hauppauge
->  HD-PVR (component input) ? ... given that the LinuxTV developer rank
->  does include a couple of guys from Hauppauge, and given that both of
->  them have made mention of that device, and given Hauppauge's stance on
->  Linux support is very positive, I'd be willing to bet that the chances
->  of open/publicly available support for this device materializing are
->  far, far greater than any of the other devices mentioned
->  above.....though, bear in mind there are, of course, never any
->  guarantees or certainties, nor am I speaking on the behave of anyone.
->
+Feel free to try it out.
 
-Thank you all for the information.  I had no idea it would spark such
-a lively discussion.
+  // J
 
-James
+--=-Rvk/wPbKDufuSIBvaJFH
+Content-Disposition: attachment; filename=tunerdeath.patch
+Content-Type: text/x-patch; name=tunerdeath.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+diff -r c08115f8f1f3 linux/drivers/media/dvb/dvb-usb/dib0700_core.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_core.c	Sun Jan 27 17:24:26 2008 +0000
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_core.c	Mon Feb 04 19:17:03 2008 +0100
+@@ -243,7 +243,7 @@ int dib0700_streaming_ctrl(struct dvb_us
+ 	u8 b[4];
+ 
+ 	b[0] = REQUEST_ENABLE_VIDEO;
+-	b[1] = (onoff << 4) | 0x00; /* this bit gives a kind of command, rather than enabling something or not */
++	b[1] = (onoff << 4); /* this bit gives a kind of command, rather than enabling something or not */
+ 	b[2] = (0x01 << 4); /* Master mode */
+ 	b[3] = 0x00;
+ 
+@@ -256,6 +256,7 @@ int dib0700_streaming_ctrl(struct dvb_us
+ 
+ 	b[2] |= st->channel_state;
+ 
++	msleep(10);
+ 	deb_info("data for streaming: %x %x\n",b[1],b[2]);
+ 
+ 	return dib0700_ctrl_wr(adap->dev, b, 4);
+
+--=-Rvk/wPbKDufuSIBvaJFH
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-Rvk/wPbKDufuSIBvaJFH--
