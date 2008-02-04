@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1C4FiYI011257
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 23:15:44 -0500
-Received: from smtp5.clear.net.nz (smtp5.clear.net.nz [203.97.33.68])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1C4FARV028705
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 23:15:11 -0500
-Received: from zaphod (121-72-250-62.cable.telstraclear.net [121.72.250.62])
-	by smtp5.clear.net.nz (CLEAR Net Mail)
-	with ESMTP id <0JW300H0NYH7RT30@smtp5.clear.net.nz> for
-	video4linux-list@redhat.com; Tue, 12 Feb 2008 17:15:08 +1300 (NZDT)
-Date: Tue, 12 Feb 2008 17:17:59 +1300
-From: Eliot Blennerhassett <linux@audioscience.com>
-To: video4linux-list@redhat.com
-Message-id: <200802121717.59498.linux@audioscience.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-Content-disposition: inline
-Subject: V4L2 support card with multiple radio tuners,
- each supporting multiple bands?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m149Nffg000859
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:23:41 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m149N9e0019579
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:23:09 -0500
+Date: Mon, 4 Feb 2008 07:22:33 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Andy McMullan" <andy@andymcm.com>
+Message-ID: <20080204072233.073d40da@gaivota>
+In-Reply-To: <fea7c4860802030606v6614d884i1a5e71980709739f@mail.gmail.com>
+References: <fea7c4860802030504k60ab0466ta03572a9083a69e@mail.gmail.com>
+	<fea7c4860802030606v6614d884i1a5e71980709739f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: bt878 'interference' on fc6 but not fc1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,39 +28,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Sun, 3 Feb 2008 14:06:05 +0000
+"Andy McMullan" <andy@andymcm.com> wrote:
 
-I am presently working on updating the V4L driver for our tuner cards to V4L2, 
-and need some help with a few details...
-pointers to existing relevant sourcecode would be a fine start!
+> > I've been using a Hauppauge WinTv (bt878) card with fedora core 1 for
+> > some time with no problems.  Yesterday I added a Fedora Core 6
+> > installation to the same PC (dual-boot), but when running FC6 I see a
+> > sort of wavey flickery interference pattern.   Switch back to FC1 and
+> > there's no interference.
+> 
+> Well, I've discovered that if my TV is off, the interference goes
+> away, so obviously it's electrical interference from the TV.   I
+> really don't understand how that would show up in FC6 and not FC1,
+> though.
 
-These cards 
-http://audioscience.com/internet/products/tuner_cards/tunercards.htm have up 
-to 8 radio and/or TV (audio only) tuners . There may be a mix of tuners on 
-the card.
+Maybe it have something to do with some power saving cycle at the processor.
+You may try to change powersave governor policy and see the results.
 
-Each tuner may be capable of receiving more than one band or standard eg 
-(AM/FM) (FM/TV-NTSC) (TV-PAL) (TV-multistandard)
-
-Our current V4L1 driver creates a separate device for each tuner.  
-I think V4L2 still doesn't support multiple radio tuners?  Is there any reason 
-why radio tuners are treated differently from tv tuners in this respect?
-
-The V4L1 tuner capabilities reports the number of bands supported as 
-video_capability.channels. Then during query video_tuner.tuner is used to 
-enumerate the name, range etc of each band.
-
-Is there an equivalent for V4L2?
-
-Are there any examples of V4L2 drivers for radio tuners about. I don't think 
-any of the current in-kernel drivers have been converted?
-
-thanks
-
--- 
---
-Eliot Blennerhassett
-www.audioscience.com
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
