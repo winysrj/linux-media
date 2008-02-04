@@ -1,17 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Tue, 26 Feb 2008 12:02:15 -0500
-From: Alan Cox <alan@redhat.com>
-To: Michel Bardiaux <mbardiaux@mediaxim.be>
-Message-ID: <20080226170215.GB4682@devserv.devel.redhat.com>
-References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
-	<20080226133839.GE26389@devserv.devel.redhat.com>
-	<47C440FB.8080705@mediaxim.be>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14IRIPi014886
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 13:27:18 -0500
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.237])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m14IQk1H012562
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 13:26:46 -0500
+Received: by wx-out-0506.google.com with SMTP id t16so1873133wxc.6
+	for <video4linux-list@redhat.com>; Mon, 04 Feb 2008 10:26:41 -0800 (PST)
+Date: Mon, 4 Feb 2008 09:51:27 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080204175127.GC5075@plankton.ifup.org>
+References: <ce6db52d63cbc5139236.1201510493@localhost>
+	<200802032010.38211.laurent.pinchart@skynet.be>
+	<20080204071420.157f101c@gaivota>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <47C440FB.8080705@mediaxim.be>
-Cc: video4linux-list@redhat.com
-Subject: Re: Grabbing 4:3 and 16:9
+In-Reply-To: <20080204071420.157f101c@gaivota>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 1 of 2] [v4l] Add camera class control definitions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,17 +31,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Feb 26, 2008 at 05:40:27PM +0100, Michel Bardiaux wrote:
-> credits on the captured MPEGs). But Daniel wrote that the 16:9 analog 
-> broadcasts have only 432 lines, so the info is not there in the first 
-> place. So that effect isnt an option for me. But thanks anyway.
+On 07:14 Mon 04 Feb 2008, Mauro Carvalho Chehab wrote:
+> On Sun, 3 Feb 2008 20:10:37 +0100
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> 
+> 
+> > > +enum  v4l2_exposure_auto_type {
+> > > +	V4L2_EXPOSURE_MANUAL = 1,
+> > > +	V4L2_EXPOSURE_AUTO = 2,
+> > > +	V4L2_EXPOSURE_SHUTTER_PRIORITY = 4,
+> > > +	V4L2_EXPOSURE_APERTURE_PRIORITY = 8
+> > > +};
+> > 
+> > V4L2 requires menu items to be numbered from minimum (0) to maximum inclusive 
+> > (see the description of VIDIOC_QUERYMENU). If V4L2_CID_EXPOSURE_AUTO is 
+> > implemented as a V4L2_CTRL_TYPE_MENU, the above values won't comply with 
+> > V4L2. Wether the menu IDs or the V4L2 spec should be changed is of course an 
+> > open question :-)
+> 
+> Since this is "C" and not "Pascal", let's start from 0 ;)
 
-Per frame.... if you sample as it scrolls and line up the title tops I suspect
-most of the time you can get more samples as the title moves.
+Agreed.  I was following the lead of the UVC spec- which in hindsight
+isn't the right thing in this case.
 
-Just a crazy idea
+I will send out a new patch.
 
-Alan
+Thanks,
+
+	Brandon
 
 --
 video4linux-list mailing list
