@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15L9gkW019098
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 16:09:42 -0500
-Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.178])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15L9LW1011914
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 16:09:22 -0500
-Received: by ik-out-1112.google.com with SMTP id c21so336508ika.3
-	for <video4linux-list@redhat.com>; Tue, 05 Feb 2008 13:09:21 -0800 (PST)
-Message-ID: <9e52368f0802051309r79cc480fva893019cb3be4519@mail.gmail.com>
-Date: Tue, 5 Feb 2008 16:09:19 -0500
-From: "De Ash" <deeash099@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14B3dcs006783
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 06:03:40 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m14B39SA014843
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 06:03:09 -0500
+Date: Mon, 4 Feb 2008 12:03:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 To: video4linux-list@redhat.com
-In-Reply-To: <9e52368f0802051130v68e63072m892cb084f081f61e@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0801311708390.8478@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0802041159180.4256@axis700.grange>
+References: <Pine.LNX.4.64.0801311658420.8478@axis700.grange>
+	<Pine.LNX.4.64.0801311708390.8478@axis700.grange>
 MIME-Version: 1.0
-References: <9e52368f0802051130v68e63072m892cb084f081f61e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Re: build fail
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,65 +27,122 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Got around building by taking out the conditional ifdefine..
+On Thu, 31 Jan 2008, Guennadi Liakhovetski wrote:
 
-changed
+> +static int
+> +pxa_videobuf_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+> +						enum v4l2_field field)
+> +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct soc_camera_host *ici =
+> +		to_soc_camera_host(icd->dev.parent);
+> +	struct pxa_camera_dev *pcdev = ici->priv;
+> +	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
+> +//	unsigned long flags;
+> +	int i, ret;
+> +
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __FUNCTION__,
+> +		vb, vb->baddr, vb->bsize);
+> +
+> +	/* Added list head initialization on alloc */
+> +	WARN_ON(!list_empty(&vb->queue));
+> +
+> +#ifdef DEBUG
+> +	/* This can be useful if you want to see if we actually fill
+> +	 * the buffer with something */
+> +	memset((void *)vb->baddr, 0xaa, vb->bsize);
+> +#endif
+> +
+> +	BUG_ON(NULL == icd->current_fmt);
+> +
+> +	/* I think, in buf_prepare you only have to protect global data,
+> +	 * the actual buffer is yours */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
-#include <sound/driver.h>
-#endif
+Could someone, please, confirm, that my assumption here is correct and I 
+don't need this additional locking here?
 
-to
-#include <sound/driver.h>
+> +//	spin_lock_irqsave(&pcdev->lock, flags);
+> +	buf->inwork = 1;
+> +
+> +	if (buf->fmt	!= icd->current_fmt ||
+> +	    vb->width	!= icd->width ||
+> +	    vb->height	!= icd->height ||
+> +	    vb->field	!= field) {
+> +		buf->fmt	= icd->current_fmt;
+> +		vb->width	= icd->width;
+> +		vb->height	= icd->height;
+> +		vb->field	= field;
+> +		vb->state	= VIDEOBUF_NEEDS_INIT;
+> +	}
+> +
+> +	vb->size = vb->width * vb->height * ((buf->fmt->depth + 7) >> 3);
+> +	if (0 != vb->baddr && vb->bsize < vb->size) {
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
+> +
+> +	if (vb->state == VIDEOBUF_NEEDS_INIT) {
+> +		unsigned int size = vb->size;
+> +		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
+> +
+> +		if (0 != (ret = videobuf_iolock(vq, vb, NULL)))
+> +			goto fail;
+> +
+> +		if (buf->sg_cpu)
+> +			dma_free_coherent(pcdev->dev, buf->sg_size, buf->sg_cpu, buf->sg_dma);
+> +
+> +		buf->sg_size = (dma->sglen + 1) * sizeof(struct pxa_dma_desc);
+> +		buf->sg_cpu = dma_alloc_coherent(pcdev->dev, buf->sg_size,
+> +						 &buf->sg_dma, GFP_KERNEL);
+> +		if (!buf->sg_cpu) {
+> +			ret = -ENOMEM;
+> +			goto fail;
+> +		}
+> +
+> +		dev_dbg(&icd->dev, "%s nents=%d size: %d sg=0x%p\n", __FUNCTION__,
+> +			dma->sglen, size, dma->sglist);
+> +		for (i = 0; i < dma->sglen; i++ ) {
+> +			struct scatterlist *sg = dma->sglist;
+> +			unsigned int dma_len = sg_dma_len(&sg[i]), xfer_len;
+> +
+> +			buf->sg_cpu[i].dsadr = pcdev->res->start + 0x28; /* CIBR0 */
+> +			buf->sg_cpu[i].dtadr = sg_dma_address(&sg[i]);
+> +			/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
+> +			xfer_len = (min(dma_len, size) + 7) & ~7;
+> +//			xfer_len = min(dma_len, size);
+> +			if (xfer_len & 7)
+> +				dev_err(&icd->dev, "Unaligned buffer: dma_len %u, size %u\n",
+> +					dma_len, size);
+> +			buf->sg_cpu[i].dcmd = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_INCTRGADDR |
+> +				xfer_len;
+> +			size -= dma_len;
+> +			buf->sg_cpu[i].ddadr = buf->sg_dma + (i + 1) *
+> +					sizeof(struct pxa_dma_desc);
+> +		}
+> +		buf->sg_cpu[dma->sglen - 1].ddadr = DDADR_STOP;
+> +		buf->sg_cpu[dma->sglen - 1].dcmd |= DCMD_ENDIRQEN;
+> +
+> +		vb->state = VIDEOBUF_PREPARED;
+> +	}
+> +
+> +	buf->inwork = 0;
+> +//	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +
+> +	return 0;
+> +
+> +fail:
+> +	free_buffer(vq, buf);
+> +out:
+> +	buf->inwork = 0;
+> +//	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +	return ret;
+> +}
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
-but now it gives error on mxb ..
-make -C /usr/src/v4l-dvb/v4l
-make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.24/build
-make -C /lib/modules/2.6.24/build SUBDIRS=/usr/src/v4l-dvb/v4l  modules
-make[2]: Entering directory `/usr/src/kernel-2.6.24/linux-2.6.24'
-  CC [M]  /usr/src/v4l-dvb/v4l/mxb.o
-/usr/src/v4l-dvb/v4l/mxb.c: In function 'mxb_check_clients':
-/usr/src/v4l-dvb/v4l/mxb.c:156: error: implicit declaration of function
-'i2c_verify_client'
-/usr/src/v4l-dvb/v4l/mxb.c:156: warning: initialization makes pointer from
-integer without a cast
-make[3]: *** [/usr/src/v4l-dvb/v4l/mxb.o] Error 1
-make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernel-2.6.24/linux-2.6.24'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
-make: *** [all] Error 2
-
-
-
-On Feb 5, 2008 2:30 PM, De Ash <deeash099@gmail.com> wrote:
-
-> Folks,
->
-> I am using kernel  2.6.24  from kernel.org.
-> Checked out v4l-dvb and the make fails with the following ..
-> Would appereciate help with this.
->
->  CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5110c1b.o
->   CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5110d.o
->   CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5130d1b.o
->   CC [M]  /usr/src/v4l-dvb/v4l/bt87x.o
-> In file included from /usr/src/v4l-dvb/v4l/bt87x.c:34:
-> include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a
-> function)
-> make[3]: *** [/usr/src/v4l-dvb/v4l/bt87x.o] Error 1
-> make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/kernel-2.6.24/linux-2.6.24'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
-> make: *** [all] Error 2
->
->
->
->
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
