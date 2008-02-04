@@ -1,25 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from rv-out-0910.google.com ([209.85.198.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JUPIm-0003qM-R6
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 17:38:40 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JWW0075GOV5VK70@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 27 Feb 2008 11:37:56 -0500 (EST)
-Date: Wed, 27 Feb 2008 11:37:53 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
-To: Craig Whitmore <lennon@orcon.net.nz>
-Message-id: <47C591E1.5030001@linuxtv.org>
-MIME-version: 1.0
-References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
-	<B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
- HVR-1700 and HVR-1200
+	(envelope-from <eduardhc@gmail.com>) id 1JLvvQ-0008G3-Lf
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 08:39:32 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so1868612rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 03 Feb 2008 23:39:30 -0800 (PST)
+Message-ID: <617be8890802032339l2f81a35el7f1a5e9ae08cdd8d@mail.gmail.com>
+Date: Mon, 4 Feb 2008 08:39:29 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <mailman.64.1202074788.809.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <mailman.64.1202074788.809.linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] linux-dvb Digest, Vol 37, Issue 5
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,41 +21,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Craig Whitmore wrote:
-> ----- Original Message ----- 
-> From: "Steven Ellis" <mail_lists@stevencherie.net>
-> To: <linux-dvb@linuxtv.org>
-> Sent: Wednesday, February 27, 2008 6:02 PM
-> Subject: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,HVR-1700 and 
-> HVR-1200
-> 
-> 
->> Been reading up on these as it appears that the HVR-2200 is now available
->> in Australia. I've updated the Wiki
->> (http://www.linuxtv.org/wiki/index.php/Hauppauge) with initial pages for
->> all of these cards, but I don't have any chip or technical details yet.
->>
-> 
-> The wholesalers in NZ have these 3 new cards as well in (but only the 2200 
-> in stock at the moment). If I read right a while ago no PCI-E cards have any 
-> drivers yet
-> 
-> Its low profile which is good and from the pictures I've found can't really 
-> see the chipset its using.
+> ---------- Missatge reenviat ----------
+> From: Nicolas Will <nico@youplala.net>
+> To: linux-dvb <linux-dvb@linuxtv.org>
+> Date: Sun, 03 Feb 2008 21:36:23 +0000
+> Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+>
+> On Sun, 2008-02-03 at 10:39 +0100, Jonas Anden wrote:
+> >
+> > My system has a 3.3 Ghz Celeron processor. Shaun, Ben, Nicolas -- what
+> > kind of systems are you running? If my hunch is correct, I'd expect
+> > Shaun and Ben to have faster processors than Nicolas since they are
+> > seeing this issue and Nicolas isn't.
+>
+>
+> I have a fast Core 2 Duo, 2.66 GHz, tons of cache, 64-bit OS.
+>
+> Nico
+> http://www.youplala.net/linux/home-theater-pc
 
-These are Philips/NXP PCIe bridges, not supported under Linux.  Manu is 
-working on a driver for the same family of silicon but don't assume 
-anything.
+Just my 0.02=80 to the statistics: I'm running an AthlonXP 3800+, 1 GB
+RAM, Gentoo 64 bits. I can't even remember when I had my last
+disconnect....
 
-- Steve
-
-
+Best regards,
+  Eduard
 
 _______________________________________________
 linux-dvb mailing list
