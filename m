@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E1YnEq031916
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:34:49 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E1YRw7016001
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:34:28 -0500
-Date: Wed, 13 Feb 2008 23:34:20 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Message-ID: <20080213233420.1db4fba5@gaivota>
-In-Reply-To: <20080213143235.b037fd32.akpm@linux-foundation.org>
-References: <20080213143235.b037fd32.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: x86_64 allmodconfig
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14MRdWk031260
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 17:27:39 -0500
+Received: from mr-afit.afit.edu (mr-afit.afit.edu [129.92.253.250])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m14MR5Cl005257
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 17:27:05 -0500
+Received: from webmail.afit.edu ([129.92.1.44])
+	by mr-afit.afit.edu (SMSSMTP 4.1.11.41) with SMTP id
+	M2008020417265520374
+	for <video4linux-list@redhat.com>; Mon, 04 Feb 2008 17:26:55 -0500
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Date: Mon, 4 Feb 2008 17:26:59 -0500
+Message-ID: <039A0DCC3D66EE4AB9AF11E119287F1504CA7EC5@ms-afit-04.afit.edu>
+From: "Webber Frederick C Civ AFIT/ENG" <FREDERICK.WEBBER@afit.edu>
+To: <video4linux-list@redhat.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Subject: Testing developing projects
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,27 +30,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 13 Feb 2008 14:32:35 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> In file included from drivers/media/video/meye.h:261,
->                  from drivers/media/video/meye.c:41:
-> include/linux/meye.h:61:1: warning: "V4L2_CID_SHARPNESS" redefined
-> In file included from include/linux/videodev.h:15,
->                  from drivers/media/video/meye.c:32:
-> include/linux/videodev2.h:879:1: warning: this is the location of the previous definition
-
-Thanks, I'm ware about it. 
-
-We should have a patch probably tomorrow to fix the
-name conflicts. The weird is the the two controls have the same meaning, but
-probably with different value ranges. So, we shold take some care to handle
-this one.
-
-
-
-Cheers,
-Mauro
+Hello,
+I would like to experiment with / test some of the recent files /
+patches that have been in development. Where are v4l development files
+posted, in general? Is there a repository or mirror open to people
+developing applications of the software? I have tried searching
+Kernel.org for some of the files I was interested in, but didn't have
+any luck. I may not be looking in the right places.
+Specifically, I am interested in acquiring the soc_camera.c driver for
+the PXA270 and its related files. Could someone direct me to a
+repository or mirror that has what I might need so I am able to try it?
+I have the patches in the e-mails (at least some of them), but I got a
+little lost trying to follow them all due to various revisions.
+Thank you for your help,
+Fred Webber
 
 --
 video4linux-list mailing list
