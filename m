@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mx03.lb01.inode.at ([62.99.145.3] helo=mx.inode.at)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e.peinlich@inode.at>) id 1JQiQH-0005vQ-Nx
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 13:15:09 +0100
-Received: from [85.124.58.196] (port=15724 helo=[10.0.2.30])
-	by smartmx-03.inode.at with esmtpa (Exim 4.50) id 1JQiPm-0001dt-Fe
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 13:14:38 +0100
-Message-ID: <47B82526.5090203@inode.at>
-Date: Sun, 17 Feb 2008 13:14:30 +0100
-From: Ernst Peinlich <e.peinlich@inode.at>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <200801252245.58642.dkuhlen@gmx.net>	<47A086D6.4080200@okg-computer.de>	<200801301908.36169.dkuhlen@gmx.net>	<47A0CD3C.40508@okg-computer.de>	<47A0E8CC.3080207@okg-computer.de>	<47B0C1FF.7060202@okg-computer.de>
-	<47B1B384.1050503@okg-computer.de>
-In-Reply-To: <47B1B384.1050503@okg-computer.de>
-Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and DVB-S2
+	(envelope-from <nico@youplala.net>) id 1JM3wz-00020f-Tj
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 17:13:41 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id 68C34D88110
+	for <linux-dvb@linuxtv.org>; Mon,  4 Feb 2008 17:12:18 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47A735A0.2040801@rogers.com>
+References: <1201877013.6796.5.camel@acropora>
+	<1201955576.935.23.camel@youkaida>  <47A735A0.2040801@rogers.com>
+Date: Mon, 04 Feb 2008 16:11:57 +0000
+Message-Id: <1202141517.6826.47.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] script to automatically get signal strength and BER
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,112 +22,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jens Krehbiel-Gr=E4ther schrieb:
-> Hi!
->
-> Here is the complete log.
->
-> syslog from loading the modules:
->
-> Feb 12 13:57:34 dev kernel: usb 3-6: new high speed USB device using =
 
-> ehci_hcd and address 3
-> Feb 12 13:57:34 dev kernel: usb 3-6: configuration #1 chosen from 1 choice
-> Feb 12 13:57:34 dev kernel: dvb-usb: found a 'PCTV HDTV USB' in warm stat=
-e.
-> Feb 12 13:57:34 dev kernel: pctv452e_power_ctrl: 1
-> Feb 12 13:57:34 dev kernel: dvb-usb: will pass the complete MPEG2 =
+On Mon, 2008-02-04 at 10:56 -0500, CityK wrote:
+> Nicolas Will wrote:
+> > On Fri, 2008-02-01 at 14:43 +0000, Nicolas Will wrote:
+> >   
+> >> Hi all,
+> >>
+> >> Before I try to make one, did anyone write a script that goes
+> through
+> >> a
+> >> channels.conf file and outputs human readable signal strength, BER
+> and
+> >> such for all channels?
+> >>     
+> >
+> > I received 2 scripts by pers. email.
+> >
+> > Thanks guys !
+> >
+> > I have created a wiki page containing the scripts"
+> >
+> > http://linuxtv.org/wiki/index.php/Testing_reception_quality
+> >
+> > Hope this helps.
+> >
+> > Nico
+> Also see femon (part of the dvb-apps)
+> "femon -h" for help
+> "femon -H" for what you want
 
-> transport stream to the software demuxer.
-> Feb 12 13:57:34 dev kernel: DVB: registering new adapter (PCTV HDTV USB)
-> Feb 12 13:57:34 dev kernel: pctv452e_frontend_attach Enter
-> Feb 12 13:57:34 dev kernel: stb0899_write_regs [0xf1b6]: 02
-> Feb 12 13:57:34 dev kernel: stb0899_write_regs [0xf1c2]: 00
-> Feb 12 13:57:34 dev kernel: stb0899_write_regs [0xf1c3]: 00
-> Feb 12 13:57:34 dev kernel: stb0899_write_regs [0xf141]: 02
-> Feb 12 13:57:34 dev kernel: _stb0899_read_reg: Reg=3D[0xf000], data=3D81
-> Feb 12 13:57:34 dev kernel: stb0899_get_dev_id: ID reg=3D[0x81]
-> Feb 12 13:57:34 dev kernel: stb0899_get_dev_id: Device ID=3D[8], Release=
-=3D[1]
-> Feb 12 13:57:34 dev kernel: _stb0899_read_s2reg Device=3D[0xf3fc], Base =
+Ah.
 
-> address=3D[0x00000400], Offset=3D[0xf334], Data=3D[0x444d4431]
-> Feb 12 13:57:34 dev kernel: _stb0899_read_s2reg Device=3D[0xf3fc], Base =
+My femon (dvb-utils on my Gutsy Mythbuntu) does not have the -H option.
+It's probably too old.
 
-> address=3D[0x00000400], Offset=3D[0xf33c], Data=3D[0x00000001]
-> Feb 12 13:57:34 dev kernel: stb0899_get_dev_id: Demodulator Core =
+I shall look at the hg sources.
 
-> ID=3D[DMD1], Version=3D[1]
-> Feb 12 13:57:34 dev kernel: _stb0899_read_s2reg Device=3D[0xfafc], Base =
+The first script created a nice baseline and comparaison tool for the
+before and after masthead amp installation.
 
-> address=3D[0x00000800], Offset=3D[0xfa2c], Data=3D[0x46454331]
-> Feb 12 13:57:34 dev kernel: _stb0899_read_s2reg Device=3D[0xfafc], Base =
+A 26-dB masthead amp + associated in-line power supply gave me 20-25%
+better signal strength, and most importantly brough all the BER to zero.
 
-> address=3D[0x00000800], Offset=3D[0xfa34], Data=3D[0x00000001]
-> Feb 12 13:57:34 dev kernel: stb0899_get_dev_id: FEC Core ID=3D[FEC1], =
+http://www.youplala.net/~will/htpc/signaltest/
 
-> Version=3D[1]
-> Feb 12 13:57:34 dev kernel: stb0899_attach: Attaching STB0899
-> Feb 12 13:57:34 dev kernel: lnbp22_set_voltage: 2 (18V=3D1 13V=3D0)
-> Feb 12 13:57:34 dev kernel: lnbp22_set_voltage: 0x60)
-> Feb 12 13:57:34 dev kernel: pctv452e_frontend_attach Leave Ok
-> Feb 12 13:57:34 dev kernel: DVB: registering frontend 0 (STB0899 =
+I'm happy :o)
 
-> Multistandard)...
-> Feb 12 13:57:34 dev kernel: pctv452e_tuner_attach Enter
-> Feb 12 13:57:34 dev kernel: stb6100_attach: Attaching STB6100
-> Feb 12 13:57:34 dev kernel: pctv452e_tuner_attach Leave
-> Feb 12 13:57:34 dev kernel: input: IR-receiver inside an USB DVB =
-
-> receiver as /class/input/input5
-> Feb 12 13:57:34 dev kernel: dvb-usb: schedule remote query interval to =
-
-> 100 msecs.
-> Feb 12 13:57:34 dev kernel: pctv452e_power_ctrl: 0
-> Feb 12 13:57:34 dev kernel: dvb-usb: PCTV HDTV USB successfully =
-
-> initialized and connected.
-> Feb 12 13:57:34 dev kernel: usbcore: registered new interface driver =
-
-> pctv452e
->
->
-> And a complete log from a complete scan on Astra 19,2=B0E can you downloa=
-d =
-
-> here (about 1,6MB uncompressed, for Download 37kB gzip-File):
-> http://www.rz.uni-karlsruhe.de/~ry52/syslog.gz
->
-> If you see anything that can help me, please let me know. I don't =
-
-> believe that the new device has also a hardware failiure, because (as I =
-
-> wrote) it works for one time scanning and one time tuning... :-(
->
-> Hope to get help here,
->
-> Jens
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   =
-
-Hi
-i have problems with DVBS on the driver.
-i get PES errors
-on DVBS2 its works
-(vdr-1.5.14+h264 patch)
-thanks
-
+Nico
 
 
 _______________________________________________
