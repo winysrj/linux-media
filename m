@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18BT1Od006981
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:29:01 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m149YrQ3008443
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:34:53 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18BSYgm009488
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:28:34 -0500
-Date: Fri, 8 Feb 2008 09:28:21 -0200
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m149YXYi026167
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:34:33 -0500
+Date: Mon, 4 Feb 2008 07:33:57 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-ID: <20080208092821.52872e1d@gaivota>
-In-Reply-To: <Pine.LNX.4.64.0802072146210.9064@axis700.grange>
-References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
-	<20080207183409.3e788533@gaivota>
-	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+To: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Linux DVB <linux-dvb@linuxtv.org>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Message-ID: <20080204073357.0cbd20c4@gaivota>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Two more patches required for soc_camera
+Cc: 
+Subject: Pending patches
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,60 +27,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> I think, "#include <linux/pci.h>" is needed for the current version of 
-> videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
-> on PCI-enabled platforms. Perhaps, the right fix would be to convert 
-> videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
-> difficult task. Only these two prototypes in videobuf-dma-sg.h
-> 
-> int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-> int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-> 
-> and their implementations in videobuf-dma-sg.c should indeed be placed 
-> under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
-> PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
-> directly, instead of their pci analogs, etc.
+Hi guys,
 
-Yes. This seems to be the proper direction to me also.
-> 
-> Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
-> is also in a way confirmed in a comment in 
-> include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
-> conversions are defined in include/asm-generic/pci-dma-compat.h.
+Unfortunately, there were a crash at the server that I use for my inboxes. Due
+to that, I lost several non-proccessed pull requests and e-mail patches that
+should be committed into v4l-dvb tree and forward to kernel.
 
-I think this won't work for some platforms. I remember someone adding PCI or
-other DMA dependency to some drivers, due to this (sorry, I can't remember the
-details of those patches).
+While I still hope that people will recover the lost e-mails, it would be safer
+if those of you that forwarded me a patch, to re-send they to my inbox.
 
-> Right, so, what would be your preference on this? It would be puty to hold 
-> off the patches ony because of this. If you want, I can try to look into 
-> converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
-> the meantime maybe we could use the CONFIG_HAS_DMA?
-
-Touching on videobuf-dma-sg is something very sensitive, since it affects most
-drivers. I would prefer to have this kind of commit happening during a
-merge window.
-
-If we can't manage to have this happening for 2.6.25 window, let's postpone the
-PCI specific changesets to 2.6.26, merging they only at -mm series.
-
-> > Hmm... I think I asked your sob for this. Maybe I've lost the e-mail with your
-> > sob. Please, send it again, and I'll commit.
-> 
-> I did reply to that your email with my sob, but maybe you wanted a 
-> complete patch again. Just resent it too.
-
-I have a serious outage on my email provider. Maybe your message got lost
-during the recovering process of my old maildir boxes.
-
-I've committed your patch locally. It seems that linuxtv.org is not working
-right now. I'll push there as soon as it returns back.
-
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-
+I kindly ask you to send those requests to me, c/c the lists, with the magic
+tags at the subject:
+[PATCH (resend)] - for patches that you're re-sending to me
+[PULL (resend)] - for hg pull requests that you're re-sending
 
 
 
