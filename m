@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Jm8tM012432
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:48:08 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17JlYNW003764
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:47:34 -0500
-Date: Thu, 7 Feb 2008 17:47:03 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
-Message-ID: <20080207174703.5e79d19a@gaivota>
-In-Reply-To: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
-References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14LpB8U000480
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 16:51:11 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m14LofJp013521
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 16:50:41 -0500
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Date: Mon, 4 Feb 2008 22:50:32 +0100
+References: <200802021620.15038.tobias.lorenz@gmx.net>
+	<200802031035.20278.tobias.lorenz@gmx.net>
+	<4F70E0B1F8%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <4F70E0B1F8%linux@youmustbejoking.demon.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200802042250.33101.tobias.lorenz@gmx.net>
 Cc: video4linux-list@redhat.com
-Subject: Re: Question about saa7115
+Subject: Re: [PATCH] Trivial printf warning fix (radio-si470)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,41 +31,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 6 Feb 2008 17:44:05 -0800
-"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
+Hi Darren,
 
-> Hi,
-> (I'm not sure it's the right place, but I couldn't find any better
-> place, so, if there is, please let me know)
+> But sizeof() returns size_t.
 
-This is the proper place ;)
+Okay, I see the difference now...
+asm-x86_64/posix_types.h:typedef unsigned long  __kernel_size_t;
+asm-x86_64/posix_types.h:typedef long           __kernel_ssize_t;
+Sorry for not seeing this earlier...
 
-> I'm kinda new to V4L2 (and kernel drivers in general) and I've been
-> asked to se if I could control a saa7115 on an embedded linux
-> platform, using the V4L2 driver.
-> the driver loads without a problem, it creates an interface in /dev/,
-> but that a I2C (89) file, and not a video (81) one. The thing is I
-> have two saa7115 on the I2C bus, and I don't how to issue my command
-> to the one I want.
-> 
-> Well, from what I understood, I can send instructions to the bus using
-> ioctl() and /dev/i2c-0, but these are i2c/smbus commands, not V4L2
-> ones, right ?
-> 
-> I read the sources and I still don't have a clue what I'm supposed to
-> do, could you please give me a few hints ?
+Then you are right, we have to use printf with %zu for sizeof.
+I changed that back. I'm preparing a patch for Mauro currently anyway.
 
-On most devices, you don't have direct access to i2c bus, since it is located
-on a separate board. So, v4l drivers creates a host driver with PCI or USB bus.
-The host driver then implements i2c methods. This is the case of cx88-i2c, for
-example.
-
-On embedded processors, you generally attach devices directly to the CPU i2c
-bus. In this case, you'll need to implement a host v4l2 module for your
-processor, and use it to access the i2c device.
-
-Cheers,
-Mauro
+Bye,
+  Toby
 
 --
 video4linux-list mailing list
