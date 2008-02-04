@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from hyatt.suomi.net ([82.128.152.22])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JOfMp-0000ym-9M
-	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 21:35:07 +0100
-Received: from tiku.suomi.net ([82.128.154.67])
-	by hyatt.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
-	Jul 15 2005)) with ESMTP id <0JW300L53D5N4L10@hyatt.suomi.net> for
-	linux-dvb@linuxtv.org; Mon, 11 Feb 2008 22:34:35 +0200 (EET)
-Received: from spam4.suomi.net (spam4.suomi.net [212.50.131.168])
-	by mailstore.suomi.net
-	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
-	32bit)) with ESMTP id <0JW300K2BD511VL0@mailstore.suomi.net> for
-	linux-dvb@linuxtv.org; Mon, 11 Feb 2008 22:34:30 +0200 (EET)
-Date: Mon, 11 Feb 2008 22:33:38 +0200
-From: Antti Palosaari <crope@iki.fi>
-To: linux-dvb@linuxtv.org, e9hack@googlemail.com
-Message-id: <47B0B122.3010305@iki.fi>
-MIME-version: 1.0
-Subject: [linux-dvb] TDA10023 (DVB-C budget cards, KNC ONE, Terratec,
- Setalco) testers wanted
+Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <CityK@rogers.com>) id 1JM3gn-00088p-0F
+	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 16:56:57 +0100
+Message-ID: <47A735A0.2040801@rogers.com>
+Date: Mon, 04 Feb 2008 10:56:16 -0500
+From: CityK <CityK@rogers.com>
+MIME-Version: 1.0
+To: Nicolas Will <nico@youplala.net>
+References: <1201877013.6796.5.camel@acropora>
+	<1201955576.935.23.camel@youkaida>
+In-Reply-To: <1201955576.935.23.camel@youkaida>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] script to automatically get signal strength and BER
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,19 +26,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-moikka,
-I have done some changes for TDA10023 driver to get Anysee E30C Plus 
-DVB-C device working. Please test any TDA10023 device against current 
-Anysee development tree to ensure that nothing has gone broken:
-http://linuxtv.org/hg/~anttip/anysee/
-
-TDA10023 changeset (for review & comment):
-http://linuxtv.org/hg/~anttip/anysee/rev/48e353f35989
-
-regards
-Antti Palosaari
--- 
-http://palosaari.fi/
+Nicolas Will wrote:
+> On Fri, 2008-02-01 at 14:43 +0000, Nicolas Will wrote:
+>   
+>> Hi all,
+>>
+>> Before I try to make one, did anyone write a script that goes through
+>> a
+>> channels.conf file and outputs human readable signal strength, BER and
+>> such for all channels?
+>>     
+>
+> I received 2 scripts by pers. email.
+>
+> Thanks guys !
+>
+> I have created a wiki page containing the scripts"
+>
+> http://linuxtv.org/wiki/index.php/Testing_reception_quality
+>
+> Hope this helps.
+>
+> Nico
+Also see femon (part of the dvb-apps)
+"femon -h" for help
+"femon -H" for what you want
 
 _______________________________________________
 linux-dvb mailing list
