@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JLW2X-0006do-7w
-	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 05:01:09 +0100
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from wa-out-1112.google.com ([209.85.146.177])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gregoire.favre@gmail.com>) id 1JMTCv-0002C9-Ql
+	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 20:11:50 +0100
+Received: by wa-out-1112.google.com with SMTP id m28so40364wag.13
+	for <linux-dvb@linuxtv.org>; Tue, 05 Feb 2008 11:11:45 -0800 (PST)
+Date: Tue, 5 Feb 2008 20:11:10 +0100
 To: linux-dvb@linuxtv.org
-Date: Sun, 3 Feb 2008 03:14:21 +0100
-References: <47A360FE.2070105@brenken.org>
-In-Reply-To: <47A360FE.2070105@brenken.org>
+Message-ID: <20080205191110.GA7673@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802030314.22178@orion.escape-edv.de>
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-Subject: Re: [linux-dvb] TT-1401 budget card support broken since 2.6.24-rc6
-Reply-To: linux-dvb@linuxtv.org
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: [linux-dvb] Anything against a kernel with multiproto and HVR-4000 ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,36 +20,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dirk Brenken wrote:
-> Hi,
-> I'm running a "budget-only" (Technotrend S-1401) vdr system (1.5.13) 
-> with xinelibouput plugin (latest cvs checkout).  It's based on debian 
-> sid and it runs fine with kernel 2.6.23.14 ... up to kernel 2.6.24-rc5. 
-> After that version, my budget card system stops working ... here some 
-> log file stuff:
->
-> ...
-> 
-> The problem also occurs with kernel 2.6.23.14 plus latest v4l-dvb 
-> checkout. Any idea how to track down this error? Any help is appreciated!
+Hello,
 
-Could you please check whether patch
-    http://linuxtv.org/hg/v4l-dvb/rev/816f256c2973
-broke the driver?
+I would like to add multiproto to a git devel kernels, whith the
+HVR-4000 patch, is that something "allowed" ?
 
-CU
-Oliver
+Thanks.
+-- =
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
