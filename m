@@ -1,31 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LIuCU0026537
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 13:56:12 -0500
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LItcai002521
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 13:55:39 -0500
-Message-ID: <47BDC928.4040409@kaiser-linux.li>
-Date: Thu, 21 Feb 2008 19:55:36 +0100
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15NpZLR030869
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 18:51:35 -0500
+Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.184])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15NosSJ004716
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 18:50:56 -0500
+Received: by rv-out-0910.google.com with SMTP id k15so1945215rvb.51
+	for <video4linux-list@redhat.com>; Tue, 05 Feb 2008 15:50:53 -0800 (PST)
+Date: Tue, 5 Feb 2008 15:15:06 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080205231506.GD10319@plankton.ifup.org>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<47A86350.9090205@linuxtv.org> <20080205120102.76ccd526@gaivota>
 MIME-Version: 1.0
-To: "H. Willstrand" <h.willstrand@gmail.com>
-References: <47BC8BFC.2000602@kaiser-linux.li>	
-	<47BC9788.7070604@kaiser-linux.li>
-	<20080220215850.GA2391@daniel.bse>	
-	<47BCA5BA.20009@kaiser-linux.li>	
-	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>	
-	<47BCB5DB.8000800@kaiser-linux.li>	
-	<175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>	
-	<20080221012048.GA2924@daniel.bse>	
-	<175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>	
-	<47BD67C8.5000305@kaiser-linux.li>
-	<175f5a0f0802210443i6f1d46afm730b9f3b27121ed1@mail.gmail.com>
-In-Reply-To: <175f5a0f0802210443i6f1d46afm730b9f3b27121ed1@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: V4L2_PIX_FMT_RAW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080205120102.76ccd526@gaivota>
+Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,101 +32,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-H. Willstrand wrote:
-> On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
-> <linux-dvb@kaiser-linux.li> wrote:
->> H. Willstrand wrote:
->>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
->>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
->>  >>  > What's the problem with having a name of the formalized data in the
->>  >>  > video stream? ie raw do not mean undefined.
->>  >>
->>  >>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x for an
->>  >>  exploding number of proprietary formats that are quite similar but still
->>  >>  incompatible. It makes sense for formats that are used by more than one
->>  >>  driver.
->>  >
->>  > Correct, the number of unique pixel formats should be kept down.
->>  > Again, comparing with digital cameras there are >200 proprietary
->>  > formats and there is a "clean-up" on-going where the "market" is
->>  > aiming for a OpenRAW.
->>  >
->>  > However, by declaring a generic RAW format (which is then driver
->>  > specific) doesn't help the user mode app developers. Calling a
->>  > multitude of libraries to see if you get lucky might not be a good
->>  > idea.
->>  >
->>  > Still, I'm suspectious about the definition "raw" used here.
->>  > RAW should mean unprocessed image data:
->>  > * no white balance adjustment
->>  > * no color saturation adjustments
->>  > * no contrast adjustments
->>  > * no sharpness improvements
->>  > * no compression with loss
->>
->>  Yes, raw means "as it is" no stripping, decoding  or removing of SOF headers are
->>  done in the driver. May be V4L2_PIX_FMT_AII (AII -> As It Is) is the better name?
->>
+On 12:01 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
+> On Tue, 05 Feb 2008 08:23:28 -0500
+> Michael Krufky <mkrufky@linuxtv.org> wrote:
 > 
-> I struggle with the probability to find several CCD's having similar
-> formats. There aren't so many manifactors of CCD's but they truelly
-> can generate divergeting formats. Worst case scenario means >200
-> V4L2_PIX_FMT_RAW_...
+> > Brandon Philips wrote:
+> > > - mailimport changes in this commit too!  Why is mailimport running
+> > >   sudo!?! 
+> > 
+> > I understand that unrelated changes were accidentally merged with a single commit, but why would we want this script to call sudo in the first place?
+> > 
+> > I think it's bad practice, for such a script to execute commands as root -- 
+> > 
+> > Can you explain, Mauro?
 > 
-> I think RAW is a OK name, the question is if the subcomponents of the
-> RAW formats has similarities, if so they might be standardized.
-> Looking into different Sony CCD's it's clearly possible, but after the
-> CCD the data has to be buffered, packaged and transmitted which of
-> course can be done in several ways...
-> 
-> Cheers,
-> Harri
-> 
->>  >
->>  > So, by looking for similarities in the "raw" formats where available
->>  > there should be a potential to consolidate them.
->>  >
->>  >>
->>  >>  > I don't see how separate RAW ioctl's will add value to the V4l2 API,
->>  >>  > it fits into the current API.
->>  >>
->>  >>  Yes, it does. Each driver having multiple raw formats just needs a
->>  >>  private control id to select one.
->>  >>
->>  > I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
->>  > should do the job.
->>  > I.e. I think there should be strong reasons to break V4L2 API behavior.
->>  >
->>  > Harri
+> The script itself doesn't open any new vulnerabilities. Sudo only works if 
+> configured at /etc/sudoers.
 
-Actually, in a webcam you have the image sensor and a usb bridge. Usually, the 
-sensor capture a picture in Bayer pattern. This gets forwarded to the usb 
-bridge. The usb bridge may or may not transfer the picture to an other format 
-and/or compress it with a standard compression algo or a proprietary compression 
-algo. The resulting data stream will be transmitted over the usb interface.
+I don't use the script but I would certainly remove the sudo calls in my
+local version if I started to.  A patch tool really shouldn't need sudo.
+If the perms are wrong the user can write a wrapper script to fix them.
 
-I just would like to get this resulting stream to user space without 
-manipulation/conversion/decoding of the stream in the kernel module.
+> 2) the user of the second account types his password (or, otherwise, sudo is
+> configured to not ask for passwords - on very weak environments).
 
-That means we don't know what the format is in this data which comes trough the 
-usb interface. That's way I call it raw.
+sudo defaults to a 15 grace period where it doesn't ask for a password
+again.
 
-At the moment with V4L2, I have to forward a stream to user space which is in a 
-format v4l2 knows. That means I have sometimes to do heavy data processing in 
-the kernel module to decode/convert the data from the usb stream to a known v4l2 
-video format.
-
-That's way I want a official way to forward the untouched usb stream to user space!
-
-How the user space application has to react on this stream is an other story, I 
-think. But there will be some way to tell the usespace application what to do 
-with this "unknown" stream, I am sure.
-
-Thomas
-
-
--- 
-http://www.kaiser-linux.li
+	Brandon
 
 --
 video4linux-list mailing list
