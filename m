@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1O1QwKb006892
-	for <video4linux-list@redhat.com>; Sat, 23 Feb 2008 20:26:58 -0500
-Received: from mxout-04.mxes.net (mxout-04.mxes.net [216.86.168.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1O1QJlI000341
-	for <video4linux-list@redhat.com>; Sat, 23 Feb 2008 20:26:19 -0500
-Message-ID: <47C0C7B8.20608@cybermato.com>
-Date: Sat, 23 Feb 2008 17:26:16 -0800
-From: Chris MacGregor <chris-video4linux-list@cybermato.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15A4VRn004161
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 05:04:31 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m15A3rfS008049
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 05:03:54 -0500
+Date: Tue, 5 Feb 2008 11:03:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: Brandon Philips <brandon@ifup.org>
+In-Reply-To: <a030ada87143b0e559ae.1202176997@localhost>
+Message-ID: <Pine.LNX.4.64.0802051100210.5546@axis700.grange>
+References: <a030ada87143b0e559ae.1202176997@localhost>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, mchehab@infradead.org
-Subject: [PATCH] usbvideo: usbvideo.c should check palette in VIDIOCSPICT
- (resend again)
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2 of 3] [v4l] Add new user class controls and deprecate
+ others
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,65 +28,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Chris MacGregor <chris-usbvideo-patch-080216-3@cybermato.com>
+On Mon, 4 Feb 2008, Brandon Philips wrote:
 
-This change makes VIDIOCSPICT return EINVAL if the requested palette (format)
-doesn't match anything in paletteBits; this is essentially the same check as
-is already made in VIDIOCMCAPTURE.  The patch is against 2.6.24.2.
+> +
+> +/* Deprecated, use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
+> +#define V4L2_CID_HCENTER_DEPRECATED	(V4L2_CID_BASE+22) 
+> +#define V4L2_CID_VCENTER_DEPRECATED	(V4L2_CID_BASE+23) 
+> +
+> +#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24) 
+> +enum v4l2_power_line_frequency {
+> +	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
+> +	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
+> +	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
+> +};
+> +#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25) 
+> +#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26) 
+> +#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27) 
+> +#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28) 
+> +#define V4L2_CID_LASTP1				(V4L2_CID_BASE+29) /* last CID + 1 */
+>  
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 
-The problem I had was that vlc (www.videolan.org) was failing to read video
-from my Logitech Quickcam Messenger.  I ultimately tracked it to the fact that
-vlc was testing what formats the driver+hardware could handle by trying to
-select them with VIDIOCSPICT, and was assuming that if it didn't get an error
-then the requested format was kosher.  However, usbvideo.c was not even
-looking at that field, and so anything would succeed, but then VIDIOCMCAPTURE
-would bomb out silently (EINVAL, but no log message) if the right paletteBits
-bit wasn't set.
+Also, please, remove trailing blanks in 7 lines:
 
-The risk, of course, is that this patch will break existing v4l clients that
-accidentally pass non-zero garbage in the video_picture.palette field when
-calling VIDIOCSPICT, but which pass a valid format to VIDIOCMCAPTURE.
-However, what vlc does seems reasonable, and in fact I don't see an
-alternative to it (though I'm no v4l expert), so I think we're better off with
-the change than without.  I found plaintive, unanswered cries for help on
-forums from folks wanting to know why vlc wasn't working with their webcams.
+Adds trailing whitespace.
+.dotest/patch:26:#define V4L2_CID_HCENTER_DEPRECATED    (V4L2_CID_BASE+22)
+Adds trailing whitespace.
+.dotest/patch:27:#define V4L2_CID_VCENTER_DEPRECATED    (V4L2_CID_BASE+23)
+Adds trailing whitespace.
+.dotest/patch:29:#define V4L2_CID_POWER_LINE_FREQUENCY  (V4L2_CID_BASE+24)
+Adds trailing whitespace.
+.dotest/patch:35:#define V4L2_CID_HUE_AUTO                      (V4L2_CID_BASE+25)
+Adds trailing whitespace.
+.dotest/patch:36:#define V4L2_CID_WHITE_BALANCE_TEMPERATURE     (V4L2_CID_BASE+26)
+warning: squelched 2 whitespace errors
+warning: 7 lines add whitespace errors.
 
-One could make the argument that a similar check should be made on the depth
-field, but vlc doesn't mess with it and I'm not feeling that ambitious today.
+(git only listed 5 out of 7 lines explicitly above)
 
-Signed-off-by: Chris MacGregor <chris-usbvideo-patch-080216-3@cybermato.com>
-
+Thanks
+Guennadi
 ---
-
-Hi.  I was going to post this in lkml, but after looking in MAINTAINERS this
-list seems more appropriate - if I'm wrong about that, please tell me
-(directly, as I don't generally subscribe to either list).
-
-I sent this message previously on February 16, 2008 (11:27 pm PST) but it
-doesn't seem to have shown up on the list (based on looking through the
-archives).  Ditto yesterday, so this time I'm sending it via a different
-route in case the problem is an overzealous spam filter someplace.
-Apologies to anyone who has already seen it.
-
-Please CC me on replies as I'm not necessarily subscribed here.
-
-    Chris MacGregor
-    my first name @ cybermato.com
-    www.cybermato.com
-
---- linux-2.6.24.2/drivers/media/video/usbvideo/usbvideo.c.orig	2008-02-10 21:51:11.000000000 -0800
-+++ linux-2.6.24.2/drivers/media/video/usbvideo/usbvideo.c	2008-02-16 23:12:16.000000000 -0800
-@@ -1299,6 +1299,9 @@ static int usbvideo_v4l_do_ioctl(struct 
- 		case VIDIOCSPICT:
- 		{
- 			struct video_picture *pic = arg;
-+			if (pic->palette
-+			    && ((1L << pic->palette) & uvd->paletteBits) == 0)
-+				return -EINVAL;
- 			/*
- 			 * Use temporary 'video_picture' structure to preserve our
- 			 * own settings (such as color depth, palette) that we
-
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
