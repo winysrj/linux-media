@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1JEHPgK019658
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 09:17:25 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1JEGspW021663
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 09:16:54 -0500
-Date: Tue, 19 Feb 2008 11:16:40 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Bongani Hlope <bonganilinux@mweb.co.za>
-Message-ID: <20080219111640.409870a9@gaivota>
-In-Reply-To: <200802190121.36280.bonganilinux@mweb.co.za>
-References: <200802171036.19619.bonganilinux@mweb.co.za>
-	<20080218131125.2857f7c7@gaivota>
-	<200802182320.40732.bonganilinux@mweb.co.za>
-	<200802190121.36280.bonganilinux@mweb.co.za>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: 2.6.25-rc[12] Video4Linux Bttv Regression
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m151rmZa004167
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 20:53:48 -0500
+Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.185])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m151rBY9011135
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 20:53:13 -0500
+Received: by rv-out-0910.google.com with SMTP id k15so1722990rvb.51
+	for <video4linux-list@redhat.com>; Mon, 04 Feb 2008 17:53:08 -0800 (PST)
+Date: Mon, 4 Feb 2008 17:51:38 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080205015138.GA9729@plankton.ifup.org>
+References: <Pine.LNX.4.64.0801311531440.8478@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0801311531440.8478@axis700.grange>
+Cc: video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [NAK] Re: [PATCH] Add V4L2_CID_AUTOEXPOSURE control
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,45 +30,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 19 Feb 2008 01:21:36 +0200
-Bongani Hlope <bonganilinux@mweb.co.za> wrote:
+On 15:34 Thu 31 Jan 2008, Guennadi Liakhovetski wrote:
+> Add a new AUTOEXPOSURE V4L2 control, will be later used by mt9m001 and 
+> mt9v022 camera drivers.
 
-> On Monday 18 February 2008 23:20:40 Bongani Hlope wrote:
-> > On Monday 18 February 2008 18:11:25 Mauro Carvalho Chehab wrote:
-> > > Have you tested Robert's patch?
-> >
-> > Sorry almost forgot, I have and it fixes the TV but not the radio.
-> >
-> > > I can't see anything wrong on bttv_g_tuner lock. I suspect that the
-> > > divide error caused some bad effects at some data on bttv.
-> >
-> >  The problems don't seem related because one is caused by opening the
-> > "radio" application, the divide error is caused by using a TV viewing
-> > application (I tried fbtv)
-> >
-> > > I've already applied his fix to my -git tree:
-> >
-> > Thanx, I'll try to bisect
+Nak.
+
+I am adding V4L2_CID_EXPOSURE_AUTO to a newly created camera control
+class.  The proposed API changes were sent to the list already.  It
+hasn't been merged yet because of some discussion, but it will be merged
+soon.
+
+You can view the V4L2_CID_EXPOSURE_AUTO change here:
+  http://ifup.org/hg/v4l-spec?cmd=changeset;node=88a377fb918b;style=gitweb
+
+And the API changes here:
+  http://ifup.org/~philips/review/v4l2-proposed/x784.htm#CAMERA-CLASS
+
+Thanks,
+
+	Brandon
+
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 > 
-> I tried to bisect but the V4L/DVB changes are not bisect friendly, on two 
-> occursions I just selected "git bisect bad" because the bttv driver wouldn't 
-> compile, so I couldn't pin-point what causes the oops and hang.
+> ---
 > 
-> Here are some few observations I made though (I started bisecting between 
-> 2.6.24 and 2.6.25-rc1, saved me ~1000 commits):
-> 1. On the third bisect, there's no oops my PC just hangs a I can't use any 
-> open terminals
-> 2. When I reached the V4L/DVB changes, my PC did not hag or oops, the radio 
-> just didn't work (something about invalid VID**AUD**). This made it harder to 
-> bisect, because it is not working and not breaking so is it good or bad...
-
-Bisecting this won't be that easy. The support for the depreciated V4L1 API
-were removed from bttv driver. Now, it uses v4l1-compat module, that translates
-a V4L1 call into a V4L2 one. I'll try to seek for troubles at the current code.
-
-
-Cheers,
-Mauro
+>  include/linux/videodev2.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 439474f..1e47f1c 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -864,7 +864,8 @@ struct v4l2_querymenu
+>  #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
+>  #define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
+>  #define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
+> -#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
+> +#define V4L2_CID_AUTOEXPOSURE		(V4L2_CID_BASE+24)
+> +#define V4L2_CID_LASTP1			(V4L2_CID_BASE+25) /* last CID + 1 */
 
 --
 video4linux-list mailing list
