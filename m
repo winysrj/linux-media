@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1OLe1E4016710
-	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 16:40:01 -0500
-Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
-	[195.238.6.178])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1OLdURT027809
-	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 16:39:30 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Sun, 24 Feb 2008 22:46:09 +0100
-References: <47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802221615j3d2ec239r2e35d7c14dc80a28@mail.gmail.com>
-	<47C0794B.5070807@free.fr>
-In-Reply-To: <47C0794B.5070807@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m159qUen030172
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 04:52:30 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m159pxEq001529
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 04:51:59 -0500
+Date: Tue, 5 Feb 2008 10:52:01 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: Brandon Philips <brandon@ifup.org>
+In-Reply-To: <0810f250d078bf6159de.1202176996@localhost>
+Message-ID: <Pine.LNX.4.64.0802051050530.5546@axis700.grange>
+References: <0810f250d078bf6159de.1202176996@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Message-Id: <200802242246.09256.laurent.pinchart@skynet.be>
-Cc: 
-Subject: Re: V4L2_PIX_FMT_RAW
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1 of 3] Backed out changeset d002378ff8c2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,34 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 23 February 2008, Thierry Merle wrote:
-> H. Willstrand a écrit :
-> > Hi Thierry,
->
-> [SNIP]
->
-> > Ok, so the idea is to make converting and decompression transparent
-> > for the application.
-> >
-> > Are there any plans to run the v4l2_helper as an shared object in the
-> > application process with a direct interface? (to avoid the
-> > kernel-to-user-space, user-to-kernel-space, kernel-to-user-space)
->
-> Yes, this is the aim of the project; the final step I hope will show a
-> new library that will be used by applications, discussing directly with
-> the base drivers.
+On Mon, 4 Feb 2008, Brandon Philips wrote:
 
-I really want to emphasise this. The final solution must not use any userspace 
-daemon. The decompression (and rather transcoding) layer will be used 
-directly by applications. This will of course not be transparent.
+> # HG changeset patch
+> # User Brandon Philips <brandon@ifup.org>
+> # Date 1202175426 28800
+> # Node ID 0810f250d078bf6159de69569828c07cb54f4389
+> # Parent  d002378ff8c2d8e8bf3842d8f05469dd68398fc6
+> Backed out changeset d002378ff8c2
+> 
+> This change had a number of issues:
+>  - Adding an undiscussed control
+>  - Adding an unrelated mailimport change
+>  - Adding an unrelated kconfig change
+> 
+> diff --git a/linux/drivers/media/video/Kconfig b/linux/drivers/media/video/Kconfig
+> --- a/linux/drivers/media/video/Kconfig
+> +++ b/linux/drivers/media/video/Kconfig
 
-> Please join to the v4l2-library mailing-list to discuss about the
-> implementation of the helper daemon in that way.
-> Following discussions about this specific subject will be easier!
+Brandon, you wanted -p1 style patches - same for 2/3 and 3/3.
 
-Best regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
