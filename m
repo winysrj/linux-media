@@ -1,18 +1,23 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1JUQnc-0005g5-Hl
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 19:14:36 +0100
-Message-ID: <47C5A89D.6020908@linuxtv.org>
-Date: Wed, 27 Feb 2008 19:14:53 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Peter Hartley <pdh@utter.chaos.org.uk>
-References: <1204046724.994.21.camel@amd64.pyotr.org>
-In-Reply-To: <1204046724.994.21.camel@amd64.pyotr.org>
+	(envelope-from <stoth@linuxtv.org>) id 1JMRso-0005KF-E6
+	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 18:46:58 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JVS009UD1DD2H60@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 05 Feb 2008 12:46:27 -0500 (EST)
+Date: Tue, 05 Feb 2008 12:46:24 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <5c080cd10802050804i3cb8e2b4saebb8aee7fd2ca1c@mail.gmail.com>
+To: Stanley burghardt <stburghardt@gmail.com>
+Message-id: <47A8A0F0.6090201@linuxtv.org>
+MIME-version: 1.0
+References: <5c080cd10802050804i3cb8e2b4saebb8aee7fd2ca1c@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two streams
- from same mux
+Subject: Re: [linux-dvb] Hauppauge HVR-1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,25 +28,25 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Peter,
+Stanley burghardt wrote:
+> I got this card and compiled latest cx18 drivers and get it recognized 
+> by linux. Now are there any patches for it so it can be recognized as 
+> event interface for remote ? I belive it should be realy simple patch. 
+> What values need to be added to drivers in order for  event interface be 
+> recognized ?
 
-one thing I forgot to mention is that your patch misses a
-"Signed-off-by" line.
+This has the Zilog IR Blaster on board, which is already supported in 
+some of the ivtv drivers via lirc (iirc).
 
-Please take a look at
-http://www.linuxtv.org/v4lwiki/index.php/SubmittingPatches#Sign_your_work
-and resend your patch accordingly.
+Try googling for PVR150/500 + IRBlaster + Linux, this will likely lead 
+to the same solution.
 
-You should also send a copy of it to v4l-dvb-maintainer@linuxtv.org and
-include the following line:
+Regards,
 
-Acked-by: Andreas Oberritter <obi@linuxtv.org>
-
-Thanks,
-Andreas
+Steve
 
 _______________________________________________
 linux-dvb mailing list
