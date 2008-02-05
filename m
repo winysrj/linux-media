@@ -1,22 +1,14 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from chokecherry.srv.cs.cmu.edu ([128.2.185.41])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rajesh@cs.cmu.edu>) id 1JTFEz-0000fY-Ua
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 12:41:58 +0100
-Received: from [192.168.1.129] (cm29.delta204.maxonline.com.sg [59.189.204.29])
-	(authenticated bits=0)
-	by chokecherry.srv.cs.cmu.edu (8.13.6/8.13.6) with ESMTP id
-	m1OBfkD5021869
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 06:41:51 -0500 (EST)
-Message-ID: <47C15803.3020306@cs.cmu.edu>
-Date: Sun, 24 Feb 2008 19:41:55 +0800
-From: Rajesh Balan <rajesh@cs.cmu.edu>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <CityK@rogers.com>) id 1JMCj0-0007jT-8s
+	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 02:35:50 +0100
+Message-ID: <47A7BD4D.1060709@rogers.com>
+Date: Mon, 04 Feb 2008 20:35:09 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <47AB0219.8050408@cs.cmu.edu>
-In-Reply-To: <47AB0219.8050408@cs.cmu.edu>
-Subject: [linux-dvb] HVR-1300 Audio Issues. Audio works but is way too loud
+Subject: [linux-dvb]  What is the MAC of a DVB card?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,37 +19,19 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+There is an article in the wiki: 
+http://www.linuxtv.org/wiki/index.php/InternetDVB
 
-I've managed to smack down most of the other issues I had. But the last 
-issue with analog recording remains -- I can get audio but it is way too 
-loud.
+In addition, there is a brief note (that may help provide an 
+explanation) in some of the B2C2 based device articles as to why they 
+are listed as network controllers: 
+http://www.linuxtv.org/wiki/index.php/TechniSat_Air2PC-ATSC-PCI#Why_are_they_listed_as_a_.22network_controller.22_and_not_a_.22multimedia_controller.22_in_the_output_of_dmesg_or_lspci.3F
 
-I'm using the hvr-1300 hg branch with the PAL-BG audio fix (last patch). 
-My input is from my cable box into the composite in of the HVR-1300.
-
-The video is fine but the audio is way too loud. It sounds like the 
-internal gain setting is set way too high. no audio control (alsamixer, 
-v4l2-ctl -c volume 1  etc.) seem to work. The volume never changes.
-
-I have a sample of the audio at http://www.cs.cmu.edu/~rajesh/foo.wav
-
-This was recorded using  arecord -D hw:1,0 -c 2 -r 48000 -f S16_LE -t 
-wav > foo.wav
-I've replicated this same audio problem using mythtv's live tv function 
-and with mplayer (with the tv:// option)
-
-I noticed that the audio is also finicky. I sometimes get silence or 
-static until I do v4l2-ctl -i 1. This is even with a proper video being 
-displayed.
-
-Any suggestions for fixing this? for reference, cat /dev/video1 > 
-foo.mpg  has perfect audio synced with the video.
-
-Rajesh
-
+in essence - similar to a network controller -- receive and demodulate 
+RF signals.
 
 _______________________________________________
 linux-dvb mailing list
