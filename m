@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.186])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bitumen.surfer@gmail.com>) id 1JPCoq-0002OB-Ch
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 09:18:18 +0100
-Received: by rv-out-0910.google.com with SMTP id b22so4665016rvf.41
-	for <linux-dvb@linuxtv.org>; Wed, 13 Feb 2008 00:18:13 -0800 (PST)
-From: J <bitumen.surfer@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 13 Feb 2008 19:17:53 +1100
-Message-Id: <1202890673.8448.16.camel@localhost.localdomain>
-Mime-Version: 1.0
-Subject: [linux-dvb] LeadTek WinFast DTV Dongle patch
+	(envelope-from <zzam@gentoo.org>) id 1JMMNH-0006mW-0r
+	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 12:54:03 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>,
+ linux-dvb@linuxtv.org
+Date: Tue, 5 Feb 2008 12:19:52 +0100
+References: <617be8890801290207t77149e2fh73c753501c39e835@mail.gmail.com>
+	<200802042213.38495.zzam@gentoo.org>
+	<617be8890802050108q5abf2c44la66a813143da205@mail.gmail.com>
+In-Reply-To: <617be8890802050108q5abf2c44la66a813143da205@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200802051219.54633.zzam@gentoo.org>
+Subject: Re: [linux-dvb] Patch for analog part for Avermedia A700 fails to
+	apply
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,107 +29,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Tuesday 05 February 2008, you wrote:
+> Hi,
 
-How do I get a patch incorporated into the dvb kernel section ?
+Hi!
 
-After recently purchasing a LeadTek WinFast DTV Dongle I rapidly
-discovered it was the variant that was not recognized in the kernel
+>     Bad news: I've been unsuccesfully trying to apply the new patches (as
+> mentioned in the wiki), with the following results:
+>
+> 1.- analog part applies just fine:
+>
+> mediacenter v4l-dvb # patch -p1 < ../1_avertv_A700_analog_part.diff
+> patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+> patching file linux/drivers/media/video/saa7134/saa7134.h
+> patching file linux/Documentation/video4linux/CARDLIST.saa7134
+>
+It is just listed extra as this patch is the only one I think is correct and I 
+hope it gets applied to v4l-dvb in near future. (Maybe after some others have 
+verified it.)
 
-i.e. as previously reported at:
-http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022373.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-January/023175.html
+>
+> 2.- Your patch (ZZam's) gives some warnings:
+>
 
-its device ids are: (lsusb)
-ID 0413:6f01 Leadtek Research, Inc.
+>
+> Apparently the A700 section is duplicated. I assume that the second section
+> is the good one, as the first gives only option for analog input. This is
+> probably related to the patch no aplying cleanly. I've removed the 1st
+> section and now it seems to compile fine.
+>
+So you found out the hard way, that patch 1 (analog-only) is already part of 
+my patch and you should only apply one of these.
 
-Rather than make the changes suggested by previous posters I set about
-making a script and associated kernel patches to automatically do this.
-My motivation was simple: I use a laptop with an ATI graphics card and
-fedora 8. I find the best drivers for this card are currently from Livna
-and are updated monthly (and changes are significant at the moment i.e.
-see the phoronix forum). So I would need to do this repeatedly. 
+>
+> 3.- Tino's patch gets worse. It even doesn't apply:
+>
 
-In my patch I add an identifier (USB_PID_WINFAST_DTV_DONGLE_STK7700P_B)
-and modify the table appropriately
+I guess this patch is also influenced by some new added cards.
 
-When I plug it in I now see in my messages log
-kernel: usb 1-4: new high speed USB device using ehci_hcd and address 9
-kernel: usb 1-4: configuration #1 chosen from 1 choice
-kernel: dib0700: loaded with support for 2 different device-types
-kernel: dvb-usb: found a 'Leadtek Winfast DTV Dongle B (STK7700P based)'
-in cold state, will try to load a firmware
-kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-01.fw'
-kernel: dib0700: firmware started successfully.
-kernel: dvb-usb: found a 'Leadtek Winfast DTV Dongle B (STK7700P based)'
-in warm state.
-kernel: dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-kernel: DVB: registering new adapter (Leadtek Winfast DTV Dongle B
-(STK7700P based))
-kernel: DVB: registering frontend 0 (DiBcom 7000PC)...
-kernel: MT2060: successfully identified (IF1 = 1220)
-kernel: dvb-usb: Leadtek Winfast DTV Dongle B (STK7700P based)
-successfully initialized and connected.
-kernel: usbcore: registered new interface driver dvb_usb_dib0700
+Regards
+  Matthias
 
-
-My kernel patch ( other scripts to patch the Fedora 8 src rpm's
-available on request)
-----------------
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c       2008-02-13
-10:05:13.000000000 +1100
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c       2008-02-13
-10:22:16.000000000 +1100
-@@ -280,6 +280,7 @@ struct usb_device_id dib0700_usb_id_tabl
-                { USB_DEVICE(USB_VID_LEADTEK,
-USB_PID_WINFAST_DTV_DONGLE_STK7700P) },
-                { USB_DEVICE(USB_VID_HAUPPAUGE,
-USB_PID_HAUPPAUGE_NOVA_T_STICK_2) },
-                { USB_DEVICE(USB_VID_AVERMEDIA,
-USB_PID_AVERMEDIA_VOLAR_2) },
-+               { USB_DEVICE(USB_VID_LEADTEK,
-USB_PID_WINFAST_DTV_DONGLE_STK7700P_B) },
-                { }             /* Terminating entry */
-};
-MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -321,7 +322,7 @@ struct dvb_usb_device_properties dib0700
-                        },
-                },
-
--               .num_device_descs = 6,
-+               .num_device_descs = 7,
-                .devices = {
-                        {   "DiBcom STK7700P reference design",
-                                { &dib0700_usb_id_table[0],
-&dib0700_usb_id_table[1] },
-@@ -346,6 +347,10 @@ struct dvb_usb_device_properties dib0700
-                        {   "Leadtek Winfast DTV Dongle (STK7700P
-based)",
-                                { &dib0700_usb_id_table[8], NULL },
-                                { NULL },
-+                       },
-+                       {   "Leadtek Winfast DTV Dongle B (STK7700P
-based)",
-+                               { &dib0700_usb_id_table[11], NULL },
-+                               { NULL },
-                        }
-                }
-        }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2008-02-13
-10:05:13.000000000 +1100
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2008-02-13
-10:18:00.000000000 +1100
-@@ -148,6 +148,7 @@
-#define USB_PID_WINFAST_DTV_DONGLE_COLD                        0x6025
-#define USB_PID_WINFAST_DTV_DONGLE_WARM                        0x6026
-#define USB_PID_WINFAST_DTV_DONGLE_STK7700P            0x6f00
-+#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_B          0x6f01
-#define USB_PID_GENPIX_8PSK_COLD                       0x0200
-#define USB_PID_GENPIX_8PSK_WARM                       0x0201
-#define USB_PID_SIGMATEK_DVB_110                       0x6610
-
-
+-- 
+Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
