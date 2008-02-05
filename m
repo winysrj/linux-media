@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1MDjm4T005269
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 08:45:48 -0500
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1MDjEtK023995
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 08:45:14 -0500
-Message-ID: <47BED1E4.1010806@linuxtv.org>
-Date: Fri, 22 Feb 2008 08:45:08 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20080219065109.199ee966@gaivota>
-	<47BB3F60.2030801@linuxtv.org>	<20080219182043.7434bd56@gaivota>
-	<47BE2781.4060205@linuxtv.org> <20080222091314.1ecf60d8@gaivota>
-In-Reply-To: <20080222091314.1ecf60d8@gaivota>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, fragabr@gmail.com
-Subject: Re: [linux-dvb] [EXPERIMENTAL] cx88+xc3028 - tests are required -
- was: Re: Wh en xc3028/xc2028 will be supported?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15AowVR004280
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 05:50:58 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15AoWjX004275
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 05:50:32 -0500
+Date: Tue, 5 Feb 2008 08:49:51 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Andy McMullan" <andy@andymcm.com>
+Message-ID: <20080205084951.1af2d725@gaivota>
+In-Reply-To: <fea7c4860802041408j21689c54v568c976f4173a463@mail.gmail.com>
+References: <fea7c4860802030504k60ab0466ta03572a9083a69e@mail.gmail.com>
+	<fea7c4860802030606v6614d884i1a5e71980709739f@mail.gmail.com>
+	<20080204072233.073d40da@gaivota>
+	<fea7c4860802041408j21689c54v568c976f4173a463@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: bt878 'interference' on fc6 but not fc1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,140 +30,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> On Thu, 21 Feb 2008 20:38:09 -0500
-> Michael Krufky <mkrufky@linuxtv.org> wrote:
->
->   
->> Mauro Carvalho Chehab wrote:
->>     
->>>>> It is not that simple. Steven patch works for DTV on PCI Nano; Christopher
->>>>> patches for some other DiVCO boards (DTV also); my port of Markus patch
->>>>>       
->>>>>           
->>>> for
->>>>     
->>>>         
->>>>> other boards (tested by Dâniel Fraga - Analog TV).
->>>>>   
->>>>>       
->>>>>           
->>>> What does one board have to do with another?  Just because these boards 
->>>> all use xceive tuners does not mean that they should be grouped together.
->>>>     
->>>>         
->>> No, but we have patches for all of them.
->>>
->>>   
->>>       
->>>> Because the user has the ability to load cx8800 without cx88-dvb, and 
->>>> likewise, the user has the ability to load cx88-dvb without cx8800, the 
->>>> attach call must be fully qualified such that the other side of the 
->>>> driver is not required to be loaded in order for the tuner to work.
->>>>     
->>>>         
->>> If you take a look at the code, you'll see that all code is at cx88xx. This
->>> module is loaded by cx8800, if you're using analog, or by cx8802, if you're
->>> using cx88-dvb or cx88-blackbird.
->>>
->>> The code initializes xc3028 before tuner attach.
->>>
->>>   
->>>       
->>>> In the case of FusionHDTV5 pci nano, there will never be an attach call 
->>>> from the analog side of the driver, since the tuner is hidden behind the 
->>>> s5h1409's i2c gate, and analog mode is not supported with the current 
->>>> driver.  If you set i2c_scan=1 on the PCI nano, the xceive tuner will 
->>>> not even show up in the scan.
->>>>     
->>>>         
->>> The proper fix is to open the i2c gate before loading tuner. This will allow
->>> i2c_scan to work and both analog and digital modes will work. Btw, this
->>> somewhat similar to what dvico_fusionhdtv_hybrid_init() does on cx88-cards.
->>>
->>> I've added a patch that should open the bridge for s5h1409. Please test. 
->>>       
->> Mauro,
->>
->> It does not work.  See my prior email in this thread for the explanation.
->>
->> [ 2912.355967] Linux video capture interface: v2.00
->> [ 2912.373470] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
->> [ 2912.373536] ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level,
->> low) -> IRQ 17
->> [ 2912.373601] cx88[0]: subsystem: 18ac:d530, board: DVICO HDTV5 PCI
->> Nano [card=59,autodetected]
->> [ 2912.373607] cx88[0]: TV tuner type 71, Radio tuner type -1
->> [ 2912.555088] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
->>     
-> 		          ^^^^
-> The above message were generated by cx88-cards. So, as I said before, this were
-> called _before_ running dvb_register, defined at cx88-dvb.
->
-> The issue is simple: the i2c gate code were wrong. So, xc3028 is not visible on
-> that point of the code. With this, analog support will never work. The proper
-> fix is to enable xc3028 before enabling i2c, meaning to correct the code at
-> cx88_pci_nano_init().
->
-> After re-visiting s5h1409 code, I noticed that I've used the wrong sequence for
-> the gate. The state should be i2c closed, for xc3028 to work. The following
-> patch should fix:
->
-> http://linuxtv.org/hg/~mchehab/cx88-xc2028/rev/871db4e0451c
->
-> Please test it, with i2c_scan=1, and post the results.
->   
+On Mon, 4 Feb 2008 22:08:24 +0000
+"Andy McMullan" <andy@andymcm.com> wrote:
 
-Doesn't work.
+> > Maybe it have something to do with some power saving cycle at the processor.
+> > You may try to change powersave governor policy and see the results.
+> 
+> Thanks for the suggestion.  I tried turning off the cpuspeed service,
+> and even totally disabling acpi in the kernel, but it didn't make any
+> difference.  (I don't know much about cpu throttling on linux, but I
+> assume it relies on ACPI)
 
-[  795.056020] Linux video capture interface: v2.00
-[  798.235564] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-[  798.235643] ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level,
-low) -> IRQ 18
-[  798.235718] cx88[0]: subsystem: 18ac:d530, board: DVICO HDTV5 PCI
-Nano [card=59,autodetected]
-[  798.235722] cx88[0]: TV tuner type 71, Radio tuner type -1
-[  798.371224] cx88[0]: i2c scan: found device @ 0x32  [???]
-[  798.371391] cx88[0]: i2c scan: found device @ 0x34  [???]
-[  798.399887] cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
-[  798.400319] cx88[0]: i2c scan: found device @ 0xa2  [???]
-[  798.400482] cx88[0]: i2c scan: found device @ 0xa4  [???]
-[  798.400642] cx88[0]: i2c scan: found device @ 0xa6  [???]
-[  798.400800] cx88[0]: i2c scan: found device @ 0xa8  [???]
-[  798.400957] cx88[0]: i2c scan: found device @ 0xaa  [???]
-[  798.401116] cx88[0]: i2c scan: found device @ 0xac  [???]
-[  798.401272] cx88[0]: i2c scan: found device @ 0xae  [???]
-[  798.411996] cx88[0]: i2c scan: found device @ 0xd6  [???]
-[  798.488821] Closing s5h1409 i2c gate to allow xc3028 detection
-[  798.489283] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
-[  798.489301] cx88[0]/0: found at 0000:02:07.0, rev: 5, irq: 18,
-latency: 64, mmio: 0xe4000000
-[  798.489376] cx88[0]/0: registered device video0 [v4l2]
-[  798.489408] cx88[0]/0: registered device vbi0
-[  818.236239] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-[  818.236443] cx88[0]/2: cx2388x 8802 Driver Manager
-[  818.236465] ACPI: PCI Interrupt 0000:02:07.2[A] -> GSI 19 (level,
-low) -> IRQ 18
-[  818.236480] cx88[0]/2: found at 0000:02:07.2, rev: 5, irq: 18,
-latency: 64, mmio: 0xe6000000
-[  818.254906] cx88/2: cx2388x dvb driver version 0.0.6 loaded
-[  818.254913] cx88/2: registering cx8802 driver, type: dvb access: shared
-[  818.254918] cx88[0]/2: subsystem: 18ac:d530, board: DVICO HDTV5 PCI
-Nano [card=59]
-[  818.254922] cx88[0]/2: cx2388x based DVB/ATSC card
-[  818.309763] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[  818.309768] cx88[0]/2: xc3028 attached
-[  818.310968] DVB: registering new adapter (cx88[0])
-[  818.311080] DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB
-Frontend)...
-[  826.542292] xc2028 1-0061: xc2028/3028 firmware name not set!
-[  827.643657] xc2028 1-0061: xc2028/3028 firmware name not set!
-[  828.745093] xc2028 1-0061: xc2028/3028 firmware name not set!
-[  829.846543] xc2028 1-0061: xc2028/3028 firmware name not set!
-[  830.844337] xc2028 1-0061: Error on line 1068: -121
+Just stopping a daemon wouldn't solve. 
+You may try to do something like this:
 
--Mike
+echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor  
 
+test, and test again with:
+
+echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor  
+
+This link provides some additional info:
+http://www.thinkwiki.org/wiki/How_to_make_use_of_Dynamic_Frequency_Scaling
+
+There's an interesting tool that will help to see what is happening at
+processor level. It is powertop:
+http://www.lesswatts.org/projects/powertop/
+
+The tool may help you to see the differences between the previous and the newer
+setup.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
