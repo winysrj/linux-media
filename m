@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DNDHP5031137
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:13:17 -0500
-Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DNCsuk006058
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:12:55 -0500
-Received: by rv-out-0910.google.com with SMTP id k15so113614rvb.51
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 15:12:53 -0800 (PST)
-Date: Wed, 13 Feb 2008 14:21:19 -0800
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1585DfF008281
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 03:05:13 -0500
+Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.187])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1584T8h012924
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 03:04:29 -0500
+Received: by rv-out-0910.google.com with SMTP id k15so1787380rvb.51
+	for <video4linux-list@redhat.com>; Tue, 05 Feb 2008 00:04:25 -0800 (PST)
+Date: Tue, 5 Feb 2008 00:00:38 -0800
 From: Brandon Philips <brandon@ifup.org>
-To: Ian.davidson@bigfoot.com
-Message-ID: <20080213222119.GA16157@plankton.ifup.org>
-References: <47AF671E.2030509@blueyonder.co.uk>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080205080038.GB8232@plankton.ifup.org>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <47AF671E.2030509@blueyonder.co.uk>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Alsa Mixer Settings
+In-Reply-To: <Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+Cc: video4linux-list@redhat.com,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,25 +32,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 21:05 Sun 10 Feb 2008, Ian Davidson wrote:
-> I am running Fedora Core 4 and I use the machine to record.  On various 
-> occasions I have updated the software.  Sometimes ALSA Mixer remembers the 
-> settings from one boot to another - and sometimes it forgets.  Currently, it 
-> is in a 'forgetting mood' so each time I boot, the settings are the same as 
-> last time I BOOTED. I change them, but when I boot again, there they are 
-> back at the old settings again.  (This is not zero or maximum, but somewhere 
-> in between)
+On 08:16 Tue 05 Feb 2008, Guennadi Liakhovetski wrote:
+> On Mon, 4 Feb 2008, Brandon Philips wrote:
+> 
+> > On 15:31 Thu 31 Jan 2008, Guennadi Liakhovetski wrote:
+> > > From: Steven Whitehouse <steve@chygwyn.com>
+> > > 
+> > > This adds two new fourcc codes (as per info at fourcc.org)
+> > > for 16bpp mono and 16bpp Bayer formats.
+> > 
+> > This patch was merged in the following commit:
+> >  http://linuxtv.org/hg/v4l-dvb/rev/d002378ff8c2
+> > 
+> > I have a number of issues:
+> >  
+> > - Why was V4L2_CID_AUTOEXPOSURE added!  I am working to get an auto
+> >   exposure control into the spec but this was merged without discussion.
+> >   Please remove this and wait for my patch.
+> > 
+> > - Why was a SoC config option added with this commit?
+> > 
+> > - mailimport changes in this commit too!  Why is mailimport running
+> >   sudo!?! 
+> > 
+> > A mistake was obviously made here.
+> 
+> Yes, strange. In the original patch
+> 
+> http://marc.info/?l=linux-video&m=120179045830566&w=2
+> 
+> it was still ok.
 
-Under Debian there is a script in /etc/init.d/alsa-utils that restores
-the alsamixer settings on startup and saves on shutdown.  SuSE has the
-same in /etc/init.d/alsasound
+Yea, it must have been something on Mauro's end.
 
-Likely Fedora has the same thing- only it is broken on your setup. :D 
-
-I would report the bug to the Fedora bugzilla:
-  https://bugzilla.redhat.com/index.cgi 
- 
-Cheers,
+Thanks,
 
 	Brandon
 
