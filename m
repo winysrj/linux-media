@@ -1,18 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JTQ2v-0003HL-49
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 00:14:13 +0100
-Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
-	[84.69.142.185])
-	by mail.youplala.net (Postfix) with ESMTP id 3C515D88121
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 00:13:19 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-Date: Sun, 24 Feb 2008 23:13:17 +0000
-Message-Id: <1203894797.6400.17.camel@youkaida>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+542baf0462bae6c57a94+1626+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JMKSD-0001bd-BH
+	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 10:51:01 +0100
+Date: Tue, 5 Feb 2008 07:50:14 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Richard (MQ)" <osl2008@googlemail.com>
+Message-ID: <20080205075014.6b7091d9@gaivota>
+In-Reply-To: <47A5D8AF.2090800@googlemail.com>
+References: <47A5D8AF.2090800@googlemail.com>
 Mime-Version: 1.0
-Subject: [linux-dvb] A positive comment - Commercial detection
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,43 +24,59 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In those days of highlighting shortcomings and bitter comments, I'd like
-to express my satisfaction with MythTV.
+Hi Richard,
 
-I've had a history of bad reception of the local DVB-T signal. It was
-bad enough to make the dumped MPEG-2 files quite ugly and corrupted.
+On Sun, 03 Feb 2008 15:07:27 +0000
+"Richard (MQ)" <osl2008@googlemail.com> wrote:
 
-Because of this the commercial detection process did not really work. It
-was choking on the mpeg crap.
+> I tried contacting Markus with the following but no response - probably
+> one of you experienced coders on this list will know what's wrong
+> though? As I say below, the 'standard' v4l-dvb builds fine but is no use
+> with this card.
 
-I have corrected my reception.
+I've ported Markus patch for cx88 and saa7134 xc3028-based boards into this
+tree:
 
-And the commercial detection is working like a charm.
+http://linuxtv.org/hg/~mchehab/cx88-xc2028
 
-Very impressive.
+Some adjustments may be needed for this to work, since tuner-xc2028 needs
+to know what firmware it will load for dvb. This is done by those lines, at
+the end of saa7134-cards.c:
 
-Yes, MythTV has legacy to clean-up. Yes, it has ugly sides. Yes the
-interface and setup can be quite scary.
+                /* FIXME: This should be device-dependent */
+                ctl.demod = XC3028_FE_OREN538;
+                ctl.mts = 1;
 
-Yes, Elisa looks very cool. Yes other projects are attractive. Yes,
-there are other great projects out there.
+ctl.demod should have the IF of the used tuner. Most current boards use
+IF=5.380 MHz. XC3028_FE_OREN538 is an alias for 5380.
+Another possible value is XC3028_FE_ZARLINK456 (IF = 4560 KHz).
 
-But they are all motivated by MythTV, they all have quite a way to go
-before they provide the level of features, functionality and
-adaptability that MythTV has today.
+ctl.mts affects audio decoding. If you don't have audio on
+analog mode, you may try to change this to 0.
 
-And when there is no competition, things are not as good, heh?
+For the driver to work, you'll need to extract xc3028 firmware. Most devices
+works fine with Xceive firmware version 2.7. In order to extract, you should
+follow the following procedure:
 
-So MythTV community, way to go, and keep it up!
+      1) Download the windows driver with something like:
+              wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
 
-And when is 0.21 going to be released? Just kidding...
+      2) Extract the file hcw85bda.sys from the zip into the current dir:
+              unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
 
-Nico
-http://www.youplala.net/linux/home-theater-pc
+      3) run the script:
+	      ./linux/Documentation/video4linux/extract_xc3028.pl
 
+      4) copy the generated file:
+              cp xc3028-v27.fw /lib/firmware
+
+Could you please test it and give us some feedback?
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
