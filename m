@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DLsN7D014926
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 16:54:23 -0500
-Received: from mail7.sea5.speakeasy.net (mail7.sea5.speakeasy.net
-	[69.17.117.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DLs1B2021445
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 16:54:01 -0500
-Date: Wed, 13 Feb 2008 13:53:55 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Ricardo Cerqueira <v4l@cerqueira.org>
-In-Reply-To: <1202935004.17260.54.camel@localhost.localdomain>
-Message-ID: <Pine.LNX.4.58.0802131349400.6264@shell2.speakeasy.net>
-References: <20080212190235.4e86baf8@gaivota>
-	<Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
-	<20080213155352.06d966cd@gaivota>
-	<Pine.LNX.4.58.0802131025440.6264@shell2.speakeasy.net>
-	<1202935004.17260.54.camel@localhost.localdomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15NpXJY030800
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 18:51:33 -0500
+Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.191])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15Novtw004737
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 18:50:57 -0500
+Received: by rv-out-0910.google.com with SMTP id k15so1945227rvb.51
+	for <video4linux-list@redhat.com>; Tue, 05 Feb 2008 15:50:57 -0800 (PST)
+Date: Tue, 5 Feb 2008 15:43:56 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080205234356.GA29915@plankton.ifup.org>
+References: <a030ada87143b0e559ae.1202176997@localhost>
+	<Pine.LNX.4.64.0802051100210.5546@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB fixes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0802051100210.5546@axis700.grange>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2 of 3] [v4l] Add new user class controls and deprecate
+	others
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,35 +32,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 13 Feb 2008, Ricardo Cerqueira wrote:
-> On Wed, 2008-02-13 at 10:45 -0800, Trent Piepho wrote:
-> > On Wed, 13 Feb 2008, Mauro Carvalho Chehab wrote:
-> > > On Tue, 12 Feb 2008 21:21:43 -0800 (PST)
-> > > Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > >
-> > Nobody points to any issues, ever, when this happens.  Look at how broken
-> > the v4l2 only bttv driver was.  You still can't unload and load cx88-dvb
-> > since Markus's patch for hotplug, no one's fixed that regression.  Now
-> > there's yet another race in the cx88 subdriver code.  Maybe the original
-> > author who added that code should feel some motiviation to fix the
-> > regressions it caused....
->
-> Read the code that was actually committed: here's a helpful link:
->
-> http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=41a93616082af630e7242cba766a161d7847560b
+On 11:03 Tue 05 Feb 2008, Guennadi Liakhovetski wrote:
+> On Mon, 4 Feb 2008, Brandon Philips wrote:
+> 
+> > +
+> > +/* Deprecated, use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
+> > +#define V4L2_CID_HCENTER_DEPRECATED	(V4L2_CID_BASE+22) 
+> > +#define V4L2_CID_VCENTER_DEPRECATED	(V4L2_CID_BASE+23) 
+> > +
+> > +#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24) 
+> > +enum v4l2_power_line_frequency {
+> > +	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
+> > +	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
+> > +	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
+> > +};
+> > +#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25) 
+> > +#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26) 
+> > +#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27) 
+> > +#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28) 
+> > +#define V4L2_CID_LASTP1				(V4L2_CID_BASE+29) /* last CID + 1 */
+> >  
+> >  /*  MPEG-class control IDs defined by V4L2 */
+> >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> 
+> Also, please, remove trailing blanks in 7 lines:
+> 
+> Adds trailing whitespace.
+> .dotest/patch:26:#define V4L2_CID_HCENTER_DEPRECATED    (V4L2_CID_BASE+22)
+> Adds trailing whitespace.
+> .dotest/patch:27:#define V4L2_CID_VCENTER_DEPRECATED    (V4L2_CID_BASE+23)
+> Adds trailing whitespace.
+> .dotest/patch:29:#define V4L2_CID_POWER_LINE_FREQUENCY  (V4L2_CID_BASE+24)
+> Adds trailing whitespace.
+> .dotest/patch:35:#define V4L2_CID_HUE_AUTO                      (V4L2_CID_BASE+25)
+> Adds trailing whitespace.
+> .dotest/patch:36:#define V4L2_CID_WHITE_BALANCE_TEMPERATURE     (V4L2_CID_BASE+26)
+> warning: squelched 2 whitespace errors
+> warning: 7 lines add whitespace errors.
+> 
+> (git only listed 5 out of 7 lines explicitly above)
 
-I did.  Looks like there is a race on access to core->active_ref.
+Sorry about that, I am used to git and quilt checking for me :)
 
-> > I don't have the time or the desire to be the janitor who cleans up after
-> > sloppy coders' bugs.
->
-> You properly raised a red flag, and got a fix in return.
-> Don't expect fixes to be accompanied by a "are you happy now?"
-> follow-up; if you took the time to check the first commit, take the time
-> to read the rest.
+Mauro: the patches have been updated here http://ifup.org/hg/v4l-spec
 
-You could also CC the relevant parties.  Unless you're hoping they won't
-notice something.
+For future reference here is a commit hook that I stole from git to
+check for trailing whitespace.
+  http://ifup.org/~philips/hg-pre-commit
+
+Cheers,
+
+	Brandon
 
 --
 video4linux-list mailing list
