@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FKEFus007437
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:14:15 -0500
-Received: from mail2.sea5.speakeasy.net (mail2.sea5.speakeasy.net
-	[69.17.117.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FKDiLx020643
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:13:45 -0500
-Date: Fri, 15 Feb 2008 12:13:38 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: David Brownell <david-b@pacbell.net>
-In-Reply-To: <200802151102.51947.david-b@pacbell.net>
-Message-ID: <Pine.LNX.4.58.0802151211280.31468@shell4.speakeasy.net>
-References: <Pine.LNX.4.64.0802151511540.16741@axis700.grange>
-	<Pine.LNX.4.58.0802151036020.31468@shell4.speakeasy.net>
-	<200802151102.51947.david-b@pacbell.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15JVKoW011290
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 14:31:20 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.175])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15JUx8N016162
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 14:30:59 -0500
+Received: by ug-out-1314.google.com with SMTP id t39so260867ugd.6
+	for <video4linux-list@redhat.com>; Tue, 05 Feb 2008 11:30:59 -0800 (PST)
+Message-ID: <9e52368f0802051130v68e63072m892cb084f081f61e@mail.gmail.com>
+Date: Tue, 5 Feb 2008 14:30:57 -0500
+From: "De Ash" <deeash099@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH soc-camera] Replace NO_GPIO with gpio_is_valid()
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: build fail
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,19 +27,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 15 Feb 2008, David Brownell wrote:
-> On Friday 15 February 2008, Trent Piepho wrote:
-> > 	that hoping that -EINVAL happens to be invalid on every
-> > platform.
->
-> Negative numbers have always been guaranteed to be invalid GPIO numbers.
-> That's been part of the interface spec from day one.
+Folks,
 
-Ahh, and so it has been:
-	GPIOs are identified by unsigned integers in the range 0..MAX_INT.
-	That reserves "negative" numbers for other purposes like marking
-	signals as "not available on this board", or indicating faults.
+I am using kernel  2.6.24  from kernel.org.
+Checked out v4l-dvb and the make fails with the following ..
+Would appereciate help with this.
 
+ CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5110c1b.o
+  CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5110d.o
+  CC [M]  /usr/src/v4l-dvb/v4l/sn9c102_tas5130d1b.o
+  CC [M]  /usr/src/v4l-dvb/v4l/bt87x.o
+In file included from /usr/src/v4l-dvb/v4l/bt87x.c:34:
+include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a
+function)
+make[3]: *** [/usr/src/v4l-dvb/v4l/bt87x.o] Error 1
+make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernel-2.6.24/linux-2.6.24'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+make: *** [all] Error 2
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
