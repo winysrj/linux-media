@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1P4EDjo023377
-	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 23:14:13 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15E2QMx018738
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 09:02:26 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1P4Dg5R002410
-	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 23:13:42 -0500
-Date: Mon, 25 Feb 2008 01:11:56 -0300
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15E1xWC017169
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 09:01:59 -0500
+Date: Tue, 5 Feb 2008 12:01:02 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-ID: <20080225011156.198a6df9@areia>
-In-Reply-To: <Pine.LNX.4.64.0802212115270.7967@axis700.grange>
-References: <Pine.LNX.4.64.0802191317370.6077@axis700.grange>
-	<Pine.LNX.4.64.0802212115270.7967@axis700.grange>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-ID: <20080205120102.76ccd526@gaivota>
+In-Reply-To: <47A86350.9090205@linuxtv.org>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<47A86350.9090205@linuxtv.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Convert videobuf-dma-sg to generic DMA API
+Cc: video4linux-list@redhat.com,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,23 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 21 Feb 2008 21:18:19 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@pengutronix.de> wrote:
+On Tue, 05 Feb 2008 08:23:28 -0500
+Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-> On Tue, 19 Feb 2008, Guennadi Liakhovetski wrote:
+> Brandon Philips wrote:
+> > - mailimport changes in this commit too!  Why is mailimport running
+> >   sudo!?! 
 > 
-> > videobuf-dma-sg does not need to depend on PCI. Switch it to using generic 
-> > DMA API, convert all affected drivers, relax Kconfig restriction, improve 
-> > compile-time type checking, fix some Coding Style violations while at it.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de
+> I understand that unrelated changes were accidentally merged with a single commit, but why would we want this script to call sudo in the first place?
 > 
-> Forgot to mention - tested on a PC with a bt878 PCI radr and on my PXA270 
-> development system with soc-camera. So, please test further and consider 
-> for inclusion.
+> I think it's bad practice, for such a script to execute commands as root -- 
+> 
+> Can you explain, Mauro?
 
-Tested here on a saa7134 pcmcia board. Seems OK. I've committed the changeset.
-Thanks.
+The script itself doesn't open any new vulnerabilities. Sudo only works if 
+configured at /etc/sudoers.
+
+This is needed for the script to work on certain configurations. 
+Some emailers marks mailboxes and messages with "og-rw" permissions.
+This means that other users can't access. If someone uses a different user
+account for V4L/DVB development/testing, permissions should be changed, when
+applying a patch series received by email.
+
+Of course, this will only work if:
+
+1) the user of the second account has sudo rights;
+
+2) the user of the second account types his password (or, otherwise, sudo is
+configured to not ask for passwords - on very weak environments).
 
 Cheers,
 Mauro
