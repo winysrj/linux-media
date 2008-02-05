@@ -1,34 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1HFaMvE024424
-	for <video4linux-list@redhat.com>; Sun, 17 Feb 2008 10:36:22 -0500
-Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1HFZvvt021268
-	for <video4linux-list@redhat.com>; Sun, 17 Feb 2008 10:35:58 -0500
-Received: by rv-out-0910.google.com with SMTP id k15so1062428rvb.51
-	for <video4linux-list@redhat.com>; Sun, 17 Feb 2008 07:35:52 -0800 (PST)
-Message-ID: <d9def9db0802170735o5cae0622v79d151a354c68963@mail.gmail.com>
-Date: Sun, 17 Feb 2008 16:35:52 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Daniel Gimpelevich" <daniel@gimpelevich.san-francisco.ca.us>
-In-Reply-To: <pan.2008.02.16.19.30.41.575048@gimpelevich.san-francisco.ca.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m152CvYu014088
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:57 -0500
+Received: from mx1.suse.de (mx1.suse.de [195.135.220.2])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m152CRE9019219
+	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:27 -0500
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <20080127173132.551401d9@tux.abusar.org.br>
-	<20080128182634.345bd4e8@tux.abusar.org.br>
-	<20080128184534.7af7a41b@gaivota>
-	<20080128192230.59921445@tux.abusar.org.br>
-	<20080129004104.17e20224@gaivota>
-	<20080129021904.1d3047d1@tux.abusar.org.br>
-	<20080129025020.60fa33de@gaivota>
-	<20080129050103.2fae9d61@tux.abusar.org.br>
-	<20080129122547.63214371@gaivota>
-	<pan.2008.02.16.19.30.41.575048@gimpelevich.san-francisco.ca.us>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [EXPERIMENTAL] cx88+xc3028 - tests are required - was: Re: When
-	xc3028/xc2028 will be supported?
+Content-Transfer-Encoding: 7bit
+Message-Id: <a030ada87143b0e559ae.1202176997@localhost>
+In-Reply-To: <patchbomb.1202176995@localhost>
+Date: Mon, 04 Feb 2008 18:03:17 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: mchehab@infradead.org, laurent.pinchart@skynet.be
+Cc: v4l-dvb-maintainer@linuxtv.org,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	video4linux-list@redhat.com
+Subject: [PATCH 2 of 3] [v4l] Add new user class controls and deprecate
+	others
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,72 +29,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 2/16/08, Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us> wrote:
-> On Tue, 29 Jan 2008 12:25:47 -0200, Mauro Carvalho Chehab wrote:
->
-> > Dâniel and others,
-> >
-> >> > Having this tested is a very good news! I'll need to merge this patch
-> with two
-> >> > other patches that adds DVB support for cx88/xc3028. If I can manage to
-> have
-> >> > some time for this merge, I'll commit and ask Linus to add this to
-> 2.6.25.
-> >>
-> >> 	:)
-> >
-> > I've merged some patches from several authors, that add xc3028 support for
-> > cx88.
-> >
-> > The experimental tree is available at:
-> >
-> > http://linuxtv.org/hg/~mchehab/cx88-xc2028
-> >
-> > This patch series adds support for the following boards:
-> >
-> >  59 -> DVICO HDTV5 PCI Nano                                [18ac:d530]
-> >  60 -> Pinnacle Hybrid PCTV                                [12ab:1788]
-> >  61 -> Winfast TV2000 XP Global                            [107d:6f18]
-> >  62 -> PowerColor Real Angel 330                           [14f1:ea3d]
-> >  63 -> Geniatech X8000-MT DVBT                             [14f1:8852]
-> >  64 -> DViCO FusionHDTV DVB-T PRO                          [18ac:db30]
-> >
-> > In thesis, both analog and DVB support (for boards with DVB/ATSC) should
-> be
-> > working (*). Maybe analog audio may need an additional configuration for
-> some
-> > specific board (since they may require to add cfg.mts = 1 at xc3028
-> > initialization code, on cx88-cards).
-> >
-> > Please test.
-> >
-> > (*) Pinnacle Hybrid PCTV support for DVB is not available yet.
-> >
-> > Cheers,
-> > Mauro
->
-> About ten weeks ago, the only support for the Powercolor Real Angel 330
-> appeared to be in Markus's mercurial tree, so I tried it. It did not work,
-> because the GPIO settings were all wrong. I ran some tests, and fixed the
-> problems. I made Markus aware of my patch several times, and he always
-> said he would soon add it to his tree along with many others he received.
-> He apparently never got to it, and now his server seems to have
-> disappeared from the web. If anyone still has a copy of his repository,
-> the following patch against it makes all functions of this card work
-> perfectly:
-> http://pastebin.com/f44a13031
-> Today, I noticed the new cx88-xc2028 tree on which Mauro has begun some
-> work. I have not tried it, but in comparing the code to Markus's, most
-> support appears to be missing. I thought that maybe I could try merging
-> Markus's old tree with Mauro's new one, but the absence of Markus's server
-> means I can't. If anyone here would like my assistance in reconciling the
-> competing code in the two trees, please contact me off-list. Thank you.
->
+# HG changeset patch
+# User Brandon Philips <brandon@ifup.org>
+# Date 1202175714 28800
+# Node ID a030ada87143b0e559aecb0bbd9fc1ed7384d0be
+# Parent  0810f250d078bf6159de69569828c07cb54f4389
+[v4l] Add new user class controls and deprecate others
 
-the server should be back on monday.. there's some maintainance going
-on by the other admin.. I have to wait for it too..
+These changes should appear in the next update of the v4l2spec.
 
-Markus
+HCENTER and VCENTER are unused in the tree so I added a _DEPRECATED
+postfix so applications can remove their use.
+
+Signed-off-by: Brandon Philips <bphilips@suse.de>
+
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -848,21 +848,34 @@ struct v4l2_querymenu
+ #define V4L2_CID_AUDIO_TREBLE		(V4L2_CID_BASE+8)
+ #define V4L2_CID_AUDIO_MUTE		(V4L2_CID_BASE+9)
+ #define V4L2_CID_AUDIO_LOUDNESS		(V4L2_CID_BASE+10)
+-#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11)
++#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11) /* Deprecated */
+ #define V4L2_CID_AUTO_WHITE_BALANCE	(V4L2_CID_BASE+12)
+ #define V4L2_CID_DO_WHITE_BALANCE	(V4L2_CID_BASE+13)
+ #define V4L2_CID_RED_BALANCE		(V4L2_CID_BASE+14)
+ #define V4L2_CID_BLUE_BALANCE		(V4L2_CID_BASE+15)
+ #define V4L2_CID_GAMMA			(V4L2_CID_BASE+16)
+-#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* ? Not sure */
++#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* Deprecated */
+ #define V4L2_CID_EXPOSURE		(V4L2_CID_BASE+17)
+ #define V4L2_CID_AUTOGAIN		(V4L2_CID_BASE+18)
+ #define V4L2_CID_GAIN			(V4L2_CID_BASE+19)
+ #define V4L2_CID_HFLIP			(V4L2_CID_BASE+20)
+ #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
+-#define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
+-#define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
+-#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
++
++/* Deprecated, use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
++#define V4L2_CID_HCENTER_DEPRECATED	(V4L2_CID_BASE+22) 
++#define V4L2_CID_VCENTER_DEPRECATED	(V4L2_CID_BASE+23) 
++
++#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24) 
++enum v4l2_power_line_frequency {
++	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
++	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
++	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
++};
++#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25) 
++#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26) 
++#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27) 
++#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28) 
++#define V4L2_CID_LASTP1				(V4L2_CID_BASE+29) /* last CID + 1 */
+ 
+ /*  MPEG-class control IDs defined by V4L2 */
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 
 --
 video4linux-list mailing list
