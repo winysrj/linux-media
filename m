@@ -1,19 +1,26 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from astana.suomi.net ([82.128.152.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JSnzB-00011P-2X
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 07:35:49 +0100
-Message-ID: <47BFBEBE.3020002@gmail.com>
-Date: Sat, 23 Feb 2008 10:35:42 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Gernot Pansy <pansyg@gmx.at>
-References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
-	<200802190218.11492.pansyg@gmx.at>
-In-Reply-To: <200802190218.11492.pansyg@gmx.at>
+	(envelope-from <crope@iki.fi>) id 1JMkvr-0007s0-0C
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 15:07:23 +0100
+Received: from taku.suomi.net ([82.128.154.66])
+	by astana.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
+	Jul 15 2005)) with ESMTP id <0JVT000PGLVF9KA0@astana.suomi.net> for
+	linux-dvb@linuxtv.org; Wed, 06 Feb 2008 16:06:51 +0200 (EET)
+Received: from spam2.suomi.net (spam2.suomi.net [212.50.131.166])
+	by mailstore.suomi.net
+	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
+	32bit)) with ESMTP id <0JVT007DSLUBNHV0@mailstore.suomi.net> for
+	linux-dvb@linuxtv.org; Wed, 06 Feb 2008 16:06:50 +0200 (EET)
+Date: Wed, 06 Feb 2008 15:49:21 +0200
+From: Antti Palosaari <crope@iki.fi>
+In-reply-to: <foc6rs$af2$1@ger.gmane.org>
+To: "bWare@iWare.co.uk" <bWare@iWare.co.uk>
+Message-id: <47A9BAE1.3010603@iki.fi>
+MIME-version: 1.0
+References: <foc6rs$af2$1@ger.gmane.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
- AD	SP400 rebadge)
+Subject: Re: [linux-dvb] Appeal for information on the Microtune MT2061
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,25 +31,24 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Gernot Pansy wrote:
-> hy,
+bWare@iWare.co.uk wrote:
+> The stick's tuner is actually marked MT2061F. A part not listed on 
+> Microtune's website or in the Realtek or linux-dvb MT2060 drivers.
 > 
-> have you tried some other channel on a diffrent multiplex?
-> 
-> i have also troubles on 2 multiplexes, but i believe that's trough my bad 
-> signal strength (it's the same on windows).
-> 
-> otherwise there have to be some initialization registers configured 
-> differently. manu is the only guy, how knows about that and can help you.
-> 
+> Has anyone got any information on the MT2061, specifically how it may 
+> differ from the MT2060? Or any suggestions how I may find this out?
 
-It is a 1:1 clone of the 1040/1. Will add in the id's to the mantis tree.
+I don't know how it differs. It just works with current MT2060 driver 
+without any changes.
 
-Regards,
-Manu
+regards
+Antti
+
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
