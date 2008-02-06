@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fides.aptilo.com ([62.181.224.35])
+Received: from mail.elion.ee ([194.126.117.142])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jonas@anden.nu>) id 1JLbK8-0000Ee-4R
-	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 10:39:40 +0100
-Received: from [192.168.1.8] (h-134-69.A157.cust.bahnhof.se [81.170.134.69])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(No client certificate requested)
-	by fides.aptilo.com (Postfix) with ESMTP id EDD181F906A
-	for <linux-dvb@linuxtv.org>; Sun,  3 Feb 2008 10:39:07 +0100 (CET)
-From: Jonas Anden <jonas@anden.nu>
+	(envelope-from <kasjas@hot.ee>) id 1JMicx-0006lU-0k
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 12:39:43 +0100
+Message-ID: <47A99C60.4070305@hot.ee>
+Date: Wed, 06 Feb 2008 13:39:12 +0200
+From: Arthur Konovalov <kasjas@hot.ee>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: <200802021020.20298.shaun@saintsi.co.uk>
-References: <BC723861-F3E2-4B1C-BA54-D74B8960579A@firshman.co.uk>
-	<47A38A25.2030804@firshman.co.uk> <1201902231.935.12.camel@youkaida>
-	<200802021020.20298.shaun@saintsi.co.uk>
-Date: Sun, 03 Feb 2008 10:39:01 +0100
-Message-Id: <1202031541.17762.23.camel@anden.nu>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Subject: [linux-dvb] Changeset 7161 compile error on 2.6.24 kernel]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,148 +22,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a hunch about this problem...
+Compiling of the current HG tree fails on kernel 2.6.24:
 
-I had this problem (I tink 3 times last weekend) after initially
-updating my hg tree and recompiling the modules. I then turned on full
-debugging for the dib0700 module in order to try to see what happens
-when it goes wrong, but with full debugging on I haven't been able to
-reproduce the problem. I ran with full debugging on from monday to
-saturday and *really* tried to make it go away. I tried starting all
-tuners at once (ie scheduling three programs with the same start time),
-I tried running long recordings, I tried running plenty of retuning, and
-I tried doing it "my normal way" of a few recordings a day. Nothing made
-the tuner die.
+In file included from /usr/local/src/v4l-dvb/v4l/bt87x.c:34:
+include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a function)
+make[3]: *** [/usr/local/src/v4l-dvb/v4l/bt87x.o] Error 1
+make[2]: *** [_module_/usr/local/src/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.24'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/local/src/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-So yesterday, I finally gave up in trying to cause the problem. I turned
-debugging back off, and this morning one of the tuners is dead again
-(MythTV stopping at "L__" instead of proceeding to "LMS".)
+Please help,
+Arthur
 
-The *ONLY* change I have made is changing the debugging setting.
-
-This, in combination with the fact that some people see it and some
-don't, leads me to believe that this is timer-induced. Something can't
-keep up. Adding debugging makes the operations slightly slower (the
-module needs to do additional IO to speak to syslogd), and this delay
-seems to be enough to keep it operational.
-
-I don't think this has anything to do with the remote since I have the
-RC feature disabled (I'm using an M$ MCE remote instead).
-
-I set it up with full debugging (options dvb_usb_0700 debug=15). This
-will cause a whole bunch of logging in the system logs, but appears to
-keep the tuner alive. I have now changed the debug setting to 1 (only
-'info' type messages) to see if that also keeps the tuner alive.
-
-My system has a 3.3 Ghz Celeron processor. Shaun, Ben, Nicolas -- what
-kind of systems are you running? If my hunch is correct, I'd expect
-Shaun and Ben to have faster processors than Nicolas since they are
-seeing this issue and Nicolas isn't.
-
-  // J
-
-On Sat, 2008-02-02 at 10:20 +0000, Shaun wrote:
-> On Friday 01 February 2008 21:43:51 Nicolas Will wrote:
-> > On Fri, 2008-02-01 at 21:07 +0000, Ben Firshman wrote:
-> > > Feb  1 20:52:04 mythtv kernel: [   11.072000] dvb-usb: found a
-> > > 'Hauppauge Nova-T 500 Dual DVB-T' in cold state, will try to load a
-> > > firmware Feb  1 20:52:04 mythtv kernel: [   11.132000] dvb-usb:
-> > > downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-> > > ...
-> > > Feb  1 20:52:04 mythtv kernel: [   11.844000] dvb-usb: found a
-> > > 'Hauppauge Nova-T 500 Dual DVB-T' in warm state.
-> > > Feb  1 20:52:04 mythtv kernel: [   11.844000] dvb-usb: will pass the
-> > > complete MPEG2 transport stream to the software demuxer.
-> > > Feb  1 20:52:04 mythtv kernel: [   11.844000] DVB: registering new
-> > > adapter (Hauppauge Nova-T 500 Dual DVB-T)
-> > > Feb  1 20:52:04 mythtv kernel: [   11.956000] DVB: registering frontend
-> > > 1 (DiBcom 3000MC/P)...
-> > > ...
-> > > Feb  1 20:52:04 mythtv kernel: [   12.500000] dvb-usb: will pass the
-> > > complete MPEG2 transport stream to the software demuxer.
-> > > Feb  1 20:52:04 mythtv kernel: [   12.500000] DVB: registering new
-> > > adapter (Hauppauge Nova-T 500 Dual DVB-T)
-> > > Feb  1 20:52:04 mythtv kernel: [   12.508000] DVB: registering frontend
-> > > 2 (DiBcom 3000MC/P)...
-> > > Feb  1 20:52:04 mythtv kernel: [   13.068000] input: IR-receiver inside
-> > > an USB DVB receiver as /class/input/input2
-> > > Feb  1 20:52:04 mythtv kernel: [   13.068000] dvb-usb: schedule remote
-> > > query interval to 150 msecs.
-> > > Feb  1 20:52:04 mythtv kernel: [   13.068000] dvb-usb: Hauppauge Nova-T
-> > > 500 Dual DVB-T successfully initialized and connected.
-> > >
-> > > Got the tree from the day of your message, and I'm still having
-> > > problems. I'm not the only one either:
-> > >
-> > > http://www.linuxtv.org/pipermail/linux-dvb/2008-January/022629.html
-> > >
-> > > Thanks
-> > >
-> > > Ben
-> > >
-> > > Nicolas Will wrote:
-> > > > On Sun, 2008-01-27 at 14:30 +0000, Ben Firshman wrote:
-> > > >> I am using the (almost) latest SVN version of mythtv. I am using the
-> > > >> v4l-dvb sources from a couple of days back. I have followed and used
-> > > >> the patches that were on (are they in the repos now?):
-> > > >>
-> > > >> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
-> > > >>
-> > > >> After a short while, one of the tuners dies. I get a "(L__) Partial
-> > > >> Lock" message from mythtv. If it's any help, I also get messages like:
-> > > >>
-> > > >> DVB: frontend 0 frequency limits undefined - fix the driver
-> > > >>
-> > > >> In syslog, but that's even when it's working fine.
-> > > >
-> > > > Weird issue that I never encountered since I started using the card in
-> > > > August...
-> > > >
-> > > > Get a brand new tree, there have been a lot of changes very recently,
-> > > > merge of old patches and new fixes too.
-> > > >
-> > > > Make sure that you have the right firmware too.
-> > > >
-> > > > Then do a cold reboot, going through a power down, then check in the
-> > > > messages that the card was found in a cold state before a firmware
-> > > > upload.
-> > > >
-> > > > http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500#Firmware
-> > > >
-> > > > Nico
-> >
-> > Ben,
-> >
-> > I'm at loss for an explanation. I'm just not experiencing your problem.
-> >
-> > People with a better brain than mine will need to jump in.
-> >
-> > Have you tried turning debugging on for the modules, and get a more
-> > verbose log from mythbackend ?
-> >
-> > Nico
-> >
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> Hi,
-> 
-> I have been experiencing this problem for a few months now. I think it is 
-> related to the use of the remote control. I have written a workaround 
-> application for Ubuntu Linux that scans for a mt2060 error in the dmesg log. 
-> If found it will restart mythtv-backend.  This seems to mitigate tha problem.
-> 
-> I can't wait for this issue to be fixed.
-> 
-> Shaun
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
