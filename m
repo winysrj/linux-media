@@ -1,19 +1,23 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ag-out-0708.google.com ([72.14.246.241])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail-in-04.arcor-online.net ([151.189.21.44])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alihmh@gmail.com>) id 1JTaZt-0000yU-D2
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 11:28:57 +0100
-Received: by ag-out-0708.google.com with SMTP id 23so4570598agd.5
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 02:28:46 -0800 (PST)
-Message-ID: <66caf1560802250228y7a6530c8s62168f02067259ae@mail.gmail.com>
-Date: Mon, 25 Feb 2008 13:58:46 +0330
-From: "Ali H.M. Hoseini" <alihmh@gmail.com>
-To: "Jose Ignacio Andres Hernandez" <joserobleda@gmail.com>,
-	linux-dvb@linuxtv.org
-In-Reply-To: <400219b50802241043i72439f54p7b0c2bffc0d28187@mail.gmail.com>
-MIME-Version: 1.0
-References: <400219b50802241043i72439f54p7b0c2bffc0d28187@mail.gmail.com>
-Subject: Re: [linux-dvb] SkyStar REV 2.8
+	(envelope-from <hermann-pitton@arcor.de>) id 1JMg9d-0004UU-26
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 10:01:17 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?ISO-8859-1?Q?Andr=E9?= Weidemann <Andre.Weidemann@web.de>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47A96D0E.1070509@web.de>
+References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>
+	<479D1632.4010006@t-online.de>
+	<Pine.LNX.4.64.0801292211380.23532@pub2.ifh.de>
+	<479FB52A.6010401@t-online.de>
+	<Pine.LNX.4.64.0801300047520.23532@pub2.ifh.de>
+	<47A6438B.3060606@t-online.de>  <47A96D0E.1070509@web.de>
+Date: Wed, 06 Feb 2008 09:57:36 +0100
+Message-Id: <1202288256.3442.20.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,81 +25,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0927170348=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0927170348==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_11627_12895617.1203935326133"
-
-------=_Part_11627_12895617.1203935326133
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-2008/2/24 Jose Ignacio Andres Hernandez <joserobleda@gmail.com>:
-
-> Hi, first of all sorry for my english, i'm spanish.
->
-> I saw in this mailing list a thread like this but i dont resolve my
-> problem.
-> I have a SkyStar 2 rev 2.8a, the systems appers to recognize it, but
-> doesn't make a /dev/dvb folder.
-> anyone have the same problem? or better, the way to resolve this?
->
-> Thanks!
->
-> lspci | grep B2C2
-> 04:00.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB
-> chip / Technisat SkyStar2 DVB card (rev 02)
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-Patrick Boettcher said:
-   an OpenSource driver is not in sight for that card. There are some NDA
-(Non Disclosure Agreement) problems... I will see what I can do.
-
-I think we should write petitions to Technisat and Conexant to ask them give
-linuxtv rights to publish open source driver.
-
-------=_Part_11627_12895617.1203935326133
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br><br><div class="gmail_quote">2008/2/24 Jose Ignacio Andres Hernandez &lt;<a href="mailto:joserobleda@gmail.com">joserobleda@gmail.com</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi, first of all sorry for my english, i&#39;m spanish.<br><br>I saw in this mailing list a thread like this but i dont resolve my problem.<br>I have a SkyStar 2 rev 2.8a, the systems appers to recognize it, but doesn&#39;t make a /dev/dvb folder. <br>
-
-anyone have the same problem? or better, the way to resolve this?<br><br>Thanks!<br><br>lspci | grep B2C2<br>04:00.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / Technisat SkyStar2 DVB card (rev 02)<br>
-
-<br>
-<br>_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></blockquote><div><br>Patrick Boettcher said:<br>&nbsp;&nbsp; an OpenSource driver is not in sight for that card. There are some NDA 
-(Non Disclosure Agreement) problems... I will see what I can do.
-<br><br>I think we should write petitions to Technisat and Conexant to ask them give linuxtv rights to publish open source driver.<br>
-&nbsp;</div></div><br>
-
-------=_Part_11627_12895617.1203935326133--
-
-
---===============0927170348==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0927170348==--
+QW0gTWl0dHdvY2gsIGRlbiAwNi4wMi4yMDA4LCAwOToxNyArMDEwMCBzY2hyaWViIEFuZHLDqSBX
+ZWlkZW1hbm46Cj4gSGFydG11dCBIYWNrbWFubiB3cm90ZToKPiAKPiA+IEFyZSB5b3Ugc3VyZSB0
+aGF0IGl0IGlzIGEgbG5icDIxIG9uIHlvdXIgYm9hcmQ/Cj4gPiBXaGF0IGtpbmQgb2Ygc2F0ZWxs
+aXRlIGVxdWlwbWVudCBkbyB5b3UgaGF2ZT8KPiA+IC0gYSBzaW5nbGUgTE5CLCBzbyB0aGUgMjJr
+SHogdG9uZSBpcyBlbm91Z2guCj4gPiAtIGEgTXVsdGlzd2l0Y2g/Cj4gPiAgIGlmIHllcywgd2hp
+Y2ggY29tbWFuZHMgZG9lcyBpdCBuZWVkIC8gdW5kZXJzdGFuZD8KPiA+ICAgLSBub3RoaW5nIGJ1
+dCB0aGUgdG9uZT8KPiA+ICAgLSBhIHRvbmUgYnVyc3QgdG8gc3dpdGNoIGJldHdlZW4gc2F0ZWxs
+aXRlcyBhbmQgdGhlIHRvbmU/Cj4gPiAgIC0gZnVsbCBkaXNlcWMgKDI/KSBzZXJpYWwgbWVzc2Fn
+ZXM/Cj4gPiAKPiA+IEkgZ290IGEgYm9hcmQgd2l0aCB0ZGExMDA4NiBhbmQgbG5icDIxIGxldCBh
+bmQgc3RhcnRlZCBtZWFzdXJpbmcuCj4gPiB2b2x0YWdlIHN3aXRjaGluZyBhbmQgc3RhdGljIHRv
+bmUgd29yayBmaW5lIHdpdGggdGhlIGN1cnJlbnQKPiA+IGNvbmZpZ3VyYXRpb24uCj4gCj4gSGkg
+SGFydG11dCwKPiBJIGdvdCB0aGUgc2FtZSB0dW5pbmcgcHJvYmxlbXMgYXMgUGF0cmljay4gQWZ0
+ZXIgeW91ciBwYXRjaCB0aGUgUGlubmFjbGUgCj4gNDAwZSBpcyBub3Qgd29ya2luZyBhbnltb3Jl
+LiBJIGNhbiBnZXQgYSBzaWduYWwsIGJ1dCBubyBsb2NrIGF0IGFsbC4KPiBJIHRvb2sgYSBsb29r
+IGF0IHRoZSBQQ0IgYW5kIHRoZXJlIGlzIGRlZmluaXRlbHkgYW4gTE5CUDIxUEQgc29sZGVyZWQg
+Cj4gb250byBpdC4KPiBZb3VyIHBhdGNoIGRpc2FibGVzIHRoZSBtb2R1bGF0aW9uIG9mIHRoZSAy
+MmtIeiBzaWduYWwgaW5zaWRlIHRoZSBkZW1vZCAKPiBhcyBmYXMgYXMgSSB1bmRlcnN0b29kLCBi
+dXQgdGhlbiB0aGUgTE5CUDIxUEQgd2FzIHN1cHBvc2VkIHRvIGdlbmVyYXRlIGl0Lgo+IAo+IFVu
+Zm9ydHVuYXRlbHkgdGhpcyBpcyBub3QgcG9zc2libGUgd2l0aCB0aGUgUGlubmFjbGUgNDAwZS4g
+SSB0b29rIGEgbG9vayAKPiBhdCB0aGUgTE5CUDIxUEQgZGF0YXNoZWV0IHdoaWNoIHN0YXRlcywg
+dGhhdCBEU1FJTiBpcyBzdXBwb3NlZCB0byBiZSAKPiBjb25uZWN0ZWQgdG8gR05EIGlmIHlvdSBk
+b24ndCB3YW50IHRoZSAyMmtIeiBzaWduYWwgdG8gYmUgZ2VuZXJhdGVkIGJ5IAo+IHRoZSBMTkJQ
+MjEgaXRzZWxmLiBHdWVzcyB3aGF0PyEgUGluIDE0KERTUUlOKSBpcyBjb25uZWN0ZWQgdG8gR05E
+Lgo+IAo+IEZvciB0aGUgdGltZSBiZWluZyBJIHJldmVydGVkIHlvdXIgcGF0Y2ggb24gbXkgbG9j
+YWwgc3lzdGVtIGFuZCB0aGUgCj4gUGlubmFjbGUgNDAwZSBpcyB3b3JraW5nIGZsYXdsZXNzbHkg
+YWdhaW4uCj4gCj4gICBBbmRyw6kKPiAKCgpIaSwKCndlIHNob3VsZCB0cnkgdG8gZ2V0IHRoaXMg
+c29ydGVkLgoKV2l0aCB0aGUgcHJpb3Igc3RhdGUsIHdvcmtpbmcgZm9yIEFuZHJlIGFuZCBvdGhl
+cnMsIGl0IGRvZXMgbm90IHdvcmsgb24KdGhlIExpZmVWaWV3IFRyaW8gKFBDSSBhbmQgY2FyZGJ1
+cykgYW5kIHRoZSBzYWE3MTM0IGRyaXZlci4gVGhyZWUgZ3V5cyBJCnRoaW5rIHJlcG9ydGVkIGl0
+IGFuZCBIYXJ0bXV0IGRpZCB3YWl0IHdpdGggdGhlIHBhdGNoIGZvciBsb25nIGFuZAphbGxvd2Vk
+IGFib3V0IGhhbGYgYSB5ZWFyIGZvciB0ZXN0aW5nIC4uLgoKU28sIGlmIHdlIGNhbid0IGZpeCBp
+dCBzb29uLCBwcmlvciBzdGF0ZSBvZiBjb3Vyc2UgY291bnRzIGFuZCB0aG9zZQpsYXRlciB3aWxs
+IGhhdmUgdG8gdXNlIHRoZSBwYXRjaGVzIGZ1cnRoZXIuIFN1Y2ggYSAiZml4IiBjYW4gYWx3YXlz
+IGJlCmNvbW1pdHRlZCBwcmlvciB0byAyLjYuMjUgcmVsZWFzZS4KCkhlcm1hbm4KCgoKCgoKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
+YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
