@@ -1,19 +1,20 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gw.deuromedia.ro ([194.176.161.33] helo=deuromedia.de)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Doru.Marin@Deuromedia.ro>) id 1JRlaT-0005Sx-Gr
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 10:50:01 +0100
-Message-ID: <47BBF770.2020000@Deuromedia.ro>
-Date: Wed, 20 Feb 2008 11:48:32 +0200
-From: Doru Marin <Doru.Marin@Deuromedia.ro>
-MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-References: <47B19015.20208@gmx.net>	<47B2F82F.6070804@Deuromedia.ro>	<47B3512C.5010107@gmx.net>	<47B62C4B.3020604@gmx.net>
-	<47B97E8B.8090905@gmx.net>	<47B98257.8060200@Deuromedia.ro>
-	<47B99095.3080306@gmx.net>
-In-Reply-To: <47B99095.3080306@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DiSEqC trouble with TT S-1500
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nico@youplala.net>) id 1JMqP7-0007kX-Tq
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 20:57:57 +0100
+Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
+	[84.69.142.185])
+	by mail.youplala.net (Postfix) with ESMTP id 58EE2D88110
+	for <linux-dvb@linuxtv.org>; Wed,  6 Feb 2008 20:56:58 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1202326173.20362.23.camel@youkaida>
+References: <47A98F3D.9070306@raceme.org> <1202326173.20362.23.camel@youkaida>
+Date: Wed, 06 Feb 2008 19:56:57 +0000
+Message-Id: <1202327817.20362.28.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,145 +25,63 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-P. van Gaans wrote:
-> On 02/18/2008 02:04 PM, Doru Marin wrote:
->   
->> P. van Gaans wrote:
->>     
->>> On 02/16/2008 01:20 AM, P. van Gaans wrote:
->>>  
->>>       
->>>> On 02/13/2008 09:21 PM, P. van Gaans wrote:
->>>>    
->>>>         
->>>>> On 02/13/2008 03:01 PM, Doru Marin wrote:
->>>>>      
->>>>>           
->>>>>> Hi,
->>>>>>
->>>>>> Can you explain how you select those 4 positions ? DiSEqC commands 
->>>>>> or tone/voltage changes ?
->>>>>> Also can you determine the input type of those positions (Hi/Low, 
->>>>>> H/V, etc) ? A scenario to see when and why that happens, would be 
->>>>>> more useful.
->>>>>>
->>>>>> P. van Gaans wrote:
->>>>>>        
->>>>>>             
->>>>>>> Hi,
->>>>>>>
->>>>>>> I've got a Technotrend S-1500 (if it matters: I use it with 
->>>>>>> Kaffeine 0.8.3). It works mostly fine, but there's a strange 
->>>>>>> problem. With my Spaun 4/1 DiSEqC switch (they cost approx 25-40 
->>>>>>> euro), I can only switch without trouble to position 1 and 2. If I 
->>>>>>> tune directly to position 3 it won't lock.
->>>>>>>
->>>>>>> However, if I first tune to a channel on position 1 or 2 and try a 
->>>>>>> channel on position 3 after that, it will work. Position 4 however 
->>>>>>> is completely unreachable.
->>>>>>>
->>>>>>> On a standalone receiver, there's no trouble with the same cable.
->>>>>>>
->>>>>>> Now Spaun is a really expensive and respected brand. So their 
->>>>>>> switches possibly work in a different way, because a cheap Maximum 
->>>>>>> 4/1 switch works perfectly with the S-1500. Position 1, 2, 3 and 4 
->>>>>>> all work perfectly. I also did some "dry testing" indoors and it 
->>>>>>> looks like a 7 euro Satconn 4/1 switch would also work fine, but a 
->>>>>>> 17 euro Axing SPU 41-02 probably won't.
->>>>>>>
->>>>>>> I'm guessing this could be solved in stv0299.c but I'm not much of 
->>>>>>> an expert. I took a look at the code but I'm not really sure what 
->>>>>>> to do.
->>>>>>>
->>>>>>> _______________________________________________
->>>>>>> linux-dvb mailing list
->>>>>>> linux-dvb@linuxtv.org
->>>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>>>>             
->>>>>>>               
->>>>> I select them with Kaffeine. Hi/low and H/V doesn't matter. I tried 
->>>>> upgrading to Kaffeine 0.8.5 but that doesn't make a difference. The 
->>>>> "scan" application has the same issues.
->>>>>
->>>>> _______________________________________________
->>>>> linux-dvb mailing list
->>>>> linux-dvb@linuxtv.org
->>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>>
->>>>>       
->>>>>           
->>>> Nobody any ideas? If not, does anybody have some idea what the 
->>>> difference between position 1+2, pos 3 and pos 4 could be? I was 
->>>> thinking 1 and 2 might be working because of toneburst, but I don't 
->>>> think Kaffeine uses such a signal and that doesn't explain why pos 3 
->>>> works if first tuning to 1 or 2 and 4 doesn't work at all.
->>>>
->>>>     
->>>>         
->>> I've figured out a bit more. If I tune directly to postion 3, I get pos
->>> 1. Whenever I tune to pos 4, I get pos 2.
->>>
->>> I'll also ask people from Kaffeine as I'm not sure if the problem is 
->>> in the application, driver or somewhere else.
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>   
->>>       
->> Hi,
->>
->> Strange scenario. You're not saying anything about input types and the 
->> switch type. Are you sure that are properly connected ? How the switch 
->> inputs are marked and from where you got the input signals ? Please 
->> elaborate, if you want a proper answer.
->> I suggest to play with 'scandvb' from dvb-apps package instead of 
->> Kaffeine. Look into scanning results if the scanned channels match with 
->> what you wished to have on those positions.
->>
->>     
-> Hi,
->
-> What do you mean with input type?
->
-> Anyway, this is my config:
->
-> Visiosat Bisat G3C for 19.2/28.2/23.5 + Triax 54cm for Hotbird
-> 4 quad LNBs
->
-> Spaun SAR 411F:
-> A = Astra 19.2
-> B = Astra 28.2/Eurobird1
-> C = Astra 23.5
-> D = Hotbird
->
-> Maximum 4/1:
-> A = Astra 19.2
-> B = Astra 28.2/Eurobird1
-> C = Astra 23.5
-> D = Hotbird
->
-> All works fine on a standalone so it is connected correctly.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Hi,
 
-Ok, If I understood you correctly, you're talking about only plain 
-DiSEqC switch, with no polarity/tone management. Polarity and tone 
-switching are done by LNB's.
-Recently, I found a branded switch, which was unable to decode a DiSEqC 
-commands while polarity was on horizontal (18V).
-Maybe is the same situation, maybe not. That's why I asked you to check 
-the polarity/tone settings of the channels while switching to a 
-different channel on a different satellite.
+On Wed, 2008-02-06 at 19:29 +0000, Nicolas Will wrote:
+> Well...
+> 
+> You can now laugh at me, the supposedly problem-free user...
+> 
+> I managed to get my nova-t-500 to lose a tuner too!
+> 
+> MythTV was recording on tuner 1.
+> 
+> I was channel surfing on tuner 2.
+> 
+> After flipping through a few channels, I got a black screen.
+> 
+> I looked at the logs. MythTV is complaining that the file it uses to
+> watch TV (in fact you never watch the stream from the card, MythTV
+> records the channel in a file, then plays that file) is invalid.
+> 
+> You bet it is invalid, it's mostly not there, or with a size of zero.
+> 
+> I guess that the tuner became non-responsive and thus outputs nothing.
+> 
+> Getting out of "LiveTV" and coming back does not fix it. Trying to go
+> to
+> another channel serves no purpose, MythTV must be desperately trying
+> to
+> get any sort of response from the tuner before sending it any new
+> command.
+> 
+> That was a long "me too", but a "me too" all the same.
+> 
+> Dang !
+> 
+> Oh, my reception quality that used to be ugly has been fixed. I am now
+> a
+> user of a 26dB gain masthead amplifier. My signal strength took a 25%
+> improvement, BER and UNC are zero on all channels. Still using the
+> internal LNA, though; I haven't tried doing without it.
+
+
+Ah...
+
+It looks like only ITV4 is problematic, even if the other channels on
+the multiplex are fine.
+
+Maybe a different problem, but the tuner is really lost until a reboot
+all the same.
+
+I have tried without the LNA, same difference. but it's an opportunity
+to measure signal and BER without it...
+
+Anybody know about any ITV4 problem on the UK-Durris transmitter?
+
+Nico
 
 
 _______________________________________________
