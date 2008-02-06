@@ -1,18 +1,24 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from fmmailgate02.web.de ([217.72.192.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JT4BT-0002sm-HS
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 00:53:35 +0100
-Message-ID: <47C0B1F9.1000609@gmail.com>
-Date: Sun, 24 Feb 2008 03:53:29 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <Andre.Weidemann@web.de>) id 1JMfSX-0003Bi-Sm
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 09:16:45 +0100
+Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
+	by fmmailgate02.web.de (Postfix) with ESMTP id 98ED1CFA6AC7
+	for <linux-dvb@linuxtv.org>; Wed,  6 Feb 2008 09:16:15 +0100 (CET)
+Received: from [84.184.74.39] (helo=[127.0.0.1])
+	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.109 #226) id 1JMfS3-00067d-00
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 09:16:15 +0100
+Message-ID: <47A96D0E.1070509@web.de>
+Date: Wed, 06 Feb 2008 09:17:18 +0100
+From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
 MIME-Version: 1.0
-To: Vangelis Nonas <vnonas@otenet.gr>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>
-	<47C09BCC.50403@gmail.com> <47C0CADE.6040203@otenet.gr>
-In-Reply-To: <47C0CADE.6040203@otenet.gr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+To: linux-dvb@linuxtv.org
+References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>	<479D1632.4010006@t-online.de>	<Pine.LNX.4.64.0801292211380.23532@pub2.ifh.de>	<479FB52A.6010401@t-online.de>	<Pine.LNX.4.64.0801300047520.23532@pub2.ifh.de>
+	<47A6438B.3060606@t-online.de>
+In-Reply-To: <47A6438B.3060606@t-online.de>
+Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,104 +26,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Vangelis Nonas wrote:
-> Thank you all for your help,
-> 
-> With the latest changeset I can tune channels correctly. I tried vdr and 
-> szap (from Manu).
-> 
-> I dont know how to undo the last changesets and go back to 7200. Please 
-> tell me how to do it and I'll get the timings.
+Hartmut Hackmann wrote:
 
+> Are you sure that it is a lnbp21 on your board?
+> What kind of satellite equipment do you have?
+> - a single LNB, so the 22kHz tone is enough.
+> - a Multiswitch?
+>   if yes, which commands does it need / understand?
+>   - nothing but the tone?
+>   - a tone burst to switch between satellites and the tone?
+>   - full diseqc (2?) serial messages?
+> =
 
-clone the multiproto tree
+> I got a board with tda10086 and lnbp21 let and started measuring.
+> voltage switching and static tone work fine with the current
+> configuration.
 
-from there, do a partial clone locally
+Hi Hartmut,
+I got the same tuning problems as Patrick. After your patch the Pinnacle =
 
-hg clone -r 7200 multiproto multiproto_7200
+400e is not working anymore. I can get a signal, but no lock at all.
+I took a look at the PCB and there is definitely an LNBP21PD soldered =
 
+onto it.
+Your patch disables the modulation of the 22kHz signal inside the demod =
 
-> I also tried to scan Hotbird and it seems that scanning is now 
-> consistent when you scan the same transponder more than once.
-> 
-> A full scan produced 1722 channels which is not bad, but it needs 
-> improvement. There are about 2200 channels I think.
+as fas as I understood, but then the LNBP21PD was supposed to generate it.
 
-If you can provide a log with verbose=5 for the channels which it doesn't
-scan it will be a bit more helpful. Will need the logs (/var/log/messages)
-to debug this as well. The module parameters the same for both the
-STB0899 and the STB6100
+Unfortunately this is not possible with the Pinnacle 400e. I took a look =
 
-> I attach the log of the scan. It fails to scan certain transponders and 
-> I believe (not 100% sure, but I did some testing) that this is 
-> consistent across runs.
+at the LNBP21PD datasheet which states, that DSQIN is supposed to be =
 
-The log is just the output of the scan utility, will need the output from
-the driver and a bit of thoughts.
+connected to GND if you don't want the 22kHz signal to be generated by =
 
+the LNBP21 itself. Guess what?! Pin 14(DSQIN) is connected to GND.
 
+For the time being I reverted your patch on my local system and the =
 
-Regards,
-Manu
+Pinnacle 400e is working flawlessly again.
 
-> Regards
-> Vagelis
-> 
-> 
-> 
-> Manu Abraham wrote:
->> Manu Abraham wrote:
->>  
->>> Artem Makhutov wrote:
->>>    
->>>> Hi,
->>>>
->>>> On Sat, Feb 23, 2008 at 10:32:58PM +0100, Artem Makhutov wrote:
->>>>      
->>>>> On Sun, Feb 24, 2008 at 01:29:31AM +0400, Manu Abraham wrote:
->>>>>        
->>>>>> Are you sure that you got the top level 2 changes changeset 7204 
->>>>>> and 7203
->>>>>> respectively ?
->>>>>>           
->>>>> Oh, I only got 7203. Will try with 7204 in a few minutes.
->>>>>         
->>>> Awesome! It fixed the problem:
->>>>
->>>> Try: 100
->>>> Failes: 0
->>>> Tunes: 100
->>>>
->>>> Great job!
->>>>       
->>
->> Also, can you please do a benchmark in lock timings between changeset 
->> 7205 and 7200 ?
->>
->> The timing can be looked at by enabling the time stamps in the kernel 
->> config and
->> looking at timestamps in the logs for start - stop (FE_HAS_LOCK) 
->> between the 2
->> changesets.
->>
->> Regards,
->> Manu
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->>   
-> 
-
+  Andr=E9
 
 _______________________________________________
 linux-dvb mailing list
