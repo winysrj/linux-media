@@ -1,32 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E2a3sB024073
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 21:36:03 -0500
-Received: from host06.hostingexpert.com (host06.hostingexpert.com
-	[216.80.70.60])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E2Zgx8012023
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 21:35:42 -0500
-Message-ID: <47B3A8F9.3080106@linuxtv.org>
-Date: Wed, 13 Feb 2008 21:35:37 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-	<20080205080038.GB8232@plankton.ifup.org>
-	<20080205102409.4b7acb01@gaivota>
-	<20080213202055.GA26352@plankton.ifup.org>
-	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-	<20080214023415.GB23519@plankton.ifup.org>
-In-Reply-To: <20080214023415.GB23519@plankton.ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m160qF42027506
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 19:52:15 -0500
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m160pgdL029577
+	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 19:51:42 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Yuri Fundurian <yurifun@mail.ru>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ricardo Cerqueira <v4l@cerqueira.org>
+In-Reply-To: <E1JMMVt-000Lwk-00.yurifun-mail-ru@f43.mail.ru>
+References: <E1JMMVt-000Lwk-00.yurifun-mail-ru@f43.mail.ru>
+Content-Type: text/plain
+Date: Wed, 06 Feb 2008 01:48:03 +0100
+Message-Id: <1202258883.4261.28.camel@pc08.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Brandon Philips <bphilips@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] [PATCH 2.6.24 1/1] saa7134: fix fm-radio
+	pinnacle pctv 110i
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,41 +32,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Brandon Philips wrote:
-> On 18:24 Wed 13 Feb 2008, Michael Krufky wrote:
->   
->> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
->>     
->>> On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
->>>       
->>>> Maybe we've took the wrong direction when we've decided to select
->>>> mercurial. It were better and easier to use, on that time, but the -git
->>>> improvements happened too fast.
->>>>         
->>> We should consider a move to a full-tree git.  Particularly, it would be
->>> nice to be have v4l-dvb merging/building against other subsystems in the
->>> linux-next tree:
->>>
->>>   http://lkml.org/lkml/2008/2/11/512
->>>
->>> Also, it would save the silly pain of things like this meye.h thing and
->>> pulling in fixes from the rest of the community that patches against git
->>> trees.
->>>       
->> Additionally, the moment we move development from hg to git, we are
->> bound to the development kernel -- we will no longer be able to work
->> against any stable kernel series, and we will lose all of our testers.
->>     
->
-> Good point.  Testers seem pretty happy with our current system.
->
-> I will look into auto-generating a full git tree from the hg v4l-dvb
-> repo.  That way we can participate in linux-next while still using
-> mercurial for development.
+Hi,
 
-I like that *much* better -- good idea!
+Am Dienstag, den 05.02.2008, 15:02 +0300 schrieb Yuri Fundurian:
+> This patch for fm-radio on pinnacle pctv 110i.
+> Without this patch fm-radio doesn't work.
+> 
+> --- /usr/src/kernels/2.6.24/drivers/media/video/saa7134/saa7134-cards.c 2008-01-25 03:58:37.000000000 +0500
+> +++ /usr/src/kernels/2.6.24/drivers/media/video/saa7134/saa7134-cards.c.patch   2008-01-31 11:27:01.000000000 +0500
+> @@ -2484,7 +2484,8 @@ struct saa7134_board saa7134_boards[] =
+>                 }},
+>                 .radio = {
+>                           .name = name_radio,
+> -                         .amux = LINE1,
+> +                       .amux = TV,
+> +                       .gpio = 0x0200000,
+>                 },
+>         },
+>         [SAA7134_BOARD_ASUSTeK_P7131_DUAL] = {
+> Signed-off-by: Yuri Funduryan <yurifun@mail.ru>
+Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
 
--Mike
+Yuri, thanks for the fix.
+
+Hartmut, does it apply with some offset or should I prepare something
+against v4l-dvb?
+
+Mauro can pull it as a fix for 2.6.25 then.
+
+We also have the same issue on the Avermedia 007, AFAIK.
+Next we should fix the indentation on the 110i entry ;)
+
+Got a Medion/Creatix CTX953 today.
+Against prior reports, DVB-T and analog TV work very well,
+have to check the other inputs.
+
+A patch will follow soon.
+
+No trace of the CTX948 yet I did send to you as a letter in the hope to
+save some time. Will try to get it investigated. A new one is bought,
+but might take time to arrive.
+
+In between we might call for testers on both lists and point to what we
+have so far.
+
+Cheers,
+Hermann
+
+
+ 
+
+
 
 --
 video4linux-list mailing list
