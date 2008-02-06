@@ -1,23 +1,20 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from wr-out-0506.google.com ([64.233.184.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JVBVD-0006Uo-Qk
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 21:06:43 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JX000HBPNU3ZA71@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 29 Feb 2008 15:06:05 -0500 (EST)
-Date: Fri, 29 Feb 2008 15:06:03 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <a6e3d9900802291150l33e8dc7fu39ccbef9310d706c@mail.gmail.com>
-To: John Donaghy <johnfdonaghy@gmail.com>
-Message-id: <47C865AB.3070101@linuxtv.org>
-MIME-version: 1.0
-References: <a6e3d9900802291150l33e8dc7fu39ccbef9310d706c@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] xc3028 tuner development status?
+	(envelope-from <christophpfister@gmail.com>) id 1JMjy6-000487-04
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 14:05:38 +0100
+Received: by wr-out-0506.google.com with SMTP id 68so2486371wra.13
+	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 05:05:36 -0800 (PST)
+Message-ID: <19a3b7a80802060505v2364b206tf2a38aa0bc3c9fc@mail.gmail.com>
+Date: Wed, 6 Feb 2008 14:05:35 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200802021233.01269.christophpfister@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <200802021233.01269.christophpfister@gmail.com>
+Cc: Caner Tekin <2bord@gmx.de>
+Subject: Re: [linux-dvb] Frequencies at-Graz/at-STMK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,32 +25,17 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-Correct, it's a rebranded Haupauge HVR1500.
+I'm updating the scan file for whole Austria, not only for this
+particular place.
 
-> Unlike the previous poster I'm not getting "frontend initialization
-> failed" which is promising, but when I run:
-> 
-> /usr/bin/scan /usr/share/doc/dvb-utils/examples/scan/atsc/us-ATSC-center-frequencies-8VSB
-> 
-> I get a bunch of "tuning failed" messages like this:
-> 
-> scanning /usr/share/doc/dvb-utils/examples/scan/atsc/us-ATSC-center-frequencies-8VSB
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>>> tune to: 57028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 57028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
-> 
-> Am I missing something (like firmware perhaps) or does it not work
-> yet? Let me know if there's anything I can do to help get it working.
+Thanks,
 
-Do you have the xc3028 firmware on your system?
-
-- Steve
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
