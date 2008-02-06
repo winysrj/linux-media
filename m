@@ -1,26 +1,22 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from fides.aptilo.com ([62.181.224.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JTHHg-00042B-7e
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 14:52:52 +0100
-Message-ID: <47C176A7.9070608@gmail.com>
-Date: Sun, 24 Feb 2008 17:52:39 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Artem Makhutov <artem@makhutov.org>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
-	<47C01325.10407@otenet.gr>
-	<20080223174406.GB30387@moelleritberatung.de>
-	<47C0803D.2020504@gmail.com>
-	<20080223212013.GD30387@moelleritberatung.de>
-	<47C0903B.70606@gmail.com>
-	<20080223213258.GE30387@moelleritberatung.de>
-	<20080223214718.GF30387@moelleritberatung.de>
-	<47C09519.2090904@gmail.com> <47C09BCC.50403@gmail.com>
-	<20080224123736.GH30387@moelleritberatung.de>
-In-Reply-To: <20080224123736.GH30387@moelleritberatung.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+	(envelope-from <jonas@anden.nu>) id 1JMqzh-0002BU-EQ
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 21:35:45 +0100
+Received: from [192.168.1.8] (h-134-69.A157.cust.bahnhof.se [81.170.134.69])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by fides.aptilo.com (Postfix) with ESMTP id 3D82C1F9063
+	for <linux-dvb@linuxtv.org>; Wed,  6 Feb 2008 21:35:09 +0100 (CET)
+From: Jonas Anden <jonas@anden.nu>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1202327817.20362.28.camel@youkaida>
+References: <47A98F3D.9070306@raceme.org> <1202326173.20362.23.camel@youkaida>
+	<1202327817.20362.28.camel@youkaida>
+Date: Wed, 06 Feb 2008 21:34:57 +0100
+Message-Id: <1202330097.4825.3.camel@anden.nu>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,22 +27,24 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Artem Makhutov wrote:
-> Hi,
-> 
-> On Sun, Feb 24, 2008 at 02:18:52AM +0400, Manu Abraham wrote:
->> Also, can you please do a benchmark in lock timings between changeset 
->> 7205 and 7200 ?
-> 
-> Do you mean changeset 7200 or 7204
+Not too much comfort, but...
 
-yep. 7205 is head, but just a minor change.
+> Maybe a different problem, but the tuner is really lost until a reboot
+> all the same.
 
-Regards,
-Manu
+You don't need to reboot to regain the other tuner. I use the following:
+
+service mythbackend stop
+modprobe -r dvb_usb_dib0700
+modprobe dvb_usb_dib0700
+service mythbackend start
+
+After that, the tuner is back on line.
+
+  // J
 
 
 _______________________________________________
