@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53])
+Received: from py-out-1112.google.com ([64.233.166.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bysis@arcor.de>) id 1JN9l8-0003mp-9D
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 17:37:58 +0100
-Received: from mail-in-18-z2.arcor-online.net (mail-in-18-z2.arcor-online.net
-	[151.189.8.35])
-	by mail-in-13.arcor-online.net (Postfix) with ESMTP id 7087C1E523A
-	for <linux-dvb@linuxtv.org>; Thu,  7 Feb 2008 17:37:57 +0100 (CET)
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mail-in-18-z2.arcor-online.net (Postfix) with ESMTP id 43FC0510134
-	for <linux-dvb@linuxtv.org>; Thu,  7 Feb 2008 17:37:57 +0100 (CET)
-Received: from [195.4.13.23] (unknown [195.4.13.23])
-	(Authenticated sender: bysis@arcor.de)
-	by mail-in-17.arcor-online.net (Postfix) with ESMTP id 207E42BBC05
-	for <linux-dvb@linuxtv.org>; Thu,  7 Feb 2008 17:37:57 +0100 (CET)
-Message-ID: <47AB33DF.90109@arcor.de>
-Date: Thu, 07 Feb 2008 17:37:51 +0100
-From: Andreas Lorenz <bysis@arcor.de>
+	(envelope-from <christophpfister@gmail.com>) id 1JMjtF-0003av-H0
+	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 14:00:37 +0100
+Received: by py-out-1112.google.com with SMTP id a29so3021984pyi.0
+	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 05:00:35 -0800 (PST)
+Message-ID: <19a3b7a80802060500y783f543av8f730095439c64c7@mail.gmail.com>
+Date: Wed, 6 Feb 2008 14:00:34 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: "=?ISO-8859-1?Q?Guillaume_Membr=E9?=" <guillaume.ml@gmail.com>
+In-Reply-To: <4758d4170802060447r2d08b759n98e115e1422b9494@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Leadtek WinFast PxDVR 3200 H
+Content-Disposition: inline
+References: <4758d4170802060447r2d08b759n98e115e1422b9494@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvb-c : full scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,25 +22,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+2008/2/6, Guillaume Membr=E9 <guillaume.ml@gmail.com>:
+> Hello,
+>
+> I'm newbie, so please be kind :)
+> I have a satelco easywatch pci dvb-c card and I would like to do a
+> full scan of frequencies in order to find the transponders of my
+> cable-provider.
+> I didn't find any start file for scan for my country/provider. I'm
+> leaving in France, in Nantes and my cable provider is Numericable.
 
-i'm owning such a card. And  i'm searching a driver for it.
-I have no skills in programming driver but i wan't to help.
+http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-c/fr-noos-numericable
 
-What can i do?
+> I have found that the script dvbt-scanaid seems to generate a big file
+> to do the same work but only for dvb-t.
+>
+> Any help please ?
+> Thanks a lot
+> Regards
+> Guillaume
 
-Kind regards,
-
-bysis
-
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
