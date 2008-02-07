@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18Bei6d013634
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:40:44 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m18BeDVM015402
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:40:14 -0500
-Date: Fri, 8 Feb 2008 12:40:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080208092821.52872e1d@gaivota>
-Message-ID: <Pine.LNX.4.64.0802081235210.5301@axis700.grange>
-References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
-	<20080207183409.3e788533@gaivota>
-	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
-	<20080208092821.52872e1d@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17E31T1022029
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 09:03:01 -0500
+Received: from www.datavault.us (flatoutfitness.com [66.178.130.209])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17E2eVj008004
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 09:02:40 -0500
+Received: from www.datavault.us ([192.168.128.6] ident=yan)
+	by www.datavault.us with esmtps (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.68) (envelope-from <yan@seiner.com>) id 1JN7Lc-0008Bf-Ii
+	for video4linux-list@redhat.com; Thu, 07 Feb 2008 06:03:28 -0800
+Message-ID: <47AB0FB0.5070503@seiner.com>
+Date: Thu, 07 Feb 2008 06:03:28 -0800
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: Two more patches required for soc_camera
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: hardware requirements for webcams?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,59 +28,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 8 Feb 2008, Mauro Carvalho Chehab wrote:
+Hi everyone:
 
-> > I think, "#include <linux/pci.h>" is needed for the current version of 
-> > videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
-> > on PCI-enabled platforms. Perhaps, the right fix would be to convert 
-> > videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
-> > difficult task. Only these two prototypes in videobuf-dma-sg.h
-> > 
-> > int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-> > int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-> > 
-> > and their implementations in videobuf-dma-sg.c should indeed be placed 
-> > under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
-> > PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
-> > directly, instead of their pci analogs, etc.
-> 
-> Yes. This seems to be the proper direction to me also.
-> > 
-> > Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
-> > is also in a way confirmed in a comment in 
-> > include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
-> > conversions are defined in include/asm-generic/pci-dma-compat.h.
-> 
-> I think this won't work for some platforms. I remember someone adding PCI or
-> other DMA dependency to some drivers, due to this (sorry, I can't remember the
-> details of those patches).
+I need to build an embedded platform that can handle 2 webcams, 
+preferably at 640x480.  I've tested several typical embedded boards, 
+with 200 MHz arm or mips CPUs, and they can handle 1 webcam at 480x320.
 
-Ok, how about
+Googling on webcams indicates that each webcam would have to have its 
+own USB controller as well as enough CPU horsepower to do the job (maybe 
+something in the 800 MHz range?)
 
-	depends on PCI || ARCH_PXA
+Is anyone aware of an inexpensive fanless board that could do this?  Or 
+could provide some pointers on where I can look?
 
-? I think, this way we are safe.
+Thanks,
 
-> > Right, so, what would be your preference on this? It would be puty to hold 
-> > off the patches ony because of this. If you want, I can try to look into 
-> > converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
-> > the meantime maybe we could use the CONFIG_HAS_DMA?
-> 
-> Touching on videobuf-dma-sg is something very sensitive, since it affects most
-> drivers. I would prefer to have this kind of commit happening during a
-> merge window.
-> 
-> If we can't manage to have this happening for 2.6.25 window, let's postpone the
-> PCI specific changesets to 2.6.26, merging they only at -mm series.
-
-If we do accept the above solution, would we still want to move to dma 
-API? And would you like me to try to do this or you'd prefer to do this 
-yourself?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+--Yan
 
 --
 video4linux-list mailing list
