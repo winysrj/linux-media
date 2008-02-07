@@ -1,22 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSnh9-0007kV-Sa
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 07:17:12 +0100
-Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
-	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSnh5-0004NS-G8
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:17:07 +1000
-Received: from korath.teln.shikadi.net ([192.168.0.14])
-	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSnfh-0003CJ-Q4
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:15:41 +1000
-Message-ID: <47BFBA0D.2080607@shikadi.net>
-Date: Sat, 23 Feb 2008 16:15:41 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How do you stream the entire MPEG-TS with dvbstream?
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6aff0a99d6c5222c3fab+1628+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JN4u5-0002Nn-9w
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 12:26:53 +0100
+Date: Thu, 7 Feb 2008 09:26:07 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Richard (MQ)" <osl2008@googlemail.com>
+Message-ID: <20080207092607.0a1cacaa@gaivota>
+In-Reply-To: <47AA014F.2090608@googlemail.com>
+References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
+	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
+	<47AA014F.2090608@googlemail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,37 +26,53 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everyone,
+On Wed, 06 Feb 2008 18:49:51 +0000
+"Richard (MQ)" <osl2008@googlemail.com> wrote:
 
-I've just installed a new DViCO FusionHDTV dual digital 4 (which appears
-to the PC as two USB "Zarlink ZL10353 DVB-T" devices.)
+> Mauro Carvalho Chehab wrote:
+> > I need the tuner-xc2028 dmesg.
+> > 
+> > Please, add this to /etc/modprobe.conf:
+> > options tuner debug=1
+> > options tuner-xc2028 debug=1
+> 
+> Added to /etc/modprobe.conf.local per SuSE scheme
+> 
+> > DevBox2400:~ # rmmod tuner tuner-xc3028
+> > DevBox2400:~ # modprobe -vv tuner
+> > insmod /lib/modules/2.6.24-rc8-git2-5-default/kernel/drivers/media/video/tuner.ko debug=1
+> > DevBox2400:~ # dmesg
+> > Linux version 2.6.24-rc8-git2-5-default (geeko@buildhost) (gcc version 4.3.0 20080117 (experimental)
+> 
+> dmesg shows only:
+> 
+> > tuner: Unknown parameter `tuner_xc2028'
 
-I'm trying to set up dvbstream to send the whole transport stream across
-the network to another PC, but I can't get this to work.  If I do
-something like this:
+Hmm... I suspect you did something wrong at modprobe.conf.local. It seems that
+it is using tuner_xc2028 as a parameter to tuner module.
 
-  dvbstream -f 226500 -gi 16 -bw 7 512 650
+What we need is to have a parameter "debug=1" to both tuner an tuner-xc2028
+modules.
 
-Then it works fine, I get video and audio on the other PC and about
-500kB/sec network use, but if I do this:
+> modprobe'ing tuner_xc2028 does nothing (no error, nothing added to dmesg)
+> 
+> No dmesg messages starting "xc2028", in fact
+> 
+> > DevBox2400:~ # dmesg | grep 2028
+> > tuner: Unknown parameter `tuner_xc2028'
+> > DevBox2400:~ # dmesg | grep firmw
+> > DevBox2400:~ #    
+> 
+> Is it me doing something wrong, or a problem with the code?
 
-  dvbstream -f 226500 -gi 16 -bw 7 8192
+The code may have some trouble, since it is not tested yet ;)
 
-Then the network use goes up to 1.7MB/sec but the picture and sound
-arrive corrupted, as if I have extremely bad reception.
 
-Using an old version of dvbstream with a Hauppauge Nova-T this works
-fine, except in that case I have 3MB/sec of network traffic with the
-same channel.  It's almost as if the latest version of dvbstream doesn't
-correctly capture the whole MPEG-TS stream from the card.
-
-Has anyone else gotten this to work?
-
-Thanks,
-Adam.
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
