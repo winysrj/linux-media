@@ -1,34 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hyatt.suomi.net ([82.128.152.22])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mailout11.sul.t-online.de ([194.25.134.85]
+	helo=mailout11.sul.t-online.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JRquI-0001ze-Ln
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 16:30:50 +0100
-Received: from tiku.suomi.net ([82.128.154.67])
-	by hyatt.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
-	Jul 15 2005)) with ESMTP id <0JWJ0091WN2CSU30@hyatt.suomi.net> for
-	linux-dvb@linuxtv.org; Wed, 20 Feb 2008 17:30:12 +0200 (EET)
-Received: from spam4.suomi.net (spam4.suomi.net [212.50.131.168])
-	by mailstore.suomi.net
-	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
-	32bit)) with ESMTP id <0JWJ00359N2CZU10@mailstore.suomi.net> for
-	linux-dvb@linuxtv.org; Wed, 20 Feb 2008 17:30:12 +0200 (EET)
-Date: Wed, 20 Feb 2008 17:29:59 +0200
-From: Antti Palosaari <crope@iki.fi>
-In-reply-to: <ea4209750802200553g13eb8ef5yb4abc2c1e012b803@mail.gmail.com>
-To: Albert Comerma <albert.comerma@gmail.com>
-Message-id: <47BC4777.7080206@iki.fi>
-MIME-version: 1.0
-References: <ea4209750801161224p6b75d7fanbdcd29e7d367802d@mail.gmail.com>
-	<47B9D533.7050504@iki.fi>
-	<ea4209750802181306tcc8c98clff330d4289523d96@mail.gmail.com>
-	<47BA011D.9060003@iki.fi>
-	<ea4209750802181424q4ac90c7ag33ad8b8d79e258fd@mail.gmail.com>
-	<47BA0C4D.4070102@iki.fi>
-	<ea4209750802181530p7bd2ec78j562e7fdf281890b5@mail.gmail.com>
-	<47BC2189.8070308@iki.fi>
-	<ea4209750802200553g13eb8ef5yb4abc2c1e012b803@mail.gmail.com>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JMupB-0007iI-LJ
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 01:41:09 +0100
+Message-ID: <47AA53AC.6050402@t-online.de>
+Date: Thu, 07 Feb 2008 01:41:16 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>	<479D1632.4010006@t-online.de>	<Pine.LNX.4.64.0801292211380.23532@pub2.ifh.de>	<479FB52A.6010401@t-online.de>	<Pine.LNX.4.64.0801300047520.23532@pub2.ifh.de>	<47A6438B.3060606@t-online.de>
+	<47A96D0E.1070509@web.de>
+	<1202288256.3442.20.camel@pc08.localdom.local>
+In-Reply-To: <1202288256.3442.20.camel@pc08.localdom.local>
+Content-Type: multipart/mixed; boundary="------------050500020905070807030002"
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Yuan EC372S (STK7700D based device)
+Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,31 +23,240 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma wrote:
-> Is it a coincidence, but there have been updates in kaffeine 
-> (0.8.5-35.pm <http://0.8.5-35.pm>)  (libxine1, libxine1-dvb version: 
-> 1.1.9-1-0.pm <http://1.1.9-1-0.pm> , for example) and since then 
-> everything works. To be confirmed in time.
+This is a multi-part message in MIME format.
+--------------050500020905070807030002
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Hi
+
+hermann pitton schrieb:
+> Am Mittwoch, den 06.02.2008, 09:17 +0100 schrieb André Weidemann:
+>> Hartmut Hackmann wrote:
+>>
+>>> Are you sure that it is a lnbp21 on your board?
+>>> What kind of satellite equipment do you have?
+>>> - a single LNB, so the 22kHz tone is enough.
+>>> - a Multiswitch?
+>>>   if yes, which commands does it need / understand?
+>>>   - nothing but the tone?
+>>>   - a tone burst to switch between satellites and the tone?
+>>>   - full diseqc (2?) serial messages?
+>>>
+>>> I got a board with tda10086 and lnbp21 let and started measuring.
+>>> voltage switching and static tone work fine with the current
+>>> configuration.
+>> Hi Hartmut,
+>> I got the same tuning problems as Patrick. After your patch the Pinnacle 
+>> 400e is not working anymore. I can get a signal, but no lock at all.
+>> I took a look at the PCB and there is definitely an LNBP21PD soldered 
+>> onto it.
+>> Your patch disables the modulation of the 22kHz signal inside the demod 
+>> as fas as I understood, but then the LNBP21PD was supposed to generate it.
+>>
+>> Unfortunately this is not possible with the Pinnacle 400e. I took a look 
+>> at the LNBP21PD datasheet which states, that DSQIN is supposed to be 
+>> connected to GND if you don't want the 22kHz signal to be generated by 
+>> the LNBP21 itself. Guess what?! Pin 14(DSQIN) is connected to GND.
+>>
+>> For the time being I reverted your patch on my local system and the 
+>> Pinnacle 400e is working flawlessly again.
+>>
+>>   André
+>>
 > 
-> So please try if you can use this versions (or newer) and let me know.
+> 
+> Hi,
+> 
+> we should try to get this sorted.
+> 
+> With the prior state, working for Andre and others, it does not work on
+> the LifeView Trio (PCI and cardbus) and the saa7134 driver. Three guys I
+> think reported it and Hartmut did wait with the patch for long and
+> allowed about half a year for testing ...
+> 
+> So, if we can't fix it soon, prior state of course counts and those
+> later will have to use the patches further. Such a "fix" can always be
+> committed prior to 2.6.25 release.
+> 
+> Hermann
+> 
+> 
+So here is the patch that make the the 22kHz tone a config option.
+Please be aware that i have no means to test it, so please report
 
-xinelib is even newer and Kaffeine version is same. I doubt that xinelib 
-and Kaffeine has any effect. It should lock and find PIDs even without 
-xinelib when using dvb-apps tools. xinelib and Kaffeine has only effect 
-when viewing picture.
+Signed-off-by: Hartmut Hackmann <hartmut.hackmann@t-online.de
 
-regards
-Antti
--- 
-http://palosaari.fi/
+
+--------------050500020905070807030002
+Content-Type: text/x-patch;
+ name="tda10086_tone_option.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tda10086_tone_option.diff"
+
+diff -r 7564c110491e linux/drivers/media/dvb/dvb-usb/ttusb2.c
+--- a/linux/drivers/media/dvb/dvb-usb/ttusb2.c	Sun Jan 20 09:13:44 2008 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/ttusb2.c	Thu Feb 07 01:20:19 2008 +0100
+@@ -150,6 +150,7 @@ static struct tda10086_config tda10086_c
+ static struct tda10086_config tda10086_config = {
+ 	.demod_address = 0x0e,
+ 	.invert = 0,
++	.diseqc_tone = 1,
+ };
+ 
+ static int ttusb2_frontend_attach(struct dvb_usb_adapter *adap)
+diff -r 7564c110491e linux/drivers/media/dvb/frontends/tda10086.c
+--- a/linux/drivers/media/dvb/frontends/tda10086.c	Sun Jan 20 09:13:44 2008 -0200
++++ b/linux/drivers/media/dvb/frontends/tda10086.c	Thu Feb 07 01:29:37 2008 +0100
+@@ -107,9 +107,12 @@ static int tda10086_init(struct dvb_fron
+ static int tda10086_init(struct dvb_frontend* fe)
+ {
+ 	struct tda10086_state* state = fe->demodulator_priv;
+-
+-	dprintk ("%s\n", __FUNCTION__);
+-
++	u8 t22k_off = 0x80;
++        
++	dprintk ("%s\n", __FUNCTION__);
++
++	if (state->config->diseqc_tone)
++        	t22k_off = 0;
+ 	// reset
+ 	tda10086_write_byte(state, 0x00, 0x00);
+ 	msleep(10);
+@@ -159,7 +162,7 @@ static int tda10086_init(struct dvb_fron
+ 	tda10086_write_byte(state, 0x3d, 0x80);
+ 
+ 	// setup SEC
+-	tda10086_write_byte(state, 0x36, 0x80); // all SEC off, no 22k tone
++	tda10086_write_byte(state, 0x36, t22k_off); // all SEC off, 22k tone
+ 	tda10086_write_byte(state, 0x34, (((1<<19) * (22000/1000)) / (SACLK/1000)));      // } tone frequency
+ 	tda10086_write_byte(state, 0x35, (((1<<19) * (22000/1000)) / (SACLK/1000)) >> 8); // }
+ 
+@@ -181,16 +184,20 @@ static int tda10086_set_tone (struct dvb
+ static int tda10086_set_tone (struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
+ {
+ 	struct tda10086_state* state = fe->demodulator_priv;
+-
+-	dprintk ("%s\n", __FUNCTION__);
++	u8 t22k_off = 0x80;
++        
++	dprintk ("%s\n", __FUNCTION__);
++
++	if (state->config->diseqc_tone)
++        	t22k_off = 0;
+ 
+ 	switch (tone) {
+ 	case SEC_TONE_OFF:
+-		tda10086_write_byte(state, 0x36, 0x80);
++		tda10086_write_byte(state, 0x36, t22k_off);
+ 		break;
+ 
+ 	case SEC_TONE_ON:
+-		tda10086_write_byte(state, 0x36, 0x81);
++		tda10086_write_byte(state, 0x36, 0x01 + t22k_off);
+ 		break;
+ 	}
+ 
+@@ -203,8 +210,12 @@ static int tda10086_send_master_cmd (str
+ 	struct tda10086_state* state = fe->demodulator_priv;
+ 	int i;
+ 	u8 oldval;
+-
+-	dprintk ("%s\n", __FUNCTION__);
++	u8 t22k_off = 0x80;
++        
++	dprintk ("%s\n", __FUNCTION__);
++
++	if (state->config->diseqc_tone)
++        	t22k_off = 0;
+ 
+ 	if (cmd->msg_len > 6)
+ 		return -EINVAL;
+@@ -213,7 +224,8 @@ static int tda10086_send_master_cmd (str
+ 	for(i=0; i< cmd->msg_len; i++) {
+ 		tda10086_write_byte(state, 0x48+i, cmd->msg[i]);
+ 	}
+-	tda10086_write_byte(state, 0x36, 0x88 | ((cmd->msg_len - 1) << 4));
++	tda10086_write_byte(state, 0x36, (0x08 + t22k_off)
++					| ((cmd->msg_len - 1) << 4));
+ 
+ 	tda10086_diseqc_wait(state);
+ 
+@@ -226,16 +238,20 @@ static int tda10086_send_burst (struct d
+ {
+ 	struct tda10086_state* state = fe->demodulator_priv;
+ 	u8 oldval = tda10086_read_byte(state, 0x36);
+-
+-	dprintk ("%s\n", __FUNCTION__);
++	u8 t22k_off = 0x80;
++        
++	dprintk ("%s\n", __FUNCTION__);
++
++	if (state->config->diseqc_tone)
++        	t22k_off = 0;
+ 
+ 	switch(minicmd) {
+ 	case SEC_MINI_A:
+-		tda10086_write_byte(state, 0x36, 0x84);
++		tda10086_write_byte(state, 0x36, 0x04 + t22k_off);
+ 		break;
+ 
+ 	case SEC_MINI_B:
+-		tda10086_write_byte(state, 0x36, 0x86);
++		tda10086_write_byte(state, 0x36, 0x06 + t22k_off);
+ 		break;
+ 	}
+ 
+diff -r 7564c110491e linux/drivers/media/dvb/frontends/tda10086.h
+--- a/linux/drivers/media/dvb/frontends/tda10086.h	Sun Jan 20 09:13:44 2008 -0200
++++ b/linux/drivers/media/dvb/frontends/tda10086.h	Thu Feb 07 01:16:45 2008 +0100
+@@ -33,6 +33,9 @@ struct tda10086_config
+ 
+ 	/* does the "inversion" need inverted? */
+ 	u8 invert;
++
++        /* do we need the diseqc signal with carrier? */
++        u8 diseqc_tone;
+ };
+ 
+ #if defined(CONFIG_DVB_TDA10086) || (defined(CONFIG_DVB_TDA10086_MODULE) && defined(MODULE))
+diff -r 7564c110491e linux/drivers/media/dvb/ttpci/budget.c
+--- a/linux/drivers/media/dvb/ttpci/budget.c	Sun Jan 20 09:13:44 2008 -0200
++++ b/linux/drivers/media/dvb/ttpci/budget.c	Thu Feb 07 01:19:53 2008 +0100
+@@ -351,6 +351,7 @@ static struct tda10086_config tda10086_c
+ static struct tda10086_config tda10086_config = {
+ 	.demod_address = 0x0e,
+ 	.invert = 0,
++	.diseqc_tone = 1,
+ };
+ 
+ static u8 read_pwm(struct budget* budget)
+diff -r 7564c110491e linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Sun Jan 20 09:13:44 2008 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Feb 07 01:21:14 2008 +0100
+@@ -826,6 +826,7 @@ static struct tda10086_config flydvbs = 
+ static struct tda10086_config flydvbs = {
+ 	.demod_address = 0x0e,
+ 	.invert = 0,
++	.diseqc_tone = 0,
+ };
+ 
+ /* ==================================================================
+
+--------------050500020905070807030002
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------050500020905070807030002--
