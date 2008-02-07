@@ -1,16 +1,15 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.176])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JTPIR-0007LN-H5
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 23:26:11 +0100
-Received: by py-out-1112.google.com with SMTP id a29so1418954pyi.0
-	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 14:26:07 -0800 (PST)
-Message-ID: <47C1EEFB.7020600@googlemail.com>
-Date: Sun, 24 Feb 2008 22:26:03 +0000
-From: Andrea <mariofutire@googlemail.com>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from smtp108.rog.mail.re2.yahoo.com ([68.142.225.206])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <CityK@rogers.com>) id 1JN9ZT-0002Wc-K3
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 17:25:55 +0100
+Message-ID: <47AB30EF.7020209@rogers.com>
+Date: Thu, 07 Feb 2008 11:25:19 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Length of /dev/dvb/adapter0/dvr0's buffer.
+To: LinuxDVB Mailing List <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] get_dvb_firmware perl script and the present Xceive
+ firmware extraction scripts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,22 +20,37 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Just a thought about some possible "consolidation / elimination of 
+fragmentation / consistency " meant to benefit the end user.  How about 
+adding to the get_dvb_firmware script ( 
+http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/dvb/get_dvb_firmware 
+)  a section for:
 
-I'm trying to read from /dev/dvb/adapter0/dvr0.
-The problem is that the process reading sometimes is not fast enough and after a while I get errno 
-75 when I try to read from it.
+a) XC5000 firmware
+- add a download of the firmware ... "wget 
+http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip"
+- and actually add/merge Steve's forty_some_line XC5000 firmware 
+extraction script, "extract.sh" ( presently found here: 
+http://www.steventoth.net/linux/xc5000/  )
 
-On average the speed is ok, so it should work.
-There must be a buffer behind dvr0 that goes in error onece it is full.
+b) XC2028/3208 firmware
+- add a download of the firmware ... "wget 
+http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip"
+- then add a call to Mauro's XC2028/3208 extraction script, 
+"extract_xc3028.pl" (found here: 
+http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/extract_xc3028.pl 
+) for the actual extraction ... all seamless, and behind the scenes).
 
-1) how can I make it bigger?
-2) how can I check how full it is?
+That way, DVB users would only need know/worry about the one script --> 
+get_dvb_firmware  i.e.:
+# path/get_dvb_firmware xc5000
+# path/get_dvb_firmware xc3028  
 
-Andrea
+Any licensing/distribution point of restriction I'm overlooking?  
+Nothing mentioned on stoth's site to suggest otherwise.
 
 _______________________________________________
 linux-dvb mailing list
