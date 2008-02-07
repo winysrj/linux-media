@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JNCCM-00077Q-UP
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 20:14:14 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-dvb@linuxtv.org,
- Eduard Huguet <eduardhc@gmail.com>
-Date: Thu, 7 Feb 2008 20:13:41 +0100
-References: <47AB228E.3080303@gmail.com>
-In-Reply-To: <47AB228E.3080303@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802072013.41966.zzam@gentoo.org>
-Subject: Re: [linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6aff0a99d6c5222c3fab+1628+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JNDa8-0007jt-FX
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 21:42:52 +0100
+Date: Thu, 7 Feb 2008 18:42:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Richard (MQ)" <osl2008@googlemail.com>
+Message-ID: <20080207184221.1ea8e823@gaivota>
+In-Reply-To: <47AB6A1B.5090100@googlemail.com>
+References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
+	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
+	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
+	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,61 +24,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Donnerstag, 7. Februar 2008, Eduard Huguet wrote:
-> Hi,
->     =BFHave you been able to make the DVB-S part work, so? I've been
-> trying these days using ZZam's patch only (Tino's one also mentioned in
-> the wiki doesn't apply for now), and I was completely unable to get a
-> lock on any frequency.
->
-> I thought it was because the driver was incomplete (without Tino's
-> patch...), but if it works for you then I'll probably need to check my
-> antenna, satellite, etc...
->
-> My card is the DVB-S Pro simple (not hybrid), but I don't think this
-> makes any difference.
->
-> Best regards,
->   Eduard Huguet
->
->
-> (PS: sorry for double posting. I forgot to change the subject  title
-> before.)
+On Thu, 07 Feb 2008 20:29:15 +0000
+"Richard (MQ)" <osl2008@googlemail.com> wrote:
 
-Hi Eduard, Peter!
+> Richard (MQ) wrote:
+> > Mauro Carvalho Chehab wrote:
+> >> "Richard (MQ)" <osl2008@googlemail.com> wrote:
+> >>>> tuner: Unknown parameter `tuner_xc2028'
+> >> Hmm... I suspect you did something wrong at modprobe.conf.local. It seems that
+> >> it is using tuner_xc2028 as a parameter to tuner module.
+> >>
+> >> What we need is to have a parameter "debug=1" to both tuner an tuner-xc2028
+> >> modules.
+> > 
+> > I thought I just pasted your lines straight in...
+> > 
+> > I'll have another try tonight, maybe something is mis-typed. If I load
+> > with modprobe -v it will show the options being used.
+> 
+> After booting:
+> DevBox2400:~ # rmmod tuner tuner-xc2028 saa7134 tuner-simple tuner-types
+> DevBox2400:~ # modprobe -vv tuner
+> insmod /lib/modules/.../media/video/tuner-types.ko
+> insmod /lib/modules/.../media/video/tuner-simple.ko
+> insmod /lib/modules/.../media/video/tuner-xc2028.ko debug=1
+> insmod /lib/modules/.../media/video/tuner.ko debug=1
+> DevBox2400:~ # modprobe -vv saa7134
+> insmod /lib/modules/.../kernel/drivers/media/video/saa7134/saa7134.ko
+> 
+> but /var/log/messages shows no sign of the debug messages:
+> 
+> Feb  7 20:08:49 DevBox2400 kernel: saa7130/34: v4l2 driver version
+> 0.2.14 loaded
+> Feb  7 20:08:49 DevBox2400 kernel: saa7133[0]: found at 0000:00:0d.0,
+> rev: 209, irq: 20, latency: 32, mmio: 0xe2000000
+> Feb  7 20:08:49 DevBox2400 kernel: saa7133[0]: subsystem: 1461:f936,
+> board: AVerMedia Hybrid TV/Radio (A16D) [card=133,autodetected]
+> Feb  7 20:08:49 DevBox2400 kernel: saa7133[0]: board init: gpio is 2f600
+> Feb  7 20:08:50 DevBox2400 kernel: saa7133[0]: i2c eeprom 00: 61 14 36
+> f9 00 00 00 00 00 00 00 00 00 00 00 00
+> ...
+> 
+> modinfo confirms that tuner-xc2028 is your code. I'm completely baffled
+> by this...
 
-@Eduard:
-Can you please compare the dmesg output (especially the eeprom dump) of you=
-r =
+If you're not seeing any mesage from tuner-xc2028, it means that the driver is
+selecting a different tuner.
 
-card to the one listed on the wiki-page.
+Please send me the complete dmesg.
 
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_(A700)
+Also, try to force saa7134 driver to use tuner=71 with:
 
-@Peter:
-1. Maybe you want to start a page in the wiki dedicated to your card.
-Or should we check for similarity and merge both of these cards into one pa=
-ge?
+modprobe -vv saa7134 tuner=71
 
-At least I am interested in the eeprom content of your card.
-
-I should request some schematics from Avermedia to maybe get gpio controlli=
-ng =
-
-correct. (Like resetting chips, ir ...)
-
-Regards
-Matthias
-
--- =
-
-Matthias Schwarzott (zzam)
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
