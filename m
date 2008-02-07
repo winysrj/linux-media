@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R1mCuH009173
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:48:12 -0500
-Received: from igraine.blacknight.ie (igraine.blacknight.ie [81.17.252.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R1lbhd020789
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:47:37 -0500
-Date: Wed, 27 Feb 2008 01:47:29 +0000
-From: Robert Fitzsimons <robfitz@273k.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Lhk0e008544
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 16:43:46 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m17LhDd1007643
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 16:43:13 -0500
+Date: Thu, 7 Feb 2008 22:43:09 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080227014729.GC2685@localhost>
-References: <200802171036.19619.bonganilinux@mweb.co.za>
-	<20080218131125.2857f7c7@gaivota>
-	<200802182320.40732.bonganilinux@mweb.co.za>
-	<200802190121.36280.bonganilinux@mweb.co.za>
-	<20080219111640.409870a9@gaivota>
-	<20080226154102.GD30463@localhost>
-	<20080227014238.GA2685@localhost>
+In-Reply-To: <20080207183409.3e788533@gaivota>
+Message-ID: <Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
+	<20080207183409.3e788533@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080227014238.GA2685@localhost>
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Bongani Hlope <bonganilinux@mweb.co.za>
-Subject: [PATCH] bttv: Re-enabling radio support requires the use of struct
-	bttv_fh.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: Two more patches required for soc_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,86 +27,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-A number of the radio tuner ioctl functions are shared with the TV
-tuner, these functions require a struct bttv_fh data structure to be
-allocated and initialized.
+On Thu, 7 Feb 2008, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
+> Hi Guennadi,
+> 
+> > thanks for pulling the soc_camera patches, what I am not sure about, have 
+> > you also pulled these two:
+> > 
+> > http://marc.info/?l=linux-video&m=120179057030853&w=2
+> 
+> I suspect that this patch is wrong, since some CONFIG_foo is needed for
+> videobuf-dma-sg to work properly.
+> 
+> Maybe CONFIG_HAS_DMA ?
+> 
+> Yet, videobuf-dma-sg seems to still have some specific PCI stuff inside, due to
+> this:
+> 	#include <linux/pci.h>
+> 
+> If the above line is removed, you'll see a large amount of errors:
+> 
+> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:120: warning: 'struct pci_dev' declared inside parameter list
+> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:120: warning: its scope is only this definition or declaration, which is probably not what you want
+> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:121: warning: 'struct pci_dev' declared inside parameter list
+> /home/v4l/master/v4l/videobuf-dma-sg.c: In function 'videobuf_dma_init_user_locked':
+> /home/v4l/master/v4l/videobuf-dma-sg.c:144: error: 'PCI_DMA_FROMDEVICE' undeclared (first use in this function)
+[trimmed]
+
+I think, "#include <linux/pci.h>" is needed for the current version of 
+videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
+on PCI-enabled platforms. Perhaps, the right fix would be to convert 
+videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
+difficult task. Only these two prototypes in videobuf-dma-sg.h
+
+int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+
+and their implementations in videobuf-dma-sg.c should indeed be placed 
+under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
+PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
+directly, instead of their pci analogs, etc.
+
+Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
+is also in a way confirmed in a comment in 
+include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
+conversions are defined in include/asm-generic/pci-dma-compat.h. Now
+
+grep -r pci-dma-compat.h include/asm*
+include/asm/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-arm/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-cris/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-frv/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-ia64/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-mips/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-parisc/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-powerpc/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-ppc/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-sh/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-x86/pci.h:#include <asm-generic/pci-dma-compat.h>
+include/asm-xtensa/pci.h:#include <asm-generic/pci-dma-compat.h>
+
+and
+
+grep "[^_]NO_DMA" `find . -name "Kconfig*"`
+./lib/Kconfig:  depends on !NO_DMA
+./arch/h8300/Kconfig:config NO_DMA
+./arch/cris/Kconfig:config NO_DMA
+./arch/m32r/Kconfig:config NO_DMA
+./arch/m68k/Kconfig:config NO_DMA
+./arch/sparc/Kconfig:config NO_DMA
+./arch/s390/Kconfig:config NO_DMA
+
+So, the only intersection is cris... And it really confuses me. And there 
+are a couple more platforms that don't do either, like alpha, avr32, 
+blackfin,...
+
+> I suspect that you'll need to do some work for it to fully use the generic dma api.
+
+Right, so, what would be your preference on this? It would be puty to hold 
+off the patches ony because of this. If you want, I can try to look into 
+converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
+the meantime maybe we could use the CONFIG_HAS_DMA?
+
+> > http://marc.info/?l=linux-video&m=120179045830566&w=2
+> 
+> Hmm... I think I asked your sob for this. Maybe I've lost the e-mail with your
+> sob. Please, send it again, and I'll commit.
+
+I did reply to that your email with my sob, but maybe you wanted a 
+complete patch again. Just resent it too.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/bt8xx/bttv-driver.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
-
-
-Mauro, the radio_open function may want to do more initialisation then
-the amount I copied from bttv_open.
-
-
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index 817a961..04a8263 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3417,6 +3417,7 @@ static int radio_open(struct inode *inode, struct file *file)
- {
- 	int minor = iminor(inode);
- 	struct bttv *btv = NULL;
-+	struct bttv_fh *fh;
- 	unsigned int i;
- 
- 	dprintk("bttv: open minor=%d\n",minor);
-@@ -3431,12 +3432,19 @@ static int radio_open(struct inode *inode, struct file *file)
- 		return -ENODEV;
- 
- 	dprintk("bttv%d: open called (radio)\n",btv->c.nr);
-+
-+	/* allocate per filehandle data */
-+	fh = kmalloc(sizeof(*fh),GFP_KERNEL);
-+	if (NULL == fh)
-+		return -ENOMEM;
-+	file->private_data = fh;
-+	*fh = btv->init;
-+	v4l2_prio_open(&btv->prio,&fh->prio);
-+
- 	mutex_lock(&btv->lock);
- 
- 	btv->radio_user++;
- 
--	file->private_data = btv;
--
- 	bttv_call_i2c_clients(btv,AUDC_SET_RADIO,NULL);
- 	audio_input(btv,TVAUDIO_INPUT_RADIO);
- 
-@@ -3446,7 +3454,8 @@ static int radio_open(struct inode *inode, struct file *file)
- 
- static int radio_release(struct inode *inode, struct file *file)
- {
--	struct bttv *btv = file->private_data;
-+	struct bttv_fh *fh = file->private_data;
-+	struct bttv *btv = fh->btv;
- 	struct rds_command cmd;
- 
- 	btv->radio_user--;
-@@ -3571,7 +3580,8 @@ static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
- static ssize_t radio_read(struct file *file, char __user *data,
- 			 size_t count, loff_t *ppos)
- {
--	struct bttv    *btv = file->private_data;
-+	struct bttv_fh *fh = file->private_data;
-+	struct bttv *btv = fh->btv;
- 	struct rds_command cmd;
- 	cmd.block_count = count/3;
- 	cmd.buffer = data;
-@@ -3585,7 +3595,8 @@ static ssize_t radio_read(struct file *file, char __user *data,
- 
- static unsigned int radio_poll(struct file *file, poll_table *wait)
- {
--	struct bttv    *btv = file->private_data;
-+	struct bttv_fh *fh = file->private_data;
-+	struct bttv *btv = fh->btv;
- 	struct rds_command cmd;
- 	cmd.instance = file;
- 	cmd.event_list = wait;
--- 
-1.5.4.34.g053d9
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
