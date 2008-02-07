@@ -1,28 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.235])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mailout10.sul.t-online.de ([194.25.134.21]
+	helo=mailout10.sul.t-online.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JUzeE-0005DO-Pq
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 08:27:15 +0100
-Received: by wr-out-0506.google.com with SMTP id 68so5820210wra.13
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 23:27:10 -0800 (PST)
-Message-ID: <d9def9db0802282327l1139e17ew8a571ac578e37df2@mail.gmail.com>
-Date: Fri, 29 Feb 2008 08:27:09 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Nicolas Will" <nico@youplala.net>
-In-Reply-To: <1204246336.22520.57.camel@youkaida>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JNEJf-0004jx-7H
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 22:29:55 +0100
+Message-ID: <47AB7844.5040706@t-online.de>
+Date: Thu, 07 Feb 2008 22:29:40 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47C7329F.7030705@powercraft.nl> <47C73457.1030901@powercraft.nl>
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>
-	<47C7360E.9030908@powercraft.nl>
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-	<47C73A05.2050007@powercraft.nl>
-	<d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
-	<d9def9db0802281458g73939fefq8c5d7bc9aa49e1aa@mail.gmail.com>
-	<47C74DF4.6040608@powercraft.nl> <1204246336.22520.57.camel@youkaida>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Going though hell here,
-	please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+To: Russell Kliese <russell@kliese.wattle.id.au>
+References: <47AB0A20.2020000@kliese.wattle.id.au>	<200802071443.17432.Nicola.Sabbi@poste.it>
+	<47AB1705.7020905@kliese.wattle.id.au>
+In-Reply-To: <47AB1705.7020905@kliese.wattle.id.au>
+Cc: linux-dvb@linuxtv.org, Nico Sabbi <Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] MSI TV@nywhere A/D v1.1 mostly working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,60 +24,82 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/29/08, Nicolas Will <nico@youplala.net> wrote:
-> hmmm...
->
-> guys.
->
-> First thing: on a Debian or Ubuntu system, I never needed the full Linux
-> sources to compile a v4l-dvb tree. The headers were always enough.
->
-> Second thing: when you compile a v4l-dvb tree on the side, I do not
-> think that it is adding anything in the headers.
-> So, if you subsequently need to compile a driver that needs stuff from a
-> recent v4l-dvb tree, it won't find it.
->
-> Third thing: That weird driver of yours is probably looking for its
-> stuff either int the headers (were there will not be anything good to
-> find because of the point made above) or in an available kernel source
-> tree (where it will probably not find anything that will make it happy
-> because your recent v4l-dvb tree is elsewhere).
->
-> May I suggest to get a kernel source tree (from the appropriate
-> package), incorporate the v4l-dvb tree in it, then try to compile your
-> weird driver against this.
->
-> Getting rid of the headers may help.
->
+Hi, all
 
-When you compile the v4l-dvb or v4l-dvb-experimental tree it will
-update your whole v4l and dvb subsystem.
-As soon as you do so it won't work to install any other external media
-drivers anymore, beside that v4l-dvb is much bigger than the snipped
-out em28xx driver.
-em28xx-userspace2 and userspace-drivers only contains the drivers for
-em28xx based devices and won't affect any other drivers on the system.
-Since the uvc driver is also out of tree it won't break
-compiling/using the uvc driver against the current running kernel.
+Russell Kliese schrieb:
+> Nico Sabbi wrote:
+>> On Thursday 07 February 2008 14:39:44 Russell Kliese wrote:
+>>
+>>   
+>>> Analog TV worked without a problem (even with the older drivers).
+>>>
+>>> There is still a problem with the digital decoder. Sometimes it
+>>> works fine (I can scan for channels and can run tzap to view a
+>>> channel using mplayer). However, sometimes these commands don't
+>>> work. I've noticed the following when running dmesg:
+>>>
+>>>
+>>> [ 6318.055521] tda1004x: found firmware revision 20 -- ok
+>>>
+>>> I suspect that the card is failing to work because the firmware
+>>> sometimes isn't being uploaded for some reason. Does anybody have
+>>> any ideas why or what I could do to try and fix this?
+>>>
+>>> Hopefully this problem can be sorted out and another card can be
+>>> added to the list of supported DVB-T cards. Yay!
+>>>     
+>> afaik the last fw for the 10046 demodulator is version 29, that
+>> you can extract from the lifeview drivers
+>>   
+> 
+> Thanks for pointing that out. I grabbed the version 29 firmware using 
+> get_dvb_firmware tda10046lifeview and copied this into the appropriate 
+> place. However, I'm still having the same sort of problem:
+> 
+> [ 2095.281620] tda1004x: timeout waiting for DSP ready
+> [ 2095.321600] tda1004x: found firmware revision 0 -- invalid
+> [ 2095.321614] tda1004x: trying to boot from eeprom
+> [ 2097.648360] tda1004x: timeout waiting for DSP ready
+> [ 2097.688338] tda1004x: found firmware revision 0 -- invalid
+> [ 2097.688346] tda1004x: waiting for firmware upload...
+> [ 2110.173699] tda1004x: found firmware revision 29 -- ok
+> [ 2121.531804] tda1004x: setting up plls for 48MHz sampling clock
+> [ 2121.727550] tda1004x: found firmware revision 29 -- ok
+> [ 2513.011736] tda1004x: setting up plls for 48MHz sampling clock
+> [ 2513.199286] tda1004x: found firmware revision 33 -- invalid
+> [ 2513.199294] tda1004x: trying to boot from eeprom
+> [ 2513.567098] tda1004x: found firmware revision 33 -- invalid
+> [ 2513.567110] tda1004x: waiting for firmware upload...
+> [ 2526.044456] tda1004x: found firmware revision 33 -- invalid
+> [ 2526.044469] tda1004x: firmware upload failed
+> [ 2534.743826] tda1004x: setting up plls for 48MHz sampling clock
+> [ 2534.885955] tda1004x: found firmware revision ff -- invalid
+> [ 2534.885968] tda1004x: trying to boot from eeprom
+> [ 2535.211575] tda1004x: found firmware revision 0 -- invalid
+> [ 2535.211582] tda1004x: waiting for firmware upload...
+> [ 2535.217254] tda1004x: Error during firmware upload
+> [ 2535.224898] tda1004x: found firmware revision ff -- invalid
+> [ 2535.224911] tda1004x: firmware upload failed
+> 
+> Cheers,
+> 
+> Russell
+> 
+This is not only a question of the firmware revision.
+Many cards have an eeprom with the firmware on the board. The TDA10046
+automatically tries to boot from this. The eeprom address is controlled
+with a GPIO pin. IF this pin changes while the chip boots, it will crash
+and possibly not recover. This entrie mechanism is hard to control.
+The card specific configuration structures tda1004x_config in saa7134-dvb.c
+have a entry .gpio_config. Please change this to TDA10046_GP01_I or try
+card type 81.
 
-The kernel sources are needed because some internal headers are needed
-for the em28xx to build an alternative tuning system for hybrid
-radio/analogue TV/DTV devices. It should work flawlessly with older
-kernel releases where v4l-dvb already fails to compile.
+Good luck
+  Hartmut
 
-It's also easier to keep backward compatibility while not breaking any
-other drivers on the system that way (and this is seriously needed)
-
-Beside all that:
-There's a .deb package available I posted the link very early already
-compiling from source can always introduce some mess so you better
-know what you do otherwise you have to learn how it works...
-The build scripts already do alot work there for several different distributions
-
-Markus
 
 _______________________________________________
 linux-dvb mailing list
