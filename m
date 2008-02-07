@@ -1,31 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1D51mv3008434
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:01:48 -0500
-Received: from mout2.freenet.de (mout2.freenet.de [195.4.92.92])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id m1D51QNn009740
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:01:26 -0500
-Received: from [195.4.92.23] (helo=13.mx.freenet.de)
-	by mout2.freenet.de with esmtpa (Exim 4.69)
-	(envelope-from <saschasommer@freenet.de>) id 1JOsct-0001Z9-R6
-	for video4linux-list@redhat.com; Tue, 12 Feb 2008 11:44:35 +0100
-Received: from p57adc063.dip.t-dialin.net ([87.173.192.99]:26050
-	helo=[192.168.1.102])
-	by 13.mx.freenet.de with esmtpsa (ID saschasommer@freenet.de)
-	(TLSv1:AES256-SHA:256) (port 25) (Exim 4.69 #10) id 1JOsct-0003Al-K1
-	for video4linux-list@redhat.com; Tue, 12 Feb 2008 11:44:35 +0100
-From: Sascha Sommer <saschasommer@freenet.de>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Kktgm020765
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 15:46:55 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m17KkLQ2004335
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 15:46:22 -0500
+Date: Thu, 7 Feb 2008 21:46:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 To: video4linux-list@redhat.com
-Date: Tue, 12 Feb 2008 11:44:55 +0100
-References: <47A33041.7070604@picus.org.il>
-In-Reply-To: <47A33041.7070604@picus.org.il>
+Message-ID: <Pine.LNX.4.64.0802072145020.9064@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="windows-1255"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200802121144.55732.saschasommer@freenet.de>
-Subject: Re: Grabbee X (Terratec Cinergy 200 USB)
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] Add two new fourcc codes for 16bpp formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,26 +24,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+From: Steven Whitehouse <steve@chygwyn.com>
 
-On Freitag, 1. Februar 2008, matti wrote:
-> I got the grabbee X usb 2.0 video grabber to work on ubuntu 7.10 by
-> using the stock kernel e28xx module then using usbreplay to load up a
-> usbsnoop processed logfile.
-> I can view video in mplayer but the image is half-wide and twice-high.
-> Any hints how to fix it?
+This adds two new fourcc codes (as per info at fourcc.org)
+for 16bpp mono and 16bpp Bayer formats.
 
-Try the -x 2 option with MPlayer.
+Signed-off-by: Steven Whitehouse <steve@chygwyn.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-> How can I share my positive experience so far?
-> Would someone like the 88kB analyzed log?
->
+---
 
-You can send it to me but I do not know if I will have the time to check it.
+Resending with my signed-off-by added.
 
-Regards
+ include/linux/videodev2.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Sascha
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 1e47f1c..e9c8f1a 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -281,6 +281,7 @@ struct v4l2_pix_format
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B','G','R','4') /* 32  BGR-8-8-8-8   */
+ #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R','G','B','4') /* 32  RGB-8-8-8-8   */
+ #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G','R','E','Y') /*  8  Greyscale     */
++#define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y','1','6',' ') /* 16  Greyscale     */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P','A','L','8') /*  8  8-bit palette */
+ #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y','V','U','9') /*  9  YVU 4:1:0     */
+ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y','V','1','2') /* 12  YVU 4:2:0     */
+@@ -307,6 +308,7 @@ struct v4l2_pix_format
+ 
+ /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
++#define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
+ 
+ /* compressed formats */
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M','J','P','G') /* Motion-JPEG   */
+-- 
+1.5.3.4
 
 --
 video4linux-list mailing list
