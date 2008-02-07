@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1K4J6KI011268
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 23:19:06 -0500
-Received: from smtp.bri.people.net.au (smtp.bri.people.net.au [218.214.227.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1K4IWS8031381
-	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 23:18:33 -0500
-From: "Lyal Collins" <lyalc@swiftdsl.com.au>
-To: <video4linux-list@redhat.com>, <linux-dvb@linuxtv.org>
-References: <1203434275.6870.25.camel@tux><Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de><1203457264.8019.6.camel@anden.nu>
-	<1203459408.28796.19.camel@youkaida><Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
-	<1203461440.5358.2.camel@pc08.localdom.local>
-Date: Wed, 20 Feb 2008 14:18:27 +1000
-Message-ID: <000301c87377$a5389370$0c03a8c0@VectraLyal>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1250"
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1203461440.5358.2.camel@pc08.localdom.local>
-Cc: 
-Subject: Supported device?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Jikue010469
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:44:46 -0500
+Received: from mta2.srv.hcvlny.cv.net (mta2.srv.hcvlny.cv.net [167.206.4.197])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17JiG5v001920
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:44:16 -0500
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JVV005S1W5DINB1@mta2.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Thu, 07 Feb 2008 14:44:03 -0500 (EST)
+Date: Thu, 07 Feb 2008 14:44:01 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <9c4b1d600802071010t4c6fd5c6i1d4c420dc3e0a0cf@mail.gmail.com>
+To: Adrian Pardini <pardo.bsso@gmail.com>
+Message-id: <47AB5F81.2020807@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <9c4b1d600802071010t4c6fd5c6i1d4c420dc3e0a0cf@mail.gmail.com>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Introducing myself.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,31 +33,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have an Gigabyte U8000 USB device, but can't find any linux support for
-it, wither by googling or following this list for several weeks.
+Adrian Pardini wrote:
+> Hello everybody!
+> 
+> My name is Adrian, currently I'm studying electronics engineering in
+> La Plata, Argentina.
+> 
+> I joined the list because I bought a partially supported card (Genius
+> TVGo AM11MCE TV/FM) and after some work I have a clean patch ready for
+> review. Also I hope to get my hands on newer hardware to keep
+> improving the v4l support.
 
-lsusb output:
-ID 1044:7002 Chu Yuen Enterprise Co., Ltd 
+Welcome! :)
 
-According to this, this device is based on the Dibcom chipset.
-http://murga-linux.com/puppy/viewtopic.php?t=24065
-However, nothing seems to identify the device after following all the
-instructions.
+Regards,
 
-I've tried the v4l suite, as well as a mythbuntu installation that works
-with a Dvico Fusion card.
-
-Any better pointers or tips?
-
-Thanks
-lyalc
-
--- 
-No virus found in this outgoing message.
-Checked by AVG Free Edition.
-Version: 7.5.446 / Virus Database: 269.20.7/696 - Release Date: 16/02/2008
-12:00 AM
- 
+Steve
 
 --
 video4linux-list mailing list
