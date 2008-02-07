@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <hfvogt@gmx.net>) id 1JQmRz-00057f-WF
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 17:33:12 +0100
-From: Hans-Frieder Vogt <hfvogt@gmx.net>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Date: Sun, 17 Feb 2008 17:32:36 +0100
-References: <200802112223.11129.hfvogt@gmx.net>
-	<ea4209750802170414n6e4f82dam4c6908536b695033@mail.gmail.com>
-	<ea4209750802170506o55b8b751u5c189f15bd140f44@mail.gmail.com>
-In-Reply-To: <ea4209750802170506o55b8b751u5c189f15bd140f44@mail.gmail.com>
+Received: from ug-out-1314.google.com ([66.249.92.174])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eduardhc@gmail.com>) id 1JN9wy-00050X-1o
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 17:50:12 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so945071ugd.20
+	for <linux-dvb@linuxtv.org>; Thu, 07 Feb 2008 08:50:11 -0800 (PST)
+Message-ID: <47AB3603.20303@gmail.com>
+Date: Thu, 07 Feb 2008 17:46:59 +0100
+From: Eduard Huguet <eduardhc@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802171732.36144.hfvogt@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
-Reply-To: hfvogt@gmx.net
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] How to force adaptor order when using 2 DVB cards?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,63 +18,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert,
+Hi,
+    I currently have a media center computer set up using Gentoo 64 bit =
 
-I am happy to hear that your TV-card finally works.
-However, I am still a bit unsure about these GPIO settings. Initially, I just copied the GPIO-settings from another entry and
-then left it because it seemed to work. Now, I have digged a little bit into this issue and found, that under Windows my
-STK7700PH-based stick gets the GPIO set in a different way.
-Could you please try the following modified stk7700ph_frontend_attach routine (in dib0700_devices.c) and tell me
-whether this works for your card as well?
+and a Hauppauge Nova-T 500 card (dual DVB-T receiver). Now I'm trying to =
 
-static int stk7700ph_frontend_attach(struct dvb_usb_adapter *adap)
-{
-        dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 1);
-        msleep(20);
-        dib0700_set_gpio(adap->dev, GPIO9, GPIO_OUT, 1);
-        dib0700_set_gpio(adap->dev, GPIO4, GPIO_OUT, 1);
-        dib0700_set_gpio(adap->dev, GPIO7, GPIO_OUT, 1);
-        dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
-        msleep(10);
-        dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
-        msleep(20);
-        dib0700_set_gpio(adap->dev, GPIO0, GPIO_OUT, 1);
-        msleep(10);
+add a new card (DVB-S), and here my problems begin: not mentioning the =
 
-        dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18, &stk7700ph_dib7700_xc3028_config);
+experimental state of the driver (this is a different story that doesn't =
 
-        adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
-                                &stk7700ph_dib7700_xc3028_config);
+matter now), my problem is that the new card porks the order in which =
 
-        return adap->fe == NULL ? -ENODEV : 0;
-}
+the device nodes were created in /dev. And even worse, the actual order =
 
-By the way, I also experience the same problem with the missing SNR info, on two different dib0700-based USB cards.
+ing schema is different between a cold boot and rebooting:
 
-Regards,
-Hans-Frieder
+Cold boot:
+  =B7 DVB:0: DVB-S tuner from Avermedia A700
+  =B7 DVB:1,2: DVB-T tuners from Nova-T
 
-Am Sonntag, 17. Februar 2008 schrieb Albert Comerma:
-> I got it!!!! I remembered that on PCTV DVB-T 72e they had a similar problem,
-> which was solved leaving GPIO6 to 0. Doing this the tuning seems to work
-> fine. SNR is always reported as 0% but I think this is not a problem, now I
-> can scan and tune dvb-t channels. Firmware is 1.10 and xc3028-v27 with that
-> modification. Thanks a lot for your help. Next step would be analog.
-> 
-> Albert
-> 
+Reboot:
+  =B7 DVB:0: 1st DVB-T tuner from Nova-T
+  =B7 DVB:1: DVB-S tuner from A700
+  =B7 DVB:2: 2nd DVB-T tuner from Nova-T
 
+I guess that on a cold boot the Nova-T 500 takes longer to initialize =
 
+(due to the firmware being loaded), so its adaptors gets both created =
 
--- 
---
-Hans-Frieder Vogt                 e-mail:  hfvogt <at> gmx .dot. net
+later.
+
+Is there any way to avoid this? My MythTV setup currently expects to =
+
+find the 2 Nova-T 500 adaptors on DVB:0 and DVB:1, and In expected the =
+
+new DVB-S adaptor to be created as DVB:2. However, it seems this is not =
+
+the case.
+
+Is there any way to force the numbering schema or the 2 adaptors? =BFWould =
+
+maybe help i.e. setting RC_DEVICE_TARBALL=3D"yes" in /etc/conf.d/rc =
+
+(currently is set to "no") with only the Nova-T connected and then =
+
+adding te other one? I wonder is this would force its adaptors to be =
+
+created always at the same position.
+
+Thanks for any help you could provide.
+
+Eduard
+
 
 _______________________________________________
 linux-dvb mailing list
