@@ -1,23 +1,14 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRowZ-0004ez-Nl
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 14:25:03 +0100
-From: Nicolas Will <nico@youplala.net>
-To: Matthew Vermeulen <mattvermeulen@gmail.com>
-In-Reply-To: <950c7d180802200436s68bab78ej3eb01a93090c313f@mail.gmail.com>
-References: <1203434275.6870.25.camel@tux>
-	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
-	<1203449457.28796.7.camel@youkaida>
-	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
-	<1203495773.7026.15.camel@tux> <1203496068.7026.19.camel@tux>
-	<950c7d180802200436s68bab78ej3eb01a93090c313f@mail.gmail.com>
-Date: Wed, 20 Feb 2008 13:23:34 +0000
-Message-Id: <1203513814.6682.30.camel@acropora>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
-	ir	receiver
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from web57807.mail.re3.yahoo.com ([68.142.236.85])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ar.saikia@yahoo.com>) id 1JN3Cn-0003tz-Ro
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 10:38:06 +0100
+Date: Thu, 7 Feb 2008 01:37:34 -0800 (PST)
+From: ashim saikia <ar.saikia@yahoo.com>
+To: Linux Forum 4 Dvb <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <835654.64234.qm@web57807.mail.re3.yahoo.com>
+Subject: [linux-dvb] DVB-S card-Which firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +16,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2145028635=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============2145028635==
+Content-Type: multipart/alternative; boundary="0-1383051299-1202377054=:64234"
 
-On Wed, 2008-02-20 at 21:36 +0900, Matthew Vermeulen wrote:
-> 
-> I've got that file all set up, my hardware.conf for lirc is pasted
-> below:
+--0-1383051299-1202377054=:64234
+Content-Type: text/plain; charset=us-ascii
 
-I'm running Ubuntu Gutsy and my /etc/lirc/hardware.conf has wildly
-different variable names.
-
-See what I have here:
-
-http://www.youplala.net/~will/htpc/LIRC/
-
-You are running Hardy, but I would't expect conf files to change so
-dramatically. I may be wrong, so I'll check.
-
-Ah, yes they are... oh well, I'm wrong.
+I am using a DVB-S card. Can anybody suggest which firmware to use
 
 
-> # /etc/lirc/hardware.conf
-> #
-> #Chosen Remote Control
-> REMOTE="Compro Videomate U500"
-> REMOTE_MODULES=""
-> REMOTE_DRIVER="devinput"
 
-shouldn't that be dev/input, instead?
 
-Nico
+      ____________________________________________________________________________________
+Looking for last minute shopping deals?  
+Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+--0-1383051299-1202377054=:64234
+Content-Type: text/html; charset=us-ascii
 
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman, new york, times, serif;font-size:12pt"><div>I am using a DVB-S card. Can anybody suggest which firmware to use<br></div></div><br>
+      <hr size=1>Be a better friend, newshound, and 
+know-it-all with Yahoo! Mobile. <a href="http://us.rd.yahoo.com/evt=51733/*http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ "> Try it now.</a></body></html>
+--0-1383051299-1202377054=:64234--
+
+
+--===============2145028635==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2145028635==--
