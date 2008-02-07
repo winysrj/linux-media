@@ -1,21 +1,18 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from nf-out-0910.google.com ([64.233.182.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1JRDC4-0000RW-CW
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 22:06:32 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so1426841fge.25
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 13:06:17 -0800 (PST)
-Message-ID: <ea4209750802181306tcc8c98clff330d4289523d96@mail.gmail.com>
-Date: Mon, 18 Feb 2008 22:06:17 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47B9D533.7050504@iki.fi>
+	(envelope-from <eduardhc@gmail.com>) id 1JN4ZQ-0000VR-ND
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 12:05:32 +0100
+Received: by nf-out-0910.google.com with SMTP id d21so961906nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 07 Feb 2008 03:05:28 -0800 (PST)
+Message-ID: <47AAE5F0.40806@gmail.com>
+Date: Thu, 07 Feb 2008 12:05:20 +0100
+From: Eduard Huguet <eduardhc@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_Part_378_2959486.1203368777714"
-References: <ea4209750801161224p6b75d7fanbdcd29e7d367802d@mail.gmail.com>
-	<47B9D533.7050504@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Yuan EC372S (STK7700D based device)
+To: linux-dvb@linuxtv.org
+References: <mailman.0.1202382001.906.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.0.1202382001.906.linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] linux-dvb Digest, Vol 37, Issue 14
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,173 +20,164 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1082750105=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_378_2959486.1203368777714
+This is a multi-part message in MIME format.
+--===============1082750105==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_379_33176584.1203368777714"
+ boundary="------------010406000100070606090703"
 
-------=_Part_379_33176584.1203368777714
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This is a multi-part message in MIME format.
+--------------010406000100070606090703
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hey people, we already solved this problems. I submitted a patch a few days
-ago, but I think it's not on the current sources. I send again the patch.
-Basically it must use the same frontend description as asus cards.
+>
+> ssumpte:
+> [linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]
+> De:
+> Peter Meszmer <hubblest@web.de>
+> Data:
+> Thu, 7 Feb 2008 10:23:27 +0100
+> Per a:
+> linux-dvb@linuxtv.org
+>
+> Per a:
+> linux-dvb@linuxtv.org
+>
+>
+> Hello,
+>
+> I'm watching this list for quite a while now, looking forward to see my 
+> Avermedia AVerTV DVB-S Hybrid+FM supported. 
+> This card looks very similar to the Avermedia AVerTV DVB-S Pro [A700], so I 
+> tried the two existing patches. Finally, Matthias Schwarzott's (zzam) 
+> patch "a700_full_20080204" did it. 
+>
+> DVB-S is working very well using Kaffeine 0.8.5, input via S-Video or 
+> Composite worked, since I bought the card, and is still working.
+>
+> Is it possible, to add the cards ID (1461:a7a2) to the list?
+>
+> Thanks for all the work you did! Ich ziehe meinen Hut!
+>
+> Best regards,
+> Peter Meszmer
+>   
 
-Albert
+Hi,
+    ¿Have you been able to make the DVB-S part work, so? I've been 
+trying these days using ZZam's patch only (Tino's one also mentioned in 
+the wiki doesn't apply for now), and I was completely unable to get a 
+lock on any frequency.
 
-2008/2/18, Antti Palosaari <crope@iki.fi>:
->
-> moikka
-> I have also this device (express card). I haven't looked inside yet, but
-> I think there is DibCOM STK7700D (in my understanding dual demod chip)
-> and only *one* MT2266 tuner. I tried various GPIO settings but no luck
-> yet.
-> GPIO6 is for MT2266.
-> GPIO9 and GPIO10 are for frontend.
->
-> Looks like tuner goes to correct frequency because I got always
-> PID-filter timeouts when tuning to correct freq. I will now try to take
-> some usb-sniffs to see configuration used. Any help is welcome.
->
-> regards
-> Antti
->
-> Albert Comerma wrote:
-> > Hi!, with Michel (mm-sl@ibelgique.com <mailto:mm-sl@ibelgique.com>) who
->
-> > is a owner of this Yuan card we added the device to dib0700_devices, and
-> > we got it recognized without problems. The only problem is that no
-> > channel is detected on scan on kaffeine or other software... I post some
-> > dmesg. We don't know where it may be the problem... or how to detect
-> it...
-> >
-> > usb 4-2: new high speed USB device using ehci_hcd and address 6
-> > usb 4-2: new device found, idVendor=1164, idProduct=1edc
-> > usb 4-2: new device strings: Mfr=1, Product=2, SerialNumber=3
-> > usb 4-2: Product: STK7700D
-> > usb 4-2: Manufacturer: YUANRD
-> > usb 4-2: SerialNumber: 0000000001
-> > usb 4-2: configuration #1 chosen from 1 choice
-> > dvb-usb: found a 'Yuan EC372S' in cold state, will try to load a
-> firmware
-> > dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-> > dib0700: firmware started successfully.
-> > dvb-usb: found a 'Yuan EC372S' in warm state.
-> > dvb-usb: will pass the complete MPEG2 transport stream to the software
-> > demuxer.
-> > DVB: registering new adapter (Yuan EC372S)
-> > dvb-usb: no frontend was attached by 'Yuan EC372S'
-> > dvb-usb: will pass the complete MPEG2 transport stream to the software
-> > demuxer.
-> > DVB: registering new adapter (Yuan EC372S)
-> > DVB: registering frontend 1 (DiBcom 7000PC)...
-> > MT2266: successfully identified
-> > input: IR-receiver inside an USB DVB receiver as /class/input/input10
-> > dvb-usb: schedule remote query interval to 150 msecs.
-> > dvb-usb: Yuan EC372S successfully initialized and connected.
-> >
-> >
->
-> > ------------------------------------------------------------------------
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
->
-> --
-> http://palosaari.fi/
->
+I thought it was because the driver was incomplete (without Tino's 
+patch...), but if it works for you then I'll probably need to check my 
+antenna, satellite, etc...
 
-------=_Part_379_33176584.1203368777714
+My card is the DVB-S Pro simple (not hybrid), but I don't think this 
+makes any difference.
+
+Best regards,
+  Eduard Huguet
+
+
+--------------010406000100070606090703
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hey people, we already solved this problems. I submitted a patch a few days ago, but I think it&#39;s not on the current sources. I send again the patch. Basically it must use the same frontend description as asus cards.<br>
-<br>Albert<br><br><div><span class="gmail_quote">2008/2/18, Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-moikka<br> I have also this device (express card). I haven&#39;t looked inside yet, but<br> I think there is DibCOM STK7700D (in my understanding dual demod chip)<br> and only *one* MT2266 tuner. I tried various GPIO settings but no luck yet.<br>
- GPIO6 is for MT2266.<br> GPIO9 and GPIO10 are for frontend.<br> <br> Looks like tuner goes to correct frequency because I got always<br> PID-filter timeouts when tuning to correct freq. I will now try to take<br> some usb-sniffs to see configuration used. Any help is welcome.<br>
- <br> regards<br> Antti<br> <br> Albert Comerma wrote:<br> &gt; Hi!, with Michel (<a href="mailto:mm-sl@ibelgique.com">mm-sl@ibelgique.com</a> &lt;mailto:<a href="mailto:mm-sl@ibelgique.com">mm-sl@ibelgique.com</a>&gt;) who<br>
- <br>&gt; is a owner of this Yuan card we added the device to dib0700_devices, and<br> &gt; we got it recognized without problems. The only problem is that no<br> &gt; channel is detected on scan on kaffeine or other software... I post some<br>
- &gt; dmesg. We don&#39;t know where it may be the problem... or how to detect it...<br> &gt;<br> &gt; usb 4-2: new high speed USB device using ehci_hcd and address 6<br> &gt; usb 4-2: new device found, idVendor=1164, idProduct=1edc<br>
- &gt; usb 4-2: new device strings: Mfr=1, Product=2, SerialNumber=3<br> &gt; usb 4-2: Product: STK7700D<br> &gt; usb 4-2: Manufacturer: YUANRD<br> &gt; usb 4-2: SerialNumber: 0000000001<br> &gt; usb 4-2: configuration #1 chosen from 1 choice<br>
- &gt; dvb-usb: found a &#39;Yuan EC372S&#39; in cold state, will try to load a firmware<br> &gt; dvb-usb: downloading firmware from file &#39;dvb-usb-dib0700-1.10.fw&#39;<br> &gt; dib0700: firmware started successfully.<br>
- &gt; dvb-usb: found a &#39;Yuan EC372S&#39; in warm state.<br> &gt; dvb-usb: will pass the complete MPEG2 transport stream to the software<br> &gt; demuxer.<br> &gt; DVB: registering new adapter (Yuan EC372S)<br> &gt; dvb-usb: no frontend was attached by &#39;Yuan EC372S&#39;<br>
- &gt; dvb-usb: will pass the complete MPEG2 transport stream to the software<br> &gt; demuxer.<br> &gt; DVB: registering new adapter (Yuan EC372S)<br> &gt; DVB: registering frontend 1 (DiBcom 7000PC)...<br> &gt; MT2266: successfully identified<br>
- &gt; input: IR-receiver inside an USB DVB receiver as /class/input/input10<br> &gt; dvb-usb: schedule remote query interval to 150 msecs.<br> &gt; dvb-usb: Yuan EC372S successfully initialized and connected.<br> &gt;<br>
- &gt;<br> <br>&gt; ------------------------------------------------------------------------<br> &gt;<br> &gt; _______________________________________________<br> &gt; linux-dvb mailing list<br> &gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
- &gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br> <br><br> <br> --<br> <a href="http://palosaari.fi/">http://palosaari.fi/</a><br> </blockquote>
-</div><br>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<blockquote cite="mid:mailman.0.1202382001.906.linux-dvb@linuxtv.org"
+ type="cite">
+  <table class="header-part1" border="0" cellpadding="0" cellspacing="0"
+ width="100%">
+    <tbody>
+      <tr>
+        <td>
+        <div class="headerdisplayname" style="display: inline;">ssumpte:
+        </div>
+[linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]</td>
+      </tr>
+      <tr>
+        <td>
+        <div class="headerdisplayname" style="display: inline;">De: </div>
+Peter Meszmer <a class="moz-txt-link-rfc2396E" href="mailto:hubblest@web.de">&lt;hubblest@web.de&gt;</a></td>
+      </tr>
+      <tr>
+        <td>
+        <div class="headerdisplayname" style="display: inline;">Data: </div>
+Thu, 7 Feb 2008 10:23:27 +0100</td>
+      </tr>
+      <tr>
+        <td>
+        <div class="headerdisplayname" style="display: inline;">Per a: </div>
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="header-part2" border="0" cellpadding="0" cellspacing="0"
+ width="100%">
+    <tbody>
+      <tr>
+        <td>
+        <div class="headerdisplayname" style="display: inline;">Per a: </div>
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <pre wrap="">Hello,
 
-------=_Part_379_33176584.1203368777714--
+I'm watching this list for quite a while now, looking forward to see my 
+Avermedia AVerTV DVB-S Hybrid+FM supported. 
+This card looks very similar to the Avermedia AVerTV DVB-S Pro [A700], so I 
+tried the two existing patches. Finally, Matthias Schwarzott's (zzam) 
+patch "a700_full_20080204" did it. 
 
-------=_Part_378_2959486.1203368777714
-Content-Type: text/x-patch; name=YuanEC372.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fctin5x2
-Content-Disposition: attachment; filename=YuanEC372.patch
+DVB-S is working very well using Kaffeine 0.8.5, input via S-Video or 
+Composite worked, since I bought the card, and is still working.
 
-ZGlmZiAtY3JCIHY0bC1kdmItN2Q4NTU4ZjNmYzY2LW9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9k
-dmIvZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYyB2NGwtZHZiLTdkODU1OGYzZmM2Ni9saW51eC9k
-cml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCioqKiB2NGwtZHZiLTdk
-ODU1OGYzZmM2Ni1vcmlnL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9k
-ZXZpY2VzLmMJMjAwOC0wMS0yNyAxNjoyMzo1My4wMDAwMDAwMDAgKzAxMDAKLS0tIHY0bC1kdmIt
-N2Q4NTU4ZjNmYzY2L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZp
-Y2VzLmMJMjAwOC0wMS0yNyAxNjozNDoyMC4wMDAwMDAwMDAgKzAxMDAKKioqKioqKioqKioqKioq
-CioqKiA5MDUsOTEwICoqKioKLS0tIDkwNSw5MTEgLS0tLQogIAkJeyBVU0JfREVWSUNFKFVTQl9W
-SURfQVNVUywgICAgICBVU0JfUElEX0FTVVNfVTMxMDApIH0sCiAgLyogMjUgKi8JeyBVU0JfREVW
-SUNFKFVTQl9WSURfSEFVUFBBVUdFLCBVU0JfUElEX0hBVVBQQVVHRV9OT1ZBX1RfU1RJQ0tfMykg
-fSwKICAJCXsgVVNCX0RFVklDRShVU0JfVklEX0hBVVBQQVVHRSwgVVNCX1BJRF9IQVVQUEFVR0Vf
-TVlUVl9UKSB9LAorIAkJeyBVU0JfREVWSUNFKFVTQl9WSURfWVVBTiwgVVNCX1BJRF9ZVUFOX0VD
-MzcyUykgfSwKICAJCXsgMCB9CQkvKiBUZXJtaW5hdGluZyBlbnRyeSAqLwogIH07CiAgTU9EVUxF
-X0RFVklDRV9UQUJMRSh1c2IsIGRpYjA3MDBfdXNiX2lkX3RhYmxlKTsKKioqKioqKioqKioqKioq
-CioqKiAxMDY5LDEwODAgKioqKgogIAkJCX0sCiAgCQl9LAogIAohIAkJLm51bV9kZXZpY2VfZGVz
-Y3MgPSAxLAogIAkJLmRldmljZXMgPSB7CiAgCQkJeyAgICJBU1VTIE15IENpbmVtYSBVMzAwMCBN
-aW5pIERWQlQgVHVuZXIiLAogIAkJCQl7ICZkaWIwNzAwX3VzYl9pZF90YWJsZVsyM10sIE5VTEwg
-fSwKICAJCQkJeyBOVUxMIH0sCiAgCQkJfSwKICAJCX0KICAJfSwgeyBESUIwNzAwX0RFRkFVTFRf
-REVWSUNFX1BST1BFUlRJRVMsCiAgCi0tLSAxMDcwLDEwODUgLS0tLQogIAkJCX0sCiAgCQl9LAog
-IAohIAkJLm51bV9kZXZpY2VfZGVzY3MgPSAyLAogIAkJLmRldmljZXMgPSB7CiAgCQkJeyAgICJB
-U1VTIE15IENpbmVtYSBVMzAwMCBNaW5pIERWQlQgVHVuZXIiLAogIAkJCQl7ICZkaWIwNzAwX3Vz
-Yl9pZF90YWJsZVsyM10sIE5VTEwgfSwKICAJCQkJeyBOVUxMIH0sCiAgCQkJfSwKKyAJCQl7ICAg
-Ill1YW4gRUMzNzJTIiwKKyAJCQkJeyAmZGliMDcwMF91c2JfaWRfdGFibGVbMjddLCBOVUxMIH0s
-CisgCQkJCXsgTlVMTCB9LAorIAkJCX0KICAJCX0KICAJfSwgeyBESUIwNzAwX0RFRkFVTFRfREVW
-SUNFX1BST1BFUlRJRVMsCiAgCmRpZmYgLWNyQiB2NGwtZHZiLTdkODU1OGYzZmM2Ni1vcmlnL2xp
-bnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi1pZHMuaCB2NGwtZHZiLTdkODU1
-OGYzZmM2Ni9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2ItaWRzLmgKKioq
-IHY0bC1kdmItN2Q4NTU4ZjNmYzY2LW9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVz
-Yi9kdmItdXNiLWlkcy5oCTIwMDgtMDEtMjcgMTY6MjM6NTMuMDAwMDAwMDAwICswMTAwCi0tLSB2
-NGwtZHZiLTdkODU1OGYzZmM2Ni9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11
-c2ItaWRzLmgJMjAwOC0wMS0yNyAxNjoyNzoyMC4wMDAwMDAwMDAgKzAxMDAKKioqKioqKioqKioq
-KioqCioqKiA0Niw1MyAqKioqCiAgI2RlZmluZSBVU0JfVklEX1VMVElNQV9FTEVDVFJPTklDCQkw
-eDA1ZDgKICAjZGVmaW5lIFVTQl9WSURfVU5JV0lMTAkJCQkweDE1ODQKICAjZGVmaW5lIFVTQl9W
-SURfV0lERVZJRVcJCQkweDE0YWEKLSAvKiBkb20gOiBwb3VyIGdpZ2FieXRlIHU3MDAwICovCiAg
-I2RlZmluZSBVU0JfVklEX0dJR0FCWVRFCQkJMHgxMDQ0CiAgCiAgCiAgLyogUHJvZHVjdCBJRHMg
-Ki8KLS0tIDQ2LDUzIC0tLS0KICAjZGVmaW5lIFVTQl9WSURfVUxUSU1BX0VMRUNUUk9OSUMJCTB4
-MDVkOAogICNkZWZpbmUgVVNCX1ZJRF9VTklXSUxMCQkJCTB4MTU4NAogICNkZWZpbmUgVVNCX1ZJ
-RF9XSURFVklFVwkJCTB4MTRhYQogICNkZWZpbmUgVVNCX1ZJRF9HSUdBQllURQkJCTB4MTA0NAor
-ICNkZWZpbmUgVVNCX1ZJRF9ZVUFOCQkJCTB4MTE2NAogIAogIAogIC8qIFByb2R1Y3QgSURzICov
-CioqKioqKioqKioqKioqKgoqKiogMTgzLDE5MSAqKioqCiAgI2RlZmluZSBVU0JfUElEX09QRVJB
-MV9XQVJNCQkJCTB4MzgyOQogICNkZWZpbmUgVVNCX1BJRF9MSUZFVklFV19UVl9XQUxLRVJfVFdJ
-Tl9DT0xECQkweDA1MTQKICAjZGVmaW5lIFVTQl9QSURfTElGRVZJRVdfVFZfV0FMS0VSX1RXSU5f
-V0FSTQkJMHgwNTEzCi0gLyogZG9tIHBvdXIgZ2lnYWJ5dGUgdTcwMDAgKi8KICAjZGVmaW5lIFVT
-Ql9QSURfR0lHQUJZVEVfVTcwMDAJCQkJMHg3MDAxCiAgI2RlZmluZSBVU0JfUElEX0FTVVNfVTMw
-MDAJCQkJMHgxNzFmCiAgI2RlZmluZSBVU0JfUElEX0FTVVNfVTMxMDAJCQkJMHgxNzNmCiAgCiAg
-I2VuZGlmCi0tLSAxODMsMTkxIC0tLS0KICAjZGVmaW5lIFVTQl9QSURfT1BFUkExX1dBUk0JCQkJ
-MHgzODI5CiAgI2RlZmluZSBVU0JfUElEX0xJRkVWSUVXX1RWX1dBTEtFUl9UV0lOX0NPTEQJCTB4
-MDUxNAogICNkZWZpbmUgVVNCX1BJRF9MSUZFVklFV19UVl9XQUxLRVJfVFdJTl9XQVJNCQkweDA1
-MTMKICAjZGVmaW5lIFVTQl9QSURfR0lHQUJZVEVfVTcwMDAJCQkJMHg3MDAxCiAgI2RlZmluZSBV
-U0JfUElEX0FTVVNfVTMwMDAJCQkJMHgxNzFmCiAgI2RlZmluZSBVU0JfUElEX0FTVVNfVTMxMDAJ
-CQkJMHgxNzNmCisgI2RlZmluZSBVU0JfUElEX1lVQU5fRUMzNzJTCQkJCTB4MWVkYwogIAogICNl
-bmRpZgo=
-------=_Part_378_2959486.1203368777714
+Is it possible, to add the cards ID (1461:a7a2) to the list?
+
+Thanks for all the work you did! Ich ziehe meinen Hut!
+
+Best regards,
+Peter Meszmer
+  </pre>
+</blockquote>
+<br>
+Hi, <br>
+&nbsp;&nbsp;&nbsp; &iquest;Have you been able to make the DVB-S part work, so? I've been
+trying these days using ZZam's patch only (Tino's one also mentioned in
+the wiki doesn't apply for now), and I was completely unable to get a
+lock on any frequency.<br>
+<br>
+I thought it was because the driver was incomplete (without Tino's
+patch...), but if it works for you then I'll probably need to check my
+antenna, satellite, etc...<br>
+<br>
+My card is the DVB-S Pro simple (not hybrid), but I don't think this
+makes any difference.<br>
+<br>
+Best regards, <br>
+&nbsp; Eduard Huguet<br>
+<br>
+</body>
+</html>
+
+--------------010406000100070606090703--
+
+
+--===============1082750105==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -199,4 +187,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_378_2959486.1203368777714--
+--===============1082750105==--
