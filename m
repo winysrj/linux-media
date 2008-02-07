@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.184])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JQ6PO-0000VH-VT
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 20:39:42 +0100
-Received: by fk-out-0910.google.com with SMTP id z22so884723fkz.1
-	for <linux-dvb@linuxtv.org>; Fri, 15 Feb 2008 11:39:41 -0800 (PST)
-Message-ID: <47B5EA79.8010402@googlemail.com>
-Date: Fri, 15 Feb 2008 19:39:37 +0000
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JNFGs-0001SC-8o
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 23:31:06 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Tools to edit TS files
+Date: Thu, 7 Feb 2008 23:29:53 +0100
+References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>
+	<1202288256.3442.20.camel@pc08.localdom.local>
+	<47AA53AC.6050402@t-online.de>
+In-Reply-To: <47AA53AC.6050402@t-online.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200802072329.53438@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,21 +30,22 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-I'd like to edit TS files (recorded with gnutv for instance).
-Basically I'd like to cut, paste and join to skip commercials.
+Hartmut Hackmann wrote:
+> ...
+> So here is the patch that make the the 22kHz tone a config option.
+> Please be aware that i have no means to test it, so please report
+> 
+> Signed-off-by: Hartmut Hackmann <hartmut.hackmann@t-online.de
 
-Is there a tool for that out there?
+Acked-by: Oliver Endriss <o.endriss@gmx.de>
 
-Otherwise I was thinking of writing one.
-I understand that I must cut on a 188 bytes boundary and that should be the only requirement.
+CU
+Oliver
 
-1) Reading the Transport Stream page on wikipedia, it seems there is a timer PCR. Can I use it to 
-know about the time?
-2) Can I cut at the end of a frame so I avoid spurious frames in the first seconds?
-
-But again, does anybody know a tool for that?
-
-Andrea
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
