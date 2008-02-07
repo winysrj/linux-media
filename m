@@ -1,22 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JT4sd-0007EU-5k
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 01:38:11 +0100
-Message-ID: <47C0BC6D.2060606@gmail.com>
-Date: Sun, 24 Feb 2008 04:38:05 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <eduardhc@gmail.com>) id 1JNDBV-0004mb-0A
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 21:17:25 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so1038047ugd.20
+	for <linux-dvb@linuxtv.org>; Thu, 07 Feb 2008 12:17:22 -0800 (PST)
+Message-ID: <47AB668D.2090405@gmail.com>
+Date: Thu, 07 Feb 2008 21:14:05 +0100
+From: Eduard Huguet <eduardhc@gmail.com>
 MIME-Version: 1.0
-To: Tim Hewett <tghewett1@onetel.com>
-References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
-	<47C09CB5.8060804@gmail.com>
-	<FE251317-5C82-44A7-B2F3-7F0254A787E6@onetel.com>
-	<47C0AF98.5000703@gmail.com>
-	<342209CC-E522-49BC-A3D6-7A9A7CE23740@onetel.com>
-In-Reply-To: <342209CC-E522-49BC-A3D6-7A9A7CE23740@onetel.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+References: <47AB3603.20303@gmail.com>
+	<387ee2020802070901w2e3f3896n51fa97acbf01683e@mail.gmail.com>
+	<200802071940.09143.zzam@gentoo.org>
+In-Reply-To: <200802071940.09143.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
- AD	SP400 rebadge)
+Subject: Re: [linux-dvb] How to force adaptor order when using 2 DVB cards?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,55 +23,171 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2009844282=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tim Hewett wrote:
-> Manu,
-> 
-> Thanks, it now tunes to horizontal transponders though not vertical 
-> ones. I think others have been having similar symptoms with the 
-> mantis/multiproto trees.
+This is a multi-part message in MIME format.
+--===============2009844282==
+Content-Type: multipart/alternative;
+ boundary="------------000607090108080504040705"
 
-Can someone replicate this behaviour: not tuning to vertical transponders ?
-Do you have any switches or a rotor in the SEC chain ?
+This is a multi-part message in MIME format.
+--------------000607090108080504040705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-> It won't tune to any DVB-S2 transponder, but that has not changed since 
-> previously.
+Hi,
+    Thank you. This is what I finally did (blacklisting and manually 
+loading), as the udev rules have a really "ugly" syntax ;). I found the 
+tip in Gentoo wiki and it's working fine now.
 
-
-Hmm .. Are you really sure ?
-
-
-> Messages in dmesg for successful tuning:
-> 
-> [  402.455361] dvb_frontend_ioctl: DVBFE_GET_INFO
-> [  402.455366] stb0899_get_info: Querying DVB-S info
-> [  402.556373] newfec_to_oldfec: Unsupported FEC 9
-> [  402.556377] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
-> [  402.556998] mantis start feed & dma
-> [  402.557255] stb0899_search: set DVB-S params
-> [  402.567810] stb6100_set_bandwidth: Bandwidth=51610000
-> [  402.569927] stb6100_get_bandwidth: Bandwidth=52000000
-> [  402.581331] stb6100_get_bandwidth: Bandwidth=52000000
-> [  402.613394] stb6100_set_frequency: Frequency=1023000
-> [  402.615510] stb6100_get_frequency: Frequency=1022994
-> [  402.621496] stb6100_get_bandwidth: Bandwidth=52000000
-> [  404.541047] _stb0899_read_reg: Read error, Reg=[0xf525], Status=-121
-> [  404.541749] mantis stop feed and dma
-
-I will need the stb0899 and stb6100 modules to be loaded with verbose=5
-parameter, for understanding what's happening.
+Thank you all anyway.
+  Eduard
 
 
-Regards,
-Manu
 
+
+En/na Matthias Schwarzott ha escrit:
+> On Donnerstag, 7. Februar 2008, John Drescher wrote:
+>   
+>> On Feb 7, 2008 11:46 AM, Eduard Huguet <eduardhc@gmail.com> wrote:
+>>     
+>>> Hi,
+>>>     I currently have a media center computer set up using Gentoo 64 bit
+>>> and a Hauppauge Nova-T 500 card (dual DVB-T receiver). Now I'm trying to
+>>> add a new card (DVB-S), and here my problems begin: not mentioning the
+>>> experimental state of the driver (this is a different story that doesn't
+>>> matter now), my problem is that the new card porks the order in which
+>>> the device nodes were created in /dev. And even worse, the actual order
+>>> ing schema is different between a cold boot and rebooting:
+>>>
+>>> Cold boot:
+>>>   · DVB:0: DVB-S tuner from Avermedia A700
+>>>   · DVB:1,2: DVB-T tuners from Nova-T
+>>>
+>>> Reboot:
+>>>   · DVB:0: 1st DVB-T tuner from Nova-T
+>>>   · DVB:1: DVB-S tuner from A700
+>>>   · DVB:2: 2nd DVB-T tuner from Nova-T
+>>>
+>>> I guess that on a cold boot the Nova-T 500 takes longer to initialize
+>>> (due to the firmware being loaded), so its adaptors gets both created
+>>> later.
+>>>
+>>> Is there any way to avoid this? My MythTV setup currently expects to
+>>> find the 2 Nova-T 500 adaptors on DVB:0 and DVB:1, and In expected the
+>>> new DVB-S adaptor to be created as DVB:2. However, it seems this is not
+>>> the case.
+>>>
+>>> Is there any way to force the numbering schema or the 2 adaptors?
+>>>       
+>> Create a udev rule.
+>>
+>> http://reactivated.net/writing_udev_rules.html
+>>
+>>     
+> More people have tried this for dvb and failed as it seems. That would require 
+> something like persistent-net.
+>
+> I suggest you first try blacklisting the modules like described here:
+> http://www.gentoo.org/doc/en/udev-guide.xml
+>
+> Matthias
+>
+>   
+
+--------------000607090108080504040705
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Hi, <br>
+&nbsp;&nbsp;&nbsp; Thank you. This is what I finally did (blacklisting and manually
+loading), as the udev rules have a really "ugly" syntax ;). I found the
+tip in Gentoo wiki and it's working fine now.<br>
+<br>
+Thank you all anyway.<br>
+&nbsp; Eduard<br>
+<br>
+<br>
+<br>
+<br>
+En/na Matthias Schwarzott ha escrit:
+<blockquote cite="mid:200802071940.09143.zzam@gentoo.org" type="cite">
+  <pre wrap="">On Donnerstag, 7. Februar 2008, John Drescher wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">On Feb 7, 2008 11:46 AM, Eduard Huguet <a class="moz-txt-link-rfc2396E" href="mailto:eduardhc@gmail.com">&lt;eduardhc@gmail.com&gt;</a> wrote:
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Hi,
+    I currently have a media center computer set up using Gentoo 64 bit
+and a Hauppauge Nova-T 500 card (dual DVB-T receiver). Now I'm trying to
+add a new card (DVB-S), and here my problems begin: not mentioning the
+experimental state of the driver (this is a different story that doesn't
+matter now), my problem is that the new card porks the order in which
+the device nodes were created in /dev. And even worse, the actual order
+ing schema is different between a cold boot and rebooting:
+
+Cold boot:
+  &middot; DVB:0: DVB-S tuner from Avermedia A700
+  &middot; DVB:1,2: DVB-T tuners from Nova-T
+
+Reboot:
+  &middot; DVB:0: 1st DVB-T tuner from Nova-T
+  &middot; DVB:1: DVB-S tuner from A700
+  &middot; DVB:2: 2nd DVB-T tuner from Nova-T
+
+I guess that on a cold boot the Nova-T 500 takes longer to initialize
+(due to the firmware being loaded), so its adaptors gets both created
+later.
+
+Is there any way to avoid this? My MythTV setup currently expects to
+find the 2 Nova-T 500 adaptors on DVB:0 and DVB:1, and In expected the
+new DVB-S adaptor to be created as DVB:2. However, it seems this is not
+the case.
+
+Is there any way to force the numbering schema or the 2 adaptors?
+      </pre>
+    </blockquote>
+    <pre wrap="">Create a udev rule.
+
+<a class="moz-txt-link-freetext" href="http://reactivated.net/writing_udev_rules.html">http://reactivated.net/writing_udev_rules.html</a>
+
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->More people have tried this for dvb and failed as it seems. That would require 
+something like persistent-net.
+
+I suggest you first try blacklisting the modules like described here:
+<a class="moz-txt-link-freetext" href="http://www.gentoo.org/doc/en/udev-guide.xml">http://www.gentoo.org/doc/en/udev-guide.xml</a>
+
+Matthias
+
+  </pre>
+</blockquote>
+</body>
+</html>
+
+--------------000607090108080504040705--
+
+
+--===============2009844282==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2009844282==--
