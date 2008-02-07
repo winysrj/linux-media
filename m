@@ -1,34 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1L9BL7O011886
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:11:21 -0500
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.229])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1L9ApDN003660
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:10:51 -0500
-Received: by wx-out-0506.google.com with SMTP id t16so2795490wxc.6
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 01:10:51 -0800 (PST)
-Message-ID: <175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
-Date: Thu, 21 Feb 2008 10:10:50 +0100
-From: "H. Willstrand" <h.willstrand@gmail.com>
-To: "H. Willstrand" <h.willstrand@gmail.com>,
-	"Thomas Kaiser" <linux-dvb@kaiser-linux.li>,
-	"Linux and Kernel Video" <video4linux-list@redhat.com>
-In-Reply-To: <20080221012048.GA2924@daniel.bse>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <47BC8BFC.2000602@kaiser-linux.li>
-	<47BC90CA.1000707@kaiser-linux.li>
-	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
-	<47BC9788.7070604@kaiser-linux.li> <20080220215850.GA2391@daniel.bse>
-	<47BCA5BA.20009@kaiser-linux.li>
-	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>
-	<47BCB5DB.8000800@kaiser-linux.li>
-	<175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>
-	<20080221012048.GA2924@daniel.bse>
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: V4L2_PIX_FMT_RAW
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Jm8tM012432
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:48:08 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17JlYNW003764
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:47:34 -0500
+Date: Thu, 7 Feb 2008 17:47:03 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
+Message-ID: <20080207174703.5e79d19a@gaivota>
+In-Reply-To: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Question about saa7115
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,50 +27,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
->  > What's the problem with having a name of the formalized data in the
->  > video stream? ie raw do not mean undefined.
->
->  I thought you wanted to avoid having to define V4L2_PIX_FMT_x for an
->  exploding number of proprietary formats that are quite similar but still
->  incompatible. It makes sense for formats that are used by more than one
->  driver.
+On Wed, 6 Feb 2008 17:44:05 -0800
+"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
 
-Correct, the number of unique pixel formats should be kept down.
-Again, comparing with digital cameras there are >200 proprietary
-formats and there is a "clean-up" on-going where the "market" is
-aiming for a OpenRAW.
+> Hi,
+> (I'm not sure it's the right place, but I couldn't find any better
+> place, so, if there is, please let me know)
 
-However, by declaring a generic RAW format (which is then driver
-specific) doesn't help the user mode app developers. Calling a
-multitude of libraries to see if you get lucky might not be a good
-idea.
+This is the proper place ;)
 
-Still, I'm suspectious about the definition "raw" used here.
-RAW should mean unprocessed image data:
-* no white balance adjustment
-* no color saturation adjustments
-* no contrast adjustments
-* no sharpness improvements
-* no compression with loss
+> I'm kinda new to V4L2 (and kernel drivers in general) and I've been
+> asked to se if I could control a saa7115 on an embedded linux
+> platform, using the V4L2 driver.
+> the driver loads without a problem, it creates an interface in /dev/,
+> but that a I2C (89) file, and not a video (81) one. The thing is I
+> have two saa7115 on the I2C bus, and I don't how to issue my command
+> to the one I want.
+> 
+> Well, from what I understood, I can send instructions to the bus using
+> ioctl() and /dev/i2c-0, but these are i2c/smbus commands, not V4L2
+> ones, right ?
+> 
+> I read the sources and I still don't have a clue what I'm supposed to
+> do, could you please give me a few hints ?
 
-So, by looking for similarities in the "raw" formats where available
-there should be a potential to consolidate them.
+On most devices, you don't have direct access to i2c bus, since it is located
+on a separate board. So, v4l drivers creates a host driver with PCI or USB bus.
+The host driver then implements i2c methods. This is the case of cx88-i2c, for
+example.
 
->
->
->  > I don't see how separate RAW ioctl's will add value to the V4l2 API,
->  > it fits into the current API.
->
->  Yes, it does. Each driver having multiple raw formats just needs a
->  private control id to select one.
->
-I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
-should do the job.
-I.e. I think there should be strong reasons to break V4L2 API behavior.
+On embedded processors, you generally attach devices directly to the CPU i2c
+bus. In this case, you'll need to implement a host v4l2 module for your
+processor, and use it to access the i2c device.
 
-Harri
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
