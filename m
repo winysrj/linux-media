@@ -1,16 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.175])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail18.syd.optusnet.com.au ([211.29.132.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mandm.thompson@gmail.com>) id 1JRMeH-0007eR-TJ
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 08:12:18 +0100
-Received: by wf-out-1314.google.com with SMTP id 28so460549wfa.17
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 23:12:13 -0800 (PST)
-Message-ID: <9e5f3ed00802182312k7949dc95veb468f1ffb641ba0@mail.gmail.com>
-Date: Tue, 19 Feb 2008 18:12:13 +1100
-From: "Martin Thompson" <mandm.thompson@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <russell@kliese.wattle.id.au>) id 1JN6rx-0000Wf-69
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 14:32:49 +0100
+Received: from [192.168.0.4] (c220-239-70-96.rochd3.qld.optusnet.com.au
+	[220.239.70.96]) (authenticated sender russell.kliese)
+	by mail18.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
+	m17DWgGE023897
+	for <linux-dvb@linuxtv.org>; Fri, 8 Feb 2008 00:32:43 +1100
+Message-ID: <47AB0A20.2020000@kliese.wattle.id.au>
+Date: Thu, 07 Feb 2008 23:39:44 +1000
+From: Russell Kliese <russell@kliese.wattle.id.au>
 MIME-Version: 1.0
-Subject: [linux-dvb] NEW version of dvico digital dual 4
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] MSI TV@nywhere A/D v1.1 mostly working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,137 +21,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2111244512=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2111244512==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_11673_13334613.1203405133300"
+I just wanted to report on my progress with the MSI TV@nywhere A/D card
+v1.1 in case anyone has some ideas that might help getting this card
+working 100%.
 
-------=_Part_11673_13334613.1203405133300
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I've posted a picture of my card at the following URL:
+http://ringo.com/photos/photo.html?photoId=253664472 . The chipset
+includes: Philips TDA10046A digital decder, Philips SAA7131E analog
+decoder and a 8275AC1 tuner.
 
-sorry if this has been posted a few times not getting anything back from
-list
-just bought a new dvico dd4 card
-it has a revision 2.0 stamped on it
-it is not picked up by mythtv
-in the usb driver id the card is ID 0fe9:db*78* DVICO  ID 0fe9:db*78* DVICO
-mi id on new card is ID 0fe9:db*98* DVICOso i changed the id to 98
-linux picked it up as a dvico dd4 dvb card with two tuners
-now mythtv finds the card but no frontend
-i think they have changed that as well
+I am able to get most functions working using the latest drivers (as of
+today - hg clone http://linuxtv.org/hg/v4l-dvb). I'm running Mythbuntu
+with the 2.6.22-14-generic kernel. I followed the instructions from
+http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers#Case_2:_Installation_of_LinuxTV_Drivers_Required 
 
-dmesg | grep dvb-usb
-[ 45.568438] dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in
-warm state.
-[ 45.568759] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-[ 45.676871] dvb-usb: no frontend was attached by 'DViCO FusionHDTV DVB-T
-Dual Digital 4'
-[ 45.677733] dvb-usb: schedule remote query interval to 100 msecs.
-[ 45.677855] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully
-initialized and connected.
-[ 45.677872] dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in
-warm state.
-[ 45.678261] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-[ 46.003003] dvb-usb: no frontend was attached by 'DViCO FusionHDTV DVB-T
-Dual Digital 4'
-[ 46.003591] dvb-usb: schedule remote query interval to 100 msecs.
-[ 46.003900] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully
-initialized and connected.
+.
 
-lsusb
--snip-
-Bus 002 Device 003: ID 0fe9:db98 DVICO
-Bus 002 Device 002: ID 0fe9:db98 DVICO
+As this card isn't currently recognized (1131:7133), I used the
+following to load the driver: modprobe saa7134 card=109. I choose
+card=109 because this is for a reference design and there are other
+cards with the same combination of chips as the MSI card that work using
+this. Note that firmware must be obtained using the latest
+get_dvb_firmware script (also included with the latest drivers).
+Firmware obtained with an earlier version of this script didn't work.
 
-lspci
--snip-
-05:06.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB
-1.1Controller (rev 62)
-05:06.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB
-1.1Controller (rev 62)
-05:06.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 65)
-05:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder (rev 05)
-05:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
-Decoder [MPEG Port] (rev 05)
-05:08.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-Capture (rev 11)
-05:08.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture
-(rev 11)
+Analog TV worked without a problem (even with the older drivers).
 
-card is back in xp box for recording i can run a protocol program to find
-the id
-just need to know what to use
-
-hope you can help
-
-------=_Part_11673_13334613.1203405133300
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-sorry if this has been posted a few times not getting anything back from list<br><div><font><font face="Arial" size="2">
-<div><font face="Arial" size="2">just bought a new dvico dd4 card</font></div>
-<div><font face="Arial" size="2">it has a revision 2.0 stamped on it</font></div>
-<div><font face="Arial" size="2">it is not picked up by mythtv</font></div>
-<div><font face="Arial" size="2">in the usb driver id the card is <span class="wcrep2"><font face="Times New Roman" size="3">ID 0fe9:db<b>78</b> DVICO &nbsp;ID 
-0fe9:db<b>78</b> DVICO</font></span></font></div></font></font><font><font face="Arial" size="2"><font face="Arial" size="2"><span class="wcrep2"><font face="Times New Roman" size="3">mi id on new card is ID 
-0fe9:db<b>98</b> DVICO</font></span></font></font></font><font><font face="Arial" size="2"><div><font size="-0"><span class="wcrep2">so i changed the id to 
-98</span></font></div>
-<div><font size="-0"><span class="wcrep2">linux picked it up as a dvico dd4 dvb card 
-with two tuners</span></font></div>
-<div><font size="-0"><span class="wcrep2">now mythtv finds the card but no 
-frontend</span></font></div>
-<div><font size="-0"><span class="wcrep2">i think they have changed that as 
-well</span></font></div>
-<div><font size="-0"><span class="wcrep2"></span></font>&nbsp;</div>
-<div><font size="-0"><span class="wcrep2">dmesg | grep dvb-usb<br>[ 45.568438] 
-dvb-usb: found a &#39;DViCO FusionHDTV DVB-T Dual Digital 4&#39; in warm state.<br>[ 
-45.568759] dvb-usb: will pass the complete MPEG2 transport stream to the 
-software demuxer.<br>[ 45.676871] dvb-usb: no frontend was attached by &#39;DViCO 
-FusionHDTV DVB-T Dual Digital 4&#39;<br>[ 45.677733] dvb-usb: schedule remote query 
-interval to 100 msecs.<br>[ 45.677855] dvb-usb: DViCO FusionHDTV DVB-T Dual 
-Digital 4 successfully initialized and connected.<br>[ 45.677872] dvb-usb: found 
-a &#39;DViCO FusionHDTV DVB-T Dual Digital 4&#39; in warm state.<br>[ 45.678261] 
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.<br>[ 46.003003] dvb-usb: no frontend was attached by &#39;DViCO FusionHDTV 
-DVB-T Dual Digital 4&#39;<br>[ 46.003591] dvb-usb: schedule remote query interval to 
-100 msecs.<br>[ 46.003900] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 
-successfully initialized and connected.</span></font></div>
-<div><font size="-0"><span class="wcrep2"></span></font>&nbsp;</div>
-<div><font size="-0"><span class="wcrep2">lsusb<br>-snip-<br>Bus 002 Device 003: ID 
-0fe9:db98 DVICO<br>Bus 002 Device 002: ID 0fe9:db98 
-DVICO<br><br>lspci<br>-snip-<br>05:06.0 USB Controller: VIA Technologies, Inc. 
-VT82xxxxx UHCI USB 1.1 Controller (rev 62)<br>05:06.1 USB Controller: VIA 
-Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 62)<br>05:06.2 USB 
-Controller: VIA Technologies, Inc. USB 2.0 (rev 65)<br>05:07.0 Multimedia video 
-controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 
-05)<br>05:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio 
-Decoder [MPEG Port] (rev 05)<br>05:08.0 Multimedia video controller: Brooktree 
-Corporation Bt878 Video Capture (rev 11)<br>05:08.1 Multimedia controller: 
-Brooktree Corporation Bt878 Audio Capture (rev 
-11)<br><br>card is back in xp box for recording i can run a protocol program to find the id<br>just need to know what to use<br><br>hope you can help<br></span></font></div></font></font></div><br><br>
-
-------=_Part_11673_13334613.1203405133300--
+There is still a problem with the digital decoder. Sometimes it works
+fine (I can scan for channels and can run tzap to view a channel using
+mplayer). However, sometimes these commands don't work. I've noticed the
+following when running dmesg:
 
 
---===============2111244512==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+[ 6318.055521] tda1004x: found firmware revision 20 -- ok
+[ 6322.661170] tda1004x: setting up plls for 48MHz sampling clock
+[ 6322.856931] tda1004x: found firmware revision 20 -- ok
+[ 6410.414553] tda1004x: setting up plls for 48MHz sampling clock
+[ 6410.610246] tda1004x: found firmware revision 20 -- ok
+[ 6629.945993] tda1004x: setting up plls for 48MHz sampling clock
+[ 6630.173438] tda1004x: found firmware revision 0 -- invalid
+[ 6630.173451] tda1004x: trying to boot from eeprom
+[ 6630.541243] tda1004x: found firmware revision 20 -- ok
+[ 6658.598487] tda1004x: setting up plls for 48MHz sampling clock
+[ 6658.834190] tda1004x: found firmware revision 0 -- invalid
+[ 6658.834202] tda1004x: trying to boot from eeprom
+[ 6659.201994] tda1004x: found firmware revision 0 -- invalid
+[ 6659.202007] tda1004x: waiting for firmware upload...
+[ 6671.615390] tda1004x: found firmware revision 0 -- invalid
+[ 6671.615403] tda1004x: firmware upload failed
+[ 6700.212279] tda1004x: setting up plls for 48MHz sampling clock
+[ 6700.448050] tda1004x: found firmware revision 0 -- invalid
+[ 6700.448060] tda1004x: trying to boot from eeprom
+[ 6700.815855] tda1004x: found firmware revision 0 -- invalid
+[ 6700.815868] tda1004x: waiting for firmware upload...
+[ 6715.188208] tda1004x: timeout waiting for DSP ready
+[ 6715.228185] tda1004x: found firmware revision 0 -- invalid
+[ 6715.228192] tda1004x: firmware upload failed
+
+I suspect that the card is failing to work because the firmware
+sometimes isn't being uploaded for some reason. Does anybody have any
+ideas why or what I could do to try and fix this?
+
+Hopefully this problem can be sorted out and another card can be added
+to the list of supported DVB-T cards. Yay!
+
+Cheers,
+
+Russell
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2111244512==--
