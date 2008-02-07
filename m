@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FCoSr1011308
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 07:50:28 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FCo6DT024457
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 07:50:06 -0500
-Date: Fri, 15 Feb 2008 10:49:45 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
-Message-ID: <20080215104945.4e6fe998@gaivota>
-In-Reply-To: <1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
-References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
-	<20080207174703.5e79d19a@gaivota>
-	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
-	<20080207181136.5c8c53fc@gaivota>
-	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
-	<20080211104821.00756b8e@gaivota>
-	<1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Question about saa7115
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Na0Qt008919
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 18:36:00 -0500
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.235])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17NZP6K024269
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 18:35:25 -0500
+Received: by wx-out-0506.google.com with SMTP id t16so3137546wxc.6
+	for <video4linux-list@redhat.com>; Thu, 07 Feb 2008 15:35:19 -0800 (PST)
+Date: Thu, 7 Feb 2008 15:35:07 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: James Klaas <jklaas@appalachian.dyndns.org>
+Message-ID: <20080207233507.GA21273@plankton.ifup.org>
+References: <18b102300801311533y65b32651v651e853ae3aea3d4@mail.gmail.com>
+	<20080201001958.GA21437@plankton.ifup.org>
+	<18b102300802011808w7a0ac750qf491d1aaa59efca3@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <18b102300802011808w7a0ac750qf491d1aaa59efca3@mail.gmail.com>
+Cc: video4linux-list@redhat.com, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: gspca drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,39 +31,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 14 Feb 2008 15:34:22 -0800
-"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
-
-> Hello again,
-> baby step after baby step, I managed to get the saa7115 driver working
-> on my platform \o/ thank you for the help
+On 21:08 Fri 01 Feb 2008, James Klaas wrote:
+> On 1/31/08, Brandon Philips <brandon@ifup.org> wrote:
+> > On 18:33 Thu 31 Jan 2008, James Klaas wrote:
+> > > I was hoping to get my webcam working with the latest v4l-dvb sources.
+> > >  After reading about on this list and elsewhere, I ran:
+> > >
+> > > # make kernel-links
+> > >
+> > > from my v4l-dvb directory in order to modify my current linux sources
+> > > to use the v4l-dvb drivers.  Then I went to my gspca directory and ran
+> > > the "gspca_build" script:
+> > >
+> > > ./gspca_build
+> > >
+> > >  REMOVE the old module if present
+> > > Unknown symbol in module, or unknown parameter (see dmesg)
+> > >
+> > >  PRINT COMPILATION MESSAGES if ERRORS look kgspca.err
+> > > make -C /lib/modules/`uname -r`/build SUBDIRS=/usr/src/modules/gspca
+> > > CC=cc modules
+> > > make[1]: Entering directory `/usr/src/linux-source-2.6.22'
+> > >   CC [M]  /usr/src/modules/gspca/gspca_core.o
+> > > /usr/src/modules/gspca/gspca_core.c:2542: error: unknown field
+> > > 'hardware' specified in initializer
+> >
+> > Are you using the latest gspca driver?  The hardware field was removed
+> > months ago.
 > 
-> but I have a question : is the driver complete ? because it doesn't
-> respond to half the V4L2 commands described in the API, and for some,
-> the structure isn't fully updated, is that normal ?
-> (I'm not blaming anybody, as I am new to all this stuff I still trying
-> to understand the V4L2 world :-), but it seems to me, after reading
-> the datasheet of the chip that the driver could offer more
-> possibility, am I right ?)
+> [ 1026.765596] gspca: disagrees about version of symbol video_devdata
+...
+> [ 1977.737339] gspca: Unknown symbol video_device_release
 
+Did you "make install" the v4l tree you built against and make sure none
+of the old video modules were loaded (see lsmod) when you modprobe'd
+gspca?
 
-At the current drivers, most of the API functions are handled by the bridge
-driver. So, only a subset of saa7115 features is needed for those devices. As a
-rule, we generally try not to add code on kernel drivers that aren't used by
-other kernel drivers.
+Thanks,
 
-Yet, some functions shouldn't be on saa7115, like, for example:
-	buffer handling - specific to the way it is connected;
-	audio control and decoding - should be associated to an audio chip;
-
-I don't know the implementation details of your driver. If you intend to submit
-your driver for its addition on kernel, feel free to propose the addition of
-new features to saa7115, and post to the list. Maybe your job will help also
-other users (for example, saa7115 driver doesn't work with Osprey 560
-- I'm not sure where's the issue).
-
-Cheers,
-Mauro
+	Brandon
 
 --
 video4linux-list mailing list
