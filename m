@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QHFePW007089
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 12:15:40 -0500
-Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QHF6UK017363
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 12:15:06 -0500
-Received: from tschai.lan (cm-84.208.70.98.getinternet.no [84.208.70.98])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id m1QHF5FW026595
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 18:15:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 26 Feb 2008 18:15:05 +0100
-References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
-	<47C44499.7050506@mediaxim.be>
-In-Reply-To: <47C44499.7050506@mediaxim.be>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Disposition: inline
-Message-Id: <200802261815.05108.hverkuil@xs4all.nl>
-Content-Transfer-Encoding: 8bit
-Subject: Re: Grabbing 4:3 and 16:9
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17JPs2D031171
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:25:54 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17JPUbO022177
+	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 14:25:30 -0500
+Date: Thu, 7 Feb 2008 17:25:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Adrian Pardini" <pardo.bsso@gmail.com>
+Message-ID: <20080207172500.0abbafae@gaivota>
+In-Reply-To: <9c4b1d600802071010t4c6fd5c6i1d4c420dc3e0a0cf@mail.gmail.com>
+References: <9c4b1d600802071010t4c6fd5c6i1d4c420dc3e0a0cf@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Introducing myself.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,67 +27,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 26 February 2008 17:55:53 Michel Bardiaux wrote:
-> Daniel Glöckner wrote:
-> > On Tue, Feb 26, 2008 at 12:19:39PM +0100, Michel Bardiaux wrote:
-> >> Here in Belgium the broadcasts is sometimes 4:3, sometimes 16:9.
-> >> Currently, the card goes automatically in letterbox mode when it
-> >> receives 16:9, and our software captures the 4:3 frames at size
-> >> 704x576.
-> >
-> > The card does not go into letterbox mode. It's the broadcaster who
-> > squeezes the 16:9 picture into 432 lines surrounded by 144 black
-> > lines.
->
-> Let me rephrase to check I understood correctly. In analog TV, there
-> are no anamorphic broadcasts. When the WSS (accessible via /dev/vbi,
-> right?) states 16:9, then a 16:9 (sic) TV switches to a mode where it
-> crops 2x72 lines, then stretches the image both horizontally and
-> vertically to fill the whole 16:9 screen. Am I correct?
+Hi Adrian,
 
-Yes, this is really true. Remember that the broadcast should still work 
-when received by an old 4:3 TV. The only way to ensure that it still 
-looks OK is to letterbox it. As mentioned before PALPlus allows the 
-broadcaster to encode additional information encoded in the black bars 
-to improve the image quality (never looked into that, though).
+On Thu, 7 Feb 2008 16:10:00 -0200
+"Adrian Pardini" <pardo.bsso@gmail.com> wrote:
 
-BTW, WSS does allow anamorphic broadcasts, although it is very rare. I 
-saw it once, but I've always suspected that someone made a 
-configuration error because anamorphic broadcasts look squashed on 
-normal 4:3 TVs.
+> Hello everybody!
+> 
+> My name is Adrian, currently I'm studying electronics engineering in
+> La Plata, Argentina.
+> 
+> I joined the list because I bought a partially supported card (Genius
+> TVGo AM11MCE TV/FM) and after some work I have a clean patch ready for
+> review. Also I hope to get my hands on newer hardware to keep
+> improving the v4l support.
 
-> I must admit I have difficulty believing that. Could you give me the
-> URLs of sites explaining all that?
+Welcome to the group!
 
-http://en.wikipedia.org/wiki/Widescreen_signaling
+Please read README.patches [1] for some instructions on how to submit patches.
 
-http://en.wikipedia.org/wiki/PALPlus
+[1] http://linuxtv.org/hg/v4l-dvb/file/3be355e3e327/README.patches
 
-Regards,
-
-	Hans
-
->
-> > Some fill the chroma part of the black lines with a PALPlus helper
-> > signal. Although the algorithms to decode PALPlus are well
-> > documented in ETS 300 731, I have never seen a software
-> > implementation.
-> >
-> >> 1. How do I sense from the software that the mode is currently
-> >> 16:9 or 4:3?
-> >
-> > Some broadcasters use WSS to signal 16:9.
-> > In Germany some signal 4:3 even on 16:9 shows.
-> > Read ETSI EN 300 294.
-> >
-> >> 2. How do I setup the bttv so that it does variable anamorphosis
-> >> instead of letterboxing? If that is at all possible of course...
-> >
-> > You can't. Bttv can't stretch vertically.
-> >
-> >   Daniel
-
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
