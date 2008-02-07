@@ -1,19 +1,28 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45])
+Received: from anchor-post-37.mail.demon.net ([194.217.242.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JOFou-0007Jy-8x
-	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 18:18:24 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Per Blomqvist <p.blomqvist@lsn.se>
-In-Reply-To: <47AF0A2B.5080603@lsn.se>
-References: <47AB7865.5090008@lsn.se> <47AC7925.8050709@rogers.com>
-	<47ACF3AF.40201@lsn.se> <1202646599.22109.17.camel@anden.nu>
-	<47AF0A2B.5080603@lsn.se>
-Date: Sun, 10 Feb 2008 18:14:14 +0100
-Message-Id: <1202663654.28689.27.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help! I cant view video. BUT I can scan!!
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1JN9Gr-0000zG-CP
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 17:06:41 +0100
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-37.mail.demon.net with esmtp (Exim 4.68)
+	id 1JN9Gq-0003GM-P3
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 16:06:40 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1JN9Gi-0005lb-PQ
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 16:06:40 +0000
+Date: Thu, 07 Feb 2008 15:35:22 +0000
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: linux-dvb@linuxtv.org
+Message-ID: <4F72E22F18%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <641098.20601.qm@web57809.mail.re3.yahoo.com>
+References: <641098.20601.qm@web57809.mail.re3.yahoo.com>
+MIME-Version: 1.0
+Subject: [linux-dvb] Yahoo webmail b0rkage (was: Re: DVB-S card-Which
+	firmware)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,45 +30,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgpBbSBTb25udGFnLCBkZW4gMTAuMDIuMjAwOCwgMTU6MjggKzAxMDAgc2NocmllYiBQZXIg
-QmxvbXF2aXN0Ogo+IEhlbGxvIEpvbmFzIEFuZHJlbi4KPiAoS29tIGludGUgbyBzw6RnIGF0dCBB
-bmRlbiDDpHIgZGFuc2spCj4gCj4gVGhlIEhhcndhcmUgSSBoYXZlLCBJIGhhdmUgc2FpZC4gIEl0
-cyB0aGUgbWVkaWEtY2FyZCwgaXMgdGhpczogCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtp
-L2luZGV4LnBocC9Bc3VzX015X0NpbmVtYS1QNzEzMV9IeWJyaWQKPiAocnVubmluZyBvbiBhIGFt
-ZDY0LCBtb3RoZXItYm9hcmQgbTJhLXZtLi4gSW5rw7ZwdCBww6UgS2plbGwmQ28gYnlnZ3NhdHMg
-Cj4gZsO2ciAyIHZlY2tvciBzZWRhbi4uLgo+IAo+IEkgYWxzbyBzYWlkIHRoYXQgdGhlIHNhbWUg
-TWVkaWEtY2FyZCBkaWQgZnVuY3Rpb24gKHNvbWV3aGF0KSBvbiBteSBvbGQgCj4gY29tcHV0ZXIg
-KGEgUElJMzMwTUh6LCB0aG91Z2ggd2l0aCB0ZXJyaWJsZSB2aWRlbyByZXN1bHQpLiBBbmQgaXQg
-d29ya3MgCj4gaW4gV2luZG93cyBYUC4gU28sIHRoZSBNZWRpYS1jYXJkIGZ1bmN0aW9uLgo+IAo+
-IEkgZG93bmxvYWRlZCZpbnN0YWxsZWQgIGxpbnV4dHYtZHZiLWFwcHMtMS4xLjEudGFyLmJ6MiAK
-PiA8aHR0cDovL3d3dy5saW51eHR2Lm9yZy9kb3dubG9hZHMvbGludXh0di1kdmItYXBwcy0xLjEu
-MS50YXIuYnoyPgo+IChhbmQgYWxsIHNvIGNhbGxlZCB1dGlsczogImR2YmRhdGUiICJkdmJ0cmFm
-aWNrIiAic2NhbiIgYW5kICJ6YXAiIAo+IHdvcmtlZC4gQlVULCBub3RoaW5nIHVuZGVyIHRoZSB0
-ZXN0KQoKeW91IHNob3VsZCBwcmVmZXIgZHZiLWFwcHMgZnJvbSBtZXJjdXJpYWwsIGJ1dCB0aGF0
-IGlzIG5vdCBzbyBpbXBvcnRhbnQuCgpGaXJzdCBvZiBhbGwgSSB3b3VsZCBsaWtlIHRvIHNlZSBy
-ZWxldmFudCAiZG1lc2ciIHN0dWZmIGZvciB0aGUgY2FyZAphbmQgdHVuZXIgdG8gc2VlIGlmIGl0
-IGlzIHN0aWxsIGxpa2VseSB0aGUgc2FtZSBjYXJkLCBhdXRvIGRldGVjdGVkIGFuZAplZXByb20g
-Y29udGVudCB1bmNoYW5nZWQgYW5kIGFsbCBjaGlwcyBhbGl2ZS4gSWYgeW91IGVuYWJsZSBpMmNf
-c2Nhbj0xCnlvdSBsb29rIGZpcnN0IGZvciB0aGUgZGV2aWNlcyBmb3VuZC4KCkFsc28gd2UgbmV2
-ZXIgc2F3LCBpZiB5b3VyIGZpcm13YXJlIHVwbG9hZCBpcyBzdWNjZXNzZnVsIGFuZCBpZiB5b3Ug
-dXNlCnByZWZlcmFibHkgcmV2aXNpb24gMjkgd2l0aCBzdWNoIGEgY2FyZCB3aXRoIExvdyBOb2lz
-ZSBBbXBsaWZpZXIuCklmIG5vdCwgZG93bmxvYWQgaXQgZnJvbSBMaWZlVmlldyB3aXRoIHRoZSBz
-Y3JpcHQgaW4gL0RvY3VtZW50YXRpb24vZHZiCmFuZCBkbyBhIGNvbGQgYm9vdC4gKHJlY2VudCBz
-dHVmZiBpcyBpbiBhIHY0bC1kdmIgbWVyY3VyaWFsIHNuYXBzaG90KQoKQW50ZW5uYSBpbnB1dCBm
-b3IgRFZCLVQgaXMgRk0vUkYgaW5wdXQuCgpDYW4geW91IHBvaW50IHRvIHRoZSBpbml0aWFsIHR1
-bmluZyBmaWxlIHlvdSBhcmUgdXNpbmcgb3IgdG8gd2hhdCB5b3UKYmVsaWV2ZSBpcyBhIHZhbGlk
-IGNoYW5uZWxzLmNvbmYgZmlsZSBmb3IgeW91PwoKSXQgaXMgYWx3YXlzIHdvcnRoIGEgdHJ5IHRv
-IHNldCBhbGwgdG8gQVVUTyBpbiB0aGUgaW5pdGlhbCB0dW5pbmcgZmlsZSwKZXhjZXB0IGZyZXF1
-ZW5jeSB0byB0dW5lIGFuZCBiYW5kd2lkdGggYW5kIHRoZW4gdXNlICJzY2FuIiB0byBjcmVhdGUg
-YQpjaGFubmVscy5jb25mLgoKSWYgc3RpbGwgbm90LCB3ZSBpbnN0YWxsIHRoZSByZWNlbnQgdjRs
-LWR2YiwgcmVtb3ZlIGFsbCBvbGQgbW9kdWxlcyBhbmQKbWlnaHQgdHJ5IHRvIGRlYnVnIGZyb20g
-dGhlcmUuCgpDaGVlcnMsCkhlcm1hbm4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0
-di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtZHZi
+I demand that ashim saikia may or may not have written...
+
+> Thanks... I will keep track of these things 
+> 
+> ----- Original Message ----
+> From: Nicolas Will <nico@youplala.net>
+[snip]
+> 
+> Ashim,
+> 
+> Regarding 
+> all 
+> your 
+> posts: 
+[snip]
+
+This is the second posting with one-word-per-line mangling that I've seen
+recently. Both were sent via Yahoo webmail... looks like something's *badly*
+broken there :-\
+
+Bug reports to somebody at yahoo.com, I imagine, but where...
+
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Travel less. Share transport more.           PRODUCE LESS CARBON DIOXIDE.
+
+"We came. We assimilated. We left."
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
