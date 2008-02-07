@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from f128.mail.ru ([194.67.57.128])
+Received: from jackfruit.srv.cs.cmu.edu ([128.2.201.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JQJvo-00071p-Qf
-	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 11:06:04 +0100
-From: Igor <goga777@bk.ru>
-To: henk schaap <haschaap@planet.nl>
-Mime-Version: 1.0
-Date: Sat, 16 Feb 2008 13:05:34 +0300
-References: <47B6A9DB.501@planet.nl>
-In-Reply-To: <47B6A9DB.501@planet.nl>
-Message-Id: <E1JQJvK-000BwB-00.goga777-bk-ru@f128.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?bXVsdGlwcm90byBhbmQgdHQzMjAwOiBkb24ndCBn?=
-	=?koi8-r?b?ZXQgYSBsb2Nr?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <rajesh@cs.cmu.edu>) id 1JN6RJ-00079D-LY
+	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 14:05:17 +0100
+Received: from [192.168.1.129] (cm29.delta204.maxonline.com.sg [59.189.204.29])
+	(authenticated bits=0)
+	by jackfruit.srv.cs.cmu.edu (8.13.6/8.13.6) with ESMTP id
+	m17D5COh013897
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Thu, 7 Feb 2008 08:05:16 -0500 (EST)
+Message-ID: <47AB0219.8050408@cs.cmu.edu>
+Date: Thu, 07 Feb 2008 21:05:29 +0800
+From: Rajesh Balan <rajesh@cs.cmu.edu>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HVR1300 not detected by ir_kbd_i2c module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,53 +28,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> henk@mediapark:~/bin/szap> ./szap -n 1775
+Hi,
 
-try please witch patched szap2
+my new HVR-1300 is not being detected by the ir_kbd_i2c.ko module. I've 
+tracked down the relevant info in the ir_probe component of the module.
 
-http://abraham.manu.googlepages.com/szap.c
+ir-kbd-i2c: in ir_probe. adap->id=40004
+ir-kbd-i2c: in ir_probe. adap->id=1001b
+ir-kbd-i2cprobe 0x18 @ cx88[0]: no
+ir-kbd-i2cprobe 0x6b @ cx88[0]: no
+ir-kbd-i2cprobe 0x71 @ cx88[0]: no
 
-==========================================
-Make sure you have the updated headers (frontend.h, version.h in your include 
-path)
-(You need the same headers from the multiproto tree)
+and then it exits.
 
-wget http://abraham.manu.googlepages.com/szap.c
-copy lnb.c and lnb.h from dvb-apps to the same folder where you downloaded 
-szap.c
-cc -c lnb.c
-cc -c szap.c
-cc -o szap szap.o lnb.o
-That's it
-Manu
-==========================================
+as for my card itself, it loads all the other modules fine. The 
+intialization is exactly the same as shown at   
+http://de.pastebin.ca/raw/891927
+
+except that the ir-kbd-i2c parts are not there and this line is different
+
+tveeprom 0-0050: Hauppauge model 96019, rev C6A0, serial# 446394
+
+my rev number is D6D3.
+
+What do I do to help debug this?
+
+Rajesh
 
 
-> reading channels from file '/home/henk/.szap/channels.conf'
-> zapping to 1775 'WDR 3;ARD':
-> sat 0, frequency = 12109 MHz H, symbolrate 27500000, vpid = 0x1fff, apid 
-> = 0x05dd sid = 0x0000
-> Querying info .. Delivery system=DVB-S
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> ----------------------------------> Using 'STB0899 DVB-S' DVB-Sstatus 00 
-> | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
