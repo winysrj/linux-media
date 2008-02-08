@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17M8ZKK032262
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 17:08:35 -0500
-Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
-	[151.189.21.52])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17M836b023055
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 17:08:03 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080207173926.53b9e0ce@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18HbtJ1020327
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 12:37:55 -0500
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.250])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18HbY3c010374
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 12:37:34 -0500
+Received: by an-out-0708.google.com with SMTP id c31so1748306ana.124
+	for <video4linux-list@redhat.com>; Fri, 08 Feb 2008 09:37:29 -0800 (PST)
+Message-ID: <9c4b1d600802080937h3dbbb388s9abb760feb084f4@mail.gmail.com>
+Date: Fri, 8 Feb 2008 15:37:28 -0200
+From: "Adrian Pardini" <pardo.bsso@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1202429587.20032.75.camel@pc08.localdom.local>
+MIME-Version: 1.0
 References: <9c4b1d600802071009q7fc69d4cj88c3ec2586e484a0@mail.gmail.com>
 	<20080207173926.53b9e0ce@gaivota>
-Content-Type: text/plain
-Date: Thu, 07 Feb 2008 23:04:09 +0100
-Message-Id: <1202421849.20032.25.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	<1202421849.20032.25.camel@pc08.localdom.local>
+	<9c4b1d600802071528p70de4e55ud582ef66d9ebb3d7@mail.gmail.com>
+	<1202429587.20032.75.camel@pc08.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Disposition: inline
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Subject: Re: [PATCH] New card entry (saa7134) and FM support for TNF9835
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -29,165 +35,192 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello,
+As hermann suggested I removed the tuner stuff and switched to the TNF5335
+(tuner=69), and left only the TV(mono) input. Also I made some cosmetic
+changes to comply with the CodingStyle rules.
 
-Am Donnerstag, den 07.02.2008, 17:39 -0200 schrieb Mauro Carvalho
-Chehab:
-> The patch looks sane. A few comments:
-> 
-> On Thu, 7 Feb 2008 16:09:48 -0200
-> "Adrian Pardini" <pardo.bsso@gmail.com> wrote:
-> 
-> > Hello,
-> > This patch brings complete functionality to the "Genius TVGo A11MCE" (saa7130,
-> > tuner is TNF9835) proper audio/video routing, fm tunning and remote control.
-
-here a saa7130 is said, and the wrong auto detection is for a saa7130.
-Then the TV section with amux = TV is wrong. The saa7130 can't decode
-anything from SIF. Only the TV mono section should be correct then.
-
-See the card=3 FlyVideo2000 to which yours is very close anyway,
-but else different enough for a new entry.
-
-Please always send relevant "dmesg" for all card/tuner related when
-loading the driver.
-
-Did not look up the IR keymap yet, but mask_keydown seems unique.
-Can you tell us the name of the IR controller chip?
-
-> > Things I've done:
-> >   * New entry for the card.
-> >   * New entry for the tuner. It's a TNF9835, as the wiki says it works
-> > fine for tv using
-> >      tuner=37 but the datasheet specifies different frequency bands and the i2c
-> >      command used to tune fm is other.
-
-See comments below please.
-
-> >   * Key mappings for the remote control.
-> > 
-> > Files changed:
-> >   ir-common.h
-> >   ir-keymaps.c
-> >   saa7134.h
-> >   saa7134-cards.c
-> >   saa7134-input.c
-> >   tuner.h
-> >   tuner-simple.c
-> >   tuner-types.c
-> > 
-> > Testing:
-> >   I successfully built and tested it ( with the sources from
-> > mercurial) using Ubuntu Gutsy(linux 2.6.22, custom) and Musix
-> > 1.0r3-test5 (2.6.23-rt1)
-> > 
-> > Notes:
-> >   I get this message from time to time and I don't know what to do:
-> >   "saa7130[0]/irq: looping -- clearing PE (parity error!) enable bit"
-> > 
-> >   I didn't want to mess with the pci ids table.
-> >   Without using the card= parameter it is detected as being an
-> > "Philips TOUGH DVB-T reference design [card=61,autodetected]".
-> >   lspci output:
-> > 00:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
-> > Broadcast Decoder (rev 01)
-> >         Subsystem: Philips Semiconductors Unknown device 2004
-> >         Flags: bus master, medium devsel, latency 64, IRQ 11
-> >         Memory at dffffc00 (32-bit, non-prefetchable) [size=1K]
-> >         Capabilities: [40] Power Management version 1
-> > 
-> > I'm wide open to accept suggestions and corrections.
-> > Thanks a lot for your time,
-> > Adrian.
-> 
-> Hmmm... what a big changelog... Better to write it more summarized ;)
-> 
-> > ---
-> > diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/common/ir-keymaps.c
-> > v4l-dvb-modified/linux/drivers/media/common/ir-keymaps.c
-> > --- v4l-dvb/linux/drivers/media/common/ir-keymaps.c	2008-02-06
-> > 22:54:07.000000000 -0200
-> > +++ v4l-dvb-modified/linux/drivers/media/common/ir-keymaps.c	2008-02-07
-> > 12:10:06.000000000 -0200
-> 
-> Your e-mail arrived word-wrapped. Please, don't let your emailer to break lines
-> into 80 columns, otherwise, patch won't apply.
-> > +	[ 0x48 ] = KEY_0,
-> 
-> There are CodingStyle violations here (*). The proper way is:
-> 	 [0x48] = KEY_0
-> 
-> (*) yes, I know that this is already present at the current code. However,
-> newer patches should bind to CodingStyle. Later, someone may fix the current
-> code.
-> 
-> > +static struct tuner_range tuner_tnf9835_ranges[] = {
-> > +	{ 16 * 161.25 /*MHz*/, 0x8e, 0x01, },
-> > +	{ 16 * 463.25 /*MHz*/, 0x8e, 0x02, },
-> > +	{ 16 * 999.99        , 0x8e, 0x08, },
-> > +};
-> 
-> > +	[TUNER_TNF9835] = {
-> > +		.name   = "TNF9835 FM / PAL B-BG / NTSC",
-> > +		.params = tuner_tnf9835_params,
-> > +		.count = ARRAY_SIZE(tuner_tnf9835_params),
-> > +	},
-> 
-> Hmm... the same tuner works for both PAL and NTSC standards? Are you sure about
-> the frequency ranges? I was expecting to have the same frequency for all
-> tnfxx35 tuners, although I don't have a datasheet for tnf9835.
-> 
-> Cheers,
-> Mauro
-> 
-
-
-Mauro, this one should be covered by your tuner=69 entry. Might have a
-datasheet somewhere, but I think don't need it.
-
-The Tena sheets always have a gap between the end of a band and the
-start of the next band. For all what I previously looked up around that
-stuff, there is no broadcast in that gap. So it doesn't matter much
-where to start and end. Also, a TNF9835 tuner board was within the
-TVF58t5-MFF. Except Adrian can show us missing channels, we should drop
-the tuner stuff entirely.
-
+Hope everything is ok.
 Cheers,
-Hermann
+Adrian.
 
-tuner=69
+---
+diff -uprN -X dontdiff
+v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134
+v4l-dvb-modified/linux/Documentation/video4linux/CARDLIST.saa7134
+--- v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134    2008-02-06
+22:54:07.000000000 -0200
++++ v4l-dvb-modified/linux/Documentation/video4linux/CARDLIST.saa7134
+2008-02-08 14:54:51.000000000 -0200
+@@ -130,3 +130,4 @@
+ 129 -> Beholder BeholdTV 607 / BeholdTV 609
+[5ace:6070,5ace:6071,5ace:6072,5ace:6073,5ace:6090,5ace:6091,5ace:6092,5ace:6093]
+ 130 -> Beholder BeholdTV M6 / BeholdTV M6 Extra [5ace:6190,5ace:6193]
+ 131 -> Twinhan Hybrid DTV-DVB 3056 PCI          [1822:0022]
++132 -> Genius TVGO AM11MCE
+diff -uprN -X dontdiff
+v4l-dvb/linux/drivers/media/common/ir-keymaps.cv4l-dvb-modified/linux/drivers/media/common/ir-
+keymaps.c
+--- v4l-dvb/linux/drivers/media/common/ir-keymaps.c    2008-02-06 22:54:
+07.000000000 -0200
++++ v4l-dvb-modified/linux/drivers/media/common/ir-keymaps.c    2008-02-08
+14:54:51.000000000 -0200
+@@ -2037,3 +2037,49 @@ IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB
+ };
 
- /* ------------ TUNER_TNF_xxx5  - Texas Instruments--------- */
-/* This is known to work with Tenna TVF58t5-MFF and TVF5835 MFF
- *	but it is expected to work also with other Tenna/Ymec
- *	models based on TI SN 761677 chip on both PAL and NTSC
- */
+ EXPORT_SYMBOL_GPL(ir_codes_behold);
++
++/*
++ * Remote control for the Genius TVGO A11MCE
++ * Adrian Pardini <pardo.bsso@gmail.com>
++ */
++IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE] = {
++    /* Keys 0 to 9 */
++    [0x48] = KEY_0,
++    [0x09] = KEY_1,
++    [0x1d] = KEY_2,
++    [0x1f] = KEY_3,
++    [0x19] = KEY_4,
++    [0x1b] = KEY_5,
++    [0x11] = KEY_6,
++    [0x17] = KEY_7,
++    [0x12] = KEY_8,
++    [0x16] = KEY_9,
++
++    [0x54] = KEY_RECORD,        /* recording */
++    [0x06] = KEY_MUTE,        /* mute */
++    [0x10] = KEY_POWER,
++    [0x40] = KEY_LAST,        /* recall */
++    [0x4c] = KEY_CHANNELUP,        /* channel / program + */
++    [0x00] = KEY_CHANNELDOWN,    /* channel / program - */
++    [0x0d] = KEY_VOLUMEUP,
++    [0x15] = KEY_VOLUMEDOWN,
++    [0x4d] = KEY_OK,        /* also labeled as Pause */
++    [0x1c] = KEY_ZOOM,        /* full screen and Stop*/
++    [0x02] = KEY_MODE,        /* AV Source or Rewind*/
++    [0x04] = KEY_LIST,        /* -/-- */
++    /* small arrows above numbers */
++    [0x1a] = KEY_NEXT,        /* also Fast Forward */
++    [0x0e] = KEY_PREVIOUS,    /* also Rewind */
++    /* these are in a rather non standard layout and have
++    an alternate name written */
++    [0x1e] = KEY_UP,        /* Video Setting */
++    [0x0a] = KEY_DOWN,        /* Video Default */
++    [0x05] = KEY_LEFT,        /* Snapshot */
++    [0x0c] = KEY_RIGHT,        /* Hide Panel */
++    /* Four buttons without label */
++    [0x49] = KEY_RED,
++    [0x0b] = KEY_GREEN,
++    [0x13] = KEY_YELLOW,
++    [0x50] = KEY_BLUE,
++};
++EXPORT_SYMBOL_GPL(ir_codes_genius_tvgo_a11mce);
+diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/video/saa7134/saa7134-
+cards.c v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c    2008-02-06
+22:54:10.000000000 -0200
++++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-cards.c
+2008-02-08 14:57:07.000000000 -0200
+@@ -3992,6 +3992,44 @@ struct saa7134_board saa7134_boards[] =
+             .gpio   = 0x0200000,
+         },
+     },
++    [SAA7134_BOARD_GENIUS_TVGO_A11MCE] = {
++        /* Adrian Pardini <pardo.bsso@gmail.com> */
++        .name        = "Genius TVGO AM11MCE",
++        .audio_clock    = 0x00200000,
++        .tuner_type    = TUNER_TNF_5335MF,
++        .radio_type     = UNSET,
++        .tuner_addr    = ADDR_UNSET,
++        .radio_addr    = ADDR_UNSET,
++        .gpiomask       = 0xf000,
++        .inputs         = {{
++            .name = name_tv_mono,
++            .vmux = 1,
++            .amux = LINE2,
++            .gpio = 0x0000,
++            .tv   = 1,
++        }, {
++            .name = name_comp1,
++            .vmux = 3,
++            .amux = LINE1,
++            .gpio = 0x2000,
++            .tv = 1
++        }, {
++            .name = name_svideo,
++            .vmux = 8,
++            .amux = LINE1,
++            .gpio = 0x2000,
++    } },
++        .radio = {
++            .name = name_radio,
++            .amux = LINE2,
++            .gpio = 0x1000,
++        },
++        .mute = {
++            .name = name_mute,
++            .amux = LINE2,
++            .gpio = 0x6000,
++        },
++    },
+ };
 
-static struct tuner_range tuner_tnf_5335_d_if_pal_ranges[] = {
-	{ 16 * 168.25 /*MHz*/, 0x8e, 0x01, },
-	{ 16 * 471.25 /*MHz*/, 0x8e, 0x02, },
-	{ 16 * 999.99        , 0x8e, 0x08, },
-};
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -5130,6 +5168,7 @@ int saa7134_board_init1(struct saa7134_d
+     case SAA7134_BOARD_BEHOLD_409:
+     case SAA7134_BOARD_BEHOLD_505FM:
+     case SAA7134_BOARD_BEHOLD_507_9FM:
++    case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+         dev->has_remote = SAA7134_REMOTE_GPIO;
+         break;
+     case SAA7134_BOARD_FLYDVBS_LR300:
+diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
+v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134.h
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h    2008-02-06 22:54:
+10.000000000 -0200
++++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134.h
+2008-02-08 14:35:55.000000000 -0200
+@@ -260,6 +260,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_BEHOLD_607_9FM    129
+ #define SAA7134_BOARD_BEHOLD_M6        130
+ #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
++#define SAA7134_BOARD_GENIUS_TVGO_A11MCE 132
 
-static struct tuner_range tuner_tnf_5335mf_ntsc_ranges[] = {
-	{ 16 * 169.25 /*MHz*/, 0x8e, 0x01, },
-	{ 16 * 469.25 /*MHz*/, 0x8e, 0x02, },
-	{ 16 * 999.99        , 0x8e, 0x08, },
-};
+ #define SAA7134_MAXBOARDS 8
+ #define SAA7134_INPUT_MAX 8
+diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/video/saa7134/saa7134-
+input.c v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-input.c
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c    2008-02-06
+22:54:10.000000000 -0200
++++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-input.c
+2008-02-08 14:37:40.000000000 -0200
+@@ -406,6 +406,12 @@ int saa7134_input_init1(struct saa7134_d
+         mask_keyup   = 0x8000000;
+         polling      = 50; //ms
+         break;
++    case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
++        ir_codes     = ir_codes_genius_tvgo_a11mce;
++        mask_keycode = 0xff;
++        mask_keydown = 0xf00000;
++        polling = 50; /* ms */
++        break;
+     }
+     if (NULL == ir_codes) {
+         printk("%s: Oops: IR config error [card=%d]\n",
+diff -uprN -X dontdiff
+v4l-dvb/linux/include/media/ir-common.hv4l-dvb-modified/linux/include/media/ir-
+common.h
+--- v4l-dvb/linux/include/media/ir-common.h    2008-02-06
+22:54:11.000000000-0200
++++ v4l-dvb-modified/linux/include/media/ir-common.h    2008-02-08 14:38:
+37.000000000 -0200
+@@ -142,6 +142,7 @@ extern IR_KEYTAB_TYPE ir_codes_tt_1500[I
+ extern IR_KEYTAB_TYPE ir_codes_fusionhdtv_mce[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
++extern IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE];
 
-static struct tuner_params tuner_tnf_5335mf_params[] = {
-	{
-		.type   = TUNER_PARAM_TYPE_NTSC,
-		.ranges = tuner_tnf_5335mf_ntsc_ranges,
-		.count  = ARRAY_SIZE(tuner_tnf_5335mf_ntsc_ranges),
-	},
-	{
-		.type   = TUNER_PARAM_TYPE_PAL,
-		.ranges = tuner_tnf_5335_d_if_pal_ranges,
-		.count  = ARRAY_SIZE(tuner_tnf_5335_d_if_pal_ranges),
-	},
-};
-
+ #endif
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
