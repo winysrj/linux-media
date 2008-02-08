@@ -1,31 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FIMsjb032618
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 13:22:54 -0500
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.239])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FIMVs9016081
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 13:22:31 -0500
-Received: by wx-out-0506.google.com with SMTP id t16so764443wxc.6
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 10:22:26 -0800 (PST)
-Message-ID: <1e5fdab70802151022k3477f538j3ce0b56d7b462d6c@mail.gmail.com>
-Date: Fri, 15 Feb 2008 10:22:25 -0800
-From: "Guillaume Quintard" <guillaume.quintard@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <20080215104945.4e6fe998@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18BT1Od006981
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:29:01 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18BSYgm009488
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 06:28:34 -0500
+Date: Fri, 8 Feb 2008 09:28:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080208092821.52872e1d@gaivota>
+In-Reply-To: <Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
+	<20080207183409.3e788533@gaivota>
+	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
-	<20080207174703.5e79d19a@gaivota>
-	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
-	<20080207181136.5c8c53fc@gaivota>
-	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
-	<20080211104821.00756b8e@gaivota>
-	<1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
-	<20080215104945.4e6fe998@gaivota>
 Cc: video4linux-list@redhat.com
-Subject: Re: Question about saa7115
+Subject: Re: Two more patches required for soc_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,35 +29,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 15, 2008 at 4:49 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On Thu, 14 Feb 2008 15:34:22 -0800
->  At the current drivers, most of the API functions are handled by the bridge
->  driver. So, only a subset of saa7115 features is needed for those devices. As a
->  rule, we generally try not to add code on kernel drivers that aren't used by
->  other kernel drivers.
->
+> I think, "#include <linux/pci.h>" is needed for the current version of 
+> videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
+> on PCI-enabled platforms. Perhaps, the right fix would be to convert 
+> videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
+> difficult task. Only these two prototypes in videobuf-dma-sg.h
+> 
+> int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+> int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+> 
+> and their implementations in videobuf-dma-sg.c should indeed be placed 
+> under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
+> PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
+> directly, instead of their pci analogs, etc.
 
-uh, sorry, but what is a bridge driver ? I've never heard of it, and
-could find any help on the web.
+Yes. This seems to be the proper direction to me also.
+> 
+> Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
+> is also in a way confirmed in a comment in 
+> include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
+> conversions are defined in include/asm-generic/pci-dma-compat.h.
 
->  Yet, some functions shouldn't be on saa7115, like, for example:
->         buffer handling - specific to the way it is connected;
->         audio control and decoding - should be associated to an audio chip;
->
->  I don't know the implementation details of your driver. If you intend to submit
->  your driver for its addition on kernel, feel free to propose the addition of
->  new features to saa7115, and post to the list. Maybe your job will help also
->  other users (for example, saa7115 driver doesn't work with Osprey 560
->  - I'm not sure where's the issue).
+I think this won't work for some platforms. I remember someone adding PCI or
+other DMA dependency to some drivers, due to this (sorry, I can't remember the
+details of those patches).
 
-sure, I'll do that, once it'll be ready, and there's a long way to go
-before that happens :-)
+> Right, so, what would be your preference on this? It would be puty to hold 
+> off the patches ony because of this. If you want, I can try to look into 
+> converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
+> the meantime maybe we could use the CONFIG_HAS_DMA?
 
-regards.
+Touching on videobuf-dma-sg is something very sensitive, since it affects most
+drivers. I would prefer to have this kind of commit happening during a
+merge window.
 
--- 
-Guillaume
+If we can't manage to have this happening for 2.6.25 window, let's postpone the
+PCI specific changesets to 2.6.26, merging they only at -mm series.
+
+> > Hmm... I think I asked your sob for this. Maybe I've lost the e-mail with your
+> > sob. Please, send it again, and I'll commit.
+> 
+> I did reply to that your email with my sob, but maybe you wanted a 
+> complete patch again. Just resent it too.
+
+I have a serious outage on my email provider. Maybe your message got lost
+during the recovering process of my old maildir boxes.
+
+I've committed your patch locally. It seems that linuxtv.org is not working
+right now. I'll push there as soon as it returns back.
+
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
