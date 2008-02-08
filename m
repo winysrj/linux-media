@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17IAICO021390
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 13:10:18 -0500
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.249])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17I9sKX005562
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 13:09:54 -0500
-Received: by an-out-0708.google.com with SMTP id c31so1545068ana.124
-	for <video4linux-list@redhat.com>; Thu, 07 Feb 2008 10:09:48 -0800 (PST)
-Message-ID: <9c4b1d600802071009q7fc69d4cj88c3ec2586e484a0@mail.gmail.com>
-Date: Thu, 7 Feb 2008 16:09:48 -0200
-From: "Adrian Pardini" <pardo.bsso@gmail.com>
-To: "Linux and Kernel Video" <video4linux-list@redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m187qkoS001177
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 02:52:46 -0500
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.184])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m187qEl1032500
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 02:52:25 -0500
+Received: by fk-out-0910.google.com with SMTP id b27so3955328fka.3
+	for <video4linux-list@redhat.com>; Thu, 07 Feb 2008 23:52:14 -0800 (PST)
+Message-ID: <77ca8eab0802072352p743337a4p1e22fa0aea10ed7a@mail.gmail.com>
+Date: Fri, 8 Feb 2008 13:22:13 +0530
+From: "amol verule" <amol.debian@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: [PATCH] New card entry (saa7134) and FM support for TNF9835
+Subject: tuner 1-0061: tuner type not set
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,299 +27,130 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
-This patch brings complete functionality to the "Genius TVGo A11MCE" (saa7130,
-tuner is TNF9835) proper audio/video routing, fm tunning and remote control.
+hi to all
+i am having pctv hybrid pro card,linux 2.6.21 kernel
+this is dmesg output
+Feb  8 12:45:46 boss kernel: pccard: CardBus card inserted into slot 0
+Feb  8 12:45:46 boss kernel: cx2388x v4l2 driver version 0.0.6 loaded
+Feb  8 12:45:46 boss kernel: PCI: Enabling device 0000:05:00.0 (0000 ->
+0002)
+Feb  8 12:45:46 boss kernel: ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 16
+(level, low) -> IRQ 18
+Feb  8 12:45:46 boss kernel: cx88[0]: Your board isn't known (yet) to the
+driver.  You can
+Feb  8 12:45:46 boss kernel: cx88[0]: try to pick one of the existing card
+configs via
+Feb  8 12:45:46 boss kernel: cx88[0]: card=<n> insmod option.  Updating to
+the latest
+Feb  8 12:45:46 boss kernel: cx88[0]: version might help as well.
+Feb  8 12:45:46 boss kernel: cx88[0]: Here is a list of valid choices for
+the card=<n> insmod option:
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=0 -> UNKNOWN/GENERIC
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=1 -> Hauppauge WinTV 34xxx
+models
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=2 -> GDI Black Gold
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=3 -> PixelView
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=4 -> ATI TV Wonder Pro
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=5 -> Leadtek Winfast 2000XP
+Expert
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=6 -> AverTV Studio 303 (M126)
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=7 -> MSI TV-@nywhere Master
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=8 -> Leadtek Winfast DV2000
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=9 -> Leadtek PVR 2000
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=10 -> IODATA GV-VCP3/PCI
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=11 -> Prolink PlayTV PVR
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=12 -> ASUS PVR-416
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=13 -> MSI TV-@nywhere
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=14 -> KWorld/VStream XPert
+DVB-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=15 -> DViCO FusionHDTV DVB-T1
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=16 -> KWorld LTV883RF
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=17 -> DViCO FusionHDTV 3
+Gold-Q
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=18 -> Hauppauge Nova-T DVB-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=19 -> Conexant DVB-T reference
+design
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=20 -> Provideo PV259
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=21 -> DViCO FusionHDTV DVB-T
+Plus
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=22 -> pcHDTV HD3000 HDTV
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=23 -> digitalnow DNTV Live!
+DVB-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=24 -> Hauppauge WinTV 28xxx
+(Roslyn) models
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=25 -> Digital-Logic MICROSPACE
+Entertainment Center (MEC)
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=26 -> IODATA GV/BCTV7E
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=27 -> PixelView PlayTV Ultra
+Pro (Stereo)
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=28 -> DViCO FusionHDTV 3
+Gold-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=29 -> ADS Tech Instant TV
+DVB-T PCI
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=30 -> TerraTec Cinergy 1400
+DVB-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=31 -> DViCO FusionHDTV 5 Gold
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=32 -> AverMedia UltraTV Media
+Center PCI 550
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=33 -> Kworld V-Stream Xpert
+DVD
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=34 -> ATI HDTV Wonder
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=35 -> WinFast DTV1000-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=36 -> AVerTV 303 (M126)
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=37 -> Hauppauge Nova-S-Plus
+DVB-S
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=38 -> Hauppauge Nova-SE2 DVB-S
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=39 -> KWorld DVB-S 100
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=40 -> Hauppauge WinTV-HVR1100
+DVB-T/Hybrid
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=41 -> Hauppauge WinTV-HVR1100
+DVB-T/Hybrid (Low Profile)
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=42 -> digitalnow DNTV Live!
+DVB-T Pro
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=43 -> KWorld/VStream XPert
+DVB-T with cx22702
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=44 -> DViCO FusionHDTV DVB-T
+Dual Digital
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=45 -> KWorld HardwareMpegTV
+XPert
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=46 -> DViCO FusionHDTV DVB-T
+Hybrid
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=47 -> pcHDTV HD5500 HDTV
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=48 -> Kworld MCE 200 Deluxe
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=49 -> PixelView PlayTV P7000
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=50 -> NPG Tech Real TV FM Top
+10
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=51 -> WinFast DTV2000 H
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=52 -> Geniatech DVB-S
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=53 -> Hauppauge WinTV-HVR3000
+TriMode Analog/DVB-S/DVB-T
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=54 -> Norwood Micro TV Tuner
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=55 -> Shenzhen Tungsten Ages
+Tech TE-DTV-250 / Swann OEM
+Feb  8 12:45:46 boss kernel: cx88[0]:    card=56 -> Hauppauge WinTV-HVR1300
+DVB-T/Hybrid MPEG Encoder
+Feb  8 12:45:46 boss kernel: CORE cx88[0]: subsystem: 12ab:1788, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+Feb  8 12:45:46 boss kernel: TV tuner -1 at 0x1fe, Radio tuner -1 at 0x1fe
+Feb  8 12:45:46 boss kernel: cx2388x alsa driver version 0.0.6 loaded
+Feb  8 12:45:46 boss kernel: cx88[0]/0: found at 0000:05:00.0, rev: 5, irq:
+18, latency: 0, mmio: 0x94000000
+Feb  8 12:45:46 boss kernel: tuner 1-0061: chip found @ 0xc2 (cx88[0])
+Feb  8 12:45:46 boss kernel: cx88[0]/0: registered device video0 [v4l2]
+Feb  8 12:45:46 boss kernel: cx88[0]/0: registered device vbi0
+Feb  8 12:45:46 boss kernel: tuner 1-0061: tuner type not set
+Feb  8 12:45:46 boss kernel: cx2388x cx88-mpeg Driver Manager version
+0.0.6loaded
+Feb  8 12:45:46 boss kernel: PCI: Enabling device 0000:05:00.1 (0000 ->
+0002)
+Feb  8 12:45:46 boss kernel: ACPI: PCI Interrupt 0000:05:00.1[A] -> GSI 16
+(level, low) -> IRQ 18
+Feb  8 12:45:46 boss kernel: cx88[0]/1: CX88x/0: ALSA support for cx2388x
+boards
+Feb  8 12:45:46 boss kernel: cx88[0]/2: cx2388x 8802 Driver Manager
 
-Things I've done:
-  * New entry for the card.
-  * New entry for the tuner. It's a TNF9835, as the wiki says it works
-fine for tv using
-     tuner=37 but the datasheet specifies different frequency bands and the i2c
-     command used to tune fm is other.
-  * Key mappings for the remote control.
 
-Files changed:
-  ir-common.h
-  ir-keymaps.c
-  saa7134.h
-  saa7134-cards.c
-  saa7134-input.c
-  tuner.h
-  tuner-simple.c
-  tuner-types.c
-
-Testing:
-  I successfully built and tested it ( with the sources from
-mercurial) using Ubuntu Gutsy(linux 2.6.22, custom) and Musix
-1.0r3-test5 (2.6.23-rt1)
-
-Notes:
-  I get this message from time to time and I don't know what to do:
-  "saa7130[0]/irq: looping -- clearing PE (parity error!) enable bit"
-
-  I didn't want to mess with the pci ids table.
-  Without using the card= parameter it is detected as being an
-"Philips TOUGH DVB-T reference design [card=61,autodetected]".
-  lspci output:
-00:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
-Broadcast Decoder (rev 01)
-        Subsystem: Philips Semiconductors Unknown device 2004
-        Flags: bus master, medium devsel, latency 64, IRQ 11
-        Memory at dffffc00 (32-bit, non-prefetchable) [size=1K]
-        Capabilities: [40] Power Management version 1
-
-I'm wide open to accept suggestions and corrections.
-Thanks a lot for your time,
-Adrian.
-
-Signed-off-by: Adrian Pardini <pardo.bsso AT gmail.com>
-
----
-diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/common/ir-keymaps.c
-v4l-dvb-modified/linux/drivers/media/common/ir-keymaps.c
---- v4l-dvb/linux/drivers/media/common/ir-keymaps.c	2008-02-06
-22:54:07.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/common/ir-keymaps.c	2008-02-07
-12:10:06.000000000 -0200
-@@ -2037,3 +2037,52 @@ IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB
- };
-
- EXPORT_SYMBOL_GPL(ir_codes_behold);
-+
-+/*
-+ * Remote control for the Genius TVGO A11MCE
-+ * Adrian Pardini <pardo.bsso@gmail.com>
-+ */
-+IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE] = {
-+	/* Keys 0 to 9 */
-+	[ 0x48 ] = KEY_0,
-+	[ 0x09 ] = KEY_1,
-+	[ 0x1d ] = KEY_2,
-+	[ 0x1f ] = KEY_3,
-+	[ 0x19 ] = KEY_4,
-+	[ 0x1b ] = KEY_5,
-+	[ 0x11 ] = KEY_6,
-+	[ 0x17 ] = KEY_7,
-+	[ 0x12 ] = KEY_8,
-+	[ 0x16 ] = KEY_9,
-+
-+	[ 0x54 ] = KEY_RECORD,		/* recording */
-+	[ 0x06 ] = KEY_MUTE,		/* mute */
-+	[ 0x10 ] = KEY_POWER,		
-+	[ 0x40 ] = KEY_LAST,		/* recall */
-+	[ 0x4c ] = KEY_CHANNELUP,	/* channel / program + */
-+	[ 0x00 ] = KEY_CHANNELDOWN,	/* channel / program - */
-+	[ 0x0d ] = KEY_VOLUMEUP,
-+	[ 0x15 ] = KEY_VOLUMEDOWN,
-+	[ 0x4d ] = KEY_OK,		/* also labeled as Pause */
-+	[ 0x1c ] = KEY_ZOOM,		/* full screen and Stop*/
-+	[ 0x02 ] = KEY_MODE,		/* AV Source or Rewind*/
-+	[ 0x04 ] = KEY_LIST,		/* -/-- */
-+	/* small arrows above numbers */
-+	[ 0x1a ] = KEY_NEXT,		/* also Fast Forward */
-+	[ 0x0e ] = KEY_PREVIOUS,	/* also Rewind */
-+	/* these are in a rather non standard layout and have
-+	an alternate name written */
-+	[ 0x1e ] = KEY_UP,		/* Video Setting */
-+	[ 0x0a ] = KEY_DOWN,		/* Video Default */
-+	[ 0x05 ] = KEY_LEFT,		/* Snapshot */
-+	[ 0x0c ] = KEY_RIGHT,		/* Hide Panel */
-+	/* Four buttons without label */
-+	[ 0x49 ] = KEY_RED,
-+	[ 0x0b ] = KEY_GREEN,
-+	[ 0x13 ] = KEY_YELLOW,
-+	[ 0x50 ] = KEY_BLUE,
-+
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_genius_tvgo_a11mce);
-+
-diff -uprN -X dontdiff
-v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
-v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-cards.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-02-06
-22:54:10.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-02-07
-14:07:45.000000000 -0200
-@@ -3992,6 +3992,51 @@ struct saa7134_board saa7134_boards[] =
- 			.gpio   = 0x0200000,
- 		},
- 	},
-+	[SAA7134_BOARD_GENIUS_TVGO_A11MCE] = {
-+		/* Adrian Pardini <pardo.bsso@gmail.com> */
-+		.name		= "Genius TVGO AM11MCE",
-+		.audio_clock	= 0x00200000,
-+		.tuner_type	= TUNER_TNF9835,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+
-+		.gpiomask       = 0xf000,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.gpio = 0x8000,
-+			.tv   = 1,
-+		},{
-+			.name = name_tv_mono,
-+			.vmux = 1,
-+			.amux = LINE2,
-+			.gpio = 0x0000,
-+			.tv   = 1,
-+		},{
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE1,
-+			.gpio = 0x2000,
-+			.tv=1
-+		},{
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE1,
-+			.gpio = 0x2000,
-+	}},
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE2,
-+			.gpio = 0x1000,
-+		},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = LINE2,
-+			.gpio = 0x6000,
-+		},
-+	},
- };
-
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -5130,6 +5175,7 @@ int saa7134_board_init1(struct saa7134_d
- 	case SAA7134_BOARD_BEHOLD_409:
- 	case SAA7134_BOARD_BEHOLD_505FM:
- 	case SAA7134_BOARD_BEHOLD_507_9FM:
-+	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		break;
- 	case SAA7134_BOARD_FLYDVBS_LR300:
-diff -uprN -X dontdiff
-v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
-v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134.h
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h	2008-02-06
-22:54:10.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134.h	2008-02-07
-11:10:37.000000000 -0200
-@@ -260,6 +260,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_BEHOLD_607_9FM	129
- #define SAA7134_BOARD_BEHOLD_M6		130
- #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
-+#define SAA7134_BOARD_GENIUS_TVGO_A11MCE 132
-
- #define SAA7134_MAXBOARDS 8
- #define SAA7134_INPUT_MAX 8
-diff -uprN -X dontdiff
-v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c
-v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-input.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2008-02-06
-22:54:10.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/video/saa7134/saa7134-input.c	2008-02-07
-12:11:55.000000000 -0200
-@@ -406,6 +406,12 @@ int saa7134_input_init1(struct saa7134_d
- 		mask_keyup   = 0x8000000;
- 		polling      = 50; //ms
- 		break;
-+	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
-+		ir_codes     = ir_codes_genius_tvgo_a11mce;
-+		mask_keycode = 0xff;
-+		mask_keydown = 0xf00000;
-+		polling = 50; //ms
-+		break;
- 	}
- 	if (NULL == ir_codes) {
- 		printk("%s: Oops: IR config error [card=%d]\n",
-diff -uprN -X dontdiff
-v4l-dvb/linux/drivers/media/video/tuner-simple.c
-v4l-dvb-modified/linux/drivers/media/video/tuner-simple.c
---- v4l-dvb/linux/drivers/media/video/tuner-simple.c	2008-02-06
-22:54:11.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/video/tuner-simple.c	2008-02-07
-14:10:59.000000000 -0200
-@@ -462,6 +462,7 @@ static int simple_radio_bandswitch(struc
- 		buffer[3] = 0x19;
- 		break;
- 	case TUNER_TNF_5335MF:
-+	case TUNER_TNF9835:
- 		buffer[3] = 0x11;
- 		break;
- 	case TUNER_LG_PAL_FM:
-diff -uprN -X dontdiff v4l-dvb/linux/drivers/media/video/tuner-types.c
-v4l-dvb-modified/linux/drivers/media/video/tuner-types.c
---- v4l-dvb/linux/drivers/media/video/tuner-types.c	2008-02-06
-22:54:11.000000000 -0200
-+++ v4l-dvb-modified/linux/drivers/media/video/tuner-types.c	2008-02-07
-14:06:28.000000000 -0200
-@@ -1133,6 +1133,22 @@ static struct tuner_params tuner_samsung
- 	},
- };
-
-+/* -------------------------- TUNER_TNF9835 -------------------------- */
-+
-+static struct tuner_range tuner_tnf9835_ranges[] = {
-+	{ 16 * 161.25 /*MHz*/, 0x8e, 0x01, },
-+	{ 16 * 463.25 /*MHz*/, 0x8e, 0x02, },
-+	{ 16 * 999.99        , 0x8e, 0x08, },
-+};
-+
-+static struct tuner_params tuner_tnf9835_params[] = {
-+	{
-+		.type   = TUNER_PARAM_TYPE_PAL,
-+		.ranges = tuner_tnf9835_ranges,
-+		.count  = ARRAY_SIZE(tuner_tnf9835_ranges),
-+	},
-+};
-+
- /* --------------------------------------------------------------------- */
-
- struct tunertype tuners[] = {
-@@ -1527,6 +1543,11 @@ struct tunertype tuners[] = {
- 		.name   = "Xceive 5000 tuner",
- 		/* see xc5000.c for details */
- 	},
-+	[TUNER_TNF9835] = {
-+		.name   = "TNF9835 FM / PAL B-BG / NTSC",
-+		.params = tuner_tnf9835_params,
-+		.count = ARRAY_SIZE(tuner_tnf9835_params),
-+	},
- };
- EXPORT_SYMBOL(tuners);
-
-diff -uprN -X dontdiff v4l-dvb/linux/include/media/ir-common.h
-v4l-dvb-modified/linux/include/media/ir-common.h
---- v4l-dvb/linux/include/media/ir-common.h	2008-02-06 22:54:11.000000000 -0200
-+++ v4l-dvb-modified/linux/include/media/ir-common.h	2008-02-07
-11:08:02.000000000 -0200
-@@ -142,6 +142,7 @@ extern IR_KEYTAB_TYPE ir_codes_tt_1500[I
- extern IR_KEYTAB_TYPE ir_codes_fusionhdtv_mce[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE];
-
- #endif
-
-diff -uprN -X dontdiff v4l-dvb/linux/include/media/tuner.h
-v4l-dvb-modified/linux/include/media/tuner.h
---- v4l-dvb/linux/include/media/tuner.h	2008-02-06 22:54:11.000000000 -0200
-+++ v4l-dvb-modified/linux/include/media/tuner.h	2008-02-07
-12:57:57.000000000 -0200
-@@ -122,6 +122,7 @@
- #define TUNER_TDA9887                   74      /* This tuner should
-be used only internally */
- #define TUNER_TEA5761			75	/* Only FM Radio Tuner */
- #define TUNER_XC5000			76	/* Xceive Silicon Tuner */
-+#define TUNER_TNF9835			77	/* FM / PAL B-BG / NTSC */
-
- /* tv card specific */
- #define TDA9887_PRESENT 		(1<<0)
-
+how to set tuner type?
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
