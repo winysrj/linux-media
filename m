@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mailout10.sul.t-online.de ([194.25.134.21]
-	helo=mailout10.sul.t-online.com)
+Received: from [212.57.247.218] (helo=glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JNEJf-0004jx-7H
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 22:29:55 +0100
-Message-ID: <47AB7844.5040706@t-online.de>
-Date: Thu, 07 Feb 2008 22:29:40 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JNcIy-0003EU-Ko
+	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 00:06:48 +0100
 MIME-Version: 1.0
-To: Russell Kliese <russell@kliese.wattle.id.au>
-References: <47AB0A20.2020000@kliese.wattle.id.au>	<200802071443.17432.Nicola.Sabbi@poste.it>
-	<47AB1705.7020905@kliese.wattle.id.au>
-In-Reply-To: <47AB1705.7020905@kliese.wattle.id.au>
-Cc: linux-dvb@linuxtv.org, Nico Sabbi <Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] MSI TV@nywhere A/D v1.1 mostly working
+Content-class: urn:content-classes:message
+Date: Fri, 8 Feb 2008 23:06:15 -0000
+Message-ID: <A33C77E06C9E924F8E6D796CA3D635D102396E@w2k3sbs.glcdomain.local>
+From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
+To: <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] multiproto TT3200 szap no lock
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,79 +23,211 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, all
+Hi all
 
-Russell Kliese schrieb:
-> Nico Sabbi wrote:
->> On Thursday 07 February 2008 14:39:44 Russell Kliese wrote:
->>
->>   
->>> Analog TV worked without a problem (even with the older drivers).
->>>
->>> There is still a problem with the digital decoder. Sometimes it
->>> works fine (I can scan for channels and can run tzap to view a
->>> channel using mplayer). However, sometimes these commands don't
->>> work. I've noticed the following when running dmesg:
->>>
->>>
->>> [ 6318.055521] tda1004x: found firmware revision 20 -- ok
->>>
->>> I suspect that the card is failing to work because the firmware
->>> sometimes isn't being uploaded for some reason. Does anybody have
->>> any ideas why or what I could do to try and fix this?
->>>
->>> Hopefully this problem can be sorted out and another card can be
->>> added to the list of supported DVB-T cards. Yay!
->>>     
->> afaik the last fw for the 10046 demodulator is version 29, that
->> you can extract from the lifeview drivers
->>   
-> 
-> Thanks for pointing that out. I grabbed the version 29 firmware using 
-> get_dvb_firmware tda10046lifeview and copied this into the appropriate 
-> place. However, I'm still having the same sort of problem:
-> 
-> [ 2095.281620] tda1004x: timeout waiting for DSP ready
-> [ 2095.321600] tda1004x: found firmware revision 0 -- invalid
-> [ 2095.321614] tda1004x: trying to boot from eeprom
-> [ 2097.648360] tda1004x: timeout waiting for DSP ready
-> [ 2097.688338] tda1004x: found firmware revision 0 -- invalid
-> [ 2097.688346] tda1004x: waiting for firmware upload...
-> [ 2110.173699] tda1004x: found firmware revision 29 -- ok
-> [ 2121.531804] tda1004x: setting up plls for 48MHz sampling clock
-> [ 2121.727550] tda1004x: found firmware revision 29 -- ok
-> [ 2513.011736] tda1004x: setting up plls for 48MHz sampling clock
-> [ 2513.199286] tda1004x: found firmware revision 33 -- invalid
-> [ 2513.199294] tda1004x: trying to boot from eeprom
-> [ 2513.567098] tda1004x: found firmware revision 33 -- invalid
-> [ 2513.567110] tda1004x: waiting for firmware upload...
-> [ 2526.044456] tda1004x: found firmware revision 33 -- invalid
-> [ 2526.044469] tda1004x: firmware upload failed
-> [ 2534.743826] tda1004x: setting up plls for 48MHz sampling clock
-> [ 2534.885955] tda1004x: found firmware revision ff -- invalid
-> [ 2534.885968] tda1004x: trying to boot from eeprom
-> [ 2535.211575] tda1004x: found firmware revision 0 -- invalid
-> [ 2535.211582] tda1004x: waiting for firmware upload...
-> [ 2535.217254] tda1004x: Error during firmware upload
-> [ 2535.224898] tda1004x: found firmware revision ff -- invalid
-> [ 2535.224911] tda1004x: firmware upload failed
-> 
-> Cheers,
-> 
-> Russell
-> 
-This is not only a question of the firmware revision.
-Many cards have an eeprom with the firmware on the board. The TDA10046
-automatically tries to boot from this. The eeprom address is controlled
-with a GPIO pin. IF this pin changes while the chip boots, it will crash
-and possibly not recover. This entrie mechanism is hard to control.
-The card specific configuration structures tda1004x_config in saa7134-dvb.c
-have a entry .gpio_config. Please change this to TDA10046_GP01_I or try
-card type 81.
+I have been trying to get the TT3200 working on linux for a while now
+and was encouraged by initial results from the latest Manu offering
 
-Good luck
-  Hartmut
+multiproto-45eec532cefa
 
+No errors in compiling and after a reboot all modules (I think all
+modules) seem to have loaded
+
+Dmesg gave (I have snipped this for brevity) 
+
+(saa7130 refs are from Compro DVB-T card fitted, that works well with
+these drivers)
+
+Feb  8 15:36:14 f864office kernel: ACPI: PCI Interrupt 0000:01:07.0[A]
+-> Link [APC2] -> GSI 17 (level, low) -> IRQ 17
+Feb  8 15:36:14 f864office kernel: saa7146: found saa7146 @ mem
+ffffc20000abe000 (revision 1, irq 17) (0x13c2,0x1019).
+Feb  8 15:36:14 f864office kernel: saa7146 (0): dma buffer size 192512
+Feb  8 15:36:14 f864office kernel: DVB: registering new adapter
+(TT-Budget S2-3200 PCI)
+Feb  8 15:36:14 f864office kernel: adapter has MAC addr =
+00:d0:5c:61:77:b3
+Feb  8 15:36:14 f864office kernel: input: Budget-CI dvb ir receiver
+saa7146 (0) as /class/input/input7
+Feb  8 15:36:14 f864office kernel: budget_ci: CI interface initialised
+Feb  8 15:36:14 f864office kernel: DVB: registering new adapter
+(saa7130[0])
+Feb  8 15:36:14 f864office kernel: DVB: registering frontend 1 (Philips
+TDA10046H DVB-T)...
+Feb  8 15:36:14 f864office kernel: tda1004x: setting up plls for 53MHz
+sampling clock
+Feb  8 15:36:14 f864office kernel: _stb0899_read_reg: Reg=[0xf000],
+data=82
+Feb  8 15:36:14 f864office kernel: stb0899_get_dev_id: ID reg=[0x82]
+Feb  8 15:36:14 f864office kernel: stb0899_get_dev_id: Device ID=[8],
+Release=[2]
+Feb  8 15:36:14 f864office kernel: stb0899_get_dev_id: Demodulator Core
+ID=[DMD1], Version=[1]
+Feb  8 15:36:14 f864office kernel: stb0899_get_dev_id: FEC Core
+ID=[FEC1], Version=[1]
+Feb  8 15:36:14 f864office kernel: stb0899_attach: Attaching STB0899
+Feb  8 15:36:14 f864office kernel: stb6100_attach: Attaching STB6100
+Feb  8 15:36:14 f864office kernel: DVB: registering frontend 0 (STB0899
+Multistandard)...
+
+Output from lsmod
+
+Module                  Size  Used by
+nls_utf8               10305  1 
+vfat                   19009  1 
+fat                    54513  1 vfat
+rfcomm                 50537  0 
+l2cap                  36289  9 rfcomm
+bluetooth              64453  4 rfcomm,l2cap
+sunrpc                168009  1 
+cpufreq_ondemand       15569  1 
+loop                   23493  0 
+dm_multipath           24401  0 
+ipv6                  307273  18 
+osst                   57193  0 
+st                     43109  0 
+lnbp21                 10240  1 
+stb6100                15748  1 
+stb0899                41728  1 
+saa7134_dvb            24076  0 
+videobuf_dvb           13316  1 saa7134_dvb
+tda1004x               23300  2 saa7134_dvb
+sr_mod                 23397  1 
+cdrom                  40553  1 sr_mod
+snd_hda_intel         361577  3 
+snd_seq_dummy          11461  0 
+snd_seq_oss            37313  0 
+snd_seq_midi_event     15041  1 snd_seq_oss
+snd_seq                56673  5
+snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
+snd_seq_device         15061  3 snd_seq_dummy,snd_seq_oss,snd_seq
+snd_pcm_oss            45889  0 
+snd_mixer_oss          22721  1 snd_pcm_oss
+snd_pcm                80201  2 snd_hda_intel,snd_pcm_oss
+snd_timer              27721  2 snd_seq,snd_pcm
+snd_page_alloc         16465  2 snd_hda_intel,snd_pcm
+budget_ci              30980  0 
+budget_core            17668  1 budget_ci
+saa7134               148572  1 saa7134_dvb
+videodev               33664  1 saa7134
+v4l1_compat            19460  1 videodev
+compat_ioctl32         16128  1 saa7134
+v4l2_common            26240  3 saa7134,videodev,compat_ioctl32
+videobuf_dma_sg        19716  3 saa7134_dvb,videobuf_dvb,saa7134
+videobuf_core          24196  3 videobuf_dvb,saa7134,videobuf_dma_sg
+ir_kbd_i2c             16912  1 saa7134
+snd_hwdep              16073  1 snd_hda_intel
+dvb_core               89684  3 videobuf_dvb,budget_ci,budget_core
+saa7146                23688  2 budget_ci,budget_core
+ttpci_eeprom           10496  1 budget_core
+firewire_ohci          25281  0 
+ir_common              41732  3 budget_ci,saa7134,ir_kbd_i2c
+snd                    60137  15
+snd_hda_intel,snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_o
+ss,snd_pcm,snd_timer,snd_hwdep
+nvidia               8895940  24 
+firewire_core          46337  1 firewire_ohci
+crc_itu_t              10433  1 firewire_core
+aic7xxx               133501  0 
+scsi_transport_spi     32577  1 aic7xxx
+parport_pc             35177  0 
+tveeprom               24848  1 saa7134
+soundcore              15073  1 snd
+sg                     40297  0 
+forcedeth              53321  0 
+parport                42317  1 parport_pc
+pcspkr                 11329  0 
+button                 15969  0 
+pata_amd               20293  0 
+k8temp                 13377  0 
+hwmon                  11081  1 k8temp
+i2c_nforce2            14017  0 
+usblp                  20801  0 
+i2c_core               28865  14
+lnbp21,stb6100,stb0899,saa7134_dvb,tda1004x,budget_ci,budget_core,saa713
+4,v4l2_common,ir_kbd_i2c,ttpci_eeprom,nvidia,tveeprom,i2c_nforce2
+usb_storage            87681  2 
+dm_snapshot            23049  0 
+dm_zero                10433  0 
+dm_mirror              27200  0 
+dm_mod                 57905  9
+dm_multipath,dm_snapshot,dm_zero,dm_mirror
+ata_generic            14533  0 
+sata_nv                25285  2 
+libata                114288  3 pata_amd,ata_generic,sata_nv
+sd_mod                 33345  5 
+scsi_mod              146553  9
+osst,st,sr_mod,aic7xxx,scsi_transport_spi,sg,usb_storage,libata,sd_mod
+ext3                  127569  2 
+jbd                    64945  1 ext3
+mbcache                15937  1 ext3
+uhci_hcd               30689  0 
+ohci_hcd               27973  0 
+ehci_hcd               39245  0 
+
+
+Trying the patched szap, I get
+
+[mythtv@f864office Manu szap]$ ./szap -c ~/channels.sat2 -n 1424
+reading channels from file '/home/mythtv/channels.sat2'
+zapping to 1424 'BBC 1 London;BSkyB':
+sat 0, frequency = 10773 MHz H, symbolrate 22000000, vpid = 0x1388, apid
+= 0x1389 sid = 0x138b
+Querying info .. Delivery system=DVB-S
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+----------------------------------> Using 'STB0899 DVB-S' DVB-Sstatus 00
+| signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
+
+and then the following appearing in dmesg (much shorter for brevity)
+
+Feb  8 15:53:44 f864office kernel: stb0899_search: delivery system=1
+Feb  8 15:53:44 f864office kernel: stb0899_search: Frequency=0, Srate=0
+Feb  8 15:53:44 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:44 f864office kernel: stb0899_search: set DVB-S params
+Feb  8 15:53:44 f864office kernel: stb0899_search: delivery system=1
+Feb  8 15:53:44 f864office kernel: stb0899_search: Frequency=0, Srate=0
+Feb  8 15:53:44 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:44 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:44 f864office kernel: _stb0899_read_reg: Reg=[0xf50d],
+data=00
+Feb  8 15:53:45 f864office kernel: stb0899_search: set DVB-S params
+Feb  8 15:53:45 f864office kernel: stb0899_search: delivery system=1
+Feb  8 15:53:45 f864office kernel: stb0899_search: Frequency=0, Srate=0
+Feb  8 15:53:45 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:45 f864office kernel: stb0899_search: set DVB-S params
+Feb  8 15:53:45 f864office kernel: stb0899_search: delivery system=1
+Feb  8 15:53:45 f864office kernel: stb0899_search: Frequency=0, Srate=0
+Feb  8 15:53:45 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:45 f864office kernel: stb0899_read_status: Delivery system
+DVB-S/DSS
+Feb  8 15:53:45 f864office kernel: _stb0899_read_reg: Reg=[0xf50d],
+data=00
+Feb  8 15:53:46 f864office kernel: _stb0899_read_reg: Reg=[0xf12a],
+data=c8
+Feb  8 15:53:46 f864office kernel: stb0899_sleep: Going to Sleep ..
+(Really tired .. :-))
+
+I cannot see anything wrong and so am stumped to proceed, any help will
+be appreciated
+
+Is there a howto on installing these driver so I can check if I have
+done everything correctly?
+
+Regards
+
+
+Mike 
 
 _______________________________________________
 linux-dvb mailing list
