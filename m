@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14B3dcs006783
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 06:03:40 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m14B39SA014843
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 06:03:09 -0500
-Date: Mon, 4 Feb 2008 12:03:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <Pine.LNX.4.64.0801311708390.8478@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0802041159180.4256@axis700.grange>
-References: <Pine.LNX.4.64.0801311658420.8478@axis700.grange>
-	<Pine.LNX.4.64.0801311708390.8478@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18ClQGN011708
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 07:47:26 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18Cl1BF014130
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 07:47:02 -0500
+Date: Fri, 8 Feb 2008 10:46:35 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080208104635.4a7c9227@gaivota>
+In-Reply-To: <Pine.LNX.4.64.0802081235210.5301@axis700.grange>
+References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
+	<20080207183409.3e788533@gaivota>
+	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+	<20080208092821.52872e1d@gaivota>
+	<Pine.LNX.4.64.0802081235210.5301@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Two more patches required for soc_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,121 +31,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 31 Jan 2008, Guennadi Liakhovetski wrote:
+On Fri, 8 Feb 2008 12:40:18 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@pengutronix.de> wrote:
 
-> +static int
-> +pxa_videobuf_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
-> +						enum v4l2_field field)
-> +{
-> +	struct soc_camera_device *icd = vq->priv_data;
-> +	struct soc_camera_host *ici =
-> +		to_soc_camera_host(icd->dev.parent);
-> +	struct pxa_camera_dev *pcdev = ici->priv;
-> +	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
-> +//	unsigned long flags;
-> +	int i, ret;
-> +
-> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __FUNCTION__,
-> +		vb, vb->baddr, vb->bsize);
-> +
-> +	/* Added list head initialization on alloc */
-> +	WARN_ON(!list_empty(&vb->queue));
-> +
-> +#ifdef DEBUG
-> +	/* This can be useful if you want to see if we actually fill
-> +	 * the buffer with something */
-> +	memset((void *)vb->baddr, 0xaa, vb->bsize);
-> +#endif
-> +
-> +	BUG_ON(NULL == icd->current_fmt);
-> +
-> +	/* I think, in buf_prepare you only have to protect global data,
-> +	 * the actual buffer is yours */
+> On Fri, 8 Feb 2008, Mauro Carvalho Chehab wrote:
+> 
+> > > I think, "#include <linux/pci.h>" is needed for the current version of 
+> > > videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
+> > > on PCI-enabled platforms. Perhaps, the right fix would be to convert 
+> > > videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
+> > > difficult task. Only these two prototypes in videobuf-dma-sg.h
+> > > 
+> > > int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+> > > int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
+> > > 
+> > > and their implementations in videobuf-dma-sg.c should indeed be placed 
+> > > under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
+> > > PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
+> > > directly, instead of their pci analogs, etc.
+> > 
+> > Yes. This seems to be the proper direction to me also.
+> > > 
+> > > Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
+> > > is also in a way confirmed in a comment in 
+> > > include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
+> > > conversions are defined in include/asm-generic/pci-dma-compat.h.
+> > 
+> > I think this won't work for some platforms. I remember someone adding PCI or
+> > other DMA dependency to some drivers, due to this (sorry, I can't remember the
+> > details of those patches).
+> 
+> Ok, how about
+> 
+> 	depends on PCI || ARCH_PXA
+> 
+> ? I think, this way we are safe.
 
-Could someone, please, confirm, that my assumption here is correct and I 
-don't need this additional locking here?
+If you disable all things on arch/pxa, but v4l (and the minimum required
+dependencies), do it compile and work? If so, this would be ok. Otherwise, you
+may need something like:
+depends on PCI || (ARCH_PXA && CONFIG_HAS_DMA)
 
-> +//	spin_lock_irqsave(&pcdev->lock, flags);
-> +	buf->inwork = 1;
-> +
-> +	if (buf->fmt	!= icd->current_fmt ||
-> +	    vb->width	!= icd->width ||
-> +	    vb->height	!= icd->height ||
-> +	    vb->field	!= field) {
-> +		buf->fmt	= icd->current_fmt;
-> +		vb->width	= icd->width;
-> +		vb->height	= icd->height;
-> +		vb->field	= field;
-> +		vb->state	= VIDEOBUF_NEEDS_INIT;
-> +	}
-> +
-> +	vb->size = vb->width * vb->height * ((buf->fmt->depth + 7) >> 3);
-> +	if (0 != vb->baddr && vb->bsize < vb->size) {
-> +		ret = -EINVAL;
-> +		goto out;
-> +	}
-> +
-> +	if (vb->state == VIDEOBUF_NEEDS_INIT) {
-> +		unsigned int size = vb->size;
-> +		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
-> +
-> +		if (0 != (ret = videobuf_iolock(vq, vb, NULL)))
-> +			goto fail;
-> +
-> +		if (buf->sg_cpu)
-> +			dma_free_coherent(pcdev->dev, buf->sg_size, buf->sg_cpu, buf->sg_dma);
-> +
-> +		buf->sg_size = (dma->sglen + 1) * sizeof(struct pxa_dma_desc);
-> +		buf->sg_cpu = dma_alloc_coherent(pcdev->dev, buf->sg_size,
-> +						 &buf->sg_dma, GFP_KERNEL);
-> +		if (!buf->sg_cpu) {
-> +			ret = -ENOMEM;
-> +			goto fail;
-> +		}
-> +
-> +		dev_dbg(&icd->dev, "%s nents=%d size: %d sg=0x%p\n", __FUNCTION__,
-> +			dma->sglen, size, dma->sglist);
-> +		for (i = 0; i < dma->sglen; i++ ) {
-> +			struct scatterlist *sg = dma->sglist;
-> +			unsigned int dma_len = sg_dma_len(&sg[i]), xfer_len;
-> +
-> +			buf->sg_cpu[i].dsadr = pcdev->res->start + 0x28; /* CIBR0 */
-> +			buf->sg_cpu[i].dtadr = sg_dma_address(&sg[i]);
-> +			/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
-> +			xfer_len = (min(dma_len, size) + 7) & ~7;
-> +//			xfer_len = min(dma_len, size);
-> +			if (xfer_len & 7)
-> +				dev_err(&icd->dev, "Unaligned buffer: dma_len %u, size %u\n",
-> +					dma_len, size);
-> +			buf->sg_cpu[i].dcmd = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_INCTRGADDR |
-> +				xfer_len;
-> +			size -= dma_len;
-> +			buf->sg_cpu[i].ddadr = buf->sg_dma + (i + 1) *
-> +					sizeof(struct pxa_dma_desc);
-> +		}
-> +		buf->sg_cpu[dma->sglen - 1].ddadr = DDADR_STOP;
-> +		buf->sg_cpu[dma->sglen - 1].dcmd |= DCMD_ENDIRQEN;
-> +
-> +		vb->state = VIDEOBUF_PREPARED;
-> +	}
-> +
-> +	buf->inwork = 0;
-> +//	spin_unlock_irqrestore(&pcdev->lock, flags);
-> +
-> +	return 0;
-> +
-> +fail:
-> +	free_buffer(vq, buf);
-> +out:
-> +	buf->inwork = 0;
-> +//	spin_unlock_irqrestore(&pcdev->lock, flags);
-> +	return ret;
-> +}
+This approach can be an interim solution.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+> > > Right, so, what would be your preference on this? It would be puty to hold 
+> > > off the patches ony because of this. If you want, I can try to look into 
+> > > converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
+> > > the meantime maybe we could use the )?
+> > 
+> > Touching on videobuf-dma-sg is something very sensitive, since it affects most
+> > drivers. I would prefer to have this kind of commit happening during a
+> > merge window.
+> > 
+> > If we can't manage to have this happening for 2.6.25 window, let's postpone the
+> > PCI specific changesets to 2.6.26, merging they only at -mm series.
+> 
+> If we do accept the above solution, would we still want to move to dma 
+> API?
+
+I think so. The above approach is an workaround. It is not nice to have a
+non-pci thing including pci.h. Future patches may break the workaround.
+
+> And would you like me to try to do this or you'd prefer to do this 
+> yourself?
+
+Please do it and submit it to us, for testing.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
