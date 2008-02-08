@@ -1,26 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DDIe8D020074
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:18:40 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m1DDI8uR007470
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:18:09 -0500
-Date: Wed, 13 Feb 2008 14:18:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: eric miao <eric.y.miao@gmail.com>
-In-Reply-To: <f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0802131346170.6252@axis700.grange>
-References: <Pine.LNX.4.64.0802051830360.5882@axis700.grange>
-	<20080211114129.GA10482@flint.arm.linux.org.uk>
-	<Pine.LNX.4.64.0802111440230.4440@axis700.grange>
-	<f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18IZi84032623
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 13:35:44 -0500
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.246])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18IZOjo013125
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 13:35:24 -0500
+Received: by an-out-0708.google.com with SMTP id c31so1757665ana.124
+	for <video4linux-list@redhat.com>; Fri, 08 Feb 2008 10:35:24 -0800 (PST)
+Message-ID: <9c4b1d600802081035y4758a9f0m419bed91c1286467@mail.gmail.com>
+Date: Fri, 8 Feb 2008 16:35:23 -0200
+From: "Adrian Pardini" <pardo.bsso@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20080208163102.459d0efd@gaivota>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
+Content-Type: multipart/mixed;
+	boundary="----=_Part_20006_32502927.1202495723972"
+References: <9c4b1d600802071009q7fc69d4cj88c3ec2586e484a0@mail.gmail.com>
+	<20080207173926.53b9e0ce@gaivota>
+	<1202421849.20032.25.camel@pc08.localdom.local>
+	<9c4b1d600802071528p70de4e55ud582ef66d9ebb3d7@mail.gmail.com>
+	<1202429587.20032.75.camel@pc08.localdom.local>
+	<9c4b1d600802080937h3dbbb388s9abb760feb084f4@mail.gmail.com>
+	<20080208163102.459d0efd@gaivota>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: [PATCH] New card entry (saa7134) and FM support for TNF9835
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,110 +35,145 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 13 Feb 2008, eric miao wrote:
+------=_Part_20006_32502927.1202495723972
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Yes, the PXA3xx has dedicated DMA channels. Yet I still think carry the
-> DRCMR register index into platform device's resource would be a better
-> idea both for readability (so that no comment necessary for these magic
-> numbers) and potential re-usability.
+2008/2/8, Mauro Carvalho Chehab <mchehab@infradead.org>:
+> Still the patch is line-wrapped. Although this is not a good practice, you may
+> send it as an annex, if you can't convince your emailer to not break the lines.
+> This way, patch command won't accept it.
+>
+> Cheers,
+> Mauro
 
-Do you mean just DRCMR's address as a memory-resource? But, as far as I 
-understand, PXA3xx not only has a different register / different address, 
-it has a completely different scheme for camera DMA-channel configuration, 
-so, how is this going to be useful?
+I'm very sorry about this.
+Hope it gets right this time.
 
-> The driver looks good overall and I'm sorry that I didn't have enough
-> time to look into this recently. So here are some overall comments,
-> I hope I can spend more time to do a line-by-line review later
+Kind regards,
+Adrian.
 
-I'll then wait for that one before submitting a new version, just 
-addressing these your comments, ok?
+------=_Part_20006_32502927.1202495723972
+Content-Type: text/x-patch; name=tvgo.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fcf2u5z7
+Content-Disposition: attachment; filename=tvgo.patch
 
-> 1. due to expected difference between pxa27x and pxa3xx quick capture
-> interface, I guess there will be dedicated code for pxa3xx, so naming
-> of functions/variables to "pxa_*" will leave less choices for later
-> processors, I suggest to use the prefix of "pxa27x_*", to indicate it
-> is the first processor that this controller appears.
-
-Well, even if we decide to also handle pxa3xx with this driver, having it 
-called pxa27x_camera.c won't be too bad, I guess, so, right, let's rename 
-it.
-
-> 2. I really hope changes could be made in this patch to remove those
-> QCI register definitions from pxa-regs.h to some where closer to this
-> driver, maybe pxa27x_camera.h or directly embedded into the driver,
-> and using ioremap() for the mmio access
-
-You mean CICR[0-4] bitfield-definitions? Yes, sure, can get them out of 
-pxa-regs.h.
-
-> 3. by using only Y dma channel, the driver is dropping the capability
-> of the hardware to convert interleaved YCbCr data to planar format,
-> what is your plan for that capability?
-
-This driver so far presents what I had to implement and what I could test. 
-I didn't have any YCbCr cameras, so, as long as someone gets a task of 
-supporting them and the necessary hardware, it'll have to be implemented 
-too. I guess, what I could do now at most, is look in the datasheet and 
-see if I can prepare the driver to facilitate those future extensions.
-
-> 4. it looks like the sensor framework is currently unable to provide
-> more information such as its connection type with the host (master or
-> slave, parallel or serial), along with the frequency, sync polarity,
-> otherwise, the fields in platform_data can be removed and setting of
-> those CICRx registers can be fully inferred. Still, I think we might
-> do better by naming the platform_data->platform_flags to some thing
-> like
-> 
-> 	.ci_mode	= {MASTER, SLAVE}_{PARALLEL, SERIAL}
-> 	.ci_width	= {8, 9, 10, 11, 12}
-> 	.sync_polarity
-
-Aren't all those parameters platform-specific and static? Would anyone 
-ever want to switch between these modes at run-time? At least I don't 
-think the v4l2 API supports any of those parameters ATM. As for naming, 
-sure, we could think of better names. One comment so far - your .ci_width 
-above seems to only allow one width at a time. Whereas a platform can 
-support more than onw bus-width. Actually, this is one of parameters, 
-switchable at run-time, but the platform _capabilities_ are fixed. For 
-example in my case, the platform supported 8 and 10 bit modes, and a 
-method to dynamically switch between those. So, my .flags look like
-
-+       .flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 | PXA_CAMERA_DATAWIDTH_10 |
-+               PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
-
-(see the [PATCH 6/6]). And the switching is transparent - it is activated 
-upon setting of an 8- or 16-bit pixel format.
-
-> 5. I saw many places emphasize on the assumption that there is only
-> _one_ sensor attached, what if multiple sensors to be supported? I
-> know several boards with such design.
-
-Cool, I didn't know such existed, but I did implement the whole soc-camera 
-API to allow multiple cameras and multiple camera busses. And I only 
-restricted the pxa camera driver to 1 camera per bus, as I wasn't sure if 
-anyone ever would come up with multi-camera designs with PXA270:-) Ok, it 
-shouldn't be a big problem, I guess. There are not so many places in the 
-driver, that assume that. But, to really implement support for such 
-designs, again, one would need details of those implementations - is only 
-one camera active at any given time? How do you switch between them? Do 
-they use the same camera interface parameters (parallel / serial, master / 
-slave, bus-width, clock configuration) or different, etc.
-
-> 6. the naming of "pxa_is_xxx" reads like a boolean function to me
-> at first sight, and it is actually not, maybe we can come up with
-> a better name?
-
-Maybe:-) As I first saw those functions, I also thought they were boolean, 
-but in fact, "is" means "image sensor" and used to be the driver's name 
-before I reworked it. You're right, they have to be changed now.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+ZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80
+bGludXgvQ0FSRExJU1Quc2FhNzEzNCB2NGwtZHZiLW1vZGlmaWVkL2xpbnV4L0RvY3VtZW50YXRp
+b24vdmlkZW80bGludXgvQ0FSRExJU1Quc2FhNzEzNAotLS0gdjRsLWR2Yi9saW51eC9Eb2N1bWVu
+dGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRMSVNULnNhYTcxMzQJMjAwOC0wMi0wNiAyMjo1NDowNy4w
+MDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvRG9jdW1lbnRhdGlvbi92
+aWRlbzRsaW51eC9DQVJETElTVC5zYWE3MTM0CTIwMDgtMDItMDggMTQ6NTQ6NTEuMDAwMDAwMDAw
+IC0wMjAwCkBAIC0xMzAsMyArMTMwLDQgQEAKIDEyOSAtPiBCZWhvbGRlciBCZWhvbGRUViA2MDcg
+LyBCZWhvbGRUViA2MDkgICAgIFs1YWNlOjYwNzAsNWFjZTo2MDcxLDVhY2U6NjA3Miw1YWNlOjYw
+NzMsNWFjZTo2MDkwLDVhY2U6NjA5MSw1YWNlOjYwOTIsNWFjZTo2MDkzXQogMTMwIC0+IEJlaG9s
+ZGVyIEJlaG9sZFRWIE02IC8gQmVob2xkVFYgTTYgRXh0cmEgWzVhY2U6NjE5MCw1YWNlOjYxOTNd
+CiAxMzEgLT4gVHdpbmhhbiBIeWJyaWQgRFRWLURWQiAzMDU2IFBDSSAgICAgICAgICBbMTgyMjow
+MDIyXQorMTMyIC0+IEdlbml1cyBUVkdPIEFNMTFNQ0UKZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2
+NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL2lyLWtleW1hcHMuYyB2NGwtZHZiLW1v
+ZGlmaWVkL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL2lyLWtleW1hcHMuYwotLS0gdjRsLWR2
+Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi9pci1rZXltYXBzLmMJMjAwOC0wMi0wNiAyMjo1
+NDowNy4wMDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9t
+ZWRpYS9jb21tb24vaXIta2V5bWFwcy5jCTIwMDgtMDItMDggMTQ6NTQ6NTEuMDAwMDAwMDAwIC0w
+MjAwCkBAIC0yMDM3LDMgKzIwMzcsNDkgQEAgSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYmVob2xk
+W0lSX0tFWVRBQgogfTsKIAogRVhQT1JUX1NZTUJPTF9HUEwoaXJfY29kZXNfYmVob2xkKTsKKwor
+LyoKKyAqIFJlbW90ZSBjb250cm9sIGZvciB0aGUgR2VuaXVzIFRWR08gQTExTUNFCisgKiBBZHJp
+YW4gUGFyZGluaSA8cGFyZG8uYnNzb0BnbWFpbC5jb20+CisgKi8KK0lSX0tFWVRBQl9UWVBFIGly
+X2NvZGVzX2dlbml1c190dmdvX2ExMW1jZVtJUl9LRVlUQUJfU0laRV0gPSB7CisJLyogS2V5cyAw
+IHRvIDkgKi8KKwlbMHg0OF0gPSBLRVlfMCwKKwlbMHgwOV0gPSBLRVlfMSwKKwlbMHgxZF0gPSBL
+RVlfMiwKKwlbMHgxZl0gPSBLRVlfMywKKwlbMHgxOV0gPSBLRVlfNCwKKwlbMHgxYl0gPSBLRVlf
+NSwKKwlbMHgxMV0gPSBLRVlfNiwKKwlbMHgxN10gPSBLRVlfNywKKwlbMHgxMl0gPSBLRVlfOCwK
+KwlbMHgxNl0gPSBLRVlfOSwKKworCVsweDU0XSA9IEtFWV9SRUNPUkQsCQkvKiByZWNvcmRpbmcg
+Ki8KKwlbMHgwNl0gPSBLRVlfTVVURSwJCS8qIG11dGUgKi8KKwlbMHgxMF0gPSBLRVlfUE9XRVIs
+CisJWzB4NDBdID0gS0VZX0xBU1QsCQkvKiByZWNhbGwgKi8KKwlbMHg0Y10gPSBLRVlfQ0hBTk5F
+TFVQLAkJLyogY2hhbm5lbCAvIHByb2dyYW0gKyAqLworCVsweDAwXSA9IEtFWV9DSEFOTkVMRE9X
+TiwJLyogY2hhbm5lbCAvIHByb2dyYW0gLSAqLworCVsweDBkXSA9IEtFWV9WT0xVTUVVUCwKKwlb
+MHgxNV0gPSBLRVlfVk9MVU1FRE9XTiwKKwlbMHg0ZF0gPSBLRVlfT0ssCQkvKiBhbHNvIGxhYmVs
+ZWQgYXMgUGF1c2UgKi8KKwlbMHgxY10gPSBLRVlfWk9PTSwJCS8qIGZ1bGwgc2NyZWVuIGFuZCBT
+dG9wKi8KKwlbMHgwMl0gPSBLRVlfTU9ERSwJCS8qIEFWIFNvdXJjZSBvciBSZXdpbmQqLworCVsw
+eDA0XSA9IEtFWV9MSVNULAkJLyogLS8tLSAqLworCS8qIHNtYWxsIGFycm93cyBhYm92ZSBudW1i
+ZXJzICovCisJWzB4MWFdID0gS0VZX05FWFQsCQkvKiBhbHNvIEZhc3QgRm9yd2FyZCAqLworCVsw
+eDBlXSA9IEtFWV9QUkVWSU9VUywJLyogYWxzbyBSZXdpbmQgKi8KKwkvKiB0aGVzZSBhcmUgaW4g
+YSByYXRoZXIgbm9uIHN0YW5kYXJkIGxheW91dCBhbmQgaGF2ZQorCWFuIGFsdGVybmF0ZSBuYW1l
+IHdyaXR0ZW4gKi8KKwlbMHgxZV0gPSBLRVlfVVAsCQkvKiBWaWRlbyBTZXR0aW5nICovCisJWzB4
+MGFdID0gS0VZX0RPV04sCQkvKiBWaWRlbyBEZWZhdWx0ICovCisJWzB4MDVdID0gS0VZX0xFRlQs
+CQkvKiBTbmFwc2hvdCAqLworCVsweDBjXSA9IEtFWV9SSUdIVCwJCS8qIEhpZGUgUGFuZWwgKi8K
+KwkvKiBGb3VyIGJ1dHRvbnMgd2l0aG91dCBsYWJlbCAqLworCVsweDQ5XSA9IEtFWV9SRUQsCisJ
+WzB4MGJdID0gS0VZX0dSRUVOLAorCVsweDEzXSA9IEtFWV9ZRUxMT1csCisJWzB4NTBdID0gS0VZ
+X0JMVUUsCit9OworRVhQT1JUX1NZTUJPTF9HUEwoaXJfY29kZXNfZ2VuaXVzX3R2Z29fYTExbWNl
+KTsKZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJz
+L21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCi0tLSB2NGwtZHZiL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMJMjAwOC0wMi0wNiAyMjo1
+NDoxMC4wMDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYwkyMDA4LTAyLTA4IDE0OjU3OjA3LjAw
+MDAwMDAwMCAtMDIwMApAQCAtMzk5Miw2ICszOTkyLDQ0IEBAIHN0cnVjdCBzYWE3MTM0X2JvYXJk
+IHNhYTcxMzRfYm9hcmRzW10gPSAKIAkJCS5ncGlvICAgPSAweDAyMDAwMDAsCiAJCX0sCiAJfSwK
+KwlbU0FBNzEzNF9CT0FSRF9HRU5JVVNfVFZHT19BMTFNQ0VdID0geworCQkvKiBBZHJpYW4gUGFy
+ZGluaSA8cGFyZG8uYnNzb0BnbWFpbC5jb20+ICovCisJCS5uYW1lCQk9ICJHZW5pdXMgVFZHTyBB
+TTExTUNFIiwKKwkJLmF1ZGlvX2Nsb2NrCT0gMHgwMDIwMDAwMCwKKwkJLnR1bmVyX3R5cGUJPSBU
+VU5FUl9UTkZfNTMzNU1GLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnR1bmVyX2Fk
+ZHIJPSBBRERSX1VOU0VULAorCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCisJCS5ncGlvbWFz
+ayAgICAgICA9IDB4ZjAwMCwKKwkJLmlucHV0cyAgICAgICAgID0ge3sKKwkJCS5uYW1lID0gbmFt
+ZV90dl9tb25vLAorCQkJLnZtdXggPSAxLAorCQkJLmFtdXggPSBMSU5FMiwKKwkJCS5ncGlvID0g
+MHgwMDAwLAorCQkJLnR2ICAgPSAxLAorCQl9LCB7CisJCQkubmFtZSA9IG5hbWVfY29tcDEsCisJ
+CQkudm11eCA9IDMsCisJCQkuYW11eCA9IExJTkUxLAorCQkJLmdwaW8gPSAweDIwMDAsCisJCQku
+dHYgPSAxCisJCX0sIHsKKwkJCS5uYW1lID0gbmFtZV9zdmlkZW8sCisJCQkudm11eCA9IDgsCisJ
+CQkuYW11eCA9IExJTkUxLAorCQkJLmdwaW8gPSAweDIwMDAsCisJfSB9LAorCQkucmFkaW8gPSB7
+CisJCQkubmFtZSA9IG5hbWVfcmFkaW8sCisJCQkuYW11eCA9IExJTkUyLAorCQkJLmdwaW8gPSAw
+eDEwMDAsCisJCX0sCisJCS5tdXRlID0geworCQkJLm5hbWUgPSBuYW1lX211dGUsCisJCQkuYW11
+eCA9IExJTkUyLAorCQkJLmdwaW8gPSAweDYwMDAsCisJCX0sCisJfSwKIH07CiAKIGNvbnN0IHVu
+c2lnbmVkIGludCBzYWE3MTM0X2Jjb3VudCA9IEFSUkFZX1NJWkUoc2FhNzEzNF9ib2FyZHMpOwpA
+QCAtNTEzMCw2ICs1MTY4LDcgQEAgaW50IHNhYTcxMzRfYm9hcmRfaW5pdDEoc3RydWN0IHNhYTcx
+MzRfZAogCWNhc2UgU0FBNzEzNF9CT0FSRF9CRUhPTERfNDA5OgogCWNhc2UgU0FBNzEzNF9CT0FS
+RF9CRUhPTERfNTA1Rk06CiAJY2FzZSBTQUE3MTM0X0JPQVJEX0JFSE9MRF81MDdfOUZNOgorCWNh
+c2UgU0FBNzEzNF9CT0FSRF9HRU5JVVNfVFZHT19BMTFNQ0U6CiAJCWRldi0+aGFzX3JlbW90ZSA9
+IFNBQTcxMzRfUkVNT1RFX0dQSU87CiAJCWJyZWFrOwogCWNhc2UgU0FBNzEzNF9CT0FSRF9GTFlE
+VkJTX0xSMzAwOgpkaWZmIC11cHJOIC1YIGRvbnRkaWZmIHY0bC1kdmIvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaCB2NGwtZHZiLW1vZGlmaWVkL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgKLS0tIHY0bC1kdmIvbGludXgvZHJpdmVy
+cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaAkyMDA4LTAyLTA2IDIyOjU0OjEwLjAwMDAw
+MDAwMCAtMDIwMAorKysgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L3NhYTcxMzQvc2FhNzEzNC5oCTIwMDgtMDItMDggMTQ6MzU6NTUuMDAwMDAwMDAwIC0wMjAwCkBA
+IC0yNjAsNiArMjYwLDcgQEAgc3RydWN0IHNhYTcxMzRfZm9ybWF0IHsKICNkZWZpbmUgU0FBNzEz
+NF9CT0FSRF9CRUhPTERfNjA3XzlGTQkxMjkKICNkZWZpbmUgU0FBNzEzNF9CT0FSRF9CRUhPTERf
+TTYJCTEzMAogI2RlZmluZSBTQUE3MTM0X0JPQVJEX1RXSU5IQU5fRFRWX0RWQl8zMDU2IDEzMQor
+I2RlZmluZSBTQUE3MTM0X0JPQVJEX0dFTklVU19UVkdPX0ExMU1DRSAxMzIKIAogI2RlZmluZSBT
+QUE3MTM0X01BWEJPQVJEUyA4CiAjZGVmaW5lIFNBQTcxMzRfSU5QVVRfTUFYIDgKZGlmZiAtdXBy
+TiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9z
+YWE3MTM0LWlucHV0LmMgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCi0tLSB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMJMjAwOC0wMi0wNiAyMjo1NDoxMC4wMDAwMDAw
+MDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9z
+YWE3MTM0L3NhYTcxMzQtaW5wdXQuYwkyMDA4LTAyLTA4IDE0OjM3OjQwLjAwMDAwMDAwMCAtMDIw
+MApAQCAtNDA2LDYgKzQwNiwxMiBAQCBpbnQgc2FhNzEzNF9pbnB1dF9pbml0MShzdHJ1Y3Qgc2Fh
+NzEzNF9kCiAJCW1hc2tfa2V5dXAgICA9IDB4ODAwMDAwMDsKIAkJcG9sbGluZyAgICAgID0gNTA7
+IC8vbXMKIAkJYnJlYWs7CisJY2FzZSBTQUE3MTM0X0JPQVJEX0dFTklVU19UVkdPX0ExMU1DRToK
+KwkJaXJfY29kZXMgICAgID0gaXJfY29kZXNfZ2VuaXVzX3R2Z29fYTExbWNlOworCQltYXNrX2tl
+eWNvZGUgPSAweGZmOworCQltYXNrX2tleWRvd24gPSAweGYwMDAwMDsKKwkJcG9sbGluZyA9IDUw
+OyAvKiBtcyAqLworCQlicmVhazsKIAl9CiAJaWYgKE5VTEwgPT0gaXJfY29kZXMpIHsKIAkJcHJp
+bnRrKCIlczogT29wczogSVIgY29uZmlnIGVycm9yIFtjYXJkPSVkXVxuIiwKZGlmZiAtdXByTiAt
+WCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmggdjRsLWR2
+Yi1tb2RpZmllZC9saW51eC9pbmNsdWRlL21lZGlhL2lyLWNvbW1vbi5oCi0tLSB2NGwtZHZiL2xp
+bnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmgJMjAwOC0wMi0wNiAyMjo1NDoxMS4wMDAwMDAw
+MDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvaW5jbHVkZS9tZWRpYS9pci1jb21t
+b24uaAkyMDA4LTAyLTA4IDE0OjM4OjM3LjAwMDAwMDAwMCAtMDIwMApAQCAtMTQyLDYgKzE0Miw3
+IEBAIGV4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc190dF8xNTAwW0kKIGV4dGVybiBJUl9L
+RVlUQUJfVFlQRSBpcl9jb2Rlc19mdXNpb25oZHR2X21jZVtJUl9LRVlUQUJfU0laRV07CiBleHRl
+cm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYmVob2xkW0lSX0tFWVRBQl9TSVpFXTsKIGV4dGVy
+biBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19waW5uYWNsZV9wY3R2X2hkW0lSX0tFWVRBQl9TSVpF
+XTsKK2V4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19nZW5pdXNfdHZnb19hMTFtY2VbSVJf
+S0VZVEFCX1NJWkVdOwogCiAjZW5kaWYKIAo=
+------=_Part_20006_32502927.1202495723972
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_20006_32502927.1202495723972--
