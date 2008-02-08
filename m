@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R1j9pJ008105
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:45:09 -0500
-Received: from igraine.blacknight.ie (igraine.blacknight.ie [81.17.252.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R1iVFV018673
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:44:31 -0500
-Date: Wed, 27 Feb 2008 01:44:27 +0000
-From: Robert Fitzsimons <robfitz@273k.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18K6fB8003752
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 15:06:41 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m18K68QD002054
+	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 15:06:08 -0500
+Date: Fri, 8 Feb 2008 21:06:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080227014427.GB2685@localhost>
-References: <200802171036.19619.bonganilinux@mweb.co.za>
-	<20080218131125.2857f7c7@gaivota>
-	<200802182320.40732.bonganilinux@mweb.co.za>
-	<200802190121.36280.bonganilinux@mweb.co.za>
-	<20080219111640.409870a9@gaivota>
-	<20080226154102.GD30463@localhost>
-	<20080227014238.GA2685@localhost>
+In-Reply-To: <20080208104635.4a7c9227@gaivota>
+Message-ID: <Pine.LNX.4.64.0802082101500.8364@axis700.grange>
+References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
+	<20080207183409.3e788533@gaivota>
+	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
+	<20080208092821.52872e1d@gaivota>
+	<Pine.LNX.4.64.0802081235210.5301@axis700.grange>
+	<20080208104635.4a7c9227@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080227014238.GA2685@localhost>
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Bongani Hlope <bonganilinux@mweb.co.za>
-Subject: [PATCH] bttv: Re-enable radio tuner support for
-	VIDIOCGFREQ/VIDIOCSFREQ ioctls.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: Two more patches required for soc_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,36 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
----
- drivers/media/video/bt8xx/bttv-driver.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+On Fri, 8 Feb 2008, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index 5404fcc..817a961 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -1990,7 +1990,7 @@ static int bttv_g_frequency(struct file *file, void *priv,
- 	if (0 != err)
- 		return err;
- 
--	f->type = V4L2_TUNER_ANALOG_TV;
-+	f->type = btv->radio_user ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	f->frequency = btv->freq;
- 
- 	return 0;
-@@ -2009,7 +2009,8 @@ static int bttv_s_frequency(struct file *file, void *priv,
- 
- 	if (unlikely(f->tuner != 0))
- 		return -EINVAL;
--	if (unlikely(f->type != V4L2_TUNER_ANALOG_TV))
-+	if (unlikely(f->type != (btv->radio_user
-+		? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV)))
- 		return -EINVAL;
- 	mutex_lock(&btv->lock);
- 	btv->freq = f->frequency;
--- 
-1.5.4.34.g053d9
+> If you disable all things on arch/pxa, but v4l (and the minimum required
+> dependencies), do it compile and work? If so, this would be ok. Otherwise, you
+> may need something like:
+> depends on PCI || (ARCH_PXA && CONFIG_HAS_DMA)
+> 
+> This approach can be an interim solution.
+
+After this patch
+
+http://lkml.org/lkml/2008/2/8/352
+
+is accepted, videobuf-dma-sg should be fine depending on PCI || PXA. I'll 
+wait a day or too and then submit such a patch instead of the previous 
+one, removing the dependency completely, would this be ok?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
