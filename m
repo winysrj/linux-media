@@ -1,20 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from v1696.ncsrv.de ([89.110.150.180] helo=duerrhauer.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JTQ8T-0003sr-Cr
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 00:19:57 +0100
-Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
-	[84.69.142.185])
-	by mail.youplala.net (Postfix) with ESMTP id AE4C9D88121
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 00:18:58 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1203894797.6400.17.camel@youkaida>
-References: <1203894797.6400.17.camel@youkaida>
-Date: Sun, 24 Feb 2008 23:18:57 +0000
-Message-Id: <1203895137.6400.24.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] A positive comment - Commercial detection
+	(envelope-from <christian@duerrhauer.de>) id 1JNsle-0003Ub-AT
+	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 17:41:30 +0100
+Message-ID: <47ADD7AD.40009@duerrhauer.de>
+Date: Sat, 09 Feb 2008 17:41:17 +0100
+From: =?ISO-8859-1?Q?Christian_D=FCrrhauer?= <christian@duerrhauer.de>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+References: <47AD998C.8090809@duerrhauer.de> <47ADBE15.1040908@duerrhauer.de>
+	<47ADBF84.60006@duerrhauer.de>
+	<200802091613.08130.jareguero@telefonica.net>
+In-Reply-To: <200802091613.08130.jareguero@telefonica.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] gentoo: v4l-dvb-hg doesn't compile with kernel
+	2.6.24-gentoo
+Reply-To: christian@duerrhauer.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,18 +26,26 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Oh well...
+Jose Alberto Reguero wrote:
 
-Sorry about that, it seems that I had a very rough time today with
-identifying lists from each other.
+>> Christian
+> 
+> I have the same problem with kernel 2.6.24 and current HG. The attached patch 
+> solve the problem for me.
+> 
 
-This post was obviously not targeted for here...
+Hi Jose,
 
-Nico
+thank you. Your patch did the trick.
 
+Can it be put into the next version of bt87x.c in the v4l-dvb-test?
+
+Kind regards,
+
+Christian
 
 _______________________________________________
 linux-dvb mailing list
