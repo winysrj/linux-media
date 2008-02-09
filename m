@@ -1,28 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KM2i6E007846
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:02:44 -0500
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1KM2911028671
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:02:10 -0500
-Message-ID: <47BCA35F.5020002@kaiser-linux.li>
-Date: Wed, 20 Feb 2008 23:02:07 +0100
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m19JDTiv031961
+	for <video4linux-list@redhat.com>; Sat, 9 Feb 2008 14:13:29 -0500
+Received: from smtp-out4.blueyonder.co.uk (smtp-out4.blueyonder.co.uk
+	[195.188.213.7])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m19JD8cU018835
+	for <video4linux-list@redhat.com>; Sat, 9 Feb 2008 14:13:08 -0500
+Received: from [172.23.170.141] (helo=anti-virus02-08)
+	by smtp-out4.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1JNv8N-0004Kk-Le
+	for video4linux-list@redhat.com; Sat, 09 Feb 2008 19:13:07 +0000
+Received: from [82.47.98.230] (helo=[192.168.10.10])
+	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1JNv8N-0006UA-9I
+	for video4linux-list@redhat.com; Sat, 09 Feb 2008 19:13:07 +0000
+Message-ID: <47ADFB42.7040503@blueyonder.co.uk>
+Date: Sat, 09 Feb 2008 19:13:06 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
 MIME-Version: 1.0
-To: "H. Willstrand" <h.willstrand@gmail.com>
-References: <47BC7E91.6070303@kaiser-linux.li>	
-	<175f5a0f0802201208u4bca35afqc0291136fe2482b@mail.gmail.com>	
-	<47BC8BFC.2000602@kaiser-linux.li>	
-	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>	
-	<47BC90CA.1000707@kaiser-linux.li>	
-	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>	
-	<47BC9788.7070604@kaiser-linux.li>
-	<175f5a0f0802201341v2a0c19a5vdfbe553caf67e11e@mail.gmail.com>
-In-Reply-To: <175f5a0f0802201341v2a0c19a5vdfbe553caf67e11e@mail.gmail.com>
+To: video4linux-list@redhat.com
+References: <9c4b1d600802071009q7fc69d4cj88c3ec2586e484a0@mail.gmail.com>	<20080207173926.53b9e0ce@gaivota>	<1202421849.20032.25.camel@pc08.localdom.local>	<9c4b1d600802071528p70de4e55ud582ef66d9ebb3d7@mail.gmail.com>	<1202429587.20032.75.camel@pc08.localdom.local>	<9c4b1d600802080937h3dbbb388s9abb760feb084f4@mail.gmail.com>	<20080208163102.459d0efd@gaivota>
+	<47ADE446.1030309@gmail.com>
+In-Reply-To: <47ADE446.1030309@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: V4L2_PIX_FMT_RAW
+Subject: Re: PixelView PlayTV 405 DVD Maker
+Reply-To: sboyce@blueyonder.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,111 +37,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-H. Willstrand wrote:
-> On Wed, Feb 20, 2008 at 10:11 PM, Thomas Kaiser
-> <linux-dvb@kaiser-linux.li> wrote:
->> H. Willstrand wrote:
->>  > On Wed, Feb 20, 2008 at 9:42 PM, Thomas Kaiser
->>  > <linux-dvb@kaiser-linux.li> wrote:
->>  >> H. Willstrand wrote:
->>  >>  > On Wed, Feb 20, 2008 at 9:22 PM, Thomas Kaiser
->>  >>  > <linux-dvb@kaiser-linux.li> wrote:
->>  >>  >> H. Willstrand wrote:
->>  >>  >>  > On Wed, Feb 20, 2008 at 8:25 PM, Thomas Kaiser
->>  >>  >>  > <linux-dvb@kaiser-linux.li> wrote:
->>  >>  >>  >> Why is V4L2_PIX_FMT_RAW not included as a pixel format in V4l2?
->>  >>  >>  >>
->>  >>  >>  >>  I would like to just forward the stream from my webcam "as it is" to user space .
->>  >>  >>  >>
->>  >>  >>  >>  V4L2_PIX_FMT_RAW looks as it is the right thing I need.
->>  >>  >>  >>
->>  >>  >>  >
->>  >>  >>  > V4L2 drivers should not perform any video transformations, the driver
->>  >>  >>  > provides user space with hardware supported formats.
->>  >>  >>
->>  >>  >>  Ok, so, I need a entry for Pixart chips.
->>  >>  >>  PAC207: a line based coding algo.
->>  >>  >>  PAC7311: the interpretation of JPEG from Pixart
->>  >>  >>  PAC7302: the _new_  interpretation of JPEG from Pixart
->>  >>  >>
->>  >>  >>  V4L2_PIX_FMT_RAW would make my live easier.
->>  >>  >>
->>  >>  >>  The option to forward the stream "as it is" would be really nice. When the
->>  >>  >>  manufacture of some video streaming devices (like webcams) do their own thing,
->>  >>  >>  you can forward the raw stream and the user application can take care of the
->>  >>  >>  decoding of the stream.
->>  >>  >>
->>  >>  >>  For me it looks not like such a bad idea!!!???
->>  >>  >>
->>  >>  >
->>  >>  > Yes, it might be a good idea to add something like V4L2_PIX_FMT_PAC207, etc.
->>  >>  > This is anyhow the case with the PWC family.
->>  >>
->>  >>  I think the better is to just forward the stream to userspace.
->>  >>  Then we have to make a lib which can be called from all these video application
->>  >>  around to decode the stream.
->>  >>
->>  >>  Somebody talked already about this on the list.
->>  >>
->>  >>  When the cam is able to send a stream in a good known format it is no problem to
->>  >>  handle this with the right V4L2_PIX_FMT_..., but if not, we need a "official"
->>  >>  way to get this "devil" stream to user space!
->>  >>
->>  >
->>  > Well, it can go ugly if one piece of hardware supports several "raw"
->>  > formats, they need to be distinct. And in the end of the day the V4L2
->>  > drivers might consist of several identical "raw" formats which then
->>  > aren't consolidated.
->>  >
->>  > Harri
->>
->>  I don't really understand what you try to say here.
->>  I want to have the stream forwarded "as it is" to user space. Then the v4l2
->>  driver even have not to know what kind of stream this is!
->>  We just forward the stream (again) "as it is" to user space.
->>  Now, the user space application (viewer app, skype or what ever) has to decide
->>  if they can handle the stream.
->>
-> Ok, if a driver exposes a RAW format, how can a application know if it
-> can handle the format? By looking at the driver name? What if the
-> driver have several RAW formats? (they might have)
-
-How does the driver know how to handle the raw stream?
-
-OK, I get USB ID and can guess it should be this format but it is not always 
-like this.
-
-Anyway, All information the driver uses to get know the stream can be forwarded 
-to user space. We just need the interface for this.
-Usually, the SOF gives you the information you need. And this will be included 
-when you forward the stream "as it is".
-
-> 
-> Next, standardization is a good thing, and hopefully chip set vendors
-> tries to keep down the number of formats, so it's a good idea to try
-> define distinct V4L2_PIX_FMT for each distinct format.
-
-I don't think that chip set manufacture will look at a "Standard", They just try 
-to optimize there chip and lower the cost of manufacturing.
-
-They are not interested in standards. Standards means everybody can copy it!
-
-Thomas
-
-> 
-> Cheers,
-> Harri
+Claudinei Camargo wrote:
+> Dear,
 > 
 > 
->>  PS: Why do you answer OFF-LIST? I think it is a nice topic to discussed with
->>  everyone on the list.
-> I thought I did, sorry for that.
+> I got the Mauro's tm6000 tree and compiled it against Ubuntu 2.6.22-rt,
+> but when I load that module this message come up: xc2028 0-0061: Error:
+> firmware tm6000-xc3028.fw not found.  tm6000_xc2028_firmware1.fw and
+> tm6000_xc2028_firmware2.fw was put into /lib/firmware. the Readme.first
+> says that get_firmware.pl is broken. where i can got that firmware?
 > 
-> //Harri
+> Claudinei
+> 
+> --
 
-
+The error says it's looking for a file named tm600-xc3028.fw, may be 
+just renaming or copying each of the two files to that filename and 
+seeing if one of them works.
+Regards
+Sid.
 -- 
-http://www.kaiser-linux.li
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
 --
 video4linux-list mailing list
