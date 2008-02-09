@@ -1,21 +1,16 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JT1wC-0006Si-0w
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 22:29:40 +0100
-Message-ID: <47C0903B.70606@gmail.com>
-Date: Sun, 24 Feb 2008 01:29:31 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <eduardhc@gmail.com>) id 1JNrmY-0008Bb-Aa
+	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 16:38:23 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3122193fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 09 Feb 2008 07:38:21 -0800 (PST)
+Message-ID: <47ADC81B.4050203@gmail.com>
+Date: Sat, 09 Feb 2008 16:34:51 +0100
+From: Eduard Huguet <eduardhc@gmail.com>
 MIME-Version: 1.0
-To: Artem Makhutov <artem@makhutov.org>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
-	<47C01325.10407@otenet.gr>
-	<20080223174406.GB30387@moelleritberatung.de>
-	<47C0803D.2020504@gmail.com>
-	<20080223212013.GD30387@moelleritberatung.de>
-In-Reply-To: <20080223212013.GD30387@moelleritberatung.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+To: linux-dvb@linuxtv.org, Matthias Schwarzott <zzam@gentoo.org>
+Subject: [linux-dvb] Some tests on Avermedia A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,42 +21,35 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Artem Makhutov wrote:
-> Hi,
-> 
-> On Sun, Feb 24, 2008 at 12:21:17AM +0400, Manu Abraham wrote:
->> [...]
->> Can you guys please update from the multiproto tree and test again at
->> the earliest and give me your feedback ?
-> 
-> No, still the same:
-> 
-> Try: 50
-> Failes: 37
-> Tunes: 13
-> 
-> Maybe the problem is in the szap.c and not in the driver, as Reinhard
-> Nissl had no problems while tuning channels with VDR?
-> 
-> An other thing that I noticed is that only first tunes are successful.
-> I continued the same tuning test to 100, but I got no more successfull locks.
-> The last successfull lock was try 20:
-> 
-> Try: 100
-> Failes: 87
-> Tunes: 13
-> 
-> I am running a new test with a 15 seconds break after each tune now and
-> will mail you the results when the test finises.
+Hi, Matthias
+    I've been performing some tests using your patch for this card. 
+Right now neither dvbscan nor kaffeine are able to find any channel on 
+Astra (the sat. my dish points to).
 
-Are you sure that you got the top level 2 changes changeset 7204 and 7203
-respectively ?
+However, Kaffeine has been giving me some interesting results: with your 
+driver "as is" it's getting me a 13-14% signal level and ~52% SNR when 
+scanning. Then, thinking that the problem is related to the low signal I 
+have I've changed the gain levels used to program the tuner: you were 
+using default values of 0 for all (in zl1003x_set_gain_params() 
+function, variables "rfg", "ba" and "bg"), and I've changed them top the 
+maximum (according to the documentation: rfg=1, ba=bg=3). With that, I'm 
+getting a 18% signal level, which is higher but still too low apparently 
+to get a lock.
 
-Regards,
-Manu
+I've stopped here, because I really don't have the necessary background 
+to keep tweaking the driver. I just wanted to share it with you, as 
+maybe you have some idea on how to continue or what else could be done.
+
+Best regards,
+  Eduard
+
+PD: the satelite dish is on the top of the building and it's shared 
+(this is a 15-floor building). This is probably the reason I get a 
+signal that low. Anyway, I think I still should be able to use the card, 
+but maybe I'm wrong and I need to pre-amplify the signal.
 
 
 _______________________________________________
