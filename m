@@ -1,19 +1,18 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from edu.joroinen.fi ([194.89.68.130] ident=postfix)
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from matrix.start.ca ([204.101.248.1])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pasik@iki.fi>) id 1JSvse-0005uj-CC
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:01:36 +0100
-Date: Sat, 23 Feb 2008 17:01:26 +0200
-From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
-To: Igor <goga777@bk.ru>
-Message-ID: <20080223150126.GH21162@edu.joroinen.fi>
-References: <2f8cbffc0802230359w2922f888s90ac43fcb68ad406@mail.gmail.com>
-	<E1JStMf-000HLd-00.goga777-bk-ru@f142.mail.ru>
+	(envelope-from <colbec@start.ca>) id 1JOHqp-0000cR-FK
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 20:28:31 +0100
+Received: from [192.168.0.3] (165.154.24.135.auracom.com [165.154.24.135] (may
+	be forged))
+	by matrix.start.ca (8.13.6/8.12.11) with ESMTP id m1AJSLq8013437
+	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 14:28:22 -0500
+Message-ID: <47AF5063.4000104@start.ca>
+Date: Sun, 10 Feb 2008 14:28:35 -0500
+From: Colin <colbec@start.ca>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <E1JStMf-000HLd-00.goga777-bk-ru@f142.mail.ru>
-Cc: Ian Bonham <ian.bonham@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR4000 Update?
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Error in scan.c - tune to transponder?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,72 +23,32 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Feb 23, 2008 at 03:20:25PM +0300, Igor wrote:
-> you have only two possibilities now
-> 
-> the latest multiproto from Manu Abrahamlinux-dvb@linuxtv.org
-> http://jusst.de/hg/multiproto/
-> +
-> multiproto-hvr4k-2008-01-28.patch from  Holger Steinhaus
-> http://linuxtv.org/pipermail/vdr/2008-January/015348.html
-> 
-> Or you can use Hauppauge diffs for v4l-dvb hg repository
-> from http://dev.kewl.org/hauppauge/Hauppauge from Darron Broad
-> 
-> 
-> Igor
-> 
+Running SuSe 10.1, kernel 2.6.24-default, dvbtools 1.1.1, Kaffeine 0.8.6
 
-Hmm.. I haven't been following the multiproto discussion very closely, so
-could someone give an update on it.. 
+I have 8 DVB-S lnbs on 2 diseqc switches running into 2 PCI cards, 
+Skystar 2 and Geniatech 103G, both of which are supported in the kernel. 
+The dishes, lnbs and cards are fine, work well in Windows and with 
+standalone receivers Coolsat 6000 and Mercury II.
 
-- Why it is not (yet) merged with the default/kernel dvb drivers? 
-- What needs to be done to get it merged? Who's working on it?
-- What's preventing the merge? 
+Kaffeine can scan and display channels from 6 of the 8 lnbs using the 
+diseqc switches. I am trying to find out why the other two dishes are 
+not tuned. So I started scan which returns the following on all adapter 
+/ diseqc combinations:
 
-Thanks!
+__tune_to_transponder:1483 ERROR Setting frontend parameters failed: 22 
+Invalid argument.
 
--- Pasi
+The relevant section of scan.c is
 
-> 
-> 
-> 
-> -----Original Message-----
-> From: "Ian Bonham" <ian.bonham@gmail.com>
-> To: linux-dvb@linuxtv.org
-> Date: Sat, 23 Feb 2008 12:59:09 +0100
-> Subject: [linux-dvb] HVR4000 Update?
-> 
-> > 
-> > Hey All,
-> > 
-> > Well it still seems to me that the Multi-Proto mess is still impacting real
-> > World use of cards such as the HVR4000. I'm currently using Ubuntu 7.10, and
-> > have still not managed much from my HVR4k apart from the main DVB-S channels
-> > on Astra 28.2e. I use Myth as my Media Server, and have no access to DVB-T
-> > or DVB-S2 channels. I read there are patches to make this poss, but there is
-> > such a muddle of info I am totally unsure what I should be doing to use the
-> > features of the card properly.
-> > 
-> > Can anyone please make a clear guide on what I should do to get my HVR4k
-> > going properly with Myth? If I can't get things going 'properly' just being
-> > able to help beta stuff would be good. What SVN do I need to check-out? What
-> > patches do I need to apply? What Myth do I need to check out? Then what
-> > patches does that need?
-> > 
-> > Please guys, give us some pointers here so we can help with testing and
-> > maybe help push this forwards. What distro is best for getting things
-> > working? I'm on Ubuntu 7.10, but would SuSE better serve a solution? Fedora?
-> > Which?!
-> > 
-> > Thanks,
-> > 
-> > Ian
-> > 
-> > 
+if (ioctl(frontend_fd, FE_SET_FRONTEND, &p) == -1) {
+		errorn("Setting frontend parameters failed");
+		return -1;
+	}
+
+Any suggestions?
 
 _______________________________________________
 linux-dvb mailing list
