@@ -1,33 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DNsXga020384
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:54:33 -0500
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DNralL029973
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:54:12 -0500
-Received: by wr-out-0506.google.com with SMTP id 70so337630wra.7
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 15:54:12 -0800 (PST)
-Message-ID: <a728f9f90802131554y6f2c9ca1s7a8c264b46dc9a40@mail.gmail.com>
-Date: Wed, 13 Feb 2008 18:54:11 -0500
-From: "Alex Deucher" <alexdeucher@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1AKwpos014144
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 15:58:51 -0500
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.183])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1AKwHJA020474
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 15:58:17 -0500
+Received: by py-out-1112.google.com with SMTP id a29so4617012pyi.0
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 12:58:14 -0800 (PST)
+Message-ID: <47AF6564.6070602@gmail.com>
+Date: Sun, 10 Feb 2008 15:58:12 -0500
+From: Christopher Harvey <arbuckle911@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-	<20080205080038.GB8232@plankton.ifup.org>
-	<20080205102409.4b7acb01@gaivota>
-	<20080213202055.GA26352@plankton.ifup.org>
-	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-Cc: video4linux-list@redhat.com,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Brandon Philips <bphilips@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+To: video4linux-list@redhat.com
+Content-Type: multipart/mixed; boundary="------------020006090000090106080305"
+Subject: select() problems with uvc drivers. 
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,47 +25,185 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Feb 13, 2008 6:24 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
-> > On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
-> > > Maybe we've took the wrong direction when we've decided to select
-> > > mercurial. It were better and easier to use, on that time, but the -git
-> > > improvements happened too fast.
-> >
-> > We should consider a move to a full-tree git.  Particularly, it would be
-> > nice to be have v4l-dvb merging/building against other subsystems in the
-> > linux-next tree:
-> >
-> >   http://lkml.org/lkml/2008/2/11/512
-> >
-> > Also, it would save the silly pain of things like this meye.h thing and
-> > pulling in fixes from the rest of the community that patches against git
-> > trees.
->
->
-> When we moved from CVS to HG, we lost many developers.
->
-> Of the developers that remain, most of us are finally comfortable
-> working in mercurial.
->
-> I understand the benefits of moving to git, but that option was on the
-> table when we moved to mercurial from cvs, and it was shot down.
->
-> I would prefer that we stick with what we have for now -- for the sake
-> of our users / testers, and for the sake of our developers.
->
-> Lets not drive away more contributors.
->
-> Additionally, the moment we move development from hg to git, we are
-> bound to the development kernel -- we will no longer be able to work
-> against any stable kernel series, and we will lose all of our testers.
+This is a multi-part message in MIME format.
+--------------020006090000090106080305
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Why would git have any affect on what kernels you could test against?
-It's just an scm like hg or cvs.
+Hello,
+I've created a small c program that uses pure v4l2 code to read from a
+webcam on a uvc driver then copy that data into an SDL overlay. I've
+posted the code here:
+http://basementcode.com/serverMain.html
+and I've attached a log file I created from the output of that program.
+Overall the program works great except that after a few frames, about 35
+(varies each run) in my case, the select() function that is supposed to
+block until new data from the webcam is available stops working and
+returns right away. This isn't a huge problem because the following
+ioctl(fd, VIDIOC_DQBUF, &buf)
+call simply fails and sets errno to EAGAIN, then my app simply tries
+again and again until it works. I'd rather select worked for the entire
+duration of the capture to save cpu time and make sure that I read the
+frame asap each time. The relevant function in the code I posted above
+is "mainLoop", however I can't be sure the error is actually in that
+function. I hope I've posted enough information.
+Thanks in advance,
+Chris.
 
-Alex
+--------------020006090000090106080305
+Content-Type: text/plain;
+ name="log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="log"
+
+//The code for this log can been seen at:
+//   http://basementcode.com/serverMain.html
+
+// Commandline =  $./camTest /dev/video0 -w 640 -h 480
+
+Device name: /dev/video0
+Requested Width: 640
+Requested Height 480
+---------Device Capabilities---------
+Driver:         uvcvideo
+Name:           UVC Camera (046d:08ca)
+Bus:            0000:00:02.1
+Driver Version: 0.1.0
+
+Video Capture: Yes
+Read/write: No
+Async IO: No
+Streaming: Yes
+-------------------------------------
+----------Device Connections---------
+	Input #0
+Name: Camera 1
+Type: Camera
+Video standard: 0
+
+-------------------------------------
+Set to input 0
+-------Image format enumeration-----
+	Format #0
+	MJPEG
+Pixel format id: 1196444237
+Type: V4L2_BUF_TYPE_VIDEO_CAPTURE
+Compressed: Yes
+	Format #1
+	YUV 4:2:2 (YUYV)
+Pixel format id: 1448695129
+Type: V4L2_BUF_TYPE_VIDEO_CAPTURE
+Compressed: No
+-------------------------------------
+Default image format locked!
+
+	Current image format:
+Width: 640
+Height 480
+PixelFormat: 1448695129
+Bytes per line: 1280
+Feild: V4L2_FIELD_NONE
+Image code: YUYV
+Colorspace: V4L2_COLORSPACE_SRGB
+
+Got 20 buffers for memory map streaming.
+OverLay has 1 planes.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Got image.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Got image.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Got image.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Got image.
+
+...
+...
+...
+...    This output repeats until the program shuts down.
+...
+...
+...
+...
+
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Again.
+Got image.
+Unmapped all 20 buffers.
+
+--------------020006090000090106080305
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------020006090000090106080305--
