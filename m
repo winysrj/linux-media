@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JMCj0-0007jT-8s
-	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 02:35:50 +0100
-Message-ID: <47A7BD4D.1060709@rogers.com>
-Date: Mon, 04 Feb 2008 20:35:09 -0500
-From: CityK <CityK@rogers.com>
+Received: from bay0-omc2-s16.bay0.hotmail.com ([65.54.246.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ugm6hr@hotmail.com>) id 1JOH5a-0004Hb-GV
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 19:39:42 +0100
+Message-ID: <BAY114-W38DEF00BAB30FBD991A5F69C290@phx.gbl>
+From: H Me <ugm6hr@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 10 Feb 2008 18:39:08 +0000
+In-Reply-To: <mailman.41.1202657230.892.linux-dvb@linuxtv.org>
+References: <mailman.41.1202657230.892.linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  What is the MAC of a DVB card?
+Subject: Re: [linux-dvb] Freecom DVB-T USB adapter not recognised
+Reply-To: drhraju@doctors.org.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,17 +25,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-There is an article in the wiki: 
-http://www.linuxtv.org/wiki/index.php/InternetDVB
 
-In addition, there is a brief note (that may help provide an 
-explanation) in some of the B2C2 based device articles as to why they 
-are listed as network controllers: 
-http://www.linuxtv.org/wiki/index.php/TechniSat_Air2PC-ATSC-PCI#Why_are_they_listed_as_a_.22network_controller.22_and_not_a_.22multimedia_controller.22_in_the_output_of_dmesg_or_lspci.3F
+Stuart Langridge.
 
-in essence - similar to a network controller -- receive and demodulate 
-RF signals.
+Try searching the archives for: RTL2831U kernel driver
 
+We have been trying to compile a new driver.  No one has got it to work yet.
+_________________________________________________________________
+Telly addicts unite!
+http://www.searchgamesbox.com/tvtown.shtml
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
