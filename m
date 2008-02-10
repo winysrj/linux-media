@@ -1,16 +1,22 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from faunus.aptilo.com ([62.181.224.42])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gavermer@gmail.com>) id 1JSaX9-0004h5-Fb
-	for linux-dvb@linuxtv.org; Fri, 22 Feb 2008 17:13:59 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so475254wag.13
-	for <linux-dvb@linuxtv.org>; Fri, 22 Feb 2008 08:13:53 -0800 (PST)
-Message-ID: <468e5d620802220813q4b39c4ecpb9297db74884547d@mail.gmail.com>
-Date: Fri, 22 Feb 2008 17:13:52 +0100
-From: "ga ver" <gavermer@gmail.com>
+	(envelope-from <jonas@anden.nu>) id 1JOBKV-0004Kj-Rz
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 13:30:43 +0100
+Received: from [192.168.1.8] (h-134-69.A157.cust.bahnhof.se [81.170.134.69])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by faunus.aptilo.com (Postfix) with ESMTP id 214B21F9063
+	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 13:30:06 +0100 (CET)
+From: Jonas Anden <jonas@anden.nu>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] HVR 4000 firmware not loaded?
+In-Reply-To: <47ACF3AF.40201@lsn.se>
+References: <47AB7865.5090008@lsn.se> <47AC7925.8050709@rogers.com>
+	<47ACF3AF.40201@lsn.se>
+Date: Sun, 10 Feb 2008 13:29:59 +0100
+Message-Id: <1202646599.22109.17.camel@anden.nu>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Help! I cant view video. BUT I can scan!!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,100 +24,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1071036087=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1071036087==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_818_20107939.1203696832949"
-
-------=_Part_818_20107939.1203696832949
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello
-
-In Ubuntu 7.10 with kernel 2.6.22-14.47 I installed a Hauppauge HVR 4000.
->From http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
-I made a driver update and a firmware update.
-In dmesg the card is recognized.
-In dvbsnoop are the current parameters not found
-
- dvbsnoop -s feinfo -pd 9
-dvbsnoop V1.4.00 -- http://dvbsnoop.sourceforge.net/
-   DEMUX : /dev/dvb/adapter0/demux0
-   DVR   : /dev/dvb/adapter0/dvr0
-   FRONTEND: /dev/dvb/adapter0/frontend0
-
----------------------------------------------------------
-FrontEnd Info...
----------------------------------------------------------
-
-Device: /dev/dvb/adapter0/frontend0
-
-Basic capabilities:
-    Name: "Conexant CX24116/CX24118"
-    Frontend-type:       QPSK (DVB-S)
-    Frequency (min):     950.000 MHz
-    Frequency (max):     2150.000 MHz
-    Frequency stepsiz:   1.011 MHz
-    Frequency tolerance: 5000
-    Symbol rate (min):     1.000000 MSym/s
-    Symbol rate (max):     45.000000 MSym/s
-    Symbol rate tolerance: 0 ppm
-    Notifier delay: 0 ms
-    Frontend capabilities:
-        auto inversion
-        FEC 1/2
-        FEC 2/3
-        FEC 3/4
-        FEC 4/5
-        FEC 5/6
-        FEC 6/7
-        FEC 7/8
-        FEC AUTO
-        QPSK
-
-Current parameters:
-Error(95): frontend ioctl: Operation not supported
-
-following dmesg is the firmware not loaded
-
-Is the update procedure from
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
-correct?
-
-Thanks in advance
-
-------=_Part_818_20107939.1203696832949
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello<br><br>In Ubuntu 7.10 with kernel 2.6.22-14.47 I installed a Hauppauge HVR 4000.<br>From <a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000">http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000</a> <br>
-I made a driver update and a firmware update.<br>In dmesg the card is recognized.<br>In dvbsnoop are the current parameters not found<br><br>&nbsp;dvbsnoop -s feinfo -pd 9<br>dvbsnoop V1.4.00 -- <a href="http://dvbsnoop.sourceforge.net/">http://dvbsnoop.sourceforge.net/</a> <br>
-&nbsp;&nbsp; DEMUX : /dev/dvb/adapter0/demux0<br>&nbsp;&nbsp; DVR&nbsp;&nbsp; : /dev/dvb/adapter0/dvr0<br>&nbsp;&nbsp; FRONTEND: /dev/dvb/adapter0/frontend0<br><br>---------------------------------------------------------<br>FrontEnd Info...<br>---------------------------------------------------------<br>
-<br>Device: /dev/dvb/adapter0/frontend0<br><br>Basic capabilities:<br>&nbsp;&nbsp;&nbsp; Name: &quot;Conexant CX24116/CX24118&quot;<br>&nbsp;&nbsp;&nbsp; Frontend-type:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; QPSK (DVB-S)<br>&nbsp;&nbsp;&nbsp; Frequency (min):&nbsp;&nbsp;&nbsp;&nbsp; 950.000 MHz<br>&nbsp;&nbsp;&nbsp; Frequency (max):&nbsp;&nbsp;&nbsp;&nbsp; 2150.000 MHz<br>
-&nbsp;&nbsp;&nbsp; Frequency stepsiz:&nbsp;&nbsp; 1.011 MHz<br>&nbsp;&nbsp;&nbsp; Frequency tolerance: 5000<br>&nbsp;&nbsp;&nbsp; Symbol rate (min):&nbsp;&nbsp;&nbsp;&nbsp; 1.000000 MSym/s<br>&nbsp;&nbsp;&nbsp; Symbol rate (max):&nbsp;&nbsp;&nbsp;&nbsp; 45.000000 MSym/s<br>&nbsp;&nbsp;&nbsp; Symbol rate tolerance: 0 ppm<br>&nbsp;&nbsp;&nbsp; Notifier delay: 0 ms<br>
-&nbsp;&nbsp;&nbsp; Frontend capabilities:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; auto inversion<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 1/2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 2/3<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 3/4<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 4/5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 5/6<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 6/7<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC 7/8<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; FEC AUTO<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; QPSK<br>
-<br>Current parameters:<br>Error(95): frontend ioctl: Operation not supported<br><br>following dmesg is the firmware not loaded<br><br>Is the update procedure from <a href="http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000">http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000</a><br>
-correct?<br><br>Thanks in advance<br><br><br>&nbsp;<br>
-
-------=_Part_818_20107939.1203696832949--
-
-
---===============1071036087==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1071036087==--
+SSBoYXZlbid0IGZvbGxvd2VkIHRoaXMgdGhyZWFkIGZyb20gdGhlIGJlZ2lubmluZywgYnV0IGRp
+ZCB5b3Ugc2F5IHdoYXQKa2luZCBvZiBEVkIgaGFyZHdhcmUgeW91IGhhdmU/CgpJIGtub3cgdGhl
+IE5vdmEtVEQgc3RpY2sgaXMgYSBiaXQgcGlja3kuIFRvbyBzdHJvbmcgYSBzaWduYWwgd2lsbCBj
+YXVzZQp0aGUgYmVoYXZpb3IgeW91IGRlc2NyaWJlIG9uIHRoaXMgZGV2aWNlLiBPbiBteSBOb3Zh
+LVRELCB1c2luZyBhIGdvb2QKYW50ZW5uYSB3aWxsIHlpZWxkIG5vIGRhdGEgc3RyZWFtIChidXQg
+YSAxMDAlIHNpZ25hbCksIHdoZXJlYXMgaWYgSSB1c2UKdGhlIGxpdHRsZSBtb2JpbGUgYW50ZW5u
+YSB0aGF0IGNhbWUgd2l0aCB0aGUgc3RpY2ssIEkgZ2V0IGEgc3RyZWFtIGJ1dAptcGVnIGFydGVm
+YWN0cyBpbiB0aGUgcGljdHVyZSAoZHVlIHRvIGxvdyBzaWduYWwpLgoKSSB3b3VsZCB0cnkgYXR0
+ZW51YXRpbmcgdGhlIHNpZ25hbCAob3IgcmVtb3ZpbmcgYW1wbGlmaWVycykgb3IgYQpkaWZmZXJl
+bnQgYW50ZW5uYS4gSSB3b3VsZCBhbHNvIGdpdmUgaXQgYSBzaG90IChzaW5jZSB5b3UncmUgdXNp
+bmcKbXBsYXllciB0byB0ZXN0KSB0byB1c2UgbXBsYXllciB0byBjb250cm9sIHRoZSB3aG9sZSBz
+Y2VuYXJpbyAodHVuZSwKc3RyZWFtLW9uLCBkZW11eCwgZGVjb2RlIGFuZCBkaXNwbGF5KS4gVHJ5
+IHRoZSBmb2xsb3dpbmcgY29tbWFuZDoKCm1wbGF5ZXIgZHZiOi8vMUBUVjYKClVzaW5nIHRoZSBU
+VjYgY2hhbm5lbCB3aWxsIGF2b2lkIGFueSBvYnN0YWNsZXMgYnkgdGhlIGNoYW5uZWwgbmFtZQpj
+b250YWluaW5nIGV4dGVuZGVkLWFzY2lpICjDlikgYW5kIHNwYWNlIC4uLiBUVjYgc2hvdWxkIGJl
+IGFuIHVuZW5jcnlwdGVkCmNoYW5uZWwgYW5kIG9uIHRoZSBzYW1lIE1VWCBhcyBUVjQsIGV2ZW4g
+aW4gdGhlIMOWcmVzdW5kIHJlZ2lvbiA7KQoKICAvLyBKIAoKT24gU2F0LCAyMDA4LTAyLTA5IGF0
+IDAxOjI4ICswMTAwLCBQZXIgQmxvbXF2aXN0IHdyb3RlOgo+IFRoZSBjaGFubmVsIGlzbid0IGVu
+Y3J5cHRlZC4KPiAoSSBoYXZlIHRlc3RlZCB3aXRoIG1hbnkgcHVibGljIGNoYW5lbHMsIHRoYXQg
+SSBrbm93IGlzbnQgZW5jcnlwdGVkLiAKPiBDYW50IGdldCBhbnkgdmlkZW8gb3V0KQo+IAo+IElt
+IERlYmlhbi10ZXNpbmcgdXNlciwgYW5kIHRoaXMgaXMgYSBmcmVzaGx5IGluc3RhbGxlZCBzeXN0
+ZW0uIE9uIGEgYW1kNjQuLgo+IChhcyBJIG1lbnRpb25lZCwgaW4gcHJldmlvdXMgZW1haWwpCj4g
+Cj4gVHVybnMgb3V0ICIvZGV2L2R2Yi9hZGFwdGVyMC9kdnIwIiBpc250IHRoZSBvbmx5IGRldmlj
+ZSB0aGF0IGRvZXNudCB3b3JrLgo+IChmcmFtZWJ1ZmZlciBkaWRudCB3b3JrIGV0aGVyLCAiL2Rl
+di9mZDAiIGFyZSBtaXNzaW5nIHRvdGFseSwgcmVnYXJkbGVzcyAKPiBvZiBib290bG9hZGVyIHZn
+YT03OTEgb3B0aW9ucyBvciBzbykuCj4gCj4gSSByZW1vdmVkIChieSBub3cgbWlzdGFrZSkgb2xk
+ZXIga2VybmVscyB3aGVuIEkgZGlzdHVwZ3JhZGVkLCBjYW50IAo+IG5lcnJvdyBkb3duIHRoZSBl
+cnJvciBzZWFyY2gsIGJ5IHRlc3Rpbmcgb3RoZXIgbGludXgta2VybmVscy4KPiAoc2luY2UgSSBv
+bmx5IGhhdmUgb25lLCB0aGUgMi42LjIyLTMtYW1kNjQpCj4gCj4gQW5kIHNuYXBzaG90LmRlYmlh
+bi5uZXQgZGlkbnQgcmVjb3JkIGFueSBvbGRlci4uIE9ubHkgb3B0aW9uIGxlZnQsIHRvIAo+IHN0
+YXJ0IGNvbXBpbGxpbmcgYnkgbXlzbGVmLgo+IChidXQgdG8gcm91Z2gpCj4gCj4gUHJvYmFibHkg
+dGVzdGluZyBhbm90aGVyIGRpc3RybyAoVWJ1bnRvKSBuZXh0IHdlZWsuCj4gCj4gCj4gQ2l0eUsg
+d3JvdGU6Cj4gPiBQZXIgQmxvbXF2aXN0IHdyb3RlOgo+ID4+IEkganVzdCBzaWduZWQgdXAgZm9y
+IHRoaXMgbWFpbGluZy1saXN0ICggSSBob3BlIHRoaXMgaXMgdGhlIHJpZ2h0IAo+ID4+IGZvcnVt
+Li4gICAKPiA+Cj4gPiBIaSwgeWVzLCB5b3UncmUgaW4gdGhlIHJpZ2h0IHBsYWNlLgo+ID4KPiA+
+PiBJIGNhbiAiZHZic2NhbiIgYW5kICAidHphcCIsIGFuZCBnZXRzIGluZGljYXRpb24gb2YgYSBn
+b29kIHNpZ25hbC4gCj4gPj4gQlVULCBJIGNhbnQgdmlldyB0aGUgdmlkZW8hCj4gPj4gKGZyb20g
+dGhlIGR2YiBkZXZpY2UpCj4gPj4KPiA+PiBBbHNvICJkdmJkYXRlIiBjb21tYW5kIHdvcmtzICh0
+aGF0IHJldHVybnMgdGltZSBhbmQgZGF0ZSBmcm9tIHRoZSAKPiA+PiBhaXIsIEkgcHJlc3VtZSku
+IEJ1dCBub3QgYSBjb21tYW5kIGFzICJkdmJzbm9vcCIgKHRoYXQgbmVlZCAKPiA+PiAiL2Rldi9k
+dmIvYWRhcHRlcjAvZHZyIikuCj4gPj4KPiA+PiBBIHNhbXBsZTogKCBJdHMgc3RlcCBieSBzdGVw
+IG9mIHlvdXIgZ3VpZGU6Cj4gPj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBo
+cC9UZXN0aW5nX3lvdXJfRFZCX2RldmljZSApCj4gPj4KPiA+PiBJbiBvbmUgY29uc29sZSBJIHJ1
+bjogLy50emFwIyB0emFwIC1yIC1jIGNoYW5uZWxzLmNvbmYgIlRWNCDDlnJlc3VuZCIgCj4gPj4g
+KCBhbmQgYXJlIGdldHRpbmcgbGluZXMgYXM6Cj4gPj4gc3RhdHVzIDFmIHwgc2lnbmFsIGMzYzMg
+fCBzbnIgZmZmZiB8IGJlciAwMDAwMDA0YSB8IHVuYyAwMDAwMDAwMCB8IAo+ID4+IEZFX0hBU19M
+T0NLCj4gPj4gc3RhdHVzIDFmIHwgc2lnbmFsIGMzYzMgfCBzbnIgZmZmZiB8IGJlciAwMDAwMDA0
+ZSB8IHVuYyAwMDAwMDAwMCB8IAo+ID4+IEZFX0hBU19MT0NLCj4gPj4gLi4uCj4gPj4gQU5EIGlu
+IGFub3RoZXIgY29uc29sZToKPiA+PiBtcGxheWVyIC12IC9kZXYvZHZiL2FkYXB0ZXIwL2R2cjAK
+PiA+PiAodGhhdHMgYmFzaWNhbGx5IGhhbHRzIHdpdGhvdXQgYW55IGZ1cnRoZXIgaW5mb3JtYXRp
+b24pCj4gPj4KPiA+PiBBTFNPIGlmIEkgdHlwZTogImNhdCAvZGV2L2R2Yi9hZGFwdGVyMC9kdnIw
+ID4gYWZpbGUudHh0Igo+ID4+IChCdXQgdGhlbiBhZ2FpbiwgImFmaWxlLnR4dCIgcmVtYWlucyBl
+bXB0eSkKPiA+Pgo+ID4+IENvbmNsdXNpb24sIC9kZXYvZHZiL2FkYXB0ZXIwL2R2cjAgbmV2ZXIg
+cmV0dXJucyBhbnl0aGluZy4gVGhpcyAKPiA+PiAiL2Rldi9kdmIvYWRhcHRlcjAvZHZyIiBpc250
+IHByb3Blci4gTXVzdCBiZSBhIExpbnV4LWtlcm5lbC9tb2R1bGUgCj4gPj4gcHJvYmxlbS4uCj4g
+Pj4gICAKPiA+Cj4gPiBOb3Qgc28gZmFzdCEgSWYgdGhlIGNoYW5uZWwgaXMgZW5jcnlwdGVkLCB0
+aGlzIGlzIHByZWNpc2VseSB3aGF0IHlvdSAKPiA+IHdpbGwgb2JzZXJ2ZSAuLi4gdGhvdWdoLCBi
+ZWNhdXNlIHRoaXMgaXMgb3Zlci10aGUtYWlyIHRoYXQgd2UncmUgCj4gPiB0YWxraW5nIGFib3V0
+LCB0aGlzIHNlZW1zIGxlc3MgbGlrZWx5IHRvIGJlIHRoZSBjYXNlIChidXQgeW91IHdpbGwgCj4g
+PiBoYXZlIHRvIGNvbmZpcm0gbm9uZXRoZWxlc3MpLiAgCj4gPiBJJ20gbW9yZSBpbmNsaW5lZCB0
+byB0aGluayB0aGF0IHRoaXMgaXMgcmVsYXRlZCB0byBhbiBpc3N1ZSB3aXRoIAo+ID4gc3RyZWFt
+IGlkZW50aWZpZXJzLiAgSXMgU3dlZGVuIHVzaW5nIE1QNCBub3c/IFNvbWUgZnVydGhlciBxdWVz
+dGlvbnMsIAo+ID4gd2hhdCBkcml2ZXJzIGFyZSB5b3UgdXNpbmcgKGRpc3RybyBvciByZWNlbnQg
+TGludXhUVik/Cj4gPiBXaGF0IGR2Yi1hcHBzIC4uLiBDaHJpc3RvcGhlIGhhZCB1cGRhdGVkIHRo
+ZSBkdmItYXBwcyBub3QgdG8gbG9uZyBhZ28gCj4gPiB3aXRoIHNvbWUgY2hhbmdlcyBpbiByZWdh
+cmRzIHRvIE1QNCBzdHJlYW1zIChjYW4ndCByZW1lbWJlciB0aGUgZXhhY3QgCj4gPiBuYXR1cmUs
+IGJ1dCBwZXJoYXBzIHlvdSBzaG91bGQgZ3JhYiBhIG5ldyBjb3B5IGZyb20gTGludXhUViBhbmQg
+dHJ5IAo+ID4gd2l0aCB0aG9zZSkuCj4gPgo+IFdoYXRldmVyIGZyb250ZW5kIEkgdGVzdCwgaXQg
+d2lsbCBub3Qgd29yay4KPiBUaGUgZGV2aWNlLCBuZXZlciBzdHJlYW0gYW55dGhpbmcuCj4gCj4g
+SSBjYW4gdHVuZSwgYnV0IG5vdCB2aWV3IHRoZSB2aWRlby4KPiAodGhhdHMgaXQpCj4gCj4gCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
+IG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9y
+Zy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
