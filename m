@@ -1,18 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
-	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <torgeir@pobox.com>) id 1JSsTO-0005vc-Ao
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 12:23:18 +0100
-Message-Id: <7543B999-C26B-46A9-929D-C5CA625A131A@pobox.com>
-From: Torgeir Veimo <torgeir@pobox.com>
-To: Adam Nielsen <a.nielsen@shikadi.net>
-In-Reply-To: <47BFD5F4.3030805@shikadi.net>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Sat, 23 Feb 2008 21:22:44 +1000
-References: <47BFD5F4.3030805@shikadi.net>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Is there a daemon style program for scheduled DVB
- recording?
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from wx-out-0506.google.com ([66.249.82.237])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <christophpfister@gmail.com>) id 1JOBN5-0004oB-MG
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 13:33:23 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so3613684wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 04:33:22 -0800 (PST)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Sun, 10 Feb 2008 13:33:12 +0100
+References: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
+In-Reply-To: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200802101333.12804.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,37 +24,41 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-On 23 Feb 2008, at 18:14, Adam Nielsen wrote:
-
-> If you were setting up a headless machine to record TV shows, what
-> programs would you use to do this?  Ideally I'd like the shows dumped
-> into a local directory, so that I can watch them over NFS with  
-> mplayer,
-> but I'm open to alternatives.
+Am Dienstag 05 Februar 2008 schrieb steve.goodey@bt.com:
+> Hello,
 >
-> I really want to avoid running a whole "media centre" program like
-> MythTV, VDR, etc. as I'd like this to be lean and clean and I don't  
-> mind
-> using the command line for playback.
+> Apologies if this is the wrong list to ask.
+>
+> Perhaps you could answer a few questions for me?
+>
+> Sudbury, in England, is one of the sites with two DVB-T transmitters,
+> Sudbury and SudburyB, main transmitter Tacolneston. On my Mythtv box I
+> have found /usr/share/doc/dvb-utils/examples/scan/dvb-t/uk-SudburyB but
+> there is no file for Sudbury. Now according to the www.ukfree.tv site
+> Sudbury has six muxes, SudburyB has only one for ITV. I suspect I am
+> missing something here, why is there only one frequency file for Sudbury
+> and why is called SudburyB?
 
+I guess it's just wrongly named; will fix that.
 
-Obviously, you seem to have never actually tried VDR. It's extremely  
-lean and clean and it don't need to run with any output. You can  
-telnet into it and schedule recordings and it's easy to view  
-recordings over NFS, or use a streaming media client directly towards  
-VDR with a suitable streaming plugin.
+> Should there be two files, as for Dover for example, uk-Sudbury with six
+> muxes and uk_SudburyB with one?
 
+Geographically close transmitters should be in a single file; oh well, will 
+fix that, too ...
 
--- 
-Torgeir Veimo
-torgeir@pobox.com
+> I assume MythTv does not use these files during tuning?
+>
+> Regards,
+>
+> Steve Goodey
 
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
