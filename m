@@ -1,33 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LLfF1q014969
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 16:41:15 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LLej9h024945
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 16:40:45 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so115681wfc.6
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 13:40:41 -0800 (PST)
-Message-ID: <175f5a0f0802211340i15d067fnc98ca54266b6a645@mail.gmail.com>
-Date: Thu, 21 Feb 2008 22:40:40 +0100
-From: "H. Willstrand" <h.willstrand@gmail.com>
-To: "Thomas Kaiser" <linux-dvb@kaiser-linux.li>
-In-Reply-To: <47BDED4A.6040404@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ALsA7i000792
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 16:54:10 -0500
+Received: from smtp-out3.blueyonder.co.uk (smtp-out3.blueyonder.co.uk
+	[195.188.213.6])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1ALrhC9014785
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 16:53:44 -0500
+Received: from [172.23.170.138] (helo=anti-virus01-09)
+	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1JOK7K-0007nu-Ce
+	for video4linux-list@redhat.com; Sun, 10 Feb 2008 21:53:42 +0000
+Received: from [82.47.98.230] (helo=[192.168.10.10])
+	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1JOK7J-0001Y8-PN
+	for video4linux-list@redhat.com; Sun, 10 Feb 2008 21:53:41 +0000
+Message-ID: <47AF7265.1070803@blueyonder.co.uk>
+Date: Sun, 10 Feb 2008 21:53:41 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <47BC8BFC.2000602@kaiser-linux.li>
-	<20080221012048.GA2924@daniel.bse>
-	<175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
-	<47BD67C8.5000305@kaiser-linux.li>
-	<175f5a0f0802210443i6f1d46afm730b9f3b27121ed1@mail.gmail.com>
-	<47BDC928.4040409@kaiser-linux.li>
-	<175f5a0f0802211212s104e4808wdab5c6806eb7849f@mail.gmail.com>
-	<47BDE1B9.4040309@kaiser-linux.li>
-	<175f5a0f0802211306lc0c6fcfw8ad9ef2e417c3845@mail.gmail.com>
-	<47BDED4A.6040404@kaiser-linux.li>
-Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: V4L2_PIX_FMT_RAW
+To: video4linux-list <video4linux-list@redhat.com>
+References: <18b102300801311533y65b32651v651e853ae3aea3d4@mail.gmail.com>	<20080201001958.GA21437@plankton.ifup.org>	<18b102300802011808w7a0ac750qf491d1aaa59efca3@mail.gmail.com>	<20080207233507.GA21273@plankton.ifup.org>	<18b102300802100801h295d15aan810313ae18c6fb6b@mail.gmail.com>
+	<18b102300802100802p282b6d4fs4f45822b29d6d3d2@mail.gmail.com>
+In-Reply-To: <18b102300802100802p282b6d4fs4f45822b29d6d3d2@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: gspca drivers
+Reply-To: sboyce@blueyonder.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,140 +37,123 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Feb 21, 2008 at 10:29 PM, Thomas Kaiser
-<linux-dvb@kaiser-linux.li> wrote:
->
-> H. Willstrand wrote:
->  > On Thu, Feb 21, 2008 at 9:40 PM, Thomas Kaiser
->  > <linux-dvb@kaiser-linux.li> wrote:
->  >> H. Willstrand wrote:
->  >>  > On Thu, Feb 21, 2008 at 7:55 PM, Thomas Kaiser
->  >>  > <linux-dvb@kaiser-linux.li> wrote:
->  >>  >> H. Willstrand wrote:
->  >>  >>  > On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
->  >>  >>  > <linux-dvb@kaiser-linux.li> wrote:
->  >>  >>  >> H. Willstrand wrote:
->  >>  >>  >>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
->  >>  >>  >>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
->  >>  >>  >>  >>  > What's the problem with having a name of the formalized data in the
->  >>  >>  >>  >>  > video stream? ie raw do not mean undefined.
->  >>  >>  >>  >>
->  >>  >>  >>  >>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x for an
->  >>  >>  >>  >>  exploding number of proprietary formats that are quite similar but still
->  >>  >>  >>  >>  incompatible. It makes sense for formats that are used by more than one
->  >>  >>  >>  >>  driver.
->  >>  >>  >>  >
->  >>  >>  >>  > Correct, the number of unique pixel formats should be kept down.
->  >>  >>  >>  > Again, comparing with digital cameras there are >200 proprietary
->  >>  >>  >>  > formats and there is a "clean-up" on-going where the "market" is
->  >>  >>  >>  > aiming for a OpenRAW.
->  >>  >>  >>  >
->  >>  >>  >>  > However, by declaring a generic RAW format (which is then driver
->  >>  >>  >>  > specific) doesn't help the user mode app developers. Calling a
->  >>  >>  >>  > multitude of libraries to see if you get lucky might not be a good
->  >>  >>  >>  > idea.
->  >>  >>  >>  >
->  >>  >>  >>  > Still, I'm suspectious about the definition "raw" used here.
->  >>  >>  >>  > RAW should mean unprocessed image data:
->  >>  >>  >>  > * no white balance adjustment
->  >>  >>  >>  > * no color saturation adjustments
->  >>  >>  >>  > * no contrast adjustments
->  >>  >>  >>  > * no sharpness improvements
->  >>  >>  >>  > * no compression with loss
->  >>  >>  >>
->  >>  >>  >>  Yes, raw means "as it is" no stripping, decoding  or removing of SOF headers are
->  >>  >>  >>  done in the driver. May be V4L2_PIX_FMT_AII (AII -> As It Is) is the better name?
->  >>  >>  >>
->  >>  >>  >
->  >>  >>  > I struggle with the probability to find several CCD's having similar
->  >>  >>  > formats. There aren't so many manifactors of CCD's but they truelly
->  >>  >>  > can generate divergeting formats. Worst case scenario means >200
->  >>  >>  > V4L2_PIX_FMT_RAW_...
->  >>  >>  >
->  >>  >>  > I think RAW is a OK name, the question is if the subcomponents of the
->  >>  >>  > RAW formats has similarities, if so they might be standardized.
->  >>  >>  > Looking into different Sony CCD's it's clearly possible, but after the
->  >>  >>  > CCD the data has to be buffered, packaged and transmitted which of
->  >>  >>  > course can be done in several ways...
->  >>  >>  >
->  >>  >>  > Cheers,
->  >>  >>  > Harri
->  >>  >>  >
->  >>  >>  >>  >
->  >>  >>  >>  > So, by looking for similarities in the "raw" formats where available
->  >>  >>  >>  > there should be a potential to consolidate them.
->  >>  >>  >>  >
->  >>  >>  >>  >>
->  >>  >>  >>  >>  > I don't see how separate RAW ioctl's will add value to the V4l2 API,
->  >>  >>  >>  >>  > it fits into the current API.
->  >>  >>  >>  >>
->  >>  >>  >>  >>  Yes, it does. Each driver having multiple raw formats just needs a
->  >>  >>  >>  >>  private control id to select one.
->  >>  >>  >>  >>
->  >>  >>  >>  > I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
->  >>  >>  >>  > should do the job.
->  >>  >>  >>  > I.e. I think there should be strong reasons to break V4L2 API behavior.
->  >>  >>  >>  >
->  >>  >>  >>  > Harri
->  >>  >>
->  >>  >>  Actually, in a webcam you have the image sensor and a usb bridge. Usually, the
->  >>  >>  sensor capture a picture in Bayer pattern. This gets forwarded to the usb
->  >>  >>  bridge. The usb bridge may or may not transfer the picture to an other format
->  >>  >>  and/or compress it with a standard compression algo or a proprietary compression
->  >>  >>  algo. The resulting data stream will be transmitted over the usb interface.
->  >>  >>
->  >>  >
->  >>  > Yes, the USB bridge buffers, packages and transmits.
->  >>  >
->  >>  >>  I just would like to get this resulting stream to user space without
->  >>  >>  manipulation/conversion/decoding of the stream in the kernel module.
->  >>  >>
->  >>  >>  That means we don't know what the format is in this data which comes trough the
->  >>  >>  usb interface. That's way I call it raw.
->  >>  >>
->  >>  >>  At the moment with V4L2, I have to forward a stream to user space which is in a
->  >>  >>  format v4l2 knows. That means I have sometimes to do heavy data processing in
->  >>  >>  the kernel module to decode/convert the data from the usb stream to a known v4l2
->  >>  >>  video format.
->  >>  >>
->  >>  >
->  >>  > Drivers should not do any decoding / converting, it's not allowed in
->  >>  > kernel mode.
->  >>  > But you are right, there are a number of V4L1 exceptions:
->  >>  > AR M64278 (arv.c) converts YUV422 to YUV422P
->  >>  > QuickCam (bw-qcam.c) converts RAW to a useful format :)
->  >>  > CPiA (cpia.c) converts 420 to different RGB formats
->  >>  > OmniVision (ov511.c) converts from YUV4:0:0
->  >>  > PWC (V4L2) does decoding
->  >>
->  >>  You forgot gspca [1](support of 260 webcams at the moment) and here we even do
->  >>  jpeg decoding in kernel space to get the proper format for v4l1!
->  >>
->  >>
->  >>  > ...
->  >>  >
->  >>  > However, the Webcams provides only a limited set of formats and the
->  >>  > "raw" are usually available. New drivers with proprietary "raw"
->  >>  > formats should be added to videodev2.h
->  >>
->  >>  That means you agree with me?
->  >>
->  >
->  > Did so from start :)
->  > With the small exception, I still beleive that all RAW formats should
->  > be distinct, not one generic V4L2_PIX_FMT_RAW.
->
->  Yes and No, It all depends on how the user space app can handle the raw
->  "unknown" stream. But as I wrote earlier, this is an other story ;-)
->
->  So, now, I have to ask Mauro to include this?
->  Or what is the proper way to get this official?
->
+James Klaas wrote:
+> Sorry, forgot to send to video4linux list as well.
+> 
+> ---------- Forwarded message ----------
+> From: James Klaas <jklaas@appalachian.dyndns.org>
+> Date: Feb 10, 2008 11:01 AM
+> Subject: Re: gspca drivers
+> To: Brandon Philips <brandon@ifup.org>
+> 
+> 
+> On 2/7/08, Brandon Philips <brandon@ifup.org> wrote:
+>> On 21:08 Fri 01 Feb 2008, James Klaas wrote:
+>>> On 1/31/08, Brandon Philips <brandon@ifup.org> wrote:
+>>>> On 18:33 Thu 31 Jan 2008, James Klaas wrote:
+>>>>> I was hoping to get my webcam working with the latest v4l-dvb sources.
+>>>>>  After reading about on this list and elsewhere, I ran:
+>>>>>
+>>>>> # make kernel-links
+>>>>>
+>>>>> from my v4l-dvb directory in order to modify my current linux sources
+>>>>> to use the v4l-dvb drivers.  Then I went to my gspca directory and ran
+>>>>> the "gspca_build" script:
+>>>>>
+>>>>> ./gspca_build
+>>>>>
+>>>>>  REMOVE the old module if present
+>>>>> Unknown symbol in module, or unknown parameter (see dmesg)
+>>>>>
+>>>>>  PRINT COMPILATION MESSAGES if ERRORS look kgspca.err
+>>>>> make -C /lib/modules/`uname -r`/build SUBDIRS=/usr/src/modules/gspca
+>>>>> CC=cc modules
+>>>>> make[1]: Entering directory `/usr/src/linux-source-2.6.22'
+>>>>>   CC [M]  /usr/src/modules/gspca/gspca_core.o
+>>>>> /usr/src/modules/gspca/gspca_core.c:2542: error: unknown field
+>>>>> 'hardware' specified in initializer
+>>>> Are you using the latest gspca driver?  The hardware field was removed
+>>>> months ago.
+>>> [ 1026.765596] gspca: disagrees about version of symbol video_devdata
+>> ...
+>>> [ 1977.737339] gspca: Unknown symbol video_device_release
+>> Did you "make install" the v4l tree you built against and make sure none
+>> of the old video modules were loaded (see lsmod) when you modprobe'd
+>> gspca?
+>>
+>> Thanks,
+>>
+>>         Brandon
+>>
+> 
+> I checked the installed versions of videodev and gspca and both are
+> the same versions as the versions in the build directories, so they
+> installed fine.  I also checked the depends for videodev, v4l2-common
+> and v4l1-compat, and those were also the correct versions.
+> 
+> I double checked to make sure there weren't any modules left over in
+> other directories in /lib/modules/`uname -r` and didn't find any.
+> 
+> Since the machine in question also has a PCI video4linux device in it,
+> the drivers for that card already load the videodev modules.
+> 
+> James
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
 
-Correct.
+Something isn't quite right, the latest driver 20071224 is OK on the 
+latest 2.6.24-git kernels and the precious one 20071214 also built going 
+way back. These are the lines in 20071224.
+tindog:/usr/src/gspcav1-20071224 # grep -rn hardware  *
+changelog:46:   hardware.:)
+Etoms/et61xx51.h:3:# This driver is design for embedded Linux hardware 
+but should work happy
+gspca_core.c:1345: 
+spca50x->mode = spca50x->mode_cam[j].mode;      // overwrite by the 
+hardware mode
+gspca_core.c:1348:                                      }       // end 
+match hardware mode
+gspca_core.c:1361:/* nothing todo hardware found stream */
+gspca_core.c:1837:* a process, not as read from camera hardware.
+gspca_core.c:2135:/* exclude hardware channel reserved */
+gspca_core.c:2613:      .hardware = VID_HARDWARE_GSPCA,
+gspca.h:412:/* What we think the hardware is currently set to */
+READ_AND_INSTALL:264:adjust video0 to your hardware
+Sunplus/spca505.dat:513:    {0x04, 0x41, 0x01},         //hardware 
+snapcontrol
+Sunplus/spca561-OSX.h:204:    {0, 0x0001, 0x8200},      // OprMode to be 
+executed by hardware
+Sunplus/spca561-OSX.h:207:    {0, 0x0001, 0x8200},      // OprMode to be 
+executed by hardware
+Sunplus/spca561.h:204:    {0, 0x0001, 0x8200},  // OprMode to be 
+executed by hardware
+Sunplus/spca561.h:207:    {0, 0x0001, 0x8200},  // OprMode to be 
+executed by hardware
 
-Cheers,
-Harri
+tindog:/usr/src/gspcav1-20071224 # grep -rn video_device_release *
+gspca_core.c:2616:      .release = video_device_release,
+gspca_core.c:4325:                      video_device_release(spca50x->vdev);
+Binary file gspca_core.o matches
+Binary file gspca.ko matches
+gspca.mod.c:27: { 0x7ff0c04f, "video_device_release" },
+Binary file gspca.mod.o matches
+Binary file gspca.o matches
+utils/spcaCompat.h:27:static inline void video_device_release(struct 
+video_device *vdev)
+
+Check if this tallies with what you have.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
 --
 video4linux-list mailing list
