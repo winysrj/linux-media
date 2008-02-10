@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-From: Andreas <linuxdreas@launchnet.com>
-To: Steven Toth <stoth@linuxtv.org>
-Date: Mon, 11 Feb 2008 23:10:38 -0800
-References: <200802111739.47956.linuxdreas@launchnet.com>
-	<47B0FB3F.7070207@linuxtv.org>
-In-Reply-To: <47B0FB3F.7070207@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802112310.38960.linuxdreas@launchnet.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
+Received: from f147.mail.ru ([194.67.57.28])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1JO64L-0004xh-T2
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 07:53:41 +0100
+Received: from mail by f147.mail.ru with local id 1JO63r-000ABx-00
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 09:53:11 +0300
+From: Igor <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Sun, 10 Feb 2008 09:53:11 +0300
+References: <2f1708600802091218l551a0190h6d2d83a9a134ef25@mail.gmail.com>
+In-Reply-To: <2f1708600802091218l551a0190h6d2d83a9a134ef25@mail.gmail.com>
+Message-Id: <E1JO63r-000ABx-00.goga777-bk-ru@f147.mail.ru>
+Subject: Re: [linux-dvb] =?koi8-r?b?U2t5R3JhYmJlciBmb3IgTGludXg=?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,34 +21,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-QW0gTW9udGFnLCAxMS4gRmVicnVhciAyMDA4IDE3OjQ5OjUxIHNjaHJpZWJlbiBTaWU6Cj4gQW5k
-cmVhcyB3cm90ZToKPiA+IEhhbGxvLAo+ID4gSSBib3VnaHQgdGhlIGNhcmQgdG9kYXkgYW5kIG5h
-dHVyYWxseSBJIGFtIHdvbmRlcmluZyBob3cvd2hhdC93aGVuIHRoZQo+ID4gY2FyZCBpcyBzdXBw
-b3J0ZWQ/Cj4gPgo+ID4gVGhhbmsgeW91Cj4KPiBMb29rIGZvciB0aGUgY3gxOCBkZXZlbG9wbWVu
-dCB0cmVlcyBvbiBsaW51eHR2Lm9yZwo+Cj4gLSBTdGV2ZQoKU3RldmUsClRoYW5rIHlvdSwgSSBj
-aGVja2VkIG91dCBIYW5zJyBjeDE4IHRyZWUgYW5kIHRyaWVkIHRvIGNvbXBpbGUgdGhlIG1vZHVp
-bGVzLiAKT24gbXkgQU1EIHg4Ni02NCAoS2VybmVsIDIuNi4yNC4xKSBJIGdldCBhbiBlcnJvciBk
-dXJpbmcgY29tcGlsYXRpb24uIEFueSAKaWRlYSBob3cgSSBjYW4gZml4IHRoYXQ/IEdvaW5nIGZ1
-cnRoZXIgd2l0aCBtYWtlIC1rIGNvbXBpbGVzIHRoZSBvdGhlciAKbW9kdWxlcywgYnV0IHRoZW4g
-bWFrZSBpbnN0YWxsIGZhaWxzIHdpdGggYW4gZXJyb3IgYWJvdXQgc3RyaXBwaW5nIHRoZSAKZGVi
-dWcgaW5mby4KCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpt
-YWtlIC1DIC4uLy4uLy4uL2xpbnV4LTIuNi4yNC4xLTM1IE89Li4vbGludXgtMi42LjI0LjEtMzUt
-b2JqL3g4Nl82NC9kZWZhdWx0IAptb2R1bGVzCiAgQ0MgW01dICAvaG9tZS9hbmRyZWFzL0RvY3Vt
-ZW50cy9jeDE4L3Y0bC9lbTI4eHgtYXVkaW8ubwpJbiBmaWxlIGluY2x1ZGVkIGZyb20gL2hvbWUv
-YW5kcmVhcy9Eb2N1bWVudHMvY3gxOC92NGwvZW0yOHh4LWF1ZGlvLmM6Mzk6Ci91c3Ivc3JjL2xp
-bnV4LTIuNi4yNC4xLTM1L2luY2x1ZGUvc291bmQvY29yZS5oOjI4MTogZXJyb3I6ICdTTkRSVl9D
-QVJEUycgCnVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pCi9ob21lL2FuZHJlYXMv
-RG9jdW1lbnRzL2N4MTgvdjRsL2VtMjh4eC1hdWRpby5jOjU4OiBlcnJvcjogYXJyYXkgaW5kZXgg
-aW4gCmluaXRpYWxpemVyIG5vdCBvZiBpbnRlZ2VyIHR5cGUKL2hvbWUvYW5kcmVhcy9Eb2N1bWVu
-dHMvY3gxOC92NGwvZW0yOHh4LWF1ZGlvLmM6NTg6IGVycm9yOiAobmVhciAKaW5pdGlhbGl6YXRp
-b24gZm9yICdpbmRleCcpCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PQoKLS0gCkdydcOfCkFuZHJlYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
-b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWR2Yg==
+Skynet
+
+skynet0897b6sbf1_0a43
+http://dump.ru/files/n/n035334938/
+
+
+Igor
+
+
+> Is there any linux dvb apps for Satellite Data Grabbing ?
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
