@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QGf2Or010225
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 11:41:02 -0500
-Received: from mail.mediaxim.be (dns.adview.be [193.74.142.132])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QGeTEv021284
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 11:40:30 -0500
-Received: from localhost (mail.mediaxim.be [127.0.0.1])
-	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id 046CB34020
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 17:40:28 +0100 (CET)
-Received: from [10.32.13.124] (unknown [10.32.13.124])
-	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id DB6CA3401F
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 17:40:27 +0100 (CET)
-Message-ID: <47C440FB.8080705@mediaxim.be>
-Date: Tue, 26 Feb 2008 17:40:27 +0100
-From: Michel Bardiaux <mbardiaux@mediaxim.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ANgtGF006708
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:55 -0500
+Received: from smtp.nexicom.net (smtp1.nexicom.net [216.168.96.23])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1ANgPJZ001248
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:25 -0500
+Received: from mail.lockie.ca (dyn-dsl-mb-76-75-91-170.nexicom.net
+	[76.75.91.170])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id m1ANj97X008165
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:45:10 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 47EC5CAA40
+	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:23 -0500 (EST)
+Message-ID: <47AF8BE4.80001@lockie.ca>
+Date: Sun, 10 Feb 2008 18:42:28 -0500
+From: James Lockie <bjlockie@lockie.ca>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
-	<20080226133839.GE26389@devserv.devel.redhat.com>
-In-Reply-To: <20080226133839.GE26389@devserv.devel.redhat.com>
+To: Video 4 Linux Mailing List <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: Grabbing 4:3 and 16:9
+Content-Transfer-Encoding: 7bit
+Subject: OV511 driver in linux-2.6.24.1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,31 +31,7 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Alan Cox wrote:
-> On Tue, Feb 26, 2008 at 02:02:00PM +0100, Daniel Glöckner wrote:
->>> 2. How do I setup the bttv so that it does variable anamorphosis instead 
->>> of letterboxing? If that is at all possible of course...
->> You can't. Bttv can't stretch vertically.
-> 
-> Use an OpenGL texture is probably the easiest for that kind of effect.
-
-I didnt want the stretch per se, but to avoid losing info because of the 
-letterboxing (the final project involves reading small print from film 
-credits on the captured MPEGs). But Daniel wrote that the 16:9 analog 
-broadcasts have only 432 lines, so the info is not there in the first 
-place. So that effect isnt an option for me. But thanks anyway.
-
--- 
-Michel Bardiaux
-R&D Director
-T +32 [0] 2 790 29 41
-F +32 [0] 2 790 29 02
-E mailto:mbardiaux@mediaxim.be
-
-Mediaxim NV/SA
-Vorstlaan 191 Boulevard du Souverain
-Brussel 1160 Bruxelles
-http://www.mediaxim.com/
+I am trying to compile a new kernel but I can't find the OV511 driver.
 
 --
 video4linux-list mailing list
