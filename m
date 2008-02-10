@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail1.perspektivbredband.net ([81.186.254.13])
+Received: from wa-out-1112.google.com ([209.85.146.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <p.blomqvist@lsn.se>) id 1JNdaH-0006hZ-Rb
-	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 01:28:45 +0100
-Message-ID: <47ACF3AF.40201@lsn.se>
-Date: Sat, 09 Feb 2008 01:28:31 +0100
-From: Per Blomqvist <p.blomqvist@lsn.se>
+	(envelope-from <hansson.patrik@gmail.com>) id 1JOEKm-0000GN-PF
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 16:43:12 +0100
+Received: by wa-out-1112.google.com with SMTP id m28so1512051wag.13
+	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 07:43:07 -0800 (PST)
+Message-ID: <8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+Date: Sun, 10 Feb 2008 16:43:06 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1202403104.5780.42.camel@eddie.sth.aptilo.com>
 MIME-Version: 1.0
-To: CityK <CityK@rogers.com>
-References: <47AB7865.5090008@lsn.se> <47AC7925.8050709@rogers.com>
-In-Reply-To: <47AC7925.8050709@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help! I cant view video. BUT I can scan!!
+Content-Disposition: inline
+References: <47A98F3D.9070306@raceme.org> <1202326173.20362.23.camel@youkaida>
+	<1202327817.20362.28.camel@youkaida>
+	<1202330097.4825.3.camel@anden.nu> <47AB1FC0.8000707@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,113 +30,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The channel isn't encrypted.
-(I have tested with many public chanels, that I know isnt encrypted. =
+Just wanted to say that I=B4m experiencing the same.
+Using latest rev (the one with patches merged) + unknown remote key patch.
+Ubuntu 7.10
 
-Cant get any video out)
-
-Im Debian-tesing user, and this is a freshly installed system. On a amd64..
-(as I mentioned, in previous email)
-
-Turns out "/dev/dvb/adapter0/dvr0" isnt the only device that doesnt work.
-(framebuffer didnt work ether, "/dev/fd0" are missing totaly, regardless =
-
-of bootloader vga=3D791 options or so).
-
-I removed (by now mistake) older kernels when I distupgraded, cant =
-
-nerrow down the error search, by testing other linux-kernels.
-(since I only have one, the 2.6.22-3-amd64)
-
-And snapshot.debian.net didnt record any older.. Only option left, to =
-
-start compilling by myslef.
-(but to rough)
-
-Probably testing another distro (Ubunto) next week.
+Also having a lot of "prebuffer timeout 10 times" i the middle of shows.
 
 
-CityK wrote:
-> Per Blomqvist wrote:
->> I just signed up for this mailing-list ( I hope this is the right =
-
->> forum..   =
-
+On Feb 7, 2008 5:51 PM, Jonas Anden <jonas@anden.nu> wrote:
+> > Do you have a way to automate this ? Ie to detect that a tuner is gone ?
 >
-> Hi, yes, you're in the right place.
+> No, I have yet to find any log message that says things aren't OK.
 >
->> I can "dvbscan" and  "tzap", and gets indication of a good signal. =
-
->> BUT, I cant view the video!
->> (from the dvb device)
->>
->> Also "dvbdate" command works (that returns time and date from the =
-
->> air, I presume). But not a command as "dvbsnoop" (that need =
-
->> "/dev/dvb/adapter0/dvr").
->>
->> A sample: ( Its step by step of your guide:
->> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device )
->>
->> In one console I run: /.tzap# tzap -r -c channels.conf "TV4 =D6resund" =
-
->> ( and are getting lines as:
->> status 1f | signal c3c3 | snr ffff | ber 0000004a | unc 00000000 | =
-
->> FE_HAS_LOCK
->> status 1f | signal c3c3 | snr ffff | ber 0000004e | unc 00000000 | =
-
->> FE_HAS_LOCK
->> ...
->> AND in another console:
->> mplayer -v /dev/dvb/adapter0/dvr0
->> (thats basically halts without any further information)
->>
->> ALSO if I type: "cat /dev/dvb/adapter0/dvr0 > afile.txt"
->> (But then again, "afile.txt" remains empty)
->>
->> Conclusion, /dev/dvb/adapter0/dvr0 never returns anything. This =
-
->> "/dev/dvb/adapter0/dvr" isnt proper. Must be a Linux-kernel/module =
-
->> problem..
->>   =
-
+> Mythbackend seems to just fail its recordings and not create the
+> recording file, which is kind of annoying. In my point of view, it would
+> be better if mythbackend would *crash*, since this would make the other
+> backend (which uses analog tuners) take over the recording. It wouldn't
+> be the same quality, but at least the show would be recorded...
 >
-> Not so fast! If the channel is encrypted, this is precisely what you =
-
-> will observe ... though, because this is over-the-air that we're =
-
-> talking about, this seems less likely to be the case (but you will =
-
-> have to confirm nonetheless).  =
-
-> I'm more inclined to think that this is related to an issue with =
-
-> stream identifiers.  Is Sweden using MP4 now? Some further questions, =
-
-> what drivers are you using (distro or recent LinuxTV)?
-> What dvb-apps ... Christophe had updated the dvb-apps not to long ago =
-
-> with some changes in regards to MP4 streams (can't remember the exact =
-
-> nature, but perhaps you should grab a new copy from LinuxTV and try =
-
-> with those).
+>   // J
 >
-Whatever frontend I test, it will not work.
-The device, never stream anything.
-
-I can tune, but not view the video.
-(thats it)
-
-
--- =
-
-Mvh, *Per **Blomqvist*
-Web: http://phoohb.shellkonto.se
-Telnr: +46 70-3355632
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
