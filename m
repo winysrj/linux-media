@@ -1,18 +1,18 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pentafluge.infradead.org ([213.146.154.40])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+cb85485ae34f2f3dd4ef+1638+infradead.org+dwmw2@pentafluge.srs.infradead.org>)
-	id 1JQpsq-0001OK-QQ
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 21:13:08 +0100
-From: David Woodhouse <dwmw2@infradead.org>
-To: clive <clive@winpe.com>
-In-Reply-To: <47B88314.3030405@winpe.com>
-References: <47B88314.3030405@winpe.com>
-Date: Sun, 17 Feb 2008 20:13:02 +0000
-Message-Id: <1203279182.3011.11.camel@pmac.infradead.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB Radio
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail1.perspektivbredband.net ([81.186.254.13])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <p.blomqvist@lsn.se>) id 1JO2tQ-0003NV-WF
+	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 04:30:13 +0100
+Received: from [192.168.2.103]
+	(201.4.185.213.se-stf.res.dyn.perspektivbredband.net [213.185.4.201])
+	by mail1.perspektivbredband.net (Postfix) with ESMTP id 52AEE18E032E
+	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 04:29:42 +0100 (CET)
+Message-ID: <47AE6FAD.7090909@lsn.se>
+Date: Sun, 10 Feb 2008 04:29:49 +0100
+From: Per Blomqvist <p.blomqvist@lsn.se>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] I cant view the video (again) saa7134 (..)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,20 +23,34 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello, again.
+(I have reinstalled my system, and tested Ubunto also today. Same 
+problem there)
 
-On Sun, 2008-02-17 at 18:55 +0000, clive wrote:
-> Is there a way to determine which channels are radio channels from the
-> channels.conf file?
+I cant view the video.
+(But I can tune)
 
-Channels where the video PID is zero but the audio PID isn't:
+What can I do?
 
-grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:0:[^0:]*:[^:]*$' channels.conf
+modinfo saa7134, gives alot of debugging options.
+(I tested a few, thought I saw an error for some device, but cant 
+replicate it)
 
--- 
-dwmw2
+My system, is kernel-2.6.22, on some Amd.. Media-card ":
+http://www.linuxtv.org/wiki/index.php/Asus_My_Cinema-P7131_Hybrid
+
+lsmod: (ahg
+
+Im say its the "/dev/dvb/adapter0/dvr0", thats invalid.
+
+Are there any elegant way, to sortout all kernel-modules taht handle 
+this device?
+
+HELP!
+
 
 
 _______________________________________________
