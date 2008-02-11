@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
+Received: from wr-out-0506.google.com ([64.233.184.228])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1JPjSr-0004IA-QZ
-	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 20:09:45 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so250902fge.25
-	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 11:09:43 -0800 (PST)
-Date: Thu, 14 Feb 2008 20:08:58 +0100
+	(envelope-from <hansson.patrik@gmail.com>) id 1JOewK-000692-5B
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 21:07:44 +0100
+Received: by wr-out-0506.google.com with SMTP id 68so3986959wra.13
+	for <linux-dvb@linuxtv.org>; Mon, 11 Feb 2008 12:07:42 -0800 (PST)
+Message-ID: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+Date: Mon, 11 Feb 2008 21:07:40 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080214190858.GA7831@gmail.com>
-References: <20080214164012.7b8ae26f@gaivota>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20080214164012.7b8ae26f@gaivota>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] [ANNOUNCE] linux-next and V4L/DVB linux-next
+Subject: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,16 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Feb 14, 2008 at 04:40:12PM -0200, Mauro Carvalho Chehab wrote:
+Hello
+There is not a lot being said about the Nova-T 500 the last week.
+Don=B4t know if that is a good (coders coding) or a bad (nothin
+happening) but i would like to know if there is anything we could do ?
 
-Great idea, do I understand right that it miss multiproto ?
+I can=B4t write code but maybe i can help in some other way ? Testing
+builds or whatever.
 
-Thank,
--- =
+"Just my 5 cents"
 
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
+/ Patrik Hansson
 
 _______________________________________________
 linux-dvb mailing list
