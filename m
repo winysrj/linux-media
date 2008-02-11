@@ -1,23 +1,15 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.redhat.com ([66.187.233.31])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from [212.57.247.218] (helo=glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rkeech@redhat.com>) id 1JUgoE-0006gW-Uf
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 12:20:19 +0100
-Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com
-	[172.16.52.254])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m1SBK1IW001634
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 06:20:01 -0500
-Received: from pobox.brisbane.redhat.com (pobox.brisbane.redhat.com
-	[172.16.44.10])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1SBJxeB015567
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 06:20:00 -0500
-Message-ID: <47C6990A.9010400@redhat.com>
-Date: Thu, 28 Feb 2008 22:20:42 +1100
-From: Richard Keech <rkeech@redhat.com>
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JOfFr-0008Jn-6G
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 21:27:55 +0100
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] corrupted video problem with DiBcom 3000MC/P
-	(TERRESTRIAL)
+Date: Mon, 11 Feb 2008 20:27:24 -0000
+Message-ID: <A33C77E06C9E924F8E6D796CA3D635D102396F@w2k3sbs.glcdomain.local>
+From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
+To: <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Has anyone got multiproto and TT3200 to work
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,89 +17,128 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1584178131=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi guys,
+This is a multi-part message in MIME format.
 
-I'm experiencing problems with DVB playback with MythTV.   The problems
-are restricted mainly to one channel.
-Suggestions most welcome.
+--===============1584178131==
+Content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C86CEC.82FF7601"
 
+This is a multi-part message in MIME format.
 
-Setup
+------_=_NextPart_001_01C86CEC.82FF7601
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-The tuner is a Leadtek WinFast DTV USB dongle  (driver  dib3000mc).
-I got firmware from
-http://www.linuxtv.org/downloads/firmware/dvb-usb-dibusb-6.0.0.8.fw
-The signal strength is good.  I've recently added a masthead amp to see
-if it fixed the problem but there was no change.
-OS is Fedora 8 and kernel 2.6.23.15-137.fc8.
-MythTV version is mythtv-0.20.2-174.fc8.
-CPU 1.8MHz dual core.  1GB RAM.
+If so please let me know because I am having serious issues and really
+do not know how to proceed
 
+=20
 
-Troubleshooting and mitigation
+Regards
 
-To show the problem I've got some output of femon when the problem
-commenced.
+=20
 
-status 1f | signal 44d4 | snr 0000 | ber 00000000 | unc 0000000f |
-FE_HAS_LOCK
-status 1f | signal 44f2 | snr 0000 | ber 00000030 | unc 00000019 |
-FE_HAS_LOCK
-status 1f | signal 44c3 | snr 0000 | ber 00000120 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal 44a4 | snr 0000 | ber 0000f520 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal 44c2 | snr 0000 | ber 00000000 | unc 0000022a |
-FE_HAS_LOCK
-status 1f | signal 44c0 | snr 0000 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal 44d7 | snr 0000 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal 44fc | snr 0000 | ber 00000d70 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal 44d0 | snr 0000 | ber 0001e8e0 | unc 00000210 |
-FE_HAS_LOCK
-status 1f | signal 44ab | snr 0000 | ber 00021bd0 | unc 000006d0 |
-FE_HAS_LOCK
-status 1f | signal 44c4 | snr 0000 | ber 000220d0 | unc 0000037f |
-FE_HAS_LOCK
-status 1f | signal 450e | snr 0000 | ber 00015c50 | unc 0000006c |
-FE_HAS_LOCK
-status 1f | signal 4504 | snr 0000 | ber 00013280 | unc 00000008 |
-FE_HAS_LOCK
+Michael Curtis
 
 
+------_=_NextPart_001_01C86CEC.82FF7601
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Note ber (bit error rate) increasing
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
-Signal/Noise ratio is showing as zero here which it shouldn't.  It does
-that on all channels.
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
 
-When the media player mode returns from TV mode, the output of femon
-stillshows "FE_HAS_LOCK"
-so I suspect device is decoding all the time the system is on.
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
 
-When the problem commences, changing channels and back again sometimes
-improves the situation.
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>If so please let me know because I am having serious =
+issues
+and really do not know how to proceed<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Regards<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Michael Curtis<o:p></o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------_=_NextPart_001_01C86CEC.82FF7601--
 
 
-
-Any ideas how I can get good video?
-
--- 
-G. Richard Keech                  gpg key id: F9AFA1DD
-Red Hat Asia-Pacific              key serv: pgp.mit.edu
-rkeech@redhat.com
-+61 419 036 463
-
+--===============1584178131==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1584178131==--
