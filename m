@@ -1,23 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m152CvYu014088
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:57 -0500
-Received: from mx1.suse.de (mx1.suse.de [195.135.220.2])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m152CRE9019219
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:27 -0500
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1BEneZ4013783
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 09:49:40 -0500
+Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
+	[195.188.213.8])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1BEnEsR027017
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 09:49:14 -0500
+Message-ID: <47B06068.3050003@blueyonder.co.uk>
+Date: Mon, 11 Feb 2008 14:49:12 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
 MIME-Version: 1.0
+To: James Klaas <jklaas@appalachian.dyndns.org>
+References: <18b102300801311533y65b32651v651e853ae3aea3d4@mail.gmail.com>	
+	<20080201001958.GA21437@plankton.ifup.org>	
+	<18b102300802011808w7a0ac750qf491d1aaa59efca3@mail.gmail.com>	
+	<20080207233507.GA21273@plankton.ifup.org>	
+	<18b102300802100801h295d15aan810313ae18c6fb6b@mail.gmail.com>	
+	<18b102300802100802p282b6d4fs4f45822b29d6d3d2@mail.gmail.com>	
+	<47AF7265.1070803@blueyonder.co.uk>
+	<18b102300802101712w245b7302ta4976a49bd34de5f@mail.gmail.com>
+In-Reply-To: <18b102300802101712w245b7302ta4976a49bd34de5f@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <a030ada87143b0e559ae.1202176997@localhost>
-In-Reply-To: <patchbomb.1202176995@localhost>
-Date: Mon, 04 Feb 2008 18:03:17 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org, laurent.pinchart@skynet.be
-Cc: v4l-dvb-maintainer@linuxtv.org,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	video4linux-list@redhat.com
-Subject: [PATCH 2 of 3] [v4l] Add new user class controls and deprecate
-	others
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: gspca drivers
+Reply-To: sboyce@blueyonder.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,63 +36,156 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1202175714 28800
-# Node ID a030ada87143b0e559aecb0bbd9fc1ed7384d0be
-# Parent  0810f250d078bf6159de69569828c07cb54f4389
-[v4l] Add new user class controls and deprecate others
+James Klaas wrote:
+> On 2/10/08, Sid Boyce <sboyce@blueyonder.co.uk> wrote:
+>> James Klaas wrote:
+>>> Sorry, forgot to send to video4linux list as well.
+>>>
+>>> ---------- Forwarded message ----------
+>>> From: James Klaas <jklaas@appalachian.dyndns.org>
+>>> Date: Feb 10, 2008 11:01 AM
+>>> Subject: Re: gspca drivers
+>>> To: Brandon Philips <brandon@ifup.org>
+>>>
+>>>
+>>> On 2/7/08, Brandon Philips <brandon@ifup.org> wrote:
+>>>> On 21:08 Fri 01 Feb 2008, James Klaas wrote:
+>>>>> On 1/31/08, Brandon Philips <brandon@ifup.org> wrote:
+>>>>>> On 18:33 Thu 31 Jan 2008, James Klaas wrote:
+>>>>>>> I was hoping to get my webcam working with the latest v4l-dvb sources.
+>>>>>>>  After reading about on this list and elsewhere, I ran:
+>>>>>>>
+>>>>>>> # make kernel-links
+>>>>>>>
+>>>>>>> from my v4l-dvb directory in order to modify my current linux sources
+>>>>>>> to use the v4l-dvb drivers.  Then I went to my gspca directory and ran
+>>>>>>> the "gspca_build" script:
+>>>>>>>
+>>>>>>> ./gspca_build
+>>>>>>>
+>>>>>>>  REMOVE the old module if present
+>>>>>>> Unknown symbol in module, or unknown parameter (see dmesg)
+>>>>>>>
+>>>>>>>  PRINT COMPILATION MESSAGES if ERRORS look kgspca.err
+>>>>>>> make -C /lib/modules/`uname -r`/build SUBDIRS=/usr/src/modules/gspca
+>>>>>>> CC=cc modules
+>>>>>>> make[1]: Entering directory `/usr/src/linux-source-2.6.22'
+>>>>>>>   CC [M]  /usr/src/modules/gspca/gspca_core.o
+>>>>>>> /usr/src/modules/gspca/gspca_core.c:2542: error: unknown field
+>>>>>>> 'hardware' specified in initializer
+>>>>>> Are you using the latest gspca driver?  The hardware field was removed
+>>>>>> months ago.
+>>>>> [ 1026.765596] gspca: disagrees about version of symbol video_devdata
+>>>> ...
+>>>>> [ 1977.737339] gspca: Unknown symbol video_device_release
+>>>> Did you "make install" the v4l tree you built against and make sure none
+>>>> of the old video modules were loaded (see lsmod) when you modprobe'd
+>>>> gspca?
+>>>>
+>>>> Thanks,
+>>>>
+>>>>         Brandon
+>>>>
+>>> I checked the installed versions of videodev and gspca and both are
+>>> the same versions as the versions in the build directories, so they
+>>> installed fine.  I also checked the depends for videodev, v4l2-common
+>>> and v4l1-compat, and those were also the correct versions.
+>>>
+>>> I double checked to make sure there weren't any modules left over in
+>>> other directories in /lib/modules/`uname -r` and didn't find any.
+>>>
+>>> Since the machine in question also has a PCI video4linux device in it,
+>>> the drivers for that card already load the videodev modules.
+>>>
+>>> James
+>>>
+>>> --
+>>> video4linux-list mailing list
+>>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>
+>>>
+>> Something isn't quite right, the latest driver 20071224 is OK on the
+>> latest 2.6.24-git kernels and the precious one 20071214 also built going
+>> way back. These are the lines in 20071224.
+>> tindog:/usr/src/gspcav1-20071224 # grep -rn hardware  *
+>> changelog:46:   hardware.:)
+>> Etoms/et61xx51.h:3:# This driver is design for embedded Linux hardware
+>> but should work happy
+>> gspca_core.c:1345:
+>> spca50x->mode = spca50x->mode_cam[j].mode;      // overwrite by the
+>> hardware mode
+>> gspca_core.c:1348:                                      }       // end
+>> match hardware mode
+>> gspca_core.c:1361:/* nothing todo hardware found stream */
+>> gspca_core.c:1837:* a process, not as read from camera hardware.
+>> gspca_core.c:2135:/* exclude hardware channel reserved */
+>> gspca_core.c:2613:      .hardware = VID_HARDWARE_GSPCA,
+>> gspca.h:412:/* What we think the hardware is currently set to */
+>> READ_AND_INSTALL:264:adjust video0 to your hardware
+>> Sunplus/spca505.dat:513:    {0x04, 0x41, 0x01},         //hardware
+>> snapcontrol
+>> Sunplus/spca561-OSX.h:204:    {0, 0x0001, 0x8200},      // OprMode to be
+>> executed by hardware
+>> Sunplus/spca561-OSX.h:207:    {0, 0x0001, 0x8200},      // OprMode to be
+>> executed by hardware
+>> Sunplus/spca561.h:204:    {0, 0x0001, 0x8200},  // OprMode to be
+>> executed by hardware
+>> Sunplus/spca561.h:207:    {0, 0x0001, 0x8200},  // OprMode to be
+>> executed by hardware
+>>
+>> tindog:/usr/src/gspcav1-20071224 # grep -rn video_device_release *
+>> gspca_core.c:2616:      .release = video_device_release,
+>> gspca_core.c:4325:                      video_device_release(spca50x->vdev);
+>> Binary file gspca_core.o matches
+>> Binary file gspca.ko matches
+>> gspca.mod.c:27: { 0x7ff0c04f, "video_device_release" },
+>> Binary file gspca.mod.o matches
+>> Binary file gspca.o matches
+>> utils/spcaCompat.h:27:static inline void video_device_release(struct
+>> video_device *vdev)
+>>
+>> Check if this tallies with what you have.
+> 
+> Here's what I get:
+> 
+> adirondack:/usr/src/gspca/gspcav1-20071224# grep -rn hardware  *
+> Etoms/et61xx51.h:3:# This driver is design for embedded Linux hardware
+> but should work happy
+> READ_AND_INSTALL:264:adjust video0 to your hardware
+> Sunplus/spca505.dat:513:    {0x04, 0x41, 0x01},         //hardware snapcontrol
+> Sunplus/spca561-OSX.h:204:    {0, 0x0001, 0x8200},      // OprMode to
+> be executed by hardware
+> Sunplus/spca561-OSX.h:207:    {0, 0x0001, 0x8200},      // OprMode to
+> be executed by hardware
+> Sunplus/spca561.h:204:    {0, 0x0001, 0x8200},  // OprMode to be
+> executed by hardware
+> Sunplus/spca561.h:207:    {0, 0x0001, 0x8200},  // OprMode to be
+> executed by hardware
+> changelog:46:   hardware.:)
+> gspca.h:412:/* What we think the hardware is currently set to */
+> gspca_core.c:1345:
+>  spca50x->mode = spca50x->mode_cam[j].mode;      // overwrite by the
+> hardware mode
+> gspca_core.c:1348:                                      }       // end
+> match hardware mode
+> gspca_core.c:1361:/* nothing todo hardware found stream */
+> gspca_core.c:1837:* a process, not as read from camera hardware.
+> gspca_core.c:2135:/* exclude hardware channel reserved */
+> gspca_core.c:2613:      .hardware = VID_HARDWARE_GSPCA,
+> 
+> Am I pulling the source from the wrong place?  It came as a tarball.
+> 
 
-These changes should appear in the next update of the v4l2spec.
-
-HCENTER and VCENTER are unused in the tree so I added a _DEPRECATED
-postfix so applications can remove their use.
-
-Signed-off-by: Brandon Philips <bphilips@suse.de>
-
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -848,21 +848,34 @@ struct v4l2_querymenu
- #define V4L2_CID_AUDIO_TREBLE		(V4L2_CID_BASE+8)
- #define V4L2_CID_AUDIO_MUTE		(V4L2_CID_BASE+9)
- #define V4L2_CID_AUDIO_LOUDNESS		(V4L2_CID_BASE+10)
--#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11)
-+#define V4L2_CID_BLACK_LEVEL		(V4L2_CID_BASE+11) /* Deprecated */
- #define V4L2_CID_AUTO_WHITE_BALANCE	(V4L2_CID_BASE+12)
- #define V4L2_CID_DO_WHITE_BALANCE	(V4L2_CID_BASE+13)
- #define V4L2_CID_RED_BALANCE		(V4L2_CID_BASE+14)
- #define V4L2_CID_BLUE_BALANCE		(V4L2_CID_BASE+15)
- #define V4L2_CID_GAMMA			(V4L2_CID_BASE+16)
--#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* ? Not sure */
-+#define V4L2_CID_WHITENESS		(V4L2_CID_GAMMA) /* Deprecated */
- #define V4L2_CID_EXPOSURE		(V4L2_CID_BASE+17)
- #define V4L2_CID_AUTOGAIN		(V4L2_CID_BASE+18)
- #define V4L2_CID_GAIN			(V4L2_CID_BASE+19)
- #define V4L2_CID_HFLIP			(V4L2_CID_BASE+20)
- #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
--#define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
--#define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
--#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
-+
-+/* Deprecated, use V4L2_CID_PAN_RESET and V4L2_CID_TILT_RESET */
-+#define V4L2_CID_HCENTER_DEPRECATED	(V4L2_CID_BASE+22) 
-+#define V4L2_CID_VCENTER_DEPRECATED	(V4L2_CID_BASE+23) 
-+
-+#define V4L2_CID_POWER_LINE_FREQUENCY	(V4L2_CID_BASE+24) 
-+enum v4l2_power_line_frequency {
-+	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
-+	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
-+	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
-+};
-+#define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25) 
-+#define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26) 
-+#define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27) 
-+#define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28) 
-+#define V4L2_CID_LASTP1				(V4L2_CID_BASE+29) /* last CID + 1 */
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+Looks AOK. Mine built using "make clean && make && make install" for all 
+kernels, latest 2.6.24-git22.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
 --
 video4linux-list mailing list
