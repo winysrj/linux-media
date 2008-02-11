@@ -1,19 +1,22 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from boh-84-242-76-108.karneval.cz ([84.242.91.163]
-	helo=ip-89-102-161-185.karneval.cz)
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from wx-out-0506.google.com ([66.249.82.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ondrej@holecek.eu>) id 1JTNDU-0001nA-3G
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 21:12:56 +0100
-Message-ID: <47C1CFAD.2000907@holecek.eu>
-Date: Sun, 24 Feb 2008 21:12:29 +0100
-From: Ondrej Holecek <ondrej@holecek.eu>
+	(envelope-from <cazzeml@gmail.com>) id 1JOZWI-0003Xy-I4
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 15:20:30 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so3967731wxc.17
+	for <linux-dvb@linuxtv.org>; Mon, 11 Feb 2008 06:20:29 -0800 (PST)
+Message-ID: <a3fb6570802110620p6319309ra2d8d04cd47472d@mail.gmail.com>
+Date: Mon, 11 Feb 2008 15:20:29 +0100
+From: "Pierre Cassimans" <cazzeml@gmail.com>
+To: CityK <CityK@rogers.com>
+In-Reply-To: <47B053E0.4060000@rogers.com>
 MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-References: <47C0DF27.7010407@holecek.eu>
-	<d9def9db0802232145l328e929pe8c5d394cd6c40f4@mail.gmail.com>
-In-Reply-To: <d9def9db0802232145l328e929pe8c5d394cd6c40f4@mail.gmail.com>
+References: <638226.79716.qm@web57814.mail.re3.yahoo.com>
+	<20080211110428.GD30853@localhost>
+	<a3fb6570802110405h77809db5j8e4b54b23a002c9b@mail.gmail.com>
+	<47B053E0.4060000@rogers.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] experimental drivers and 2.6.24 kernel
+Subject: Re: [linux-dvb] hi
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,71 +24,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0283923666=="
+Content-Type: multipart/mixed; boundary="===============1173677502=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============0283923666==
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigA7EFAE864276DDE62CF4219D"
+--===============1173677502==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_30377_5731333.1202739629623"
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA7EFAE864276DDE62CF4219D
+------=_Part_30377_5731333.1202739629623
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-okay, if you have problems getting this device, i can lend you mine, its
- no problem
+Arrrrg,
 
-Ondra
+you are right!!! I had MB/s in my head with streams, not Mb/s.
 
-Markus Rechberger wrote:
-> Hey Ondrej,
->=20
-> 2008/2/24 Ondrej Holecek <ondrej@holecek.eu>:
->> hello,
->>
->>  i have problems with compiling experimental drivers from
->>  http://mcentral.de/hg/~mrec/v4l-dvb-experimental/ with kernel 2.6.24
->>
->>  i need it for my eb1a:e323 eMPIA Technology, Inc. (digivox a/d II)
->>
->=20
-> I'll try to get that device next week for adding full support for it.
-> I don't think that there's proper support in v4l-dvb-experimental for
-> that device anyway.
-> Best for you would be to sign up at the mailinglist on mcentral.de
-> I'll post further news about it when I'm done with it.
->=20
-> Markus
->=20
+One beer for you next time i see you :)
 
+Cazze
 
---------------enigA7EFAE864276DDE62CF4219D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On Feb 11, 2008 2:55 PM, CityK <CityK@rogers.com> wrote:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+> Pierre Cassimans wrote:
+> > Just keep in mind that when you want to record HD content from the 3
+> > cards, you have 3 x 20MB/s and mostly this is more then your HardDisk
+> > can get :)
+>
+> That is incorrect.  hdd saturation is not an issue. Examples:
+>
+> TS for 8-VSB source:  ~19.4Mbps (~2.4MBps)
+> TS for 64-QAM source: ~27Mbps (~3.4MBps)
+> TS for 256-QAM source: ~38.8Mbps (~4.8MBps)
+> ....
+> insert other rates here
+> ....
+> ....
+>
 
-iQEVAwUBR8HPrb+9cGMV5qZXAQJtxAf9Er0IspmQAEYbgZ9ypR1XuCVN+pyRuN52
-h2zlWdgAzLk/vLxulMh1R10QH5Srv3/yzOqWCDXdPKHHQdkJFi6/jFqCuD6OTYEf
-QP3SsGWkczZ49TC9y33nMW+cY8RwmU63DSCml3zB1pQebpxvofYTtvLkYwdvYAwH
-EJyauoDp+vV4gRetB+J+cqwTtYkcorPYZR5tTQqWo2861cbw6GguCSwVvOVv7pXO
-2O/zAJxJqSDPp/MIf8xIjfCMtafaNII4wT01kASvM1vx07rLy3uD78fOm+FDlpdP
-1t2xN7hsBJLW+nSKe9oNfyegyt8svXh3XgPSvpAEbvLraIwoR8k6BA==
-=3dZW
------END PGP SIGNATURE-----
+------=_Part_30377_5731333.1202739629623
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---------------enigA7EFAE864276DDE62CF4219D--
+Arrrrg,<br><br>you are right!!! I had MB/s in my head with streams, not Mb/s.<br><br>One beer for you next time i see you :)<br><br>Cazze<br><br><div class="gmail_quote">On Feb 11, 2008 2:55 PM, CityK &lt;<a href="mailto:CityK@rogers.com">CityK@rogers.com</a>&gt; wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">Pierre Cassimans wrote:<br>&gt; Just keep in mind that when you want to record HD content from the 3<br>
+&gt; cards, you have 3 x 20MB/s and mostly this is more then your HardDisk<br>&gt; can get :)<br><br></div>That is incorrect. &nbsp;hdd saturation is not an issue. Examples:<br><br>TS for 8-VSB source: &nbsp;~19.4Mbps (~2.4MBps)<br>
+TS for 64-QAM source: ~27Mbps (~3.4MBps)<br>TS for 256-QAM source: ~38.8Mbps (~4.8MBps)<br>....<br>insert other rates here<br>....<br>....<br></blockquote></div><br>
+
+------=_Part_30377_5731333.1202739629623--
 
 
---===============0283923666==
+--===============1173677502==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -95,4 +88,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0283923666==--
+--===============1173677502==--
