@@ -1,18 +1,37 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17FL38d004922
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 10:21:03 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m17FKU76031735
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 10:20:30 -0500
-Date: Thu, 7 Feb 2008 16:20:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1BHcINQ010595
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 12:38:18 -0500
+Received: from outbound6-va3-R.bigfish.com (outbound-va3.frontbridge.com
+	[216.32.180.16])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1BHbWpQ016086
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 12:37:32 -0500
+Received: from outbound6-va3.bigfish.com (localhost.localdomain [127.0.0.1])
+	by outbound6-va3-R.bigfish.com (Postfix) with ESMTP id 894BDC7189A
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
+Received: from mail12-va3-R.bigfish.com (si1-va3 [10.7.14.5])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by outbound6-va3.bigfish.com (Postfix) with ESMTP id 87258650052
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
+Received: from mail12-va3 (localhost.localdomain [127.0.0.1])
+	by mail12-va3-R.bigfish.com (Postfix) with ESMTP id 6E9581850308
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
+Received: from calsmtp1.smarttech.com (calsav1.smarttech.com [209.205.33.92])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by mail12-va3.bigfish.com (Postfix) with ESMTP id 679E99900DF
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:24 +0000 (UTC)
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Two more patches required for soc_camera
+Date: Mon, 11 Feb 2008 10:37:19 -0700
+Message-ID: <8FF3AEDFC5ABAE42A50A92DBBFD702EF02C1E59E@calmail1.smarttech.inc>
+From: "Nathanael Galpin" <NathanaelGalpin@smarttech.com>
+To: <video4linux-list@redhat.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: Device Identification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,22 +43,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+Hi,
 
-thanks for pulling the soc_camera patches, what I am not sure about, have 
-you also pulled these two:
+Is there any way through the V4L2 API to get a device's product and =
+vendor ID?
 
-http://marc.info/?l=linux-video&m=120179057030853&w=2
-http://marc.info/?l=linux-video&m=120179045830566&w=2
+Thanks,=20
 
-? They are required by the pxa-camera driver to use sg-dma and by both 
-Micron cameras respectively.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
-
+Nathanael
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
