@@ -1,29 +1,16 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.184])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JUrsJ-0007Kt-LB
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 00:09:16 +0100
-Received: by rv-out-0910.google.com with SMTP id b22so2887040rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 15:09:04 -0800 (PST)
-Message-ID: <d9def9db0802281509i7997735brfdc335a5605ee113@mail.gmail.com>
-Date: Fri, 29 Feb 2008 00:09:04 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47C73DC9.8010106@powercraft.nl>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <hfvogt@gmx.net>) id 1JOg7y-0006mh-Df
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 22:23:50 +0100
+From: Hans-Frieder Vogt <hfvogt@gmx.net>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47C7329F.7030705@powercraft.nl>
-	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>
-	<47C73457.1030901@powercraft.nl>
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>
-	<47C7360E.9030908@powercraft.nl>
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-	<47C73A05.2050007@powercraft.nl>
-	<d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
-	<47C73DC9.8010106@powercraft.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Going though hell here,
-	please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+Date: Mon, 11 Feb 2008 22:23:10 +0100
+Message-Id: <200802112223.11129.hfvogt@gmx.net>
+Subject: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
+Reply-To: hfvogt@gmx.net
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,188 +21,249 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> Markus Rechberger wrote:
-> > On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >> Markus Rechberger wrote:
-> >>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >>>> Markus Rechberger wrote:
-> >>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >>>>>> Markus Rechberger wrote:
-> >>>>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >>>>>>>> This message contains the following attachment(s):
-> >>>>>>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
-> >>>>>>>>
-> >>>>>>>> Spent my hole day trying to get a dvd-t device up and running, this
-> >> is
-> >>>>>>>> device number two I tried.
-> >>>>>>>>
-> >>>>>>>> Can somebody please tell me how to get this device working on:
-> >>>>>>>>
-> >>>>>>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
-> >>>>>>>>
-> >>>>>>>> I have to get some sleep now, because this is getting on my health
-> >> and
-> >>>>>>>> that does not happen often....
-> >>>>>>>>
-> >>>>>>> Jelle, it's really easy to install it actually.
-> >>>>>>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
-> >>>>>>>
-> >>>>>>> this is the correct "howto" for it.
-> >>>>>>>
-> >>>>>>> You need the linux kernel sources for your kernel, if you experience
-> >>>>>>> any problems just post them to the em28xx ML.
-> >>>>>>>
-> >>>>>>> Markus
-> >>>>>> Hi Markus,
-> >>>>>>
-> >>>>>> I tried that two times,
-> >>>>>>
-> >>>>>> The seconds build blows up in my face, I need specified dependecies
-> to
-> >>>>>> be able to compile the seconds driver...
-> >>>>>>
-> >>>>> there are not so many dependencies, just submit the errors you get.
-> >>>>>
-> >>>>> Markus
-> >>>> Here you go, lets see I will try it for 40 more minutes with your help
-> >>>>
-> >>> jelle@xubutu-en12000e:~$ hg clone
-> >> http://mcentral.de/hg/~mrec/em28xx-userspace2
-> >>> destination directory: em28xx-userspace2
-> >>> requesting all changes
-> >>> adding changesets
-> >>> adding manifests
-> >>> adding file changes
-> >>> added 21 changesets with 65 changes to 20 files
-> >>> 18 files updated, 0 files merged, 0 files removed, 0 files unresolved
-> >>> jelle@xubutu-en12000e:~$ cd em28xx-userspace2
-> >>> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
-> >>> if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
-> >>> grep v4l_dvb_stub_attach
-> >>> ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
-> >>> fi
-> >>> make -C /lib/modules/2.6.22-14-generic/build
-> >>> SUBDIRS=/home/jelle/em28xx-userspace2 modules
-> >>> make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
-> >>> CC [M] /home/jelle/em28xx-userspace2/em2880-dvb.o
-> >>> In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
-> >>> /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
-> >>> such file or directory
-> >>> /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
-> >>> such file or directory
-> >>> /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
-> >>> such file or directory
-> >>> /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
-> >>> No such file or directory
-> >>>
-> >>> there we go, the linux kernel sources aren't installed for your system.
-> >>>
-> >>> apt-get install linux-source linux-headers-`uname -r`
-> >>>
-> >>> I'm not sure if the kernel sources are decompressed in /usr/src you
-> >>> might have a look at it.
-> >>>
-> >>> /lib/modules/`uname -r`/build should be a symlink to the root of the
-> >>> extracted kernelsources.
-> >>>
-> >>> the root of your kernelsources should also contain a .config file.
-> >>>
-> >>> You can find the config file for your current kernel in /boot
-> >>>
-> >>> /boot/config-`uname -r`
-> >>>
-> >>> copy this file to the kernelroot and rename it to ".config"
-> >>>
-> >>> Markus
-> >> sudo apt-get install linux-source linux-headers-`uname -r`
-> >> Reading package lists... Done
-> >> Building dependency tree
-> >> Reading state information... Done
-> >> linux-source is already the newest version.
-> >> linux-headers-2.6.22-14-generic is already the newest version.
-> >> 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-> >> jelle@xubutu-en12000e:~/em28xx-userspace2$ ls -hal /lib/modules/`uname
-> >> -r`/build
-> >> lrwxrwxrwx 1 root root 40 2007-10-21 18:19
-> >> /lib/modules/2.6.22-14-generic/build ->
-> >> /usr/src/linux-headers-2.6.22-14-generic
-> >> jelle@xubutu-en12000e:~/em28xx-userspace2$ /boot/config-`uname -r`
-> >> bash: /boot/config-2.6.22-14-generic: Permission denied
-> >> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo /boot/config-`uname -r`
-> >> sudo: /boot/config-2.6.22-14-generic: command not found
-> >> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ls /boot/config-`uname
-> -r`
-> >> /boot/config-2.6.22-14-generic
-> >> jelle@xubutu-en12000e:~/em28xx-userspace2$
-> >>
-> >> sudo cp --verbose /boot/config-2.6.22-14-generic /usr/src/linux/.config
-> >> `/boot/config-2.6.22-14-generic' -> `/usr/src/linux/.config'
-> >>
-> >>
-> >> still all the same problems !
-> >>
-> >
-> > it's just one problem actually, the kernel sources aren't installed or
-> > not installed correctly.
-> >
-> > You need to have
-> >
-> > /usr/src/linux/drivers/media/dvb/dvb-core/dmxdev.h
-> > /usr/src/linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-> > /usr/src/linux/drivers/media/dvb/dvb-core/dvb_demux.h
-> > /usr/src/linux/drivers/media/dvb/dvb-core/dvb_net.h
-> >
-> > those are part of the ubuntu linux source package.
-> >
-> > look up the source package for 2.6.22 with apt-cache
-> > apt-cache search linux-source | grep -i 2.6.22 or something like that
-> > and install it.
-> >
-> > Markus
->
-> I did a complete clean-up of the system tried again checked the
-> directory's, but it stills fails, are you sure there is noting wrong
-> with the install scripts?
->
->
-> ls /usr/src/linux-headers-2.6.22-14-generic
-> arch crypto drivers include ipc kernel Makefile
-> Module.symvers scripts sound
-> block Documentation fs init Kbuild lib mm net
-> security usr
->
+Hi List,
 
-note as for debian there's a big difference between kernel sources and
-linux headers.
-Linux headers have interface definitions for userspace applications
-which want to communicate in some way with the linux kernel.
-Linux Sources contain all the driver and kernel _sources_.
+attached is a patch that extends the dib0700 driver to support the DVB-part of the Cinergy HT USB XE (USB-ID: 0ccd:0058).
+Analogue part not tested (and probably also not supported). Remote Control seems to work (tested with mini remote from
+pinnacle).
+I use the driver with the standard dvb-usb-dib0700-1.10.fw firmware (which is identical with the firmware in Mod7700.sys
+version 3.3.1.0) and with the firmware from driver version 3.10.0.0.
+The W*-Driver loads SCODE, which is not possible with xc3028-v27.fw. However, changing the id of firmware 64 from
+Firmware 64, type: SCODE FW  DTV8 CHINA HAS IF (0x64000200), IF = 5.40 MHz id: (0000000000000000), size: 192
+to
+Firmware 64, type: SCODE FW  DTV8 HAS IF (0x60000200), IF = 5.40 MHz id: (0000000000000000), size: 192
+which enables to load this SCODE firmware seems not to have an effect on the functioning of the device (BTW: why is
+this firmware marked "CHINA"?).
 
-There is nothing wrong with the scripts, many people installed it already.
+The patch is based on some hints from Patrick Boettcher issued on this list
+(see http://www.linuxtv.org/pipermail/linux-dvb/2008-January/022962.html).
+It is against v4l-dvb of 9 Feb 2008.
 
-Markus
-> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
-> if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
-> grep v4l_dvb_stub_attach
-> ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
-> fi
-> make -C /lib/modules/2.6.22-14-generic/build
-> SUBDIRS=/home/jelle/em28xx-userspace2 modules
-> make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
-> make[1]: Makefile: No such file or directory
-> make[1]: *** No rule to make target `Makefile'. Stop.
-> make[1]: Leaving directory `/usr/src/linux-headers-2.6.22-14-generic'
-> make: *** [default] Error 2
->
+Please test and report success (or failure).
 
-well in one case you're right I could check if the "Makefile" exists
-and print that your kernel sources are still not installed!
+Hans-Frieder
 
-Markus
+Signed-off-by: Hans-Frieder Vogt <hfvogt at gmx.net>
+
+--- v4l-dvb-cvs-20080209.orig/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-02-09 15:58:32.947414000 +0100
++++ v4l-dvb-cvs-20080209/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-02-09 16:00:46.881406462 +0100
+@@ -135,6 +135,7 @@
+ #define USB_PID_AVERMEDIA_VOLAR				0xa807
+ #define USB_PID_AVERMEDIA_VOLAR_2			0xb808
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
++#define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+ #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
+--- v4l-dvb-cvs-20080209.orig/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-02-09 15:58:32.862404000 +0100
++++ v4l-dvb-cvs-20080209/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-02-10 23:15:59.541826174 +0100
+@@ -13,6 +13,7 @@
+ #include "dib7000p.h"
+ #include "mt2060.h"
+ #include "mt2266.h"
++#include "tuner-xc2028.h"
+ #include "dib0070.h"
+ 
+ static int force_lna_activation;
+@@ -297,6 +298,149 @@ static int stk7700d_tuner_attach(struct 
+ 		&stk7700d_mt2266_config[adap->id]) == NULL ? -ENODEV : 0;;
+ }
+ 
++/* STK7700-PH: Digital/Analog Hybrid Tuner, e.h. Cinergy HT USB HE */
++struct dibx000_agc_config xc3028_agc_config = {
++	BAND_VHF | BAND_UHF,       // band_caps
++
++	/* P_agc_use_sd_mod1=0, P_agc_use_sd_mod2=0, P_agc_freq_pwm_div=0, P_agc_inv_pwm1=0, P_agc_inv_pwm2=0,
++	 * P_agc_inh_dc_rv_est=0, P_agc_time_est=3, P_agc_freeze=0, P_agc_nb_est=2, P_agc_write=0 */
++	(0 << 15) | (0 << 14) | (0 << 11) | (0 << 10) | (0 << 9) | (0 << 8) | (3 << 5) | (0 << 4) | (2 << 1) | (0 << 0), // setup
++
++	712,  // inv_gain
++	21,  // time_stabiliz
++
++	0,  // alpha_level
++	118,  // thlock
++
++	0,     // wbd_inv
++	2867,  // wbd_ref
++	0,  // wbd_sel
++	2,  // wbd_alpha
++
++	0,  // agc1_max
++	0,  // agc1_min
++	39718,  // agc2_max
++	9930,  // agc2_min
++	0,  // agc1_pt1
++	0,  // agc1_pt2
++	0,  // agc1_pt3
++	0,  // agc1_slope1
++	0,  // agc1_slope2
++	0,  // agc2_pt1
++	128,  // agc2_pt2
++	29,  // agc2_slope1
++	29,  // agc2_slope2
++
++	17,  // alpha_mant
++	27,  // alpha_exp
++	23,  // beta_mant
++	51,  // beta_exp
++
++	1,  // perform_agc_softsplit
++};
++
++/* PLL Configuration for COFDM BW_MHz = 8.000000 With external clock = 30.000000 */
++struct dibx000_bandwidth_config xc3028_bw_config = {
++	60000, 30000, // internal, sampling
++	1, 8, 3, 1, 0, // pll_cfg: prediv, ratio, range, reset, bypass
++	0, 0, 1, 1, 0, // misc: refdiv, bypclk_div, IO_CLK_en_core, ADClkSrc, modulo
++	(3 << 14) | (1 << 12) | (524 << 0), // sad_cfg: refsel, sel, freq_15k
++	(1 << 25) | 5816102, // ifreq = 5.200000 MHz
++	20452225, // timf
++	30000000, // xtal_hz
++};
++
++struct dibx000_bandwidth_config xc3028_bw_config_12mhz = {
++	60000, 30000, // internal, sampling
++	1, 20, 3, 1, 0, // pll_cfg: prediv, ratio, range, reset, bypass
++	0, 0, 1, 1, 0, // misc: refdiv, bypclk_div, IO_CLK_en_core, ADClkSrc, modulo
++	(3 << 14) | (1 << 12) | (524 << 0), // sad_cfg: refsel, sel, freq_15k
++	(1 << 25) | 5816102, // ifreq = 5.200000 MHz
++	20452225, // timf
++};
++
++static struct dib7000p_config stk7700ph_dib7700_xc3028_config = {
++	.output_mpeg2_in_188_bytes = 1,
++	.tuner_is_baseband = 1,
++
++	.agc_config_count = 1,
++	.agc = &xc3028_agc_config,
++	.bw  = &xc3028_bw_config,
++
++	.gpio_dir = DIB7000P_GPIO_DEFAULT_DIRECTIONS,
++	.gpio_val = DIB7000P_GPIO_DEFAULT_VALUES,
++	.gpio_pwm_pos = DIB7000P_GPIO_DEFAULT_PWM_POS,
++};
++
++static int stk7700ph_xc3028_callback(void *ptr, int command, int arg)
++{
++	struct dvb_usb_adapter *adap = ptr;
++
++	switch (command) {
++	case XC2028_TUNER_RESET:
++		/* Send the tuner in then out of reset */
++		err("%s: XC2028_TUNER_RESET %d\n", __FUNCTION__, arg);
++		dib7000p_set_gpio(adap->fe, 8, 0, 0); msleep(10);
++		dib7000p_set_gpio(adap->fe, 8, 0, 1);
++		break;
++	case XC2028_RESET_CLK:
++		err("%s: XC2028_RESET_CLK %d\n", __FUNCTION__, arg);
++		break;
++	default:
++		err("%s: unknown command %d, arg %d\n", __FUNCTION__,
++			command, arg);
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static struct xc2028_ctrl stk7700ph_xc3028_ctrl = {
++        .fname = XC2028_DEFAULT_FIRMWARE,
++	.max_len = 64,
++};
++
++static struct xc2028_config stk7700ph_xc3028_config = {
++	.i2c_addr = 0x61,
++	.callback = stk7700ph_xc3028_callback,
++	.ctrl = &stk7700ph_xc3028_ctrl,
++};
++
++static int stk7700ph_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	/* this is at the moment just a copy of stk7700p_frontend_attach */
++	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
++	dib0700_set_gpio(adap->dev, GPIO6,  GPIO_OUT, 0); msleep(50);
++
++	dib0700_set_gpio(adap->dev, GPIO6,  GPIO_OUT, 1); msleep(10);
++	dib0700_set_gpio(adap->dev, GPIO9,  GPIO_OUT, 1);
++
++	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0); msleep(10);
++	dib0700_ctrl_clock(adap->dev, 72, 1);
++	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1); msleep(100);
++
++	dib0700_set_gpio(adap->dev,  GPIO0, GPIO_OUT, 1);
++
++	dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18, &stk7700ph_dib7700_xc3028_config);
++
++	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
++				&stk7700ph_dib7700_xc3028_config);
++
++	return adap->fe == NULL ? -ENODEV : 0;
++}
++
++static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap)
++{
++	struct i2c_adapter *tun_i2c;
++
++	tun_i2c = dib7000p_get_i2c_master(adap->fe, DIBX000_I2C_INTERFACE_TUNER, 1);
++
++	stk7700ph_xc3028_config.i2c_adap = tun_i2c;
++	stk7700ph_xc3028_config.video_dev = adap;
++
++	return dvb_attach(xc2028_attach, adap->fe, &stk7700ph_xc3028_config) == NULL ?
++		-ENODEV : 0;
++}
++
+ #define DEFAULT_RC_INTERVAL 150
+ 
+ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+@@ -905,6 +1049,7 @@ struct usb_device_id dib0700_usb_id_tabl
+ 		{ USB_DEVICE(USB_VID_ASUS,      USB_PID_ASUS_U3100) },
+ /* 25 */	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_STICK_3) },
+ 		{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_MYTV_T) },
++/* 27 */	{ USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_CINERGY_HT_USB_XE) },
+ 		{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1155,6 +1300,31 @@ struct dvb_usb_device_properties dib0700
+ 				{ NULL },
+ 			}
+ 		}
++	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++
++		.num_adapters = 1,
++		.adapter = {
++			{
++				.frontend_attach  = stk7700ph_frontend_attach,
++				.tuner_attach     = stk7700ph_tuner_attach,
++
++				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
++
++				.size_of_priv     = sizeof(struct dib0700_adapter_state),
++			},
++		},
++
++		.num_device_descs = 1,
++		.devices = {
++			{   "Terratec Cinergy HT USB XE",
++				{ &dib0700_usb_id_table[27], NULL },
++				{ NULL },
++			},
++		},
++		.rc_interval      = DEFAULT_RC_INTERVAL,
++		.rc_key_map       = dib0700_rc_keys,
++		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
++		.rc_query         = dib0700_rc_query
+ 	},
+ };
+ 
+
+
+-- 
+--
+Hans-Frieder Vogt                 e-mail: hfvogt <at> gmx .dot. net
+
 
 _______________________________________________
 linux-dvb mailing list
