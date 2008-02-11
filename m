@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.237])
+Received: from smtp-out26.alice.it ([85.33.2.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JOBN5-0004oB-MG
-	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 13:33:23 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so3613684wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 04:33:22 -0800 (PST)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Sun, 10 Feb 2008 13:33:12 +0100
-References: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
-In-Reply-To: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
+	(envelope-from <sarkiaponius@alice.it>) id 1JOfLH-0000dJ-60
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 21:33:31 +0100
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by debian (Postfix) with ESMTP id B4BDA1040BD
+	for <linux-dvb@linuxtv.org>; Mon, 11 Feb 2008 21:31:12 +0100 (CET)
+Message-ID: <47B0B090.6060409@alice.it>
+Date: Mon, 11 Feb 2008 21:31:12 +0100
+From: Andrea Giuliano <sarkiaponius@alice.it>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802101333.12804.christophpfister@gmail.com>
-Subject: Re: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
+To: linux-dvb@linuxtv.org
+References: <47B0AD09.30701@alice.it>
+In-Reply-To: <47B0AD09.30701@alice.it>
+Subject: Re: [linux-dvb] Two few channels with KWorld DVB-S 100...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,38 +27,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Well, clearly I meant "too", not "two", english is not my language :-)
 
-Am Dienstag 05 Februar 2008 schrieb steve.goodey@bt.com:
-> Hello,
->
-> Apologies if this is the wrong list to ask.
->
-> Perhaps you could answer a few questions for me?
->
-> Sudbury, in England, is one of the sites with two DVB-T transmitters,
-> Sudbury and SudburyB, main transmitter Tacolneston. On my Mythtv box I
-> have found /usr/share/doc/dvb-utils/examples/scan/dvb-t/uk-SudburyB but
-> there is no file for Sudbury. Now according to the www.ukfree.tv site
-> Sudbury has six muxes, SudburyB has only one for ITV. I suspect I am
-> missing something here, why is there only one frequency file for Sudbury
-> and why is called SudburyB?
 
-I guess it's just wrongly named; will fix that.
+Andrea Giuliano wrote:
+> Hi,
+> 
+> I'm new to this list, but before posting this, I have been looking for 
+> old posts related to my problems, without results.
+> 
+> Here are the facts:
+> 
+> 1) I have a brand new KWorld DVB-S 100
+> 
+> 2) It works: "scan" tunes many channels, "szap" let me watch many of 
+> them, both video and audio are pretty good.
+> 
+> 3) The channels "scan" found are too few: most of RAI's and MediaSet's 
+> channels (I'm in Italy) are not found by scan.
+> 
+> 4) I downloaded an initial scan file for Hotbird, and I even tried those 
+> posted somewhere by italian people, but nothing happens.
+> 
+> 5) Dish and cable are OK: I plugged the cable into a standalone FTA 
+> decoder, and all missing channels are there.
+> 
+> 6) I'm running Debian Etch, with kernel 2.6.1.8-6-686.
+> 
+> Any hint would be very much appreciated!
+> 
+> Best regards.
+> 
 
-> Should there be two files, as for Dover for example, uk-Sudbury with six
-> muxes and uk_SudburyB with one?
 
-Geographically close transmitters should be in a single file; oh well, will 
-fix that, too ...
-
-> I assume MythTv does not use these files during tuning?
->
-> Regards,
->
-> Steve Goodey
-
-Christoph
+-- 
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
