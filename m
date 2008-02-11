@@ -1,23 +1,18 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from cartman.geeks.org.ua ([62.149.14.212])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zaheermerali@gmail.com>) id 1JUVw5-0006NV-Hy
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 00:43:41 +0100
-Received: by nf-out-0910.google.com with SMTP id d21so1833656nfb.11
-	for <linux-dvb@linuxtv.org>; Wed, 27 Feb 2008 15:43:05 -0800 (PST)
-Message-ID: <15e616860802271543v349ed837m34784cf4f8fccb77@mail.gmail.com>
-Date: Wed, 27 Feb 2008 23:43:04 +0000
-From: "Zaheer Merali" <zaheermerali@gmail.com>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-In-Reply-To: <47C5EA9B.3020308@gmail.com>
+	(envelope-from <chexov@cartman.geeks.org.ua>) id 1JOWT8-0008R1-Tm
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 12:05:02 +0100
+Date: Mon, 11 Feb 2008 13:04:28 +0200
+From: "Anton P. Linevich" <lists@a.linevich.com>
+To: ashim saikia <ar.saikia@yahoo.com>
+Message-ID: <20080211110428.GD30853@localhost>
+References: <638226.79716.qm@web57814.mail.re3.yahoo.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <1204046724.994.21.camel@amd64.pyotr.org>
-	<15e616860802270339s25938affsfede0f985111ee5f@mail.gmail.com>
-	<47C5EA9B.3020308@gmail.com>
+In-Reply-To: <638226.79716.qm@web57814.mail.re3.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two streams
-	from same mux
+Subject: Re: [linux-dvb] hi
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,27 +23,20 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Feb 27, 2008 at 10:56 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Zaheer Merali wrote:
->
->  > So we don't take the whole multiplex into userspace, just the pids we
->  > need on an as needed basis.
->
->  Though this will work for FTA streams, it won't work for scrambled streams.
->
->  Regards,
->  Manu
->
+Greeting, ashim!  Sun, Feb 03, 2008 at 10:22:42PM -0800, ar.saikia wrote: 
 
-Maybe I gave a simplistic description fo what we do, but I can confirm
-we have encrypted streams decrypted also with dvbbasebin in gstreamer
-talking to the cam. It was done in last year's Summer of Code by
-Alessandro Decina.
+> Hi,
+> I just wanna know if in linux 2.6 kernel, DVB driver
+> will support more than 4 cards or not. Can any one
+> help me.
 
-Zaheer
+3 cards works for me simultaneously.
+
+-- 
+ Anton P. Linevich
 
 _______________________________________________
 linux-dvb mailing list
