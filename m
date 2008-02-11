@@ -1,18 +1,18 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.251])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mx33.mail.ru ([194.67.23.194])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <treblid@gmail.com>) id 1JTymO-0007ed-OF
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 13:19:28 +0100
-Received: by an-out-0708.google.com with SMTP id d18so705261and.125
-	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 04:19:21 -0800 (PST)
-Message-ID: <941593fd0802260419k6f5ad097q65f97b5e323a99c8@mail.gmail.com>
-Date: Tue, 26 Feb 2008 21:19:21 +0900
-From: "Theng Kiat Ng" <treblid@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <941593fd0802260407k1af8b51arf6f7776f2531e1c8@mail.gmail.com>
+	(envelope-from <ua0lnj@bk.ru>) id 1JOiLA-0003gT-Ol
+	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 00:45:36 +0100
+Received: from [85.95.147.36] (port=31331 helo=lnj) by mx33.mail.ru with asmtp
+	id 1JOiKd-000FpJ-00
+	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 02:45:03 +0300
+Message-ID: <003a01c86d08$1f9fc730$420619ac@mediatel.mrdv>
+From: =?utf-8?B?0J/RgNC40LTQstC+0YDQvtCyINCQ0L3QtNGA0LXQuQ==?= <ua0lnj@bk.ru>
+To: "linux-dvb" <linux-dvb@linuxtv.org>
+References: <197907.77856.qm@web33115.mail.mud.yahoo.com>
+Date: Tue, 12 Feb 2008 09:45:02 +1000
 MIME-Version: 1.0
-References: <941593fd0802260407k1af8b51arf6f7776f2531e1c8@mail.gmail.com>
-Subject: Re: [linux-dvb] help: is ASUS U3000 Mini supported?
+Subject: Re: [linux-dvb] mantis vp1041 with strange diseqc rotor commands
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,57 +20,180 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1438995151=="
+Content-Type: multipart/mixed; boundary="===============0637104321=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1438995151==
+This is a multi-part message in MIME format.
+
+--===============0637104321==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_13399_8756574.1204028361592"
+	boundary="----=_NextPart_000_0037_01C86D5B.F085EF20"
 
-------=_Part_13399_8756574.1204028361592
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This is a multi-part message in MIME format.
 
-On Tue, Feb 26, 2008 at 9:07 PM, Theng Kiat Ng <treblid@gmail.com> wrote:
+------=_NextPart_000_0037_01C86D5B.F085EF20
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Hi all,
->
-> Is the above USB tuner (ASUS U3000 Mini) supported under linux? My old
-> tuners are broken and i need new tuners.
->
-> The Wiki says it is supported, but very bare on the details. (e.g. which
-> kernel module, USB_DIB0700? Where's the firmware? Supported since kernel
-> version what?)
->
-I must be very tired today.. Looking further down the Wiki and all my
-questions are answered there... :(
-
-Will try to get one tomorrow and hope it'd work. Hopefully somebody in this
-list can tell me your  successes/problems stories running two such tuners
-under MythTV, esp if ur on a 64bit linux system.
+I think, this is becouse "Initial support for Mantis VP-1041" not =
+usability yet.
+I use patch from Hans Werner for 1041, works better.
+  ----- Original Message -----=20
+  From: Simeon Simeonov=20
+  To: linux-dvb=20
+  Sent: Tuesday, February 12, 2008 6:47 AM
+  Subject: [linux-dvb] mantis vp1041 with strange diseqc rotor commands
 
 
-Thanks.
+  Hi,
 
-------=_Part_13399_8756574.1204028361592
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+  I am using the latest mantis drivers from Manu's repository:
+  http://jusst.de/hg/mantis/
+  with my Azureware twinhan vp1041 based card.
+  Locking to DVB-S channels works fine almost all the time with the =
+patched szap or patched mythtv.
+  Did not try DVB-S2 yet. But what I am having troubles now is the =
+diseqc. I have a switch behind a diseqc 1.2 rotor (goto stored =
+positions).
+  The switching works fine under Windoz. I have no problems also using =
+it with my other card in the same box - Twinhan 102g.
+  Initially with the vp1041 card after a couple of diseqc commands I =
+would get stb0899_diseqc_fifo_empy timeout. It turned out that I had to =
+use some very long pauses before sending a repeat command. If=20
+  for the 102g standart 15ms worked fine, for the vp1041 I had to use =
+1s! pause. Then the rotor will start
+   moving very slowly with small steps  - as if it is does one step , =
+stops and then continues to the desired position.If one is patient =
+enough the rotor gets to the desired position. I checked using voltmeter =
+the voltages that come out of the card and they seem to be good. For =
+sending the commands I used both mythtv and hacked version of Michel =
+Verbraak's gotox program.
+  Has anyone experienced something similar with stb0899 frontend? =
+Perhaps you can give me an idea what might be going wrong?
 
-On Tue, Feb 26, 2008 at 9:07 PM, Theng Kiat Ng &lt;<a href="mailto:treblid@gmail.com">treblid@gmail.com</a>&gt; wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi all,<br><br>Is the above USB tuner (ASUS U3000 Mini) supported under linux? My old tuners are broken and i need new tuners.<br><br>The Wiki says it is supported, but very bare on the details. (e.g. which kernel module, USB_DIB0700? Where&#39;s the firmware? Supported since kernel version what?)<br>
-
-</blockquote>I must be very tired today.. Looking further down the Wiki and all my questions are answered there... :(<br><br>Will try to get one tomorrow and hope it&#39;d work. Hopefully somebody in this list can tell me your&nbsp; successes/problems stories running two such tuners under MythTV, esp if ur on a 64bit linux system.<br>
-<br><br>Thanks.</div>
-
-------=_Part_13399_8756574.1204028361592--
+  Thanks,
+  Simeon
 
 
---===============1438995151==
+
+
+
+        =
+_________________________________________________________________________=
+___________
+  Be a better friend, newshound, and=20
+  know-it-all with Yahoo! Mobile.  Try it now.  =
+http://mobile.yahoo.com/;_ylt=3DAhu06i62sR8HDtDypao8Wcj9tAcJ=20
+
+
+  _______________________________________________
+  linux-dvb mailing list
+  linux-dvb@linuxtv.org
+  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+------=_NextPart_000_0037_01C86D5B.F085EF20
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+=EF=BB=BF<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dutf-8">
+<META content=3D"MSHTML 6.00.6000.16587" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>I think, this is becouse "<STRONG>Initial support for Mantis =
+VP-1041"=20
+</STRONG>not usability yet.</DIV>
+<DIV>I use patch from Hans Werner for 1041, works better.</DIV>
+<BLOCKQUOTE=20
+style=3D"PADDING-RIGHT: 0px; PADDING-LEFT: 5px; MARGIN-LEFT: 5px; =
+BORDER-LEFT: #000000 2px solid; MARGIN-RIGHT: 0px">
+  <DIV style=3D"FONT: 10pt arial">----- Original Message ----- </DIV>
+  <DIV=20
+  style=3D"BACKGROUND: #e4e4e4; FONT: 10pt arial; font-color: =
+black"><B>From:</B>=20
+  <A title=3Dsimeonov_2000@yahoo.com =
+href=3D"mailto:simeonov_2000@yahoo.com">Simeon=20
+  Simeonov</A> </DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>To:</B> <A =
+title=3Dlinux-dvb@linuxtv.org=20
+  href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb</A> </DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>Sent:</B> Tuesday, February 12, =
+2008 6:47=20
+  AM</DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>Subject:</B> [linux-dvb] mantis =
+vp1041 with=20
+  strange diseqc rotor commands</DIV>
+  <DIV><BR></DIV>Hi,<BR><BR>I am using the latest mantis drivers from =
+Manu's=20
+  repository:<BR><A=20
+  =
+href=3D"http://jusst.de/hg/mantis/">http://jusst.de/hg/mantis/</A><BR>wit=
+h my=20
+  Azureware twinhan vp1041 based card.<BR>Locking to DVB-S channels =
+works fine=20
+  almost all the time with the patched szap or patched mythtv.<BR>Did =
+not try=20
+  DVB-S2 yet. But what I am having troubles now is the diseqc. I have a =
+switch=20
+  behind a diseqc 1.2 rotor (goto stored positions).<BR>The switching =
+works fine=20
+  under Windoz. I have no problems also using it with my other card in =
+the same=20
+  box - Twinhan 102g.<BR>Initially with the vp1041 card after a couple =
+of diseqc=20
+  commands I would get stb0899_diseqc_fifo_empy timeout. It turned out =
+that I=20
+  had to use some very long pauses before sending a repeat command. If =
+<BR>for=20
+  the 102g standart 15ms worked fine, for the vp1041 I had to use 1s! =
+pause.=20
+  Then the rotor will start<BR>&nbsp;moving very slowly with small =
+steps&nbsp; -=20
+  as if it is does one step , stops and then continues to the desired=20
+  position.If one is patient enough the rotor gets to the desired =
+position. I=20
+  checked using voltmeter the voltages that come out of the card and =
+they seem=20
+  to be good. For sending the commands I used both mythtv and hacked =
+version of=20
+  Michel Verbraak's gotox program.<BR>Has anyone experienced something =
+similar=20
+  with stb0899 frontend? Perhaps you can give me an idea what might be =
+going=20
+  =
+wrong?<BR><BR>Thanks,<BR>Simeon<BR><BR><BR><BR><BR><BR>&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;=20
+  =
+_________________________________________________________________________=
+___________<BR>Be=20
+  a better friend, newshound, and <BR>know-it-all with Yahoo! =
+Mobile.&nbsp; Try=20
+  it now.&nbsp; <A=20
+  =
+href=3D"http://mobile.yahoo.com/;_ylt=3DAhu06i62sR8HDtDypao8Wcj9tAcJ">htt=
+p://mobile.yahoo.com/;_ylt=3DAhu06i62sR8HDtDypao8Wcj9tAcJ</A>=20
+  =
+<BR><BR><BR>_______________________________________________<BR>linux-dvb =
+
+  mailing list<BR><A=20
+  href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A><BR><A=20
+  =
+href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http:/=
+/www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A><BR></BLOCKQUOTE><=
+/BODY></HTML>
+
+------=_NextPart_000_0037_01C86D5B.F085EF20--
+
+
+
+--===============0637104321==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -80,4 +203,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1438995151==--
+--===============0637104321==--
