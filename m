@@ -1,28 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from anchor-post-37.mail.demon.net ([194.217.242.87])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1JN9Gr-0000zG-CP
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 17:06:41 +0100
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-37.mail.demon.net with esmtp (Exim 4.68)
-	id 1JN9Gq-0003GM-P3
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 16:06:40 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1JN9Gi-0005lb-PQ
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 16:06:40 +0000
-Date: Thu, 07 Feb 2008 15:35:22 +0000
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4F72E22F18%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <641098.20601.qm@web57809.mail.re3.yahoo.com>
-References: <641098.20601.qm@web57809.mail.re3.yahoo.com>
+	(envelope-from <eduardhc@gmail.com>) id 1JOUnu-0001lo-6E
+	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 10:18:22 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3612438fge.25
+	for <linux-dvb@linuxtv.org>; Mon, 11 Feb 2008 01:18:20 -0800 (PST)
+Message-ID: <47B012DA.7010903@gmail.com>
+Date: Mon, 11 Feb 2008 10:18:18 +0100
+From: Eduard Huguet <eduardhc@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Yahoo webmail b0rkage (was: Re: DVB-S card-Which
-	firmware)
+To: Matthias Schwarzott <zzam@gentoo.org>
+References: <47ADC81B.4050203@gmail.com> <200802092214.06946.zzam@gentoo.org>
+	<47AECFEF.3010503@gmail.com>
+In-Reply-To: <47AECFEF.3010503@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Some tests on Avermedia A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,42 +22,209 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1517675555=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I demand that ashim saikia may or may not have written...
+This is a multi-part message in MIME format.
+--===============1517675555==
+Content-Type: multipart/alternative;
+ boundary="------------060801080503020108020004"
 
-> Thanks... I will keep track of these things 
-> 
-> ----- Original Message ----
-> From: Nicolas Will <nico@youplala.net>
-[snip]
-> 
-> Ashim,
-> 
-> Regarding 
-> all 
-> your 
-> posts: 
-[snip]
+This is a multi-part message in MIME format.
+--------------060801080503020108020004
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This is the second posting with one-word-per-line mangling that I've seen
-recently. Both were sent via Yahoo webmail... looks like something's *badly*
-broken there :-\
+En/na Eduard Huguet ha escrit:
+> En/na Matthias Schwarzott ha escrit:
+>> On Samstag, 9. Februar 2008, Eduard Huguet wrote:
+>>   
+>>> Hi, Matthias
+>>>     
+>> Hi Eduard!
+>>
+>>   
+>>>     I've been performing some tests using your patch for this card.
+>>> Right now neither dvbscan nor kaffeine are able to find any channel on
+>>> Astra (the sat. my dish points to).
+>>>
+>>> However, Kaffeine has been giving me some interesting results: with your
+>>> driver "as is" it's getting me a 13-14% signal level and ~52% SNR when
+>>> scanning. Then, thinking that the problem is related to the low signal I
+>>> have I've changed the gain levels used to program the tuner: you were
+>>> using default values of 0 for all (in zl1003x_set_gain_params()
+>>> function, variables "rfg", "ba" and "bg"), and I've changed them top the
+>>> maximum (according to the documentation: rfg=1, ba=bg=3). With that, I'm
+>>> getting a 18% signal level, which is higher but still too low apparently
+>>> to get a lock.
+>>>
+>>> I've stopped here, because I really don't have the necessary background
+>>> to keep tweaking the driver. I just wanted to share it with you, as
+>>> maybe you have some idea on how to continue or what else could be done.
+>>>
+>>>     
+>>
+>> So I can do only this guess:
+>> I changed demod driver to invert the Polarization voltage for a700 card.
+>> This is controlled by member-variable voltage_inverted.
+>>
+>> static struct mt312_config avertv_a700_mt312 = {
+>>         .demod_address = 0x0e,
+>>         .voltage_inverted = 1,
+>> };
+>>
+>> Can you try to comment the voltage_inverted line here (saa7134-dvb.c: line 
+>> 865).
+>>
+>> BUT: If this helps we need to find out how to detect which card needs this 
+>> enabled/disabled.
+>>
+>> Regards
+>> Matthias
+>>
+>>   
+> Hi,
+>   Nothing :(. Removing (or setting it to 0) the voltage_inverted 
+> member doesn't seem to make any difference. I'm starting to suspect 
+> that there is something wrong with my antennae setup, so I'll test it 
+> later using an standalone STB or by plugging the card into a Windows 
+> computer and using the supplied drivers.
+>
+> Regards,
+>   Eduard
+>
+>
 
-Bug reports to somebody at yahoo.com, I imagine, but where...
+Hi again...
+    Just some more feedback: I've unplugged the card and put it onto a 
+different PC running both Windows and Gentoo. In Windows the card runs 
+perfectly, I can see all the (free) channels, so I can be sure there's 
+no problem with my antennae setup.
 
--- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Travel less. Share transport more.           PRODUCE LESS CARBON DIOXIDE.
+In Linux it doesn't work, neither in this PC (P4 running Gentoo 32) nor 
+in the mediacenter PC (AMD AthlonXP running Gentoo 64). It seems we are 
+missing something fundamental here... :(
 
-"We came. We assimilated. We left."
+Best regards,
+  Eduard
+
+
+
+
+
+--------------060801080503020108020004
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+En/na Eduard Huguet ha escrit:
+<blockquote cite="mid:47AECFEF.3010503@gmail.com" type="cite">
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+En/na Matthias Schwarzott ha escrit:
+  <blockquote cite="mid:200802092214.06946.zzam@gentoo.org" type="cite">
+    <pre wrap="">On Samstag, 9. Februar 2008, Eduard Huguet wrote:
+  </pre>
+    <blockquote type="cite">
+      <pre wrap="">Hi, Matthias
+    </pre>
+    </blockquote>
+    <pre wrap=""><!---->Hi Eduard!
+
+  </pre>
+    <blockquote type="cite">
+      <pre wrap="">    I've been performing some tests using your patch for this card.
+Right now neither dvbscan nor kaffeine are able to find any channel on
+Astra (the sat. my dish points to).
+
+However, Kaffeine has been giving me some interesting results: with your
+driver "as is" it's getting me a 13-14% signal level and ~52% SNR when
+scanning. Then, thinking that the problem is related to the low signal I
+have I've changed the gain levels used to program the tuner: you were
+using default values of 0 for all (in zl1003x_set_gain_params()
+function, variables "rfg", "ba" and "bg"), and I've changed them top the
+maximum (according to the documentation: rfg=1, ba=bg=3). With that, I'm
+getting a 18% signal level, which is higher but still too low apparently
+to get a lock.
+
+I've stopped here, because I really don't have the necessary background
+to keep tweaking the driver. I just wanted to share it with you, as
+maybe you have some idea on how to continue or what else could be done.
+
+    </pre>
+    </blockquote>
+    <pre wrap=""><!---->
+So I can do only this guess:
+I changed demod driver to invert the Polarization voltage for a700 card.
+This is controlled by member-variable voltage_inverted.
+
+static struct mt312_config avertv_a700_mt312 = {
+        .demod_address = 0x0e,
+        .voltage_inverted = 1,
+};
+
+Can you try to comment the voltage_inverted line here (saa7134-dvb.c: line 
+865).
+
+BUT: If this helps we need to find out how to detect which card needs this 
+enabled/disabled.
+
+Regards
+Matthias
+
+  </pre>
+  </blockquote>
+Hi, <br>
+&nbsp; Nothing :(. Removing (or setting it to 0) the voltage_inverted member
+doesn't seem to make any difference. I'm starting to suspect that there
+is something wrong with my antennae setup, so I'll test it later using
+an standalone STB or by plugging the card into a Windows computer and
+using the supplied drivers.<br>
+  <br>
+Regards, <br>
+&nbsp; Eduard<br>
+  <br>
+  <br>
+</blockquote>
+<br>
+Hi again...<br>
+&nbsp;&nbsp;&nbsp; Just some more feedback: I've unplugged the card and put it onto a
+different PC running both Windows and Gentoo. In Windows the card runs
+perfectly, I can see all the (free) channels, so I can be sure there's
+no problem with my antennae setup.<br>
+<br>
+In Linux it doesn't work, neither in this PC (P4 running Gentoo 32) nor
+in the mediacenter PC (AMD AthlonXP running Gentoo 64). It seems we are
+missing something fundamental here... :(<br>
+<br>
+Best regards, <br>
+&nbsp; Eduard<br>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>
+
+--------------060801080503020108020004--
+
+
+--===============1517675555==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1517675555==--
