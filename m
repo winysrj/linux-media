@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RMGtVu013326
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 17:16:55 -0500
-Received: from mailout03.sul.t-online.com (mailout03.sul.t-online.de
-	[194.25.134.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1RMGM38009567
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 17:16:22 -0500
-Message-ID: <47C5E136.9020106@t-online.de>
-Date: Wed, 27 Feb 2008 23:16:22 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: tux@schweikarts-vom-dach.de
-References: <200801051252.18108.tux@schweikarts-vom-dach.de>
-	<47B9F1C2.3050309@t-online.de>
-	<200802272151.19488.tux@schweikarts-vom-dach.de>
-In-Reply-To: <200802272151.19488.tux@schweikarts-vom-dach.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1BCnHkE025733
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 07:49:17 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1BCmuk8012017
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 07:48:56 -0500
+Date: Mon, 11 Feb 2008 10:48:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
+Message-ID: <20080211104821.00756b8e@gaivota>
+In-Reply-To: <1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
+References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+	<20080207174703.5e79d19a@gaivota>
+	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
+	<20080207181136.5c8c53fc@gaivota>
+	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
+Subject: Re: Question about saa7115
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,49 +31,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Tux
+On Fri, 8 Feb 2008 18:27:19 -0800
+"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
 
-Tux schrieb:
-> Hello Hartmut,
+> thank you for your answers, I think I have a better understanding of
+> what's happenning.
+> still, Imade a little test to be sure, and it didn't return what I expected
 > 
-> i have tried the new driver. You are completely right, one port is working
-> perfectly. But the other one not. What Information do you need to fix it ?
+> I added a print_test function (printk something then return 0) to
+> vivi.c, and pointed .ioctl (in the file_operations structure) to that
+> function, and started this :
+> int main(int argc, char *argv[])
+> {
+>         int err;
+>         struct v4l2_capability cap;
+>         int fd = open("/dev/video0", O_RDWR );
+>         err = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+>         return 0;
+> }
+> (consider required includes done)
 > 
-> 
-> best regards
-> 
-> Tux
-> Am Montag, 18. Februar 2008 21:59:46 schrieb Hartmut Hackmann:
->> Hi
->>
->> Tux schrieb:
->>> Hello,
->>>
->>> what is the status of the DVB-S Part of the TV Card. Is it now possible
->>> to select the frontend for this card with a kernel option ?
->>> I have downloaded the actual version of the sources and have had look
->>> into saa7134-dvb.c. There is only the DVB-T part supported. When do you
->>> think it possible to watch TV with DVB-S with this card ?
->>>
->>> best regards
->> One DVB-S section of the board should be working now.
->> You need to get the most recent driver from
->> http://www.linuxtv.org/hg/v4l-dvb To get DVB-S, you nned to load the
->> saa7134-dvb module with the option use_frontend=1.
->> You get the other section working, i need a tester who has the card in a pc
->> it was sold with ( since it is NOT a regular PCI card)
->>
->> best regards
->>   Hartmut
-> 
-Fine, I got this info from a user who operates this board in a normal PCI
-slot, so he can only test one section.
-To get the other part working, i need to generate some experimental patches
-and i need you to test them.
-I hope i can prepare the first try the next days.
+> vivi tells me the device is opened, closed (yeah, I know, I should
+> have coded the close instruction) but nothing between those two, did I
+> missed something, such as the fact that vivi doesn't respond to ioctl
+> ?
 
-Best regards
-  Hartmut
+Vivi will show all ioctls called, if you use debug=3.
+> 
+> regards
+> 
+
+
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
