@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fmmailgate03.web.de ([217.72.192.234])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hubblest@web.de>) id 1JPEaB-0006PY-6b
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 11:11:15 +0100
-From: Peter Meszmer <hubblest@web.de>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Date: Wed, 13 Feb 2008 11:05:49 +0100
-References: <47AB228E.3080303@gmail.com> <200802072219.40759.hubblest@web.de>
-	<200802122206.30369.zzam@gentoo.org>
-In-Reply-To: <200802122206.30369.zzam@gentoo.org>
+From: Andreas <linuxdreas@launchnet.com>
+To: Steven Toth <stoth@linuxtv.org>
+Date: Tue, 12 Feb 2008 11:49:15 -0800
+References: <200802111739.47956.linuxdreas@launchnet.com>
+	<200802112310.38960.linuxdreas@launchnet.com>
+	<47B1B324.9050309@linuxtv.org>
+In-Reply-To: <47B1B324.9050309@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802131105.49910.hubblest@web.de>
+Message-Id: <200802121149.15425.linuxdreas@launchnet.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,81 +18,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Dienstag, 12. Februar 2008 schrieben Sie:
-> I added this to the wiki-page about A700:
-> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_(A700)
->
-> Maybe we should rename the page to AverMedia_AverTV_DVB-S_A700 or anything
-> similar.
->
-> * Could you load saa7134 module of unpatched driver, but with parameter
-> i2c_scan=1.
-> * lspci -vvnn also should be interesting
-> * If you have a camera, could you do a picture, so we can get info about
-> the used analog tuner. I guess it is some XC30??. But to get it running you
-> should contact video4linux mailinglist.
->
->
-> Regards
-> Matthias
-
-
-Hello Matthias,
-
-if I load the saa7134 module of unpatched driver, but with parameter 
-i2c_scan=1, dmesg shows (Kernel 2.6.24-gentoo-r2)
-
-saa7130/34: v4l2 driver version 0.2.14 loaded
-saa7133[0]: found at 0000:02:07.0, rev: 209, irq: 18, latency: 64, mmio: 
-0xd3024000
-saa7133[0]: subsystem: 1461:a7a2, board: UNKNOWN/GENERIC [card=0,autodetected]
-saa7133[0]: board init: gpio is 6da00
-saa7133[0]: i2c eeprom 00: 61 14 a2 a7 ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c scan: found device @ 0x1c  [???]
-saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-
-and lspci -vvnn returns
-
-02:07.0 Multimedia controller [0480]: Philips Semiconductors SAA7133/SAA7135 
-Video Broadcast Decoder [1131:7133] (rev d1)
-        Subsystem: Avermedia Technologies Inc Unknown device [1461:a7a2]
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 64 (63750ns min, 63750ns max)
-        Interrupt: pin A Route to IRQ 18
-        Region 0: Memory at d3024000 (32-bit, non-prefetchable) [size=2K]
-        Capabilities: [40] Power Management version 2
-                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=3 PME-
-        Kernel driver in use: saa7134
-        Kernel modules: saa7134
-
-I did some pictures too... the link to them is in a PM for you. The analog 
-tuner seems to be a XC2028, but I don't see any possibilities to test the 
-tuner.
-
-Regards
-Peter
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gRGllbnN0YWcsIDEyLiBGZWJydWFyIDIwMDggMDY6NTQ6Mjggc2NocmllYmVuIFNpZToKPiBB
+bmRyZWFzIHdyb3RlOgo+ID4gQW0gTW9udGFnLCAxMS4gRmVicnVhciAyMDA4IDE3OjQ5OjUxIHNj
+aHJpZWJlbiBTaWU6Cj4gPj4gQW5kcmVhcyB3cm90ZToKPiA+Pj4gSGFsbG8sCj4gPj4+IEkgYm91
+Z2h0IHRoZSBjYXJkIHRvZGF5IGFuZCBuYXR1cmFsbHkgSSBhbSB3b25kZXJpbmcgaG93L3doYXQv
+d2hlbgo+ID4+PiB0aGUgY2FyZCBpcyBzdXBwb3J0ZWQ/Cj4gPj4+Cj4gPj4+IFRoYW5rIHlvdQo+
+ID4+Cj4gPj4gTG9vayBmb3IgdGhlIGN4MTggZGV2ZWxvcG1lbnQgdHJlZXMgb24gbGludXh0di5v
+cmcKPiA+Pgo+ID4+IC0gU3RldmUKPiA+Cj4gPiBTdGV2ZSwKPiA+IFRoYW5rIHlvdSwgSSBjaGVj
+a2VkIG91dCBIYW5zJyBjeDE4IHRyZWUgYW5kIHRyaWVkIHRvIGNvbXBpbGUgdGhlCj4gPiBtb2R1
+aWxlcy4gT24gbXkgQU1EIHg4Ni02NCAoS2VybmVsIDIuNi4yNC4xKSBJIGdldCBhbiBlcnJvciBk
+dXJpbmcKPiA+IGNvbXBpbGF0aW9uLiBBbnkgaWRlYSBob3cgSSBjYW4gZml4IHRoYXQ/IEdvaW5n
+IGZ1cnRoZXIgd2l0aCBtYWtlIC1rCj4gPiBjb21waWxlcyB0aGUgb3RoZXIgbW9kdWxlcywgYnV0
+IHRoZW4gbWFrZSBpbnN0YWxsIGZhaWxzIHdpdGggYW4gZXJyb3IKPiA+IGFib3V0IHN0cmlwcGlu
+ZyB0aGUgZGVidWcgaW5mby4KPgo+IE5vIGlkZWEsIHRoZSBsYXN0IHRpbWUgSSBidWlsdCBpdCAo
+My00IHdlZWtzIGFnbykgaXQgd2FzIGZpbmUuCj4KPiBEb2VzIHRoZSBtYXN0ZXIgdHJlZSAoaHR0
+cDovL2xpbnV4dHYub3JnL2hnL3Y0bC1kdmIpIGJ1aWxkIGNsZWFubHkgaW4KPiB5b3VyIGVudmly
+b25tZW50Pwo+Cj4gKFNlZSB0aGUgd2lraSBmb3IgYnVpbGQgaW5zdHJ1Y3Rpb25zKS4KPgo+IC0g
+U3RldmUKCkkgZ290IHRoZSBjeDE4IHRyZWUgdG8gYnVsaWQsIGluc3RhbGxlZCB0aGUgY2FyZCBh
+bmQgdGhlIGRyaXZlciwgYW5kIG5vdyAKZHZic2NhbiBnaXZlczoKYW5kcmVhc0BoYWw5MDA0On4+
+IGR2YnNjYW4gdXMtYXRzYy9DYWJsZS1TdGFuZGFyZC1jZW50ZXItZnJlcXVlbmNpZXMtUUFNMjU2
+ClVuYWJsZSB0byBxdWVyeSBmcm9udGVuZCBzdGF0dXMKCkkgZ2V0IHRoZSBzYW1lIG1lc3NhZ2Ug
+d2l0aCBhbnkgb2YgdGhlIGZpbGVzIGluIHNjYW4vYXRzYy4gVGhlIGNhcmQgaXMgCmNvbm5lY3Rl
+ZCB0byBteSBjYWJsZSB0diBvdXRsZXQuCgpUaGUgY2FyZCBzaG93cyB1cCBpbiAvZGV2L2R2Yi9h
+ZGFwdGVyMDoKYW5kcmVhc0BoYWw5MDA0On4+IGxzIC9kZXYvZHZiL2FkYXB0ZXIwLwpkZW11eDAg
+IGR2cjAgIGZyb250ZW5kMCAgbmV0MAoKV2hhdCBhbSBJIG1pc3NpbmcgaGVyZT8gQW55IHBvaW50
+ZXJzPwoKVGhhbmtzIQoKLS0gCkdydcOfCkFuZHJlYXMKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZi
+QGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWR2Yg==
