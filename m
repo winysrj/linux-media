@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DG9Lgd024785
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 11:09:21 -0500
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.176])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m1DG8Z7A020916
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 11:08:36 -0500
-Received: by el-out-1112.google.com with SMTP id r23so62213elf.7
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:07:31 -0800 (PST)
-Message-ID: <47B315B6.602@gmail.com>
-Date: Wed, 13 Feb 2008 11:07:18 -0500
-From: Christopher Harvey <arbuckle911@gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1C2Yvbg005150
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 21:34:57 -0500
+Received: from host06.hostingexpert.com (host06.hostingexpert.com
+	[216.80.70.60])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1C2YacN016571
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 21:34:36 -0500
+Message-ID: <47B105B8.7010900@linuxtv.org>
+Date: Mon, 11 Feb 2008 21:34:32 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: Robert William Fuller <hydrologiccycle@gmail.com>
-References: <47AF6564.6070602@gmail.com>
-	<20080213081206.GA21174@plankton.ifup.org>
-	<47B2B5C5.3030505@gmail.com>
-In-Reply-To: <47B2B5C5.3030505@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: select() problems with uvc drivers.
+To: Tony Breeds <tony@bakeyournoodle.com>
+References: <200802111154.31760.toralf.foerster@gmx.de>
+	<20080212004251.GT6887@bakeyournoodle.com>
+In-Reply-To: <20080212004251.GT6887@bakeyournoodle.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com,
+	=?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Steven Toth <stoth@hauppauge.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: build #345 issue for v2.6.25-rc1 in tuner-core.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,23 +34,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert William Fuller wrote:
-> Brandon Philips wrote:
->> On 15:58 Sun 10 Feb 2008, Christopher Harvey wrote:
->>> Hello,
->>> I've created a small c program that uses pure v4l2 code to read from a
->>> webcam on a uvc driver then copy that data into an SDL overlay. I've
->>> posted the code here:
+Tony Breeds wrote:
+> On Mon, Feb 11, 2008 at 11:54:31AM +0100, Toralf Förster wrote:
+>   
+>> Hello,
 >>
->> Just FYI- this was solved over on the UVC list.
+>> the build with the attached .config failed, make ending with:
+>> ...
+>>   MODPOST vmlinux.o
+>> WARNING: modpost: Found 12 section mismatch(es).
+>> To see full details build your kernel with:
+>> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>>   GEN     .version
+>>   CHK     include/linux/compile.h
+>>   UPD     include/linux/compile.h
+>>   CC      init/version.o
+>>   LD      init/built-in.o
+>>   LD      .tmp_vmlinux1
+>> drivers/built-in.o: In function `set_type':
+>> tuner-core.c:(.text+0x8879d): undefined reference to `xc5000_attach'
+>> make: *** [.tmp_vmlinux1] Error 1
+>>     
 >
-> Would you mind forwarding the solution or the link to the solution to
-> this list for those of us who don't follow the UVC list?  Thank you.
+> <snip>
+> Fix Build error for xc5000 tuner when built as module.
 >
-Sure thing. here is the "root" post, just hit next message a couple of
-times to see the solution.
-https://lists.berlios.de/pipermail/linux-uvc-devel/2008-February/002963.html
-P.S. Should I be using "reply" or "reply all"? (In thunderbird)
+> Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+>   
+Patch is correct.  Not sure which tag is appropriate.....
+
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+
+This should go straight to Linus.....  Andrew or Mauro, can one of you
+take care of it?
+
+Regards,
+
+Mike
+> ---
+> Not 100% certain this is correct but it works for me :) Michael?
+>
+>  drivers/media/dvb/frontends/xc5000.h |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/dvb/frontends/xc5000.h b/drivers/media/dvb/frontends/xc5000.h
+> index e0e8456..32a5f1c 100644
+> --- a/drivers/media/dvb/frontends/xc5000.h
+> +++ b/drivers/media/dvb/frontends/xc5000.h
+> @@ -45,7 +45,8 @@ struct xc5000_config {
+>  /* xc5000 callback command */
+>  #define XC5000_TUNER_RESET		0
+>  
+> -#if defined(CONFIG_DVB_TUNER_XC5000) || defined(CONFIG_DVB_TUNER_XC5000_MODULE)
+> +#if defined(CONFIG_DVB_TUNER_XC5000) || \
+> +    (defined(CONFIG_DVB_TUNER_XC5000_MODULE) && defined(MODULE))
+>  extern struct dvb_frontend* xc5000_attach(struct dvb_frontend *fe,
+>  					  struct i2c_adapter *i2c,
+>  					  struct xc5000_config *cfg);
+>   
 
 --
 video4linux-list mailing list
