@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LLvXTN025412
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 16:57:33 -0500
-Received: from mailrelay009.isp.belgacom.be (mailrelay009.isp.belgacom.be
-	[195.238.6.176])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LLv2xv004358
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 16:57:02 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1CGlH0a016053
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 11:47:17 -0500
+Received: from www.datavault.us (flatoutfitness.com [66.178.130.209])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1CGkbtO010481
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 11:46:38 -0500
+Received: from localhost ([127.0.0.1] helo=www.datavault.us ident=www-data)
+	by www.datavault.us with esmtp (Exim 4.68)
+	(envelope-from <yan@seiner.com>) id 1JOyIh-0005IB-QA
+	for video4linux-list@redhat.com; Tue, 12 Feb 2008 08:48:07 -0800
+Message-ID: <36145.199.79.32.17.1202834887.squirrel@www.datavault.us>
+Date: Tue, 12 Feb 2008 08:48:07 -0800 (PST)
+From: yan@seiner.com
 To: video4linux-list@redhat.com
-Date: Thu, 21 Feb 2008 23:03:37 +0100
-References: <47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802211212s104e4808wdab5c6806eb7849f@mail.gmail.com>
-	<47BDE1B9.4040309@kaiser-linux.li>
-In-Reply-To: <47BDE1B9.4040309@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Message-Id: <200802212303.37379.laurent.pinchart@skynet.be>
-Cc: 
-Subject: Re: V4L2_PIX_FMT_RAW
+Subject: Re: cx8800 DMA timeouts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,143 +28,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thursday 21 February 2008, Thomas Kaiser wrote:
-> H. Willstrand wrote:
-> > On Thu, Feb 21, 2008 at 7:55 PM, Thomas Kaiser
-> >
-> > <linux-dvb@kaiser-linux.li> wrote:
-> >> H. Willstrand wrote:
-> >>  > On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
-> >>  >
-> >>  > <linux-dvb@kaiser-linux.li> wrote:
-> >>  >> H. Willstrand wrote:
-> >>  >>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner 
-<daniel-gl@gmx.net> wrote:
-> >>  >>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
-> >>  >>  >>  > What's the problem with having a name of the formalized data
-> >>  >>  >>  > in the video stream? ie raw do not mean undefined.
-> >>  >>  >>
-> >>  >>  >>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x
-> >>  >>  >> for an exploding number of proprietary formats that are quite
-> >>  >>  >> similar but still incompatible. It makes sense for formats that
-> >>  >>  >> are used by more than one driver.
-> >>  >>  >
-> >>  >>  > Correct, the number of unique pixel formats should be kept down.
-> >>  >>  > Again, comparing with digital cameras there are >200 proprietary
-> >>  >>  > formats and there is a "clean-up" on-going where the "market" is
-> >>  >>  > aiming for a OpenRAW.
-> >>  >>  >
-> >>  >>  > However, by declaring a generic RAW format (which is then driver
-> >>  >>  > specific) doesn't help the user mode app developers. Calling a
-> >>  >>  > multitude of libraries to see if you get lucky might not be a
-> >>  >>  > good idea.
-> >>  >>  >
-> >>  >>  > Still, I'm suspectious about the definition "raw" used here.
-> >>  >>  > RAW should mean unprocessed image data:
-> >>  >>  > * no white balance adjustment
-> >>  >>  > * no color saturation adjustments
-> >>  >>  > * no contrast adjustments
-> >>  >>  > * no sharpness improvements
-> >>  >>  > * no compression with loss
-> >>  >>
-> >>  >>  Yes, raw means "as it is" no stripping, decoding  or removing of
-> >>  >> SOF headers are done in the driver. May be V4L2_PIX_FMT_AII (AII ->
-> >>  >> As It Is) is the better name?
-> >>  >
-> >>  > I struggle with the probability to find several CCD's having similar
-> >>  > formats. There aren't so many manifactors of CCD's but they truelly
-> >>  > can generate divergeting formats. Worst case scenario means >200
-> >>  > V4L2_PIX_FMT_RAW_...
-> >>  >
-> >>  > I think RAW is a OK name, the question is if the subcomponents of the
-> >>  > RAW formats has similarities, if so they might be standardized.
-> >>  > Looking into different Sony CCD's it's clearly possible, but after
-> >>  > the CCD the data has to be buffered, packaged and transmitted which
-> >>  > of course can be done in several ways...
-> >>  >
-> >>  > Cheers,
-> >>  > Harri
-> >>  >
-> >>  >>  > So, by looking for similarities in the "raw" formats where
-> >>  >>  > available there should be a potential to consolidate them.
-> >>  >>  >
-> >>  >>  >>  > I don't see how separate RAW ioctl's will add value to the
-> >>  >>  >>  > V4l2 API, it fits into the current API.
-> >>  >>  >>
-> >>  >>  >>  Yes, it does. Each driver having multiple raw formats just
-> >>  >>  >> needs a private control id to select one.
-> >>  >>  >
-> >>  >>  > I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
-> >>  >>  > should do the job.
-> >>  >>  > I.e. I think there should be strong reasons to break V4L2 API
-> >>  >>  > behavior.
-> >>  >>  >
-> >>  >>  > Harri
-> >>
-> >>  Actually, in a webcam you have the image sensor and a usb bridge.
-> >> Usually, the sensor capture a picture in Bayer pattern. This gets
-> >> forwarded to the usb bridge. The usb bridge may or may not transfer the
-> >> picture to an other format and/or compress it with a standard
-> >> compression algo or a proprietary compression algo. The resulting data
-> >> stream will be transmitted over the usb interface.
-> >
-> > Yes, the USB bridge buffers, packages and transmits.
-> >
-> >>  I just would like to get this resulting stream to user space without
-> >>  manipulation/conversion/decoding of the stream in the kernel module.
-> >>
-> >>  That means we don't know what the format is in this data which comes
-> >> trough the usb interface. That's way I call it raw.
-> >>
-> >>  At the moment with V4L2, I have to forward a stream to user space which
-> >> is in a format v4l2 knows. That means I have sometimes to do heavy data
-> >> processing in the kernel module to decode/convert the data from the usb
-> >> stream to a known v4l2 video format.
-> >
-> > Drivers should not do any decoding / converting, it's not allowed in
-> > kernel mode.
-> > But you are right, there are a number of V4L1 exceptions:
-> > AR M64278 (arv.c) converts YUV422 to YUV422P
-> > QuickCam (bw-qcam.c) converts RAW to a useful format :)
-> > CPiA (cpia.c) converts 420 to different RGB formats
-> > OmniVision (ov511.c) converts from YUV4:0:0
-> > PWC (V4L2) does decoding
->
-> You forgot gspca [1](support of 260 webcams at the moment) and here we even
-> do jpeg decoding in kernel space to get the proper format for v4l1!
+[Sorry Alexander, this was meant for the list]
 
-There are historical reasons. Those drivers should be fixed to remove decoding 
-from kernelspace. Obviously a new userspace component will be needed to 
-handle decoding and conversion, otherwise applications will break. No 
-consensus exists today regarding what form that component should take.
+> Hello,
+>
+> We have setup with Hauppauge WinTV model 34504.
+> We using that card only for taking SVideo capture. After few hours of
+work it sends the following messages and video capture is not working
+until module cx8800 is reloaded.
+> Does anybody had such problem or has an idea? Searching via mailinglist and
+> google didnt helped. There was few problems but related wrong tuner.
+>
+> Feb 10 22:46:52 ag kernel: cx88[0]: video y / packed - dma channel
+status dump
+> Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: initial risc: 0x08d34000 Feb
+10 22:46:52 ag kernel: cx88[0]:   cmds: cdt base    : 0x00180440 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: cdt size    : 0x0000000c Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: iq base     : 0x00180400 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: iq size     : 0x00000010 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: risc pc     : 0x00000000 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: iq wr ptr   : 0x00000000 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: iq rd ptr   : 0x00000101 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: cdt current : 0x00000448 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: pci target  : 0x00000000 Feb 10
+22:46:52 ag kernel: cx88[0]:   cmds: line / byte : 0x00000000 Feb 10
+22:46:52 ag kernel: cx88[0]:   risc0: 0x80008200 [ sync resync count=512
+]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   risc1: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   risc2: 0x08d72000 [ INVALID sol 23 22
+> 20 18 cnt1 cnt0 13 count=0 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   risc3: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 0: 0x80008200 [ sync resync
+count=512 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 1: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 2: 0x08d72000 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq 3: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 4: 0x08d722c0 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq 5: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 6: 0x08d72580 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq 7: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq 8: 0x08d70280 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq 9: 0x1c0002c0 [ write sol eol
+count=704 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq a: 0x08d70540 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq b: 0x71010000 [ jump irq1 cnt0 count=0
+]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq c: 0xd2000001 [ arg #1 ] Feb 10
+22:46:52 ag kernel: cx88[0]:   iq d: 0x0031c040 [ INVALID 21 20 cnt0
+> resync 14 count=64 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]:   iq e: 0x00000000 [ INVALID count=0
+] Feb 10 22:46:52 ag kernel: cx88[0]:   iq f: 0x00000011 [ INVALID
+count=17 ]
+> Feb 10 22:46:52 ag kernel: cx88[0]: fifo: 0x00180c00 -> 0x183400 Feb 10
+22:46:52 ag kernel: cx88[0]: ctrl: 0x00180400 -> 0x180460 Feb 10
+22:46:52 ag kernel: cx88[0]:   ptr1_reg: 0x00181540
+> Feb 10 22:46:52 ag kernel: cx88[0]:   ptr2_reg: 0x00180478
+> Feb 10 22:46:52 ag kernel: cx88[0]:   cnt1_reg: 0x0000002c
+> Feb 10 22:46:52 ag kernel: cx88[0]:   cnt2_reg: 0x00000000
+> Feb 10 22:46:52 ag kernel: cx88[0]/0: [c8ae0780/1] timeout -
+> dma=0x08d34000
+> Feb 10 22:46:52 ag kernel: cx88[0]/0: [d7df6f00/0] timeout -
+> dma=0x08d71000
+>
 
-> > ...
-> >
-> > However, the Webcams provides only a limited set of formats and the
-> > "raw" are usually available. New drivers with proprietary "raw"
-> > formats should be added to videodev2.h
->
-> That means you agree with me?
->
-> >>  That's way I want a official way to forward the untouched usb stream to
-> >> user space!
-> >>
-> >>  How the user space application has to react on this stream is an other
-> >> story, I think. But there will be some way to tell the usespace
-> >> application what to do with this "unknown" stream, I am sure.
-> >>
-> >>  Thomas
-> >
-> > Cheers,
-> > Harri
->
-> Thomas
->
-> [1] http://mxhaard.free.fr/download.html
+I'm seeing a similar problem.  I've upgraded to 2.6.24 + bleeding edge DVB
+drivers; no joy.
 
-Best regards,
+At some point - could be hours, could be weeks - the card just quits
+sending any data.  There is no error recorded anywhere.  AFAICT myth can
+still tune the card; it just gets no data.
 
-Laurent Pinchart
+It *may* be triggered by high PCI bus activity, but I have not been able
+to find any single trigger for this.
+
+It's very frustrating; it may be a recent change as the card worked fine
+with older (2.6.20) kernels.
+
+--Yan
+
+
 
 --
 video4linux-list mailing list
