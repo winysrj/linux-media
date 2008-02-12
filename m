@@ -1,24 +1,14 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@moelleritberatung.de>) id 1JT2DK-0008D9-9b
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 22:47:22 +0100
-Date: Sat, 23 Feb 2008 22:47:19 +0100
-From: Artem Makhutov <artem@makhutov.org>
-To: abraham.manu@gmail.com
-Message-ID: <20080223214718.GF30387@moelleritberatung.de>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
-	<47C01325.10407@otenet.gr>
-	<20080223174406.GB30387@moelleritberatung.de>
-	<47C0803D.2020504@gmail.com>
-	<20080223212013.GD30387@moelleritberatung.de>
-	<47C0903B.70606@gmail.com>
-	<20080223213258.GE30387@moelleritberatung.de>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JOuCT-0003Xj-8r
+	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 13:25:25 +0100
+Message-ID: <47B19015.20208@gmx.net>
+Date: Tue, 12 Feb 2008 13:24:53 +0100
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080223213258.GE30387@moelleritberatung.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] DiSEqC trouble with TT S-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,32 +19,32 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-On Sat, Feb 23, 2008 at 10:32:58PM +0100, Artem Makhutov wrote:
-> On Sun, Feb 24, 2008 at 01:29:31AM +0400, Manu Abraham wrote:
-> > Are you sure that you got the top level 2 changes changeset 7204 and 7203
-> > respectively ?
-> 
-> Oh, I only got 7203. Will try with 7204 in a few minutes.
+I've got a Technotrend S-1500 (if it matters: I use it with Kaffeine 
+0.8.3). It works mostly fine, but there's a strange problem. With my 
+Spaun 4/1 DiSEqC switch (they cost approx 25-40 euro), I can only switch 
+without trouble to position 1 and 2. If I tune directly to position 3 it 
+won't lock.
 
-Awesome! It fixed the problem:
+However, if I first tune to a channel on position 1 or 2 and try a 
+channel on position 3 after that, it will work. Position 4 however is 
+completely unreachable.
 
-Try: 100
-Failes: 0
-Tunes: 100
+On a standalone receiver, there's no trouble with the same cable.
 
-Great job!
+Now Spaun is a really expensive and respected brand. So their switches 
+possibly work in a different way, because a cheap Maximum 4/1 switch 
+works perfectly with the S-1500. Position 1, 2, 3 and 4 all work 
+perfectly. I also did some "dry testing" indoors and it looks like a 7 
+euro Satconn 4/1 switch would also work fine, but a 17 euro Axing SPU 
+41-02 probably won't.
 
-Thanks, Artem
-
--- 
-Artem Makhutov
-Unterort Str. 36
-D-65760 Eschborn
+I'm guessing this could be solved in stv0299.c but I'm not much of an 
+expert. I took a look at the code but I'm not really sure what to do.
 
 _______________________________________________
 linux-dvb mailing list
