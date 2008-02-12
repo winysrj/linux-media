@@ -1,17 +1,15 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.devoteam.com ([213.190.82.43])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from smtp1.betherenow.co.uk ([87.194.0.68] helo=smtp1.bethere.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Jens.Peder.Terjesen@devoteam.com>)
-	id 1JSCSz-0005KJ-RA
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 15:32:05 +0100
-MIME-Version: 1.0
-From: Jens.Peder.Terjesen@devoteam.com
+	(envelope-from <tghewett1@onetel.com>) id 1JOyQY-0007xi-B8
+	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 17:56:14 +0100
+Message-Id: <943AD9DC-0D82-4D86-B206-C1718A34EF3B@onetel.com>
+From: Tim Hewett <tghewett1@onetel.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 21 Feb 2008 15:30:13 +0100
-Message-ID: <OF036443EE.14B484CA-ONC12573F6.004FABE2-C12573F6.004FABEC@devoteam.com>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] Cannot switch polarization: Hauppauge
-	WinTV-NOVA-HD-S2
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Tue, 12 Feb 2008 16:54:47 +0000
+Cc: Tim Hewett <tghewett1@onetel.com>
+Subject: Re: [linux-dvb] How to force adaptor order when using 2 DVB cards?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,56 +17,196 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0523842123=="
+Content-Type: multipart/mixed; boundary="===============1851042858=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0523842123==
-Content-Type: text/html; charset=UTF-8
+
+--===============1851042858==
+Content-Type: multipart/alternative; boundary=Apple-Mail-4--957695155
+
+
+--Apple-Mail-4--957695155
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
+
+I have adapted dvbstream to allow an adaptor's string ident (e.g. "ST  
+STV0299 DVB-S" for a Technisat SkyStar 2 DVB-S PCI card, i.e. the  
+string which appears in dmesg when the DVB frontend is added) to be  
+passed as the argument to '-c' instead of just the adaptor number. e.g.:
+
+dvbstream -n 4400 -o -f 10847 -p v -s 22000 -c "ST STV0299 DVB-S" -D 1  
+0 258 2327 2328 2329
+
+I have three SkyStar 2 cards, a Wideview USB, AF9005 USB and AF9015  
+USB all in one PC, so they often are assigned to different card  
+numbers on boot up. Using the ident string allows the device's actual  
+adaptor number to be searched for each time.
+
+The change also allows individual cards to be addressed if you have  
+more than one of the same type, by adding the number to the end of the  
+string delimited by ':', e.g. "ST STV0299 DVB-S:1" means the second  
+SkyStar card, even if it is at card number 4 with the first being at  
+card number 1 (with other devices in between). I need this because  
+each card has a different LNB configuration, e.g. one has a diseqc  
+switch. Fortunately the ordering of the PCI cards stays the same  
+relative to each other, even if they aren't always assigned the same  
+adaptor number.
+
+The code is a total hack but if it helps then I can publish it,  
+perhaps it could even migrate into MythTV etc.
+
+There are various other hacks I've added to dvbstream, e.g. to avoid  
+the consequences of constantly changing PID assignments (as happens  
+sometimes for the BBC and ITV in the UK) you can specify a channel  
+name, e.g. "BBC 2 England" and have dvbstream discover the PIDs in the  
+same way as 'scan -c'.
+
+HTH,
+
+Tim.
+
+> Yep, it's horrible. This is what I did, the adapters 0,1,2 are still
+> there but MythTV is configured to used 4,5 and 6.
+>
+> # My own DVB hell
+>
+> # Twinhan DVB-S Card
+> #
+> KERNEL=="dvb[0-9].frontend0", ATTR{dev}=="212:3",
+> symlink+="dvb/adapter4/frontend0", GROUP="video"
+> KERNEL=="dvb[0-9].demux0", ATTR{dev}=="212:4",
+> symlink+="dvb/adapter4/demux0", GROUP="video"
+> KERNEL=="dvb[0-9].net0", ATTR{dev}=="212:7",
+> symlink+="dvb/adapter4/net0", GROUP="video"
+> KERNEL=="dvb[0-9].dvr0", ATTR{dev}=="212:5",
+> symlink+="dvb/adapter4/dvr0", GROUP="video"
+> #
+> # Nova-T Stick 1
+> #
+> KERNEL=="dvb[0-9].frontend0", ATTRS{serial}=="4030489593",
+> symlink+="dvb/adapter5/frontend0", GROUP="video"
+>  KERNEL=="dvb[0-9].demux0", ATTRS{serial}=="4030489593",
+> symlink+="dvb/adapter5/demux0", GROUP="video"
+> KERNEL=="dvb[0-9].net0", ATTRS{serial}=="4030489593",
+> symlink+="dvb/adapter5/net0", GROUP="video"
+> KERNEL=="dvb[0-9].dvr0", ATTRS{serial}=="4030489593",
+> symlink+="dvb/adapter5/dvr0", GROUP="video"
+> #
+> # Nova-T Stick 2
+> #
+> KERNEL=="dvb[0-9].frontend0", ATTRS{serial}=="4027844315",
+> symlink+="dvb/adapter6/frontend0", GROUP="video"
+> KERNEL=="dvb[0-9].demux0", ATTRS{serial}=="4027844315",
+> symlink+="dvb/adapter6/demux0", GROUP="video"
+> KERNEL=="dvb[0-9].net0", ATTRS{serial}=="4027844315",
+> symlink+="dvb/adapter6/net0", GROUP="video"
+> KERNEL=="dvb[0-9].dvr0", ATTRS{serial}=="4027844315",
+> symlink+="dvb/adapter6/dvr0", GROUP="video"
+>
+> I'm not sure if gmail has split the lines above but each actual line
+> should start with KERNEL.
+>
+> Sim
+>
+
+--Apple-Mail-4--957695155
+Content-Type: text/html;
+	charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-<FONT face=3D"Default Sans Serif,Verdana,Arial,Helvetica,sans-serif" size=
-=3D2><DIV>&nbsp;</DIV><P><FONT color=3D#990099>-----linux-dvb-bounces@linux=
-tv.org wrote: -----<BR><BR></FONT>&gt;To:&nbsp;linux-dvb@linuxtv.org<BR>&gt=
-;From:&nbsp;Andreas&nbsp;Bergstr=C3=B8m&nbsp;&lt;andreas.bergstrom@hiof.no&=
-gt;<BR>&gt;Sent&nbsp;by:&nbsp;linux-dvb-bounces@linuxtv.org<BR>&gt;Date:&nb=
-sp;21-02-2008&nbsp;14:59<BR>&gt;Subject: [linux-dvb] Cannot switch polariza=
-tion: Hauppauge<BR>&gt;WinTV-NOVA-HD-S2<BR>&gt;<BR>&gt;Greetings,<BR>&gt;<B=
-R>&gt;We have just bought a Hauppauge WinTV-NOVA-HD-S2, and having followed=
-<BR>&gt;http://linuxtv.org/wiki/index.php/Hauppauge=5FWinTV-HVR-4000<BR>&gt=
-;,&nbsp;I&nbsp;have&nbsp;gotten&nbsp;the&nbsp;card&nbsp;to&nbsp;work,&nbsp;=
-well,&nbsp;half&nbsp;of&nbsp;the&nbsp;time.<BR>&gt;<BR>&gt;It is unable to =
-tune any channel with a vertical polarization, while <BR>&gt;<BR>&gt;horiso=
-ntal&nbsp;works&nbsp;like&nbsp;a&nbsp;charm.<BR>&gt;<BR>&gt;Could this prob=
-lem be related to this card and this problem<BR>&gt;http://www.linuxtv.org/=
-pipermail/linux-dvb/2006-February/008471.html<BR>&gt; ? There is approximat=
-ely 10 to 25 metres of cable between the card <BR>&gt;<BR>&gt;and the LNB. =
-(Which is a 8-way LNB, which tunes vertically fine, as <BR>&gt;<BR>&gt;far&=
-nbsp;as&nbsp;I&nbsp;can&nbsp;determine.<BR>&gt;<BR>&gt;Thanks&nbsp;in&nbsp;=
-advance,<BR>&gt;<BR>&gt;Regards,<BR>&gt;<BR>&gt;--<BR>&gt;Andreas&nbsp;Berg=
-str=C3=B8m<BR>&gt;=C3=98stfold&nbsp;University&nbsp;College<BR>&gt;Dept.&nb=
-sp;of&nbsp;Computer&nbsp;Sciences<BR>&gt;Tel:&nbsp;+47&nbsp;69&nbsp;21&nbsp=
-;53&nbsp;71<BR>&gt;http://media.hiof.no/<BR>&gt;<BR>&gt;<BR>&gt;<BR>&gt;<BR=
->&gt;<BR>&gt;<BR>&gt;=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
-=5F=5F=5F=5F<BR>&gt;linux-dvb&nbsp;mailing&nbsp;list<BR>&gt;linux-dvb@linux=
-tv.org<BR>&gt;http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</P>=
-<P>13V is vertical and 18V is horisontal <FONT face=3D"Default Monospace,Co=
-urier New,Courier,monospace">polarization, so I don't think it is related.<=
-/FONT></P><P><FONT face=3D"Default Monospace,Courier New,Courier,monospace"=
->I have two HVR-4000 working on OpenSuse 10.3 with the latest v4l-dvb drive=
-rs from <A href=3D"http://linuxtv.org/hg/v4l-dvb" target=3Dblank>http://lin=
-uxtv.org/hg/v4l-dvb</A>&nbsp;pathed with <A href=3D"http://dev.kewl.org/hau=
-ppauge/v4l-dvb-hg-sfe-latest.diff" target=3Dblank>http://dev.kewl.org/haupp=
-auge/v4l-dvb-hg-sfe-latest.diff</A>.&nbsp;I have also followed the instruct=
-ions you refer to, but had to do make release before the make and make inst=
-all to get it to work.</FONT></P><P><FONT face=3D"Default Monospace,Courier=
- New,Courier,monospace">Jens</FONT></P></FONT>=
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div>I have adapted dvbstream =
+to allow an adaptor's string ident (e.g. "ST STV0299 DVB-S" for a =
+Technisat SkyStar 2 DVB-S PCI card, i.e. the string which appears in =
+dmesg when the DVB frontend is added) to be passed as the argument to =
+'-c' instead of just the adaptor number. e.g.:</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>dvbstream -n 4400 -o -f =
+10847 -p v -s 22000 -c "ST STV0299 DVB-S" -D 1 0 258 2327 2328 =
+2329</div><div><br class=3D"webkit-block-placeholder"></div><div>I have =
+three SkyStar 2 cards, a Wideview USB, AF9005 USB and AF9015 USB all in =
+one PC, so they often are assigned to different card numbers on boot up. =
+Using the ident string allows the device's actual adaptor number to be =
+searched for each time.</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>The change also allows =
+individual cards to be addressed if you have more than one of the same =
+type, by adding the number to the end of the string delimited by ':', =
+e.g.&nbsp;"ST STV0299 DVB-S:1" means the second SkyStar card, even if it =
+is at card number 4 with the first being at card number 1 (with other =
+devices in between). I need this because each card has a different LNB =
+configuration, e.g. one has a diseqc switch. Fortunately the ordering of =
+the PCI cards stays the same relative to each other, even if they aren't =
+always assigned the same adaptor number.</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>The code is a total hack =
+but if it helps then I can publish it, perhaps it could even migrate =
+into MythTV etc.</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>There are various other =
+hacks I've added to dvbstream, e.g. to avoid the consequences of =
+constantly changing PID assignments (as happens sometimes for the BBC =
+and ITV in the UK) you can specify a channel name, e.g. "BBC 2 England" =
+and have dvbstream discover the PIDs in the same way as 'scan =
+-c'.</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>HTH,</div><div><br =
+class=3D"webkit-block-placeholder"></div><div>Tim.</div><div><br =
+class=3D"webkit-block-placeholder"></div><div><blockquote type=3D"cite" =
+class=3D""><span class=3D"Apple-style-span" style=3D"color: rgb(0, 0, =
+0); font-family: Times; font-size: 16px; "><pre>Yep, it's horrible. This =
+is what I did, the adapters 0,1,2 are still
+there but MythTV is configured to used 4,5 and 6.
+
+# My own DVB hell
+
+# Twinhan DVB-S Card
+#
+KERNEL=3D=3D"dvb[0-9].frontend0", ATTR{dev}=3D=3D"212:3",
+symlink+=3D"dvb/adapter4/frontend0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].demux0", ATTR{dev}=3D=3D"212:4",
+symlink+=3D"dvb/adapter4/demux0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].net0", ATTR{dev}=3D=3D"212:7",
+symlink+=3D"dvb/adapter4/net0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].dvr0", ATTR{dev}=3D=3D"212:5",
+symlink+=3D"dvb/adapter4/dvr0", GROUP=3D"video"
+#
+# Nova-T Stick 1
+#
+KERNEL=3D=3D"dvb[0-9].frontend0", ATTRS{serial}=3D=3D"4030489593",
+symlink+=3D"dvb/adapter5/frontend0", GROUP=3D"video"
+ KERNEL=3D=3D"dvb[0-9].demux0", ATTRS{serial}=3D=3D"4030489593",
+symlink+=3D"dvb/adapter5/demux0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].net0", ATTRS{serial}=3D=3D"4030489593",
+symlink+=3D"dvb/adapter5/net0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].dvr0", ATTRS{serial}=3D=3D"4030489593",
+symlink+=3D"dvb/adapter5/dvr0", GROUP=3D"video"
+#
+# Nova-T Stick 2
+#
+KERNEL=3D=3D"dvb[0-9].frontend0", ATTRS{serial}=3D=3D"4027844315",
+symlink+=3D"dvb/adapter6/frontend0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].demux0", ATTRS{serial}=3D=3D"4027844315",
+symlink+=3D"dvb/adapter6/demux0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].net0", ATTRS{serial}=3D=3D"4027844315",
+symlink+=3D"dvb/adapter6/net0", GROUP=3D"video"
+KERNEL=3D=3D"dvb[0-9].dvr0", ATTRS{serial}=3D=3D"4027844315",
+symlink+=3D"dvb/adapter6/dvr0", GROUP=3D"video"
+
+I'm not sure if gmail has split the lines above but each actual line
+should start with KERNEL.
+
+Sim
+</pre><div><font class=3D"Apple-style-span" face=3D"Monaco"><span =
+class=3D"Apple-style-span" style=3D"white-space: pre;"><br =
+class=3D"webkit-block-placeholder"></span></font></div></span></blockquote=
+></div></body></html>=
+
+--Apple-Mail-4--957695155--
 
 
---===============0523842123==
+--===============1851042858==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -78,4 +216,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0523842123==--
+--===============1851042858==--
