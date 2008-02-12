@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail.elion.ee ([194.126.117.142])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kasjas@hot.ee>) id 1JMicx-0006lU-0k
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 12:39:43 +0100
-Message-ID: <47A99C60.4070305@hot.ee>
-Date: Wed, 06 Feb 2008 13:39:12 +0200
-From: Arthur Konovalov <kasjas@hot.ee>
+From: Andreas <linuxdreas@launchnet.com>
+To: Steven Toth <stoth@linuxtv.org>
+Date: Tue, 12 Feb 2008 15:21:40 -0800
+References: <200802111739.47956.linuxdreas@launchnet.com>
+	<200802121149.15425.linuxdreas@launchnet.com>
+	<47B20D23.6070305@linuxtv.org>
+In-Reply-To: <47B20D23.6070305@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Changeset 7161 compile error on 2.6.24 kernel]
+Content-Disposition: inline
+Message-Id: <200802121521.40539.linuxdreas@launchnet.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,29 +18,17 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Compiling of the current HG tree fails on kernel 2.6.24:
-
-In file included from /usr/local/src/v4l-dvb/v4l/bt87x.c:34:
-include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a function)
-make[3]: *** [/usr/local/src/v4l-dvb/v4l/bt87x.o] Error 1
-make[2]: *** [_module_/usr/local/src/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.24'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/local/src/v4l-dvb/v4l'
-make: *** [all] Error 2
-
-Please help,
-Arthur
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gRGllbnN0YWcsIDEyLiBGZWJydWFyIDIwMDggMTM6MTg6Mjcgc2NocmllYmVuIFNpZToKPiA+
+IFdoYXQgYW0gSSBtaXNzaW5nIGhlcmU/IEFueSBwb2ludGVycz8KPgo+IEFUU0MgaXNuJ3Qgc3Vw
+cG9ydGVkIHlldC4gVHJ5IGFuYWxvZy4KPgo+IC0gU3RldmUKCk9oIHdlbGwsIHRoYXQgZXhwbGFp
+bnMgaXQgb2YgY291cnNlIDpQCgpEbyB5b3Uga25vdyBpZiBkdmIgc3VwcG9ydCBpcyBwbGFubmVk
+IGZvciB0aGUgbmVhciBmdXR1cmU/CkkgY2FuIHN0aWxsIHJldHVybiB0aGUgY2FyZC4uLiAKCi0t
+IApHcnXDnwpBbmRyZWFzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
+Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
