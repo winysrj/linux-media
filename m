@@ -1,23 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17KCWtP029493
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 15:12:32 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m17KC51D016996
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 15:12:05 -0500
-Date: Thu, 7 Feb 2008 18:11:36 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
-Message-ID: <20080207181136.5c8c53fc@gaivota>
-In-Reply-To: <1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
-References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
-	<20080207174703.5e79d19a@gaivota>
-	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Question about saa7115
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1C7mp8C032707
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 02:48:51 -0500
+Received: from sandbox.cz (sandbox.cz [87.236.197.188])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1C7mS3g023810
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 02:48:28 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by sandbox.cz (Postfix) with ESMTP id C6A2D29F3A
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 08:48:21 +0100 (CET)
+Received: from sandbox.cz ([127.0.0.1])
+	by localhost (sandbox.cz [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Q9AX2ztEkxWx for <video4linux-list@redhat.com>;
+	Tue, 12 Feb 2008 08:48:16 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by sandbox.cz (Postfix) with ESMTP id 756D173CB0
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 08:48:16 +0100 (CET)
+Date: Tue, 12 Feb 2008 08:48:16 +0100 (CET)
+From: Adam Pribyl <pribyl@lowlevel.cz>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0802120826060.26704@sandbox.cz>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Subject: Lifeview NOT Hybrid PCI! LV3H
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,32 +33,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 7 Feb 2008 12:03:10 -0800
-"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
+I got this new card from Lifeview. It is based on Conexant CX-23881, 
+Xceive 3028 tuner and Intel CE6353 DVBT decoder.. When 
+I used cx88xx driver it segfaults, upon suggestion by Mauro Carvalho 
+Chehab in this bug http://bugzilla.kernel.org/show_bug.cgi?id=9876 I 
+compiled cx88 with xc3028 support from mercurial.
 
-> On Feb 7, 2008 11:47 AM, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > On Wed, 6 Feb 2008 17:44:05 -0800
-> > On embedded processors, you generally attach devices directly to the CPU i2c
-> > bus. In this case, you'll need to implement a host v4l2 module for your
-> > processor, and use it to access the i2c device.
-> >
-> 
-> Ok, that's what I feared :-)
+Now it is better, driver identifies card as
+cx88[0]: subsystem: 14f1:8852, board: Geniatech X8000-MT DVBT 
+[card=63,autodetected]
 
-It shouldn't be that hard. You just need to implement something like vivi.c +
-cx88-i2c ;)
+and complains about
+xc2028 1-0061: xc2028/3028 firmware name not set!
+It is not loading xc firmware which I extracted into /lib/firmware 
+according http://linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028
 
-> anyway, in the saa711x_probe function (in saa7115.c), the "if
-> (adapter->class & I2C_CLASS_TV_ANALOG)" test always fails as
-> I2C_CLASS_TV_ANALOG is 2 and adapter->class is 1 (lm sensors), is that
-> normal ? shouldn't class be 2 ?
+also it uses incorrect DVBT frontend
+DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
 
-If you're using the same i2c bus for lm_sensors and for tv_analog,
-you'll need to set adapter->class to 3.
+The questions:
+1. How is that possible that subsystem id 14f1:8852 is matching this card 
+but it is already known for different card - can we have two cards with 
+same ID?
+2. why xc is not loading firmware, looking into source it should load 
+xc3028-v27.fw, where I can set the firmware name (any modprobe option?)
+3. is intel DVBT supported?
 
+refs:
+Similar card different vendor?
+http://linuxtv.org/wiki/index.php/Leadtek_Winfast_PxDVR_3200_H
+Pictures and other info about this Lifeview:
+http://www.lowlevel.cz/log/pivot/entry.php?id=117
 
-Cheers,
-Mauro
+Thanks for any hint.
+
+Adam Pribyl
 
 --
 video4linux-list mailing list
