@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E00CbO023560
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 19:00:12 -0500
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DNxoah001179
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:59:50 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Michael Krufky <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-	<20080205080038.GB8232@plankton.ifup.org>
-	<20080205102409.4b7acb01@gaivota>
-	<20080213202055.GA26352@plankton.ifup.org>
-	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-Content-Type: text/plain
-Date: Thu, 14 Feb 2008 00:55:06 +0100
-Message-Id: <1202946906.3653.107.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1CFjPOT027484
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:45:25 -0500
+Received: from server.neksa.net (server.neksa.net [207.210.78.160])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1CFj4lX002666
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:45:04 -0500
+Received: from 129.177.20.58 (localhost [127.0.0.1])
+	by server.neksa.net (Postfix) with ESMTP id 1C6AA18378D6
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:46:38 -0500 (EST)
+Date: Tue, 12 Feb 2008 10:46:38 -0500
+To: video4linux-list@redhat.com
+From: Alexander Oltu <alexander@all-2.com>
+Message-ID: <194903e6f2485149e992efb68e0c51fd@129.177.20.58>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="UTF-8"
+Subject: cx8800 DMA timeouts
+Reply-To: Alexander Oltu <alexander@all-2.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,74 +29,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Mittwoch, den 13.02.2008, 18:24 -0500 schrieb Michael Krufky:
-> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
-> > On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
-> > > Maybe we've took the wrong direction when we've decided to select
-> > > mercurial. It were better and easier to use, on that time, but the -git
-> > > improvements happened too fast.
-> >
-> > We should consider a move to a full-tree git.  Particularly, it would be
-> > nice to be have v4l-dvb merging/building against other subsystems in the
-> > linux-next tree:
-> >
-> >   http://lkml.org/lkml/2008/2/11/512
-> >
-> > Also, it would save the silly pain of things like this meye.h thing and
-> > pulling in fixes from the rest of the community that patches against git
-> > trees.
-> 
-> 
-> When we moved from CVS to HG, we lost many developers.
-> 
-> Of the developers that remain, most of us are finally comfortable
-> working in mercurial.
-> 
-> I understand the benefits of moving to git, but that option was on the
-> table when we moved to mercurial from cvs, and it was shot down.
-> 
-> I would prefer that we stick with what we have for now -- for the sake
-> of our users / testers, and for the sake of our developers.
-> 
-> Lets not drive away more contributors.
-> 
-> Additionally, the moment we move development from hg to git, we are
-> bound to the development kernel -- we will no longer be able to work
-> against any stable kernel series, and we will lose all of our testers.
-> 
-> v4l/dvb is a bit different from kernel development of other
-> subsystems, in that we work on drivers for new devices.  Users will
-> not want to upgrade an entire kernel, let alone build that entire
-> kernel themselves, just so they can get new device support.  We will
-> quickly notice that users will be less daring to buy new hardware, and
-> will start buying older hardware known to have stable linux support.
-> 
-> As much as I wanted us all to use git back when we were discussing the
-> SCM move a few years ago, I am entirely against it right now.
-> 
-> Regards,
-> 
-> Mike Krufky
-> 
+Hello,
 
-Mike,
+We have setup with Hauppauge WinTV model 34504.
+We using that card only for taking SVideo capture. After few hours of work
+it sends the following messages and video capture is not working until
+module cx8800 is reloaded.
+Does anybody had such problem or has an idea? Searching via mailinglist and
+google didnt helped. There was few problems but related wrong tuner.
 
-I totally agree with you.
+Feb 10 22:46:52 ag kernel: cx88[0]: video y / packed - dma channel status
+dump
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: initial risc: 0x08d34000
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: cdt base    : 0x00180440
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: cdt size    : 0x0000000c
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: iq base     : 0x00180400
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: iq size     : 0x00000010
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: risc pc     : 0x00000000
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: iq wr ptr   : 0x00000000
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: iq rd ptr   : 0x00000101
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: cdt current : 0x00000448
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: pci target  : 0x00000000
+Feb 10 22:46:52 ag kernel: cx88[0]:   cmds: line / byte : 0x00000000
+Feb 10 22:46:52 ag kernel: cx88[0]:   risc0: 0x80008200 [ sync resync
+count=512 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   risc1: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   risc2: 0x08d72000 [ INVALID sol 23 22
+20 18 cnt1 cnt0 13 count=0 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   risc3: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 0: 0x80008200 [ sync resync
+count=512 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 1: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 2: 0x08d72000 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 3: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 4: 0x08d722c0 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 5: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 6: 0x08d72580 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 7: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 8: 0x08d70280 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq 9: 0x1c0002c0 [ write sol eol
+count=704 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq a: 0x08d70540 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq b: 0x71010000 [ jump irq1 cnt0
+count=0 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq c: 0xd2000001 [ arg #1 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq d: 0x0031c040 [ INVALID 21 20 cnt0
+resync 14 count=64 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq e: 0x00000000 [ INVALID count=0 ]
+Feb 10 22:46:52 ag kernel: cx88[0]:   iq f: 0x00000011 [ INVALID count=17 ]
+Feb 10 22:46:52 ag kernel: cx88[0]: fifo: 0x00180c00 -> 0x183400
+Feb 10 22:46:52 ag kernel: cx88[0]: ctrl: 0x00180400 -> 0x180460
+Feb 10 22:46:52 ag kernel: cx88[0]:   ptr1_reg: 0x00181540
+Feb 10 22:46:52 ag kernel: cx88[0]:   ptr2_reg: 0x00180478
+Feb 10 22:46:52 ag kernel: cx88[0]:   cnt1_reg: 0x0000002c
+Feb 10 22:46:52 ag kernel: cx88[0]:   cnt2_reg: 0x00000000
+Feb 10 22:46:52 ag kernel: cx88[0]/0: [c8ae0780/1] timeout - dma=0x08d34000
+Feb 10 22:46:52 ag kernel: cx88[0]/0: [d7df6f00/0] timeout - dma=0x08d71000
 
-All the work invested in the build system to attract more testers did
-not help us to keep some basic community for testing.
+Thanks,
+Alex.
 
-For that, we are not better off as when Gerd and some inclined enough
-fought for every tester. I stated already, that it looks like we have to
-buy all new cards soon on our own budget, despite of what we have done.
-
-The current checkpatch.pl hysteria on decades old code does the rest..
-
-Cheers,
-Hermann
-
-
-
+________________________________________________
+VHCS Webmail
 
 
 --
