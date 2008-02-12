@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1MCKVaJ019537
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 07:20:31 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1MCJvO7028370
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 07:19:57 -0500
-Date: Fri, 22 Feb 2008 09:13:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080222091314.1ecf60d8@gaivota>
-In-Reply-To: <47BE2781.4060205@linuxtv.org>
-References: <20080219065109.199ee966@gaivota> <47BB3F60.2030801@linuxtv.org>
-	<20080219182043.7434bd56@gaivota> <47BE2781.4060205@linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: c.pascoe@itee.uq.edu.au, video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	fragabr@gmail.com
-Subject: Re: [EXPERIMENTAL] cx88+xc3028 - tests are required - was: Re: Wh
- en xc3028/xc2028 will be supported?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1C3fkNB031029
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 22:41:46 -0500
+Received: from web34401.mail.mud.yahoo.com (web34401.mail.mud.yahoo.com
+	[66.163.178.150])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m1C3fGUD014456
+	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 22:41:16 -0500
+Date: Mon, 11 Feb 2008 19:41:10 -0800 (PST)
+From: Muppet Man <muppetman4662@yahoo.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Message-ID: <653934.59125.qm@web34401.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Subject: Trouble compiling driver in PClinuxOS
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,82 +24,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 21 Feb 2008 20:38:09 -0500
-Michael Krufky <mkrufky@linuxtv.org> wrote:
+Greetings all,
+I am having trouble compiling the latest v4l-dvb in order to get my pinnicale pci card to work.  I am running PClinuxOS 2007.  I have downloaded the latest tree, mkdir v4l-dvb extracted the tz file to that folder, went into root mode and got this error when I make the file
 
-> Mauro Carvalho Chehab wrote:
-> >>> It is not that simple. Steven patch works for DTV on PCI Nano; Christopher
-> >>> patches for some other DiVCO boards (DTV also); my port of Markus patch
-> >>>       
-> >> for
-> >>     
-> >>> other boards (tested by Dâniel Fraga - Analog TV).
-> >>>   
-> >>>       
-> >> What does one board have to do with another?  Just because these boards 
-> >> all use xceive tuners does not mean that they should be grouped together.
-> >>     
-> >
-> > No, but we have patches for all of them.
-> >
-> >   
-> >> Because the user has the ability to load cx8800 without cx88-dvb, and 
-> >> likewise, the user has the ability to load cx88-dvb without cx8800, the 
-> >> attach call must be fully qualified such that the other side of the 
-> >> driver is not required to be loaded in order for the tuner to work.
-> >>     
-> >
-> > If you take a look at the code, you'll see that all code is at cx88xx. This
-> > module is loaded by cx8800, if you're using analog, or by cx8802, if you're
-> > using cx88-dvb or cx88-blackbird.
-> >
-> > The code initializes xc3028 before tuner attach.
-> >
-> >   
-> >> In the case of FusionHDTV5 pci nano, there will never be an attach call 
-> >> from the analog side of the driver, since the tuner is hidden behind the 
-> >> s5h1409's i2c gate, and analog mode is not supported with the current 
-> >> driver.  If you set i2c_scan=1 on the PCI nano, the xceive tuner will 
-> >> not even show up in the scan.
-> >>     
-> >
-> > The proper fix is to open the i2c gate before loading tuner. This will allow
-> > i2c_scan to work and both analog and digital modes will work. Btw, this
-> > somewhat similar to what dvico_fusionhdtv_hybrid_init() does on cx88-cards.
-> >
-> > I've added a patch that should open the bridge for s5h1409. Please test. 
-> Mauro,
-> 
-> It does not work.  See my prior email in this thread for the explanation.
-> 
-> [ 2912.355967] Linux video capture interface: v2.00
-> [ 2912.373470] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> [ 2912.373536] ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level,
-> low) -> IRQ 17
-> [ 2912.373601] cx88[0]: subsystem: 18ac:d530, board: DVICO HDTV5 PCI
-> Nano [card=59,autodetected]
-> [ 2912.373607] cx88[0]: TV tuner type 71, Radio tuner type -1
-> [ 2912.555088] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
-		          ^^^^
-The above message were generated by cx88-cards. So, as I said before, this were
-called _before_ running dvb_register, defined at cx88-dvb.
+make -C /home/ed/v4l-dvb/v4l
+make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.18.8.tex5/build
+make -C /lib/modules/2.6.18.8.tex5/build SUBDIRS=/home/ed/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.18.8.tex5'
+  CC [M]  /home/ed/v4l-dvb/v4l/videodev.o
+/home/ed/v4l-dvb/v4l/videodev.c:491: error: unknown field 'dev_attrs' specified in initializer
+/home/ed/v4l-dvb/v4l/videodev.c:491: warning: initialization from incompatible pointer type
+/home/ed/v4l-dvb/v4l/videodev.c:492: error: unknown field 'dev_release' specified in initializer
+/home/ed/v4l-dvb/v4l/videodev.c:492: warning: missing braces around initializer
+/home/ed/v4l-dvb/v4l/videodev.c:492: warning: (near initialization for 'video_class.subsys')
+/home/ed/v4l-dvb/v4l/videodev.c:492: warning: initialization from incompatible pointer type
+make[3]: *** [/home/ed/v4l-dvb/v4l/videodev.o] Error 1
+make[2]: *** [_module_/home/ed/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.18.8.tex5'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
 
-The issue is simple: the i2c gate code were wrong. So, xc3028 is not visible on
-that point of the code. With this, analog support will never work. The proper
-fix is to enable xc3028 before enabling i2c, meaning to correct the code at
-cx88_pci_nano_init().
+I know this driver works because I had it running under ubuntu, but I heard so much about PClinuxOS that I thought I would give it a shot.
 
-After re-visiting s5h1409 code, I noticed that I've used the wrong sequence for
-the gate. The state should be i2c closed, for xc3028 to work. The following
-patch should fix:
+Any help would be greatly appreciated.
+Ed
 
-http://linuxtv.org/hg/~mchehab/cx88-xc2028/rev/871db4e0451c
 
-Please test it, with i2c_scan=1, and post the results.
 
-Cheers,
-Mauro
 
+
+
+      ____________________________________________________________________________________
+Be a better friend, newshound, and 
+know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
