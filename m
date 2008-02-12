@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fmmailgate02.web.de ([217.72.192.227])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Andre.Weidemann@web.de>) id 1JNnFv-0007kB-FV
-	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 11:48:23 +0100
-Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
-	by fmmailgate02.web.de (Postfix) with ESMTP id 54633D0087B8
-	for <linux-dvb@linuxtv.org>; Sat,  9 Feb 2008 11:47:53 +0100 (CET)
-Received: from [84.184.103.140] (helo=[192.168.0.1])
-	by smtp06.web.de with asmtp (WEB.DE 4.109 #226) id 1JNnFR-0001nD-00
-	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 11:47:53 +0100
-Message-ID: <47AD84DC.6060304@web.de>
-Date: Sat, 09 Feb 2008 11:47:56 +0100
-From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
+From: Andreas <linuxdreas@launchnet.com>
+To: Steven Toth <stoth@linuxtv.org>
+Date: Mon, 11 Feb 2008 23:10:38 -0800
+References: <200802111739.47956.linuxdreas@launchnet.com>
+	<47B0FB3F.7070207@linuxtv.org>
+In-Reply-To: <47B0FB3F.7070207@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47A9B2AE.7090209@web.de>
-In-Reply-To: <47A9B2AE.7090209@web.de>
-Subject: Re: [linux-dvb] [PATCH] Support for TT connect S-2400
+Content-Disposition: inline
+Message-Id: <200802112310.38960.linuxdreas@launchnet.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,40 +17,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andr=E9 Weidemann wrote:
-> Please try the attached patch and let me know whether it's working or not.
-
-I got a few personal replies to this patch and it seems as if it is =
-
-basically working.
-But in order to make the USB box work without picture distortion a =
-
-different firmware needs to be loaded for the TT connect S-2400. I was =
-
-able to extract the firmware from the original TT driver and using this =
-
-firmware everything is fine.
-The problem I'm facing now is, that my programming knowledge is not =
-
-sufficient to add the necessary changes to the code so that a different =
-
-firmware is loaded for the two different boxes.
-Can anyone give me a hand on this or even write the few lines?
-
-The new FW can be found here: =
-
-http://ilpss8.dyndns.org/dvb-usb-tt-s2400-01.fw
-
-Thank you.
-  Andr=E9
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gTW9udGFnLCAxMS4gRmVicnVhciAyMDA4IDE3OjQ5OjUxIHNjaHJpZWJlbiBTaWU6Cj4gQW5k
+cmVhcyB3cm90ZToKPiA+IEhhbGxvLAo+ID4gSSBib3VnaHQgdGhlIGNhcmQgdG9kYXkgYW5kIG5h
+dHVyYWxseSBJIGFtIHdvbmRlcmluZyBob3cvd2hhdC93aGVuIHRoZQo+ID4gY2FyZCBpcyBzdXBw
+b3J0ZWQ/Cj4gPgo+ID4gVGhhbmsgeW91Cj4KPiBMb29rIGZvciB0aGUgY3gxOCBkZXZlbG9wbWVu
+dCB0cmVlcyBvbiBsaW51eHR2Lm9yZwo+Cj4gLSBTdGV2ZQoKU3RldmUsClRoYW5rIHlvdSwgSSBj
+aGVja2VkIG91dCBIYW5zJyBjeDE4IHRyZWUgYW5kIHRyaWVkIHRvIGNvbXBpbGUgdGhlIG1vZHVp
+bGVzLiAKT24gbXkgQU1EIHg4Ni02NCAoS2VybmVsIDIuNi4yNC4xKSBJIGdldCBhbiBlcnJvciBk
+dXJpbmcgY29tcGlsYXRpb24uIEFueSAKaWRlYSBob3cgSSBjYW4gZml4IHRoYXQ/IEdvaW5nIGZ1
+cnRoZXIgd2l0aCBtYWtlIC1rIGNvbXBpbGVzIHRoZSBvdGhlciAKbW9kdWxlcywgYnV0IHRoZW4g
+bWFrZSBpbnN0YWxsIGZhaWxzIHdpdGggYW4gZXJyb3IgYWJvdXQgc3RyaXBwaW5nIHRoZSAKZGVi
+dWcgaW5mby4KCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpt
+YWtlIC1DIC4uLy4uLy4uL2xpbnV4LTIuNi4yNC4xLTM1IE89Li4vbGludXgtMi42LjI0LjEtMzUt
+b2JqL3g4Nl82NC9kZWZhdWx0IAptb2R1bGVzCiAgQ0MgW01dICAvaG9tZS9hbmRyZWFzL0RvY3Vt
+ZW50cy9jeDE4L3Y0bC9lbTI4eHgtYXVkaW8ubwpJbiBmaWxlIGluY2x1ZGVkIGZyb20gL2hvbWUv
+YW5kcmVhcy9Eb2N1bWVudHMvY3gxOC92NGwvZW0yOHh4LWF1ZGlvLmM6Mzk6Ci91c3Ivc3JjL2xp
+bnV4LTIuNi4yNC4xLTM1L2luY2x1ZGUvc291bmQvY29yZS5oOjI4MTogZXJyb3I6ICdTTkRSVl9D
+QVJEUycgCnVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pCi9ob21lL2FuZHJlYXMv
+RG9jdW1lbnRzL2N4MTgvdjRsL2VtMjh4eC1hdWRpby5jOjU4OiBlcnJvcjogYXJyYXkgaW5kZXgg
+aW4gCmluaXRpYWxpemVyIG5vdCBvZiBpbnRlZ2VyIHR5cGUKL2hvbWUvYW5kcmVhcy9Eb2N1bWVu
+dHMvY3gxOC92NGwvZW0yOHh4LWF1ZGlvLmM6NTg6IGVycm9yOiAobmVhciAKaW5pdGlhbGl6YXRp
+b24gZm9yICdpbmRleCcpCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQoKLS0gCkdydcOfCkFuZHJlYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
+b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWR2Yg==
