@@ -1,29 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KMCkvU014934
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:12:46 -0500
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1KMCCqL002667
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:12:13 -0500
-Message-ID: <47BCA5BA.20009@kaiser-linux.li>
-Date: Wed, 20 Feb 2008 23:12:10 +0100
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1CF6t6N024972
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:06:55 -0500
+Received: from smtp106.rog.mail.re2.yahoo.com (smtp106.rog.mail.re2.yahoo.com
+	[68.142.225.204])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m1CF6MTM009513
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:06:23 -0500
+Message-ID: <47B1B5E2.6050700@rogers.com>
+Date: Tue, 12 Feb 2008 10:06:10 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
-To: Thomas Kaiser <linux-dvb@kaiser-linux.li>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-References: <47BC7E91.6070303@kaiser-linux.li>
-	<175f5a0f0802201208u4bca35afqc0291136fe2482b@mail.gmail.com>
-	<47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>
-	<47BC90CA.1000707@kaiser-linux.li>
-	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
-	<47BC9788.7070604@kaiser-linux.li>
-	<20080220215850.GA2391@daniel.bse>
-In-Reply-To: <20080220215850.GA2391@daniel.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: V4L2_PIX_FMT_RAW
+To: Muppet Man <muppetman4662@yahoo.com>
+References: <653934.59125.qm@web34401.mail.mud.yahoo.com>
+In-Reply-To: <653934.59125.qm@web34401.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Trouble compiling driver in PClinuxOS
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,55 +28,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel Glöckner wrote:
-> On Wed, Feb 20, 2008 at 10:11:36PM +0100, Thomas Kaiser wrote:
->> H. Willstrand wrote:
->>> Well, it can go ugly if one piece of hardware supports several "raw"
->>> formats, they need to be distinct. And in the end of the day the V4L2
->>> drivers might consist of several identical "raw" formats which then
->>> aren't consolidated.
->> I don't really understand what you try to say here.
-> 
-> Think about an analog TV card.
-> In the future there might be one where RAW could mean either sampled
-> CVBS or sampled Y/C. The card may be able to provide the Y/C in planar
-> and packed format. It may be capable of 16 bit at 13.5Mhz and 8 bit at
-> 27Mhz, ...
-> 
-> If we start defining raw formats, there needs to be a way to choose
-> between all those variants without defining lots of additional pixel
-> formats.
-> 
-> Maybe an ioctl VIDIOC_S_RAW where one passes a number to select the
-> variant. An application would then have to check the driver and version
-> field returned by VIDIOC_QUERYCAP to determine the number to pass. This
-> way drivers may freely assign numbers to their raw formats.
+Muppet Man wrote:
+> Greetings all,
+> I am having trouble compiling the latest v4l-dvb in order to get my pinnicale pci card to work.  I am running PClinuxOS 2007.  I have downloaded the latest tree, mkdir v4l-dvb extracted the tz file to that folder, went into root mode and got this error when I make the file
+>
+> make -C /home/ed/v4l-dvb/v4l
+> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+> creating symbolic links...
+> Kernel build directory is /lib/modules/2.6.18.8.tex5/build
+> make -C /lib/modules/2.6.18.8.tex5/build SUBDIRS=/home/ed/v4l-dvb/v4l  modules
+> make[2]: Entering directory `/usr/src/linux-2.6.18.8.tex5'
+>   CC [M]  /home/ed/v4l-dvb/v4l/videodev.o
+> /home/ed/v4l-dvb/v4l/videodev.c:491: error: unknown field 'dev_attrs' specified in initializer
+> /home/ed/v4l-dvb/v4l/videodev.c:491: warning: initialization from incompatible pointer type
+> /home/ed/v4l-dvb/v4l/videodev.c:492: error: unknown field 'dev_release' specified in initializer
+> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: missing braces around initializer
+> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: (near initialization for 'video_class.subsys')
+> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: initialization from incompatible pointer type
+> make[3]: *** [/home/ed/v4l-dvb/v4l/videodev.o] Error 1
+> make[2]: *** [_module_/home/ed/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-2.6.18.8.tex5'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+>
+> I know this driver works because I had it running under ubuntu, but I heard so much about PClinuxOS that I thought I would give it a shot.
+>
+> Any help would be greatly appreciated.
 
-Yeh, That's something I mean.
+See: 
+http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers#Case_2:_Installation_of_LinuxTV_Drivers_Required
 
-> 
-> Application writers would need to look into all drivers' docs/sources to
-> find the possible values. They would need to do it anyway to see if they
-> can decode the raw format.
+Also note that, as shown in the instructions, you should be building as 
+"user" (denoted by the $ .... i.e. "$ make" ), then install as "root" 
+(which, in the instructions, is achieved through "sudo make install" 
+...... if the instructions called for being the root user all along, 
+then the cli prompt would be denoted by a #, and there would, of course, 
+be no need for the use of a "sudo" .... sudo allows one to invoke the 
+superuser's privileges in respect to performing some command i.e. "sudo 
+command".
 
-That's why we need a user space library to handle all this strange "unknown" 
-streams.
-
-When the application can not decode (or does not know) the stream, just get it 
-to the decoding lib. When the stream is known, you get a decoded picture back. 
-If not you get an error.
-
-Thomas
-
-> 
->   Daniel
-> 
-> P.S.: If my mail doesn't reach the list, blame its spam filter
-> 
-
-
--- 
-http://www.kaiser-linux.li
+In any regard, building as root user will generally work, BUT you are 
+exposing yourself to the risk/potential of introducing system changes 
+that could very easily vary from being entirely benign to entirely 
+destabilizing ... [dirty harry mode] being that this is root, the most 
+powerful user in the Linux world, and will blow your installation clean 
+off, you gotta ask yourself a question --- do I feel lucky? .... Well do 
+you punk?[/dirty harry mode]
 
 --
 video4linux-list mailing list
