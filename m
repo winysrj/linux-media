@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.177])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dirk@brenken.org>) id 1JNDpx-0001OU-W3
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 21:59:14 +0100
-Message-ID: <47AB7103.8080601@brenken.org>
-Date: Thu, 07 Feb 2008 21:58:43 +0100
-From: Dirk Brenken <dirk@brenken.org>
-MIME-Version: 1.0
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>	<479D1632.4010006@t-online.de>	<Pine.LNX.4.64.0801292211380.23532@pub2.ifh.de>	<479FB52A.6010401@t-online.de>	<Pine.LNX.4.64.0801300047520.23532@pub2.ifh.de>	<47A6438B.3060606@t-online.de>	<47A96D0E.1070509@web.de>	<1202288256.3442.20.camel@pc08.localdom.local>
-	<47AA53AC.6050402@t-online.de>
-In-Reply-To: <47AA53AC.6050402@t-online.de>
+	(envelope-from <stoth@linuxtv.org>) id 1JOkI1-0003IU-UK
+	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 02:50:30 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JW30095DRR3KIA0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 11 Feb 2008 20:49:52 -0500 (EST)
+Date: Mon, 11 Feb 2008 20:49:51 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200802111739.47956.linuxdreas@launchnet.com>
+To: Andreas <linuxdreas@launchnet.com>
+Message-id: <47B0FB3F.7070207@linuxtv.org>
+MIME-version: 1.0
+References: <200802111739.47956.linuxdreas@launchnet.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,61 +25,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgSGFydG11dCwKSSd2ZSBhcHBsaWVkIHlvdXIgcGF0Y2ggYWdhaW5zdCBsYXRlc3QgdjRsLWR2
-YiB0cmVlIGFuZCB0aGUgdHVuaW5nIApwcm9ibGVtcyB3aXRoIG15IFRlY2hub3RyZW5kIFMtMTQw
-MSAodGhyZWFkICJUVC0xNDAxIGJ1ZGdldCBjYXJkIHN1cHBvcnQgCmJyb2tlbiBzaW5jZSAyLjYu
-MjQtcmM2IiBvbiB0aGUgbGlzdCkgYXJlIGdvbmUuIFRoYW5rcyEKCkJlc3QgUmVnYXJkcwpEaXJr
-CgpIYXJ0bXV0IEhhY2ttYW5uIHNjaHJpZWI6Cj4gSGkKPiAKPiBoZXJtYW5uIHBpdHRvbiBzY2hy
-aWViOgo+PiBBbSBNaXR0d29jaCwgZGVuIDA2LjAyLjIwMDgsIDA5OjE3ICswMTAwIHNjaHJpZWIg
-QW5kcsOpIFdlaWRlbWFubjoKPj4+IEhhcnRtdXQgSGFja21hbm4gd3JvdGU6Cj4+Pgo+Pj4+IEFy
-ZSB5b3Ugc3VyZSB0aGF0IGl0IGlzIGEgbG5icDIxIG9uIHlvdXIgYm9hcmQ/Cj4+Pj4gV2hhdCBr
-aW5kIG9mIHNhdGVsbGl0ZSBlcXVpcG1lbnQgZG8geW91IGhhdmU/Cj4+Pj4gLSBhIHNpbmdsZSBM
-TkIsIHNvIHRoZSAyMmtIeiB0b25lIGlzIGVub3VnaC4KPj4+PiAtIGEgTXVsdGlzd2l0Y2g/Cj4+
-Pj4gICBpZiB5ZXMsIHdoaWNoIGNvbW1hbmRzIGRvZXMgaXQgbmVlZCAvIHVuZGVyc3RhbmQ/Cj4+
-Pj4gICAtIG5vdGhpbmcgYnV0IHRoZSB0b25lPwo+Pj4+ICAgLSBhIHRvbmUgYnVyc3QgdG8gc3dp
-dGNoIGJldHdlZW4gc2F0ZWxsaXRlcyBhbmQgdGhlIHRvbmU/Cj4+Pj4gICAtIGZ1bGwgZGlzZXFj
-ICgyPykgc2VyaWFsIG1lc3NhZ2VzPwo+Pj4+Cj4+Pj4gSSBnb3QgYSBib2FyZCB3aXRoIHRkYTEw
-MDg2IGFuZCBsbmJwMjEgbGV0IGFuZCBzdGFydGVkIG1lYXN1cmluZy4KPj4+PiB2b2x0YWdlIHN3
-aXRjaGluZyBhbmQgc3RhdGljIHRvbmUgd29yayBmaW5lIHdpdGggdGhlIGN1cnJlbnQKPj4+PiBj
-b25maWd1cmF0aW9uLgo+Pj4gSGkgSGFydG11dCwKPj4+IEkgZ290IHRoZSBzYW1lIHR1bmluZyBw
-cm9ibGVtcyBhcyBQYXRyaWNrLiBBZnRlciB5b3VyIHBhdGNoIHRoZSBQaW5uYWNsZSAKPj4+IDQw
-MGUgaXMgbm90IHdvcmtpbmcgYW55bW9yZS4gSSBjYW4gZ2V0IGEgc2lnbmFsLCBidXQgbm8gbG9j
-ayBhdCBhbGwuCj4+PiBJIHRvb2sgYSBsb29rIGF0IHRoZSBQQ0IgYW5kIHRoZXJlIGlzIGRlZmlu
-aXRlbHkgYW4gTE5CUDIxUEQgc29sZGVyZWQgCj4+PiBvbnRvIGl0Lgo+Pj4gWW91ciBwYXRjaCBk
-aXNhYmxlcyB0aGUgbW9kdWxhdGlvbiBvZiB0aGUgMjJrSHogc2lnbmFsIGluc2lkZSB0aGUgZGVt
-b2QgCj4+PiBhcyBmYXMgYXMgSSB1bmRlcnN0b29kLCBidXQgdGhlbiB0aGUgTE5CUDIxUEQgd2Fz
-IHN1cHBvc2VkIHRvIGdlbmVyYXRlIGl0Lgo+Pj4KPj4+IFVuZm9ydHVuYXRlbHkgdGhpcyBpcyBu
-b3QgcG9zc2libGUgd2l0aCB0aGUgUGlubmFjbGUgNDAwZS4gSSB0b29rIGEgbG9vayAKPj4+IGF0
-IHRoZSBMTkJQMjFQRCBkYXRhc2hlZXQgd2hpY2ggc3RhdGVzLCB0aGF0IERTUUlOIGlzIHN1cHBv
-c2VkIHRvIGJlIAo+Pj4gY29ubmVjdGVkIHRvIEdORCBpZiB5b3UgZG9uJ3Qgd2FudCB0aGUgMjJr
-SHogc2lnbmFsIHRvIGJlIGdlbmVyYXRlZCBieSAKPj4+IHRoZSBMTkJQMjEgaXRzZWxmLiBHdWVz
-cyB3aGF0PyEgUGluIDE0KERTUUlOKSBpcyBjb25uZWN0ZWQgdG8gR05ELgo+Pj4KPj4+IEZvciB0
-aGUgdGltZSBiZWluZyBJIHJldmVydGVkIHlvdXIgcGF0Y2ggb24gbXkgbG9jYWwgc3lzdGVtIGFu
-ZCB0aGUgCj4+PiBQaW5uYWNsZSA0MDBlIGlzIHdvcmtpbmcgZmxhd2xlc3NseSBhZ2Fpbi4KPj4+
-Cj4+PiAgIEFuZHLDqQo+Pj4KPj4KPj4gSGksCj4+Cj4+IHdlIHNob3VsZCB0cnkgdG8gZ2V0IHRo
-aXMgc29ydGVkLgo+Pgo+PiBXaXRoIHRoZSBwcmlvciBzdGF0ZSwgd29ya2luZyBmb3IgQW5kcmUg
-YW5kIG90aGVycywgaXQgZG9lcyBub3Qgd29yayBvbgo+PiB0aGUgTGlmZVZpZXcgVHJpbyAoUENJ
-IGFuZCBjYXJkYnVzKSBhbmQgdGhlIHNhYTcxMzQgZHJpdmVyLiBUaHJlZSBndXlzIEkKPj4gdGhp
-bmsgcmVwb3J0ZWQgaXQgYW5kIEhhcnRtdXQgZGlkIHdhaXQgd2l0aCB0aGUgcGF0Y2ggZm9yIGxv
-bmcgYW5kCj4+IGFsbG93ZWQgYWJvdXQgaGFsZiBhIHllYXIgZm9yIHRlc3RpbmcgLi4uCj4+Cj4+
-IFNvLCBpZiB3ZSBjYW4ndCBmaXggaXQgc29vbiwgcHJpb3Igc3RhdGUgb2YgY291cnNlIGNvdW50
-cyBhbmQgdGhvc2UKPj4gbGF0ZXIgd2lsbCBoYXZlIHRvIHVzZSB0aGUgcGF0Y2hlcyBmdXJ0aGVy
-LiBTdWNoIGEgImZpeCIgY2FuIGFsd2F5cyBiZQo+PiBjb21taXR0ZWQgcHJpb3IgdG8gMi42LjI1
-IHJlbGVhc2UuCj4+Cj4+IEhlcm1hbm4KPj4KPj4KPiBTbyBoZXJlIGlzIHRoZSBwYXRjaCB0aGF0
-IG1ha2UgdGhlIHRoZSAyMmtIeiB0b25lIGEgY29uZmlnIG9wdGlvbi4KPiBQbGVhc2UgYmUgYXdh
-cmUgdGhhdCBpIGhhdmUgbm8gbWVhbnMgdG8gdGVzdCBpdCwgc28gcGxlYXNlIHJlcG9ydAo+IAo+
-IFNpZ25lZC1vZmYtYnk6IEhhcnRtdXQgSGFja21hbm4gPGhhcnRtdXQuaGFja21hbm5AdC1vbmxp
-bmUuZGUKPiAKPiAKPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiAKPiBfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBs
-aW51eC1kdmJAbGludXh0di5vcmcKPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
-bG1hbi9saXN0aW5mby9saW51eC1kdmIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
-eC1kdmI=
+Andreas wrote:
+> Hallo,
+> I bought the card today and naturally I am wondering how/what/when the card 
+> is supported?
+> 
+> Thank you
+> 
+
+Look for the cx18 development trees on linuxtv.org
+
+- Steve
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
