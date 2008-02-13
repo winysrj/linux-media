@@ -1,28 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1SECt4s023313
-	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 09:12:55 -0500
-Received: from mail.mediaxim.be (dns.adview.be [193.74.142.132])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1SECKAG028852
-	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 09:12:20 -0500
-Received: from localhost (mail.mediaxim.be [127.0.0.1])
-	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id 663DF341AB
-	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 15:12:19 +0100 (CET)
-Received: from [10.32.13.124] (unknown [10.32.13.124])
-	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id AB0CD34020
-	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 15:12:17 +0100 (CET)
-Message-ID: <47C6C141.6040303@mediaxim.be>
-Date: Thu, 28 Feb 2008 15:12:17 +0100
-From: Michel Bardiaux <mbardiaux@mediaxim.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DNOPIe004222
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:24:25 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DNO1To012833
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:24:01 -0500
+Received: by nf-out-0910.google.com with SMTP id g13so121259nfb.21
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 15:24:00 -0800 (PST)
+Message-ID: <37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
+Date: Wed, 13 Feb 2008 18:24:00 -0500
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Brandon Philips" <bphilips@suse.de>
+In-Reply-To: <20080213202055.GA26352@plankton.ifup.org>
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com
-References: <47C3F5CB.1010707@mediaxim.be>
-	<20080226130200.GA215@daniel.bse>	<47C44499.7050506@mediaxim.be>
-	<200802261815.05108.hverkuil@xs4all.nl>
-In-Reply-To: <200802261815.05108.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: Grabbing 4:3 and 16:9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+Cc: video4linux-list@redhat.com,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,86 +37,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans Verkuil wrote:
-> On Tuesday 26 February 2008 17:55:53 Michel Bardiaux wrote:
->> Daniel Glöckner wrote:
->>> On Tue, Feb 26, 2008 at 12:19:39PM +0100, Michel Bardiaux wrote:
->>>> Here in Belgium the broadcasts is sometimes 4:3, sometimes 16:9.
->>>> Currently, the card goes automatically in letterbox mode when it
->>>> receives 16:9, and our software captures the 4:3 frames at size
->>>> 704x576.
->>> The card does not go into letterbox mode. It's the broadcaster who
->>> squeezes the 16:9 picture into 432 lines surrounded by 144 black
->>> lines.
->> Let me rephrase to check I understood correctly. In analog TV, there
->> are no anamorphic broadcasts. When the WSS (accessible via /dev/vbi,
->> right?) states 16:9, then a 16:9 (sic) TV switches to a mode where it
->> crops 2x72 lines, then stretches the image both horizontally and
->> vertically to fill the whole 16:9 screen. Am I correct?
-> 
-> Yes, this is really true. Remember that the broadcast should still work 
-> when received by an old 4:3 TV. The only way to ensure that it still 
-> looks OK is to letterbox it. As mentioned before PALPlus allows the 
-> broadcaster to encode additional information encoded in the black bars 
-> to improve the image quality (never looked into that, though).
-> 
-> BTW, WSS does allow anamorphic broadcasts, although it is very rare. I 
-> saw it once, but I've always suspected that someone made a 
-> configuration error because anamorphic broadcasts look squashed on 
-> normal 4:3 TVs.
-> 
->> I must admit I have difficulty believing that. Could you give me the
->> URLs of sites explaining all that?
-> 
-> http://en.wikipedia.org/wiki/Widescreen_signaling
-> 
-> http://en.wikipedia.org/wiki/PALPlus
+On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
+> On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
+> > Maybe we've took the wrong direction when we've decided to select
+> > mercurial. It were better and easier to use, on that time, but the -git
+> > improvements happened too fast.
+>
+> We should consider a move to a full-tree git.  Particularly, it would be
+> nice to be have v4l-dvb merging/building against other subsystems in the
+> linux-next tree:
+>
+>   http://lkml.org/lkml/2008/2/11/512
+>
+> Also, it would save the silly pain of things like this meye.h thing and
+> pulling in fixes from the rest of the community that patches against git
+> trees.
 
-To summarize: I know now that PALPLUS is indeed widely used in Belgium 
-for analog TV (via cable usually); that I can detect it from WSS using 
-libzvbi.
 
-But PALPLUS seems to be being deprecated; e.g. the wikipedia pages 
-explain it was, but no longer is, used in the Netherlands. Just like 
-analog-TV itself. So, unless I can find (any suggestions?) a ready-made 
-open-source software decoder for PALPLUS, it is unlikely we will attempt 
-to extract that info. Much better to work on digital-TV!
+When we moved from CVS to HG, we lost many developers.
 
-Thanks again to all who helped.
+Of the developers that remain, most of us are finally comfortable
+working in mercurial.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>> Some fill the chroma part of the black lines with a PALPlus helper
->>> signal. Although the algorithms to decode PALPlus are well
->>> documented in ETS 300 731, I have never seen a software
->>> implementation.
->>>
->>>> 1. How do I sense from the software that the mode is currently
->>>> 16:9 or 4:3?
->>> Some broadcasters use WSS to signal 16:9.
->>> In Germany some signal 4:3 even on 16:9 shows.
->>> Read ETSI EN 300 294.
->>>
->>>> 2. How do I setup the bttv so that it does variable anamorphosis
->>>> instead of letterboxing? If that is at all possible of course...
->>> You can't. Bttv can't stretch vertically.
->>>
->>>   Daniel
+I understand the benefits of moving to git, but that option was on the
+table when we moved to mercurial from cvs, and it was shot down.
 
--- 
-Michel Bardiaux
-R&D Director
-T +32 [0] 2 790 29 41
-F +32 [0] 2 790 29 02
-E mailto:mbardiaux@mediaxim.be
+I would prefer that we stick with what we have for now -- for the sake
+of our users / testers, and for the sake of our developers.
 
-Mediaxim NV/SA
-Vorstlaan 191 Boulevard du Souverain
-Brussel 1160 Bruxelles
-http://www.mediaxim.com/
+Lets not drive away more contributors.
+
+Additionally, the moment we move development from hg to git, we are
+bound to the development kernel -- we will no longer be able to work
+against any stable kernel series, and we will lose all of our testers.
+
+v4l/dvb is a bit different from kernel development of other
+subsystems, in that we work on drivers for new devices.  Users will
+not want to upgrade an entire kernel, let alone build that entire
+kernel themselves, just so they can get new device support.  We will
+quickly notice that users will be less daring to buy new hardware, and
+will start buying older hardware known to have stable linux support.
+
+As much as I wanted us all to use git back when we were discussing the
+SCM move a few years ago, I am entirely against it right now.
+
+Regards,
+
+Mike Krufky
 
 --
 video4linux-list mailing list
