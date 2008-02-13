@@ -1,25 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m139ZwFR031923
-	for <video4linux-list@redhat.com>; Sun, 3 Feb 2008 04:35:58 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m139ZRkm010273
-	for <video4linux-list@redhat.com>; Sun, 3 Feb 2008 04:35:27 -0500
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: video4linux-list@redhat.com
-Date: Sun, 3 Feb 2008 10:35:20 +0100
-References: <200802021620.15038.tobias.lorenz@gmx.net>
-	<200802021657.35685.tobias.lorenz@gmx.net>
-	<4F7055831C%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <4F7055831C%linux@youmustbejoking.demon.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DNsXga020384
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:54:33 -0500
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DNralL029973
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:54:12 -0500
+Received: by wr-out-0506.google.com with SMTP id 70so337630wra.7
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 15:54:12 -0800 (PST)
+Message-ID: <a728f9f90802131554y6f2c9ca1s7a8c264b46dc9a40@mail.gmail.com>
+Date: Wed, 13 Feb 2008 18:54:11 -0500
+From: "Alex Deucher" <alexdeucher@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200802031035.20278.tobias.lorenz@gmx.net>
-Cc: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Subject: Re: [PATCH] Trivial printf warning fix (radio-si470)
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
+Cc: video4linux-list@redhat.com,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Brandon Philips <bphilips@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,57 +39,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Darren,
+On Feb 13, 2008 6:24 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
+> > On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
+> > > Maybe we've took the wrong direction when we've decided to select
+> > > mercurial. It were better and easier to use, on that time, but the -git
+> > > improvements happened too fast.
+> >
+> > We should consider a move to a full-tree git.  Particularly, it would be
+> > nice to be have v4l-dvb merging/building against other subsystems in the
+> > linux-next tree:
+> >
+> >   http://lkml.org/lkml/2008/2/11/512
+> >
+> > Also, it would save the silly pain of things like this meye.h thing and
+> > pulling in fixes from the rest of the community that patches against git
+> > trees.
+>
+>
+> When we moved from CVS to HG, we lost many developers.
+>
+> Of the developers that remain, most of us are finally comfortable
+> working in mercurial.
+>
+> I understand the benefits of moving to git, but that option was on the
+> table when we moved to mercurial from cvs, and it was shot down.
+>
+> I would prefer that we stick with what we have for now -- for the sake
+> of our users / testers, and for the sake of our developers.
+>
+> Lets not drive away more contributors.
+>
+> Additionally, the moment we move development from hg to git, we are
+> bound to the development kernel -- we will no longer be able to work
+> against any stable kernel series, and we will lose all of our testers.
 
-> If that's right, can you explain why the warning which I saw mentioned "long
-> unsigned int"...?
+Why would git have any affect on what kernels you could test against?
+It's just an scm like hg or cvs.
 
-sure, you wrote:
-> "format '%d' expects type 'int', but argument 3 has type 'long unsigned int'"
-> (as seen on amd64)
-
-Is guess your amd64 is a ia64 architecture.
-Therefore ssize_t should be a long int on your machine.
-
-It's always signed and must therefore be %...d instead of %...i.
-The length modifier must be architecture/ssize_t dependent and therefore it comes to %zd.
-
-I found this here on my linux-2.6.23.1:
-<<< snip
-cd /usr/src/linux/include
-grep -r __kernel_ssize_t
-asm/posix_types.h:typedef int           __kernel_ssize_t;
-asm-alpha/posix_types.h:typedef long            __kernel_ssize_t;
-asm-arm/posix_types.h:typedef int                       __kernel_ssize_t;
-asm-avr32/posix_types.h:typedef long            __kernel_ssize_t;
-asm-blackfin/posix_types.h:typedef long __kernel_ssize_t;
-asm-cris/posix_types.h:typedef long             __kernel_ssize_t;
-asm-frv/posix_types.h:typedef int               __kernel_ssize_t;
-asm-h8300/posix_types.h:typedef int             __kernel_ssize_t;
-asm-i386/posix_types.h:typedef int              __kernel_ssize_t;
-asm-ia64/posix_types.h:typedef long             __kernel_ssize_t;
-asm-m32r/posix_types.h:typedef int              __kernel_ssize_t;
-asm-m68k/posix_types.h:typedef int              __kernel_ssize_t;
-asm-mips/posix_types.h:typedef int              __kernel_ssize_t;
-asm-mips/posix_types.h:typedef long             __kernel_ssize_t;
-asm-parisc/posix_types.h:typedef long                   __kernel_ssize_t;
-asm-parisc/posix_types.h:typedef int                    __kernel_ssize_t;
-asm-powerpc/posix_types.h:typedef long          __kernel_ssize_t;
-asm-powerpc/posix_types.h:typedef int           __kernel_ssize_t;
-asm-s390/posix_types.h:typedef int             __kernel_ssize_t;
-asm-s390/posix_types.h:typedef long            __kernel_ssize_t;
-asm-sh/posix_types.h:typedef int                __kernel_ssize_t;
-asm-sh64/posix_types.h:typedef int              __kernel_ssize_t;
-asm-sparc/posix_types.h:typedef int                    __kernel_ssize_t;
-asm-sparc64/posix_types.h:typedef long                   __kernel_ssize_t;
-asm-v850/posix_types.h:typedef int              __kernel_ssize_t;
-asm-x86_64/posix_types.h:typedef long           __kernel_ssize_t;
-asm-xtensa/posix_types.h:typedef int            __kernel_ssize_t;
-linux/types.h:typedef __kernel_ssize_t  ssize_t;
-<<< snap
-
-Bye,
-  Toby
+Alex
 
 --
 video4linux-list mailing list
