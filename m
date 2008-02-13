@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m157GukA020193
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 02:16:56 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m157GNOM023201
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 02:16:23 -0500
-Date: Tue, 5 Feb 2008 08:16:22 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Brandon Philips <brandon@ifup.org>
-In-Reply-To: <20080205012451.GA31004@plankton.ifup.org>
-Message-ID: <Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-References: <20080205012451.GA31004@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1D5KLGx010661
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:20:21 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.179])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1D5K0Ho016981
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:20:00 -0500
+Received: by wa-out-1112.google.com with SMTP id j37so3613230waf.7
+	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 21:20:00 -0800 (PST)
+Message-ID: <f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
+Date: Wed, 13 Feb 2008 13:20:00 +0800
+From: "eric miao" <eric.y.miao@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0802111440230.4440@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <Pine.LNX.4.64.0802051830360.5882@axis700.grange>
+	<20080211114129.GA10482@flint.arm.linux.org.uk>
+	<Pine.LNX.4.64.0802111440230.4440@axis700.grange>
 Cc: video4linux-list@redhat.com,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
+Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,104 +35,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 4 Feb 2008, Brandon Philips wrote:
+Yes, the PXA3xx has dedicated DMA channels. Yet I still think carry the
+DRCMR register index into platform device's resource would be a better
+idea both for readability (so that no comment necessary for these magic
+numbers) and potential re-usability.
 
-> On 15:31 Thu 31 Jan 2008, Guennadi Liakhovetski wrote:
-> > From: Steven Whitehouse <steve@chygwyn.com>
-> > 
-> > This adds two new fourcc codes (as per info at fourcc.org)
-> > for 16bpp mono and 16bpp Bayer formats.
-> 
-> This patch was merged in the following commit:
->  http://linuxtv.org/hg/v4l-dvb/rev/d002378ff8c2
-> 
-> I have a number of issues:
->  
-> - Why was V4L2_CID_AUTOEXPOSURE added!  I am working to get an auto
->   exposure control into the spec but this was merged without discussion.
->   Please remove this and wait for my patch.
-> 
-> - Why was a SoC config option added with this commit?
-> 
-> - mailimport changes in this commit too!  Why is mailimport running
->   sudo!?! 
-> 
-> A mistake was obviously made here.
+The driver looks good overall and I'm sorry that I didn't have enough
+time to look into this recently. So here are some overall comments,
+I hope I can spend more time to do a line-by-line review later
 
-Yes, strange. In the original patch
+1. due to expected difference between pxa27x and pxa3xx quick capture
+interface, I guess there will be dedicated code for pxa3xx, so naming
+of functions/variables to "pxa_*" will leave less choices for later
+processors, I suggest to use the prefix of "pxa27x_*", to indicate it
+is the first processor that this controller appears.
 
-http://marc.info/?l=linux-video&m=120179045830566&w=2
+2. I really hope changes could be made in this patch to remove those
+QCI register definitions from pxa-regs.h to some where closer to this
+driver, maybe pxa27x_camera.h or directly embedded into the driver,
+and using ioremap() for the mmio access
 
-it was still ok.
+3. by using only Y dma channel, the driver is dropping the capability
+of the hardware to convert interleaved YCbCr data to planar format,
+what is your plan for that capability?
 
-Thanks
-Guennadi
+4. it looks like the sensor framework is currently unable to provide
+more information such as its connection type with the host (master or
+slave, parallel or serial), along with the frequency, sync polarity,
+otherwise, the fields in platform_data can be removed and setting of
+those CICRx registers can be fully inferred. Still, I think we might
+do better by naming the platform_data->platform_flags to some thing
+like
 
-> 
-> 	Brandon
-> 
-> 
-> --- a/linux/drivers/media/video/Kconfig	Sun Jan 27 17:24:26 2008 +0000
-> +++ b/linux/drivers/media/video/Kconfig	Mon Feb 04 16:32:42 2008 -0200
-> @@ -836,4 +836,13 @@ config USB_STKWEBCAM
->  
->  endif # V4L_USB_DRIVERS
->  
-> +config SOC_CAMERA
-> +	tristate "SoC camera support"
-> +	depends on VIDEO_V4L2
-> +	select VIDEOBUF_DMA_SG
-> +	help
-> +	  SoC Camera is a common API to several cameras, not connecting
-> +	  over a bus like PCI or USB. For example some i2c camera connected
-> +	  directly to the data bus of an SoC.
-> +
->  endif # VIDEO_CAPTURE_DRIVERS
-> --- a/linux/include/linux/videodev2.h	Sun Jan 27 17:24:26 2008 +0000
-> +++ b/linux/include/linux/videodev2.h	Mon Feb 04 16:32:42 2008 -0200
-> @@ -281,6 +281,7 @@ struct v4l2_pix_format
->  #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B','G','R','4') /* 32  BGR-8-8-8-8   */
->  #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R','G','B','4') /* 32  RGB-8-8-8-8   */
->  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G','R','E','Y') /*  8  Greyscale     */
-> +#define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y','1','6',' ') /* 16  Greyscale     */
->  #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P','A','L','8') /*  8  8-bit palette */
->  #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y','V','U','9') /*  9  YVU 4:1:0     */
->  #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y','V','1','2') /* 12  YVU 4:2:0     */
-> @@ -307,6 +308,7 @@ struct v4l2_pix_format
->  
->  /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
->  #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
-> +#define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
->  
->  /* compressed formats */
->  #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M','J','P','G') /* Motion-JPEG   */
-> @@ -862,7 +864,8 @@ struct v4l2_querymenu
->  #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
->  #define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
->  #define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
-> -#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
-> +#define V4L2_CID_AUTOEXPOSURE		(V4L2_CID_BASE+24)
-> +#define V4L2_CID_LASTP1			(V4L2_CID_BASE+25) /* last CID + 1 */
->  
->  /*  MPEG-class control IDs defined by V4L2 */
->  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-> --- a/mailimport	Sun Jan 27 17:24:26 2008 +0000
-> +++ b/mailimport	Mon Feb 04 16:32:42 2008 -0200
-> @@ -224,6 +224,10 @@ if [ -d "$NAME" ]; then
->  	else
->  		echo "Processing patches from tree $NAME"
->  		for i in $NAME/*; do
-> +			if [ ! -r $i ]; then
-> +				sudo chmod og+r $i
-> +			fi
-> +
->  			echo "$i"
->  			proccess_patch "$i"
->  		done
-> 
+	.ci_mode	= {MASTER, SLAVE}_{PARALLEL, SERIAL}
+	.ci_width	= {8, 9, 10, 11, 12}
+	.sync_polarity
+
+5. I saw many places emphasize on the assumption that there is only
+_one_ sensor attached, what if multiple sensors to be supported? I
+know several boards with such design.
+
+6. the naming of "pxa_is_xxx" reads like a boolean function to me
+at first sight, and it is actually not, maybe we can come up with
+a better name?
+
+This is a good driver, I do want to see a well supported QCI driver
+in the mainline. Thanks!
 
 ---
-Guennadi Liakhovetski
+Cheers
+- eric
 
 --
 video4linux-list mailing list
