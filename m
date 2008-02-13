@@ -1,24 +1,16 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2a.orange.fr ([80.12.242.140])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from rv-out-0910.google.com ([209.85.198.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <david.bercot@wanadoo.fr>) id 1JR8lU-0002ao-5l
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 17:22:48 +0100
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2a17.orange.fr (SMTP Server) with ESMTP id 42AC6700009E
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 17:22:12 +0100 (CET)
-Received: from localhost (ANantes-252-1-77-76.w86-195.abo.wanadoo.fr
-	[86.195.216.76])
-	by mwinf2a17.orange.fr (SMTP Server) with ESMTP id 3399A700009C
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 17:22:10 +0100 (CET)
-Date: Mon, 18 Feb 2008 17:22:00 +0100
-From: David BERCOT <david.bercot@wanadoo.fr>
-Cc: linux-dvb@linuxtv.org
-Message-ID: <20080218172200.64004443@wanadoo.fr>
-In-Reply-To: <20080218142116.GA4462@moelleritberatung.de>
-References: <20080218135027.2b6a10e7@wanadoo.fr>
-	<20080218142116.GA4462@moelleritberatung.de>
+	(envelope-from <bitumen.surfer@gmail.com>) id 1JPCoq-0002OB-Ch
+	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 09:18:18 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so4665016rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 13 Feb 2008 00:18:13 -0800 (PST)
+From: J <bitumen.surfer@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Wed, 13 Feb 2008 19:17:53 +1100
+Message-Id: <1202890673.8448.16.camel@localhost.localdomain>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] Error compiling multiproto
+Subject: [linux-dvb] LeadTek WinFast DTV Dongle patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,85 +18,115 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1674162547=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1674162547==
-Content-Type: multipart/signed; boundary="Sig_/ml=cIEMKe7=Y6KuAPsewepm";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Hi,
 
---Sig_/ml=cIEMKe7=Y6KuAPsewepm
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+How do I get a patch incorporated into the dvb kernel section ?
 
-Le Mon, 18 Feb 2008 15:21:16 +0100,
-Artem Makhutov <artem@makhutov.org> a =C3=A9crit :
-> Hi,
->=20
-> On Mon, Feb 18, 2008 at 01:50:27PM +0100, David BERCOT wrote:
-> > Hi,
-> >=20
-> > After a clean install, I try to compile multiproto. But, after the
-> > "make", I have this error :
-> > In file included from /opt/dvb/multiproto/v4l/em28xx-audio.c:39:
-> > include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not
-> > in a function) /opt/dvb/multiproto/v4l/em28xx-audio.c:58: error:
-> > array index in initializer not of integer
-> > type /opt/dvb/multiproto/v4l/em28xx-audio.c:58: error: (near
-> > initialization for 'index') make[3]: ***
-> > [/opt/dvb/multiproto/v4l/em28xx-audio.o] Error 1 make[2]: ***
-> > [_module_/opt/dvb/multiproto/v4l] Error 2 make[2]: Leaving directory
-> > `/usr/src/linux-headers-2.6.24-1-amd64' make[1]: *** [default]
-> > Erreur 2 make[1]: quittant le r=C3=A9pertoire =C2=AB /opt/dvb/multiprot=
-o/v4l
-> > =C2=BB make: *** [all] Erreur 2
->=20
-> You have to apply this patch to be able to compile multiproto under a
-> 2.6.24 kernel:
->=20
-> http://linuxtv.org/hg/v4l-dvb/rev/b0815101889d
->=20
-> Patch download link:
->=20
-> http://linuxtv.org/hg/v4l-dvb/raw-diff/b0815101889d/v4l/compat.h
->=20
-> Regards, Artem
+After recently purchasing a LeadTek WinFast DTV Dongle I rapidly
+discovered it was the variant that was not recognized in the kernel
 
-OK. Simple ;-)
+i.e. as previously reported at:
+http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022373.html
+http://www.linuxtv.org/pipermail/linux-dvb/2008-January/023175.html
 
-I have not seen this information :-(
+its device ids are: (lsusb)
+ID 0413:6f01 Leadtek Research, Inc.
 
-Thank you very much.
+Rather than make the changes suggested by previous posters I set about
+making a script and associated kernel patches to automatically do this.
+My motivation was simple: I use a laptop with an ATI graphics card and
+fedora 8. I find the best drivers for this card are currently from Livna
+and are updated monthly (and changes are significant at the moment i.e.
+see the phoronix forum). So I would need to do this repeatedly. 
 
-David.
+In my patch I add an identifier (USB_PID_WINFAST_DTV_DONGLE_STK7700P_B)
+and modify the table appropriately
 
---Sig_/ml=cIEMKe7=Y6KuAPsewepm
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHubCvvSnthbGI8ygRAraWAKCoQz6KKkvMPYI+0cS8PxmIekNqnQCeIEOt
-aArSzvMcGGHafhL7dvV6GLE=
-=j0Wf
------END PGP SIGNATURE-----
-
---Sig_/ml=cIEMKe7=Y6KuAPsewepm--
+When I plug it in I now see in my messages log
+kernel: usb 1-4: new high speed USB device using ehci_hcd and address 9
+kernel: usb 1-4: configuration #1 chosen from 1 choice
+kernel: dib0700: loaded with support for 2 different device-types
+kernel: dvb-usb: found a 'Leadtek Winfast DTV Dongle B (STK7700P based)'
+in cold state, will try to load a firmware
+kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-01.fw'
+kernel: dib0700: firmware started successfully.
+kernel: dvb-usb: found a 'Leadtek Winfast DTV Dongle B (STK7700P based)'
+in warm state.
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the
+software demuxer.
+kernel: DVB: registering new adapter (Leadtek Winfast DTV Dongle B
+(STK7700P based))
+kernel: DVB: registering frontend 0 (DiBcom 7000PC)...
+kernel: MT2060: successfully identified (IF1 = 1220)
+kernel: dvb-usb: Leadtek Winfast DTV Dongle B (STK7700P based)
+successfully initialized and connected.
+kernel: usbcore: registered new interface driver dvb_usb_dib0700
 
 
+My kernel patch ( other scripts to patch the Fedora 8 src rpm's
+available on request)
+----------------
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c       2008-02-13
+10:05:13.000000000 +1100
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c       2008-02-13
+10:22:16.000000000 +1100
+@@ -280,6 +280,7 @@ struct usb_device_id dib0700_usb_id_tabl
+                { USB_DEVICE(USB_VID_LEADTEK,
+USB_PID_WINFAST_DTV_DONGLE_STK7700P) },
+                { USB_DEVICE(USB_VID_HAUPPAUGE,
+USB_PID_HAUPPAUGE_NOVA_T_STICK_2) },
+                { USB_DEVICE(USB_VID_AVERMEDIA,
+USB_PID_AVERMEDIA_VOLAR_2) },
++               { USB_DEVICE(USB_VID_LEADTEK,
+USB_PID_WINFAST_DTV_DONGLE_STK7700P_B) },
+                { }             /* Terminating entry */
+};
+MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -321,7 +322,7 @@ struct dvb_usb_device_properties dib0700
+                        },
+                },
 
---===============1674162547==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-               .num_device_descs = 6,
++               .num_device_descs = 7,
+                .devices = {
+                        {   "DiBcom STK7700P reference design",
+                                { &dib0700_usb_id_table[0],
+&dib0700_usb_id_table[1] },
+@@ -346,6 +347,10 @@ struct dvb_usb_device_properties dib0700
+                        {   "Leadtek Winfast DTV Dongle (STK7700P
+based)",
+                                { &dib0700_usb_id_table[8], NULL },
+                                { NULL },
++                       },
++                       {   "Leadtek Winfast DTV Dongle B (STK7700P
+based)",
++                               { &dib0700_usb_id_table[11], NULL },
++                               { NULL },
+                        }
+                }
+        }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2008-02-13
+10:05:13.000000000 +1100
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2008-02-13
+10:18:00.000000000 +1100
+@@ -148,6 +148,7 @@
+#define USB_PID_WINFAST_DTV_DONGLE_COLD                        0x6025
+#define USB_PID_WINFAST_DTV_DONGLE_WARM                        0x6026
+#define USB_PID_WINFAST_DTV_DONGLE_STK7700P            0x6f00
++#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_B          0x6f01
+#define USB_PID_GENPIX_8PSK_COLD                       0x0200
+#define USB_PID_GENPIX_8PSK_WARM                       0x0201
+#define USB_PID_SIGMATEK_DVB_110                       0x6610
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1674162547==--
