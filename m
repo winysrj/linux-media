@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QD2uSo027125
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 08:02:56 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1QD2Oer012646
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 08:02:25 -0500
-Date: Tue, 26 Feb 2008 14:02:00 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Michel Bardiaux <mbardiaux@mediaxim.be>
-Message-ID: <20080226130200.GA215@daniel.bse>
-References: <47C3F5CB.1010707@mediaxim.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <47C3F5CB.1010707@mediaxim.be>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DG9Lgd024785
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 11:09:21 -0500
+Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.176])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m1DG8Z7A020916
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 11:08:36 -0500
+Received: by el-out-1112.google.com with SMTP id r23so62213elf.7
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:07:31 -0800 (PST)
+Message-ID: <47B315B6.602@gmail.com>
+Date: Wed, 13 Feb 2008 11:07:18 -0500
+From: Christopher Harvey <arbuckle911@gmail.com>
+MIME-Version: 1.0
+To: Robert William Fuller <hydrologiccycle@gmail.com>
+References: <47AF6564.6070602@gmail.com>
+	<20080213081206.GA21174@plankton.ifup.org>
+	<47B2B5C5.3030505@gmail.com>
+In-Reply-To: <47B2B5C5.3030505@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Grabbing 4:3 and 16:9
+Subject: Re: select() problems with uvc drivers.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,29 +31,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Feb 26, 2008 at 12:19:39PM +0100, Michel Bardiaux wrote:
-> Here in Belgium the broadcasts is sometimes 4:3, sometimes 16:9. 
-> Currently, the card goes automatically in letterbox mode when it 
-> receives 16:9, and our software captures the 4:3 frames at size 704x576. 
-
-The card does not go into letterbox mode. It's the broadcaster who
-squeezes the 16:9 picture into 432 lines surrounded by 144 black lines.
-Some fill the chroma part of the black lines with a PALPlus helper
-signal. Although the algorithms to decode PALPlus are well documented in
-ETS 300 731, I have never seen a software implementation.
-
-> 1. How do I sense from the software that the mode is currently 16:9 or 4:3?
-
-Some broadcasters use WSS to signal 16:9.
-In Germany some signal 4:3 even on 16:9 shows.
-Read ETSI EN 300 294.
-
-> 2. How do I setup the bttv so that it does variable anamorphosis instead 
-> of letterboxing? If that is at all possible of course...
-
-You can't. Bttv can't stretch vertically.
-
-  Daniel
+Robert William Fuller wrote:
+> Brandon Philips wrote:
+>> On 15:58 Sun 10 Feb 2008, Christopher Harvey wrote:
+>>> Hello,
+>>> I've created a small c program that uses pure v4l2 code to read from a
+>>> webcam on a uvc driver then copy that data into an SDL overlay. I've
+>>> posted the code here:
+>>
+>> Just FYI- this was solved over on the UVC list.
+>
+> Would you mind forwarding the solution or the link to the solution to
+> this list for those of us who don't follow the UVC list?  Thank you.
+>
+Sure thing. here is the "root" post, just hit next message a couple of
+times to see the solution.
+https://lists.berlios.de/pipermail/linux-uvc-devel/2008-February/002963.html
+P.S. Should I be using "reply" or "reply all"? (In thunderbird)
 
 --
 video4linux-list mailing list
