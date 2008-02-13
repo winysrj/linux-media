@@ -1,19 +1,20 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JTJS0-0000iU-Be
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 17:11:40 +0100
-Message-ID: <47C19735.4030601@gmail.com>
-Date: Sun, 24 Feb 2008 20:11:33 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1JPOxa-0007t3-Sm
+	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 22:16:06 +0100
+Date: Wed, 13 Feb 2008 22:15:29 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Albert Comerma <albert.comerma@gmail.com>
+In-Reply-To: <ea4209750802131212p5fb2f10bt142c6880faa8e7b2@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0802132214040.21788@pub3.ifh.de>
+References: <200802112223.11129.hfvogt@gmx.net>    
+	<ea4209750802121454v385d58edt162445379daddca4@mail.gmail.com>    
+	<200802131940.55526.hfvogt@gmx.net>
+	<ea4209750802131212p5fb2f10bt142c6880faa8e7b2@mail.gmail.com>
 MIME-Version: 1.0
-To: Vangelis Nonas <vnonas@otenet.gr>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
-In-Reply-To: <47C1AFC1.7050704@otenet.gr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+Subject: Re: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,37 +25,13 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Vangelis Nonas wrote:
-> Hello,
-> 
-> I tried scanning with the 7201 changeset and I believe the results are 
-> better than the 7205 changeset. In the former case I get 2082 services 
-> on hotbird, in the latter 1722.
->
+The latest dib0700-firwmare is dvb-usb-dib0700-1.10.fw not 
+dvb-usb-dib0700-03-pre1.fw.
 
-Hmm.. Ok.
-
-Can you please get 7205 and load the stb0899 and stb6100 modules with
-verbose=2 or 5 as module parameters and see whether it makes any 
-difference ?
-(ie you see more of the services) ie check whether changing the module 
-parameters
-(verbosity level) makes any difference in the number of services found.
-
-> I'll shortly send kernel logs for a failing transponder during scan.
-> 
-> And something else:
-> When I give to scan the parameter -o vdr it will not output the results 
-> after a complete scan.
-
-Ok, this i had not added in, will look at this aspect.
-
-Regards,
-Manu
-
+Patrick.
 
 _______________________________________________
 linux-dvb mailing list
