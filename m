@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m152CvKN014084
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:57 -0500
-Received: from mx2.suse.de (cantor2.suse.de [195.135.220.15])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m152CObE019210
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 21:12:24 -0500
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DDIe8D020074
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:18:40 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m1DDI8uR007470
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 08:18:09 -0500
+Date: Wed, 13 Feb 2008 14:18:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: eric miao <eric.y.miao@gmail.com>
+In-Reply-To: <f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0802131346170.6252@axis700.grange>
+References: <Pine.LNX.4.64.0802051830360.5882@axis700.grange>
+	<20080211114129.GA10482@flint.arm.linux.org.uk>
+	<Pine.LNX.4.64.0802111440230.4440@axis700.grange>
+	<f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <0810f250d078bf6159de.1202176996@localhost>
-In-Reply-To: <patchbomb.1202176995@localhost>
-Date: Mon, 04 Feb 2008 18:03:16 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org, laurent.pinchart@skynet.be
-Cc: v4l-dvb-maintainer@linuxtv.org,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	video4linux-list@redhat.com
-Subject: [PATCH 1 of 3] Backed out changeset d002378ff8c2
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,78 +32,108 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1202175426 28800
-# Node ID 0810f250d078bf6159de69569828c07cb54f4389
-# Parent  d002378ff8c2d8e8bf3842d8f05469dd68398fc6
-Backed out changeset d002378ff8c2
+On Wed, 13 Feb 2008, eric miao wrote:
 
-This change had a number of issues:
- - Adding an undiscussed control
- - Adding an unrelated mailimport change
- - Adding an unrelated kconfig change
+> Yes, the PXA3xx has dedicated DMA channels. Yet I still think carry the
+> DRCMR register index into platform device's resource would be a better
+> idea both for readability (so that no comment necessary for these magic
+> numbers) and potential re-usability.
 
-diff --git a/linux/drivers/media/video/Kconfig b/linux/drivers/media/video/Kconfig
---- a/linux/drivers/media/video/Kconfig
-+++ b/linux/drivers/media/video/Kconfig
-@@ -836,13 +836,4 @@ config USB_STKWEBCAM
- 
- endif # V4L_USB_DRIVERS
- 
--config SOC_CAMERA
--	tristate "SoC camera support"
--	depends on VIDEO_V4L2
--	select VIDEOBUF_DMA_SG
--	help
--	  SoC Camera is a common API to several cameras, not connecting
--	  over a bus like PCI or USB. For example some i2c camera connected
--	  directly to the data bus of an SoC.
--
- endif # VIDEO_CAPTURE_DRIVERS
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -281,7 +281,6 @@ struct v4l2_pix_format
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B','G','R','4') /* 32  BGR-8-8-8-8   */
- #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R','G','B','4') /* 32  RGB-8-8-8-8   */
- #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G','R','E','Y') /*  8  Greyscale     */
--#define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y','1','6',' ') /* 16  Greyscale     */
- #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P','A','L','8') /*  8  8-bit palette */
- #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y','V','U','9') /*  9  YVU 4:1:0     */
- #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y','V','1','2') /* 12  YVU 4:2:0     */
-@@ -308,7 +307,6 @@ struct v4l2_pix_format
- 
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
--#define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
- #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M','J','P','G') /* Motion-JPEG   */
-@@ -864,8 +862,7 @@ struct v4l2_querymenu
- #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
- #define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
- #define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
--#define V4L2_CID_AUTOEXPOSURE		(V4L2_CID_BASE+24)
--#define V4L2_CID_LASTP1			(V4L2_CID_BASE+25) /* last CID + 1 */
-+#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-diff --git a/mailimport b/mailimport
---- a/mailimport
-+++ b/mailimport
-@@ -224,10 +224,6 @@ if [ -d "$NAME" ]; then
- 	else
- 		echo "Processing patches from tree $NAME"
- 		for i in $NAME/*; do
--			if [ ! -r $i ]; then
--				sudo chmod og+r $i
--			fi
--
- 			echo "$i"
- 			proccess_patch "$i"
- 		done
+Do you mean just DRCMR's address as a memory-resource? But, as far as I 
+understand, PXA3xx not only has a different register / different address, 
+it has a completely different scheme for camera DMA-channel configuration, 
+so, how is this going to be useful?
+
+> The driver looks good overall and I'm sorry that I didn't have enough
+> time to look into this recently. So here are some overall comments,
+> I hope I can spend more time to do a line-by-line review later
+
+I'll then wait for that one before submitting a new version, just 
+addressing these your comments, ok?
+
+> 1. due to expected difference between pxa27x and pxa3xx quick capture
+> interface, I guess there will be dedicated code for pxa3xx, so naming
+> of functions/variables to "pxa_*" will leave less choices for later
+> processors, I suggest to use the prefix of "pxa27x_*", to indicate it
+> is the first processor that this controller appears.
+
+Well, even if we decide to also handle pxa3xx with this driver, having it 
+called pxa27x_camera.c won't be too bad, I guess, so, right, let's rename 
+it.
+
+> 2. I really hope changes could be made in this patch to remove those
+> QCI register definitions from pxa-regs.h to some where closer to this
+> driver, maybe pxa27x_camera.h or directly embedded into the driver,
+> and using ioremap() for the mmio access
+
+You mean CICR[0-4] bitfield-definitions? Yes, sure, can get them out of 
+pxa-regs.h.
+
+> 3. by using only Y dma channel, the driver is dropping the capability
+> of the hardware to convert interleaved YCbCr data to planar format,
+> what is your plan for that capability?
+
+This driver so far presents what I had to implement and what I could test. 
+I didn't have any YCbCr cameras, so, as long as someone gets a task of 
+supporting them and the necessary hardware, it'll have to be implemented 
+too. I guess, what I could do now at most, is look in the datasheet and 
+see if I can prepare the driver to facilitate those future extensions.
+
+> 4. it looks like the sensor framework is currently unable to provide
+> more information such as its connection type with the host (master or
+> slave, parallel or serial), along with the frequency, sync polarity,
+> otherwise, the fields in platform_data can be removed and setting of
+> those CICRx registers can be fully inferred. Still, I think we might
+> do better by naming the platform_data->platform_flags to some thing
+> like
+> 
+> 	.ci_mode	= {MASTER, SLAVE}_{PARALLEL, SERIAL}
+> 	.ci_width	= {8, 9, 10, 11, 12}
+> 	.sync_polarity
+
+Aren't all those parameters platform-specific and static? Would anyone 
+ever want to switch between these modes at run-time? At least I don't 
+think the v4l2 API supports any of those parameters ATM. As for naming, 
+sure, we could think of better names. One comment so far - your .ci_width 
+above seems to only allow one width at a time. Whereas a platform can 
+support more than onw bus-width. Actually, this is one of parameters, 
+switchable at run-time, but the platform _capabilities_ are fixed. For 
+example in my case, the platform supported 8 and 10 bit modes, and a 
+method to dynamically switch between those. So, my .flags look like
+
++       .flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 | PXA_CAMERA_DATAWIDTH_10 |
++               PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN,
+
+(see the [PATCH 6/6]). And the switching is transparent - it is activated 
+upon setting of an 8- or 16-bit pixel format.
+
+> 5. I saw many places emphasize on the assumption that there is only
+> _one_ sensor attached, what if multiple sensors to be supported? I
+> know several boards with such design.
+
+Cool, I didn't know such existed, but I did implement the whole soc-camera 
+API to allow multiple cameras and multiple camera busses. And I only 
+restricted the pxa camera driver to 1 camera per bus, as I wasn't sure if 
+anyone ever would come up with multi-camera designs with PXA270:-) Ok, it 
+shouldn't be a big problem, I guess. There are not so many places in the 
+driver, that assume that. But, to really implement support for such 
+designs, again, one would need details of those implementations - is only 
+one camera active at any given time? How do you switch between them? Do 
+they use the same camera interface parameters (parallel / serial, master / 
+slave, bus-width, clock configuration) or different, etc.
+
+> 6. the naming of "pxa_is_xxx" reads like a boolean function to me
+> at first sight, and it is actually not, maybe we can come up with
+> a better name?
+
+Maybe:-) As I first saw those functions, I also thought they were boolean, 
+but in fact, "is" means "image sensor" and used to be the driver's name 
+before I reworked it. You're right, they have to be changed now.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
