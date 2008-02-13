@@ -1,31 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KMfVi4005310
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:41:31 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1KMf0nY022465
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:41:00 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so856624wfc.6
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 14:41:00 -0800 (PST)
-Message-ID: <175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>
-Date: Wed, 20 Feb 2008 23:41:00 +0100
-From: "H. Willstrand" <h.willstrand@gmail.com>
-To: "Thomas Kaiser" <linux-dvb@kaiser-linux.li>
-In-Reply-To: <47BCA5BA.20009@kaiser-linux.li>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <47BC7E91.6070303@kaiser-linux.li>
-	<175f5a0f0802201208u4bca35afqc0291136fe2482b@mail.gmail.com>
-	<47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>
-	<47BC90CA.1000707@kaiser-linux.li>
-	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
-	<47BC9788.7070604@kaiser-linux.li> <20080220215850.GA2391@daniel.bse>
-	<47BCA5BA.20009@kaiser-linux.li>
-Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: V4L2_PIX_FMT_RAW
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DHsVPx018326
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 12:54:31 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DHs9d4005389
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 12:54:09 -0500
+Date: Wed, 13 Feb 2008 15:53:52 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Message-ID: <20080213155352.06d966cd@gaivota>
+In-Reply-To: <Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
+References: <20080212190235.4e86baf8@gaivota>
+	<Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com,
+	Ricardo Cerqueira <ricardo@cerqueira.org>,
+	linux-kernel@vger.kernel.org, linux-dvb-maintainer@linuxtv.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,38 +32,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Feb 20, 2008 at 11:12 PM, Thomas Kaiser
-<linux-dvb@kaiser-linux.li> wrote:
-> Daniel Glöckner wrote:
->  > On Wed, Feb 20, 2008 at 10:11:36PM +0100, Thomas Kaiser wrote:
->  >> H. Willstrand wrote:
->  >>> Well, it can go ugly if one piece of hardware supports several "raw"
->  >>> formats, they need to be distinct. And in the end of the day the V4L2
->  >>> drivers might consist of several identical "raw" formats which then
->  >>> aren't consolidated.
->  >> I don't really understand what you try to say here.
->  >
->  > Think about an analog TV card.
->  > In the future there might be one where RAW could mean either sampled
->  > CVBS or sampled Y/C. The card may be able to provide the Y/C in planar
->  > and packed format. It may be capable of 16 bit at 13.5Mhz and 8 bit at
->  > 27Mhz, ...
->  >
->  > If we start defining raw formats, there needs to be a way to choose
->  > between all those variants without defining lots of additional pixel
->  > formats.
->  >
->  > Maybe an ioctl VIDIOC_S_RAW where one passes a number to select the
->  > variant. An application would then have to check the driver and version
->  > field returned by VIDIOC_QUERYCAP to determine the number to pass. This
->  > way drivers may freely assign numbers to their raw formats.
->
->  Yeh, That's something I mean.
->
+On Tue, 12 Feb 2008 21:21:43 -0800 (PST)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-Okay, suppose we have pixel formats and raw formats. Comparing with
-digital cameras raw usually means non processed image in a proprietary
-format. What do we mean here?
+> On Tue, 12 Feb 2008, Mauro Carvalho Chehab wrote:
+> >    - cx88-mpeg: Allow concurrent access to cx88-mpeg devices;
+> 
+> So you decided to just commit this one with the race condition anyway?
+
+The version with problems is the one dated by Jan, 16:
+http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-January/006119.html
+
+As Ricardo stated on Feb, 5, he fixed the lock issues, that were present on
+your first revision:
+
+http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-February/006292.html
+
+I've pushed the reviewed version at the same day, for testing, at the
+development environment:
+
+http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-February/006326.html
+
+Nobody pointed any newer issues on the reviewed version, since then.
+
+If you still see any issues, please send us a patch fixing it.
+
+Mauro
 
 --
 video4linux-list mailing list
