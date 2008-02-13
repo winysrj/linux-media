@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JMl1n-0008Ri-W9
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 15:13:32 +0100
-Date: Wed, 6 Feb 2008 15:12:55 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1202288256.3442.20.camel@pc08.localdom.local>
-Message-ID: <Pine.LNX.4.64.0802061512050.15673@pub6.ifh.de>
-References: <Pine.LNX.4.64.0801271922040.21518@pub2.ifh.de>
-	<479D1632.4010006@t-online.de>
-	<Pine.LNX.4.64.0801292211380.23532@pub2.ifh.de>
-	<479FB52A.6010401@t-online.de>
-	<Pine.LNX.4.64.0801300047520.23532@pub2.ifh.de>
-	<47A6438B.3060606@t-online.de> <47A96D0E.1070509@web.de>
-	<1202288256.3442.20.camel@pc08.localdom.local>
+	(envelope-from <zzam@gentoo.org>) id 1JPHDs-0004J7-BG
+	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 14:00:24 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: Peter Meszmer <hubblest@web.de>
+Date: Wed, 13 Feb 2008 13:59:51 +0100
+References: <47AB228E.3080303@gmail.com> <200802122206.30369.zzam@gentoo.org>
+	<200802131105.49910.hubblest@web.de>
+In-Reply-To: <200802131105.49910.hubblest@web.de>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="579696143-1258326216-1202307175=:15673"
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TDA10086 with Pinnacle 400e tuning broken
+Content-Disposition: inline
+Message-Id: <200802131359.51970.zzam@gentoo.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] AVerMedia DVB-S Hybrid+FM and DVB-S Pro [A700]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,104 +21,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mittwoch, 13. Februar 2008, Peter Meszmer wrote:
+> Am Dienstag, 12. Februar 2008 schrieben Sie:
+> > I added this to the wiki-page about A700:
+> > http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_(A700)
+> >
+> > Maybe we should rename the page to AverMedia_AverTV_DVB-S_A700 or
+> > anything similar.
+> >
+> > * Could you load saa7134 module of unpatched driver, but with parameter
+> > i2c_scan=1.
+> > * lspci -vvnn also should be interesting
+> > * If you have a camera, could you do a picture, so we can get info about
+> > the used analog tuner. I guess it is some XC30??. But to get it running
+> > you should contact video4linux mailinglist.
+> >
+> >
+> > Regards
+> > Matthias
+>
+> Hello Matthias,
+>
+> if I load the saa7134 module of unpatched driver, but with parameter
+> i2c_scan=1, dmesg shows (Kernel 2.6.24-gentoo-r2)
+>
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> saa7133[0]: found at 0000:02:07.0, rev: 209, irq: 18, latency: 64, mmio:
+> 0xd3024000
+> saa7133[0]: subsystem: 1461:a7a2, board: UNKNOWN/GENERIC
+> [card=0,autodetected] saa7133[0]: board init: gpio is 6da00
+> saa7133[0]: i2c eeprom 00: 61 14 a2 a7 ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c scan: found device @ 0x1c  [???]
+> saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+>
+> and lspci -vvnn returns
+>
+> 02:07.0 Multimedia controller [0480]: Philips Semiconductors
+> SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>         Subsystem: Avermedia Technologies Inc Unknown device [1461:a7a2]
+>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Latency: 64 (63750ns min, 63750ns max)
+>         Interrupt: pin A Route to IRQ 18
+>         Region 0: Memory at d3024000 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>                 Status: D0 PME-Enable- DSel=0 DScale=3 PME-
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+>
+> I did some pictures too... the link to them is in a PM for you. The analog
+> tuner seems to be a XC2028, but I don't see any possibilities to test the
+> tuner.
+>
+added these texts to wiki.
 
---579696143-1258326216-1202307175=:15673
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m16ECtKY029587
+Regards
+Matthias
 
-Seeing all that, the fix is easy:
-
-make the 22khz tone generation a field in the tda10086-config-struct and=20
-enable it for the 400e and disable it for other (default).
-
-Patrick.
-
-On Wed, 6 Feb 2008, hermann pitton wrote:
-
-> Am Mittwoch, den 06.02.2008, 09:17 +0100 schrieb Andr=E9 Weidemann:
-> > Hartmut Hackmann wrote:
-> >=20
-> > > Are you sure that it is a lnbp21 on your board?
-> > > What kind of satellite equipment do you have?
-> > > - a single LNB, so the 22kHz tone is enough.
-> > > - a Multiswitch?
-> > >   if yes, which commands does it need / understand?
-> > >   - nothing but the tone?
-> > >   - a tone burst to switch between satellites and the tone?
-> > >   - full diseqc (2?) serial messages?
-> > >=20
-> > > I got a board with tda10086 and lnbp21 let and started measuring.
-> > > voltage switching and static tone work fine with the current
-> > > configuration.
-> >=20
-> > Hi Hartmut,
-> > I got the same tuning problems as Patrick. After your patch the Pinna=
-cle=20
-> > 400e is not working anymore. I can get a signal, but no lock at all.
-> > I took a look at the PCB and there is definitely an LNBP21PD soldered=
-=20
-> > onto it.
-> > Your patch disables the modulation of the 22kHz signal inside the dem=
-od=20
-> > as fas as I understood, but then the LNBP21PD was supposed to generat=
-e it.
-> >=20
-> > Unfortunately this is not possible with the Pinnacle 400e. I took a l=
-ook=20
-> > at the LNBP21PD datasheet which states, that DSQIN is supposed to be=20
-> > connected to GND if you don't want the 22kHz signal to be generated b=
-y=20
-> > the LNBP21 itself. Guess what?! Pin 14(DSQIN) is connected to GND.
-> >=20
-> > For the time being I reverted your patch on my local system and the=20
-> > Pinnacle 400e is working flawlessly again.
-> >=20
-> >   Andr=E9
-> >=20
->=20
->=20
-> Hi,
->=20
-> we should try to get this sorted.
->=20
-> With the prior state, working for Andre and others, it does not work on
-> the LifeView Trio (PCI and cardbus) and the saa7134 driver. Three guys =
-I
-> think reported it and Hartmut did wait with the patch for long and
-> allowed about half a year for testing ...
->=20
-> So, if we can't fix it soon, prior state of course counts and those
-> later will have to use the patches further. Such a "fix" can always be
-> committed prior to 2.6.25 release.
->=20
-> Hermann
->=20
->=20
->=20
->=20
->=20
->=20
->=20
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->=20
---579696143-1258326216-1202307175=:15673
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579696143-1258326216-1202307175=:15673--
