@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QIX3ma030370
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 13:33:03 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1QIWQFP014333
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 13:32:26 -0500
-Date: Tue, 26 Feb 2008 19:32:03 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Michel Bardiaux <mbardiaux@mediaxim.be>
-Message-ID: <20080226183202.GA787@daniel.bse>
-References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
-	<20080226133839.GE26389@devserv.devel.redhat.com>
-	<47C440FB.8080705@mediaxim.be>
-	<20080226170215.GB4682@devserv.devel.redhat.com>
-	<47C4488A.8080107@mediaxim.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <47C4488A.8080107@mediaxim.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1D9IWkB014013
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 04:18:32 -0500
+Received: from hs-out-0708.google.com (hs-out-0708.google.com [64.233.178.248])
+	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1D9HxS1005020
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 04:17:59 -0500
+Received: by hs-out-0708.google.com with SMTP id k27so507890hsc.3
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 01:17:59 -0800 (PST)
+Message-ID: <47B2B5C5.3030505@gmail.com>
+Date: Wed, 13 Feb 2008 04:17:57 -0500
+From: Robert William Fuller <hydrologiccycle@gmail.com>
+MIME-Version: 1.0
+To: Brandon Philips <brandon@ifup.org>
+References: <47AF6564.6070602@gmail.com>
+	<20080213081206.GA21174@plankton.ifup.org>
+In-Reply-To: <20080213081206.GA21174@plankton.ifup.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Grabbing 4:3 and 16:9
+Subject: Re: select() problems with uvc drivers.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +30,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Feb 26, 2008 at 06:12:42PM +0100, Michel Bardiaux wrote:
-> As I find more relevant pages, my question has now become: given a 
-> 768x576 capture (by a BT878) can I check whether the PALPLUS is there?
+Brandon Philips wrote:
+> On 15:58 Sun 10 Feb 2008, Christopher Harvey wrote:
+>> Hello,
+>> I've created a small c program that uses pure v4l2 code to read from a
+>> webcam on a uvc driver then copy that data into an SDL overlay. I've
+>> posted the code here:
+> 
+> Just FYI- this was solved over on the UVC list.
 
-WSS is in the first line of the 576 line picture.
-One of the bits says if there is PALplus.
-
-WSS standard:
-http://webapp.etsi.org/WorkProgram/Report_WorkItem.asp?WKI_ID=16170
-
-PALplus standard:
-http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=3850
-
-You can use libzvbi to decode the information:
-
-vbi_raw_decoder_init(&vbi_rd);
-vbi_rd.scanning = 625;
-vbi_rd.sampling_format = VBI_PIXFMT_YUYV;
-vbi_rd.sampling_rate = 13500000.0*width/702;
-vbi_rd.offset = 186*width/924;
-vbi_rd.bytes_per_line = width*2;
-vbi_rd.start[0] = 23;
-vbi_rd.count[0] = 1;
-vbi_rd.start[1] = 0;
-vbi_rd.count[1] = 0;
-vbi_rd.interlaced = 0;
-vbi_rd.synchronous = 1;
-vbi_raw_decoder_add_services(&vbi_rd,VBI_SLICED_WSS_625,0);
-while(framebuf=grabpicture()) {
-  vbi_sliced sliced;
-  if(vbi_raw_decode (&vbi_rd, framebuf, &sliced)
-     && sliced.id==VBI_SLICED_WSS_625)
-  {
-    wss=(sliced.data[1]<<8)+sliced.data[0];
-    if(wss&64) {
-      /* There is PALplus
-      
-         I have seen the decoder generate false positives.
-	 Check aspect ratio bits for >=16:9 and their odd parity bit
-	 to be shure. */
-    }
-  }
-}
-
-  Daniel
+Would you mind forwarding the solution or the link to the solution to 
+this list for those of us who don't follow the UVC list?  Thank you.
 
 --
 video4linux-list mailing list
