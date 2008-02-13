@@ -1,17 +1,26 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hpsmtp-eml13.kpnxchange.com ([213.75.38.113])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <scha0273@planet.nl>) id 1JQpHy-0006ly-0O
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 20:35:02 +0100
-Message-ID: <47B88C46.8020106@planet.nl>
-Date: Sun, 17 Feb 2008 20:34:30 +0100
-From: henk schaap <haschaap@planet.nl>
-MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <47B6A9DB.501@planet.nl>
-	<E1JQJvK-000BwB-00.goga777-bk-ru@f128.mail.ru>
-In-Reply-To: <E1JQJvK-000BwB-00.goga777-bk-ru@f128.mail.ru>
-Subject: Re: [linux-dvb] multiproto and tt3200: don't get a lock
+	(envelope-from <stoth@linuxtv.org>) id 1JPASY-0005ys-Fh
+	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 06:47:06 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JW500ASDXDMZBV0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 13 Feb 2008 00:46:34 -0500 (EST)
+Date: Wed, 13 Feb 2008 00:46:34 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200802121521.40539.linuxdreas@launchnet.com>
+To: Andreas <linuxdreas@launchnet.com>
+Message-id: <47B2843A.7080804@linuxtv.org>
+MIME-version: 1.0
+References: <200802111739.47956.linuxdreas@launchnet.com>
+	<200802121149.15425.linuxdreas@launchnet.com>
+	<47B20D23.6070305@linuxtv.org>
+	<200802121521.40539.linuxdreas@launchnet.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +31,25 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Igor,
+Andreas wrote:
+> Am Dienstag, 12. Februar 2008 13:18:27 schrieben Sie:
+>>> What am I missing here? Any pointers?
+>> ATSC isn't supported yet. Try analog.
+>>
+>> - Steve
+> 
+> Oh well, that explains it of course :P
+> 
+> Do you know if dvb support is planned for the near future?
+> I can still return the card... 
+> 
 
-Thank you for pointing me in the good direction. I checked the szap.c 
-from Manu again and noticed that I had to change the declarations of the 
-include files frontend.h and lnb.h (I copied them from the 
-multiproto-tree to the same directory as szap.c). It seems to be that 
-_#include <frontend.h>_ has a different meaning than _#include 
-"frontend.h"_ (I am not familiair with C).
+It's on my todo list.
 
-This means for szap.c:
-#include "frontend.h"
-#include "version.h"
-#include "lnb.h"
-And for lnb.c:
-#include "lnb.h"
-
-This is it. After compiling szap works good and I get a lock for any 
-channel!
-
-Thanks!
-
-Henk
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
