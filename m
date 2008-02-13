@@ -1,25 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smeagol.cambrium.nl ([217.19.16.145] ident=qmailr)
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mail-in-17.arcor-online.net ([151.189.21.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1JUrmz-0006im-Cp
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 00:03:45 +0100
-Message-ID: <47C73DC9.8010106@powercraft.nl>
-Date: Fri, 29 Feb 2008 00:03:37 +0100
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-References: <47C7329F.7030705@powercraft.nl>	
-	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>	
-	<47C73457.1030901@powercraft.nl>	
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>	
-	<47C7360E.9030908@powercraft.nl>	
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>	
-	<47C73A05.2050007@powercraft.nl>
-	<d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
-In-Reply-To: <d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Going though hell here,
- please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+	(envelope-from <hermann-pitton@arcor.de>) id 1JPMI4-0006FC-T4
+	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 19:25:05 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Per Blomqvist <p.blomqvist@lsn.se>
+In-Reply-To: <47AF7CBD.7080303@lsn.se>
+References: <47AB7865.5090008@lsn.se> <47AC7925.8050709@rogers.com>
+	<47ACF3AF.40201@lsn.se> <1202646599.22109.17.camel@anden.nu>
+	<47AF0A2B.5080603@lsn.se>
+	<1202663654.28689.27.camel@pc08.localdom.local>
+	<47AF7CBD.7080303@lsn.se>
+Date: Wed, 13 Feb 2008 19:20:26 +0100
+Message-Id: <1202926826.3653.49.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help! I cant view video. BUT I can scan!!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,179 +23,122 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->> Markus Rechberger wrote:
->>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->>>> Markus Rechberger wrote:
->>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->>>>>> Markus Rechberger wrote:
->>>>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->>>>>>>> This message contains the following attachment(s):
->>>>>>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
->>>>>>>>
->>>>>>>> Spent my hole day trying to get a dvd-t device up and running, this
->> is
->>>>>>>> device number two I tried.
->>>>>>>>
->>>>>>>> Can somebody please tell me how to get this device working on:
->>>>>>>>
->>>>>>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
->>>>>>>>
->>>>>>>> I have to get some sleep now, because this is getting on my health
->> and
->>>>>>>> that does not happen often....
->>>>>>>>
->>>>>>> Jelle, it's really easy to install it actually.
->>>>>>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
->>>>>>>
->>>>>>> this is the correct "howto" for it.
->>>>>>>
->>>>>>> You need the linux kernel sources for your kernel, if you experience
->>>>>>> any problems just post them to the em28xx ML.
->>>>>>>
->>>>>>> Markus
->>>>>> Hi Markus,
->>>>>>
->>>>>> I tried that two times,
->>>>>>
->>>>>> The seconds build blows up in my face, I need specified dependecies to
->>>>>> be able to compile the seconds driver...
->>>>>>
->>>>> there are not so many dependencies, just submit the errors you get.
->>>>>
->>>>> Markus
->>>> Here you go, lets see I will try it for 40 more minutes with your help
->>>>
->>> jelle@xubutu-en12000e:~$ hg clone
->> http://mcentral.de/hg/~mrec/em28xx-userspace2
->>> destination directory: em28xx-userspace2
->>> requesting all changes
->>> adding changesets
->>> adding manifests
->>> adding file changes
->>> added 21 changesets with 65 changes to 20 files
->>> 18 files updated, 0 files merged, 0 files removed, 0 files unresolved
->>> jelle@xubutu-en12000e:~$ cd em28xx-userspace2
->>> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
->>> if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
->>> grep v4l_dvb_stub_attach
->>> ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
->>> fi
->>> make -C /lib/modules/2.6.22-14-generic/build
->>> SUBDIRS=/home/jelle/em28xx-userspace2 modules
->>> make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
->>> CC [M] /home/jelle/em28xx-userspace2/em2880-dvb.o
->>> In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
->>> /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
->>> such file or directory
->>> /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
->>> such file or directory
->>> /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
->>> such file or directory
->>> /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
->>> No such file or directory
->>>
->>> there we go, the linux kernel sources aren't installed for your system.
->>>
->>> apt-get install linux-source linux-headers-`uname -r`
->>>
->>> I'm not sure if the kernel sources are decompressed in /usr/src you
->>> might have a look at it.
->>>
->>> /lib/modules/`uname -r`/build should be a symlink to the root of the
->>> extracted kernelsources.
->>>
->>> the root of your kernelsources should also contain a .config file.
->>>
->>> You can find the config file for your current kernel in /boot
->>>
->>> /boot/config-`uname -r`
->>>
->>> copy this file to the kernelroot and rename it to ".config"
->>>
->>> Markus
->> sudo apt-get install linux-source linux-headers-`uname -r`
->> Reading package lists... Done
->> Building dependency tree
->> Reading state information... Done
->> linux-source is already the newest version.
->> linux-headers-2.6.22-14-generic is already the newest version.
->> 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
->> jelle@xubutu-en12000e:~/em28xx-userspace2$ ls -hal /lib/modules/`uname
->> -r`/build
->> lrwxrwxrwx 1 root root 40 2007-10-21 18:19
->> /lib/modules/2.6.22-14-generic/build ->
->> /usr/src/linux-headers-2.6.22-14-generic
->> jelle@xubutu-en12000e:~/em28xx-userspace2$ /boot/config-`uname -r`
->> bash: /boot/config-2.6.22-14-generic: Permission denied
->> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo /boot/config-`uname -r`
->> sudo: /boot/config-2.6.22-14-generic: command not found
->> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ls /boot/config-`uname -r`
->> /boot/config-2.6.22-14-generic
->> jelle@xubutu-en12000e:~/em28xx-userspace2$
->>
->> sudo cp --verbose /boot/config-2.6.22-14-generic /usr/src/linux/.config
->> `/boot/config-2.6.22-14-generic' -> `/usr/src/linux/.config'
->>
->>
->> still all the same problems !
->>
-> 
-> it's just one problem actually, the kernel sources aren't installed or
-> not installed correctly.
-> 
-> You need to have
-> 
-> /usr/src/linux/drivers/media/dvb/dvb-core/dmxdev.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_demux.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_net.h
-> 
-> those are part of the ubuntu linux source package.
-> 
-> look up the source package for 2.6.22 with apt-cache
-> apt-cache search linux-source | grep -i 2.6.22 or something like that
-> and install it.
-> 
-> Markus
-
-I did a complete clean-up of the system tried again checked the 
-directory's, but it stills fails, are you sure there is noting wrong 
-with the install scripts?
-
-
-ls /usr/src/linux-headers-2.6.22-14-generic
-arch   crypto         drivers  include  ipc     kernel  Makefile 
-Module.symvers  scripts   sound
-block  Documentation  fs       init     Kbuild  lib     mm        net 
-           security  usr
-
-jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
-if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
-         grep v4l_dvb_stub_attach 
-../userspace-drivers/kernel/Module.symvers > Module.symvers; \
-         fi
-make -C /lib/modules/2.6.22-14-generic/build 
-SUBDIRS=/home/jelle/em28xx-userspace2 modules
-make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
-make[1]: Makefile: No such file or directory
-make[1]: *** No rule to make target `Makefile'.  Stop.
-make[1]: Leaving directory `/usr/src/linux-headers-2.6.22-14-generic'
-make: *** [default] Error 2
-
-
-
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGkhCgpBbSBTb25udGFnLCBkZW4gMTAuMDIuMjAwOCwgMjM6MzcgKzAxMDAgc2NocmllYiBQZXIg
+QmxvbXF2aXN0Ogo+IFRoYW54ISBOb3cgaXQgd29ya3MhIQo+IAo+IFdhdGNoaW5nIHNvbWUgRGFu
+aXNoIChEYW5zaykgY2hhbm5lbCwgYWJvdXQgTmFwb2xlb24uCj4gCj4gVGhhbnggYWdhaW4sIGZv
+ciBtb2NraW5nIG1lIHVwLi4gSXQgd2FzIHRoZSBjaGFubmVsLmNvbmYsIHRoYXQgd2FzIHdyb25n
+Cj4gCj4gVGhlIGNoYW5uZWwuY29uZiAtZmlsZSB0aGF0IEkgdXNlZCBiZWZvcmUsIHdhcyA2IG1v
+bnRoIG9sZCBhbmQgZnJvbSBteSAKPiBwcmV2aW91cyBjb21wdXRlci4KPiAoTm93ICJkdmJzY2Fu
+IiBkb2Vzbid0IGRldGVjdCBhbnl0aGluZyBvbiB0aGF0IGJhbmR3aWR0aC4gQW5kIHRoYXQgIlRW
+NiIgCj4gd2FzIG9uIHRoYXQuLgo+IAo+IElmIEkgcnVuIGR2ZHNjYW4gYWdhaW5zdCB0aGUgY2xv
+c2VzdCBtYXlvciBjaXR5IChNYWxtw7YgaW4gbXkgY2FzZSwgaGVyZSAKPiBpbiBzb3V0aCBTd2Vk
+ZW4pLCBpdCBvbmx5IHR1bmVkaW4gZW5jcnlwdGVkIGNoYW5uZWxzLiBCVVQsIGFnYWluc3QgIGFs
+bCAKPiBvZiBEZW5tYXJrIChmaWxlICJkay1BbGwiKSBJIGdldCBhIHNvbWUuLgo+IAo+IEl0cyBz
+dHJhbmdlIHRob3VnaC4uIEkgQ0FOIFNFRSAiVFY2IiB1bmVuY3J5cHRlZCwgYnV0IGluIFdpbmRv
+d3MgWFAuIEJ1dCAKPiB0aGVyZSB3aXRoIEEgcHJvZ3JhbSBjYWxsZWQgIlBvd2VyQ2luZW1hIiBp
+cyB1c2VkIChpbiBYUCBPUykuCj4gKHR1bmluZyBpcyBhIGZ1enogdGhlcmUgYWxzbywgSSBiZWxp
+ZXZlICJQb3dlckNpbmVtYSIgZG93bmxvYWQgY2hhbm5lbHMgCj4gYW5kIGd1aWRlcyBhbmQgd2hh
+dCwgZnJvbSB0aGUgaW50ZXJuZXQuIEl0IHdvdWxkIG1heWJlIGJlIGEgcG9pbnQgdG8gCj4gcmV0
+cmlldmUgaXRzIChjaGFubmVsKSBjb25maWd1cmUgZmlsZS4gSSBoYXZlIGxvb2tlZCwgYnV0IGZv
+dW5kIG5vbmUuCj4gCj4gQW5vdGhlciBxdWVzdGlvbiBub3csIGhvdyBpcyBhbGwgdGhlc2UgImlu
+aXRpYWwtdHVuaW5nLWRhdGEiIGNyZWF0ZWQ/PwoKRWl0aGVyIHRoZSBicm9hZGNhc3RlcnMgcHJv
+dmlkZSB0aGVtIG9yIHBlb3BsZSB0cnkgYXMgZ29vZCB0aGV5IGNhbi4KU2luY2UgZGlmZmVyZW50
+IGNoYW5uZWwgZGVjb2RlcnMgdmFyeSBpbiB0aGUgdG9sZXJhbmNlIGZvciBoYXZpbmcKc29tZXRo
+aW5nIHdyb25nIHRoZXJlLCBhbmQgYWxzbyBicm9hZGNhc3RlcnMgb2Z0ZW4gY2hhbmdlIHNvbWV0
+aGluZywKd2l0aCB0aGUgdGRhMTAwNDYgYmV0dGVyIHRyeSBhcyByZWNvbW1lbmRlZC4KCj4gcmVk
+ZWI6fi8udHphcCMgY2F0IGRrLUFsbAo+ICMgRGVubWFyaywgd2hvbGUgY291bnRyeQo+ICMgQ3Jl
+YXRlZCBmcm9tIGh0dHA6Ly93d3cuZGlnaS10di5kay9JbmRob2xkX29nX3RpbGJ1ZC9mcmVrdmVu
+c2VyLmFzcAo+ICMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2Rl
+IGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQo+IFQgNDgyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFN
+NjQgOGsgMS80IE5PTkUKPiBUIDUwNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBO
+T05FCj4gVCA1MzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQo+IFQgNTU0
+MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKPiBUIDYwMjAwMDAwMCA4TUh6
+IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCj4gVCA2NTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBR
+QU02NCA4ayAxLzQgTk9ORQo+IFQgNjgyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
+IE5PTkUKPiBUIDY5MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCj4gVCA3
+MTQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQo+IFQgNzM4MDAwMDAwIDhN
+SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKPiBUIDc3ODAwMDAwMCA4TUh6IDIvMyBOT05F
+IFFBTTY0IDhrIDEvNCBOT05FCj4gVCA4MjYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAx
+LzQgTk9ORQo+IFQgODM0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKPiAK
+PiByZWRlYjp+Ly50emFwIyBjYXQgc2UtTWFsbW8KPiAjIFN3ZWRlbiAtIE1hbG3Dtgo+ICMgVCBm
+cmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFs
+IGhpZXJhcmNoeQo+IFQgNDgyMDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUK
+PiBUIDUwNjAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FCj4gVCA2MTgwMDAw
+MDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzggTk9ORQo+IFQgODE4MDAwMDAwIDhNSHogMy80
+IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKPiBUIDg1MDAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0
+IDhrIDEvNCBOT05FCj4gCj4gQ2FuIEkgY29tcG9zZSBvbmUsIG9mIHRoZXNlIGJ5IG15c2VsZiAo
+ZnJvbSBvdGhlciBuZWFyYnkgY2l0eXMpLCBvciBob3c/CgpUaGVyZSBhcmUgYSBsb3Qgb2YgU3dl
+ZGlzaCBjaGFubmVscy5jb25mIGluIGR2Yi1hcHBzIG5vdy4KSW4gImthZmZlaW5lIiB5b3UganVz
+dCBzZWxlY3QgdGhlIHRyYW5zbWl0dGVycyBpbiB0aGUgZHZiIGNvbmZpZ3VyYXRpb24uCgpZb3Ug
+YWxzbyBjYW4gY29tYmluZSBtdWx0aXBsZSB0cmFuc21pdHRlcnMgb3IgdHJ5IHdpdGgKIndfc2Nh
+biIuCmh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwKaHR0cDov
+L2VkYWZlLm9yZy92ZHIvd3NjYW4uaHRtbAoKPiBoZXJtYW5uIHBpdHRvbiB3cm90ZToKPiA+IEhp
+LAo+ID4KPiA+IEFtIFNvbm50YWcsIGRlbiAxMC4wMi4yMDA4LCAxNToyOCArMDEwMCBzY2hyaWVi
+IFBlciBCbG9tcXZpc3Q6Cj4gPiAgIAo+ID4+IEhlbGxvIEpvbmFzIEFuZHJlbi4KPiA+PiAoS29t
+IGludGUgbyBzw6RnIGF0dCBBbmRlbiDDpHIgZGFuc2spCj4gPj4KPiA+PiBUaGUgSGFyd2FyZSBJ
+IGhhdmUsIEkgaGF2ZSBzYWlkLiAgSXRzIHRoZSBtZWRpYS1jYXJkLCBpcyB0aGlzOiAKPiA+PiBo
+dHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0FzdXNfTXlfQ2luZW1hLVA3MTMx
+X0h5YnJpZAo+ID4+IChydW5uaW5nIG9uIGEgYW1kNjQsIG1vdGhlci1ib2FyZCBtMmEtdm0uLiBJ
+bmvDtnB0IHDDpSBLamVsbCZDbyBieWdnc2F0cyAKPiA+PiBmw7ZyIDIgdmVja29yIHNlZGFuLi4u
+Cj4gPj4KPiA+PiBJIGFsc28gc2FpZCB0aGF0IHRoZSBzYW1lIE1lZGlhLWNhcmQgZGlkIGZ1bmN0
+aW9uIChzb21ld2hhdCkgb24gbXkgb2xkIAo+ID4+IGNvbXB1dGVyIChhIFBJSTMzME1IeiwgdGhv
+dWdoIHdpdGggdGVycmlibGUgdmlkZW8gcmVzdWx0KS4gQW5kIGl0IHdvcmtzIAo+ID4+IGluIFdp
+bmRvd3MgWFAuIFNvLCB0aGUgTWVkaWEtY2FyZCBmdW5jdGlvbi4KPiA+Pgo+ID4+IEkgZG93bmxv
+YWRlZCZpbnN0YWxsZWQgIGxpbnV4dHYtZHZiLWFwcHMtMS4xLjEudGFyLmJ6MiAKPiA+PiA8aHR0
+cDovL3d3dy5saW51eHR2Lm9yZy9kb3dubG9hZHMvbGludXh0di1kdmItYXBwcy0xLjEuMS50YXIu
+YnoyPgo+ID4+IChhbmQgYWxsIHNvIGNhbGxlZCB1dGlsczogImR2YmRhdGUiICJkdmJ0cmFmaWNr
+IiAic2NhbiIgYW5kICJ6YXAiIAo+ID4+IHdvcmtlZC4gQlVULCBub3RoaW5nIHVuZGVyIHRoZSB0
+ZXN0KQo+ID4+ICAgICAKPiA+Cj4gPiB5b3Ugc2hvdWxkIHByZWZlciBkdmItYXBwcyBmcm9tIG1l
+cmN1cmlhbCwgYnV0IHRoYXQgaXMgbm90IHNvIGltcG9ydGFudC4KPiA+Cj4gPiAgIAo+IAo+IFRo
+ZXJlIGlzIGEgZGViLXBhY2thZ2UgY2FsbGVkICJtZXJjdXJpYWwiLgo+IChJIHN1c3BlY3QgaXQg
+ZG9lc250IGhhdmUgYW55dGhpbmcsIHRvZG8gd2l0aCB0aGlzLCBubz8pCgpodHRwOi8vd3d3Lmxp
+bnV4dHYub3JnL3JlcG8KCllvdSB3aWxsIGZpbmQgcmVjZW50IGluaXRpYWwgdHVuaW5nIGFuZCBj
+aGFubmVscy5jb25mIGZpbGVzIGluIGR2Yi1hcHBzLgoKPiA+IEZpcnN0IG9mIGFsbCBJIHdvdWxk
+IGxpa2UgdG8gc2VlIHJlbGV2YW50ICJkbWVzZyIgc3R1ZmYgZm9yIHRoZSBjYXJkCj4gPiBhbmQg
+dHVuZXIgdG8gc2VlIGlmIGl0IGlzIHN0aWxsIGxpa2VseSB0aGUgc2FtZSBjYXJkLCBhdXRvIGRl
+dGVjdGVkIGFuZAo+ID4gZWVwcm9tIGNvbnRlbnQgdW5jaGFuZ2VkIGFuZCBhbGwgY2hpcHMgYWxp
+dmUuIElmIHlvdSBlbmFibGUgaTJjX3NjYW49MQo+ID4geW91IGxvb2sgZmlyc3QgZm9yIHRoZSBk
+ZXZpY2VzIGZvdW5kLgo+ID4gICAKPiBJIHVzZWQgdGhlIGxpbnV4LWtlcm5lbHMtc291cmNlLiBp
+biBpdHMgZG9jdW1lbnRzIGZvciB0aGlzLiBEb3dubG9hZGVkIAo+IHRoZSBmaXJtd2FyZS4uCj4g
+KEkgaW5jbHVkZSBkbWVzZyBvdXRwdXQgaW4gdGhlIGVuZCBvZiB0aGlzIGVtYWlsLCBhbnl3YXku
+IFRoZSByZXZpc2lvbiAKPiBpcyAyMCwgYW5kIG5vdCBhIExpZmVWaWV3IGZhYnJpY2F0aW9uLi4K
+ClRoYW5rcy4gSXQgaXMgdGhlIGtub3duIGNhcmQgd2l0aCBMTkEuCgpBY2NvcmRpbmcgdG8gQXN1
+cywgUGhpbGlwcy9OWFAgZmlybXdhcmUgcHJpb3IgdG8gcmV2aXNpb24gMjYgaGFkCnByb2JsZW1z
+IHdpdGggbWlzc2luZyBjaGFubmVscy4gCgo+ID4gQWxzbyB3ZSBuZXZlciBzYXcsIGlmIHlvdXIg
+ZmlybXdhcmUgdXBsb2FkIGlzIHN1Y2Nlc3NmdWwgYW5kIGlmIHlvdSB1c2UKPiA+IHByZWZlcmFi
+bHkgcmV2aXNpb24gMjkgd2l0aCBzdWNoIGEgY2FyZCB3aXRoIExvdyBOb2lzZSBBbXBsaWZpZXIu
+Cj4gPiBJZiBub3QsIGRvd25sb2FkIGl0IGZyb20gTGlmZVZpZXcgd2l0aCB0aGUgc2NyaXB0IGlu
+IC9Eb2N1bWVudGF0aW9uL2R2Ygo+ID4gYW5kIGRvIGEgY29sZCBib290LiAocmVjZW50IHN0dWZm
+IGlzIGluIGEgdjRsLWR2YiBtZXJjdXJpYWwgc25hcHNob3QpCgpBbGwgdGhlIG9sZGVyIFA3MTMx
+IER1YWwgY2FyZHMgaGF2ZSBhIGZpcm13YXJlIGVlcHJvbSBhbmQgb25seSB0aGUKb2xkZXN0IHJl
+dmlzaW9uIG5lZWRlZCBhbiB1cGdyYWRlLiBTaW5jZSB5b3UgaGF2ZSBubyBmaXJtd2FyZSBvbiBl
+ZXByb20gCiIuL2dldF9kdmJfZmlybXdhcmUgdGRhMTAwNDZsaWZldmlldyIuCgo+ID4gQW50ZW5u
+YSBpbnB1dCBmb3IgRFZCLVQgaXMgRk0vUkYgaW5wdXQuCj4gPgo+ID4gQ2FuIHlvdSBwb2ludCB0
+byB0aGUgaW5pdGlhbCB0dW5pbmcgZmlsZSB5b3UgYXJlIHVzaW5nIG9yIHRvIHdoYXQgeW91Cj4g
+PiBiZWxpZXZlIGlzIGEgdmFsaWQgY2hhbm5lbHMuY29uZiBmaWxlIGZvciB5b3U/Cj4gPgo+ID4g
+SXQgaXMgYWx3YXlzIHdvcnRoIGEgdHJ5IHRvIHNldCBhbGwgdG8gQVVUTyBpbiB0aGUgaW5pdGlh
+bCB0dW5pbmcgZmlsZSwKPiA+IGV4Y2VwdCBmcmVxdWVuY3kgdG8gdHVuZSBhbmQgYmFuZHdpZHRo
+IGFuZCB0aGVuIHVzZSAic2NhbiIgdG8gY3JlYXRlIGEKPiA+IGNoYW5uZWxzLmNvbmYuCj4gPiAg
+IAo+IAo+IFllcywgbm93IG15IHN5c3RlbSBpcyByZWxhdGl2ZWx5IGZyZXNoLCBhZ2FpbiAoSSBk
+b250IGxvYWQgYW55IAo+IGtlcm5lbC1tb2R1bGUgd2l0aCBhbnkgZXh0cmEgb3B0aW9ucykuCj4g
+Cj4gPiBJZiBzdGlsbCBub3QsIHdlIGluc3RhbGwgdGhlIHJlY2VudCB2NGwtZHZiLCByZW1vdmUg
+YWxsIG9sZCBtb2R1bGVzIGFuZAo+ID4gbWlnaHQgdHJ5IHRvIGRlYnVnIGZyb20gdGhlcmUuCiAg
+IAo+IAo+IEkgYWxzbyB0cmllZCB0byBjb21waWxlIHRoZSBrZXJuZWwgKHRoZXJlIHdhcyB0aGlz
+IG9wdGlvbiB0aGVyZSAKPiBWSURFT19BRFZfREVCVUcpLiBCdXQgdW5mb3J0dW5hdGVseSBJIGN1
+dCBhd2F5IHNvIG90aGVyIHN0dWZmLCBzb28gdGhlIAo+IG5ldyBrZXJuZWwgZ290IHBhbmljIGF0
+IGJvb3R1cC4gQW5vdGhlciBzdG9yeS4uCgpXaXRoIGtlcm5lbCBkZXZlbCBlbnZpcm9ubWVudCBp
+bnN0YWxsZWQgdjRsLWR2YiBmcm9tIHRoZSBtZXJjdXJpYWwKbWFzdGVyIHJlcG9zaXRvcnkgaXMg
+ZWFzeSB0byB1c2UuIChjdXJyZW50bHkgZG93biB0byAyLjYuMTksIHN5c2ZzCmNvbXBhdCBmb3Ig
+Mi42LjE4IGlzIGJyb2tlbiwgPj0gMi42LjIwIHdvcmtzIGZvciBzdXJlKQoKPiBJdCB3YXMgdGhl
+ICJjaGFubmVsLmNvbmYiIHRoYXQgd2FzIHdyb25nLi4gVGh4IGFnYWluIQo+ICh3aGF0IGEgZnV6
+eikKPiAKClNvcnJ5LCBidXQgZm9yIGV4YW1wbGUgd2l0aCAia2FmZmVpbmUiIGFuZCAid19zY2Fu
+IiB5b3Ugc2hvdWxkIGJlIGZpbmUuCgpDaGVlcnMsCkhlcm1hbm4KCgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdAps
+aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
+YW4vbGlzdGluZm8vbGludXgtZHZi
