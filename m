@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Date: Sun, 3 Feb 2008 18:05:06 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Bodo Eggert <7eggert@gmx.de>
-In-Reply-To: <E1JLi7A-0003bn-5Y@be1.7eggert.dyndns.org>
-Message-ID: <Pine.LNX.4.64.0802031802530.25263@pub6.ifh.de>
-References: <9Sxa6-6B-7@gated-at.bofh.it>
-	<E1JLi7A-0003bn-5Y@be1.7eggert.dyndns.org>
+Received: from outmailhost.telefonica.net ([213.4.149.242]
+	helo=ctsmtpout1.frontal.correo)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jareguero@telefonica.net>) id 1JPeT1-0007Hy-6N
+	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 14:49:35 +0100
+Received: from jar.dominio (80.25.230.35) by ctsmtpout1.frontal.correo
+	(7.2.056.6) (authenticated as jareguero$telefonica.net)
+	id 47B009410014BFB3 for linux-dvb@linuxtv.org;
+	Thu, 14 Feb 2008 14:49:04 +0100
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: linux-dvb@linuxtv.org
+Date: Thu, 14 Feb 2008 14:49:03 +0100
+References: <456F8CC7-BB99-4833-B540-8D1396C0E8C3@thedesignshop.biz>
+	<cc22fa3b0802140351l6cf9da2au5200ff97e0560b36@mail.gmail.com>
+	<8ad9209c0802140421k26bc5964p6687b4e5b7ab09f1@mail.gmail.com>
+In-Reply-To: <8ad9209c0802140421k26bc5964p6687b4e5b7ab09f1@mail.gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org,
-	Roel Kluin <12o3l@tiscali.nl>
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [PATCH]
- [rivers/media/video/tvaudio.c] add parentheses
+Content-Disposition: inline
+Message-Id: <200802141449.03285.jareguero@telefonica.net>
+Subject: Re: [linux-dvb] Nova-T-500 disconnect issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,46 +26,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+El Jueves, 14 de Febrero de 2008, Patrik Hansson escribi=F3:
+> I will definently look in to this and will try to upgrade the kernel.
+> (will prob. screw it up but anyways).
+>
+> Ps. Got a good kernel upgrade-how to for 7.10 ? Ds.
+>
+> On 2/14/08, Simeon Walker <simbloke@googlemail.com> wrote:
+> > On 14/02/2008, General <mail@thedesignshop.biz> wrote:
+> > > Hi. I have been following the discussion regarding the mt2060 I2C
+> > >  read / write failed errors. I am running Ubuntu and get the same
+> > >  behaviour since I upgraded to the latest kernel (2.6.24.1) to resolve
+> > >  some wireless driver issues I was having. When I was running the
+> > >  standard Ubuntu kernel (2.6.22-14-generic) I never had the disconnect
+> > >  issues in 3 or 4 months of 24/7 usage. This was using the latest v4l-
+> > >  dvb sources as per the wiki.
+> > >
+> > >  Perhaps this would suggest that the error is not with the dib0700
+> > >  driver but elsewhere?
+> > >
+> > >  So my dilemma is do I have a constant wireless connection but a dvb
+> > >  driver that drops out or a constant dvb driver with a wireless
+> > >  connection that drops out?!
+> >
 
-On Sun, 3 Feb 2008, Bodo Eggert wrote:
+I also have more disconnects with kernel 2.6.24. I found that disabling in =
 
-> Roel Kluin <12o3l@tiscali.nl> wrote:
-> 
-> > '!' has a higher priority than '&': bitanding has no effect.
-> 
-> > +++ b/drivers/media/video/tvaudio.c
-> > @@ -1571,14 +1571,14 @@ static int tvaudio_get_ctrl(struct CHIPSTATE *chip,
-> >  ctrl->value=chip->muted;
-> >  return 0;
-> >  case V4L2_CID_AUDIO_VOLUME:
-> > -             if (!desc->flags & CHIP_HAS_VOLUME)
-> > +             if (!(desc->flags & CHIP_HAS_VOLUME))
-> 
-> This is a cosmetic change, because:
-> 
-> !1100101 & 0000100 == 0011010 & 0000100 == 0 /* false */
-> !(1100101 & 0000100) == !0000100 == 0 /* false */
-> 
-> !1100001 & 0000100 == 0011110 & 0000100 == 0000100 /* non-false */
-> !(1100001 & 0000100) == !0000000 == 1 /* non-false */
-> 
-> 
-> OTOH, your change may result in better code by using a negated jump instead of
-> explicitely negating the value.
+kernel config the option:
 
-If I'm not totally wrong, ! is negating integers: !123 == 0. At least I 
-hope that, otherwise I have to go through a lot of code ;)
+USB selective suspend/resume and wakeup (EXPERIMENTAL) ->CONFIG_USB_SUSPEND
 
-Your interpretation of ! is actually achieved by using ~ .
+have impact in the disconnects, althought I don't know exactily why, but wi=
+th =
 
-Patrick.
+this option the Nova-T 500 hubs are constantly supend->resume.
+
+Jose Alberto
+
+> > Ah but you can get the latest wireless drivers for your current kernel:
+> >
+> > http://linuxwireless.org/en/users/Download
+> >
+> > Sim
+> >
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
 
 _______________________________________________
 linux-dvb mailing list
