@@ -1,29 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R9sXRn023859
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 04:54:34 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ECLduo011505
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 07:21:39 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R9rvF0030923
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 04:53:57 -0500
-Date: Wed, 27 Feb 2008 06:52:51 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1ECLHmK032343
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 07:21:17 -0500
+Date: Thu, 14 Feb 2008 10:20:45 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Robert Fitzsimons <robfitz@273k.net>
-Message-ID: <20080227065251.3b2e4516@areia>
-In-Reply-To: <20080227014729.GC2685@localhost>
-References: <200802171036.19619.bonganilinux@mweb.co.za>
-	<20080218131125.2857f7c7@gaivota>
-	<200802182320.40732.bonganilinux@mweb.co.za>
-	<200802190121.36280.bonganilinux@mweb.co.za>
-	<20080219111640.409870a9@gaivota>
-	<20080226154102.GD30463@localhost>
-	<20080227014238.GA2685@localhost> <20080227014729.GC2685@localhost>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-ID: <20080214102045.44c6adc7@gaivota>
+In-Reply-To: <47B3A8F9.3080106@linuxtv.org>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
+	<20080214023415.GB23519@plankton.ifup.org>
+	<47B3A8F9.3080106@linuxtv.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Bongani Hlope <bonganilinux@mweb.co.za>
-Subject: Re: [PATCH] bttv: Re-enabling radio support requires the use of
- struct bttv_fh.
+Cc: v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	video4linux-list@redhat.com,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	Brandon Philips <bphilips@suse.de>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,29 +37,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 27 Feb 2008 01:47:29 +0000
-Robert Fitzsimons <robfitz@273k.net> wrote:
+On Wed, 13 Feb 2008 21:35:37 -0500
+Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-> A number of the radio tuner ioctl functions are shared with the TV
-> tuner, these functions require a struct bttv_fh data structure to be
-> allocated and initialized.
-> 
-> Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
-> ---
->  drivers/media/video/bt8xx/bttv-driver.c |   21 ++++++++++++++++-----
->  1 files changed, 16 insertions(+), 5 deletions(-)
-> 
-> 
-> Mauro, the radio_open function may want to do more initialisation then
-> the amount I copied from bttv_open.
+> Brandon Philips wrote:
+> > On 18:24 Wed 13 Feb 2008, Michael Krufky wrote:
+> >   
+> >> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
+> >>     
+> >>> On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
+> >>>       
+> >>>> Maybe we've took the wrong direction when we've decided to select
+> >>>> mercurial. It were better and easier to use, on that time, but the -git
+> >>>> improvements happened too fast.
+> >>>>         
+> >>> We should consider a move to a full-tree git.  Particularly, it would be
+> >>> nice to be have v4l-dvb merging/building against other subsystems in the
+> >>> linux-next tree:
+> >>>
+> >>>   http://lkml.org/lkml/2008/2/11/512
+> >>>
+> >>> Also, it would save the silly pain of things like this meye.h thing and
+> >>> pulling in fixes from the rest of the community that patches against git
+> >>> trees.
+> >>>       
+> >> Additionally, the moment we move development from hg to git, we are
+> >> bound to the development kernel -- we will no longer be able to work
+> >> against any stable kernel series, and we will lose all of our testers.
+> >>     
+> >
+> > Good point.  Testers seem pretty happy with our current system.
+> >
+> > I will look into auto-generating a full git tree from the hg v4l-dvb
+> > repo.  That way we can participate in linux-next while still using
+> > mercurial for development.
 
-Maybe, but the proper way would be to use just one open for both radio and
-video, like cx88. This driver violates V4L2 API, since the spec says that
-opening /dev/radio will select radio, by default, but it is possible to listen
-video also on that interface (the opposite is valid also for /dev/video).
+We do have a full git tree. I don't understand what you're meaning. This tree
+is generated by script (although I prefer to generate it manually, it shouldn't
+be hard to automate it).
+> 
+> I like that *much* better -- good idea!
+> 
+> -Mike
 
-I'll apply the fixes, for now. The better would be if you could try to use the
-same approach present on cx88.
+
+
 
 Cheers,
 Mauro
