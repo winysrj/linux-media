@@ -1,26 +1,17 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.wnex.hu ([87.229.43.150] ident=postfix)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <szab100@bytestorm.hu>) id 1JTxV3-00028E-Sx
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 11:57:29 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by mail.wnex.hu (Postfix) with ESMTP id 336511A9D352
-	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 11:57:26 +0100 (CET)
-Received: from mail.wnex.hu ([127.0.0.1])
-	by localhost (mail.wnex.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id QkGKFhKeNRpG for <linux-dvb@linuxtv.org>;
-	Tue, 26 Feb 2008 11:57:23 +0100 (CET)
-Received: from [152.66.146.156] (dhcp-156.i.wlan.bme.hu [152.66.146.156])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by mail.wnex.hu (Postfix) with ESMTP id 215CB1A9D34D
-	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 11:57:23 +0100 (CET)
-Message-ID: <47C3F093.9030902@bytestorm.hu>
-Date: Tue, 26 Feb 2008 11:57:23 +0100
-From: =?ISO-8859-2?Q?Fr=FChwald_Szabolcs?= <szab100@bytestorm.hu>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from smtp105.rog.mail.re2.yahoo.com ([206.190.36.83])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <CityK@rogers.com>) id 1JPgx8-0002KH-1P
+	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 17:28:50 +0100
+Message-ID: <47B46C1A.3030407@rogers.com>
+Date: Thu, 14 Feb 2008 11:28:10 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] cx88-input: leadtek tv200xp global
+To: "Ali H.M. Hoseini" <alihmh@gmail.com>
+References: <66caf1560802140702p47d8555ckaba79e39f50ad50a@mail.gmail.com>
+In-Reply-To: <66caf1560802140702p47d8555ckaba79e39f50ad50a@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SkyStar rev 2.8A driver?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,51 +22,25 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi there,
+Ali H.M. Hoseini wrote:
+> Hi,
+>  
+> I searched linuxtv.org <http://linuxtv.org/> mailing list archive 
+> about SkyStar2 rev2.8A driver, or any suggestion, but I found nothing.
+>
+> The 2.6.22 kernel initialize B2C2 chip itself, but it could not 
+> identify the frontend for card. The chips used in this card for 
+> frontend are conexant cx24123  and cx24113 .
+> I tried to load cx24123 module exists in the kernel, but later I found 
+> it is not defined for b2c2-flexcop module to use it, and hence it is 
+> not useful.
+>
+> Could anybody help me?
 
-i've a leadtek tv2000xp global pci card
-it's running OK (with some errors, but works) with current developement
-v4l-dvb branch
-i tried to enable it's IR remote control too in cx88-input.c
-just copied tv2000xp expert switch entry:
-
-case CX88_BOARD_WINFAST2000XP_EXPERT:
-                 ir_codes = ir_codes_winfast;
-                 ir->gpio_addr = MO_GP0_IO;
-                 ir->mask_keycode = 0x8f8;
-                 ir->mask_keyup = 0x100;
-                 ir->polling = 1; /* ms */
-                 break;
-
-but the result of this was: IR recognized well by kernel, dev/input
-device attached
-but when i pressed a button on remote, it printed its character, waited
-a sec and started to repeat this character forever
-so, i pressed '6', out was:
-6<1sec_delay>666666666666666666666666666666666666666666666666666 .... etc..
-could anybody help me to correct this?
-it would be cool if i could paste a patch to the mailing list to enable
-this functionality for this card
-i figured out the main problem is with "ir->mask_keyup=0x100", so maybe
-it isn't there... but i didnt find it at 0x60,0x80 too and don't know
-where could it be??
-
-ps: I also tried to comment out this line of code (as i saw some other
-entrys without this option), the repeats are stopped but when i pressed
-a button more than once it's only showed up once. So, i pressed 6,
-printed 6 but when i pressed 6 again, it didnt print anything. After i
-pressed other button (printed once too), and pressed again 6, prints 6
-again).
-
-Thanks for your help...
-
-bye,
-Szab
-
-
+See:  http://marc.info/?l=linux-dvb&m=120042808124927&w=2
 
 _______________________________________________
 linux-dvb mailing list
