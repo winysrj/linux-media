@@ -1,21 +1,24 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from mx1.ukfsn.org ([77.75.108.10] helo=mail.ukfsn.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JTlWL-0001ft-0l
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 23:10:01 +0100
-Message-ID: <47C33CB1.1080502@gmail.com>
-Date: Tue, 26 Feb 2008 02:09:53 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Vangelis Nonas <vnonas@otenet.gr>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
-	<47C19735.4030601@gmail.com> <47C1D52B.6070906@otenet.gr>
-	<47C1C55F.5030406@gmail.com> <47C32947.1030604@otenet.gr>
-In-Reply-To: <47C32947.1030604@otenet.gr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+	(envelope-from <mail@thedesignshop.biz>) id 1JPb3q-0007ga-Qm
+	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 11:11:22 +0100
+Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
+	by mail.ukfsn.org (Postfix) with ESMTP id 61129DEF30
+	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 10:12:10 +0000 (GMT)
+Received: from mail.ukfsn.org ([192.168.54.25])
+	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new,
+	port 10024) with ESMTP id WRkx+u3K0LE8 for <linux-dvb@linuxtv.org>;
+	Thu, 14 Feb 2008 10:06:54 +0000 (GMT)
+Received: from [10.0.1.2] (unknown [87.127.119.158])
+	by mail.ukfsn.org (Postfix) with ESMTP id 2EBCBDED7C
+	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 10:12:04 +0000 (GMT)
+Mime-Version: 1.0 (Apple Message framework v753)
+Message-Id: <456F8CC7-BB99-4833-B540-8D1396C0E8C3@thedesignshop.biz>
+To: linux-dvb@linuxtv.org
+From: General <mail@thedesignshop.biz>
+Date: Thu, 14 Feb 2008 10:11:13 +0000
+Subject: [linux-dvb] Nova-T-500 disconnect issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,46 +29,23 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Vangelis Nonas wrote:
-> Hello,
-> 
-> I have tested again changesets 7201 and 7205 with verbose 5, 2 and 1 
-> scanning 101 transponders on Hotbird (I attach my transponders file -- 
-> it is taken and adopted from ProgDvb).
-> 
-> Here are my statistics:
-> 
-> Changeset   Verbose  channels
-> --------------------------------
-> 7201         1        2152
-> 7201         2        2105
-> 7201         5        2081
-> 7205         1        1760
-> 7205         2        1608
-> 7205         5        1578
+Hi. I have been following the discussion regarding the mt2060 I2C  
+read / write failed errors. I am running Ubuntu and get the same  
+behaviour since I upgraded to the latest kernel (2.6.24.1) to resolve  
+some wireless driver issues I was having. When I was running the  
+standard Ubuntu kernel (2.6.22-14-generic) I never had the disconnect  
+issues in 3 or 4 months of 24/7 usage. This was using the latest v4l- 
+dvb sources as per the wiki.
 
+Perhaps this would suggest that the error is not with the dib0700  
+driver but elsewhere?
 
-Are you "really" sure that 7201 behaves better than others. I ask this, 
-since
-there was a bug in 7201 which caused many people not to have a LOCK, the
-bugs which was fixed in 7203 and 7204. I am at a loss now, as to
-understanding this strange phenomena, how a lock was achieved with no
-communication to the tuner.
-
-If it were 7200, i could have still believed, there was a possibility, 
-but 7201
-i am terribly confused.
-
-Can you please verify whether you didn't get mixed up with the changeset
-numbers or the logs that were produced ?
-
-
-Regards,
-Manu
-
+So my dilemma is do I have a constant wireless connection but a dvb  
+driver that drops out or a constant dvb driver with a wireless  
+connection that drops out?!
 
 _______________________________________________
 linux-dvb mailing list
