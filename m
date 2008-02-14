@@ -1,22 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1M9ccvV000659
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 04:38:38 -0500
-Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1M9c5DH018606
-	for <video4linux-list@redhat.com>; Fri, 22 Feb 2008 04:38:05 -0500
-Message-ID: <47BE980E.4090900@free.fr>
-Date: Fri, 22 Feb 2008 10:38:22 +0100
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1EAt7Ku019872
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 05:55:07 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1EAsjG2013289
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 05:54:46 -0500
+Date: Thu, 14 Feb 2008 11:54:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: eric miao <eric.y.miao@gmail.com>
+In-Reply-To: <f17812d70802140215p2582fdack595b9e2a2ad9c8b8@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0802141144430.5218@axis700.grange>
+References: <Pine.LNX.4.64.0802051830360.5882@axis700.grange>
+	<20080211114129.GA10482@flint.arm.linux.org.uk>
+	<Pine.LNX.4.64.0802111440230.4440@axis700.grange>
+	<f17812d70802122120r3f8f2c29qa70342d1bda75658@mail.gmail.com>
+	<Pine.LNX.4.64.0802131346170.6252@axis700.grange>
+	<f17812d70802131807o79dfa71r23f73f827fa49ea1@mail.gmail.com>
+	<Pine.LNX.4.64.0802140826260.4016@axis700.grange>
+	<f17812d70802140215p2582fdack595b9e2a2ad9c8b8@mail.gmail.com>
 MIME-Version: 1.0
-To: Thomas Kaiser <linux-dvb@kaiser-linux.li>
-References: <47BC8BFC.2000602@kaiser-linux.li>	<175f5a0f0802211212s104e4808wdab5c6806eb7849f@mail.gmail.com>	<47BDE1B9.4040309@kaiser-linux.li>	<200802212303.37379.laurent.pinchart@skynet.be>
-	<47BDF9BC.2030603@kaiser-linux.li>
-In-Reply-To: <47BDF9BC.2030603@kaiser-linux.li>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: V4L2_PIX_FMT_RAW
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/6] V4L2 soc_camera driver for PXA27x processors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,196 +36,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Thomas ,
-Thomas Kaiser a écrit :
-> Laurent Pinchart wrote:
->> On Thursday 21 February 2008, Thomas Kaiser wrote:
->>> H. Willstrand wrote:
->>>> On Thu, Feb 21, 2008 at 7:55 PM, Thomas Kaiser
->>>>
->>>> <linux-dvb@kaiser-linux.li> wrote:
->>>>> H. Willstrand wrote:
->>>>>  > On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
->>>>>  >
->>>>>  > <linux-dvb@kaiser-linux.li> wrote:
->>>>>  >> H. Willstrand wrote:
->>>>>  >>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner 
->> <daniel-gl@gmx.net> wrote:
->>>>>  >>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand
->>>>> wrote:
->>>>>  >>  >>  > What's the problem with having a name of the formalized
->>>>> data
->>>>>  >>  >>  > in the video stream? ie raw do not mean undefined.
->>>>>  >>  >>
->>>>>  >>  >>  I thought you wanted to avoid having to define
->>>>> V4L2_PIX_FMT_x
->>>>>  >>  >> for an exploding number of proprietary formats that are quite
->>>>>  >>  >> similar but still incompatible. It makes sense for formats
->>>>> that
->>>>>  >>  >> are used by more than one driver.
->>>>>  >>  >
->>>>>  >>  > Correct, the number of unique pixel formats should be kept
->>>>> down.
->>>>>  >>  > Again, comparing with digital cameras there are >200
->>>>> proprietary
->>>>>  >>  > formats and there is a "clean-up" on-going where the
->>>>> "market" is
->>>>>  >>  > aiming for a OpenRAW.
->>>>>  >>  >
->>>>>  >>  > However, by declaring a generic RAW format (which is then
->>>>> driver
->>>>>  >>  > specific) doesn't help the user mode app developers. Calling a
->>>>>  >>  > multitude of libraries to see if you get lucky might not be a
->>>>>  >>  > good idea.
->>>>>  >>  >
->>>>>  >>  > Still, I'm suspectious about the definition "raw" used here.
->>>>>  >>  > RAW should mean unprocessed image data:
->>>>>  >>  > * no white balance adjustment
->>>>>  >>  > * no color saturation adjustments
->>>>>  >>  > * no contrast adjustments
->>>>>  >>  > * no sharpness improvements
->>>>>  >>  > * no compression with loss
->>>>>  >>
->>>>>  >>  Yes, raw means "as it is" no stripping, decoding  or removing of
->>>>>  >> SOF headers are done in the driver. May be V4L2_PIX_FMT_AII
->>>>> (AII ->
->>>>>  >> As It Is) is the better name?
->>>>>  >
->>>>>  > I struggle with the probability to find several CCD's having
->>>>> similar
->>>>>  > formats. There aren't so many manifactors of CCD's but they
->>>>> truelly
->>>>>  > can generate divergeting formats. Worst case scenario means >200
->>>>>  > V4L2_PIX_FMT_RAW_...
->>>>>  >
->>>>>  > I think RAW is a OK name, the question is if the subcomponents
->>>>> of the
->>>>>  > RAW formats has similarities, if so they might be standardized.
->>>>>  > Looking into different Sony CCD's it's clearly possible, but after
->>>>>  > the CCD the data has to be buffered, packaged and transmitted
->>>>> which
->>>>>  > of course can be done in several ways...
->>>>>  >
->>>>>  > Cheers,
->>>>>  > Harri
->>>>>  >
->>>>>  >>  > So, by looking for similarities in the "raw" formats where
->>>>>  >>  > available there should be a potential to consolidate them.
->>>>>  >>  >
->>>>>  >>  >>  > I don't see how separate RAW ioctl's will add value to the
->>>>>  >>  >>  > V4l2 API, it fits into the current API.
->>>>>  >>  >>
->>>>>  >>  >>  Yes, it does. Each driver having multiple raw formats just
->>>>>  >>  >> needs a private control id to select one.
->>>>>  >>  >
->>>>>  >>  > I was more thinking about the VIDIOC_S_RAW stuff, a
->>>>> VIDIOC_S_FMT
->>>>>  >>  > should do the job.
->>>>>  >>  > I.e. I think there should be strong reasons to break V4L2 API
->>>>>  >>  > behavior.
->>>>>  >>  >
->>>>>  >>  > Harri
->>>>>
->>>>>  Actually, in a webcam you have the image sensor and a usb bridge.
->>>>> Usually, the sensor capture a picture in Bayer pattern. This gets
->>>>> forwarded to the usb bridge. The usb bridge may or may not
->>>>> transfer the
->>>>> picture to an other format and/or compress it with a standard
->>>>> compression algo or a proprietary compression algo. The resulting
->>>>> data
->>>>> stream will be transmitted over the usb interface.
->>>> Yes, the USB bridge buffers, packages and transmits.
->>>>
->>>>>  I just would like to get this resulting stream to user space without
->>>>>  manipulation/conversion/decoding of the stream in the kernel module.
->>>>>
->>>>>  That means we don't know what the format is in this data which comes
->>>>> trough the usb interface. That's way I call it raw.
->>>>>
->>>>>  At the moment with V4L2, I have to forward a stream to user space
->>>>> which
->>>>> is in a format v4l2 knows. That means I have sometimes to do heavy
->>>>> data
->>>>> processing in the kernel module to decode/convert the data from
->>>>> the usb
->>>>> stream to a known v4l2 video format.
->>>> Drivers should not do any decoding / converting, it's not allowed in
->>>> kernel mode.
->>>> But you are right, there are a number of V4L1 exceptions:
->>>> AR M64278 (arv.c) converts YUV422 to YUV422P
->>>> QuickCam (bw-qcam.c) converts RAW to a useful format :)
->>>> CPiA (cpia.c) converts 420 to different RGB formats
->>>> OmniVision (ov511.c) converts from YUV4:0:0
->>>> PWC (V4L2) does decoding
->>> You forgot gspca [1](support of 260 webcams at the moment) and here
->>> we even
->>> do jpeg decoding in kernel space to get the proper format for v4l1!
->>
->> There are historical reasons. Those drivers should be fixed to remove
->> decoding from kernelspace. Obviously a new userspace component will
->> be needed to handle decoding and conversion, otherwise applications
->> will break. No consensus exists today regarding what form that
->> component should take.
->
-> Yes, but all this transformation which is done in kernel space can be
-> done in user space. But it looks like that nobody is interested to
-> move this to user space (expect you) ;-)
-> And I think it should not be that hard to introduce a user space
-> component to handle this. When the user space app programmers are
-> willing to do so!
->
-Well, of course you can participate to the v4l2 library mailing-list.
-We started a userspace daemon that would do the frame decompression in
-userspace and give back uncompressed frames to the application via a
-virtual device driver.
-You will find more information on here:
-http://www.linuxtv.org/v4lwiki/index.php/V4L2UserspaceLibrary
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l2-library
-I maintain the current code here:
-http://linuxtv.org/hg/~tmerle/v4l2_extension
+On Thu, 14 Feb 2008, eric miao wrote:
 
-For now, the virtual driver is here, the userspace daemon is here, the
-virtual driver <-> daemon command passing is bound to be here thanks to
-Jiri Slaby.
-Now, we need to implement the frame decompression. I should do that with
-the usbvision driver that includes a decompression algorithm in
-kernelspace but we can extend it to any v4l2 device driver.
-Feel free to join, comment and ask for precisions!
+> On Thu, Feb 14, 2008 at 3:43 PM, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> >
+> >  But, I think, we'll have to do it differently. The two cameras you mention
+> >  are two separate video-devices with my framework. So, the application will
+> >  have to go to /dev/video1 from /dev/video0. And, perhaps, the camera
+> >  driver (not the interface driver, like pxa-camera) will have to call back
+> >  into the platform layer to activate the respective controller. How does
+> >  this sound?
+> 
+> Yeah, I personally like the idea of having /dev/video0 and /dev/video1 for
+> the two sensors, and the pxa_camera.c makes sure they will be opened
+> exclusively.
 
->>
->>>> ...
->>>>
->>>> However, the Webcams provides only a limited set of formats and the
->>>> "raw" are usually available. New drivers with proprietary "raw"
->>>> formats should be added to videodev2.h
->>> That means you agree with me?
->>>
->>>>>  That's way I want a official way to forward the untouched usb
->>>>> stream to
->>>>> user space!
->>>>>
->>>>>  How the user space application has to react on this stream is an
->>>>> other
->>>>> story, I think. But there will be some way to tell the usespace
->>>>> application what to do with this "unknown" stream, I am sure.
->>>>>
->>>>>  Thomas
->>>> Cheers,
->>>> Harri
->>> Thomas
->>>
->>> [1] http://mxhaard.free.fr/download.html
->>
->> Best regards,
->>
->> Laurent Pinchart
->
-> Best Regards,
->
-> Thomas
->
-Cheers,
-Thierry
+In fact, it is _already_ implemented. Look at
+
+struct pxacamera_platform_data {
+	int (*init)(struct device *);
+	int (*power)(struct device *, int);
+	int (*reset)(struct device *, int);
+
+	unsigned long flags;
+	unsigned long mclk_10khz;
+};
+
+in include/asm-arm/arch-pxa/camera.h, but ->power() is called at probe and 
+release times... Yeah, will have to change that, which will also require 
+some changes to the soc-camera - camera-interface API...
+
+Otherwise, I'll wait for your detailed comments to minimize the number of 
+iterations:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
