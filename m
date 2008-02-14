@@ -1,23 +1,20 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.224])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from smtp0.lie-comtel.li ([217.173.238.80])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <filippo.argiolas@gmail.com>) id 1JRkE5-0001k0-UK
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 09:22:50 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so2057444wxc.17
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 00:22:49 -0800 (PST)
-From: Filippo Argiolas <filippo.argiolas@gmail.com>
-To: Matthew Vermeulen <mattvermeulen@gmail.com>
-In-Reply-To: <950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
-References: <1203434275.6870.25.camel@tux>
-	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
-	<1203449457.28796.7.camel@youkaida>
-	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
-Date: Wed, 20 Feb 2008 09:22:53 +0100
-Message-Id: <1203495773.7026.15.camel@tux>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
-	ir	receiver
+	(envelope-from <linux-dvb@kaiser-linux.li>) id 1JPkq9-0001a6-1r
+	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 21:37:53 +0100
+Received: from localhost (localhost.lie-comtel.li [127.0.0.1])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 62B4C9FEC15
+	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 21:37:52 +0100 (GMT-1)
+Received: from [192.168.0.15] (80-72-49-55.cmts.powersurf.li [80.72.49.55])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 477C69FEC11
+	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 21:37:52 +0100 (GMT-1)
+Message-ID: <47B4A69F.9020009@kaiser-linux.li>
+Date: Thu, 14 Feb 2008 21:37:51 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+MIME-Version: 1.0
+To: _LinuxTV-DVB - Mailinglist <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] [OT] request_firmware()
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,29 +25,27 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello
 
-Il giorno mer, 20/02/2008 alle 06.10 +0900, Matthew Vermeulen ha
-scritto:
-> Hi all... I'm seeing exactly the same problems everyone else is (log
-> flooding etc) except that I can't seem to get any keys picked by lirc
-> or /dev/input/event7 at all...
+I know this is the wrong list to ask, but you use this function (see subject) 
+and I think somebody can answer my question.
 
-Are you sure that the input device is receiving the events?
-Did you try evtest /dev/input/event7?
-Is LIRC properly configured?
-Are you using this file for lircd.conf
-[http://linux.bytesex.org/v4l2/linux-input-layer-lircd.conf]?
-Does irw catch some event?
+Why does request_firmware need a device as parameter?
+int request_firmware(const struct firmware **fw, const char *name,
+		     struct device *device);
 
-Regarding log flooding, that should be fixed with this patch.
-Regards,
-Filippo
+I thought request_firmware just loads the firmware in the struct firmware?
+
+Thanks,
+
+Thomas
 
 
-
+-- 
+http://www.kaiser-linux.li
 
 _______________________________________________
 linux-dvb mailing list
