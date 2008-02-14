@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1HH1SfP024279
-	for <video4linux-list@redhat.com>; Sun, 17 Feb 2008 12:01:28 -0500
-Received: from smtpout.kotinet.com (smtpout.kotinet.com [212.50.215.76])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1HH0tIE001099
-	for <video4linux-list@redhat.com>; Sun, 17 Feb 2008 12:00:55 -0500
-Message-ID: <47B86835.9060505@iki.fi>
-Date: Sun, 17 Feb 2008 19:00:37 +0200
-From: Antti Palosaari <crope@iki.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ELxQuC031327
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 16:59:26 -0500
+Received: from mailout11.sul.t-online.com (mailout11.sul.t-online.de
+	[194.25.134.85])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1ELx4PG032046
+	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 16:59:04 -0500
+Message-ID: <47B4B9AE.5010907@t-online.de>
+Date: Thu, 14 Feb 2008 22:59:10 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Muppet Man <muppetman4662@yahoo.com>
-References: <653934.59125.qm@web34401.mail.mud.yahoo.com>
-In-Reply-To: <653934.59125.qm@web34401.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <47B392A5.2030908@t-online.de>	<1202986913.5036.3.camel@pc08.localdom.local>
+	<1203005937.5871.12.camel@pc08.localdom.local>
+In-Reply-To: <1203005937.5871.12.camel@pc08.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Jussi Torhonen <jt@iki.fi>
-Subject: Re: Trouble compiling driver in PClinuxOS
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Mdeion / Creatix CTX948 DVB-S driver is ready	for
+ testing
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,45 +31,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-heis
-This same error occurs with CentOS 5.1 i386 (32-bit). Solution can be 
-found from:
-http://mysettopbox.tv/phpBB2/viewtopic.php?p=105504
-Please fix.
+Hi, Hermann
 
-regards
-Antti
+I am a bit confused....
 
-Muppet Man wrote:
-> Greetings all,
-> I am having trouble compiling the latest v4l-dvb in order to get my pinnicale pci card to work.  I am running PClinuxOS 2007.  I have downloaded the latest tree, mkdir v4l-dvb extracted the tz file to that folder, went into root mode and got this error when I make the file
+hermann pitton schrieb:
+> Hi,
 > 
-> make -C /home/ed/v4l-dvb/v4l
-> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-> creating symbolic links...
-> Kernel build directory is /lib/modules/2.6.18.8.tex5/build
-> make -C /lib/modules/2.6.18.8.tex5/build SUBDIRS=/home/ed/v4l-dvb/v4l  modules
-> make[2]: Entering directory `/usr/src/linux-2.6.18.8.tex5'
->   CC [M]  /home/ed/v4l-dvb/v4l/videodev.o
-> /home/ed/v4l-dvb/v4l/videodev.c:491: error: unknown field 'dev_attrs' specified in initializer
-> /home/ed/v4l-dvb/v4l/videodev.c:491: warning: initialization from incompatible pointer type
-> /home/ed/v4l-dvb/v4l/videodev.c:492: error: unknown field 'dev_release' specified in initializer
-> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: missing braces around initializer
-> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: (near initialization for 'video_class.subsys')
-> /home/ed/v4l-dvb/v4l/videodev.c:492: warning: initialization from incompatible pointer type
-> make[3]: *** [/home/ed/v4l-dvb/v4l/videodev.o] Error 1
-> make[2]: *** [_module_/home/ed/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-2.6.18.8.tex5'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+> Am Donnerstag, den 14.02.2008, 12:01 +0100 schrieb hermann pitton:
+>> Am Donnerstag, den 14.02.2008, 02:00 +0100 schrieb Hartmut Hackmann: 
+>>> Hi, folks
+>>>
+>>> In my personal repository:
+>>>   http://linuxtv.org/hg/~hhackmann/v4l-dvb-experimental/
+>>> you will find a driver that supports this card, DVB-T and DVB-S
+>>>
+>>> It might also work for
+>>> - one section of the MD8800
+>>> - similar boards based on saa713x, tda10086, tda826x, isl6405
+>>>
+>>> The board will show up as MD8800. According to Hermann, the configurations
+>>> for analog TV and DVB-T are identical.
+>>> If you want to use the board with DVB-S, you will need to load the
+>>> saa7134-dvb module with the option "use_frontend=1". The default 0 is
+>>> DVB-T. For those who got the board from a second source: don't forget
+>>> to connect the 12v (the floppy supply) connector.
+>>>
+>>> I don't have a dish, so i depend on your reports. To get the MD8800
+>>> running, i need a volunteer who does the testing for me. He should be able
+>>> to apply patches, compile the driver and read kernel logs.
+>>>
+>>> Good luck
+>>>   Hartmut
+>>>
+>> Hartmut,
+>>
+>> great job, thank you very much!
+>>
+>> Can't wait, result of a first voltage measurement on the md8800 Quad.
+>>
+>> The upper LNB connector associated to the second saa7134 16be:0008
+>> device has correct voltage.
+>>
+>> Since my stuff is not in the original green PCI slot and I have only the
+>> first 16be:0007 device active, can't test much more for now here.
 > 
-> I know this driver works because I had it running under ubuntu, but I heard so much about PClinuxOS that I thought I would give it a shot.
+> back on the machine and thinking about it twice ...
 > 
-> Any help would be greatly appreciated.
-> Ed
+> The Quad works for me as well on the upper LNB connector, despite of
+> that I previously used the lower one successfully with RF loopthrough
+> from an external receiver.
+> 
+> So, in case of the Quad, just let it be autodetected and try on the
+> first adapter and upper LNB connector.
+> 
+So this one works as well, great! But which one is it?
+Please tell me the minor device id. I need to use it to separate the 2 sections.
+i will need to control the other one in a very different way.
 
--- 
-http://palosaari.fi/
+> Even more fun :)
+> 
+> Cheers,
+> Hermann
+> 
+>> People with the card in the original Medion PC could set
+>> "options saa7134-dvb use_frontend=1 debug=1"
+>> in /etc/modprobe.conf and then do "depmod -a".
+>>
+>> The Syntek v4l usb stkwebcam still produces a compilation error and
+>> needs to be disabled in "make xconfig" or something else.
+>>
+Hm, i didn't have any compile problems ...
+
+>> After "make" it is best to do "make rmmod" on top of your
+>> v4l-dvb-experimental first. Those new to the v4l-dvb development stuff
+>> might do also "make rminstall" and then check that no *.ko is left
+>> in /lib/modules/kernel_in_use/kernel/drivers/media/*
+>> Especially the old video_buf.ko in the video dir needs to be removed.
+>> Check with "ls -R |grep .ko" and then "make install".
+>>
+>> Now I suggest to "modprobe saa7134 card=117,96"
+>> In that case DVB-T is supported on the lower antenna connector and first
+>> adapter and DVB-S on the upper LNB connector and second adapter.
+>>
+>> Or to have it simple, it is safe to "make rmmod" and
+>> "modprobe saa7134 card=5,96 tuner=54,54"
+>> This way on the first device is only analog TV enabled, don't forget to
+>> use it first to have good DVB-T reception later anyway, and the only
+>> frontend is the DVB-S one in question for testing.
+>>
+Why? the cards should be autodetected. Or is there a variant of the 948 with
+a device id different from 16be:000d?
+It should be possible to give a list to the use_frontend=xx option.
+Something like use_frontend=0,1,0 which should select DVB-S only for the
+2nd instance. Am i wrong?
+Of corse you will need to select the right frontend which is not easy with
+some applications.
+
+<snip>
+
+But thank you for your fast reporting!
+
+Another issue: You have some patches waiting for integration. We can use
+my other repository for this.
+
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
