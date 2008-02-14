@@ -1,21 +1,14 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JRqkG-0000rm-ON
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 16:20:29 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <1203491540.28796.46.camel@youkaida>
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
-	<1203461323.28796.26.camel@youkaida>
-	<1203466323.5358.29.camel@pc08.localdom.local>
-	<1203491540.28796.46.camel@youkaida>
-Date: Wed, 20 Feb 2008 16:14:32 +0100
-Message-Id: <1203520472.4767.18.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Message-ID: <47B4ADDD.5070700@kaiser-linux.li>
+Date: Thu, 14 Feb 2008 22:08:45 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <47B4A69F.9020009@kaiser-linux.li>
+	<37219a840802141254y12375e4dxd0e61cec97f8dc1a@mail.gmail.com>
+In-Reply-To: <37219a840802141254y12375e4dxd0e61cec97f8dc1a@mail.gmail.com>
+Cc: _LinuxTV-DVB - Mailinglist <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [OT] request_firmware()
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,60 +19,39 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Nico,
-
-Am Mittwoch, den 20.02.2008, 07:12 +0000 schrieb Nicolas Will:
-> On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
-> > > Now stop that logging madness and get back to work!
-> > > 
-> > > ...
-> > > 
-> > > ;o)
-> > > 
-> > > 
-> > > This is a rather comical situation, though... The debugging tool is
-> > > providing a rather unexpected and unwelcomed fix.
-> > > 
-> > > Nico
-> > > 
-> > 
-> > Hi,
-> > 
-> > no, it is not. It is well known!
-> > 
-> > Timings are very critical on almost all drivers.
-> > 
-> > We hold breath on almost everything coming down from above, nobody has
-> > the ability, or whom should ever want it, to test all possible side
-> > effects on all supported devices ...
-> > 
-> > That something breaks is very common, and that others have to give the
-> > plumbers, is nothing new.
-> > 
-> > To stay fair, it mostly has a good reason, and if there are some
-> > remaining ticks left, you might get it adjusted, but ...
-> > 
-> > On the other side it is the same ...
+Michael Krufky wrote:
+> On Thu, Feb 14, 2008 at 3:37 PM, Thomas Kaiser
+> <linux-dvb@kaiser-linux.li> wrote:
+>> Hello
+>>
+>>  I know this is the wrong list to ask, but you use this function (see subject)
+>>  and I think somebody can answer my question.
+>>
+>>  Why does request_firmware need a device as parameter?
+>>  int request_firmware(const struct firmware **fw, const char *name,
+>>                      struct device *device);
+>>
+>>  I thought request_firmware just loads the firmware in the struct firmware?
 > 
-> May post may have sounded offensive, apparently.
 > 
-> Sorry about that, my intentions were on the lighter sides of life.
+> IIRC, when the device is destroyed, it is a signal for the memory used
+> to store the firmware to be freed if not done already.
 > 
-> Nico
-> 
+> -Mike
 
-nothing offending at all, did enjoy your above comment :)
-and like your active support for others.
+So, that means when the pointer to device gets null the memory which holds the 
+firmware is freed?
 
-It is just not totally unexpected that high debug levels can have some
-spin-off and I'm curious about it.
+Thanks,
 
-Cheers,
-Hermann
+Thomas
 
+
+-- 
+http://www.kaiser-linux.li
 
 _______________________________________________
 linux-dvb mailing list
