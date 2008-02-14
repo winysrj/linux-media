@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m149Nffg000859
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:23:41 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m149N9e0019579
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:23:09 -0500
-Date: Mon, 4 Feb 2008 07:22:33 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Andy McMullan" <andy@andymcm.com>
-Message-ID: <20080204072233.073d40da@gaivota>
-In-Reply-To: <fea7c4860802030606v6614d884i1a5e71980709739f@mail.gmail.com>
-References: <fea7c4860802030504k60ab0466ta03572a9083a69e@mail.gmail.com>
-	<fea7c4860802030606v6614d884i1a5e71980709739f@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E10ap1017731
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:00:36 -0500
+Received: from mailout05.sul.t-online.com (mailout05.sul.t-online.de
+	[194.25.134.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E10EPm032109
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:00:14 -0500
+Message-ID: <47B392A5.2030908@t-online.de>
+Date: Thu, 14 Feb 2008 02:00:21 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+MIME-Version: 1.0
+To: LInux DVB <linux-dvb@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: bt878 'interference' on fc6 but not fc1
+Cc: 
+Subject: Mdeion / Creatix CTX948 DVB-S driver is ready for testing
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,25 +27,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 3 Feb 2008 14:06:05 +0000
-"Andy McMullan" <andy@andymcm.com> wrote:
+Hi, folks
 
-> > I've been using a Hauppauge WinTv (bt878) card with fedora core 1 for
-> > some time with no problems.  Yesterday I added a Fedora Core 6
-> > installation to the same PC (dual-boot), but when running FC6 I see a
-> > sort of wavey flickery interference pattern.   Switch back to FC1 and
-> > there's no interference.
-> 
-> Well, I've discovered that if my TV is off, the interference goes
-> away, so obviously it's electrical interference from the TV.   I
-> really don't understand how that would show up in FC6 and not FC1,
-> though.
+In my personal repository:
+  http://linuxtv.org/hg/~hhackmann/v4l-dvb-experimental/
+you will find a driver that supports this card, DVB-T and DVB-S
 
-Maybe it have something to do with some power saving cycle at the processor.
-You may try to change powersave governor policy and see the results.
+It might also work for
+- one section of the MD8800
+- similar boards based on saa713x, tda10086, tda826x, isl6405
 
-Cheers,
-Mauro
+The board will show up as MD8800. According to Hermann, the configurations
+for analog TV and DVB-T are identical.
+If you want to use the board with DVB-S, you will need to load the
+saa7134-dvb module with the option "use_frontend=1". The default 0 is
+DVB-T. For those who got the board from a second source: don't forget
+to connect the 12v (the floppy supply) connector.
+
+I don't have a dish, so i depend on your reports. To get the MD8800
+running, i need a volunteer who does the testing for me. He should be able
+to apply patches, compile the driver and read kernel logs.
+
+Good luck
+  Hartmut
 
 --
 video4linux-list mailing list
