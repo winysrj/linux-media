@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ELxQuC031327
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 16:59:26 -0500
-Received: from mailout11.sul.t-online.com (mailout11.sul.t-online.de
-	[194.25.134.85])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1ELx4PG032046
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 16:59:04 -0500
-Message-ID: <47B4B9AE.5010907@t-online.de>
-Date: Thu, 14 Feb 2008 22:59:10 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <47B392A5.2030908@t-online.de>	<1202986913.5036.3.camel@pc08.localdom.local>
-	<1203005937.5871.12.camel@pc08.localdom.local>
-In-Reply-To: <1203005937.5871.12.camel@pc08.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E1YnEq031916
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:34:49 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E1YRw7016001
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 20:34:28 -0500
+Date: Wed, 13 Feb 2008 23:34:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Message-ID: <20080213233420.1db4fba5@gaivota>
+In-Reply-To: <20080213143235.b037fd32.akpm@linux-foundation.org>
+References: <20080213143235.b037fd32.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Mdeion / Creatix CTX948 DVB-S driver is ready	for
- testing
+Cc: video4linux-list@redhat.com
+Subject: Re: x86_64 allmodconfig
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,112 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Hermann
+On Wed, 13 Feb 2008 14:32:35 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-I am a bit confused....
+> In file included from drivers/media/video/meye.h:261,
+>                  from drivers/media/video/meye.c:41:
+> include/linux/meye.h:61:1: warning: "V4L2_CID_SHARPNESS" redefined
+> In file included from include/linux/videodev.h:15,
+>                  from drivers/media/video/meye.c:32:
+> include/linux/videodev2.h:879:1: warning: this is the location of the previous definition
 
-hermann pitton schrieb:
-> Hi,
-> 
-> Am Donnerstag, den 14.02.2008, 12:01 +0100 schrieb hermann pitton:
->> Am Donnerstag, den 14.02.2008, 02:00 +0100 schrieb Hartmut Hackmann: 
->>> Hi, folks
->>>
->>> In my personal repository:
->>>   http://linuxtv.org/hg/~hhackmann/v4l-dvb-experimental/
->>> you will find a driver that supports this card, DVB-T and DVB-S
->>>
->>> It might also work for
->>> - one section of the MD8800
->>> - similar boards based on saa713x, tda10086, tda826x, isl6405
->>>
->>> The board will show up as MD8800. According to Hermann, the configurations
->>> for analog TV and DVB-T are identical.
->>> If you want to use the board with DVB-S, you will need to load the
->>> saa7134-dvb module with the option "use_frontend=1". The default 0 is
->>> DVB-T. For those who got the board from a second source: don't forget
->>> to connect the 12v (the floppy supply) connector.
->>>
->>> I don't have a dish, so i depend on your reports. To get the MD8800
->>> running, i need a volunteer who does the testing for me. He should be able
->>> to apply patches, compile the driver and read kernel logs.
->>>
->>> Good luck
->>>   Hartmut
->>>
->> Hartmut,
->>
->> great job, thank you very much!
->>
->> Can't wait, result of a first voltage measurement on the md8800 Quad.
->>
->> The upper LNB connector associated to the second saa7134 16be:0008
->> device has correct voltage.
->>
->> Since my stuff is not in the original green PCI slot and I have only the
->> first 16be:0007 device active, can't test much more for now here.
-> 
-> back on the machine and thinking about it twice ...
-> 
-> The Quad works for me as well on the upper LNB connector, despite of
-> that I previously used the lower one successfully with RF loopthrough
-> from an external receiver.
-> 
-> So, in case of the Quad, just let it be autodetected and try on the
-> first adapter and upper LNB connector.
-> 
-So this one works as well, great! But which one is it?
-Please tell me the minor device id. I need to use it to separate the 2 sections.
-i will need to control the other one in a very different way.
+Thanks, I'm ware about it. 
 
-> Even more fun :)
-> 
-> Cheers,
-> Hermann
-> 
->> People with the card in the original Medion PC could set
->> "options saa7134-dvb use_frontend=1 debug=1"
->> in /etc/modprobe.conf and then do "depmod -a".
->>
->> The Syntek v4l usb stkwebcam still produces a compilation error and
->> needs to be disabled in "make xconfig" or something else.
->>
-Hm, i didn't have any compile problems ...
+We should have a patch probably tomorrow to fix the
+name conflicts. The weird is the the two controls have the same meaning, but
+probably with different value ranges. So, we shold take some care to handle
+this one.
 
->> After "make" it is best to do "make rmmod" on top of your
->> v4l-dvb-experimental first. Those new to the v4l-dvb development stuff
->> might do also "make rminstall" and then check that no *.ko is left
->> in /lib/modules/kernel_in_use/kernel/drivers/media/*
->> Especially the old video_buf.ko in the video dir needs to be removed.
->> Check with "ls -R |grep .ko" and then "make install".
->>
->> Now I suggest to "modprobe saa7134 card=117,96"
->> In that case DVB-T is supported on the lower antenna connector and first
->> adapter and DVB-S on the upper LNB connector and second adapter.
->>
->> Or to have it simple, it is safe to "make rmmod" and
->> "modprobe saa7134 card=5,96 tuner=54,54"
->> This way on the first device is only analog TV enabled, don't forget to
->> use it first to have good DVB-T reception later anyway, and the only
->> frontend is the DVB-S one in question for testing.
->>
-Why? the cards should be autodetected. Or is there a variant of the 948 with
-a device id different from 16be:000d?
-It should be possible to give a list to the use_frontend=xx option.
-Something like use_frontend=0,1,0 which should select DVB-S only for the
-2nd instance. Am i wrong?
-Of corse you will need to select the right frontend which is not easy with
-some applications.
 
-<snip>
 
-But thank you for your fast reporting!
-
-Another issue: You have some patches waiting for integration. We can use
-my other repository for this.
-
-Best regards
-   Hartmut
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
