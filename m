@@ -1,18 +1,13 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from cartman.geeks.org.ua ([62.149.14.212])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <chexov@cartman.geeks.org.ua>) id 1JOWT8-0008R1-Tm
-	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 12:05:02 +0100
-Date: Mon, 11 Feb 2008 13:04:28 +0200
-From: "Anton P. Linevich" <lists@a.linevich.com>
-To: ashim saikia <ar.saikia@yahoo.com>
-Message-ID: <20080211110428.GD30853@localhost>
-References: <638226.79716.qm@web57814.mail.re3.yahoo.com>
+From: Julian Scheel <julian@jusst.de>
+To: linux-dvb@linuxtv.org
+Date: Thu, 14 Feb 2008 14:34:18 +0100
+References: <476ABF63.50808@bsc-bvba.be> <476AC08E.1000709@linuxtv.org>
+In-Reply-To: <476AC08E.1000709@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <638226.79716.qm@web57814.mail.re3.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hi
+Message-Id: <200802141434.19302.julian@jusst.de>
+Subject: Re: [linux-dvb] WinTV-CI from Hauppauge
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,17 +21,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Greeting, ashim!  Sun, Feb 03, 2008 at 10:22:42PM -0800, ar.saikia wrote: 
+Am Donnerstag 20 Dezember 2007 20:20:46 schrieb Steven Toth:
+> They won't be able to help, I can - but not for a few weeks.
+>
+> I'm expecting to release public USB protocol information during Jan 08
+> which would allow a GPL driver to be written. Right now I have nothing
+> to give you.
+>
+> If you feel adventurous, feel free to start now by reverse engineering
+> the protocol with a windows software USB sniffer, it won't be wasted
+> work. The device is Cypress FX2 based (which Linux has lots of examples
+> for) and it loads custom firmware (which Linux has lots of examples of)
+> apart from that I think the protocol is very simple.
+>
+> How to integrate it with the kernel s/w demux would be an interesting
+> debate.
+>
+> Let me know if I can help.
 
-> Hi,
-> I just wanna know if in linux 2.6 kernel, DVB driver
-> will support more than 4 cards or not. Can any one
-> help me.
+Steve,
 
-3 cards works for me simultaneously.
+what happened to this?
 
--- 
- Anton P. Linevich
+Thanks,
+Julian
+
 
 _______________________________________________
 linux-dvb mailing list
