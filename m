@@ -1,22 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1IL0Gfv011100
-	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 16:00:16 -0500
-Received: from mailout06.sul.t-online.com (mailout06.sul.t-online.de
-	[194.25.134.19])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1IKxg8q012664
-	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 15:59:42 -0500
-Message-ID: <47B9F1C2.3050309@t-online.de>
-Date: Mon, 18 Feb 2008 21:59:46 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E0uQTC015565
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 19:56:26 -0500
+Received: from host06.hostingexpert.com (host06.hostingexpert.com
+	[216.80.70.60])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E0u4d7029987
+	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 19:56:05 -0500
+Message-ID: <47B391A1.3080904@linuxtv.org>
+Date: Wed, 13 Feb 2008 19:56:01 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: tux@schweikarts-vom-dach.de
-References: <200801051252.18108.tux@schweikarts-vom-dach.de>
-In-Reply-To: <200801051252.18108.tux@schweikarts-vom-dach.de>
+To: Alex Deucher <alexdeucher@gmail.com>
+References: <20080205012451.GA31004@plankton.ifup.org>	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>	<20080205080038.GB8232@plankton.ifup.org>	<20080205102409.4b7acb01@gaivota>	<20080213202055.GA26352@plankton.ifup.org>	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
+	<a728f9f90802131554y6f2c9ca1s7a8c264b46dc9a40@mail.gmail.com>
+In-Reply-To: <a728f9f90802131554y6f2c9ca1s7a8c264b46dc9a40@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
+Cc: video4linux-list@redhat.com,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Brandon Philips <bphilips@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,28 +33,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi
+Alex Deucher wrote:
+> On Feb 13, 2008 6:24 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
+>>> On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
+>>>> Maybe we've took the wrong direction when we've decided to select
+>>>> mercurial. It were better and easier to use, on that time, but the -git
+>>>> improvements happened too fast.
+>>> We should consider a move to a full-tree git.  Particularly, it would be
+>>> nice to be have v4l-dvb merging/building against other subsystems in the
+>>> linux-next tree:
+>>>
+>>>   http://lkml.org/lkml/2008/2/11/512
+>>>
+>>> Also, it would save the silly pain of things like this meye.h thing and
+>>> pulling in fixes from the rest of the community that patches against git
+>>> trees.
+>>
+>> When we moved from CVS to HG, we lost many developers.
+>>
+>> Of the developers that remain, most of us are finally comfortable
+>> working in mercurial.
+>>
+>> I understand the benefits of moving to git, but that option was on the
+>> table when we moved to mercurial from cvs, and it was shot down.
+>>
+>> I would prefer that we stick with what we have for now -- for the sake
+>> of our users / testers, and for the sake of our developers.
+>>
+>> Lets not drive away more contributors.
+>>
+>> Additionally, the moment we move development from hg to git, we are
+>> bound to the development kernel -- we will no longer be able to work
+>> against any stable kernel series, and we will lose all of our testers.
+> 
+> Why would git have any affect on what kernels you could test against?
+> It's just an scm like hg or cvs.
 
-Tux schrieb:
-> Hello,
-> 
-> what is the status of the DVB-S Part of the TV Card. Is it now possible to 
-> select the frontend for this card with a kernel option ?
-> I have downloaded the actual version of the sources and have had look into 
-> saa7134-dvb.c. There is only the DVB-T part supported. When do you think
-> it possible to watch TV with DVB-S with this card ?
-> 
-> best regards
-> 
-One DVB-S section of the board should be working now.
-You need to get the most recent driver from http://www.linuxtv.org/hg/v4l-dvb
-To get DVB-S, you nned to load the saa7134-dvb module with the option
-use_frontend=1.
-You get the other section working, i need a tester who has the card in a pc
-it was sold with ( since it is NOT a regular PCI card)
+Alex,
 
-best regards
-  Hartmut
+You are correct.  However, it is not just the SCM in question right now.
+
+Quoting Brandon Philips, "We should consider a move to a full-tree git"
+
+...he is not suggesting that we simply change SCM's -- rather, he is suggesting that we work within a full kernel tree, using git, just as the other subsystems do.
+
+This model makes sense for kernel development, but this is not exactly kernel development -- it is kernel *driver* development.
+
+We stand to lose too much by moving to this model.
+
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
