@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LMNSXw010997
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 17:23:28 -0500
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LMMtw8024442
-	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 17:22:55 -0500
-Message-ID: <47BDF9BC.2030603@kaiser-linux.li>
-Date: Thu, 21 Feb 2008 23:22:52 +0100
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FKEFus007437
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:14:15 -0500
+Received: from mail2.sea5.speakeasy.net (mail2.sea5.speakeasy.net
+	[69.17.117.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FKDiLx020643
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:13:45 -0500
+Date: Fri, 15 Feb 2008 12:13:38 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: David Brownell <david-b@pacbell.net>
+In-Reply-To: <200802151102.51947.david-b@pacbell.net>
+Message-ID: <Pine.LNX.4.58.0802151211280.31468@shell4.speakeasy.net>
+References: <Pine.LNX.4.64.0802151511540.16741@axis700.grange>
+	<Pine.LNX.4.58.0802151036020.31468@shell4.speakeasy.net>
+	<200802151102.51947.david-b@pacbell.net>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-References: <47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802211212s104e4808wdab5c6806eb7849f@mail.gmail.com>
-	<47BDE1B9.4040309@kaiser-linux.li>
-	<200802212303.37379.laurent.pinchart@skynet.be>
-In-Reply-To: <200802212303.37379.laurent.pinchart@skynet.be>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: V4L2_PIX_FMT_RAW
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH soc-camera] Replace NO_GPIO with gpio_is_valid()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,152 +31,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Laurent Pinchart wrote:
-> On Thursday 21 February 2008, Thomas Kaiser wrote:
->> H. Willstrand wrote:
->>> On Thu, Feb 21, 2008 at 7:55 PM, Thomas Kaiser
->>>
->>> <linux-dvb@kaiser-linux.li> wrote:
->>>> H. Willstrand wrote:
->>>>  > On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
->>>>  >
->>>>  > <linux-dvb@kaiser-linux.li> wrote:
->>>>  >> H. Willstrand wrote:
->>>>  >>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner 
-> <daniel-gl@gmx.net> wrote:
->>>>  >>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
->>>>  >>  >>  > What's the problem with having a name of the formalized data
->>>>  >>  >>  > in the video stream? ie raw do not mean undefined.
->>>>  >>  >>
->>>>  >>  >>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x
->>>>  >>  >> for an exploding number of proprietary formats that are quite
->>>>  >>  >> similar but still incompatible. It makes sense for formats that
->>>>  >>  >> are used by more than one driver.
->>>>  >>  >
->>>>  >>  > Correct, the number of unique pixel formats should be kept down.
->>>>  >>  > Again, comparing with digital cameras there are >200 proprietary
->>>>  >>  > formats and there is a "clean-up" on-going where the "market" is
->>>>  >>  > aiming for a OpenRAW.
->>>>  >>  >
->>>>  >>  > However, by declaring a generic RAW format (which is then driver
->>>>  >>  > specific) doesn't help the user mode app developers. Calling a
->>>>  >>  > multitude of libraries to see if you get lucky might not be a
->>>>  >>  > good idea.
->>>>  >>  >
->>>>  >>  > Still, I'm suspectious about the definition "raw" used here.
->>>>  >>  > RAW should mean unprocessed image data:
->>>>  >>  > * no white balance adjustment
->>>>  >>  > * no color saturation adjustments
->>>>  >>  > * no contrast adjustments
->>>>  >>  > * no sharpness improvements
->>>>  >>  > * no compression with loss
->>>>  >>
->>>>  >>  Yes, raw means "as it is" no stripping, decoding  or removing of
->>>>  >> SOF headers are done in the driver. May be V4L2_PIX_FMT_AII (AII ->
->>>>  >> As It Is) is the better name?
->>>>  >
->>>>  > I struggle with the probability to find several CCD's having similar
->>>>  > formats. There aren't so many manifactors of CCD's but they truelly
->>>>  > can generate divergeting formats. Worst case scenario means >200
->>>>  > V4L2_PIX_FMT_RAW_...
->>>>  >
->>>>  > I think RAW is a OK name, the question is if the subcomponents of the
->>>>  > RAW formats has similarities, if so they might be standardized.
->>>>  > Looking into different Sony CCD's it's clearly possible, but after
->>>>  > the CCD the data has to be buffered, packaged and transmitted which
->>>>  > of course can be done in several ways...
->>>>  >
->>>>  > Cheers,
->>>>  > Harri
->>>>  >
->>>>  >>  > So, by looking for similarities in the "raw" formats where
->>>>  >>  > available there should be a potential to consolidate them.
->>>>  >>  >
->>>>  >>  >>  > I don't see how separate RAW ioctl's will add value to the
->>>>  >>  >>  > V4l2 API, it fits into the current API.
->>>>  >>  >>
->>>>  >>  >>  Yes, it does. Each driver having multiple raw formats just
->>>>  >>  >> needs a private control id to select one.
->>>>  >>  >
->>>>  >>  > I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
->>>>  >>  > should do the job.
->>>>  >>  > I.e. I think there should be strong reasons to break V4L2 API
->>>>  >>  > behavior.
->>>>  >>  >
->>>>  >>  > Harri
->>>>
->>>>  Actually, in a webcam you have the image sensor and a usb bridge.
->>>> Usually, the sensor capture a picture in Bayer pattern. This gets
->>>> forwarded to the usb bridge. The usb bridge may or may not transfer the
->>>> picture to an other format and/or compress it with a standard
->>>> compression algo or a proprietary compression algo. The resulting data
->>>> stream will be transmitted over the usb interface.
->>> Yes, the USB bridge buffers, packages and transmits.
->>>
->>>>  I just would like to get this resulting stream to user space without
->>>>  manipulation/conversion/decoding of the stream in the kernel module.
->>>>
->>>>  That means we don't know what the format is in this data which comes
->>>> trough the usb interface. That's way I call it raw.
->>>>
->>>>  At the moment with V4L2, I have to forward a stream to user space which
->>>> is in a format v4l2 knows. That means I have sometimes to do heavy data
->>>> processing in the kernel module to decode/convert the data from the usb
->>>> stream to a known v4l2 video format.
->>> Drivers should not do any decoding / converting, it's not allowed in
->>> kernel mode.
->>> But you are right, there are a number of V4L1 exceptions:
->>> AR M64278 (arv.c) converts YUV422 to YUV422P
->>> QuickCam (bw-qcam.c) converts RAW to a useful format :)
->>> CPiA (cpia.c) converts 420 to different RGB formats
->>> OmniVision (ov511.c) converts from YUV4:0:0
->>> PWC (V4L2) does decoding
->> You forgot gspca [1](support of 260 webcams at the moment) and here we even
->> do jpeg decoding in kernel space to get the proper format for v4l1!
-> 
-> There are historical reasons. Those drivers should be fixed to remove decoding 
-> from kernelspace. Obviously a new userspace component will be needed to 
-> handle decoding and conversion, otherwise applications will break. No 
-> consensus exists today regarding what form that component should take.
+On Fri, 15 Feb 2008, David Brownell wrote:
+> On Friday 15 February 2008, Trent Piepho wrote:
+> > 	that hoping that -EINVAL happens to be invalid on every
+> > platform.
+>
+> Negative numbers have always been guaranteed to be invalid GPIO numbers.
+> That's been part of the interface spec from day one.
 
-Yes, but all this transformation which is done in kernel space can be done in 
-user space. But it looks like that nobody is interested to move this to user 
-space (expect you) ;-)
-And I think it should not be that hard to introduce a user space component to 
-handle this. When the user space app programmers are willing to do so!
-
-> 
->>> ...
->>>
->>> However, the Webcams provides only a limited set of formats and the
->>> "raw" are usually available. New drivers with proprietary "raw"
->>> formats should be added to videodev2.h
->> That means you agree with me?
->>
->>>>  That's way I want a official way to forward the untouched usb stream to
->>>> user space!
->>>>
->>>>  How the user space application has to react on this stream is an other
->>>> story, I think. But there will be some way to tell the usespace
->>>> application what to do with this "unknown" stream, I am sure.
->>>>
->>>>  Thomas
->>> Cheers,
->>> Harri
->> Thomas
->>
->> [1] http://mxhaard.free.fr/download.html
-> 
-> Best regards,
-> 
-> Laurent Pinchart
-
-Best Regards,
-
-Thomas
-
--- 
-http://www.kaiser-linux.li
+Ahh, and so it has been:
+	GPIOs are identified by unsigned integers in the range 0..MAX_INT.
+	That reserves "negative" numbers for other purposes like marking
+	signals as "not available on this board", or indicating faults.
 
 --
 video4linux-list mailing list
