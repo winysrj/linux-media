@@ -1,20 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1EIetPI015662
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 13:40:55 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FKLVUK012622
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:21:31 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1EIeXR1022152
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 13:40:33 -0500
-Date: Thu, 14 Feb 2008 16:40:12 -0200
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FKLAbm025290
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 15:21:10 -0500
+Date: Fri, 15 Feb 2008 18:20:52 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	DVB ML <linux-dvb@linuxtv.org>
-Message-ID: <20080214164012.7b8ae26f@gaivota>
+To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
+Message-ID: <20080215182052.1ac62967@gaivota>
+In-Reply-To: <1e5fdab70802151136p2267dabu3b626d401854a6ee@mail.gmail.com>
+References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+	<20080207174703.5e79d19a@gaivota>
+	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
+	<20080207181136.5c8c53fc@gaivota>
+	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
+	<20080211104821.00756b8e@gaivota>
+	<1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
+	<20080215104945.4e6fe998@gaivota>
+	<1e5fdab70802151022k3477f538j3ce0b56d7b462d6c@mail.gmail.com>
+	<20080215165649.4263d630@gaivota>
+	<1e5fdab70802151136p2267dabu3b626d401854a6ee@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: [ANNOUNCE] linux-next and V4L/DVB linux-next
+Cc: video4linux-list@redhat.com
+Subject: Re: Question about saa7115
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,39 +37,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-A recent announce at LKML introduced a new concept of integrated development
-between the several subsystem trees, called linux-next.
+On Fri, 15 Feb 2008 11:36:00 -0800
+"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
 
-The basic idea is to have a common tree that merges all development efforts,
-helping to solve merge conflicts before arising at Linus main tree. More
-details can be seen at the original announce [1].
+> On Fri, Feb 15, 2008 at 10:56 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> >  It is the driver that works as a bridge between PCI or USB and I2C ;)
+> >
+> >  In the case of saa7115, the current bridge drivers that uses it are ivtv,
+> >  em28xx, pvrusb2 and usbvision.
+> 
+> ok, so no wonder I've never heard about it earlier, as it is a custom
+> board with no pci or usb. That means I'll have to implement the
+> "missing" functions myself, right ?
 
-With this concept, what happens is that a new patch will mature at the
-development branches and at linux-next. At the release of a new kernel (let's
-say 2.6.25), a merge window will open to the next kernel (2.6.26). The patches
-for the next kernel will be submitted by each subsystem maintainer. Since those
-patches were already tested on linux-next tree, the merging process will
-become easier and the newer kernel will become more stable.
+Yes, but probably outside saa7115 driver. What functions are you missing?
+> 
+> anyway, thanks again for the help.
+> 
 
-So, linux-next contains the patches for 2.6.25, plus the patches expected to be
-added at kernel 2.6.26.
 
-For this to happen, I've created a newer -git tree, containing the committed
-changesets that are expected to appear at the next kernel. It contains
-basically the same patches already present on -hg and v4l-dvb.git trees, plus
-the base patches from linux-next (at 'stable' branch). Another branch
-('master') will contain also the merged patches from the other subsystems. 
 
-For those brave enough to test it, the tree is available at [2]. Please be
-warned to use this on a testing system, since patches at core subsystems
-(ext2, vfs, etc) may be broken there.
-
-In order have a single point where all trees are listed, I've updated
-README.patches file, and the main tree at http://linuxtv.org/hg with the newer
-tree. I've also added a link to README.patches there.
-
-[1] http://lkml.org/lkml/2008/2/11/512
-[2] http://www.kernel.org/git/?p=linux/kernel/git/mchehab/linux-next.git;a=summary
 
 Cheers,
 Mauro
