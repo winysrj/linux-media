@@ -1,35 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1J4j6RF012392
-	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 23:45:06 -0500
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1J4iXIb011087
-	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 23:44:34 -0500
-Received: by py-out-1112.google.com with SMTP id a29so2076299pyi.0
-	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 20:44:33 -0800 (PST)
-Message-ID: <37219a840802182044k5a24bcbbm3646560c595df564@mail.gmail.com>
-Date: Mon, 18 Feb 2008 23:44:33 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <20080129122547.63214371@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <20080127173132.551401d9@tux.abusar.org.br>
-	<20080128165403.1f7137e0@gaivota>
-	<20080128182634.345bd4e8@tux.abusar.org.br>
-	<20080128184534.7af7a41b@gaivota>
-	<20080128192230.59921445@tux.abusar.org.br>
-	<20080129004104.17e20224@gaivota>
-	<20080129021904.1d3047d1@tux.abusar.org.br>
-	<20080129025020.60fa33de@gaivota>
-	<20080129050103.2fae9d61@tux.abusar.org.br>
-	<20080129122547.63214371@gaivota>
-Content-Transfer-Encoding: 8bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FMCkej023872
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:12:46 -0500
+Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
+	[151.189.21.46])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FMCDqC005084
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:12:13 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47B4DDB3.5010904@t-online.de>
+References: <47B392A5.2030908@t-online.de>
+	<1202986913.5036.3.camel@pc08.localdom.local>
+	<1203005937.5871.12.camel@pc08.localdom.local>
+	<47B4B9AE.5010907@t-online.de>
+	<1203029639.6805.66.camel@pc08.localdom.local>
+	<47B4DDB3.5010904@t-online.de>
+Content-Type: text/plain
+Date: Fri, 15 Feb 2008 23:07:16 +0100
+Message-Id: <1203113236.7303.34.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LinuxTV-DVB <linux-dvb@linuxtv.org>
-Subject: Re: [EXPERIMENTAL] cx88+xc3028 - tests are required - was: Re: When
-	xc3028/xc2028 will be supported?
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Mdeion / Creatix CTX948 DVB-S driver is ready	for
+	testing
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -41,100 +35,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Jan 29, 2008 9:25 AM, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> Dâniel and others,
->
-> > > Having this tested is a very good news! I'll need to merge this patch with two
-> > > other patches that adds DVB support for cx88/xc3028. If I can manage to have
-> > > some time for this merge, I'll commit and ask Linus to add this to 2.6.25.
-> >
-> >       :)
->
-> I've merged some patches from several authors, that add xc3028 support for
-> cx88.
->
-> The experimental tree is available at:
->
-> http://linuxtv.org/hg/~mchehab/cx88-xc2028
->
-> This patch series adds support for the following boards:
->
->  59 -> DVICO HDTV5 PCI Nano                                [18ac:d530]
->  60 -> Pinnacle Hybrid PCTV                                [12ab:1788]
->  61 -> Winfast TV2000 XP Global                            [107d:6f18]
->  62 -> PowerColor Real Angel 330                           [14f1:ea3d]
->  63 -> Geniatech X8000-MT DVBT                             [14f1:8852]
->  64 -> DViCO FusionHDTV DVB-T PRO                          [18ac:db30]
->
-> In thesis, both analog and DVB support (for boards with DVB/ATSC) should be
-> working (*). Maybe analog audio may need an additional configuration for some
-> specific board (since they may require to add cfg.mts = 1 at xc3028
-> initialization code, on cx88-cards).
->
-> Please test.
+Hi, Hartmut,
 
-Mauro,
+Am Freitag, den 15.02.2008, 01:32 +0100 schrieb Hartmut Hackmann:
+> Hi, again
+> 
+> <snip>
+> 
+> >> So this one works as well, great! But which one is it?
+> >> Please tell me the minor device id. I need to use it to separate the 2 sections.
+> >> i will need to control the other one in a very different way.
+> > 
+> > Seems default is some RF loopthrough.
+> > 
+> > I'll need to measure too against loopthrough conditions, but for sure
+> > voltage is only on the upper connector and previously with the RF feed
+> > from the external receiver the lower connector was fine enough.
+> > 
+> > No voltage in any previous testing and the 12Volts were always
+> > connected.
+> > 
+> > Both slightly different Quads from different fabs work as well as the
+> > CTX948. In my case it is the 16be:0007 and to the 16be:0008 I have no
+> > access.
+> > 
+> Perfect, that's what i needed to know.
+> 
+> <snip>
+> > 
+> > We might be already through here and you might like to commit first ;)
+> > 
+> Indeed. I should also announce this status for the md8800...
+> 
+> What's your opinion on this:
+> According to the hints i got, the isl6405 is visible only on one section
+> of the md8800. The other section has control over the voltage through
+> a GPIO port. So unless i do something very dirty, there will either be the
+> restriction
+> - that the DVB-S decoder of the  16be:0007 section needs to be selected first.
+>   Otherwise the other DVB-S part will not work
+> - or i will need to always fire up the LNB supply of the 0008 section as soon
+>   as DVB is initialized.
+> The second approach has the advantage that it has little effect for the end
+> user while the first needs to be explained.
+> But i am not sure whether the isl6405 is fully short circuit proof. I will read
+> the datasheet again...
+> 
 
-We spoke on Thursday, and you asked me to take a look at the code in
-your 'cx88-xc2028' tree over the weekend and fix it, if possible.
+if the second approach is safe and the API says nothing different,
+according to the MD8800 manual, it seems to be closer to the behavior of
+the other OS, but I can't test it.
 
-The repository is broken after and including changeset ce6afd207b71 -
-"Make xc3028 support more generic"  This changeset moves the
-device-specific configuration out of the cx88-dvb.c device-specific
-switch..case block, into a generic function.  This patch breaks
-functionality, and imho, is not a good idea.
+In opposite to what is stated for the switchable RF loopthrough on the
+two hybrid tuners, the manual claims that the DVB-S inputs are separate
+and not connected and nothing to switch there ...
 
-Your changes assume that the analog side of the driver will come up
-before the digital side of the driver, which is not necessarily the
-case.  Additionally, in some cases, the tuner itself is hidden behind
-an i2c gate that is controlled by the dvb / atsc demodulator.  Because
-of the i2c gate, communication to the tuner might not be available at
-the time that the i2c bus is probed.  For those reasons, the attach
-calls to the tuner driver should be fully qualified, relative to the
-functionality of the side of the driver that is attaching it.
+Andrew has loopthrough enabled by default and that is what I even see
+from the unused second DVB-S tuner to the first one I can use.
 
-The device that I used to test is the FusionHDTV 5 PCI nano.  This
-device uses an xc3008 (yes, that is xc3008 -- not a typo) and a
-s5h1409 demod.  The device is capable of receiving ATSC digital
-broadcasts and the driver does not yet support analog television.
+We might want to set has_loopthrough = 0 then too.
 
-Steve Toth made the patch that adds atsc support for that card, and
-his patch worked without the additional changesets that were added
-afterwards.  I made some small fixes and enabled IR support -- see the
-bottom of this email for my pull request.
+Funny stuff again. The latest revision of the manual _seems_ to be clear
+for possible tuner/demod/bridge combinations, also states nothing about
+concurrent usage of the other analog inputs.
 
-Your email above states that you've "merged some patches from several
-authors".  What I recommend, in order to properly support each device,
-would be to apply each patch for each card separately, as we do with
-all card support additions.  We know that the original patches, as
-submitted by the original authors work properly , since those authors
-have conducted their own tests.
+Cheers,
+Hermann
 
-I understand that you've made some attempts to optimize the code in an
-effort to reduce memory consumption.  Unfortunately, these efforts
-have broken functionality of these devices.  I think that it would
-make more sense to work on optimizations after the basic device
-support patches are first applied in the standard manner.  This way,
-you would have a good point of reference for "before" and "after" that
-testers will be able to use for comparison (and bisection).
 
-Since the only card that I can test is the PCI nano, please pull these
-changesets into master for now.
 
-Please pull from:
-
-http://linuxtv.org/hg/~mkrufky/cx88-xc2028
-
-for:
-
-(91113b8955e2) 4 weeks ago	Steven Toth 	cx88: Add support for the
-Dvico PCI Nano.
-(394d249f03f1) 47 hours ago	Michael Krufky 	cx88: fix FusionHDTV 5 PCI
-nano name and enable IR support
-
-Regards,
-
-Mike
 
 --
 video4linux-list mailing list
