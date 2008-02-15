@@ -1,27 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1CF0jJK019209
-	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:00:45 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1CF0AWI005264
-	for <video4linux-list@redhat.com>; Tue, 12 Feb 2008 10:00:10 -0500
-Date: Tue, 12 Feb 2008 12:59:48 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080212125948.7e1dbf0a@gaivota>
-In-Reply-To: <47B105B8.7010900@linuxtv.org>
-References: <200802111154.31760.toralf.foerster@gmx.de>
-	<20080212004251.GT6887@bakeyournoodle.com>
-	<47B105B8.7010900@linuxtv.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FJaRQ7016257
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 14:36:27 -0500
+Received: from hs-out-0708.google.com (hs-out-0708.google.com [64.233.178.244])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FJa5qi029718
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 14:36:05 -0500
+Received: by hs-out-0708.google.com with SMTP id k27so630838hsc.3
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 11:36:00 -0800 (PST)
+Message-ID: <1e5fdab70802151136p2267dabu3b626d401854a6ee@mail.gmail.com>
+Date: Fri, 15 Feb 2008 11:36:00 -0800
+From: "Guillaume Quintard" <guillaume.quintard@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20080215165649.4263d630@gaivota>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com,
-	Toralf =?UTF-8?B?RsO2cnN0ZXI=?= <toralf.foerster@gmx.de>,
-	Tony Breeds <tony@bakeyournoodle.com>, linux-kernel@vger.kernel.org,
-	Steven Toth <stoth@hauppauge.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: build #345 issue for v2.6.25-rc1 in tuner-core.c
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+	<20080207174703.5e79d19a@gaivota>
+	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
+	<20080207181136.5c8c53fc@gaivota>
+	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
+	<20080211104821.00756b8e@gaivota>
+	<1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
+	<20080215104945.4e6fe998@gaivota>
+	<1e5fdab70802151022k3477f538j3ce0b56d7b462d6c@mail.gmail.com>
+	<20080215165649.4263d630@gaivota>
+Cc: video4linux-list@redhat.com
+Subject: Re: Question about saa7115
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,49 +39,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 11 Feb 2008 21:34:32 -0500
-Michael Krufky <mkrufky@linuxtv.org> wrote:
+On Fri, Feb 15, 2008 at 10:56 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+>  It is the driver that works as a bridge between PCI or USB and I2C ;)
+>
+>  In the case of saa7115, the current bridge drivers that uses it are ivtv,
+>  em28xx, pvrusb2 and usbvision.
 
-> Tony Breeds wrote:
-> > On Mon, Feb 11, 2008 at 11:54:31AM +0100, Toralf Förster wrote:
-> >   
-> >> Hello,
-> >>
-> >> the build with the attached .config failed, make ending with:
-> >> ...
-> >>   MODPOST vmlinux.o
-> >> WARNING: modpost: Found 12 section mismatch(es).
-> >> To see full details build your kernel with:
-> >> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-> >>   GEN     .version
-> >>   CHK     include/linux/compile.h
-> >>   UPD     include/linux/compile.h
-> >>   CC      init/version.o
-> >>   LD      init/built-in.o
-> >>   LD      .tmp_vmlinux1
-> >> drivers/built-in.o: In function `set_type':
-> >> tuner-core.c:(.text+0x8879d): undefined reference to `xc5000_attach'
-> >> make: *** [.tmp_vmlinux1] Error 1
-> >>     
-> >
-> > <snip>
-> > Fix Build error for xc5000 tuner when built as module.
-> >
-> > Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
-> >   
-> Patch is correct.  Not sure which tag is appropriate.....
-> 
-> Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
-> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
-> 
-> This should go straight to Linus.....  Andrew or Mauro, can one of you
-> take care of it?
+ok, so no wonder I've never heard about it earlier, as it is a custom
+board with no pci or usb. That means I'll have to implement the
+"missing" functions myself, right ?
 
-I should forward today some patches to Linus. I'll add this one to the list.
+anyway, thanks again for the help.
 
-
-Cheers,
-Mauro
+-- 
+Guillaume
 
 --
 video4linux-list mailing list
