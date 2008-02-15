@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JPOxa-0007t3-Sm
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 22:16:06 +0100
-Date: Wed, 13 Feb 2008 22:15:29 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Albert Comerma <albert.comerma@gmail.com>
-In-Reply-To: <ea4209750802131212p5fb2f10bt142c6880faa8e7b2@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0802132214040.21788@pub3.ifh.de>
-References: <200802112223.11129.hfvogt@gmx.net>    
-	<ea4209750802121454v385d58edt162445379daddca4@mail.gmail.com>    
-	<200802131940.55526.hfvogt@gmx.net>
-	<ea4209750802131212p5fb2f10bt142c6880faa8e7b2@mail.gmail.com>
+	(envelope-from <mariofutire@googlemail.com>) id 1JQ7Yk-0004tp-U3
+	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 21:53:26 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so545295fge.25
+	for <linux-dvb@linuxtv.org>; Fri, 15 Feb 2008 12:53:26 -0800 (PST)
+Message-ID: <47B5FBC2.2020102@googlemail.com>
+Date: Fri, 15 Feb 2008 20:53:22 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
+To: Christophe Thommeret <hftom@free.fr>
+References: <47B5EA79.8010402@googlemail.com>
+	<200802152056.55250.hftom@free.fr>
+In-Reply-To: <200802152056.55250.hftom@free.fr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
+Subject: Re: [linux-dvb] Tools to edit TS files
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,16 +22,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The latest dib0700-firwmare is dvb-usb-dib0700-1.10.fw not 
-dvb-usb-dib0700-03-pre1.fw.
+Christophe Thommeret wrote:
+> Le vendredi 15 f=E9vrier 2008 20:39, Andrea a =E9crit :
+>> Hi,
+>>
+>> I'd like to edit TS files (recorded with gnutv for instance).
+>> Basically I'd like to cut, paste and join to skip commercials.
+>>
+>> Is there a tool for that out there?
+>>
+> =
 
-Patrick.
+> http://project-x.sourceforge.net/
+> =
+
+
+Thanks!
+It looks pretty sophisticated!
+
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
