@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ANgtGF006708
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:55 -0500
-Received: from smtp.nexicom.net (smtp1.nexicom.net [216.168.96.23])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1ANgPJZ001248
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:25 -0500
-Received: from mail.lockie.ca (dyn-dsl-mb-76-75-91-170.nexicom.net
-	[76.75.91.170])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id m1ANj97X008165
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:45:10 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mail.lockie.ca (Postfix) with ESMTP id 47EC5CAA40
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 18:42:23 -0500 (EST)
-Message-ID: <47AF8BE4.80001@lockie.ca>
-Date: Sun, 10 Feb 2008 18:42:28 -0500
-From: James Lockie <bjlockie@lockie.ca>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FM9e2a021798
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:09:41 -0500
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FM9J3g003302
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:09:19 -0500
+Received: by wx-out-0506.google.com with SMTP id t16so829240wxc.6
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 14:09:14 -0800 (PST)
+Message-ID: <aedf12640802151409y2f66df99m97b5ddd5c833032@mail.gmail.com>
+Date: Fri, 15 Feb 2008 20:09:12 -0200
+From: "Alexandro Silva" <alexsilvasc@gmail.com>
+To: eugene <eugene@horn.dyndns.biz>
+In-Reply-To: <200802152303.55257.eugene@horn.dyndns.biz>
 MIME-Version: 1.0
-To: Video 4 Linux Mailing List <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+References: <aedf12640802151146i1c02547ct7cc1671285fb95cf@mail.gmail.com>
+	<200802152303.55257.eugene@horn.dyndns.biz>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: OV511 driver in linux-2.6.24.1
+Content-Disposition: inline
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Encore ENLTV-FM (TV tuner Pro)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,8 +31,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am trying to compile a new kernel but I can't find the OV511 driver.
+My apologies.
 
+Let me explain better this detail. Using the litle cable to connect tv card
+and sound card I have no audio at my headset or speakers. So to eliminate
+the problem possibilite I connect the headset directly to audio out of tv
+card. No sound until I select the card FlyVIDEO2000 (card=3).
+After this reconfiguration, then sound flows from tv card to my sound card.
+Unfortunally it's not a question of alsa configuration. This encore seems to
+be quite different from that listed at CARDLIST.saa7134.
+
+
+Cheers.
+
+
+
+2008/2/15, eugene <eugene@horn.dyndns.biz>:
+>
+> Hola Alexandro!
+> On Friday 15 February 2008 22:46:49 Alexandro Silva wrote:
+> >. The only remaining problem is that
+> > audio out is up even after close de screen, until I shutdown my machine
+> and
+> > when I start pc the tv sound gets up again during de boot process.
+> >
+> > I attached too the dmesg080215-ful.txt file with entire dmesg out and
+> > dmesg080215.txt file with just saa grep.
+> As far as I know SAA7130 based cards have no sound through pci
+> functionality.
+> Thus I came into conclusion that there is a wipe connecting the tuner and
+> audio card. I think you should adjust the sound card through alsamixer and
+> alsactl ( with "store" option) to turnoff line input by default.
+>
+> Cheers.
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
