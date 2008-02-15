@@ -1,25 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FM9e2a021798
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:09:41 -0500
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FM9J3g003302
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:09:19 -0500
-Received: by wx-out-0506.google.com with SMTP id t16so829240wxc.6
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 14:09:14 -0800 (PST)
-Message-ID: <aedf12640802151409y2f66df99m97b5ddd5c833032@mail.gmail.com>
-Date: Fri, 15 Feb 2008 20:09:12 -0200
-From: "Alexandro Silva" <alexsilvasc@gmail.com>
-To: eugene <eugene@horn.dyndns.biz>
-In-Reply-To: <200802152303.55257.eugene@horn.dyndns.biz>
-MIME-Version: 1.0
-References: <aedf12640802151146i1c02547ct7cc1671285fb95cf@mail.gmail.com>
-	<200802152303.55257.eugene@horn.dyndns.biz>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FIvO3S021613
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 13:57:24 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FIv2OL007385
+	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 13:57:02 -0500
+Date: Fri, 15 Feb 2008 16:56:49 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Guillaume Quintard" <guillaume.quintard@gmail.com>
+Message-ID: <20080215165649.4263d630@gaivota>
+In-Reply-To: <1e5fdab70802151022k3477f538j3ce0b56d7b462d6c@mail.gmail.com>
+References: <1e5fdab70802061744u4b053ab3o43fcfbb86fe248a@mail.gmail.com>
+	<20080207174703.5e79d19a@gaivota>
+	<1e5fdab70802071203ndbce13an1fa226d5ec3e4ca1@mail.gmail.com>
+	<20080207181136.5c8c53fc@gaivota>
+	<1e5fdab70802081827x4b656625h3b20332d0ee030ab@mail.gmail.com>
+	<20080211104821.00756b8e@gaivota>
+	<1e5fdab70802141534o194c79efu1ed974734878c052@mail.gmail.com>
+	<20080215104945.4e6fe998@gaivota>
+	<1e5fdab70802151022k3477f538j3ce0b56d7b462d6c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Encore ENLTV-FM (TV tuner Pro)
+Cc: video4linux-list@redhat.com
+Subject: Re: Question about saa7115
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,40 +35,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-My apologies.
+On Fri, 15 Feb 2008 10:22:25 -0800
+"Guillaume Quintard" <guillaume.quintard@gmail.com> wrote:
 
-Let me explain better this detail. Using the litle cable to connect tv card
-and sound card I have no audio at my headset or speakers. So to eliminate
-the problem possibilite I connect the headset directly to audio out of tv
-card. No sound until I select the card FlyVIDEO2000 (card=3).
-After this reconfiguration, then sound flows from tv card to my sound card.
-Unfortunally it's not a question of alsa configuration. This encore seems to
-be quite different from that listed at CARDLIST.saa7134.
-
-
-Cheers.
-
-
-
-2008/2/15, eugene <eugene@horn.dyndns.biz>:
->
-> Hola Alexandro!
-> On Friday 15 February 2008 22:46:49 Alexandro Silva wrote:
-> >. The only remaining problem is that
-> > audio out is up even after close de screen, until I shutdown my machine
-> and
-> > when I start pc the tv sound gets up again during de boot process.
+> On Fri, Feb 15, 2008 at 4:49 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> > On Thu, 14 Feb 2008 15:34:22 -0800
+> >  At the current drivers, most of the API functions are handled by the bridge
+> >  driver. So, only a subset of saa7115 features is needed for those devices. As a
+> >  rule, we generally try not to add code on kernel drivers that aren't used by
+> >  other kernel drivers.
 > >
-> > I attached too the dmesg080215-ful.txt file with entire dmesg out and
-> > dmesg080215.txt file with just saa grep.
-> As far as I know SAA7130 based cards have no sound through pci
-> functionality.
-> Thus I came into conclusion that there is a wipe connecting the tuner and
-> audio card. I think you should adjust the sound card through alsamixer and
-> alsactl ( with "store" option) to turnoff line input by default.
->
-> Cheers.
->
+> 
+> uh, sorry, but what is a bridge driver ? I've never heard of it, and
+> could find any help on the web.
+
+It is the driver that works as a bridge between PCI or USB and I2C ;)
+
+In the case of saa7115, the current bridge drivers that uses it are ivtv,
+em28xx, pvrusb2 and usbvision.
+> 
+> >  Yet, some functions shouldn't be on saa7115, like, for example:
+> >         buffer handling - specific to the way it is connected;
+> >         audio control and decoding - should be associated to an audio chip;
+> >
+> >  I don't know the implementation details of your driver. If you intend to submit
+> >  your driver for its addition on kernel, feel free to propose the addition of
+> >  new features to saa7115, and post to the list. Maybe your job will help also
+> >  other users (for example, saa7115 driver doesn't work with Osprey 560
+> >  - I'm not sure where's the issue).
+> 
+> sure, I'll do that, once it'll be ready, and there's a long way to go
+> before that happens :-)
+
+:)
+
+
+
+Cheers,
+Mauro
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
