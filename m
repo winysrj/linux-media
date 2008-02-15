@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.188])
+Received: from mail-in-06.arcor-online.net ([151.189.21.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <filippo.argiolas@gmail.com>) id 1JPaYd-0005nX-Hq
-	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 10:39:07 +0100
-Received: by rn-out-0910.google.com with SMTP id j40so520481rnf.20
-	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 01:39:03 -0800 (PST)
-Message-ID: <8ceb98f20802140139j307e02c8t473f12496d37cdcb@mail.gmail.com>
-Date: Thu, 14 Feb 2008 10:39:02 +0100
-From: "Filippo Argiolas" <filippo.argiolas@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <8ceb98f20802140120s4fdc9912wc1f30baa4c8d4da4@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <1202892942.22746.37.camel@tux>
-	<8ceb98f20802140120s4fdc9912wc1f30baa4c8d4da4@mail.gmail.com>
-Subject: Re: [linux-dvb] wintv nova-t stick, dib0700 and remote controllers..
+	(envelope-from <hermann-pitton@arcor.de>) id 1JQAAC-0005J1-Nh
+	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 00:40:16 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47B617F1.30006@t-online.de>
+References: <47B5A504.9080400@kliese.wattle.id.au> <47B617F1.30006@t-online.de>
+Date: Sat, 16 Feb 2008 00:35:06 +0100
+Message-Id: <1203118506.7303.63.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI TV@nywhere A/D v1.1 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,27 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I'm asking this because calling dib0700_rc_setup after each keypress
-poll resets the ir data into the  device to  0 0 0 0. What I'd like to
-know since I know almost nothing about dvb devices if is this going to
-someway damage my device if called each 150ms (period of the poll).
-If not I'll write a patch to support some of my remotes as well
-repeated keys events as soon I'll have some spare time.
-Does any of you know a different method to erase last received data
-from the device?
+Hi,
+
+Am Freitag, den 15.02.2008, 23:53 +0100 schrieb Hartmut Hackmann:
+> Hi, Russell
+> 
+> Russell Kliese schrieb:
+> > Hi,
+> > 
+> > I've created a patch to support the MSI TV@nywhere A/D v1.1 card. This
+> > card previously had firmware upload issues when using card=109. With
+> > this patch, it's auto-detected and I haven't experienced any firmware
+> > upload problems (although my testing hasn't been exhaustive, but I have
+> > tried a couple of cold boots).
+> > 
+> > I've tested both analog and digital TV. I haven't yet tested S-Video or
+> > composite inputs, so these might need to be tweaked.
+> > 
+> > It would be great if this patch could be merged into the main
+> > repository. If there are any special requirements to allow this to be
+> > done, please let me know.
+> > 
+> > Cheers,
+> > 
+> > Russell Kliese
+> > 
+> 
+> You were able to help yourself, good!
+> Few questions / commments:
+> - Does the board support FM Radio?
+> - Can you test the composite / S-Video inputs somehow?
+>   We already have boards with wrong configurations here but i would
+>   like to minimize the number ;-)
+> - The code fragment in saa7134-cards.c from line 5479 on should not be
+>   necessary. Can you please cross check?
+
+please also drop the duplicate code in saa7134-dvb and just use
+&philips_tiger_s_config.
+
+> When i integrate the patch, i would like to mention you as the patch author.
+> For this, i will need a signature from you:
+> Signed-off-by: Your Name <your email address>
+
+Thanks,
+Hermann
 
 
-
-2008/2/14, Filippo Argiolas <filippo.argiolas@gmail.com>:
-> No answer?
->  Please could someone tell me if is it dangerous to call
->  dib0700_rc_setup (from dib0700core.c) every 100ms to reset remote
->  control data? Do you know any other method to reset data about last
->  key received from the ir sensor?
->  Thanks
->
-> Filippo
->
 
 _______________________________________________
 linux-dvb mailing list
