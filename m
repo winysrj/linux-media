@@ -1,20 +1,19 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.228])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JUkMo-0005yD-Rz
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 16:08:15 +0100
-Received: by wr-out-0506.google.com with SMTP id 68so5139124wra.13
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 07:08:06 -0800 (PST)
-Message-ID: <d9def9db0802280708s6562af51x5fd1aefa65190338@mail.gmail.com>
-Date: Thu, 28 Feb 2008 16:08:04 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47C6C991.5070008@powercraft.nl>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <47C6C991.5070008@powercraft.nl>
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+4dc86fa686558c999142+1636+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JQ710-0002w8-B1
+	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 21:18:34 +0100
+Date: Fri, 15 Feb 2008 18:18:15 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Albert Comerma" <albert.comerma@gmail.com>
+Message-ID: <20080215181815.2583a2e5@gaivota>
+In-Reply-To: <ea4209750802141220s2402e94bvbd1479037d48cfc8@mail.gmail.com>
+References: <200802112223.11129.hfvogt@gmx.net>
+	<ea4209750802141220s2402e94bvbd1479037d48cfc8@mail.gmail.com>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] need advice to buy supported DVB-T USB device
+Subject: Re: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,41 +24,43 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Jelle,
+Hi Albert,
 
-On Thu, Feb 28, 2008 at 3:47 PM, Jelle de Jong
-<jelledejong@powercraft.nl> wrote:
-> Hello,
->
->  I want to buy a device that allows me to watch dvd-t signals under Linux.
->
->  I want this device to work under linux on my usb port.
->  And i need to buy the device at this store for support:
->  http://www.informatique.nl/cgi-bin/iqshop.cgi?M=ART&G=167
->
->  secondary like to haves:
->  - works on 900 MHZ Intel Mobile M (eeepc)
->  - can record and watch at the same time
->  - cost less then 140 euro.
->  - small size
->  - works with an analogue coax cable and digital dvb-t signal
->
+On Thu, 14 Feb 2008 21:20:32 +0100
+"Albert Comerma" <albert.comerma@gmail.com> wrote:
 
-I can suggest:
-http://tvde.terratec.net/modules.php?op=modload&name=News&file=article&sid=249
-http://www.pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV/PCTV/
-http://www.hauppauge.co.uk/pages/products/data_hvr900.html
-etc.
+> [ 2251.856000] xc2028 4-0061: Error on line 1063: -5
 
-Those devices are tested on the eeePC, first device from Terratec also
-supports analogue radio (and stereo with analogue TV, pinnacle and
-hauppauge's devices only support mono TV audio) all of them support
-analogue TV and DVB-T.
+The above error is really weird. It seems to be related to something that
+happened before xc2028, since firmware load didn't start on that point of the
+code.
 
-Markus
+
+> [ 2289.284000] xc2028 4-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
+This message means that xc3028 firmware were successfully loaded and it is
+running ok. 
+
+> [ 2282.504000] xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+> [ 2289.104000] xc2028 4-0061: Loading firmware for type=D2620 DTV8 (208), id 0000000000000000.
+> [ 2289.224000] xc2028 4-0061: Loading SCODE for type=DTV8 SCODE HAS_IF_5400 (60000200), id 0000000000000000.
+
+The above messages state what firmware you've loaded.
+
+xc3028 version 2.7 has 80 different firmwares. If you load a wrong one, your
+device won't work.
+
+>From the above, the driver is assuming that you're on an area with 8MHz video
+channels. Also, your demod should be using IF = 5.4 MHz:
+
+Firmware 64, type: DTV8 CHINA SCODE HAS IF (0x64000200), IF = 5.40 MHz id: (0000000000000000), size: 192
+
+Does the above firmware correspond to your configuration?
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
