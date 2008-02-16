@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
+Received: from matrix.start.ca ([204.101.248.1])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JNx22-0002Hq-DG
-	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 22:14:42 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Eduard Huguet <eduardhc@gmail.com>
-Date: Sat, 9 Feb 2008 22:14:06 +0100
-References: <47ADC81B.4050203@gmail.com>
-In-Reply-To: <47ADC81B.4050203@gmail.com>
+	(envelope-from <colbec@start.ca>) id 1JQUCP-0002y6-5G
+	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 22:03:53 +0100
+Received: from [192.168.0.3] (165.154.24.241.auracom.com [165.154.24.241] (may
+	be forged))
+	by matrix.start.ca (8.13.6/8.12.11) with ESMTP id m1GL3hXD030069
+	for <linux-dvb@linuxtv.org>; Sat, 16 Feb 2008 16:03:43 -0500
+Message-ID: <47B74FC2.5040507@start.ca>
+Date: Sat, 16 Feb 2008 16:04:02 -0500
+From: Colin <colbec@start.ca>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802092214.06946.zzam@gentoo.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Some tests on Avermedia A700
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Can get channels in Kaffeine, but scan fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,49 +26,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Samstag, 9. Februar 2008, Eduard Huguet wrote:
-> Hi, Matthias
-Hi Eduard!
+Getting G13 with a Skystar II 2.6, channels strong in Kaffeine
+kernel 2.6.24, SuSe 10.1, Kaffeine 0.8.6, dvbtools 1.1.1
 
->     I've been performing some tests using your patch for this card.
-> Right now neither dvbscan nor kaffeine are able to find any channel on
-> Astra (the sat. my dish points to).
->
-> However, Kaffeine has been giving me some interesting results: with your
-> driver "as is" it's getting me a 13-14% signal level and ~52% SNR when
-> scanning. Then, thinking that the problem is related to the low signal I
-> have I've changed the gain levels used to program the tuner: you were
-> using default values of 0 for all (in zl1003x_set_gain_params()
-> function, variables "rfg", "ba" and "bg"), and I've changed them top the
-> maximum (according to the documentation: rfg=1, ba=bg=3). With that, I'm
-> getting a 18% signal level, which is higher but still too low apparently
-> to get a lock.
->
-> I've stopped here, because I really don't have the necessary background
-> to keep tweaking the driver. I just wanted to share it with you, as
-> maybe you have some idea on how to continue or what else could be done.
->
+scan -c (while tuned to a channel) works fine. But :
+-------------------------------------
+/scan # ./scan -vvvv -a 0 -s 3 ./dvb-s/g13--cb
+scanning ./dvb-s/g13--cb
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 3800000 H 27690000 3
+ >>> tune to: 3800:h:3:27690
+DiSEqC: switch pos 3, 18V, loband (index 13)
+diseqc_send_msg:59: DiSEqC: e0 10 38 fe 00 00
+Frontend fd is '3', FE_SET_FRONTEND is '1076129612'
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 
+22 Invalid argument
+ >>> tune to: 3800:h:3:27690
+DiSEqC: switch pos 3, 18V, loband (index 13)
+diseqc_send_msg:59: DiSEqC: e0 10 38 fe 00 00
+Frontend fd is '3', FE_SET_FRONTEND is '1076129612'
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 
+22 Invalid argument
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+----------------------------------------
 
-So I can do only this guess:
-I changed demod driver to invert the Polarization voltage for a700 card.
-This is controlled by member-variable voltage_inverted.
-
-static struct mt312_config avertv_a700_mt312 = {
-        .demod_address = 0x0e,
-        .voltage_inverted = 1,
-};
-
-Can you try to comment the voltage_inverted line here (saa7134-dvb.c: line 
-865).
-
-BUT: If this helps we need to find out how to detect which card needs this 
-enabled/disabled.
-
-Regards
-Matthias
-
--- 
-Matthias Schwarzott (zzam)
+Pls note I added an info() statement to get the values being sent to 
+frontend_fd and fe_set_frontend. Do these values look acceptable, or am 
+I looking in the wrong place?
 
 _______________________________________________
 linux-dvb mailing list
