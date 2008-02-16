@@ -1,21 +1,39 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m17Lhk0e008544
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 16:43:46 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m17LhDd1007643
-	for <video4linux-list@redhat.com>; Thu, 7 Feb 2008 16:43:13 -0500
-Date: Thu, 7 Feb 2008 22:43:09 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080207183409.3e788533@gaivota>
-Message-ID: <Pine.LNX.4.64.0802072146210.9064@axis700.grange>
-References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
-	<20080207183409.3e788533@gaivota>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: Two more patches required for soc_camera
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1GJVYDt002094
+	for <video4linux-list@redhat.com>; Sat, 16 Feb 2008 14:31:34 -0500
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1GJV1Y0025795
+	for <video4linux-list@redhat.com>; Sat, 16 Feb 2008 14:31:02 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JQSkQ-0004YV-Ci
+	for video4linux-list@redhat.com; Sat, 16 Feb 2008 19:30:54 +0000
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sat, 16 Feb 2008 19:30:54 +0000
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sat, 16 Feb 2008 19:30:54 +0000
+To: video4linux-list@redhat.com
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Sat, 16 Feb 2008 11:30:43 -0800
+Message-ID: <pan.2008.02.16.19.30.41.575048@gimpelevich.san-francisco.ca.us>
+References: <20080127173132.551401d9@tux.abusar.org.br>
+	<20080128165403.1f7137e0@gaivota>
+	<20080128182634.345bd4e8@tux.abusar.org.br>
+	<20080128184534.7af7a41b@gaivota>
+	<20080128192230.59921445@tux.abusar.org.br>
+	<20080129004104.17e20224@gaivota>
+	<20080129021904.1d3047d1@tux.abusar.org.br>
+	<20080129025020.60fa33de@gaivota>
+	<20080129050103.2fae9d61@tux.abusar.org.br>
+	<20080129122547.63214371@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [EXPERIMENTAL] cx88+xc3028 - tests are required - was: Re: When
+	xc3028/xc2028 will be supported?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,100 +45,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 7 Feb 2008, Mauro Carvalho Chehab wrote:
+On Tue, 29 Jan 2008 12:25:47 -0200, Mauro Carvalho Chehab wrote:
 
-> Hi Guennadi,
+> Dâniel and others,
 > 
-> > thanks for pulling the soc_camera patches, what I am not sure about, have 
-> > you also pulled these two:
-> > 
-> > http://marc.info/?l=linux-video&m=120179057030853&w=2
+>> > Having this tested is a very good news! I'll need to merge this patch with two
+>> > other patches that adds DVB support for cx88/xc3028. If I can manage to have
+>> > some time for this merge, I'll commit and ask Linus to add this to 2.6.25.
+>> 
+>> 	:)
 > 
-> I suspect that this patch is wrong, since some CONFIG_foo is needed for
-> videobuf-dma-sg to work properly.
+> I've merged some patches from several authors, that add xc3028 support for
+> cx88.
 > 
-> Maybe CONFIG_HAS_DMA ?
+> The experimental tree is available at:
 > 
-> Yet, videobuf-dma-sg seems to still have some specific PCI stuff inside, due to
-> this:
-> 	#include <linux/pci.h>
+> http://linuxtv.org/hg/~mchehab/cx88-xc2028
 > 
-> If the above line is removed, you'll see a large amount of errors:
+> This patch series adds support for the following boards:
 > 
-> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:120: warning: 'struct pci_dev' declared inside parameter list
-> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:120: warning: its scope is only this definition or declaration, which is probably not what you want
-> /home/v4l/master/v4l/../linux/include/media/videobuf-dma-sg.h:121: warning: 'struct pci_dev' declared inside parameter list
-> /home/v4l/master/v4l/videobuf-dma-sg.c: In function 'videobuf_dma_init_user_locked':
-> /home/v4l/master/v4l/videobuf-dma-sg.c:144: error: 'PCI_DMA_FROMDEVICE' undeclared (first use in this function)
-[trimmed]
-
-I think, "#include <linux/pci.h>" is needed for the current version of 
-videobuf-dma-sg.c, which, however, doesn't necessarily mean, it works only 
-on PCI-enabled platforms. Perhaps, the right fix would be to convert 
-videobuf-dma-sg.c to purely dma API. In fact, it wouldn't be a very 
-difficult task. Only these two prototypes in videobuf-dma-sg.h
-
-int videobuf_pci_dma_map(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-int videobuf_pci_dma_unmap(struct pci_dev *pci,struct videobuf_dmabuf *dma);
-
-and their implementations in videobuf-dma-sg.c should indeed be placed 
-under #ifdef CONFIG_PCI. You would use enum dma_data_direction instead of 
-PCI_DMA_FROMDEVICE and friends, call dma mapping and syncing functions 
-directly, instead of their pci analogs, etc.
-
-Your proposal to use CONFIG_HAS_DMA might be a good interim solution. This 
-is also in a way confirmed in a comment in 
-include/asm-generic/dma-mapping-broken.h. The "dummy" pci-dma API 
-conversions are defined in include/asm-generic/pci-dma-compat.h. Now
-
-grep -r pci-dma-compat.h include/asm*
-include/asm/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-arm/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-cris/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-frv/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-ia64/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-mips/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-parisc/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-powerpc/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-ppc/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-sh/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-x86/pci.h:#include <asm-generic/pci-dma-compat.h>
-include/asm-xtensa/pci.h:#include <asm-generic/pci-dma-compat.h>
-
-and
-
-grep "[^_]NO_DMA" `find . -name "Kconfig*"`
-./lib/Kconfig:  depends on !NO_DMA
-./arch/h8300/Kconfig:config NO_DMA
-./arch/cris/Kconfig:config NO_DMA
-./arch/m32r/Kconfig:config NO_DMA
-./arch/m68k/Kconfig:config NO_DMA
-./arch/sparc/Kconfig:config NO_DMA
-./arch/s390/Kconfig:config NO_DMA
-
-So, the only intersection is cris... And it really confuses me. And there 
-are a couple more platforms that don't do either, like alpha, avr32, 
-blackfin,...
-
-> I suspect that you'll need to do some work for it to fully use the generic dma api.
-
-Right, so, what would be your preference on this? It would be puty to hold 
-off the patches ony because of this. If you want, I can try to look into 
-converting videobuf-dma-sg.c to pci-free API, hopefully, for -rc2? And in 
-the meantime maybe we could use the CONFIG_HAS_DMA?
-
-> > http://marc.info/?l=linux-video&m=120179045830566&w=2
+>  59 -> DVICO HDTV5 PCI Nano                                [18ac:d530]
+>  60 -> Pinnacle Hybrid PCTV                                [12ab:1788]
+>  61 -> Winfast TV2000 XP Global                            [107d:6f18]
+>  62 -> PowerColor Real Angel 330                           [14f1:ea3d]
+>  63 -> Geniatech X8000-MT DVBT                             [14f1:8852]
+>  64 -> DViCO FusionHDTV DVB-T PRO                          [18ac:db30]
 > 
-> Hmm... I think I asked your sob for this. Maybe I've lost the e-mail with your
-> sob. Please, send it again, and I'll commit.
+> In thesis, both analog and DVB support (for boards with DVB/ATSC) should be
+> working (*). Maybe analog audio may need an additional configuration for some
+> specific board (since they may require to add cfg.mts = 1 at xc3028
+> initialization code, on cx88-cards).
+> 
+> Please test.
+> 
+> (*) Pinnacle Hybrid PCTV support for DVB is not available yet. 
+> 
+> Cheers,
+> Mauro
 
-I did reply to that your email with my sob, but maybe you wanted a 
-complete patch again. Just resent it too.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+About ten weeks ago, the only support for the Powercolor Real Angel 330
+appeared to be in Markus's mercurial tree, so I tried it. It did not work,
+because the GPIO settings were all wrong. I ran some tests, and fixed the
+problems. I made Markus aware of my patch several times, and he always
+said he would soon add it to his tree along with many others he received.
+He apparently never got to it, and now his server seems to have
+disappeared from the web. If anyone still has a copy of his repository,
+the following patch against it makes all functions of this card work
+perfectly:
+http://pastebin.com/f44a13031
+Today, I noticed the new cx88-xc2028 tree on which Mauro has begun some
+work. I have not tried it, but in comparing the code to Markus's, most
+support appears to be missing. I thought that maybe I could try merging
+Markus's old tree with Mauro's new one, but the absence of Markus's server
+means I can't. If anyone here would like my assistance in reconciling the
+competing code in the two trees, please contact me off-list. Thank you.
 
 --
 video4linux-list mailing list
