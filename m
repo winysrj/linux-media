@@ -1,16 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-From: Andreas <linuxdreas@launchnet.com>
-To: Steven Toth <stoth@linuxtv.org>
-Date: Tue, 12 Feb 2008 11:49:15 -0800
-References: <200802111739.47956.linuxdreas@launchnet.com>
-	<200802112310.38960.linuxdreas@launchnet.com>
-	<47B1B324.9050309@linuxtv.org>
-In-Reply-To: <47B1B324.9050309@linuxtv.org>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail-out.m-online.net ([212.18.0.9])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <zzam@gentoo.org>) id 1JQpOF-0007JV-Ni
+	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 20:41:31 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: Eduard Huguet <eduardhc@gmail.com>
+Date: Sun, 17 Feb 2008 20:40:57 +0100
+References: <47ADC81B.4050203@gmail.com> <200802131651.17260.zzam@gentoo.org>
+	<47B314B8.7060403@gmail.com>
+In-Reply-To: <47B314B8.7060403@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802121149.15425.linuxdreas@launchnet.com>
+Message-Id: <200802172040.57892.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-HVR 1600
+Subject: Re: [linux-dvb] Some tests on Avermedia A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,37 +21,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-QW0gRGllbnN0YWcsIDEyLiBGZWJydWFyIDIwMDggMDY6NTQ6Mjggc2NocmllYmVuIFNpZToKPiBB
-bmRyZWFzIHdyb3RlOgo+ID4gQW0gTW9udGFnLCAxMS4gRmVicnVhciAyMDA4IDE3OjQ5OjUxIHNj
-aHJpZWJlbiBTaWU6Cj4gPj4gQW5kcmVhcyB3cm90ZToKPiA+Pj4gSGFsbG8sCj4gPj4+IEkgYm91
-Z2h0IHRoZSBjYXJkIHRvZGF5IGFuZCBuYXR1cmFsbHkgSSBhbSB3b25kZXJpbmcgaG93L3doYXQv
-d2hlbgo+ID4+PiB0aGUgY2FyZCBpcyBzdXBwb3J0ZWQ/Cj4gPj4+Cj4gPj4+IFRoYW5rIHlvdQo+
-ID4+Cj4gPj4gTG9vayBmb3IgdGhlIGN4MTggZGV2ZWxvcG1lbnQgdHJlZXMgb24gbGludXh0di5v
-cmcKPiA+Pgo+ID4+IC0gU3RldmUKPiA+Cj4gPiBTdGV2ZSwKPiA+IFRoYW5rIHlvdSwgSSBjaGVj
-a2VkIG91dCBIYW5zJyBjeDE4IHRyZWUgYW5kIHRyaWVkIHRvIGNvbXBpbGUgdGhlCj4gPiBtb2R1
-aWxlcy4gT24gbXkgQU1EIHg4Ni02NCAoS2VybmVsIDIuNi4yNC4xKSBJIGdldCBhbiBlcnJvciBk
-dXJpbmcKPiA+IGNvbXBpbGF0aW9uLiBBbnkgaWRlYSBob3cgSSBjYW4gZml4IHRoYXQ/IEdvaW5n
-IGZ1cnRoZXIgd2l0aCBtYWtlIC1rCj4gPiBjb21waWxlcyB0aGUgb3RoZXIgbW9kdWxlcywgYnV0
-IHRoZW4gbWFrZSBpbnN0YWxsIGZhaWxzIHdpdGggYW4gZXJyb3IKPiA+IGFib3V0IHN0cmlwcGlu
-ZyB0aGUgZGVidWcgaW5mby4KPgo+IE5vIGlkZWEsIHRoZSBsYXN0IHRpbWUgSSBidWlsdCBpdCAo
-My00IHdlZWtzIGFnbykgaXQgd2FzIGZpbmUuCj4KPiBEb2VzIHRoZSBtYXN0ZXIgdHJlZSAoaHR0
-cDovL2xpbnV4dHYub3JnL2hnL3Y0bC1kdmIpIGJ1aWxkIGNsZWFubHkgaW4KPiB5b3VyIGVudmly
-b25tZW50Pwo+Cj4gKFNlZSB0aGUgd2lraSBmb3IgYnVpbGQgaW5zdHJ1Y3Rpb25zKS4KPgo+IC0g
-U3RldmUKCkkgZ290IHRoZSBjeDE4IHRyZWUgdG8gYnVsaWQsIGluc3RhbGxlZCB0aGUgY2FyZCBh
-bmQgdGhlIGRyaXZlciwgYW5kIG5vdyAKZHZic2NhbiBnaXZlczoKYW5kcmVhc0BoYWw5MDA0On4+
-IGR2YnNjYW4gdXMtYXRzYy9DYWJsZS1TdGFuZGFyZC1jZW50ZXItZnJlcXVlbmNpZXMtUUFNMjU2
-ClVuYWJsZSB0byBxdWVyeSBmcm9udGVuZCBzdGF0dXMKCkkgZ2V0IHRoZSBzYW1lIG1lc3NhZ2Ug
-d2l0aCBhbnkgb2YgdGhlIGZpbGVzIGluIHNjYW4vYXRzYy4gVGhlIGNhcmQgaXMgCmNvbm5lY3Rl
-ZCB0byBteSBjYWJsZSB0diBvdXRsZXQuCgpUaGUgY2FyZCBzaG93cyB1cCBpbiAvZGV2L2R2Yi9h
-ZGFwdGVyMDoKYW5kcmVhc0BoYWw5MDA0On4+IGxzIC9kZXYvZHZiL2FkYXB0ZXIwLwpkZW11eDAg
-IGR2cjAgIGZyb250ZW5kMCAgbmV0MAoKV2hhdCBhbSBJIG1pc3NpbmcgaGVyZT8gQW55IHBvaW50
-ZXJzPwoKVGhhbmtzIQoKLS0gCkdydcOfCkFuZHJlYXMKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZi
-QGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWR2Yg==
+On Mittwoch, 13. Februar 2008, Eduard Huguet wrote:
+>
+> OK, I don't know exactly what you mean, but I'll try to measure the
+> output voltage of the input connector. I think you mean this, don't you?
+>
+> BTW, =BFwhere is the set_voltage app? I have media-tv/linuxtv-dvb-apps
+> package installed and there is nothing with that name...
+>
+
+Another thing you can try is:
+Boot windows and look at the GPIO values. (See v4l wiki for how to do this =
+
+using regspy).
+
+Use my latest diff, and try loading saa7134 with use_frontend=3D1 to use th=
+e =
+
+alternative zl10313 driver.
+
+Regards
+Matthias
+
+-- =
+
+Matthias Schwarzott (zzam)
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
