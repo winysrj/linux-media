@@ -1,17 +1,20 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.235])
+Return-path: <linux-dvb-bounces@linuxtv.org>
+Received: from f148.mail.ru ([194.67.57.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jklaas@appalachian.dyndns.org>) id 1JSD6e-0002H9-JS
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 16:13:04 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so58928wxc.17
-	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 07:12:59 -0800 (PST)
-Message-ID: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
-Date: Thu, 21 Feb 2008 10:12:58 -0500
-From: "James Klaas" <jklaas@appalachian.dyndns.org>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] HD capture
+	(envelope-from <goga777@bk.ru>) id 1JQgKs-0000dN-1p
+	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 11:01:26 +0100
+From: Igor <goga777@bk.ru>
+To: Zenon Mousmoulas <zmousm@admin.grnet.gr>
+Mime-Version: 1.0
+Date: Sun, 17 Feb 2008 13:00:54 +0300
+References: <B9DD88E0-E3EA-4E57-BABE-5FD4E520D6F4@admin.grnet.gr>
+In-Reply-To: <B9DD88E0-E3EA-4E57-BABE-5FD4E520D6F4@admin.grnet.gr>
+Message-Id: <E1JQgKM-000I6q-00.goga777-bk-ru@f148.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SGF1cHBhdWdlIFdpblRWLUhWUjQwMDAgYW5kIERW?=
+	=?koi8-r?b?Qi1TMi4uLg==?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,20 +25,51 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-There was a discussion over on the mythtv-users forum on HD capture
-that devolved into another discussion, but there was an article on
-converting your HD-DVDs to Blue-Ray
-(http://howto.wired.com/wiki/Convert_Your_HD_DVDs_to_Blu-Ray).  They
-pointed to a HDMI/component/composite capture card at
-http://www.blackmagic-design.com/products/intensity/.
+> My goal is to get this card to tune to a DVB-S2 transponder, more  
+> specifically this one:
+> http://en.kingofsat.net/tp.php?tp=2656
+> I have a dish with 4 LNBs connected to the HVR4000 through a DiSEqC  
+> 1.0 4x1 switch.
+> The 4th LNB is pointed to this satellite and I can tune to DVB-S  
+> transponders there just fine with another card as well as this one  
+> (more on that later).
+> 
+> I assume multiproto is necessary for DVB-S2 tuning to actually work.  
+> Right? 
 
-While I wouldn't expect this to be supported anytime soon, has anyone
-even looked at this?
+yes, right. Latest version of multiproto will help you.
 
-James
+
+> I am working on a Debian testing/lenny system. I have tried the above  
+> with kernels 2.6.22 and 2.6.24. The sample kernel output on the wiki  
+> says 2.6.26.1. What is the minimum kernel version that must be used  
+> with multiproto in order for DVB-S2 to work?
+
+I have 2.6.22 kernel and on my computer hvr4000 with multi[roto + hvr400-patch works well
+
+> Could someone please help? 
+
+next your step - to use the patched szap2. 
+
+> One more thing: I've read about szap2 and perhaps other dvb-apps which  
+> have been specifically made compatible with multiproto. I've noticed  
+> these being casually mentioned in various list posts. However, I have  
+> only been able to find a few somewhat old "traces" of szap2, and not,  
+> say, a full patch against dvb-apps. Is there a distribution? Where at?
+
+please, complile the szap2 and try it
+
+here's you can find the links for download of szap2
+http://allrussian.info/thread.php?postid=187408#post187408
+
+Igor
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
