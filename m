@@ -1,14 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from pop.iicinternet.com ([208.81.112.117])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <henry-list@leinhos.com>) id 1JNCNS-00082A-3J
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 20:25:42 +0100
-Message-ID: <20080207173847.865.qmail@pop.iicinternet.com>
-From: "Henry Leinhos" <henry-list@leinhos.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from smtprelay05.ispgateway.de ([80.67.18.43])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hsteinhaus@gmx.de>) id 1JQqeT-0004ki-0V
+	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 22:02:21 +0100
+Received: from [91.15.111.30] (helo=tarsonis.home)
+	by smtprelay05.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <hsteinhaus@gmx.de>) id 1JQqeS-0002wu-7g
+	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 22:02:20 +0100
+From: Holger Steinhaus <hsteinhaus@gmx.de>
 To: linux-dvb@linuxtv.org
-Date: Thu, 07 Feb 2008 09:38:47 -0800
-Mime-Version: 1.0
-Subject: [linux-dvb] wintv-hvr-1250 setup?
+Date: Sun, 17 Feb 2008 22:02:19 +0100
+References: <B9DD88E0-E3EA-4E57-BABE-5FD4E520D6F4@admin.grnet.gr>
+In-Reply-To: <B9DD88E0-E3EA-4E57-BABE-5FD4E520D6F4@admin.grnet.gr>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200802172202.19922.hsteinhaus@gmx.de>
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR4000 and DVB-S2...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,44 +26,32 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, 
+Hi Zenon,
 
-I recently acquired a Hauppauge wintv-hvr-1250 PCIe ATSC tuner card and have 
-compiled/installed the latest v4l-dvb drivers ok. 
+your patching and compilation procedure looks completely ok. The dmesg output 
+looks very well, too. 
 
-(BTW, I'm using an ABIT AN-M2HD motherboard with an AMD 4000+ cpu) 
+> I am working on a Debian testing/lenny system. I have tried the above
+> with kernels 2.6.22 and 2.6.24. The sample kernel output on the wiki
+> says 2.6.26.1. What is the minimum kernel version that must be used
+> with multiproto in order for DVB-S2 to work?
+I think your only problem is that you did not use a multiproto-aware client 
+application. The classical szap is not able to tune any non-DVB-S channel, as 
+it simply doesnt know anything about DVB-S2 and its addtional tuning 
+parameters.
 
-I'm not sure which modules are required, but when I load the cx23885 module 
-(via /sbin/modprobe cx23885), I get an error on the tveeprom header.  dmesg 
-reports: 
+As an alternative to szap2, you could also try VDR 1.5.14. But beware of the 
+format of the channels.conf file. It is not fully compatible with the format 
+understood by szap(2) or older VDR versions. 
 
-CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 
-[card=3,autodetected]
-cx23885[0]: i2c bus 0 registered
-cx23885[0]: i2c bus 1 registered
-cx23885[0]: i2c bus 2 registered
-tveeprom 4-0050: Encountered bad packet header [ff]. Corrupt or not a 
-Hauppauge eeprom.
-cx23885[0]: warning: unknown hauppauge model #0
-cx23885[0]: hauppauge eeprom: model=0
-cx23885[0]: cx23885 based dvb card
-MT2131: successfully identified at address 0x61
-DVB: registering new adapter (cx23885[0])
-DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 16, latency: 0, mmio: 
-0xfce00000
-PCI: Setting latency timer of device 0000:03:00.0 to 64 
+The kernel version should be not that critical, I'm using versions from 2.6.22 
+to 2.6.24. 
 
-
-I'm concerned about the tveeprom message  -- are there any other modules I 
-need to load for this board?  Is there any firmware I'm missing? 
-
-Thanks,
-Henry
+Regards,
+  Holger
 
 _______________________________________________
 linux-dvb mailing list
