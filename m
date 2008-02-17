@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aiolos.otenet.gr ([195.170.0.93] ident=OTEnet-mail-system)
+Received: from mailout02.sul.t-online.de ([194.25.134.17]
+	helo=mailout02.sul.t-online.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vnonas@otenet.gr>) id 1JU7Gx-00025f-He
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 22:23:35 +0100
-Message-ID: <47C49F79.1080704@otenet.gr>
-Date: Tue, 26 Feb 2008 23:23:37 +0000
-From: Vangelis Nonas <vnonas@otenet.gr>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JQrRz-00083G-MV
+	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 22:53:31 +0100
+Message-ID: <47B8ACDE.1080504@t-online.de>
+Date: Sun, 17 Feb 2008 22:53:34 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
-	<47C19735.4030601@gmail.com> <47C1D52B.6070906@otenet.gr>
-	<47C1C55F.5030406@gmail.com> <47C32947.1030604@otenet.gr>
-	<47C33CB1.1080502@gmail.com>
-In-Reply-To: <47C33CB1.1080502@gmail.com>
+To: =?UTF-8?B?TWlyZWsgU2x1Z2XFiA==?= <thunder.m@email.cz>
+References: <4675AD3E.3090608@email.cz> <4782A847.80208@email.cz>
+In-Reply-To: <4782A847.80208@email.cz>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+Subject: Re: [linux-dvb] saa7134 FM radio problems (solved)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,101 +20,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
-
-Here is the output of hg log|head -n 5 for two different directories 
-(multiproto and multiproto_7200)
-
-for multiproto:
-changeset:   7205:9bdb997e38b5
-tag:         tip
-user:        Manu Abraham <manu@linuxtv.org>
-date:        Sun Feb 24 02:10:56 2008 +0400
-summary:     We can now reduce the debug levels, just need to look at 
-errors only.
-
-for multiproto_7200:
-changeset:   7200:45eec532cefa
-tag:         tip
-parent:      7095:a577a5dbc93d
-parent:      7199:0448e5a6d8a6
-user:        Manu Abraham <manu@linuxtv.org>
-
-
-So I guess I was referring to 7200 and not to 7201.
-I am very positive about the results because I have tested it many 
-times. It is just that it is 7200 instead of 7201.
-So as a concluesion, 7200 behaves better than 7205. My corrected little 
-table follows below just for clarification.
-
-Changeset   Verbose  channels
---------------------------------
-7200         1        2152
-7200         2        2105
-7200         5        2081
-7205         1        1760
-7205         2        1608
-7205         5        1578
-
-
-I apologise for the confusion, I may have caused.
-
-Regards
-Vagelis
-
-
-
-
-Manu Abraham wrote:
-> Vangelis Nonas wrote:
->> Hello,
->>
->> I have tested again changesets 7201 and 7205 with verbose 5, 2 and 1 
->> scanning 101 transponders on Hotbird (I attach my transponders file 
->> -- it is taken and adopted from ProgDvb).
->>
->> Here are my statistics:
->>
->> Changeset   Verbose  channels
->> --------------------------------
->> 7201         1        2152
->> 7201         2        2105
->> 7201         5        2081
->> 7205         1        1760
->> 7205         2        1608
->> 7205         5        1578
->
->
-> Are you "really" sure that 7201 behaves better than others. I ask 
-> this, since
-> there was a bug in 7201 which caused many people not to have a LOCK, the
-> bugs which was fixed in 7203 and 7204. I am at a loss now, as to
-> understanding this strange phenomena, how a lock was achieved with no
-> communication to the tuner.
->
-> If it were 7200, i could have still believed, there was a possibility, 
-> but 7201
-> i am terribly confused.
->
-> Can you please verify whether you didn't get mixed up with the changeset
-> numbers or the logs that were produced ?
->
->
-> Regards,
-> Manu
->
->
-> .
->
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksIE1pcmVrCgpNaXJlayBTbHVnZcWIIHNjaHJpZWI6Cj4gRmluYWwgdmVyc2lvbiBvZiBwYXRj
+aCBmb3IgU0FBNzEzWCBiYXNlZCBjYXJkcyBhbmQgYW5hbG9nIGF1ZGlvCj4gcHJvYmxlbXMsIEl0
+IHdhcyB0ZXN0ZWQgb24gMyBkaWZmZXJlbnQgc3lzdGVtcyB3aXRoIDIgb3IgMyBjYXJkcyBhbmQg
+SXQKPiB3b3JrcyB3aXRob3V0IHByb2JsZW1zLiBJIHRlc3RlZCB0aGlzIHBhdGNoIG9ubHkgd2l0
+aCBGTSByYWRpbywgbm90IHdpdGgKPiBBbmFsb2cgVFYgYXVkaW8uCj4gCj4gUGFydCBvZiBwYXRj
+aCBmb3IgdHVuZXItY29yZS5jIGlzIG9ubHkgaGFjaywgdGhlcmUgaXMgbWF5YmUgYW5vdGhlcgo+
+IHByb2JsZW0gd2l0aCBmcmVxdWVuY3kgcmFuZ2UsIGJ1dCB0aGlzIHdvcmtzIHdpdGhvdXQgYW55
+IHByb2JsZW1zLgo+IAo+IEJhc2VkIG9uIG1hbnVhbCBmb3IgU0FBNzEzWCwgRFNQIGFjY2VzcyBl
+cnJvciBoYXMgdG8gYmUgcmVzZXRlZCBtYW51YWx5Cj4gaW4gZHJpdmVyLgo+IAo+IE1pcmVrIFNs
+dWdlbgo+IAo+IE1pcmVrIFNsdWdlxYggbmFwc2FsKGEpOgo+PiBIaSwgSXMgbXkgcHJvYmxlbSB3
+aXRoIHNhYTcxMzQgYW5kIEZNIHJhZGlvIHJlbGF0ZWQgdG8gdGhpcwo+PiBtYWlsaW5nLWxpc3Q/
+IElmIG5vdCwgY2FuIHNvbWVvbmUgcG9pbnQgbWUgdG8gY29ycmVjdCBtYWlsaW5nLWxpc3Q/Cj4+
+Cj4+IEkgaGF2ZSB0d28gTGlmZVZpZXcgRmx5RFZCLVQgdHJpbyBQQ0kgY2FyZHMsIGFuZCBJIGhh
+dmUgc29tZSBzZXJpb3VzCj4+IHByb2JsZW1zIHdpdGggRk0gcmFkaW8gdHVuZXIuCj4+Cj4+IEkg
+YW0gdXNpbmcga2VybmVsIDIuNi4yMS4zIFNNUCwgYnV0IHNhbWUgcHJvYmxlbSBpcyB3aXRoIGtl
+cm5lbCAyLjYuMjAuWAo+PiBhbmQgZXZlbiB3aXRoIGxhdGVzdCBDVlMgdHJlZSBmcm9tIGxpbnV4
+LnR2ICgxNy42LjIwMDcpCj4+Cj4+IFNvbWV0aW1lcyAodmVyeSBvZnRlbikgb25lIG9yIGJvdGgg
+Y2FyZHMgYXJlIGp1c3QgZnJvemVuLCBJIGNhbid0IHR1bmUKPj4gcmFkaW8gKGhlYXIgbm90aGlu
+ZykuCj4+Cj4+IEFmdGVyIHJlc3RhcnQsIHNpdHVhdGlvbiBzb21ldGltZXMgY2hhbmdlLgo+Pgo+
+PiAgRnJvbSBsb2c6Cj4+Cj4+ICsgSSBhbSBnZXR0aW5nIG1hbnkgZHNwIGFjY2VzIGVycm9yIG9u
+IHByb2JsZW1hdGljIGNhcmQ6Cj4+IHNhYTcxMzNbMF06IGRzcCBhY2Nlc3MgZXJyb3IKPj4gc2Fh
+NzEzM1swXTogZHNwIGFjY2VzcyBlcnJvcgo+PiBzYWE3MTMzWzBdOiBkc3AgYWNjZXNzIGVycm9y
+Cj4+IHNhYTcxMzNbMF06IGRzcCBhY2Nlc3MgZXJyb3IKPj4gc2FhNzEzM1swXTogZHNwIGFjY2Vz
+cyBlcnJvcgo+PiBzYWE3MTMzWzBdOiBkc3AgYWNjZXNzIGVycm9yCj4+IHNhYTcxMzNbMF06IGRz
+cCBhY2Nlc3MgZXJyb3IKPj4KPj4gKyBQcm9ibGVtIGlzIHJlbGF0ZWQgdG8gdGhpcyBtZXNzYWdl
+IGZyb20gZG1lc2cKPj4gYWE3MTMzWzBdL2F1ZGlvOiB0dmF1ZGlvIHRocmVhZCBzdGF0dXM6IDB4
+MTAwMDAwIFtubyBzdGFuZGFyZCBkZXRlY3RlZF0KPj4KPj4gSWYgeW91IGFyZSBkZXZlbG9wZXIg
+SSBjYW4gZ2l2ZSB5b3UgZnVsbCBzc2ggYWNjZXNzIHRvIHRoaXMgc3RhdGlvbi4KPj4KPj4gSGFz
+IHNvbWVvbmUgc2ltaWxhciBpc3N1ZSwgaXMgdGhlcmUgYW55IHdvcmtpbmcgc29sdXRpb24/Cj4+
+Cj4+IEkgYW0gc2VuZGluZyBkbWVzIGxvZyBhcyBhdHRhY2htZW50Li4uCj4+Cj4+IE1pcmVrIFNs
+dWdlbgo+Pgo+PiBQUzogU29ycnkgZm9yIG15IHBvb3IgZW5nbGlzaAo+Pgo+IApJIHN0YXJ0ZWQg
+aGFuZGxpbmcgeW91ciBwYXRjaCBhbmQgaGF2ZSBzb21lIGNvbW1lbnRzIC8gcXVlc3Rpb25zOgpU
+aGUgcGFydCBoYW5kbGluZyB0aGUgRFNQIGFjY2VzcyBlcnJvcnMgaXMgbW9zdCBwcm9iYWJseSBy
+aWdodC4KYnV0IHdoYXQgZG8geW91IGludGVuZCB3aXRoIHRoZSBvdGhlciBjaGFuZ2VzOgotIGFj
+Y29yZGluZyB0aGUgdGhlIGJvYXJkIGNvbmZpZyBzdHVjdHVyZSwKICBncGlvIDIxIGlzIHVzZWQg
+dG8gc3dpdGNoIHRoZSBBR0MgYmV0d2VlbiBUViBhbmQgcmFkaW8gbW9kZS4gVGhpcwogIG5vcm1h
+bGx5IGlzIGp1c3QgYW4gYW5hbG9nIG11bHRpcGxleGVyLiBUb2dnbGluZyB0aGlzIGR1cmluZyBp
+bml0aWFsaXphdGlvbgogIG1ha2VzIG5vIHNlbnNlIHVubGVzcyB0aGVyZSBpcyBhIHNpZGUgZWZm
+ZWN0LgotIHdoYXQgYXJlIHRoZSBjaGFuZ2VzIGluIHR1bmVyLWNvcmUuYyBnb29kIGZvcj8KCkJl
+c3QgcmVnYXJkcwogICBIYXJ0bXV0CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
+cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
+ZHZi
