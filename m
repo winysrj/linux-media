@@ -1,28 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14MJPXi023839
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 17:19:26 -0500
-Received: from tonymontana.websupport.sk (postfix@tonymontana.websupport.sk
-	[81.89.48.226])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m14MJ37r032122
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 17:19:04 -0500
-Received: from tonymontana.websupport.sk (localhost [127.0.0.1])
-	by clamsmtp.websupport.sk (Postfix) with ESMTP id 99D975689A5
-	for <video4linux-list@redhat.com>; Mon,  4 Feb 2008 23:18:27 +0100 (CET)
-Received: from [192.168.1.10] (adsl-dyn15.91-127-251.t-com.sk [91.127.251.15])
-	(Authenticated sender: peter.v@datagate.sk)
-	by tonymontana.websupport.sk (Postfix) with ESMTP id 780B8568938
-	for <video4linux-list@redhat.com>; Mon,  4 Feb 2008 23:18:27 +0100 (CET)
-Message-ID: <47A78F56.4060809@datagate.sk>
-Date: Mon, 04 Feb 2008 23:19:02 +0100
-From: =?ISO-8859-2?Q?Peter_V=E1gner?= <peter.v@datagate.sk>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <1202048649.12975.9.camel@vb>
-In-Reply-To: <1202048649.12975.9.camel@vb>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1IGDXhk027507
+	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 11:13:33 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1IGDHAf011399
+	for <video4linux-list@redhat.com>; Mon, 18 Feb 2008 11:13:17 -0500
+Date: Mon, 18 Feb 2008 13:13:00 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Toralf =?UTF-8?B?RsO2cnN0ZXI=?= <toralf.foerster@gmx.de>
+Message-ID: <20080218131300.529b9862@gaivota>
+In-Reply-To: <200802171121.13119.toralf.foerster@gmx.de>
+References: <200802171121.13119.toralf.foerster@gmx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Subject: Re: can't switch audio mode to stereo with avertv studio 303
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: build #355 issue for v2.6.25-rc2-15-g1309d4e in function
+ v4l2_i2c_attach
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,44 +28,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all,
-Is here anyone with this card please? I have read a lot I have tryed 
-setting various options (port0, port1 and qss) but no luck. I have read 
-in this list that under certain conditions it is possible to get stereo 
-sound out of avertv studio 303 but sometimes it starts producing noyse 
-after a bit of watching.
+On Sun, 17 Feb 2008 11:21:09 +0100
+Toralf FÃ¶rster <toralf.foerster@gmx.de> wrote:
 
-Thanks for the possible replies.
+> Hello,
+> 
+> the build with the attached .config failed, make ends with:
+> ...
+>   CC      arch/x86/lib/usercopy_32.o
+>   AR      arch/x86/lib/lib.a
+>   LD      vmlinux.o
+>   MODPOST vmlinux.o
+> WARNING: modpost: Found 1 section mismatch(es).
+> To see full details build your kernel with:
+> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>   GEN     .version
+>   CHK     include/linux/compile.h
+>   UPD     include/linux/compile.h
+>   CC      init/version.o
+>   LD      init/built-in.o
+>   LD      .tmp_vmlinux1
+> drivers/built-in.o: In function `v4l2_i2c_attach':
+> (.text+0x26c67): undefined reference to `i2c_attach_client'
+> make: *** [.tmp_vmlinux1] Error 1
 
-Peter
+This bug were already fixed. I'm waiting for Linus to pull. The patches fixing
+it are available at:
 
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git
 
-Peter Vágner  wrote:
-> Hello all,
-> I am unable to switch audio mode to stereo with my avertv studio 303.
-> This is a cx88xx device.
-> I am using mplayer for watching. Sound is transmitted to the pc via
-> audio cable connected to the soundcard.
-> When playing radio channels I can hear stereo sound but after playing
-> radio channels I am unable to switch audio mode to mono and I am getting
-> no sound when trying to play a tv channel.
-> I have just pulled v4l-dvb from the mercurial repository. I have built
-> it with the help from some guys at #v4l irc channel sucesfully. I am
-> runing ubuntu 7.10 with kernel 2.6.14-22-generic
->
->
-> I would be extremelly happy to have stereo sound. can anybody please let
-> me know if this is possible?
->
-> thanks
->
-> Peter
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
