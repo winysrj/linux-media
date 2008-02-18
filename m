@@ -1,17 +1,15 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp101.rog.mail.re2.yahoo.com ([206.190.36.79])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JN8O1-0005nU-EA
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 16:10:01 +0100
-Message-ID: <47AB1F1A.5080901@rogers.com>
-Date: Thu, 07 Feb 2008 10:09:14 -0500
-From: CityK <CityK@rogers.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from [212.57.247.218] (helo=glcweb.co.uk)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JR6nB-0003fx-N6
+	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 15:16:25 +0100
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: Russell Kliese <russell@kliese.wattle.id.au>
-References: <47AB0A20.2020000@kliese.wattle.id.au>
-In-Reply-To: <47AB0A20.2020000@kliese.wattle.id.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [Bulk]  MSI TV@nywhere A/D v1.1 mostly working
+Date: Mon, 18 Feb 2008 14:14:51 -0000
+Message-ID: <A33C77E06C9E924F8E6D796CA3D635D1023974@w2k3sbs.glcdomain.local>
+From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
+To: <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] No results from multiproto & TT3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,26 +20,53 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Russell Kliese wrote:
-> I just wanted to report on my progress with the MSI TV@nywhere A/D card
-> v1.1 in case anyone has some ideas that might help getting this card
-> working 100%.
->
-> I've posted a picture of my card at the following URL:
-> http://ringo.com/photos/photo.html?photoId=253664472 . The chipset
-> includes: Philips TDA10046A digital decder, Philips SAA7131E analog
-> decoder and a 8275AC1 tuner.
+Hi all
 
-Hi Russell,
-could you please upload your photo to the wiki article: 
-http://linuxtv.org/wiki/index.php/MSI_TV%40nywhere_A/D
+I am making slow progress and am still a good way off from having a
+working system
 
-Thanks.
+What I have:
+
+[mythtv@f864office szap2]$ ./szap2 -c ../../channels.sat2 -t0 -n101
+reading channels from file '../../channels.sat2'
+zapping to 101 'BBC NEWS 24;BSkyB':
+sat 0, frequency = 10773 MHz H, symbolrate 22000000, vpid = 0x1518, apid
+= 0x1519 sid = 0x151b Querying info .. Delivery system=DVB-S using
+'/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+----------------------------------> Using 'STB0899 DVB-S' DVB-S
+do_tune: API version=3, delivery system = 0
+do_tune: Frequency = 1023000, Srate = 22000000
+do_tune: Frequency = 1023000, Srate = 22000000
 
 
+status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | 
+status 1e | signal 0136 | snr 005f | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK 
+status 1e | signal 0136 | snr 005f | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK 
+status 1e | signal 0136 | snr 0060 | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK 
+status 1e | signal 0136 | snr 005e | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK 
+status 1e | signal 0136 | snr 005e | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
+
+If I do 
+
+cat /dev/dvb/adapter0/dv0 > test.ts
+
+Then it remains empty
+
+Also the channel is locked but displaying very poor signal/snr 
+
+Any help will be much appreciated
+
+Regards
+
+Mike Curtis
 
 _______________________________________________
 linux-dvb mailing list
