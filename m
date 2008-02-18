@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from kane.otenet.gr ([195.170.0.77] ident=OTEnet-mail-system)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vnonas@otenet.gr>) id 1JTLhc-0006rU-HJ
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 19:35:56 +0100
-Message-ID: <47C1D52B.6070906@otenet.gr>
-Date: Sun, 24 Feb 2008 20:35:55 +0000
-From: Vangelis Nonas <vnonas@otenet.gr>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JR5QL-0006Qh-GT
+	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 13:48:45 +0100
+Message-ID: <47B97E8B.8090905@gmx.net>
+Date: Mon, 18 Feb 2008 13:48:11 +0100
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
-	<47C19735.4030601@gmail.com>
-In-Reply-To: <47C19735.4030601@gmail.com>
+To: "P. van Gaans" <w3ird_n3rd@gmx.net>
+References: <47B19015.20208@gmx.net> <47B2F82F.6070804@Deuromedia.ro>
+	<47B3512C.5010107@gmx.net> <47B62C4B.3020604@gmx.net>
+In-Reply-To: <47B62C4B.3020604@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+Subject: Re: [linux-dvb] DiSEqC trouble with TT S-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,58 +26,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
-
-I scanned using 7205 changeset. With verbose=5, I get 1801 services. 
-With verbose=2 I get 1725 services.
-
-Using the 7201 changeset with verbose=5 I get 2082 services. I can check 
-for verbose=2 and changeset 7201 if you think it is useful.
-
-I have the "feeling" that 7201 behaves better. It is much faster also 
-during scanning( I don't have measurements but I am pretty sure).
-
-Should you need kernel logs for failing transponders either 7201 or 7205 
-let me know.
-
-Regards
-Vagelis
-
-
-
-
-Manu Abraham wrote:
-> Vangelis Nonas wrote:
->> Hello,
+On 02/16/2008 01:20 AM, P. van Gaans wrote:
+> On 02/13/2008 09:21 PM, P. van Gaans wrote:
+>> On 02/13/2008 03:01 PM, Doru Marin wrote:
+>>> Hi,
+>>>
+>>> Can you explain how you select those 4 positions ? DiSEqC commands or 
+>>> tone/voltage changes ?
+>>> Also can you determine the input type of those positions (Hi/Low, 
+>>> H/V, etc) ? A scenario to see when and why that happens, would be 
+>>> more useful.
+>>>
+>>> P. van Gaans wrote:
+>>>> Hi,
+>>>>
+>>>> I've got a Technotrend S-1500 (if it matters: I use it with Kaffeine 
+>>>> 0.8.3). It works mostly fine, but there's a strange problem. With my 
+>>>> Spaun 4/1 DiSEqC switch (they cost approx 25-40 euro), I can only 
+>>>> switch without trouble to position 1 and 2. If I tune directly to 
+>>>> position 3 it won't lock.
+>>>>
+>>>> However, if I first tune to a channel on position 1 or 2 and try a 
+>>>> channel on position 3 after that, it will work. Position 4 however 
+>>>> is completely unreachable.
+>>>>
+>>>> On a standalone receiver, there's no trouble with the same cable.
+>>>>
+>>>> Now Spaun is a really expensive and respected brand. So their 
+>>>> switches possibly work in a different way, because a cheap Maximum 
+>>>> 4/1 switch works perfectly with the S-1500. Position 1, 2, 3 and 4 
+>>>> all work perfectly. I also did some "dry testing" indoors and it 
+>>>> looks like a 7 euro Satconn 4/1 switch would also work fine, but a 
+>>>> 17 euro Axing SPU 41-02 probably won't.
+>>>>
+>>>> I'm guessing this could be solved in stv0299.c but I'm not much of 
+>>>> an expert. I took a look at the code but I'm not really sure what to 
+>>>> do.
+>>>>
+>>>> _______________________________________________
+>>>> linux-dvb mailing list
+>>>> linux-dvb@linuxtv.org
+>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>   
 >>
->> I tried scanning with the 7201 changeset and I believe the results 
->> are better than the 7205 changeset. In the former case I get 2082 
->> services on hotbird, in the latter 1722.
+>> I select them with Kaffeine. Hi/low and H/V doesn't matter. I tried 
+>> upgrading to Kaffeine 0.8.5 but that doesn't make a difference. The 
+>> "scan" application has the same issues.
 >>
->
-> Hmm.. Ok.
->
-> Can you please get 7205 and load the stb0899 and stb6100 modules with
-> verbose=2 or 5 as module parameters and see whether it makes any 
-> difference ?
-> (ie you see more of the services) ie check whether changing the module 
-> parameters
-> (verbosity level) makes any difference in the number of services found.
->
->> I'll shortly send kernel logs for a failing transponder during scan.
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >>
->> And something else:
->> When I give to scan the parameter -o vdr it will not output the 
->> results after a complete scan.
->
-> Ok, this i had not added in, will look at this aspect.
->
-> Regards,
-> Manu
->
->
->
+> 
+> Nobody any ideas? If not, does anybody have some idea what the 
+> difference between position 1+2, pos 3 and pos 4 could be? I was 
+> thinking 1 and 2 might be working because of toneburst, but I don't 
+> think Kaffeine uses such a signal and that doesn't explain why pos 3 
+> works if first tuning to 1 or 2 and 4 doesn't work at all.
+> 
 
+I've figured out a bit more. If I tune directly to postion 3, I get pos
+1. Whenever I tune to pos 4, I get pos 2.
+
+I'll also ask people from Kaffeine as I'm not sure if the problem is in 
+the application, driver or somewhere else.
 
 _______________________________________________
 linux-dvb mailing list
