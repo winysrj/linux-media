@@ -1,25 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.190])
+Received: from smtp2a.orange.fr ([80.12.242.140])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JV9JE-0005Nr-WF
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 18:46:14 +0100
-Received: by rv-out-0910.google.com with SMTP id b22so3289094rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 09:46:08 -0800 (PST)
-Message-ID: <d9def9db0802290946x4e92c810l4ad2ad605aa29b00@mail.gmail.com>
-Date: Fri, 29 Feb 2008 18:46:08 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47C84079.6060203@powercraft.nl>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <47C83611.1040805@powercraft.nl>
-	<d9def9db0802290848v100ca9dcm22292e368bec4ad5@mail.gmail.com>
-	<47C83919.4010102@powercraft.nl>
-	<d9def9db0802290901v74aa7889oab2b6e4c22057f@mail.gmail.com>
-	<47C84079.6060203@powercraft.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Pinnacle PCTV Hybrid Pro Stick 330e - Installation
-	Guide - v0.1.2j
+	(envelope-from <david.bercot@wanadoo.fr>) id 1JR8lU-0002ao-5l
+	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 17:22:48 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2a17.orange.fr (SMTP Server) with ESMTP id 42AC6700009E
+	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 17:22:12 +0100 (CET)
+Received: from localhost (ANantes-252-1-77-76.w86-195.abo.wanadoo.fr
+	[86.195.216.76])
+	by mwinf2a17.orange.fr (SMTP Server) with ESMTP id 3399A700009C
+	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 17:22:10 +0100 (CET)
+Date: Mon, 18 Feb 2008 17:22:00 +0100
+From: David BERCOT <david.bercot@wanadoo.fr>
+Cc: linux-dvb@linuxtv.org
+Message-ID: <20080218172200.64004443@wanadoo.fr>
+In-Reply-To: <20080218142116.GA4462@moelleritberatung.de>
+References: <20080218135027.2b6a10e7@wanadoo.fr>
+	<20080218142116.GA4462@moelleritberatung.de>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Error compiling multiproto
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,82 +26,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1674162547=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> Markus Rechberger wrote:
-> > On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >> Markus Rechberger wrote:
-> >>> Hi Jelle,
-> >>>
-> >>> On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >>>> This message contains the following attachment(s):
-> >>>> Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
-> >>>>
-> >>> the correct mailinglist for those devices is em28xx at mcentral dot de
-> >>>
-> >>> I added some comments below and prefixed them with /////////
-> >>>
-> >>> This message contains the following attachment(s):
-> >>> Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
-> >>>
-> >> We will get it working in the next few days, i am already working on a
-> >> user guide. I will add the comments to the new version, i just thought
-> >> release as soon as possible, dont want somebody else to spent hours and
-> >> hours of his day installing your nice driver.
-> >>
-> >> Nice, I was working on building tvtime but it gave me errors,
-> >>
-> >
-> > libasound2-dev and the linux kernel headers or at least a symlink from
-> > /usr/include/linux -> kernelroot/include/linux is missing.
-> >
-> > It would be nice if you can create a howto on mcentral.de! I'm sure it
-> > might help some people. My guide only explains how to compile it on a
-> > already set up system (and this can differ with every distribution).
-> >
-> > I will release precompiled packages for the eeePC within the next few
-> > days. I just need to package the binaries for it.
-> > I added tvtime, gqradio and kaffeine buttons to my eeePC and
-> > everything works really well.
-> > I'll focus on ATSC devices next week (after the cebit)
-> >
-> > thanks for the howto so far!
-> >
-> > Markus
->
-> I will work on the docu you on the nice code :-p
->
-> Just one thing how to fix the below? Than we can release a first draft.
-> We need a group that is compatiable with udev and the driver, so that we
-> can do adduser $USER $GROUP to give premissions to use the devices
->
+--===============1674162547==
+Content-Type: multipart/signed; boundary="Sig_/ml=cIEMKe7=Y6KuAPsewepm";
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
 
-feel free to work on it, if you have some patches to apply for the
-build.sh scripts just submit them :)
+--Sig_/ml=cIEMKe7=Y6KuAPsewepm
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> # to-do:
-> # howto add group for created devices so that all users in that group
-> can use the devices?
->
-> oja also i cant get /dev/vdi0 working
->
+Le Mon, 18 Feb 2008 15:21:16 +0100,
+Artem Makhutov <artem@makhutov.org> a =C3=A9crit :
+> Hi,
+>=20
+> On Mon, Feb 18, 2008 at 01:50:27PM +0100, David BERCOT wrote:
+> > Hi,
+> >=20
+> > After a clean install, I try to compile multiproto. But, after the
+> > "make", I have this error :
+> > In file included from /opt/dvb/multiproto/v4l/em28xx-audio.c:39:
+> > include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not
+> > in a function) /opt/dvb/multiproto/v4l/em28xx-audio.c:58: error:
+> > array index in initializer not of integer
+> > type /opt/dvb/multiproto/v4l/em28xx-audio.c:58: error: (near
+> > initialization for 'index') make[3]: ***
+> > [/opt/dvb/multiproto/v4l/em28xx-audio.o] Error 1 make[2]: ***
+> > [_module_/opt/dvb/multiproto/v4l] Error 2 make[2]: Leaving directory
+> > `/usr/src/linux-headers-2.6.24-1-amd64' make[1]: *** [default]
+> > Erreur 2 make[1]: quittant le r=C3=A9pertoire =C2=AB /opt/dvb/multiprot=
+o/v4l
+> > =C2=BB make: *** [all] Erreur 2
+>=20
+> You have to apply this patch to be able to compile multiproto under a
+> 2.6.24 kernel:
+>=20
+> http://linuxtv.org/hg/v4l-dvb/rev/b0815101889d
+>=20
+> Patch download link:
+>=20
+> http://linuxtv.org/hg/v4l-dvb/raw-diff/b0815101889d/v4l/compat.h
+>=20
+> Regards, Artem
 
-the vbi interface was only tested with osc which is part of the
-libzvbi package. There's currently no application available which
-works with the vbi interface, it needs some more fiddling around with
-the libzvbi library.
-This is a topic which has a lower priority since other parts have to
-be improved first..
-Patches in that area are welcome of course.
+OK. Simple ;-)
 
-Markus
+I have not seen this information :-(
+
+Thank you very much.
+
+David.
+
+--Sig_/ml=cIEMKe7=Y6KuAPsewepm
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHubCvvSnthbGI8ygRAraWAKCoQz6KKkvMPYI+0cS8PxmIekNqnQCeIEOt
+aArSzvMcGGHafhL7dvV6GLE=
+=j0Wf
+-----END PGP SIGNATURE-----
+
+--Sig_/ml=cIEMKe7=Y6KuAPsewepm--
+
+
+
+--===============1674162547==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1674162547==--
