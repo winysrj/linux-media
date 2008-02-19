@@ -1,24 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from f121.mail.ru ([194.67.57.127])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JMAto-0002Y4-1G
-	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 00:38:52 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JVQ004RLMZU6ND1@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 04 Feb 2008 18:38:19 -0500 (EST)
-Date: Mon, 04 Feb 2008 18:38:17 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAGiow9eC/plOkJFZOiAHb4MBAAAAAA==@stahurabrenner.com>
-To: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
-Message-id: <47A7A1E9.4050605@linuxtv.org>
-MIME-version: 1.0
-References: <20080128172009.GA15773@gauss.marywood.edu>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAGiow9eC/plOkJFZOiAHb4MBAAAAAA==@stahurabrenner.com>
+	(envelope-from <goga777@bk.ru>) id 1JRRxv-0003aO-EG
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 13:52:55 +0100
+From: Igor <goga777@bk.ru>
+To: Zenon Mousmoulas <zmousm@admin.grnet.gr>
+Mime-Version: 1.0
+Date: Tue, 19 Feb 2008 15:52:21 +0300
+References: <8EDD5E70-F34A-4B5E-8A31-64FC3BCE1672@admin.grnet.gr>
+In-Reply-To: <8EDD5E70-F34A-4B5E-8A31-64FC3BCE1672@admin.grnet.gr>
+Message-Id: <E1JRRxN-000Jur-00.goga777-bk-ru@f121.mail.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] XC5000 tuner improvement/clean up
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SGF1cHBhdWdlIFdpblRWLUhWUjQwMDAgYW5kIERW?=
+	=?koi8-r?b?Qi1TMi4uLg==?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,33 +25,50 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Timothy E. Krantz wrote:
->> On Jan 27, 2008 6:50 PM, Chaogui Zhang <czhang1974@gmail.com> wrote:
->>> Download the newest v4l-dvb tree from http://linuxtv.org/hg/v4l-dvb 
->>> and apply the patch against it.
->>>
->> I just noticed that the previous patch that fixed the kernel 
->> oops has been merged into the master tree, which conflicts 
->> with the patch for tuner performance improvement(which 
->> contains the oops fixes too). I regenerated the patch against 
->> the master tree and it is below. Please use this one instead.
->>
->> --
->> Chaogui Zhang
+> >> My goal is to get this card to tune to a DVB-S2 transponder, more
+> >> specifically this one:
+> >> http://en.kingofsat.net/tp.php?tp=2656
+> >> I have a dish with 4 LNBs connected to the HVR4000 through a DiSEqC
+> >> 1.0 4x1 switch.
+> >> The 4th LNB is pointed to this satellite and I can tune to DVB-S
+> >> transponders there just fine with another card as well as this one
+> >> (more on that later).
+> >>
+> >> I assume multiproto is necessary for DVB-S2 tuning to actually work.
+> >> Right?
+> >
+> > yes, right. Latest version of multiproto will help you.
 > 
+> Thanks. Since I asked this in the first place, let me put it another  
+> way:
+> Currently there is no other way to get DVB-S2 tuning, other than going  
+> with the multiproto tree, such as a patch-set for the main hg tree?
+
+there's other way - the hvr4000-patches from Darron Broad for current hg tree
+http://dev.kewl.org/hauppauge/
+
+> So, to conclude, as Holger Steinhaus noted:
 > 
-> Any idea when this will me merged with the main tree?
+> The 2 things that can "speak" to the multiproto drivers a compatible  
+> version of the DVB API "language" are
+> - szap2 and
+> - vdr-1.5.14 + h264 patch ?
 > 
-> It is working great for me.
+> Are there any others?
 
-Soon, after I've tested it with various other XC5000 products.
+there's multiproto-patch for mythtv , I don't know anything abot kaffeine. 
 
-This week.
+> If I use szap2 first, then I can also use dvbstream or dvbsnoop as  
+> well. I have to keep szap2 running though, because the frontend shuts  
+> down after some time, despite the dvb-core module option  
+> dvb_shutdown_timeout=0 (I think I have seen this previously reported).
 
-- Steve
+yes, we are waiting for the answer from Manu about this option in multiproto - it's seems it was broken.
+
+Igor
 
 
 _______________________________________________
