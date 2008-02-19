@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m160qF42027506
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 19:52:15 -0500
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m160pgdL029577
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 19:51:42 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1JMuvPA030781
+	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 17:56:57 -0500
+Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
+	[151.189.21.53])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1JMuPN5031619
+	for <video4linux-list@redhat.com>; Tue, 19 Feb 2008 17:56:25 -0500
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Yuri Fundurian <yurifun@mail.ru>,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ricardo Cerqueira <v4l@cerqueira.org>
-In-Reply-To: <E1JMMVt-000Lwk-00.yurifun-mail-ru@f43.mail.ru>
-References: <E1JMMVt-000Lwk-00.yurifun-mail-ru@f43.mail.ru>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
+References: <1203434275.6870.25.camel@tux>
+	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
+	<1203457264.8019.6.camel@anden.nu> <1203459408.28796.19.camel@youkaida>
+	<Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
 Content-Type: text/plain
-Date: Wed, 06 Feb 2008 01:48:03 +0100
-Message-Id: <1202258883.4261.28.camel@pc08.localdom.local>
+Date: Tue, 19 Feb 2008 23:50:40 +0100
+Message-Id: <1203461440.5358.2.camel@pc08.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [PATCH 2.6.24 1/1] saa7134: fix fm-radio
-	pinnacle pctv 110i
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Nicolas Will <nico@youplala.net>
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+	receiver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,56 +33,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Am Dienstag, den 19.02.2008, 23:29 +0100 schrieb Patrick Boettcher:
+> Hi,
+> 
+> On Tue, 19 Feb 2008, Nicolas Will wrote:
+> >> I would suggest creating a netlink device which lircd (or similar) can
+> >> read from.
+> >
+> > Be ready to discount my opinion, I'm not too good at those things.
+> >
+> > Wouldn't going away from an event interface kill a possible direct link
+> > between the remote and X?
+> >
+> > The way I see it, LIRC is an additional layer that may be one too many
+> > in most cases. From my point of view, it is a relative pain I could do
+> > without. But I may have tunnel vision by lack of knowledge.
+> 
+> I agree with you. I'm more looking for a solution with existing things. 
+> LIRC is not in kernel. I don't think we should do something specific, new. 
+> If there is nothing which can be done with the event system I think we 
+> should either extend it or just drop this idea.
+> 
+> What about HID?
+> 
+> Patrick.
+> 
+
 Hi,
 
-Am Dienstag, den 05.02.2008, 15:02 +0300 schrieb Yuri Fundurian:
-> This patch for fm-radio on pinnacle pctv 110i.
-> Without this patch fm-radio doesn't work.
-> 
-> --- /usr/src/kernels/2.6.24/drivers/media/video/saa7134/saa7134-cards.c 2008-01-25 03:58:37.000000000 +0500
-> +++ /usr/src/kernels/2.6.24/drivers/media/video/saa7134/saa7134-cards.c.patch   2008-01-31 11:27:01.000000000 +0500
-> @@ -2484,7 +2484,8 @@ struct saa7134_board saa7134_boards[] =
->                 }},
->                 .radio = {
->                           .name = name_radio,
-> -                         .amux = LINE1,
-> +                       .amux = TV,
-> +                       .gpio = 0x0200000,
->                 },
->         },
->         [SAA7134_BOARD_ASUSTeK_P7131_DUAL] = {
-> Signed-off-by: Yuri Funduryan <yurifun@mail.ru>
-Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+for what we have ir-common then already?
 
-Yuri, thanks for the fix.
-
-Hartmut, does it apply with some offset or should I prepare something
-against v4l-dvb?
-
-Mauro can pull it as a fix for 2.6.25 then.
-
-We also have the same issue on the Avermedia 007, AFAIK.
-Next we should fix the indentation on the 110i entry ;)
-
-Got a Medion/Creatix CTX953 today.
-Against prior reports, DVB-T and analog TV work very well,
-have to check the other inputs.
-
-A patch will follow soon.
-
-No trace of the CTX948 yet I did send to you as a letter in the hope to
-save some time. Will try to get it investigated. A new one is bought,
-but might take time to arrive.
-
-In between we might call for testers on both lists and point to what we
-have so far.
+Did not look in any details, but we have a hook there,
+also for RC5 remotes.
 
 Cheers,
 Hermann
-
-
- 
-
 
 
 --
