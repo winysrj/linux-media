@@ -1,19 +1,24 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.184])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1JLvvQ-0008G3-Lf
-	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 08:39:32 +0100
-Received: by rv-out-0910.google.com with SMTP id b22so1868612rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 03 Feb 2008 23:39:30 -0800 (PST)
-Message-ID: <617be8890802032339l2f81a35el7f1a5e9ae08cdd8d@mail.gmail.com>
-Date: Mon, 4 Feb 2008 08:39:29 +0100
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <mailman.64.1202074788.809.linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <mailman.64.1202074788.809.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] linux-dvb Digest, Vol 37, Issue 5
+	(envelope-from <nico@youplala.net>) id 1JRafR-0005lN-Gf
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 23:10:25 +0100
+Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
+	[84.69.142.185])
+	by mail.youplala.net (Postfix) with ESMTP id D372ED88113
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 23:09:27 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+References: <1203434275.6870.25.camel@tux>
+	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
+	<1203449457.28796.7.camel@youkaida>
+	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+Date: Tue, 19 Feb 2008 22:09:26 +0000
+Message-Id: <1203458966.28796.13.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,37 +26,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> ---------- Missatge reenviat ----------
-> From: Nicolas Will <nico@youplala.net>
-> To: linux-dvb <linux-dvb@linuxtv.org>
-> Date: Sun, 03 Feb 2008 21:36:23 +0000
-> Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
->
-> On Sun, 2008-02-03 at 10:39 +0100, Jonas Anden wrote:
-> >
-> > My system has a 3.3 Ghz Celeron processor. Shaun, Ben, Nicolas -- what
-> > kind of systems are you running? If my hunch is correct, I'd expect
-> > Shaun and Ben to have faster processors than Nicolas since they are
-> > seeing this issue and Nicolas isn't.
->
->
-> I have a fast Core 2 Duo, 2.66 GHz, tons of cache, 64-bit OS.
->
-> Nico
-> http://www.youplala.net/linux/home-theater-pc
 
-Just my 0.02=80 to the statistics: I'm running an AthlonXP 3800+, 1 GB
-RAM, Gentoo 64 bits. I can't even remember when I had my last
-disconnect....
+On Wed, 2008-02-20 at 06:10 +0900, Matthew Vermeulen wrote:
+> Hi all... I'm seeing exactly the same problems everyone else is (log
+> flooding etc) except that I can't seem to get any keys picked by lirc
+> or /dev/input/event7 at all...
+> 
+> Would this patch help in this case?
 
-Best regards,
-  Eduard
+It would help with the flooding, most probably, though there was a patch
+for that available before.
+
+As for LIRC not picking up the event, I would be tempted to say no, it
+won't help.
+
+Are you certain that your LIRC is configured properly? Are you certain
+that your event number is the right one?
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
