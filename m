@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from averel.grnet-hq.admin.grnet.gr ([195.251.29.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JTgnE-0000mD-19
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 18:07:08 +0100
-Received: by nf-out-0910.google.com with SMTP id d21so938447nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 09:07:03 -0800 (PST)
-Message-ID: <8ad9209c0802250900tcbfa2d9v2494993cfb0e4604@mail.gmail.com>
-Date: Mon, 25 Feb 2008 18:00:06 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1203520472.4767.18.camel@pc08.localdom.local>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
-	<1203461323.28796.26.camel@youkaida>
-	<1203466323.5358.29.camel@pc08.localdom.local>
-	<1203491540.28796.46.camel@youkaida>
-	<1203520472.4767.18.camel@pc08.localdom.local>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+	(envelope-from <zmousm@admin.grnet.gr>) id 1JRU5B-0003Eg-VH
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 16:08:34 +0100
+Message-Id: <A3A96FDA-7A8C-42E9-AC90-A61E028AB136@admin.grnet.gr>
+From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
+To: Igor <goga777@bk.ru>
+In-Reply-To: <E1JRTvz-0006ob-00.goga777-bk-ru@f163.mail.ru>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Tue, 19 Feb 2008 17:07:26 +0200
+References: <E0915816-8882-4017-94A5-5FD69DE84DFC@admin.grnet.gr>
+	<E1JRTvz-0006ob-00.goga777-bk-ru@f163.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR4000 and DVB-S2...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,130 +20,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-7"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Feb 20, 2008 at 4:14 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Hi Nico,
->
->  Am Mittwoch, den 20.02.2008, 07:12 +0000 schrieb Nicolas Will:
->
-> > On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
->  > > > Now stop that logging madness and get back to work!
->  > > >
->  > > > ...
->  > > >
->  > > > ;o)
->  > > >
->  > > >
->  > > > This is a rather comical situation, though... The debugging tool is
->  > > > providing a rather unexpected and unwelcomed fix.
->  > > >
->  > > > Nico
->  > > >
->  > >
->  > > Hi,
->  > >
->  > > no, it is not. It is well known!
->  > >
->  > > Timings are very critical on almost all drivers.
->  > >
->  > > We hold breath on almost everything coming down from above, nobody has
->  > > the ability, or whom should ever want it, to test all possible side
->  > > effects on all supported devices ...
->  > >
->  > > That something breaks is very common, and that others have to give the
->  > > plumbers, is nothing new.
->  > >
->  > > To stay fair, it mostly has a good reason, and if there are some
->  > > remaining ticks left, you might get it adjusted, but ...
->  > >
->  > > On the other side it is the same ...
->  >
->  > May post may have sounded offensive, apparently.
->  >
->  > Sorry about that, my intentions were on the lighter sides of life.
->  >
->  > Nico
->  >
->
->  nothing offending at all, did enjoy your above comment :)
->  and like your active support for others.
->
->  It is just not totally unexpected that high debug levels can have some
->  spin-off and I'm curious about it.
->
->  Cheers,
->  Hermann
->
->
->
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-Kernel 2.6.24-2
-Debug=15
-Got this after 5 minutes of LiveTV:
-(Dunno if it could be usefull or not)
-
-modifying (1) streaming state for 1
-data for streaming: 10 13
->>> 0f 10 13 00
-usb 10-1: USB disconnect, address 2
->>> 03 14 03 01 60 00
-ep 0 write error (status = -19, len: 6)
-mt2060 I2C write failed
->>> 03 14 04 07 ff ff
-ep 0 write error (status = -19, len: 6)
->>> 03 14 04 08 ff ff
-ep 0 write error (status = -19, len: 6)
->>> 03 14 04 09 ff f0
-ep 0 write error (status = -19, len: 6)
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 ca
-ep 0 read error (status = -19)
-<<< 00 20
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
->>> 02 17 81 fd
-ep 0 read error (status = -19)
-<<< 77 8d
-I2C read failed on address b
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Ck9uIDE5INbl4iAyMDA4LCBhdCA0OjU5IMzMLCBJZ29yIHdyb3RlOgoKPj4+IGNvdWxkIHlvdSBz
+aG93IHRoZSBzemFwMiBvdXRwdXQgZHVyaW5nIGR2Yi1zMiB0dW5pbmcKPj4KPj4gSSBqdXN0IHRy
+aWVkIGl0IGFnYWluIHdpdGggMi42LjIyOgo+Pgo+PiB0dmJveDI6fiMgc3phcDIgLXIgLXQyIC1l
+MyAtbTggLWMgdHZib3hfZHZiL3phcC9kdmItcy8KPj4gZGlzZXFjNF9IZWxsYXNTYXQyLTM5LjBF
+Lm5ldyBMVVhFVFYKPj4gcmVhZGluZyBjaGFubmVscyBmcm9tIGZpbGUgJ3R2Ym94X2R2Yi96YXAv
+ZHZiLXMvCj4+IGRpc2VxYzRfSGVsbGFzU2F0Mi0zOS4wRS5uZXcnCj4+IHphcHBpbmcgdG8gMiAn
+TFVYRVRWJzoKPj4gc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4IE1IeiBILCBzeW1ib2xyYXRlIDc3
+MjAwMDAsIHZwaWQgPSAweDBiYzMsCj4+IGFwaWQgPSAweDBiYzYgc2lkID0gMHgwMTJkIChmZWMg
+PSA2NCwgbW9kID0gOCkKPj4gUXVlcnlpbmcgaW5mbyAuLiBEZWxpdmVyeSBzeXN0ZW09RFZCLVMy
+Cj4+IHVzaW5nICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRh
+cHRlcjAvZGVtdXgwJwo+PiBpb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBu
+b3Qgc3VwcG9ydGVkCj4+Cj4+IEkgd2lsbCB0cnkgaXQgYWdhaW4gc2hvcnRseSB3aXRoIDIuNi4y
+NC4KPgo+IHRyeSB0byB1c2UgdGhlIHVzdWFsIHN6YXAsIG5vdCBzemFwMgoKSSBhbHJlYWR5IGRp
+ZC4gSXQgZGlkbid0IHdvcmsuLi4KCnR2Ym94Mjp+IyBzemFwIC1jIHR2Ym94X2R2Yi96YXAvZHZi
+LXMvZGlzZXFjNF9IZWxsYXNTYXQyLTM5LjBFLm5ldyAgCkxVWEVUVgpyZWFkaW5nIGNoYW5uZWxz
+IGZyb20gZmlsZSAndHZib3hfZHZiL3phcC9kdmItcy8gCmRpc2VxYzRfSGVsbGFzU2F0Mi0zOS4w
+RS5uZXcnCnphcHBpbmcgdG8gMiAnTFVYRVRWJzoKc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4IE1I
+eiBILCBzeW1ib2xyYXRlIDc3MjAwMDAsIHZwaWQgPSAweDBiYzMsICAKYXBpZCA9IDB4MGJjNgp1
+c2luZyAnL2Rldi9kdmIvYWRhcHRlcjAvZnJvbnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIw
+L2RlbXV4MCcKc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAw
+MCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMSB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBi
+ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApzdGF0dXMgMDMgfCBzaWduYWwgZjI0MCB8IHNu
+ciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2lnbmFs
+IGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAw
+MyB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAg
+fApzdGF0dXMgMDMgfCBzaWduYWwgZjM0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5j
+IDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2lnbmFsIGYyODAgfCBzbnIgMDAwMCB8IGJlciAwMDAw
+MDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMSB8IHNpZ25hbCBmMjgwIHwgc25yIDAwMDAg
+fCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfAoKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2
+YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0
+aW5mby9saW51eC1kdmI=
