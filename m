@@ -1,21 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from an-out-0708.google.com ([209.85.132.244])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <guillaume.ml@gmail.com>) id 1JMkIF-0005mA-BV
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 14:26:27 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so430425wag.13
-	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 05:26:25 -0800 (PST)
-Message-ID: <4758d4170802060526m5dca13dbr1cf357f5008413cb@mail.gmail.com>
-Date: Wed, 6 Feb 2008 14:26:25 +0100
-From: "=?ISO-8859-1?Q?Guillaume_Membr=E9?=" <guillaume.ml@gmail.com>
-To: "Christoph Pfister" <christophpfister@gmail.com>
-In-Reply-To: <19a3b7a80802060500y783f543av8f730095439c64c7@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <4758d4170802060447r2d08b759n98e115e1422b9494@mail.gmail.com>
-	<19a3b7a80802060500y783f543av8f730095439c64c7@mail.gmail.com>
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRVeN-0003FT-R8
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 17:48:59 +0100
+Received: by an-out-0708.google.com with SMTP id d18so945001and.125
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 08:48:55 -0800 (PST)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
+To: Eduard Huguet <eduardhc@gmail.com>
+In-Reply-To: <617be8890802190833h23efc669m458076b40efbac08@mail.gmail.com>
+References: <617be8890802190833h23efc669m458076b40efbac08@mail.gmail.com>
+Date: Tue, 19 Feb 2008 17:49:01 +0100
+Message-Id: <1203439741.18016.10.camel@tux>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb-c : full scan
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,41 +22,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ok thanks a lot. I though that frequencies where different in each
-city as they are in dvb-t.
-
-On 2/6/08, Christoph Pfister <christophpfister@gmail.com> wrote:
-> 2008/2/6, Guillaume Membr=E9 <guillaume.ml@gmail.com>:
-> > Hello,
-> >
-> > I'm newbie, so please be kind :)
-> > I have a satelco easywatch pci dvb-c card and I would like to do a
-> > full scan of frequencies in order to find the transponders of my
-> > cable-provider.
-> > I didn't find any start file for scan for my country/provider. I'm
-> > leaving in France, in Nantes and my cable provider is Numericable.
->
-> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-c/fr-noos-numericab=
-le
->
-> > I have found that the script dvbt-scanaid seems to generate a big file
-> > to do the same work but only for dvb-t.
-> >
-> > Any help please ?
-> > Thanks a lot
-> > Regards
-> > Guillaume
->
-> Christoph
->
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+CklsIGdpb3JubyBtYXIsIDE5LzAyLzIwMDggYWxsZSAxNy4zMyArMDEwMCwgRWR1YXJkIEh1Z3Vl
+dCBoYSBzY3JpdHRvOgoKPiBIaSwgCj4gICAgIFRoYW5rcyBmb3IgeW91ciBlZmZvcnRzLiDCv0Rv
+IHlvdSB0aGluayB0aGlzIHBhdGNoIHdpbGwgYWxzbyBiZQo+IHVzZWZ1bCB0byB0aGUgdW5rbm93
+biBrZXljb2RlcyBwcm9ibGVtIG9mIHRoZSBOb3ZhLVQgNTAwIHJlbW90ZT8KPiAKPiBJZiB5b3Ug
+ZG9uJ3Qga25vdyB3aGF0IEknbSB0YWxraW5nIGFib3V0IGhlcmUgeW91IGhhdmUgYSBicmllZgo+
+IGRlc2NyaXB0aW9uOiB3aGVuZXZlciB0aGUgTm92YS1UIDUwMCByZWNlaXZlciBkZXRlY3RzICJp
+bnZhbGlkIiBvcgo+ICJ1bmtub3duIiBJUiBjb2RlcyAoaS5lLiB3aGVuIHlvdSBvcGVyYXRlIHRo
+ZSBUViByZW1vdGUsIGV0Yy4uLikgaXQKPiBrZWVwcyBsb2dnaW5nIHdhcm5pbmcgbWVzc2FnZXMg
+dG8ga2VybmVsIHJpbmcgYnVmZmVyIHVudGlsIGEgInZhbGlkIgo+IGNvZGUgaXMgcmVjZWl2ZWQu
+Cj4gCj4gVGhlcmUgaXMgYSB2ZXJ5IHNpbXBsZSBwYXRjaCBpbiB0aGUgd2lraSBmb3IgdGhpcywg
+YnV0IGl0IGRvZXNuJ3QgY3VyZQo+IHRoZSBwcm9ibGVtLCBqdXN0IHRoZSBzeW1wdG9ucy4gSSB3
+YXMgd29uZGVyaW5nIGlmIHlvdXIgcGF0Y2ggaXMgYQo+IGJldHRlciB3YXkgdG8gc29sdmUgaXQu
+Li4KPiAKPiBSZWdhcmRzLCAKPiAgIEVkdWFyZAoKSGksIEkgd2FzIG5vdCBhd2FyZSB0aGlzIHdh
+cyBhIGtub3duIHByb2JsZW0gYnV0IEknbSBwcmV0dHkgc3VyZSB0aGlzCnBhdGNoIHNob3VsZCBz
+b2x2ZSBpdC4gVGhhdCBwcm9ibGVtIGhhcHBlbnMgYmVjYXVzZSB0aGUgdG9nZ2xlIGJpdApjb250
+cm9sIChvbiB0aGUgdW5wYXRjaGVkIGNvZGUpIGlzIGRvbmUgaW4gdGhlIGtleW1hcCBjaGVjayBj
+eWNsZSBzbwp1bmtub3duIHJlcGVhdGVkIGtleXMgYXJlIG5vdCBpZ25vcmVkIGFuZCBzaW5jZSB0
+aGUga2V5cHJlc3MgZGF0YSBpcwpzdGlsbCBzYXZlZCBpbnRvIHRoZSBkZXZpY2UgdGhlIGVycm9y
+IG1lc3NhZ2UgaXMgcHJpbnRlZCBldmVyeSAxNTBtcwp1bnRpbGwga2V5IGRhdGEgY2hhbmdlcy4K
+SSBkaWRuJ3QgZmluZCB0aGUgd2lraSBwYWdlIGJ1dCBJIHRoaW5rIHRoaXMgaXMgdGhlIGNvcnJl
+Y3Qgc29sdXRpb24Kc2luY2UgaXQgcmVzZXRzIGlyIGRhdGEgYWZ0ZXIgZWFjaCBwb2xsLgpQbGVh
+c2UgbGV0IG1lIGtub3cgaWYgaXQgd29ya3MgZ29vZCBpZiB5b3UgYXJlIGdvaW5nIHRvIHRlc3Qg
+dGhlIHBhdGNoLgpUaGFua3MKCkZpbGlwcG8KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGlu
+dXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8v
+bGludXgtZHZi
