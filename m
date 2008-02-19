@@ -1,20 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JQ7Yk-0004tp-U3
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 21:53:26 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so545295fge.25
-	for <linux-dvb@linuxtv.org>; Fri, 15 Feb 2008 12:53:26 -0800 (PST)
-Message-ID: <47B5FBC2.2020102@googlemail.com>
-Date: Fri, 15 Feb 2008 20:53:22 +0000
-From: Andrea <mariofutire@googlemail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1JRayq-00084s-Im
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 23:30:36 +0100
+Date: Tue, 19 Feb 2008 23:29:14 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Nicolas Will <nico@youplala.net>
+In-Reply-To: <1203459408.28796.19.camel@youkaida>
+Message-ID: <Pine.LNX.4.64.0802192327000.13027@pub6.ifh.de>
+References: <1203434275.6870.25.camel@tux>
+	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
+	<1203457264.8019.6.camel@anden.nu> <1203459408.28796.19.camel@youkaida>
 MIME-Version: 1.0
-To: Christophe Thommeret <hftom@free.fr>
-References: <47B5EA79.8010402@googlemail.com>
-	<200802152056.55250.hftom@free.fr>
-In-Reply-To: <200802152056.55250.hftom@free.fr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Tools to edit TS files
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+ receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,31 +22,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Thommeret wrote:
-> Le vendredi 15 f=E9vrier 2008 20:39, Andrea a =E9crit :
->> Hi,
->>
->> I'd like to edit TS files (recorded with gnutv for instance).
->> Basically I'd like to cut, paste and join to skip commercials.
->>
->> Is there a tool for that out there?
->>
-> =
+Hi,
 
-> http://project-x.sourceforge.net/
-> =
+On Tue, 19 Feb 2008, Nicolas Will wrote:
+>> I would suggest creating a netlink device which lircd (or similar) can
+>> read from.
+>
+> Be ready to discount my opinion, I'm not too good at those things.
+>
+> Wouldn't going away from an event interface kill a possible direct link
+> between the remote and X?
+>
+> The way I see it, LIRC is an additional layer that may be one too many
+> in most cases. From my point of view, it is a relative pain I could do
+> without. But I may have tunnel vision by lack of knowledge.
 
+I agree with you. I'm more looking for a solution with existing things. 
+LIRC is not in kernel. I don't think we should do something specific, new. 
+If there is nothing which can be done with the event system I think we 
+should either extend it or just drop this idea.
 
-Thanks!
-It looks pretty sophisticated!
+What about HID?
 
-Andrea
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
