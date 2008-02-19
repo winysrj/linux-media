@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smeagol.cambrium.nl ([217.19.16.145] ident=qmailr)
+Received: from ch-smtp02.sth.basefarm.net ([80.76.149.213])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1JUr2s-0008EP-UW
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 23:16:07 +0100
-Message-ID: <47C7329F.7030705@powercraft.nl>
-Date: Thu, 28 Feb 2008 23:15:59 +0100
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	(envelope-from <vist@comhem.se>) id 1JRXZA-0007gl-R3
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 19:51:44 +0100
+Received: from ch-cpps01.sth.basefarm.net ([10.2.6.80]:33927)
+	by ch-smtp02.sth.basefarm.net with esmtps (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <vist@comhem.se>) id 1JRXZ6-0006eF-7y
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 19:51:41 +0100
+Received: from localhost ([127.0.0.1]:33925 helo=ch-cpps01.sth.basefarm.net)
+	by ch-cpps01.sth.basefarm.net with esmtp (Exim 4.66)
+	(envelope-from <vist@comhem.se>) id 1JRXYv-0005Hf-0p
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 19:51:29 +0100
+Message-ID: <1671357.31961203447089025.JavaMail.defaultUser@defaultHost>
+Date: Tue, 19 Feb 2008 19:51:29 +0100 (CET)
+From: <vist@comhem.se>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>,
-	Markus Rechberger <mrechberger@gmail.com>
-Content-Type: multipart/mixed; boundary="------------060602040104030307040605"
-Subject: [linux-dvb] Going though hell here,
- please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+Subject: [linux-dvb] Terratec Cinergy T USB XE
+Reply-To: vist@comhem.se
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,584 +25,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------060602040104030307040605
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello, I have a Terratec Cinergy T USB XE, 0ccd:0069 and have been trying to
+compile from site:
 
-This message contains the following attachment(s):
-Pinnacle PCTV Hybrid Pro Stick 330e.txt
+http://www.jusst.de/hg/af901x/
 
-Spent my hole day trying to get a dvd-t device up and running, this is 
-device number two I tried.
+My kernel is 2.6.22.5-31-x86_64.
 
-Can somebody please tell me how to get this device working on:
+I get the following error/warning  messages when compiling:
 
-2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
+CC [M]  /usr/build/af901x/v4l/af9015.o
+/usr/build/af901x/v4l/af9015.c: In function 'af901x_read_snr':
+/usr/build/af901x/v4l/af9015.c:477: warning: array subscript is above array
+bounds
+/usr/build/af901x/v4l/af9015.c: In function 'af901x_attach':
+/usr/build/af901x/v4l/af9015.c:1608: warning: 'fw_ver' may be used
+uninitialized in this function
+  CC [M]  /usr/build/af901x/v4l/af9015_biu.o
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_read_eeprom':
+/usr/build/af901x/v4l/af9015_biu.c:463: warning: unused variable 'eeprom_reg'
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_get_biu_config':
+/usr/build/af901x/v4l/af9015_biu.c:685: warning: label 'exit' defined but not
+used
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_epconfig_mode_15':
 
-I have to get some sleep now, because this is getting on my health and 
-that does not happen often....
+/usr/build/af901x/v4l/af9015_biu.c:817: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:822: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:829: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:834: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:841: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:848: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_epconfig_mode_17':
+/usr/build/af901x/v4l/af9015_biu.c:963: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:968: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c:974: warning: overflow in implicit constant
+conversion
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_tuner_attach':
+/usr/build/af901x/v4l/af9015_biu.c:1096: warning: unused variable 'err'
+/usr/build/af901x/v4l/af9015_biu.c: In function 'af9015_usb_probe':
+/usr/build/af901x/v4l/af9015_biu.c:1167: warning: unused variable 'biu'
+/usr/build/af901x/v4l/af9015_biu.c: At top level:
+/usr/build/af901x/v4l/af9015_biu.c:1138: warning: 'af9015_biu_epconfig'
+defined but not used
 
-All needed info is in the attachment.
+When I connect the stick it is recognised, firmware is downloaded and the
+tuner is attached according to the messages,
+but when trying to scan dvb-t  the tuning fails.
 
-Thanks for all the efforts, i have the feeling we were almost there....
+Do I need another kernel? I have tried 2.6.24 but it did not seem to work at
+all with http://www.jusst.de/hg/af901x/
 
-Kind regards,
+Is the support for Terratec Cinergy T USB XE, 0ccd:0069 and the Freescale
+tuner going to http://linuxtv.org/hg/ for all kernels?
 
-Jelle de Jong
+Is there anything I can do to solve this?
 
---------------060602040104030307040605
-Content-Type: text/plain;
- name="Pinnacle PCTV Hybrid Pro Stick 330e.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Pinnacle PCTV Hybrid Pro Stick 330e.txt"
-
-sudo apt-get install dvb-utils
-
-http://www.linuxtv.org/v4lwiki/index.php/Pinnacle/330e
-http://www.linuxtv.org/wiki/index.php/DVB_via_USB
-http://lunapark6.com/usb-hdtv-tuner-stick-for-windows-linux-hauppauge-wintv-hvr-950.html
-http://www.wi-bw.tfh-wildau.de/~pboettch/home/index.php?site=dvb-usb-firmware
-http://www.mail-archive.com/em28xx@mcentral.de/msg00750.html
-
-hg clone http://mcentral.de/hg/~mrec/userspace-drivers
-cd userspace-drivers
-sudo ./build.sh
-cd ..
-hg clone http://mcentral.de/hg/~mrec/em28xx-userspace2
-cd em28xx-userspace2
-sudo ./build.sh
-
-Video for Linux, plus?/
-both the V4L1 options and "DVB for Linux"?
-
-wget http://www.linuxtv.org/pipermail/linux-dvb/attachments/20070802/3b2e4d6a/attachment-0001.obj
-patch --strip=1 --directory=/home/jelle/v4l-dvb-experimental < attachment-0001.obj
-
-sudo apt-get install mercurial
-cd $HOME
-hg clone http://linuxtv.org/hg/v4l-dvb
-cd v4l-dvb
-make
-sudo make install
-sudo depmod -a
-
-sudo modprobe crc32
-sudo modprobe crc32c
-sudo modprobe firmware_class
-
-sudo apt-get install kaffeine-xine
-
-
-sudo apt-get install mercurial
-cd $HOME
-hg clone http://linuxtv.org/hg/v4l-dvb
-
-rm -r $HOME/v4l-dvb/linux/drivers/media/video/em28xx
-cp --verbose --recursive $HOME/v4l-dvb-experimental/linux/drivers/media/video/em28xx $HOME/v4l-dvb/linux/drivers/media/video/em28xx
-cd $HOME/v4l-dvb
-make clean
-make
-sudo make install
-
-
-sudo modprobe i2c-core
-sudo modprobe dvb-core
-sudo modprobe dvb-pll
-
-sudo modprobe em28xx
-
-sudo find $HOME/v4l-dvb '*' -type f -exec sudo grep -H -n "0x0226" '{}' \;
-sudo find $HOME/v4l-dvb '*' -type f -exec sudo grep -H -n "0x2304" '{}' \;
-
-/home/jelle/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h:122:#define USB_PID_WT220U_FC_WARM       0x0226
-/home/jelle/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h:42:#define USB_VID_PINNACLE              0x2304
-
-
-sudo apt-get install mercurial linux-headers-$(uname -r) linux-source build-essential
-cd ~
-wget http://konstantin.filtschew.de/v4l-firmware/firmware_v3.tgz
-sudo tar xvz -C /lib/firmware -f firmware_v3.tgz
-ls -hal /lib/firmware
-rm firmware_v3.tgz
-
-cd ~
-hg clone http://linuxtv.org/hg/v4l-dvb
-cd v4l-dvb
-make
-sudo make install
-
-sudo modprobe em2880-dvb
-
-tvtime | arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | aplay -
-
-hg clone http://mcentral.de/hg/~mrec/v4l-dvb-kernel
-cd v4l-dvb-kernel
-make module em2880-dvb
-
-cd ~
-hg clone http://mcentral.de/hg/~mrec/v4l-dvb-experimental
-cd v4l-dvb-experimental
-make
-
-hg clone http://mcentral.de/hg/~mrec/v4l-dvb-experimental
-cd v4l-dvb-experimental
-make
-make install
-
-sudo apt-get remove --purge mercurial linux-headers-$(uname -r) linux-source build-essential
-
-Bus 005 Device 015: ID 2304:0226 Pinnacle Systems, Inc. [hex]
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x2304 Pinnacle Systems, Inc. [hex]
-  idProduct          0x0226
-  bcdDevice            1.10
-  iManufacturer           3 Pinnacle Systems
-  iProduct                1 PCTV 330e
-  iSerial                 2 070901090280
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          305
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0ad4  2x 724 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0c00  2x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1300  3x 768 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x135c  3x 860 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       6
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x13c4  3x 964 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       7
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
---------------060602040104030307040605
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thank you in advance
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------060602040104030307040605--
