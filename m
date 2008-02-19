@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.234])
+Received: from hs-out-0708.google.com ([64.233.178.247])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mattvermeulen@gmail.com>) id 1JRjY2-00038s-Jg
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 08:39:23 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so2044258wxc.17
-	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 23:39:18 -0800 (PST)
-Message-ID: <950c7d180802192339s5fa402fan6a9ac8674e128689@mail.gmail.com>
-Date: Wed, 20 Feb 2008 16:39:18 +0900
-From: "Matthew Vermeulen" <mattvermeulen@gmail.com>
-To: "Nicolas Will" <nico@youplala.net>
-In-Reply-To: <1203458966.28796.13.camel@youkaida>
-MIME-Version: 1.0
-References: <1203434275.6870.25.camel@tux> <1203441662.9150.29.camel@acropora>
-	<1203448799.28796.3.camel@youkaida>
-	<1203449457.28796.7.camel@youkaida>
-	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
-	<1203458966.28796.13.camel@youkaida>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
-	receiver
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRUqP-0006ps-Gz
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 16:57:21 +0100
+Received: by hs-out-0708.google.com with SMTP id 54so1785402hsz.1
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 07:57:16 -0800 (PST)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="=-rl0btrJc+vM1SLwacwr5"
+Date: Tue, 19 Feb 2008 16:17:55 +0100
+Message-Id: <1203434275.6870.25.camel@tux>
+Mime-Version: 1.0
+Subject: [linux-dvb] [patch] support for key repeat with dib0700 ir receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,177 +19,239 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1289589328=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1289589328==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_8563_21788077.1203493158475"
 
-------=_Part_8563_21788077.1203493158475
-Content-Type: text/plain; charset=ISO-8859-1
+--=-rl0btrJc+vM1SLwacwr5
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-On Feb 20, 2008 7:09 AM, Nicolas Will <nico@youplala.net> wrote:
+Hi, my last messages have been almost ignored.. so I'm opening a new
+thread. Please refer to the other thread [wintv nova-t stick, dib0700
+and remote controllers] for more info. 
 
->
-> On Wed, 2008-02-20 at 06:10 +0900, Matthew Vermeulen wrote:
-> > Hi all... I'm seeing exactly the same problems everyone else is (log
-> > flooding etc) except that I can't seem to get any keys picked by lirc
-> > or /dev/input/event7 at all...
-> >
-> > Would this patch help in this case?
->
-> It would help with the flooding, most probably, though there was a patch
-> for that available before.
->
-> As for LIRC not picking up the event, I would be tempted to say no, it
-> won't help.
->
-> Are you certain that your LIRC is configured properly? Are you certain
-> that your event number is the right one?
->
-> Nico
->
+Here is a brief summary of the problem as far as I can understand:
+- when a keypress event is received the device stores its data somewhere
+- every 150ms dib0700_rc_query reads this data 
+- since there is nothing that resets device memory if no key is being
+pressed anymore device still stores the data from the last keypress
+event
+- to prevent having false keypresses the driver reads rc5 toggle bit
+that changes from 0 to 1 and viceversa when a new key is pressed or when
+the same key is released and pressed again. So it ignores everything
+until the toggle bit changes. The right behavior should be "repeat last
+key until toggle bit changes", but cannot be done since last data still
+stored would be considered as a repeat even if nothing is pressed.
+- this way it ignores even repeated key events (when a key is holded
+down)
+- this approach is wrong because it works just for rc5 (losing repeat
+feature..) but doesn't work for example with nec remotes that don't set
+the toggle bit and use a different system. 
 
-I believe so... in so far as I can tell... I sent an email to this list
-about a week ago describing my problems, but there was no response.
-(subject: Compro Videomate U500). I've copied it below:
+The patch solves it calling dib0700_rc_setup after each poll resetting
+last key data from the device. I've also implemented repeated key
+feature (with repeat delay to avoid unwanted double hits) for rc-5 and
+nec protocols. It also contains some keymap for the remotes I've used
+for testing (a philipps compatible rc5 remote and a teac nec remote).
+They are far from being complete since I've used them just for testing.
 
-Hi all,
+Thanks for reading this,
+Let me know what do you think about it,
+Greets,
 
-I've still been trying to get the inluded remote with my USB DVB-T Tuner
-working. It's a Compro Videomate U500 - it useses the dibcom 7000 chipset.
-After upgrading to Ubuntu 8.04 (hardy) I can now see the remote when I do a
-"cat /proc/bus/input/devices":
+Filippo
 
-I: Bus=0003 Vendor=185b Product=1e78 Version=0100
-N: Name="IR-receiver inside an USB DVB receiver"
-P: Phys=usb-0000:00:02.1-4/ir0
-S: Sysfs=/devices/pci0000:00/0000:00:02.1/usb1/1-4/input/input7
-U: Uniq=
-H: Handlers=kbd event7
-B: EV=3
-B: KEY=10afc332 2842845 0 0 0 4 80018000 2180 40000801 9e96c0 0 800200 ffc
-
-However, I get now output running irrecord:
-
-matthew@matthew-desktop:~$ sudo irrecord -H dev/input -d /dev/input/event7
-lircd.conf
-
-irrecord -  application for recording IR-codes for usage with lirc
-
-Copyright (C) 1998,1999 Christoph Bartelmus(lirc@bartelmus.de)
-
-irrecord: initializing '/dev/input/event7'
-This program will record the signals from your remote control
-and create a config file for lircd.
-
-
-[SNIP]
-
-Press RETURN to continue.
-
-
-Hold down an arbitrary button.
-irrecord: gap not found, can't continue
-irrecord: closing '/dev/input/event7'
-
-Likewise, if I start lirc with the following: "sudo /usr/sbin/lircd -H
-dev/input -d /dev/input/event7 -n" and then run irw, it will run fine but
-there will be no output at all.
-
-Just looking through /var/log/syslog and noticed that it is filled with
-messages such as this:
-Feb 10 14:00:17 matthew-desktop kernel: [ 6549.313822] dib0700: Unknown
-remote controller key : 1E 42
-Feb 10 14:00:18 matthew-desktop kernel: [ 6549.389724] dib0700: Unknown
-remote controller key : 1E 42
-Feb 10 14:00:18 matthew-desktop kernel: [ 6549.465623] dib0700: Unknown
-remote controller key : 1E 42
-Feb 10 14:00:18 matthew-desktop kernel: [ 6549.542087] dib0700: Unknown
-remote controller key : 1E 42
-Feb 10 14:00:18 matthew-desktop kernel: [ 6549.617927] dib0700: Unknown
-remote controller key : 1E 42
-
-There seems to be about 5 such messages every second, and the controller key
-listed at the end (1E 42 in this case) changes depending on the last button
-pressed on the remote. The same messages appear on dmesg. Obviously, as the
-code changes, the remote is being picked up by the kernel, but not being
-acted upon correctly. Is this normal, and does this mean something is
-working/not working? As stated above, I am still unable to get irrecord to
-show anything etc... I can't get it to work with or without lirc...
-
-Any ideas?
-
-Cheers,
-
-Matt
-
--- 
-Matthew Vermeulen
-http://www.matthewv.id.au/
-MatthewV @ irc.freenode.net
-
-------=_Part_8563_21788077.1203493158475
-Content-Type: text/html; charset=ISO-8859-1
+--=-rl0btrJc+vM1SLwacwr5
+Content-Disposition: attachment; filename=remote-repeat.diff
+Content-Type: text/x-patch; name=remote-repeat.diff; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-On Feb 20, 2008 7:09 AM, Nicolas Will &lt;<a href="mailto:nico@youplala.net" target="_blank">nico@youplala.net</a>&gt; wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+diff -r f89d5927677a linux/drivers/media/dvb/dvb-usb/dib0700.h
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700.h	Mon Feb 18 13:03:16 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700.h	Tue Feb 19 16:17:05 2008 +0100
+@@ -37,6 +37,7 @@ struct dib0700_state {
+ 	u8 channel_state;
+ 	u16 mt2060_if1[2];
+ 	u8 rc_toggle;
++	u8 rc_counter;
+ 	u8 is_dib7000pc;
+ };
+ 
+@@ -44,12 +45,15 @@ extern int dib0700_ctrl_clock(struct dvb
+ extern int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3);
+ extern int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen);
+ extern int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw);
++extern int dib0700_rc_setup(struct dvb_usb_device *d);
+ extern int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff);
+ extern struct i2c_algorithm dib0700_i2c_algo;
+ extern int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
+ 			struct dvb_usb_device_description **desc, int *cold);
+ 
+ extern int dib0700_device_count;
++extern int dvb_usb_dib0700_ir_proto;
+ extern struct dvb_usb_device_properties dib0700_devices[];
+ extern struct usb_device_id dib0700_usb_id_table[];
++
+ #endif
+diff -r f89d5927677a linux/drivers/media/dvb/dvb-usb/dib0700_core.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_core.c	Mon Feb 18 13:03:16 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_core.c	Tue Feb 19 16:17:05 2008 +0100
+@@ -13,7 +13,7 @@ module_param_named(debug,dvb_usb_dib0700
+ module_param_named(debug,dvb_usb_dib0700_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info,2=fw,4=fwdata,8=data (or-able))." DVB_USB_DEBUG_STATUS);
+ 
+-static int dvb_usb_dib0700_ir_proto = 1;
++int dvb_usb_dib0700_ir_proto = 1;
+ module_param(dvb_usb_dib0700_ir_proto, int, 0644);
+ MODULE_PARM_DESC(dvb_usb_dib0700_ir_proto, "set ir protocol (0=NEC, 1=RC5 (default), 2=RC6).");
+ 
+@@ -261,7 +261,7 @@ int dib0700_streaming_ctrl(struct dvb_us
+ 	return dib0700_ctrl_wr(adap->dev, b, 4);
+ }
+ 
+-static int dib0700_rc_setup(struct dvb_usb_device *d)
++int dib0700_rc_setup(struct dvb_usb_device *d)
+ {
+ 	u8 rc_setup[3] = {REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0};
+ 	int i = dib0700_ctrl_wr(d, rc_setup, 3);
+diff -r f89d5927677a linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon Feb 18 13:03:16 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Tue Feb 19 16:17:05 2008 +0100
+@@ -301,6 +301,9 @@ static int stk7700d_tuner_attach(struct 
+ 
+ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+ 
++/* Number of keypresses to ignore before start repeating */
++#define RC_REPEAT_DELAY 2
++
+ static int dib0700_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	u8 key[4];
+@@ -314,22 +317,116 @@ static int dib0700_rc_query(struct dvb_u
+ 		err("RC Query Failed");
+ 		return -1;
+ 	}
++
++	/* losing half of KEY_0 events from Philipps rc5 remotes.. */
+ 	if (key[0]==0 && key[1]==0 && key[2]==0 && key[3]==0) return 0;
+-	if (key[3-1]!=st->rc_toggle) {
++	
++	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);  */
++
++	dib0700_rc_setup(d); /* reset ir sensor data to prevent false events */
++	
++	switch (dvb_usb_dib0700_ir_proto) {
++	case 0: {
++		/* NEC protocol sends repeat code as 0 0 0 FF */
++		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
++		    (key[3] == 0xFF)) {
++			st->rc_counter++; 
++			if(st->rc_counter > RC_REPEAT_DELAY) {
++				*event = d->last_event;
++				*state = REMOTE_KEY_PRESSED;
++				st->rc_counter = RC_REPEAT_DELAY;
++			} 
++			return 0;
++		}
+ 		for (i=0;i<d->props.rc_key_map_size; i++) {
+ 			if (keymap[i].custom == key[3-2] && keymap[i].data == key[3-3]) {
++				st->rc_counter = 0;
+ 				*event = keymap[i].event;
+ 				*state = REMOTE_KEY_PRESSED;
+-				st->rc_toggle=key[3-1];
++				d->last_event = keymap[i].event;
+ 				return 0;
+ 			}
+ 		}
+-		err("Unknown remote controller key : %2X %2X",(int)key[3-2],(int)key[3-3]);
+-	}
++		break;
++	}
++	default: {
++		/* RC-5 protocol changes toggle bit on new keypress */
++		for (i=0;i<d->props.rc_key_map_size; i++) {
++			if (keymap[i].custom == key[3-2] && keymap[i].data == key[3-3]) {
++				if((d->last_event == keymap[i].event) &&
++				   (key[3-1] == st->rc_toggle)) {
++					st->rc_counter++;
++					/* prevents unwanted double hits */
++					if(st->rc_counter > RC_REPEAT_DELAY) { 
++						*event = d->last_event;
++						*state = REMOTE_KEY_PRESSED;
++						st->rc_counter = RC_REPEAT_DELAY;
++					}
++					
++					return 0;
++				}
++				st->rc_counter = 0;
++				*event = keymap[i].event;
++				*state = REMOTE_KEY_PRESSED;
++				st->rc_toggle = key[3-1];
++				d->last_event = keymap[i].event;
++				return 0;
++			}
++		}
++		break;
++	}
++	} 
++	err("Unknown remote controller key: %2X %2X %2X %2X",(int)key[3-2],(int)key[3-3], (int)key[3-1],(int)key[3]);
++	d->last_event = 0;
+ 	return 0;
+ }
+ 
+ static struct dvb_usb_rc_key dib0700_rc_keys[] = {
++	/* CME/Philipps RC-5 Universal */
++	/* Most are not philipps standard codes because I have a
++	 * remote with a replaceable paper sheet with key symbols so
++	 * I've created one with the keys I needed */
++	{ 0x0, 0x00, KEY_0 },
++	{ 0x0, 0x01, KEY_1 },
++	{ 0x0, 0x11, KEY_VOLUMEDOWN },
++	{ 0x0, 0x10, KEY_VOLUMEUP },
++	{ 0x0, 0x0D, KEY_MUTE },
++	{ 0x0, 0x20, KEY_CHANNELUP },
++	{ 0x0, 0x21, KEY_CHANNELDOWN },
++	{ 0x0, 0x0C, KEY_POWER },
++	{ 0x0, 0x57, KEY_OK },
++	{ 0x0, 0x55, KEY_LEFT },
++	{ 0x0, 0x56, KEY_RIGHT },
++	{ 0x0, 0x51, KEY_DOWN },
++	{ 0x0, 0x50, KEY_UP },
++	{ 0x0, 0x52, KEY_MENU },
++	{ 0x03, 0x0A, KEY_HOME },
++	{ 0x0, 0x3C, KEY_EPG },
++	{ 0x03, 0x4A, KEY_PLAYPAUSE },
++	{ 0x0, 0x23, KEY_STOP },
++	{ 0x0, 0x26, KEY_FORWARD },
++	{ 0x0, 0x2D, KEY_REWIND },
++
++	/* TEAC RC-882 NEC PROTOCOL (not complete, just for test purpose) */
++	
++	{ 0x72, 0x54, KEY_VOLUMEDOWN },
++	{ 0x72, 0x17, KEY_VOLUMEUP },
++	{ 0x72, 0x55, KEY_MUTE },
++	{ 0x72, 0x10, KEY_STOP },
++	{ 0x72, 0x11, KEY_PLAYPAUSE },
++	{ 0x72, 0x53, KEY_OK },
++	{ 0x72, 0x15, KEY_DOWN },
++	{ 0x72, 0x52, KEY_UP },
++	{ 0x72, 0x51, KEY_LEFT },
++	{ 0x72, 0x13, KEY_RIGHT },
++	{ 0x72, 0x12, KEY_MENU },
++	{ 0x72, 0x41, KEY_POWER },
++	{ 0x72, 0x42, KEY_1 },
++	{ 0x72, 0x03, KEY_2 },
++	{ 0x72, 0x02, KEY_3 },
++	{ 0x72, 0x01, KEY_4 },
++	{ 0x72, 0x40, KEY_5 },
++     
+ 	/* Key codes for the tiny Pinnacle remote*/
+ 	{ 0x07, 0x00, KEY_MUTE },
+ 	{ 0x07, 0x01, KEY_MENU }, // Pinnacle logo
 
-<div><div></div><div><br>On Wed, 2008-02-20 at 06:10 +0900, Matthew Vermeulen wrote:<br>&gt; Hi all... I&#39;m seeing exactly the same problems everyone else is (log<br>&gt; flooding etc) except that I can&#39;t seem to get any keys picked by lirc<br>
-
-&gt; or /dev/input/event7 at all...<br>&gt;<br>&gt; Would this patch help in this case?<br><br></div></div>It would help with the flooding, most probably, though there was a patch<br>for that available before.<br><br>As for LIRC not picking up the event, I would be tempted to say no, it<br>
-
-won&#39;t help.<br><br>Are you certain that your LIRC is configured properly? Are you certain<br>that your event number is the right one?<br><div><div></div><div><br>Nico</div></div></blockquote><div><br>I believe so... in so far as I can tell... I sent an email to this list about a week ago describing my problems, but there was no response. (subject: Compro Videomate U500). I&#39;ve copied it below:<br>
-
-<br><div style="margin-left: 40px;">Hi all,<br><br>I&#39;ve still been trying to get the inluded remote with my
-USB DVB-T Tuner working. It&#39;s a Compro Videomate U500 - it useses the
-dibcom 7000 chipset. After upgrading to Ubuntu 8.04 (hardy) I can
-now see the remote when I do a &quot;cat /proc/bus/input/devices&quot;:<br><br>
-I: Bus=0003 Vendor=185b Product=1e78 Version=0100<br>N: Name=&quot;IR-receiver inside an USB DVB receiver&quot;<br>P: Phys=usb-0000:00:02.1-4/ir0<br>S: Sysfs=/devices/pci0000:00/0000<div>:00:02.1/usb1/1-4/input/input7<br>
-
-U: Uniq=<br>
-H: Handlers=kbd event7 <br>B: EV=3<br>B: KEY=10afc332 2842845 0 0 0 4 80018000 2180 40000801 9e96c0 0 800200 ffc<br><br>However, I get now output running irrecord:<br><br clear="all">matthew@matthew-desktop:~$ sudo irrecord -H dev/input -d /dev/input/event7 lircd.conf<br>
-
-
-<br>irrecord -&nbsp; application for recording IR-codes for usage with lirc<br><br>Copyright (C) 1998,1999 Christoph Bartelmus(<a href="mailto:lirc@bartelmus.de" target="_blank">lirc@bartelmus.de</a>)<br><br>irrecord: initializing &#39;/dev/input/event7&#39;<br>
-
-
-This program will record the signals from your remote control<br>and create a config file for lircd.<br><br><br>[SNIP]<br><br>Press RETURN to continue.<br><br><br>Hold down an arbitrary button.<br>irrecord: gap not found, can&#39;t continue<br>
-
-
-irrecord: closing &#39;/dev/input/event7&#39;<br><br>Likewise,
-if I start lirc with the following: &quot;sudo /usr/sbin/lircd -H dev/input
--d /dev/input/event7 -n&quot; and then run irw, it will run fine but there
-will be no output at all.<br>
-</div><br>Just looking through /var/log/syslog and noticed that it is filled with messages such as this:<br>
-
-Feb 10 14:00:17 matthew-desktop kernel: [ 6549.313822] dib0700: Unknown remote controller key : 1E 42<br>Feb 10 14:00:18 matthew-desktop kernel: [ 6549.389724] dib0700: Unknown remote controller key : 1E 42<br>Feb 10 14:00:18 matthew-desktop kernel: [ 6549.465623] dib0700: Unknown remote controller key : 1E 42<br>
-
-
-
-Feb 10 14:00:18 matthew-desktop kernel: [ 6549.542087] dib0700: Unknown remote controller key : 1E 42<br>Feb 10 14:00:18 matthew-desktop kernel: [ 6549.617927] dib0700: Unknown remote controller key : 1E 42<br><br>There
-seems
-to be about 5 such messages every second, and the controller key
-listed at the end (1E 42 in this case) changes depending on the last
-button pressed on the remote. The same messages appear on dmesg.
-Obviously, as the code changes, the remote is being picked up by the
-kernel, but not being acted upon correctly. Is this normal, and does
-this mean
-something is working/not working? As stated above, I am still unable to
-get irrecord to show anything etc... I can&#39;t get it to work with or
-without lirc...<br><br>Any ideas?<br></div><br>Cheers,<br><br>Matt <br></div></div><br>-- <br>Matthew Vermeulen<br><a href="http://www.matthewv.id.au/" target="_blank">http://www.matthewv.id.au/</a><br>MatthewV @ <a href="http://irc.freenode.net" target="_blank">irc.freenode.net</a>
-
-------=_Part_8563_21788077.1203493158475--
-
-
---===============1289589328==
+--=-rl0btrJc+vM1SLwacwr5
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -206,4 +261,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1289589328==--
+--=-rl0btrJc+vM1SLwacwr5--
