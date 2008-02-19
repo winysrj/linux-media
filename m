@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rosebud.otenet.gr ([195.170.0.94] ident=OTEnet-mail-system)
+Received: from wf-out-1314.google.com ([209.85.200.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vnonas@otenet.gr>) id 1JTJD7-00076p-Mg
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 16:56:17 +0100
-Message-ID: <47C1AFC1.7050704@otenet.gr>
-Date: Sun, 24 Feb 2008 17:56:17 +0000
-From: Vangelis Nonas <vnonas@otenet.gr>
+	(envelope-from <mandm.thompson@gmail.com>) id 1JRJxm-0001T8-Cz
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 05:20:14 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so447098wfa.17
+	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 20:19:59 -0800 (PST)
+Message-ID: <949AFE693DD44583A2F694F5EF46FEAA@LaptopPC>
+From: "Martin Thompson" <marty@mandmservices.com.au>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 19 Feb 2008 15:19:44 +1100
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr>
-In-Reply-To: <47C1764C.5070103@otenet.gr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+Subject: [linux-dvb] dvico dual digital 4 new revision 2.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,158 +18,173 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0652338702=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+This is a multi-part message in MIME format.
 
-I tried scanning with the 7201 changeset and I believe the results are 
-better than the 7205 changeset. In the former case I get 2082 services 
-on hotbird, in the latter 1722.
+--===============0652338702==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0027_01C8730A.DAF6E560"
 
-I'll shortly send kernel logs for a failing transponder during scan.
+This is a multi-part message in MIME format.
 
-And something else:
-When I give to scan the parameter -o vdr it will not output the results 
-after a complete scan.
+------=_NextPart_000_0027_01C8730A.DAF6E560
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+just bought a new dvico dd4 card
+i has a revision 2.0 stamped on it
+it is not picked up by mythtv
+in the usb driver id the card is ID 0fe9:db78 DVICO  ID 0fe9:db78 DVICO
+mine apperars as the same id exept on the ned not 78
+so i changed the id to 98
+linux picked it up as a dvico dd4 dvb card with two tuners
+now mythtv finds the card but no frontend
+i think they have changed that as well
+
+dmesg | grep dvb-usb
+[ 45.568438] dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in =
+warm state.
+[ 45.568759] dvb-usb: will pass the complete MPEG2 transport stream to =
+the software demuxer.
+[ 45.676871] dvb-usb: no frontend was attached by 'DViCO FusionHDTV =
+DVB-T Dual Digital 4'
+[ 45.677733] dvb-usb: schedule remote query interval to 100 msecs.
+[ 45.677855] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully =
+initialized and connected.
+[ 45.677872] dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in =
+warm state.
+[ 45.678261] dvb-usb: will pass the complete MPEG2 transport stream to =
+the software demuxer.
+[ 46.003003] dvb-usb: no frontend was attached by 'DViCO FusionHDTV =
+DVB-T Dual Digital 4'
+[ 46.003591] dvb-usb: schedule remote query interval to 100 msecs.
+[ 46.003900] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully =
+initialized and connected.
+
+lsusb
+-snip-
+Bus 002 Device 003: ID 0fe9:db98 DVICO
+Bus 002 Device 002: ID 0fe9:db98 DVICO
+
+lspci
+-snip-
+05:06.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 =
+Controller (rev 62)
+05:06.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 =
+Controller (rev 62)
+05:06.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 65)
+05:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video =
+and Audio Decoder (rev 05)
+05:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and =
+Audio Decoder [MPEG Port] (rev 05)
+05:08.0 Multimedia video controller: Brooktree Corporation Bt878 Video =
+Capture (rev 11)
+05:08.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture =
+(rev 11)
+------=_NextPart_000_0027_01C8730A.DAF6E560
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.6000.16609" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>
+<DIV><FONT face=3DArial size=3D2>
+<DIV><FONT face=3DArial size=3D2>just bought a new dvico dd4 =
+card</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>i has a revision 2.0 stamped on =
+it</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>it is not picked up by =
+mythtv</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>in the usb driver id the card is <SPAN=20
+class=3Dwcrep2><FONT face=3D"Times New Roman" size=3D3>ID =
+0fe9:db<B>78</B> DVICO=20
+&nbsp;ID 0fe9:db<B>78</B> DVICO</FONT></SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>mine apperars as the same id =
+exept on the=20
+ned not 78</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>so i changed the id to=20
+98</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>linux picked it up as a dvico =
+dd4 dvb card=20
+with two tuners</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>now mythtv finds the card but =
+no=20
+frontend</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>i think they have changed that =
+as=20
+well</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>dmesg | grep dvb-usb<BR>[ =
+45.568438]=20
+dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in warm =
+state.<BR>[=20
+45.568759] dvb-usb: will pass the complete MPEG2 transport stream to the =
+
+software demuxer.<BR>[ 45.676871] dvb-usb: no frontend was attached by =
+'DViCO=20
+FusionHDTV DVB-T Dual Digital 4'<BR>[ 45.677733] dvb-usb: schedule =
+remote query=20
+interval to 100 msecs.<BR>[ 45.677855] dvb-usb: DViCO FusionHDTV DVB-T =
+Dual=20
+Digital 4 successfully initialized and connected.<BR>[ 45.677872] =
+dvb-usb: found=20
+a 'DViCO FusionHDTV DVB-T Dual Digital 4' in warm state.<BR>[ 45.678261] =
+
+dvb-usb: will pass the complete MPEG2 transport stream to the software=20
+demuxer.<BR>[ 46.003003] dvb-usb: no frontend was attached by 'DViCO =
+FusionHDTV=20
+DVB-T Dual Digital 4'<BR>[ 46.003591] dvb-usb: schedule remote query =
+interval to=20
+100 msecs.<BR>[ 46.003900] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital =
+4=20
+successfully initialized and connected.</SPAN></FONT></DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D+0><SPAN class=3Dwcrep2>lsusb<BR>-snip-<BR>Bus 002 =
+Device 003: ID=20
+0fe9:db98 DVICO<BR>Bus 002 Device 002: ID 0fe9:db98=20
+DVICO<BR><BR>lspci<BR>-snip-<BR>05:06.0 USB Controller: VIA =
+Technologies, Inc.=20
+VT82xxxxx UHCI USB 1.1 Controller (rev 62)<BR>05:06.1 USB Controller: =
+VIA=20
+Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 62)<BR>05:06.2 =
+USB=20
+Controller: VIA Technologies, Inc. USB 2.0 (rev 65)<BR>05:07.0 =
+Multimedia video=20
+controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev=20
+05)<BR>05:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video =
+and Audio=20
+Decoder [MPEG Port] (rev 05)<BR>05:08.0 Multimedia video controller: =
+Brooktree=20
+Corporation Bt878 Video Capture (rev 11)<BR>05:08.1 Multimedia =
+controller:=20
+Brooktree Corporation Bt878 Audio Capture (rev=20
+11)</SPAN></FONT></DIV></FONT></DIV></FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0027_01C8730A.DAF6E560--
 
 
-Regards
-Vagelis
 
-
-Vangelis Nonas wrote:
-> Hello,
->
-> I attach the timing logs for changsets 7205 and 7201. The funny thing 
-> is that when I use 7201 it does NOT have the problem with locking  
-> when tuning, as it had before. I tried it 3 times, the third after a 
-> full shutdown of the pc and having removed the power for a couple on 
-> minutes. It is really strange.
->
-> Anyway, both logs were taken with these commands:
->
-> ../szap/szap -c channels.conf -r "bbc world"
-> ../szap/szap -c channels.conf -r "bbc prime"
-> ../szap/szap -c channels.conf -r "filmnet1"
->
-> I'll check how scanning performs with 7201 and let you know
->
-> Regards
-> Vagelis
->
->
-> Manu Abraham wrote:
->> Vangelis Nonas wrote:
->>> Thank you all for your help,
->>>
->>> With the latest changeset I can tune channels correctly. I tried vdr 
->>> and szap (from Manu).
->>>
->>> I dont know how to undo the last changesets and go back to 7200. 
->>> Please tell me how to do it and I'll get the timings.
->>
->>
->> clone the multiproto tree
->>
->> from there, do a partial clone locally
->>
->> hg clone -r 7200 multiproto multiproto_7200
->>
->>
->>> I also tried to scan Hotbird and it seems that scanning is now 
->>> consistent when you scan the same transponder more than once.
->>>
->>> A full scan produced 1722 channels which is not bad, but it needs 
->>> improvement. There are about 2200 channels I think.
->>
->> If you can provide a log with verbose=5 for the channels which it 
->> doesn't
->> scan it will be a bit more helpful. Will need the logs 
->> (/var/log/messages)
->> to debug this as well. The module parameters the same for both the
->> STB0899 and the STB6100
->>
->>> I attach the log of the scan. It fails to scan certain transponders 
->>> and I believe (not 100% sure, but I did some testing) that this is 
->>> consistent across runs.
->>
->> The log is just the output of the scan utility, will need the output 
->> from
->> the driver and a bit of thoughts.
->>
->>
->>
->> Regards,
->> Manu
->>
->>> Regards
->>> Vagelis
->>>
->>>
->>>
->>> Manu Abraham wrote:
->>>> Manu Abraham wrote:
->>>>  
->>>>> Artem Makhutov wrote:
->>>>>  
->>>>>> Hi,
->>>>>>
->>>>>> On Sat, Feb 23, 2008 at 10:32:58PM +0100, Artem Makhutov wrote:
->>>>>>    
->>>>>>> On Sun, Feb 24, 2008 at 01:29:31AM +0400, Manu Abraham wrote:
->>>>>>>      
->>>>>>>> Are you sure that you got the top level 2 changes changeset 
->>>>>>>> 7204 and 7203
->>>>>>>> respectively ?
->>>>>>>>           
->>>>>>> Oh, I only got 7203. Will try with 7204 in a few minutes.
->>>>>>>         
->>>>>> Awesome! It fixed the problem:
->>>>>>
->>>>>> Try: 100
->>>>>> Failes: 0
->>>>>> Tunes: 100
->>>>>>
->>>>>> Great job!
->>>>>>       
->>>>
->>>> Also, can you please do a benchmark in lock timings between 
->>>> changeset 7205 and 7200 ?
->>>>
->>>> The timing can be looked at by enabling the time stamps in the 
->>>> kernel config and
->>>> looking at timestamps in the logs for start - stop (FE_HAS_LOCK) 
->>>> between the 2
->>>> changesets.
->>>>
->>>> Regards,
->>>> Manu
->>>>
->>>> _______________________________________________
->>>> linux-dvb mailing list
->>>> linux-dvb@linuxtv.org
->>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>
->>>>
->>>>   
->>>
->>
->>
->>
->
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+--===============0652338702==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0652338702==--
