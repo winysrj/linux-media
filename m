@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JRZo7-00073V-47
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 22:15:19 +0100
-Date: Tue, 19 Feb 2008 22:14:34 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Filippo Argiolas <filippo.argiolas@gmail.com>
-In-Reply-To: <1203434275.6870.25.camel@tux>
-Message-ID: <Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
-References: <1203434275.6870.25.camel@tux>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
- receiver
+	(envelope-from <nico@youplala.net>) id 1JRbHS-0002rH-2S
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 23:49:42 +0100
+Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
+	[84.69.142.185])
+	by mail.youplala.net (Postfix) with ESMTP id A4E8AD88113
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 23:48:44 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1203458171.8019.20.camel@anden.nu>
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+Date: Tue, 19 Feb 2008 22:48:43 +0000
+Message-Id: <1203461323.28796.26.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,77 +23,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-That indeed looks OK to my eyes. I have to admit that I never took a look 
-into the IR-code from DiBcom...
-
-In any case, especially to that problem with "unknown key code" I think it 
-is time to change the IR-behavior of the DVB-USB.
-
-My problem is, I don't know how.
-
-My naive idea would be, that the IR-code is reporting each key (as raw as 
-possible) without mapping it to an event to the event interface and then 
-someone, somewhere is interpreting it. Also forward any repeat-attribute.
-
-Those endless tables in a lot of dvb-usb drivers are annoying me, firstly 
-because they are endless and huge, and secondly, they are never complete. 
-If there is an adequate replacement from userspace (somehow loading 
-key-lists to the event-layer or in the worst case, to the 
-dvb-usb-framework) would be a good solution.
-
-Filippo, it seems you understand quite some thing around that. Do you know 
-if what I'm saying is somehow possible?
-
-Thanks,
-Patrick.
-
-
-
-On Tue, 19 Feb 2008, Filippo Argiolas wrote:
-
-> Hi, my last messages have been almost ignored.. so I'm opening a new
-> thread. Please refer to the other thread [wintv nova-t stick, dib0700
-> and remote controllers] for more info.
->
-> Here is a brief summary of the problem as far as I can understand:
-> - when a keypress event is received the device stores its data somewhere
-> - every 150ms dib0700_rc_query reads this data
-> - since there is nothing that resets device memory if no key is being
-> pressed anymore device still stores the data from the last keypress
-> event
-> - to prevent having false keypresses the driver reads rc5 toggle bit
-> that changes from 0 to 1 and viceversa when a new key is pressed or when
-> the same key is released and pressed again. So it ignores everything
-> until the toggle bit changes. The right behavior should be "repeat last
-> key until toggle bit changes", but cannot be done since last data still
-> stored would be considered as a repeat even if nothing is pressed.
-> - this way it ignores even repeated key events (when a key is holded
-> down)
-> - this approach is wrong because it works just for rc5 (losing repeat
-> feature..) but doesn't work for example with nec remotes that don't set
-> the toggle bit and use a different system.
->
-> The patch solves it calling dib0700_rc_setup after each poll resetting
-> last key data from the device. I've also implemented repeated key
-> feature (with repeat delay to avoid unwanted double hits) for rc-5 and
-> nec protocols. It also contains some keymap for the remotes I've used
-> for testing (a philipps compatible rc5 remote and a teac nec remote).
-> They are far from being complete since I've used them just for testing.
->
-> Thanks for reading this,
-> Let me know what do you think about it,
-> Greets,
->
-> Filippo
->
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Ck9uIFR1ZSwgMjAwOC0wMi0xOSBhdCAyMjo1NiArMDEwMCwgSm9uYXMgQW5kZW4gd3JvdGU6Cj4g
+PiA+IFRoZXJlIGlzIG5vdCBhIGxvdCBiZWluZyBzYWlkIGFib3V0IHRoZSBOb3ZhLVQgNTAwIHRo
+ZSBsYXN0IHdlZWsuCj4gPiA+IERvbsK0dCBrbm93IGlmIHRoYXQgaXMgYSBnb29kIChjb2RlcnMg
+Y29kaW5nKSBvciBhIGJhZCAobm90aGluCj4gPiA+IGhhcHBlbmluZykKPiA+IAo+ID4gT3IgY29k
+ZXJzIGJ1c3kgb24gb3RoZXIgY29kZSwgb3IgY29kZXJzIHdobyByYW4gb3V0IG9mIGlkZWFzLCBv
+cgo+IGNvZGVycwo+ID4gZW5qb3lpbmcgbGlmZSwgZXRjLgo+IAo+IC4ub3IganVzdCB3YWl0aW5n
+IGZvciB0aGUgcHJvYmxlbSB0byByZWFwcGVhciA7KCBUaGUgdHJvdWJsZSB3aXRoIHRoZQo+IHNl
+Y29uZCB0dW5lciBkeWluZyBpcyB0cmlja3kgKGZvciBtZSkgdG8gaXNvbGF0ZS4KPiAKPiBBcyBh
+IHdvcmthcm91bmQsIGVuYWJsaW5nIGZ1bGwgZGVidWcgKGRlYnVnPTE1KSBvbiB0aGUgZHZiX3Vz
+Yl9kaWIwNzAwCj4gbW9kdWxlIGhhcyBtYWRlIG15IHN5c3RlbSByb2NrIHNvbGlkLiBJIHR1cm5l
+ZCBvbiBkZWJ1Z2dpbmcgdG8gdHJ5IHRvCj4gaXNvbGF0ZSB0aGUgaXNzdWUsIGJ1dCB3aXRoIGRl
+YnVnZ2luZyBlbmFibGVkIHRoZSBwcm9ibGVtIGRvZXMgbm90Cj4gYXBwZWFyIChhdCBsZWFzdCBu
+b3Qgb24gbXkgc3lzdGVtKS4KPiAKPiBJIGhhdmVuJ3QgcmVhbGx5IGZpZ3VyZWQgb3V0ICp3aGF0
+KiBpbiB0aGUgZGVidWcgY29kZSBpcyBoZWxwaW5nIHlldCwKPiBidXQgSSBzdGlsbCBzdXNwZWN0
+IHRoYXQgdGhpcyBpcyB0aW1pbmctcmVsYXRlZCBhbmQgdGhlIGRlYnVnIGNvZGUKPiBzaW1wbHkg
+c2xvd3MgdGhpbmdzIGRvd24gYSBiaXQuIEVuYWJsaW5nIGRlYnVnZ2luZyB3aWxsIHB1dCBhIHdo
+b2xlCj4gbG90Cj4gb2YgImp1bmsiIGluIHlvdXIgc3lzdGVtIGxvZyBmaWxlcywgYnV0IGF0IGxl
+YXN0IHRoZSBzZWNvbmQgdHVuZXIgd29udAo+IGRpZSBvbiB5b3UuIElmIHlvdSBnbyB0aGlzIHBh
+dGgsIG1ha2Ugc3VyZSB5b3VyIGxvZyByb3RhdGlvbiB3b3JrcyBhcwo+IGl0Cj4gc2hvdWxkIC0t
+IG15IHdlZWtseSByb3RhdGVkIGxvZ3MgYXJlIHVwIHRvIDEzMCBNQiBpbiBzaXplIDspCgpOb3cg
+c3RvcCB0aGF0IGxvZ2dpbmcgbWFkbmVzcyBhbmQgZ2V0IGJhY2sgdG8gd29yayEKCi4uLgoKO28p
+CgoKVGhpcyBpcyBhIHJhdGhlciBjb21pY2FsIHNpdHVhdGlvbiwgdGhvdWdoLi4uIFRoZSBkZWJ1
+Z2dpbmcgdG9vbCBpcwpwcm92aWRpbmcgYSByYXRoZXIgdW5leHBlY3RlZCBhbmQgdW53ZWxjb21l
+ZCBmaXguCgpOaWNvCgoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
+cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
