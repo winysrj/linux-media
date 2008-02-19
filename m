@@ -1,20 +1,22 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from wx-out-0506.google.com ([66.249.82.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JQ8M6-0008Kw-TN
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 22:44:27 +0100
-Date: Fri, 15 Feb 2008 22:43:18 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Holger Dehnhardt <dehnhardt@ahdehnhardt.de>
-In-Reply-To: <200802152233.25423.dehnhardt@ahdehnhardt.de>
-Message-ID: <Pine.LNX.4.64.0802152241520.29944@pub5.ifh.de>
-References: <200802112223.11129.hfvogt@gmx.net>
-	<ea4209750802141220s2402e94bvbd1479037d48cfc8@mail.gmail.com>
-	<20080215181815.2583a2e5@gaivota>
-	<200802152233.25423.dehnhardt@ahdehnhardt.de>
+	(envelope-from <mattvermeulen@gmail.com>) id 1JRZjg-0006G9-Iw
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 22:10:44 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so1856962wxc.17
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 13:10:39 -0800 (PST)
+Message-ID: <950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+Date: Wed, 20 Feb 2008 06:10:39 +0900
+From: "Matthew Vermeulen" <mattvermeulen@gmail.com>
+To: "Nicolas Will" <nico@youplala.net>
+In-Reply-To: <1203449457.28796.7.camel@youkaida>
 MIME-Version: 1.0
+References: <1203434275.6870.25.camel@tux> <1203441662.9150.29.camel@acropora>
+	<1203448799.28796.3.camel@youkaida>
+	<1203449457.28796.7.camel@youkaida>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] support Cinergy HT USB XE (0ccd:0058)
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,73 +24,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2046258251=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Aah now I remember that issue, in fact it is no issue. I was seeing that 
-problem when send the sleep command or any other firmware command without 
-having a firmware running. In was, so far, no problem.
+--===============2046258251==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_7439_17532021.1203455439201"
 
-Patrick.
+------=_Part_7439_17532021.1203455439201
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi all... I'm seeing exactly the same problems everyone else is (log
+flooding etc) except that I can't seem to get any keys picked by lirc or
+/dev/input/event7 at all...
+
+Would this patch help in this case?
+
+Cheers,
+
+Matt
+
+------=_Part_7439_17532021.1203455439201
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi all... I&#39;m seeing exactly the same problems everyone else is (log flooding etc) except that I can&#39;t seem to get any keys picked by lirc or /dev/input/event7 at all...<br><br>Would this patch help in this case?<br>
+<br>Cheers,<br><br>Matt<br>
+
+------=_Part_7439_17532021.1203455439201--
 
 
-
-On Fri, 15 Feb 2008, Holger Dehnhardt wrote:
-
-> Hi Albert, Hi Mauro,
->
-> I have successfulli patched and compiled the driver. Im using the terratec
-> cinergy device and it works fine.
->
->>> [ 2251.856000] xc2028 4-0061: Error on line 1063: -5
->
-> This error message looked very familar to me, so i searched my log and guess
-> what I found:
->
-> Feb 15 20:42:18 musik kernel: xc2028 3-0061: xc2028_sleep called
-> Feb 15 20:42:18 musik kernel: xc2028 3-0061: xc2028_sleep called
-> Feb 15 20:42:18 musik kernel: xc2028 3-0061: Error on line 1064: -5
-> Feb 15 20:42:18 musik kernel: DiB7000P: setting output mode for demod df75e800
-> to 0
-> Feb 15 20:42:18 musik kernel: DiB7000P: setting output mode for demod df75e800
-> to 0
->
-> It identifies the marked line (just to be sure because of the differen line
-> numbers)
->
-> 	if (priv->firm_version < 0x0202)
-> ->		rc = send_seq(priv, {0x00, 0x08, 0x00, 0x00});
-> 	else
-> 		rc = send_seq(priv, {0x80, 0x08, 0x00, 0x00});
->
->> The above error is really weird. It seems to be related to something that
->> happened before xc2028, since firmware load didn't start on that point of
->> the code.
->
-> The error really is weird, but it does not seem to cause the troubles - my
-> card works despite the error!
->
->>
->>> [ 2289.284000] xc2028 4-0061: Device is Xceive 3028 version 1.0, firmware
->>> version 2.7
->>
->> This message means that xc3028 firmware were successfully loaded and it is
->> running ok.
->
-> This and the following messages look similar...
->
-> Holger
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+--===============2046258251==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2046258251==--
