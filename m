@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.orcon.net.nz ([219.88.242.51] ident=Debian-exim)
+Received: from averel.grnet-hq.admin.grnet.gr ([195.251.29.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lennon@orcon.net.nz>) id 1JSi1W-00057o-R8
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 01:13:51 +0100
-Received: from Debian-exim by mx1.orcon.net.nz with local (Exim 4.67)
-	(envelope-from <lennon@orcon.net.nz>) id 1JSi1I-0001Ns-Fb
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 13:13:36 +1300
-Message-ID: <1A18D3EDCF9648E5A25B195A2E4EC42A@CraigPC>
-From: "Craig Whitmore" <lennon@orcon.net.nz>
-To: "Daniel Porres" <chancleta@gmail.com>,
-	<linux-dvb@linuxtv.org>
-References: <a4ac2da80802221501w2ed2d1b0wdc0cf129bc569f8e@mail.gmail.com>
-In-Reply-To: <a4ac2da80802221501w2ed2d1b0wdc0cf129bc569f8e@mail.gmail.com>
-Date: Sat, 23 Feb 2008 12:50:10 +1300
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] HVR 4000 and usb webcam working together?
+	(envelope-from <zmousm@admin.grnet.gr>) id 1JRUHC-0004Nj-VJ
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 16:20:59 +0100
+Message-Id: <68438EB9-9BDA-40FC-84D4-C7F7D6B5F2E5@admin.grnet.gr>
+From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
+To: Igor <goga777@bk.ru>
+In-Reply-To: <A3A96FDA-7A8C-42E9-AC90-A61E028AB136@admin.grnet.gr>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Tue, 19 Feb 2008 17:19:54 +0200
+References: <E0915816-8882-4017-94A5-5FD69DE84DFC@admin.grnet.gr>
+	<E1JRTvz-0006ob-00.goga777-bk-ru@f163.mail.ru>
+	<A3A96FDA-7A8C-42E9-AC90-A61E028AB136@admin.grnet.gr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR4000 and DVB-S2...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +21,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Im trying to get working on the same pc, mythtv over a HVR 4000 and a
-> usb webcam (gspca drivers) in a fresh Ubuntu 7.10. Before installing
-> the hvr 4000 driver the webcam works fine on /dev/video0, but when I
-> install hvr 4000 drivers the dev/video0 belongs now to the DVB-T
-> capturer and I cannot load or reinstall properly the webcam gspca
-> drivers.
-> I follow these steps in order to install hvr 4000 ->
-> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
->
-> Can anyone give me some advice on how I can achive both devices working.
-
-If you have 2 devices then the 1st one will take /dev/video0 and the next 
-will take /dev/video1 usually. BTW. the /dev/video is not the DVB-T device.. 
-its the Composite/Analog TV interface. What happens when you try and load 
-the webcam after then HVR4000?
-
-Thanks
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Ck9uIDE5IM6mzrXOsiAyMDA4LCBhdCA1OjA3IM6czpwsIFplbm9uIE1vdXNtb3VsYXMgd3JvdGU6
+Cgo+Cj4gT24gMTkg0LbQldCRIDIwMDgsIGF0IDQ6NTkg0LvQuywgSWdvciB3cm90ZToKPgo+Pj4+
+IGNvdWxkIHlvdSBzaG93IHRoZSBzemFwMiBvdXRwdXQgZHVyaW5nIGR2Yi1zMiB0dW5pbmcKPj4+
+Cj4+PiBJIGp1c3QgdHJpZWQgaXQgYWdhaW4gd2l0aCAyLjYuMjI6Cj4+Pgo+Pj4gdHZib3gyOn4j
+IHN6YXAyIC1yIC10MiAtZTMgLW04IC1jIHR2Ym94X2R2Yi96YXAvZHZiLXMvCj4+PiBkaXNlcWM0
+X0hlbGxhc1NhdDItMzkuMEUubmV3IExVWEVUVgo+Pj4gcmVhZGluZyBjaGFubmVscyBmcm9tIGZp
+bGUgJ3R2Ym94X2R2Yi96YXAvZHZiLXMvCj4+PiBkaXNlcWM0X0hlbGxhc1NhdDItMzkuMEUubmV3
+Jwo+Pj4gemFwcGluZyB0byAyICdMVVhFVFYnOgo+Pj4gc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4
+IE1IeiBILCBzeW1ib2xyYXRlIDc3MjAwMDAsIHZwaWQgPSAweDBiYzMsCj4+PiBhcGlkID0gMHgw
+YmM2IHNpZCA9IDB4MDEyZCAoZmVjID0gNjQsIG1vZCA9IDgpCj4+PiBRdWVyeWluZyBpbmZvIC4u
+IERlbGl2ZXJ5IHN5c3RlbT1EVkItUzIKPj4+IHVzaW5nICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9u
+dGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwo+Pj4gaW9jdGwgRFZCRkVfR0VU
+X0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAo+Pj4KPj4+IEkgd2lsbCB0cnkg
+aXQgYWdhaW4gc2hvcnRseSB3aXRoIDIuNi4yNC4KPj4KPj4gdHJ5IHRvIHVzZSB0aGUgdXN1YWwg
+c3phcCwgbm90IHN6YXAyCj4KPiBJIGFscmVhZHkgZGlkLiBJdCBkaWRuJ3Qgd29yay4uLgo+Cj4g
+dHZib3gyOn4jIHN6YXAgLWMgdHZib3hfZHZiL3phcC9kdmItcy9kaXNlcWM0X0hlbGxhc1NhdDIt
+MzkuMEUubmV3ICAKPiBMVVhFVFYKPiByZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAndHZib3hf
+ZHZiL3phcC9kdmItcy8gCj4gZGlzZXFjNF9IZWxsYXNTYXQyLTM5LjBFLm5ldycKPiB6YXBwaW5n
+IHRvIDIgJ0xVWEVUVic6Cj4gc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4IE1IeiBILCBzeW1ib2xy
+YXRlIDc3MjAwMDAsIHZwaWQgPSAweDBiYzMsICAKPiBhcGlkID0gMHgwYmM2Cj4gdXNpbmcgJy9k
+ZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAn
+Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVu
+YyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAxIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAw
+MDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIg
+MDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFs
+IGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVz
+IDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAw
+MCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYzNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8
+IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyODAgfCBzbnIgMDAwMCB8IGJl
+ciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAxIHwgc2lnbmFsIGYyODAgfCBz
+bnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CgpBbmQgd2l0aCAyLjYuMjQ6
+Cgp0dmJveDI6fiMgc3phcCAtYyB0dmJveF9kdmIvemFwL2R2Yi1zL2Rpc2VxYzRfSGVsbGFzU2F0
+Mi0zOS4wRS5uZXcgIApMVVhFVFYKcmVhZGluZyBjaGFubmVscyBmcm9tIGZpbGUgJ3R2Ym94X2R2
+Yi96YXAvZHZiLXMvIApkaXNlcWM0X0hlbGxhc1NhdDItMzkuMEUubmV3Jwp6YXBwaW5nIHRvIDIg
+J0xVWEVUVic6CnNhdCAzLCBmcmVxdWVuY3kgPSAxMjcxOCBNSHogSCwgc3ltYm9scmF0ZSA3NzIw
+MDAwLCB2cGlkID0gMHgwYmMzLCAgCmFwaWQgPSAweDBiYzYKdXNpbmcgJy9kZXYvZHZiL2FkYXB0
+ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnCnN0YXR1cyAwMyB8
+IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApz
+dGF0dXMgMDMgfCBzaWduYWwgZjI0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAw
+MDAwMDAwIHwKc3RhdHVzIDAxIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAw
+MCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMSB8IHNpZ25hbCBmMjgwIHwgc25yIDAwMDAgfCBi
+ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApzdGF0dXMgMDEgfCBzaWduYWwgZjI4MCB8IHNu
+ciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDAxIHwgc2lnbmFs
+IGYyODAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAw
+MyB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAg
+fApzdGF0dXMgMDEgfCBzaWduYWwgZjM0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5j
+IDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAw
+MDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMyB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAg
+fCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApzdGF0dXMgMDMgfCBzaWduYWwgZjI4MCB8
+IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2ln
+bmFsIGYzNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1
+cyAwMSB8IHNpZ25hbCBmMjgwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAw
+MDAgfAoKClNvbWV0aGluZyBwYXJ0aWN1bGFybHkgaW1wb3J0YW50OiBzemFwIGlzIGZyb20gdGhl
+IERlYmlhbiBkdmItIAp1dGlscy0xLjEuMS0zIHBhY2thZ2UuIElzIHRoZXJlIGEgcmVxdWlyZW1l
+bnQgZm9yIGEgcGFydGljdWxhciB2ZXJzaW9uICAKb2YgZHZiLWFwcHM/CgpUaGFua3MsClouCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
+YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
