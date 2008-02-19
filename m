@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRjoO-0005oW-H9
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 08:56:16 +0100
-Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
-	[84.69.142.185])
-	by mail.youplala.net (Postfix) with ESMTP id 9156AD88122
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 08:54:52 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <950c7d180802192339s5fa402fan6a9ac8674e128689@mail.gmail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1JRZo7-00073V-47
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 22:15:19 +0100
+Date: Tue, 19 Feb 2008 22:14:34 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Filippo Argiolas <filippo.argiolas@gmail.com>
+In-Reply-To: <1203434275.6870.25.camel@tux>
+Message-ID: <Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
 References: <1203434275.6870.25.camel@tux>
-	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
-	<1203449457.28796.7.camel@youkaida>
-	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
-	<1203458966.28796.13.camel@youkaida>
-	<950c7d180802192339s5fa402fan6a9ac8674e128689@mail.gmail.com>
-Date: Wed, 20 Feb 2008 07:54:51 +0000
-Message-Id: <1203494091.11318.7.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
-	ir	receiver
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+ receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,72 +26,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+That indeed looks OK to my eyes. I have to admit that I never took a look 
+into the IR-code from DiBcom...
 
-On Wed, 2008-02-20 at 16:39 +0900, Matthew Vermeulen wrote:
-> On Feb 20, 2008 7:09 AM, Nicolas Will <nico@youplala.net> wrote: 
->         
->         
->         On Wed, 2008-02-20 at 06:10 +0900, Matthew Vermeulen wrote:
->         > Hi all... I'm seeing exactly the same problems everyone else
->         is (log
->         > flooding etc) except that I can't seem to get any keys
->         picked by lirc
->         > or /dev/input/event7 at all...
->         >
->         > Would this patch help in this case?
->         
->         
->         It would help with the flooding, most probably, though there
->         was a patch
->         for that available before.
->         
->         As for LIRC not picking up the event, I would be tempted to
->         say no, it
->         won't help.
->         
->         Are you certain that your LIRC is configured properly? Are you
->         certain
->         that your event number is the right one?
->         
->         
->         Nico
-> 
-> I believe so... in so far as I can tell... I sent an email to this
-> list about a week ago describing my problems, but there was no
-> response. (subject: Compro Videomate U500). I've copied it below:
-> 
-> Hi all,
-> 
-> I've still been trying to get the inluded remote with my USB DVB-T
-> Tuner working. It's a Compro Videomate U500 - it useses the dibcom
-> 7000 chipset. After upgrading to Ubuntu 8.04 (hardy) I can now see the
-> remote when I do a "cat /proc/bus/input/devices":
-> 
-> I: Bus=0003 Vendor=185b Product=1e78 Version=0100
-> N: Name="IR-receiver inside an USB DVB receiver"
-> P: Phys=usb-0000:00:02.1-4/ir0
-> S: Sysfs=/devices/pci0000:00/0000 :00:02.1/usb1/1-4/input/input7
-> U: Uniq=
-> H: Handlers=kbd event7 
-> B: EV=3
-> B: KEY=10afc332 2842845 0 0 0 4 80018000 2180 40000801 9e96c0 0 800200
-> ffc
+In any case, especially to that problem with "unknown key code" I think it 
+is time to change the IR-behavior of the DVB-USB.
 
-Weird.
+My problem is, I don't know how.
 
-You went through all this, I guess:
+My naive idea would be, that the IR-code is reporting each key (as raw as 
+possible) without mapping it to an event to the event interface and then 
+someone, somewhere is interpreting it. Also forward any repeat-attribute.
 
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500#Remote_control
+Those endless tables in a lot of dvb-usb drivers are annoying me, firstly 
+because they are endless and huge, and secondly, they are never complete. 
+If there is an adequate replacement from userspace (somehow loading 
+key-lists to the event-layer or in the worst case, to the 
+dvb-usb-framework) would be a good solution.
 
-And you are running a recent v4l-dvb tree, I assume.
+Filippo, it seems you understand quite some thing around that. Do you know 
+if what I'm saying is somehow possible?
 
-> 
-> However, I get now output running irrecord:
+Thanks,
+Patrick.
 
-I was never too lucky with irrecord on my system, IIRC.
 
-Nico
 
+On Tue, 19 Feb 2008, Filippo Argiolas wrote:
+
+> Hi, my last messages have been almost ignored.. so I'm opening a new
+> thread. Please refer to the other thread [wintv nova-t stick, dib0700
+> and remote controllers] for more info.
+>
+> Here is a brief summary of the problem as far as I can understand:
+> - when a keypress event is received the device stores its data somewhere
+> - every 150ms dib0700_rc_query reads this data
+> - since there is nothing that resets device memory if no key is being
+> pressed anymore device still stores the data from the last keypress
+> event
+> - to prevent having false keypresses the driver reads rc5 toggle bit
+> that changes from 0 to 1 and viceversa when a new key is pressed or when
+> the same key is released and pressed again. So it ignores everything
+> until the toggle bit changes. The right behavior should be "repeat last
+> key until toggle bit changes", but cannot be done since last data still
+> stored would be considered as a repeat even if nothing is pressed.
+> - this way it ignores even repeated key events (when a key is holded
+> down)
+> - this approach is wrong because it works just for rc5 (losing repeat
+> feature..) but doesn't work for example with nec remotes that don't set
+> the toggle bit and use a different system.
+>
+> The patch solves it calling dib0700_rc_setup after each poll resetting
+> last key data from the device. I've also implemented repeated key
+> feature (with repeat delay to avoid unwanted double hits) for rc-5 and
+> nec protocols. It also contains some keymap for the remotes I've used
+> for testing (a philipps compatible rc5 remote and a teac nec remote).
+> They are far from being complete since I've used them just for testing.
+>
+> Thanks for reading this,
+> Let me know what do you think about it,
+> Greets,
+>
+> Filippo
+>
 
 _______________________________________________
 linux-dvb mailing list
