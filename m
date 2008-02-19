@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JU7bR-0003WQ-LU
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 22:44:45 +0100
-Message-ID: <47C48845.4030808@gmail.com>
-Date: Wed, 27 Feb 2008 01:44:37 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <nico@youplala.net>) id 1JRWAg-0006nV-9B
+	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 18:22:22 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id 4A96CD88113
+	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 18:21:03 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
 To: linux-dvb@linuxtv.org
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
-	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
-	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
-	<47C19735.4030601@gmail.com> <47C1D52B.6070906@otenet.gr>
-	<47C1C55F.5030406@gmail.com> <47C32947.1030604@otenet.gr>
-	<47C33CB1.1080502@gmail.com> <47C49F79.1080704@otenet.gr>
-In-Reply-To: <47C49F79.1080704@otenet.gr>
-Subject: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar HD: Problems
- scaning and zaping
+In-Reply-To: <1203434275.6870.25.camel@tux>
+References: <1203434275.6870.25.camel@tux>
+Date: Tue, 19 Feb 2008 17:21:02 +0000
+Message-Id: <1203441662.9150.29.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,57 +28,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Vangelis Nonas wrote:
-> Hello,
-> 
-> Here is the output of hg log|head -n 5 for two different directories 
-> (multiproto and multiproto_7200)
-> 
-> for multiproto:
-> changeset:   7205:9bdb997e38b5
-> tag:         tip
-> user:        Manu Abraham <manu@linuxtv.org>
-> date:        Sun Feb 24 02:10:56 2008 +0400
-> summary:     We can now reduce the debug levels, just need to look at 
-> errors only.
-> 
-> for multiproto_7200:
-> changeset:   7200:45eec532cefa
-> tag:         tip
-> parent:      7095:a577a5dbc93d
-> parent:      7199:0448e5a6d8a6
-> user:        Manu Abraham <manu@linuxtv.org>
-> 
-> 
-> So I guess I was referring to 7200 and not to 7201.
-> I am very positive about the results because I have tested it many 
-> times. It is just that it is 7200 instead of 7201.
-> So as a concluesion, 7200 behaves better than 7205. My corrected little 
-> table follows below just for clarification.
 
+On Tue, 2008-02-19 at 16:17 +0100, Filippo Argiolas wrote:
+> I've also implemented repeated key
+> feature (with repeat delay to avoid unwanted double hits) for rc-5 and
+> nec protocols. It also contains some keymap for the remotes I've used
+> for testing (a philipps compatible rc5 remote and a teac nec remote).
+> They are far from being complete since I've used them just for
+> testing.
 
-Ok, fine this is very much possible. Can other STB0899 users (all of them)
-verify this result, such that i can revert back the changes ?
+I'm quite interested in testing this patch, key repeats have been a
+nagging thing in the back of my mind.
 
+I'll be testing this patch, and I'll document it in the wiki here:
 
-> 
-> Changeset   Verbose  channels
-> --------------------------------
-> 7200         1        2152
-> 7200         2        2105
-> 7200         5        2081
-> 7205         1        1760
-> 7205         2        1608
-> 7205         5        1578
-> 
-> 
-> I apologise for the confusion, I may have caused.
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
 
-No worries, don't apologise, this is all a part of the testing phase.
+I have a question about the quoted part.
 
+Will this mess in any way with the current keycodes of my Nova-T-500
+remote?
 
-Thanks,
-Manu
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
