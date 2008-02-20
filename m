@@ -1,26 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from faunus.aptilo.com ([62.181.224.42])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JUPnh-00078E-7q
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 18:10:37 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JWW00701QCQW690@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 27 Feb 2008 12:10:03 -0500 (EST)
-Date: Wed, 27 Feb 2008 12:10:02 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <002a01c87962$8d8293c0$2727a8c0@pc1>
-To: Halim Sahin <halim.sahin@t-online.de>
-Message-id: <47C5996A.2070404@linuxtv.org>
-MIME-version: 1.0
-References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
-	<B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
-	<47C591E1.5030001@linuxtv.org> <002a01c87962$8d8293c0$2727a8c0@pc1>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
- HVR-1700 and HVR-1200
+	(envelope-from <jonas@anden.nu>) id 1JRlOE-0003OZ-Oo
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 10:37:22 +0100
+Received: from [192.168.1.8] (h-49-157.A157.cust.bahnhof.se [79.136.49.157])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by faunus.aptilo.com (Postfix) with ESMTP id 9CDAF1F9062
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 10:36:43 +0100 (CET)
+From: Jonas Anden <jonas@anden.nu>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1203499521.6682.2.camel@acropora>
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+	<8ad9209c0802192338v66cfb4c4n42d733629421fe6c@mail.gmail.com>
+	<1203499521.6682.2.camel@acropora>
+Date: Wed, 20 Feb 2008 10:36:39 +0100
+Message-Id: <1203500199.10076.29.camel@anden.nu>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,21 +32,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Halim Sahin wrote:
-> Hello,
+> The strange thing is that modinfo does not say anything about a level 15
+> debug for the dvb_usb_dib0700 module.
 > 
-> Can please someone explain why the hardware manufacturers are often 
-> changing well working hardware designs?
-> Now hauppauge seems to have a new card, new cips on it (and currently no 
-> linux support?)?
-> BR.
-> Halim
+> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500#dvb_usb_dib0700
 
-You dropped the CC of the mailing list, so I added it back.
+The debug value is a bit field, with each bit representing a different
+category. With all bits on (ie full debugging) the decimal value becomes
+15.
 
-By someone, do you mean me?
+  // J
 
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
