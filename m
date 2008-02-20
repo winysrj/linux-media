@@ -1,14 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1JOuCT-0003Xj-8r
-	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 13:25:25 +0100
-Message-ID: <47B19015.20208@gmx.net>
-Date: Tue, 12 Feb 2008 13:24:53 +0100
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DiSEqC trouble with TT S-1500
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail-in-16.arcor-online.net ([151.189.21.56])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1JRceZ-0003Na-UR
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 01:17:39 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Nicolas Will <nico@youplala.net>
+In-Reply-To: <1203461323.28796.26.camel@youkaida>
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+	<1203461323.28796.26.camel@youkaida>
+Date: Wed, 20 Feb 2008 01:12:03 +0100
+Message-Id: <1203466323.5358.29.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,37 +21,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-I've got a Technotrend S-1500 (if it matters: I use it with Kaffeine 
-0.8.3). It works mostly fine, but there's a strange problem. With my 
-Spaun 4/1 DiSEqC switch (they cost approx 25-40 euro), I can only switch 
-without trouble to position 1 and 2. If I tune directly to position 3 it 
-won't lock.
-
-However, if I first tune to a channel on position 1 or 2 and try a 
-channel on position 3 after that, it will work. Position 4 however is 
-completely unreachable.
-
-On a standalone receiver, there's no trouble with the same cable.
-
-Now Spaun is a really expensive and respected brand. So their switches 
-possibly work in a different way, because a cheap Maximum 4/1 switch 
-works perfectly with the S-1500. Position 1, 2, 3 and 4 all work 
-perfectly. I also did some "dry testing" indoors and it looks like a 7 
-euro Satconn 4/1 switch would also work fine, but a 17 euro Axing SPU 
-41-02 probably won't.
-
-I'm guessing this could be solved in stv0299.c but I'm not much of an 
-expert. I took a look at the code but I'm not really sure what to do.
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gRGllbnN0YWcsIGRlbiAxOS4wMi4yMDA4LCAyMjo0OCArMDAwMCBzY2hyaWViIE5pY29sYXMg
+V2lsbDoKPiBPbiBUdWUsIDIwMDgtMDItMTkgYXQgMjI6NTYgKzAxMDAsIEpvbmFzIEFuZGVuIHdy
+b3RlOgo+ID4gPiA+IFRoZXJlIGlzIG5vdCBhIGxvdCBiZWluZyBzYWlkIGFib3V0IHRoZSBOb3Zh
+LVQgNTAwIHRoZSBsYXN0IHdlZWsuCj4gPiA+ID4gRG9uwrR0IGtub3cgaWYgdGhhdCBpcyBhIGdv
+b2QgKGNvZGVycyBjb2RpbmcpIG9yIGEgYmFkIChub3RoaW4KPiA+ID4gPiBoYXBwZW5pbmcpCj4g
+PiA+IAo+ID4gPiBPciBjb2RlcnMgYnVzeSBvbiBvdGhlciBjb2RlLCBvciBjb2RlcnMgd2hvIHJh
+biBvdXQgb2YgaWRlYXMsIG9yCj4gPiBjb2RlcnMKPiA+ID4gZW5qb3lpbmcgbGlmZSwgZXRjLgo+
+ID4gCj4gPiAuLm9yIGp1c3Qgd2FpdGluZyBmb3IgdGhlIHByb2JsZW0gdG8gcmVhcHBlYXIgOygg
+VGhlIHRyb3VibGUgd2l0aCB0aGUKPiA+IHNlY29uZCB0dW5lciBkeWluZyBpcyB0cmlja3kgKGZv
+ciBtZSkgdG8gaXNvbGF0ZS4KPiA+IAo+ID4gQXMgYSB3b3JrYXJvdW5kLCBlbmFibGluZyBmdWxs
+IGRlYnVnIChkZWJ1Zz0xNSkgb24gdGhlIGR2Yl91c2JfZGliMDcwMAo+ID4gbW9kdWxlIGhhcyBt
+YWRlIG15IHN5c3RlbSByb2NrIHNvbGlkLiBJIHR1cm5lZCBvbiBkZWJ1Z2dpbmcgdG8gdHJ5IHRv
+Cj4gPiBpc29sYXRlIHRoZSBpc3N1ZSwgYnV0IHdpdGggZGVidWdnaW5nIGVuYWJsZWQgdGhlIHBy
+b2JsZW0gZG9lcyBub3QKPiA+IGFwcGVhciAoYXQgbGVhc3Qgbm90IG9uIG15IHN5c3RlbSkuCj4g
+PiAKPiA+IEkgaGF2ZW4ndCByZWFsbHkgZmlndXJlZCBvdXQgKndoYXQqIGluIHRoZSBkZWJ1ZyBj
+b2RlIGlzIGhlbHBpbmcgeWV0LAo+ID4gYnV0IEkgc3RpbGwgc3VzcGVjdCB0aGF0IHRoaXMgaXMg
+dGltaW5nLXJlbGF0ZWQgYW5kIHRoZSBkZWJ1ZyBjb2RlCj4gPiBzaW1wbHkgc2xvd3MgdGhpbmdz
+IGRvd24gYSBiaXQuIEVuYWJsaW5nIGRlYnVnZ2luZyB3aWxsIHB1dCBhIHdob2xlCj4gPiBsb3QK
+PiA+IG9mICJqdW5rIiBpbiB5b3VyIHN5c3RlbSBsb2cgZmlsZXMsIGJ1dCBhdCBsZWFzdCB0aGUg
+c2Vjb25kIHR1bmVyIHdvbnQKPiA+IGRpZSBvbiB5b3UuIElmIHlvdSBnbyB0aGlzIHBhdGgsIG1h
+a2Ugc3VyZSB5b3VyIGxvZyByb3RhdGlvbiB3b3JrcyBhcwo+ID4gaXQKPiA+IHNob3VsZCAtLSBt
+eSB3ZWVrbHkgcm90YXRlZCBsb2dzIGFyZSB1cCB0byAxMzAgTUIgaW4gc2l6ZSA7KQo+IAo+IE5v
+dyBzdG9wIHRoYXQgbG9nZ2luZyBtYWRuZXNzIGFuZCBnZXQgYmFjayB0byB3b3JrIQo+IAo+IC4u
+Lgo+IAo+IDtvKQo+IAo+IAo+IFRoaXMgaXMgYSByYXRoZXIgY29taWNhbCBzaXR1YXRpb24sIHRo
+b3VnaC4uLiBUaGUgZGVidWdnaW5nIHRvb2wgaXMKPiBwcm92aWRpbmcgYSByYXRoZXIgdW5leHBl
+Y3RlZCBhbmQgdW53ZWxjb21lZCBmaXguCj4gCj4gTmljbwo+IAoKSGksCgpubywgaXQgaXMgbm90
+LiBJdCBpcyB3ZWxsIGtub3duIQoKVGltaW5ncyBhcmUgdmVyeSBjcml0aWNhbCBvbiBhbG1vc3Qg
+YWxsIGRyaXZlcnMuCgpXZSBob2xkIGJyZWF0aCBvbiBhbG1vc3QgZXZlcnl0aGluZyBjb21pbmcg
+ZG93biBmcm9tIGFib3ZlLCBub2JvZHkgaGFzCnRoZSBhYmlsaXR5LCBvciB3aG9tIHNob3VsZCBl
+dmVyIHdhbnQgaXQsIHRvIHRlc3QgYWxsIHBvc3NpYmxlIHNpZGUKZWZmZWN0cyBvbiBhbGwgc3Vw
+cG9ydGVkIGRldmljZXMgLi4uCgpUaGF0IHNvbWV0aGluZyBicmVha3MgaXMgdmVyeSBjb21tb24s
+IGFuZCB0aGF0IG90aGVycyBoYXZlIHRvIGdpdmUgdGhlCnBsdW1iZXJzLCBpcyBub3RoaW5nIG5l
+dy4KClRvIHN0YXkgZmFpciwgaXQgbW9zdGx5IGhhcyBhIGdvb2QgcmVhc29uLCBhbmQgaWYgdGhl
+cmUgYXJlIHNvbWUKcmVtYWluaW5nIHRpY2tzIGxlZnQsIHlvdSBtaWdodCBnZXQgaXQgYWRqdXN0
+ZWQsIGJ1dCAuLi4KCk9uIHRoZSBvdGhlciBzaWRlIGl0IGlzIHRoZSBzYW1lIC4uLgoKQ2hlZXJz
+LApIZXJtYW5uCgoKCgoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
+cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
