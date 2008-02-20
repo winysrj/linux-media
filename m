@@ -1,118 +1,77 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m151QlQA021139
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 20:26:47 -0500
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.239])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m151Q6F9031892
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 20:26:06 -0500
-Received: by wx-out-0506.google.com with SMTP id t16so1991818wxc.6
-	for <video4linux-list@redhat.com>; Mon, 04 Feb 2008 17:26:06 -0800 (PST)
-Date: Mon, 4 Feb 2008 17:24:51 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-ID: <20080205012451.GA31004@plankton.ifup.org>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from wr-out-0506.google.com ([64.233.184.228])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hansson.patrik@gmail.com>) id 1JRvFj-0005bc-0g
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 21:09:15 +0100
+Received: by wr-out-0506.google.com with SMTP id 68so2658507wra.13
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 12:09:11 -0800 (PST)
+Message-ID: <8ad9209c0802201209j78094465i62f70f7c4ee2eeef@mail.gmail.com>
+Date: Wed, 20 Feb 2008 21:09:09 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1203517472.6682.37.camel@acropora>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Cc: video4linux-list@redhat.com,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+References: <1203434275.6870.25.camel@tux> <1203449457.28796.7.camel@youkaida>
+	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+	<1203495773.7026.15.camel@tux> <1203496068.7026.19.camel@tux>
+	<950c7d180802200436s68bab78ej3eb01a93090c313f@mail.gmail.com>
+	<1203513814.6682.30.camel@acropora>
+	<950c7d180802200543w31d157eag6e3d8277d60fa412@mail.gmail.com>
+	<1203516921.6602.11.camel@tux> <1203517472.6682.37.camel@acropora>
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+	receiver
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-On 15:31 Thu 31 Jan 2008, Guennadi Liakhovetski wrote:
-> From: Steven Whitehouse <steve@chygwyn.com>
-> 
-> This adds two new fourcc codes (as per info at fourcc.org)
-> for 16bpp mono and 16bpp Bayer formats.
+Just got the latest v4l-dvb and used the patch and compiled.
+Yea, now holding down the button works! :)
+Nice Job!
 
-This patch was merged in the following commit:
- http://linuxtv.org/hg/v4l-dvb/rev/d002378ff8c2
+On Feb 20, 2008 3:24 PM, Nicolas Will <nico@youplala.net> wrote:
+>
+> On Wed, 2008-02-20 at 15:15 +0100, Filippo Argiolas wrote:
+> > It seems that your remote does not use the toggle bit. I don't know
+> > why
+> > since afaik it is a feature of the rc5 protocol.
+> > By the way you can try to make some test writing the keymap on your
+> > own.
+> > Just edit dib0700_devices.c about at line 400, look at the other
+> > keymaps
+> > to have a model:
+> > for example if the key you logged was the UP key you have to add a
+> > line
+> > like:
+> > { 0x13, 0x7E, KEY_UP },
+> > and so on for the other keys, after that see if the keymap works with
+> > evtest.
+>
+> Between this discussion and some wiki rework I have been doing today on
+> all dib0700 equipped hardware, i am starting to understand where Patrick
+> was coming from regarding all that hard-coding of specific remote
+> keys...
+>
+> Nico
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-I have a number of issues:
- 
-- Why was V4L2_CID_AUTOEXPOSURE added!  I am working to get an auto
-  exposure control into the spec but this was merged without discussion.
-  Please remove this and wait for my patch.
-
-- Why was a SoC config option added with this commit?
-
-- mailimport changes in this commit too!  Why is mailimport running
-  sudo!?! 
-
-A mistake was obviously made here.
-
-	Brandon
-
-
---- a/linux/drivers/media/video/Kconfig	Sun Jan 27 17:24:26 2008 +0000
-+++ b/linux/drivers/media/video/Kconfig	Mon Feb 04 16:32:42 2008 -0200
-@@ -836,4 +836,13 @@ config USB_STKWEBCAM
- 
- endif # V4L_USB_DRIVERS
- 
-+config SOC_CAMERA
-+	tristate "SoC camera support"
-+	depends on VIDEO_V4L2
-+	select VIDEOBUF_DMA_SG
-+	help
-+	  SoC Camera is a common API to several cameras, not connecting
-+	  over a bus like PCI or USB. For example some i2c camera connected
-+	  directly to the data bus of an SoC.
-+
- endif # VIDEO_CAPTURE_DRIVERS
---- a/linux/include/linux/videodev2.h	Sun Jan 27 17:24:26 2008 +0000
-+++ b/linux/include/linux/videodev2.h	Mon Feb 04 16:32:42 2008 -0200
-@@ -281,6 +281,7 @@ struct v4l2_pix_format
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B','G','R','4') /* 32  BGR-8-8-8-8   */
- #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R','G','B','4') /* 32  RGB-8-8-8-8   */
- #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G','R','E','Y') /*  8  Greyscale     */
-+#define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y','1','6',' ') /* 16  Greyscale     */
- #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P','A','L','8') /*  8  8-bit palette */
- #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y','V','U','9') /*  9  YVU 4:1:0     */
- #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y','V','1','2') /* 12  YVU 4:2:0     */
-@@ -307,6 +308,7 @@ struct v4l2_pix_format
- 
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
-+#define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
- #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M','J','P','G') /* Motion-JPEG   */
-@@ -862,7 +864,8 @@ struct v4l2_querymenu
- #define V4L2_CID_VFLIP			(V4L2_CID_BASE+21)
- #define V4L2_CID_HCENTER		(V4L2_CID_BASE+22)
- #define V4L2_CID_VCENTER		(V4L2_CID_BASE+23)
--#define V4L2_CID_LASTP1			(V4L2_CID_BASE+24) /* last CID + 1 */
-+#define V4L2_CID_AUTOEXPOSURE		(V4L2_CID_BASE+24)
-+#define V4L2_CID_LASTP1			(V4L2_CID_BASE+25) /* last CID + 1 */
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
---- a/mailimport	Sun Jan 27 17:24:26 2008 +0000
-+++ b/mailimport	Mon Feb 04 16:32:42 2008 -0200
-@@ -224,6 +224,10 @@ if [ -d "$NAME" ]; then
- 	else
- 		echo "Processing patches from tree $NAME"
- 		for i in $NAME/*; do
-+			if [ ! -r $i ]; then
-+				sudo chmod og+r $i
-+			fi
-+
- 			echo "$i"
- 			proccess_patch "$i"
- 		done
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
