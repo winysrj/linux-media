@@ -1,23 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RKANQ3016740
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 15:10:23 -0500
-Received: from mail6.sea5.speakeasy.net (mail6.sea5.speakeasy.net
-	[69.17.117.8])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1RK9pg5012159
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 15:09:51 -0500
-Date: Wed, 27 Feb 2008 12:09:44 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Brandon Philips <brandon@ifup.org>
-In-Reply-To: <54fa1a0d9c5bcdfcb2ba.1204098881@localhost>
-Message-ID: <Pine.LNX.4.58.0802271207300.14140@shell4.speakeasy.net>
-References: <54fa1a0d9c5bcdfcb2ba.1204098881@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KMCkvU014934
+	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:12:46 -0500
+Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1KMCCqL002667
+	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 17:12:13 -0500
+Message-ID: <47BCA5BA.20009@kaiser-linux.li>
+Date: Wed, 20 Feb 2008 23:12:10 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	mchehab@infradead.org
-Subject: Re: [v4l-dvb-maintainer] [PATCH] v4l: Deadlock in videobuf-core for
- DQBUF waiting on QBUF
+To: Thomas Kaiser <linux-dvb@kaiser-linux.li>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+References: <47BC7E91.6070303@kaiser-linux.li>
+	<175f5a0f0802201208u4bca35afqc0291136fe2482b@mail.gmail.com>
+	<47BC8BFC.2000602@kaiser-linux.li>
+	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>
+	<47BC90CA.1000707@kaiser-linux.li>
+	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
+	<47BC9788.7070604@kaiser-linux.li>
+	<20080220215850.GA2391@daniel.bse>
+In-Reply-To: <20080220215850.GA2391@daniel.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,20 +35,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 26 Feb 2008, Brandon Philips wrote:
-> v4l: Deadlock in videobuf-core for DQBUF waiting on QBUF
->
-> Avoid a deadlock where DQBUF is holding the vb_lock while waiting on a QBUF
-> which also needs the vb_lock.  Reported by Hans Verkuil <hverkuil@xs4all.nl>.
->
->  	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
-> +	mutex_unlock(&q->vb_lock);
->  	retval = videobuf_waiton(buf, nonblocking, 1);
-> +	mutex_lock(&q->vb_lock);
+Daniel Glöckner wrote:
+> On Wed, Feb 20, 2008 at 10:11:36PM +0100, Thomas Kaiser wrote:
+>> H. Willstrand wrote:
+>>> Well, it can go ugly if one piece of hardware supports several "raw"
+>>> formats, they need to be distinct. And in the end of the day the V4L2
+>>> drivers might consist of several identical "raw" formats which then
+>>> aren't consolidated.
+>> I don't really understand what you try to say here.
+> 
+> Think about an analog TV card.
+> In the future there might be one where RAW could mean either sampled
+> CVBS or sampled Y/C. The card may be able to provide the Y/C in planar
+> and packed format. It may be capable of 16 bit at 13.5Mhz and 8 bit at
+> 27Mhz, ...
+> 
+> If we start defining raw formats, there needs to be a way to choose
+> between all those variants without defining lots of additional pixel
+> formats.
+> 
+> Maybe an ioctl VIDIOC_S_RAW where one passes a number to select the
+> variant. An application would then have to check the driver and version
+> field returned by VIDIOC_QUERYCAP to determine the number to pass. This
+> way drivers may freely assign numbers to their raw formats.
 
-Does this create a race condition in videobuf_waiton?  It seems like the
-stuff done there with buf would have races with any other thread trying to
-access buf at the same time.
+Yeh, That's something I mean.
+
+> 
+> Application writers would need to look into all drivers' docs/sources to
+> find the possible values. They would need to do it anyway to see if they
+> can decode the raw format.
+
+That's why we need a user space library to handle all this strange "unknown" 
+streams.
+
+When the application can not decode (or does not know) the stream, just get it 
+to the decoding lib. When the stream is known, you get a decoded picture back. 
+If not you get an error.
+
+Thomas
+
+> 
+>   Daniel
+> 
+> P.S.: If my mail doesn't reach the list, blame its spam filter
+> 
+
+
+-- 
+http://www.kaiser-linux.li
 
 --
 video4linux-list mailing list
