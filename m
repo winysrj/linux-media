@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.177])
+Received: from mail-in-08.arcor-online.net ([151.189.21.48])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <guillaume.ml@gmail.com>) id 1JRdHq-0007ga-22
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 01:58:14 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so3651524wag.13
-	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 16:58:08 -0800 (PST)
-Message-ID: <4758d4170802191658x6a444e3av5fb479719ae5db80@mail.gmail.com>
-Date: Wed, 20 Feb 2008 01:58:08 +0100
-From: "=?ISO-8859-1?Q?Guillaume_Membr=E9?=" <guillaume.ml@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <4758d4170802151402r3a4dfd54t9cb54803a7fa29e4@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <4758d4170802151402r3a4dfd54t9cb54803a7fa29e4@mail.gmail.com>
-Subject: Re: [linux-dvb] problems with a satelco easy watch dvb-c
+	(envelope-from <hermann-pitton@arcor.de>) id 1JRqkG-0000rm-ON
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 16:20:29 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Nicolas Will <nico@youplala.net>
+In-Reply-To: <1203491540.28796.46.camel@youkaida>
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+	<1203461323.28796.26.camel@youkaida>
+	<1203466323.5358.29.camel@pc08.localdom.local>
+	<1203491540.28796.46.camel@youkaida>
+Date: Wed, 20 Feb 2008 16:14:32 +0100
+Message-Id: <1203520472.4767.18.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,118 +23,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi Nico,
 
-I finally found that unplugging and plugging my pci card suppresses
-the kernel errors.
+Am Mittwoch, den 20.02.2008, 07:12 +0000 schrieb Nicolas Will:
+> On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
+> > > Now stop that logging madness and get back to work!
+> > > 
+> > > ...
+> > > 
+> > > ;o)
+> > > 
+> > > 
+> > > This is a rather comical situation, though... The debugging tool is
+> > > providing a rather unexpected and unwelcomed fix.
+> > > 
+> > > Nico
+> > > 
+> > 
+> > Hi,
+> > 
+> > no, it is not. It is well known!
+> > 
+> > Timings are very critical on almost all drivers.
+> > 
+> > We hold breath on almost everything coming down from above, nobody has
+> > the ability, or whom should ever want it, to test all possible side
+> > effects on all supported devices ...
+> > 
+> > That something breaks is very common, and that others have to give the
+> > plumbers, is nothing new.
+> > 
+> > To stay fair, it mostly has a good reason, and if there are some
+> > remaining ticks left, you might get it adjusted, but ...
+> > 
+> > On the other side it is the same ...
+> 
+> May post may have sounded offensive, apparently.
+> 
+> Sorry about that, my intentions were on the lighter sides of life.
+> 
+> Nico
+> 
 
-However, I didn't find any channels with an initial tuning file for my
-cable provider in France so I tried w_scan and it didn't find anything
-either.
-$ w_scan -fc
-w_scan version 20080105
-Info: using DVB adapter auto detection.
-   Found DVB-C frontend. Using adapter /dev/dvb/adapter0/frontend0
--_-_-_-_ Getting frontend capabilities-_-_-_-_
-frontend Philips TDA10023 DVB-C supports
-INVERSION_AUTO
-QAM_AUTO not supported, trying QAM_64 and QAM_256.
-FEC_AUTO
--_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-50500:
-[.....]
-858000:
-ERROR: Sorry - i couldn't get any working frequency/transponder
- Nothing to scan!!
-dumping lists (0 services)
-Done.
+nothing offending at all, did enjoy your above comment :)
+and like your active support for others.
 
-Under windows, the program shipped with my card found 85 channels and it wo=
-rks.
+It is just not totally unexpected that high debug levels can have some
+spin-off and I'm curious about it.
 
-what's wrong ? please help !
-Guillaume
+Cheers,
+Hermann
 
-
-On Feb 15, 2008 11:02 PM, Guillaume Membr=E9 <guillaume.ml@gmail.com> wrote:
-> Hello,
->
-> I'm trying to setup a Satelco easy watch dvb-c but it doesn't work :
-> when doing a scan with the following command :
-> $ scan fr-noos-numericable
-> scanning fr-noos-numericable
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 147000000 6875000 0 3
-> >>> tune to: 147000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 147000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64 (tuning fai=
-led)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
->
-> the kernel shows the following errors :
-> DVB: TDA10023(0): tda10023_writereg, writereg error (reg =3D=3D 0x10, val
-> =3D=3D 0x00, ret =3D=3D -512)
-> DVB: TDA10023: tda10023_readreg: readreg error (ret =3D=3D -512)
->
-> and it doesn't find any channels as it should. I have a set top box
-> from my cable provider which works fine with this tuning frequencie.
->
-> I'm running debian unstable with a 2.6.24.2 kernel.
-> Here is the initialization of the card :
->
-> PCI: Found IRQ 10 for device 0000:00:0e.0
-> saa7146: found saa7146 @ mem f88d2000 (revision 1, irq 10) (0x1894,0x002c=
-).
-> saa7146 (0): dma buffer size 192512
-> DVB: registering new adapter (Satelco EasyWatch DVB-C MK3)
-> adapter failed MAC signature check
-> encoded MAC from EEPROM was
-> ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-> via-rhine.c:v1.10-LK1.4.3 2007-03-06 Written by Donald Becker
-> KNC1-0: MAC addr =3D 00:09:d6:6d:a5:0b
-> DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-> budget-av: ci interface initialised.
->
-> and the result of lsmod :
-> lsmod
-> Module                  Size  Used by
-> nfs                   116076  1
-> lockd                  59784  1 nfs
-> sunrpc                155164  8 nfs,lockd
-> fglrx                1479212  18
-> sr_mod                 14116  0
-> sd_mod                 20880  0
-> 8250                   19700  0
-> serial_core            16640  1 8250
-> tda10023                5764  1
-> via_rhine              19464  0
-> mii                     4480  1 via_rhine
-> budget_av              17792  0
-> saa7146_vv             44288  1 budget_av
-> videobuf_dma_sg        11012  1 saa7146_vv
-> videobuf_core          14340  2 saa7146_vv,videobuf_dma_sg
-> budget_core             8452  1 budget_av
-> dvb_core               70396  2 budget_av,budget_core
-> saa7146                14984  3 budget_av,saa7146_vv,budget_core
-> ttpci_eeprom            2176  1 budget_core
-> via_agp                 8064  1
-> agpgart                26288  2 fglrx,via_agp
-> evdev                   8576  1
->
-> what's wrong ? where is my error ?
-> thanks a lot for your help
->
-> Guillaume
->
 
 _______________________________________________
 linux-dvb mailing list
