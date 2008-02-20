@@ -1,20 +1,23 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.176])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from proxy2.bredband.net ([195.54.101.72])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JMjtF-0003av-H0
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 14:00:37 +0100
-Received: by py-out-1112.google.com with SMTP id a29so3021984pyi.0
-	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 05:00:35 -0800 (PST)
-Message-ID: <19a3b7a80802060500y783f543av8f730095439c64c7@mail.gmail.com>
-Date: Wed, 6 Feb 2008 14:00:34 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "=?ISO-8859-1?Q?Guillaume_Membr=E9?=" <guillaume.ml@gmail.com>
-In-Reply-To: <4758d4170802060447r2d08b759n98e115e1422b9494@mail.gmail.com>
+	(envelope-from <mika@mikael.homelinux.org>) id 1JRsfh-0004GE-Bc
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 18:23:53 +0100
+Received: from ironport.bredband.com (195.54.101.120) by proxy2.bredband.net
+	(7.3.127) id 47A097270068A59A for linux-dvb@linuxtv.org;
+	Wed, 20 Feb 2008 18:23:48 +0100
+Received: from mail.mikael.homelinux.org (neville.mikael.homelinux.org
+	[127.0.0.1])
+	by neville.mikael.homelinux.org (Postfix) with ESMTP id 5D462FB32B
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 18:23:47 +0100 (CET)
+Message-ID: <54643.193.15.240.60.1203528227.squirrel@mail.mikael.homelinux.org>
+Date: Wed, 20 Feb 2008 18:23:47 +0100 (CET)
+From: "Mikael Carlsson" <mika@mikael.homelinux.org>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <4758d4170802060447r2d08b759n98e115e1422b9494@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb-c : full scan
+References: In-Reply-To: 
+Subject: [linux-dvb] FireDTV driver status?
+Reply-To: mika@mikael.homelinux.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,33 +25,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/2/6, Guillaume Membr=E9 <guillaume.ml@gmail.com>:
-> Hello,
->
-> I'm newbie, so please be kind :)
-> I have a satelco easywatch pci dvb-c card and I would like to do a
-> full scan of frequencies in order to find the transponders of my
-> cable-provider.
-> I didn't find any start file for scan for my country/provider. I'm
-> leaving in France, in Nantes and my cable provider is Numericable.
+Hi all,
 
-http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-c/fr-noos-numericable
+is there any development for a FireDTV driver?
 
-> I have found that the script dvbt-scanaid seems to generate a big file
-> to do the same work but only for dvb-t.
->
-> Any help please ?
-> Thanks a lot
-> Regards
-> Guillaume
 
-Christoph
+  Best regards
+
+  Mikael Carlsson
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
