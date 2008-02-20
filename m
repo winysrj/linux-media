@@ -1,14 +1,27 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from hpsmtp-eml20.kpnxchange.com ([213.75.38.85])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from an-out-0708.google.com ([209.85.132.246])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <scha0273@planet.nl>) id 1JQJA7-0005Ej-80
-	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 10:16:47 +0100
-Message-ID: <47B6A9DB.501@planet.nl>
-Date: Sat, 16 Feb 2008 10:16:11 +0100
-From: henk schaap <haschaap@planet.nl>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] multiproto and tt3200: don't get a lock
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRpkE-0006pT-J1
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 15:16:22 +0100
+Received: by an-out-0708.google.com with SMTP id d18so1105330and.125
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 06:16:15 -0800 (PST)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
+To: Matthew Vermeulen <mattvermeulen@gmail.com>
+In-Reply-To: <950c7d180802200543w31d157eag6e3d8277d60fa412@mail.gmail.com>
+References: <1203434275.6870.25.camel@tux>
+	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
+	<1203449457.28796.7.camel@youkaida>
+	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+	<1203495773.7026.15.camel@tux> <1203496068.7026.19.camel@tux>
+	<950c7d180802200436s68bab78ej3eb01a93090c313f@mail.gmail.com>
+	<1203513814.6682.30.camel@acropora>
+	<950c7d180802200543w31d157eag6e3d8277d60fa412@mail.gmail.com>
+Date: Wed, 20 Feb 2008 15:15:21 +0100
+Message-Id: <1203516921.6602.11.camel@tux>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,69 +32,37 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+Il giorno mer, 20/02/2008 alle 22.43 +0900, Matthew Vermeulen ha
+scritto:
+> Feb 20 22:39:53 matthew-desktop kernel: [39334.832815] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> Feb 20 22:39:53 matthew-desktop kernel: [39334.908277] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> Feb 20 22:39:53 matthew-desktop kernel: [39335.060139] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> Feb 20 22:39:53 matthew-desktop kernel: [39335.136473] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> Feb 20 22:39:53 matthew-desktop kernel: [39335.211810] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> Feb 20 22:39:54 matthew-desktop kernel: [39335.364108] dib0700:
+> Unknown remote controller key: 13 7E  1  0
+> 
+> Not sure if that's what we were hoping for...
 
-I am already a few weeks experimenting to get my tt3200 with the 
-multiproto driver to work. Still no lock on a channel. May be someone 
-can give me good suggestion?
+It seems that your remote does not use the toggle bit. I don't know why
+since afaik it is a feature of the rc5 protocol.
+By the way you can try to make some test writing the keymap on your own.
+Just edit dib0700_devices.c about at line 400, look at the other keymaps
+to have a model:
+for example if the key you logged was the UP key you have to add a line
+like: 
+{ 0x13, 0x7E, KEY_UP },
+and so on for the other keys, after that see if the keymap works with
+evtest.
 
-Henk Schaap
-
-Here is some data:
-
-Distribution: Suse 10.3
-TT-budget S2-3200
-Multiproto driver from Manu
-Instruction to install the driver: from 
-http://www.vdr-wiki.de/wiki/index.php/OpenSUSE_VDR_DVB-S2_-_Teil2:_DVB_Treiber
-szap patch from Manu
-
-DMESG looks nice to me, only the failing probe of rtc_cmos is suspicious!
---------------------------------------------------------------------------
-saa7146: register extension 'budget_ci dvb'.
-ACPI: PCI Interrupt 0000:05:04.0[A] -> GSI 17 (level, low) -> IRQ 17
-saa7146: found saa7146 @ mem ffffc20001018400 (revision 1, irq 17) 
-(0x13c2,0x1019).
-saa7146 (0): dma buffer size 192512
-DVB: registering new adapter (TT-Budget S2-3200 PCI)
-rtc_cmos 00:03: rtc core: registered rtc_cmos as rtc0
-rtc_cmos: probe of 00:03 failed with error -16
-Floppy drive(s): fd0 is 1.44M
-adapter has MAC addr = 00:d0:5c:0b:5b:f3
-input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input3
-budget_ci: CI interface initialised
-FDC 0 is a post-1991 82077
-sr0: scsi3-mmc drive: 40x/40x writer cd/rw xa/form2 cdda tray
-Uniform CD-ROM driver Revision: 3.20
-sr 3:0:0:0: Attached scsi CD-ROM sr0
-stb0899_attach: Attaching STB0899
-stb6100_attach: Attaching STB6100
-DVB: registering frontend 0 (STB0899 Multistandard)...
-
-And zapping to a channel with szap gives the following result:
--------------------------------------------------------------
-henk@mediapark:~/bin/szap> ./szap -n 1775
-reading channels from file '/home/henk/.szap/channels.conf'
-zapping to 1775 'WDR 3;ARD':
-sat 0, frequency = 12109 MHz H, symbolrate 27500000, vpid = 0x1fff, apid 
-= 0x05dd sid = 0x0000
-Querying info .. Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-----------------------------------> Using 'STB0899 DVB-S' DVB-Sstatus 00 
-| signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
-status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe |
 
 
 _______________________________________________
