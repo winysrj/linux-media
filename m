@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp101.rog.mail.re2.yahoo.com ([206.190.36.79])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JUP1i-0002Oe-LM
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 17:21:02 +0100
-Message-ID: <47C58DC8.5040402@rogers.com>
-Date: Wed, 27 Feb 2008 11:20:24 -0500
-From: CityK <CityK@rogers.com>
+Received: from wx-out-0506.google.com ([66.249.82.230])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRlqa-0007Gh-4G
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 11:06:40 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so2087351wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 02:06:36 -0800 (PST)
+Message-ID: <8ceb98f20802200206h3eba10f8td10be343e03c6ce7@mail.gmail.com>
+Date: Wed, 20 Feb 2008 11:06:35 +0100
+From: "Filippo Argiolas" <filippo.argiolas@gmail.com>
+To: "Nicolas Will" <nico@youplala.net>
+In-Reply-To: <1203500399.6682.10.camel@acropora>
 MIME-Version: 1.0
-To: ewomer@charter.net
-References: <20080222140427.JCZZ2.28987.root@fepweb06>
-In-Reply-To: <20080222140427.JCZZ2.28987.root@fepweb06>
+Content-Disposition: inline
+References: <1203434275.6870.25.camel@tux>
+	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
+	<1203499665.7026.66.camel@tux> <1203500399.6682.10.camel@acropora>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Avermedia PCIe combo tv card
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700 ir
+	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,13 +31,11 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-All in all, I think the best course of action would be to set this aside 
-for a couple of months and then comeback and revisit it -- I say this 
-because, hopefully by then, issues with the xceive IC will have been 
-hammered out, and work on the other parts (the Conexant bridge and 
-encoder) might be more robust/mature ... at which point, it would be a 
-lot easier stringing together support for the card, and certainly for 
-end user testing purposes.
+2008/2/20, Nicolas Will <nico@youplala.net>:
+> Scratched an itch, heh? ;o)
+
+eheh, the best thing of free software is that you can always take the
+source and change it to reflect your needs :)
 
 _______________________________________________
 linux-dvb mailing list
