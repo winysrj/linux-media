@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JTNQn-00030s-1g
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 21:26:41 +0100
-Message-ID: <47C1D2FA.40909@gmail.com>
-Date: Mon, 25 Feb 2008 00:26:34 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-References: <694662.3577.qm@web33104.mail.mud.yahoo.com>
-	<47BFBE5A.4030000@gmail.com>
-In-Reply-To: <47BFBE5A.4030000@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
- AD	SP400 rebadge)
+	(envelope-from <nico@youplala.net>) id 1JRj8k-00080S-DQ
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 08:13:14 +0100
+From: Nicolas Will <nico@youplala.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+In-Reply-To: <1203466323.5358.29.camel@pc08.localdom.local>
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+	<1203461323.28796.26.camel@youkaida>
+	<1203466323.5358.29.camel@pc08.localdom.local>
+Date: Wed, 20 Feb 2008 07:12:20 +0000
+Message-Id: <1203491540.28796.46.camel@youkaida>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,40 +28,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham wrote:
-> Simeon Simeonov wrote:
->> Hi Gernot,
->>
->> I can confirm that I have similar experience to yours.
->> By the way do you know if one can control from the soft side (register or some other means)
->> the max current output for the card. I am having a problem when trying to tune with a rotor.
->> On the Linux side the current seems to be capped at 300 mA as on the XP I see it goes to
->> about 440 mA. I was still surprised that this card can supply less current than the 102g but
->> we take what we get ...
 
-Can you please try this change, whether it helps in your case ?
+On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
+> > Now stop that logging madness and get back to work!
+> > 
+> > ...
+> > 
+> > ;o)
+> > 
+> > 
+> > This is a rather comical situation, though... The debugging tool is
+> > providing a rather unexpected and unwelcomed fix.
+> > 
+> > Nico
+> > 
+> 
+> Hi,
+> 
+> no, it is not. It is well known!
+> 
+> Timings are very critical on almost all drivers.
+> 
+> We hold breath on almost everything coming down from above, nobody has
+> the ability, or whom should ever want it, to test all possible side
+> effects on all supported devices ...
+> 
+> That something breaks is very common, and that others have to give the
+> plumbers, is nothing new.
+> 
+> To stay fair, it mostly has a good reason, and if there are some
+> remaining ticks left, you might get it adjusted, but ...
+> 
+> On the other side it is the same ...
 
-In mantis_dvb.c
+May post may have sounded offensive, apparently.
 
-line #251
+Sorry about that, my intentions were on the lighter sides of life.
 
-if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0, 0)) {
+Nico
 
-change it to
-
-if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0x80, 0x40)) {
-
-and see whether it helps in improving your current limited situation.
-according to the specification it should yield 500 - 650mA
-
-A word of caution, make sure that the auxilliary power connector is
-connected. Current drawn will be a bit much higher in this case,
-additionally Static Current Limiting is used, hence additional dissipation,
-which means more current drawn which might overload the PCI bus, hence
-  it would be nice to use the auxilliary power connector.
-
-Regards,
-Manu
 
 _______________________________________________
 linux-dvb mailing list
