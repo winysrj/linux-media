@@ -1,32 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1E2Yueo023251
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 21:34:56 -0500
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.178])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1E2YZpp011218
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 21:34:35 -0500
-Received: by el-out-1112.google.com with SMTP id r23so246850elf.7
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 18:34:29 -0800 (PST)
-Date: Wed, 13 Feb 2008 18:34:15 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080214023415.GB23519@plankton.ifup.org>
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-	<20080205080038.GB8232@plankton.ifup.org>
-	<20080205102409.4b7acb01@gaivota>
-	<20080213202055.GA26352@plankton.ifup.org>
-	<37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KLxlqm005358
+	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 16:59:47 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1KLxDj9026312
+	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 16:59:14 -0500
+Date: Wed, 20 Feb 2008 22:58:51 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+Message-ID: <20080220215850.GA2391@daniel.bse>
+References: <47BC7E91.6070303@kaiser-linux.li>
+	<175f5a0f0802201208u4bca35afqc0291136fe2482b@mail.gmail.com>
+	<47BC8BFC.2000602@kaiser-linux.li>
+	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>
+	<47BC90CA.1000707@kaiser-linux.li>
+	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
+	<47BC9788.7070604@kaiser-linux.li>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <37219a840802131524i33e34930uc95b7a12d484526a@mail.gmail.com>
-Cc: video4linux-list@redhat.com,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Brandon Philips <bphilips@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+In-Reply-To: <47BC9788.7070604@kaiser-linux.li>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,36 +33,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 18:24 Wed 13 Feb 2008, Michael Krufky wrote:
-> On Feb 13, 2008 3:20 PM, Brandon Philips <bphilips@suse.de> wrote:
-> > On 10:24 Tue 05 Feb 2008, Mauro Carvalho Chehab wrote:
-> > > Maybe we've took the wrong direction when we've decided to select
-> > > mercurial. It were better and easier to use, on that time, but the -git
-> > > improvements happened too fast.
-> >
-> > We should consider a move to a full-tree git.  Particularly, it would be
-> > nice to be have v4l-dvb merging/building against other subsystems in the
-> > linux-next tree:
-> >
-> >   http://lkml.org/lkml/2008/2/11/512
-> >
-> > Also, it would save the silly pain of things like this meye.h thing and
-> > pulling in fixes from the rest of the community that patches against git
-> > trees.
+On Wed, Feb 20, 2008 at 10:11:36PM +0100, Thomas Kaiser wrote:
+> H. Willstrand wrote:
+> >Well, it can go ugly if one piece of hardware supports several "raw"
+> >formats, they need to be distinct. And in the end of the day the V4L2
+> >drivers might consist of several identical "raw" formats which then
+> >aren't consolidated.
 > 
-> Additionally, the moment we move development from hg to git, we are
-> bound to the development kernel -- we will no longer be able to work
-> against any stable kernel series, and we will lose all of our testers.
+> I don't really understand what you try to say here.
 
-Good point.  Testers seem pretty happy with our current system.
+Think about an analog TV card.
+In the future there might be one where RAW could mean either sampled
+CVBS or sampled Y/C. The card may be able to provide the Y/C in planar
+and packed format. It may be capable of 16 bit at 13.5Mhz and 8 bit at
+27Mhz, ...
 
-I will look into auto-generating a full git tree from the hg v4l-dvb
-repo.  That way we can participate in linux-next while still using
-mercurial for development.
+If we start defining raw formats, there needs to be a way to choose
+between all those variants without defining lots of additional pixel
+formats.
 
-Cheers,
+Maybe an ioctl VIDIOC_S_RAW where one passes a number to select the
+variant. An application would then have to check the driver and version
+field returned by VIDIOC_QUERYCAP to determine the number to pass. This
+way drivers may freely assign numbers to their raw formats.
 
-	Brandon
+Application writers would need to look into all drivers' docs/sources to
+find the possible values. They would need to do it anyway to see if they
+can decode the raw format.
+
+  Daniel
+
+P.S.: If my mail doesn't reach the list, blame its spam filter
 
 --
 video4linux-list mailing list
