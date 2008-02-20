@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from wx-out-0506.google.com ([66.249.82.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JRZvm-0000G3-G9
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 22:23:14 +0100
-Date: Tue, 19 Feb 2008 22:22:22 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: "Ali H.M. Hoseini" <alihmh@gmail.com>
-In-Reply-To: <66caf1560802152226m24e53959g440d6d8e5a9e2f60@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0802192216350.13027@pub6.ifh.de>
-References: <66caf1560802140702p47d8555ckaba79e39f50ad50a@mail.gmail.com>  
-	<47B46C1A.3030407@rogers.com>
-	<66caf1560802152226m24e53959g440d6d8e5a9e2f60@mail.gmail.com>
-MIME-Version: 1.0
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRkE5-0001k0-UK
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 09:22:50 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so2057444wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 00:22:49 -0800 (PST)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
+To: Matthew Vermeulen <mattvermeulen@gmail.com>
+In-Reply-To: <950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+References: <1203434275.6870.25.camel@tux>
+	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
+	<1203449457.28796.7.camel@youkaida>
+	<950c7d180802191310x5882541h61bc60195a998da4@mail.gmail.com>
+Date: Wed, 20 Feb 2008 09:22:53 +0100
+Message-Id: <1203495773.7026.15.camel@tux>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] SkyStar rev 2.8A driver?
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,43 +31,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-an OpenSource driver is not in sight for that card. There are some NDA 
-problems... I will see what I can do.
+Il giorno mer, 20/02/2008 alle 06.10 +0900, Matthew Vermeulen ha
+scritto:
+> Hi all... I'm seeing exactly the same problems everyone else is (log
+> flooding etc) except that I can't seem to get any keys picked by lirc
+> or /dev/input/event7 at all...
 
-Patrick.
+Are you sure that the input device is receiving the events?
+Did you try evtest /dev/input/event7?
+Is LIRC properly configured?
+Are you using this file for lircd.conf
+[http://linux.bytesex.org/v4l2/linux-input-layer-lircd.conf]?
+Does irw catch some event?
 
-On Sat, 16 Feb 2008, Ali H.M. Hoseini wrote:
+Regarding log flooding, that should be fixed with this patch.
+Regards,
+Filippo
 
-> On 2/14/08, CityK <CityK@rogers.com> wrote:
->>
->> Ali H.M. Hoseini wrote:
->>> Hi,
->>>
->>> I searched linuxtv.org <http://linuxtv.org/> mailing list archive
->>> about SkyStar2 rev2.8A driver, or any suggestion, but I found nothing.
->>>
->>> The 2.6.22 kernel initialize B2C2 chip itself, but it could not
->>> identify the frontend for card. The chips used in this card for
->>> frontend are conexant cx24123  and cx24113 .
->>> I tried to load cx24123 module exists in the kernel, but later I found
->>> it is not defined for b2c2-flexcop module to use it, and hence it is
->>> not useful.
->>>
->>> Could anybody help me?
->>
->> See:  http://marc.info/?l=linux-dvb&m=120042808124927&w=2
->>
->
->
-> I took a look at that link, but it does not have any useful information,
-> such as release time, or anything else.
-> Anybody knows when support for this card release? I bought one of this cards
-> and I have to use windows until I find linux support for it.
->
-> Somebody helps me! I really need to use my SkyStar2 rev 2.8A under linux!
->
+
 
 
 _______________________________________________
