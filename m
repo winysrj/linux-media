@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web32804.mail.mud.yahoo.com ([68.142.206.34])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <hormigon_pretensado-linuxtv@yahoo.es>)
-	id 1JSjTT-00028H-MT
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 02:46:47 +0100
-Date: Sat, 23 Feb 2008 02:46:12 +0100 (CET)
-From: <hormigon_pretensado-linuxtv@yahoo.es>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-2127948747-1203731172=:12978"
-Content-Transfer-Encoding: 8bit
-Message-ID: <618067.12978.qm@web32804.mail.mud.yahoo.com>
-Subject: [linux-dvb] DVB-T initial scan file for Santander, Spain
-Reply-To: hormigon_pretensado-linuxtv@yahoo.es
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1JRsms-0005xU-EN
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 18:31:18 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JWJ00EAXSMYW7C1@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 20 Feb 2008 12:30:36 -0500 (EST)
+Date: Wed, 20 Feb 2008 12:30:34 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <47BB7044.2090804@ecst.csuchico.edu>
+To: Barry Quiel <quielb@ecst.csuchico.edu>
+Message-id: <47BC63BA.8010102@linuxtv.org>
+MIME-version: 1.0
+References: <47BB7044.2090804@ecst.csuchico.edu>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1800 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,62 +25,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---0-2127948747-1203731172=:12978
-Content-Type: multipart/alternative; boundary="0-344108095-1203731172=:12978"
+Barry Quiel wrote:
+> I haven't seen any code updates to support the analog portion of the 
+> HVR-1800 in a few weeks.  Is it still being worked on?
 
---0-344108095-1203731172=:12978
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Not recently, the current tree is under ~stoth. The encoder is working, 
+the tuner is tuning, everything looks OK.
 
- Hello. In the end, I did not need this file, because "w_scan" with the "-X" option already gave me a "channels.conf" ready to use with "tzap"; but since it is already created I send it to you.
+I need to cleanup the ioctl handling.
 
- I hope this is the right place for this, I have never written to a mailing list before.
+- Steve
 
- Best regards and thanks a lot for your time and work.
-
-       
----------------------------------
-
-¿Con Mascota por primera vez? - Sé un mejor Amigo
-Entra en Yahoo! Respuestas.
-  
---0-344108095-1203731172=:12978
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-
-&nbsp;Hello. In the end, I did not need this file, because "w_scan" with the "-X" option already gave me a "channels.conf" ready to use with "tzap"; but since it is already created I send it to you.<br><br>&nbsp;I hope this is the right place for this, I have never written to a mailing list before.<br><br>&nbsp;Best regards and thanks a lot for your time and work.<br><p>&#32;
-
-
-      <hr size=1><br><font face="Verdana" size="-2">¿Con Mascota por primera vez? - Sé un mejor Amigo<br><a href="http://es.rd.yahoo.com/evt:51361/*http://es.answers.yahoo.com/dir/index;_ylc=X3oDMTE4ZWhyZjU0BF9TAzIxMTQ3MTQzMjIEc2VjA0Jhbm5lcgRzbGsDQWNxdWlzaXRpb24-?link=over&sid=XXXXXXXX">Entra en Yahoo! Respuestas</a>.<br></font>  
---0-344108095-1203731172=:12978--
-
---0-2127948747-1203731172=:12978
-Content-Type: application/octet-stream; name=es-Santander
-Content-Transfer-Encoding: base64
-Content-Description: 2345679039-es-Santander
-Content-Disposition: attachment; filename=es-Santander
-
-IyBmaWxlIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIGJ5IHdfc2NhbgojICho
-dHRwOi8vd2lyYmVsLmh0cGMtZm9ydW0uZGUvd19zY2FuL2luZGV4Mi5odG1s
-KQojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24t
-bW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA3NzAwMDAwMDAgOE1I
-eiAyLzMgMi8zIFFBTTY0IDhrIDEvNCBOT05FClQgODM0MDAwMDAwIDhNSHog
-Mi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORQpUIDg0MjAwMDAwMCA4TUh6IDIv
-MyAxLzIgUUFNNjQgOGsgMS80IE5PTkUKVCA4NTAwMDAwMDAgOE1IeiAyLzMg
-MS8yIFFBTTY0IDhrIDEvNCBOT05FCg==
-
---0-2127948747-1203731172=:12978
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0-2127948747-1203731172=:12978--
