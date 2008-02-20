@@ -1,19 +1,17 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from hs-out-0708.google.com ([64.233.178.245])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from wx-out-0506.google.com ([66.249.82.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simbloke@googlemail.com>) id 1JPcct-000649-MZ
-	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 12:51:39 +0100
-Received: by hs-out-0708.google.com with SMTP id 54so216760hsz.1
-	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 03:51:37 -0800 (PST)
-Message-ID: <cc22fa3b0802140351l6cf9da2au5200ff97e0560b36@mail.gmail.com>
-Date: Thu, 14 Feb 2008 11:51:37 +0000
-From: "Simeon Walker" <simbloke@googlemail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <456F8CC7-BB99-4833-B540-8D1396C0E8C3@thedesignshop.biz>
+	(envelope-from <stealth.banana@gmail.com>) id 1JRqOn-0006I1-14
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 15:58:17 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so2175379wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 06:58:10 -0800 (PST)
+Message-ID: <344885a10802200658h331e69adj76f560645312546e@mail.gmail.com>
+Date: Wed, 20 Feb 2008 14:58:09 +0000
+From: "stealth banana" <stealth.banana@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <456F8CC7-BB99-4833-B540-8D1396C0E8C3@thedesignshop.biz>
-Subject: Re: [linux-dvb] Nova-T-500 disconnect issues
+Subject: [linux-dvb] RTL2831U kernel driver success
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,30 +22,33 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 14/02/2008, General <mail@thedesignshop.biz> wrote:
-> Hi. I have been following the discussion regarding the mt2060 I2C
->  read / write failed errors. I am running Ubuntu and get the same
->  behaviour since I upgraded to the latest kernel (2.6.24.1) to resolve
->  some wireless driver issues I was having. When I was running the
->  standard Ubuntu kernel (2.6.22-14-generic) I never had the disconnect
->  issues in 3 or 4 months of 24/7 usage. This was using the latest v4l-
->  dvb sources as per the wiki.
->
->  Perhaps this would suggest that the error is not with the dib0700
->  driver but elsewhere?
->
->  So my dilemma is do I have a constant wireless connection but a dvb
->  driver that drops out or a constant dvb driver with a wireless
->  connection that drops out?!
->
-Ah but you can get the latest wireless drivers for your current kernel:
+Just to post that I have total success with the RTL2831U kernel
+drivers and watching with Kaffeine.
 
-http://linuxwireless.org/en/users/Download
+I took the source from realtek, and added a makefile so it will
+compile as a standalone.  This needed a bit of dirtyness in the form
+of copying several files that the modules depend upon from the kernel
+source to the module directory.  It still throws up a few warnings
+when compiling, mostly to do with redefining things (to be expected
+really) and unsigned constants, so the realtek code needs some clean
+up.
 
-Sim
+I am using Kubuntu Gutsy.  I have put a .txt file in the Doc directory
+showing what is needed so it can be easily changed for other kernels.
+The package is availble from here.
+
+http://coronach.adsl24.co.uk/code/rtl2831u_dvb-usb_v0.0.1.tar.bz2
+
+Just unpack, make, sudo make install and it should work on Ubuntu
+Gutsy as is.  I have tested it on 2 Kubuntu i386 systems and it works.
+
+I know this is a nasty hack, but it works and the quality and
+responsiveness seems a lot better that it does in windows.
+
+I would be interested if anyone else gets this to work.
 
 _______________________________________________
 linux-dvb mailing list
