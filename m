@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mail.devoteam.com ([213.190.82.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRj8k-00080S-DQ
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 08:13:14 +0100
-From: Nicolas Will <nico@youplala.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1203466323.5358.29.camel@pc08.localdom.local>
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
-	<1203461323.28796.26.camel@youkaida>
-	<1203466323.5358.29.camel@pc08.localdom.local>
-Date: Wed, 20 Feb 2008 07:12:20 +0000
-Message-Id: <1203491540.28796.46.camel@youkaida>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+	(envelope-from <Jens.Peder.Terjesen@devoteam.com>)
+	id 1JRlzT-0000RH-T8
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 11:15:51 +0100
+MIME-Version: 1.0
+From: Jens.Peder.Terjesen@devoteam.com
+To: linux-dvb@linuxtv.org
+Date: Wed, 20 Feb 2008 11:14:09 +0100
+Message-ID: <OF74D4A9B4.3D7A9528-ONC12573F5.00383A29-C12573F5.00383A36@devoteam.com>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,53 +18,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1740273337=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1740273337==
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
-> > Now stop that logging madness and get back to work!
-> > 
-> > ...
-> > 
-> > ;o)
-> > 
-> > 
-> > This is a rather comical situation, though... The debugging tool is
-> > providing a rather unexpected and unwelcomed fix.
-> > 
-> > Nico
-> > 
-> 
-> Hi,
-> 
-> no, it is not. It is well known!
-> 
-> Timings are very critical on almost all drivers.
-> 
-> We hold breath on almost everything coming down from above, nobody has
-> the ability, or whom should ever want it, to test all possible side
-> effects on all supported devices ...
-> 
-> That something breaks is very common, and that others have to give the
-> plumbers, is nothing new.
-> 
-> To stay fair, it mostly has a good reason, and if there are some
-> remaining ticks left, you might get it adjusted, but ...
-> 
-> On the other side it is the same ...
+<FONT face=3D"Default Sans Serif,Verdana,Arial,Helvetica,sans-serif" size=
+=3D2><DIV><BR></DIV><P><FONT color=3D#990099>-----linux-dvb-bounces@linuxtv=
+.org wrote: -----<BR><BR></FONT>&gt;To:&nbsp;linux-dvb@linuxtv.org<BR>&gt;F=
+rom:&nbsp;"Travel&nbsp;Factory&nbsp;S.r.l."&nbsp;&lt;mc8647tv@mclink.it&gt;=
+<BR>&gt;Sent&nbsp;by:&nbsp;linux-dvb-bounces@linuxtv.org<BR>&gt;Date:&nbsp;=
+19-02-2008&nbsp;21:14<BR>&gt;Subject:&nbsp;[linux-dvb]&nbsp;HVR-3000<BR>&gt=
+;<BR>&gt;I've been out from the dvb scene for a while and now I'm building =
+a<BR>&gt;new&nbsp;system.&nbsp;<BR>&gt;<BR>&gt;I had to buy an HVR-3000 hyb=
+rid system because it's the only DVB-T<BR>&gt;card I found available in Rom=
+e on PCI slot.... and the DVB-S was ok<BR>&gt;in&nbsp;order&nbsp;to&nbsp;ha=
+ve&nbsp;a&nbsp;new&nbsp;input....<BR>&gt;<BR>&gt;Now I have this card... I =
+tried on Suse 10.0, downloaded the kernel<BR>&gt;module I found somewhere..=
+. tried compiling.... but I got errors due<BR>&gt;to&nbsp;some&nbsp;changes=
+&nbsp;in&nbsp;a&nbsp;structure.<BR>&gt;<BR>&gt;I&nbsp;may&nbsp;try&nbsp;on&=
+nbsp;suse&nbsp;10.3...&nbsp;perhaps&nbsp;it&nbsp;works&nbsp;on&nbsp;that...=
+<BR>&gt;<BR>&gt;Now&nbsp;the&nbsp;questions&nbsp;is:<BR>&gt;<BR>&gt;- where=
+ can I find informations to update my knowledge about DVB<BR>&gt;reception =
+(I read hints about drivers rewritten for DVB-S2,<BR>&gt;multi-proto,&nbsp;=
+and&nbsp;the&nbsp;like...).&nbsp;<BR>&gt;<BR>&gt;- does anybody have a HVR-=
+3000 actually working on a suse linux ?<BR>&gt;Which&nbsp;version&nbsp;?<BR=
+>&gt;<BR>&gt;Thanks<BR>&gt;Francesco<BR>&gt;<BR>&gt;<BR>&gt;=5F=5F=5F=5F=5F=
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
+=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F<BR>&gt;linux-dvb&nbsp;m=
+ailing&nbsp;list<BR>&gt;linux-dvb@linuxtv.org<BR>&gt;http://www.linuxtv.org=
+/cgi-bin/mailman/listinfo/linux-dvb</P><P>Have you looked here: <A href=3D"=
+http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWinTV-HVR-3000" target=3D=
+blank>http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWinTV-HVR-3000</A>?=
+</P><P>I have two HVR-4000&nbsp;working on OpenSuse 10.3 following these in=
+structions: <A href=3D"http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWi=
+nTV-HVR-4000" target=3Dblank>http://www.linuxtv.org/wiki/index.php/Hauppaug=
+e=5FWinTV-HVR-4000</A>&nbsp;with one small addition. I had to do make relea=
+se before make and make install.</P><P>Suse 10.0 is getting quite old. I th=
+ink you will have better luck with 10.3.</P><P>Jens</P><P>&nbsp;</P></FONT>=
 
-May post may have sounded offensive, apparently.
 
-Sorry about that, my intentions were on the lighter sides of life.
-
-Nico
-
+--===============1740273337==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1740273337==--
