@@ -1,24 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from wx-out-0506.google.com ([66.249.82.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JMimJ-0007g0-KI
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 12:49:23 +0100
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JMimH-00085P-UK
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 11:49:21 +0000
-Received: from mailgate.echelonl.com ([80.177.92.126])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 11:49:21 +0000
-Received: from bWare by mailgate.echelonl.com with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 06 Feb 2008 11:49:21 +0000
-To: linux-dvb@linuxtv.org
-From: "bWare@iWare.co.uk" <bWare@iWare.co.uk>
-Date: Wed, 06 Feb 2008 11:49:15 +0000
-Message-ID: <foc6rs$af2$1@ger.gmane.org>
+	(envelope-from <filippo.argiolas@gmail.com>) id 1JRkDk-0001k0-IX
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 09:22:28 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so2057444wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 00:22:24 -0800 (PST)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
+To: Nicolas Will <nico@youplala.net>
+In-Reply-To: <1203448799.28796.3.camel@youkaida>
+References: <1203434275.6870.25.camel@tux>
+	<1203441662.9150.29.camel@acropora> <1203448799.28796.3.camel@youkaida>
+Date: Wed, 20 Feb 2008 09:22:28 +0100
+Message-Id: <1203495748.7026.13.camel@tux>
 Mime-Version: 1.0
-Subject: [linux-dvb] Appeal for information on the Microtune MT2061
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [patch] support for key repeat
+	with	dib0700	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,24 +26,35 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
 
-I am still trying to get my Freecom v4 USB stick to tune.
+Il giorno mar, 19/02/2008 alle 19.19 +0000, Nicolas Will ha scritto:
+> Now this is rich!
+> 
+> I love it!
+> 
+> Key repeat works!
 
-Realtek have provided a GPL driver for its main RTL2831U chip. However 
-the driver assumes that this is paired with a MT2060 or MXL5005 tuner. 
-(and failing to find a MT2060, defaults to the MXL5005 on this stick).
+Great :)!
 
-The stick's tuner is actually marked MT2061F. A part not listed on 
-Microtune's website or in the Realtek or linux-dvb MT2060 drivers.
+> And the log flooding has stopped without the manual patch that was
+> needed previously.
 
-Has anyone got any information on the MT2061, specifically how it may 
-differ from the MT2060? Or any suggestions how I may find this out?
+Nice, fixing this was not my first purpose but I'm glad it's solved.
 
-Barnaby
+> I hope you live in Aberdeen, Scotland, because I want to buy you a few
+> beers right here and now! (though your name suggest a very different
+> origin)
+
+Thanks! I'm pleased that someone else finds this useful!
+I'm sorry I'm not from Scotland, I live in Italy but thank you for your
+offer, if I will travel to Aberdeen a beer would be great :D!
+Thanks also for mentioning me in the wiki.
+Greets,
+Filippo
+
 
 
 _______________________________________________
