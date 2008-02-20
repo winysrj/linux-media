@@ -1,15 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from web33106.mail.mud.yahoo.com ([209.191.69.136])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <simeonov_2000@yahoo.com>) id 1JOjtX-0000nT-FO
-	for linux-dvb@linuxtv.org; Tue, 12 Feb 2008 02:25:12 +0100
-Date: Mon, 11 Feb 2008 17:24:39 -0800 (PST)
-From: Simeon Simeonov <simeonov_2000@yahoo.com>
-To: =?utf-8?B?0J/RgNC40LTQstC+0YDQvtCyINCQ0L3QtNGA0LXQuQ==?= <ua0lnj@bk.ru>,
-	linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JRn1K-0002ed-JR
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 12:21:50 +0100
+Message-ID: <47BC0D27.6080003@gmx.net>
+Date: Wed, 20 Feb 2008 12:21:11 +0100
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Message-ID: <922065.65936.qm@web33106.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] mantis vp1041 with strange diseqc rotor commands
+To: Doru Marin <Doru.Marin@Deuromedia.ro>
+References: <47B19015.20208@gmx.net>	<47B2F82F.6070804@Deuromedia.ro>	<47B3512C.5010107@gmx.net>	<47B62C4B.3020604@gmx.net>
+	<47B97E8B.8090905@gmx.net>	<47B98257.8060200@Deuromedia.ro>
+	<47B99095.3080306@gmx.net> <47BBF770.2020000@Deuromedia.ro>
+In-Reply-To: <47BBF770.2020000@Deuromedia.ro>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DiSEqC trouble with TT S-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,156 +21,154 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2025204005=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2025204005==
-Content-Type: multipart/alternative; boundary="0-1312109846-1202779479=:65936"
+On 02/20/2008 10:48 AM, Doru Marin wrote:
+> P. van Gaans wrote:
+>> On 02/18/2008 02:04 PM, Doru Marin wrote:
+>>  
+>>> P. van Gaans wrote:
+>>>    
+>>>> On 02/16/2008 01:20 AM, P. van Gaans wrote:
+>>>>  
+>>>>      
+>>>>> On 02/13/2008 09:21 PM, P. van Gaans wrote:
+>>>>>           
+>>>>>> On 02/13/2008 03:01 PM, Doru Marin wrote:
+>>>>>>               
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> Can you explain how you select those 4 positions ? DiSEqC 
+>>>>>>> commands or tone/voltage changes ?
+>>>>>>> Also can you determine the input type of those positions (Hi/Low, 
+>>>>>>> H/V, etc) ? A scenario to see when and why that happens, would be 
+>>>>>>> more useful.
+>>>>>>>
+>>>>>>> P. van Gaans wrote:
+>>>>>>>                   
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> I've got a Technotrend S-1500 (if it matters: I use it with 
+>>>>>>>> Kaffeine 0.8.3). It works mostly fine, but there's a strange 
+>>>>>>>> problem. With my Spaun 4/1 DiSEqC switch (they cost approx 25-40 
+>>>>>>>> euro), I can only switch without trouble to position 1 and 2. If 
+>>>>>>>> I tune directly to position 3 it won't lock.
+>>>>>>>>
+>>>>>>>> However, if I first tune to a channel on position 1 or 2 and try 
+>>>>>>>> a channel on position 3 after that, it will work. Position 4 
+>>>>>>>> however is completely unreachable.
+>>>>>>>>
+>>>>>>>> On a standalone receiver, there's no trouble with the same cable.
+>>>>>>>>
+>>>>>>>> Now Spaun is a really expensive and respected brand. So their 
+>>>>>>>> switches possibly work in a different way, because a cheap 
+>>>>>>>> Maximum 4/1 switch works perfectly with the S-1500. Position 1, 
+>>>>>>>> 2, 3 and 4 all work perfectly. I also did some "dry testing" 
+>>>>>>>> indoors and it looks like a 7 euro Satconn 4/1 switch would also 
+>>>>>>>> work fine, but a 17 euro Axing SPU 41-02 probably won't.
+>>>>>>>>
+>>>>>>>> I'm guessing this could be solved in stv0299.c but I'm not much 
+>>>>>>>> of an expert. I took a look at the code but I'm not really sure 
+>>>>>>>> what to do.
+>>>>>>>>
+>>>>>>>> _______________________________________________
+>>>>>>>> linux-dvb mailing list
+>>>>>>>> linux-dvb@linuxtv.org
+>>>>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>>>>>                           
+>>>>>> I select them with Kaffeine. Hi/low and H/V doesn't matter. I 
+>>>>>> tried upgrading to Kaffeine 0.8.5 but that doesn't make a 
+>>>>>> difference. The "scan" application has the same issues.
+>>>>>>
+>>>>>> _______________________________________________
+>>>>>> linux-dvb mailing list
+>>>>>> linux-dvb@linuxtv.org
+>>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>>>
+>>>>>>                 
+>>>>> Nobody any ideas? If not, does anybody have some idea what the 
+>>>>> difference between position 1+2, pos 3 and pos 4 could be? I was 
+>>>>> thinking 1 and 2 might be working because of toneburst, but I don't 
+>>>>> think Kaffeine uses such a signal and that doesn't explain why pos 
+>>>>> 3 works if first tuning to 1 or 2 and 4 doesn't work at all.
+>>>>>
+>>>>>             
+>>>> I've figured out a bit more. If I tune directly to postion 3, I get pos
+>>>> 1. Whenever I tune to pos 4, I get pos 2.
+>>>>
+>>>> I'll also ask people from Kaffeine as I'm not sure if the problem is 
+>>>> in the application, driver or somewhere else.
+>>>>
+>>>> _______________________________________________
+>>>> linux-dvb mailing list
+>>>> linux-dvb@linuxtv.org
+>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>         
+>>> Hi,
+>>>
+>>> Strange scenario. You're not saying anything about input types and 
+>>> the switch type. Are you sure that are properly connected ? How the 
+>>> switch inputs are marked and from where you got the input signals ? 
+>>> Please elaborate, if you want a proper answer.
+>>> I suggest to play with 'scandvb' from dvb-apps package instead of 
+>>> Kaffeine. Look into scanning results if the scanned channels match 
+>>> with what you wished to have on those positions.
+>>>
+>>>     
+>> Hi,
+>>
+>> What do you mean with input type?
+>>
+>> Anyway, this is my config:
+>>
+>> Visiosat Bisat G3C for 19.2/28.2/23.5 + Triax 54cm for Hotbird
+>> 4 quad LNBs
+>>
+>> Spaun SAR 411F:
+>> A = Astra 19.2
+>> B = Astra 28.2/Eurobird1
+>> C = Astra 23.5
+>> D = Hotbird
+>>
+>> Maximum 4/1:
+>> A = Astra 19.2
+>> B = Astra 28.2/Eurobird1
+>> C = Astra 23.5
+>> D = Hotbird
+>>
+>> All works fine on a standalone so it is connected correctly.
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>   
+> Hi,
+> 
+> Ok, If I understood you correctly, you're talking about only plain 
+> DiSEqC switch, with no polarity/tone management. Polarity and tone 
+> switching are done by LNB's.
+> Recently, I found a branded switch, which was unable to decode a DiSEqC 
+> commands while polarity was on horizontal (18V).
+> Maybe is the same situation, maybe not. That's why I asked you to check 
+> the polarity/tone settings of the channels while switching to a 
+> different channel on a different satellite.
+> 
 
---0-1312109846-1202779479=:65936
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+That's right, no multiswitches or something like that. The last time I 
+checked (a while ago), the Spaun was still completely working on my 
+standalones. But as I figured out yesterday, something is wrong with 
+that now. The standalones don't see D (Hotbird) anymore either. So I'm 
+first going to fix that.
 
-Thanks =D0=90=D0=BD=D0=B4=D1=80=D0=B5=D0=B9,=0A=0ADo you have a rotor? If i=
-t works OK which program do you use to drive it?=0A=0A----- Original Messag=
-e ----=0AFrom: =D0=9F=D1=80=D0=B8=D0=B4=D0=B2=D0=BE=D1=80=D0=BE=D0=B2 =D0=
-=90=D0=BD=D0=B4=D1=80=D0=B5=D0=B9 <ua0lnj@bk.ru>=0ATo: linux-dvb <linux-dvb=
-@linuxtv.org>=0ASent: Monday, February 11, 2008 3:45:02 PM=0ASubject: Re: [=
-linux-dvb] mantis vp1041 with strange diseqc rotor commands=0A=0A=0A=EF=BB=
-=BF=0A=0A =0A =0A=0A=0AI think, this is becouse "Initial support for Mantis=
- VP-1041" =0Anot usability yet.=0A=0AI use patch from Hans Werner for 1041,=
- works better.=0A=0A=0A  ----- Original Message ----- =0A=0A  From: =0A  Si=
-meon =0A  Simeonov =0A=0A  To: linux-dvb =0A=0A  Sent: Tuesday, February 12=
-, 2008 6:47 =0A  AM=0A=0A  Subject: [linux-dvb] mantis vp1041 with =0A  str=
-ange diseqc rotor commands=0A=0A  =0A=0AHi,=0A=0AI am using the latest mant=
-is drivers from Manu's =0A  repository:=0Ahttp://jusst.de/hg/mantis/=0Awith=
- my =0A  Azureware twinhan vp1041 based card.=0ALocking to DVB-S channels w=
-orks fine =0A  almost all the time with the patched szap or patched mythtv.=
-=0ADid not try =0A  DVB-S2 yet. But what I am having troubles now is the di=
-seqc. I have a switch =0A  behind a diseqc 1.2 rotor (goto stored positions=
-).=0AThe switching works fine =0A  under Windoz. I have no problems also us=
-ing it with my other card in the same =0A  box - Twinhan 102g.=0AInitially =
-with the vp1041 card after a couple of diseqc =0A  commands I would get stb=
-0899_diseqc_fifo_empy timeout. It turned out that I =0A  had to use some ve=
-ry long pauses before sending a repeat command. If =0Afor =0A  the 102g sta=
-ndart 15ms worked fine, for the vp1041 I had to use 1s! pause. =0A  Then th=
-e rotor will start=0A moving very slowly with small steps  - =0A  as if it =
-is does one step , stops and then continues to the desired =0A  position.If=
- one is patient enough the rotor gets to the desired position. I =0A  check=
-ed using voltmeter the voltages that come out of the card and they seem =0A=
-  to be good. For sending the commands I used both mythtv and hacked versio=
-n of =0A  Michel Verbraak's gotox program.=0AHas anyone experienced somethi=
-ng similar =0A  with stb0899 frontend? Perhaps you can give me an idea what=
- might be going =0A  wrong?=0A=0AThanks,=0ASimeon=0A=0A=0A=0A=0A=0A      =
-=0A  ______________________________________________________________________=
-______________=0ABe =0A  a better friend, newshound, and =0Aknow-it-all wit=
-h Yahoo! Mobile.  Try =0A  it now.  http://mobile.yahoo.com/;_ylt=3DAhu06i6=
-2sR8HDtDypao8Wcj9tAcJ =0A  =0A=0A=0A_______________________________________=
-________=0Alinux-dvb =0A  mailing list=0Alinux-dvb@linuxtv.org=0Ahttp://www=
-.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=0A=0A=0A-----Inline Attachm=
-ent Follows-----=0A=0A_______________________________________________=0Alin=
-ux-dvb =0Amailing =0Alist=0Alinux-dvb@linuxtv.org=0Ahttp://www.linuxtv.org/=
-cgi-bin/mailman/listinfo/linux-dvb=0A=0A=0A=0A=0A=0A=0A      ______________=
-______________________________________________________________________=0ALo=
-oking for last minute shopping deals?  =0AFind them fast with Yahoo! Search=
-.  http://tools.search.yahoo.com/newsearch/category.php?category=3Dshopping
---0-1312109846-1202779479=:65936
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<html><head><style type=3D"text/css"><!-- DIV {margin:0px;} --></style></he=
-ad><body><div style=3D"font-family:times new roman,new york,times,serif;fon=
-t-size:12pt"><div style=3D"font-family: times new roman,new york,times,seri=
-f; font-size: 12pt;">Thanks =D0=90=D0=BD=D0=B4=D1=80=D0=B5=D0=B9,<br><br>Do=
- you have a rotor? If it works OK which program do you use to drive it?<br>=
-<br><div style=3D"font-family: times new roman,new york,times,serif; font-s=
-ize: 12pt;">----- Original Message ----<br>From: =D0=9F=D1=80=D0=B8=D0=B4=
-=D0=B2=D0=BE=D1=80=D0=BE=D0=B2 =D0=90=D0=BD=D0=B4=D1=80=D0=B5=D0=B9 &lt;ua0=
-lnj@bk.ru&gt;<br>To: linux-dvb &lt;linux-dvb@linuxtv.org&gt;<br>Sent: Monda=
-y, February 11, 2008 3:45:02 PM<br>Subject: Re: [linux-dvb] mantis vp1041 w=
-ith strange diseqc rotor commands<br><br>=0A=EF=BB=BF=0A=0A =0A =0A<style><=
-/style>=0A=0A<div>I think, this is becouse "<strong>Initial support for Man=
-tis VP-1041" =0A</strong>not usability yet.</div>=0A<div>I use patch from H=
-ans Werner for 1041, works better.</div>=0A<blockquote style=3D"border-left=
-: 2px solid rgb(0, 0, 0); padding-right: 0px; padding-left: 5px; margin-lef=
-t: 5px; margin-right: 0px;">=0A  <div style=3D"font-family: arial; font-sty=
-le: normal; font-variant: normal; font-weight: normal; font-size: 10pt; lin=
-e-height: normal; font-size-adjust: none; font-stretch: normal;">----- Orig=
-inal Message ----- </div>=0A  <div style=3D"background: rgb(228, 228, 228) =
-none repeat scroll 0%; -moz-background-clip: -moz-initial; -moz-background-=
-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; font-fam=
-ily: arial; font-style: normal; font-variant: normal; font-weight: normal; =
-font-size: 10pt; line-height: normal; font-size-adjust: none; font-stretch:=
- normal;"><b>From:</b> =0A  <a rel=3D"nofollow" title=3D"simeonov_2000@yaho=
-o.com" ymailto=3D"mailto:simeonov_2000@yahoo.com" target=3D"_blank" href=3D=
-"mailto:simeonov_2000@yahoo.com">Simeon =0A  Simeonov</a> </div>=0A  <div s=
-tyle=3D"font-family: arial; font-style: normal; font-variant: normal; font-=
-weight: normal; font-size: 10pt; line-height: normal; font-size-adjust: non=
-e; font-stretch: normal;"><b>To:</b> <a rel=3D"nofollow" title=3D"linux-dvb=
-@linuxtv.org" ymailto=3D"mailto:linux-dvb@linuxtv.org" target=3D"_blank" hr=
-ef=3D"mailto:linux-dvb@linuxtv.org">linux-dvb</a> </div>=0A  <div style=3D"=
-font-family: arial; font-style: normal; font-variant: normal; font-weight: =
-normal; font-size: 10pt; line-height: normal; font-size-adjust: none; font-=
-stretch: normal;"><b>Sent:</b> Tuesday, February 12, 2008 6:47 =0A  AM</div=
->=0A  <div style=3D"font-family: arial; font-style: normal; font-variant: n=
-ormal; font-weight: normal; font-size: 10pt; line-height: normal; font-size=
--adjust: none; font-stretch: normal;"><b>Subject:</b> [linux-dvb] mantis vp=
-1041 with =0A  strange diseqc rotor commands</div>=0A  <div><br></div>Hi,<b=
-r><br>I am using the latest mantis drivers from Manu's =0A  repository:<br>=
-<a rel=3D"nofollow" target=3D"_blank" href=3D"http://jusst.de/hg/mantis/">h=
-ttp://jusst.de/hg/mantis/</a><br>with my =0A  Azureware twinhan vp1041 base=
-d card.<br>Locking to DVB-S channels works fine =0A  almost all the time wi=
-th the patched szap or patched mythtv.<br>Did not try =0A  DVB-S2 yet. But =
-what I am having troubles now is the diseqc. I have a switch =0A  behind a =
-diseqc 1.2 rotor (goto stored positions).<br>The switching works fine =0A  =
-under Windoz. I have no problems also using it with my other card in the sa=
-me =0A  box - Twinhan 102g.<br>Initially with the vp1041 card after a coupl=
-e of diseqc =0A  commands I would get stb0899_diseqc_fifo_empy timeout. It =
-turned out that I =0A  had to use some very long pauses before sending a re=
-peat command. If <br>for =0A  the 102g standart 15ms worked fine, for the v=
-p1041 I had to use 1s! pause. =0A  Then the rotor will start<br>&nbsp;movin=
-g very slowly with small steps&nbsp; - =0A  as if it is does one step , sto=
-ps and then continues to the desired =0A  position.If one is patient enough=
- the rotor gets to the desired position. I =0A  checked using voltmeter the=
- voltages that come out of the card and they seem =0A  to be good. For send=
-ing the commands I used both mythtv and hacked version of =0A  Michel Verbr=
-aak's gotox program.<br>Has anyone experienced something similar =0A  with =
-stb0899 frontend? Perhaps you can give me an idea what might be going =0A  =
-wrong?<br><br>Thanks,<br>Simeon<br><br><br><br><br><br>&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp; =0A  ___________________________________________________________=
-_________________________<br>Be =0A  a better friend, newshound, and <br>kn=
-ow-it-all with Yahoo! Mobile.&nbsp; Try =0A  it now.&nbsp; <a rel=3D"nofoll=
-ow" target=3D"_blank" href=3D"http://mobile.yahoo.com/;_ylt=3DAhu06i62sR8HD=
-tDypao8Wcj9tAcJ">http://mobile.yahoo.com/;_ylt=3DAhu06i62sR8HDtDypao8Wcj9tA=
-cJ</a> =0A  <br><br><br>_______________________________________________<br>=
-linux-dvb =0A  mailing list<br><a rel=3D"nofollow" ymailto=3D"mailto:linux-=
-dvb@linuxtv.org" target=3D"_blank" href=3D"mailto:linux-dvb@linuxtv.org">li=
-nux-dvb@linuxtv.org</a><br><a rel=3D"nofollow" target=3D"_blank" href=3D"ht=
-tp://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv=
-.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote><!-- kill --><d=
-iv><br><br>-----Inline Attachment Follows-----<br><br>_____________________=
-__________________________<br>linux-dvb =0Amailing =0Alist<br><a ymailto=3D=
-"mailto:linux-dvb@linuxtv.org" href=3D"mailto:linux-dvb@linuxtv.org">linux-=
-dvb@linuxtv.org</a><br><a href=3D"http://www.linuxtv.org/cgi-bin/mailman/li=
-stinfo/linux-dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/=
-listinfo/linux-dvb</a></div></div><br></div></div><br>=0A      <hr size=3D1=
->Looking for last minute shopping deals? <a href=3D"http://us.rd.yahoo.com/=
-evt=3D51734/*http://tools.search.yahoo.com/newsearch/category.php?category=
-=3Dshopping"> =0AFind them fast with Yahoo! Search.</a></body></html>
---0-1312109846-1202779479=:65936--
-
-
---===============2025204005==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Trying to switch from Flaunt (V) to 4fun.tv (V) doesn't work either, so 
+it's not the same problem I guess.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2025204005==--
