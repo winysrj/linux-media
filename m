@@ -1,26 +1,17 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from astana.suomi.net ([82.128.152.18])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from smtp3.smtp.bt.com ([217.32.164.138])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JMkvr-0007s0-0C
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 15:07:23 +0100
-Received: from taku.suomi.net ([82.128.154.66])
-	by astana.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
-	Jul 15 2005)) with ESMTP id <0JVT000PGLVF9KA0@astana.suomi.net> for
-	linux-dvb@linuxtv.org; Wed, 06 Feb 2008 16:06:51 +0200 (EET)
-Received: from spam2.suomi.net (spam2.suomi.net [212.50.131.166])
-	by mailstore.suomi.net
-	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
-	32bit)) with ESMTP id <0JVT007DSLUBNHV0@mailstore.suomi.net> for
-	linux-dvb@linuxtv.org; Wed, 06 Feb 2008 16:06:50 +0200 (EET)
-Date: Wed, 06 Feb 2008 15:49:21 +0200
-From: Antti Palosaari <crope@iki.fi>
-In-reply-to: <foc6rs$af2$1@ger.gmane.org>
-To: "bWare@iWare.co.uk" <bWare@iWare.co.uk>
-Message-id: <47A9BAE1.3010603@iki.fi>
-MIME-version: 1.0
-References: <foc6rs$af2$1@ger.gmane.org>
+	(envelope-from <steve.goodey@bt.com>) id 1JRkMf-0003PT-Mx
+	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 09:31:41 +0100
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Date: Wed, 20 Feb 2008 08:31:07 -0000
+Message-ID: <7F617908C1141A46841994B57C97FB9B0477C07F@E03MVZ3-UKDY.domain1.systemhost.net>
+In-Reply-To: <200802101333.12804.christophpfister@gmail.com>
+From: <steve.goodey@bt.com>
+To: <christophpfister@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Appeal for information on the Microtune MT2061
+Subject: Re: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,24 +22,60 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-bWare@iWare.co.uk wrote:
-> The stick's tuner is actually marked MT2061F. A part not listed on 
-> Microtune's website or in the Realtek or linux-dvb MT2060 drivers.
+> -----Original Message-----
+> From: Christoph Pfister [mailto:christophpfister@gmail.com] 
+> Sent: 10 February 2008 12:33
+> To: linux-dvb@linuxtv.org
+> Cc: Goodey,SJ,Steve,ASAC6N R
+> Subject: Re: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
 > 
-> Has anyone got any information on the MT2061, specifically how it may 
-> differ from the MT2060? Or any suggestions how I may find this out?
+> Hi,
+> 
+> Am Dienstag 05 Februar 2008 schrieb steve.goodey@bt.com:
+> > Hello,
+> >
+> > Apologies if this is the wrong list to ask.
+> >
+> > Perhaps you could answer a few questions for me?
+> >
+> > Sudbury, in England, is one of the sites with two DVB-T 
+> transmitters, 
+> > Sudbury and SudburyB, main transmitter Tacolneston. On my 
+> Mythtv box I 
+> > have found /usr/share/doc/dvb-utils/examples/scan/dvb-t/uk-SudburyB 
+> > but there is no file for Sudbury. Now according to the 
+> www.ukfree.tv 
+> > site Sudbury has six muxes, SudburyB has only one for ITV. 
+> I suspect I 
+> > am missing something here, why is there only one frequency file for 
+> > Sudbury and why is called SudburyB?
+> 
+> I guess it's just wrongly named; will fix that.
+> 
+> > Should there be two files, as for Dover for example, 
+> uk-Sudbury with 
+> > six muxes and uk_SudburyB with one?
+> 
+> Geographically close transmitters should be in a single file; 
+> oh well, will fix that, too ...
+> 
+> > I assume MythTv does not use these files during tuning?
+> >
+> > Regards,
+> >
+> > Steve Goodey
+> 
+> Christoph
+> 
 
-I don't know how it differs. It just works with current MT2060 driver 
-without any changes.
+Christoph,
 
-regards
-Antti
+Thanks for your work on this, appreciated.
 
--- 
-http://palosaari.fi/
+Steve
 
 _______________________________________________
 linux-dvb mailing list
