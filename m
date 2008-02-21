@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from averel.grnet-hq.admin.grnet.gr ([195.251.29.3])
+Received: from aiolos.otenet.gr ([195.170.0.93] ident=OTEnet-mail-system)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zmousm@admin.grnet.gr>) id 1JRUHC-0004Nj-VJ
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 16:20:59 +0100
-Message-Id: <68438EB9-9BDA-40FC-84D4-C7F7D6B5F2E5@admin.grnet.gr>
-From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
-To: Igor <goga777@bk.ru>
-In-Reply-To: <A3A96FDA-7A8C-42E9-AC90-A61E028AB136@admin.grnet.gr>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Tue, 19 Feb 2008 17:19:54 +0200
-References: <E0915816-8882-4017-94A5-5FD69DE84DFC@admin.grnet.gr>
-	<E1JRTvz-0006ob-00.goga777-bk-ru@f163.mail.ru>
-	<A3A96FDA-7A8C-42E9-AC90-A61E028AB136@admin.grnet.gr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-HVR4000 and DVB-S2...
+	(envelope-from <vnonas@otenet.gr>) id 1JS9zT-0005hx-0G
+	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 12:53:27 +0100
+Received: from dali.otenet.gr (srv-nat1.otenet.gr [195.170.0.91])
+	by aiolos.otenet.gr (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m1LBrBas028976
+	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 13:53:11 +0200
+Date: Thu, 21 Feb 2008 13:53:11 +0200 (EET)
+From: NONAS EUAGGELOS <vnonas@otenet.gr>
+To: linux-dvb@linuxtv.org
+Message-ID: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
+MIME-Version: 1.0
+Subject: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+Reply-To: vnonas@otenet.gr
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,67 +21,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ck9uIDE5IM6mzrXOsiAyMDA4LCBhdCA1OjA3IM6czpwsIFplbm9uIE1vdXNtb3VsYXMgd3JvdGU6
-Cgo+Cj4gT24gMTkg0LbQldCRIDIwMDgsIGF0IDQ6NTkg0LvQuywgSWdvciB3cm90ZToKPgo+Pj4+
-IGNvdWxkIHlvdSBzaG93IHRoZSBzemFwMiBvdXRwdXQgZHVyaW5nIGR2Yi1zMiB0dW5pbmcKPj4+
-Cj4+PiBJIGp1c3QgdHJpZWQgaXQgYWdhaW4gd2l0aCAyLjYuMjI6Cj4+Pgo+Pj4gdHZib3gyOn4j
-IHN6YXAyIC1yIC10MiAtZTMgLW04IC1jIHR2Ym94X2R2Yi96YXAvZHZiLXMvCj4+PiBkaXNlcWM0
-X0hlbGxhc1NhdDItMzkuMEUubmV3IExVWEVUVgo+Pj4gcmVhZGluZyBjaGFubmVscyBmcm9tIGZp
-bGUgJ3R2Ym94X2R2Yi96YXAvZHZiLXMvCj4+PiBkaXNlcWM0X0hlbGxhc1NhdDItMzkuMEUubmV3
-Jwo+Pj4gemFwcGluZyB0byAyICdMVVhFVFYnOgo+Pj4gc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4
-IE1IeiBILCBzeW1ib2xyYXRlIDc3MjAwMDAsIHZwaWQgPSAweDBiYzMsCj4+PiBhcGlkID0gMHgw
-YmM2IHNpZCA9IDB4MDEyZCAoZmVjID0gNjQsIG1vZCA9IDgpCj4+PiBRdWVyeWluZyBpbmZvIC4u
-IERlbGl2ZXJ5IHN5c3RlbT1EVkItUzIKPj4+IHVzaW5nICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9u
-dGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwo+Pj4gaW9jdGwgRFZCRkVfR0VU
-X0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAo+Pj4KPj4+IEkgd2lsbCB0cnkg
-aXQgYWdhaW4gc2hvcnRseSB3aXRoIDIuNi4yNC4KPj4KPj4gdHJ5IHRvIHVzZSB0aGUgdXN1YWwg
-c3phcCwgbm90IHN6YXAyCj4KPiBJIGFscmVhZHkgZGlkLiBJdCBkaWRuJ3Qgd29yay4uLgo+Cj4g
-dHZib3gyOn4jIHN6YXAgLWMgdHZib3hfZHZiL3phcC9kdmItcy9kaXNlcWM0X0hlbGxhc1NhdDIt
-MzkuMEUubmV3ICAKPiBMVVhFVFYKPiByZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAndHZib3hf
-ZHZiL3phcC9kdmItcy8gCj4gZGlzZXFjNF9IZWxsYXNTYXQyLTM5LjBFLm5ldycKPiB6YXBwaW5n
-IHRvIDIgJ0xVWEVUVic6Cj4gc2F0IDMsIGZyZXF1ZW5jeSA9IDEyNzE4IE1IeiBILCBzeW1ib2xy
-YXRlIDc3MjAwMDAsIHZwaWQgPSAweDBiYzMsICAKPiBhcGlkID0gMHgwYmM2Cj4gdXNpbmcgJy9k
-ZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAn
-Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVu
-YyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAxIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAw
-MDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIg
-MDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFs
-IGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVz
-IDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAw
-MCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYzNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8
-IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAzIHwgc2lnbmFsIGYyODAgfCBzbnIgMDAwMCB8IGJl
-ciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8Cj4gc3RhdHVzIDAxIHwgc2lnbmFsIGYyODAgfCBz
-bnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CgpBbmQgd2l0aCAyLjYuMjQ6
-Cgp0dmJveDI6fiMgc3phcCAtYyB0dmJveF9kdmIvemFwL2R2Yi1zL2Rpc2VxYzRfSGVsbGFzU2F0
-Mi0zOS4wRS5uZXcgIApMVVhFVFYKcmVhZGluZyBjaGFubmVscyBmcm9tIGZpbGUgJ3R2Ym94X2R2
-Yi96YXAvZHZiLXMvIApkaXNlcWM0X0hlbGxhc1NhdDItMzkuMEUubmV3Jwp6YXBwaW5nIHRvIDIg
-J0xVWEVUVic6CnNhdCAzLCBmcmVxdWVuY3kgPSAxMjcxOCBNSHogSCwgc3ltYm9scmF0ZSA3NzIw
-MDAwLCB2cGlkID0gMHgwYmMzLCAgCmFwaWQgPSAweDBiYzYKdXNpbmcgJy9kZXYvZHZiL2FkYXB0
-ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnCnN0YXR1cyAwMyB8
-IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApz
-dGF0dXMgMDMgfCBzaWduYWwgZjI0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAw
-MDAwMDAwIHwKc3RhdHVzIDAxIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAw
-MCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMSB8IHNpZ25hbCBmMjgwIHwgc25yIDAwMDAgfCBi
-ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApzdGF0dXMgMDEgfCBzaWduYWwgZjI4MCB8IHNu
-ciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDAxIHwgc2lnbmFs
-IGYyODAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAw
-MyB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAg
-fApzdGF0dXMgMDEgfCBzaWduYWwgZjM0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5j
-IDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2lnbmFsIGYyNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAw
-MDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1cyAwMyB8IHNpZ25hbCBmMjQwIHwgc25yIDAwMDAg
-fCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfApzdGF0dXMgMDMgfCBzaWduYWwgZjI4MCB8
-IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDAzIHwgc2ln
-bmFsIGYzNDAgfCBzbnIgMDAwMCB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8CnN0YXR1
-cyAwMSB8IHNpZ25hbCBmMjgwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAw
-MDAgfAoKClNvbWV0aGluZyBwYXJ0aWN1bGFybHkgaW1wb3J0YW50OiBzemFwIGlzIGZyb20gdGhl
-IERlYmlhbiBkdmItIAp1dGlscy0xLjEuMS0zIHBhY2thZ2UuIElzIHRoZXJlIGEgcmVxdWlyZW1l
-bnQgZm9yIGEgcGFydGljdWxhciB2ZXJzaW9uICAKb2YgZHZiLWFwcHM/CgpUaGFua3MsClouCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
-YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hello,
+
+I have a Skystar HD. I use multiproto from here (checked it out yesterday):
+http://jusst.de/hg/multiproto
+It compiles fine, all needed modules are loaded automatically upon boot.
+This is my dmesg:
+saa7146: found saa7146 @ mem f88f2000 (revision 1, irq 21) (0x13c2,0x1019).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (TT-Budget S2-3200 PCI)
+adapter has MAC addr = 00:d0:5c:67:dd:91
+input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input3
+stb0899_write_regs [0xf1b6]: 02
+stb0899_write_regs [0xf1c2]: 00
+stb0899_write_regs [0xf1c3]: 00
+_stb0899_read_reg: Reg=[0xf000], data=82
+stb0899_get_dev_id: ID reg=[0x82]
+stb0899_get_dev_id: Device ID=[8], Release=[2]
+_stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400], Offset=[0xf334], Data=[0x444d4431]
+_stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400], Offset=[0xf33c], Data=[0x00000001]
+stb0899_get_dev_id: Demodulator Core ID=[DMD1], Version=[1]
+_stb0899_read_s2reg Device=[0xfafc], Base address=[0x00000800], Offset=[0xfa2c], Data=[0x46454331]
+_stb0899_read_s2reg Device=[0xfafc], Base address=[0x00000800], Offset=[0xfa34], Data=[0x00000001]
+stb0899_get_dev_id: FEC Core ID=[FEC1], Version=[1]
+stb0899_attach: Attaching STB0899
+stb6100_attach: Attaching STB6100
+DVB: registering frontend 0 (STB0899 Multistandard)...
+
+I use scan from here: 
+http://jusst.de/manu/scan.tar.bz2
+It does not compile, I use the binary I found in the archive.
+
+I use szap2 from here:
+http://www.free-x.de/vdr/patches/hdtv/szap2.tgz
+It does compile.
+
+My kernel is:
+2.6.22-gentoo-r9
+
+My problems are:
+- When I scan the same transponder more than once, sometimes I get some services, sometimes I get no services.
+- When I zap (with szap2) to a station more than once, sometimes I get a lock, sometimes I get no lock.
+- I have also tried with vdr 1.4.7(old DVB API) and 1.5.14 (new dvb API). Both versions can tune to only one channel, the "Active" channel from previous vdr shutdown. When you change channel the signal is lost. I suppose it relates to the zap problem.
+
+I would appreciate your help / suggestions.
+
+Thank you very much.
+Vagelis
+ 
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
