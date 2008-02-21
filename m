@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DMomj2018280
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 17:50:48 -0500
-Received: from mail.isp.novis.pt (onyx.ip.pt [195.23.92.252])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DMoPco023695
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 17:50:26 -0500
-From: Ricardo Cerqueira <v4l@cerqueira.org>
-To: linux-dvb-maintainer@linuxtv.org
-In-Reply-To: <Pine.LNX.4.58.0802131349400.6264@shell2.speakeasy.net>
-References: <20080212190235.4e86baf8@gaivota>
-	<Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
-	<20080213155352.06d966cd@gaivota>
-	<Pine.LNX.4.58.0802131025440.6264@shell2.speakeasy.net>
-	<1202935004.17260.54.camel@localhost.localdomain>
-	<Pine.LNX.4.58.0802131349400.6264@shell2.speakeasy.net>
-Date: Wed, 13 Feb 2008 22:50:18 +0000
-Message-Id: <1202943018.4064.37.camel@frolic>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1L9BWKb011985
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:11:33 -0500
+Received: from hs-out-0708.google.com (hs-out-0708.google.com [64.233.178.241])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1L9B2nP003816
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:11:02 -0500
+Received: by hs-out-0708.google.com with SMTP id k27so2535740hsc.3
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 01:11:02 -0800 (PST)
+Message-ID: <5b5250670802210111l607d14c1j5bae7ee44beaab92@mail.gmail.com>
+Date: Thu, 21 Feb 2008 14:41:01 +0530
+From: "thirunavukarasu selvam" <gs.thiru@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB fixes
+Content-Disposition: inline
+Subject: Streaming C-band Signal with Nexus-S card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,32 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-02-13 at 13:53 -0800, Trent Piepho wrote:
-> On Wed, 13 Feb 2008, Ricardo Cerqueira wrote:
-> > On Wed, 2008-02-13 at 10:45 -0800, Trent Piepho wrote:
-> > > On Wed, 13 Feb 2008, Mauro Carvalho Chehab wrote:
-> > > > On Tue, 12 Feb 2008 21:21:43 -0800 (PST)
-> > > > Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > > >
-> > Read the code that was actually committed: here's a helpful link:
-> >
-> > http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=41a93616082af630e7242cba766a161d7847560b
-> 
-> I did.  Looks like there is a race on access to core->active_ref.
+Hi all,
 
-You're right, I missed that. A patch has already been sent to the
-V4L/DVB list.
+I am using WinTv-Nexus S card and a C-Band feed is connected to it.
+If i start streaming a channel from C-BAND signal using vlc, its working
+properly.
+However if i continue the same for longer time say more than a day, it stops
+to stream in the middle. But VLC is running in the background without any
+issues.
+I am not able to view the video on the screen.
 
-> You could also CC the relevant parties.  Unless you're hoping they won't
-> notice something.
+Then i killed the vlc process.
+unloaded the nexus-s card drivers and reloaded it again.
+After this if i start to stream a channel it is doing it properly.
 
-Sorry, but no. I actively try *not* to send duplicate e-mails to people
-unless they specifically request it.
+Please tell me what could be the issue behind this.
+This problem persists for long time.
 
---
-RC
+Thanks in Advance for ur help
 
-
+Regards
+Thiru.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
