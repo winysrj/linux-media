@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.devoteam.com ([213.190.82.43])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Jens.Peder.Terjesen@devoteam.com>)
-	id 1JRlzT-0000RH-T8
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 11:15:51 +0100
-MIME-Version: 1.0
-From: Jens.Peder.Terjesen@devoteam.com
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1JSIem-000130-B5
+	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 22:08:40 +0100
+From: Dominik Kuhlen <dkuhlen@gmx.net>
 To: linux-dvb@linuxtv.org
-Date: Wed, 20 Feb 2008 11:14:09 +0100
-Message-ID: <OF74D4A9B4.3D7A9528-ONC12573F5.00383A29-C12573F5.00383A36@devoteam.com>
+Date: Thu, 21 Feb 2008 22:08:05 +0100
+References: <47BDA96B.7080700@okg-computer.de>
+In-Reply-To: <47BDA96B.7080700@okg-computer.de>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] HVR-3000
+Message-Id: <200802212208.05930.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
+	STB0899)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,52 +19,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1740273337=="
+Content-Type: multipart/mixed; boundary="===============1288228823=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1740273337==
-Content-Type: text/html; charset=UTF-8
+--===============1288228823==
+Content-Type: multipart/signed;
+  boundary="nextPart2636790.8bmWUG12AU";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart2636790.8bmWUG12AU
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-<FONT face=3D"Default Sans Serif,Verdana,Arial,Helvetica,sans-serif" size=
-=3D2><DIV><BR></DIV><P><FONT color=3D#990099>-----linux-dvb-bounces@linuxtv=
-.org wrote: -----<BR><BR></FONT>&gt;To:&nbsp;linux-dvb@linuxtv.org<BR>&gt;F=
-rom:&nbsp;"Travel&nbsp;Factory&nbsp;S.r.l."&nbsp;&lt;mc8647tv@mclink.it&gt;=
-<BR>&gt;Sent&nbsp;by:&nbsp;linux-dvb-bounces@linuxtv.org<BR>&gt;Date:&nbsp;=
-19-02-2008&nbsp;21:14<BR>&gt;Subject:&nbsp;[linux-dvb]&nbsp;HVR-3000<BR>&gt=
-;<BR>&gt;I've been out from the dvb scene for a while and now I'm building =
-a<BR>&gt;new&nbsp;system.&nbsp;<BR>&gt;<BR>&gt;I had to buy an HVR-3000 hyb=
-rid system because it's the only DVB-T<BR>&gt;card I found available in Rom=
-e on PCI slot.... and the DVB-S was ok<BR>&gt;in&nbsp;order&nbsp;to&nbsp;ha=
-ve&nbsp;a&nbsp;new&nbsp;input....<BR>&gt;<BR>&gt;Now I have this card... I =
-tried on Suse 10.0, downloaded the kernel<BR>&gt;module I found somewhere..=
-. tried compiling.... but I got errors due<BR>&gt;to&nbsp;some&nbsp;changes=
-&nbsp;in&nbsp;a&nbsp;structure.<BR>&gt;<BR>&gt;I&nbsp;may&nbsp;try&nbsp;on&=
-nbsp;suse&nbsp;10.3...&nbsp;perhaps&nbsp;it&nbsp;works&nbsp;on&nbsp;that...=
-<BR>&gt;<BR>&gt;Now&nbsp;the&nbsp;questions&nbsp;is:<BR>&gt;<BR>&gt;- where=
- can I find informations to update my knowledge about DVB<BR>&gt;reception =
-(I read hints about drivers rewritten for DVB-S2,<BR>&gt;multi-proto,&nbsp;=
-and&nbsp;the&nbsp;like...).&nbsp;<BR>&gt;<BR>&gt;- does anybody have a HVR-=
-3000 actually working on a suse linux ?<BR>&gt;Which&nbsp;version&nbsp;?<BR=
->&gt;<BR>&gt;Thanks<BR>&gt;Francesco<BR>&gt;<BR>&gt;<BR>&gt;=5F=5F=5F=5F=5F=
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F<BR>&gt;linux-dvb&nbsp;m=
-ailing&nbsp;list<BR>&gt;linux-dvb@linuxtv.org<BR>&gt;http://www.linuxtv.org=
-/cgi-bin/mailman/listinfo/linux-dvb</P><P>Have you looked here: <A href=3D"=
-http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWinTV-HVR-3000" target=3D=
-blank>http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWinTV-HVR-3000</A>?=
-</P><P>I have two HVR-4000&nbsp;working on OpenSuse 10.3 following these in=
-structions: <A href=3D"http://www.linuxtv.org/wiki/index.php/Hauppauge=5FWi=
-nTV-HVR-4000" target=3Dblank>http://www.linuxtv.org/wiki/index.php/Hauppaug=
-e=5FWinTV-HVR-4000</A>&nbsp;with one small addition. I had to do make relea=
-se before make and make install.</P><P>Suse 10.0 is getting quite old. I th=
-ink you will have better luck with 10.3.</P><P>Jens</P><P>&nbsp;</P></FONT>=
+On Thursday 21 February 2008, Jens Krehbiel-Gr=E4ther wrote:
+> Hi!
+>=20
+> After two defective devices I got now a working one from pinnacle=20
+> support (I tested it in Windows and it works fine).
+>=20
+> But under Linux I could not get a positive scan or channel-lock. Could=20
+> please anyone tell me what I am doing wrong? I read the list and=20
+> searched the list archive and did everything described here, but my=20
+> device isn't working.
+>=20
+> I followed the instructions of the wiki about this device:
+>=20
+> hg clone http://www.jusst.de/hg/multiproto
+> wget -O pctv452e.patch http://www.linuxtv.org/pipermail/linux-dvb/attachm=
+ents/20080125/b9e1d749/attachment-0001.patch
+> cd multiproto
+> patch -p1 < ../pctv452e.patch
+Hmm, I discovered that there's in an issue in pctv452e.c line 426 which sho=
+uld be:
+  { STB0899_I2CRPT        , 0x58 },
+In the patch there's 0x5c as value which doesn't work for me.
+
+Could you please try this and report if it works for you too.
+
+Dominik
+
+--nextPart2636790.8bmWUG12AU
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQBHveg16OXrfqftMKIRAsPVAJ0aG2mFZoKVRsrM6z0FgT2ANI+04wCglQNS
+cUdRpDm02XCEJUmox5aXOPI=
+=O7Ct
+-----END PGP SIGNATURE-----
+
+--nextPart2636790.8bmWUG12AU--
 
 
---===============1740273337==
+--===============1288228823==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -73,4 +90,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1740273337==--
+--===============1288228823==--
