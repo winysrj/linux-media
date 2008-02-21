@@ -1,27 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1DIjbYo030455
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 13:45:37 -0500
-Received: from mail3.sea5.speakeasy.net (mail3.sea5.speakeasy.net
-	[69.17.117.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1DIjD7U015422
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 13:45:14 -0500
-Date: Wed, 13 Feb 2008 10:45:06 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080213155352.06d966cd@gaivota>
-Message-ID: <Pine.LNX.4.58.0802131025440.6264@shell2.speakeasy.net>
-References: <20080212190235.4e86baf8@gaivota>
-	<Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
-	<20080213155352.06d966cd@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LC0hpW007781
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:00:43 -0500
+Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LC0A4W017272
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:00:10 -0500
+Message-ID: <47BD67C8.5000305@kaiser-linux.li>
+Date: Thu, 21 Feb 2008 13:00:08 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com,
-	Ricardo Cerqueira <ricardo@cerqueira.org>,
-	linux-kernel@vger.kernel.org, linux-dvb-maintainer@linuxtv.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB fixes
+To: "H. Willstrand" <h.willstrand@gmail.com>
+References: <47BC8BFC.2000602@kaiser-linux.li>	
+	<47BC90CA.1000707@kaiser-linux.li>	
+	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>	
+	<47BC9788.7070604@kaiser-linux.li>
+	<20080220215850.GA2391@daniel.bse>	
+	<47BCA5BA.20009@kaiser-linux.li>	
+	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>	
+	<47BCB5DB.8000800@kaiser-linux.li>	
+	<175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>	
+	<20080221012048.GA2924@daniel.bse>
+	<175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
+In-Reply-To: <175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,52 +37,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 13 Feb 2008, Mauro Carvalho Chehab wrote:
-> On Tue, 12 Feb 2008 21:21:43 -0800 (PST)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
->
-> > On Tue, 12 Feb 2008, Mauro Carvalho Chehab wrote:
-> > >    - cx88-mpeg: Allow concurrent access to cx88-mpeg devices;
-> >
-> > So you decided to just commit this one with the race condition anyway?
->
-> The version with problems is the one dated by Jan, 16:
-> http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-January/006119.html
->
-> As Ricardo stated on Feb, 5, he fixed the lock issues, that were present on
-> your first revision:
->
-> http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-February/006292.html
+H. Willstrand wrote:
+> On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+>> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
+>>  > What's the problem with having a name of the formalized data in the
+>>  > video stream? ie raw do not mean undefined.
+>>
+>>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x for an
+>>  exploding number of proprietary formats that are quite similar but still
+>>  incompatible. It makes sense for formats that are used by more than one
+>>  driver.
+> 
+> Correct, the number of unique pixel formats should be kept down.
+> Again, comparing with digital cameras there are >200 proprietary
+> formats and there is a "clean-up" on-going where the "market" is
+> aiming for a OpenRAW.
+> 
+> However, by declaring a generic RAW format (which is then driver
+> specific) doesn't help the user mode app developers. Calling a
+> multitude of libraries to see if you get lucky might not be a good
+> idea.
+> 
+> Still, I'm suspectious about the definition "raw" used here.
+> RAW should mean unprocessed image data:
+> * no white balance adjustment
+> * no color saturation adjustments
+> * no contrast adjustments
+> * no sharpness improvements
+> * no compression with loss
 
-I don't see what you are saying in that message.  Ricardo agreed it had a
-race condition and said he would, at some future point, redo it, but I
-never saw a new patch.
+Yes, raw means "as it is" no stripping, decoding  or removing of SOF headers are 
+done in the driver. May be V4L2_PIX_FMT_AII (AII -> As It Is) is the better name?
 
-> I've pushed the reviewed version at the same day, for testing, at the
+> 
+> So, by looking for similarities in the "raw" formats where available
+> there should be a potential to consolidate them.
+> 
+>>
+>>  > I don't see how separate RAW ioctl's will add value to the V4l2 API,
+>>  > it fits into the current API.
+>>
+>>  Yes, it does. Each driver having multiple raw formats just needs a
+>>  private control id to select one.
+>>
+> I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
+> should do the job.
+> I.e. I think there should be strong reasons to break V4L2 API behavior.
+> 
+> Harri
 
-review-by == I saw your patch in my inbox and read the title
 
-> development environment:
->
-> http://linuxtv.org/pipermail/v4l-dvb-maintainer/2008-February/006326.html
->
-> Nobody pointed any newer issues on the reviewed version, since then.
-
-Nobody points to any issues, ever, when this happens.  Look at how broken
-the v4l2 only bttv driver was.  You still can't unload and load cx88-dvb
-since Markus's patch for hotplug, no one's fixed that regression.  Now
-there's yet another race in the cx88 subdriver code.  Maybe the original
-author who added that code should feel some motiviation to fix the
-regressions it caused....
-
-The only complaints that are ever generated on commits to the development
-enviroment are political, "so-and-so shouldn't be able to patch my
-fiefdom."
-
-> If you still see any issues, please send us a patch fixing it.
-
-I don't have the time or the desire to be the janitor who cleans up after
-sloppy coders' bugs.
+-- 
+http://www.kaiser-linux.li
 
 --
 video4linux-list mailing list
