@@ -1,22 +1,23 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout2.frontal.correo)
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1JNrOe-0006KC-9p
-	for linux-dvb@linuxtv.org; Sat, 09 Feb 2008 16:13:40 +0100
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-dvb@linuxtv.org,
- christian@duerrhauer.de
-Date: Sat, 9 Feb 2008 16:13:07 +0100
-References: <47AD998C.8090809@duerrhauer.de> <47ADBE15.1040908@duerrhauer.de>
-	<47ADBF84.60006@duerrhauer.de>
-In-Reply-To: <47ADBF84.60006@duerrhauer.de>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_EMcrHvCdONEdJdm"
-Message-Id: <200802091613.08130.jareguero@telefonica.net>
-Subject: Re: [linux-dvb] gentoo: v4l-dvb-hg doesn't compile with kernel
-	2.6.24-gentoo
+	(envelope-from <stoth@linuxtv.org>) id 1JSErc-0007Le-76
+	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 18:05:40 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JWL00FIPM4DX640@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 21 Feb 2008 12:05:02 -0500 (EST)
+Date: Thu, 21 Feb 2008 12:05:01 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
+To: James Klaas <jklaas@appalachian.dyndns.org>
+Message-id: <47BDAF3D.7030200@linuxtv.org>
+MIME-version: 1.0
+References: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HD capture
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,122 +25,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_EMcrHvCdONEdJdm
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+James Klaas wrote:
+> There was a discussion over on the mythtv-users forum on HD capture
+> that devolved into another discussion, but there was an article on
+> converting your HD-DVDs to Blue-Ray
+> (http://howto.wired.com/wiki/Convert_Your_HD_DVDs_to_Blu-Ray).  They
+> pointed to a HDMI/component/composite capture card at
+> http://www.blackmagic-design.com/products/intensity/.
+> 
+> While I wouldn't expect this to be supported anytime soon, has anyone
+> even looked at this?
 
-El S=E1bado, 9 de Febrero de 2008, Christian D=FCrrhauer escribi=F3:
-> Christian D=FCrrhauer wrote:
-> > Christian D=FCrrhauer wrote:
-> >
-> > I add a link to somebody else with the same problem:
-> > http://www.alionet.org/index.php?showtopic=3D19216
->
-> sorry, I didn't get my previous mail now, I see, so I am adding it.
-> What went wrong I don't know.
->
-> Christian
->
-> Hi,
->
-> the v4l-dvb-hg doesn't compile with the new kernel 2.6.24-gentoo. I am
-> pretty sure I followed the instruction from the vdr-wiki for installing
-> the drivers (kernel options). I have just for security rebuild the
-> kernel using genkernel --clean --menuconfig all.
->
-> As the ebuild is just pulling the source from mercurial, I thought, I
-> just leave a message here and maybe somebody can look into it.
->
->    CC [M]
-> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/bt87x.o
->    CC [M]
-> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/stk-webcam.o
->    CC [M]
-> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/stk-sensor.o
-> In file included from
-> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/bt87x.c:34:
-> include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a
-> function)
-> make[2]: ***
-> [/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/bt87x.o]
-> Error 1
-> make[2]: *** Waiting for unfinished jobs....
-> make[1]: ***
-> [_module_/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l]
-> Error 2
-> make[1]: Leaving directory `/usr/src/linux-2.6.24-gentoo'
-> make: *** [default] Error 2
->   *
->   * ERROR: media-tv/v4l-dvb-hg-0.1-r2 failed.
->   * Call stack:
->   *          ebuild.sh, line 1701:  Called dyn_compile
->   *          ebuild.sh, line 1039:  Called qa_call 'src_compile'
->   *          ebuild.sh, line   44:  Called src_compile
->   *          ebuild.sh, line 1383:  Called linux-mod_src_compile
->   *   linux-mod.eclass, line  519:  Called die
->   * The specific snippet of code:
->   *                      emake HOSTCC=3D"$(tc-getBUILD_CC)"
-> CC=3D"$(get-KERNEL_CC)" LDFLAGS=3D"$(get_abi_LDFLAGS)" \
->   *                                ${BUILD_FIXES} ${BUILD_PARAMS}
-> ${BUILD_TARGETS} \
->   *                              || die "Unable to make ${BUILD_FIXES}
-> ${BUILD_PARAMS} ${BUILD_TARGETS}."
->   *  The die message:
->   *   Unable to make  KDIR=3D/usr/src/linux default.
->   *
->   * If you need support, post the topmost build error, and the call
-> stack if relevant.
->   * A complete build log is located at
-> '/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/temp/build.log'.
->   *
->
-> Any help is greatly appreciated! :-)
->
-> Kind regards,
->
-> Christian
+Hey James,
 
-I have the same problem with kernel 2.6.24 and current HG. The attached pat=
-ch=20
-solve the problem for me.
+I'm not aware of a driver but I'd _really_ like to see one. I would do a 
+driver but I can't afford the hardware.
 
-Jose Alberto
-
---Boundary-00=_EMcrHvCdONEdJdm
-Content-Type: text/x-diff;
-  charset="iso-8859-15";
-  name="bt87x.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="bt87x.diff"
-
-diff -r 93ef35d93d83 linux/sound/pci/bt87x.c
---- a/linux/sound/pci/bt87x.c	Fri Feb 08 14:07:04 2008 -0200
-+++ b/linux/sound/pci/bt87x.c	Sat Feb 09 16:09:13 2008 +0100
-@@ -28,7 +28,7 @@
- #include <linux/moduleparam.h>
- #include <linux/bitops.h>
- #include <asm/io.h>
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25)
- #include <sound/driver.h>
- #endif
- #include <sound/core.h>
-
---Boundary-00=_EMcrHvCdONEdJdm
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_EMcrHvCdONEdJdm--
