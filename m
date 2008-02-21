@@ -1,31 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1ALsA7i000792
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 16:54:10 -0500
-Received: from smtp-out3.blueyonder.co.uk (smtp-out3.blueyonder.co.uk
-	[195.188.213.6])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1ALrhC9014785
-	for <video4linux-list@redhat.com>; Sun, 10 Feb 2008 16:53:44 -0500
-Received: from [172.23.170.138] (helo=anti-virus01-09)
-	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1JOK7K-0007nu-Ce
-	for video4linux-list@redhat.com; Sun, 10 Feb 2008 21:53:42 +0000
-Received: from [82.47.98.230] (helo=[192.168.10.10])
-	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1JOK7J-0001Y8-PN
-	for video4linux-list@redhat.com; Sun, 10 Feb 2008 21:53:41 +0000
-Message-ID: <47AF7265.1070803@blueyonder.co.uk>
-Date: Sun, 10 Feb 2008 21:53:41 +0000
-From: Sid Boyce <sboyce@blueyonder.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LCmcR0032407
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:48:38 -0500
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.231])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LCm73W015386
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:48:07 -0500
+Received: by wx-out-0506.google.com with SMTP id t16so24135wxc.6
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:48:02 -0800 (PST)
+Message-ID: <175f5a0f0802210448m70d6a1d6s1c627a54f30b54a1@mail.gmail.com>
+Date: Thu, 21 Feb 2008 13:48:00 +0100
+From: "H. Willstrand" <h.willstrand@gmail.com>
+To: "Thomas Kaiser" <linux-dvb@kaiser-linux.li>,
+	"H. Willstrand" <h.willstrand@gmail.com>,
+	"Linux and Kernel Video" <video4linux-list@redhat.com>
+In-Reply-To: <20080221124305.GA714@daniel.bse>
 MIME-Version: 1.0
-To: video4linux-list <video4linux-list@redhat.com>
-References: <18b102300801311533y65b32651v651e853ae3aea3d4@mail.gmail.com>	<20080201001958.GA21437@plankton.ifup.org>	<18b102300802011808w7a0ac750qf491d1aaa59efca3@mail.gmail.com>	<20080207233507.GA21273@plankton.ifup.org>	<18b102300802100801h295d15aan810313ae18c6fb6b@mail.gmail.com>
-	<18b102300802100802p282b6d4fs4f45822b29d6d3d2@mail.gmail.com>
-In-Reply-To: <18b102300802100802p282b6d4fs4f45822b29d6d3d2@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: gspca drivers
-Reply-To: sboyce@blueyonder.co.uk
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+References: <175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
+	<20080220215850.GA2391@daniel.bse> <47BCA5BA.20009@kaiser-linux.li>
+	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>
+	<47BCB5DB.8000800@kaiser-linux.li>
+	<175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>
+	<20080221012048.GA2924@daniel.bse>
+	<175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
+	<47BD67C8.5000305@kaiser-linux.li> <20080221124305.GA714@daniel.bse>
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,123 +39,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-James Klaas wrote:
-> Sorry, forgot to send to video4linux list as well.
-> 
-> ---------- Forwarded message ----------
-> From: James Klaas <jklaas@appalachian.dyndns.org>
-> Date: Feb 10, 2008 11:01 AM
-> Subject: Re: gspca drivers
-> To: Brandon Philips <brandon@ifup.org>
-> 
-> 
-> On 2/7/08, Brandon Philips <brandon@ifup.org> wrote:
->> On 21:08 Fri 01 Feb 2008, James Klaas wrote:
->>> On 1/31/08, Brandon Philips <brandon@ifup.org> wrote:
->>>> On 18:33 Thu 31 Jan 2008, James Klaas wrote:
->>>>> I was hoping to get my webcam working with the latest v4l-dvb sources.
->>>>>  After reading about on this list and elsewhere, I ran:
->>>>>
->>>>> # make kernel-links
->>>>>
->>>>> from my v4l-dvb directory in order to modify my current linux sources
->>>>> to use the v4l-dvb drivers.  Then I went to my gspca directory and ran
->>>>> the "gspca_build" script:
->>>>>
->>>>> ./gspca_build
->>>>>
->>>>>  REMOVE the old module if present
->>>>> Unknown symbol in module, or unknown parameter (see dmesg)
->>>>>
->>>>>  PRINT COMPILATION MESSAGES if ERRORS look kgspca.err
->>>>> make -C /lib/modules/`uname -r`/build SUBDIRS=/usr/src/modules/gspca
->>>>> CC=cc modules
->>>>> make[1]: Entering directory `/usr/src/linux-source-2.6.22'
->>>>>   CC [M]  /usr/src/modules/gspca/gspca_core.o
->>>>> /usr/src/modules/gspca/gspca_core.c:2542: error: unknown field
->>>>> 'hardware' specified in initializer
->>>> Are you using the latest gspca driver?  The hardware field was removed
->>>> months ago.
->>> [ 1026.765596] gspca: disagrees about version of symbol video_devdata
->> ...
->>> [ 1977.737339] gspca: Unknown symbol video_device_release
->> Did you "make install" the v4l tree you built against and make sure none
->> of the old video modules were loaded (see lsmod) when you modprobe'd
->> gspca?
->>
->> Thanks,
->>
->>         Brandon
->>
-> 
-> I checked the installed versions of videodev and gspca and both are
-> the same versions as the versions in the build directories, so they
-> installed fine.  I also checked the depends for videodev, v4l2-common
-> and v4l1-compat, and those were also the correct versions.
-> 
-> I double checked to make sure there weren't any modules left over in
-> other directories in /lib/modules/`uname -r` and didn't find any.
-> 
-> Since the machine in question also has a PCI video4linux device in it,
-> the drivers for that card already load the videodev modules.
-> 
-> James
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
+On Thu, Feb 21, 2008 at 1:43 PM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+> On Thu, Feb 21, 2008 at 01:00:08PM +0100, Thomas Kaiser wrote:
+>  > H. Willstrand wrote:
+>
+> > >Still, I'm suspectious about the definition "raw" used here.
+>  > >RAW should mean unprocessed image data:
+>  > >* no white balance adjustment
+>  > >* no color saturation adjustments
+>  > >* no contrast adjustments
+>  > >* no sharpness improvements
+>  > >* no compression with loss
+>  >
+>  > Yes, raw means "as it is" no stripping, decoding  or removing of SOF
+>  > headers are done in the driver. May be V4L2_PIX_FMT_AII (AII -> As It Is)
+>  > is the better name?
+>
+>  IMHO "raw" is the output of the ADC(s).
+>
+>  Uncompressed.
+>
+>  For webcams probably something like V4L2_PIX_FMT_SBGGR16.
+>
+>  Lossless transformations allowed.
 
-Something isn't quite right, the latest driver 20071224 is OK on the 
-latest 2.6.24-git kernels and the precious one 20071214 also built going 
-way back. These are the lines in 20071224.
-tindog:/usr/src/gspcav1-20071224 # grep -rn hardware  *
-changelog:46:   hardware.:)
-Etoms/et61xx51.h:3:# This driver is design for embedded Linux hardware 
-but should work happy
-gspca_core.c:1345: 
-spca50x->mode = spca50x->mode_cam[j].mode;      // overwrite by the 
-hardware mode
-gspca_core.c:1348:                                      }       // end 
-match hardware mode
-gspca_core.c:1361:/* nothing todo hardware found stream */
-gspca_core.c:1837:* a process, not as read from camera hardware.
-gspca_core.c:2135:/* exclude hardware channel reserved */
-gspca_core.c:2613:      .hardware = VID_HARDWARE_GSPCA,
-gspca.h:412:/* What we think the hardware is currently set to */
-READ_AND_INSTALL:264:adjust video0 to your hardware
-Sunplus/spca505.dat:513:    {0x04, 0x41, 0x01},         //hardware 
-snapcontrol
-Sunplus/spca561-OSX.h:204:    {0, 0x0001, 0x8200},      // OprMode to be 
-executed by hardware
-Sunplus/spca561-OSX.h:207:    {0, 0x0001, 0x8200},      // OprMode to be 
-executed by hardware
-Sunplus/spca561.h:204:    {0, 0x0001, 0x8200},  // OprMode to be 
-executed by hardware
-Sunplus/spca561.h:207:    {0, 0x0001, 0x8200},  // OprMode to be 
-executed by hardware
+Almost agree, meaning lossless transformation can be a compression :)
 
-tindog:/usr/src/gspcav1-20071224 # grep -rn video_device_release *
-gspca_core.c:2616:      .release = video_device_release,
-gspca_core.c:4325:                      video_device_release(spca50x->vdev);
-Binary file gspca_core.o matches
-Binary file gspca.ko matches
-gspca.mod.c:27: { 0x7ff0c04f, "video_device_release" },
-Binary file gspca.mod.o matches
-Binary file gspca.o matches
-utils/spcaCompat.h:27:static inline void video_device_release(struct 
-video_device *vdev)
-
-Check if this tallies with what you have.
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Cheers,
+Harri
 
 --
 video4linux-list mailing list
