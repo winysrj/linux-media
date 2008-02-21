@@ -1,14 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n7a.bullet.ukl.yahoo.com ([217.146.183.155])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <markst_tim@yahoo.com>) id 1JRpbN-00053r-PB
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 15:07:13 +0100
-Date: Wed, 20 Feb 2008 06:06:06 -0800 (PST)
-From: markst tim <markst_tim@yahoo.com>
+Received: from mtai01.charter.net ([209.225.8.181])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ewomer@charter.net>) id 1JS5M4-0007im-KF
+	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 07:56:28 +0100
+Received: from aarprv05.charter.net ([10.20.200.75]) by mtai01.charter.net
+	(InterMail vM.7.08.02.02 201-2186-121-104-20070414) with ESMTP
+	id <20080221065553.VWP20099.mtai01.charter.net@aarprv05.charter.net>
+	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 01:55:53 -0500
+Received: from fepweb10 ([10.20.200.80]) by aarprv05.charter.net with ESMTP
+	id <20080221065553.XATW27434.aarprv05.charter.net@fepweb10>
+	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 01:55:53 -0500
+Message-ID: <20080221015553.1E1UE.180463.root@fepweb10>
+Date: Wed, 20 Feb 2008 22:55:53 -0800
+From: <ewomer@charter.net>
 To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Message-ID: <732067.64147.qm@web45813.mail.sp1.yahoo.com>
-Subject: [linux-dvb] drivers
+Subject: [linux-dvb] Avermedia PCIe combo tv card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,17 +29,7 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi 
-am new to this site. im having NOVA-S-Plus card, and
-re i dont know how to download the drivers for
-this,can u tell me the sites.
-
-
-
-      ____________________________________________________________________________________
-Never miss a thing.  Make Yahoo your home page. 
-http://www.yahoo.com/r/hs
-
+I was woundering on the status of support of the Avermedia PCIe oem tv card. it's probly only used in gateway computers. no rush just woundering. thanx 
 
 _______________________________________________
 linux-dvb mailing list
