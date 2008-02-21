@@ -1,18 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FEGE4N032084
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 09:16:14 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1FEFhED007706
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 09:15:43 -0500
-Date: Fri, 15 Feb 2008 15:15:57 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0802151511540.16741@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1LCiQfU030433
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:44:26 -0500
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1LChsei012373
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 07:43:54 -0500
+Received: by wr-out-0506.google.com with SMTP id 70so30251wra.7
+	for <video4linux-list@redhat.com>; Thu, 21 Feb 2008 04:43:49 -0800 (PST)
+Message-ID: <175f5a0f0802210443i6f1d46afm730b9f3b27121ed1@mail.gmail.com>
+Date: Thu, 21 Feb 2008 13:43:47 +0100
+From: "H. Willstrand" <h.willstrand@gmail.com>
+To: "Thomas Kaiser" <linux-dvb@kaiser-linux.li>
+In-Reply-To: <47BD67C8.5000305@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH soc-camera] Replace NO_GPIO with gpio_is_valid()
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+References: <47BC8BFC.2000602@kaiser-linux.li>
+	<47BC9788.7070604@kaiser-linux.li> <20080220215850.GA2391@daniel.bse>
+	<47BCA5BA.20009@kaiser-linux.li>
+	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>
+	<47BCB5DB.8000800@kaiser-linux.li>
+	<175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>
+	<20080221012048.GA2924@daniel.bse>
+	<175f5a0f0802210110k11dc73f6pbbdd7100c1ca8fdb@mail.gmail.com>
+	<47BD67C8.5000305@kaiser-linux.li>
+Content-Transfer-Encoding: 8bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,123 +38,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Upon suggestion by David Brownell use a gpio_is_valid() predicate
-instead of an explicit NO_GPIO macro. The respective patch to 
-include/asm-generic/gpio.h has been accepted upstream.
+On Thu, Feb 21, 2008 at 1:00 PM, Thomas Kaiser
+<linux-dvb@kaiser-linux.li> wrote:
+> H. Willstrand wrote:
+>  > On Thu, Feb 21, 2008 at 2:20 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+>  >> On Thu, Feb 21, 2008 at 01:02:39AM +0100, H. Willstrand wrote:
+>  >>  > What's the problem with having a name of the formalized data in the
+>  >>  > video stream? ie raw do not mean undefined.
+>  >>
+>  >>  I thought you wanted to avoid having to define V4L2_PIX_FMT_x for an
+>  >>  exploding number of proprietary formats that are quite similar but still
+>  >>  incompatible. It makes sense for formats that are used by more than one
+>  >>  driver.
+>  >
+>  > Correct, the number of unique pixel formats should be kept down.
+>  > Again, comparing with digital cameras there are >200 proprietary
+>  > formats and there is a "clean-up" on-going where the "market" is
+>  > aiming for a OpenRAW.
+>  >
+>  > However, by declaring a generic RAW format (which is then driver
+>  > specific) doesn't help the user mode app developers. Calling a
+>  > multitude of libraries to see if you get lucky might not be a good
+>  > idea.
+>  >
+>  > Still, I'm suspectious about the definition "raw" used here.
+>  > RAW should mean unprocessed image data:
+>  > * no white balance adjustment
+>  > * no color saturation adjustments
+>  > * no contrast adjustments
+>  > * no sharpness improvements
+>  > * no compression with loss
+>
+>  Yes, raw means "as it is" no stripping, decoding  or removing of SOF headers are
+>  done in the driver. May be V4L2_PIX_FMT_AII (AII -> As It Is) is the better name?
+>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+I struggle with the probability to find several CCD's having similar
+formats. There aren't so many manifactors of CCD's but they truelly
+can generate divergeting formats. Worst case scenario means >200
+V4L2_PIX_FMT_RAW_...
 
----
+I think RAW is a OK name, the question is if the subcomponents of the
+RAW formats has similarities, if so they might be standardized.
+Looking into different Sony CCD's it's clearly possible, but after the
+CCD the data has to be buffered, packaged and transmitted which of
+course can be done in several ways...
 
-Mauro, following this I'm sending a fix for missing gpio.h
+Cheers,
+Harri
 
-Thanks
-Guennadi
-
- drivers/media/video/mt9m001.c |   10 +++++-----
- drivers/media/video/mt9v022.c |   10 +++++-----
- 2 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 3c5867c..b65ff77 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -154,7 +154,7 @@ static int bus_switch_request(struct mt9m001 *mt9m001,
- 	int ret;
- 	unsigned int gpio = icl->gpio;
- 
--	if (gpio != NO_GPIO) {
-+	if (gpio_is_valid(gpio)) {
- 		/* We have a data bus switch. */
- 		ret = gpio_request(gpio, "mt9m001");
- 		if (ret < 0) {
-@@ -174,7 +174,7 @@ static int bus_switch_request(struct mt9m001 *mt9m001,
- 
- 	mt9m001->switch_gpio = gpio;
- #else
--	mt9m001->switch_gpio = NO_GPIO;
-+	mt9m001->switch_gpio = -EINVAL;
- #endif
- 	return 0;
- }
-@@ -182,7 +182,7 @@ static int bus_switch_request(struct mt9m001 *mt9m001,
- static void bus_switch_release(struct mt9m001 *mt9m001)
- {
- #ifdef CONFIG_MT9M001_PCA9536_SWITCH
--	if (mt9m001->switch_gpio != NO_GPIO)
-+	if (gpio_is_valid(mt9m001->switch_gpio))
- 		gpio_free(mt9m001->switch_gpio);
- #endif
- }
-@@ -190,7 +190,7 @@ static void bus_switch_release(struct mt9m001 *mt9m001)
- static int bus_switch_act(struct mt9m001 *mt9m001, int go8bit)
- {
- #ifdef CONFIG_MT9M001_PCA9536_SWITCH
--	if (mt9m001->switch_gpio == NO_GPIO)
-+	if (!gpio_is_valid(mt9m001->switch_gpio))
- 		return -ENODEV;
- 
- 	gpio_set_value_cansleep(mt9m001->switch_gpio, go8bit);
-@@ -224,7 +224,7 @@ static int mt9m001_set_capture_format(struct soc_camera_device *icd,
- 	    (mt9m001->datawidth != 9  && (width_flag == IS_DATAWIDTH_9)) ||
- 	    (mt9m001->datawidth != 8  && (width_flag == IS_DATAWIDTH_8))) {
- 		/* data width switch requested */
--		if (mt9m001->switch_gpio == NO_GPIO)
-+		if (!gpio_is_valid(mt9m001->switch_gpio))
- 			return -EINVAL;
- 
- 		/* Well, we actually only can do 10 or 8 bits... */
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 9b406e4..5fbeaa3 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -187,7 +187,7 @@ static int bus_switch_request(struct mt9v022 *mt9v022, struct soc_camera_link *i
- 	int ret;
- 	unsigned int gpio = icl->gpio;
- 
--	if (gpio != NO_GPIO) {
-+	if (gpio_is_valid(gpio)) {
- 		/* We have a data bus switch. */
- 		ret = gpio_request(gpio, "mt9v022");
- 		if (ret < 0) {
-@@ -206,7 +206,7 @@ static int bus_switch_request(struct mt9v022 *mt9v022, struct soc_camera_link *i
- 
- 	mt9v022->switch_gpio = gpio;
- #else
--	mt9v022->switch_gpio = NO_GPIO;
-+	mt9v022->switch_gpio = -EINVAL;
- #endif
- 	return 0;
- }
-@@ -214,7 +214,7 @@ static int bus_switch_request(struct mt9v022 *mt9v022, struct soc_camera_link *i
- static void bus_switch_release(struct mt9v022 *mt9v022)
- {
- #ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	if (mt9v022->switch_gpio != NO_GPIO)
-+	if (gpio_is_valid(mt9v022->switch_gpio))
- 		gpio_free(mt9v022->switch_gpio);
- #endif
- }
-@@ -222,7 +222,7 @@ static void bus_switch_release(struct mt9v022 *mt9v022)
- static int bus_switch_act(struct mt9v022 *mt9v022, int go8bit)
- {
- #ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	if (mt9v022->switch_gpio == NO_GPIO)
-+	if (!gpio_is_valid(mt9v022->switch_gpio))
- 		return -ENODEV;
- 
- 	gpio_set_value_cansleep(mt9v022->switch_gpio, go8bit);
-@@ -303,7 +303,7 @@ static int mt9v022_set_capture_format(struct soc_camera_device *icd,
- 	    (mt9v022->datawidth != 9  && (width_flag == IS_DATAWIDTH_9)) ||
- 	    (mt9v022->datawidth != 8  && (width_flag == IS_DATAWIDTH_8))) {
- 		/* data width switch requested */
--		if (mt9v022->switch_gpio == NO_GPIO)
-+		if (!gpio_is_valid(mt9v022->switch_gpio))
- 			return -EINVAL;
- 
- 		/* Well, we actually only can do 10 or 8 bits... */
--- 
-1.5.3.4
+>
+>  >
+>  > So, by looking for similarities in the "raw" formats where available
+>  > there should be a potential to consolidate them.
+>  >
+>  >>
+>  >>  > I don't see how separate RAW ioctl's will add value to the V4l2 API,
+>  >>  > it fits into the current API.
+>  >>
+>  >>  Yes, it does. Each driver having multiple raw formats just needs a
+>  >>  private control id to select one.
+>  >>
+>  > I was more thinking about the VIDIOC_S_RAW stuff, a VIDIOC_S_FMT
+>  > should do the job.
+>  > I.e. I think there should be strong reasons to break V4L2 API behavior.
+>  >
+>  > Harri
+>
+>
+>
+>
+> --
+>  http://www.kaiser-linux.li
+>
 
 --
 video4linux-list mailing list
