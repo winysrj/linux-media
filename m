@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <pansyg@gmx.at>) id 1JRDEy-0000zx-W6
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 22:09:33 +0100
-From: Gernot Pansy <pansyg@gmx.at>
-To: linux-dvb@linuxtv.org
-Date: Mon, 18 Feb 2008 22:08:59 +0100
-References: <B5C85E0A-C606-47A7-8683-C2DBC1C36CE3@onetel.com>
-In-Reply-To: <B5C85E0A-C606-47A7-8683-C2DBC1C36CE3@onetel.com>
+Received: from mail1.syd.koalatelecom.com.au ([123.108.76.140])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <peter_s_d@fastmail.com.au>) id 1JSXYx-0005Py-Ok
+	for linux-dvb@linuxtv.org; Fri, 22 Feb 2008 14:03:40 +0100
+From: "Peter D." <peter_s_d@fastmail.com.au>
+To: hermann pitton <hermann-pitton@arcor.de>
+Date: Sat, 23 Feb 2008 00:03:09 +1100
+References: <200802171428.10859.peter_s_d@fastmail.com.au>
+	<1203279545.3473.184.camel@pc08.localdom.local>
+In-Reply-To: <1203279545.3473.184.camel@pc08.localdom.local>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802182208.59548.pansyg@gmx.at>
-Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave AD
-	SP400 rebadge)
+Message-Id: <200802230003.10043.peter_s_d@fastmail.com.au>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] auto detection of Flytv duo/hybrid and pci/cardbus
+	confusion
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,99 +28,212 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hy,
+On Monday 18 February 2008, hermann pitton wrote:
+> Hi Peter,
+>
+> Am Sonntag, den 17.02.2008, 14:28 +1100 schrieb Peter D.:
+> > Hi,
+> >
+> > I've finally gotten around to reading the code and trying to get my
+> > PCI MSI TV@nywhere A/D card auto detected.
+> >
+> > First clarification, duo versus hybrid.
+> > Are "duo" cards equipped with two independent tuners that can both be
+> > used at the same time?
+> > Are "hybrid" cards necessarily equipped with digital and analogue
+> > tuners? Can a two tuner card be both a duo and a hybrid, if one tuner
+> > is digital the other is analogue and they can both be used at the same
+> > time?
+>
+> for that all I give some examples further below.
+>
+> > Second clarification, PCI versus cardbus.
+> > They don't look anything like each other, but can they be logically
+> > interchangeable?  If the code for a cardbus tuner happens to work for
+> > a PCI tuner is there anything wrong with referring to the PCI tuner
+> > as a cardbus device?
+>
+> No, we do such and vice versa, but then we add a comment PCI or cardbus
+> version usually and another important compatible category is Mini PCI.
+> You should also add LR306 as the board type.
+>
+> > Looking at <http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards>
+> > there does not appear to be any such thing as a
+> > SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS, despite the entry (number 94)
+> > in saa7134.h.  Looking at
+> > <http://www.linuxtv.org/wiki/index.php/DVB-T_PCI_Cards#LifeView>
+> > there is a PCI version - but there is no PCI version in saa7134.h.
+>
+> They do exist, see bttv-gallery.de, 
 
-the wiki is not up2date. 
+OK found it.  
 
-Twinhan VP-1041 support is now in the mantis tree (inkl. multiproto)
+> also Mauro has already a MSI OEM 
+> version. They are special for DVB-T, since they switch the mode by a
+> gpio pin and have the silent i2c connection to the tuner open and don't
+> use the i2c gate of the tda8290 analog demod inside the saa7131e for
+> DVB-T tuning.
 
-hg clone http://jusst.de/hg/mantis
+So the PCI version looks like a slightly dysfunctional cardbus device.  
 
-but for me, the old initialization parameters works much better. with the new 
-ones i get only a destructed picture (unwatchable).  
+> > Should
+> > "SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS" be changed to
+> > "SAA7134_BOARD_FLYDVBT_HYBRID"?
+>
+> No. Just also add "PCI" and "LR306" to your comments.
+> The gpio 21 is used for the TV/radio switch. The gpio 22 = 0 in the mask
+> is used to switch the tuner AGC to the analog demod.
+> On some cardbus version, which have the gpio 27 high, switching it to 0
+> turns the fan on, on yours it does nothing, since it is 0 anyway.
 
-gernot
+I can safely ignore all of that?  
 
-On Monday 18 February 2008 20:05:03 Tim Hewett wrote:
-> I'm trying to get a new Technisat Skystar HD2 working. It looks like
-> it is a Twinhan VP-1041/Azurewave AD SP400 rebadge.
+> > It appears that both PCI and cardbus versions of the Flytv duo exist
+> > and are listed in saa7134.h - despite slightly inconsistent
+> > punctuation; SAA7134_BOARD_FLYDVBTDUO versus
+> > SAA7134_BOARD_FLYDVBT_DUO_CARDBUS.
+> >
+> > Should
+> > "SAA7134_BOARD_FLYDVBTDUO" be changed to
+> > "SAA7134_BOARD_FLYDVBT_DUO"?
 >
-> The card hardware and satellite feed has been confirmed to work ok
-> under Windows using Technisat's software.
+> Not related to your device. Subdevice is 0x0306 and you have 0x3306,
+> but yes, these are in a different family of devices too.
+
+I just thought that I have found a very minor typo - an extra 
+underscore in on of the constants would look more systematic 
+to me.  It is not important.  
+
+> > I have an MSI TV@nywhere A/D PCI card that works with the option
+> > card=94
+> >
+> > There appears to not be an entry in struct pci_device_id
+> > saa7134_pci_tbl[] in saa7134-cards.c for my card.  There is a reference
+> > to a
+> > "TV@nywhere DUO" which I guess is a valid entry for a different card.
 >
-> I am using the current multiproto DVB drivers, downloaded today. These
-> were patched, built and installed successfully as described for the
-> Azurewave AD SP400 in the linuxdvb wiki, but the card was not
-> recognised on bootup even though it was allocated a DVB adaptor
-> number. This appeared in dmesg:
+> Yes it is. Peter Missel bought some and added the entry.
 >
-> [   57.359723] found a UNKNOWN PCI UNKNOWN device on (01:06.0),
-> [   57.359802]     Mantis Rev 1 [1ae4:0001], irq: 16, latency: 32
-> [   57.359858]     memory: 0xe5100000, mmio: 0xffffc200000fc000
-> [   57.363015]     MAC Address=[00:08:c9:e0:26:92]
-> [   57.363133] mantis_alloc_buffers (0): DMA=0x1b7a0000
-> cpu=0xffff81001b7a0000 size=65536
-> [   57.363242] mantis_alloc_buffers (0): RISC=0x1ae24000
-> cpu=0xffff81001ae24000 size=1000
-> [   57.363348] DVB: registering new adapter (Mantis dvb adapter)
+> Duo in LifeView terminology means two separate tuners. One for analog
+> TV/FM and one for DVB-T.
+
+LifeView terminology.  The meaning might change might change and 
+we have to live with it.  I was hoping that there would be a 
+technical definition.  
+
+> On the older Duo versions those two tuners were _not hybrid_ and
+> different for analog TV and DVB-T.
+> Only the newer Duo variants with tda8275A use two identical such tuners,
+> but not in hybrid mode. One is always in analog and the other always in
+> digital mode. The older types are out of production and using two still
+> allows to have DVB-T and analog TV from the tuners at once.
 >
+> This is not possible with one single hybrid tuner. DVB-T and analog
+> video from an external input, VCR tuner or something, is possible at
+> once, but needs also to use packed video formats for analog during that
+> due to limitations of the dma engines with planar formats.
 >
-> This is the output of lspci -vvn:
+> Then the Trio has even one more tuner for DVB-S, but there is only _one_
+> saa713x PCI bridge on all such and only one channel decoder/demodulator
+> for each mode. Since the single saa713x chip has only one TS/mpeg/host
+> interface, either usable in parallel or serial mode, DVB-S and DVB-T can
+> not be used at the same time. (also not an mpeg encoder)
 >
-> 01:06.0 0480: 1822:4e35 (rev 01)
-> 	Subsystem: 1ae4:0001
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B-
-> 	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR-
-> 	Latency: 32 (2000ns min, 63750ns max)
-> 	Interrupt: pin A routed to IRQ 16
-> 	Region 0: Memory at e5100000 (32-bit, prefetchable) [size=4K]
+> This is only possible with two saa713x bridges, like the md7134 in the
+> CTX925 version has them and when we enable DVB-S support on the second
+> bridge hopefully soon. Else functionality is like on the Trio. (BTW, the
+> md7134 represents lots of different cards through eeprom detection)
 >
-> This is the output of lsusb -vv:
+> Next category is the Medion md8800 Quad(ro) with two saa7131e,
+> two fully usable tda8275ac1 hybrid (2 analog + 2 DVB-T demods, no FM)
+> and two tda8263 DVB-S tuners plus two tda10086 channel decoders plus an
+> isl6405 dual LNB controller, where we just have support of the first SAT
+> connector now, diseqc for multiswitches is not fully tested yet. There
+> is RF loopthrough, in and out, respectively to the other.
 >
-> 01:06.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
-> PCI Bridge Controller [Ver 1.0] (rev 01)
-> 	Subsystem: Unknown device 1ae4:0001
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B-
-> 	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR-
-> 	Latency: 32 (2000ns min, 63750ns max)
-> 	Interrupt: pin A routed to IRQ 16
-> 	Region 0: Memory at e5100000 (32-bit, prefetchable) [size=4K]
+> So it should be already possible to view and record from both DVB-S
+> devices at once, within that tunable spectrum the active one limits for
+> the passive by controlling tone and LNB voltage.
 >
-> Note that subsystem IDs 1ae4:0001 are different to those listed in the
-> wiki for the Azurewave (1822:0031).
+> That loopthrough can be switched off, for example when we have active
+> control for the second SAT connector too.
 >
-> I changed #define MANTIS_VP_1041_DVB_S2	in linux/drivers/media/dvb/
-> mantis/mantis_vp1041.h from 0x0031 to 0x0001, which changed the dmesg
-> output on reboot to this:
+> On the two hybrid tuners the RF feed can also be switched, either to
+> loopthrough mode from TV1 antenna connector to both tuners or have input
+> of choice from both analog/DVB-T antenna connectors separately.
+
+Thanks for all that, but I only own two cards.  
+
+> > Is the entry;
+> >
+> >           {
+> >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
+> >                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> >                 .subvendor    = 0x4e42,
+> >                 .subdevice    = 0x3502,
+> >                 .driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
+> >         },
+> >
+> > supposed to be;
+> >
+> >            {
+> >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
+> >                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> >                 .subvendor    = 0x4E42,         /* MSI */
+> >                 .subdevice    = 0x3306,         /* TV@nywhere Hybrid
+> > A/D */ driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS, },
+> >
+> > with the subdevice changed, or possibly;
+> >
+> >            {
+> >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
+> >                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> >                 .subvendor    = 0x4E42,         /* MSI */
+> >                 .subdevice    = 0x3306,         /* TV@nywhere Hybrid
+> > A/D */ driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID,
+> >         },
+> >
+> > with the subdevice and driver_data changed, or should there be an extra
+> > entry in the list?
 >
-> [   59.546375] found a VP-1041 PCI DVB-S/DVB-S2 device on (01:06.0),
-> [   59.546456]     Mantis Rev 1 [1ae4:0001], irq: 16, latency: 32
-> [   59.546512]     memory: 0xe5100000, mmio: 0xffffc200000fc000
-> [   59.549609]     MAC Address=[00:08:c9:e0:26:92]
-> [   59.549719] mantis_alloc_buffers (0): DMA=0x1b7b0000
-> cpu=0xffff81001b7b0000 size=65536
-> [   59.549827] mantis_alloc_buffers (0): RISC=0x1af43000
-> cpu=0xffff81001af43000 size=1000
-> [   59.549933] DVB: registering new adapter (Mantis dvb adapter)
-> [   60.137583] stb0899_attach: Attaching STB0899
-> [   60.137665] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2
-> frontend @0x68
-> [   60.152161] stb6100_attach: Attaching STB6100
-> [   60.168021] DVB: registering frontend 3 (STB0899 Multistandard)...
+> We have no SAA7134_BOARD_FLYDVBT_HYBRID, this would require already the
+> new entry.
 >
-> So that change seemed to cause the card to be recognised.
+> The 4e42:3502 is Mauro's MSI TV @nywhere A/D NB cardbus and likely other
+> OEMs too. On the subdevice 0x3306 are the related PCI cards and 0x3307
+> are Mini PCI.
 >
-> Then I tried the replacement scan and szap as suggested by the
-> Azurewave wiki, but the card will not tune.
+> Thought you did not pick up my patch suggestion that time,
+> http://www.linuxtv.org/pipermail/linux-dvb/2007-June/018678.html
+> because we had no means to make a difference to the Vivanco 21056 and we
+> did not get the analog TV mode right on it.
+
+So currently it is impossible to have code which works out of the 
+box for both Vivenco and MSI variant?  Could we change that to, 
+works out of the box for one and mostly works out of the box for 
+the other?  
+
+> For the i2c remote with mdt10p55 (pic 16c505) Eddi had a patch. We
+> talked about it and remaining implementation questions, but should be
+> usable for you in private if you replace the appearance of
+> SAA7134_BOARD_FLYDVB_TRIO with your device or add it accordingly.
+
+I notice that there has been a huge thread about remotes lately.  
+After reading that I will come back to this.  
+
+> Since the cardbus and mini pci devices seem not to have a remote so far,
+> this could eventually rise the question of a separate entry later on
+> IMHO.
 >
-> So it appears to be almost working, but I'm not sure what tests to try
-> or changes to make to see if it will work.
+> Cheers,
+> Hermann
+
+Thank you.  
 
 
+-- 
+sig goes here...
+Peter D.
 
 _______________________________________________
 linux-dvb mailing list
