@@ -1,26 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@moelleritberatung.de>) id 1JTG6u-0005c5-P2
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 13:37:40 +0100
-Date: Sun, 24 Feb 2008 13:37:37 +0100
-From: Artem Makhutov <artem@makhutov.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Message-ID: <20080224123736.GH30387@moelleritberatung.de>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
-	<47C01325.10407@otenet.gr>
-	<20080223174406.GB30387@moelleritberatung.de>
-	<47C0803D.2020504@gmail.com>
-	<20080223212013.GD30387@moelleritberatung.de>
-	<47C0903B.70606@gmail.com>
-	<20080223213258.GE30387@moelleritberatung.de>
-	<20080223214718.GF30387@moelleritberatung.de>
-	<47C09519.2090904@gmail.com> <47C09BCC.50403@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <47C09BCC.50403@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
+	(envelope-from <nico@youplala.net>) id 1JSVnA-0005sK-30
+	for linux-dvb@linuxtv.org; Fri, 22 Feb 2008 12:10:12 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id 23B8CD8811F
+	for <linux-dvb@linuxtv.org>; Fri, 22 Feb 2008 12:08:58 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <950c7d180802220256q71556eaahf17816d5e9e2f3d4@mail.gmail.com>
+References: <mailman.77.1203547335.926.linux-dvb@linuxtv.org>
+	<47BD4A61.10403@gmail.com>
+	<8ceb98f20802210742o10f0935rafe106d8e6af2b1@mail.gmail.com>
+	<950c7d180802220256q71556eaahf17816d5e9e2f3d4@mail.gmail.com>
+Date: Fri, 22 Feb 2008 11:07:07 +0000
+Message-Id: <1203678427.6708.5.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
+	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,22 +31,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-On Sun, Feb 24, 2008 at 02:18:52AM +0400, Manu Abraham wrote:
-> Also, can you please do a benchmark in lock timings between changeset 
-> 7205 and 7200 ?
+On Fri, 2008-02-22 at 19:56 +0900, Matthew Vermeulen wrote:
+> Hi all,
+> 
+> My remote seems to be totally working now, I've played around with the
+> keymaps to set it all up nicely :)
+> 
+> Thanks so much to everyone who helped out..
 
-Do you mean changeset 7200 or 7204
+Happy to hear that.
 
-> [...]
 
-Regards, Artem
+> 
+> May end up posting some sort of howto to help any other users with my
+> remote stuck in the same boat (although it doesn't seem to be a
+> particularly common piece of hardware)
 
--- 
-Artem Makhutov
-Unterort Str. 36
-D-65760 Eschborn
+This would be good.
+
+I really would like to understand the process properly.
+
+Could you write something either directly in the wiki, or send it to me
+by email, and I'll post it in the wiki.
+
+Thanks much,
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
