@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gw.deuromedia.ro ([194.176.161.33] helo=deuromedia.de)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Doru.Marin@Deuromedia.ro>) id 1JR5gg-00086i-7i
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 14:05:38 +0100
-Message-ID: <47B98257.8060200@Deuromedia.ro>
-Date: Mon, 18 Feb 2008 15:04:23 +0200
-From: Doru Marin <Doru.Marin@Deuromedia.ro>
+Received: from mx1.orcon.net.nz ([219.88.242.51] ident=Debian-exim)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lennon@orcon.net.nz>) id 1JSi1W-00057o-R8
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 01:13:51 +0100
+Received: from Debian-exim by mx1.orcon.net.nz with local (Exim 4.67)
+	(envelope-from <lennon@orcon.net.nz>) id 1JSi1I-0001Ns-Fb
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 13:13:36 +1300
+Message-ID: <1A18D3EDCF9648E5A25B195A2E4EC42A@CraigPC>
+From: "Craig Whitmore" <lennon@orcon.net.nz>
+To: "Daniel Porres" <chancleta@gmail.com>,
+	<linux-dvb@linuxtv.org>
+References: <a4ac2da80802221501w2ed2d1b0wdc0cf129bc569f8e@mail.gmail.com>
+In-Reply-To: <a4ac2da80802221501w2ed2d1b0wdc0cf129bc569f8e@mail.gmail.com>
+Date: Sat, 23 Feb 2008 12:50:10 +1300
 MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-References: <47B19015.20208@gmx.net>
-	<47B2F82F.6070804@Deuromedia.ro>	<47B3512C.5010107@gmx.net>
-	<47B62C4B.3020604@gmx.net> <47B97E8B.8090905@gmx.net>
-In-Reply-To: <47B97E8B.8090905@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DiSEqC trouble with TT S-1500
+Subject: Re: [linux-dvb] HVR 4000 and usb webcam working together?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,92 +28,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-P. van Gaans wrote:
-> On 02/16/2008 01:20 AM, P. van Gaans wrote:
->   
->> On 02/13/2008 09:21 PM, P. van Gaans wrote:
->>     
->>> On 02/13/2008 03:01 PM, Doru Marin wrote:
->>>       
->>>> Hi,
->>>>
->>>> Can you explain how you select those 4 positions ? DiSEqC commands or 
->>>> tone/voltage changes ?
->>>> Also can you determine the input type of those positions (Hi/Low, 
->>>> H/V, etc) ? A scenario to see when and why that happens, would be 
->>>> more useful.
->>>>
->>>> P. van Gaans wrote:
->>>>         
->>>>> Hi,
->>>>>
->>>>> I've got a Technotrend S-1500 (if it matters: I use it with Kaffeine 
->>>>> 0.8.3). It works mostly fine, but there's a strange problem. With my 
->>>>> Spaun 4/1 DiSEqC switch (they cost approx 25-40 euro), I can only 
->>>>> switch without trouble to position 1 and 2. If I tune directly to 
->>>>> position 3 it won't lock.
->>>>>
->>>>> However, if I first tune to a channel on position 1 or 2 and try a 
->>>>> channel on position 3 after that, it will work. Position 4 however 
->>>>> is completely unreachable.
->>>>>
->>>>> On a standalone receiver, there's no trouble with the same cable.
->>>>>
->>>>> Now Spaun is a really expensive and respected brand. So their 
->>>>> switches possibly work in a different way, because a cheap Maximum 
->>>>> 4/1 switch works perfectly with the S-1500. Position 1, 2, 3 and 4 
->>>>> all work perfectly. I also did some "dry testing" indoors and it 
->>>>> looks like a 7 euro Satconn 4/1 switch would also work fine, but a 
->>>>> 17 euro Axing SPU 41-02 probably won't.
->>>>>
->>>>> I'm guessing this could be solved in stv0299.c but I'm not much of 
->>>>> an expert. I took a look at the code but I'm not really sure what to 
->>>>> do.
->>>>>
->>>>> _______________________________________________
->>>>> linux-dvb mailing list
->>>>> linux-dvb@linuxtv.org
->>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>>   
->>>>>           
->>> I select them with Kaffeine. Hi/low and H/V doesn't matter. I tried 
->>> upgrading to Kaffeine 0.8.5 but that doesn't make a difference. The 
->>> "scan" application has the same issues.
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>       
->> Nobody any ideas? If not, does anybody have some idea what the 
->> difference between position 1+2, pos 3 and pos 4 could be? I was 
->> thinking 1 and 2 might be working because of toneburst, but I don't 
->> think Kaffeine uses such a signal and that doesn't explain why pos 3 
->> works if first tuning to 1 or 2 and 4 doesn't work at all.
->>
->>     
+> Im trying to get working on the same pc, mythtv over a HVR 4000 and a
+> usb webcam (gspca drivers) in a fresh Ubuntu 7.10. Before installing
+> the hvr 4000 driver the webcam works fine on /dev/video0, but when I
+> install hvr 4000 drivers the dev/video0 belongs now to the DVB-T
+> capturer and I cannot load or reinstall properly the webcam gspca
+> drivers.
+> I follow these steps in order to install hvr 4000 ->
+> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
 >
-> I've figured out a bit more. If I tune directly to postion 3, I get pos
-> 1. Whenever I tune to pos 4, I get pos 2.
->
-> I'll also ask people from Kaffeine as I'm not sure if the problem is in 
-> the application, driver or somewhere else.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Hi,
+> Can anyone give me some advice on how I can achive both devices working.
 
-Strange scenario. You're not saying anything about input types and the 
-switch type. Are you sure that are properly connected ? How the switch 
-inputs are marked and from where you got the input signals ? Please 
-elaborate, if you want a proper answer.
-I suggest to play with 'scandvb' from dvb-apps package instead of 
-Kaffeine. Look into scanning results if the scanned channels match with 
-what you wished to have on those positions.
+If you have 2 devices then the 1st one will take /dev/video0 and the next 
+will take /dev/video1 usually. BTW. the /dev/video is not the DVB-T device.. 
+its the Composite/Analog TV interface. What happens when you try and load 
+the webcam after then HVR4000?
+
+Thanks
 
 
 _______________________________________________
