@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JT6T0-0006LP-SZ
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 03:19:53 +0100
-Message-ID: <47C0D43F.3010800@shikadi.net>
-Date: Sun, 24 Feb 2008 12:19:43 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
+	(envelope-from <abraham.manu@gmail.com>) id 1JT2le-00042K-Aj
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 23:22:50 +0100
+Message-ID: <47C09CB5.8060804@gmail.com>
+Date: Sun, 24 Feb 2008 02:22:45 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Nico Sabbi <Nicola.Sabbi@poste.it>
-References: <47BFBA0D.2080607@shikadi.net>	<200802231039.33642.Nicola.Sabbi@poste.it>
-	<47C004A4.4020302@shikadi.net>
-In-Reply-To: <47C004A4.4020302@shikadi.net>
+To: Tim Hewett <tghewett1@onetel.com>
+References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
+In-Reply-To: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How do you stream the entire MPEG-TS with dvbstream?
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+ AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,37 +26,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> with the same drivers and a different version of dvbstream?
->> In any case you should always try a fresh cvs checkout of dvbstream.
->> A simple test you should run  is this:
->>
->>  dvbstream -f 226500 -gi 16 -bw 7 -o 8192 > dump.ts
->> and try to play the dump.ts from another terminal. If you see corruptions
->> then report back, please.
->> P.S. 1.7 and 3 MB/s are really low bandwidth usage that shouldn't cause any 
->> trouble
+Tim Hewett wrote:
+> Gernot,
+> 
+> I have now tried the mantis tree. It also needed 
+> the MANTIS_VP_1041_DVB_S2 #define to be changed to 0x0001 for this card, 
+> but after doing that it was recognised:
+> 
 
-Well I've upgraded to today's CVS, but the problem remains.  I've also
-tried the new version on my old server but it works there, so obviously
-there's some issue with my system configuration:
+Applied the ID's to the mantis tree alongwith some other 
+fixes/optimizations.
+Please do test the updated mantis tree.
 
-  Working server: Slackware 9.1, kernel 2.6.11.6 (2005-06-19)
-  Broken server: Gentoo 2007.0, kernel 2.6.24.2 (2008-02-23)
 
-Both servers have Realtek 8169 gigabit ethernet cards, using the r8169
-driver.  Both MTUs are 1500, both are connected via the same switch to
-my desktop PC.
-
-According to gkrellmd running on each server and on my desktop PC,
-broadcasting PID 8192 on the broken server only transmits/receives
-1.7MB/sec, whereas it transmits/receives 3MB/sec on the working server.
-
-Is there any local network config that needs to be set up before
-dvbstream will work?
-
-Thanks,
-Adam.
-
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
