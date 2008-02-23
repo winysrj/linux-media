@@ -1,18 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.188])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <shaun@saintsi.co.uk>) id 1JMTGv-0002hD-VK
-	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 20:15:57 +0100
-From: Shaun <shaun@saintsi.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Tue, 5 Feb 2008 19:15:26 +0000
-References: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
-In-Reply-To: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
+	(envelope-from <artem@moelleritberatung.de>) id 1JT1n7-0005lN-GP
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 22:20:21 +0100
+Date: Sat, 23 Feb 2008 22:20:14 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080223212013.GD30387@moelleritberatung.de>
+References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
+	<47C01325.10407@otenet.gr>
+	<20080223174406.GB30387@moelleritberatung.de>
+	<47C0803D.2020504@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802051915.26119.shaun@saintsi.co.uk>
-Subject: Re: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
-Reply-To: shaun@saintsi.co.uk
+In-Reply-To: <47C0803D.2020504@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,48 +26,42 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve,
+Hi,
 
-I found that the best method is to use mythtv  to tune, no special files 
-required. Just use mythtv-setup and it should work. Id did for me and I am in 
-Kent using a Nova 500 DVB-T.
+On Sun, Feb 24, 2008 at 12:21:17AM +0400, Manu Abraham wrote:
+> [...]
+> Can you guys please update from the multiproto tree and test again at
+> the earliest and give me your feedback ?
 
-Cheers
-Shaun
+No, still the same:
 
-On Tuesday 05 February 2008 10:36:17 steve.goodey@bt.com wrote:
-> Hello,
->
-> Apologies if this is the wrong list to ask.
->
-> Perhaps you could answer a few questions for me?
->
-> Sudbury, in England, is one of the sites with two DVB-T transmitters,
-> Sudbury and SudburyB, main transmitter Tacolneston. On my Mythtv box I
-> have found /usr/share/doc/dvb-utils/examples/scan/dvb-t/uk-SudburyB but
-> there is no file for Sudbury. Now according to the www.ukfree.tv site
-> Sudbury has six muxes, SudburyB has only one for ITV. I suspect I am
-> missing something here, why is there only one frequency file for Sudbury
-> and why is called SudburyB?
->
-> Should there be two files, as for Dover for example, uk-Sudbury with six
-> muxes and uk_SudburyB with one?
->
-> I assume MythTv does not use these files during tuning?
->
-> Regards,
->
-> Steve Goodey
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Try: 50
+Failes: 37
+Tunes: 13
 
+Maybe the problem is in the szap.c and not in the driver, as Reinhard
+Nissl had no problems while tuning channels with VDR?
 
+An other thing that I noticed is that only first tunes are successful.
+I continued the same tuning test to 100, but I got no more successfull locks.
+The last successfull lock was try 20:
+
+Try: 100
+Failes: 87
+Tunes: 13
+
+I am running a new test with a 15 seconds break after each tune now and
+will mail you the results when the test finises.
+
+Regards, Artem
+
+-- 
+Artem Makhutov
+Unterort Str. 36
+D-65760 Eschborn
 
 _______________________________________________
 linux-dvb mailing list
