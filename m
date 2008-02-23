@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
+Received: from mx4.orcon.net.nz ([219.88.242.54] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JUlHS-0002QF-Kx
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 17:06:46 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-Date: Thu, 28 Feb 2008 17:06:08 +0100
-References: <617be8890802270124q55872b13n5819914996312c53@mail.gmail.com>
-In-Reply-To: <617be8890802270124q55872b13n5819914996312c53@mail.gmail.com>
+	(envelope-from <lennon@orcon.net.nz>) id 1JSq1x-0001td-So
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 09:46:50 +0100
+Received: from Debian-exim by mx4.orcon.net.nz with local (Exim 4.68)
+	(envelope-from <lennon@orcon.net.nz>) id 1JSq1m-0006Uf-Er
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 21:46:38 +1300
+Message-ID: <BF191244F364492AA427C03CCC6D0DD9@CraigPC>
+From: "Craig Whitmore" <lennon@orcon.net.nz>
+To: "Igor" <goga777@bk.ru>,
+	"ga ver" <gavermer@gmail.com>
+References: <468e5d620802220813q4b39c4ecpb9297db74884547d@mail.gmail.com>
+	<E1JSpgF-0003HY-00.goga777-bk-ru@f124.mail.ru>
+In-Reply-To: <E1JSpgF-0003HY-00.goga777-bk-ru@f124.mail.ru>
+Date: Sat, 23 Feb 2008 21:46:35 +1300
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802281706.08815.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Any improvements on the Avermedia DVB-S Pro (A700)?
+Subject: Re: [linux-dvb] HVR 4000 firmware not loaded?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,38 +30,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mittwoch, 27. Februar 2008, Eduard Huguet wrote:
-> Hi, Matthias
-Hi Eduard!
 
->     I've seen that you have new patches for the card on the folder
-> referenced in the wiki. Unfortunately none of them seems to work with my
-> card. I'm startint to think that I'm doing something fundamentally wrong...
-> But anyway, neither Kaffeine nor dvbscan seems to be able to lock to the
-> satellite signal coming from the antennae (Windows can, though...).
 >
-For now I also dont get a lock :(
-Even if I use the unchanged code that did work some time ago.
-
-> So far I've tried all the available patches, both using use_frontend=0 and
-> use_frontend=1 options in saa7134-dvb module. In neither case the card
-> can't lock...
+> btw 20 February Darron Broad was updated the hvr4000 patches for current 
+> HG
 >
-Same for me for now.
 
-> Did you received my message posting the GPIO status and data from Windows
-> driver? Apparently is different from what you entered in the wiki, I don't
-> know why. Anyway, I tried to use my values saa7134 initialisation with no
-> difference...
+Yes I am using them at the moment. Works. Not much difference (as far as I 
+can tell) than the version before that except it patches cleanly on the 
+latest hg and it now says correctly:
 
-Yeah I got your mail, but can't interprete it. You need to tell what setting 
-was used while doing the register snapshots. Like selected input 
-(svideo/composite/dvb-s).
+DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
+DVB: registering adapter 0 frontend 1 (Conexant CX22702 DVB-T)...
 
-Matthias
+Thanks
+Craig
 
--- 
-Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
