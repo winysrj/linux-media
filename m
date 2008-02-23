@@ -1,16 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tkrantz@stahurabrenner.com>) id 1JM5l7-0002ca-NC
-	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 19:09:33 +0100
-From: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
-To: "'Chaogui Zhang'" <czhang1974@gmail.com>, <linux-dvb@linuxtv.org>
-References: <20080128172009.GA15773@gauss.marywood.edu>
-Date: Mon, 4 Feb 2008 13:07:54 -0500
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAGiow9eC/plOkJFZOiAHb4MBAAAAAA==@stahurabrenner.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1JT41d-00024P-Uy
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 00:43:25 +0100
+Message-ID: <47C0AF98.5000703@gmail.com>
+Date: Sun, 24 Feb 2008 03:43:20 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20080128172009.GA15773@gauss.marywood.edu>
-Subject: Re: [linux-dvb] [PATCH] XC5000 tuner improvement/clean up
+To: Tim Hewett <tghewett1@onetel.com>
+References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
+	<47C09CB5.8060804@gmail.com>
+	<FE251317-5C82-44A7-B2F3-7F0254A787E6@onetel.com>
+In-Reply-To: <FE251317-5C82-44A7-B2F3-7F0254A787E6@onetel.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+ AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,30 +25,22 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> On Jan 27, 2008 6:50 PM, Chaogui Zhang <czhang1974@gmail.com> wrote:
-> > 
-> > Download the newest v4l-dvb tree from http://linuxtv.org/hg/v4l-dvb 
-> > and apply the patch against it.
-> > 
+Tim Hewett wrote:
+> Manu,
 > 
-> I just noticed that the previous patch that fixed the kernel 
-> oops has been merged into the master tree, which conflicts 
-> with the patch for tuner performance improvement(which 
-> contains the oops fixes too). I regenerated the patch against 
-> the master tree and it is below. Please use this one instead.
+> I tried the changes, the card is now recognised at boot time without 
+> needing any manual changes to the code.
 > 
-> --
-> Chaogui Zhang
+> However it now no longer tunes:
 
+Sigh! missed out something while i carried forward something. I have
+applied the fix to the tree just now. Please try again.
 
-Any idea when this will me merged with the main tree?
-
-It is working great for me.
-
-Tim
+Regards,
+Manu
 
 
 
