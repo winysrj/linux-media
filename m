@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.231])
+Received: from edu.joroinen.fi ([194.89.68.130] ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stealth.banana@gmail.com>) id 1JRqOn-0006I1-14
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 15:58:17 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so2175379wxc.17
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 06:58:10 -0800 (PST)
-Message-ID: <344885a10802200658h331e69adj76f560645312546e@mail.gmail.com>
-Date: Wed, 20 Feb 2008 14:58:09 +0000
-From: "stealth banana" <stealth.banana@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <pasik@iki.fi>) id 1JSvse-0005uj-CC
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:01:36 +0100
+Date: Sat, 23 Feb 2008 17:01:26 +0200
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+To: Igor <goga777@bk.ru>
+Message-ID: <20080223150126.GH21162@edu.joroinen.fi>
+References: <2f8cbffc0802230359w2922f888s90ac43fcb68ad406@mail.gmail.com>
+	<E1JStMf-000HLd-00.goga777-bk-ru@f142.mail.ru>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] RTL2831U kernel driver success
+In-Reply-To: <E1JStMf-000HLd-00.goga777-bk-ru@f142.mail.ru>
+Cc: Ian Bonham <ian.bonham@gmail.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR4000 Update?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,30 +27,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Just to post that I have total success with the RTL2831U kernel
-drivers and watching with Kaffeine.
+On Sat, Feb 23, 2008 at 03:20:25PM +0300, Igor wrote:
+> you have only two possibilities now
+> 
+> the latest multiproto from Manu Abrahamlinux-dvb@linuxtv.org
+> http://jusst.de/hg/multiproto/
+> +
+> multiproto-hvr4k-2008-01-28.patch from  Holger Steinhaus
+> http://linuxtv.org/pipermail/vdr/2008-January/015348.html
+> 
+> Or you can use Hauppauge diffs for v4l-dvb hg repository
+> from http://dev.kewl.org/hauppauge/Hauppauge from Darron Broad
+> 
+> 
+> Igor
+> 
 
-I took the source from realtek, and added a makefile so it will
-compile as a standalone.  This needed a bit of dirtyness in the form
-of copying several files that the modules depend upon from the kernel
-source to the module directory.  It still throws up a few warnings
-when compiling, mostly to do with redefining things (to be expected
-really) and unsigned constants, so the realtek code needs some clean
-up.
+Hmm.. I haven't been following the multiproto discussion very closely, so
+could someone give an update on it.. 
 
-I am using Kubuntu Gutsy.  I have put a .txt file in the Doc directory
-showing what is needed so it can be easily changed for other kernels.
-The package is availble from here.
+- Why it is not (yet) merged with the default/kernel dvb drivers? 
+- What needs to be done to get it merged? Who's working on it?
+- What's preventing the merge? 
 
-http://coronach.adsl24.co.uk/code/rtl2831u_dvb-usb_v0.0.1.tar.bz2
+Thanks!
 
-Just unpack, make, sudo make install and it should work on Ubuntu
-Gutsy as is.  I have tested it on 2 Kubuntu i386 systems and it works.
+-- Pasi
 
-I know this is a nasty hack, but it works and the quality and
-responsiveness seems a lot better that it does in windows.
-
-I would be interested if anyone else gets this to work.
+> 
+> 
+> 
+> -----Original Message-----
+> From: "Ian Bonham" <ian.bonham@gmail.com>
+> To: linux-dvb@linuxtv.org
+> Date: Sat, 23 Feb 2008 12:59:09 +0100
+> Subject: [linux-dvb] HVR4000 Update?
+> 
+> > 
+> > Hey All,
+> > 
+> > Well it still seems to me that the Multi-Proto mess is still impacting real
+> > World use of cards such as the HVR4000. I'm currently using Ubuntu 7.10, and
+> > have still not managed much from my HVR4k apart from the main DVB-S channels
+> > on Astra 28.2e. I use Myth as my Media Server, and have no access to DVB-T
+> > or DVB-S2 channels. I read there are patches to make this poss, but there is
+> > such a muddle of info I am totally unsure what I should be doing to use the
+> > features of the card properly.
+> > 
+> > Can anyone please make a clear guide on what I should do to get my HVR4k
+> > going properly with Myth? If I can't get things going 'properly' just being
+> > able to help beta stuff would be good. What SVN do I need to check-out? What
+> > patches do I need to apply? What Myth do I need to check out? Then what
+> > patches does that need?
+> > 
+> > Please guys, give us some pointers here so we can help with testing and
+> > maybe help push this forwards. What distro is best for getting things
+> > working? I'm on Ubuntu 7.10, but would SuSE better serve a solution? Fedora?
+> > Which?!
+> > 
+> > Thanks,
+> > 
+> > Ian
+> > 
+> > 
 
 _______________________________________________
 linux-dvb mailing list
