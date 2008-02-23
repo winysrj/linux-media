@@ -1,23 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from psmtp04.wxs.nl ([195.121.247.13])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mx4.orcon.net.nz ([219.88.242.54] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jan-conceptronic@h-i-s.nl>) id 1JPjUM-0004ha-RN
-	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 20:11:18 +0100
-Received: from his01.frop.org (ip545779c6.direct-adsl.nl [84.87.121.198])
-	by psmtp04.wxs.nl
-	(iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
-	with ESMTP id <0JW8008Z4T57T3@psmtp04.wxs.nl> for linux-dvb@linuxtv.org;
-	Thu, 14 Feb 2008 20:07:55 +0100 (MET)
-Date: Thu, 14 Feb 2008 20:07:54 +0100
-From: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-In-reply-to: <13397504.34281203014478950.JavaMail.defaultUser@defaultHost>
-To: linux-dvb@linuxtv.org
-Message-id: <47B4918A.1000004@h-i-s.nl>
-MIME-version: 1.0
-References: <13397504.34281203014478950.JavaMail.defaultUser@defaultHost>
-Cc: Barnaby Shearer <Barnaby@echelonpublishing.co.uk>
-Subject: [linux-dvb] Update on sticks using RealTek RTL2831U: Freecom rev 4
- 14aa:0160, Conceptronic DVB-T 14aa:0160 and RealTek 0bda:2831
+	(envelope-from <lennon@orcon.net.nz>) id 1JSzKF-0001Xl-42
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 19:42:19 +0100
+Received: from Debian-exim by mx4.orcon.net.nz with local (Exim 4.68)
+	(envelope-from <lennon@orcon.net.nz>) id 1JSzK4-0001cE-0q
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 07:42:08 +1300
+Message-ID: <747784AF573B4316BB5944669524B302@CraigPC>
+From: "Craig Whitmore" <lennon@orcon.net.nz>
+To: "Ian Bonham" <ian.bonham@gmail.com>,
+	<linux-dvb@linuxtv.org>
+References: <2f8cbffc0802230359w2922f888s90ac43fcb68ad406@mail.gmail.com>
+In-Reply-To: <2f8cbffc0802230359w2922f888s90ac43fcb68ad406@mail.gmail.com>
+Date: Sun, 24 Feb 2008 07:42:02 +1300
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] HVR4000 Update?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +25,25 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-A group of people is putting effort into getting DVB-T USB sticks based 
-on the rtl2831u chips working under Linux.
-The group now consists of about 10 people working via this mailing list.
+> Can anyone please make a clear guide on what I should do to get my HVR4k 
+> going properly with Myth? If I can't get things going 'properly' just 
+> being able
+ > to help beta stuff would be good. What SVN do I need to check-out? What 
+patches do I need to apply? What Myth do I need to check out? Then what
+> patches does that need?
 
-The current driver successfully compiles and loads on a modern Linux 
-kernel, however it fails to communicate with the associated tuner chip.
+If you check http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 
+there are links how to get:
 
-We have just contacted RealTek for further help.
-As soon as we know more, we'll let you know.
-At that moment, we'll also send out more specific E-mails to those that 
-own a similar stick and that have contacted either Barnaby or me.
-
-I hope this E-mail with a status update is of help to you the readers of 
-this list.
+- Single Frontend (Either DVB-S or DVB-T)
+- Multi Frontend Going (DVB-S and DVB-T)
+- Multi Proto Going (DVB-S/S2 or DVB-T)
+- Multi Proto with Multi Frontends (DVB-S/S2 and DVB-T)
+..
+Thanks
 
 
 _______________________________________________
