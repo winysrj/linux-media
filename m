@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from averel.grnet-hq.admin.grnet.gr ([195.251.29.3])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zmousm@admin.grnet.gr>) id 1JRRZ1-0001pD-Gd
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 13:27:11 +0100
-Message-Id: <8EDD5E70-F34A-4B5E-8A31-64FC3BCE1672@admin.grnet.gr>
-From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
-To: Igor <goga777@bk.ru>
-In-Reply-To: <E1JQgKM-000I6q-00.goga777-bk-ru@f148.mail.ru>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Tue, 19 Feb 2008 14:25:30 +0200
-References: <B9DD88E0-E3EA-4E57-BABE-5FD4E520D6F4@admin.grnet.gr>
-	<E1JQgKM-000I6q-00.goga777-bk-ru@f148.mail.ru>
+	(envelope-from <artem@moelleritberatung.de>) id 1JT1zR-00078g-SE
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 22:33:01 +0100
+Date: Sat, 23 Feb 2008 22:32:58 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080223213258.GE30387@moelleritberatung.de>
+References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>
+	<47C01325.10407@otenet.gr>
+	<20080223174406.GB30387@moelleritberatung.de>
+	<47C0803D.2020504@gmail.com>
+	<20080223212013.GD30387@moelleritberatung.de>
+	<47C0903B.70606@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <47C0903B.70606@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-HVR4000 and DVB-S2...
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,66 +25,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgpPbiAxNyDW5eIgMjAwOCwgYXQgMTI6MDAgzMwsIElnb3Igd3JvdGU6Cgo+PiBNeSBnb2Fs
-IGlzIHRvIGdldCB0aGlzIGNhcmQgdG8gdHVuZSB0byBhIERWQi1TMiB0cmFuc3BvbmRlciwgbW9y
-ZQo+PiBzcGVjaWZpY2FsbHkgdGhpcyBvbmU6Cj4+IGh0dHA6Ly9lbi5raW5nb2ZzYXQubmV0L3Rw
-LnBocD90cD0yNjU2Cj4+IEkgaGF2ZSBhIGRpc2ggd2l0aCA0IExOQnMgY29ubmVjdGVkIHRvIHRo
-ZSBIVlI0MDAwIHRocm91Z2ggYSBEaVNFcUMKPj4gMS4wIDR4MSBzd2l0Y2guCj4+IFRoZSA0dGgg
-TE5CIGlzIHBvaW50ZWQgdG8gdGhpcyBzYXRlbGxpdGUgYW5kIEkgY2FuIHR1bmUgdG8gRFZCLVMK
-Pj4gdHJhbnNwb25kZXJzIHRoZXJlIGp1c3QgZmluZSB3aXRoIGFub3RoZXIgY2FyZCBhcyB3ZWxs
-IGFzIHRoaXMgb25lCj4+IChtb3JlIG9uIHRoYXQgbGF0ZXIpLgo+Pgo+PiBJIGFzc3VtZSBtdWx0
-aXByb3RvIGlzIG5lY2Vzc2FyeSBmb3IgRFZCLVMyIHR1bmluZyB0byBhY3R1YWxseSB3b3JrLgo+
-PiBSaWdodD8KPgo+IHllcywgcmlnaHQuIExhdGVzdCB2ZXJzaW9uIG9mIG11bHRpcHJvdG8gd2ls
-bCBoZWxwIHlvdS4KClRoYW5rcy4gU2luY2UgSSBhc2tlZCB0aGlzIGluIHRoZSBmaXJzdCBwbGFj
-ZSwgbGV0IG1lIHB1dCBpdCBhbm90aGVyICAKd2F5OgpDdXJyZW50bHkgdGhlcmUgaXMgbm8gb3Ro
-ZXIgd2F5IHRvIGdldCBEVkItUzIgdHVuaW5nLCBvdGhlciB0aGFuIGdvaW5nICAKd2l0aCB0aGUg
-bXVsdGlwcm90byB0cmVlLCBzdWNoIGFzIGEgcGF0Y2gtc2V0IGZvciB0aGUgbWFpbiBoZyB0cmVl
-PwoKSXMgdGhpcyBhc3N1bXB0aW9uIChhbHNvKSByaWdodD8KCj4KPgo+Cj4+IEkgYW0gd29ya2lu
-ZyBvbiBhIERlYmlhbiB0ZXN0aW5nL2xlbm55IHN5c3RlbS4gSSBoYXZlIHRyaWVkIHRoZSBhYm92
-ZQo+PiB3aXRoIGtlcm5lbHMgMi42LjIyIGFuZCAyLjYuMjQuIFRoZSBzYW1wbGUga2VybmVsIG91
-dHB1dCBvbiB0aGUgd2lraQo+PiBzYXlzIDIuNi4yNi4xLiBXaGF0IGlzIHRoZSBtaW5pbXVtIGtl
-cm5lbCB2ZXJzaW9uIHRoYXQgbXVzdCBiZSB1c2VkCj4+IHdpdGggbXVsdGlwcm90byBpbiBvcmRl
-ciBmb3IgRFZCLVMyIHRvIHdvcms/Cj4KPiBJIGhhdmUgMi42LjIyIGtlcm5lbCBhbmQgb24gbXkg
-Y29tcHV0ZXIgaHZyNDAwMCB3aXRoIG11bHRpW3JvdG8gKyAgCj4gaHZyNDAwLXBhdGNoIHdvcmtz
-IHdlbGwKClRoYW5rcyBhZ2Fpbi4gSSB0cmllZCBhZ2FpbiB3aXRoIDIuNi4yMittdWx0aXByb3Rv
-K3N6YXAyIGFuZCBJIGdvdCBpdCAgCnRvIHdvcmsuCgo+Cj4KPj4gQ291bGQgc29tZW9uZSBwbGVh
-c2UgaGVscD8KPgo+IG5leHQgeW91ciBzdGVwIC0gdG8gdXNlIHRoZSBwYXRjaGVkIHN6YXAyLgoK
-RGl0dG8uCgo+Cj4KPj4gT25lIG1vcmUgdGhpbmc6IEkndmUgcmVhZCBhYm91dCBzemFwMiBhbmQg
-cGVyaGFwcyBvdGhlciBkdmItYXBwcyAgCj4+IHdoaWNoCj4+IGhhdmUgYmVlbiBzcGVjaWZpY2Fs
-bHkgbWFkZSBjb21wYXRpYmxlIHdpdGggbXVsdGlwcm90by4gSSd2ZSBub3RpY2VkCj4+IHRoZXNl
-IGJlaW5nIGNhc3VhbGx5IG1lbnRpb25lZCBpbiB2YXJpb3VzIGxpc3QgcG9zdHMuIEhvd2V2ZXIs
-IEkgaGF2ZQo+PiBvbmx5IGJlZW4gYWJsZSB0byBmaW5kIGEgZmV3IHNvbWV3aGF0IG9sZCAidHJh
-Y2VzIiBvZiBzemFwMiwgYW5kIG5vdCwKPj4gc2F5LCBhIGZ1bGwgcGF0Y2ggYWdhaW5zdCBkdmIt
-YXBwcy4gSXMgdGhlcmUgYSBkaXN0cmlidXRpb24/IFdoZXJlICAKPj4gYXQ/Cj4KPiBwbGVhc2Us
-IGNvbXBsaWxlIHRoZSBzemFwMiBhbmQgdHJ5IGl0Cj4KPiBoZXJlJ3MgeW91IGNhbiBmaW5kIHRo
-ZSBsaW5rcyBmb3IgZG93bmxvYWQgb2Ygc3phcDIKPiBodHRwOi8vYWxscnVzc2lhbi5pbmZvL3Ro
-cmVhZC5waHA/cG9zdGlkPTE4NzQwOCNwb3N0MTg3NDA4CgpJIGdvdCBodHRwOi8vd3d3LmZyZWUt
-eC5kZS92ZHIvcGF0Y2hlcy9oZHR2L3N6YXAyLnRneiBhbmQgaXQgc2VlbXMgdG8gIAp3b3JrIGZp
-bmUuCgpJIGFsc28gdHJpZWQgaHR0cDovL2p1c3N0LmRlL21hbnUvc2Nhbi50YXIuYnoyIGJ1dCBj
-b3VsZCBub3QgZ2V0IGl0IHRvICAKd29yay4gSSBoYXZlIHByb2JsZW1zIGNvbXBpbGluZyB0aGUg
-Y3VycmVudCBkdmItYXBwcyB0aXAgYnV0IHRoYXQncyAgCmFub3RoZXIgc3RvcnkuIFRoZXJlIHdh
-cyBhIGJpbmFyeSBpbiB0aGUgcGFja2FnZSBidXQgaXQgZGlkbid0IHdvcmsgIAooc2Nhbm5pbmcg
-ZmFpbGVkKS4KClNvLCB0byBjb25jbHVkZSwgYXMgSG9sZ2VyIFN0ZWluaGF1cyBub3RlZDoKClRo
-ZSAyIHRoaW5ncyB0aGF0IGNhbiAic3BlYWsiIHRvIHRoZSBtdWx0aXByb3RvIGRyaXZlcnMgYSBj
-b21wYXRpYmxlICAKdmVyc2lvbiBvZiB0aGUgRFZCIEFQSSAibGFuZ3VhZ2UiIGFyZQotIHN6YXAy
-IGFuZAotIHZkci0xLjUuMTQgKyBoMjY0IHBhdGNoID8KCkFyZSB0aGVyZSBhbnkgb3RoZXJzPwoK
-SWYgSSB1c2Ugc3phcDIgZmlyc3QsIHRoZW4gSSBjYW4gYWxzbyB1c2UgZHZic3RyZWFtIG9yIGR2
-YnNub29wIGFzICAKd2VsbC4gSSBoYXZlIHRvIGtlZXAgc3phcDIgcnVubmluZyB0aG91Z2gsIGJl
-Y2F1c2UgdGhlIGZyb250ZW5kIHNodXRzICAKZG93biBhZnRlciBzb21lIHRpbWUsIGRlc3BpdGUg
-dGhlIGR2Yi1jb3JlIG1vZHVsZSBvcHRpb24gIApkdmJfc2h1dGRvd25fdGltZW91dD0wIChJIHRo
-aW5rIEkgaGF2ZSBzZWVuIHRoaXMgcHJldmlvdXNseSByZXBvcnRlZCkuCgpPbmUgbGFzdCBxdWVz
-dGlvbjoKSXMgdGhlcmUgYW55IGRvY3VtZW50YXRpb24gKHN1Y2ggYXMgd2lraSBwYWdlcykgYW55
-d2hlcmUgZm9yICAKbXVsdGlwcm90by1zcGVjaWZpYyBmZWF0dXJlcz8gRm9yIGV4YW1wbGUsIEkg
-cmVhZCBhYm91dCB0aGUgbGVnYWN5PSgwfCAKMSkgb3B0aW9uIGZvciB0aGUgY3gyNDExNiBmcm9u
-dGVuZCBpbiB0aGUgbGlzdCBhcmNoaXZlcyBhbmQgaW4gIApjeDI0MTE2LmMgY29tbWVudHMsIGJ1
-dCBJIHdhcyB3b25kZXJpbmcgaWYgc3VjaCBpbmZvcm1hdGlvbiBpcyBrZXB0ICAKYW55d2hlcmUg
-ZWxzZT8KClRoYW5rcyBhZ2FpbiwgSWdvciwgSG9sZ2VyLCBhbGwsIGZvciB5b3VyIGhlbHAuCgpC
-ZXN0IHJlZ2FyZHMsClouCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
-cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi,
+
+On Sun, Feb 24, 2008 at 01:29:31AM +0400, Manu Abraham wrote:
+> Artem Makhutov wrote:
+> >Hi,
+> >
+> >On Sun, Feb 24, 2008 at 12:21:17AM +0400, Manu Abraham wrote:
+> >>[...]
+> >>Can you guys please update from the multiproto tree and test again at
+> >>the earliest and give me your feedback ?
+> >
+> >No, still the same:
+> >
+> >Try: 50
+> >Failes: 37
+> >Tunes: 13
+> >
+> >Maybe the problem is in the szap.c and not in the driver, as Reinhard
+> >Nissl had no problems while tuning channels with VDR?
+> >
+> >An other thing that I noticed is that only first tunes are successful.
+> >I continued the same tuning test to 100, but I got no more successfull 
+> >locks.
+> >The last successfull lock was try 20:
+> >
+> >Try: 100
+> >Failes: 87
+> >Tunes: 13
+> >
+> >I am running a new test with a 15 seconds break after each tune now and
+> >will mail you the results when the test finises.
+> 
+> Are you sure that you got the top level 2 changes changeset 7204 and 7203
+> respectively ?
+
+Oh, I only got 7203. Will try with 7204 in a few minutes.
+
+Regards, Artem
+
+-- 
+Artem Makhutov
+Unterort Str. 36
+D-65760 Eschborn
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
