@@ -1,20 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.187])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from relay-pt2.poste.it ([62.241.5.253])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <shaun@saintsi.co.uk>) id 1JM6wJ-0003XA-Va
-	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 20:25:11 +0100
-From: Shaun <shaun@saintsi.co.uk>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JSqwg-0005h9-LW
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 10:45:26 +0100
+Received: from xp.homenet.telecomitalia.it (87.10.62.240) by
+	relay-pt2.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
+	id 47BF6249000033A0 for linux-dvb@linuxtv.org;
+	Sat, 23 Feb 2008 10:45:22 +0100
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-Date: Mon, 4 Feb 2008 19:24:36 +0000
-References: <BC723861-F3E2-4B1C-BA54-D74B8960579A@firshman.co.uk>
-	<200802031137.32087.shaun@saintsi.co.uk>
-	<1202074735.16574.19.camel@youkaida>
-In-Reply-To: <1202074735.16574.19.camel@youkaida>
+Date: Sat, 23 Feb 2008 10:39:33 +0100
+References: <47BFBA0D.2080607@shikadi.net>
+In-Reply-To: <47BFBA0D.2080607@shikadi.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802041924.36042.shaun@saintsi.co.uk>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
-Reply-To: shaun@saintsi.co.uk
+Message-Id: <200802231039.33642.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] How do you stream the entire MPEG-TS with dvbstream?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,57 +26,49 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Il Saturday 23 February 2008 07:15:41 Adam Nielsen ha scritto:
+> Hi everyone,
+> 
+> I've just installed a new DViCO FusionHDTV dual digital 4 (which appears
+> to the PC as two USB "Zarlink ZL10353 DVB-T" devices.)
+> 
+> I'm trying to set up dvbstream to send the whole transport stream across
+> the network to another PC, but I can't get this to work.  If I do
+> something like this:
+> 
+>   dvbstream -f 226500 -gi 16 -bw 7 512 650
+> 
+> Then it works fine, I get video and audio on the other PC and about
+> 500kB/sec network use, but if I do this:
+> 
+>   dvbstream -f 226500 -gi 16 -bw 7 8192
+> 
+> Then the network use goes up to 1.7MB/sec but the picture and sound
+> arrive corrupted, as if I have extremely bad reception.
+> 
+> Using an old version of dvbstream with a Hauppauge Nova-T this works
+> fine, except in that case I have 3MB/sec of network traffic with the
+> same channel.  It's almost as if the latest version of dvbstream doesn't
+> correctly capture the whole MPEG-TS stream from the card.
+> 
+> Has anyone else gotten this to work?
+> 
+> Thanks,
+> Adam.
 
-> > I have included a line in
-> > linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> > that eats the unknown controller key and prevents the message
-> > repeating, as
-> > was suggested by Jonas.
 
+with the same drivers and a different version of dvbstream?
+In any case you should always try a fresh cvs checkout of dvbstream.
+A simple test you should run  is this:
 
-Yes, the change I was writing about is on the wiki. 
-
-Shaun
-
-
-On Sunday 03 February 2008 21:38:55 Nicolas Will wrote:
-> On Sun, 2008-02-03 at 11:37 +0000, Shaun wrote:
-> > Hi  People,
-> >
-> > Jonas I like your never give up attitude.
-> >
-> > I am running on a 3Ghz P4. At the moment I am running with a very
-> > slightly
-> > modified driver. I have my remote plugged in and I sometimes get
-> > hundreds of
-> > messages like the one below:
-> >
-> > Jan 23 22:01:00 media-desktop kernel: [ 1062.522880] dib0700: Unknown
-> > remote
-> > controller key :  0 20
-> >
-> > I have included a line in
-> > linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> > that eats the unknown controller key and prevents the message
-> > repeating, as
-> > was suggested by Jonas.
->
-> There is a patch on the wiki for this, and I'm using it.
->
-> Related?
->
-> Nico
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+ dvbstream -f 226500 -gi 16 -bw 7 -o 8192 > dump.ts
+and try to play the dump.ts from another terminal. If you see corruptions
+then report back, please.
+P.S. 1.7 and 3 MB/s are really low bandwidth usage that shouldn't cause any 
+trouble
 
 
 _______________________________________________
