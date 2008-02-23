@@ -1,29 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ombos.raceme.org ([212.85.152.43])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tof+linux-dvb@raceme.org>) id 1JTlaY-0002IH-B2
-	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 23:14:22 +0100
-Received: from localhost (mail.raceme.org [192.168.1.17])
-	by ombos.raceme.org (Postfix) with ESMTP id AD5DF1442C0
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 23:14:18 +0100 (CET)
-Received: from ombos.raceme.org ([192.168.1.17])
-	by localhost (ombos.raceme.org [192.168.1.17]) (amavisd-new, port 10024)
-	with ESMTP id PXsuQ-yeGQDa for <linux-dvb@linuxtv.org>;
-	Mon, 25 Feb 2008 23:14:12 +0100 (CET)
-Received: from [192.168.1.4] (abidos.raceme.org [81.57.143.226])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ombos.raceme.org (Postfix) with ESMTP id B0D1F144231
-	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 23:14:12 +0100 (CET)
-Message-ID: <47C33DB4.7010408@raceme.org>
-Date: Mon, 25 Feb 2008 23:14:12 +0100
-From: Christophe Boyanique <tof+linux-dvb@raceme.org>
+	(envelope-from <artem@moelleritberatung.de>) id 1JSzxs-00055x-U9
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 20:23:16 +0100
+Date: Sat, 23 Feb 2008 20:23:13 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Igor <goga777@bk.ru>
+Message-ID: <20080223192313.GC30387@moelleritberatung.de>
+References: <20080223174406.GB30387@moelleritberatung.de>
+	<E1JSz9J-0003qS-00.goga777-bk-ru@f182.mail.ru>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47A98F3D.9070306@raceme.org> <47C3161F.4020802@raceme.org>
-	<2A6A7C5A-0D64-4E79-9CAF-4CA5FD8412C4@firshman.co.uk>
-In-Reply-To: <2A6A7C5A-0D64-4E79-9CAF-4CA5FD8412C4@firshman.co.uk>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Content-Disposition: inline
+In-Reply-To: <E1JSz9J-0003qS-00.goga777-bk-ru@f182.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,16 +27,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Ben Firshman you wrote :
-> Which one disables the remote? I don't use the remote, so I could try  
-> disabling it and see if I get any problems.
->   
-This one disables the remote:
+Hi,
 
-options dvb_usb disable_rc_polling=1
+On Sat, Feb 23, 2008 at 09:31:01PM +0300, Igor wrote:
+> > > > - When I zap (with szap2) to a station more than once, sometimes I get a lock, sometimes I get no lock.
+> > 
+> > I have the same problem. I was trying to tune to ProSieben 100 times today. And I got only 11 successful locks.
+> > The signal strengt should be ok, as I have no problems to tune this
+> > channel with other DVB-S cards...
+> 
+> no anymore Prosiben (hd version) since last week :(
+> http://www.lyngsat.com/hd/astra19.html
 
-Christophe.
+Yes, I know ... till 2010 ... :(
 
+Now there is only one free DVB-S2 channel (Anixe HD)
+on Astra 19.2 left :(
+
+I was tuning the usual ProSieben.
+
+Regards, Artem
+
+-- 
+Artem Makhutov
+Unterort Str. 36
+D-65760 Eschborn
 
 _______________________________________________
 linux-dvb mailing list
