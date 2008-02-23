@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.183])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <geir.inge@gmail.com>) id 1JTGoc-000148-TW
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 14:22:51 +0100
-Received: by el-out-1112.google.com with SMTP id s27so840371ele.13
-	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 05:22:46 -0800 (PST)
-Message-ID: <ab58b93b0802240522g538ef9bdwf802368defdfa3f7@mail.gmail.com>
-Date: Sun, 24 Feb 2008 14:22:45 +0100
-From: "Geir Inge" <geir.inge@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <abraham.manu@gmail.com>) id 1JSoW3-00044E-F4
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 08:09:47 +0100
+Message-ID: <47BFC6B4.5080002@gmail.com>
+Date: Sat, 23 Feb 2008 11:09:40 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Any work being done on the Nova-T 500HD card ?
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>	
+	<47BDB0FA.7080500@rogers.com>	
+	<18b102300802211051m3823e365v1fa025ac46edca0b@mail.gmail.com>	
+	<47BF15FB.4090105@rogers.com> <47BF3126.2020707@gmail.com>	
+	<47BF4F18.6040801@rogers.com> <47BF5C5D.3090500@gmail.com>
+	<1203732275.3246.14.camel@pc08.localdom.local>
+In-Reply-To: <1203732275.3246.14.camel@pc08.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HD capture
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,15 +30,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi.
+hermann pitton wrote:
+> Hi.
+> If it stays like that, this will likely have some new owners soon,
+> but teach me better.
+>
 
-I have searched the net, but found little information about linux
-support for the Nova-T 500HD card (similar to Nova-T 500, but
-supporting h.264 decoding ++)
+Unfortunately, i updated my mail filters which had tagged all your mails as
+junk, to spam status.
 
-Is this card supported/worked on by linuxtv ?
+Regards,
+Manu
 
-GIH
 
 _______________________________________________
 linux-dvb mailing list
