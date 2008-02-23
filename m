@@ -1,22 +1,22 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.177])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JOEKm-0000GN-PF
-	for linux-dvb@linuxtv.org; Sun, 10 Feb 2008 16:43:12 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so1512051wag.13
-	for <linux-dvb@linuxtv.org>; Sun, 10 Feb 2008 07:43:07 -0800 (PST)
-Message-ID: <8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-Date: Sun, 10 Feb 2008 16:43:06 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JSqyP-0006Ds-2U
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 10:47:13 +0100
+Received: from xp.homenet.telecomitalia.it (87.10.62.240) by
+	relay-pt1.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
+	id 47BF705F000031F1 for linux-dvb@linuxtv.org;
+	Sat, 23 Feb 2008 10:47:09 +0100
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
+To: linux-dvb@linuxtv.org
+Date: Sat, 23 Feb 2008 10:41:21 +0100
+References: <47BFD5F4.3030805@shikadi.net>
+In-Reply-To: <47BFD5F4.3030805@shikadi.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47A98F3D.9070306@raceme.org> <1202326173.20362.23.camel@youkaida>
-	<1202327817.20362.28.camel@youkaida>
-	<1202330097.4825.3.camel@anden.nu> <47AB1FC0.8000707@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Message-Id: <200802231041.21591.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] Is there a daemon style program for scheduled DVB
+	recording?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,39 +24,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Just wanted to say that I=B4m experiencing the same.
-Using latest rev (the one with patches merged) + unknown remote key patch.
-Ubuntu 7.10
+Il Saturday 23 February 2008 09:14:44 Adam Nielsen ha scritto:
+> Hi everyone,
+> 
+> I'm currently setting up a new server that will (among other things)
+> record TV shows for me.  In the past I've used cron to schedule
+> recording jobs, and I've used dvbrecord to do the actual recording.
+> 
+> This set up has served me well for many years, but unfortunately
+> dvbrecord doesn't seem to exist any more, and it never supported
+> programs with AC3 audio anyway (which is pretty much all the HDTV
+> channels here in Australia.)
+> 
+> If you were setting up a headless machine to record TV shows, what
+> programs would you use to do this?  Ideally I'd like the shows dumped
+> into a local directory, so that I can watch them over NFS with mplayer,
+> but I'm open to alternatives.
+> 
+> I really want to avoid running a whole "media centre" program like
+> MythTV, VDR, etc. as I'd like this to be lean and clean and I don't mind
+> using the command line for playback.
+> 
+> Any suggestions?  I'd be happy to document the final system,
+> installation, configuration, etc. on the LinuxTV wiki, as I couldn't
+> find any info about this sort of thing on there at the moment.
+> 
+> Many thanks,
+> Adam.
+> 
 
-Also having a lot of "prebuffer timeout 10 times" i the middle of shows.
-
-
-On Feb 7, 2008 5:51 PM, Jonas Anden <jonas@anden.nu> wrote:
-> > Do you have a way to automate this ? Ie to detect that a tuner is gone ?
->
-> No, I have yet to find any log message that says things aren't OK.
->
-> Mythbackend seems to just fail its recordings and not create the
-> recording file, which is kind of annoying. In my point of view, it would
-> be better if mythbackend would *crash*, since this would make the other
-> backend (which uses analog tuners) take over the recording. It wouldn't
-> be the same quality, but at least the show would be recorded...
->
->   // J
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+there used to be dvbd somewhere sometimes, although I can't say how
+it works because I never used it
 
 _______________________________________________
 linux-dvb mailing list
