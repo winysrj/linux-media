@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smeagol.cambrium.nl ([217.19.16.145] ident=qmailr)
+Received: from smtp1.betherenow.co.uk ([87.194.0.68])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1JUrXO-0004GH-LU
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 23:47:38 +0100
-Message-ID: <47C73A05.2050007@powercraft.nl>
-Date: Thu, 28 Feb 2008 23:47:33 +0100
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-References: <47C7329F.7030705@powercraft.nl>	
-	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>	
-	<47C73457.1030901@powercraft.nl>	
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>	
-	<47C7360E.9030908@powercraft.nl>
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-In-Reply-To: <d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Going though hell here,
- please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+	(envelope-from <tghewett2@onetel.com>) id 1JT3wD-0000sG-Ma
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 00:37:49 +0100
+Message-Id: <23DD62DE-F5C7-4D4F-A837-9430974AD525@onetel.com>
+From: Tim Hewett <tghewett2@onetel.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <47C09CB5.8060804@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sat, 23 Feb 2008 23:37:05 +0000
+References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
+	<47C09CB5.8060804@gmail.com>
+Cc: Tim Hewett <tghewett2@onetel.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+	AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,128 +27,139 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->> Markus Rechberger wrote:
->>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->>>> Markus Rechberger wrote:
->>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->>>>>> This message contains the following attachment(s):
->>>>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
->>>>>>
->>>>>> Spent my hole day trying to get a dvd-t device up and running, this is
->>>>>> device number two I tried.
->>>>>>
->>>>>> Can somebody please tell me how to get this device working on:
->>>>>>
->>>>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
->>>>>>
->>>>>> I have to get some sleep now, because this is getting on my health and
->>>>>> that does not happen often....
->>>>>>
->>>>> Jelle, it's really easy to install it actually.
->>>>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
->>>>>
->>>>> this is the correct "howto" for it.
->>>>>
->>>>> You need the linux kernel sources for your kernel, if you experience
->>>>> any problems just post them to the em28xx ML.
->>>>>
->>>>> Markus
->>>> Hi Markus,
->>>>
->>>> I tried that two times,
->>>>
->>>> The seconds build blows up in my face, I need specified dependecies to
->>>> be able to compile the seconds driver...
->>>>
->>> there are not so many dependencies, just submit the errors you get.
->>>
->>> Markus
->> Here you go, lets see I will try it for 40 more minutes with your help
->>
-> 
-> jelle@xubutu-en12000e:~$ hg clone http://mcentral.de/hg/~mrec/em28xx-userspace2
->  destination directory: em28xx-userspace2
->  requesting all changes
->  adding changesets
->  adding manifests
->  adding file changes
->  added 21 changesets with 65 changes to 20 files
->  18 files updated, 0 files merged, 0 files removed, 0 files unresolved
->  jelle@xubutu-en12000e:~$ cd em28xx-userspace2
->  jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
->  if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
->         grep v4l_dvb_stub_attach
-> ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
->         fi
->  make -C /lib/modules/2.6.22-14-generic/build
-> SUBDIRS=/home/jelle/em28xx-userspace2 modules
->  make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
->   CC [M]  /home/jelle/em28xx-userspace2/em2880-dvb.o
->  In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
->  /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
-> such file or directory
->  /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
-> such file or directory
->  /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
-> such file or directory
->  /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
-> No such file or directory
-> 
-> there we go, the linux kernel sources aren't installed for your system.
-> 
-> apt-get install linux-source linux-headers-`uname -r`
-> 
-> I'm not sure if the kernel sources are decompressed in /usr/src you
-> might have a look at it.
-> 
-> /lib/modules/`uname -r`/build should be a symlink to the root of the
-> extracted kernelsources.
-> 
-> the root of your kernelsources should also contain a .config file.
-> 
-> You can find the config file for your current kernel in /boot
-> 
-> /boot/config-`uname -r`
-> 
-> copy this file to the kernelroot and rename it to ".config"
-> 
-> Markus
+Manu,
 
-sudo apt-get install linux-source linux-headers-`uname -r`
-Reading package lists... Done
-Building dependency tree
-Reading state information... Done
-linux-source is already the newest version.
-linux-headers-2.6.22-14-generic is already the newest version.
-0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-jelle@xubutu-en12000e:~/em28xx-userspace2$ ls -hal /lib/modules/`uname 
--r`/build
-lrwxrwxrwx 1 root root 40 2007-10-21 18:19 
-/lib/modules/2.6.22-14-generic/build -> 
-/usr/src/linux-headers-2.6.22-14-generic
-jelle@xubutu-en12000e:~/em28xx-userspace2$ /boot/config-`uname -r`
-bash: /boot/config-2.6.22-14-generic: Permission denied
-jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo /boot/config-`uname -r`
-sudo: /boot/config-2.6.22-14-generic: command not found
-jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ls  /boot/config-`uname -r`
-/boot/config-2.6.22-14-generic
-jelle@xubutu-en12000e:~/em28xx-userspace2$
+I tried the changes, the card is now recognised at boot time without  
+needing any manual changes to the code.
 
-sudo cp --verbose /boot/config-2.6.22-14-generic /usr/src/linux/.config
-`/boot/config-2.6.22-14-generic' -> `/usr/src/linux/.config'
+However it now no longer tunes:
 
 
-still all the same problems !
+root@kubuntu7:~/linuxtv-dvb-apps-1.1.1/util/szap# ./szap -r -p -l  
+UNIVERSAL -t 0 -a 4 BBCNews24
+reading channels from file '/root/.szap/channels.conf'
+zapping to 6 'BBCNEWS24':
+sat 1, frequency = 10773 MHz H, symbolrate 22000000, vpid = 0x0917,  
+apid = 0x0919 sid = 0x0002
+Querying info .. Delivery system=DVB-S
+using '/dev/dvb/adapter4/frontend0' and '/dev/dvb/adapter4/demux0'
+----------------------------------> Using 'STB0899 DVB-S' DVB-S
+do_tune: API version=3, delivery system = 0
+do_tune: Frequency = 1023000, Srate = 22000000
+do_tune: Frequency = 1023000, Srate = 22000000
 
-I also want to now how to build it myself, because i have a few other 
-systems that dont use ubuntu. (ubuntu is test system if everything else 
-fails)
 
-Kind regards,
 
-Jelle
+root@kubuntu7:~/linuxtv-dvb-apps-1.1.1/util/szap#
+
+
+Many logs appear in dmesg:
+
+[  252.991931] mantis_ack_wait (0): Slave RACK Fail !
+[  252.993633] dvb_frontend_ioctl: DVBFE_GET_INFO
+[  252.993637] stb0899_get_info: Querying DVB-S2 info
+[  253.096348] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+[  253.094642] stb0899_search: set DVB-S2 params
+[  253.097053] mantis start feed & dma
+[  256.103782] mantis_ack_wait (0): Slave RACK Fail !
+[  256.103965] stb6100_set_bandwidth: Bandwidth=39700000
+[  259.105856] mantis_ack_wait (0): Slave RACK Fail !
+[  259.106039] stb6100_get_bandwidth: Bandwidth=-1
+[  262.117917] mantis_ack_wait (0): Slave RACK Fail !
+[  262.118100] stb6100_set_frequency: Frequency=1068000
+[  262.841409] mantis stop feed and dma
+[  265.119990] mantis_ack_wait (0): Slave RACK Fail !
+[  265.120173] stb6100_get_frequency: Frequency=493128704
+[  265.614395] dvb_frontend_ioctl: DVBFE_GET_INFO
+[  265.614400] stb0899_get_info: Querying DVB-S info
+[  265.715893] newfec_to_oldfec: Unsupported FEC 9
+[  265.715898] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+[  265.715929] mantis start feed & dma
+[  265.716116] stb0899_search: set DVB-S params
+[  268.725269] mantis_ack_wait (0): Slave RACK Fail !
+[  268.725452] stb6100_set_bandwidth: Bandwidth=51610000
+[  271.187024] mantis stop feed and dma
+[  271.727343] mantis_ack_wait (0): Slave RACK Fail !
+[  271.727526] stb6100_get_bandwidth: Bandwidth=-1
+[  271.739040] stb6100_get_bandwidth: Bandwidth=40000000
+[  274.747393] mantis_ack_wait (0): Slave RACK Fail !
+[  274.747576] stb6100_set_frequency: Frequency=1068000
+[  277.749467] mantis_ack_wait (0): Slave RACK Fail !
+[  277.749649] stb6100_get_frequency: Frequency=487856768
+[  280.755535] mantis_ack_wait (0): Slave RACK Fail !
+[  280.755718] stb6100_get_bandwidth: Bandwidth=-32512
+[  280.926082] dvb_frontend_ioctl: DVBFE_GET_INFO
+[  280.926088] stb0899_get_info: Querying DVB-S info
+[  281.027825] newfec_to_oldfec: Unsupported FEC 9
+[  281.027831] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+[  281.026363] stb0899_search: set DVB-S params
+[  281.028754] mantis start feed & dma
+[  282.410988] mantis stop feed and dma
+[  284.037242] mantis_ack_wait (0): Slave RACK Fail !
+[  284.037425] stb6100_set_bandwidth: Bandwidth=51610000
+[  287.039315] mantis_ack_wait (0): Slave RACK Fail !
+[  287.039497] stb6100_get_bandwidth: Bandwidth=-1
+[  287.051012] stb6100_get_bandwidth: Bandwidth=40000000
+[  290.059364] mantis_ack_wait (0): Slave RACK Fail !
+[  290.059547] stb6100_set_frequency: Frequency=1023000
+[  293.061438] mantis_ack_wait (0): Slave RACK Fail !
+[  293.061620] stb6100_get_frequency: Frequency=487856768
+[  296.067506] mantis_ack_wait (0): Slave RACK Fail !
+[  296.067688] stb6100_get_bandwidth: Bandwidth=-32512
+[  296.229928] dvb_frontend_ioctl: DVBFE_GET_INFO
+[  296.229932] stb0899_get_info: Querying DVB-S2 info
+[  296.331851] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+[  296.331874] mantis start feed & dma
+[  296.332053] stb0899_search: set DVB-S2 params
+[  298.388761] mantis stop feed and dma
+[  299.341223] mantis_ack_wait (0): Slave RACK Fail !
+[  299.341407] stb6100_set_bandwidth: Bandwidth=39700000
+[  302.343297] mantis_ack_wait (0): Slave RACK Fail !
+[  302.343479] stb6100_get_bandwidth: Bandwidth=-1
+[  305.355357] mantis_ack_wait (0): Slave RACK Fail !
+[  305.355540] stb6100_set_frequency: Frequency=1023000
+[  308.357430] mantis_ack_wait (0): Slave RACK Fail !
+[  308.357613] stb6100_get_frequency: Frequency=493128704
+[  308.853981] dvb_frontend_ioctl: DVBFE_GET_INFO
+[  308.853987] stb0899_get_info: Querying DVB-S info
+[  308.955298] newfec_to_oldfec: Unsupported FEC 9
+[  308.955302] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+[  308.953772] stb0899_search: set DVB-S params
+[  308.956175] mantis start feed & dma
+[  311.688916] mantis stop feed and dma
+[  311.962710] mantis_ack_wait (0): Slave RACK Fail !
+[  311.962893] stb6100_set_bandwidth: Bandwidth=51610000
+[  314.964783] mantis_ack_wait (0): Slave RACK Fail !
+[  314.964966] stb6100_get_bandwidth: Bandwidth=-1
+[  314.977227] stb6100_get_bandwidth: Bandwidth=40000000
+[  317.984834] mantis_ack_wait (0): Slave RACK Fail !
+[  317.985016] stb6100_set_frequency: Frequency=1023000
+[  320.986907] mantis_ack_wait (0): Slave RACK Fail !
+[  320.987088] stb6100_get_frequency: Frequency=487856768
+[  323.992976] mantis_ack_wait (0): Slave RACK Fail !
+[  323.993157] stb6100_get_bandwidth: Bandwidth=-32512
+
+HTH,
+
+Tim.
+
+
+On 23 Feb 2008, at 22:22, Manu Abraham wrote:
+
+> Tim Hewett wrote:
+>> Gernot,
+>> I have now tried the mantis tree. It also needed the  
+>> MANTIS_VP_1041_DVB_S2 #define to be changed to 0x0001 for this  
+>> card, but after doing that it was recognised:
+>
+> Applied the ID's to the mantis tree alongwith some other fixes/ 
+> optimizations.
+> Please do test the updated mantis tree.
+>
+>
+> Regards,
+> Manu
+
 
 _______________________________________________
 linux-dvb mailing list
