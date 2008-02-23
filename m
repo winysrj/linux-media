@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.177])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dmlb2000@gmail.com>) id 1JUyap-00074f-4F
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 07:19:39 +0100
-Received: by py-out-1112.google.com with SMTP id a29so4271280pyi.0
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 22:19:30 -0800 (PST)
-Message-ID: <9c21eeae0802282219r4280de1ex6d47a5be2759fb52@mail.gmail.com>
-Date: Thu, 28 Feb 2008 22:19:29 -0800
-From: "David Brown" <dmlb2000@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <abraham.manu@gmail.com>) id 1JT0s7-0001DK-5j
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 21:21:23 +0100
+Message-ID: <47C0803D.2020504@gmail.com>
+Date: Sun, 24 Feb 2008 00:21:17 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] cx23885 status?
+To: Artem Makhutov <artem@makhutov.org>
+References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>
+	<20080223174406.GB30387@moelleritberatung.de>
+In-Reply-To: <20080223174406.GB30387@moelleritberatung.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,31 +26,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I've got a Hauppauge 1800 with a cx23885 (I think) analog tuner card
-in it, I've not seen much progress on that driver for a month or so
+Artem Makhutov wrote:
+> Hi,
+> 
+> On Sat, Feb 23, 2008 at 12:35:49PM +0000, Vangelis Nonas wrote:
+>>> My problems are:
+>>> - When I scan the same transponder more than once, sometimes I get some services, sometimes I get no services.
+> 
+> I have never tried to scan with the SkyStar HD.
+> 
+>>> - When I zap (with szap2) to a station more than once, sometimes I get a lock, sometimes I get no lock.
+> 
+> I have the same problem. I was trying to tune to ProSieben 100 times today. And I got only 11 successful locks.
+> The signal strengt should be ok, as I have no problems to tune this
+> channel with other DVB-S cards...
+> 
+> Here is a little script to do such tests:
+> http://www.makhutov.org/downloads/dvb/tune.sh
+> 
+> You need this szap (http://abraham.manu.googlepages.com/szap.c) and this
+> patch (http://www.makhutov.org/downloads/dvb/szap.patch) to make the script work.
+> 
+> Has anyone any ideas why the tuning failes so often? Is it a problem of
+> szap or the driver itself? I heard, that this card works perfect with VDR for other users...
 
-[root@dmlb2000 cx23885]# hg log cx23885* | head
-changeset:   7237:e3b8fb8cc214
-user:        Mauro Carvalho Chehab <mchehab@infradead.org>
-date:        Mon Feb 25 00:48:54 2008 -0300
-summary:     From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-changeset:   7094:414e4439bb13
-user:        Douglas Schilling Landgraf <dougsland@gmail.com>
-date:        Sun Jan 27 13:10:44 2008 -0200
-summary:     [PATCH] static memory
+Can you guys please update from the multiproto tree and test again at
+the earliest and give me your feedback ?
 
-[root@dmlb2000 cx23885]#
+Regards,
+Manu
 
-I also know of this repository
-http://linuxtv.org/hg/~stoth/cx23885-video. However, it hasn't changed
-in a month either. What is the state of the driver? will it be
-considered for integration in to 2.6.25? or 2.6.26? has it been
-dropped all together?
-
-Thanks for the info.
-
-- David Brown
 
 _______________________________________________
 linux-dvb mailing list
