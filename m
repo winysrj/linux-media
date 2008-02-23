@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRlRy-00045W-Eq
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 10:41:14 +0100
-Received: from [134.32.138.158] (unknown [134.32.138.158])
-	by mail.youplala.net (Postfix) with ESMTP id 8A7E3D8811B
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 10:39:59 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSnh9-0007kV-Sa
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 07:17:12 +0100
+Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
+	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSnh5-0004NS-G8
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:17:07 +1000
+Received: from korath.teln.shikadi.net ([192.168.0.14])
+	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSnfh-0003CJ-Q4
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 16:15:41 +1000
+Message-ID: <47BFBA0D.2080607@shikadi.net>
+Date: Sat, 23 Feb 2008 16:15:41 +1000
+From: Adam Nielsen <a.nielsen@shikadi.net>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: <1203499665.7026.66.camel@tux>
-References: <1203434275.6870.25.camel@tux>
-	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
-	<1203499665.7026.66.camel@tux>
-Date: Wed, 20 Feb 2008 09:39:59 +0000
-Message-Id: <1203500399.6682.10.camel@acropora>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [patch] support for key repeat with
-	dib0700	ir	receiver
+Subject: [linux-dvb] How do you stream the entire MPEG-TS with dvbstream?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,27 +30,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi everyone,
 
-On Wed, 2008-02-20 at 10:27 +0100, Filippo Argiolas wrote:
-> So I think in the meanwhile my patch could be
-> merged (if you think it's good) waiting for this work to be done.
+I've just installed a new DViCO FusionHDTV dual digital 4 (which appears
+to the PC as two USB "Zarlink ZL10353 DVB-T" devices.)
 
-I second that.
+I'm trying to set up dvbstream to send the whole transport stream across
+the network to another PC, but I can't get this to work.  If I do
+something like this:
 
-I'm all for the greater good and Doing Things The Right Way (tm), but
-could this effort be spawned in a separate process for grander things?
+  dvbstream -f 226500 -gi 16 -bw 7 512 650
 
+Then it works fine, I get video and audio on the other PC and about
+500kB/sec network use, but if I do this:
 
-> I'll take a deeper look at the code but I don't know if I'm able to do
-> this thing, I've read kernel code a few days ago for the very first
-> time
-> and I've written the patch just because a I needed the repeat
-> feature :)
+  dvbstream -f 226500 -gi 16 -bw 7 8192
 
-Scratched an itch, heh? ;o)
+Then the network use goes up to 1.7MB/sec but the picture and sound
+arrive corrupted, as if I have extremely bad reception.
 
-Nico
+Using an old version of dvbstream with a Hauppauge Nova-T this works
+fine, except in that case I have 3MB/sec of network traffic with the
+same channel.  It's almost as if the latest version of dvbstream doesn't
+correctly capture the whole MPEG-TS stream from the card.
 
+Has anyone else gotten this to work?
+
+Thanks,
+Adam.
 
 _______________________________________________
 linux-dvb mailing list
