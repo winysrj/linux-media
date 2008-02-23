@@ -1,24 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.231])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JRnIH-0005Dj-8I
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 12:39:21 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so2115347wxc.17
-	for <linux-dvb@linuxtv.org>; Wed, 20 Feb 2008 03:39:16 -0800 (PST)
-Message-ID: <8ad9209c0802200339m3e5e36dew8700c1d980f367d5@mail.gmail.com>
-Date: Wed, 20 Feb 2008 12:39:15 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1203500605.6682.12.camel@acropora>
+Received: from web32702.mail.mud.yahoo.com ([68.142.207.246])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <vikinghat@yahoo.com>) id 1JSrbf-0000Ya-UW
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 11:27:48 +0100
+Date: Sat, 23 Feb 2008 02:27:13 -0800 (PST)
+From: Christopher Hammond <vikinghat@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
-	<8ad9209c0802192338v66cfb4c4n42d733629421fe6c@mail.gmail.com>
-	<1203499521.6682.2.camel@acropora>
-	<1203500199.10076.29.camel@anden.nu>
-	<1203500605.6682.12.camel@acropora>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+Message-ID: <405415.21348.qm@web32702.mail.mud.yahoo.com>
+Subject: Re: [linux-dvb] af9005 problem with frontend?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,35 +22,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have now set the debug to 15 and will test this tonight.
+<snip>
+> I'm trying to use it in Mandriva 2008.0 (kernel 2.6.22.18-desktop-1mdv) so I've 
+> followed the instructions referred to at http://ventoso.org/luca/af9005/ to 
+> download the latest v4l-dvb code, make and install it.  
+<snip>
+> Output from dmesg:
+> 
+> usb 1-1: new full speed USB device using uhci_hcd and address 2
+> usb 1-1: configuration #1 chosen from 1 choice
+> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in cold state, will try to load a 
+> firmware
+> dvb-usb: downloading firmware from file 'af9005.fw'
+> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in warm state.
+> dvb-usb: will use the device's hardware PID filter (table count: 32).
+> DVB: registering new adapter (Afatech DVB-T USB1.1 stick).
+> dvb-usb: no frontend was attached by 'Afatech DVB-T USB1.1 stick'
+> dvb-usb: Afatech DVB-T USB1.1 stick successfully initialized and connected.
+> usbcore: registered new interface driver dvb_usb_af9005
+<snip>
 
-On 2/20/08, Nicolas Will <nico@youplala.net> wrote:
->
-> On Wed, 2008-02-20 at 10:36 +0100, Jonas Anden wrote:
-> > > The strange thing is that modinfo does not say anything about a
-> > level 15
-> > > debug for the dvb_usb_dib0700 module.
-> > >
-> > >
-> > http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500#dvb_usb_dib0700
-> >
-> > The debug value is a bit field, with each bit representing a different
-> > category. With all bits on (ie full debugging) the decimal value
-> > becomes
-> > 15.
->
-> I should have guessed.
->
-> Documented for poor souls with slow brains like me.
->
-> Nico
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Sorry all, my error.  Turns out my kernel header files did not match the running kernel.
+Mandriva do not provide header files for released kernels - you have to install the kernel source and build.  Until recently you could just run make on the default source and get compatible header files.... however as of Mandriva 2008.0 the mandriva installer installed kernel 2.6.22.18-desktop-1mdv, but the source I got was 2.6.22.18-1mdvcustom - so when editing the Makefile to remove the custom label I inserted desktop as well.  Big mistake!  
+
+Solution, build a kernel (called 2.6.22.18-1testbuild1mdv) install it, reboot into new kernel, then build the v4l-dvb code, with make release VER=2.6.22.18-1testbuild1mdv and install.  Now a frontend is found when the af9005 is plugged in, and no kernel oops with dvbsnoop or when unplugging.  I now have it running in Kaffene.
+
+Thank you to any that looked at the original report.
+ 
+
+
+
+      __________________________________________________________
+Sent from Yahoo! Mail.
+A Smarter Inbox. http://uk.docs.yahoo.com/nowyoucan.html
 
 _______________________________________________
 linux-dvb mailing list
