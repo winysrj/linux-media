@@ -1,16 +1,23 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.190])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <riscycdj@gmail.com>) id 1JM9Zq-0006wS-NR
-	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 23:14:11 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so178677tia.13
-	for <linux-dvb@linuxtv.org>; Mon, 04 Feb 2008 14:14:05 -0800 (PST)
-Message-ID: <12d09d880802041414g28ac9672qef051fcc9b22bf36@mail.gmail.com>
-Date: Tue, 5 Feb 2008 07:44:02 +0930
-From: "Chris Jennings" <riscycdj@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYO-00082D-FD
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 09:16:16 +0100
+Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
+	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYI-0004Rg-Nm
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 18:16:10 +1000
+Received: from korath.teln.shikadi.net ([192.168.0.14])
+	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JSpYH-0004Q0-UN
+	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 18:16:09 +1000
+Message-ID: <47BFD5F4.3030805@shikadi.net>
+Date: Sat, 23 Feb 2008 18:14:44 +1000
+From: Adam Nielsen <a.nielsen@shikadi.net>
 MIME-Version: 1.0
-Subject: [linux-dvb]  Twinhan 1034 driver (Mantis)
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Is there a daemon style program for scheduled DVB
+	recording?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,86 +25,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1515910785=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1515910785==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16666_10065456.1202163242835"
+Hi everyone,
 
-------=_Part_16666_10065456.1202163242835
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I'm currently setting up a new server that will (among other things)
+record TV shows for me.  In the past I've used cron to schedule
+recording jobs, and I've used dvbrecord to do the actual recording.
 
-Hello,
+This set up has served me well for many years, but unfortunately
+dvbrecord doesn't seem to exist any more, and it never supported
+programs with AC3 audio anyway (which is pretty much all the HDTV
+channels here in Australia.)
 
-I'm new to the list and I have been looking through the archives to
-determine that current status of the Mantis DVB drivers. I bought one
-recently not realising that the driver was still in an alpha state and that
-the CAM interface is still not supported. I will be installing it into a
-Windows machine instead but I would like to have it installed in my MythTV
-box.
+If you were setting up a headless machine to record TV shows, what
+programs would you use to do this?  Ideally I'd like the shows dumped
+into a local directory, so that I can watch them over NFS with mplayer,
+but I'm open to alternatives.
 
-I have followed the instructions here:
-http://www.verbraak.org/wiki/index.php/Linux_Mantis_driver and got my Gentoo
-linux machine (kernel 2.6.23) to recognise the DVB card but when I try to
-use any DiSeqc commands to set the LNB (using MythTV) for my setup it gets
-in a loop which locks up with dvb module. I have tried using dvbtune as well
-and it does pretty much the same thing. When I get home I can provide info
-on what messages are being written to the messages log (it is a continuous
-stream).
+I really want to avoid running a whole "media centre" program like
+MythTV, VDR, etc. as I'd like this to be lean and clean and I don't mind
+using the command line for playback.
 
-I am trying to connect to the Optus Aurora channels in Australia. If anyone
-else has information on getting this setup working I would appreciate some
-help.
+Any suggestions?  I'd be happy to document the final system,
+installation, configuration, etc. on the LinuxTV wiki, as I couldn't
+find any info about this sort of thing on there at the moment.
 
-So sorry for asking this on the list but is it possible to point me in the
-right direction. I am prepared to spend time assisting with testing drivers.
-My experience with writing drivers is non-existant but I am willing to
-assist in any way I can. Am I wasting my time? ie are there roadblocks that
-are going to prevent full linux support of the Mantis chipset DVB-S cards?
-
-Thanks in advance.
-
-Chris Jennings
-
-------=_Part_16666_10065456.1202163242835
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div>Hello,</div>
-<div>&nbsp;</div>
-<div>I&#39;m new to the list and I have been looking through the archives to determine that current status of the Mantis DVB drivers. I bought one recently not realising that the driver was still in an alpha state and that the CAM interface is still not supported. I will be installing it into a Windows machine instead but I would like to have it installed in my MythTV box.</div>
-
-<div>&nbsp;</div>
-<div>I have followed the instructions here: <a href="http://www.verbraak.org/wiki/index.php/Linux_Mantis_driver">http://www.verbraak.org/wiki/index.php/Linux_Mantis_driver</a>&nbsp;and got my Gentoo linux machine (kernel 2.6.23) to recognise the DVB card but when I try to use any DiSeqc commands to set the LNB (using MythTV) for my setup it gets in a loop which locks up with dvb module. I have tried using dvbtune as well and it does pretty much the same thing. When I get home I can provide info on what messages are being written to the messages log (it is a continuous stream).</div>
-
-<div>&nbsp;</div>
-<div>I am trying to connect to the Optus Aurora channels in Australia. If anyone else has information on getting this setup working I would appreciate some help.</div>
-<div>&nbsp;</div>
-<div>So sorry for asking this on the list but is it possible to point me in the right direction. I am prepared to spend time assisting with testing drivers. My experience with writing drivers is non-existant but I am willing to assist in any way I can. Am I wasting my time? ie are there roadblocks that are going to prevent full linux support of the Mantis chipset DVB-S cards?</div>
-
-<div>&nbsp;</div>
-<div>Thanks in advance.</div>
-<div>&nbsp;</div>
-<div>Chris Jennings</div>
-
-------=_Part_16666_10065456.1202163242835--
-
-
---===============1515910785==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Many thanks,
+Adam.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1515910785==--
