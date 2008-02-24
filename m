@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.mclink.it ([195.110.128.7])
+Received: from mu-out-0910.google.com ([209.85.134.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mc8647tv@mclink.it>) id 1JRYs3-0007wZ-0a
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 21:15:19 +0100
-Received: from mail1.mclink.it (localhost [127.0.0.1])
-	by mail1.mclink.it (8.13.6/8.13.6) with ESMTP id m1JKFCsN033766
-	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 21:15:12 +0100 (CET)
-	(envelope-from mc8647tv@mclink.it)
-From: "Travel Factory S.r.l." <mc8647tv@mclink.it>
-To: linux-dvb@linuxtv.org
-Date: Tue, 19 Feb 2008 21:14:53 +0100
-Message-Id: <1.3.200802192114.78385@mclink.it>
+	(envelope-from <ysangkok@gmail.com>) id 1JTMTd-0003Yf-KP
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 20:25:33 +0100
+Received: by mu-out-0910.google.com with SMTP id w9so1550499mue.6
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 11:25:30 -0800 (PST)
+Message-ID: <15a344380802241125x107f6b3em2623b91c0985c867@mail.gmail.com>
+Date: Sun, 24 Feb 2008 20:25:29 +0100
+From: Ysangkok <ysangkok@gmail.com>
+To: "Simeon Walker" <simbloke@googlemail.com>
+In-Reply-To: <cc22fa3b0802240859s36d43938v5acedcece52de49a@mail.gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] HVR-3000
+Content-Disposition: inline
+References: <cc22fa3b0802240859s36d43938v5acedcece52de49a@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Perfect kernel/drivers for the Nova-T stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,23 +28,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I've been out from the dvb scene for a while and now I'm building a new system. 
+Hello Simeon,
 
-I had to buy an HVR-3000 hybrid system because it's the only DVB-T card I found available in Rome on PCI slot.... and the DVB-S was ok in order to have a new input....
+So you're saying that if I want to get my Nova-T stick to work I
+should compile 2.6.22.9 instead of 2.6.24.2?
 
-Now I have this card... I tried on Suse 10.0, downloaded the kernel module I found somewhere... tried compiling.... but I got errors due to some changes in a structure.
+I, too, have a Nova-T stick. I'm using the default Ubuntu kernel, and
+git linux-dvb tree. However, it doesn't currently work.
 
-I may try on suse 10.3... perhaps it works on that...
+Regards,
+Janus Troelsen
 
-Now the questions is:
-
-- where can I find informations to update my knowledge about DVB reception (I read hints about drivers rewritten for DVB-S2, multi-proto, and the like...). 
-
-- does anybody have a HVR-3000 actually working on a suse linux ? Which version ?
-
-Thanks
-Francesco
-
+2008/2/24, Simeon Walker <simbloke@googlemail.com>:
+> Hi,
+>
+> No, this isn't a question, for me I have the answer, and it is
+> 2.6.22.18, the kernel drivers and the latest firmware.
+>
+> I am using Ubuntu Gutsy and started with their included 2.6.22 kernel.
+> When I got the Nova-T stick (now two) I tried the stock Ubuntu kernel
+> with no luck. I then tried the linux-dvb drivers with the stock
+> kernel. The drivers worked but there was massive stream corruption.
+>
+> Since then I tried 2.6.23, 2.6.23.13, 2.6.24 (inc .1 and .2). With all
+> these versions I have had the dvb-usb driver sometimes complaining
+> about the stick being on a USB 1.1 bus, a reboot always fixed that.
+> All these version had some problems with mt2060 i2c errors. Sometimes
+> I would get USB disconnects, the driver would reload but MythTV
+> doesn't even notice it's not recording anymore.
+>
+> Finally, I don't know why, I tried compiling the latest 2.6.22 kernel.
+> The differences are:
+>  - There is no stream corruption like the Ubuntu 2.6.22 kernel.
+>  - USB2 mode works on every boot.
+>  - There are no USB disconnects.
+>  - There are no I2C errors.
+> The system has been completely stable for for two weeks with not
+> single instance of the previous errors.
+>
+> Is it just me or has anyone else had luck with this kernel version?
+>
+> Sim
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
