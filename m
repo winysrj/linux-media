@@ -1,28 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.182])
+Received: from kane.otenet.gr ([195.170.0.77] ident=OTEnet-mail-system)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JUriP-0005q3-Jc
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 23:59:01 +0100
-Received: by el-out-1112.google.com with SMTP id r23so4202295elf.14
-	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 14:58:54 -0800 (PST)
-Message-ID: <d9def9db0802281458g73939fefq8c5d7bc9aa49e1aa@mail.gmail.com>
-Date: Thu, 28 Feb 2008 23:58:53 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
+	(envelope-from <vnonas@otenet.gr>) id 1JTLhc-0006rU-HJ
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 19:35:56 +0100
+Message-ID: <47C1D52B.6070906@otenet.gr>
+Date: Sun, 24 Feb 2008 20:35:55 +0000
+From: Vangelis Nonas <vnonas@otenet.gr>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47C7329F.7030705@powercraft.nl>
-	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>
-	<47C73457.1030901@powercraft.nl>
-	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>
-	<47C7360E.9030908@powercraft.nl>
-	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
-	<47C73A05.2050007@powercraft.nl>
-	<d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Going though hell here,
-	please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com>
+	<47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com>
+	<47C1764C.5070103@otenet.gr> <47C1AFC1.7050704@otenet.gr>
+	<47C19735.4030601@gmail.com>
+In-Reply-To: <47C19735.4030601@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,150 +28,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/28/08, Markus Rechberger <mrechberger@gmail.com> wrote:
-> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > Markus Rechberger wrote:
-> > > On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > >> Markus Rechberger wrote:
-> > >>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > >>>> Markus Rechberger wrote:
-> > >>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> > >>>>>> This message contains the following attachment(s):
-> > >>>>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
-> > >>>>>>
-> > >>>>>> Spent my hole day trying to get a dvd-t device up and running, this
-> > is
-> > >>>>>> device number two I tried.
-> > >>>>>>
-> > >>>>>> Can somebody please tell me how to get this device working on:
-> > >>>>>>
-> > >>>>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
-> > >>>>>>
-> > >>>>>> I have to get some sleep now, because this is getting on my health
-> > and
-> > >>>>>> that does not happen often....
-> > >>>>>>
-> > >>>>> Jelle, it's really easy to install it actually.
-> > >>>>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
-> > >>>>>
-> > >>>>> this is the correct "howto" for it.
-> > >>>>>
-> > >>>>> You need the linux kernel sources for your kernel, if you experience
-> > >>>>> any problems just post them to the em28xx ML.
-> > >>>>>
-> > >>>>> Markus
-> > >>>> Hi Markus,
-> > >>>>
-> > >>>> I tried that two times,
-> > >>>>
-> > >>>> The seconds build blows up in my face, I need specified dependecies
-> to
-> > >>>> be able to compile the seconds driver...
-> > >>>>
-> > >>> there are not so many dependencies, just submit the errors you get.
-> > >>>
-> > >>> Markus
-> > >> Here you go, lets see I will try it for 40 more minutes with your help
-> > >>
-> > >
-> > > jelle@xubutu-en12000e:~$ hg clone
-> > http://mcentral.de/hg/~mrec/em28xx-userspace2
-> > > destination directory: em28xx-userspace2
-> > > requesting all changes
-> > > adding changesets
-> > > adding manifests
-> > > adding file changes
-> > > added 21 changesets with 65 changes to 20 files
-> > > 18 files updated, 0 files merged, 0 files removed, 0 files unresolved
-> > > jelle@xubutu-en12000e:~$ cd em28xx-userspace2
-> > > jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
-> > > if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
-> > > grep v4l_dvb_stub_attach
-> > > ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
-> > > fi
-> > > make -C /lib/modules/2.6.22-14-generic/build
-> > > SUBDIRS=/home/jelle/em28xx-userspace2 modules
-> > > make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
-> > > CC [M] /home/jelle/em28xx-userspace2/em2880-dvb.o
-> > > In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
-> > > /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
-> > > such file or directory
-> > > /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
-> > > such file or directory
-> > > /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
-> > > such file or directory
-> > > /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
-> > > No such file or directory
-> > >
-> > > there we go, the linux kernel sources aren't installed for your system.
-> > >
-> > > apt-get install linux-source linux-headers-`uname -r`
-> > >
-> > > I'm not sure if the kernel sources are decompressed in /usr/src you
-> > > might have a look at it.
-> > >
-> > > /lib/modules/`uname -r`/build should be a symlink to the root of the
-> > > extracted kernelsources.
-> > >
-> > > the root of your kernelsources should also contain a .config file.
-> > >
-> > > You can find the config file for your current kernel in /boot
-> > >
-> > > /boot/config-`uname -r`
-> > >
-> > > copy this file to the kernelroot and rename it to ".config"
-> > >
-> > > Markus
-> >
-> > sudo apt-get install linux-source linux-headers-`uname -r`
-> > Reading package lists... Done
-> > Building dependency tree
-> > Reading state information... Done
-> > linux-source is already the newest version.
-> > linux-headers-2.6.22-14-generic is already the newest version.
-> > 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
-> > jelle@xubutu-en12000e:~/em28xx-userspace2$ ls -hal /lib/modules/`uname
-> > -r`/build
-> > lrwxrwxrwx 1 root root 40 2007-10-21 18:19
-> > /lib/modules/2.6.22-14-generic/build ->
-> > /usr/src/linux-headers-2.6.22-14-generic
-> > jelle@xubutu-en12000e:~/em28xx-userspace2$ /boot/config-`uname -r`
-> > bash: /boot/config-2.6.22-14-generic: Permission denied
-> > jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo /boot/config-`uname -r`
-> > sudo: /boot/config-2.6.22-14-generic: command not found
-> > jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ls /boot/config-`uname -r`
-> > /boot/config-2.6.22-14-generic
-> > jelle@xubutu-en12000e:~/em28xx-userspace2$
-> >
-> > sudo cp --verbose /boot/config-2.6.22-14-generic /usr/src/linux/.config
-> > `/boot/config-2.6.22-14-generic' -> `/usr/src/linux/.config'
-> >
-> >
-> > still all the same problems !
-> >
+Hello,
+
+I scanned using 7205 changeset. With verbose=5, I get 1801 services. 
+With verbose=2 I get 1725 services.
+
+Using the 7201 changeset with verbose=5 I get 2082 services. I can check 
+for verbose=2 and changeset 7201 if you think it is useful.
+
+I have the "feeling" that 7201 behaves better. It is much faster also 
+during scanning( I don't have measurements but I am pretty sure).
+
+Should you need kernel logs for failing transponders either 7201 or 7205 
+let me know.
+
+Regards
+Vagelis
+
+
+
+
+Manu Abraham wrote:
+> Vangelis Nonas wrote:
+>> Hello,
+>>
+>> I tried scanning with the 7201 changeset and I believe the results 
+>> are better than the 7205 changeset. In the former case I get 2082 
+>> services on hotbird, in the latter 1722.
+>>
 >
-> it's just one problem actually, the kernel sources aren't installed or
-> not installed correctly.
+> Hmm.. Ok.
 >
-> You need to have
+> Can you please get 7205 and load the stb0899 and stb6100 modules with
+> verbose=2 or 5 as module parameters and see whether it makes any 
+> difference ?
+> (ie you see more of the services) ie check whether changing the module 
+> parameters
+> (verbosity level) makes any difference in the number of services found.
 >
-> /usr/src/linux/drivers/media/dvb/dvb-core/dmxdev.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_demux.h
-> /usr/src/linux/drivers/media/dvb/dvb-core/dvb_net.h
+>> I'll shortly send kernel logs for a failing transponder during scan.
+>>
+>> And something else:
+>> When I give to scan the parameter -o vdr it will not output the 
+>> results after a complete scan.
 >
-> those are part of the ubuntu linux source package.
+> Ok, this i had not added in, will look at this aspect.
 >
-> look up the source package for 2.6.22 with apt-cache
-> apt-cache search linux-source | grep -i 2.6.22 or something like that
-> and install it.
+> Regards,
+> Manu
+>
+>
 >
 
-if you have an instant messenger (icq/aim/or irc), just send me a mail
-it shouldn't take so long to get it work if you know what to do...
-you ran into quite many wrong directions with your previous attempts..
-
-Markus
 
 _______________________________________________
 linux-dvb mailing list
