@@ -1,17 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.186])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dirk@brenken.org>) id 1JLeFj-0007Ry-BF
-	for linux-dvb@linuxtv.org; Sun, 03 Feb 2008 13:47:19 +0100
-Message-ID: <47A5B7B9.1050605@brenken.org>
-Date: Sun, 03 Feb 2008 13:46:49 +0100
-From: Dirk Brenken <dirk@brenken.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1JTNQn-00030s-1g
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 21:26:41 +0100
+Message-ID: <47C1D2FA.40909@gmail.com>
+Date: Mon, 25 Feb 2008 00:26:34 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47A360FE.2070105@brenken.org>
-	<200802030314.22178@orion.escape-edv.de>
-In-Reply-To: <200802030314.22178@orion.escape-edv.de>
-Subject: Re: [linux-dvb] TT-1401 budget card support broken since 2.6.24-rc6
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+References: <694662.3577.qm@web33104.mail.mud.yahoo.com>
+	<47BFBE5A.4030000@gmail.com>
+In-Reply-To: <47BFBE5A.4030000@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+ AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,40 +24,43 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Oliver,
-I've revoked the changes of the patch you've mentioned below on a plain 
-vanilla 2.6.24 kernel - and it works! ;-)
-
-If I should do more testing on this issue, please advice ...
-
-Thanks
-Dirk
-
-Oliver Endriss schrieb:
-> Dirk Brenken wrote:
->> Hi,
->> I'm running a "budget-only" (Technotrend S-1401) vdr system (1.5.13) 
->> with xinelibouput plugin (latest cvs checkout).  It's based on debian 
->> sid and it runs fine with kernel 2.6.23.14 ... up to kernel 2.6.24-rc5. 
->> After that version, my budget card system stops working ... here some 
->> log file stuff:
+Manu Abraham wrote:
+> Simeon Simeonov wrote:
+>> Hi Gernot,
 >>
->> ...
->>
->> The problem also occurs with kernel 2.6.23.14 plus latest v4l-dvb 
->> checkout. Any idea how to track down this error? Any help is appreciated!
-> 
-> Could you please check whether patch
->     http://linuxtv.org/hg/v4l-dvb/rev/816f256c2973
-> broke the driver?
-> 
-> CU
-> Oliver
-> 
+>> I can confirm that I have similar experience to yours.
+>> By the way do you know if one can control from the soft side (register or some other means)
+>> the max current output for the card. I am having a problem when trying to tune with a rotor.
+>> On the Linux side the current seems to be capped at 300 mA as on the XP I see it goes to
+>> about 440 mA. I was still surprised that this card can supply less current than the 102g but
+>> we take what we get ...
 
+Can you please try this change, whether it helps in your case ?
+
+In mantis_dvb.c
+
+line #251
+
+if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0, 0)) {
+
+change it to
+
+if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0x80, 0x40)) {
+
+and see whether it helps in improving your current limited situation.
+according to the specification it should yield 500 - 650mA
+
+A word of caution, make sure that the auxilliary power connector is
+connected. Current drawn will be a bit much higher in this case,
+additionally Static Current Limiting is used, hence additional dissipation,
+which means more current drawn which might overload the PCI bus, hence
+  it would be nice to use the auxilliary power connector.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
