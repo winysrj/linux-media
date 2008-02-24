@@ -1,15 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp1.smtp.bt.com ([217.32.164.137])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from atum.ita.chalmers.se ([129.16.4.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <steve.goodey@bt.com>) id 1JMLBa-0003fO-FB
-	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 11:37:54 +0100
-Content-class: urn:content-classes:message
+	(envelope-from <di0svgu@student.chalmers.se>) id 1JTCJc-0001kN-Kq
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 09:34:32 +0100
+Received: from [85.224.211.13]
+	(c-0dd3e055.24-4-64736c11.cust.bredbandsbolaget.se [85.224.211.13])
+	(Authenticated sender: di0svgu)
+	by mail.chalmers.se (Postfix) with ESMTP id 3CFBD8303
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 09:34:29 +0100 (CET)
+Message-ID: <47C12C15.2010208@student.chalmers.se>
+Date: Sun, 24 Feb 2008 09:34:29 +0100
+From: Gustav Svensson <di0svgu@student.chalmers.se>
 MIME-Version: 1.0
-Date: Tue, 5 Feb 2008 10:36:17 -0000
-Message-ID: <7F617908C1141A46841994B57C97FB9B04621F52@E03MVZ3-UKDY.domain1.systemhost.net>
-From: <steve.goodey@bt.com>
-To: <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] uk-Sudbury dvb-t tuning data file question.
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] support for WinFast DTV1800 H
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,31 +24,21 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hello.
 
-Apologies if this is the wrong list to ask.
+I've found an old (may 2007) question about the tv-card i just bought 
+asking for support. link: 
+http://www.linuxtv.org/pipermail/linux-dvb/2007-May/018279.html
 
-Perhaps you could answer a few questions for me?
+I can try to find out any info you want if someone can help me get it 
+working. I have downloaded and compiled the modules and tried a few 
+different card numbers, but all generate some kind of error.
 
-Sudbury, in England, is one of the sites with two DVB-T transmitters,
-Sudbury and SudburyB, main transmitter Tacolneston. On my Mythtv box I
-have found /usr/share/doc/dvb-utils/examples/scan/dvb-t/uk-SudburyB but
-there is no file for Sudbury. Now according to the www.ukfree.tv site
-Sudbury has six muxes, SudburyB has only one for ITV. I suspect I am
-missing something here, why is there only one frequency file for Sudbury
-and why is called SudburyB?
-
-Should there be two files, as for Dover for example, uk-Sudbury with six
-muxes and uk_SudburyB with one?
-
-I assume MythTv does not use these files during tuning?
-
-Regards,
-
-Steve Goodey
+Please anyone help me solve this.
+Regards Gustav
 
 _______________________________________________
 linux-dvb mailing list
