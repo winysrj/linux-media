@@ -1,26 +1,26 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail1.syd.koalatelecom.com.au ([123.108.76.140])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <peter_s_d@fastmail.com.au>) id 1JQaCX-0007B6-Ec
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 04:28:26 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail1.syd.koalatelecom.com.au (Postfix) with ESMTP id 82B57A68051
-	for <linux-dvb@linuxtv.org>; Sun, 17 Feb 2008 14:28:22 +1100 (EST)
-Received: from mail1.syd.koalatelecom.com.au ([127.0.0.1])
-	by localhost (mail1.syd.koalatelecom.com.au [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id HAUtRVVyuK2x for <linux-dvb@linuxtv.org>;
-	Sun, 17 Feb 2008 14:28:14 +1100 (EST)
-Received: from on_board.home.invalid (unknown [202.10.85.133])
-	by mail1.syd.koalatelecom.com.au (Postfix) with ESMTP id 6CEBDA68106
-	for <linux-dvb@linuxtv.org>; Sun, 17 Feb 2008 14:28:12 +1100 (EST)
-From: "Peter D." <peter_s_d@fastmail.com.au>
-To: linux-dvb@linuxtv.org
-Date: Sun, 17 Feb 2008 14:28:10 +1100
+	(envelope-from <abraham.manu@gmail.com>) id 1JTNRc-0003Lu-RY
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 21:27:32 +0100
+Message-ID: <47C1D32F.9050900@gmail.com>
+Date: Mon, 25 Feb 2008 00:27:27 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802171428.10859.peter_s_d@fastmail.com.au>
-Subject: [linux-dvb] auto detection of Flytv duo/hybrid and pci/cardbus
-	confusion
+To: Artem Makhutov <artem@makhutov.org>
+References: <20080223174406.GB30387@moelleritberatung.de>
+	<47C0803D.2020504@gmail.com>
+	<20080223212013.GD30387@moelleritberatung.de>
+	<47C0903B.70606@gmail.com>
+	<20080223213258.GE30387@moelleritberatung.de>
+	<20080223214718.GF30387@moelleritberatung.de>
+	<47C09519.2090904@gmail.com> <47C09BCC.50403@gmail.com>
+	<20080224123736.GH30387@moelleritberatung.de>
+	<47C176A7.9070608@gmail.com>
+	<20080224174814.GI30387@moelleritberatung.de>
+In-Reply-To: <20080224174814.GI30387@moelleritberatung.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,92 +31,42 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, 
-
-I've finally gotten around to reading the code and trying to get my 
-PCI MSI TV@nywhere A/D card auto detected. 
-
-First clarification, duo versus hybrid.  
-Are "duo" cards equipped with two independent tuners that can both be 
-used at the same time?  
-Are "hybrid" cards necessarily equipped with digital and analogue tuners?  
-Can a two tuner card be both a duo and a hybrid, if one tuner is digital 
-the other is analogue and they can both be used at the same time?  
-
-Second clarification, PCI versus cardbus.  
-They don't look anything like each other, but can they be logically 
-interchangeable?  If the code for a cardbus tuner happens to work for 
-a PCI tuner is there anything wrong with referring to the PCI tuner 
-as a cardbus device?  
-
-Looking at <http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards> 
-there does not appear to be any such thing as a 
-SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS, despite the entry (number 94) 
-in saa7134.h.  Looking at 
-<http://www.linuxtv.org/wiki/index.php/DVB-T_PCI_Cards#LifeView> 
-there is a PCI version - but there is no PCI version in saa7134.h.  
-
-Should 
-"SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS" be changed to 
-"SAA7134_BOARD_FLYDVBT_HYBRID"?
-
-It appears that both PCI and cardbus versions of the Flytv duo exist 
-and are listed in saa7134.h - despite slightly inconsistent punctuation; 
-SAA7134_BOARD_FLYDVBTDUO versus 
-SAA7134_BOARD_FLYDVBT_DUO_CARDBUS.  
-
-Should 
-"SAA7134_BOARD_FLYDVBTDUO" be changed to 
-"SAA7134_BOARD_FLYDVBT_DUO"?
-
-I have an MSI TV@nywhere A/D PCI card that works with the option card=94
-
-There appears to not be an entry in struct pci_device_id saa7134_pci_tbl[] 
-in saa7134-cards.c for my card.  There is a reference to a 
-"TV@nywhere DUO" which I guess is a valid entry for a different card.  
-
-Is the entry; 
-
-          {
-                .vendor       = PCI_VENDOR_ID_PHILIPS,
-                .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-                .subvendor    = 0x4e42,
-                .subdevice    = 0x3502,
-                .driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
-        },
-
-supposed to be;
-
-           {
-                .vendor       = PCI_VENDOR_ID_PHILIPS,
-                .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-                .subvendor    = 0x4E42,         /* MSI */
-                .subdevice    = 0x3306,         /* TV@nywhere Hybrid A/D */
-                driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS,
-        },
-
-with the subdevice changed, or possibly;
-
-           {
-                .vendor       = PCI_VENDOR_ID_PHILIPS,
-                .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-                .subvendor    = 0x4E42,         /* MSI */
-                .subdevice    = 0x3306,         /* TV@nywhere Hybrid A/D */
-                driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID,
-        },
-
-with the subdevice and driver_data changed, or should there be an extra 
-entry in the list?  
-
-Thank you.  
+Artem Makhutov wrote:
+> Hi,
+> 
+> On Sun, Feb 24, 2008 at 05:52:39PM +0400, Manu Abraham wrote:
+>> Artem Makhutov wrote:
+>>> Hi,
+>>>
+>>> On Sun, Feb 24, 2008 at 02:18:52AM +0400, Manu Abraham wrote:
+>>>> Also, can you please do a benchmark in lock timings between changeset 
+>>>> 7205 and 7200 ?
+>>> Do you mean changeset 7200 or 7204
+> 
+> I did the benchmark betweet 7205 and 7204.
+> The modules were loaded with no additional parameters.
+> 
+> Tuning time in 7204: ~0.83 seconds (min 0.81191 sec ; max 2.428967 sec)
+> Tuning time in 7205: ~0.26 seconds (min 0.24789 sec ; max 1.994216 sec)
+> 
+> I have attached the logfiles of the tests.
+> 
+> I made 60 tunes for 7204 and 45 tunes for 7205.
 
 
--- 
-sig goes here...
-Peter D.
+ From the 7205 logs, it looks no lock failure at all. Is this too good 
+to believe ?
+
+but i do see that you have a lock loss case in 7204. is that 7204 and 7205
+logs got interchanged ?
+
+
+Regards,
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
