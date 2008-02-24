@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [212.57.247.218] (helo=glcweb.co.uk)
+Received: from boh-84-242-76-108.karneval.cz ([84.242.91.163]
+	helo=ip-89-102-161-185.karneval.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JTzSt-0001pw-Sn
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 14:03:24 +0100
-Content-class: urn:content-classes:message
+	(envelope-from <ondrej@holecek.eu>) id 1JT7Ca-00019M-RO
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 04:06:56 +0100
+Received: from [10.162.61.87] (ip-85-160-0-18.eurotel.cz [85.160.0.18])
+	by ip-89-102-161-185.karneval.cz (Postfix) with ESMTP id 545A89DA6F
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 04:06:32 +0100 (CET)
+Message-ID: <47C0DF27.7010407@holecek.eu>
+Date: Sun, 24 Feb 2008 04:06:15 +0100
+From: Ondrej Holecek <ondrej@holecek.eu>
 MIME-Version: 1.0
-Date: Tue, 26 Feb 2008 13:01:49 -0000
-Message-ID: <A33C77E06C9E924F8E6D796CA3D635D1023978@w2k3sbs.glcdomain.local>
-From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
-To: <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] make errors multiproto
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] experimental drivers and 2.6.24 kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,108 +20,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1677405119=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Can anyone help with this please?
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============1677405119==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig7A267DD181F98FD18BAE7714"
 
------Original Message-----
-From: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Michael Curtis
-Sent: 20 February 2008 08:03
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] make errors multiproto
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig7A267DD181F98FD18BAE7714
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Hi all
+hello,
 
-The following errors occurred during the 'make all' of the multiproto
-install
+i have problems with compiling experimental drivers from
+http://mcentral.de/hg/~mrec/v4l-dvb-experimental/ with kernel 2.6.24
 
-The mercurial was from the above date
+i need it for my eb1a:e323 eMPIA Technology, Inc. (digivox a/d II)
 
-I am using the TT3200 so the stb0899 errors will matter
+non experimental drivers compile without problems, am I doing something
+wrong?
+
+this is what i get:
+
+chaos:/home/oho/tmp/dvb# cd v4l-dvb-experimental-6c81945e4403/
+chaos:/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403# make
+make -C /usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l
+make[1]: Entering directory
+`/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l'
+creating symbolic links...
+make -C /lib/modules/2.6.24/build
+SUBDIRS=3D/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l  mo=
+dules
+make[2]: Entering directory `/usr/src/linux-2.6.24'
+  CC [M]
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-pci.o=
+
+In file included from
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-commo=
+n.h:23,
+                 from
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-pci.c=
+:10:
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/dvb_frontend.=
+h:42:33:
+error: media/v4l_dvb_tuner.h: No such file or directory
+In file included from
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-commo=
+n.h:23,
+                 from
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-pci.c=
+:10:
+/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/dvb_frontend.=
+h:165:
+error: field 'tuner_ops' has incomplete type
+make[3]: ***
+[/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l/flexcop-pci.=
+o]
+Error 1
+make[2]: ***
+[_module_/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l]
+Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.24'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory
+`/usr/home/oho/tmp/dvb/v4l-dvb-experimental-6c81945e4403/v4l'
+make: *** [all] Error 2
 
 
-/home/mythtv/dvb/multiproto/v4l/dvb_frontend.c: In function
-'dvb_frontend_thread':
-/home/mythtv/dvb/multiproto/v4l/dvb_frontend.c:1123: warning: unused
-variable 'status'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
-'stb0899_diseqc_init':
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:834: warning: unused
-variable 'ret_2'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:833: warning: unused
-variable 'ret_1'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:832: warning: unused
-variable 'trial'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused
-variable 'i'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused
-variable 'count'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:826: warning: unused
-variable 'rx_data'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
-'stb0899_sleep':
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:899: warning: unused
-variable 'reg'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
-'stb0899_track':
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1935: warning: unused
-variable 'internal'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1932: warning: unused
-variable 'lock_lost'
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: At top level:
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1727: warning:
-'stb0899_track_carrier' defined but not used
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1744: warning:
-'stb0899_get_ifagc' defined but not used
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1761: warning:
-'stb0899_get_s1fec' defined but not used
-/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1789: warning:
-'stb0899_get_modcod' defined but not used
-/home/mythtv/dvb/multiproto/v4l/radio-si470x.c: In function
-'si470x_get_rds_registers':
-/home/mythtv/dvb/multiproto/v4l/radio-si470x.c:562: warning: format '%d'
-expects type 'int', but argument 3 has type 'long unsigned int'
+--------------enig7A267DD181F98FD18BAE7714
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Regards
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-Mike curtis
+iQEVAwUBR8DfK7+9cGMV5qZXAQLcXQf+LvfzDhgUiRVF1k5DeWafvAQ0kc1XK5SX
+IH9VbtP9d+YJ4QCmhvKBBtQG8PD3HmHydHf2le52Zvz5EQZxnfvDc7sbh2uwkbED
+/PR2naktbwVSPjs8nMOfcgNo5PwRVl0nJeygkwWLt+zSKVrLYMLxXOtaAiKJrXbH
+Gu/fDuAT+/2nIH6ZyGuqcrAJ1v1jqZEVY/iGtUIgZ5H4OdzaU/ViHQ0ltmwN7D3t
+61OHLBDUZ8eNf5MxYR/m6iwndg11d9664Ptz3n0zkFyL2gCEmA06jCRW3bALsfCw
+cBLbfVDkNR/d1QSEZLUrVI9yQTJ17C1iPKc+3PADokUUaIgLmFEIWQ==
+=nASo
+-----END PGP SIGNATURE-----
 
+--------------enig7A267DD181F98FD18BAE7714--
+
+
+--===============1677405119==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
--- 
-This message has been scanned for viruses and
-dangerous content by IC-MailScanner, and is
-believed to be clean.
-
-For queries or information please contact:-
-
-=================================
-Internet Central Technical Support
-
-
- http://www.netcentral.co.uk
-=================================
-
-
-No virus found in this incoming message.
-Checked by AVG Free Edition. 
-Version: 7.5.516 / Virus Database: 269.20.9/1294 - Release Date: 22/02/2008 18:39
- 
-
-No virus found in this outgoing message.
-Checked by AVG Free Edition. 
-Version: 7.5.516 / Virus Database: 269.21.1/1299 - Release Date: 26/02/2008 09:08
- 
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1677405119==--
