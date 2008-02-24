@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSsik-0007w8-3s
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 12:39:10 +0100
-Message-ID: <47C005D6.10202@shikadi.net>
-Date: Sat, 23 Feb 2008 21:39:02 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
-To: Torgeir Veimo <torgeir@pobox.com>
-References: <47BFD5F4.3030805@shikadi.net>
-	<7543B999-C26B-46A9-929D-C5CA625A131A@pobox.com>
-In-Reply-To: <7543B999-C26B-46A9-929D-C5CA625A131A@pobox.com>
+Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1JTGxV-0001lk-LB
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 14:32:01 +0100
+Message-Id: <BFFA8240-DFD1-4BC2-BEF7-4AA82AA9DF1D@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: "Geir Inge" <geir.inge@gmail.com>
+In-Reply-To: <ab58b93b0802240522g538ef9bdwf802368defdfa3f7@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sun, 24 Feb 2008 23:31:32 +1000
+References: <ab58b93b0802240522g538ef9bdwf802368defdfa3f7@mail.gmail.com>
 Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Is there a daemon style program for scheduled DVB
- recording?
+Subject: Re: [linux-dvb] Any work being done on the Nova-T 500HD card ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,19 +25,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Obviously, you seem to have never actually tried VDR. It's extremely
-> lean and clean and it don't need to run with any output. You can telnet
-> into it and schedule recordings and it's easy to view recordings over
-> NFS, or use a streaming media client directly towards VDR with a
-> suitable streaming plugin.
 
-Oh ok, I did try VDR a few years back but with a different focus (TV
-output) and it seemed quite buggy at the time.  I didn't realise it
-could operate solely as a daemon - I'll have to have another look now -
-thanks!
+On 24 Feb 2008, at 23:22, Geir Inge wrote:
 
-Cheers,
-Adam.
+> I have searched the net, but found little information about linux
+> support for the Nova-T 500HD card (similar to Nova-T 500, but
+> supporting h.264 decoding ++)
+>
+> Is this card supported/worked on by linuxtv ?
+
+
+Apparently the card is the same as the normal nova-t 500, with the  
+addition of an OEM version of PowerCinema which does H.264 decoding in  
+software. So yes it will most likely be supported in linux in the same  
+was the nova-t 500 is.
+
+-- 
+Torgeir Veimo
+torgeir@pobox.com
+
+
 
 
 _______________________________________________
