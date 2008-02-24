@@ -1,16 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web33103.mail.mud.yahoo.com ([209.191.69.133])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <simeonov_2000@yahoo.com>) id 1JUZyP-0003vr-RS
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 05:02:22 +0100
-Date: Wed, 27 Feb 2008 20:01:30 -0800 (PST)
-From: Simeon Simeonov <simeonov_2000@yahoo.com>
-To: Manu Abraham <abraham.manu@gmail.com>, linux-dvb@linuxtv.org
+Received: from bane.moelleritberatung.de ([77.37.2.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <artem@moelleritberatung.de>) id 1JTObD-0002jD-KB
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 22:41:31 +0100
+Date: Sun, 24 Feb 2008 22:41:28 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080224214128.GL30387@moelleritberatung.de>
+References: <20080223212013.GD30387@moelleritberatung.de>
+	<47C0903B.70606@gmail.com>
+	<20080223213258.GE30387@moelleritberatung.de>
+	<20080223214718.GF30387@moelleritberatung.de>
+	<47C09519.2090904@gmail.com> <47C09BCC.50403@gmail.com>
+	<20080224123736.GH30387@moelleritberatung.de>
+	<47C176A7.9070608@gmail.com>
+	<20080224174814.GI30387@moelleritberatung.de>
+	<47C1D32F.9050900@gmail.com>
 MIME-Version: 1.0
-Message-ID: <803523.78624.qm@web33103.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] STB0899 users,
-	please verify results was Re: TechniSat SkyStar HD: Problems
-	scaning and zaping
+Content-Disposition: inline
+In-Reply-To: <47C1D32F.9050900@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechniSat SkyStar HD: Problems scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,80 +34,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I don't know if is the same but with the latest mantis tree I get 100% success.
-Reverting to changeset mantis-100d4b009238 (which I think corresponds to multiproto 7200)
-I do NOT any locks on the same transponder.
+Hi,
 
------ Original Message ----
-From: Manu Abraham <abraham.manu@gmail.com>
-To: linux-dvb@linuxtv.org
-Sent: Tuesday, February 26, 2008 1:44:37 PM
-Subject: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-
-Vangelis Nonas wrote:
-> Hello,
-> 
-> Here is the output of hg log|head -n 5 for two different directories 
-> (multiproto and multiproto_7200)
-> 
-> for multiproto:
-> changeset:   7205:9bdb997e38b5
-> tag:         tip
-> user:        Manu Abraham <manu@linuxtv.org>
-> date:        Sun Feb 24 02:10:56 2008 +0400
-> summary:     We can now reduce the debug levels, just need to look at 
-> errors only.
-> 
-> for multiproto_7200:
-> changeset:   7200:45eec532cefa
-> tag:         tip
-> parent:      7095:a577a5dbc93d
-> parent:      7199:0448e5a6d8a6
-> user:        Manu Abraham <manu@linuxtv.org>
+On Mon, Feb 25, 2008 at 12:27:27AM +0400, Manu Abraham wrote:
+> Artem Makhutov wrote:
+> >Hi,
+> >
+> >On Sun, Feb 24, 2008 at 05:52:39PM +0400, Manu Abraham wrote:
+> >>Artem Makhutov wrote:
+> >>>Hi,
+> >>>
+> >>>On Sun, Feb 24, 2008 at 02:18:52AM +0400, Manu Abraham wrote:
+> >>>>Also, can you please do a benchmark in lock timings between changeset 
+> >>>>7205 and 7200 ?
+> >>>Do you mean changeset 7200 or 7204
+> >
+> >I did the benchmark betweet 7205 and 7204.
+> >The modules were loaded with no additional parameters.
+> >
+> >Tuning time in 7204: ~0.83 seconds (min 0.81191 sec ; max 2.428967 sec)
+> >Tuning time in 7205: ~0.26 seconds (min 0.24789 sec ; max 1.994216 sec)
+> >
+> >I have attached the logfiles of the tests.
+> >
+> >I made 60 tunes for 7204 and 45 tunes for 7205.
 > 
 > 
-> So I guess I was referring to 7200 and not to 7201.
-> I am very positive about the results because I have tested it many 
-> times. It is just that it is 7200 instead of 7201.
-> So as a concluesion, 7200 behaves better than 7205. My corrected little 
-> table follows below just for clarification.
+> From the 7205 logs, it looks no lock failure at all. Is this too good 
+> to believe ?
+>
+> but i do see that you have a lock loss case in 7204. is that 7204 and 7205
+> logs got interchanged ?
 
+Oh, I haven't even seen that there was a lock loss. Since rev 7204 the
+card tunes very reliable.
 
-Ok, fine this is very much possible. Can other STB0899 users (all of them)
-verify this result, such that i can revert back the changes ?
+No, the logs between rev 7204 and 7205 got not interchanged.
 
+Regards, Artem
 
-> 
-> Changeset   Verbose  channels
-> --------------------------------
-> 7200         1        2152
-> 7200         2        2105
-> 7200         5        2081
-> 7205         1        1760
-> 7205         2        1608
-> 7205         5        1578
-> 
-> 
-> I apologise for the confusion, I may have caused.
-
-No worries, don't apologise, this is all a part of the testing phase.
-
-
-Thanks,
-Manu
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
-
-
-      ____________________________________________________________________________________
-Looking for last minute shopping deals?  
-Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+-- 
+Artem Makhutov
+Unterort Str. 36
+D-65760 Eschborn
 
 _______________________________________________
 linux-dvb mailing list
