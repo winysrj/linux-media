@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JTtz3-0008Ax-0W
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 08:12:13 +0100
-Message-ID: <47C3BBD8.3050007@philpem.me.uk>
-Date: Tue, 26 Feb 2008 07:12:24 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
-MIME-Version: 1.0
-To: Christophe Boyanique <tof+linux-dvb@raceme.org>
-References: <47A98F3D.9070306@raceme.org> <47C3161F.4020802@raceme.org>
-In-Reply-To: <47C3161F.4020802@raceme.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Received: from a-sasl-quonix.sasl.smtp.pobox.com ([208.72.237.25]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1JTHQd-00059t-Am
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 15:02:07 +0100
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by a-sasl-quonix.pobox.com (Postfix) with ESMTP id 008E31319
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 09:02:02 -0500 (EST)
+Received: from [192.168.1.3] (CPE-124-177-129-55.qld.bigpond.net.au
+	[124.177.129.55]) (using TLSv1 with cipher AES128-SHA (128/128 bits))
+	(No
+	client certificate requested) by a-sasl-quonix.pobox.com (Postfix) with
+	ESMTP id 38AC51318 for <linux-dvb@linuxtv.org>;
+	Sun, 24 Feb 2008 09:01:58 -0500 (EST)
+Message-Id: <4D55465D-1DE0-4106-A9D9-D180AAEFEE1A@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Mon, 25 Feb 2008 00:01:38 +1000
+Subject: [linux-dvb] hauppauge hd pvr
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,20 +31,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Boyanique wrote:
-> options dvb-usb-dib0700 force_lna_activation=1
-> options dvb_usb disable_rc_polling=1
+http://blogs.snapstream.com/2008/02/07/more-on-the-hauppauge-hd-pvr/
 
-Did that last night and I'm still seeing MT2060 I2C timeouts... *sigh*
-
-This is on Mythbuntu 8.04 alpha-2, latest updates, running drivers from Hg TIP 
-patched for the HVR-3000 (using the dev.kewl.org multi-frontend patch).
-
-Thanks,
 -- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+Torgeir Veimo
+torgeir@pobox.com
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
