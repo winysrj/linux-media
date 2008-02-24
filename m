@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1S2w9Wi022038
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 21:58:09 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1S2vbdv006440
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 21:57:37 -0500
-Received: by ug-out-1314.google.com with SMTP id t39so87508ugd.6
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 18:57:37 -0800 (PST)
-Date: Wed, 27 Feb 2008 18:56:51 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Message-ID: <20080228025651.GA16322@plankton.ifup.org>
-References: <54fa1a0d9c5bcdfcb2ba.1204098881@localhost>
-	<20679.1204128530@vena.lwn.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1O1qw8S013205
+	for <video4linux-list@redhat.com>; Sat, 23 Feb 2008 20:52:58 -0500
+Received: from mail8.sea5.speakeasy.net (mail8.sea5.speakeasy.net
+	[69.17.117.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1O1qPKu011661
+	for <video4linux-list@redhat.com>; Sat, 23 Feb 2008 20:52:26 -0500
+Date: Sat, 23 Feb 2008 17:52:19 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Chris MacGregor <chris-video4linux-list@cybermato.com>
+In-Reply-To: <47C0C7B8.20608@cybermato.com>
+Message-ID: <Pine.LNX.4.58.0802231739210.30835@shell2.speakeasy.net>
+References: <47C0C7B8.20608@cybermato.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20679.1204128530@vena.lwn.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
 	mchehab@infradead.org
-Subject: Re: [PATCH] v4l: Deadlock in videobuf-core for DQBUF waiting on QBUF
+Subject: Re: [v4l-dvb-maintainer] [PATCH] usbvideo: usbvideo.c should check
+ palette in VIDIOCSPICT (resend again)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,37 +29,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 09:08 Wed 27 Feb 2008, Jonathan Corbet wrote:
-> Brandon Philips <brandon@ifup.org> wrote:
-> 
-> >  	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
-> > +	mutex_unlock(&q->vb_lock);
-> >  	retval = videobuf_waiton(buf, nonblocking, 1);
-> > +	mutex_lock(&q->vb_lock);
-> 
-> Are you sure that this doesn't create a race where two threads could end
-> up waiting on the same buf?  
+On Sat, 23 Feb 2008, Chris MacGregor wrote:
+> From: Chris MacGregor <chris-usbvideo-patch-080216-3@cybermato.com>
+>
+> This change makes VIDIOCSPICT return EINVAL if the requested palette (format)
+> doesn't match anything in paletteBits; this is essentially the same check as
+> is already made in VIDIOCMCAPTURE.  The patch is against 2.6.24.2.
+>
 
-You are right... I thought I had thought through this but a race can be
-created with two threads doing DQBUF.
+> The risk, of course, is that this patch will break existing v4l clients that
+> accidentally pass non-zero garbage in the video_picture.palette field when
+> calling VIDIOCSPICT, but which pass a valid format to VIDIOCMCAPTURE.
 
-> Actually, almost anything could happen to buf by the time you've
-> gotten the mutex back - it might not even exist anymore - but there
-> are no checks for that.  It seems like a better fix might be to set
-> nonblocking unconditionally to 1 for the videobuf_waiton() call, then
-> start over from the beginning on a -EAGAIN return (if the caller has
-> not requested nonblocking behavior).
+This concept of setting the format with VIDIOCMCAPTURE isn't something
+that's defined in the V4L1 specs, but some software like vlc tries it
+because it worked (not anymore) with the bttv driver.
 
-Hrm, that is one solution.  I will think about it for a bit and submit a
-new patch.
+I'm almost certain that the v4l1 compat module, and therefore all the
+drivers that use it for v4l1 support, already works this way; returning
+EINVAL for invalid formats (those that fail the v4l2 try format ioctl) in
+VIDIOCSPICT.
 
-Thanks for catching this, I was being stupid.
+> One could make the argument that a similar check should be made on the depth
+> field, but vlc doesn't mess with it and I'm not feeling that ambitious today.
 
-Mauro: Please don't push this patch out.  Thanks.
-
-Cheers,
-
-	Brandon
+You should probably NOT add this.  In fact, bttv had this check and I
+removed it, as it broke vlc!  vlc, and most software, just leaves the depth
+field 0 or uninitialized, as it seems like it was intended as an output
+from the driver, not an input.  Though, as usual, the v4l1 spec is vague on
+this issue.  The format already defines the depth, so specifying it a
+second times seems pointless.  It is slightly useful as an output from the
+driver, so that software that the data is only going to pass through can
+know the size without needing to know about any particular formats.
 
 --
 video4linux-list mailing list
