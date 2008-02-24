@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRWAg-0006nV-9B
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 18:22:22 +0100
-Received: from [134.32.138.158] (unknown [134.32.138.158])
-	by mail.youplala.net (Postfix) with ESMTP id 4A96CD88113
-	for <linux-dvb@linuxtv.org>; Tue, 19 Feb 2008 18:21:03 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1203434275.6870.25.camel@tux>
-References: <1203434275.6870.25.camel@tux>
-Date: Tue, 19 Feb 2008 17:21:02 +0000
-Message-Id: <1203441662.9150.29.camel@acropora>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [patch] support for key repeat with dib0700
-	ir	receiver
+	(envelope-from <abraham.manu@gmail.com>) id 1JTJhL-0002KT-LG
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 17:27:31 +0100
+Message-ID: <47C19AED.90504@gmail.com>
+Date: Sun, 24 Feb 2008 20:27:25 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Tim Hewett <tghewett2@onetel.com>
+References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
+	<47C09CB5.8060804@gmail.com>
+	<FE251317-5C82-44A7-B2F3-7F0254A787E6@onetel.com>
+	<47C0AF98.5000703@gmail.com>
+	<342209CC-E522-49BC-A3D6-7A9A7CE23740@onetel.com>
+	<47C0BC6D.2060606@gmail.com>
+	<AC97F37D-D99C-402A-BFF4-AB6949597464@onetel.com>
+In-Reply-To: <AC97F37D-D99C-402A-BFF4-AB6949597464@onetel.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+ AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,28 +32,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Tim Hewett wrote:
+> Manu,
+> 
+> The Diseqc switch has been removed and now all polarities tune, and 
+> DVB-S2 works as well.
+> 
 
-On Tue, 2008-02-19 at 16:17 +0100, Filippo Argiolas wrote:
-> I've also implemented repeated key
-> feature (with repeat delay to avoid unwanted double hits) for rc-5 and
-> nec protocols. It also contains some keymap for the remotes I've used
-> for testing (a philipps compatible rc5 remote and a teac nec remote).
-> They are far from being complete since I've used them just for
-> testing.
+Bad diseqc switch ?
 
-I'm quite interested in testing this patch, key repeats have been a
-nagging thing in the back of my mind.
+Regards,
+Manu
 
-I'll be testing this patch, and I'll document it in the wiki here:
 
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
 
-I have a question about the quoted part.
 
-Will this mess in any way with the current keycodes of my Nova-T-500
-remote?
-
-Nico
+> Thanks!
+> 
+> Tim.
+> 
+> 
+> On 24 Feb 2008, at 00:38, Manu Abraham wrote:
+> 
+>> Tim Hewett wrote:
+>>> Manu,
+>>> Thanks, it now tunes to horizontal transponders though not vertical 
+>>> ones. I think others have been having similar symptoms with the 
+>>> mantis/multiproto trees.
+>>
+>> Can someone replicate this behaviour: not tuning to vertical 
+>> transponders ?
+>> Do you have any switches or a rotor in the SEC chain ?
+>>
+>>> It won't tune to any DVB-S2 transponder, but that has not changed 
+>>> since previously.
+>>
+>>
+>> Hmm .. Are you really sure ?
+>>
+>>
+>>> Messages in dmesg for successful tuning:
+>>> [  402.455361] dvb_frontend_ioctl: DVBFE_GET_INFO
+>>> [  402.455366] stb0899_get_info: Querying DVB-S info
+>>> [  402.556373] newfec_to_oldfec: Unsupported FEC 9
+>>> [  402.556377] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+>>> [  402.556998] mantis start feed & dma
+>>> [  402.557255] stb0899_search: set DVB-S params
+>>> [  402.567810] stb6100_set_bandwidth: Bandwidth=51610000
+>>> [  402.569927] stb6100_get_bandwidth: Bandwidth=52000000
+>>> [  402.581331] stb6100_get_bandwidth: Bandwidth=52000000
+>>> [  402.613394] stb6100_set_frequency: Frequency=1023000
+>>> [  402.615510] stb6100_get_frequency: Frequency=1022994
+>>> [  402.621496] stb6100_get_bandwidth: Bandwidth=52000000
+>>> [  404.541047] _stb0899_read_reg: Read error, Reg=[0xf525], Status=-121
+>>> [  404.541749] mantis stop feed and dma
+>>
+>> I will need the stb0899 and stb6100 modules to be loaded with verbose=5
+>> parameter, for understanding what's happening.
+>>
+>>
+>> Regards,
+>> Manu
+>>
+> 
+> 
 
 
 _______________________________________________
