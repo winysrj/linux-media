@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.okg-computer.de ([85.131.254.125])
+Received: from wf-out-1314.google.com ([209.85.200.168])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@okg-computer.de>) id 1JSUtD-0001Av-6S
-	for linux-dvb@linuxtv.org; Fri, 22 Feb 2008 11:12:23 +0100
-Received: from [172.21.103.233] (nat-1.rz.uni-karlsruhe.de [129.13.72.153])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mailhost.okg-computer.de (Postfix) with ESMTP id 01B9944328
-	for <linux-dvb@linuxtv.org>; Fri, 22 Feb 2008 11:12:19 +0100 (CET)
-Message-ID: <47BEA002.2080409@okg-computer.de>
-Date: Fri, 22 Feb 2008 11:12:18 +0100
-From: =?ISO-8859-15?Q?Jens_Krehbiel-Gr=E4ther?=
- <linux-dvb@okg-computer.de>
-MIME-Version: 1.0
+	(envelope-from <joserobleda@gmail.com>) id 1JTLoy-0007vm-Mw
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 19:43:33 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so676029wfa.17
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 10:43:27 -0800 (PST)
+Message-ID: <400219b50802241043i72439f54p7b0c2bffc0d28187@mail.gmail.com>
+Date: Sun, 24 Feb 2008 19:43:27 +0100
+From: "Jose Ignacio Andres Hernandez" <joserobleda@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <47BDA96B.7080700@okg-computer.de>	<200802212208.05930.dkuhlen@gmx.net>	<47BE095E.3040301@okg-computer.de>
-	<200802221106.45303.dkuhlen@gmx.net>
-In-Reply-To: <200802221106.45303.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
- STB0899)
+MIME-Version: 1.0
+Subject: [linux-dvb] SkyStar REV 2.8
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,35 +18,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1678874380=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dominik Kuhlen schrieb:
-> Hi,
->
-> -----snip----
->   
->> Great, that was the trick, now scanning and szap work fine.
->>
->> Thanks for that hint!
->>     
-> You're welcome.
->
-> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
-> Currently I get a loss of about 1 TS packet every second or even more (with both symbol rates).
-> And there is exactly one TS packet missing (I diffed a TS hexdump).
-> If it were the USB controller that drops packets it would be a loss of 5 consecutive TS packets. (940 bytes iso frame size)
->   
+--===============1678874380==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_4802_20993545.1203878607034"
+
+------=_Part_4802_20993545.1203878607034
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, first of all sorry for my english, i'm spanish.
+
+I saw in this mailing list a thread like this but i dont resolve my problem.
+I have a SkyStar 2 rev 2.8a, the systems appers to recognize it, but doesn't
+make a /dev/dvb folder.
+anyone have the same problem? or better, the way to resolve this?
+
+Thanks!
+
+lspci | grep B2C2
+04:00.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB
+chip / Technisat SkyStar2 DVB card (rev 02)
+
+------=_Part_4802_20993545.1203878607034
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, first of all sorry for my english, i&#39;m spanish.<br><br>I saw in this mailing list a thread like this but i dont resolve my problem.<br>I have a SkyStar 2 rev 2.8a, the systems appers to recognize it, but doesn&#39;t make a /dev/dvb folder. <br>
+anyone have the same problem? or better, the way to resolve this?<br><br>Thanks!<br><br>lspci | grep B2C2<br>04:00.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / Technisat SkyStar2 DVB card (rev 02)<br>
+<br>
+
+------=_Part_4802_20993545.1203878607034--
 
 
-I will test it soon and give a report.
-
-Jens
+--===============1678874380==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1678874380==--
