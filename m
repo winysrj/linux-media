@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1D8D9nA012767
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 03:13:09 -0500
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.234])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1D8CbA7002164
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 03:12:37 -0500
-Received: by wr-out-0506.google.com with SMTP id 70so5448737wra.7
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:12:36 -0800 (PST)
-Date: Wed, 13 Feb 2008 00:12:07 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Christopher Harvey <arbuckle911@gmail.com>
-Message-ID: <20080213081206.GA21174@plankton.ifup.org>
-References: <47AF6564.6070602@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1OLe1E4016710
+	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 16:40:01 -0500
+Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
+	[195.238.6.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1OLdURT027809
+	for <video4linux-list@redhat.com>; Sun, 24 Feb 2008 16:39:30 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Sun, 24 Feb 2008 22:46:09 +0100
+References: <47BC8BFC.2000602@kaiser-linux.li>
+	<175f5a0f0802221615j3d2ec239r2e35d7c14dc80a28@mail.gmail.com>
+	<47C0794B.5070807@free.fr>
+In-Reply-To: <47C0794B.5070807@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Content-Disposition: inline
-In-Reply-To: <47AF6564.6070602@gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: select() problems with uvc drivers.
+Message-Id: <200802242246.09256.laurent.pinchart@skynet.be>
+Cc: 
+Subject: Re: V4L2_PIX_FMT_RAW
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,17 +32,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 15:58 Sun 10 Feb 2008, Christopher Harvey wrote:
-> Hello,
-> I've created a small c program that uses pure v4l2 code to read from a
-> webcam on a uvc driver then copy that data into an SDL overlay. I've
-> posted the code here:
+On Saturday 23 February 2008, Thierry Merle wrote:
+> H. Willstrand a écrit :
+> > Hi Thierry,
+>
+> [SNIP]
+>
+> > Ok, so the idea is to make converting and decompression transparent
+> > for the application.
+> >
+> > Are there any plans to run the v4l2_helper as an shared object in the
+> > application process with a direct interface? (to avoid the
+> > kernel-to-user-space, user-to-kernel-space, kernel-to-user-space)
+>
+> Yes, this is the aim of the project; the final step I hope will show a
+> new library that will be used by applications, discussing directly with
+> the base drivers.
 
-Just FYI- this was solved over on the UVC list.
+I really want to emphasise this. The final solution must not use any userspace 
+daemon. The decompression (and rather transcoding) layer will be used 
+directly by applications. This will of course not be transparent.
 
-Cheers,
+> Please join to the v4l2-library mailing-list to discuss about the
+> implementation of the helper daemon in that way.
+> Following discussions about this specific subject will be easier!
 
-	Brandon
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
