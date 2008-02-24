@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aiolos.otenet.gr ([195.170.0.93] ident=OTEnet-mail-system)
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vnonas@otenet.gr>) id 1JUmjm-0001pm-4h
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 18:40:06 +0100
-Message-ID: <47C70E0A.4070207@otenet.gr>
-Date: Thu, 28 Feb 2008 19:39:54 +0000
-From: Vangelis Nonas <vnonas@otenet.gr>
+	(envelope-from <ysangkok@gmail.com>) id 1JT546-00089C-Qa
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 01:50:02 +0100
+Received: by fk-out-0910.google.com with SMTP id z22so1204717fkz.1
+	for <linux-dvb@linuxtv.org>; Sat, 23 Feb 2008 16:49:59 -0800 (PST)
+Message-ID: <15a344380802231649m6911cf25s326ba782d0706331@mail.gmail.com>
+Date: Sun, 24 Feb 2008 01:49:58 +0100
+From: Ysangkok <ysangkok@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <15a344380802221804v1c4cf298oa80ac3552eb645ff@mail.gmail.com>
 MIME-Version: 1.0
-To: "Oliver Bardenheier (obardenh)" <obardenh@cisco.com>
-References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com><47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com><47C1764C.5070103@otenet.gr>	<47C1AFC1.7050704@otenet.gr><47C19735.4030601@gmail.com>	<47C1D52B.6070906@otenet.gr><47C1C55F.5030406@gmail.com>	<47C32947.1030604@otenet.gr><47C33CB1.1080502@gmail.com>	<47C49F79.1080704@otenet.gr><47C48845.4030808@gmail.com><7FA4B8777C810C4B8F3ABBB47DF0F375064C4A7B@xmb-ams-332.emea.cisco.com><47C64FB0.3020201@iki.fi><7FA4B8777C810C4B8F3ABBB47DF0F375064C510B@xmb-ams-332.emea.cisco.com>	<47C6D8D0.5060107@iki.fi>
-	<7FA4B8777C810C4B8F3ABBB47DF0F375064C55EA@xmb-ams-332.emea.cisco.com>
-In-Reply-To: <7FA4B8777C810C4B8F3ABBB47DF0F375064C55EA@xmb-ams-332.emea.cisco.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar
- HD:	Problems	scaning and zaping
+Content-Disposition: inline
+References: <15a344380802220720j4ce3a2f0y8401c4e9b90bb553@mail.gmail.com>
+	<15a344380802220739i15ba0739na6372c8b61695fca@mail.gmail.com>
+	<20080222204943.GA16321@aidi.santinoli.com>
+	<15a344380802221801n70ba6595o61e7df8d34bca116@mail.gmail.com>
+	<15a344380802221804v1c4cf298oa80ac3552eb645ff@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge WinTV Nova-T Stick problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,106 +31,114 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+2008/2/23, Ysangkok <ysangkok@gmail.com>:
+>   2008/2/22, David Santinoli <marauder@tiscali.it>:
+>
+>  > On Fri, Feb 22, 2008 at 04:39:05PM +0100, Ysangkok wrote:
+>   >  > However I cannot get it to work. I have fetched the firmware
+>   >  > dvb-usb-dib0700-1.10.fw (34306 bytes). When I use (dvb)scan I get
+>   >  > "tuning failed".
+>   >
+>   >
+>   > Hi Ysangkok,
+>   >   I have a Nova-T Stick very similar to yours (mine has USB
+>   >  vendor:product ID 2040:7060 while yours is 2040:7070).  Assuming the
+>   >  hardware is substantially the same, you might want to 'modprobe mt2060'
+>   >  and check for this line in the dmesg output:
+>   >
+>   >  MT2060: successfully identified (IF1 = 1220)
+>   >
+>   >  Cheers,
+>   >
+>   >  David
+>   >
+>
+>
+> Hello David,
+>
+>   I modprobe'd mt2060, however it doesn't render any additional lines in
+>   dmesg. The module does show up in lsmod (attached).
+>
+>   Anyway, I forgot to tell you that I _did_ compile the latest linux-dvb
+>   git tree (about three days ago), however I am using the default Ubuntu
+>   kernel (2.6.22-14-generic). However if I compiled my own linux-dvb I
+>   understood that I did not need to have the absolute latest kernel.
+>
+>   Next time I reboot I'll check what makes it show all those error
+>   messages in dmesg.
+>
+>   I have an old syslog which has all the error messages, which look like this:
+>
+>   Feb 21 09:44:35 Gigabob kernel: [  541.199844] dib0700: RC Query Failed
+>   Feb 21 09:44:35 Gigabob kernel: [  541.199856] dvb-usb: error while
+>   querying for an remote control event.
+>   Feb 21 09:44:35 Gigabob kernel: [  541.351680] dib0700: RC Query Failed
+>   Feb 21 09:44:35 Gigabob kernel: [  541.351692] dvb-usb: error while
+>   querying for an remote control event.
+>   Feb 21 09:44:35 Gigabob kernel: [  541.503522] dib0700: RC Query Failed
+>   Feb 21 09:44:35 Gigabob kernel: [  541.503538] dvb-usb: error while
+>   querying for an remote control event.
+>   Feb 21 09:44:36 Gigabob kernel: [  541.655351] dib0700: RC Query Failed
+>
+>   And it goes on like that :P
+>
+>   The full syslog is 2,5 MB. I can upload if you wan't it, but there is
+>   not anything special.
+>
+>   Regards,
+>   Ysangkok
+>
 
-I think this page is very useful, because it explains the procedure 
-quite well (also tells you about modified scan and zap):
-http://www.linuxtv.org/wiki/index.php/Multiproto
+Hello again,
 
-Regards
+I am sorry for top posting in the past. I forgot that I shouldn't.
 
+I thought maybe that the firmware was wrong. Since the device works in
+Vista, maybe I should try stealing its firmware. However, I do not
+know how to do this.
 
-Oliver Bardenheier (obardenh) wrote:
-> No problem,  :-)
->
-> You just check out the tree via the webpage:
-> http://jusst.de/hg/multiproto
->
-> then click on the needed changeset
-> http://jusst.de/hg/multiproto/rev/0448e5a6d8a6 
->
-> and download the bzip with the complete changeset
-> http://jusst.de/hg/multiproto/archive/0448e5a6d8a6.tar.bz2
->
-> The rest is routine....     :-)
->
-> Oliver
->
->
-> -----Original Message-----
-> From: linux-dvb-bounces@linuxtv.org
-> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Seppo Ingalsuo
-> Sent: Donnerstag, 28. Februar 2008 16:53
-> To: linux-dvb@linuxtv.org
-> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re:
-> TechniSat SkyStar HD: Problems scaning and zaping
->
-> Oliver Bardenheier (obardenh) wrote:
->   
->>  Seppo, You should use the group-mailer linux-dvb@linuxtv.org
->>   
->>     
-> Sorry Olivier, I didn't mean to send you personal email!
->
-> I still have the same problem and I'm not familiar with various DVB
-> driver sources discussed here (hg-tree, mantis). As I suppose I have the
-> same issue as discussed in this thread, how do I retrieve an older
-> version of the driver for TT S2-3200 that would work?
->
-> BR,
-> Seppo
->
->   
->> regards
->> Oliver
->>
->> -----Original Message-----
->> From: Seppo Ingalsuo [mailto:seppo.ingalsuo@iki.fi]
->> Sent: Donnerstag, 28. Februar 2008 07:08
->> To: Oliver Bardenheier (obardenh)
->> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re:
->> TechniSat SkyStar HD: Problems scaning and zaping
->>
->> Oliver Bardenheier (obardenh) wrote:
->>   
->>     
->>> I can confirm that current hg-tree breaks SkyStarHD. Mostly unusable,
->>>       
->
->   
->>> many transponders not working.
->>> I changed back to  45eec532cefa  and everything is working fine.
->>>   
->>>     
->>>       
->> I'm using multiproto-74c6c2ee613b grabbed yesterday and I was able to 
->> see only BBC World from Astra 19.2E. Other channels I tried to zap to 
->> didn't work. Also there seemed to be problems in driving reliably 
->> diseqc positioner (that the old TT budget-s handled fine).
->>
->> It was my first experience with brand new TT S2-3200 and vdr 1.5.16 
->> with Reinhard's H.264 patch set.
->>
->> BR,
->> Seppo
->>
->>   
->>     
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
->   
+I am also wondering if I can just boot into Vista and let it load the
+firmware. If I then reboot, I wonder if the firmware will still be in
+the stick, so Linux can use it?
 
+BTW, here's the output from dvbscan:
+$ scan -vvvvvvvv /usr/share/doc/dvb-utils/examples/scan/dvb-t/dk-Copenhagen
+scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/dk-Copenhagen
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 714000000 0 3 9 1 1 0 0
+>>> tune to: 714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+WARNING: >>> tuning failed!!!
+>>> tune to: 714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+(tuning failed)
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+
+No output in dmesg.
+
+Regards,
+Janus Troelsen
 
 _______________________________________________
 linux-dvb mailing list
