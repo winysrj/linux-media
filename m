@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSsdo-0006vC-AW
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 12:34:04 +0100
-Message-ID: <47C004A4.4020302@shikadi.net>
-Date: Sat, 23 Feb 2008 21:33:56 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
-To: Nico Sabbi <Nicola.Sabbi@poste.it>
-References: <47BFBA0D.2080607@shikadi.net>
-	<200802231039.33642.Nicola.Sabbi@poste.it>
-In-Reply-To: <200802231039.33642.Nicola.Sabbi@poste.it>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How do you stream the entire MPEG-TS with dvbstream?
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JTNAm-0001Rn-Rq
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 21:10:08 +0100
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1JTNAg-0002Mb-S7
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 20:10:02 +0000
+Received: from pop9-633.catv.wtnet.de ([213.209.74.122])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 20:10:02 +0000
+Received: from Fritsche.Markus by pop9-633.catv.wtnet.de with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 20:10:02 +0000
+To: linux-dvb@linuxtv.org
+From: Markus Fritsche <Fritsche.Markus@gmx.net>
+Date: Sun, 24 Feb 2008 20:59:58 +0100
+Message-ID: <fpsibu$4ea$1@ger.gmane.org>
+Mime-Version: 1.0
+Subject: [linux-dvb] ADS Tech Mini Dual TV USB
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +32,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> with the same drivers and a different version of dvbstream?
-> In any case you should always try a fresh cvs checkout of dvbstream.
-> A simple test you should run  is this:
-> 
->  dvbstream -f 226500 -gi 16 -bw 7 -o 8192 > dump.ts
-> and try to play the dump.ts from another terminal. If you see corruptions
-> then report back, please.
-> P.S. 1.7 and 3 MB/s are really low bandwidth usage that shouldn't cause any 
-> trouble
+Hi,
 
-OH, well this was with my distribution's most recent version, which I
-assumed would be only a month or two behind CVS.  Unfortunately I've
-just realised that according to the banner it's version 0.5, whereas the
-"old" version I was running (with a last modified date of 2004) is
-version 0.6!
+searching in the internet I found that the USB stick is (maybe)
+experimentally supported by the tm6000 driver. The wiki page
+http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028 gives an
+advice how to extract the firmware out of the driver; however, the
+driver for my stick (PTV339 WHQL Driver 1.0.0.36.exe) doesn't install a
+file named hcw85bda.sys, but a file named "PTV339.SYS", being 283kb big.
 
-I was going to mention a couple of other issues I found while I was
-running your above command, but given that the version is so out of date
-I think I'll go file a bug report with my distro instead :-)
+It also installs serveral files in C:\WINDOWS\PTV339\XCEIVE (*.I2C) with
+names like "XC3028_*.I2C").
 
-Thanks for your response!
+Does anyone know a trick how to extract an fw from there or if some
+other firmware might work with the above mentioned stick?
 
-Cheers,
-Adam.
+Regards, Markus
 
 
 _______________________________________________
