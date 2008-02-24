@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from py-out-1112.google.com ([64.233.166.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JSEnu-000660-VC
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 18:01:51 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JWL00I6ZLXZHW60@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 21 Feb 2008 12:01:14 -0500 (EST)
-Date: Thu, 21 Feb 2008 12:01:11 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <93514.29363.qm@web45816.mail.sp1.yahoo.com>
-To: markst tim <markst_tim@yahoo.com>, linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <47BDAE57.9010904@linuxtv.org>
-MIME-version: 1.0
-References: <93514.29363.qm@web45816.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] drivers
+	(envelope-from <mariofutire@googlemail.com>) id 1JTPIR-0007LN-H5
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 23:26:11 +0100
+Received: by py-out-1112.google.com with SMTP id a29so1418954pyi.0
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 14:26:07 -0800 (PST)
+Message-ID: <47C1EEFB.7020600@googlemail.com>
+Date: Sun, 24 Feb 2008 22:26:03 +0000
+From: Andrea <mariofutire@googlemail.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Length of /dev/dvb/adapter0/dvr0's buffer.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,35 +24,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-markst tim wrote:
-> thank u for the reply. i saw the page you mentioned. but i dont know how 
-> to download that and which driver is needed for the card. so please tell 
-> me the way.
-> 
-> */Steven Toth <stoth@linuxtv.org>/* wrote:
-> 
->     markst tim wrote:
->      > hi
->      > am new to this site. im having NOVA-S-Plus card, and
->      > re i dont know how to download the drivers for
->      > this,can u tell me the sites.
-> 
->     Read the wiki at linuxtv.org
-> 
->     - Steve
+Hi,
 
-Please don't drop the mailing list from the cc list, it's rude.
+I'm trying to read from /dev/dvb/adapter0/dvr0.
+The problem is that the process reading sometimes is not fast enough and after a while I get errno 
+75 when I try to read from it.
 
-Please don't top post, your replies need to go underneath the original 
-comment.
+On average the speed is ok, so it should work.
+There must be a buffer behind dvr0 that goes in error onece it is full.
 
-Read my response and please read the wiki instructions available at 
-linuxtv.org. This describes how to download, compile and use current and 
-development drivers.
+1) how can I make it bigger?
+2) how can I check how full it is?
 
-Post any new questions back into this thread.
-
-- Steve
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
