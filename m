@@ -1,18 +1,25 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from hpsmtp-eml14.kpnxchange.com ([213.75.38.114])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from smtp1.betherenow.co.uk ([87.194.0.68])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <scha0273@planet.nl>) id 1JQjMl-0000qK-Ng
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 14:15:35 +0100
-Message-ID: <47B83357.50207@planet.nl>
-Date: Sun, 17 Feb 2008 14:15:03 +0100
-From: henk schaap <haschaap@planet.nl>
-MIME-Version: 1.0
-To: Igor <goga777@bk.ru>
-References: <47B6A9DB.501@planet.nl>
-	<E1JQJvK-000BwB-00.goga777-bk-ru@f128.mail.ru>
-In-Reply-To: <E1JQJvK-000BwB-00.goga777-bk-ru@f128.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] multiproto and tt3200: don't get a lock
+	(envelope-from <tghewett2@onetel.com>) id 1JTMmR-0006WM-33
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 20:44:59 +0100
+Message-Id: <B3DD497A-4D52-4717-B172-208C2FE26D8D@onetel.com>
+From: Tim Hewett <tghewett2@onetel.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <47C19AED.90504@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sun, 24 Feb 2008 19:44:25 +0000
+References: <65A7136B-8AAD-44EE-921E-5376D7BAC14E@onetel.com>
+	<47C09CB5.8060804@gmail.com>
+	<FE251317-5C82-44A7-B2F3-7F0254A787E6@onetel.com>
+	<47C0AF98.5000703@gmail.com>
+	<342209CC-E522-49BC-A3D6-7A9A7CE23740@onetel.com>
+	<47C0BC6D.2060606@gmail.com>
+	<AC97F37D-D99C-402A-BFF4-AB6949597464@onetel.com>
+	<47C19AED.90504@gmail.com>
+Cc: Tim Hewett <tghewett2@onetel.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave
+	AD	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,58 +27,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1607080068=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1607080068==
-Content-Type: text/html; charset=KOI8-R
-Content-Transfer-Encoding: 7bit
+I have three diseqc switches, all different models, they all behave in  
+this way. The PC also has three Skystar 2 (non HD) card and they all  
+have trouble with these switches. I had hoped that because the Skystar  
+HD2 has its own power supply separate from the PCI bus, that might  
+help, but no.
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=KOI8-R" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Igor, <br>
-<br>
-Thank you for pointing me in the good direction. I checked the szap.c
-from Manu again and noticed that I had to change the declarations of
-the include files frontend.h and lnb.h (I copied them from the
-multiproto-tree to the same directory as szap.c). It seems to be that <u>#include
-&lt;frontend.h&gt;</u> has a different meaning than <u>#include
-"frontend.h"</u> (I am not familiair with C).<br>
-<br>
-This means for szap.c:<br>
-#include "frontend.h"<br>
-#include "version.h"<br>
-#include "lnb.h"<br>
-And for lnb.c:<br>
-#include "lnb.h"<br>
-<br>
-This is it. After compiling szap works good and I get a lock for any
-channel!<br>
-<br>
-Thanks!<br>
-<br>
-Henk<br>
-<br>
-</body>
-</html>
+My Technomate TM1000 receiver has no problems with any of the switches.
+
+Different subject: I want to modify dvbstream to be able to tune the  
+SkyStar HD2, is there any information on the changes to the API? I  
+have tried to follow the changes made to szap.c, but so far without  
+any success in terms of getting dvbstream to tune.
+
+Tim.
 
 
---===============1607080068==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On 24 Feb 2008, at 16:27, Manu Abraham wrote:
+
+> Tim Hewett wrote:
+>> Manu,
+>> The Diseqc switch has been removed and now all polarities tune, and  
+>> DVB-S2 works as well.
+>
+> Bad diseqc switch ?
+>
+> Regards,
+> Manu
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1607080068==--
