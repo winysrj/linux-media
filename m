@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.182])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JTDcS-0008IA-2J
-	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 10:58:04 +0100
-Received: by py-out-1112.google.com with SMTP id a29so1168768pyi.0
-	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 01:57:58 -0800 (PST)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <nico@youplala.net>) id 1JTQ2v-0003HL-49
+	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 00:14:13 +0100
+Received: from [11.11.11.138] (user-54458eb9.lns1-c13.telh.dsl.pol.co.uk
+	[84.69.142.185])
+	by mail.youplala.net (Postfix) with ESMTP id 3C515D88121
+	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 00:13:19 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
 To: linux-dvb@linuxtv.org
-Date: Sun, 24 Feb 2008 10:57:51 +0100
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_f+TwHL6mFZWqfwm"
-Message-Id: <200802241057.51355.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: scan file for es-Caceres
+Date: Sun, 24 Feb 2008 23:13:17 +0000
+Message-Id: <1203894797.6400.17.camel@youkaida>
+Mime-Version: 1.0
+Subject: [linux-dvb] A positive comment - Commercial detection
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,58 +20,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---Boundary-00=_f+TwHL6mFZWqfwm
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+In those days of highlighting shortcomings and bitter comments, I'd like
+to express my satisfaction with MythTV.
 
-=46rom a kaffeine user ...
+I've had a history of bad reception of the local DVB-T signal. It was
+bad enough to make the dumped MPEG-2 files quite ugly and corrupted.
 
-Christoph
+Because of this the commercial detection process did not really work. It
+was choking on the mpeg crap.
 
+I have corrected my reception.
 
-=2D---------  Weitergeleitete Nachricht  ----------
+And the commercial detection is working like a charm.
 
-Betreff: [Kaffeine-user] new ubication
-Datum: Dienstag 19 Februar 2008
-Von: milord racing <milordracing@gmail.com>
-An: kaffeine-user@lists.sf.net
+Very impressive.
 
-new ubication by caceres (spain)
+Yes, MythTV has legacy to clean-up. Yes, it has ugly sides. Yes the
+interface and setup can be quite scary.
 
-=2D------------------------------------------------------
+Yes, Elisa looks very cool. Yes other projects are attractive. Yes,
+there are other great projects out there.
 
---Boundary-00=_f+TwHL6mFZWqfwm
-Content-Type: text/plain;
-  name="es-Caceres"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline;
- filename="es-Caceres"
+But they are all motivated by MythTV, they all have quite a way to go
+before they provide the level of features, functionality and
+adaptability that MythTV has today.
 
-T 618000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 39: 8Madrid, TMT-Popular TV, Kiss TV, IntereconomÃ­a TV
-T 706000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 50: EsMadrid TV, Ver-t, EM2, Libertad Digital TV
-T 770000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 58: La Primera, La 2, Canal 24H, Clan/TVE 50, RNE1, RNE Clásica, RNE 3
-T 810000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 63: Telemadrid, La Otra, Onda 6
-T 834000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 66: Veo, Veo 2, Net TV, Teledeporte
-T 842000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 67: Cuatro, CNN+, 40 Latino, La Sexta 1
-T 850000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 68: Telecinco, Telecinco Sport, Telecinco Estrellas, Fly Music
-T 858000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE     # Canal 69: Antena 3, Antena Neox, Antena Nova, La Sexta 2
-T 794000000 8Mhz 2/3 1/2 QAM64 8K 1/4 NONE     # Canal 61: Canal Extremadura, Extremadura Television
+And when there is no competition, things are not as good, heh?
 
---Boundary-00=_f+TwHL6mFZWqfwm
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+So MythTV community, way to go, and keep it up!
+
+And when is 0.21 going to be released? Just kidding...
+
+Nico
+http://www.youplala.net/linux/home-theater-pc
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_f+TwHL6mFZWqfwm--
