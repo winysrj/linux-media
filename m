@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n35.bullet.mail.ukl.yahoo.com ([87.248.110.168])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JU9js-0005Zm-3h
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 01:01:36 +0100
-Date: Tue, 26 Feb 2008 19:59:22 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <20080118155007.050e2f8c@wanadoo.fr>
-In-Reply-To: <20080118155007.050e2f8c@wanadoo.fr> (from
-	david.bercot@wanadoo.fr on Fri Jan 18 10:50:07 2008)
-Message-Id: <1204070362l.7293l.2l@manu-laptop>
+Received: from nf-out-0910.google.com ([64.233.182.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mariofutire@googlemail.com>) id 1JTPn8-0002VN-7C
+	for linux-dvb@linuxtv.org; Sun, 24 Feb 2008 23:57:54 +0100
+Received: by nf-out-0910.google.com with SMTP id d21so699827nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 24 Feb 2008 14:57:50 -0800 (PST)
+Message-ID: <47C1F667.8060602@googlemail.com>
+Date: Sun, 24 Feb 2008 22:57:43 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  My own TT S2-3200 problems ;-)
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] how to make gnutv more resilient
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,77 +24,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 01/18/2008 10:50:07 AM, David BERCOT wrote:
-> Hi,
-> 
-> Like many others, I'm trying to use my TT S2-3200 under Debian. 
-> Before
-> trying softwares (VDR, etc...), I'd like to install it properly.
-> 
-> Here is my steps (from many tutorials) :
-> FIRMWARE
-> # mkdir /data/debian/DVB
-> # cd /data/debian/DVB
-> # wget http://www.linuxtv.org/downloads/firmware/dvb-ttpci-01.fw-2622
-> # cd /lib/firmware/
-> # cp -a /data/debian/DVB/dvb-ttpci-01.fw-2622 .
-> # ln -s dvb-ttpci-01.fw-2622 dvb-ttpci-01.fw
-> 
-> DRIVER
-> # cd /data/debian/DVB
-> # apt-get install mercurial
-> # hg clone http://jusst.de/hg/multiproto
-> # cd multiproto
-> # make
-> # make install
-> # modprobe stb6100
-> # modprobe stb0899
-> # modprobe lnbp21
-> # modprobe budget-ci
-> 
-> DMESG
-> # dmesg
-> saa7146: register extension 'budget_ci dvb'.
-> ACPI: PCI Interrupt 0000:05:01.0[A] -> GSI 22 (level, low) -> IRQ 22
-> saa7146: found saa7146 @ mem ffffc20001598c00 (revision 1, irq 22)
-> (0x13c2,0x1019).
-> saa7146 (0): dma buffer size 192512
-> DVB: registering new adapter (TT-Budget S2-3200 PCI)
-> adapter has MAC addr = 00:d0:5c:0b:a5:8b
-> input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
-> budget_ci: CI interface initialised
-> stb0899_write_regs [0xf1b6]: 02
-> stb0899_write_regs [0xf1c2]: 00
-> stb0899_write_regs [0xf1c3]: 00
-> _stb0899_read_reg: Reg=[0xf000], data=81
-> stb0899_get_dev_id: ID reg=[0x81]
-> stb0899_get_dev_id: Device ID=[8], Release=[1]
-> _stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400],
-> Offset=[0xf334], Data=[0x444d4431]
-> _stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400],
-> Offset=[0xf33c], Data=[0x00000001] stb0899_get_dev_id: Demodulator
-> Core
-> ID=[DMD1], Version=[1] _stb0899_read_s2reg Device=[0xfafc], Base
-> address=[0x00000800], Offset=[0xfa2c], Data=[0x46454331]
-> _stb0899_read_s2reg Device=[0xfafc], Base address=[0x00000800],
-> Offset=[0xfa34], Data=[0x00000001] stb0899_get_dev_id: FEC Core
-> ID=[FEC1], Version=[1] stb0899_attach: Attaching STB0899
-> stb6100_attach: Attaching STB6100 DVB: registering frontend 0 
-> (STB0899
-> Multistandard)... dvb_ca adaptor 0: PC card did not respond :(
-> 
-> Do you have any clue about this error ?
-> 
-> Thank you very much.
->
+Hi,
 
-Hi David,
-did you manage to test with the cam to get something working?
-I would be thrilled to know if someone has ever managed to get the TT 
-3200 to work with a CAM (I mean the full monty: lock+good picture ;-)
-Bye
-Manu
+I usually save TV to a network disk using gnutv.
+Sometimes I get
 
+"DVR device read failure"
+
+The network is wireless, I'm using 54 Mb/s which should be more that enough for at least 1 channel.
+Sometimes though, under heavy load it stops.
+I think some network congestion makes gnutv read too slowly from dvr0 so that it breaks.
+
+I would rather loose a couple of frames instead than everything after that point.
+
+The patch does 2 things
+
+1) removes poll. I don't knot it much, but once it fails, it keeps failing. While read can go back 
+to normal after a read failure. To be honest I don't know why it is there.
+
+2) instead of returning from the function we just skip and continue.
+
+I've tested it adding a sleep(3) every 20 seconds and the file I get is not perfect, but can be 
+played in mplayer with a bad frame every 20 seconds (as expected).
+
+I thought in the beginning that I should read/write multiples of 188 bytes, but mplayer seems not to 
+bother about that.
+
+What do you think?
+
+diff -r 29e190fef1e3 util/gnutv/gnutv_data.c
+--- a/util/gnutv/gnutv_data.c   Tue Feb 12 18:01:37 2008 +0100
++++ b/util/gnutv/gnutv_data.c   Sun Feb 24 22:47:11 2008 +0000
+@@ -213,28 +213,15 @@ static void *fileoutputthread_func(void*
+  {
+         (void)arg;
+         uint8_t buf[4096];
+-       struct pollfd pollfd;
+         int written;
+
+-       pollfd.fd = dvrfd;
+-       pollfd.events = POLLIN|POLLPRI|POLLERR;
+-
+         while(!outputthread_shutdown) {
+-               if (poll(&pollfd, 1, 1000) != 1)
+-                       continue;
+-               if (pollfd.revents & POLLERR) {
+-                       if (errno == EINTR)
+-                               continue;
+-                       fprintf(stderr, "DVR device read failure\n");
+-                       return 0;
+-               }
+-
+                 int size = read(dvrfd, buf, sizeof(buf));
+                 if (size < 0) {
+                         if (errno == EINTR)
+                                 continue;
+                         fprintf(stderr, "DVR device read failure\n");
+-                       return 0;
++                       continue;
+                 }
+
+                 written = 0;
 
 _______________________________________________
 linux-dvb mailing list
