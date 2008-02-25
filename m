@@ -1,21 +1,16 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1JN728-0001Gm-IA
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 14:43:20 +0100
-Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 47AA585D00006E70 for linux-dvb@linuxtv.org;
-	Thu, 7 Feb 2008 14:43:17 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Thu, 7 Feb 2008 14:43:17 +0100
-References: <47AB0A20.2020000@kliese.wattle.id.au>
-In-Reply-To: <47AB0A20.2020000@kliese.wattle.id.au>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from web33106.mail.mud.yahoo.com ([209.191.69.136])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <simeonov_2000@yahoo.com>) id 1JThhL-0004T7-Lb
+	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 19:05:08 +0100
+Date: Mon, 25 Feb 2008 10:04:30 -0800 (PST)
+From: Simeon Simeonov <simeonov_2000@yahoo.com>
+To: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802071443.17432.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] MSI TV@nywhere A/D v1.1 mostly working
+Message-ID: <347808.47907.qm@web33106.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave AD
+	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +21,87 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 07 February 2008 14:39:44 Russell Kliese wrote:
+Hi Manu,
 
-> Analog TV worked without a problem (even with the older drivers).
->
-> There is still a problem with the digital decoder. Sometimes it
-> works fine (I can scan for channels and can run tzap to view a
-> channel using mplayer). However, sometimes these commands don't
-> work. I've noticed the following when running dmesg:
->
->
-> [ 6318.055521] tda1004x: found firmware revision 20 -- ok
->
-> I suspect that the card is failing to work because the firmware
-> sometimes isn't being uploaded for some reason. Does anybody have
-> any ideas why or what I could do to try and fix this?
->
-> Hopefully this problem can be sorted out and another card can be
-> added to the list of supported DVB-T cards. Yay!
+Thanks for the reply
+Yes, indeed I tried over the weekend and by selecting the higher limitation by ISEL register:
 
-afaik the last fw for the 10046 demodulator is version 29, that
-you can extract from the lifeview drivers
+if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0, 0x40)) {
+
+My rotor now moves. Do you think it is better to use static current protection?
+
+But unfortunately that is not the end of the story. The problem that I am
+having now is that patched mythtv rewrites the limits in my rotor?! And the weird thing is 
+it does in such a way that I had to take the motor apart to recalibrate it. It looks like there are
+hard limits in the rotor (Aston 1.2) firmware which are not the software limits because trying to reset 
+them either from Linux side or from Windoz did not help. So I actually had to take it apart to recalibrate
+the motor inside the rotor. I do not think there is a problem with the rotor itself because I have been using it for over 2 years with my other Twinhah 102g card without any problems.
+I also wrote a small command line program (using libsec) that will do only rotor commands. With that
+program I can do goto n, store, reset, soft limits. All there operations work fine. Goto nn steps also
+works somewhat even though it is not taking the specified number of steps precisely. I am not sure why.
+
+Getting back to my mythtv setup - I have a committed switch behind the rotor. So the rotor command is followed by (with 15ms delay) the switch, tone burst and then tunning commands. I turned on the verbose in mantis module and looked what i2c reports. The diseqc sequence looks correct. The only thing I see is that the fifo gets filled up by the end of the sequence so we have to wait for a few cycles before sending the next byte. So now I am thinking could there be any problems if the pause between writing the diseqc bytes is a bit longer since we write byte, check if fifo is full and then write the next byte. What do you think about that? I was thinking of trying to write the whole diseqc command and then check fifo or even better first check fifo and then write the command since we have 15ms between commands anyway.
+On the side - switch works 50% of the times so I should look into that too. It is a really good Spaun switch and even with 102g works flawlessly.
+
+
+Thanks for the help!
+Simeon
+
+
+
+----- Original Message ----
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Sent: Sunday, February 24, 2008 12:26:34 PM
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave AD SP400 rebadge)
+
+Manu Abraham wrote:
+> Simeon Simeonov wrote:
+>> Hi Gernot,
+>>
+>> I can confirm that I have similar experience to yours.
+>> By the way do you know if one can control from the soft side (register or some other means)
+>> the max current output for the card. I am having a problem when trying to tune with a rotor.
+>> On the Linux side the current seems to be capped at 300 mA as on the XP I see it goes to
+>> about 440 mA. I was still surprised that this card can supply less current than the 102g but
+>> we take what we get ...
+
+Can you please try this change, whether it helps in your case ?
+
+In mantis_dvb.c
+
+line #251
+
+if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0, 0)) {
+
+change it to
+
+if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0x80, 0x40)) {
+
+and see whether it helps in improving your current limited situation.
+according to the specification it should yield 500 - 650mA
+
+A word of caution, make sure that the auxilliary power connector is
+connected. Current drawn will be a bit much higher in this case,
+additionally Static Current Limiting is used, hence additional dissipation,
+which means more current drawn which might overload the PCI bus, hence
+  it would be nice to use the auxilliary power connector.
+
+Regards,
+Manu
+
+
+
+
+
+      ____________________________________________________________________________________
+Be a better friend, newshound, and 
+know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ 
+
 
 _______________________________________________
 linux-dvb mailing list
