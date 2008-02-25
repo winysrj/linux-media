@@ -1,20 +1,29 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail34.syd.optusnet.com.au ([211.29.133.218])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from ombos.raceme.org ([212.85.152.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <russell@kliese.wattle.id.au>) id 1JPIQj-0000Lh-2k
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 15:17:45 +0100
-Received: from [192.168.0.4] (c220-239-70-96.rochd3.qld.optusnet.com.au
-	[220.239.70.96]) (authenticated sender russell.kliese)
-	by mail34.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	m1DEHciY021048
-	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 01:17:39 +1100
-Message-ID: <47B2FDD7.6060701@kliese.wattle.id.au>
-Date: Thu, 14 Feb 2008 00:25:27 +1000
-From: Russell Kliese <russell@kliese.wattle.id.au>
+	(envelope-from <tof+linux-dvb@raceme.org>) id 1JTlaY-0002IH-B2
+	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 23:14:22 +0100
+Received: from localhost (mail.raceme.org [192.168.1.17])
+	by ombos.raceme.org (Postfix) with ESMTP id AD5DF1442C0
+	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 23:14:18 +0100 (CET)
+Received: from ombos.raceme.org ([192.168.1.17])
+	by localhost (ombos.raceme.org [192.168.1.17]) (amavisd-new, port 10024)
+	with ESMTP id PXsuQ-yeGQDa for <linux-dvb@linuxtv.org>;
+	Mon, 25 Feb 2008 23:14:12 +0100 (CET)
+Received: from [192.168.1.4] (abidos.raceme.org [81.57.143.226])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ombos.raceme.org (Postfix) with ESMTP id B0D1F144231
+	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 23:14:12 +0100 (CET)
+Message-ID: <47C33DB4.7010408@raceme.org>
+Date: Mon, 25 Feb 2008 23:14:12 +0100
+From: Christophe Boyanique <tof+linux-dvb@raceme.org>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Trying to solve firmware upload problem with MSI
- TV@nywhere A/D v1.1 card
+References: <47A98F3D.9070306@raceme.org> <47C3161F.4020802@raceme.org>
+	<2A6A7C5A-0D64-4E79-9CAF-4CA5FD8412C4@firshman.co.uk>
+In-Reply-To: <2A6A7C5A-0D64-4E79-9CAF-4CA5FD8412C4@firshman.co.uk>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,31 +34,18 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hello Ben Firshman you wrote :
+> Which one disables the remote? I don't use the remote, so I could try  
+> disabling it and see if I get any problems.
+>   
+This one disables the remote:
 
-I'm interested in trying to get the MSI TV@nywhere A/D v1.1 card 
-working. There is a problem with firmware uploads to the TDA10046A chip 
-being unreliable. I wonder if someone could give an overview on how the 
-firmware upload process works from the point of view of the driver and 
-what I settings I should be looking at to try and solve the problem 
-being experienced with this card?
+options dvb_usb disable_rc_polling=1
 
-I previously posted some details of what's happening with this card that 
-are available form 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-February/thread.html#23574
-
-I've cloned the mercural v4l-dvb repository and have begun setting up a 
-new card entry for this card and am looking for ideas of what I could 
-try to fix this unreliable firmware upload problem. Perhaps some GPIO 
-ports need to be initialized before uploading firmware?
-
-Cheers,
-
-Russell Kliese
-
+Christophe.
 
 
 _______________________________________________
