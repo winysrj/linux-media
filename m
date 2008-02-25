@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx2.bkc.lv ([195.244.128.30])
+Received: from nf-out-0910.google.com ([64.233.182.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ray@apollo.lv>) id 1JR3z8-0000zH-2H
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 12:16:34 +0100
-Received: from mx2.bkc.lv (localhost.bkc.lv [127.0.0.1])
-	by mx2.bkc.lv (Postfix) with ESMTP id 2FD75319823
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 13:16:23 +0200 (EET)
-Received: from [10.51.115.130] (unknown [195.244.131.35])
-	by mx2.bkc.lv (Postfix) with ESMTP id 056E031981F
-	for <linux-dvb@linuxtv.org>; Mon, 18 Feb 2008 13:16:23 +0200 (EET)
-Message-ID: <47B96906.6020806@apollo.lv>
-Date: Mon, 18 Feb 2008 13:16:22 +0200
-From: Raimonds Cicans <ray@apollo.lv>
+	(envelope-from <hansson.patrik@gmail.com>) id 1JTgnE-0000mD-19
+	for linux-dvb@linuxtv.org; Mon, 25 Feb 2008 18:07:08 +0100
+Received: by nf-out-0910.google.com with SMTP id d21so938447nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 25 Feb 2008 09:07:03 -0800 (PST)
+Message-ID: <8ad9209c0802250900tcbfa2d9v2494993cfb0e4604@mail.gmail.com>
+Date: Mon, 25 Feb 2008 18:00:06 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1203520472.4767.18.camel@pc08.localdom.local>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------000602000400050301030207"
-Subject: [linux-dvb] DVB-T initial tuning data file for lv-Riga
+Content-Disposition: inline
+References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
+	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
+	<1203461323.28796.26.camel@youkaida>
+	<1203466323.5358.29.camel@pc08.localdom.local>
+	<1203491540.28796.46.camel@youkaida>
+	<1203520472.4767.18.camel@pc08.localdom.local>
+Subject: Re: [linux-dvb] Very quiet around Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,47 +26,130 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------000602000400050301030207
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Feb 20, 2008 at 4:14 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hi Nico,
+>
+>  Am Mittwoch, den 20.02.2008, 07:12 +0000 schrieb Nicolas Will:
+>
+> > On Wed, 2008-02-20 at 01:12 +0100, hermann pitton wrote:
+>  > > > Now stop that logging madness and get back to work!
+>  > > >
+>  > > > ...
+>  > > >
+>  > > > ;o)
+>  > > >
+>  > > >
+>  > > > This is a rather comical situation, though... The debugging tool is
+>  > > > providing a rather unexpected and unwelcomed fix.
+>  > > >
+>  > > > Nico
+>  > > >
+>  > >
+>  > > Hi,
+>  > >
+>  > > no, it is not. It is well known!
+>  > >
+>  > > Timings are very critical on almost all drivers.
+>  > >
+>  > > We hold breath on almost everything coming down from above, nobody has
+>  > > the ability, or whom should ever want it, to test all possible side
+>  > > effects on all supported devices ...
+>  > >
+>  > > That something breaks is very common, and that others have to give the
+>  > > plumbers, is nothing new.
+>  > >
+>  > > To stay fair, it mostly has a good reason, and if there are some
+>  > > remaining ticks left, you might get it adjusted, but ...
+>  > >
+>  > > On the other side it is the same ...
+>  >
+>  > May post may have sounded offensive, apparently.
+>  >
+>  > Sorry about that, my intentions were on the lighter sides of life.
+>  >
+>  > Nico
+>  >
+>
+>  nothing offending at all, did enjoy your above comment :)
+>  and like your active support for others.
+>
+>  It is just not totally unexpected that high debug levels can have some
+>  spin-off and I'm curious about it.
+>
+>  Cheers,
+>  Hermann
+>
+>
+>
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
+Kernel 2.6.24-2
+Debug=15
+Got this after 5 minutes of LiveTV:
+(Dunno if it could be usefull or not)
 
---------------000602000400050301030207
-Content-Type: text/plain;
- name="lv-Riga"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="lv-Riga"
-
-IyBMYXR2aWEgLSBSaWdhIChsdi1SaWdhKQojIEdlbmVyYXRlZCBieSBSYWltb25kcyBDaWNh
-bnMKIyBVVEY4IGVuY29kaW5nCgojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFu
-c21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKCiMgRExSVEMKVCA2MTAw
-MDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzggTk9ORSAjIFdlYWsgc2lnbmFsISBW
-xIFqxaEgc2lnbsSBbHMhINCh0LvQsNCx0YvQuSDRgdC40LPQvdCw0LshCgojIEJhbHRrb20g
-VFYKVCA2NTAwMDAwMDAgOE1IeiAzLzQgMy80IFFBTTY0IDhrIDEvMTYgTk9ORQpUIDY1ODAw
-MDAwMCA4TUh6IDEvMiAxLzIgUVBTSyA4ayAxLzQgTk9ORQpUIDY2NjAwMDAwMCA4TUh6IDMv
-NCAzLzQgUUFNNjQgOGsgMS8xNiBOT05FClQgNjkwMDAwMDAwIDhNSHogMy80IDMvNCBRQU02
-NCA4ayAxLzE2IE5PTkUKVCA3NzgwMDAwMDAgOE1IeiAzLzQgMy80IFFBTTY0IDhrIDEvMTYg
-Tk9ORQpUIDgzNDAwMDAwMCA4TUh6IDMvNCAzLzQgUUFNNjQgOGsgMS8xNiBOT05FCgoKIyBX
-QVJOSU5HIQojIFNvbWUgYXBwbGljYXRpb25zIGRldGVjdCBpbmNvcnJlY3QgZ3VhcmQtaW50
-ZXJ2YWwuCgojIFVaTUFOxKpCVSEgCiMgRGHFvmFzIHByb2dyYW1tYXMgbmVrb3Jla3RpIG5v
-c2FrYSAiZ3VhcmQtaW50ZXJ2YWwiIHBhcmFtZXRydS4KCiMg0JLQndCY0JzQkNCd0JjQlSEK
-IyDQndC10LrQvtGC0L7RgNGL0LUg0L/RgNC+0LPRgNCw0LzQvNGLINC90LXQutC+0YDRgNC1
-0LrRgtC90L4g0L7Qv9GA0LXQtNC10LvRj9GO0YIg0L/QsNGA0LDQvNC10YLRgCAiZ3VhcmQt
-aW50ZXJ2YWwi
---------------000602000400050301030207
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+modifying (1) streaming state for 1
+data for streaming: 10 13
+>>> 0f 10 13 00
+usb 10-1: USB disconnect, address 2
+>>> 03 14 03 01 60 00
+ep 0 write error (status = -19, len: 6)
+mt2060 I2C write failed
+>>> 03 14 04 07 ff ff
+ep 0 write error (status = -19, len: 6)
+>>> 03 14 04 08 ff ff
+ep 0 write error (status = -19, len: 6)
+>>> 03 14 04 09 ff f0
+ep 0 write error (status = -19, len: 6)
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 ca
+ep 0 read error (status = -19)
+<<< 00 20
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
+>>> 02 17 81 fd
+ep 0 read error (status = -19)
+<<< 77 8d
+I2C read failed on address b
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------000602000400050301030207--
