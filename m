@@ -1,19 +1,18 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JPHgq-0005h9-Es
-	for linux-dvb@linuxtv.org; Wed, 13 Feb 2008 14:30:20 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Eduard Huguet <eduardhc@gmail.com>
-Date: Wed, 13 Feb 2008 14:29:48 +0100
-References: <47ADC81B.4050203@gmail.com> <200802122208.07450.zzam@gentoo.org>
-	<47B2E157.3050702@gmail.com>
-In-Reply-To: <47B2E157.3050702@gmail.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from n35.bullet.mail.ukl.yahoo.com ([87.248.110.168])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JU9js-0005Zm-3h
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 01:01:36 +0100
+Date: Tue, 26 Feb 2008 19:59:22 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <20080118155007.050e2f8c@wanadoo.fr>
+In-Reply-To: <20080118155007.050e2f8c@wanadoo.fr> (from
+	david.bercot@wanadoo.fr on Fri Jan 18 10:50:07 2008)
+Message-Id: <1204070362l.7293l.2l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802131429.48596.zzam@gentoo.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Some tests on Avermedia A700
+Subject: [linux-dvb] Re :  My own TT S2-3200 problems ;-)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,85 +23,80 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mittwoch, 13. Februar 2008, Eduard Huguet wrote:
+On 01/18/2008 10:50:07 AM, David BERCOT wrote:
 > Hi,
->     Here you have the dmesg output of "modprobe saa7134 i2c_scan=1":
+> 
+> Like many others, I'm trying to use my TT S2-3200 under Debian. 
+> Before
+> trying softwares (VDR, etc...), I'd like to install it properly.
+> 
+> Here is my steps (from many tutorials) :
+> FIRMWARE
+> # mkdir /data/debian/DVB
+> # cd /data/debian/DVB
+> # wget http://www.linuxtv.org/downloads/firmware/dvb-ttpci-01.fw-2622
+> # cd /lib/firmware/
+> # cp -a /data/debian/DVB/dvb-ttpci-01.fw-2622 .
+> # ln -s dvb-ttpci-01.fw-2622 dvb-ttpci-01.fw
+> 
+> DRIVER
+> # cd /data/debian/DVB
+> # apt-get install mercurial
+> # hg clone http://jusst.de/hg/multiproto
+> # cd multiproto
+> # make
+> # make install
+> # modprobe stb6100
+> # modprobe stb0899
+> # modprobe lnbp21
+> # modprobe budget-ci
+> 
+> DMESG
+> # dmesg
+> saa7146: register extension 'budget_ci dvb'.
+> ACPI: PCI Interrupt 0000:05:01.0[A] -> GSI 22 (level, low) -> IRQ 22
+> saa7146: found saa7146 @ mem ffffc20001598c00 (revision 1, irq 22)
+> (0x13c2,0x1019).
+> saa7146 (0): dma buffer size 192512
+> DVB: registering new adapter (TT-Budget S2-3200 PCI)
+> adapter has MAC addr = 00:d0:5c:0b:a5:8b
+> input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
+> budget_ci: CI interface initialised
+> stb0899_write_regs [0xf1b6]: 02
+> stb0899_write_regs [0xf1c2]: 00
+> stb0899_write_regs [0xf1c3]: 00
+> _stb0899_read_reg: Reg=[0xf000], data=81
+> stb0899_get_dev_id: ID reg=[0x81]
+> stb0899_get_dev_id: Device ID=[8], Release=[1]
+> _stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400],
+> Offset=[0xf334], Data=[0x444d4431]
+> _stb0899_read_s2reg Device=[0xf3fc], Base address=[0x00000400],
+> Offset=[0xf33c], Data=[0x00000001] stb0899_get_dev_id: Demodulator
+> Core
+> ID=[DMD1], Version=[1] _stb0899_read_s2reg Device=[0xfafc], Base
+> address=[0x00000800], Offset=[0xfa2c], Data=[0x46454331]
+> _stb0899_read_s2reg Device=[0xfafc], Base address=[0x00000800],
+> Offset=[0xfa34], Data=[0x00000001] stb0899_get_dev_id: FEC Core
+> ID=[FEC1], Version=[1] stb0899_attach: Attaching STB0899
+> stb6100_attach: Attaching STB6100 DVB: registering frontend 0 
+> (STB0899
+> Multistandard)... dvb_ca adaptor 0: PC card did not respond :(
+> 
+> Do you have any clue about this error ?
+> 
+> Thank you very much.
 >
-> [  773.619247] saa7133[0]: found at 0000:00:09.0, rev: 209, irq: 23,
-> latency: 64, mmio: 0xf7ffa800
-> [  773.619258] saa7133[0]: subsystem: 1461:a7a1, board: Avermedia A700
-> [card=132,autodetected]
-> [  773.619273] saa7133[0]: board init: gpio is 2f200
-> [  773.865218] saa7133[0]: i2c eeprom 00: 61 14 a1 a7 ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865270] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865312] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865351] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865393] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865433] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865459] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865702] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865727] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865753] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865780] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865810] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865840] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865868] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865897] saa7133[0]: i2c eeprom e0: 00 01 81 af ea b5 ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.865923] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [  773.870157] saa7133[0]: i2c scan: found device @ 0x1c  [???]
-> [  773.883118] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-> [  773.891907] saa7133[0]: registered device video0 [v4l2]
-> [  773.892250] saa7133[0]: registered device vbi0
-> [  774.011780] zl1003x_attach: tuner initialization (Zarlink ZL10036
-> addr=0x60) ok
-> [  774.011805] DVB: registering new adapter (saa7133[0])
-> [  774.011819] DVB: registering frontend 0 (Zarlink ZL10313 DVB-S)...
->
->
-> These are the results of "lspci -vvnn" (after loading the driver):
->
-> 00:09.0 Multimedia controller [0480]: Philips Semiconductors
-> SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->         Subsystem: Avermedia Technologies Inc Unknown device [1461:a7a1]
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-> ParErr- Stepping- SERR+ FastB2B- DisINTx-
->         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->         Latency: 64 (63750ns min, 63750ns max)
->         Interrupt: pin A routed to IRQ 23
->         Region 0: Memory at f7ffa800 (32-bit, non-prefetchable) [size=2K]
->         Capabilities: [40] Power Management version 2
->                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->                 Status: D0 PME-Enable- DSel=0 DScale=3 PME-
->         Kernel driver in use: saa7134
->         Kernel modules: saa7134
->
-added note about different gpio values and eeprom content to wiki.
 
-Regards
-Matthias
--- 
-Matthias Schwarzott (zzam)
+Hi David,
+did you manage to test with the cam to get something working?
+I would be thrilled to know if someone has ever managed to get the TT 
+3200 to work with a CAM (I mean the full monty: lock+good picture ;-)
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
