@@ -1,31 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1TGaQKa012028
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 11:36:26 -0500
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1TGZs6t028021
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 11:35:54 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JV8D4-0007Dj-UM
-	for video4linux-list@redhat.com; Fri, 29 Feb 2008 16:35:46 +0000
-Received: from 82-135-208-232.ip.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 16:35:46 +0000
-Received: from paulius.zaleckas by 82-135-208-232.ip.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 16:35:46 +0000
-To: video4linux-list@redhat.com
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Date: Fri, 29 Feb 2008 18:35:18 +0200
-Message-ID: <fq9c8n$hg$1@ger.gmane.org>
-References: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>	<fq8v17$bm9$1@ger.gmane.org>
-	<f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QHIXxI008841
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 12:18:33 -0500
+Received: from mail.mediaxim.be (dns.adview.be [193.74.142.132])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QHHx30019504
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 12:17:59 -0500
+Received: from localhost (mail.mediaxim.be [127.0.0.1])
+	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id E3DDD34025
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 18:17:58 +0100 (CET)
+Received: from [10.32.13.124] (unknown [10.32.13.124])
+	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id 8E7C034024
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 18:17:57 +0100 (CET)
+Message-ID: <47C449C5.5080603@mediaxim.be>
+Date: Tue, 26 Feb 2008 18:17:57 +0100
+From: Michel Bardiaux <mbardiaux@mediaxim.be>
+MIME-Version: 1.0
+Cc: video4linux-list@redhat.com
+References: <47C3F5CB.1010707@mediaxim.be>
+	<20080226130200.GA215@daniel.bse>	<20080226133839.GE26389@devserv.devel.redhat.com>	<47C440FB.8080705@mediaxim.be>	<20080226170215.GB4682@devserv.devel.redhat.com>
+	<47C4488A.8080107@mediaxim.be>
+In-Reply-To: <47C4488A.8080107@mediaxim.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
-Subject: Re: [RFC] move sensor control out of kernel
+Subject: Re: Grabbing 4:3 and 16:9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,65 +34,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-eric miao wrote:
->>  > The benefits I can think of now are:
->>  >
->>  > 1. simplified sensor driver design
+Michel Bardiaux wrote:
+> Alan Cox wrote:
+>> On Tue, Feb 26, 2008 at 05:40:27PM +0100, Michel Bardiaux wrote:
+>>> credits on the captured MPEGs). But Daniel wrote that the 16:9 analog 
+>>> broadcasts have only 432 lines, so the info is not there in the first 
+>>> place. So that effect isnt an option for me. But thanks anyway.
 >>
->>  It is pretty simple with soc-camera framework also. And the best thing
->>  is that it is unified. If you implement sensor driver in userspace then
->>  what kind of interface should V4L data bus driver expose.
+>> Per frame.... if you sample as it scrolls and line up the title tops I 
+>> suspect
+>> most of the time you can get more samples as the title moves.
 >>
+> Not crazy, I am *also* considering various image enhancement techniques, 
+> I just want to start from the best possible capture in the first place. 
+> That means capturing at 768(or more?) wide instead of 704; in YUV422P 
+> instead of YUV420P; avoiding reizing, and use better resizing 
+> algorithms. And capturing at 576 instead of 432 vertically would help too.
 > 
-> The soc-camera is pretty good. Yet it doesn't solve the issue of
-> complicated sensor control. mt9m001.c and mt9v022.c are two
-> good examples, but are all too simple. I have a sensor driver here
-> with more than 4000 lines of code.
-
-Yes I can imagine driver for analog devices ADV family video decoder :)
-Some time ago I wrote driver for ADV...
-
-But I don't imagine application or library with support for all 
-devices... Kernel is easy to configure and to compile only drivers you 
-need. Also kernel modules are good to load only the driver you need.
-
-Another thing is that there will be different multiple implementations 
-of this "4000 lines of code" driver. This means that each of them will 
-be tested less than the single one in kernel.
-
->>  > Another biggest concern to the V4L2 API itself, sensor nowadays has
->>  > more control ability than it used to be, some smart sensor provides
->>  > even more like auto focus control, lens control, flash mode, and many
->>  > other features that current V4L2 API cannot cover.
->>
->>  Implement these controls. Make a patch and send it here. If everything
->>  is OK it should be merged and V4L will be capable to handle these controls.
->>
+> As I find more relevant pages, my question has now become: given a 
+> 768x576 capture (by a BT878) can I check whether the PALPLUS is there? 
+> No use trying to implement the decoder in software if the signal simply 
+> isnt there!
 > 
-> Mmm...then do you expect an API growing into a monster in the kernel space?
+Explained here:
 
-I guess this will happen anyway, because of tv tuners, dvb-t cards and 
-etc. There is no way there to separate "sensor" from the data bus.
+http://en.wikipedia.org/wiki/Widescreen_signaling
 
-And you will have to export data bus interface to the userspace.
+Now how to get at that info? zvbi/libzvbi?
 
->>  My conclusion: your idea just moves problem from kernel to userspace,
->>  but doesn't solve it...
->>
-> 
-> I'm not trying to solve how to control the sensor but how to simplify
-> the kernel effort and maybe with small reward of stability and ease
-> of development.
+-- 
+Michel Bardiaux
+R&D Director
+T +32 [0] 2 790 29 41
+F +32 [0] 2 790 29 02
+E mailto:mbardiaux@mediaxim.be
 
-I must agree about kernel stability here.
-
->>  --
->>  video4linux-list mailing list
->>  Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>  https://www.redhat.com/mailman/listinfo/video4linux-list
->>
-> 
+Mediaxim NV/SA
+Vorstlaan 191 Boulevard du Souverain
+Brussel 1160 Bruxelles
+http://www.mediaxim.com/
 
 --
 video4linux-list mailing list
