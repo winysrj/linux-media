@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.184])
+Received: from wa-out-1112.google.com ([209.85.146.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <johnfdonaghy@gmail.com>) id 1JVBFb-0005gD-4j
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 20:50:35 +0100
-Received: by mu-out-0910.google.com with SMTP id w9so5795771mue.6
-	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 11:50:29 -0800 (PST)
-Message-ID: <a6e3d9900802291150l33e8dc7fu39ccbef9310d706c@mail.gmail.com>
-Date: Sat, 1 Mar 2008 13:50:29 +1800
-From: "John Donaghy" <johnfdonaghy@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <hansson.patrik@gmail.com>) id 1JU5cd-0001fj-ND
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 20:37:52 +0100
+Received: by wa-out-1112.google.com with SMTP id m28so2451820wag.13
+	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 11:37:45 -0800 (PST)
+Message-ID: <8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
+Date: Tue, 26 Feb 2008 20:37:45 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47C4661C.4030408@philpem.me.uk>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb]  xc3028 tuner development status?
+References: <47A98F3D.9070306@raceme.org> <1202326173.20362.23.camel@youkaida>
+	<1202327817.20362.28.camel@youkaida>
+	<1202330097.4825.3.camel@anden.nu> <47AB1FC0.8000707@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+	<47C4661C.4030408@philpem.me.uk>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,123 +26,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>On Nov 13, 2007 11:16 AM, aldebaran <aldebx at yahoo.fr>> wrote:
->>>>
->>>>  I thank you very much for your quick reply Michel, Markus and Mauro!!
->>
->>[snip]
->>
->>  [  789.484000] cx23885 driver version 0.0.1 loaded
->>  [  789.484000] ACPI: PCI Interrupt 0000:04:00.0[A] ->> GSI 17 (level, low)
->> ->> IRQ 17
->>  [  789.484000] CORE cx23885[0]: subsystem: 0070:7717, board: Hauppauge
->> WinTV-HVR1800lp [card=1,insmod option]
->>  [  789.584000] cx23885[0]: i2c bus 0 registered
->>  [  789.584000] cx23885[0]: i2c bus 1 registered
->>  [  789.584000] cx23885[0]: i2c bus 2 registered
->>  [  789.612000] tveeprom 0-0050: Hauppauge model 77001, rev D4C0, serial#
->> 2335707
->>  [  789.612000] tveeprom 0-0050: MAC address is 00-0D-FE-23-A3-DB
->>  [  789.612000] tveeprom 0-0050: tuner model is Xceive XC3028 (idx 120, type
->> 71)
->>  [  789.612000] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital
->> (eeprom 0x88)
->>  [  789.612000] tveeprom 0-0050: audio processor is CX23885 (idx 39)
->>  [  789.612000] tveeprom 0-0050: decoder processor is CX23885 (idx 33)
->>  [  789.612000] tveeprom 0-0050: has no radio, has no IR receiver, has no IR
->> transmitter
->>  [  789.612000] cx23885[0]: hauppauge eeprom: model=77001
->>  [  789.612000] cx23885[0]: cx23885 based dvb card
->>  [  789.624000] cx23885[0]: frontend initialization failed
->>  [  789.624000] cx23885_dvb_register() dvb_register failed err = -1
->>  [  789.624000] cx23885_dev_setup() Failed to register dvb adapters on VID_C
->>  [  789.624000] cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 17,
->> latency: 0, mmio: 0xf4000000
->>  [  789.624000] PCI: Setting latency timer of device 0000:04:00.0 to 64
+On Tue, Feb 26, 2008 at 8:18 PM, Philip Pemberton <lists@philpem.me.uk> wro=
+te:
+> Patrik Hansson wrote:
+>  > Just wanted to say that I=B4m experiencing the same.
+>  > Using latest rev (the one with patches merged) + unknown remote key pa=
+tch.
+>  > Ubuntu 7.10
+>  >
+>  > Also having a lot of "prebuffer timeout 10 times" i the middle of show=
+s.
 >
->Don't worry about this -- Steve's got it covered:
+>  I think I might have a workaround... On Mythbuntu or one of the many Ubu=
+ntu
+>  variants, this seems to work:
 >
->http://linuxtv.org/pipermail/linux-dvb/2007-November/021863.html
+>  1)  Run:
+>        lsmod |grep usbcore
 >
->-mike
+>  2)  If step 1 produced any output that started with 'usbcore', then usbc=
+ore is
+>  loaded as a module. Perform step 3a. Otherwise, step 3b.
+>
+>  3a) Create a text file called /etc/modprobe.d/local-dvb (the name is fai=
+rly
+>  irrelevant). Insert one line of text into it:
+>        options usbcore autosuspend=3D-1
+>      Now go to step 4.
+>
+>  3b) Your kernel has usbcore built in. That means you have to modify the =
+kernel
+>  command line...
+>      Edit /boot/grub/menu.lst (you'll need to sudo to do this). Search for
+>  this line:
+>  # defoptions=3Dquiet splash
+>      Amend it to read:
+>  # defoptions=3Dquiet splash usbcore.autosuspend=3D-1
+>      It's meant to be commented out, so leave the hash at the beginning o=
+f the
+>  line alone... Save and exit, then run ...
+>  sudo update grub
+>      Ubuntu will regenerate grub.conf, using the new kernel command line.=
+ Off
+>  to step 4 you go!
+>
+>      If you're using a non-Debian distro (e.g. Fedora), do the same thing=
+ but
+>  edit the 'kernel' line instead. It might read:
+>  kernel          /boot/vmlinuz-2.6.24-8-generic root=3DLABEL=3D/ ro quiet=
+ splash
+>      Change it to:
+>  kernel          /boot/vmlinuz-2.6.24-8-generic root=3DLABEL=3D/ ro quiet=
+ splash
+>  usbcore.autosuspend=3D-1
+>
+>  4)  Reboot your PC.
+>
+>  This is a bit long-winded, but saves a kernel recompile, and a ton of me=
+ssing
+>  around recompiling kernels when Ubuntu do another release.
+>
+>  I'm working on what I consider to be a better fix, which involves using =
+the
+>  kernel's Quirks function to disable USB suspend just for the DiBcom
+>  controllers. That is, the kernel won't try and suspend them at all...
+>
+>
+>
+>  Thanks,
+>  --
+>  Phil.                         |  (\_/)  This is Bunny. Copy and paste Bu=
+nny
+>  lists@philpem.me.uk           | (=3D'.'=3D) into your signature to help =
+him gain
+>  http://www.philpem.me.uk/     | (")_(") world domination.
+>
 
-Hi
-
-I've just joined this list because I have a HP Expresscard
-Digital/Analog tuner and it looks like it's the same card referred to
-previously in this thread, which apparently is a rebranded Hauppauge
-card. So far I havent been able to get it to work but since I dont
-really know what I'm doing I though I'd better ask for help. What I've
-done so far is as follows:
-
-got the source: hg clone http://linuxtv.org/hg/v4l-dvb
-make
-make install
-reboot
-then dmesg gives me this:
-
-[   18.520000] CORE cx23885[0]: subsystem: 0070:7717, board: Hauppauge
-WinTV-HVR1500 [card=6,autodetected]
-[   18.628000] cx23885[0]: i2c bus 0 registered
-[   18.628000] cx23885[0]: i2c bus 1 registered
-[   18.628000] cx23885[0]: i2c bus 2 registered
-[   18.652000] tveeprom 0-0050: Hauppauge model 77001, rev D3C0, serial# 837872
-[   18.652000] tveeprom 0-0050: MAC address is 00-0D-FE-0C-C8-F0
-[   18.652000] tveeprom 0-0050: tuner model is Xceive XC3028 (idx 120, type 71)
-[   18.652000] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital
-(eeprom 0x88)
-[   18.652000] tveeprom 0-0050: audio processor is CX23885 (idx 39)
-[   18.652000] tveeprom 0-0050: decoder processor is CX23885 (idx 33)
-[   18.652000] tveeprom 0-0050: has no radio, has no IR receiver, has
-no IR transmitter
-[   18.652000] cx23885[0]: hauppauge eeprom: model=77001
-[   18.652000] cx23885[0]: cx23885 based dvb card
-[   18.652000] ipw3945: Intel(R) PRO/Wireless 3945 Network Connection
-driver for Linux, 1.2.2mp.ubuntu1
-[   18.652000] ipw3945: Copyright(c) 2003-2006 Intel Corporation
-[   18.872000] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[   18.872000] DVB: registering new adapter (cx23885[0])
-[   18.872000] DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB
-Frontend)...
-[   18.876000] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[   18.876000] cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17,
-latency: 0, mmio: 0xd8000000
-[   18.876000] PCI: Setting latency timer of device 0000:03:00.0 to 64
-[   18.876000] ACPI: PCI Interrupt 0000:00:1b.0[A] -> GSI 22 (level,
-low) -> IRQ 21
-[   18.876000] PCI: Setting latency timer of device 0000:00:1b.0 to 64
-[   19.056000] ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 16 (level,
-low) -> IRQ 16
-[   19.056000] PCI: Setting latency timer of device 0000:02:00.0 to 64
-
-Unlike the previous poster I'm not getting "frontend initialization
-failed" which is promising, but when I run:
-
-/usr/bin/scan /usr/share/doc/dvb-utils/examples/scan/atsc/us-ATSC-center-frequencies-8VSB
-
-I get a bunch of "tuning failed" messages like this:
-
-scanning /usr/share/doc/dvb-utils/examples/scan/atsc/us-ATSC-center-frequencies-8VSB
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>> tune to: 57028615:8VSB
-WARNING: >>> tuning failed!!!
->>> tune to: 57028615:8VSB (tuning failed)
-WARNING: >>> tuning failed!!!
-
-Am I missing something (like firmware perhaps) or does it not work
-yet? Let me know if there's anything I can do to help get it working.
-
-Thanks in advance.
-
-John
-
-PS Also, thanks for all the hard work done so far!
+It was a module and i put the option i /etc/modprobe.d/options next to
+options dvb-usb-dib0700 force_lna_activation=3D1
+Running now, will be back with the results.
+On a side note:
+Could that be the reason debug=3D15 also might work as a workaround,
+there is so much traffic that the usb never suspends ?
+Thanks Phil for the "fix", hope it stays stable..
 
 _______________________________________________
 linux-dvb mailing list
