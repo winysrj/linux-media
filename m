@@ -1,25 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18K6fB8003752
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 15:06:41 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.1/8.13.1) with SMTP id m18K68QD002054
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 15:06:08 -0500
-Date: Fri, 8 Feb 2008 21:06:23 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080208104635.4a7c9227@gaivota>
-Message-ID: <Pine.LNX.4.64.0802082101500.8364@axis700.grange>
-References: <Pine.LNX.4.64.0802071617420.5383@axis700.grange>
-	<20080207183409.3e788533@gaivota>
-	<Pine.LNX.4.64.0802072146210.9064@axis700.grange>
-	<20080208092821.52872e1d@gaivota>
-	<Pine.LNX.4.64.0802081235210.5301@axis700.grange>
-	<20080208104635.4a7c9227@gaivota>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 26 Feb 2008 12:02:15 -0500
+From: Alan Cox <alan@redhat.com>
+To: Michel Bardiaux <mbardiaux@mediaxim.be>
+Message-ID: <20080226170215.GB4682@devserv.devel.redhat.com>
+References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
+	<20080226133839.GE26389@devserv.devel.redhat.com>
+	<47C440FB.8080705@mediaxim.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <47C440FB.8080705@mediaxim.be>
 Cc: video4linux-list@redhat.com
-Subject: Re: Two more patches required for soc_camera
+Subject: Re: Grabbing 4:3 and 16:9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +23,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 8 Feb 2008, Mauro Carvalho Chehab wrote:
+On Tue, Feb 26, 2008 at 05:40:27PM +0100, Michel Bardiaux wrote:
+> credits on the captured MPEGs). But Daniel wrote that the 16:9 analog 
+> broadcasts have only 432 lines, so the info is not there in the first 
+> place. So that effect isnt an option for me. But thanks anyway.
 
-> If you disable all things on arch/pxa, but v4l (and the minimum required
-> dependencies), do it compile and work? If so, this would be ok. Otherwise, you
-> may need something like:
-> depends on PCI || (ARCH_PXA && CONFIG_HAS_DMA)
-> 
-> This approach can be an interim solution.
+Per frame.... if you sample as it scrolls and line up the title tops I suspect
+most of the time you can get more samples as the title moves.
 
-After this patch
+Just a crazy idea
 
-http://lkml.org/lkml/2008/2/8/352
-
-is accepted, videobuf-dma-sg should be fine depending on PCI || PXA. I'll 
-wait a day or too and then submit such a patch instead of the previous 
-one, removing the dependency completely, would this be ok?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+Alan
 
 --
 video4linux-list mailing list
