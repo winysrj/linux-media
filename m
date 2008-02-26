@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QCQmAS005107
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 07:26:48 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QCQGKx019695
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 07:26:17 -0500
-Received: by fg-out-1718.google.com with SMTP id e12so1599134fga.7
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 04:26:16 -0800 (PST)
-Message-ID: <47C40563.5000702@claranet.fr>
-Date: Tue, 26 Feb 2008 13:26:11 +0100
-From: Eric Thomas <ethomas@claranet.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1Q0oJ3P018345
+	for <video4linux-list@redhat.com>; Mon, 25 Feb 2008 19:50:19 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.180])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1Q0nn7s016675
+	for <video4linux-list@redhat.com>; Mon, 25 Feb 2008 19:49:49 -0500
+Received: by wa-out-1112.google.com with SMTP id j37so2162319waf.7
+	for <video4linux-list@redhat.com>; Mon, 25 Feb 2008 16:49:49 -0800 (PST)
+Message-ID: <f17812d70802251649p73c7fa2p881b1710ebad5f81@mail.gmail.com>
+Date: Tue, 26 Feb 2008 08:49:48 +0800
+From: "eric miao" <eric.y.miao@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@pengutronix.de>
+In-Reply-To: <Pine.LNX.4.64.0802251304320.4430@axis700.grange>
 MIME-Version: 1.0
-To: video4linux <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Subject: kernel oops since changeset e3b8fb8cc214
+Content-Disposition: inline
+References: <Pine.LNX.4.64.0802251304320.4430@axis700.grange>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] soc-camera: deactivate cameras when not used
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,83 +30,173 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
-
-My box runs with kernel 2.6.24 + main v4l-dvb tree from HG.
-The card is a Haupauge HVR-3000 running in analog mode only. No *dvd* 
-module loaded.
-Since this videobuf-dma-sg patch, I face kernel oops in several
-situations.
-These problems occur with real tv applications, but traces below come
-from the capture_example binary from v4l2-apps/test.
+Do you have a git tree or patch series (maybe a mbox patch aggregate)
+that I can apply? Also let me know the baseline to apply, I guess it
+should apply happily on top of linux-v4l2's current head, but I'm not
+sure
 
 
-capture_example called without any argument, oopses when calling STREAMOFF:
+On Mon, Feb 25, 2008 at 8:12 PM, Guennadi Liakhovetski
+<g.liakhovetski@pengutronix.de> wrote:
+> Only attach cameras to the host interface for probing, then detach until
+>  open. This allows platforms with several cameras on an interface,
+>  physically supporting only one camera, to handle multiple cameras and
+>  activate them selectively after initial probing. The first attach during
+>  probe is needed to activate the host interface to be able to physically
+>  communicate with cameras.
+>
+>  Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+>
+>  ---
+>
+>  Erik, would be nice if you could test this with one of your multi-camera
+>  platforms.
+>
+>  diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+>  index 904e9df..e3f5a17 100644
+>  --- a/drivers/media/video/soc_camera.c
+>  +++ b/drivers/media/video/soc_camera.c
+>  @@ -179,11 +179,9 @@ static int soc_camera_dqbuf(struct file *file, void *priv,
+>
+>   static int soc_camera_open(struct inode *inode, struct file *file)
+>   {
+>  -       struct video_device *vdev = video_devdata(file);
+>  -       struct soc_camera_device *icd = container_of(vdev->dev,
+>  -                                            struct soc_camera_device, dev);
+>  -       struct soc_camera_host *ici =
+>  -               to_soc_camera_host(icd->dev.parent);
+>  +       struct video_device *vdev;
+>  +       struct soc_camera_device *icd;
+>  +       struct soc_camera_host *ici;
+>         struct soc_camera_file *icf;
+>         int ret;
+>
+>  @@ -191,7 +189,12 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+>         if (!icf)
+>                 return -ENOMEM;
+>
+>  -       icf->icd = icd;
+>  +       /* Protect against icd->remove() until we module_get() both drivers. */
+>  +       mutex_lock(&video_lock);
+>  +
+>  +       vdev = video_devdata(file);
+>  +       icd = container_of(vdev->dev, struct soc_camera_device, dev);
+>  +       ici = to_soc_camera_host(icd->dev.parent);
+>
+>         if (!try_module_get(icd->ops->owner)) {
+>                 dev_err(&icd->dev, "Couldn't lock sensor driver.\n");
+>  @@ -205,6 +208,22 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+>                 goto emgi;
+>         }
+>
+>  +       icd->use_count++;
+>  +
+>  +       icf->icd = icd;
+>  +
+>  +       /* Now we really have to activate the camera */
+>  +       if (icd->use_count == 1) {
+>  +               ret = ici->add(icd);
+>  +               if (ret < 0) {
+>  +                       dev_err(&icd->dev, "Couldn't activate the camera: %d\n", ret);
+>  +                       icd->use_count--;
+>  +                       goto eiciadd;
+>  +               }
+>  +       }
+>  +
+>  +       mutex_unlock(&video_lock);
+>  +
+>         file->private_data = icf;
+>         dev_dbg(&icd->dev, "camera device open\n");
+>
+>  @@ -205,9 +208,13 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+>
+>         return 0;
+>
+>  +       /* All errors are entered with the video_lock held */
+>  +eiciadd:
+>  +       module_put(ici->owner);
+>   emgi:
+>         module_put(icd->ops->owner);
+>   emgd:
+>  +       mutex_unlock(&video_lock);
+>         vfree(icf);
+>         return ret;
+>   }
+>  @@ -230,8 +253,14 @@ static int soc_camera_close(struct inode *inode, struct file *file)
+>         struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+>         struct video_device *vdev = icd->vdev;
+>
+>  +       mutex_lock(&video_lock);
+>  +       icd->use_count--;
+>  +       if (!icd->use_count)
+>  +               ici->remove(icd);
+>         module_put(icd->ops->owner);
+>         module_put(ici->owner);
+>  +       mutex_unlock(&video_lock);
+>  +
+>         vfree(file->private_data);
+>
+>         dev_dbg(vdev->dev, "camera device close\n");
+>  @@ -673,14 +702,14 @@ static int soc_camera_probe(struct device *dev)
+>         if (!icd->probe)
+>                 return -ENODEV;
+>
+>  +       /* We only call ->add() here to activate and probe the camera.
+>  +        * We shall ->remove() and deactivate it immediately afterwards. */
+>         ret = ici->add(icd);
+>         if (ret < 0)
+>                 return ret;
+>
+>         ret = icd->probe(icd);
+>  -       if (ret < 0)
+>  -               ici->remove(icd);
+>  -       else {
+>  +       if (ret >= 0) {
+>                 const struct v4l2_queryctrl *qctrl;
+>
+>                 qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_GAIN);
+>  @@ -689,6 +718,7 @@ static int soc_camera_probe(struct device *dev)
+>                 icd->exposure = qctrl ? qctrl->default_value :
+>                         (unsigned short)~0;
+>         }
+>  +       ici->remove(icd);
+>
+>         return ret;
+>   }
+>  @@ -698,13 +728,9 @@ static int soc_camera_probe(struct device *dev)
+>   static int soc_camera_remove(struct device *dev)
+>   {
+>         struct soc_camera_device *icd = to_soc_camera_dev(dev);
+>  -       struct soc_camera_host *ici =
+>  -               to_soc_camera_host(icd->dev.parent);
+>
+>         if (icd->remove)
+>                 icd->remove(icd);
+>  -
+>  -       ici->remove(icd);
+>
+>         return 0;
+>   }
+>  diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+>  index 69aba71..c886b1e 100644
+>  --- a/include/media/soc_camera.h
+>  +++ b/include/media/soc_camera.h
+>  @@ -41,6 +41,8 @@ struct soc_camera_device {
+>         int (*probe)(struct soc_camera_device *icd);
+>         void (*remove)(struct soc_camera_device *icd);
+>         struct module *owner;
+>  +       /* soc_camera.c private count. Only accessed with video_lock held */
+>  +       int use_count;
+>   };
+>
+>   struct soc_camera_file {
+>
 
-BUG: unable to handle kernel NULL pointer dereference at virtual address 
-00000200
-printing eip: c01077e0 *pde = 00000000
-Oops: 0000 [#1] PREEMPT
-Modules linked in: cx8800 compat_ioctl32 cx88_alsa cx88xx ir_common 
-videobuf_dma_sg wm8775 tuner tda9887 tuner_simple tuner_types tveeprom 
-btcx_risc videobuf_core videodev v4l2_common v4l1_compat i2c_dev rfcomm 
-l2cap bluetooth it87 hwmon_vid sunrpc binfmt_misc fglrx(P) snd_intel8x0 
-usb_storage snd_ac97_codec agpgart ac97_bus i2c_nforce2 ati_remote sg 
-sata_nv uhci_hcd ohci_hcd ehci_hcd
 
-Pid: 3490, comm: capture_example Tainted: P        (2.6.24 #1)
-EIP: 0060:[<c01077e0>] EFLAGS: 00210206 CPU: 0
-EIP is at dma_free_coherent+0x30/0xa0
-EAX: 00200257 EBX: 00000001 ECX: f7206000 EDX: 00001880
-ESI: f7206000 EDI: 00000200 EBP: f78a884c ESP: f70c0d6c
-  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Process capture_example (pid: 3490, ti=f70c0000 task=f7881560 
-task.ti=f70c0000)
-Stack: 00200046 00000000 f887672f 00000000 00000000 37206000 f7e3ff68 
-f886e4b2
-        37206000 f98cbbaf f98cb3bb f7e3ff00 f7e3ff84 f7c8ee4c 00200282 
-f990cc26
-        00000000 00000020 f7c8ee4c f8876517 f7c8ee4c f7e3fa80 00000002 
-f7c8ee00
-Call Trace:
-  [<f887672f>] videobuf_waiton+0xdf/0x110 [videobuf_core]
-  [<f886e4b2>] btcx_riscmem_free+0x42/0x90 [btcx_risc]
-  [<f98cbbaf>] videobuf_dma_free+0x4f/0xa0 [videobuf_dma_sg]
-  [<f98cb3bb>] videobuf_dma_unmap+0x2b/0x60 [videobuf_dma_sg]
-  [<f990cc26>] cx88_free_buffer+0x46/0x60 [cx88xx]
-  [<f8876517>] videobuf_queue_cancel+0x97/0xc0 [videobuf_core]
-  [<f88765ca>] __videobuf_streamoff+0x1a/0x30 [videobuf_core]
-  [<f8876638>] videobuf_streamoff+0x18/0x30 [videobuf_core]
-  [<f98ed644>] vidioc_streamoff+0x44/0x60 [cx8800]
-  [<f98ed600>] vidioc_streamoff+0x0/0x60 [cx8800]
-  [<f8855933>] __video_do_ioctl+0xe83/0x3820 [videodev]
-  [<c0200e90>] bit_cursor+0x350/0x5a0
-  [<c02401ff>] n_tty_receive_buf+0x6ff/0xef0
-  [<c024b9a2>] do_con_write+0xaa2/0x19e0
-  [<c013fcb5>] find_lock_page+0x95/0xe0
-  [<f88587ad>] video_ioctl2+0xbd/0x220 [videodev]
-  [<c0118fd3>] release_console_sem+0x1c3/0x210
-  [<c0115880>] __wake_up+0x50/0x90
-  [<c023ad06>] tty_ldisc_deref+0x36/0x90
-  [<c023ccde>] tty_write+0x1be/0x1d0
-  [<c016d008>] do_ioctl+0x78/0x90
-  [<c016d07c>] vfs_ioctl+0x5c/0x2b0
-  [<c023cb20>] tty_write+0x0/0x1d0
-  [<c016d30d>] sys_ioctl+0x3d/0x70
-  [<c0102ace>] sysenter_past_esp+0x5f/0x85
-  =======================
-Code: ce 53 83 ec 10 85 c0 74 06 8b b8 e0 00 00 00 8d 42 ff bb ff ff ff 
-ff c1 e8 0b 90 43 d1 e8 75 fb 9c 58 f6 c4 02 74 3d 85 ff 74 06 <8b> 17 
-39 d6 73 0f 83 c4 10 89 da 89 f0 5b 5e 5f e9 eb d7 03 00
-EIP: [<c01077e0>] dma_free_coherent+0x30/0xa0 SS:ESP 0068:f70c0d6c
----[ end trace d2e4ad244a27b1e7 ]---
 
-capture_example called with "-r" (read calls) oopses much earlier and
-twice. I can provide traces if useful.
-
-I'm not skilled enough to fix it myself, but I can test patches.
-
-Eric
+-- 
+Cheers
+- eric
 
 --
 video4linux-list mailing list
