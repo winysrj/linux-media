@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1JVDfr-0008VF-Oa
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 23:25:51 +0100
-From: Dominik Kuhlen <dkuhlen@gmx.net>
+Received: from ug-out-1314.google.com ([66.249.92.172])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <christophpfister@gmail.com>) id 1JU60k-0003oh-0w
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 21:02:46 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so2616222ugd.20
+	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 12:02:39 -0800 (PST)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Fri, 29 Feb 2008 23:25:17 +0100
-References: <47BDA96B.7080700@okg-computer.de>
-	<47BE095E.3040301@okg-computer.de>
-	<200802221106.45303.dkuhlen@gmx.net>
-In-Reply-To: <200802221106.45303.dkuhlen@gmx.net>
+Date: Tue, 26 Feb 2008 21:02:13 +0100
 MIME-Version: 1.0
-Message-Id: <200802292325.17473.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
-	STB0899)
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_FBHxHNZ1Du/jFPT"
+Message-Id: <200802262102.13155.christophpfister@gmail.com>
+Subject: [linux-dvb] Fwd: scan file for es-Las_Palmas
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,67 +20,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1878755500=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1878755500==
-Content-Type: multipart/signed;
-  boundary="nextPart5507163.GJO2hi9M1U";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-
---nextPart5507163.GJO2hi9M1U
+--Boundary-00=_FBHxHNZ1Du/jFPT
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-On Friday 22 February 2008, Dominik Kuhlen wrote:
-> Hi,
->=20
-> -----snip----
-> >=20
-> > Great, that was the trick, now scanning and szap work fine.
-> >=20
-> > Thanks for that hint!
-> You're welcome.
->=20
-> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
-> Currently I get a loss of about 1 TS packet every second or even more (wi=
-th both symbol rates).
-> And there is exactly one TS packet missing (I diffed a TS hexdump).
-> If it were the USB controller that drops packets it would be a loss of 5 =
-consecutive TS packets. (940 bytes iso frame size)
+=46rom a kaffeine user ...
 
-I have to correct that statement (I didn't record the whole TS):=20
-The loss is exactly one USB frame (5 consecutive TS packets in this case)
-which happens about every 1000 TS packets (200 USB frames)
-
-I'll do further testings with different frame sizes the next days...
-
-Dominik
+Christoph
 
 
---nextPart5507163.GJO2hi9M1U
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+=2D---------  Weitergeleitete Nachricht  ----------
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
+Betreff: [Kaffeine-user] DVB-t location file
+Datum: Sonntag 24 Februar 2008
+Von: "Gabriel Alem=E1n Rodr=EDguez" <gabriel.aleman@gmail.com>
+An: kaffeine-user@lists.sf.net
 
-iD8DBQBHyIZN6OXrfqftMKIRAkhRAJ9SgP5lXe56T/bpUbf4J7rZqBtcdACdHWAF
-8dblc7skgLb8wOvCd/qTBRM=
-=12v0
------END PGP SIGNATURE-----
+I send you my DVB-t location from Las Palmas (Spain)
 
---nextPart5507163.GJO2hi9M1U--
+=2D------------------------------------------------------
 
+--Boundary-00=_FBHxHNZ1Du/jFPT
+Content-Type: application/octet-stream;
+  name="es-Las_Palmas"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=es-Las_Palmas
 
---===============1878755500==
+IyBGdW5jaW9uYSBjb3JyZWN0YW1lbnRlIGVuIExhcyBQYWxtYXMgZGUgR3JhbiBDYW5hcmlhICgy
+NC00LTIwMDcpIAojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9k
+ZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA3ODYwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0
+IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDYwOiBUVkUxLCBUVkUyLCAyNEggVFZFLCBDbGFuL1RW
+RSwgUk5FLCBSTkVDLCBSTkUzLCBMYW56YWRlcmEsIEVQRywgRGlnaXRleHQsIE1ldGVvLCBCb2xz
+YSwgVHJhZmljbywgRW1wbGVhdApUIDgyNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEv
+NCBOT05FICAgIyBDYW5hbCA2NTogVFYgQywgVFYgQzIgClQgODM0MDAwMDAwIDhNSHogMi8zIDEv
+MiBRQU02NCA4ayAxLzQgTk9ORSAgICAgIyBDYW5hbCA2NjogTmV0IFRWLCBUZWxlZGVwb3J0ZSwg
+VmVvIFRWMSwgU0VUZW5WZW8sIFJhZGlvIEludGVyZWNvbm9tw61hIExhbnphZGVyYSwgRVBHLCBE
+aWdpdGV4dCwgTWV0ZW8sIEJvbHNhLCBUcmFmaWNvLCBFbXBsZWF0ClQgODQyMDAwMDAwIDhNSHog
+Mi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORSAgICAgIyBDYW5hbCA2NzogQ05OKywgQ3VhdHJvLCBM
+YSBTZXh0YSAxLCA0MCBMYXRpbm8gVFYsIEVQRyBTb2dlIFYyIDUKVCA4NTAwMDAwMDAgOE1IeiAy
+LzMgMS8yIFFBTTY0IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDY4OiBGbHkgTXVzaWMsIFB1bnRv
+IFJhZGlvLCBUZWxlIDUsIFRlbGUgNSBFc3RyZWxsYXMsIFRlbGUgNSBTcG9ydApUIDg1ODAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS80IE5PTkUgICAgICMgQ2FuYWwgNjk6IEFudGVuYSAz
+LCBBbnRlbmEuTmVveCwgQW50ZW5hLk5vdmEsIFRlbGVoaXQsIE9uZGEgQ2VybywgRXVyb3BhIEZN
+LCBPbmRhIE1lbG9kaWEsIEEzTGFuemFkZXJhLCBBM1BvcnRhbCwgRVBHQTMsIEEzVGlja2Vy
+--Boundary-00=_FBHxHNZ1Du/jFPT
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -91,4 +79,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1878755500==--
+--Boundary-00=_FBHxHNZ1Du/jFPT--
