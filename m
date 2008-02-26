@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from py-out-1112.google.com ([64.233.166.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JV6w0-00081S-HF
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 16:14:04 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JX000LR6AABYB10@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 29 Feb 2008 10:13:24 -0500 (EST)
-Date: Fri, 29 Feb 2008 10:13:22 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <9c21eeae0802282219r4280de1ex6d47a5be2759fb52@mail.gmail.com>
-To: David Brown <dmlb2000@gmail.com>
-Message-id: <47C82112.3080404@linuxtv.org>
-MIME-version: 1.0
-References: <9c21eeae0802282219r4280de1ex6d47a5be2759fb52@mail.gmail.com>
+	(envelope-from <christophpfister@gmail.com>) id 1JU7EL-0001ZQ-VB
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 22:20:54 +0100
+Received: by py-out-1112.google.com with SMTP id a29so2535909pyi.0
+	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 13:20:49 -0800 (PST)
+Message-ID: <19a3b7a80802261320v136c6165xb2a8956fefe9741@mail.gmail.com>
+Date: Tue, 26 Feb 2008 22:20:49 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: hormigon_pretensado-linuxtv@yahoo.es
+In-Reply-To: <618067.12978.qm@web32804.mail.mud.yahoo.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <618067.12978.qm@web32804.mail.mud.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx23885 status?
+Subject: Re: [linux-dvb] DVB-T initial scan file for Santander, Spain
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,29 +28,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-> I also know of this repository
-> http://linuxtv.org/hg/~stoth/cx23885-video. However, it hasn't changed
-> in a month either. What is the state of the driver? will it be
-> considered for integration in to 2.6.25? or 2.6.26? has it been
-> dropped all together?
+2008/2/23, hormigon_pretensado-linuxtv@yahoo.es
+<hormigon_pretensado-linuxtv@yahoo.es>:
+>  Hello. In the end, I did not need this file, because "w_scan" with the "-X"
+> option already gave me a "channels.conf" ready to use with "tzap"; but since
+> it is already created I send it to you.
+>
+>  I hope this is the right place for this, I have never written to a mailing
+> list before.
 
-Dropped? No, I just hasn't changed in a month.
+Yes, it's the correct place.
 
-~stoth/cx23885-video is my primary repository.
+>  Best regards and thanks a lot for your time and work.
 
-Mauro nack'd by last pull request for merge, he wants to see some ioctl 
-changes before he merged into master. I'm busy on other projects so I 
-just don't have the time to work on it right now. My suggestion is that 
-you use the cx23885-video tree.
+Added the file, thanks!
 
-All patches welcome, just submit them to this list.
-
-Regards,
-
-Steve
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
