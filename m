@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Received: from utter.chaos.org.uk ([193.201.201.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JUela-0000eM-0q
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 10:09:26 +0100
-Message-ID: <47C67A3C.6050602@shikadi.net>
-Date: Thu, 28 Feb 2008 19:09:16 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
-To: Martin Thompson <hireach@internode.on.net>
-References: <9FC6541BF8D049BB839E9F30F5258D64@LaptopPC>
-In-Reply-To: <9FC6541BF8D049BB839E9F30F5258D64@LaptopPC>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvico dual digital 4 revision 2.0
+	(envelope-from <pdh@utter.chaos.org.uk>) id 1JU3YW-000173-FB
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 18:25:28 +0100
+Received: from localhost ([127.0.0.1])
+	by utter.chaos.org.uk with esmtp (Exim 4.34) id 1JU3YT-0001bB-4g
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 17:25:25 +0000
+From: Peter Hartley <pdh@utter.chaos.org.uk>
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="=-ptNJU2IVQs0b0PZXh+jT"
+Date: Tue, 26 Feb 2008 17:25:24 +0000
+Message-Id: <1204046724.994.21.camel@amd64.pyotr.org>
+Mime-Version: 1.0
+Subject: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two streams from
+	same mux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,56 +21,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> have chris pascoe intrested but he is very busy so could be a while
-> before he looks into it
-> the new card has a new hardware id  last 2 digits is 98 not 78
-> am working with a mate who has a revision 1.1 card
-> if i change the v4l-dvb haidware id to mine
-> linux will pick it up and install the driver
-> but can not find the frontend (using mythtv)
-> what is the command that you usb to give all the info about the card
-> so i can check against an working one
-> and maybe pick whats differnet
 
-Wow, lucky the card I bought last week was a rev1.1!  I would imagine
-the rev2.0 card would be using different firmware - I assume you've
-correctly installed the firmware for the rev1.1 card?  If that doesn't
-work, you could try extracting the firmware from the Windows driver,
-assuming that's where Chris got it from in the first place.
+--=-ptNJU2IVQs0b0PZXh+jT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-This is what dmesg reports when I initialise the card:
+Hi there,
 
-xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id
-   0000000000000000.
-xc2028 2-0061: Loading firmware for type=D2620 DTV7 (88), id
-   0000000000000000.
-xc2028 2-0061: Loading SCODE for type=DTV7 ZARLINK456 SCODE (22000080),
-   id 0000000000000000.
-xc2028 2-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
+Currently (in linux-2.6.24, but linux-dvb hg looks similar), the
+dmx_output_t in the dmx_pes_filter_params decides two things: whether
+output is sent to demux0 or dvr0 (in dmxdev.c:dvb_dmxdev_ts_callback),
+*and* whether to depacketise TS (in dmxdev.c:dvb_dmxdev_filter_start).
+As it stands, those two things can't be set independently: output
+destined for demux0 is depacketised, output for dvr0 isn't.
 
-With this firmware:
+This is what you want for capturing multiple audio streams from the same
+multiplex simultaneously: open demux0 several times and send
+depacketised output there. And capturing a single video stream is fine
+too: open dvr0. But for capturing multiple video streams, it's surely
+not what you want: you want multi-open (so demux0, not dvr0), but you
+want the TS nature preserved (because that's what you want on output, as
+you're going to re-multiplex it with the audio).
 
-$ ls /lib/firmware/
-total 48K
-drwxr-xr-x 2 root root   92 2008-02-23 11:54 .
-drwxr-xr-x 9 root root 8.0K 2008-02-23 23:38 ..
--rw-r--r-- 1 root root 8.9K 2006-01-10 02:21 dvb-usb-bluebird-01.fw
--rw-r--r-- 1 root root 8.4K 2007-11-21 22:51 dvb-usb-bluebird-02.fw
--rw-r--r-- 1 root root 9.0K 2007-11-20 01:15 xc3028-dvico-au-01.fw
+The attached patch adds a new value for dmx_output_t:
+DMX_OUT_TSDEMUX_TAP, which sends TS to the demux0 device. The main
+question I have, is, seeing as this was such a simple change, why didn't
+it already work like that? Does everyone else who wants to capture
+multiple video streams, take the whole multiplex into userspace and
+demux it themselves? Or do they take PES from each demux0 device and
+re-multiplex that into PS, not TS?
 
-What does yours say?
+With this patch and a dvb-usb-dib0700 (and UK Freeview from Sandy
+Heath), I can successfully capture an audio/video PID pair into a TS
+file that mplayer can play back.
 
-Cheers,
-Adam.
+	Peter
 
+
+--=-ptNJU2IVQs0b0PZXh+jT
+Content-Disposition: attachment; filename=tsdemux.diff
+Content-Type: text/x-patch; name=tsdemux.diff; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- include/linux/dvb/dmx.h~	2008-01-24 22:58:37.000000000 +0000
++++ include/linux/dvb/dmx.h	2008-02-25 23:01:45.000000000 +0000
+@@ -39,9 +39,10 @@ typedef enum
+ 	DMX_OUT_DECODER, /* Streaming directly to decoder. */
+ 	DMX_OUT_TAP,     /* Output going to a memory buffer */
+ 			 /* (to be retrieved via the read command).*/
+-	DMX_OUT_TS_TAP   /* Output multiplexed into a new TS  */
++	DMX_OUT_TS_TAP,  /* Output multiplexed into a new TS  */
+ 			 /* (to be retrieved by reading from the */
+ 			 /* logical DVR device).                 */
++	DMX_OUT_TSDEMUX_TAP /* Like TS_TAP but retrieved from the DMX device */
+ } dmx_output_t;
+ 
+ 
+--- drivers/media/dvb/dvb-core/dmxdev.c~	2008-01-24 22:58:37.000000000 +0000
++++ drivers/media/dvb/dvb-core/dmxdev.c	2008-02-25 23:02:29.000000000 +0000
+@@ -374,7 +374,8 @@ static int dvb_dmxdev_ts_callback(const 
+ 		return 0;
+ 	}
+ 
+-	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP)
++	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP
++	    || dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP)
+ 		buffer = &dmxdevfilter->buffer;
+ 	else
+ 		buffer = &dmxdevfilter->dev->dvr_buffer;
+@@ -618,7 +619,7 @@ static int dvb_dmxdev_filter_start(struc
+ 		else
+ 			ts_type = 0;
+ 
+-		if (otype == DMX_OUT_TS_TAP)
++		if (otype == DMX_OUT_TS_TAP || otype == DMX_OUT_TSDEMUX_TAP)
+ 			ts_type |= TS_PACKET;
+ 
+ 		if (otype == DMX_OUT_TAP)
+
+--=-ptNJU2IVQs0b0PZXh+jT
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-ptNJU2IVQs0b0PZXh+jT--
