@@ -1,22 +1,15 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.182])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from [212.57.247.218] (helo=glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bonne@ixum.net>) id 1JN2aK-0000ak-Ci
-	for linux-dvb@linuxtv.org; Thu, 07 Feb 2008 09:58:20 +0100
-Received: by py-out-1112.google.com with SMTP id a29so3356510pyi.0
-	for <linux-dvb@linuxtv.org>; Thu, 07 Feb 2008 00:58:18 -0800 (PST)
-Message-ID: <d16b033e0802070058p1118a934u1aef769d39a63c03@mail.gmail.com>
-Date: Thu, 7 Feb 2008 19:58:17 +1100
-From: "Bonne Eggleston" <b.eggleston@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <d16b033e0711210149v485d2131p8baf4a192cdf24ed@mail.gmail.com>
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JTzSt-0001pw-Sn
+	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 14:03:24 +0100
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <d4499580711142130p6e138774l43831d5f5213e85c@mail.gmail.com>
-	<d16b033e0711181717v749fa10duc3ab3e49356f5eb7@mail.gmail.com>
-	<Pine.GSO.4.64.0711201723180.9554@mangrove.itee.uq.edu.au>
-	<d16b033e0711210149v485d2131p8baf4a192cdf24ed@mail.gmail.com>
-Subject: Re: [linux-dvb] DViCO Dual Digital 4 and remote
+Date: Tue, 26 Feb 2008 13:01:49 -0000
+Message-ID: <A33C77E06C9E924F8E6D796CA3D635D1023978@w2k3sbs.glcdomain.local>
+From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
+To: <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] make errors multiproto
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,15 +20,103 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
-I occasionally have the problem with the remote that the device nodes
-disappear. Has anyone else experienced this? Is there an easy fix?
+Can anyone help with this please?
 
-Cheers,
-Bonne
+-----Original Message-----
+From: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Michael Curtis
+Sent: 20 February 2008 08:03
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] make errors multiproto
+
+Hi all
+
+The following errors occurred during the 'make all' of the multiproto
+install
+
+The mercurial was from the above date
+
+I am using the TT3200 so the stb0899 errors will matter
+
+
+/home/mythtv/dvb/multiproto/v4l/dvb_frontend.c: In function
+'dvb_frontend_thread':
+/home/mythtv/dvb/multiproto/v4l/dvb_frontend.c:1123: warning: unused
+variable 'status'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
+'stb0899_diseqc_init':
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:834: warning: unused
+variable 'ret_2'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:833: warning: unused
+variable 'ret_1'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:832: warning: unused
+variable 'trial'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused
+variable 'i'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused
+variable 'count'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:826: warning: unused
+variable 'rx_data'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
+'stb0899_sleep':
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:899: warning: unused
+variable 'reg'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: In function
+'stb0899_track':
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1935: warning: unused
+variable 'internal'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1932: warning: unused
+variable 'lock_lost'
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c: At top level:
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1727: warning:
+'stb0899_track_carrier' defined but not used
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1744: warning:
+'stb0899_get_ifagc' defined but not used
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1761: warning:
+'stb0899_get_s1fec' defined but not used
+/home/mythtv/dvb/multiproto/v4l/stb0899_drv.c:1789: warning:
+'stb0899_get_modcod' defined but not used
+/home/mythtv/dvb/multiproto/v4l/radio-si470x.c: In function
+'si470x_get_rds_registers':
+/home/mythtv/dvb/multiproto/v4l/radio-si470x.c:562: warning: format '%d'
+expects type 'int', but argument 3 has type 'long unsigned int'
+
+Regards
+
+Mike curtis
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+-- 
+This message has been scanned for viruses and
+dangerous content by IC-MailScanner, and is
+believed to be clean.
+
+For queries or information please contact:-
+
+=================================
+Internet Central Technical Support
+
+
+ http://www.netcentral.co.uk
+=================================
+
+
+No virus found in this incoming message.
+Checked by AVG Free Edition. 
+Version: 7.5.516 / Virus Database: 269.20.9/1294 - Release Date: 22/02/2008 18:39
+ 
+
+No virus found in this outgoing message.
+Checked by AVG Free Edition. 
+Version: 7.5.516 / Virus Database: 269.21.1/1299 - Release Date: 26/02/2008 09:08
+ 
 
 _______________________________________________
 linux-dvb mailing list
