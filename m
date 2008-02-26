@@ -1,23 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m14CqSi4017815
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 07:52:28 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m14Cq7xI010183
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 07:52:07 -0500
-Date: Mon, 4 Feb 2008 10:51:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-ID: <20080204105129.1bc23bdf@gaivota>
-In-Reply-To: <Pine.LNX.4.64.0801272006570.5942@axis700.grange>
-References: <Pine.LNX.4.64.0801231646090.4932@axis700.grange>
-	<Pine.LNX.4.64.0801272006570.5942@axis700.grange>
+Date: Tue, 26 Feb 2008 08:38:39 -0500
+From: Alan Cox <alan@redhat.com>
+To: Michel Bardiaux <mbardiaux@mediaxim.be>, video4linux-list@redhat.com
+Message-ID: <20080226133839.GE26389@devserv.devel.redhat.com>
+References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [RFC PATCH 0/8] Patch series to add soc_camera virtual v4l2 and
- its users
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20080226130200.GA215@daniel.bse>
+Cc: 
+Subject: Re: Grabbing 4:3 and 16:9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,43 +22,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 27 Jan 2008 20:12:25 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@pengutronix.de> wrote:
-
-> On Wed, 23 Jan 2008, Guennadi Liakhovetski wrote:
+On Tue, Feb 26, 2008 at 02:02:00PM +0100, Daniel Glöckner wrote:
+> > 2. How do I setup the bttv so that it does variable anamorphosis instead 
+> > of letterboxing? If that is at all possible of course...
 > 
-> > Hi all
-> > 
-> > Following the first preliminary version I posted on 11.01 to this list, 
-> > following this message I am posting the soc_camera driver, an SoC part for 
-> > the PXA27x CPU, two camera drivers, a platform-specific part, that's not 
-> > yet in the mainline, so, so far this is only an example, and an auxiliary 
-> > i2c driver for a GPIO extender. Also two fourcc codes and a new control 
-> > are added to the V4L2 API. A lot of changes since the previous version, 
-> > including all new names. This patch series is against 2.6.23. There seem 
-> > to have been a few significant changes around v4l2 since then, so, forward 
-> > porting it to 2.6.24 will need some work too. But the good news is, that I 
-> > do not expect to significantly change this driver any more. So, please 
-> > review, comment, and test if you can.
-> 
-> Mauro, you probably saw this my patch series and the following discussion. 
-> A question to you - I have fixed all issues pointed out by Trent Piepho 
-> and Sakari Ailus in my local tree, now I have to forward port the patches 
-> to
-> 
->     ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
-> 
-> After this is done, would you be prepared to accept them or do you see any 
-> principle problems with those patches?
+> You can't. Bttv can't stretch vertically.
 
-On a quick look, they seem ok. Yet, I would prefer if you later move the
-sensors interface to use v4l2-int-device. This will allow future reusage of
-those drivers with other cameras.
-
-I should be analyzing your series today and commit if all are ok.
-
-Cheers,
-Mauro
+Use an OpenGL texture is probably the easiest for that kind of effect.
 
 --
 video4linux-list mailing list
