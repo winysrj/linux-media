@@ -1,32 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1L03EXt017846
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 19:03:14 -0500
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1L02iYl009718
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 19:02:44 -0500
-Received: by wr-out-0506.google.com with SMTP id 70so2955052wra.7
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 16:02:41 -0800 (PST)
-Message-ID: <175f5a0f0802201602i52187c1fxb2e980c7e86fcca6@mail.gmail.com>
-Date: Thu, 21 Feb 2008 01:02:39 +0100
-From: "H. Willstrand" <h.willstrand@gmail.com>
-To: "Thomas Kaiser" <linux-dvb@kaiser-linux.li>
-In-Reply-To: <47BCB5DB.8000800@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QGuTpD022786
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 11:56:29 -0500
+Received: from mail.mediaxim.be (dns.adview.be [193.74.142.132])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QGtwTi001298
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 11:55:58 -0500
+Received: from localhost (mail.mediaxim.be [127.0.0.1])
+	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id CE9D734025
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 17:55:54 +0100 (CET)
+Received: from [10.32.13.124] (unknown [10.32.13.124])
+	by mail.mediaxim.be (MediaXim Mail Daemon) with ESMTP id 71F6434022
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 17:55:53 +0100 (CET)
+Message-ID: <47C44499.7050506@mediaxim.be>
+Date: Tue, 26 Feb 2008 17:55:53 +0100
+From: Michel Bardiaux <mbardiaux@mediaxim.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <47BC7E91.6070303@kaiser-linux.li>
-	<47BC8BFC.2000602@kaiser-linux.li>
-	<175f5a0f0802201232y6a1bfc53u4fe92fede3abcb34@mail.gmail.com>
-	<47BC90CA.1000707@kaiser-linux.li>
-	<175f5a0f0802201254q7dc96190k35caafe9ba7d3274@mail.gmail.com>
-	<47BC9788.7070604@kaiser-linux.li> <20080220215850.GA2391@daniel.bse>
-	<47BCA5BA.20009@kaiser-linux.li>
-	<175f5a0f0802201441n5ea7bb58rdfa70663799edcad@mail.gmail.com>
-	<47BCB5DB.8000800@kaiser-linux.li>
+To: video4linux-list@redhat.com
+References: <47C3F5CB.1010707@mediaxim.be> <20080226130200.GA215@daniel.bse>
+In-Reply-To: <20080226130200.GA215@daniel.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: V4L2_PIX_FMT_RAW
+Subject: Re: Grabbing 4:3 and 16:9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,67 +32,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Feb 21, 2008 at 12:20 AM, Thomas Kaiser
-<linux-dvb@kaiser-linux.li> wrote:
->
-> H. Willstrand wrote:
->  > On Wed, Feb 20, 2008 at 11:12 PM, Thomas Kaiser
->  > <linux-dvb@kaiser-linux.li> wrote:
->  >> Daniel Glöckner wrote:
->  >>  > On Wed, Feb 20, 2008 at 10:11:36PM +0100, Thomas Kaiser wrote:
->  >>  >> H. Willstrand wrote:
->  >>  >>> Well, it can go ugly if one piece of hardware supports several "raw"
->  >>  >>> formats, they need to be distinct. And in the end of the day the V4L2
->  >>  >>> drivers might consist of several identical "raw" formats which then
->  >>  >>> aren't consolidated.
->  >>  >> I don't really understand what you try to say here.
->  >>  >
->  >>  > Think about an analog TV card.
->  >>  > In the future there might be one where RAW could mean either sampled
->  >>  > CVBS or sampled Y/C. The card may be able to provide the Y/C in planar
->  >>  > and packed format. It may be capable of 16 bit at 13.5Mhz and 8 bit at
->  >>  > 27Mhz, ...
->  >>  >
->  >>  > If we start defining raw formats, there needs to be a way to choose
->  >>  > between all those variants without defining lots of additional pixel
->  >>  > formats.
->  >>  >
->  >>  > Maybe an ioctl VIDIOC_S_RAW where one passes a number to select the
->  >>  > variant. An application would then have to check the driver and version
->  >>  > field returned by VIDIOC_QUERYCAP to determine the number to pass. This
->  >>  > way drivers may freely assign numbers to their raw formats.
->  >>
->  >>  Yeh, That's something I mean.
->  >>
->  >
->  > Okay, suppose we have pixel formats and raw formats. Comparing with
->  > digital cameras raw usually means non processed image in a proprietary
->  > format. What do we mean here?
->
->  I talk about webcams. But It looks like you don't get the point.
->  A ISOC stream can be received, then we forward this to user space! That's it.
->
->  This has nothing to do with pixel format, just deliver  the stream from the cam
->  to user space, That's all what I won't.
->  I think raw means raw, "not manipulated"! Oder in Deutsch Roh equals raw, which
->  means "not touched".
->
->  You get the point?
->
+Daniel Glöckner wrote:
+> On Tue, Feb 26, 2008 at 12:19:39PM +0100, Michel Bardiaux wrote:
+>> Here in Belgium the broadcasts is sometimes 4:3, sometimes 16:9. 
+>> Currently, the card goes automatically in letterbox mode when it 
+>> receives 16:9, and our software captures the 4:3 frames at size 704x576. 
+> 
+> The card does not go into letterbox mode. It's the broadcaster who
+> squeezes the 16:9 picture into 432 lines surrounded by 144 black lines.
 
-Yes, I understand what you want to achieve and that's fine.
+Let me rephrase to check I understood correctly. In analog TV, there are 
+no anamorphic broadcasts. When the WSS (accessible via /dev/vbi, right?) 
+states 16:9, then a 16:9 (sic) TV switches to a mode where it crops 2x72 
+lines, then stretches the image both horizontally and vertically to fill 
+the whole 16:9 screen. Am I correct?
 
-Still, the hardware produces an image, the image has a format (either
-a well know or proprietary), the image might or might not been
-processed by the Webcam, etc.
+I must admit I have difficulty believing that. Could you give me the 
+URLs of sites explaining all that?
 
-What's the problem with having a name of the formalized data in the
-video stream? ie raw do not mean undefined.
-I don't see how separate RAW ioctl's will add value to the V4l2 API,
-it fits into the current API.
+> Some fill the chroma part of the black lines with a PALPlus helper
+> signal. Although the algorithms to decode PALPlus are well documented in
+> ETS 300 731, I have never seen a software implementation.
+> 
+>> 1. How do I sense from the software that the mode is currently 16:9 or 4:3?
+> 
+> Some broadcasters use WSS to signal 16:9.
+> In Germany some signal 4:3 even on 16:9 shows.
+> Read ETSI EN 300 294.
+> 
+>> 2. How do I setup the bttv so that it does variable anamorphosis instead 
+>> of letterboxing? If that is at all possible of course...
+> 
+> You can't. Bttv can't stretch vertically.
+> 
+>   Daniel
 
-Cheers,
-Harri
+
+-- 
+Michel Bardiaux
+R&D Director
+T +32 [0] 2 790 29 41
+F +32 [0] 2 790 29 02
+E mailto:mbardiaux@mediaxim.be
+
+Mediaxim NV/SA
+Vorstlaan 191 Boulevard du Souverain
+Brussel 1160 Bruxelles
+http://www.mediaxim.com/
 
 --
 video4linux-list mailing list
