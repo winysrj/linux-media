@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1KJPkZY018356
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 14:25:46 -0500
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1KJPDKp004945
-	for <video4linux-list@redhat.com>; Wed, 20 Feb 2008 14:25:13 -0500
-Received: from localhost (localhost.lie-comtel.li [127.0.0.1])
-	by smtp0.lie-comtel.li (Postfix) with ESMTP id C0E139FEC1C
-	for <video4linux-list@redhat.com>;
-	Wed, 20 Feb 2008 20:25:07 +0100 (GMT-1)
-Received: from [192.168.0.15] (80-72-49-55.cmts.powersurf.li [80.72.49.55])
-	by smtp0.lie-comtel.li (Postfix) with ESMTP id A34999FEC14
-	for <video4linux-list@redhat.com>;
-	Wed, 20 Feb 2008 20:25:07 +0100 (GMT-1)
-Message-ID: <47BC7E91.6070303@kaiser-linux.li>
-Date: Wed, 20 Feb 2008 20:25:05 +0100
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RMGtVu013326
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 17:16:55 -0500
+Received: from mailout03.sul.t-online.com (mailout03.sul.t-online.de
+	[194.25.134.81])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1RMGM38009567
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 17:16:22 -0500
+Message-ID: <47C5E136.9020106@t-online.de>
+Date: Wed, 27 Feb 2008 23:16:22 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: tux@schweikarts-vom-dach.de
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>
+	<47B9F1C2.3050309@t-online.de>
+	<200802272151.19488.tux@schweikarts-vom-dach.de>
+In-Reply-To: <200802272151.19488.tux@schweikarts-vom-dach.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: V4L2_PIX_FMT_RAW
+Cc: video4linux-list@redhat.com
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,19 +30,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Why is V4L2_PIX_FMT_RAW not included as a pixel format in V4l2?
+Hi, Tux
 
-I would like to just forward the stream from my webcam "as it is" to user space .
+Tux schrieb:
+> Hello Hartmut,
+> 
+> i have tried the new driver. You are completely right, one port is working
+> perfectly. But the other one not. What Information do you need to fix it ?
+> 
+> 
+> best regards
+> 
+> Tux
+> Am Montag, 18. Februar 2008 21:59:46 schrieb Hartmut Hackmann:
+>> Hi
+>>
+>> Tux schrieb:
+>>> Hello,
+>>>
+>>> what is the status of the DVB-S Part of the TV Card. Is it now possible
+>>> to select the frontend for this card with a kernel option ?
+>>> I have downloaded the actual version of the sources and have had look
+>>> into saa7134-dvb.c. There is only the DVB-T part supported. When do you
+>>> think it possible to watch TV with DVB-S with this card ?
+>>>
+>>> best regards
+>> One DVB-S section of the board should be working now.
+>> You need to get the most recent driver from
+>> http://www.linuxtv.org/hg/v4l-dvb To get DVB-S, you nned to load the
+>> saa7134-dvb module with the option use_frontend=1.
+>> You get the other section working, i need a tester who has the card in a pc
+>> it was sold with ( since it is NOT a regular PCI card)
+>>
+>> best regards
+>>   Hartmut
+> 
+Fine, I got this info from a user who operates this board in a normal PCI
+slot, so he can only test one section.
+To get the other part working, i need to generate some experimental patches
+and i need you to test them.
+I hope i can prepare the first try the next days.
 
-V4L2_PIX_FMT_RAW looks as it is the right thing I need.
-
-Any comments are warmly welcome.
-
-Thomas
-
-
--- 
-http://www.kaiser-linux.li
+Best regards
+  Hartmut
 
 --
 video4linux-list mailing list
