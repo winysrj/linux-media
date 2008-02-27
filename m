@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout02.sul.t-online.de ([194.25.134.17]
-	helo=mailout02.sul.t-online.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JQrRz-00083G-MV
-	for linux-dvb@linuxtv.org; Sun, 17 Feb 2008 22:53:31 +0100
-Message-ID: <47B8ACDE.1080504@t-online.de>
-Date: Sun, 17 Feb 2008 22:53:34 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Received: from web57204.mail.re3.yahoo.com ([216.252.111.220])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <chinnakkannu@yahoo.com>) id 1JUI48-0006pd-20
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 09:55:04 +0100
+Date: Wed, 27 Feb 2008 00:54:27 -0800 (PST)
+From: sasi kala <chinnakkannu@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: =?UTF-8?B?TWlyZWsgU2x1Z2XFiA==?= <thunder.m@email.cz>
-References: <4675AD3E.3090608@email.cz> <4782A847.80208@email.cz>
-In-Reply-To: <4782A847.80208@email.cz>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134 FM radio problems (solved)
+Message-ID: <545658.70711.qm@web57204.mail.re3.yahoo.com>
+Subject: [linux-dvb] Decoding MTC312c or ZL10313 out put in linuxtv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,52 +16,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0196124351=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksIE1pcmVrCgpNaXJlayBTbHVnZcWIIHNjaHJpZWI6Cj4gRmluYWwgdmVyc2lvbiBvZiBwYXRj
-aCBmb3IgU0FBNzEzWCBiYXNlZCBjYXJkcyBhbmQgYW5hbG9nIGF1ZGlvCj4gcHJvYmxlbXMsIEl0
-IHdhcyB0ZXN0ZWQgb24gMyBkaWZmZXJlbnQgc3lzdGVtcyB3aXRoIDIgb3IgMyBjYXJkcyBhbmQg
-SXQKPiB3b3JrcyB3aXRob3V0IHByb2JsZW1zLiBJIHRlc3RlZCB0aGlzIHBhdGNoIG9ubHkgd2l0
-aCBGTSByYWRpbywgbm90IHdpdGgKPiBBbmFsb2cgVFYgYXVkaW8uCj4gCj4gUGFydCBvZiBwYXRj
-aCBmb3IgdHVuZXItY29yZS5jIGlzIG9ubHkgaGFjaywgdGhlcmUgaXMgbWF5YmUgYW5vdGhlcgo+
-IHByb2JsZW0gd2l0aCBmcmVxdWVuY3kgcmFuZ2UsIGJ1dCB0aGlzIHdvcmtzIHdpdGhvdXQgYW55
-IHByb2JsZW1zLgo+IAo+IEJhc2VkIG9uIG1hbnVhbCBmb3IgU0FBNzEzWCwgRFNQIGFjY2VzcyBl
-cnJvciBoYXMgdG8gYmUgcmVzZXRlZCBtYW51YWx5Cj4gaW4gZHJpdmVyLgo+IAo+IE1pcmVrIFNs
-dWdlbgo+IAo+IE1pcmVrIFNsdWdlxYggbmFwc2FsKGEpOgo+PiBIaSwgSXMgbXkgcHJvYmxlbSB3
-aXRoIHNhYTcxMzQgYW5kIEZNIHJhZGlvIHJlbGF0ZWQgdG8gdGhpcwo+PiBtYWlsaW5nLWxpc3Q/
-IElmIG5vdCwgY2FuIHNvbWVvbmUgcG9pbnQgbWUgdG8gY29ycmVjdCBtYWlsaW5nLWxpc3Q/Cj4+
-Cj4+IEkgaGF2ZSB0d28gTGlmZVZpZXcgRmx5RFZCLVQgdHJpbyBQQ0kgY2FyZHMsIGFuZCBJIGhh
-dmUgc29tZSBzZXJpb3VzCj4+IHByb2JsZW1zIHdpdGggRk0gcmFkaW8gdHVuZXIuCj4+Cj4+IEkg
-YW0gdXNpbmcga2VybmVsIDIuNi4yMS4zIFNNUCwgYnV0IHNhbWUgcHJvYmxlbSBpcyB3aXRoIGtl
-cm5lbCAyLjYuMjAuWAo+PiBhbmQgZXZlbiB3aXRoIGxhdGVzdCBDVlMgdHJlZSBmcm9tIGxpbnV4
-LnR2ICgxNy42LjIwMDcpCj4+Cj4+IFNvbWV0aW1lcyAodmVyeSBvZnRlbikgb25lIG9yIGJvdGgg
-Y2FyZHMgYXJlIGp1c3QgZnJvemVuLCBJIGNhbid0IHR1bmUKPj4gcmFkaW8gKGhlYXIgbm90aGlu
-ZykuCj4+Cj4+IEFmdGVyIHJlc3RhcnQsIHNpdHVhdGlvbiBzb21ldGltZXMgY2hhbmdlLgo+Pgo+
-PiAgRnJvbSBsb2c6Cj4+Cj4+ICsgSSBhbSBnZXR0aW5nIG1hbnkgZHNwIGFjY2VzIGVycm9yIG9u
-IHByb2JsZW1hdGljIGNhcmQ6Cj4+IHNhYTcxMzNbMF06IGRzcCBhY2Nlc3MgZXJyb3IKPj4gc2Fh
-NzEzM1swXTogZHNwIGFjY2VzcyBlcnJvcgo+PiBzYWE3MTMzWzBdOiBkc3AgYWNjZXNzIGVycm9y
-Cj4+IHNhYTcxMzNbMF06IGRzcCBhY2Nlc3MgZXJyb3IKPj4gc2FhNzEzM1swXTogZHNwIGFjY2Vz
-cyBlcnJvcgo+PiBzYWE3MTMzWzBdOiBkc3AgYWNjZXNzIGVycm9yCj4+IHNhYTcxMzNbMF06IGRz
-cCBhY2Nlc3MgZXJyb3IKPj4KPj4gKyBQcm9ibGVtIGlzIHJlbGF0ZWQgdG8gdGhpcyBtZXNzYWdl
-IGZyb20gZG1lc2cKPj4gYWE3MTMzWzBdL2F1ZGlvOiB0dmF1ZGlvIHRocmVhZCBzdGF0dXM6IDB4
-MTAwMDAwIFtubyBzdGFuZGFyZCBkZXRlY3RlZF0KPj4KPj4gSWYgeW91IGFyZSBkZXZlbG9wZXIg
-SSBjYW4gZ2l2ZSB5b3UgZnVsbCBzc2ggYWNjZXNzIHRvIHRoaXMgc3RhdGlvbi4KPj4KPj4gSGFz
-IHNvbWVvbmUgc2ltaWxhciBpc3N1ZSwgaXMgdGhlcmUgYW55IHdvcmtpbmcgc29sdXRpb24/Cj4+
-Cj4+IEkgYW0gc2VuZGluZyBkbWVzIGxvZyBhcyBhdHRhY2htZW50Li4uCj4+Cj4+IE1pcmVrIFNs
-dWdlbgo+Pgo+PiBQUzogU29ycnkgZm9yIG15IHBvb3IgZW5nbGlzaAo+Pgo+IApJIHN0YXJ0ZWQg
-aGFuZGxpbmcgeW91ciBwYXRjaCBhbmQgaGF2ZSBzb21lIGNvbW1lbnRzIC8gcXVlc3Rpb25zOgpU
-aGUgcGFydCBoYW5kbGluZyB0aGUgRFNQIGFjY2VzcyBlcnJvcnMgaXMgbW9zdCBwcm9iYWJseSBy
-aWdodC4KYnV0IHdoYXQgZG8geW91IGludGVuZCB3aXRoIHRoZSBvdGhlciBjaGFuZ2VzOgotIGFj
-Y29yZGluZyB0aGUgdGhlIGJvYXJkIGNvbmZpZyBzdHVjdHVyZSwKICBncGlvIDIxIGlzIHVzZWQg
-dG8gc3dpdGNoIHRoZSBBR0MgYmV0d2VlbiBUViBhbmQgcmFkaW8gbW9kZS4gVGhpcwogIG5vcm1h
-bGx5IGlzIGp1c3QgYW4gYW5hbG9nIG11bHRpcGxleGVyLiBUb2dnbGluZyB0aGlzIGR1cmluZyBp
-bml0aWFsaXphdGlvbgogIG1ha2VzIG5vIHNlbnNlIHVubGVzcyB0aGVyZSBpcyBhIHNpZGUgZWZm
-ZWN0LgotIHdoYXQgYXJlIHRoZSBjaGFuZ2VzIGluIHR1bmVyLWNvcmUuYyBnb29kIGZvcj8KCkJl
-c3QgcmVnYXJkcwogICBIYXJ0bXV0CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
-cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
-ZHZi
+--===============0196124351==
+Content-Type: multipart/alternative; boundary="0-1074387054-1204102467=:70711"
+Content-Transfer-Encoding: 8bit
+
+--0-1074387054-1204102467=:70711
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+Hi, 
+  I would like to interface the channel decoder ICs like MTC312C and ZL10313 available in FTA set top box to the PC and decode the Mpeg2 TS(taping the sigble from the bus). Is it possible do with linuxtv? Can you outline how to do?. I couldn’t get anything from the available documents.
+  Thanks
+   
+
+       
+---------------------------------
+Never miss a thing.   Make Yahoo your homepage.
+--0-1074387054-1204102467=:70711
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+<div class=MsoNormal style="MARGIN: 0in 0in 0pt"><FONT face="Times New Roman" size=3>Hi, </FONT></div>  <div class=MsoNormal style="MARGIN: 0in 0in 0pt"><FONT face="Times New Roman" size=3>I would like to interface the channel decoder ICs like MTC312C and ZL10313 available in FTA set top box to the PC and decode the Mpeg2 TS(taping the sigble from the bus). Is it possible do with linuxtv? Can you outline how to do?. I couldn’t get anything from the available documents.</FONT></div>  <div class=MsoNormal style="MARGIN: 0in 0in 0pt"><FONT face="Times New Roman" size=3>Thanks</FONT></div>  <div class=MsoNormal style="MARGIN: 0in 0in 0pt"><SPAN style="mso-spacerun: yes"></SPAN>&nbsp;</div><p>&#32;
+
+      <hr size=1>Never miss a thing.  <a href="http://us.rd.yahoo.com/evt=51438/*http://www.yahoo.com/r/hs"> Make Yahoo your homepage.</a>
+
+
+--0-1074387054-1204102467=:70711--
+
+
+--===============0196124351==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0196124351==--
