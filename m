@@ -1,18 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from el-out-1112.google.com ([209.85.162.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <clive@winpe.com>) id 1JMog0-0001fe-Uu
-	for linux-dvb@linuxtv.org; Wed, 06 Feb 2008 19:07:16 +0100
-Received: from [192.168.1.131] (81-179-109-105.dsl.pipex.com [81.179.109.105])
-	by galaxy.systems.pipex.net (Postfix) with ESMTP id 9DA9BE0000C9
-	for <linux-dvb@linuxtv.org>; Wed,  6 Feb 2008 18:06:44 +0000 (GMT)
-Message-ID: <47A9F742.3000708@winpe.com>
-Date: Wed, 06 Feb 2008 18:06:58 +0000
-From: clive <clive@winpe.com>
+	(envelope-from <zaheermerali@gmail.com>) id 1JUKdD-00052S-M5
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 12:39:27 +0100
+Received: by el-out-1112.google.com with SMTP id s27so2343567ele.13
+	for <linux-dvb@linuxtv.org>; Wed, 27 Feb 2008 03:39:19 -0800 (PST)
+Message-ID: <15e616860802270339s25938affsfede0f985111ee5f@mail.gmail.com>
+Date: Wed, 27 Feb 2008 11:39:18 +0000
+From: "Zaheer Merali" <zaheermerali@gmail.com>
+To: "Peter Hartley" <pdh@utter.chaos.org.uk>
+In-Reply-To: <1204046724.994.21.camel@amd64.pyotr.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------070303010206090408040409"
-Subject: [linux-dvb] New scan file
+Content-Disposition: inline
+References: <1204046724.994.21.camel@amd64.pyotr.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two streams
+	from same mux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,99 +23,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------070303010206090408040409
-Content-Type: multipart/alternative;
- boundary="------------090404010001080305070109"
+2008/2/26 Peter Hartley <pdh@utter.chaos.org.uk>:
+> Hi there,
+>
+>  Currently (in linux-2.6.24, but linux-dvb hg looks similar), the
+>  dmx_output_t in the dmx_pes_filter_params decides two things: whether
+>  output is sent to demux0 or dvr0 (in dmxdev.c:dvb_dmxdev_ts_callback),
+>  *and* whether to depacketise TS (in dmxdev.c:dvb_dmxdev_filter_start).
+>  As it stands, those two things can't be set independently: output
+>  destined for demux0 is depacketised, output for dvr0 isn't.
+>
+>  This is what you want for capturing multiple audio streams from the same
+>  multiplex simultaneously: open demux0 several times and send
+>  depacketised output there. And capturing a single video stream is fine
+>  too: open dvr0. But for capturing multiple video streams, it's surely
+>  not what you want: you want multi-open (so demux0, not dvr0), but you
+>  want the TS nature preserved (because that's what you want on output, as
+>  you're going to re-multiplex it with the audio).
+>
+>  The attached patch adds a new value for dmx_output_t:
+>  DMX_OUT_TSDEMUX_TAP, which sends TS to the demux0 device. The main
+>  question I have, is, seeing as this was such a simple change, why didn't
+>  it already work like that? Does everyone else who wants to capture
+>  multiple video streams, take the whole multiplex into userspace and
+>  demux it themselves? Or do they take PES from each demux0 device and
+>  re-multiplex that into PS, not TS?
+>
 
+With GStreamer, what we do is userspace demuxing and only on dvr and
+not the demux device and start by only filtering the PAT pid, then
+when the first PAT comes and has been parsed, add to the filter the
+PMT pids for the programs that we want and then as each PMT comes add
+to the filter the es pids. We provide different ts's for each of the
+programs on different src (output) pads in the mpegtsparse element.
+Programs can be selected, added, removed on the fly. We have a
+compound gstreamer element that basically encompasses the dvbsrc which
+reads from the device and the mpegtsparse that does the ts parsing
+called dvbbasebin. And an example that would record multiple  programs
+is as follows:
 
---------------090404010001080305070109
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+gst-launch-0.10  dvbbasebin adapter=0 frequency=10773000 polarity=h
+symbol-rate=22000 program-numbers=6301:6302:6304 name=d .program_6301
+! queue ! filesink location=bbc1lon.ts d.program_6302 ! queue !
+filesink location=bbc2eng.ts d.program_6304 ! queue ! filesink
+location=bbcnews24.ts
 
-I couldn't find any reference to the uk-Belmont scan file, this caused 
-me (a dvb numbskull) major problems in getting my DVB-T working.
-Finally I created a scan file that works.
-I have no idea how to submit this other than to post it to this mailing 
-list.
-This really does need adding to the scan file list.
+So we don't take the whole multiplex into userspace, just the pids we
+need on an as needed basis.
 
-# uk-Belmont
-# file automatically generated by w_scan
-# (http://free.pages.at/wirbel4vdr/w_scan/index2.html)
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 546000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 690000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE
-T 762000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-T 786000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 834000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 850000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE
+Regards
 
-Clive.
-
---------------090404010001080305070109
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#333333">
-I couldn't find any reference to the uk-Belmont scan file, this caused
-me (a dvb numbskull) major problems in getting my DVB-T working.<br>
-Finally I created a scan file that works.<br>
-I have no idea how to submit this other than to post it to this mailing
-list.<br>
-This really does need adding to the scan file list.<br>
-<br>
-# uk-Belmont<br>
-# file automatically generated by w_scan<br>
-# (<a class="moz-txt-link-freetext"
- href="http://free.pages.at/wirbel4vdr/w_scan/index2.html">http://free.pages.at/wirbel4vdr/w_scan/index2.html</a>)<br>
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy<br>
-T 546000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE<br>
-T 690000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE<br>
-T 762000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO<br>
-T 786000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE<br>
-T 834000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE<br>
-T 850000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE<br>
-<br>
-Clive.
-</body>
-</html>
-
---------------090404010001080305070109--
-
---------------070303010206090408040409
-Content-Type: text/plain;
- name="uk-Belmont"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="uk-Belmont"
-
-# file automatically generated by w_scan
-# (http://free.pages.at/wirbel4vdr/w_scan/index2.html)
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 546000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 690000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE
-T 762000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-T 786000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 834000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-T 850000000 8MHz 2/3 1/2 QAM64 2k 1/32 NONE
-
---------------070303010206090408040409
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Zaheer
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------070303010206090408040409--
