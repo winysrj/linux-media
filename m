@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hs-out-0708.google.com ([64.233.178.244])
+Received: from hydra.gt.owl.de ([195.71.99.218])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <treblid@gmail.com>) id 1JTyaj-0006bx-0y
-	for linux-dvb@linuxtv.org; Tue, 26 Feb 2008 13:07:25 +0100
-Received: by hs-out-0708.google.com with SMTP id 54so1624342hsz.1
-	for <linux-dvb@linuxtv.org>; Tue, 26 Feb 2008 04:07:20 -0800 (PST)
-Message-ID: <941593fd0802260407k1af8b51arf6f7776f2531e1c8@mail.gmail.com>
-Date: Tue, 26 Feb 2008 21:07:20 +0900
-From: "Theng Kiat Ng" <treblid@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <flo@rfc822.org>) id 1JUL0R-0008Uv-Cz
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 13:03:27 +0100
+Date: Wed, 27 Feb 2008 12:57:43 +0100
+From: Florian Lohoff <flo@rfc822.org>
+To: Peter Hartley <pdh@utter.chaos.org.uk>
+Message-ID: <20080227115743.GB29770@paradigm.rfc822.org>
+References: <1204046724.994.21.camel@amd64.pyotr.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] help: is ASUS U3000 Mini supported?
+In-Reply-To: <1204046724.994.21.camel@amd64.pyotr.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two streams
+	from same mux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,58 +20,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1035498294=="
+Content-Type: multipart/mixed; boundary="===============0587065937=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1035498294==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_13367_26991726.1204027640208"
 
-------=_Part_13367_26991726.1204027640208
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+--===============0587065937==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
 Content-Disposition: inline
 
-Hi all,
 
-Is the above USB tuner (ASUS U3000 Mini) supported under linux? My old
-tuners are broken and i need new tuners.
+--jho1yZJdad60DJr+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The Wiki says it is supported, but very bare on the details. (e.g. which
-kernel module, USB_DIB0700? Where's the firmware? Supported since kernel
-version what?)
+On Tue, Feb 26, 2008 at 05:25:24PM +0000, Peter Hartley wrote:
+> The attached patch adds a new value for dmx_output_t:
+> DMX_OUT_TSDEMUX_TAP, which sends TS to the demux0 device. The main
+> question I have, is, seeing as this was such a simple change, why didn't
+> it already work like that? Does everyone else who wants to capture
+> multiple video streams, take the whole multiplex into userspace and
+> demux it themselves? Or do they take PES from each demux0 device and
+> re-multiplex that into PS, not TS?
 
-I've been searching the Internet for hours but can't find anything
-definitive.. Tried to download the driver from ASUS support page but no idea
-how to install it on my Mandriva64 system.
+With getstream a little toy project of mine i basically just fetch the
+whole stream with pid 0x2000 for budget cards, or join individual pids
+on non-budget cards and do the whole remuxing stuff in userspace.
 
-If this works, does it work well under MythTV? Also can I run 2 tuners on
-the same computer?
+It is okay to have a MpegTS demux in kernel space as its a "unify the
+interface" thingy for all different cards, but the section reassembly
+is just a little featured moved to the kernel where it IMHO does not
+belong to.
 
-Would appreciate if somebody (anybody) can offer me some pointers. I'm using
-Mandriva 2008.0 (64 bit version) an using stock 2.6.23.16 kernel.
-Thanks to anyone who can help me.
+RFC1925 - The twelve networking thruths:
 
-Regards
+   (12) In protocol design, perfection has been reached not when there
+           is nothing left to add, but when there is nothing left to
+	   take away.
 
-------=_Part_13367_26991726.1204027640208
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Flo
+--=20
+Florian Lohoff                  flo@rfc822.org             +49-171-2280134
+	Those who would give up a little freedom to get a little=20
+          security shall soon have neither - Benjamin Franklin
+
+--jho1yZJdad60DJr+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
-Hi all,<br><br>Is the above USB tuner (ASUS U3000 Mini) supported under linux? My old tuners are broken and i need new tuners.<br><br>The Wiki says it is supported, but very bare on the details. (e.g. which kernel module, USB_DIB0700? Where&#39;s the firmware? Supported since kernel version what?)<br>
-<br>
-I&#39;ve been searching the Internet for hours but can&#39;t find anything definitive.. Tried to download the driver from ASUS support page but no idea how to install it on my Mandriva64 system.<br><br>If this works, does it work well under MythTV? Also can I run 2 tuners on the same computer?<br>
-<br>Would appreciate if somebody (anybody) can offer me some pointers. I&#39;m using Mandriva 2008.0 (64 bit version) an using stock <a href="http://2.6.23.16">2.6.23.16</a> kernel.<br>Thanks to anyone who can help me.<br>
-<br>Regards
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-------=_Part_13367_26991726.1204027640208--
+iD8DBQFHxVA3Uaz2rXW+gJcRAiV9AKCJpZntSY66QuQujiGgd6yv54yVqQCgvomy
+YcZls2HUcYrG46x3txNLovo=
+=Yug5
+-----END PGP SIGNATURE-----
+
+--jho1yZJdad60DJr+--
 
 
---===============1035498294==
+--===============0587065937==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -79,4 +94,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1035498294==--
+--===============0587065937==--
