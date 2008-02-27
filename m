@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from mailout10.sul.t-online.de ([194.25.134.21]
+	helo=mailout10.sul.t-online.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JRsnn-0006J9-5j
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 18:32:15 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JWJ00EIZSORPC21@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 20 Feb 2008 12:31:41 -0500 (EST)
-Date: Wed, 20 Feb 2008 12:31:39 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <732067.64147.qm@web45813.mail.sp1.yahoo.com>
-To: markst tim <markst_tim@yahoo.com>
-Message-id: <47BC63FB.8020500@linuxtv.org>
-MIME-version: 1.0
-References: <732067.64147.qm@web45813.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] drivers
+	(envelope-from <halim.sahin@t-online.de>) id 1JUQOC-0002Vg-Po
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 18:48:20 +0100
+Message-ID: <002b01c87968$e73307a0$2727a8c0@pc1>
+From: "Halim Sahin" <halim.sahin@t-online.de>
+To: <linux-dvb@linuxtv.org>
+References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
+	<B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
+	<47C591E1.5030001@linuxtv.org> <002a01c87962$8d8293c0$2727a8c0@pc1>
+	<47C5996A.2070404@linuxtv.org>
+Date: Wed, 27 Feb 2008 18:48:03 +0100
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
+	HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,15 +28,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-markst tim wrote:
-> hi 
-> am new to this site. im having NOVA-S-Plus card, and
-> re i dont know how to download the drivers for
-> this,can u tell me the sites.
+Hi,
 
-Read the wiki at linuxtv.org
+> By someone, do you mean me?
 
-- Steve
+Steve you can answer this Question if you want.
+BR.
+Halim
 
 
 _______________________________________________
