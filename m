@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1D5MJPK012078
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:22:19 -0500
-Received: from mail1.sea5.speakeasy.net (mail1.sea5.speakeasy.net
-	[69.17.117.3])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1D5LmBm018277
-	for <video4linux-list@redhat.com>; Wed, 13 Feb 2008 00:21:49 -0500
-Date: Tue, 12 Feb 2008 21:21:43 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080212190235.4e86baf8@gaivota>
-Message-ID: <Pine.LNX.4.58.0802122120530.7642@shell2.speakeasy.net>
-References: <20080212190235.4e86baf8@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RG9K8x014406
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 11:09:20 -0500
+Received: from smtp103.rog.mail.re2.yahoo.com (smtp103.rog.mail.re2.yahoo.com
+	[206.190.36.81])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1RG8elC018076
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 11:08:41 -0500
+Message-ID: <47C58ABD.8040309@rogers.com>
+Date: Wed, 27 Feb 2008 11:07:25 -0500
+From: CityK <CityK@rogers.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-dvb-maintainer@linuxtv.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB fixes
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+References: <200802212132.36246.vanessaezekowitz@gmail.com>
+In-Reply-To: <200802212132.36246.vanessaezekowitz@gmail.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: New(ish) card support needed, sorta
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,10 +28,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 12 Feb 2008, Mauro Carvalho Chehab wrote:
->    - cx88-mpeg: Allow concurrent access to cx88-mpeg devices;
+Vanessa Ezekowitz wrote:
+> I picked up a Kworld ATSC120 ... it looks to me like this card *should* work 
+> using the driver intended for the Geniatech HDTV Thriller X8000A, as one 
 
-So you decided to just commit this one with the race condition anyway?
+There is no driver intended for the X8000A (not certain what made you 
+think there was).
+
+Anyway, I noticed last week that you picked up on the thread between 
+Mkrufky and Mauro -- which is good, cause its highly relevant.
+
+Also see:
+- http://marc.info/?l=linux-video&m=120163584127364&w=2
+- http://marc.info/?l=linux-video&m=120178893227772&w=2
+
+
+As I mentioned in that thread, adding support for your card is likely 
+achievable with not much too much difficulty. Good luck.
 
 --
 video4linux-list mailing list
