@@ -1,28 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1C2Yvbg005150
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 21:34:57 -0500
-Received: from host06.hostingexpert.com (host06.hostingexpert.com
-	[216.80.70.60])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1C2YacN016571
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 21:34:36 -0500
-Message-ID: <47B105B8.7010900@linuxtv.org>
-Date: Mon, 11 Feb 2008 21:34:32 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Tony Breeds <tony@bakeyournoodle.com>
-References: <200802111154.31760.toralf.foerster@gmx.de>
-	<20080212004251.GT6887@bakeyournoodle.com>
-In-Reply-To: <20080212004251.GT6887@bakeyournoodle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com,
-	=?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@hauppauge.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: build #345 issue for v2.6.25-rc1 in tuner-core.c
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R9sXRn023859
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 04:54:34 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R9rvF0030923
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 04:53:57 -0500
+Date: Wed, 27 Feb 2008 06:52:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Robert Fitzsimons <robfitz@273k.net>
+Message-ID: <20080227065251.3b2e4516@areia>
+In-Reply-To: <20080227014729.GC2685@localhost>
+References: <200802171036.19619.bonganilinux@mweb.co.za>
+	<20080218131125.2857f7c7@gaivota>
+	<200802182320.40732.bonganilinux@mweb.co.za>
+	<200802190121.36280.bonganilinux@mweb.co.za>
+	<20080219111640.409870a9@gaivota>
+	<20080226154102.GD30463@localhost>
+	<20080227014238.GA2685@localhost> <20080227014729.GC2685@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	Bongani Hlope <bonganilinux@mweb.co.za>
+Subject: Re: [PATCH] bttv: Re-enabling radio support requires the use of
+ struct bttv_fh.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,65 +35,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Tony Breeds wrote:
-> On Mon, Feb 11, 2008 at 11:54:31AM +0100, Toralf Förster wrote:
->   
->> Hello,
->>
->> the build with the attached .config failed, make ending with:
->> ...
->>   MODPOST vmlinux.o
->> WARNING: modpost: Found 12 section mismatch(es).
->> To see full details build your kernel with:
->> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
->>   GEN     .version
->>   CHK     include/linux/compile.h
->>   UPD     include/linux/compile.h
->>   CC      init/version.o
->>   LD      init/built-in.o
->>   LD      .tmp_vmlinux1
->> drivers/built-in.o: In function `set_type':
->> tuner-core.c:(.text+0x8879d): undefined reference to `xc5000_attach'
->> make: *** [.tmp_vmlinux1] Error 1
->>     
->
-> <snip>
-> Fix Build error for xc5000 tuner when built as module.
->
-> Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
->   
-Patch is correct.  Not sure which tag is appropriate.....
+On Wed, 27 Feb 2008 01:47:29 +0000
+Robert Fitzsimons <robfitz@273k.net> wrote:
 
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
-
-This should go straight to Linus.....  Andrew or Mauro, can one of you
-take care of it?
-
-Regards,
-
-Mike
+> A number of the radio tuner ioctl functions are shared with the TV
+> tuner, these functions require a struct bttv_fh data structure to be
+> allocated and initialized.
+> 
+> Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
 > ---
-> Not 100% certain this is correct but it works for me :) Michael?
->
->  drivers/media/dvb/frontends/xc5000.h |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/xc5000.h b/drivers/media/dvb/frontends/xc5000.h
-> index e0e8456..32a5f1c 100644
-> --- a/drivers/media/dvb/frontends/xc5000.h
-> +++ b/drivers/media/dvb/frontends/xc5000.h
-> @@ -45,7 +45,8 @@ struct xc5000_config {
->  /* xc5000 callback command */
->  #define XC5000_TUNER_RESET		0
->  
-> -#if defined(CONFIG_DVB_TUNER_XC5000) || defined(CONFIG_DVB_TUNER_XC5000_MODULE)
-> +#if defined(CONFIG_DVB_TUNER_XC5000) || \
-> +    (defined(CONFIG_DVB_TUNER_XC5000_MODULE) && defined(MODULE))
->  extern struct dvb_frontend* xc5000_attach(struct dvb_frontend *fe,
->  					  struct i2c_adapter *i2c,
->  					  struct xc5000_config *cfg);
->   
+>  drivers/media/video/bt8xx/bttv-driver.c |   21 ++++++++++++++++-----
+>  1 files changed, 16 insertions(+), 5 deletions(-)
+> 
+> 
+> Mauro, the radio_open function may want to do more initialisation then
+> the amount I copied from bttv_open.
+
+Maybe, but the proper way would be to use just one open for both radio and
+video, like cx88. This driver violates V4L2 API, since the spec says that
+opening /dev/radio will select radio, by default, but it is possible to listen
+video also on that interface (the opposite is valid also for /dev/video).
+
+I'll apply the fixes, for now. The better would be if you could try to use the
+same approach present on cx88.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
