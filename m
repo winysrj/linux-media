@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mtai01.charter.net ([209.225.8.181])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ewomer@charter.net>) id 1JS5M4-0007im-KF
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 07:56:28 +0100
-Received: from aarprv05.charter.net ([10.20.200.75]) by mtai01.charter.net
-	(InterMail vM.7.08.02.02 201-2186-121-104-20070414) with ESMTP
-	id <20080221065553.VWP20099.mtai01.charter.net@aarprv05.charter.net>
-	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 01:55:53 -0500
-Received: from fepweb10 ([10.20.200.80]) by aarprv05.charter.net with ESMTP
-	id <20080221065553.XATW27434.aarprv05.charter.net@fepweb10>
-	for <linux-dvb@linuxtv.org>; Thu, 21 Feb 2008 01:55:53 -0500
-Message-ID: <20080221015553.1E1UE.180463.root@fepweb10>
-Date: Wed, 20 Feb 2008 22:55:53 -0800
-From: <ewomer@charter.net>
-To: linux-dvb@linuxtv.org
+Message-ID: <001b01c8793b$92ab2460$6e00a8c0@barny1e59e583e>
+From: "ptay1685" <ptay1685@Bigpond.net.au>
+To: "Steven Toth" <stoth@linuxtv.org>, "Halim Sahin" <halim.sahin@t-online.de>
+References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org><B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz><47C591E1.5030001@linuxtv.org>
+	<002a01c87962$8d8293c0$2727a8c0@pc1> <47C5996A.2070404@linuxtv.org>
+Date: Wed, 27 Feb 2008 23:23:34 +1100
 MIME-Version: 1.0
-Subject: [linux-dvb] Avermedia PCIe combo tv card
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
+	HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,7 +22,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I was woundering on the status of support of the Avermedia PCIe oem tv card. it's probly only used in gateway computers. no rush just woundering. thanx 
+I would imagine that is usually to reduce costs. I assume that the buyers 
+for the companies are always trying to negotiate lower prices to increase 
+profit margins, and playing the various chip suppliers off against each 
+other to shave a few cents off the components. If Dibcom refuse to lower 
+their price any further, then the company will switch to ULI or some other 
+manufacturer.
+
+Supply volume might also be an issue - maybe the current manufacturer cannot 
+provide enough volume.
+
+Failure rate of the components might also be an issue.
+
+Regards,
+
+Phil.
+
+----- Original Message ----- 
+From: "Steven Toth" <stoth@linuxtv.org>
+To: "Halim Sahin" <halim.sahin@t-online.de>
+Cc: "linux-dvb" <linux-dvb@linuxtv.org>
+Sent: Thursday, February 28, 2008 4:10 AM
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200, HVR-1700 
+and HVR-1200
+
+
+> Halim Sahin wrote:
+>> Hello,
+>>
+>> Can please someone explain why the hardware manufacturers are often
+>> changing well working hardware designs?
+>> Now hauppauge seems to have a new card, new cips on it (and currently no
+>> linux support?)?
+>> BR.
+>> Halim
+>
+> You dropped the CC of the mailing list, so I added it back.
+>
+> By someone, do you mean me?
+>
+> - Steve
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
+
 
 _______________________________________________
 linux-dvb mailing list
