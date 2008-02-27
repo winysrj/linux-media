@@ -1,37 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1BHcINQ010595
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 12:38:18 -0500
-Received: from outbound6-va3-R.bigfish.com (outbound-va3.frontbridge.com
-	[216.32.180.16])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m1BHbWpQ016086
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 12:37:32 -0500
-Received: from outbound6-va3.bigfish.com (localhost.localdomain [127.0.0.1])
-	by outbound6-va3-R.bigfish.com (Postfix) with ESMTP id 894BDC7189A
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
-Received: from mail12-va3-R.bigfish.com (si1-va3 [10.7.14.5])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by outbound6-va3.bigfish.com (Postfix) with ESMTP id 87258650052
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
-Received: from mail12-va3 (localhost.localdomain [127.0.0.1])
-	by mail12-va3-R.bigfish.com (Postfix) with ESMTP id 6E9581850308
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:26 +0000 (UTC)
-Received: from calsmtp1.smarttech.com (calsav1.smarttech.com [209.205.33.92])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(No client certificate requested)
-	by mail12-va3.bigfish.com (Postfix) with ESMTP id 679E99900DF
-	for <video4linux-list@redhat.com>; Mon, 11 Feb 2008 17:37:24 +0000 (UTC)
-Content-class: urn:content-classes:message
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R0rS5O018251
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 19:53:28 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R0qr6k022453
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 19:52:53 -0500
+Received: by wa-out-1112.google.com with SMTP id j37so2713143waf.7
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 16:52:53 -0800 (PST)
+Message-ID: <f17812d70802261652r4e3bc36flcdffb0fd74795958@mail.gmail.com>
+Date: Wed, 27 Feb 2008 08:52:52 +0800
+From: "eric miao" <eric.y.miao@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@pengutronix.de>
+In-Reply-To: <Pine.LNX.4.64.0802260817110.3846@axis700.grange>
 MIME-Version: 1.0
-Date: Mon, 11 Feb 2008 10:37:19 -0700
-Message-ID: <8FF3AEDFC5ABAE42A50A92DBBFD702EF02C1E59E@calmail1.smarttech.inc>
-From: "Nathanael Galpin" <NathanaelGalpin@smarttech.com>
-To: <video4linux-list@redhat.com>
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: Device Identification
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <Pine.LNX.4.64.0802251304320.4430@axis700.grange>
+	<f17812d70802251649p73c7fa2p881b1710ebad5f81@mail.gmail.com>
+	<Pine.LNX.4.64.0802260817110.3846@axis700.grange>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] soc-camera: deactivate cameras when not used
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,14 +32,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Tue, Feb 26, 2008 at 3:23 PM, Guennadi Liakhovetski
+<g.liakhovetski@pengutronix.de> wrote:
+> On Tue, 26 Feb 2008, eric miao wrote:
+>
+>  > Do you have a git tree or patch series (maybe a mbox patch aggregate)
+>  > that I can apply? Also let me know the baseline to apply, I guess it
+>  > should apply happily on top of linux-v4l2's current head, but I'm not
+>  > sure
+>
+>  v4l-dvb/devel contains most of my patches. This is the only patch missing
+>  there ATM. Are you looking at testing it? What I forgot about, is that so
+>  far only the two mt9m001 and mt9v022 Micron cameras are supported by the
+>  API. But writing new drivers shouldn't be very difficult. Let me know if
+>  you need help with that.
+>
 
-Is there any way through the V4L2 API to get a device's product and =
-vendor ID?
+Ok, I'll try this but do expect large latency since I will be busy with
+other stuffs in the recent. Thanks.
 
-Thanks,=20
+>  Thanks
+>  Guennadi
+>  ---
+>  Guennadi Liakhovetski
+>
 
-Nathanael
+
+
+-- 
+Cheers
+- eric
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
