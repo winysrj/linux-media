@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1JSqyP-0006Ds-2U
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 10:47:13 +0100
-Received: from xp.homenet.telecomitalia.it (87.10.62.240) by
-	relay-pt1.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
-	id 47BF705F000031F1 for linux-dvb@linuxtv.org;
-	Sat, 23 Feb 2008 10:47:09 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Sat, 23 Feb 2008 10:41:21 +0100
-References: <47BFD5F4.3030805@shikadi.net>
-In-Reply-To: <47BFD5F4.3030805@shikadi.net>
+	(envelope-from <abraham.manu@gmail.com>) id 1JUVCc-0002Wy-Ky
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 23:56:42 +0100
+Message-ID: <47C5EA9B.3020308@gmail.com>
+Date: Thu, 28 Feb 2008 02:56:27 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200802231041.21591.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Is there a daemon style program for scheduled DVB
-	recording?
+To: Zaheer Merali <zaheermerali@gmail.com>
+References: <1204046724.994.21.camel@amd64.pyotr.org>
+	<15e616860802270339s25938affsfede0f985111ee5f@mail.gmail.com>
+In-Reply-To: <15e616860802270339s25938affsfede0f985111ee5f@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] DMX_OUT_TSDEMUX_TAP: record two
+ streams	from same mux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,37 +27,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il Saturday 23 February 2008 09:14:44 Adam Nielsen ha scritto:
-> Hi everyone,
-> 
-> I'm currently setting up a new server that will (among other things)
-> record TV shows for me.  In the past I've used cron to schedule
-> recording jobs, and I've used dvbrecord to do the actual recording.
-> 
-> This set up has served me well for many years, but unfortunately
-> dvbrecord doesn't seem to exist any more, and it never supported
-> programs with AC3 audio anyway (which is pretty much all the HDTV
-> channels here in Australia.)
-> 
-> If you were setting up a headless machine to record TV shows, what
-> programs would you use to do this?  Ideally I'd like the shows dumped
-> into a local directory, so that I can watch them over NFS with mplayer,
-> but I'm open to alternatives.
-> 
-> I really want to avoid running a whole "media centre" program like
-> MythTV, VDR, etc. as I'd like this to be lean and clean and I don't mind
-> using the command line for playback.
-> 
-> Any suggestions?  I'd be happy to document the final system,
-> installation, configuration, etc. on the LinuxTV wiki, as I couldn't
-> find any info about this sort of thing on there at the moment.
-> 
-> Many thanks,
-> Adam.
-> 
+Zaheer Merali wrote:
 
-there used to be dvbd somewhere sometimes, although I can't say how
-it works because I never used it
+> So we don't take the whole multiplex into userspace, just the pids we
+> need on an as needed basis.
+
+Though this will work for FTA streams, it won't work for scrambled streams.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
