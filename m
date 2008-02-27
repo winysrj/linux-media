@@ -1,24 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m15E2QMx018738
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 09:02:26 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m15E1xWC017169
-	for <video4linux-list@redhat.com>; Tue, 5 Feb 2008 09:01:59 -0500
-Date: Tue, 5 Feb 2008 12:01:02 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080205120102.76ccd526@gaivota>
-In-Reply-To: <47A86350.9090205@linuxtv.org>
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<47A86350.9090205@linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>
-Subject: Re: NACK NACK!  [PATCH] Add two new fourcc codes for 16bpp formats
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1R1mCuH009173
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:48:12 -0500
+Received: from igraine.blacknight.ie (igraine.blacknight.ie [81.17.252.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1R1lbhd020789
+	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 20:47:37 -0500
+Date: Wed, 27 Feb 2008 01:47:29 +0000
+From: Robert Fitzsimons <robfitz@273k.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080227014729.GC2685@localhost>
+References: <200802171036.19619.bonganilinux@mweb.co.za>
+	<20080218131125.2857f7c7@gaivota>
+	<200802182320.40732.bonganilinux@mweb.co.za>
+	<200802190121.36280.bonganilinux@mweb.co.za>
+	<20080219111640.409870a9@gaivota>
+	<20080226154102.GD30463@localhost>
+	<20080227014238.GA2685@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080227014238.GA2685@localhost>
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	Bongani Hlope <bonganilinux@mweb.co.za>
+Subject: [PATCH] bttv: Re-enabling radio support requires the use of struct
+	bttv_fh.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,37 +35,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 05 Feb 2008 08:23:28 -0500
-Michael Krufky <mkrufky@linuxtv.org> wrote:
+A number of the radio tuner ioctl functions are shared with the TV
+tuner, these functions require a struct bttv_fh data structure to be
+allocated and initialized.
 
-> Brandon Philips wrote:
-> > - mailimport changes in this commit too!  Why is mailimport running
-> >   sudo!?! 
-> 
-> I understand that unrelated changes were accidentally merged with a single commit, but why would we want this script to call sudo in the first place?
-> 
-> I think it's bad practice, for such a script to execute commands as root -- 
-> 
-> Can you explain, Mauro?
+Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
 
-The script itself doesn't open any new vulnerabilities. Sudo only works if 
-configured at /etc/sudoers.
 
-This is needed for the script to work on certain configurations. 
-Some emailers marks mailboxes and messages with "og-rw" permissions.
-This means that other users can't access. If someone uses a different user
-account for V4L/DVB development/testing, permissions should be changed, when
-applying a patch series received by email.
+Mauro, the radio_open function may want to do more initialisation then
+the amount I copied from bttv_open.
 
-Of course, this will only work if:
 
-1) the user of the second account has sudo rights;
-
-2) the user of the second account types his password (or, otherwise, sudo is
-configured to not ask for passwords - on very weak environments).
-
-Cheers,
-Mauro
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 817a961..04a8263 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3417,6 +3417,7 @@ static int radio_open(struct inode *inode, struct file *file)
+ {
+ 	int minor = iminor(inode);
+ 	struct bttv *btv = NULL;
++	struct bttv_fh *fh;
+ 	unsigned int i;
+ 
+ 	dprintk("bttv: open minor=%d\n",minor);
+@@ -3431,12 +3432,19 @@ static int radio_open(struct inode *inode, struct file *file)
+ 		return -ENODEV;
+ 
+ 	dprintk("bttv%d: open called (radio)\n",btv->c.nr);
++
++	/* allocate per filehandle data */
++	fh = kmalloc(sizeof(*fh),GFP_KERNEL);
++	if (NULL == fh)
++		return -ENOMEM;
++	file->private_data = fh;
++	*fh = btv->init;
++	v4l2_prio_open(&btv->prio,&fh->prio);
++
+ 	mutex_lock(&btv->lock);
+ 
+ 	btv->radio_user++;
+ 
+-	file->private_data = btv;
+-
+ 	bttv_call_i2c_clients(btv,AUDC_SET_RADIO,NULL);
+ 	audio_input(btv,TVAUDIO_INPUT_RADIO);
+ 
+@@ -3446,7 +3454,8 @@ static int radio_open(struct inode *inode, struct file *file)
+ 
+ static int radio_release(struct inode *inode, struct file *file)
+ {
+-	struct bttv *btv = file->private_data;
++	struct bttv_fh *fh = file->private_data;
++	struct bttv *btv = fh->btv;
+ 	struct rds_command cmd;
+ 
+ 	btv->radio_user--;
+@@ -3571,7 +3580,8 @@ static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
+ static ssize_t radio_read(struct file *file, char __user *data,
+ 			 size_t count, loff_t *ppos)
+ {
+-	struct bttv    *btv = file->private_data;
++	struct bttv_fh *fh = file->private_data;
++	struct bttv *btv = fh->btv;
+ 	struct rds_command cmd;
+ 	cmd.block_count = count/3;
+ 	cmd.buffer = data;
+@@ -3585,7 +3595,8 @@ static ssize_t radio_read(struct file *file, char __user *data,
+ 
+ static unsigned int radio_poll(struct file *file, poll_table *wait)
+ {
+-	struct bttv    *btv = file->private_data;
++	struct bttv_fh *fh = file->private_data;
++	struct bttv *btv = fh->btv;
+ 	struct rds_command cmd;
+ 	cmd.instance = file;
+ 	cmd.event_list = wait;
+-- 
+1.5.4.34.g053d9
 
 --
 video4linux-list mailing list
