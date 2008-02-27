@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1QFfgvA023011
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 10:41:42 -0500
-Received: from igraine.blacknight.ie (igraine.blacknight.ie [81.17.252.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1QFfAYe003644
-	for <video4linux-list@redhat.com>; Tue, 26 Feb 2008 10:41:11 -0500
-Date: Tue, 26 Feb 2008 15:41:02 +0000
-From: Robert Fitzsimons <robfitz@273k.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080226154102.GD30463@localhost>
-References: <200802171036.19619.bonganilinux@mweb.co.za>
-	<20080218131125.2857f7c7@gaivota>
-	<200802182320.40732.bonganilinux@mweb.co.za>
-	<200802190121.36280.bonganilinux@mweb.co.za>
-	<20080219111640.409870a9@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080219111640.409870a9@gaivota>
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Bongani Hlope <bonganilinux@mweb.co.za>
-Subject: Re: 2.6.25-rc[12] Video4Linux Bttv Regression
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RATiCW010645
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 05:29:44 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1RAT7XM020360
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 05:29:08 -0500
+Date: Wed, 27 Feb 2008 07:28:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Michael Schimek <mschimek@gmx.at>
+Message-ID: <20080227072804.64f96ff1@areia>
+In-Reply-To: <1204041895.15586.655.camel@localhost>
+References: <20080127103819.856157143@suse.de>
+	<20080127104008.554561732@suse.de> <20080226055359.GA9178@plankton>
+	<1204041895.15586.655.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>
+Subject: Re: PING! Re: [patch 1/3] Add camera class controls for UVC merge
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,17 +29,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Bisecting this won't be that easy. The support for the depreciated V4L1 API
-> were removed from bttv driver. Now, it uses v4l1-compat module, that translates
-> a V4L1 call into a V4L2 one. I'll try to seek for troubles at the current code.
+On Tue, 26 Feb 2008 17:04:54 +0100
+Michael Schimek <mschimek@gmx.at> wrote:
 
-I think I might have seen this problem but it didn't cause a oops for
-me, just that the radio program would hang waiting for the ioctl syscall
-to return.  I did tried looking for a new radio program that used the
-V4L2 API but couldn't find one.  I'll have a more in-depth look at the
-bttv driver when I get home tonight.
+> On Mon, 2008-02-25 at 21:53 -0800, Brandon Philips wrote:
+> > On 02:38 Sun 27 Jan 2008, Brandon Philips wrote:
+> > > - Add V4L2_CID_EXPOSURE_ABSOLUTE, V4L2_CID_EXPOSURE_AUTO,
+> > >   V4L2_CID_EXPOSURE_AUTO_PRIORITY
+> > > - Add V4L2_CID_PAN_RELATIVE, V4L2_CID_TILT_RELATIVE, V4L2_CID_PAN_ABSOLUTE,
+> > >   V4L2_CID_TILT_ABSOLUTE, V4L2_CID_PAN_RESET, V4L2_CID_TILT_RESET,
+> > > - Add V4L2_CID_FOCUS_RELATIVE/ABSOLUTE/AUTO 
+> >
+> > This series needs to be merged into the spec along with the
+> > clarification about changing frame rates while streaming.
+> 
+> I'm working on it.
+> 
+> > Also, we need to have the discussion about putting the spec
+> > into the Kernel Documentation/ tree.
+> 
+> Fine with me, after porting the sources to DocBook 4.1. You're aware
+> that would be a 1.3 MB patch?
 
-Robert
+Seems a little big to my eyes ;)
+
+Maybe we could split this into two separate docs. A concise one, with the API
+itself, and an "user guide" with V4L2 history and the complimentary info for
+developers.
+
+Yet, IMO, the better is to keep the API part together with the kernel.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
