@@ -1,26 +1,20 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mailfe04.tele2.fr ([212.247.154.108] helo=swip.net)
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from py-out-1112.google.com ([64.233.166.178])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alain2.roos@tele2.fr>) id 1JPi0B-0006Hj-DX
-	for linux-dvb@linuxtv.org; Thu, 14 Feb 2008 18:36:03 +0100
-Received: from aroos.homelinux.org (account eu1252360@tele2.fr [90.144.37.79]
-	verified) by mailfe04.swip.net (CommuniGate Pro SMTP 5.1.13)
-	with ESMTPA id 804436312 for linux-dvb@linuxtv.org;
-	Thu, 14 Feb 2008 18:35:32 +0100
-Received: from alain by aroos.homelinux.org with local (Exim 3.36 #1 (Debian))
-	id 1JPhze-0001Li-00
-	for <linux-dvb@linuxtv.org>; Thu, 14 Feb 2008 18:35:30 +0100
-From: Alain Roos <alain2.roos@tele2.fr>
+	(envelope-from <ajw1980@gmail.com>) id 1JUQ3j-0000UH-5B
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 18:27:11 +0100
+Received: by py-out-1112.google.com with SMTP id a29so3096199pyi.0
+	for <linux-dvb@linuxtv.org>; Wed, 27 Feb 2008 09:26:57 -0800 (PST)
+Date: Wed, 27 Feb 2008 11:26:54 -0600
+From: Andy Wettstein <ajw1980@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 14 Feb 2008 18:35:30 +0100
-References: <200802011811.57252.alain2.roos@tele2.fr>
-	<200802042233.06289.alain2.roos@tele2.fr>
-In-Reply-To: <200802042233.06289.alain2.roos@tele2.fr>
+Message-ID: <20080227172654.GA2191@wettstein.homelinux.org>
+References: <20080227000807.GB14099@wettstein.homelinux.org>
+	<47C59132.2090701@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802141835.30684.alain2.roos@tele2.fr>
-Subject: Re: [linux-dvb] [PATCH] Emtec 810S DVB-T Stick (164:2efc)
-Reply-To: alain2.roos@tele2.fr
+In-Reply-To: <47C59132.2090701@linuxtv.org>
+Subject: Re: [linux-dvb] hvr1250 messages
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,107 +22,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Wed, Feb 27, 2008 at 11:34:58AM -0500, Steven Toth wrote:
+> Andy Wettstein wrote:
+>> Hi,
+>>
+>> I just installed a hauppauge hvr1250 and it seems to be ok, but
+>> there are ton of messages being logged.  I am wondering if these  
+>> messages are something to be concerned about.
+>>
+>> uname:
+>> Linux beerme 2.6.24-1-686 #1 SMP Mon Feb 11 14:37:45 UTC 2008 i686 GNU/Linux
+>>
+>>
+>> Relevant dmesg output:
+>>
+>> cx23885 driver version 0.0.1 loaded
+>> ACPI: PCI Interrupt Link [APC5] enabled at IRQ 16
+>> ACPI: PCI Interrupt 0000:01:00.0[A] -> Link [APC5] -> GSI 16 (level, low) -> IRQ 19
+>> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 [card=3,autodetected]
+>> cx23885[0]: i2c bus 0 registered
+>> cx23885[0]: i2c bus 1 registered
+>> cx23885[0]: i2c bus 2 registered
+>> tveeprom 0-0050: Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.
+>> cx23885[0]: warning: unknown hauppauge model #0
+>> cx23885[0]: hauppauge eeprom: model=0
+>> cx23885[0]: cx23885 based dvb card
+>> MT2131: successfully identified at address 0x61
+>> DVB: registering new adapter (cx23885[0])
+>> DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+>> cx23885[0]/0: found at 0000:01:00.0, rev: 2, irq: 19, latency: 0, mmio: 0xfd800000
+>> PCI: Setting latency timer of device 0000:01:00.0 to 64
+>
+> The driver was loaded with debug enabled.
 
-I've something interesting in the unstability issue for my Emtec 810S DVB-T=
- Stick
-
-When the kaffeine TV screen freezes, the =
-
-dmesg indicates that the USB device is disconnected
-and syslog continus to report that i2c-adapter is used :
-master_xfer[0] W or [1] R, addr=3D 0x40, len=3D2
-
-Best regards,
-
-Alain
-
-Le lundi 4 f=E9vrier 2008 22:33, Alain Roos a =E9crit :
-> Hi,
-> =
-
-> Are you interested to update the dib0700 driver to record that above ment=
-ionned YUAN device is working ?
-> =
-
-> Do you have any advice how to improve stability ?
-> =
-
-> Thanks,
-> =
-
-> Alain
-> =
-
-> Le vendredi 1 f=E9vrier 2008 18:11, Alain Roos a =E9crit :
-> > Hi,
-> > =
-
-> > - At the time of doing "hg clone", the head was :
-> > changeset:   7115:3f704aa9d92e
-> > tag:         tip
-> > date:        Tue Jan 29 16:32:35 2008 -0200
-> > =
-
-> > - The patch is attached (if you don't like attachments in this mailing =
-list, all my apologies)
-> > =
-
-> > I'm running linux kernel 2.6.23.14, using distro Debian Etch, kaffeine =
-as a TV viewer.
-> > =
-
-> > The only issue is that after some channel zapping or even immediately, =
-the tuner does no longer respond, =
-
-> > kaffeine hangs, modules cannot be unloaded even with rmmod -f (the dong=
-le being disconnected). =
-
-> > The lsusb command hangs also.
-> > =
-
-> > Only rebooting helps (and sucks).
-> > =
-
-> > The chips on the board are :
-> > DIBcom 7070PB1-AXGXba-G-a
-> > and
-> > DIBcom 0700C-XCXXa-G
-> > =
-
-> > I would be most grateful if someone has an idea about improving the sta=
-bility of the driver.
-> > =
-
-> > Also I've found in the archives a thread : http://www.linuxtv.org/piper=
-mail/linux-dvb/2007-January/015525.html
-> > involving Patrick Boettcher and Michael W=FCnscher about a similar devi=
-ce
-> That ID was 1164:1efc
-> =
-
-> > (I had the same driver information under Windows).
-> > =
-
-> > Alain Roos (Alsace / France)
-> > =
-
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> =
-
-> =
-
+Thanks.  Much quieter with the debugging off.  Now to figure out why 
+mythbackend segfaults recording from this card.
 
 _______________________________________________
 linux-dvb mailing list
