@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mx5.orcon.net.nz ([219.88.242.55] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JRlDi-00013p-Fa
-	for linux-dvb@linuxtv.org; Wed, 20 Feb 2008 10:26:30 +0100
-From: Nicolas Will <nico@youplala.net>
-To: Patrik Hansson <patrik@wintergatan.com>
-In-Reply-To: <8ad9209c0802192338v66cfb4c4n42d733629421fe6c@mail.gmail.com>
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida> <1203458171.8019.20.camel@anden.nu>
-	<8ad9209c0802192338v66cfb4c4n42d733629421fe6c@mail.gmail.com>
-Date: Wed, 20 Feb 2008 09:25:21 +0000
-Message-Id: <1203499521.6682.2.camel@acropora>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+	(envelope-from <mail_lists@stevencherie.net>) id 1JUEQ2-0001xe-TY
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 06:01:27 +0100
+Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.67)
+	(envelope-from <mail_lists@stevencherie.net>) id 1JUEPs-0004Nd-73
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 18:01:16 +1300
+Received: from 60-234-129-166.bitstream.orcon.net.nz ([60.234.129.166]
+	helo=penguin.home.stevencherie.net)
+	by mx5.orcon.net.nz with esmtp (Exim 4.67)
+	(envelope-from <mail_lists@stevencherie.net>) id 1JUEPp-0004L9-R3
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 18:01:14 +1300
+Message-ID: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
+Date: Wed, 27 Feb 2008 18:02:38 +1300 (NZDT)
+From: "Steven Ellis" <mail_lists@stevencherie.net>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
+	HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,39 +25,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ck9uIFdlZCwgMjAwOC0wMi0yMCBhdCAwODozOCArMDEwMCwgUGF0cmlrIEhhbnNzb24gd3JvdGU6
-Cj4gT24gMi8xOS8wOCwgSm9uYXMgQW5kZW4gPGpvbmFzQGFuZGVuLm51PiB3cm90ZToKPiA+ID4g
-PiBUaGVyZSBpcyBub3QgYSBsb3QgYmVpbmcgc2FpZCBhYm91dCB0aGUgTm92YS1UIDUwMCB0aGUg
-bGFzdAo+IHdlZWsuCj4gPiA+ID4gRG9uwrR0IGtub3cgaWYgdGhhdCBpcyBhIGdvb2QgKGNvZGVy
-cyBjb2RpbmcpIG9yIGEgYmFkIChub3RoaW4KPiA+ID4gPiBoYXBwZW5pbmcpCj4gPiA+Cj4gPiA+
-IE9yIGNvZGVycyBidXN5IG9uIG90aGVyIGNvZGUsIG9yIGNvZGVycyB3aG8gcmFuIG91dCBvZiBp
-ZGVhcywgb3IKPiBjb2RlcnMKPiA+ID4gZW5qb3lpbmcgbGlmZSwgZXRjLgo+ID4KPiA+IC4ub3Ig
-anVzdCB3YWl0aW5nIGZvciB0aGUgcHJvYmxlbSB0byByZWFwcGVhciA7KCBUaGUgdHJvdWJsZSB3
-aXRoCj4gdGhlCj4gPiBzZWNvbmQgdHVuZXIgZHlpbmcgaXMgdHJpY2t5IChmb3IgbWUpIHRvIGlz
-b2xhdGUuCj4gPgo+ID4gQXMgYSB3b3JrYXJvdW5kLCBlbmFibGluZyBmdWxsIGRlYnVnIChkZWJ1
-Zz0xNSkgb24gdGhlCj4gZHZiX3VzYl9kaWIwNzAwCj4gPiBtb2R1bGUgaGFzIG1hZGUgbXkgc3lz
-dGVtIHJvY2sgc29saWQuIEkgdHVybmVkIG9uIGRlYnVnZ2luZyB0byB0cnkKPiB0bwo+ID4gaXNv
-bGF0ZSB0aGUgaXNzdWUsIGJ1dCB3aXRoIGRlYnVnZ2luZyBlbmFibGVkIHRoZSBwcm9ibGVtIGRv
-ZXMgbm90Cj4gPiBhcHBlYXIgKGF0IGxlYXN0IG5vdCBvbiBteSBzeXN0ZW0pLgo+ID4KPiA+IEkg
-aGF2ZW4ndCByZWFsbHkgZmlndXJlZCBvdXQgKndoYXQqIGluIHRoZSBkZWJ1ZyBjb2RlIGlzIGhl
-bHBpbmcKPiB5ZXQsCj4gPiBidXQgSSBzdGlsbCBzdXNwZWN0IHRoYXQgdGhpcyBpcyB0aW1pbmct
-cmVsYXRlZCBhbmQgdGhlIGRlYnVnIGNvZGUKPiA+IHNpbXBseSBzbG93cyB0aGluZ3MgZG93biBh
-IGJpdC4gRW5hYmxpbmcgZGVidWdnaW5nIHdpbGwgcHV0IGEgd2hvbGUKPiBsb3QKPiA+IG9mICJq
-dW5rIiBpbiB5b3VyIHN5c3RlbSBsb2cgZmlsZXMsIGJ1dCBhdCBsZWFzdCB0aGUgc2Vjb25kIHR1
-bmVyCj4gd29udAo+ID4gZGllIG9uIHlvdS4gSWYgeW91IGdvIHRoaXMgcGF0aCwgbWFrZSBzdXJl
-IHlvdXIgbG9nIHJvdGF0aW9uIHdvcmtzCj4gYXMgaXQKPiA+IHNob3VsZCAtLSBteSB3ZWVrbHkg
-cm90YXRlZCBsb2dzIGFyZSB1cCB0byAxMzAgTUIgaW4gc2l6ZSA7KQo+ID4KPiA+ICAvLyBKCgo+
-IAo+IENvdWxkIHNvbWVvbmUgdGhhdCBrbm93cyB3aGF0IHRoZXkgYXJlIGRvaW5nIGRvY3VtZW50
-IHRoYXQgb3B0aW9uIG9uCj4gdGhlIHdpa2kgPwoKQ29ycmVjdGVkLgoKVGhlIHN0cmFuZ2UgdGhp
-bmcgaXMgdGhhdCBtb2RpbmZvIGRvZXMgbm90IHNheSBhbnl0aGluZyBhYm91dCBhIGxldmVsIDE1
-CmRlYnVnIGZvciB0aGUgZHZiX3VzYl9kaWIwNzAwIG1vZHVsZS4KCmh0dHA6Ly9saW51eHR2Lm9y
-Zy93aWtpL2luZGV4LnBocC9IYXVwcGF1Z2VfV2luVFYtTk9WQS1ULTUwMCNkdmJfdXNiX2RpYjA3
-MDAKCk5pY28KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Been reading up on these as it appears that the HVR-2200 is now available
+in Australia. I've updated the Wiki
+(http://www.linuxtv.org/wiki/index.php/Hauppauge) with initial pages for
+all of these cards, but I don't have any chip or technical details yet.
+
+Most of the information I could find was on their Singapore website -
+http://www.hauppauge.com.sg/web-content/pages/prods_hvr.html
+
+Can any of our Hauppauge contacts confirm the chipsets and technical details?
+
+The fact that the HVR-2200 is a dual hybrid tuner with DVB-T and MPEG2
+hardware capture makes it a very interesting product.
+
+Steve
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
