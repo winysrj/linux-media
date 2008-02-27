@@ -1,24 +1,16 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from rv-out-0910.google.com ([209.85.198.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JQ09g-0005zr-AD
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 13:59:04 +0100
-Received: from localhost ([127.0.0.1] helo=ns.bog.msu.ru ident=1020)
-	by ns.bog.msu.ru with esmtp (Exim 4.50) id 1JQ05r-0004PU-AQ
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 15:55:07 +0300
-Received: from localhost (ldvb@localhost)
-	by ns.bog.msu.ru (8.13.3/8.13.3/Submit) with ESMTP id m1FCrm1q016953
-	for <linux-dvb@linuxtv.org>; Fri, 15 Feb 2008 15:53:48 +0300
-Date: Fri, 15 Feb 2008 15:53:48 +0300 (MSK)
-From: ldvb@ns.bog.msu.ru
-To: linux-dvb@linuxtv.org
-In-Reply-To: <47B4C2AE.4040402@rogers.com>
-Message-ID: <Pine.LNX.4.62.0802151543260.16566@ns.bog.msu.ru>
-References: <935487250802141248v71038d40ue422d5171641c822@mail.gmail.com>
-	<47B4C2AE.4040402@rogers.com>
+	(envelope-from <eduardhc@gmail.com>) id 1JUIWV-0003gE-Hr
+	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 10:24:25 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so2075973rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 27 Feb 2008 01:24:16 -0800 (PST)
+Message-ID: <617be8890802270124q55872b13n5819914996312c53@mail.gmail.com>
+Date: Wed, 27 Feb 2008 10:24:15 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: linux-dvb@linuxtv.org, "Matthias Schwarzott" <zzam@gentoo.org>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Pinnacle PCTV Dual Hybrid Pro PCI Express under
- Linux?
+Subject: [linux-dvb] Any improvements on the Avermedia DVB-S Pro (A700)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,29 +18,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0996443092=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0996443092==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_14141_16721748.1204104255546"
+
+------=_Part_14141_16721748.1204104255546
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, Matthias
+    I've seen that you have new patches for the card on the folder
+referenced in the wiki. Unfortunately none of them seems to work with my
+card. I'm startint to think that I'm doing something fundamentally wrong...
+But anyway, neither Kaffeine nor dvbscan seems to be able to lock to the
+satellite signal coming from the antennae (Windows can, though...).
+
+So far I've tried all the available patches, both using use_frontend=0 and
+use_frontend=1 options in saa7134-dvb module. In neither case the card can't
+lock...
+
+Did you received my message posting the GPIO status and data from Windows
+driver? Apparently is different from what you entered in the wiki, I don't
+know why. Anyway, I tried to use my values saa7134 initialisation with no
+difference...
+
+Regards,
+  Eduard
+
+------=_Part_14141_16721748.1204104255546
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, Matthias<br>&nbsp;&nbsp;&nbsp; I&#39;ve seen that you have new patches for the card on the folder referenced in the wiki. Unfortunately none of them seems to work with my card. I&#39;m startint to think that I&#39;m doing something fundamentally wrong... But anyway, neither Kaffeine nor dvbscan seems to be able to lock to the satellite signal coming from the antennae (Windows can, though...).<br>
+<br>So far I&#39;ve tried all the available patches, both using use_frontend=0 and use_frontend=1 options in saa7134-dvb module. In neither case the card can&#39;t lock...<br><br>Did you received my message posting the GPIO status and data from Windows driver? Apparently is different from what you entered in the wiki, I don&#39;t know why. Anyway, I tried to use my values saa7134 initialisation with no difference...<br>
+<br>Regards, <br>&nbsp; Eduard<br><br><br><br>&nbsp;&nbsp;&nbsp; <br>
+
+------=_Part_14141_16721748.1204104255546--
 
 
-There is nothing to do without a good doc for the chip.
-For now, I have 8-10 cards with SAA7162 without any acceptable answer from 
-NXP. Yes, there was (is?) the note on the site, that there is a driver for 
-Linux. Yes, I've got cards hoping, that there is a chance, that 
-driver could be developed (and I can participate in development) in 
-few months. So, we are waiting approx. 1.5 years. It seems like a kind of 
-crime, when somebody says that it is a good gold thing, You've spend Your 
-money, but without any effect: thing is made of copper. Local
-representatives are asking the same  question about the value of the 
-market, but after such a question contact delays for months, and idea of 
-NDA is there too.
-
-Thanx!
+--===============0996443092==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0996443092==--
