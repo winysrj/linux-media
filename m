@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JSckw-0005Mc-5V
-	for linux-dvb@linuxtv.org; Fri, 22 Feb 2008 19:36:22 +0100
-Message-ID: <47BF15FB.4090105@rogers.com>
-Date: Fri, 22 Feb 2008 13:35:39 -0500
-From: CityK <CityK@rogers.com>
+Received: from rv-out-0910.google.com ([209.85.198.184])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eduardhc@gmail.com>) id 1JUlbx-0004BL-3U
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 17:27:57 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so2734577rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 08:27:43 -0800 (PST)
+Message-ID: <617be8890802280827k57080ad4ic969bb2821398428@mail.gmail.com>
+Date: Thu, 28 Feb 2008 17:27:42 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Matthias Schwarzott" <zzam@gentoo.org>
+In-Reply-To: <200802281706.08815.zzam@gentoo.org>
 MIME-Version: 1.0
-To: James Klaas <jklaas@appalachian.dyndns.org>
-References: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>	
-	<47BDB0FA.7080500@rogers.com>
-	<18b102300802211051m3823e365v1fa025ac46edca0b@mail.gmail.com>
-In-Reply-To: <18b102300802211051m3823e365v1fa025ac46edca0b@mail.gmail.com>
+References: <617be8890802270124q55872b13n5819914996312c53@mail.gmail.com>
+	<200802281706.08815.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HD capture
+Subject: Re: [linux-dvb] Any improvements on the Avermedia DVB-S Pro (A700)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,121 +22,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1484131381=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Klaas wrote:
-> On 2/21/08, CityK <CityK@rogers.com> wrote:
->   
->> James Klaas wrote:
->>  > HD capture ...... HDMI/component/composite
->>  >
->>
->>  Whether it be done through an analog connection (eg. component) or
->>  digital connection (eg. HDMI/DVI/SDI), it all falls under the realm of
->>  the V4L subsystem, not DVB.
->>     
+--===============1484131381==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_18809_21652840.1204216062961"
+
+------=_Part_18809_21652840.1204216062961
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+OK, thanks. The GPIO status values corresponded to DVB-S use, I haven't
+tested the analog input nor in Windows nor Linux because I don't have
+anything to connect to it...
+
+I think there are couple of snapshots points on the report. IIRC the first
+one correspond to the initial state (before ever starting the AverTV
+program) and the second one is watching DVB-S TV with it.
+
+Best regards,
+  Eduard
+
+
+
+2008/2/28, Matthias Schwarzott <zzam@gentoo.org>:
 >
-> Is that because it purports to capture the streams without
-> compression?  Or does that have more to do with a lack of a tuner?
+> On Mittwoch, 27. Februar 2008, Eduard Huguet wrote:
+> > Hi, Matthias
+> Hi Eduard!
+>
+>
+> >     I've seen that you have new patches for the card on the folder
+> > referenced in the wiki. Unfortunately none of them seems to work with my
+> > card. I'm startint to think that I'm doing something fundamentally
+> wrong...
+> > But anyway, neither Kaffeine nor dvbscan seems to be able to lock to the
+> > satellite signal coming from the antennae (Windows can, though...).
+> >
+>
+> For now I also dont get a lock :(
+> Even if I use the unchanged code that did work some time ago.
+>
+>
+> > So far I've tried all the available patches, both using use_frontend=0
+> and
+> > use_frontend=1 options in saa7134-dvb module. In neither case the card
+> > can't lock...
+> >
+>
+> Same for me for now.
+>
+>
+> > Did you received my message posting the GPIO status and data from
+> Windows
+> > driver? Apparently is different from what you entered in the wiki, I
+> don't
+> > know why. Anyway, I tried to use my values saa7134 initialisation with
+> no
+> > difference...
+>
+>
+> Yeah I got your mail, but can't interprete it. You need to tell what
+> setting
+> was used while doing the register snapshots. Like selected input
+> (svideo/composite/dvb-s).
+>
+> Matthias
+>
+>
+> --
+> Matthias Schwarzott (zzam)
+>
 
-To be specific, its because the DVB API is about the reception of a 
-Digital Video Broadcast, and those are made in form of a Transport 
-Stream modulated onto a RF carrier....consequently, anything DVB entails 
-a receiver....second thing to note is that, although the terminology 
-"capture" is widely used in reference to digital applications just as 
-much as it is with analog, it is a misnomer when it comes to DVB....DVB 
-devices are essentially network interfaces ... they are entirely akin to 
-your computer's modem --- both have a receiver that acquires an RF 
-siganl and then demodulates the underlying information of interest off 
-that carrier wave.   There is little difference between downloading a 
-file from kernel.org, or Mircosoft, or from where ever, and saving that 
-file to your hard disk, as there is to tuning to ABC, or PBS, or 
-whatever station, and saving the TS or the underlying program stream 
-(multiplexed within the TS) to your harddisk.
+------=_Part_18809_21652840.1204216062961
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-So, turning to the examples quoted above:
-- Component: an analog signal that has nothing to do with DVB ... sure, 
-you can build a DVB device that includes the facilities to capture 
-component (and other analog sources) ... and by capture here, its meant 
-that ADC has to be done first to convert the analog to a digital 
-bitstream and then place it into a particular container format and save 
-to disk.... but that aspect has nothing to do with DVB, and hence is 
-covered by other subsystem (V4L)
-- HDMI: an uncompressed RGB or YUV digital bitstream ... not applicable 
-to DVB ... sure, you can build a DVB device that includes the facilities 
-to capture that digital bitstream...and by capture here, its meant that 
-the stream is placed it in a particular container and saved to disk 
-(either uncompressed or, if you so choose, with a codec -- either a 
-lousy one or a loseless one) .... but that aspect has nothing to do with 
-DVB, and hence should be covered by another subsystem (V4L)
-- DVI: same as HDMI
-- SDI (and in this case, you'd be interested specifically in HD-SDI, in 
-SMPTE 372M): another uncompressed digital bitstream interface protocol 
-... comments are the same as the others
+OK, thanks. The GPIO status values corresponded to DVB-S use, I haven&#39;t tested the analog input nor in Windows nor Linux because I don&#39;t have anything to connect to it...<br><br>I think there are couple of snapshots points on the report. IIRC the first one correspond to the initial state (before ever starting the AverTV program) and the second one is watching DVB-S TV with it. <br>
+<br>Best regards, <br>&nbsp; Eduard<br><br><br><br><div><span class="gmail_quote">2008/2/28, Matthias Schwarzott &lt;<a href="mailto:zzam@gentoo.org">zzam@gentoo.org</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+On Mittwoch, 27. Februar 2008, Eduard Huguet wrote:<br> &gt; Hi, Matthias<br> Hi Eduard!<br> <br><br> &gt;&nbsp;&nbsp;&nbsp;&nbsp; I&#39;ve seen that you have new patches for the card on the folder<br> &gt; referenced in the wiki. Unfortunately none of them seems to work with my<br>
+ &gt; card. I&#39;m startint to think that I&#39;m doing something fundamentally wrong...<br> &gt; But anyway, neither Kaffeine nor dvbscan seems to be able to lock to the<br> &gt; satellite signal coming from the antennae (Windows can, though...).<br>
+ &gt;<br> <br>For now I also dont get a lock :(<br> Even if I use the unchanged code that did work some time ago.<br> <br><br> &gt; So far I&#39;ve tried all the available patches, both using use_frontend=0 and<br> &gt; use_frontend=1 options in saa7134-dvb module. In neither case the card<br>
+ &gt; can&#39;t lock...<br> &gt;<br> <br>Same for me for now.<br> <br><br> &gt; Did you received my message posting the GPIO status and data from Windows<br> &gt; driver? Apparently is different from what you entered in the wiki, I don&#39;t<br>
+ &gt; know why. Anyway, I tried to use my values saa7134 initialisation with no<br> &gt; difference...<br> <br> <br>Yeah I got your mail, but can&#39;t interprete it. You need to tell what setting<br> was used while doing the register snapshots. Like selected input<br>
+ (svideo/composite/dvb-s).<br> <br> Matthias<br> <br><br> --<br> Matthias Schwarzott (zzam)<br> </blockquote></div><br>
 
-In fact, speaking of what V4L would/should cover, see the first 
-paragraph here: 
-http://www.linuxtv.org/v4lwiki/index.php/Development:_Video4Linux_APIs
+------=_Part_18809_21652840.1204216062961--
 
-About the only thing otherwise related to the DVB API would be the 
-highly related DVB-ASI or SPI.  Questions about extending the DVB API to 
-include coverage of those were raised last year when Manu solicited 
-suggestions on progression of the API; if you're really interested, see 
-this lengthy thread here:  
-http://marc.info/?l=linux-dvb&m=118989203715847&w=2 )
 
-> Partly what piqued my interest is there has been a great deal of talk
-> about how capturing HD streams without compression is very difficult
-> without very high end components, very expensive capture cards etc,
-> etc.  
-
-- Uncompressed is actually not very CPU intensive, but it is (a) HIGHLY 
-bandwidth intensive and, consequently, (b) GIGANTICALLY_EXPENSIVE 
-storage wise . 
-
-It is very easy to describe both the bandwidth and, hence, storage 
-considerations --- mathematically, for the video portion, its simply a 
-Fn(frame size (i.e. resolution), frame rate, subsampling (i.e. 4:4:4, 
-4:2:2,...), and bit depth).   To completely describe the rate, you can 
-factor in the overhead requirements of the file container which you use, 
-though its contribution to the total is entirely negligible compared to 
-that of essence's.
-
-For an example of how to apply that knowledge to real world examples, 
-read through from this post:
-http://forum.doom9.org/showthread.php?p=916752#post916752
-
-- Compressed, on the other hand, is CPU Intensive
-
-> It was surprising to me that you could in fact find something
-> like this for less than $1000.  With a card like this, it would be
-> conceivable to create a HD capture system for well under a $1000.
-
-Computers are getting more powerful, and components are getting 
-cheaper....still, there are more things to consider then meets the eye 
--- as that Doom9 thread alludes to, depending upon whether your trying 
-uncompressed or compressed, there are storage considerations, sustained 
-transfer rates to consider, codec issues, maybe digital restrictions 
-management issues (with an interface like HDMI), processor considerations...
-
-The neat thing about the forthcoming Hauppauge device is that:
-- its analog (component) input ... thereby removing potential DRM 
-considerations
-- and in addition to performing the ADC, the chip utilized is also a 
-encoder, compressesing using h.264/AVC   .... this completely removes 
-all the other issues
-
-- so long as the quality is acceptable,  this should be a nice solution 
-for most end users .... but it will, of course, not meet the needs of 
-prosumers/professional, who would still want to be using an uncompressed 
-or loselessly compressed solution, so that they can perform editing etc.
-
+--===============1484131381==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1484131381==--
