@@ -1,18 +1,30 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp100.rog.mail.re2.yahoo.com ([206.190.36.78])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JOZ9D-00027L-Jj
-	for linux-dvb@linuxtv.org; Mon, 11 Feb 2008 14:56:39 +0100
-Message-ID: <47B053E0.4060000@rogers.com>
-Date: Mon, 11 Feb 2008 08:55:44 -0500
-From: CityK <CityK@rogers.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <seppo.ingalsuo@iki.fi>) id 1JUl4V-00013Z-QL
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 16:53:23 +0100
+Received: from kemuli.localdomain (84.250.94.112) by
+	pne-smtpout4-sn2.hy.skanova.net (7.3.129)
+	id 478BE6630026ADB4 for linux-dvb@linuxtv.org;
+	Thu, 28 Feb 2008 16:52:49 +0100
+Received: from [192.168.1.2] (ident=seppo)
+	by kemuli.localdomain with esmtp (Exim 4.68)
+	(envelope-from <seppo.ingalsuo@iki.fi>) id 1JUlBO-0003pt-B3
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 18:00:30 +0200
+Message-ID: <47C6D8D0.5060107@iki.fi>
+Date: Thu, 28 Feb 2008 17:52:48 +0200
+From: Seppo Ingalsuo <seppo.ingalsuo@iki.fi>
 MIME-Version: 1.0
-To: Pierre Cassimans <cazzeml@gmail.com>
-References: <638226.79716.qm@web57814.mail.re3.yahoo.com>	<20080211110428.GD30853@localhost>
-	<a3fb6570802110405h77809db5j8e4b54b23a002c9b@mail.gmail.com>
-In-Reply-To: <a3fb6570802110405h77809db5j8e4b54b23a002c9b@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hi
+To: linux-dvb@linuxtv.org
+References: <32245669.2613.1203594791803.JavaMail.tomcat@dali.otenet.gr>	<47C01325.10407@otenet.gr>	<20080223174406.GB30387@moelleritberatung.de>	<47C0803D.2020504@gmail.com>	<20080223212013.GD30387@moelleritberatung.de>	<47C0903B.70606@gmail.com>	<20080223213258.GE30387@moelleritberatung.de>	<20080223214718.GF30387@moelleritberatung.de>	<47C09519.2090904@gmail.com>	<47C09BCC.50403@gmail.com><47C0CADE.6040203@otenet.gr>	<47C0B1F9.1000609@gmail.com><47C1764C.5070103@otenet.gr>	<47C1AFC1.7050704@otenet.gr><47C19735.4030601@gmail.com>	<47C1D52B.6070906@otenet.gr><47C1C55F.5030406@gmail.com>	<47C32947.1030604@otenet.gr><47C33CB1.1080502@gmail.com>	<47C49F79.1080704@otenet.gr>
+	<47C48845.4030808@gmail.com>
+	<7FA4B8777C810C4B8F3ABBB47DF0F375064C4A7B@xmb-ams-332.emea.cisco.com>
+	<47C64FB0.3020201@iki.fi>
+	<7FA4B8777C810C4B8F3ABBB47DF0F375064C510B@xmb-ams-332.emea.cisco.com>
+In-Reply-To: <7FA4B8777C810C4B8F3ABBB47DF0F375064C510B@xmb-ams-332.emea.cisco.com>
+Subject: Re: [linux-dvb] STB0899 users,
+ please verify results was Re: TechniSat SkyStar HD:
+ Problems	scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,23 +35,52 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Pierre Cassimans wrote:
-> Just keep in mind that when you want to record HD content from the 3 
-> cards, you have 3 x 20MB/s and mostly this is more then your HardDisk 
-> can get :)
+Oliver Bardenheier (obardenh) wrote:
+>  Seppo, You should use the group-mailer linux-dvb@linuxtv.org
+>   
+Sorry Olivier, I didn't mean to send you personal email!
 
-That is incorrect.  hdd saturation is not an issue. Examples:
+I still have the same problem and I'm not familiar with various DVB 
+driver sources discussed here (hg-tree, mantis). As I suppose I have the 
+same issue as discussed in this thread, how do I retrieve an older 
+version of the driver for TT S2-3200 that would work?
 
-TS for 8-VSB source:  ~19.4Mbps (~2.4MBps)
-TS for 64-QAM source: ~27Mbps (~3.4MBps)
-TS for 256-QAM source: ~38.8Mbps (~4.8MBps)
-....
-insert other rates here
-....
-....
+BR,
+Seppo
+
+> regards
+> Oliver
+>
+> -----Original Message-----
+> From: Seppo Ingalsuo [mailto:seppo.ingalsuo@iki.fi] 
+> Sent: Donnerstag, 28. Februar 2008 07:08
+> To: Oliver Bardenheier (obardenh)
+> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re:
+> TechniSat SkyStar HD: Problems scaning and zaping
+>
+> Oliver Bardenheier (obardenh) wrote:
+>   
+>> I can confirm that current hg-tree breaks SkyStarHD. Mostly unusable, 
+>> many transponders not working.
+>> I changed back to  45eec532cefa  and everything is working fine.
+>>   
+>>     
+> I'm using multiproto-74c6c2ee613b grabbed yesterday and I was able to
+> see only BBC World from Astra 19.2E. Other channels I tried to zap to
+> didn't work. Also there seemed to be problems in driving reliably diseqc
+> positioner (that the old TT budget-s handled fine).
+>
+> It was my first experience with brand new TT S2-3200 and vdr 1.5.16 with
+> Reinhard's H.264 patch set.
+>
+> BR,
+> Seppo
+>
+>   
+
 
 _______________________________________________
 linux-dvb mailing list
