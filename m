@@ -1,17 +1,18 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JMOVe-0003sd-Ms
-	for linux-dvb@linuxtv.org; Tue, 05 Feb 2008 15:10:50 +0100
-Message-ID: <47A86E3F.7040308@rogers.com>
-Date: Tue, 05 Feb 2008 09:10:07 -0500
-From: CityK <CityK@rogers.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from smeagol.cambrium.nl ([217.19.16.145] ident=qmailr)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jelledejong@powercraft.nl>) id 1JUpXp-0000u0-H5
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 21:39:57 +0100
+Received: from [192.168.1.70] (ashley.powercraft.nl [84.245.7.46])
+	by ashley.powercraft.nl (Postfix) with ESMTP id D96231C814
+	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 21:39:53 +0100 (CET)
+Message-ID: <47C71C18.90607@powercraft.nl>
+Date: Thu, 28 Feb 2008 21:39:52 +0100
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-To: nhkk@bigfoot.com
-References: <866799.8570.qm@web90602.mail.mud.yahoo.com>
-In-Reply-To: <866799.8570.qm@web90602.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld ATSC PCI 120
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] v4l-dvb-experimental will not compile on debian sid
+	2.6.24-1-686
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,19 +23,22 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Julio Monterroso wrote:
-> Hello,
-> I have search the archives and have not notice anything about the 
-> Kworld ATSC 120 since September, 2007. Does anyone knows if a driver 
-> is being developed or plans for one? 
+cd $HOME
+hg clone http://mcentral.de/hg/~mrec/v4l-dvb-experimental
+cd v4l-dvb-experimental
+make
+sudo make install
 
-I'd suggest following up on what I mentioned, just last week on the V4L 
-list, here:
-http://marc.info/?l=linux-video&m=120163584127364&w=2
+v4l-dvb-experimental will not compile on debian sid 2.6.24-1-686
 
+If you guys need more information i will sent it to the list.
+
+Kind regards,
+
+Jelle
 
 _______________________________________________
 linux-dvb mailing list
