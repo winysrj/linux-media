@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail05.adl2.internode.on.net ([203.16.214.145])
+Received: from mx2.orcon.net.nz ([219.88.242.52] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hireach@internode.on.net>) id 1JUfR6-0004w4-R9
-	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 10:52:21 +0100
-Message-ID: <99BC16843B464C4C9081D5DF5DDA98BE@LaptopPC>
-From: "Martin Thompson" <hireach@internode.on.net>
-To: <linux-dvb@linuxtv.org>
-References: <9FC6541BF8D049BB839E9F30F5258D64@LaptopPC>
-	<47C67A3C.6050602@shikadi.net>
-In-Reply-To: <47C67A3C.6050602@shikadi.net>
-Date: Thu, 28 Feb 2008 20:52:10 +1100
+	(envelope-from <lennon@orcon.net.nz>) id 1JUcub-0008DN-QV
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 08:10:38 +0100
+Received: from Debian-exim by mx2.orcon.net.nz with local (Exim 4.67)
+	(envelope-from <lennon@orcon.net.nz>) id 1JUcuR-0006in-PO
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 20:10:27 +1300
+Message-ID: <050744F346934852A708EE5DB9CE8BBE@CraigPC>
+From: "Craig Whitmore" <lennon@orcon.net.nz>
+To: "Halim Sahin" <halim.sahin@t-online.de>,
+	<linux-dvb@linuxtv.org>
+References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org><B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz><47C591E1.5030001@linuxtv.org><002a01c87962$8d8293c0$2727a8c0@pc1>
+	<47C5996A.2070404@linuxtv.org><001b01c8793b$92ab2460$6e00a8c0@barny1e59e583e>
+	<001e01c87991$fd84d960$2727a8c0@pc1>
+In-Reply-To: <001e01c87991$fd84d960$2727a8c0@pc1>
+Date: Thu, 28 Feb 2008 20:10:25 +1300
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] dvico dual digital 4 revision 2.0
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
+	HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,70 +31,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-nothing in dmesg
-firmware in folder
-chris asked me for a ssh box
-is installed and ready to go
-only thing loaded is chris's v4l tree
-if you wanted to have a look ill email you the details
-
-
-heres the lsusb
-
-Bus 005 Device 003: ID 0fe9:db98 DVICO
-Bus 005 Device 002: ID 0fe9:db98 DVICO
-
-Note the hw id mine end in 98 yours in 78
 
 ----- Original Message ----- 
-From: "Adam Nielsen" <a.nielsen@shikadi.net>
-To: "Martin Thompson" <hireach@internode.on.net>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Thursday, February 28, 2008 8:09 PM
-Subject: Re: [linux-dvb] dvico dual digital 4 revision 2.0
+From: "Halim Sahin" <halim.sahin@t-online.de>
+To: <linux-dvb@linuxtv.org>
+Sent: Thursday, February 28, 2008 11:42 AM
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,HVR-1700 
+and HVR-1200
 
 
->> have chris pascoe intrested but he is very busy so could be a while
->> before he looks into it
->> the new card has a new hardware id  last 2 digits is 98 not 78
->> am working with a mate who has a revision 1.1 card
->> if i change the v4l-dvb haidware id to mine
->> linux will pick it up and install the driver
->> but can not find the frontend (using mythtv)
->> what is the command that you usb to give all the info about the card
->> so i can check against an working one
->> and maybe pick whats differnet
-> 
-> Wow, lucky the card I bought last week was a rev1.1!  I would imagine
-> the rev2.0 card would be using different firmware - I assume you've
-> correctly installed the firmware for the rev1.1 card?  If that doesn't
-> work, you could try extracting the firmware from the Windows driver,
-> assuming that's where Chris got it from in the first place.
-> 
-> This is what dmesg reports when I initialise the card:
-> 
-> xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id
->   0000000000000000.
-> xc2028 2-0061: Loading firmware for type=D2620 DTV7 (88), id
->   0000000000000000.
-> xc2028 2-0061: Loading SCODE for type=DTV7 ZARLINK456 SCODE (22000080),
->   id 0000000000000000.
-> xc2028 2-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
-> 
-> With this firmware:
-> 
-> $ ls /lib/firmware/
-> total 48K
-> drwxr-xr-x 2 root root   92 2008-02-23 11:54 .
-> drwxr-xr-x 9 root root 8.0K 2008-02-23 23:38 ..
-> -rw-r--r-- 1 root root 8.9K 2006-01-10 02:21 dvb-usb-bluebird-01.fw
-> -rw-r--r-- 1 root root 8.4K 2007-11-21 22:51 dvb-usb-bluebird-02.fw
-> -rw-r--r-- 1 root root 9.0K 2007-11-20 01:15 xc3028-dvico-au-01.fw
-> 
-> What does yours say?
-> 
-> Cheers,
-> Adam.
+Has anyone actually put a HVR-2200 in a linux box and seen what happens? 
+does linux find nothing or what? What exactly makes PCI-E cards hard to 
+start to get right (or its not hard.. just no one has had time to do it?)
+
+I might get one.... I have an HVR4000 with 1 DVB-T tuner at the moment and 
+an extra 2 DVB-T tuners it would be nice (and we only have 3 transponder 
+freqs in NZ and it would cover them all) (and I have 3 PCI-E slots free not 
+in use)
+
+Thanks
+
 
 _______________________________________________
 linux-dvb mailing list
