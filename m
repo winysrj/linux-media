@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JSsgF-0007Lb-Nb
-	for linux-dvb@linuxtv.org; Sat, 23 Feb 2008 12:36:35 +0100
-Message-ID: <47C0053E.7040101@shikadi.net>
-Date: Sat, 23 Feb 2008 21:36:30 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
+Received: from web33102.mail.mud.yahoo.com ([209.191.69.132])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <simeonov_2000@yahoo.com>) id 1JUca2-0006ia-RF
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 07:49:23 +0100
+Date: Wed, 27 Feb 2008 22:48:48 -0800 (PST)
+From: Simeon Simeonov <simeonov_2000@yahoo.com>
+To: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Nico Sabbi <Nicola.Sabbi@poste.it>
-References: <47BFD5F4.3030805@shikadi.net>
-	<200802231041.21591.Nicola.Sabbi@poste.it>
-In-Reply-To: <200802231041.21591.Nicola.Sabbi@poste.it>
+Message-ID: <445553.1721.qm@web33102.mail.mud.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Is there a daemon style program for scheduled DVB
- recording?
+Subject: Re: [linux-dvb] Help with Skystar HD2 (Twinhan VP-1041/Azurewave AD
+	SP400 rebadge)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,18 +24,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> there used to be dvbd somewhere sometimes, although I can't say how
-> it works because I never used it
+Hi Manu,
 
-I did investigate dvbd a few years ago, it seems great and does exactly
-what I want but unfortunately I could never get it to work with my card.
- I looked into it again this afternoon but unfortunately I think the
-project is dead, it hasn't been updated since 2004 and only a few files
-in CVS were updated around 2006.
+Here is some more info about my diseqc problem:
 
-Cheers,
-Adam.
+> Ok, does sending the commands as it is on the fly help for you, rather 
+> than storing
+> all of them in the FIFO and whack them out in a disciplined way ?
+>
+> If it looks working better that way, will try that and ask others as
+> well whether they
+> see similar benefits ?
 
+The short answer is no,  I do not see any benefits of sending the whole
+diseqc command.
+
+Unfortunately I still do not have a good idea what exactly the problem is.
+Here is what I tried:
+1. Bypass the rotor and connect directly to the switch: in that case switch
+works 100% of the times even though I am first sending a rotor switch command
+and then switch command and no repeats. This I checked with both mythtv
+and szap.
+2. Connect the rotor and send a rotor, followed by a switch command with no repeats.
+In this case rotor works fine but the switch works 1/10 times. But my rotor does not
+get reprogrammed
+3. Send more than 2 diseqc command - being repeat for either switch or rotor or both.
+Well if the rotor does not have to move (I have 2 satellites that I can use for that)
+switch works about half of the time but as soon as try to move the rotor it gets all
+reprogrammed.
+
+I really have no idea what is happening. Again I looked up the mantis i2c commands
+and all diseqc ones that are sent look correct. 
+Any hints are welcome.
+
+Thanks for your help,
+Simeon
+
+
+
+
+
+
+      ____________________________________________________________________________________
+Never miss a thing.  Make Yahoo your home page. 
+http://www.yahoo.com/r/hs
 
 _______________________________________________
 linux-dvb mailing list
