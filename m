@@ -1,18 +1,18 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from f183.mail.ru ([194.67.57.216])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JQM8w-0005vR-Rg
-	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 13:27:46 +0100
-Received: from mail by f183.mail.ru with local id 1JQM8S-00063T-00
-	for linux-dvb@linuxtv.org; Sat, 16 Feb 2008 15:27:16 +0300
-From: Igor <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Sat, 16 Feb 2008 15:27:16 +0300
-Message-Id: <E1JQM8S-00063T-00.goga777-bk-ru@f183.mail.ru>
-Subject: [linux-dvb] =?koi8-r?b?cGFybTogZHZiX3Bvd2VyZG93bl9vbl9zbGVlcDow?=
-	=?koi8-r?b?ICYgbXVsdGlwcm90bw==?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <a.nielsen@shikadi.net>) id 1JUgU1-0004fx-2i
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 11:59:25 +0100
+Message-ID: <47C69404.3040504@shikadi.net>
+Date: Thu, 28 Feb 2008 20:59:16 +1000
+From: Adam Nielsen <a.nielsen@shikadi.net>
+MIME-Version: 1.0
+To: Martin Thompson <hireach@internode.on.net>
+References: <9FC6541BF8D049BB839E9F30F5258D64@LaptopPC>	<47C67A3C.6050602@shikadi.net>
+	<99BC16843B464C4C9081D5DF5DDA98BE@LaptopPC>
+In-Reply-To: <99BC16843B464C4C9081D5DF5DDA98BE@LaptopPC>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvico dual digital 4 revision 2.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,33 +23,33 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+> nothing in dmesg
+> firmware in folder
+> chris asked me for a ssh box
+> is installed and ready to go
+> only thing loaded is chris's v4l tree
+> if you wanted to have a look ill email you the details
 
-it's seems the option "dvb-core dvb_shutdown_timeout=0"  doesn't work properly in multiproto
+If Chris is looking into it then that's good, I'm not exactly an expert
+in these sorts of things.
 
-szap2 -c "Astra-19.2E.conf" -r -m 8 -t 2 -p -n 5 -x
-reading channels from file 'Astra-19.2E.conf'
-zapping to 5 'Astra HD Promo 2':
-sat 0, frequency = 11914 MHz H, symbolrate 27500000, vpid = 0x04ff, apid = 0x0503 sid = 0x0083 (fec = -2147483648, mod = 8 )
-Querying info .. Delivery system=DVB-S2
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-----------------------------------> Using 'STB0899 DVB-S2' DVB-S2 diseqc: sat_no:0 pol_vert:0 hi_band:1 cmd:e0 10 38 f3 wait:0
-do_tune: API version=2, delivery system = 2
-do_tune: Frequency = 1314000, Srate = 27500000 (DVB-S2)
-do_tune: Frequency = 1314000, Srate = 27500000 (SET_PARAMS) 
-status 1a | signal 05aa | snr 001d | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+> heres the lsusb
+> 
+> Bus 005 Device 003: ID 0fe9:db98 DVICO
+> Bus 005 Device 002: ID 0fe9:db98 DVICO
+> 
+> Note the hw id mine end in 98 yours in 78
 
-and after that the power for LNB switchedd off.
-@Manu
-would you check this moment.
+If nothing is showing up in dmesg then the driver mustn't be trying to
+load the firmware - I suspect that getting the driver to load the
+firmware, and finding the right firmware, will be enough to get it to
+work - they don't usually change that much between hardware revisions.
 
-Igor
-
-
-
+Cheers,
+Adam.
 
 _______________________________________________
 linux-dvb mailing list
