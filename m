@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.226])
+Received: from wr-out-0506.google.com ([64.233.184.228])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JV8bw-0001tq-FA
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 18:01:28 +0100
-Received: by wr-out-0506.google.com with SMTP id 68so6218549wra.13
-	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 09:01:24 -0800 (PST)
-Message-ID: <d9def9db0802290901v74aa7889oab2b6e4c22057f@mail.gmail.com>
-Date: Fri, 29 Feb 2008 18:01:23 +0100
+	(envelope-from <mrechberger@gmail.com>) id 1JUkMo-0005yD-Rz
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 16:08:15 +0100
+Received: by wr-out-0506.google.com with SMTP id 68so5139124wra.13
+	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 07:08:06 -0800 (PST)
+Message-ID: <d9def9db0802280708s6562af51x5fd1aefa65190338@mail.gmail.com>
+Date: Thu, 28 Feb 2008 16:08:04 +0100
 From: "Markus Rechberger" <mrechberger@gmail.com>
 To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47C83919.4010102@powercraft.nl>
+In-Reply-To: <47C6C991.5070008@powercraft.nl>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47C83611.1040805@powercraft.nl>
-	<d9def9db0802290848v100ca9dcm22292e368bec4ad5@mail.gmail.com>
-	<47C83919.4010102@powercraft.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Pinnacle PCTV Hybrid Pro Stick 330e - Installation
-	Guide - v0.1.2j
+References: <47C6C991.5070008@powercraft.nl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] need advice to buy supported DVB-T USB device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,45 +28,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> Markus Rechberger wrote:
-> > Hi Jelle,
-> >
-> > On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
-> >> This message contains the following attachment(s):
-> >> Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
-> >>
-> >
-> > the correct mailinglist for those devices is em28xx at mcentral dot de
-> >
-> > I added some comments below and prefixed them with /////////
-> >
-> > This message contains the following attachment(s):
-> > Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
-> >
+Hi Jelle,
+
+On Thu, Feb 28, 2008 at 3:47 PM, Jelle de Jong
+<jelledejong@powercraft.nl> wrote:
+> Hello,
 >
-> We will get it working in the next few days, i am already working on a
-> user guide. I will add the comments to the new version, i just thought
-> release as soon as possible, dont want somebody else to spent hours and
-> hours of his day installing your nice driver.
+>  I want to buy a device that allows me to watch dvd-t signals under Linux.
 >
-> Nice, I was working on building tvtime but it gave me errors,
+>  I want this device to work under linux on my usb port.
+>  And i need to buy the device at this store for support:
+>  http://www.informatique.nl/cgi-bin/iqshop.cgi?M=ART&G=167
+>
+>  secondary like to haves:
+>  - works on 900 MHZ Intel Mobile M (eeepc)
+>  - can record and watch at the same time
+>  - cost less then 140 euro.
+>  - small size
+>  - works with an analogue coax cable and digital dvb-t signal
 >
 
-libasound2-dev and the linux kernel headers or at least a symlink from
-/usr/include/linux -> kernelroot/include/linux is missing.
+I can suggest:
+http://tvde.terratec.net/modules.php?op=modload&name=News&file=article&sid=249
+http://www.pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV/PCTV/
+http://www.hauppauge.co.uk/pages/products/data_hvr900.html
+etc.
 
-It would be nice if you can create a howto on mcentral.de! I'm sure it
-might help some people. My guide only explains how to compile it on a
-already set up system (and this can differ with every distribution).
-
-I will release precompiled packages for the eeePC within the next few
-days. I just need to package the binaries for it.
-I added tvtime, gqradio and kaffeine buttons to my eeePC and
-everything works really well.
-I'll focus on ATSC devices next week (after the cebit)
-
-thanks for the howto so far!
+Those devices are tested on the eeePC, first device from Terratec also
+supports analogue radio (and stereo with analogue TV, pinnacle and
+hauppauge's devices only support mono TV audio) all of them support
+analogue TV and DVB-T.
 
 Markus
 
