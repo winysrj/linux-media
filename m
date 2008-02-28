@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1TNAOGb003469
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:10:24 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1TN9qKq019152
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:09:52 -0500
-Date: Sat, 1 Mar 2008 00:09:48 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: eric miao <eric.y.miao@gmail.com>
-In-Reply-To: <f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0803010001550.11511@axis700.grange>
-References: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>
-	<fq8v17$bm9$1@ger.gmane.org>
-	<f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1S2w9Wi022038
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 21:58:09 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1S2vbdv006440
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 21:57:37 -0500
+Received: by ug-out-1314.google.com with SMTP id t39so87508ugd.6
+	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 18:57:37 -0800 (PST)
+Date: Wed, 27 Feb 2008 18:56:51 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Message-ID: <20080228025651.GA16322@plankton.ifup.org>
+References: <54fa1a0d9c5bcdfcb2ba.1204098881@localhost>
+	<20679.1204128530@vena.lwn.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [RFC] move sensor control out of kernel
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20679.1204128530@vena.lwn.net>
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	mchehab@infradead.org
+Subject: Re: [PATCH] v4l: Deadlock in videobuf-core for DQBUF waiting on QBUF
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,27 +31,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 29 Feb 2008, eric miao wrote:
-> The soc-camera is pretty good. Yet it doesn't solve the issue of
-> complicated sensor control. mt9m001.c and mt9v022.c are two
-> good examples, but are all too simple. I have a sensor driver here
-> with more than 4000 lines of code.
+On 09:08 Wed 27 Feb 2008, Jonathan Corbet wrote:
+> Brandon Philips <brandon@ifup.org> wrote:
+> 
+> >  	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
+> > +	mutex_unlock(&q->vb_lock);
+> >  	retval = videobuf_waiton(buf, nonblocking, 1);
+> > +	mutex_lock(&q->vb_lock);
+> 
+> Are you sure that this doesn't create a race where two threads could end
+> up waiting on the same buf?  
 
-mt9xxxx drivers also only implement a subset of camera capabilities. The 
-approach taken with these two drivers was to implement a minimal 
-functional control subset in the kernel, so that "standard" user-space 
-applications like xawtv, mplayer, etc. can work with them out of the box, 
-and provide access to camera registers over the .get_register / 
-.set_register interface for applications requiring finer camera tuning. It 
-has disadvantages, of course. But it avoids kernel bloat, nevertheless 
-providing reasonable functionality, reduces (kernel) development costs, 
-etc. Maybe this interface should be made standard and at least removed 
-from under #ifdef CONFIG_VIDEO_ADV_DEBUG?
+You are right... I thought I had thought through this but a race can be
+created with two threads doing DQBUF.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+> Actually, almost anything could happen to buf by the time you've
+> gotten the mutex back - it might not even exist anymore - but there
+> are no checks for that.  It seems like a better fix might be to set
+> nonblocking unconditionally to 1 for the videobuf_waiton() call, then
+> start over from the beginning on a -EAGAIN return (if the caller has
+> not requested nonblocking behavior).
+
+Hrm, that is one solution.  I will think about it for a bit and submit a
+new patch.
+
+Thanks for catching this, I was being stupid.
+
+Mauro: Please don't push this patch out.  Thanks.
+
+Cheers,
+
+	Brandon
 
 --
 video4linux-list mailing list
