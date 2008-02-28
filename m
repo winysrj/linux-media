@@ -1,22 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sd-green-bigip-145.dreamhost.com ([208.97.132.145]
-	helo=randymail-a9.g.dreamhost.com)
+Received: from rv-out-0910.google.com ([209.85.198.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb-list@krp.org.uk>) id 1JQuRj-0006xm-5y
-	for linux-dvb@linuxtv.org; Mon, 18 Feb 2008 02:05:27 +0100
-From: Kevin Page <linux-dvb-list@krp.org.uk>
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <4F6CC20A90%linux@youmustbejoking.demon.co.uk>
-References: <1199589299.3373.22.camel@localhost.localdomain>
-	<4F630EFE68%linux@youmustbejoking.demon.co.uk>
-	<1201368697.3089.19.camel@localhost.localdomain>
-	<4F6CC20A90%linux@youmustbejoking.demon.co.uk>
-Date: Mon, 18 Feb 2008 01:05:14 +0000
-Message-Id: <1203296714.3141.21.camel@localhost.localdomain>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova-t remote stopped working (budget_ci	rc5_device
-	not set?)
+	(envelope-from <mrechberger@gmail.com>) id 1JUrfH-0005Cs-FS
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 23:55:47 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so2881976rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 28 Feb 2008 14:55:22 -0800 (PST)
+Message-ID: <d9def9db0802281455hb962279g9f45a8e87cf16d28@mail.gmail.com>
+Date: Thu, 28 Feb 2008 23:55:21 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Jelle de Jong" <jelledejong@powercraft.nl>
+In-Reply-To: <47C73A05.2050007@powercraft.nl>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <47C7329F.7030705@powercraft.nl>
+	<d9def9db0802281421v698df05eq52a1978c69d80df2@mail.gmail.com>
+	<47C73457.1030901@powercraft.nl>
+	<d9def9db0802281425i5b487f43ub90b263a63e40a01@mail.gmail.com>
+	<47C7360E.9030908@powercraft.nl>
+	<d9def9db0802281440x2daa2f21n2169e76b53ccd664@mail.gmail.com>
+	<47C73A05.2050007@powercraft.nl>
+Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
+Subject: Re: [linux-dvb] Going though hell here,
+	please provide how to for Pinnacle PCTV Hybrid Pro Stick 330e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,38 +35,143 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 2008-01-26 at 18:07 +0000, Darren Salt wrote:
-> Odd... the 34-key version should be showing up as 0x1F and the 45-key
-> version as 0x1E. (Or at least that's what happens with mine.)
+On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> Markus Rechberger wrote:
+> > On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> >> Markus Rechberger wrote:
+> >>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> >>>> Markus Rechberger wrote:
+> >>>>> On 2/28/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> >>>>>> This message contains the following attachment(s):
+> >>>>>> Pinnacle PCTV Hybrid Pro Stick 330e.txt
+> >>>>>>
+> >>>>>> Spent my hole day trying to get a dvd-t device up and running, this
+> is
+> >>>>>> device number two I tried.
+> >>>>>>
+> >>>>>> Can somebody please tell me how to get this device working on:
+> >>>>>>
+> >>>>>> 2.6.24-1-686 debian sid and 2.6.22-14-generic ubuntu
+> >>>>>>
+> >>>>>> I have to get some sleep now, because this is getting on my health
+> and
+> >>>>>> that does not happen often....
+> >>>>>>
+> >>>>> Jelle, it's really easy to install it actually.
+> >>>>> http://www.mail-archive.com/em28xx%40mcentral.de/msg00750.html
+> >>>>>
+> >>>>> this is the correct "howto" for it.
+> >>>>>
+> >>>>> You need the linux kernel sources for your kernel, if you experience
+> >>>>> any problems just post them to the em28xx ML.
+> >>>>>
+> >>>>> Markus
+> >>>> Hi Markus,
+> >>>>
+> >>>> I tried that two times,
+> >>>>
+> >>>> The seconds build blows up in my face, I need specified dependecies to
+> >>>> be able to compile the seconds driver...
+> >>>>
+> >>> there are not so many dependencies, just submit the errors you get.
+> >>>
+> >>> Markus
+> >> Here you go, lets see I will try it for 40 more minutes with your help
+> >>
+> >
+> > jelle@xubutu-en12000e:~$ hg clone
+> http://mcentral.de/hg/~mrec/em28xx-userspace2
+> > destination directory: em28xx-userspace2
+> > requesting all changes
+> > adding changesets
+> > adding manifests
+> > adding file changes
+> > added 21 changesets with 65 changes to 20 files
+> > 18 files updated, 0 files merged, 0 files removed, 0 files unresolved
+> > jelle@xubutu-en12000e:~$ cd em28xx-userspace2
+> > jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ./build.sh
+> > if [ -f ../userspace-drivers/kernel/Module.symvers ]; then \
+> > grep v4l_dvb_stub_attach
+> > ../userspace-drivers/kernel/Module.symvers > Module.symvers; \
+> > fi
+> > make -C /lib/modules/2.6.22-14-generic/build
+> > SUBDIRS=/home/jelle/em28xx-userspace2 modules
+> > make[1]: Entering directory `/usr/src/linux-headers-2.6.22-14-generic'
+> > CC [M] /home/jelle/em28xx-userspace2/em2880-dvb.o
+> > In file included from /home/jelle/em28xx-userspace2/em2880-dvb.c:33:
+> > /home/jelle/em28xx-userspace2/em28xx.h:33:20: error: dmxdev.h: No
+> > such file or directory
+> > /home/jelle/em28xx-userspace2/em28xx.h:34:23: error: dvb_demux.h: No
+> > such file or directory
+> > /home/jelle/em28xx-userspace2/em28xx.h:35:21: error: dvb_net.h: No
+> > such file or directory
+> > /home/jelle/em28xx-userspace2/em28xx.h:36:26: error: dvb_frontend.h:
+> > No such file or directory
+> >
+> > there we go, the linux kernel sources aren't installed for your system.
+> >
+> > apt-get install linux-source linux-headers-`uname -r`
+> >
+> > I'm not sure if the kernel sources are decompressed in /usr/src you
+> > might have a look at it.
+> >
+> > /lib/modules/`uname -r`/build should be a symlink to the root of the
+> > extracted kernelsources.
+> >
+> > the root of your kernelsources should also contain a .config file.
+> >
+> > You can find the config file for your current kernel in /boot
+> >
+> > /boot/config-`uname -r`
+> >
+> > copy this file to the kernelroot and rename it to ".config"
+> >
+> > Markus
+>
+> sudo apt-get install linux-source linux-headers-`uname -r`
+> Reading package lists... Done
+> Building dependency tree
+> Reading state information... Done
+> linux-source is already the newest version.
+> linux-headers-2.6.22-14-generic is already the newest version.
+> 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+> jelle@xubutu-en12000e:~/em28xx-userspace2$ ls -hal /lib/modules/`uname
+> -r`/build
+> lrwxrwxrwx 1 root root 40 2007-10-21 18:19
+> /lib/modules/2.6.22-14-generic/build ->
+> /usr/src/linux-headers-2.6.22-14-generic
+> jelle@xubutu-en12000e:~/em28xx-userspace2$ /boot/config-`uname -r`
+> bash: /boot/config-2.6.22-14-generic: Permission denied
+> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo /boot/config-`uname -r`
+> sudo: /boot/config-2.6.22-14-generic: command not found
+> jelle@xubutu-en12000e:~/em28xx-userspace2$ sudo ls /boot/config-`uname -r`
+> /boot/config-2.6.22-14-generic
+> jelle@xubutu-en12000e:~/em28xx-userspace2$
+>
+> sudo cp --verbose /boot/config-2.6.22-14-generic /usr/src/linux/.config
+> `/boot/config-2.6.22-14-generic' -> `/usr/src/linux/.config'
+>
+>
+> still all the same problems !
+>
 
-As far as I can tell I haven't gone entirely mad... however it seems I
-have schizophrenic remote control.
+it's just one problem actually, the kernel sources aren't installed or
+not installed correctly.
 
-I was in the middle of using the remote and it stopped working again - I
-was pressing buttons at the time.
+You need to have
 
-Given my previous experience, I again checked it's rc5_device value.
-This now appears to be 2! Setting rc5_device to 2 in modprobe.conf
-restores the remote control to a working state.
+/usr/src/linux/drivers/media/dvb/dvb-core/dmxdev.h
+/usr/src/linux/drivers/media/dvb/dvb-core/dvb_frontend.h
+/usr/src/linux/drivers/media/dvb/dvb-core/dvb_demux.h
+/usr/src/linux/drivers/media/dvb/dvb-core/dvb_net.h
 
-This is a little odd, to say the least. I left the remote for a day with
-it's batteries remove; I have fully powered down the PC to ensure a
-cold-reload of the Nova-T firmware: the change in rc5_device value has
-endured both.
+those are part of the ubuntu linux source package.
 
-I presume it's most likely to be a fault with the remote, rather than a
-problem elsewhere?
+look up the source package for 2.6.22 with apt-cache
+apt-cache search linux-source | grep -i 2.6.22 or something like that
+and install it.
 
-In hindsight, it seems likely that the remote was previously identified
-as (the default) 0x1F before it decided to adopt 0x1A. However, the
-information added to the wiki would still seem to be useful, even if
-just for others with cranky remotes...
-
-
-Regards,
-
-kev.
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
