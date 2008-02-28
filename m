@@ -1,18 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from faunus.aptilo.com ([62.181.224.42])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jonas@anden.nu>) id 1JRaSQ-0004Vi-L3
-	for linux-dvb@linuxtv.org; Tue, 19 Feb 2008 22:56:58 +0100
-From: Jonas Anden <jonas@anden.nu>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <1202762738.8087.8.camel@youkaida>
-References: <8ad9209c0802111207t51e82a3eg53cf93c0bda0515b@mail.gmail.com>
-	<1202762738.8087.8.camel@youkaida>
-Date: Tue, 19 Feb 2008 22:56:11 +0100
-Message-Id: <1203458171.8019.20.camel@anden.nu>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Very quiet around Nova-T 500
+	(envelope-from <stoth@linuxtv.org>) id 1JUl44-00012H-DK
+	for linux-dvb@linuxtv.org; Thu, 28 Feb 2008 16:52:56 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JWY001RLHEUB430@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 28 Feb 2008 10:52:07 -0500 (EST)
+Date: Thu, 28 Feb 2008 10:52:05 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <050744F346934852A708EE5DB9CE8BBE@CraigPC>
+To: Craig Whitmore <lennon@orcon.net.nz>
+Message-id: <47C6D8A5.2070906@linuxtv.org>
+MIME-version: 1.0
+References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
+	<B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
+	<47C591E1.5030001@linuxtv.org> <002a01c87962$8d8293c0$2727a8c0@pc1>
+	<47C5996A.2070404@linuxtv.org>
+	<001b01c8793b$92ab2460$6e00a8c0@barny1e59e583e>
+	<001e01c87991$fd84d960$2727a8c0@pc1>
+	<050744F346934852A708EE5DB9CE8BBE@CraigPC>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
+ HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,30 +32,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiA+IFRoZXJlIGlzIG5vdCBhIGxvdCBiZWluZyBzYWlkIGFib3V0IHRoZSBOb3ZhLVQgNTAwIHRo
-ZSBsYXN0IHdlZWsuCj4gPiBEb27CtHQga25vdyBpZiB0aGF0IGlzIGEgZ29vZCAoY29kZXJzIGNv
-ZGluZykgb3IgYSBiYWQgKG5vdGhpbgo+ID4gaGFwcGVuaW5nKQo+IAo+IE9yIGNvZGVycyBidXN5
-IG9uIG90aGVyIGNvZGUsIG9yIGNvZGVycyB3aG8gcmFuIG91dCBvZiBpZGVhcywgb3IgY29kZXJz
-Cj4gZW5qb3lpbmcgbGlmZSwgZXRjLgoKLi5vciBqdXN0IHdhaXRpbmcgZm9yIHRoZSBwcm9ibGVt
-IHRvIHJlYXBwZWFyIDsoIFRoZSB0cm91YmxlIHdpdGggdGhlCnNlY29uZCB0dW5lciBkeWluZyBp
-cyB0cmlja3kgKGZvciBtZSkgdG8gaXNvbGF0ZS4KCkFzIGEgd29ya2Fyb3VuZCwgZW5hYmxpbmcg
-ZnVsbCBkZWJ1ZyAoZGVidWc9MTUpIG9uIHRoZSBkdmJfdXNiX2RpYjA3MDAKbW9kdWxlIGhhcyBt
-YWRlIG15IHN5c3RlbSByb2NrIHNvbGlkLiBJIHR1cm5lZCBvbiBkZWJ1Z2dpbmcgdG8gdHJ5IHRv
-Cmlzb2xhdGUgdGhlIGlzc3VlLCBidXQgd2l0aCBkZWJ1Z2dpbmcgZW5hYmxlZCB0aGUgcHJvYmxl
-bSBkb2VzIG5vdAphcHBlYXIgKGF0IGxlYXN0IG5vdCBvbiBteSBzeXN0ZW0pLgoKSSBoYXZlbid0
-IHJlYWxseSBmaWd1cmVkIG91dCAqd2hhdCogaW4gdGhlIGRlYnVnIGNvZGUgaXMgaGVscGluZyB5
-ZXQsCmJ1dCBJIHN0aWxsIHN1c3BlY3QgdGhhdCB0aGlzIGlzIHRpbWluZy1yZWxhdGVkIGFuZCB0
-aGUgZGVidWcgY29kZQpzaW1wbHkgc2xvd3MgdGhpbmdzIGRvd24gYSBiaXQuIEVuYWJsaW5nIGRl
-YnVnZ2luZyB3aWxsIHB1dCBhIHdob2xlIGxvdApvZiAianVuayIgaW4geW91ciBzeXN0ZW0gbG9n
-IGZpbGVzLCBidXQgYXQgbGVhc3QgdGhlIHNlY29uZCB0dW5lciB3b250CmRpZSBvbiB5b3UuIElm
-IHlvdSBnbyB0aGlzIHBhdGgsIG1ha2Ugc3VyZSB5b3VyIGxvZyByb3RhdGlvbiB3b3JrcyBhcyBp
-dApzaG91bGQgLS0gbXkgd2Vla2x5IHJvdGF0ZWQgbG9ncyBhcmUgdXAgdG8gMTMwIE1CIGluIHNp
-emUgOykKCiAgLy8gSgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
-Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Craig Whitmore wrote:
+> ----- Original Message ----- 
+> From: "Halim Sahin" <halim.sahin@t-online.de>
+> To: <linux-dvb@linuxtv.org>
+> Sent: Thursday, February 28, 2008 11:42 AM
+> Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,HVR-1700 
+> and HVR-1200
+> 
+> 
+> Has anyone actually put a HVR-2200 in a linux box and seen what happens? 
+> does linux find nothing or what? What exactly makes PCI-E cards hard to 
+> start to get right (or its not hard.. just no one has had time to do it?)
+
+lspci It will look like a normal PCI/PCI-e device with the appropriate 
+PCI device id's.
+
+- Steve
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
