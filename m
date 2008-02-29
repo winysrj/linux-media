@@ -1,25 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1EGO59u004206
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 11:24:05 -0500
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1EGNh4I032483
-	for <video4linux-list@redhat.com>; Thu, 14 Feb 2008 11:23:43 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1TNq1Uq021258
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:52:01 -0500
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1TNpQrI012274
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:51:26 -0500
+Received: from mail-in-12-z2.arcor-online.net (mail-in-12-z2.arcor-online.net
+	[151.189.8.29])
+	by mail-in-14.arcor-online.net (Postfix) with ESMTP id 60AF9187A1E
+	for <video4linux-list@redhat.com>; Sat,  1 Mar 2008 00:51:26 +0100 (CET)
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mail-in-12-z2.arcor-online.net (Postfix) with ESMTP id 4F72427943C
+	for <video4linux-list@redhat.com>; Sat,  1 Mar 2008 00:51:26 +0100 (CET)
+Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
+	(Authenticated sender: hermann-pitton@arcor.de)
+	by mail-in-14.arcor-online.net (Postfix) with ESMTP id D2214187A1E
+	for <video4linux-list@redhat.com>; Sat,  1 Mar 2008 00:51:25 +0100 (CET)
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <1202986913.5036.3.camel@pc08.localdom.local>
-References: <47B392A5.2030908@t-online.de>
-	<1202986913.5036.3.camel@pc08.localdom.local>
-Content-Type: text/plain
-Date: Thu, 14 Feb 2008 17:18:57 +0100
-Message-Id: <1203005937.5871.12.camel@pc08.localdom.local>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+In-Reply-To: <200701201749.02254.ulfbart@gmx.net>
+References: <200606152230.04490.hverkuil@xs4all.nl>
+	<200701201749.02254.ulfbart@gmx.net>
+Content-Type: text/plain; charset=utf-8
+Date: Sat, 01 Mar 2008 00:44:32 +0100
+Message-Id: <1204328672.3190.9.camel@pc08.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Mdeion / Creatix CTX948 DVB-S driver is ready for
-	testing
+Content-Transfer-Encoding: 8bit
+Subject: Re: Can anyone test the saa6752hs (saa7134-empress)?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,204 +40,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Am Samstag, den 20.01.2007, 17:48 +0100 schrieb Ulf Bartholomäus:
+> Hi Hans,
+> 
+> On Thursday 15 June 2006 22:30, Hans Verkuil wrote:
+> > I'm currently working to switch cx88-blackbird and saa7134-empress over
+> > to the new MPEG encoding API. So I need someone to test the changes to
+> > the empress driver and saa6752hs module for me.
+> On which place I found more information about this. What packages should be 
+> installed?
+> 
+> > If you have a card with that hardware and are willing to test it (and
+> > possibly even do some development to improve the current driver) then
+> > please contact me. The changes I made to the cx88-blackbird work fine,
+> > so I hope that the same is true for the saa6752hs changes but without
+> > hardware I simply can't test it.
+> Yes I have a KNC1 TV-Station DVR with this chipset.
+> http://www.knc1.de/d/produkte/analog_dvr.htm
+>  
+> Is your offer sometimes available now (more than a half year ago)?
+> 
+> Ciao Ulf
+> 
+
 Hi,
 
-Am Donnerstag, den 14.02.2008, 12:01 +0100 schrieb hermann pitton:
-> Am Donnerstag, den 14.02.2008, 02:00 +0100 schrieb Hartmut Hackmann: 
-> > Hi, folks
-> > 
-> > In my personal repository:
-> >   http://linuxtv.org/hg/~hhackmann/v4l-dvb-experimental/
-> > you will find a driver that supports this card, DVB-T and DVB-S
-> > 
-> > It might also work for
-> > - one section of the MD8800
-> > - similar boards based on saa713x, tda10086, tda826x, isl6405
-> > 
-> > The board will show up as MD8800. According to Hermann, the configurations
-> > for analog TV and DVB-T are identical.
-> > If you want to use the board with DVB-S, you will need to load the
-> > saa7134-dvb module with the option "use_frontend=1". The default 0 is
-> > DVB-T. For those who got the board from a second source: don't forget
-> > to connect the 12v (the floppy supply) connector.
-> > 
-> > I don't have a dish, so i depend on your reports. To get the MD8800
-> > running, i need a volunteer who does the testing for me. He should be able
-> > to apply patches, compile the driver and read kernel logs.
-> > 
-> > Good luck
-> >   Hartmut
-> > 
-> 
-> Hartmut,
-> 
-> great job, thank you very much!
-> 
-> Can't wait, result of a first voltage measurement on the md8800 Quad.
-> 
-> The upper LNB connector associated to the second saa7134 16be:0008
-> device has correct voltage.
-> 
-> Since my stuff is not in the original green PCI slot and I have only the
-> first 16be:0007 device active, can't test much more for now here.
+have started to mess around with a not yet supported saa7134_empress
+hybrid device.
 
-back on the machine and thinking about it twice ...
+I have anything going, except the mpeg encoder.
 
-The Quad works for me as well on the upper LNB connector, despite of
-that I previously used the lower one successfully with RF loopthrough
-from an external receiver.
+Last track of having it working seems 2.4.18, but I get even EIO stuff
+on trying to read from the device there, but that might be device
+specific. At least it has two gpio switchers not seen before, but the
+whole stuff seems not to be that well documented ...
 
-So, in case of the Quad, just let it be autodetected and try on the
-first adapter and upper LNB connector.
-
-Even more fun :)
+Current stuff is definitely broken,
+any known last working status out there?
 
 Cheers,
 Hermann
 
-> People with the card in the original Medion PC could set
-> "options saa7134-dvb use_frontend=1 debug=1"
-> in /etc/modprobe.conf and then do "depmod -a".
-> 
-> The Syntek v4l usb stkwebcam still produces a compilation error and
-> needs to be disabled in "make xconfig" or something else.
-> 
-> After "make" it is best to do "make rmmod" on top of your
-> v4l-dvb-experimental first. Those new to the v4l-dvb development stuff
-> might do also "make rminstall" and then check that no *.ko is left
-> in /lib/modules/kernel_in_use/kernel/drivers/media/*
-> Especially the old video_buf.ko in the video dir needs to be removed.
-> Check with "ls -R |grep .ko" and then "make install".
-> 
-> Now I suggest to "modprobe saa7134 card=117,96"
-> In that case DVB-T is supported on the lower antenna connector and first
-> adapter and DVB-S on the upper LNB connector and second adapter.
-> 
-> Or to have it simple, it is safe to "make rmmod" and
-> "modprobe saa7134 card=5,96 tuner=54,54"
-> This way on the first device is only analog TV enabled, don't forget to
-> use it first to have good DVB-T reception later anyway, and the only
-> frontend is the DVB-S one in question for testing.
-> 
-> On the CTX948 voltage is OK
-> 
-> AND
-> 
-> Tuning to: Camera Deputati / autocount: 22
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 11804000 v 27500000
-> inv:2 fecH:2
-> DiSEqC: switch pos 0, 13V, hiband (index 2)
-> DiSEqC: e0 10 38 f1 00 00
-> . LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 373 ms
-> pipe opened
-> xine pipe opened /root/.kaxtv.ts
-> Asked to stop
-> pipe closed
-> Live stopped
-> dvbstream::run() end
-> dvbEvents 0:0 ended
-> fdDvr closed
-> Frontend closed
-> Tuning to: Dubai Sports-1 / autocount: 23
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 11747000 h 27500000
-> inv:2 fecH:3
-> DiSEqC: switch pos 0, 18V, hiband (index 3)
-> DiSEqC: e0 10 38 f3 00 00
-> . LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 374 ms
-> xine pipe opened /root/.kaxtv1.ts
-> pipe opened
-> Asked to stop
-> pipe closed
-> Live stopped
-> dvbstream::run() end
-> dvbEvents 0:0 ended
-> fdDvr closed
-> Frontend closed
-> Tuning to: ARD "Das Erste" / autocount: 24
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 11604000 h 27500000
-> inv:2 fecH:5
-> DiSEqC: switch pos 0, 18V, loband (index 1)
-> DiSEqC: e0 10 38 f2 00 00
-> . LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 379 ms
-> xine pipe opened /root/.kaxtv.ts
-> pipe opened
-> Asked to stop
-> pipe closed
-> Live stopped
-> dvbstream::run() end
-> dvbEvents 0:0 ended
-> fdDvr closed
-> Frontend closed
-> Tuning to: Abu Dhabi Sport / autocount: 25
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 12577000 h 27500000
-> inv:2 fecH:3
-> DiSEqC: switch pos 0, 18V, hiband (index 3)
-> DiSEqC: e0 10 38 f3 00 00
-> . LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 379 ms
-> xine pipe opened /root/.kaxtv1.ts
-> pipe opened
-> Asked to stop
-> pipe closed
-> Live stopped
-> dvbstream::run() end
-> dvbEvents 0:0 ended
-> fdDvr closed
-> Frontend closed
-> Tuning to: BBC World / autocount: 26
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 12596000 v 27500000
-> inv:2 fecH:3
-> DiSEqC: switch pos 0, 13V, hiband (index 2)
-> DiSEqC: e0 10 38 f1 00 00
-> ... LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 560 ms
-> pipe opened
-> xine pipe opened /root/.kaxtv.ts
-> 
->  pipe opened
-> Asked to stop
-> pipe closed
-> Live stopped
-> dvbstream::run() end
-> dvbEvents 0:0 ended
-> fdDvr closed
-> Frontend closed
-> Tuning to: All Music / autocount: 38
-> Using DVB device 0:0 "Philips TDA10086 DVB-S"
-> tuning DVB-S to 10949000 v 27500000
-> inv:2 fecH:3
-> DiSEqC: switch pos 0, 13V, loband (index 0)
-> DiSEqC: e0 10 38 f0 00 00
-> . LOCKED.
-> NOUT: 1
-> dvbEvents 0:0 started
-> Tuning delay: 378 ms
-> xine pipe opened /root/.kaxtv.ts
-> pipe opened
->                            
-> Congratulations!
-> 
-> Cheers,
-> Hermann
-> 
+
+
+
 
 
 --
