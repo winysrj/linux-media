@@ -1,21 +1,21 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp25.orange.fr ([193.252.22.22])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from wr-out-0506.google.com ([64.233.184.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1JQ6hE-0001RO-1u
-	for linux-dvb@linuxtv.org; Fri, 15 Feb 2008 20:58:08 +0100
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2524.orange.fr (SMTP Server) with ESMTP id 344241C0009D
-	for <linux-dvb@linuxtv.org>; Fri, 15 Feb 2008 20:57:37 +0100 (CET)
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Fri, 15 Feb 2008 20:56:55 +0100
-References: <47B5EA79.8010402@googlemail.com>
-In-Reply-To: <47B5EA79.8010402@googlemail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1JV6lu-0006Yo-RU
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 16:03:39 +0100
+Received: by wr-out-0506.google.com with SMTP id 68so6118917wra.13
+	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 07:03:04 -0800 (PST)
+Message-ID: <d9def9db0802290703x1094eb64l8accec0f2da2bc7f@mail.gmail.com>
+Date: Fri, 29 Feb 2008 16:03:03 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Jelle de Jong" <jelledejong@powercraft.nl>
+In-Reply-To: <47C81C1E.5080400@powercraft.nl>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200802152056.55250.hftom@free.fr>
-Cc: Andrea <mariofutire@googlemail.com>
-Subject: Re: [linux-dvb] Tools to edit TS files
+References: <47C81C1E.5080400@powercraft.nl>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] how can I create a czap config file without an
+	sample config file for my environment
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,38 +23,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le vendredi 15 f=E9vrier 2008 20:39, Andrea a =E9crit=A0:
-> Hi,
->
-> I'd like to edit TS files (recorded with gnutv for instance).
-> Basically I'd like to cut, paste and join to skip commercials.
->
-> Is there a tool for that out there?
->
-> Otherwise I was thinking of writing one.
-> I understand that I must cut on a 188 bytes boundary and that should be t=
-he
-> only requirement.
->
-> 1) Reading the Transport Stream page on wikipedia, it seems there is a
-> timer PCR. Can I use it to know about the time?
-> 2) Can I cut at the end of a frame so I avoid spurious frames in the first
-> seconds?
->
-> But again, does anybody know a tool for that?
+Hi Jelle,
 
-http://project-x.sourceforge.net/
+On Fri, Feb 29, 2008 at 3:52 PM, Jelle de Jong
+<jelledejong@powercraft.nl> wrote:
+> Hello all,
+>
+>  I wanted to create the channel config files for my environment, but
+>  there is no scan example configuration that works for my environment, I
+>  do have the websites with tabels of the frequencys. How do i create my
+>  channel.conf ....
+>
+>  sudo apt-get install dvb-utils
+>
+>  # dvb-c channels:
+>  firefox http://www.upc.nl/frequencies_gm.php?GM=0493 &
+>
+>  # dvb-t channels:
+>  firefox http://www.digitenne.nl/pagina_49.html &
+>
+>  # make directorys to store channel configurations
+>  mkdir --verbose ~/.{t,c}zap
+>
+>  scan --help
+>  sudo scan -A 1/usr/share/doc/dvb-utils/examples/scan/dvb-t/..... >
+>  ~/.tzap/channels.conf
+>  sudo scan -A 2 /usr/share/doc/dvb-utils/examples/scan/dvb-c/.... >
+>  ~/.czap/channels.conf
+>
 
--- =
+In case you want to use DVB-C, the Pinnacle Hybrid Pro 330e does NOT
+support DVB-C, only analogue TV.
+This device only supports DVB-T and analogue TV (which has nothing to
+do with DVB-C or DVB-S)
+You might try kaffeine for scanning for DVB-T channels.
 
-Christophe Thommeret
+for creating a custom scanfile you need some information about the
+dvb-t transponder.
+T 482000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
+T 762000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
 
+the Pinnacle 330e is capable of autodetecting everything beside the
+first 2 entries (frequency, bandwidth)
+
+There are tools available for creating scanfiles and running the
+bruteforce method:
+http://www.johannes-bauer.com/dvbt/
+look at Schritt 4, or tar xfvj dvbt-scanaid-0.03.tar.bz2
+
+http://www.johannes-bauer.com/dvbt/dvbt-scanaid-0.03.tar.bz2
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
