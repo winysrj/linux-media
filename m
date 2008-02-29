@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp109.rog.mail.re2.yahoo.com ([68.142.225.207])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JSEz2-00083b-2z
-	for linux-dvb@linuxtv.org; Thu, 21 Feb 2008 18:13:20 +0100
-Message-ID: <47BDB0FA.7080500@rogers.com>
-Date: Thu, 21 Feb 2008 12:12:26 -0500
-From: CityK <CityK@rogers.com>
+Received: from rv-out-0910.google.com ([209.85.198.190])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1JV9JE-0005Nr-WF
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 18:46:14 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so3289094rvf.41
+	for <linux-dvb@linuxtv.org>; Fri, 29 Feb 2008 09:46:08 -0800 (PST)
+Message-ID: <d9def9db0802290946x4e92c810l4ad2ad605aa29b00@mail.gmail.com>
+Date: Fri, 29 Feb 2008 18:46:08 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Jelle de Jong" <jelledejong@powercraft.nl>
+In-Reply-To: <47C84079.6060203@powercraft.nl>
 MIME-Version: 1.0
-To: James Klaas <jklaas@appalachian.dyndns.org>
-References: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
-In-Reply-To: <18b102300802210712o76dcccf9j2857d8092d1e9846@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HD capture
+Content-Disposition: inline
+References: <47C83611.1040805@powercraft.nl>
+	<d9def9db0802290848v100ca9dcm22292e368bec4ad5@mail.gmail.com>
+	<47C83919.4010102@powercraft.nl>
+	<d9def9db0802290901v74aa7889oab2b6e4c22057f@mail.gmail.com>
+	<47C84079.6060203@powercraft.nl>
+Cc: linux-dvb <linux-dvb@linuxtv.org>, em28xx@mcentral.de
+Subject: Re: [linux-dvb] Pinnacle PCTV Hybrid Pro Stick 330e - Installation
+	Guide - v0.1.2j
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,72 +33,74 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Klaas wrote:
-> HD capture ...... HDMI/component/composite 
->   
-
-Whether it be done through an analog connection (eg. component) or 
-digital connection (eg. HDMI/DVI/SDI), it all falls under the realm of 
-the V4L subsystem, not DVB.
-
-V4L API's current facilities may not even extend far enough for such 
-applications anyway .... I'm not certain, nor really qualified to 
-comment (so someone with a more authoritative opinion should be listened 
-to/consulted), but I expect that this would be rather pioneering with 
-the current API and, hence, would require some additions/extensions to 
-be made before such tasks could be realized.
-
-> There was a discussion over on the mythtv-users forum on HD capture
-> that devolved into another discussion, but there was an article on
-> converting your HD-DVDs to Blue-Ray
-> (http://howto.wired.com/wiki/Convert_Your_HD_DVDs_to_Blu-Ray).  They
-> pointed to a HDMI/component/composite capture card at
-> http://www.blackmagic-design.com/products/intensity/.
+On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> Markus Rechberger wrote:
+> > On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> >> Markus Rechberger wrote:
+> >>> Hi Jelle,
+> >>>
+> >>> On 2/29/08, Jelle de Jong <jelledejong@powercraft.nl> wrote:
+> >>>> This message contains the following attachment(s):
+> >>>> Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
+> >>>>
+> >>> the correct mailinglist for those devices is em28xx at mcentral dot de
+> >>>
+> >>> I added some comments below and prefixed them with /////////
+> >>>
+> >>> This message contains the following attachment(s):
+> >>> Pinnacle PCTV Hybrid Pro Stick 330e - Installation Guide - v0.1.2j.txt
+> >>>
+> >> We will get it working in the next few days, i am already working on a
+> >> user guide. I will add the comments to the new version, i just thought
+> >> release as soon as possible, dont want somebody else to spent hours and
+> >> hours of his day installing your nice driver.
+> >>
+> >> Nice, I was working on building tvtime but it gave me errors,
+> >>
+> >
+> > libasound2-dev and the linux kernel headers or at least a symlink from
+> > /usr/include/linux -> kernelroot/include/linux is missing.
+> >
+> > It would be nice if you can create a howto on mcentral.de! I'm sure it
+> > might help some people. My guide only explains how to compile it on a
+> > already set up system (and this can differ with every distribution).
+> >
+> > I will release precompiled packages for the eeePC within the next few
+> > days. I just need to package the binaries for it.
+> > I added tvtime, gqradio and kaffeine buttons to my eeePC and
+> > everything works really well.
+> > I'll focus on ATSC devices next week (after the cebit)
+> >
+> > thanks for the howto so far!
+> >
+> > Markus
 >
-> While I wouldn't expect this to be supported anytime soon, has anyone
-> even looked at this?
+> I will work on the docu you on the nice code :-p
+>
+> Just one thing how to fix the below? Than we can release a first draft.
+> We need a group that is compatiable with udev and the driver, so that we
+> can do adduser $USER $GROUP to give premissions to use the devices
+>
 
-- By chance, in that discussion on the mythtv-users forum to which you 
-refer, did any of the contributers/posters search that m/l's own 
-archives in respect to the Intensity? If not, then in this thread ( 
-http://www.gossamer-threads.com/lists/mythtv/users/223410#223410 ) you 
-will see that Blackmagic reportedly expressed some openness towards the 
-idea of Linux support. I haven't heard of anything further on the matter 
-than that ... that doesn't mean that there hasn't been anything else 
-said, and perhaps there is indeed some follow up ... I don't know ... 
-but either way, that will require some searching, and that I leave as an 
-exercise for someone else.
+feel free to work on it, if you have some patches to apply for the
+build.sh scripts just submit them :)
 
-- in regards to whether anyone around here has looked at this, I don't 
-think any of the regulars ever have ... let alone ever considered it ... 
-most people wouldn't even be aware of it (and the other existing 
-alternatives ) ... in addition, it would be new territory, and likely a 
-difficult development process ... so if there is anyone working on that 
-device, or looking at it, its likely they are not directly associated or 
-involved around here.
+> # to-do:
+> # howto add group for created devices so that all users in that group
+> can use the devices?
+>
+> oja also i cant get /dev/vdi0 working
+>
 
-- in addition to BM's Intensity and Intensity Pro, there are a few other 
-"cheaper" solutions that are available. This thread on Doom9 (and 
-despite its title) makes mention of them and provides examples of some 
-of them in use: http://forum.doom9.org/showthread.php?p=1044824#post1044824
+the vbi interface was only tested with osc which is part of the
+libzvbi package. There's currently no application available which
+works with the vbi interface, it needs some more fiddling around with
+the libzvbi library.
+This is a topic which has a lower priority since other parts have to
+be improved first..
+Patches in that area are welcome of course.
 
-- as far as I know, the more expensive professional and prosumer 
-solutions (i.e the AJA xena's, BM Decklinks, Accustreams, Bluefish444 
-cards etc etc) do have Linux support ... albeit, it is through 
-proprietary SDKs or developed inhouse by the production studios using 
-such products . There was a brief discussion about these on the V4L 
-mailing list a few years ago; see/read through this thread: 
-http://marc.info/?l=linux-video&m=115374256412690&w=2
-
-- lastly, did that MythTV-users thread mention the forthcoming Hauppauge 
-HD-PVR (component input) ? ... given that the LinuxTV developer rank 
-does include a couple of guys from Hauppauge, and given that both of 
-them have made mention of that device, and given Hauppauge's stance on 
-Linux support is very positive, I'd be willing to bet that the chances 
-of open/publicly available support for this device materializing are 
-far, far greater than any of the other devices mentioned 
-above.....though, bear in mind there are, of course, never any 
-guarantees or certainties, nor am I speaking on the behave of anyone.
+Markus
 
 _______________________________________________
 linux-dvb mailing list
