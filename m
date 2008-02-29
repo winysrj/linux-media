@@ -1,17 +1,15 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from smtp102.rog.mail.re2.yahoo.com ([206.190.36.80])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JM3qX-0000ad-P0
-	for linux-dvb@linuxtv.org; Mon, 04 Feb 2008 17:07:02 +0100
-Message-ID: <47A73800.8000909@rogers.com>
-Date: Mon, 04 Feb 2008 11:06:24 -0500
-From: CityK <CityK@rogers.com>
-MIME-Version: 1.0
-To: ashim saikia <ar.saikia@yahoo.com>
-References: <638226.79716.qm@web57814.mail.re3.yahoo.com>
-In-Reply-To: <638226.79716.qm@web57814.mail.re3.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hi
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <olaf@bigred.inka.de>) id 1JV2F9-0001ZP-RY
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 11:13:31 +0100
+To: linux-dvb@linuxtv.org
+References: <1204233917.22520.12.camel@youkaida>
+Cc: 
+From: Olaf Titz <olaf@bigred.inka.de>
+Date: Fri, 29 Feb 2008 11:13:21 +0100
+Message-ID: <E1JV2Ez-00029k-VX@bigred.inka.de>
+Subject: Re: [linux-dvb] [OT] UHF masthead amp power supply location
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,28 +17,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-ashim saikia wrote:
-> Hi,
-> I just wanna know if in linux 2.6 kernel, DVB driver
-> will support more than 4 cards or not. Can any one
-> help me.
+> http://www.youplala.net/~will/htpc/Satellite/masthead_amp-where.png
 
-Its not a question of cards/devices, its a question of the number of 
-adapters...which is currently set at 8 (see dvbdev.c for the 
-max_adapters define). Example, a usb device with dual receivers means 
-only 4 such devices would be supported ... if you desire more, change 
-the define and recompile the drivers.
+Option A is not possible, because the LNB is powered by the tuner too.
+You can't have two power supplies in parallel on the same wire.
 
-Note that "support for x number of adapters" is also somewhat dependant 
-on the software you use -- though I'd expect that most would be 
-respective of the above, you still should check the application to see 
-if it has any further restrictions.
+(The only solution would be to draw the power for the amp from the LNB
+supply too, so you would need a suitable combiner and perhaps a
+suitable amp which runs on 13-17V [AC or DC?], and you would need a
+sat tuner which can deliver enough power for LNB plus amp, and never
+turn it off. Unlikely that such components exist.)
+
+Olaf
 
 _______________________________________________
 linux-dvb mailing list
