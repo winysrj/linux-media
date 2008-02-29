@@ -1,15 +1,19 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from web57809.mail.re3.yahoo.com ([68.142.236.87])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <ar.saikia@yahoo.com>) id 1JNRyN-00026c-Fs
-	for linux-dvb@linuxtv.org; Fri, 08 Feb 2008 13:04:51 +0100
-Date: Fri, 8 Feb 2008 03:15:41 -0800 (PST)
-From: ashim saikia <ar.saikia@yahoo.com>
-To: Linux_Greg4LinuxDriverHelp <greg@kroah.com>,
-	Linux Forum 4 Dvb <linux-dvb@linuxtv.org>
+	(envelope-from <dkuhlen@gmx.net>) id 1JVDfr-0008VF-Oa
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 23:25:51 +0100
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Fri, 29 Feb 2008 23:25:17 +0100
+References: <47BDA96B.7080700@okg-computer.de>
+	<47BE095E.3040301@okg-computer.de>
+	<200802221106.45303.dkuhlen@gmx.net>
+In-Reply-To: <200802221106.45303.dkuhlen@gmx.net>
 MIME-Version: 1.0
-Message-ID: <27494.38829.qm@web57809.mail.re3.yahoo.com>
-Subject: [linux-dvb] QUERY REGARDING Rules.make file
+Message-Id: <200802292325.17473.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
+	STB0899)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,74 +21,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0580026695=="
+Content-Type: multipart/mixed; boundary="===============1878755500=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0580026695==
-Content-Type: multipart/alternative; boundary="0-1125886943-1202469341=:38829"
+--===============1878755500==
+Content-Type: multipart/signed;
+  boundary="nextPart5507163.GJO2hi9M1U";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
---0-1125886943-1202469341=:38829
-Content-Type: text/plain; charset=us-ascii
+--nextPart5507163.GJO2hi9M1U
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hi,
-I'm trying to compile a driver module for some 2.6.20.15 kernel sources:
+On Friday 22 February 2008, Dominik Kuhlen wrote:
+> Hi,
+>=20
+> -----snip----
+> >=20
+> > Great, that was the trick, now scanning and szap work fine.
+> >=20
+> > Thanks for that hint!
+> You're welcome.
+>=20
+> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
+> Currently I get a loss of about 1 TS packet every second or even more (wi=
+th both symbol rates).
+> And there is exactly one TS packet missing (I diffed a TS hexdump).
+> If it were the USB controller that drops packets it would be a loss of 5 =
+consecutive TS packets. (940 bytes iso frame size)
 
+I have to correct that statement (I didn't record the whole TS):=20
+The loss is exactly one USB frame (5 consecutive TS packets in this case)
+which happens about every 1000 TS packets (200 USB frames)
 
-The compile of this module always quickly stops. As it seems because
+I'll do further testings with different frame sizes the next days...
 
-of a missing Rules.make file in the top level kernel source directory,or because if a missing rule to build Rules.make:
-
-
-So when building the kernel/Debian kernel-package: Is there a special flag for either make or make-kpkg that also creates this, as it seems from above, missing Rules.make
-
-
-  
-Or - alternatively - does the driver source expect to find some rule
-
-
-somewhere to build this Rules.make file; a rule that in this case it
-
-
-does not see .. ?
-
-Or- There is no use of Rules.make file in kernel 2.6.x.x and higher. How can I overcome this problem
-
-Can anybody help me out.
-
-Regards
-
-
-
-
-      ____________________________________________________________________________________
-Never miss a thing.  Make Yahoo your home page. 
-http://www.yahoo.com/r/hs
---0-1125886943-1202469341=:38829
-Content-Type: text/html; charset=us-ascii
-
-<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman, new york, times, serif;font-size:14pt"><span id="purple">Hi,<br>I'm trying to compile a driver module for some 2.6.20.15 kernel sources:
-<br><br></span><span id="purple">The compile of this module always quickly stops. As it seems because
-</span>
-<span id="purple">of a missing Rules.make file in the top level kernel source directory,</span><span id="purple">or because if a missing rule to build Rules.make:
-</span>
-<br><span id="purple"></span><span id="purple"></span><span id="purple">So when building the kernel/Debian kernel-package: Is there a special</span><span id="purple"> flag for either make or make-kpkg that also creates this, as it seems</span><span id="purple"> from above, missing Rules.make
-</span>
-<br>&nbsp;&nbsp;<span id="purple"></span><span id="purple"><br>Or - alternatively - does the driver source expect to find some rule
-</span>
-<br><span id="purple">somewhere to build this Rules.make file; a rule that in this case it
-</span>
-<br><span id="purple">does not see .. ?<br><br>Or- There is no use of Rules.make file in kernel 2.6.x.x and higher. How can I overcome this problem<br><br>Can anybody help me out.<br><br>Regards<br><br></span></div><br>
-
-      <hr size=1>Never miss a thing.  <a href="http://us.rd.yahoo.com/evt=51438/*http://www.yahoo.com/r/hs"> Make Yahoo your homepage.</a>
-
-</body></html>
---0-1125886943-1202469341=:38829--
+Dominik
 
 
---===============0580026695==
+--nextPart5507163.GJO2hi9M1U
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQBHyIZN6OXrfqftMKIRAkhRAJ9SgP5lXe56T/bpUbf4J7rZqBtcdACdHWAF
+8dblc7skgLb8wOvCd/qTBRM=
+=12v0
+-----END PGP SIGNATURE-----
+
+--nextPart5507163.GJO2hi9M1U--
+
+
+--===============1878755500==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -94,4 +91,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0580026695==--
+--===============1878755500==--
