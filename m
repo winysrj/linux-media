@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m18IZi84032623
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 13:35:44 -0500
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.246])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m18IZOjo013125
-	for <video4linux-list@redhat.com>; Fri, 8 Feb 2008 13:35:24 -0500
-Received: by an-out-0708.google.com with SMTP id c31so1757665ana.124
-	for <video4linux-list@redhat.com>; Fri, 08 Feb 2008 10:35:24 -0800 (PST)
-Message-ID: <9c4b1d600802081035y4758a9f0m419bed91c1286467@mail.gmail.com>
-Date: Fri, 8 Feb 2008 16:35:23 -0200
-From: "Adrian Pardini" <pardo.bsso@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <20080208163102.459d0efd@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1T4J3Bo026224
+	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 23:19:03 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.183])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1T4IW5e023440
+	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 23:18:33 -0500
+Received: by wa-out-1112.google.com with SMTP id j37so3983495waf.7
+	for <video4linux-list@redhat.com>; Thu, 28 Feb 2008 20:18:32 -0800 (PST)
+Message-ID: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>
+Date: Fri, 29 Feb 2008 12:18:32 +0800
+From: "eric miao" <eric.y.miao@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_20006_32502927.1202495723972"
-References: <9c4b1d600802071009q7fc69d4cj88c3ec2586e484a0@mail.gmail.com>
-	<20080207173926.53b9e0ce@gaivota>
-	<1202421849.20032.25.camel@pc08.localdom.local>
-	<9c4b1d600802071528p70de4e55ud582ef66d9ebb3d7@mail.gmail.com>
-	<1202429587.20032.75.camel@pc08.localdom.local>
-	<9c4b1d600802080937h3dbbb388s9abb760feb084f4@mail.gmail.com>
-	<20080208163102.459d0efd@gaivota>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH] New card entry (saa7134) and FM support for TNF9835
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: [RFC] move sensor control out of kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,145 +27,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_20006_32502927.1202495723972
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I know some one has different opinion, but since the sensor control logic is
+getting more and more complicated, and provided that differences between
+sensors and vendors are already too many. Is it better to move sensor
+control out of kernel.
 
-2008/2/8, Mauro Carvalho Chehab <mchehab@infradead.org>:
-> Still the patch is line-wrapped. Although this is not a good practice, you may
-> send it as an annex, if you can't convince your emailer to not break the lines.
-> This way, patch command won't accept it.
->
-> Cheers,
-> Mauro
+Most sensors come with a serial control channel, I2C as can be seen
+most commonly. Access to the control information can be done by
+i2c-dev interface if possible, thus the driver can be freed as an I2C
+stub only. So technically, this is practical.
 
-I'm very sorry about this.
-Hope it gets right this time.
+The benefits I can think of now are:
 
-Kind regards,
-Adrian.
+1. simplified sensor driver design
 
-------=_Part_20006_32502927.1202495723972
-Content-Type: text/x-patch; name=tvgo.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fcf2u5z7
-Content-Disposition: attachment; filename=tvgo.patch
+2. sensor control related debugging can be moved to user space thus
+    reducing the debugging effort
 
-ZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80
-bGludXgvQ0FSRExJU1Quc2FhNzEzNCB2NGwtZHZiLW1vZGlmaWVkL2xpbnV4L0RvY3VtZW50YXRp
-b24vdmlkZW80bGludXgvQ0FSRExJU1Quc2FhNzEzNAotLS0gdjRsLWR2Yi9saW51eC9Eb2N1bWVu
-dGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRMSVNULnNhYTcxMzQJMjAwOC0wMi0wNiAyMjo1NDowNy4w
-MDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvRG9jdW1lbnRhdGlvbi92
-aWRlbzRsaW51eC9DQVJETElTVC5zYWE3MTM0CTIwMDgtMDItMDggMTQ6NTQ6NTEuMDAwMDAwMDAw
-IC0wMjAwCkBAIC0xMzAsMyArMTMwLDQgQEAKIDEyOSAtPiBCZWhvbGRlciBCZWhvbGRUViA2MDcg
-LyBCZWhvbGRUViA2MDkgICAgIFs1YWNlOjYwNzAsNWFjZTo2MDcxLDVhY2U6NjA3Miw1YWNlOjYw
-NzMsNWFjZTo2MDkwLDVhY2U6NjA5MSw1YWNlOjYwOTIsNWFjZTo2MDkzXQogMTMwIC0+IEJlaG9s
-ZGVyIEJlaG9sZFRWIE02IC8gQmVob2xkVFYgTTYgRXh0cmEgWzVhY2U6NjE5MCw1YWNlOjYxOTNd
-CiAxMzEgLT4gVHdpbmhhbiBIeWJyaWQgRFRWLURWQiAzMDU2IFBDSSAgICAgICAgICBbMTgyMjow
-MDIyXQorMTMyIC0+IEdlbml1cyBUVkdPIEFNMTFNQ0UKZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2
-NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL2lyLWtleW1hcHMuYyB2NGwtZHZiLW1v
-ZGlmaWVkL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL2lyLWtleW1hcHMuYwotLS0gdjRsLWR2
-Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi9pci1rZXltYXBzLmMJMjAwOC0wMi0wNiAyMjo1
-NDowNy4wMDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9t
-ZWRpYS9jb21tb24vaXIta2V5bWFwcy5jCTIwMDgtMDItMDggMTQ6NTQ6NTEuMDAwMDAwMDAwIC0w
-MjAwCkBAIC0yMDM3LDMgKzIwMzcsNDkgQEAgSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYmVob2xk
-W0lSX0tFWVRBQgogfTsKIAogRVhQT1JUX1NZTUJPTF9HUEwoaXJfY29kZXNfYmVob2xkKTsKKwor
-LyoKKyAqIFJlbW90ZSBjb250cm9sIGZvciB0aGUgR2VuaXVzIFRWR08gQTExTUNFCisgKiBBZHJp
-YW4gUGFyZGluaSA8cGFyZG8uYnNzb0BnbWFpbC5jb20+CisgKi8KK0lSX0tFWVRBQl9UWVBFIGly
-X2NvZGVzX2dlbml1c190dmdvX2ExMW1jZVtJUl9LRVlUQUJfU0laRV0gPSB7CisJLyogS2V5cyAw
-IHRvIDkgKi8KKwlbMHg0OF0gPSBLRVlfMCwKKwlbMHgwOV0gPSBLRVlfMSwKKwlbMHgxZF0gPSBL
-RVlfMiwKKwlbMHgxZl0gPSBLRVlfMywKKwlbMHgxOV0gPSBLRVlfNCwKKwlbMHgxYl0gPSBLRVlf
-NSwKKwlbMHgxMV0gPSBLRVlfNiwKKwlbMHgxN10gPSBLRVlfNywKKwlbMHgxMl0gPSBLRVlfOCwK
-KwlbMHgxNl0gPSBLRVlfOSwKKworCVsweDU0XSA9IEtFWV9SRUNPUkQsCQkvKiByZWNvcmRpbmcg
-Ki8KKwlbMHgwNl0gPSBLRVlfTVVURSwJCS8qIG11dGUgKi8KKwlbMHgxMF0gPSBLRVlfUE9XRVIs
-CisJWzB4NDBdID0gS0VZX0xBU1QsCQkvKiByZWNhbGwgKi8KKwlbMHg0Y10gPSBLRVlfQ0hBTk5F
-TFVQLAkJLyogY2hhbm5lbCAvIHByb2dyYW0gKyAqLworCVsweDAwXSA9IEtFWV9DSEFOTkVMRE9X
-TiwJLyogY2hhbm5lbCAvIHByb2dyYW0gLSAqLworCVsweDBkXSA9IEtFWV9WT0xVTUVVUCwKKwlb
-MHgxNV0gPSBLRVlfVk9MVU1FRE9XTiwKKwlbMHg0ZF0gPSBLRVlfT0ssCQkvKiBhbHNvIGxhYmVs
-ZWQgYXMgUGF1c2UgKi8KKwlbMHgxY10gPSBLRVlfWk9PTSwJCS8qIGZ1bGwgc2NyZWVuIGFuZCBT
-dG9wKi8KKwlbMHgwMl0gPSBLRVlfTU9ERSwJCS8qIEFWIFNvdXJjZSBvciBSZXdpbmQqLworCVsw
-eDA0XSA9IEtFWV9MSVNULAkJLyogLS8tLSAqLworCS8qIHNtYWxsIGFycm93cyBhYm92ZSBudW1i
-ZXJzICovCisJWzB4MWFdID0gS0VZX05FWFQsCQkvKiBhbHNvIEZhc3QgRm9yd2FyZCAqLworCVsw
-eDBlXSA9IEtFWV9QUkVWSU9VUywJLyogYWxzbyBSZXdpbmQgKi8KKwkvKiB0aGVzZSBhcmUgaW4g
-YSByYXRoZXIgbm9uIHN0YW5kYXJkIGxheW91dCBhbmQgaGF2ZQorCWFuIGFsdGVybmF0ZSBuYW1l
-IHdyaXR0ZW4gKi8KKwlbMHgxZV0gPSBLRVlfVVAsCQkvKiBWaWRlbyBTZXR0aW5nICovCisJWzB4
-MGFdID0gS0VZX0RPV04sCQkvKiBWaWRlbyBEZWZhdWx0ICovCisJWzB4MDVdID0gS0VZX0xFRlQs
-CQkvKiBTbmFwc2hvdCAqLworCVsweDBjXSA9IEtFWV9SSUdIVCwJCS8qIEhpZGUgUGFuZWwgKi8K
-KwkvKiBGb3VyIGJ1dHRvbnMgd2l0aG91dCBsYWJlbCAqLworCVsweDQ5XSA9IEtFWV9SRUQsCisJ
-WzB4MGJdID0gS0VZX0dSRUVOLAorCVsweDEzXSA9IEtFWV9ZRUxMT1csCisJWzB4NTBdID0gS0VZ
-X0JMVUUsCit9OworRVhQT1JUX1NZTUJPTF9HUEwoaXJfY29kZXNfZ2VuaXVzX3R2Z29fYTExbWNl
-KTsKZGlmZiAtdXByTiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJz
-L21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCi0tLSB2NGwtZHZiL2xpbnV4L2Ry
-aXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMJMjAwOC0wMi0wNiAyMjo1
-NDoxMC4wMDAwMDAwMDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYwkyMDA4LTAyLTA4IDE0OjU3OjA3LjAw
-MDAwMDAwMCAtMDIwMApAQCAtMzk5Miw2ICszOTkyLDQ0IEBAIHN0cnVjdCBzYWE3MTM0X2JvYXJk
-IHNhYTcxMzRfYm9hcmRzW10gPSAKIAkJCS5ncGlvICAgPSAweDAyMDAwMDAsCiAJCX0sCiAJfSwK
-KwlbU0FBNzEzNF9CT0FSRF9HRU5JVVNfVFZHT19BMTFNQ0VdID0geworCQkvKiBBZHJpYW4gUGFy
-ZGluaSA8cGFyZG8uYnNzb0BnbWFpbC5jb20+ICovCisJCS5uYW1lCQk9ICJHZW5pdXMgVFZHTyBB
-TTExTUNFIiwKKwkJLmF1ZGlvX2Nsb2NrCT0gMHgwMDIwMDAwMCwKKwkJLnR1bmVyX3R5cGUJPSBU
-VU5FUl9UTkZfNTMzNU1GLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnR1bmVyX2Fk
-ZHIJPSBBRERSX1VOU0VULAorCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCisJCS5ncGlvbWFz
-ayAgICAgICA9IDB4ZjAwMCwKKwkJLmlucHV0cyAgICAgICAgID0ge3sKKwkJCS5uYW1lID0gbmFt
-ZV90dl9tb25vLAorCQkJLnZtdXggPSAxLAorCQkJLmFtdXggPSBMSU5FMiwKKwkJCS5ncGlvID0g
-MHgwMDAwLAorCQkJLnR2ICAgPSAxLAorCQl9LCB7CisJCQkubmFtZSA9IG5hbWVfY29tcDEsCisJ
-CQkudm11eCA9IDMsCisJCQkuYW11eCA9IExJTkUxLAorCQkJLmdwaW8gPSAweDIwMDAsCisJCQku
-dHYgPSAxCisJCX0sIHsKKwkJCS5uYW1lID0gbmFtZV9zdmlkZW8sCisJCQkudm11eCA9IDgsCisJ
-CQkuYW11eCA9IExJTkUxLAorCQkJLmdwaW8gPSAweDIwMDAsCisJfSB9LAorCQkucmFkaW8gPSB7
-CisJCQkubmFtZSA9IG5hbWVfcmFkaW8sCisJCQkuYW11eCA9IExJTkUyLAorCQkJLmdwaW8gPSAw
-eDEwMDAsCisJCX0sCisJCS5tdXRlID0geworCQkJLm5hbWUgPSBuYW1lX211dGUsCisJCQkuYW11
-eCA9IExJTkUyLAorCQkJLmdwaW8gPSAweDYwMDAsCisJCX0sCisJfSwKIH07CiAKIGNvbnN0IHVu
-c2lnbmVkIGludCBzYWE3MTM0X2Jjb3VudCA9IEFSUkFZX1NJWkUoc2FhNzEzNF9ib2FyZHMpOwpA
-QCAtNTEzMCw2ICs1MTY4LDcgQEAgaW50IHNhYTcxMzRfYm9hcmRfaW5pdDEoc3RydWN0IHNhYTcx
-MzRfZAogCWNhc2UgU0FBNzEzNF9CT0FSRF9CRUhPTERfNDA5OgogCWNhc2UgU0FBNzEzNF9CT0FS
-RF9CRUhPTERfNTA1Rk06CiAJY2FzZSBTQUE3MTM0X0JPQVJEX0JFSE9MRF81MDdfOUZNOgorCWNh
-c2UgU0FBNzEzNF9CT0FSRF9HRU5JVVNfVFZHT19BMTFNQ0U6CiAJCWRldi0+aGFzX3JlbW90ZSA9
-IFNBQTcxMzRfUkVNT1RFX0dQSU87CiAJCWJyZWFrOwogCWNhc2UgU0FBNzEzNF9CT0FSRF9GTFlE
-VkJTX0xSMzAwOgpkaWZmIC11cHJOIC1YIGRvbnRkaWZmIHY0bC1kdmIvbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaCB2NGwtZHZiLW1vZGlmaWVkL2xpbnV4L2RyaXZl
-cnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgKLS0tIHY0bC1kdmIvbGludXgvZHJpdmVy
-cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaAkyMDA4LTAyLTA2IDIyOjU0OjEwLjAwMDAw
-MDAwMCAtMDIwMAorKysgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
-L3NhYTcxMzQvc2FhNzEzNC5oCTIwMDgtMDItMDggMTQ6MzU6NTUuMDAwMDAwMDAwIC0wMjAwCkBA
-IC0yNjAsNiArMjYwLDcgQEAgc3RydWN0IHNhYTcxMzRfZm9ybWF0IHsKICNkZWZpbmUgU0FBNzEz
-NF9CT0FSRF9CRUhPTERfNjA3XzlGTQkxMjkKICNkZWZpbmUgU0FBNzEzNF9CT0FSRF9CRUhPTERf
-TTYJCTEzMAogI2RlZmluZSBTQUE3MTM0X0JPQVJEX1RXSU5IQU5fRFRWX0RWQl8zMDU2IDEzMQor
-I2RlZmluZSBTQUE3MTM0X0JPQVJEX0dFTklVU19UVkdPX0ExMU1DRSAxMzIKIAogI2RlZmluZSBT
-QUE3MTM0X01BWEJPQVJEUyA4CiAjZGVmaW5lIFNBQTcxMzRfSU5QVVRfTUFYIDgKZGlmZiAtdXBy
-TiAtWCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9z
-YWE3MTM0LWlucHV0LmMgdjRsLWR2Yi1tb2RpZmllZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
-L3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCi0tLSB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMJMjAwOC0wMi0wNiAyMjo1NDoxMC4wMDAwMDAw
-MDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9z
-YWE3MTM0L3NhYTcxMzQtaW5wdXQuYwkyMDA4LTAyLTA4IDE0OjM3OjQwLjAwMDAwMDAwMCAtMDIw
-MApAQCAtNDA2LDYgKzQwNiwxMiBAQCBpbnQgc2FhNzEzNF9pbnB1dF9pbml0MShzdHJ1Y3Qgc2Fh
-NzEzNF9kCiAJCW1hc2tfa2V5dXAgICA9IDB4ODAwMDAwMDsKIAkJcG9sbGluZyAgICAgID0gNTA7
-IC8vbXMKIAkJYnJlYWs7CisJY2FzZSBTQUE3MTM0X0JPQVJEX0dFTklVU19UVkdPX0ExMU1DRToK
-KwkJaXJfY29kZXMgICAgID0gaXJfY29kZXNfZ2VuaXVzX3R2Z29fYTExbWNlOworCQltYXNrX2tl
-eWNvZGUgPSAweGZmOworCQltYXNrX2tleWRvd24gPSAweGYwMDAwMDsKKwkJcG9sbGluZyA9IDUw
-OyAvKiBtcyAqLworCQlicmVhazsKIAl9CiAJaWYgKE5VTEwgPT0gaXJfY29kZXMpIHsKIAkJcHJp
-bnRrKCIlczogT29wczogSVIgY29uZmlnIGVycm9yIFtjYXJkPSVkXVxuIiwKZGlmZiAtdXByTiAt
-WCBkb250ZGlmZiB2NGwtZHZiL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmggdjRsLWR2
-Yi1tb2RpZmllZC9saW51eC9pbmNsdWRlL21lZGlhL2lyLWNvbW1vbi5oCi0tLSB2NGwtZHZiL2xp
-bnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmgJMjAwOC0wMi0wNiAyMjo1NDoxMS4wMDAwMDAw
-MDAgLTAyMDAKKysrIHY0bC1kdmItbW9kaWZpZWQvbGludXgvaW5jbHVkZS9tZWRpYS9pci1jb21t
-b24uaAkyMDA4LTAyLTA4IDE0OjM4OjM3LjAwMDAwMDAwMCAtMDIwMApAQCAtMTQyLDYgKzE0Miw3
-IEBAIGV4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc190dF8xNTAwW0kKIGV4dGVybiBJUl9L
-RVlUQUJfVFlQRSBpcl9jb2Rlc19mdXNpb25oZHR2X21jZVtJUl9LRVlUQUJfU0laRV07CiBleHRl
-cm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYmVob2xkW0lSX0tFWVRBQl9TSVpFXTsKIGV4dGVy
-biBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19waW5uYWNsZV9wY3R2X2hkW0lSX0tFWVRBQl9TSVpF
-XTsKK2V4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19nZW5pdXNfdHZnb19hMTFtY2VbSVJf
-S0VZVEFCX1NJWkVdOwogCiAjZW5kaWYKIAo=
-------=_Part_20006_32502927.1202495723972
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+3. accessing registers in user space can be done by many other ways
+    say, UART. E.g.
+    ADCM2650 and ADCM2670 differs in the control channel connection,
+    one by I2C and the other by UART, the user space control logic has
+    only to decide which device node to open: /dev/i2c/xxx or /dev/ttyXX
+
+Another biggest concern to the V4L2 API itself, sensor nowadays has
+more control ability than it used to be, some smart sensor provides
+even more like auto focus control, lens control, flash mode, and many
+other features that current V4L2 API cannot cover.
+
+Besides, along with the complicated image processing chain, it might
+be better described by kinds of pipeline, like what gstreamer is doing
+now. Moving some or most of the logic to user space will also significantly
+reduce the effort of kernel development.
+
+Now the problem is: we don't have a standard in user space :(
+
+Just a topic, any comments. Thanks
+
+-- 
+Cheers
+- eric
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_20006_32502927.1202495723972--
