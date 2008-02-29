@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JV1Wg-0005dK-88
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 10:27:34 +0100
-Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
-	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JV1Wa-0002mK-13
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 19:27:28 +1000
-Received: from korath.teln.shikadi.net ([192.168.0.14])
-	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JV1WX-0006Zv-3G
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 19:27:25 +1000
-Message-ID: <47C7CFFD.1020600@shikadi.net>
-Date: Fri, 29 Feb 2008 19:27:25 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
+	(envelope-from <abraham.manu@gmail.com>) id 1JVEK5-0003TQ-1b
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 00:07:25 +0100
+Message-ID: <47C8901E.9040206@gmail.com>
+Date: Sat, 01 Mar 2008 03:07:10 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <1204233917.22520.12.camel@youkaida>
-In-Reply-To: <1204233917.22520.12.camel@youkaida>
-Subject: Re: [linux-dvb] [OT] UHF masthead amp power supply location
+To: Seppo Ingalsuo <seppo.ingalsuo@iki.fi>
+References: <597595.82940.qm@web33101.mail.mud.yahoo.com>
+	<47C8593B.1070802@iki.fi>
+In-Reply-To: <47C8593B.1070802@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] STB0899 users,
+ please verify results was Re: TechniSat SkyStar HD: Problems
+ scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,41 +28,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> This this OT, but I don't really know where to ask. And after all, the
-> odds are that I will find a person with that sort of knowledge here.
+Seppo Ingalsuo wrote:
+> Simeon Simeonov wrote:
+>> Did you try changing line 250 in mantis_dvb.c to:
+>>                 if (!lnbp21_attach(mantis->fe, &mantis->adapter, LNBP21_PCL, LNBP21_ISEL)) {
+>>   
+> I tried mantis-a9ecd19a37c9. Without the change success in positioning 
+> was about 0% similarly as with multiproto-0448e5a6d8a6. After this 
+> change the success in zapping between different satellite positions 
+> increased to about 40% so it looks now promising and vdr satellite 
+> channels are usable with some patience :^)
 
-Perhaps a satellite TV forum, if you don't get any good replies here.
 
-> Option A - This is the easiest for me to achieve, but the position of
-> the power supply worries me.
-> 
-> Option B - I'm confident that this is technically sound, except that the
-> necessary physical location of the power supply in this case has no
-> power plug nearby...
-> 
-> My question is: can Option A fly?
+You mean the LNBP21 attach line improved things for you by 40% ?
 
-I'm no expert, but I think with Option A you'd have problems trying to
-send 12V and 13/18V over the same line.  I don't know how the power
-distributed, but is it possible to run the masthead amp from the 13V
-supplied by the sat tuner?  As long as it doesn't choke on 18V (and the
-sat combiner doesn't block the voltage) that might be an option.
+> Is there some kind of soft-diseqc bit timing used with this DVB-S2 card 
+> or driver SW (I didn't yet look at the source) or why is the operation 
+> so unreliable? I had to use command duplication in vdr-rotor plugin with 
+> my old card but with that it was about 100% reliable.
 
-Of course if each power supply increases the voltage (so putting in 12V
-and 13V means you actually have 25V on the cable for a while) then it
-might work, but I don't think that's how it's done (or if it is, I don't
-think the sat combiner would strip out the 13/18V and leave 12V on the
-line for the masthead amp to use.)
+If you can really identify what is "really" unreliable, that itself will 
+be a help
+to fix the issue, in most cases.
 
-I don't know whether the power is sent as DC or AC, but if your masthead
-amp runs on roughly the same power as the sat tuner puts out, you might
-be able to do away with the masthead amp altogether, assuming the sat
-tuner still puts out power when you're not watching a sat channel.
+> Which DVB-S2 multiproto driver tree should I follow for latest 
+> development for TT S2-3200 (/Skystar HD)?
 
-Again - I'm no expert!
+For the SAA7146 based cards, use the multiproto tree, for the Mantis based
+cards, use the mantis tree.
 
-Cheers,
-Adam.
+Regards,
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
