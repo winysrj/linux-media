@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JVE67-0002Mk-2Z
-	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 23:52:59 +0100
-Message-ID: <47C88CBF.7010304@gmail.com>
-Date: Sat, 01 Mar 2008 02:52:47 +0400
+	(envelope-from <abraham.manu@gmail.com>) id 1JVEX6-0004Xa-T9
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 00:20:53 +0100
+Message-ID: <47C89347.7080206@gmail.com>
+Date: Sat, 01 Mar 2008 03:20:39 +0400
 From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Dominik Kuhlen <dkuhlen@gmx.net>
-References: <47BDA96B.7080700@okg-computer.de>	<47BE095E.3040301@okg-computer.de>	<200802221106.45303.dkuhlen@gmx.net>
-	<200802292325.17473.dkuhlen@gmx.net>
-In-Reply-To: <200802292325.17473.dkuhlen@gmx.net>
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+References: <42116.91911.qm@web33103.mail.mud.yahoo.com>
+In-Reply-To: <42116.91911.qm@web33103.mail.mud.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
- STB0899)
+Subject: Re: [linux-dvb] STB0899 users,
+ please verify results was Re: TechniSat SkyStar HD: Problems
+ scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +27,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dominik Kuhlen wrote:
-> On Friday 22 February 2008, Dominik Kuhlen wrote:
->> Hi,
->>
->> -----snip----
->>> Great, that was the trick, now scanning and szap work fine.
->>>
->>> Thanks for that hint!
->> You're welcome.
->>
->> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
->> Currently I get a loss of about 1 TS packet every second or even more (with both symbol rates).
->> And there is exactly one TS packet missing (I diffed a TS hexdump).
->> If it were the USB controller that drops packets it would be a loss of 5 consecutive TS packets. (940 bytes iso frame size)
-> 
-> I have to correct that statement (I didn't record the whole TS): 
-> The loss is exactly one USB frame (5 consecutive TS packets in this case)
-> which happens about every 1000 TS packets (200 USB frames)
+Simeon Simeonov wrote:
+> With 72e81184fb9f I get lock  5/10 times of the times and with a9ecd19a37c9 9/10 times.
+> But with 72e81184fb9f I couldn't get neither my rotor nor diseqc switch to work as 
+> opposed to the tip where both work with some problems - sending more than
+> 2 diseqc messages messes up my rotor.
 
+You are using the Technisat HD2 or the VP-1041 ? if you are using the HD2,
+changeset 7280 alone adds support for the HD2, so in this case you will
+need to manually add support for the same.
 
-Is it really isochronous transfer that the device really uses in it's
-default mode ? I guess many vendors prefer bulk transfers for the
-default transfer mode ?
+In either of the case, i guess you have some sort of diseqc issue, but then
+have you tried with the LNBP21 attach change ?
+
 
 Regards,
 Manu
+
+
+> ----- Original Message ----
+> From: Manu Abraham <abraham.manu@gmail.com>
+> To: Simeon Simeonov <simeonov_2000@yahoo.com>
+> Cc: linux-dvb@linuxtv.org
+> Sent: Thursday, February 28, 2008 1:29:55 AM
+> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+> 
+> Simeon Simeonov wrote:
+>> I don't know if is the same but with the latest mantis tree I get 100% success.
+>> Reverting to changeset mantis-100d4b009238 (which I think corresponds to multiproto 7200)
+>> I do NOT any locks on the same transponder.
+> 
+> For the mantis tree, please test this changeset: 7275    72e81184fb9f as head
+> Please test how that looks in comparison to tip changeset 7282    a9ecd19a37c9
+> 
+> Regards,
+> Manu
+> 
+> 
+> 
+> 
+> 
+>       ____________________________________________________________________________________
+> Looking for last minute shopping deals?  
+> Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
