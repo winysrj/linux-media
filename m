@@ -1,18 +1,17 @@
-Return-path: <linux-dvb-bounces@linuxtv.org>
-Received: from mail15.syd.optusnet.com.au ([211.29.132.196])
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from ipmail04.adl2.internode.on.net ([203.16.214.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <russell@kliese.wattle.id.au>) id 1JNH4M-0003pL-CG
-	for linux-dvb@linuxtv.org; Fri, 08 Feb 2008 01:26:19 +0100
-Message-ID: <47ABA34E.2050209@kliese.wattle.id.au>
-Date: Fri, 08 Feb 2008 10:33:18 +1000
-From: Russell Kliese <russell@kliese.wattle.id.au>
+	(envelope-from <hireach@internode.on.net>) id 1JV2Nd-0002JP-HJ
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 11:22:17 +0100
+Message-ID: <340B968A3ABA4AFDBF14842CF957FB0E@LaptopPC>
+From: "Martin Thompson" <hireach@internode.on.net>
+To: "Nicolas Will" <nico@youplala.net>
+References: <1204233917.22520.12.camel@youkaida>
+In-Reply-To: <1204233917.22520.12.camel@youkaida>
+Date: Fri, 29 Feb 2008 21:22:01 +1100
 MIME-Version: 1.0
-To: CityK <CityK@rogers.com>
-References: <47AB0A20.2020000@kliese.wattle.id.au>
-	<47AB1F1A.5080901@rogers.com>
-In-Reply-To: <47AB1F1A.5080901@rogers.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [Bulk]  MSI TV@nywhere A/D v1.1 mostly working
+Subject: Re: [linux-dvb] [OT] UHF masthead amp power supply location
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,31 +22,64 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CityK wrote:
-> Russell Kliese wrote:
->> I've posted a picture of my card at the following URL:
->> http://ringo.com/photos/photo.html?photoId=253664472 . The chipset
->> includes: Philips TDA10046A digital decder, Philips SAA7131E analog
->> decoder and a 8275AC1 tuner.
->
-> Hi Russell,
-> could you please upload your photo to the wiki article: 
-> http://linuxtv.org/wiki/index.php/MSI_TV%40nywhere_A/D
->
-> Thanks.
+years ago i had a sat installed
+because of the wall they used a combiner/decoder with power pass
+like these
 
-Done. I've also added it to the card list at 
-http://linuxtv.org/wiki/index.php/DVB-T_PCI_Cards#MSI
+http://www.hillsantenna.com.au/cattleprod/products/D3101DIP
 
-Cheers,
+so the power goes via the cable but not onto the fta side
+put your amp power supply up in the roof after teh combiner
 
-Russell
+----- Original Message ----- 
+From: "Nicolas Will" <nico@youplala.net>
+To: <linux-dvb@linuxtv.org>
+Sent: Friday, February 29, 2008 8:25 AM
+Subject: [linux-dvb] [OT] UHF masthead amp power supply location
 
 
-
+> This this OT, but I don't really know where to ask. And after all, the
+> odds are that I will find a person with that sort of knowledge here.
+> 
+> I currently have a masthead amp for my DVB-T antenna. It uses a power
+> supply in the house that inject current through the antenna cable.
+> 
+> I am now installing my Sat DVB-S system properly (i.e. not with a cable
+> going through an open window), and I'd like to use a combiner/splitter
+> system as I cannot lay a new cable from the dish to the tuner for the
+> satellite signal (very old granite house), and I would like the existing
+> cable going under the floor.
+> 
+> I am afraid that the masthead amp power supply will be bothering the
+> whole deal. I cannot get rid of the amp, my DVB-T reception is too weak
+> without it.
+> 
+> Here are diagrams of my 2 options:
+> 
+> http://www.youplala.net/~will/htpc/Satellite/masthead_amp-where.png
+> 
+> Option A - This is the easiest for me to achieve, but the position of
+> the power supply worries me.
+> 
+> Option B - I'm confident that this is technically sound, except that the
+> necessary physical location of the power supply in this case has no
+> power plug nearby...
+> 
+> My question is: can Option A fly?
+> 
+> Thanks for your help.
+> 
+> Nico
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
