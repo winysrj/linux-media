@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1RATiCW010645
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 05:29:44 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1RAT7XM020360
-	for <video4linux-list@redhat.com>; Wed, 27 Feb 2008 05:29:08 -0500
-Date: Wed, 27 Feb 2008 07:28:04 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Michael Schimek <mschimek@gmx.at>
-Message-ID: <20080227072804.64f96ff1@areia>
-In-Reply-To: <1204041895.15586.655.camel@localhost>
-References: <20080127103819.856157143@suse.de>
-	<20080127104008.554561732@suse.de> <20080226055359.GA9178@plankton>
-	<1204041895.15586.655.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1TL1Mq9023476
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 16:01:23 -0500
+Received: from QMTA01.westchester.pa.mail.comcast.net
+	(qmta01.westchester.pa.mail.comcast.net [76.96.62.16])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1TL0nqH023472
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 16:00:49 -0500
+Message-ID: <47C87277.2020007@personnelware.com>
+Date: Fri, 29 Feb 2008 15:00:39 -0600
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>
-Subject: Re: PING! Re: [patch 1/3] Add camera class controls for UVC merge
+Subject: registered as /dev/video%d for all
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,38 +25,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 26 Feb 2008 17:04:54 +0100
-Michael Schimek <mschimek@gmx.at> wrote:
+I want to patch vivi.c to identify what /dev it attaches itself to.
 
-> On Mon, 2008-02-25 at 21:53 -0800, Brandon Philips wrote:
-> > On 02:38 Sun 27 Jan 2008, Brandon Philips wrote:
-> > > - Add V4L2_CID_EXPOSURE_ABSOLUTE, V4L2_CID_EXPOSURE_AUTO,
-> > >   V4L2_CID_EXPOSURE_AUTO_PRIORITY
-> > > - Add V4L2_CID_PAN_RELATIVE, V4L2_CID_TILT_RELATIVE, V4L2_CID_PAN_ABSOLUTE,
-> > >   V4L2_CID_TILT_ABSOLUTE, V4L2_CID_PAN_RESET, V4L2_CID_TILT_RESET,
-> > > - Add V4L2_CID_FOCUS_RELATIVE/ABSOLUTE/AUTO 
-> >
-> > This series needs to be merged into the spec along with the
-> > clarification about changing frame rates while streaming.
-> 
-> I'm working on it.
-> 
-> > Also, we need to have the discussion about putting the spec
-> > into the Kernel Documentation/ tree.
-> 
-> Fine with me, after porting the sources to DocBook 4.1. You're aware
-> that would be a 1.3 MB patch?
+Current:
 
-Seems a little big to my eyes ;)
+1342 	        if (ret < 0) {
+1343 	                vivi_release();
+1344 	                printk(KERN_INFO "Error %d while loading vivi driver\n", ret);
+1345 	        } else
+1346 	                printk(KERN_INFO "Video Technology Magazine Virtual Video "
+1347 	                                 "Capture Board successfully loaded.\n");
+1348 	        return ret;
 
-Maybe we could split this into two separate docs. A concise one, with the API
-itself, and an "user guide" with V4L2 history and the complimentary info for
-developers.
+http://www.video4linux.org/browser/linux/drivers/media/video/vivi.c#L1342
 
-Yet, IMO, the better is to keep the API part together with the kernel.
 
-Cheers,
-Mauro
+In looking at the other drivers, I see each has it's own "module loaded" code. 
+  Would it make sense to make a generic bit of code that can be included in 
+every driver?
+
+w9968cf.c seems to have the most detail and might be good for use on all others:
+
+  * USB probe and V4L registration, disconnect and id_table[] definition     *
+...
+
+w9968cf.c DBG(2, "V4L device registered as /dev/video%d", cam->v4ldev->minor)
+
+http://www.video4linux.org/browser/linux/drivers/media/video/w9968cf.c#L3577
+
+Or does each driver really need it's own?
+
+Carl K
 
 --
 video4linux-list mailing list
