@@ -1,29 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1FMCkej023872
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:12:46 -0500
-Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
-	[151.189.21.46])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m1FMCDqC005084
-	for <video4linux-list@redhat.com>; Fri, 15 Feb 2008 17:12:13 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <47B4DDB3.5010904@t-online.de>
-References: <47B392A5.2030908@t-online.de>
-	<1202986913.5036.3.camel@pc08.localdom.local>
-	<1203005937.5871.12.camel@pc08.localdom.local>
-	<47B4B9AE.5010907@t-online.de>
-	<1203029639.6805.66.camel@pc08.localdom.local>
-	<47B4DDB3.5010904@t-online.de>
-Content-Type: text/plain
-Date: Fri, 15 Feb 2008 23:07:16 +0100
-Message-Id: <1203113236.7303.34.camel@pc08.localdom.local>
-Mime-Version: 1.0
+Received: from mx2.redhat.com ([10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1T9VaL6005648
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 04:52:34 -0500
+Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.180])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id m1T9PHx1016414
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 04:25:17 -0500
+Received: by el-out-1112.google.com with SMTP id r23so3557964elf.21
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 01:23:15 -0800 (PST)
+Message-ID: <d9def9db0802290123t5e698f8fj1f2b7df0c73c2b70@mail.gmail.com>
+Date: Fri, 29 Feb 2008 10:23:15 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "eric miao" <eric.y.miao@gmail.com>
+In-Reply-To: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Mdeion / Creatix CTX948 DVB-S driver is ready	for
-	testing
+Content-Disposition: inline
+References: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: [RFC] move sensor control out of kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,75 +30,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Hartmut,
+On 2/29/08, eric miao <eric.y.miao@gmail.com> wrote:
+> I know some one has different opinion, but since the sensor control logic is
+> getting more and more complicated, and provided that differences between
+> sensors and vendors are already too many. Is it better to move sensor
+> control out of kernel.
+>
+> Most sensors come with a serial control channel, I2C as can be seen
+> most commonly. Access to the control information can be done by
+> i2c-dev interface if possible, thus the driver can be freed as an I2C
+> stub only. So technically, this is practical.
+>
+> The benefits I can think of now are:
+>
+> 1. simplified sensor driver design
+>
+> 2. sensor control related debugging can be moved to user space thus
+> reducing the debugging effort
+>
+> 3. accessing registers in user space can be done by many other ways
+> say, UART. E.g.
+> ADCM2650 and ADCM2670 differs in the control channel connection,
+> one by I2C and the other by UART, the user space control logic has
+> only to decide which device node to open: /dev/i2c/xxx or /dev/ttyXX
+>
+> Another biggest concern to the V4L2 API itself, sensor nowadays has
+> more control ability than it used to be, some smart sensor provides
+> even more like auto focus control, lens control, flash mode, and many
+> other features that current V4L2 API cannot cover.
+>
+> Besides, along with the complicated image processing chain, it might
+> be better described by kinds of pipeline, like what gstreamer is doing
+> now. Moving some or most of the logic to user space will also significantly
+> reduce the effort of kernel development.
+>
+> Now the problem is: we don't have a standard in user space :(
+>
 
-Am Freitag, den 15.02.2008, 01:32 +0100 schrieb Hartmut Hackmann:
-> Hi, again
-> 
-> <snip>
-> 
-> >> So this one works as well, great! But which one is it?
-> >> Please tell me the minor device id. I need to use it to separate the 2 sections.
-> >> i will need to control the other one in a very different way.
-> > 
-> > Seems default is some RF loopthrough.
-> > 
-> > I'll need to measure too against loopthrough conditions, but for sure
-> > voltage is only on the upper connector and previously with the RF feed
-> > from the external receiver the lower connector was fine enough.
-> > 
-> > No voltage in any previous testing and the 12Volts were always
-> > connected.
-> > 
-> > Both slightly different Quads from different fabs work as well as the
-> > CTX948. In my case it is the 16be:0007 and to the 16be:0008 I have no
-> > access.
-> > 
-> Perfect, that's what i needed to know.
-> 
-> <snip>
-> > 
-> > We might be already through here and you might like to commit first ;)
-> > 
-> Indeed. I should also announce this status for the md8800...
-> 
-> What's your opinion on this:
-> According to the hints i got, the isl6405 is visible only on one section
-> of the md8800. The other section has control over the voltage through
-> a GPIO port. So unless i do something very dirty, there will either be the
-> restriction
-> - that the DVB-S decoder of the  16be:0007 section needs to be selected first.
->   Otherwise the other DVB-S part will not work
-> - or i will need to always fire up the LNB supply of the 0008 section as soon
->   as DVB is initialized.
-> The second approach has the advantage that it has little effect for the end
-> user while the first needs to be explained.
-> But i am not sure whether the isl6405 is fully short circuit proof. I will read
-> the datasheet again...
-> 
+Video4Linux is still a proposal in userspace, vlc and xine only
+support v4l1 once you come up with a sane interface it can easily be
+adopted by providing a small plugin.
+If you look at xine, it already provides a quite mature image
+processing chain, the xine API itself is also abstracted to be very
+easy.
 
-if the second approach is safe and the API says nothing different,
-according to the MD8800 manual, it seems to be closer to the behavior of
-the other OS, but I can't test it.
+I also like the way of having something more flexible in userspace,
+the question came up how people can emulate a v4l device, there are
+projects available for feeding digital datastreams from userspace into
+the kernel and providing a video interface for streaming it back to
+userspace
+I think it's better to discuss such an interface on the Xine, VLC,
+gstreamer or any other appropriate ML.
 
-In opposite to what is stated for the switchable RF loopthrough on the
-two hybrid tuners, the manual claims that the DVB-S inputs are separate
-and not connected and nothing to switch there ...
+Your idea basically increases the system stability and portability of
+the driver.
+BSD systems are also able to export an i2c interface.
 
-Andrew has loopthrough enabled by default and that is what I even see
-from the unused second DVB-S tuner to the first one I can use.
-
-We might want to set has_loopthrough = 0 then too.
-
-Funny stuff again. The latest revision of the manual _seems_ to be clear
-for possible tuner/demod/bridge combinations, also states nothing about
-concurrent usage of the other analog inputs.
-
-Cheers,
-Hermann
-
-
-
+Markus
 
 --
 video4linux-list mailing list
