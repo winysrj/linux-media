@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m149GILk026582
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:16:18 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.1/8.13.1) with ESMTP id m149Fpuw015578
-	for <video4linux-list@redhat.com>; Mon, 4 Feb 2008 04:15:51 -0500
-Date: Mon, 4 Feb 2008 07:14:20 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20080204071420.157f101c@gaivota>
-In-Reply-To: <200802032010.38211.laurent.pinchart@skynet.be>
-References: <ce6db52d63cbc5139236.1201510493@localhost>
-	<200802032010.38211.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [PATCH 1 of 2] [v4l] Add camera class control definitions
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m1TNAOGb003469
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:10:24 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m1TN9qKq019152
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 18:09:52 -0500
+Date: Sat, 1 Mar 2008 00:09:48 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: eric miao <eric.y.miao@gmail.com>
+In-Reply-To: <f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0803010001550.11511@axis700.grange>
+References: <f17812d70802282018i92090d6gc6114da677c07280@mail.gmail.com>
+	<fq8v17$bm9$1@ger.gmane.org>
+	<f17812d70802290725o77db19daic50aee0380a1dc59@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: [RFC] move sensor control out of kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,31 +29,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 3 Feb 2008 20:10:37 +0100
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+On Fri, 29 Feb 2008, eric miao wrote:
+> The soc-camera is pretty good. Yet it doesn't solve the issue of
+> complicated sensor control. mt9m001.c and mt9v022.c are two
+> good examples, but are all too simple. I have a sensor driver here
+> with more than 4000 lines of code.
 
+mt9xxxx drivers also only implement a subset of camera capabilities. The 
+approach taken with these two drivers was to implement a minimal 
+functional control subset in the kernel, so that "standard" user-space 
+applications like xawtv, mplayer, etc. can work with them out of the box, 
+and provide access to camera registers over the .get_register / 
+.set_register interface for applications requiring finer camera tuning. It 
+has disadvantages, of course. But it avoids kernel bloat, nevertheless 
+providing reasonable functionality, reduces (kernel) development costs, 
+etc. Maybe this interface should be made standard and at least removed 
+from under #ifdef CONFIG_VIDEO_ADV_DEBUG?
 
-> > +enum  v4l2_exposure_auto_type {
-> > +	V4L2_EXPOSURE_MANUAL = 1,
-> > +	V4L2_EXPOSURE_AUTO = 2,
-> > +	V4L2_EXPOSURE_SHUTTER_PRIORITY = 4,
-> > +	V4L2_EXPOSURE_APERTURE_PRIORITY = 8
-> > +};
-> 
-> V4L2 requires menu items to be numbered from minimum (0) to maximum inclusive 
-> (see the description of VIDIOC_QUERYMENU). If V4L2_CID_EXPOSURE_AUTO is 
-> implemented as a V4L2_CTRL_TYPE_MENU, the above values won't comply with 
-> V4L2. Wether the menu IDs or the V4L2 spec should be changed is of course an 
-> open question :-)
-
-Since this is "C" and not "Pascal", let's start from 0 ;)
-
-IMO, V4L2_EXPOSURE_AUTO = 0 makes more sense, since values are initialized as
-zero, and auto-exposure should be the default.
-
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
