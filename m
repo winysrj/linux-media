@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <CityK@rogers.com>) id 1JUObB-0008Ky-FJ
-	for linux-dvb@linuxtv.org; Wed, 27 Feb 2008 16:53:37 +0100
-Message-ID: <47C5875D.3050401@rogers.com>
-Date: Wed, 27 Feb 2008 10:53:01 -0500
-From: CityK <CityK@rogers.com>
-MIME-Version: 1.0
-To: Craig Whitmore <lennon@orcon.net.nz>
+Received: from mx3.orcon.net.nz ([219.88.242.53] ident=Debian-exim)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lennon@orcon.net.nz>) id 1JV1JG-0004hs-0N
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 10:13:42 +0100
+Received: from Debian-exim by mx3.orcon.net.nz with local (Exim 4.67)
+	(envelope-from <lennon@orcon.net.nz>) id 1JV1J8-0006ze-LW
+	for linux-dvb@linuxtv.org; Fri, 29 Feb 2008 22:13:34 +1300
+Message-ID: <7B02906285FD4DE38559B3D91500EE34@CraigPC>
+From: "Craig Whitmore" <lennon@orcon.net.nz>
+To: "Steven Toth" <stoth@linuxtv.org>
 References: <6101.203.163.71.197.1204088558.squirrel@webmail.stevencherie.no-ip.org>
 	<B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
-In-Reply-To: <B9656900C45B4C1ABB0826229026D123@office.orcon.net.nz>
+	<47C591E1.5030001@linuxtv.org>
+Date: Fri, 29 Feb 2008 22:13:31 +1300
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,
- HVR-1700 and HVR-1200
+	HVR-1700 and HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,41 +30,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Craig Whitmore wrote:
-> ----- Original Message ----- 
-> From: "Steven Ellis" <mail_lists@stevencherie.net>
-> To: <linux-dvb@linuxtv.org>
-> Sent: Wednesday, February 27, 2008 6:02 PM
-> Subject: [linux-dvb] New Hauppauge DVB PCIe devices HVR-2200,HVR-1700 and 
-> HVR-1200
->
->
->   
->> Been reading up on these as it appears that the HVR-2200 is now available
->> in Australia. I've updated the Wiki
->> (http://www.linuxtv.org/wiki/index.php/Hauppauge) with initial pages for
->> all of these cards, but I don't have any chip or technical details yet.
->>
->>     
->
-> The wholesalers in NZ have these 3 new cards as well in (but only the 2200 
-> in stock at the moment). If I read right a while ago no PCI-E cards have any 
-> drivers yet
->
-> Its low profile which is good and from the pictures I've found can't really 
-> see the chipset its using.
->
-> Thanks
->   
 
-No DVB-T PCIe cards are currently supported, but there are most 
-definitely PCIe cards supported (see ATSC PCIe cards).
+> These are Philips/NXP PCIe bridges, not supported under Linux.  Manu is
+> working on a driver for the same family of silicon but don't assume 
+> anything.
+>
 
-Just a guess:
-- HVR-1200 ... the DVB-T equivalent of the (supported) ATSC HVR-1250
-- HVR-2200 ... the DVB-T equivalent of the (unsupported and unreleased) 
-ATSC HVR-2250 ... problem numero uno: Philips saa7164
-- HVR-1700 ... no idea .... DVB-T equivalent of the ATSC HVR-1800 ?
+I've updated the wiki a little with information I could get off the images I 
+could find off the Hauppauge website. It looks it is based on the reference 
+design from NXP/Philips.
+
+Thanks
+ 
+
 
 _______________________________________________
 linux-dvb mailing list
