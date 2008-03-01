@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate02.web.de ([217.72.192.227])
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Christoph.Honermann@web.de>) id 1JezSq-000724-RI
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 22:16:49 +0100
-From: Christoph Honermann <Christoph.Honermann@web.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-Date: Thu, 27 Mar 2008 22:16:04 +0100
-Message-Id: <1206652564.6924.22.camel@ubuntu>
-Mime-Version: 1.0
+	(envelope-from <mariofutire@googlemail.com>) id 1JVNkj-0006tV-HD
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 10:11:33 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so1228101ugd.20
+	for <linux-dvb@linuxtv.org>; Sat, 01 Mar 2008 01:11:30 -0800 (PST)
+Message-ID: <47C91DBE.4050409@googlemail.com>
+Date: Sat, 01 Mar 2008 09:11:26 +0000
+From: Andrea <mariofutire@googlemail.com>
+MIME-Version: 1.0
+To: Florian Lohoff <flo@rfc822.org>
+References: <47C8A135.9070209@googlemail.com>
+	<20080301085538.GA4003@paradigm.rfc822.org>
+In-Reply-To: <20080301085538.GA4003@paradigm.rfc822.org>
 Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] saa7134: fixed pointer in tuner callback
+Subject: Re: [linux-dvb] Help using DMX_SET_BUFFER_SIZE
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,143 +22,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1346577944=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Florian Lohoff wrote:
+> On Sat, Mar 01, 2008 at 12:20:05AM +0000, Andrea wrote:
+>> on the dvr (I think), but it does not make much of a change. The ioctl call returns success.
+>> I've printed a lot of debug output (adding a few dprintk) and this is what I see when I run gnutv.
+>> Now, I set the buffer to 1024 * 1024 which is nowhere in the log.
+>> I cannot see in the log the 2 functions (demux and dvr) handling this ioctl call:
+>> dvb_demux_do_ioctl and dvb_dvr_do_ioctl (I've added some printk as well).
+> 
+> In 2.6.25-rc3 the dvr kernel side looks like this:
+> 
+> 1015         switch (cmd) {
+> 1016         case DMX_SET_BUFFER_SIZE:
+> 1017                 // FIXME: implement
+> 1018                 ret = 0;
+> 1019                 break;
+> 
+> i guess its clear why it doesnt make a difference ;)
+> 
+> Flo
 
---===============1346577944==
-Content-Type: multipart/alternative; boundary="=-5MFp0RVjHaBoChhmFwfp"
+Yes I had noticed that and I was trying to see what I can do.
+My problem is that I replace the // FIXME with a printk() and it does not get called
+How is it supposed to work?
 
+I open /dev/dvb/adapter0/dvr0, I get back a file descriptor and the I call the ioctl with that file 
+descriptor.
 
---=-5MFp0RVjHaBoChhmFwfp
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+This code comes from gnutv_data.c plus my additional code
 
-Hi, Hartmund
+		// open dvr device
+		dvrfd = dvbdemux_open_dvr(adapter_id, 0, 1, 0);
+		if (dvrfd < 0) {
+			fprintf(stderr, "Failed to open DVR device\n");
+			exit(1);
+		}
 
-I have tested the following archives with my MD8800 und the DVB-S Card.
+		if (buffer_size > 0)
+		{
+		  int res = dvbdemux_set_buffer(dvrfd, buffer_size);
+		  if (res < 0) {
+		    fprintf(stderr, "Failed to set ring buffer size\n");
+		    exit(1);
+		  }
+		}
 
-v4l-dvb-912856e2a0ce.tar.bz2 --> The DVB-S Input 1 works.
-The module of the following archives are loaded with the option
-"use_frontend=1,1" at the Shell or automatically:
-    /etc/modprobe.d/saa7134-dvb   with the following line
-   "options saa7134-dvb use_frontend=1,1"
-v4l-dvb-1e295a94038e.tar.bz2; 
+Regardless of what is implemented or not, would that be correct?
 
-        FATAL: Error inserting saa7134_dvb
-        (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)
-        
-        saa7134_dvb: disagrees about version of symbol
-        saa7134_ts_register
-        saa7134_dvb: Unknown symbol saa7134_ts_register
-        saa7134_dvb: Unknown symbol videobuf_queue_sg_init
-        saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
-        saa7134_dvb: Unknown symbol saa7134_set_gpio
-        saa7134_dvb: disagrees about version of symbol
-        saa7134_i2c_call_client
-        saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
-        saa7134_dvb: disagrees about version of symbol
-        saa7134_ts_unregister
-        saa7134_dvb: Unknown symbol saa7134_ts_unregister
-
-
-v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 -->
-
-        FATAL: Error inserting saa7134_dvb
-        (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)
-        
-        dmesg | grep saa7134 
-        saa7134_dvb: Unknown symbol saa7134_tuner_callback
-        saa7134_dvb: disagrees about version of symbol
-        saa7134_ts_register
-        saa7134_dvb: Unknown symbol saa7134_ts_register
-        saa7134_dvb: Unknown symbol videobuf_queue_sg_init
-        saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
-        saa7134_dvb: Unknown symbol saa7134_set_gpio
-
-The Hardware ist working with Windows XP with both Input channels.
-
-
-best regards
-Christoph
-
-
---=-5MFp0RVjHaBoChhmFwfp
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.16.1">
-</HEAD>
-<BODY>
-Hi, Hartmund<BR>
-<BR>
-I have tested the following archives with my MD8800 und the DVB-S Card.<BR>
-<BR>
-v4l-dvb-912856e2a0ce.tar.bz2 --&gt; The DVB-S Input 1 works.<BR>
-The module of the following archives are loaded with the option &quot;use_frontend=1,1&quot; at the Shell or automatically:<BR>
-&nbsp;&nbsp;&nbsp; /etc/modprobe.d/saa7134-dvb&nbsp;&nbsp; with the following line<BR>
-&nbsp;&nbsp; &quot;options saa7134-dvb use_frontend=1,1&quot;<BR>
-v4l-dvb-1e295a94038e.tar.bz2; <BR>
-<BLOCKQUOTE>
-    FATAL: Error inserting saa7134_dvb (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)<BR>
-    <BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_register<BR>
-    saa7134_dvb: Unknown symbol saa7134_ts_register<BR>
-    saa7134_dvb: Unknown symbol videobuf_queue_sg_init<BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio<BR>
-    saa7134_dvb: Unknown symbol saa7134_set_gpio<BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client<BR>
-    saa7134_dvb: Unknown symbol saa7134_i2c_call_clients<BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister<BR>
-    saa7134_dvb: Unknown symbol saa7134_ts_unregister<BR>
-</BLOCKQUOTE>
-<BR>
-v4l-dvb-f98d28c21389.tar.bz2&nbsp; and v4l-dvb-a06ac2bdeb3c.tar.bz2 --&gt;<BR>
-<BLOCKQUOTE>
-    FATAL: Error inserting saa7134_dvb (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)<BR>
-    <BR>
-    dmesg | grep saa7134 <BR>
-    saa7134_dvb: Unknown symbol saa7134_tuner_callback<BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_register<BR>
-    saa7134_dvb: Unknown symbol saa7134_ts_register<BR>
-    saa7134_dvb: Unknown symbol videobuf_queue_sg_init<BR>
-    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio<BR>
-    saa7134_dvb: Unknown symbol saa7134_set_gpio<BR>
-</BLOCKQUOTE>
-The Hardware ist working with Windows XP with both Input channels.<BR>
-<BR>
-<BR>
-best regards<BR>
-Christoph<BR>
-<TABLE CELLSPACING="0" CELLPADDING="0" WIDTH="100%">
-<TR>
-<TD>
-<BR>
-</TD>
-</TR>
-</TABLE>
-</BODY>
-</HTML>
-
---=-5MFp0RVjHaBoChhmFwfp--
-
-
-
---===============1346577944==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1346577944==--
