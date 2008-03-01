@@ -1,18 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DKaCMR014751
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 16:36:12 -0400
-Received: from web51402.mail.re2.yahoo.com (web51402.mail.re2.yahoo.com
-	[206.190.38.181])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2DKZdAH010944
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 16:35:40 -0400
-Date: Thu, 13 Mar 2008 13:35:33 -0700 (PDT)
-From: Philip Kasten <pskasten@yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2103VOU025444
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 19:03:31 -0500
+Received: from mail.xenonserver.de (server1.xenonserver.de [79.133.63.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2102uU9018634
+	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 19:02:57 -0500
+From: Jan Frey <linux@janfrey.de>
 To: video4linux-list@redhat.com
+Date: Sat, 1 Mar 2008 01:00:55 +0100
+References: <34d8b2fe0801140822o5ad3ae40hc0a08fe15f479dc@mail.gmail.com>
+	<34d8b2fe0801161243j1c9ba641k7c31175d4cce8140@mail.gmail.com>
+	<1200522691.21509.32.camel@frolic>
+In-Reply-To: <1200522691.21509.32.camel@frolic>
 MIME-Version: 1.0
-Message-ID: <291552.23680.qm@web51402.mail.re2.yahoo.com>
-Content-Type: text/plain; charset=us-ascii
-Subject: noob help -- Logitech Pro 9000 and streamer/XawTV problem
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200803010100.55810.linux@janfrey.de>
+Cc: 
+Subject: Re: HVR-1300 mpg hw encoding - how to configure the board's
+	firmware?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,75 +32,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-(Apologies if this has all been hashed and rehashed -- I've been googling for quite some time and haven't found any answers.)
+Hi Ricardo,
 
-I am running Ubuntu 7.10, and am using a Logitech Pro 9000 webcam.  Ekiga, Luvcview, ffmpeg and ucview all work fine.
+On Wednesday 16 January 2008, Ricardo Cerqueira wrote:
+> Hi all;
+>
+> On Wed, 2008-01-16 at 21:43 +0100, Pirlouwi wrote:
+> > But, if I don't follow this procedure, and if I simply do point 3.,
+> > then I cannot change the frequency of the tuner, and blackbird keeps
+> > recording on the old tv frequency.
+> >
+> >
+> >
+> > Anyone can help me understand this behavior?
+>
+> I think it's related to something I found yesterday. It seems the
+> cx22702 reset by the blackbird is being a bit to broad and resetting
+> more than it should.
+>
+> Try the following, and see if your behavior goes away:
+>
+> 1 - clone a clean copy of http://linuxtv.org/hg/~rmcc/blackbird/
+> 2 - Comment line 1252 of linux/drivers/media/video/cx88/cx88-blackbird.c
+> (cx22702 reset)
+> 3 - compile, install, and retry.
+>
+> I'm still trying to figure this one out, but taking out that reset
+> solved the channel-change issue for me.
 
-However, streamer and xawtv don't work.  I need streamer to work, because it seems to be the only program that can periodically take jpeg snapshots and save them to a file (simply overwriting the previous contents).  The other programs such as ffmpeg seem to only support creating movies.
+This patch works fine for me in the context of the same problem.
 
-Given this command:
+Regards,
+Jan
 
-$ streamer -r 1 -s 320x200 -o foo.ppm -d 
+-- 
+Jan Frey
+linux [at] janfrey.de
 
-I end up with an endless stream of ioctl failures, only two of which I captured below (they're all the same); here's the output:
-
-checking writer files [multiple image files] ...
-  video name=ppm ext=ppm: OK
-files / video: 24 bit TrueColor (BE: rgb) / audio: none
-vid-open: trying: v4l2-old... 
-vid-open: failed: v4l2-old
-vid-open: trying: v4l2... 
-v4l2: open
-v4l2: device info:
-  uvcvideo 0.1.0 / UVC Camera (046d:0990) @ 0000:00:1d.7
-vid-open: ok: v4l2
-movie_init_writer start
-setformat: 24 bit TrueColor (BE: rgb) (320x200): failed
-setformat: 24 bit TrueColor (LE: bgr) (320x200): failed
-setformat: 32 bit TrueColor (BE: -rgb) (320x200): failed
-v4l2: new capture params (320x240, YUYV, 153600 byte)
-setformat: 16 bit YUV 4:2:2 (packed, YUYV) (320x240): ok
-v4l2: new capture params (320x240, YUYV, 153600 byte)
-movie_init_writer end (h=0x806a6e8)
-movie_writer_start
-v4l2: buf 0: video-cap 0x0+153600, used 0
-v4l2: buf 1: video-cap 0x26000+153600, used 0
-v4l2: buf 2: video-cap 0x4c000+153600, used 0
-v4l2: buf 3: video-cap 0x72000+153600, used 0
-v4l2: buf 4: video-cap 0x98000+153600, used 0
-v4l2: buf 5: video-cap 0xbe000+153600, used 0
-v4l2: buf 6: video-cap 0xe4000+153600, used 0
-v4l2: buf 7: video-cap 0x10a000+153600, used 0
-v4l2: buf 8: video-cap 0x130000+153600, used 0
-v4l2: buf 9: video-cap 0x156000+153600, used 0
-v4l2: buf 10: video-cap 0x17c000+153600, used 0
-v4l2: buf 11: video-cap 0x1a2000+153600, used 0
-v4l2: buf 12: video-cap 0x1c8000+153600, used 0
-v4l2: buf 13: video-cap 0x1ee000+153600, used 0
-v4l2: buf 14: video-cap 0x214000+153600, used 0
-v4l2: buf 15: video-cap 0x23a000+153600, used 0
-writer_video_thread start [pid=15005]
-convert_thread start [pid=15005]
-convert-in : 320x240 16 bit YUV 4:2:2 (packed, YUYV) (size=153600)
-convert-out: 320x240 24 bit TrueColor (BE: rgb) (size=230400)
-ioctl: VIDIOC_DQBUF(index=0;type=VIDEO_CAPTURE;bytesused=0;flags=0x0 [];field=ANY;;timecode.type=0;timecode.flags=0;timecode.frames=0;timecode.seconds=0;timecode.minutes=0;timecode.hours=0;timecode.userbits="";sequence=0;memory=unknown): Invalid argument
-grab_put_video: grab image failed
-ioctl: VIDIOC_DQBUF(index=0;type=VIDEO_CAPTURE;bytesused=0;flags=0x0 [];field=ANY;;timecode.type=0;timecode.flags=0;timecode.frames=0;timecode.seconds=0;timecode.minutes=0;timecode.hours=0;timecode.userbits="";sequence=0;memory=unknown): Invalid argument
-grab_put_video: grab image failed
-
-Any help would be greatly appreciated.  If there is another program that provides the same (command line driven) feature set, I'd be happy to use it instead.
-
-Thanks,
-PK
-
-
-
-
-
-
-      ____________________________________________________________________________________
-Never miss a thing.  Make Yahoo your home page. 
-http://www.yahoo.com/r/hs
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
