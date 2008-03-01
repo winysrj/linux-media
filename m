@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JMJNFj019245
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:19:23 -0400
-Received: from smtp.reveal.co.nz (203-109-246-148.static.bliink.ihug.co.nz
-	[203.109.246.148])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JMIpjp001858
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:18:52 -0400
-Received: from mail.reveal.local (revpfe.reveal.local [10.0.0.4])
-	by smtp.reveal.co.nz (8.13.1/8.13.1) with ESMTP id m2JMSB88006130
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:28:36 +1300
-Date: Thu, 20 Mar 2008 11:17:24 +1300
-From: Alan McIvor <alan.mcivor@reveal.co.nz>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m21MoKRc002819
+	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 17:50:20 -0500
+Received: from web65508.mail.ac4.yahoo.com (web65508.mail.ac4.yahoo.com
+	[76.13.9.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m21MnmBu025989
+	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 17:49:48 -0500
+Date: Sat, 1 Mar 2008 14:49:42 -0800 (PST)
+From: Michael Williamson <michael_h_williamson@yahoo.com>
 To: video4linux-list@redhat.com
-Message-Id: <20080320111724.3f1045d0.alan.mcivor@reveal.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH] Increase number of SAA7134 devices supported in a system
+In-Reply-To: <BAY122-W46E61F0928F2E422B22355AA150@phx.gbl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Message-ID: <527852.36382.qm@web65508.mail.ac4.yahoo.com>
+Subject: question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,23 +26,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The SAA7134 device driver currently only supports 8 such devices in a
-system. This is too small for many surveillance applications. This
-patch increases the number to 32.
+Hi,
 
-Signed-off-by: Alan McIvor <alan.mcivor@reveal.co.nz>
+With CX100 frame grabbers, it is possible to poll the
+even/odd video field bit through the ISA bus. 
+This is useful to have for cameras with electronic
+shutters to make long exposures. Is it possible to do
+with v4l2/bt848 PCI devices?
 
---- linux/drivers/media/video/saa7134/saa7134.h.orig	2008-03-20 10:52:47.000000000 +1300
-+++ linux/drivers/media/video/saa7134/saa7134.h	2008-03-20 10:53:30.000000000 +1300
-@@ -270,7 +270,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_VIDEOMATE_T750       139
- 
- 
--#define SAA7134_MAXBOARDS 8
-+#define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
- 
- /* ----------------------------------------------------------- */
+Thanks,
+-Mike
+
+
+
+      ____________________________________________________________________________________
+Never miss a thing.  Make Yahoo your home page. 
+http://www.yahoo.com/r/hs
 
 --
 video4linux-list mailing list
