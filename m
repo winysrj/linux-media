@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+73100873cbc0c5744e24+1662+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JZY7A-0000Kb-2R
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 22:03:56 +0100
-Date: Wed, 12 Mar 2008 18:03:21 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
-Message-ID: <20080312180321.6a6800a1@gaivota>
-In-Reply-To: <47D462DD.5080500@h-i-s.nl>
-References: <1203538678.8313.12.camel@srv-roden.vogelwikke.nl>
-	<47BCAC32.9050601@h-i-s.nl> <47BCB371.2020809@h-i-s.nl>
-	<20080227075056.34a80abd@areia> <47D462DD.5080500@h-i-s.nl>
-Mime-Version: 1.0
-Cc: achasper@gmail.com, linux-dvb@linuxtv.org,
-	stealth banana <stealth.banana@gmail.com>
-Subject: Re: [linux-dvb] Driver source for Freecom DVB-T (with usb id
- 14aa:0160)	v0.0.2 works
+Received: from web33106.mail.mud.yahoo.com ([209.191.69.136])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <simeonov_2000@yahoo.com>) id 1JVF9t-0007cA-Vk
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 01:00:58 +0100
+Date: Fri, 29 Feb 2008 16:00:23 -0800 (PST)
+From: Simeon Simeonov <simeonov_2000@yahoo.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+Message-ID: <315532.95101.qm@web33106.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] STB0899 users,
+	please verify results was Re: TechniSat SkyStar HD: Problems
+	scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,31 +25,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 09 Mar 2008 23:21:17 +0100
-Jan Hoogenraad <jan-conceptronic@h-i-s.nl> wrote:
+Yes, ocasionally I see the message from stb0899_wait_diseqc_fifo_empty() 
+but trying to increase the time in the call did not help. So I am not sure if
+my problem is related to that message.
+ 
+----- Original Message ----
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Sent: Friday, February 29, 2008 3:40:05 PM
+Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
 
-> Mauro:
-> 
-> Thanks a lot for the comments.
-> One clear problem with this particular driver is that the code that came 
-> from RealTek does not conform to the Linux C coding style.
-> Would that be an objection for the steps below ?
+Simeon Simeonov wrote:
+> I am using VP-1041 with the lnb21_attach changes to the ISEL and PCL bit settings.
+> At the moemnt I have no clue why I am having this diseqc issue. I also checked the
+> logs and I see from time to time diseqc_fifo_full messages but there is no correlation
+> with the problem. 
 
-Considering that RealTek won't be interested on correcting the CodingStyle,
-IMO, the better would be to commit RealTek code as-is, with their SOB, and then
-adding an additional patch, authored by somebody else could fix the CodingStyle.
+Did you mean the "timed out !!" message from 
+stb0899_wait_diseqc_fifo_empty() ?
+(stb0899_drv.c, line #686, Trying to understand the problem that you are 
+facing)
 
-A very simple patch to fix CodingStyle can be created by running kernel
-scripts/Lindent. Unfortunately, the results of this automatic tool are not
-perfect, but generally are acceptable.
+Regards,
+Manu
 
-> Furthermore, can you confirm linux-dvb@linuxtv.org as the submission 
-> address for the patch ?
 
-Yes. Please C/C me also at the submission e-mail.
 
-Cheers,
-Mauro
+
+
+      ____________________________________________________________________________________
+Looking for last minute shopping deals?  
+Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
 
 _______________________________________________
 linux-dvb mailing list
