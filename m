@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1Jdj3a-0007sT-AN
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 10:33:31 +0100
-Received: from xp.homenet.telecomitalia.it (87.18.60.243) by
-	relay-pt1.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
-	id 47E6FD5500002B59 for linux-dvb@linuxtv.org;
-	Mon, 24 Mar 2008 10:33:26 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Mon, 24 Mar 2008 10:27:47 +0100
-References: <47E56272.8050307@alice.it>
-	<3cc3561f0803230425p60486919m9685f4a145df7635@mail.gmail.com>
-	<47E7731D.7000706@alice.it>
-In-Reply-To: <47E7731D.7000706@alice.it>
+	(envelope-from <e9hack@googlemail.com>) id 1JVS0l-0003OQ-2A
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 14:44:23 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3212512fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 01 Mar 2008 05:44:19 -0800 (PST)
+Message-ID: <47C95DAC.1020301@gmail.com>
+Date: Sat, 01 Mar 2008 14:44:12 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200803241027.47981.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Help needed...
+To: linux-dvb@linuxtv.org
+References: <BAY118-W56E0462131FD39ABADE685BF150@phx.gbl>
+In-Reply-To: <BAY118-W56E0462131FD39ABADE685BF150@phx.gbl>
+From: e9hack <e9hack@googlemail.com>
+Subject: Re: [linux-dvb] Tuning fails with Twinhan DVB-C AD-CP300 (Mantis
+ 2033)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,13 +27,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il Monday 24 March 2008 10:23:41 Andrea Giuliano ha scritto:
-> 
-> My practical conclusion is: "11804 V" stands for "11875 H" and "11766 V" 
-> stands for "11747 H". No other way to get things working.
+Rikard Wissing schrieb:
 
-this sounds very much like a bug in the drivers. What card is it and what
-tuner and demodulator does it use?
+> [ 4022.656841] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+> [ 4022.658236] TDA10021: i2c-addr = 0x0c, id = 0x7d
+> [ 4022.658238] mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10021) @ 0x0c
+> [ 4022.658240] mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
+> [ 4022.658243] DVB: registering frontend 0 (Philips TDA10021 DVB-C)...
+
+The chip ID is 0x7d. Probably, your card uses a CU1216-3 with a TDA10023. There are 
+differences between the TDA10021 and the TDA10023.
+
+-Hartmut
 
 _______________________________________________
 linux-dvb mailing list
