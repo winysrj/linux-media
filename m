@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JaB3J-0001GY-Ga
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 15:38:34 +0100
-Received: from ldvb (helo=localhost)
-	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JaB4W-0002x9-SJ
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 17:39:52 +0300
-Date: Fri, 14 Mar 2008 17:39:48 +0300 (MSK)
-From: ldvb@ns.bog.msu.ru
-To: linux-dvb@linuxtv.org
-In-Reply-To: <04AD1EEA-DF6C-4575-8A8B-D460F199288F@krastelcom.ru>
-Message-ID: <Pine.LNX.4.62.0803141736520.8859@ns.bog.msu.ru>
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<04AD1EEA-DF6C-4575-8A8B-D460F199288F@krastelcom.ru>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] (no subject)
+	(envelope-from <nico@youplala.net>) id 1JVM4r-00088l-9M
+	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 08:24:13 +0100
+From: Nicolas Will <nico@youplala.net>
+To: Philip Pemberton <lists@philpem.me.uk>
+In-Reply-To: <47C879BA.7080002@philpem.me.uk>
+References: <47A98F3D.9070306@raceme.org>
+	<1202326173.20362.23.camel@youkaida>	<1202327817.20362.28.camel@youkaida>
+	<1202330097.4825.3.camel@anden.nu>	<47AB1FC0.8000707@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+	<47C4661C.4030408@philpem.me.uk>
+	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
+	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
+	<47C7076B.6060903@philpem.me.uk>  <47C879BA.7080002@philpem.me.uk>
+Date: Sat, 01 Mar 2008 07:23:12 +0000
+Message-Id: <1204356192.6583.0.camel@youkaida>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,14 +34,22 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
+On Fri, 2008-02-29 at 21:31 +0000, Philip Pemberton wrote:
+>    Answers are "2.6.24-8-generic", Mythbuntu 8.04 alpha 2, Hg
+> 615ce349999, and 
+> yes (EIT scanning on) for me, and firmware is dvb-usb-dib0700-1.10.fw
+> (in 
+> /lib/firmware/2.6.24-8-generic). I'm planning to try 
+> dvb-usb-dib0700-03-pre1.fw at some point -- is this older or newer
+> than 1.10 
+> (it's listed on the Wiki as a possible solution to the disconnect
+> issue).
 
-On Fri, 14 Mar 2008, Vladimir Prudnikov wrote:
+You should really stick to the 1.10 firmware. 03-pre1 was an earlier
+test and has more issues.
 
-> What TT card have you got?
-> I'm unable to lock to any of Orion Express transponders with TT S2-3200.
-I have GI-SS3 (TT budget S-1401)
-Works fine with Orion (famous for max bitrate of 68Mbits).
-Seems that Mantis-based card could not do the same. Maybe, I'm mistaken.
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
