@@ -1,26 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.184])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1JbEfb-0001Ed-El
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 13:42:27 +0100
-Received: by fk-out-0910.google.com with SMTP id z22so7228980fkz.1
-	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 05:42:15 -0700 (PDT)
-Message-ID: <ea4209750803170542k5750ada8hf604f587ed46a278@mail.gmail.com>
-Date: Mon, 17 Mar 2008 13:42:14 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <ea4209750803170535m36914e6bu93e39269e8c7faf3@mail.gmail.com>
-MIME-Version: 1.0
-References: <20080316182618.2e984a46@slackware.it>
-	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
-	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
-	<20080317104147.1ade57fe@slackware.it>
-	<20080317114802.0df56399@slackware.it>
-	<abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
-	<47DE5F42.8070005@iki.fi>
-	<ea4209750803170535m36914e6bu93e39269e8c7faf3@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unsupported device
+	(envelope-from <nico@youplala.net>) id 1JVxDH-0002ZJ-B9
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 00:03:24 +0100
+From: Nicolas Will <nico@youplala.net>
+To: Philip Pemberton <lists@philpem.me.uk>
+In-Reply-To: <47CB20ED.5070403@philpem.me.uk>
+References: <47A98F3D.9070306@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+	<47C4661C.4030408@philpem.me.uk>
+	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
+	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
+	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
+	<1204356192.6583.0.camel@youkaida>	<47CA609F.3010209@philpem.me.uk>
+	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
+	<47CAB51F.9030103@philpem.me.uk>	<1204479088.6236.32.camel@youkaida>
+	<47CAEFC3.2020305@philpem.me.uk>  <47CB20ED.5070403@philpem.me.uk>
+Date: Sun, 02 Mar 2008 23:02:00 +0000
+Message-Id: <1204498920.6236.34.camel@youkaida>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,113 +29,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1303156886=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1303156886==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_14705_20383857.1205757734589"
 
-------=_Part_14705_20383857.1205757734589
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sun, 2008-03-02 at 21:49 +0000, Philip Pemberton wrote:
+> 
+> I give up.
 
-If you speak french you can have a look here;
+Philip,
 
-http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e
+You are having problems to an extend that nobody experienced or
+reported.
 
-Or if you don't you can go the fast way;
+Certainly not me.
 
-wget http://www.barbak.org/v4l_for_72e_dongle.tar.bz2
-tar xvjf v4l_for_72e_dongle.tar.bz2
-cd v4l-dvb
-sudo cp firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/
-make all
-sudo make install
-
-Probably you will have to add the stuff that was being done in the previous
-patch to the source before compilation.
-
-2008/3/17, Albert Comerma <albert.comerma@gmail.com>:
->
-> Pinnacle 72e was working, so looking on what you said a modification of
-> the same driver should work with 73e... I will send the files later (I must
-> find them...), because I think the changes needed where not added to the
-> current v4l.
->
-> /17, Antti Palosaari <crope@iki.fi>:
-> >
-> > Jarryd Beck wrote:
-> > > That means the driver either couldn't work out what the tuner is
-> > > and therefore, couldn't attach a frontend, or there was an error
-> > > attaching the frontend. The next job is to work out what the
-> > > tuner chip is, you might have to open it up and read the writing
-> > > off the chip to find that out.
-> >
-> >
-> > yep, tuner is missing. It could be mt2266. Look other devices in the
-> > file patched and try if some of those will work.
-> >
-> >
-> > regards
-> > Antti
-> > --
-> > http://palosaari.fi/
-> >
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
->
->
-
-------=_Part_14705_20383857.1205757734589
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-If you speak french you can have a look here;<br><br><a href="http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e">http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e</a><br><br>Or if you don&#39;t you can go the fast way;<br>
-<br>wget <a href="http://www.barbak.org/v4l_for_72e_dongle.tar.bz2">http://www.barbak.org/v4l_for_72e_dongle.tar.bz2</a><br>
-tar xvjf v4l_for_72e_dongle.tar.bz2<br>
-cd  v4l-dvb<br>
-sudo cp  firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/<br>
-make all<br>
-sudo make install<br><br>Probably you will have to add the stuff that was being done in the previous patch to the source before compilation.<br><br>2008/3/17, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:<div>
-<span class="gmail_quote"></span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Pinnacle 72e was working, so looking on what you said a modification of the same driver should work with 73e... I will send the files later (I must find them...), because I think the changes needed where not added to the current v4l.<br>
-
-<br>/17, Antti Palosaari &lt;<a href="mailto:crope@iki.fi" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">crope@iki.fi</a>&gt;:<div><span class="e" id="q_118bcbd36b31182b_1"><div>
-<span class="gmail_quote"></span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Jarryd Beck wrote:<br> &gt; That means the driver either couldn&#39;t work out what the tuner is<br>
+So either there is something wrong in your process, your software, or
+you have some faulty hardware.
 
 
- &gt; and therefore, couldn&#39;t attach a frontend, or there was an error<br> &gt; attaching the frontend. The next job is to work out what the<br> &gt; tuner chip is, you might have to open it up and read the writing<br>
+Nico
 
 
- &gt; off the chip to find that out.<br> <br> <br>yep, tuner is missing. It could be mt2266. Look other devices in the<br> file patched and try if some of those will work.<br> <br><br> regards<br> Antti<br> --<br> <a href="http://palosaari.fi/" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://palosaari.fi/</a><br>
-
-
- <br> <br>_______________________________________________<br> linux-dvb mailing list<br> <a href="mailto:linux-dvb@linuxtv.org" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">linux-dvb@linuxtv.org</a><br>
-
- <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
- </blockquote></div><br>
-</span></div></blockquote></div><br>
-
-------=_Part_14705_20383857.1205757734589--
-
-
---===============1303156886==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1303156886==--
