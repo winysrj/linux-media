@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2FDwMKu008022
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 09:58:22 -0400
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2FDvnte021558
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 09:57:49 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: jordi@cdmon.com
-In-Reply-To: <1205513100.6038.12.camel@jordipc>
-References: <1205513100.6038.12.camel@jordipc>
-Content-Type: text/plain
-Date: Sat, 15 Mar 2008 14:49:44 +0100
-Message-Id: <1205588984.4696.17.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m226gnj5027383
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 01:42:49 -0500
+Received: from QMTA07.emeryville.ca.mail.comcast.net
+	(qmta07.emeryville.ca.mail.comcast.net [76.96.30.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m226gGcF025674
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 01:42:16 -0500
+Message-ID: <47CA4C4C.7010901@personnelware.com>
+Date: Sun, 02 Mar 2008 00:42:20 -0600
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: lifeview trio pci and getting dvb-s working
+Subject: [patch] ioctl-test.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,83 +25,342 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+I copied the command line parameter support from test/pixfmt-test.c, and used 
+the prt_caps() func from lib/v4l2_driver.c.
 
-Am Freitag, den 14.03.2008, 17:45 +0100 schrieb Jordi Moles Blanco:
-> hi,
-> 
-> first of all, i'm sorry if this has been asked like a million time, but
-> i've googled and read a lot for days and i can't get it working.
+I am hoping to merge all of the test code into one big test, and put all the 
+generic code into one lib.
 
-no problem, you are only the second asking this within the last years.
-
-> the thing is .... i'm an ubuntu user. I've tried with mythtv, vdr and
-> kaffeine, and i only get kaffeine working with dvb-t.
-> 
-> The one i've tried the most is vdr + xine, i've got this installed:
-> 
-> **********
-> ii  libdvdread3                                0.9.7-3ubuntu1
-> library for reading DVDs
-> ii  libxine-xvdr                               1.0.0~rc2-3
-> Xine input plugin for vdr-plugin-xineliboutp
-> ii  vdr                                        1.4.7-1
-> Video Disk Recorder for DVB cards
-> ii  vdr-dev                                    1.4.7-1
-> Video Disk Recorder for DVB cards
-> ii  vdr-plugin-epgsearch                       0.9.22-1
-> VDR plugin that provides extensive EPG searc
-> ii  vdr-plugin-osdteletext                     0.5.1-24
-> Teletext plugin for VDR
-> ii  vdr-plugin-remote                          0.3.9-4
-> VDR Plugin to support the built-in remote co
-> ii  vdr-plugin-xineliboutput                   1.0.0~rc2-3
-> VDR plugin for Xine based sofdevice frontend
-> ii  xineliboutput-sxfe                         1.0.0~rc2-3
-> Remote X-Server frontend for vdr-plugin-xine
-> 
-> 
-> **********
-> 
-> i usually install everything from the apt-get repositories. 
-> 
-> I've read about patches allowing lifeview to work, but they were very
-> old and this is a brand new installation, with kernel  2.6.22-14 and i
-> though that this may not be necessary.
-> 
-> so... after realising that apt-get doesn't allow me to use dvb-s, what
-> do you suggest?
-> 
-> do i have to install everything from sourcecode? do i have to apply all
-> those patches you talk about in this list and other forums? What's the
-> best application for my card? kaffeine? vdr?
-> 
-> Thanks.
-> 
-
-You need either the current v4l-dvb master repo or Hartmut Hackmann's
-v4l-dvb repo installed. A current 2.6.25-rc should work as well.
-
-After "make" take care with "make rmmod" and "make rminstall", that
-really all old media modules are removed, before doing "make install".
-
-You need to load saa7134-dvb with "use_frontend=1" or better put
-"options saa7134-dvb use_frontend=1 debug=3" in /etc/modprobe.conf or on
-Ubuntu it should be modprobe.d and "depmod -a".
-
-After "modprobe saa7134" you should see that a DVB-S frontend is
-attached.
-
-Then start kaffeine, it will pick up the frontend and you select in DVB
-settings your LNB type and the satellite to use. You should then be able
-to start a channel scan. For more complex sat systems with switches and
-rotors and advanced diseqc we have no test reports yet.
-
-Good Luck,
-Hermann
+Carl K
 
 
+diff -r 127f67dea087 v4l2-apps/lib/v4l2_driver.h
+--- a/v4l2-apps/lib/v4l2_driver.h	Tue Feb 26 20:43:56 2008 +0000
++++ b/v4l2-apps/lib/v4l2_driver.h	Sun Mar 02 00:37:59 2008 -0600
+@@ -12,6 +12,7 @@
+     Lesser General Public License for more details.
+    */
 
++#include <stddef.h>
+  #include <stdint.h>
+  #include <sys/time.h>
+  #include <linux/videodev2.h>
+diff -r 127f67dea087 v4l2-apps/test/ioctl-test.c
+--- a/v4l2-apps/test/ioctl-test.c	Tue Feb 26 20:43:56 2008 +0000
++++ b/v4l2-apps/test/ioctl-test.c	Sun Mar 02 00:37:59 2008 -0600
+@@ -29,14 +29,24 @@
+   */
+  //#define INTERNAL 1 /* meant for testing ioctl debug msgs */
+
++#include <errno.h>
++#include <stdlib.h>
+  #include <stdio.h>
+  #include <unistd.h>
++#include <stdarg.h>
+  #include <string.h>
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <sys/ioctl.h>
++#include <assert.h>
++
++#include <getopt.h>             /* getopt_long() */
++
+  #include <fcntl.h>
+-#include "linux/videodev.h"
++// #include "linux/videodev.h"
++#include <linux/videodev2.h>
++
++#include <lib/v4l2_driver.h>
+
+  #ifdef INTERNAL
+  typedef __u8 u8;
+@@ -47,6 +57,25 @@ typedef __u32 u32;
+  #else
+  typedef u_int32_t u32;
+  #endif
++
++static const char *             my_name;
++#define VERSION "1.1"
++static const char *             dev_name = "/dev/video0";
++
++#define CLEAR(var) memset (&(var), 0, sizeof (var))
++
++typedef enum {
++        IO_METHOD_READ = 1,
++        IO_METHOD_MMAP,
++} io_methods;
++
++
++static int                      fd;
++static v4l2_std_id              std_id;
++static io_methods               io_method;
++static struct v4l2_format       fmt;
++//static io_buffer *              buffers;
++static unsigned int             n_buffers;
+
+  /* All possible parameters used on v4l ioctls */
+  union v4l_parms {
+@@ -209,26 +238,253 @@ int ioctls[] = {
+  #define S_IOCTLS sizeof(ioctls)/sizeof(ioctls[0])
+
+  /********************************************************************/
++static int
++xioctl                          (int                    fd,
++                                 int                    request,
++                                 void *                 arg)
++{
++        int r;
+
+-int main (void)
++        do r = ioctl (fd, request, arg);
++        while (-1 == r && EINTR == errno);
++
++        return r;
++}
++
++/********************************************************************/
++static void
++error_exit                      (const char *           templ,
++                                 ...)
+  {
+-	int fd=0, ret=0;
++        va_list ap;
++
++        fprintf (stderr, "%s: ", my_name);
++        va_start (ap, templ);
++        vfprintf (stderr, templ, ap);
++        va_end (ap);
++
++        exit (EXIT_FAILURE);
++}
++
++/********************************************************************/
++static void
++errno_exit                      (const char *           s)
++{
++        error_exit ("%s error %d, %s\n",
++                    s, errno, strerror (errno));
++}
++
++
++/********************************************************************/
++static void
++open_device         (void)
++{
++    struct stat st;
++
++    if (-1 == stat (dev_name, &st)) {
++        error_exit ("Cannot identify '%s'. %s.\n",
++                dev_name, strerror (errno));
++    }
++
++    if (!S_ISCHR (st.st_mode)) {
++        error_exit ("%s is not a device file.\n", dev_name);
++    }
++
++    fd = open (dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
++
++    if (-1 == fd) {
++        error_exit ("Cannot open %s. %s.\n",
++                dev_name, strerror (errno));
++    }
++}
++
++/********************************************************************/
++static void
++printstat            (struct v4l2_capability cap)
++{
++    printf ("driver=%s\n" "card=%s\n" "bus=%s\n" "version=%d.%d.%d\n"
++            "capabilities=%s\n",
++            cap.driver,cap.card,cap.bus_info,
++            (cap.version >> 16) & 0xff,
++            (cap.version >>  8) & 0xff,
++            cap.version         & 0xff,
++            prt_caps(cap.capabilities));
++}
++
++/********************************************************************/
++
++static void
++init_device         (void)
++{
++    struct v4l2_capability cap;
++    struct v4l2_cropcap cropcap;
++    struct v4l2_crop crop;
++
++    if (-1 == xioctl (fd, VIDIOC_QUERYCAP, &cap)) {
++        if (EINVAL == errno) {
++            error_exit ("%s is not a V4L2 device.\n");
++        } else {
++            errno_exit ("VIDIOC_QUERYCAP");
++        }
++    }
++
++    printstat(cap);
++
++    switch (io_method) {
++    case 0:
++        if (cap.capabilities & V4L2_CAP_STREAMING) {
++            io_method = IO_METHOD_MMAP;
++        } else if (cap.capabilities & V4L2_CAP_READWRITE) {
++            io_method = IO_METHOD_READ;
++        } else {
++            error_exit ("%s does not support reading or "
++                    "streaming.\n");
++        }
++
++        break;
++
++    case IO_METHOD_READ:
++        if (0 == (cap.capabilities & V4L2_CAP_READWRITE)) {
++            error_exit ("%s does not support read i/o.\n");
++        }
++
++        break;
++
++    case IO_METHOD_MMAP:
++        if (0 == (cap.capabilities & V4L2_CAP_STREAMING)) {
++            error_exit ("%s does not support streaming i/o.\n");
++        }
++
++        break;
++
++    default:
++        assert (0);
++        break;
++    }
++
++    CLEAR (cropcap);
++
++    cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++    if (0 == xioctl (fd, VIDIOC_CROPCAP, &cropcap)) {
++        crop.type = cropcap.type;
++        crop.c = cropcap.defrect; /* reset to default */
++
++        /* Errors ignored. */
++        xioctl (fd, VIDIOC_S_CROP, &crop);
++    } else {
++        /* Errors ignored. */
++    }
++
++    if (-1 == xioctl (fd, VIDIOC_G_STD, &std_id))
++        errno_exit ("VIDIOC_G_STD");
++}
++
++
++/********************************************************************/
++static void
++mainloop            (void)
++{
++
++    int ret=0;
+  	unsigned i;
+-	char *device="/dev/video0";
+  	union v4l_parms p;
+
+-	if ((fd = open(device, O_RDONLY)) < 0) {
+-		perror("Couldn't open video0");
+-		return(-1);
+-	}
+
+  	for (i=0;i<S_IOCTLS;i++) {
+  		memset(&p,0,sizeof(p));
+  		ret=ioctl(fd,ioctls[i], (void *) &p);
+  		printf("%i: ioctl=0x%08x, return=%d\n",i, ioctls[i], ret);
+  	}
++}
++
++/********************************************************************/
++
++static void
++usage                           (FILE *                 fp,
++                                 int                    argc,
++                                 char **                argv)
++{
++        fprintf (fp, "\
++V4L2 test " VERSION "\n\
++Copyright (C) 2007 Michael H. Schimek\n\
++This program is licensed under GPL 2 or later. NO WARRANTIES.\n\n\
++Usage: %s [options]\n\n\
++Options:\n\
++-d | --device name  Video device name [%s]\n\
++-h | --help         Print this message\n\
++-m | --mmap         Use memory mapped buffers (auto)\n\
++-r | --read         Use read() calls (auto)\n\
++",
++                 my_name, dev_name);
++}
++
++static const char short_options [] = "d:hmr";
++
++static const struct option
++long_options [] = {
++        { "device",     required_argument,      NULL,           'd' },
++        { "help",       no_argument,            NULL,           'h' },
++        { "mmap",       no_argument,            NULL,           'm' },
++        { "read",       no_argument,            NULL,           'r' },
++        { "usage",      no_argument,            NULL,           'h' },
++        { 0, 0, 0, 0 }
++};
++
++
++
++int
++main                            (int                    argc,
++                                 char **                argv)
++{
++        my_name = argv[0];
++
++        for (;;) {
++                int index;
++                int c;
++
++                c = getopt_long (argc, argv,
++                                 short_options, long_options,
++                                 &index);
++
++                if (-1 == c)
++                        break;
++
++                switch (c) {
++                case 0: /* getopt_long() flag */
++                        break;
++
++                case 'd':
++                        dev_name = optarg;
++                        break;
++
++                case 'h':
++                        usage (stdout, argc, argv);
++                        exit (EXIT_SUCCESS);
++
++                case 'm':
++                        io_method = IO_METHOD_MMAP;
++                        break;
++
++                case 'r':
++                        io_method = IO_METHOD_READ;
++                        break;
++
++                default:
++                        usage (stderr, argc, argv);
++                        exit (EXIT_FAILURE);
++                }
++        }
++
++    open_device ();
++
++    init_device ();
++
++    mainloop ();
+
+  	close (fd);
+
++    exit (EXIT_SUCCESS);
++
+  	return (0);
+  }
 
 --
 video4linux-list mailing list
