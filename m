@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BLHv4h011288
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 17:17:57 -0400
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2BLHOrZ026082
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 17:17:24 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: itman <itman@fm.com.ua>
-In-Reply-To: <47D6F12C.7040102@fm.com.ua>
-References: <47D6F12C.7040102@fm.com.ua>
-Content-Type: text/plain
-Date: Tue, 11 Mar 2008 22:09:21 +0100
-Message-Id: <1205269761.5927.77.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m22NVXpa001518
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:31:33 -0500
+Received: from binford3000.de ([85.131.186.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m22NV1cJ001266
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:31:01 -0500
+Received: from [192.168.178.3] (p57B0ACCA.dip0.t-ipconnect.de [87.176.172.202])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by binford3000.de (Postfix) with ESMTP id 8135B5C5F4
+	for <video4linux-list@redhat.com>; Sun,  2 Mar 2008 23:32:36 +0100 (CET)
+Message-ID: <47CB2B0E.9010003@binford3000.de>
+Date: Sun, 02 Mar 2008 23:32:46 +0100
+From: Janosch Peters <jp@binford3000.de>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: simon@kalmarkaglan.se, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	midimaker@yandex.ru, xyzzy@speakeasy.org
-Subject: Re: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+Subject: "no such device" when calling read()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,45 +29,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Dienstag, den 11.03.2008, 22:53 +0200 schrieb itman:
-> Hi Herman, Mauro.
-> 
-> Status with 2.6.24 is OK, BUT with the following changes:
-> 
-> 1) mkdir /usr/src/linux/tmpmsi
-> 2) cd tmpmsi
-> 3) hg init
-> 4) hg pull http://linuxtv.org/hg/v4l-dvb
-> 5) make
-> 6) make install
-> 
-> and changes for 2.6.24.3 :
-> 
-> Adding to /etc/modprobe.conf  this line:
-> 
-> options tda9887 port1=0 port2=0 qss=1
-> 
-> After reboot it works fine!
-> 
-> In 2.6.23 was used tuner instead tda9887
-> so it was
-> options tuner port1=0 port2=0 qss=1
-> 
-> 
-> Rgs,
->     Serge.
+Hi!
 
-Hi Serge,
+I just started learning v4l2. Im trying to write a small program which 
+captures one frame and then terminates. The ioctl calls are all working, 
+but when I call read() it fails, telling me that there is "no such 
+device". Although I just used this very file descriptor to do the ioctl 
+stuff. It is no I guess I'm missing something important. Any help is 
+appreciated.
 
-fine, that was what I tried to explain.
+Im using a QuickCam for Notebooks (the current model). I already 
+checked, that this cam supports the read() I/O. The output of the code 
+beneath is:
 
-I have started to write a mail on it already, maybe it provides some
-deeper insights and is useful for the records. So I send it despite off
-you have realized the problem now.
+---- output ------
+Device sucessfuly opened.
+read(): No such device
+----------------------
 
-Thanks,
-Hermann
 
+---- code -------------------------------------------
+int main()
+{
+    int fd = open("/dev/video0",O_RDWR);
+
+    if( fd == -1 ) {
+        // error message here
+    }
+    else {
+        cout << "Device sucessfuly opened." << endl;
+    }
+
+    // save one image and exit
+    int mb = 1048576;
+    char* buf = new char[mb]; // 1MB
+    ssize_t bytesRead = read(fd, buf, mb);
+
+    if (-1 == bytesRead ) {
+        perror ("read()");
+        exit (EXIT_FAILURE);
+    }
+}
+-------------------------------------------------------------
+
+The file descriptor looks like this:
+---------
+crw-rw----  1 root   video    81,   0 2008-03-02 23:10 video0
+---------
+
+I am in the video group. I even ran the program as root.
+
+
+cheers,
+Janosch
 
 --
 video4linux-list mailing list
