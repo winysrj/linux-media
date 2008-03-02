@@ -1,19 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2PMCj8Q031514
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 18:12:45 -0400
-Received: from smtp805.mail.ird.yahoo.com (smtp805.mail.ird.yahoo.com
-	[217.146.188.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2PMCAYS005351
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 18:12:10 -0400
-Message-ID: <47E978B4.9070000@btinternet.com>
-Date: Tue, 25 Mar 2008 22:12:04 +0000
-From: Edward Ludlow <eludlow@btinternet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m22MDp5d008990
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 17:13:51 -0500
+Received: from QMTA10.westchester.pa.mail.comcast.net
+	(qmta10.westchester.pa.mail.comcast.net [76.96.62.17])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m22MDHcl022980
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 17:13:17 -0500
+Message-ID: <47CB2689.3010707@personnelware.com>
+Date: Sun, 02 Mar 2008 16:13:29 -0600
+From: Carl Karsten <carl@personnelware.com>
 MIME-Version: 1.0
 To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: PVR-250 on Ubuntu 7.10
+Subject: vivi.c stuck my CPU
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,22 +25,10 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+[2950.237132] BUG: soft lockup - CPU#0 stuck for 11s! [vivi:9709]
+any chance that is an application problem ?
 
-Hopefully someone out there can help - I'm a relative newbie to Linux, 
-and am trying to get my TV card, PVR-250 to work on Ubuntu 7.10.
-
-I've read a few "guides" on the web for older versions of Ubuntu, and 
-none of them have got me very far.  All I want to be able to do is watch 
-live TV, if this is possible!
-
-In hardware information I have listed "iTVC16 (CX23416) MPEG-2 Encoder" 
-which I am sure is the device.
-
-Can anyone give me any advice as to what needs to be done / installed?
-
-Thanks,
-Ed Ludlow
+Carl K
 
 --
 video4linux-list mailing list
