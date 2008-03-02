@@ -1,22 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.244])
+Received: from holly.castlecore.com ([89.21.8.102])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JeBsv-0004cp-Hx
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 17:20:34 +0100
-Received: by an-out-0708.google.com with SMTP id d18so2634714and.125
-	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 09:20:14 -0700 (PDT)
-Message-ID: <d9def9db0803250920k1e113c2cuf2d7d842ada7d7ad@mail.gmail.com>
-Date: Tue, 25 Mar 2008 17:20:12 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Aidan Thornton" <makosoft@googlemail.com>
-In-Reply-To: <c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
+	(envelope-from <lists@philpem.me.uk>) id 1JVjG2-0007tE-1s
+	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 09:09:18 +0100
+Message-ID: <47CA609F.3010209@philpem.me.uk>
+Date: Sun, 02 Mar 2008 08:09:03 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-	<c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
-Cc: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
+To: Nicolas Will <nico@youplala.net>
+References: <47A98F3D.9070306@raceme.org>	
+	<1202326173.20362.23.camel@youkaida>	<1202327817.20362.28.camel@youkaida>	
+	<1202330097.4825.3.camel@anden.nu>	<47AB1FC0.8000707@raceme.org>	
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>	
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>	
+	<47C4661C.4030408@philpem.me.uk>	
+	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>	
+	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>	
+	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
+	<1204356192.6583.0.camel@youkaida>
+In-Reply-To: <1204356192.6583.0.camel@youkaida>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,59 +34,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->
-> Hi,
->
-> I've deliberately avoided adding code for VBI - it's just too
-> difficult to get right on em28xx due to interesting buffer management
-> and locking issues. (For example, have you fixed the issue that causes
-> a kernel panic when recording analog video with MythTV? That was a
-> particularly interesting one.) In any case, that's another issue
-> entirely - this code is for DVB-T support.
->
-> Also, just because this device isn't being sold anymore doesn't mean
-> it's not worth adding - there are other, fairly similar devices still
-> on sale. Unfortunately, I don't have access to newer hardware, and
-> most of the people with the access and knowledge don't seem to want to
-> have anything to do with it. (Why do I have a feeling that you have a
-> hand in this?) However, adding support should be easy - all the
-> necessary code exists and has done for a while (even drx397xd support
-> for the Pinnacle 330e and the new HVR-900).
->
+Nicolas Will wrote:
+> You should really stick to the 1.10 firmware. 03-pre1 was an earlier
+> test and has more issues.
 
-The drx397x is only one chip of a series of newer ones which will
-follow in future.
+Well, I've figured out what was going on.
+Seems if you run 'make' against the source tree with one kernel, it will 
+always build modules for said kernel until you run 'make distclean'. I started 
+by building for 2.6.24-8-generic, then upgraded to -10-generic, then to 
+-11-generic, and only did a 'make clean; make; sudo make install' when I 
+rebuilt v4l-dvb, as this worked for Madwifi.
 
-> Mainly, though, I'm doing it for my own benefit - I have this
-> hardware, and the changes are small and self-contained enough that I
-> should be able to stay up-to-date with upstream and keep newer kernels
-> working with minimal effort. (This tree is actually an updated version
-> of code I've been using for the past few months on PAL-I and DVB-T,
-> but didn't publish due to a bug with switching from digital to
-> analog.)
->
+So to summarise, if you're going to reuse the same source tree for multiple 
+kernels, make distclean before making the drivers, or it'll build for the last 
+kernel you built for... Not sure if it installs to the running kernel, but it 
+certainly doesn't use the headers for the running kernel...
 
-it's fine that you do it on your own purpose for yourself, although
-there's much more development going on on the other side.
+But at least the card seems to be behaving now. Up 10 hours with:
 
-> (By the way, I still reckon your userspace code is a dead end, at
-> least as far as getting anything merged into the kernel. I think I may
-> have already explained why.)
->
+options dvb-usb-dib0700 debug=15 force_lna_activation=1
+options dvb_usb disable_rc_polling=1
+options usbcore autosuspend=-1
 
-There are several reasons for going that way I'm not up for waiting 2
-years till something is implemented because some people don't want to
-discuss certain things. It's like discussing issues with a wall.
-This is the main point why I'm going the other way since this is
-simply no option, and everyone can see the result in earlier supported
-devices.
+I've also blacklisted dvb-usb-dib0700 and modprobe'd it in an rc-script, so my 
+HVR-3000 ends up as device 0 and the two T-500 tuners end up as devices 1 and 
+2; said shell script also sets up symlinks for the 1st and 2nd front-ends on 
+the HVR to devices 10 and 11, because MythTV doesn't like the idea of a card 
+having multiple front-ends...
 
-The thing you're doing is of course based on my work again and even in
-future you cannot avoid to base things on that. As long as this root
-problem isn't solved I don't see any other way, and I'm definitely not
-the one who will delay any further devices anymore.
+The clock is once again running...
 
-Markus
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
