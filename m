@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from wf-out-1314.google.com ([209.85.200.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JX13u-00031l-J6
-	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 22:22:07 +0100
-Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
-	by holly.castlecore.com with esmtp (Exim 4.68)
-	(envelope-from <lists@philpem.me.uk>) id 1JX13o-0001xc-0q
-	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 21:22:00 +0000
-Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
-	by wolf.philpem.me.uk (Postfix) with ESMTP id 7DE6E1AFD9D5
-	for <linux-dvb@linuxtv.org>; Wed,  5 Mar 2008 21:22:41 +0000 (GMT)
-Message-ID: <47CF0EEC.6080706@philpem.me.uk>
-Date: Wed, 05 Mar 2008 21:21:48 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
+	(envelope-from <trygve.iversland@gmail.com>) id 1JVw4p-0004cC-03
+	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 22:50:35 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so5669598wfa.17
+	for <linux-dvb@linuxtv.org>; Sun, 02 Mar 2008 13:50:29 -0800 (PST)
+Message-ID: <b78112c20803021350t530f1e20x84cc97c3728492ae@mail.gmail.com>
+Date: Sun, 2 Mar 2008 22:50:28 +0100
+From: "Trygve Iversland" <trygve.iversland@gmail.com>
+To: "Geir Inge" <geir.inge@gmail.com>
+In-Reply-To: <ab58b93b0803021145j34f4ad49s980e4a30a97d20de@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <47CF08B2.50008@philpem.me.uk>
-In-Reply-To: <47CF08B2.50008@philpem.me.uk>
-Subject: Re: [linux-dvb] Hauppauge Nova T-500 / Nova-TD Stick (DiBcom
- tuners/demods) - the plot thickens...
+Content-Disposition: inline
+References: <ab58b93b0803021145j34f4ad49s980e4a30a97d20de@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] scan fails to detect pid's for streams
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,22 +28,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Philip Pemberton wrote:
-> [ 3097.541301] ep 0 write error (status = -19, len: 4)
-> [ 3097.541302] dvb-usb: error while stopping stream.
+[...]
+>  As you can see it tunes to pid 0 for both audio and video
+>
+>  Here is the channel data from the channel.conf file:
+>
+>  NRK2:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:102
+>
+Seems that you are trying to tune to norwegian H.264/AAC channels,
+which aren't supported by scan. A patch is described at
+http://www.mythtv.co.nz/mythtv/
+Running scan with -vv will give you a quick idea of which pid's to
+use. You should probably end up with something like this:
 
-Forgot to mention -- after this mess, both tuners on the Nova-TD were dead.
+NRK2:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:525:692:102
 
-I restarted mythbackend and they woke up again, then as soon as I tuned to a 
-channel both of them fell over again (USB disconnect).
 
-I think the EMI thing might have been a one-off -- the second disconnect was a 
-standard one, not a "hub has disabled the port".
-
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+Trygve
 
 _______________________________________________
 linux-dvb mailing list
