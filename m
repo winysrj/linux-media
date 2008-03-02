@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n43.bullet.mail.ukl.yahoo.com ([87.248.110.176])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JaHVJ-00038G-OH
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 22:31:54 +0100
-Date: Fri, 14 Mar 2008 17:31:12 -0400
-From: manu <eallaud@yahoo.fr>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-References: <1205324955l.5684l.1l@manu-laptop> <47D96A9A.9040204@gmail.com>
-In-Reply-To: <47D96A9A.9040204@gmail.com> (from abraham.manu@gmail.com on
-	Thu Mar 13 13:55:38 2008)
-Message-Id: <1205530272l.5652l.0l@manu-laptop>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1JVwuI-0008IX-In
+	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 23:43:46 +0100
+Message-ID: <47CB2D95.6040602@gmail.com>
+Date: Mon, 03 Mar 2008 02:43:33 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  Re : TT S2-3200 vlc streaming
+To: Florian Lohoff <flo@rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+In-Reply-To: <20080301161419.GB12800@paradigm.rfc822.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +25,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/13/2008 01:55:38 PM, Manu Abraham wrote:
-> manu wrote:
-> > On 03/11/2008 02:27:31 AM, Vladimir Prudnikov wrote:
-> >> I'm getting late buffers with vlc on some transponders (DVB-S, 
-> same
->  
-> >> parameters, good signal guaranteed) while everything is fine with  
-> >> others. Using multiproto and TT S2-3200.
-> >> Anyone having same problems?
-> > 
-> > Can you give the frequencies of the good and bad transponders, mine
-> are 
-> > as follows:
-> > I can receive from 4 transponders (DVB-S): 11093, 11555, 11635,
-> 11675 
-> > MHz.
-> > any channel on 11093: fast lock, perfect picture.
-> > any channel on 11555: lock a bit slower and corrupted stream (lots
-> of 
-> > blocky artifacts, myhttv complains about corrupted stream)
-> > any channel on 11635,11675: no lock.
+Florian Lohoff wrote:
+> Hi,
+> i was wondering why i have a problem in my application that i need to
+> run scan once after loading the module, otherwise my DVBFE_SET_PARAMS
+> fails - I couldnt explain it until i looked into the kernel code - In
+> the dvb_frontend.c i see this code:
 > 
-> Please provide:
+> 1738         case DVBFE_SET_PARAMS: {
+> 1739                 struct dvb_frontend_tune_settings fetunesettings;
+> 1740                 enum dvbfe_delsys delsys = fepriv->fe_info.delivery;
+> ...
+> 1783                 } else {
+> 1784                         /* default values */
+> 1785                         switch (fepriv->fe_info.delivery) {
+> ...
+> 1817                         default:
+> 1818                                 up(&fepriv->sem);
+> 1819                                 return -EINVAL;
+> 1820                         }
 > 
-> * parameters that you use for tuning each of these transponders
-> * logs from the stb0899 and stb6100 modules both loaded with
-> verbose=5,
-> for each of these transponders
-> 
-> Hope it might shed some light into your problems.
+> Should the code use fepriv->feparam.delivery instead of
+> fepriv->fe_info.delivery to sense the right delivery system ?
 
-OK i'll do that this WE;
-Bye
+Which demodulator driver are you using to test your application ?
+
+Though a bug, but that won't make any difference to what you are looking at,
+since the delay and others are used in the case of swzigzag, which 
+doesn't exist
+at least for the existing demods using the track() callback at all.
+
+This would be a fix for any demod drivers using the set_params() callback.
+
+Regards,
 Manu
 
 
