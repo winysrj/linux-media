@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ACPMs6015505
-	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 08:25:22 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ACOh9X024585
-	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 08:24:44 -0400
-Date: Mon, 10 Mar 2008 09:23:57 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Roel Kluin <12o3l@tiscali.nl>
-Message-ID: <20080310092357.61020c7e@gaivota>
-In-Reply-To: <47CEE9E2.6040303@tiscali.nl>
-References: <47CEDE8D.7090707@tiscali.nl> <1204740974.17370.29.camel@localhost>
-	<47CEE9E2.6040303@tiscali.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m22BhbnV005985
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 06:43:37 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m22Bh5bn014204
+	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 06:43:06 -0500
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: video4linux-list@redhat.com
+Date: Sun, 2 Mar 2008 12:42:57 +0100
+References: <47C14336.9030903@gmail.com> <20080226163918.GB9178@plankton>
+	<20080227061107.2d5f9fc1@areia>
+In-Reply-To: <20080227061107.2d5f9fc1@areia>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Joe Perches <joe@perches.com>, v4l-dvb-maintainer@linuxtv.org,
-	video4linux-list@redhat.com, lkml <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] em28xx-core.c: add missing parentheses in
- em28xx_write_ac97()
+Content-Disposition: inline
+Message-Id: <200803021242.58744.tobias.lorenz@gmx.net>
+Cc: Keith Mok <ek9852@gmail.com>, v4l-dvb-maintainer@linuxtv.org,
+	Brandon Philips <bphilips@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] [PATCH] v4l2: add hardware frequency seek
+	ioctl interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,55 +33,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Roel and Joe,
+Hi,
 
-Thanks for your patches.
+> Seems fine to me to have an specific ioctl for doing radio frequency seeks.
 
-I've already received and committed two patches with your proposed changes:
+That seems to be a good approach. Is there any documentation on how the interface is currently implemented?
 
-http://linuxtv.org/hg/v4l-dvb/rev/127f67dea087
-http://linuxtv.org/hg/v4l-dvb/rev/f83ed13f5bf5
+> It is good to have a patch to a real driver, implementing this feature. I don't
+> like the idea of implementing newer ioctls at the API without having an
+> in-kernel driver using. Having the driver ioctl implementation helps other
+> developers that may need to use this interface on other places.
 
-Cheers,
-Mauro
+I would be very happy to add this functionality to my radio-si470x.c driver.
+Seek support can be parameterized with this device in many ways.
+This is all described in a document from Silabs (available via Google) called AN284Rev0_1.pdf
 
-On Wed, 05 Mar 2008 19:43:46 +0100
-Roel Kluin <12o3l@tiscali.nl> wrote:
+These parameters are not only used when seeking up/down, but also during frequency tuning.
+They are already implemented as module parameters,
+as they are country specific and should not be changed during normal operation:
+- Band selection (upper/lower frequency limits)
+- Spacing selection
+- De-emphasis selection
 
-> Joe Perches wrote:
-> 
-> >> -		if (!((u8) ret) & 0x01)
-> >> +		if (!(((u8) ret) & 0x01))
-> > 
-> > I think it'd be clearer without the cast to (u8)
-> > which is then implicit cast back to int anyway
-> > 
-> > 	if (!(ret & 1))
-> 
-> ok.
-> ---
-> 
-> Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-> ---
-> diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-> index 7d1537c..c797472 100644
-> --- a/drivers/media/video/em28xx/em28xx-core.c
-> +++ b/drivers/media/video/em28xx/em28xx-core.c
-> @@ -267,7 +267,7 @@ static int em28xx_write_ac97(struct em28xx *dev, u8 reg, u8 *val)
->  	for (i = 0; i < 10; i++) {
->  		if ((ret = em28xx_read_reg(dev, AC97BUSY_REG)) < 0)
->  			return ret;
-> -		if (!((u8) ret) & 0x01)
-> +		if (!(ret & 1))
->  			return 0;
->  		msleep(5);
->  	}
+Additionally these parameters are only used by the seek algorithm:
+- RSSI Seek Threshold (range: 0..254, 254=highest threshold)
+- Signal-Noise-Ratio (range: 0..15, 15=higest SNR ratio)
+- FM-Impulse Noise Detection Counter (range: 0..15, 15=best audio quality)
 
+Propably it is wise to give the user space applications the possiblity to change these parameters at run time (ioctl).
+Else I'll implement them as module parameters, too.
 
-
-
-Cheers,
-Mauro
+Bye,
+  Toby
 
 --
 video4linux-list mailing list
