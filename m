@@ -1,24 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1JeTd3-0008EZ-8v
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 12:17:15 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so2982733fge.25
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 04:17:10 -0700 (PDT)
-Message-ID: <ea4209750803260417w38fd4ac2l82f50f8a9c0a29f2@mail.gmail.com>
-Date: Wed, 26 Mar 2008 12:17:10 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: elupus <elupus@ecce.se>
-In-Reply-To: <loom.20080326T105420-829@post.gmane.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1JW9O6-0007RE-6W
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 13:03:22 +0100
+Message-ID: <47CBE8FD.9030303@gmail.com>
+Date: Mon, 03 Mar 2008 16:03:09 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-References: <timjkg4t68k0.u9vss0x6vh17$.dlg@40tude.net>
-	<19apj9y5ari7e$.iq8vatom4e8q.dlg@40tude.net>
-	<a7d0idxnqmsq.1kxbekc9wr0n1.dlg@40tude.net>
-	<ea4209750803260338k48f25e8mf95c5734481d2da7@mail.gmail.com>
-	<loom.20080326T105420-829@post.gmane.org>
+To: Florian Lohoff <flo@rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+	<47CB2D95.6040602@gmail.com>
+	<20080302233653.GA3067@paradigm.rfc822.org>
+	<47CB44A8.5060103@gmail.com>
+	<20080303085249.GA6419@paradigm.rfc822.org>
+	<47CBDC63.9030207@gmail.com>
+	<20080303112610.GC6419@paradigm.rfc822.org>
+In-Reply-To: <20080303112610.GC6419@paradigm.rfc822.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STK7700-PH ( dib7700 + ConexantCX25842 + Xceive
-	XC3028 )
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,113 +25,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0082476090=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0082476090==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16238_14223282.1206530230063"
+Florian Lohoff wrote:
+> On Mon, Mar 03, 2008 at 03:09:23PM +0400, Manu Abraham wrote:
+>>> As i already wrote - SET_PARAMS is _NOT_ enough. Please try yourself. 
+>>> Unload/Load the module and simple issue a DVBFE_SET_PARAMS (NOT
+>>> GET_INFO) and it doesnt tune/lock at least for STB0899 and it also
+>>> complains in the dmesg with:
+>>>
+>>> 	stb0899_search: Unsupported delivery system 0
+>>> 	stb0899_read_status: Unsupported delivery system 0
+>>> 	stb0899_search: Unsupported delivery system 0
+>>> 	stb0899_read_status: Unsupported delivery system 0
+>>> 	stb0899_search: Unsupported delivery system 0
+>>> 	stb0899_read_status: Unsupported delivery system 0
+>>>
+>>> although i set
+>>>
+>>> 	dvbfe_params.delivery=DVBFE_DELSYS_DVBS2;
+>> Yep, it isn't supposed to work that way with simply issuing SET_PARAMS.
+> 
+> Okay - So either 
+> 
+> - remove the "delivery" in the dvbfe_params because it is unnecessary,
+>   confusing and broken, and rename the GET_INFO call to SET_DELIVERY
+>   or something which implies that its not a _GET_ call
 
-------=_Part_16238_14223282.1206530230063
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+As you can see, removing delivery is not an option, since GET_PARAMS 
+operates
+on the same data structure. Removal of which will require the application to
+issue an additional ioctl call.
 
-My card, pinnacle 320cx is also pciexpress, but sincerely I never tested
-with the card plugged and rebooting the system... so I may check it when I
-have my card available...
-For the repositories stuff, patrick is the one in charge of the dibcom
-changes, and I guess his version will go to the main branch soon, but think
-that the patch was introduced just a few days ago, so it's good to have a
-little time for testing.
-It would be nice if you could test with the usual dibcom1.1 firmware, just
-to be sure that it's not a firmware problem.
+> or 
+> 
+> - make SET_PARAMS the call to honor delivery in dvbfe_params and remove
+>   the setting of the delivery of GET_INFO
+> 
+> I'd prefere the 2nd option because currently the usage and naming
+> is an incoherent mess which should better not get more adopters ..
 
-Albert
+Your 2nd option won't work at all. It is completely broken when you have
+to query statistics, before a SET_PARAMS.
 
-2008/3/26, elupus <elupus@ecce.se>:
->
-> Albert Comerma <albert.comerma <at> gmail.com> writes:
->
-> So, to sum up. Using the "standard" configuration of dibcom 7700+xc3028
-> > you managed to get dvb-t working. Perhaps you have some problem with
-> your
-> > computer power management and it keeps power on usb while it's off.
-> > Albert
-> >
->
->
-> Well I wouldn't consider that a problem with the computer. Rather a bug in
-> the
-> driver if it can't handle that situation.
->
-> In my case it will always happen. The card isn't a standard usb card, it's
-> a
-> minipci(express) with a builtin usb-bridge to which the card is connected.
->
-> My guess is that something isn't getting inited properly when card has
-> never
-> been in cold state on bootup. Do you have a hint on where to look for
-> this?
->
-> The patch for 7700+XC3028 haven't made it to trunk (to steal a svn term),
-> so
-> if you by "standard" means, the repo i mentioned in the first post and
-> with
-> the patch to detect this specific usb card then probably yes.
-> I've not tested the 1.10 dibcom firmware with a full power off (I have to
-> pull
-> the powercord for it to coldboot).
-> Since the error i'm getting now with the firmware from my windows drivers,
-> are
-> identical to what i kept getting with the firmware on linuxtv, i'd expect
-> that
-> it'd work if i just coldbooted the computer.
->
->
-> (I wonder if I ever will get used to the multitude of repositores
-> available).
->
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Additionally, this was quite discussed in a long discussion a while 
+back. You
+might like to read through those as well.
 
-------=_Part_16238_14223282.1206530230063
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Maybe DVBFE_GET_INFO can probably be renamed to DVBFE_INFO if it really
+itches so much.
 
-My card, pinnacle 320cx is also pciexpress, but sincerely I never tested with the card plugged and rebooting the system... so I may check it when I have my card available...<br>For the repositories stuff, patrick is the one in charge of the dibcom changes, and I guess his version will go to the main branch soon, but think that the patch was introduced just a few days ago, so it&#39;s good to have a little time for testing.<br>
-It would be nice if you could test with the usual dibcom1.1 firmware, just to be sure that it&#39;s not a firmware problem.<br><br>Albert<br><br><div><span class="gmail_quote">2008/3/26, elupus &lt;<a href="mailto:elupus@ecce.se">elupus@ecce.se</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Albert Comerma &lt;albert.comerma &lt;at&gt; <a href="http://gmail.com">gmail.com</a>&gt; writes:<br> <br> So, to sum up. Using the &quot;standard&quot; configuration of dibcom 7700+xc3028<br> &gt; you managed to get dvb-t working. Perhaps you have some problem with your<br>
- &gt; computer power management and it keeps power on usb while it&#39;s off.<br> &gt; Albert<br> &gt;<br> <br> <br>Well I wouldn&#39;t consider that a problem with the computer. Rather a bug in the<br> driver if it can&#39;t handle that situation.<br>
- <br> In my case it will always happen. The card isn&#39;t a standard usb card, it&#39;s a<br> minipci(express) with a builtin usb-bridge to which the card is connected.<br> <br> My guess is that something isn&#39;t getting inited properly when card has never<br>
- been in cold state on bootup. Do you have a hint on where to look for this?<br> <br> The patch for 7700+XC3028 haven&#39;t made it to trunk (to steal a svn term), so<br> if you by &quot;standard&quot; means, the repo i mentioned in the first post and with<br>
- the patch to detect this specific usb card then probably yes.<br> I&#39;ve not tested the 1.10 dibcom firmware with a full power off (I have to pull<br> the powercord for it to coldboot).<br> Since the error i&#39;m getting now with the firmware from my windows drivers, are<br>
- identical to what i kept getting with the firmware on linuxtv, i&#39;d expect that<br> it&#39;d work if i just coldbooted the computer.<br> <br> <br> (I wonder if I ever will get used to the multitude of repositores available).<br>
- <br><br> <br> <br> <br> _______________________________________________<br> linux-dvb mailing list<br> <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br> <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
- </blockquote></div><br>
-
-------=_Part_16238_14223282.1206530230063--
-
-
---===============0082476090==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+HTH,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0082476090==--
