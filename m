@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QGOgOu019665
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 12:24:42 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.187])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2QGNLHj007868
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 12:23:46 -0400
-Received: by ti-out-0910.google.com with SMTP id 11so1310373tim.7
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 09:23:11 -0700 (PDT)
-Message-ID: <9618a85a0803260923j26eb1052gb32d179d853e0887@mail.gmail.com>
-Date: Thu, 27 Mar 2008 00:23:10 +0800
-From: "kevin liu" <lwtbenben@gmail.com>
-To: "Edward Ludlow" <eludlow@btinternet.com>
-In-Reply-To: <47EA0E5B.2050604@btinternet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m23MoLhs006519
+	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 17:50:22 -0500
+Received: from mailout03.sul.t-online.com (mailout03.sul.t-online.de
+	[194.25.134.81])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m23MnmoB029494
+	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 17:49:48 -0500
+Message-ID: <47CC8094.8000106@t-online.de>
+Date: Mon, 03 Mar 2008 23:49:56 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
+To: tux@schweikarts-vom-dach.de
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>
+	<47B9F1C2.3050309@t-online.de>
+	<200802272151.19488.tux@schweikarts-vom-dach.de>
+In-Reply-To: <200802272151.19488.tux@schweikarts-vom-dach.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <9618a85a0803251823x6962b6b2hfc2ceda8e6fbeb34@mail.gmail.com>
-	<37219a840803251833l5103a709q116a323951cf95e5@mail.gmail.com>
-	<47EA0E5B.2050604@btinternet.com>
-Cc: linux-dvb@linuxtv.org, Linux and Kernel Video <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] PVR-250 on Ubuntu 7.10
+Cc: video4linux-list@redhat.com
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,27 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-For digital tv program, I suggest VLC.
-mplayer can player digital tv, but not works well in my case.
-once you tell VLC the frequency, the modulation and the subchannel
-you can enjoy your program.
+Hi
 
-8VSB, QAM64 and QAM256 are tested in my ubuntu gutsy machine.
-Good luck.
+Tux schrieb:
+> Hello Hartmut,
+> 
+> i have tried the new driver. You are completely right, one port is working
+> perfectly. But the other one not. What Information do you need to fix it ?
+> 
+> 
+> best regards
+> 
+<snip>
 
-On 3/26/08, Edward Ludlow <eludlow@btinternet.com> wrote:
-> Michael Krufky wrote:
->
-> > The PVR250 is supported by the 'ivtv' driver, which is included by
-> > default with Ubuntu Gutsy, the version that you are running.
->
-> OK, thanks.
->
-> In that case can one of you find fellows recommend an app to download
-> that will let me use the card / driver?
->
-> Ed
->
+in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+i tried to make the 2nd section work too. I don't know which gpo is
+the right one to control the LNB supply, i need you to find out whether
+switching the polarization works.
+There are remaining restrictions:
+- the 2nd DVB-S section only works if the first is configured for DVB-S too.
+  so "options saa7134-dvb use_frontend=0,1" won't work, but use_frontend=1,0
+  and use_frontend=1,1 should.
+- currently it is not possible to choose the higher LNB voltage (14v instead of 13v)
+- it is not possible to power down the 2nd LNB supply independently.
+These are due to the fact that it is not possible to access the LNB supply chip
+via the i2c bus fron the second section of the card.
+
+Happy testing
+  Hartmut
 
 --
 video4linux-list mailing list
