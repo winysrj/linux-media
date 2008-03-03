@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.187])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZYRv-0003o1-3d
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 22:25:24 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1367320tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 14:25:17 -0700 (PDT)
-Message-ID: <abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>
-Date: Thu, 13 Mar 2008 08:25:17 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: mkrufky@linuxtv.org
-In-Reply-To: <47D847AC.9070803@linuxtv.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1JWB3O-00078e-EY
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 14:50:06 +0100
+Message-ID: <47CC0201.5010701@gmail.com>
+Date: Mon, 03 Mar 2008 17:49:53 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47D847AC.9070803@linuxtv.org>
-Cc: crope@iki.fi, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: Florian Lohoff <flo@rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>	<47CB2D95.6040602@gmail.com>	<20080302233653.GA3067@paradigm.rfc822.org>	<47CB44A8.5060103@gmail.com>	<20080303085249.GA6419@paradigm.rfc822.org>	<47CBDC63.9030207@gmail.com>	<20080303112610.GC6419@paradigm.rfc822.org>	<47CBE8FD.9030303@gmail.com>	<20080303132157.GA9749@paradigm.rfc822.org>
+	<47CBFFFD.1020902@gmail.com>
+In-Reply-To: <47CBFFFD.1020902@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,171 +26,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 13, 2008 at 8:14 AM,  <mkrufky@linuxtv.org> wrote:
->
-> Jarryd Beck wrote:
->  > On Thu, Mar 13, 2008 at 8:09 AM,  <mkrufky@linuxtv.org> wrote:
->  >
->  >> Jarryd Beck wrote:
->  >>  > On Thu, Mar 13, 2008 at 7:54 AM, Michael Krufky <mkrufky@linuxtv.org>
->  >>  wrote:
->  >>  >
->  >>  >> On Wed, Mar 12, 2008 at 4:36 PM, Jarryd Beck <jarro.2783@gmail.com>
->  >>  wrote:
->  >>  >>  >
->  >>  >>  > >  >>
->  >>  >>  >  >  >> Jarryd,
->  >>  >>  >  >  >>
->  >>  >>  >  >  >> I've analyzed the snoop that you've taken of the windows
->  >>  driver, and I
->  >>  >>  >  >  >> conclude that the driver is basically doing exactly the
->  same
->  >>  that the
->  >>  >>  >  >  >> linux driver would do.  The only thing that I cannot verify
->  is
->  >>  whether
->  >>  >>  >  >  >> or not the tda18211 uses the same table values as the
->  >>  tda18271c1.
->  >>  >>  >  >  >> Based on the traffic in your snoop, it looks like the exact
->  >>  same
->  >>  >>  >  >  >> algorithm is used, but based on a new set of tables -- I
->  will
->  >>  not be
->  >>  >>  >  >  >> able to confirm that without a tda18211 datasheet.  The
->  only
->  >>  thing
->  >>  >>  >  >  >> that you can do is try the tda18271 driver and hopefully it
->  >>  will work.
->  >>  >>  >  >  >>
->  >>  >>  >  >  >> Have you tried to tune yet?  There is a space in your
->  >>  channels.conf,
->  >>  >>  >  >  >> "7 Digital" -- you may want to change that to something
->  like,
->  >>  >>  >  >  >> "7Digital" so that command line applications will work.
->  >>  >>  >  >  >>
->  >>  >>  >  >
->  >>  >>  >  >
->  >>  >>  >  >
->  >>  >>  >  > Antti Palosaari wrote:
->  >>  >>  >  >  > hello
->  >>  >>  >  >  > I looked sniffs and find correct demodulator initialization
->  >>  values for
->  >>  >>  >  >  > this NXP tuner. Copy & paste correct table from attached
->  file
->  >>  and try.
->  >>  >>  >  >  > Hopefully it works. I compared your sniff to mt2060 and
->  qt1010
->  >>  based
->  >>  >>  >  >  > devices and there was still some minor differences to check.
->  >>  >>  >  >  >
->  >>  >>  >  >  > regards,
->  >>  >>  >  >  > Antti
->  >>  >>  >  >  >
->  >>  >>  >  >
->  >>  >>  >  >  Antti,
->  >>  >>  >  >
->  >>  >>  >  >  Please remember not to top-post.
->  >>  >>  >  >
->  >>  >>  >  >  Jarryd,
->  >>  >>  >  >
->  >>  >>  >  >  I have done further analysis on the snoop logs.  Not only is
->  the
->  >>  driver
->  >>  >>  >  >  using the same protocol as the tda18271 linux driver, it also
->  >>  seems to
->  >>  >>  >  >  use the same table values as used with the tda18271c1 -- The
->  linux
->  >>  >>  >  >  driver should work on your tuner without any modification at
->  all.
->  >>  >>  >  >
->  >>  >>  >  >  Regards,
->  >>  >>  >  >
->  >>  >>  >  >  Mike
->  >>  >>  >  >
->  >>  >>  >
->  >>  >>  >  I've got another tuner which works, so I know I'm tuning
->  correctly,
->  >>  it just
->  >>  >>  >  doesn't actually tune. I tried with mplayer, it just sat there
->  saying
->  >>  >>  >  dvb_tune Freq: 219500000 and did nothing. It also made my whole
->  >>  >>  >  computer go really slow, I don't know what it was actually doing.
->  >>  >>  >
->  >>  >>  >  Antti, as I said I've never done anything like this before so I
->  have
->  >>  no
->  >>  >>  >  idea what I'm doing, so I have no idea where to paste which
->  table.
->  >>  >>
->  >>  >>  Please try using tzap.  This will show you FE status once every
->  >>  >>  second.  Let it run for a whole minute -- maybe there is some noise
->  >>  >>  that may cause it to take a longer time to lock (if that's the case,
->  >>  >>  then there are some tweaks that we can do.)  Show us the femon
->  output
->  >>  >>  produced by running tzap.
->  >>  >>
->  >>  >>  -Mike
->  >>  >>
->  >>  >>
->  >>  >
->  >>  > $ tzap -a 2 "TEN Digital"
->  >>  > using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
->  >>  > tuning to 219500000 Hz
->  >>  > video pid 0x0200, audio pid 0x028a
->  >>  > status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  >
->  >>  > $ femon -a 2
->  >>  > using '/dev/dvb/adapter2/frontend0'
->  >>  > FE: Afatech AF9013 DVB-T (TERRESTRIAL)
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  > status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >>  >
->  >>  > The status 00 lines were from before I started tzap, after I started
->  tzap
->  >>  > it did nothing for half a minute, then printed the status 01 line,
->  then
->  >>  > sat there for another half a minute, and I killed it at that point.
->  >>  > My computer was also taking quite a few seconds to respond to
->  >>  > me pressing the keyboard for the whole time I was tuning it.
->  >>  >
->  >>  > Jarryd.
->  >>  >
->  >>  What shows in dmesg during the above?
->  >>
->  >>  -Mike
->  >>
->  >>
->  >
->  > nothing new
->  >
->  > Jarryd.
->  >
->
->  Then, please turn ON debug, repeat your tests, and post again with
->  dmesg.  I am not familiar with the af9015 driver, but for tda18271, set
->  debug=1.  (you must unload all modules first -- do 'make unload' in the
->  v4l-dvb dir, then replug your device)
->
->  -Mike
->
->
+Manu Abraham wrote:
+> Florian Lohoff wrote:
+>> On Mon, Mar 03, 2008 at 04:03:09PM +0400, Manu Abraham wrote:
+>>>> - make SET_PARAMS the call to honor delivery in dvbfe_params and remove
+>>>>  the setting of the delivery of GET_INFO
+>>>>
+>>>> I'd prefere the 2nd option because currently the usage and naming
+>>>> is an incoherent mess which should better not get more adopters ..
+>>> Your 2nd option won't work at all. It is completely broken when you have
+>>> to query statistics, before a SET_PARAMS.
+>> I have no problem with beeing able to query stats - I have a problem
+> 
+> You are wrong again. Please look at the code, how statistics related
+> operations are retrieved.
 
-Sorry I'm unsure where to set debug.
+Basically you seem to get the wrong end, (it's one whole line, no corners
+to it) since you think that it all starts with a tune operation. No, a tune
+operation is not the first operation that's to be done in many cases.
 
-Jarryd.
+Manu
 
 _______________________________________________
 linux-dvb mailing list
