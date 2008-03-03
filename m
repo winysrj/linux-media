@@ -1,27 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JahfE-0002tz-B9
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 02:27:55 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1666310tia.13
-	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 18:27:47 -0700 (PDT)
-Message-ID: <abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-Date: Sun, 16 Mar 2008 12:27:47 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <47DC6E0A.9000904@linuxtv.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1JWB97-0000Ae-5Q
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 14:56:01 +0100
+Message-ID: <47CC0364.3010600@gmail.com>
+Date: Mon, 03 Mar 2008 17:55:48 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47DA7008.8010404@linuxtv.org> <47DAC42D.7010306@iki.fi>
-	<47DAC4BE.5090805@iki.fi>
-	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
-	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
-	<47DBDB9F.5060107@iki.fi>
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
-	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: Florian Lohoff <flo@rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+	<47CB2D95.6040602@gmail.com>
+	<20080302233653.GA3067@paradigm.rfc822.org>
+	<47CB44A8.5060103@gmail.com>
+	<20080303085249.GA6419@paradigm.rfc822.org>
+	<47CBDC63.9030207@gmail.com>
+	<20080303112610.GC6419@paradigm.rfc822.org>
+	<47CBE8FD.9030303@gmail.com>
+	<20080303132157.GA9749@paradigm.rfc822.org>
+	<47CBFFFD.1020902@gmail.com>
+	<20080303134444.GA12328@paradigm.rfc822.org>
+In-Reply-To: <20080303134444.GA12328@paradigm.rfc822.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,28 +35,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Mar 16, 2008 at 11:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Antti Palosaari wrote:
->  > I have no idea how to debug more. Without device it is rather hard to
->  > test many things. It will help a little if we know is tuner locked.
->  > Mike, is it easy to add debug writing for tuner to indicate if tuner
->  > is locked or not locked? I have used that method earlier with mt2060
->  > tuner...
->
->  There is a lock bit in register 0x01[6]  but I have not found it to be
->  reliable, especially not on the c1 part.
->
->  -Mike
->
->
->
+Florian Lohoff wrote:
+> On Mon, Mar 03, 2008 at 05:41:17PM +0400, Manu Abraham wrote:
+>> You are wrong again. Please look at the code, how statistics related
+>> operations are retrieved.
+> 
+> When i issue a DVBFE_GET_INFO i dont get stats i get informations
+> about the delivery system - a better name would be GET_CAPABILITY.
+> In the demod (e.g. STB0899) its a simply memcpy of a predefined
+> capabily struct - So why on earth does it set/change the in kernel
+> delivery system ?!?!
+> 
+> You are still not answering the rational behind ignoring the delivery
+> system in dvbfe_params/DVBFE_SET_PARAMS.
 
-You won't believe this, but it worked. I think every time I tried both
-patches together I left .no_reconnect in. I tried it again with both
-patches applied, no other modifications, and it worked.
+I already mentioned this in my previous email. Please read the previous 
+mails
+and or the old discussions.
 
-Thanks for all your help,
-Jarryd.
+ From my previous email:
+
+Your 2nd option won't work at all. It is completely broken when you have
+to query statistics, before a SET_PARAMS.
+
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
