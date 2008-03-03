@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49])
+Received: from hydra.gt.owl.de ([195.71.99.218])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JatsP-0001lS-7E
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 15:30:19 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Philip Pemberton <lists@philpem.me.uk>
-In-Reply-To: <47DCFE62.6020405@philpem.me.uk>
-References: <47DCFE62.6020405@philpem.me.uk>
-Date: Sun, 16 Mar 2008 15:21:58 +0100
-Message-Id: <1205677318.30122.14.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] CX88 (HVR-3000) -- strange errors in dmesg
+	(envelope-from <flo@rfc822.org>) id 1JW6Vk-0005Vp-23
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 09:59:06 +0100
+Date: Mon, 3 Mar 2008 09:52:49 +0100
+From: Florian Lohoff <flo@rfc822.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080303085249.GA6419@paradigm.rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+	<47CB2D95.6040602@gmail.com>
+	<20080302233653.GA3067@paradigm.rfc822.org>
+	<47CB44A8.5060103@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <47CB44A8.5060103@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,52 +22,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0934719023=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-Am Sonntag, den 16.03.2008, 11:02 +0000 schrieb Philip Pemberton:
-> Hi,
->    I've just noticed an absolute ton of these messages in dmesg, can anyone 
-> tell me what's going on, or what they mean?
-> 
-> [  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
-> [  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
-> [  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
-> [  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
-> 
-> (repeat ad nauseum)
-> 
-> Kernel 2.6.22-14-generic, Hg 11fdae6654e8 with HVR-3000 patches from 
-> dev.kewl.org/hauppauge merged in manually.
-> 
-
-looks like you need the last patches from Guennadi.
-http://marc.info/?l=linux-video&r=1&b=200803&w=2
-
-Most important is that one in the middle.
-[PATCH] Fix left-overs from the videobuf-dma-sg.c conversion to generic
-DMA
-
-As a workaround there was also a patch from Mauro previously, reverting
-videobuf-dma-sg back to PCI DMA until the bug is discovered.
-http://www.spinics.net/lists/vfl/msg36025.html
+--===============0934719023==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Content-Disposition: inline
 
 
-Cheers,
-Hermann
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Mar 03, 2008 at 04:22:00AM +0400, Manu Abraham wrote:
+> This won't work. params will contain data only after you have=20
+> successfully issued
+> SET_PARAMS not before. For SET_PARAMS to work, you need the delivery syst=
+em
+> cached for the operation.
+
+As i already wrote - SET_PARAMS is _NOT_ enough. Please try yourself.=20
+Unload/Load the module and simple issue a DVBFE_SET_PARAMS (NOT
+GET_INFO) and it doesnt tune/lock at least for STB0899 and it also
+complains in the dmesg with:
+
+	stb0899_search: Unsupported delivery system 0
+	stb0899_read_status: Unsupported delivery system 0
+	stb0899_search: Unsupported delivery system 0
+	stb0899_read_status: Unsupported delivery system 0
+	stb0899_search: Unsupported delivery system 0
+	stb0899_read_status: Unsupported delivery system 0
+
+although i set
+
+	dvbfe_params.delivery=3DDVBFE_DELSYS_DVBS2;
+
+> Do you see the same bug with szap too ?=20
+> (http://abraham.manu.googlepages.com/szap.c)
+
+Its not a bug in szap - its a bug in the API - There is a delivery in
+the dvbfe_param and i set it correctly - and it gets ignored. Running
+zap before running my program causes it to work because zap runs
+an GET_INFO ioctl which _SETS_ a delivery mode.
+
+Flo
+--=20
+Florian Lohoff                  flo@rfc822.org             +49-171-2280134
+	Those who would give up a little freedom to get a little=20
+          security shall soon have neither - Benjamin Franklin
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHy7xhUaz2rXW+gJcRAuGBAJ48liGYeNf1kWKylex979S20GBKDACfSuWF
+vHJlbplFMvg54adjmPsc5bw=
+=To0f
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
 
 
-
-
-
-
+--===============0934719023==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0934719023==--
