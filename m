@@ -1,15 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Content-class: urn:content-classes:message
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1JWBUa-00030O-2E
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 15:18:12 +0100
+Message-ID: <47CC0896.3050308@gmail.com>
+Date: Mon, 03 Mar 2008 18:17:58 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Date: Mon, 17 Mar 2008 14:05:34 -0500
-Message-ID: <C82A808D35A16542ACB16AF56367E0580A796900@exchange01.nsighttel.com>
-In-Reply-To: <C82A808D35A16542ACB16AF56367E0580A7968FF@exchange01.nsighttel.com>
-References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com><c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com><c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com><c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com><47DE9362.4050706@linuxtv.org><C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com><47DEB5EF.8010207@linuxtv.org>
-	<C82A808D35A16542ACB16AF56367E0580A7968FF@exchange01.nsighttel.com>
-From: "Mark A Jenks" <Mark.Jenks@nsighttel.com>
-To: "Mark A Jenks" <Mark.Jenks@nsighttel.com>,
-	"Steven Toth" <stoth@linuxtv.org>, "linux-dvb" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
+To: Florian Lohoff <flo@rfc822.org>
+References: <47CB44A8.5060103@gmail.com>
+	<20080303085249.GA6419@paradigm.rfc822.org>
+	<47CBDC63.9030207@gmail.com>
+	<20080303112610.GC6419@paradigm.rfc822.org>
+	<47CBE8FD.9030303@gmail.com>
+	<20080303132157.GA9749@paradigm.rfc822.org>
+	<47CBFFFD.1020902@gmail.com> <47CC0201.5010701@gmail.com>
+	<20080303134823.GB12328@paradigm.rfc822.org>
+	<47CC055C.5030705@gmail.com>
+	<20080303140316.GD12328@paradigm.rfc822.org>
+In-Reply-To: <20080303140316.GD12328@paradigm.rfc822.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,68 +34,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SUCCESS!
+Florian Lohoff wrote:
+> On Mon, Mar 03, 2008 at 06:04:12PM +0400, Manu Abraham wrote:
+>> The more important part is to first check for a signal, before 
+>> attempting a tune.
+>> Lack of doing so, will result in a lot of frustration in many cases. 
+>> Though it is completely upto oneself whether to do it or not.
+> 
+> You mean tune and then check if there is a SIGNAL and possibly a LOCK? I
+> do that yes ... But first comes the tune - On an uninitialized state of
+> a demod/tuner i would not expect to see any signal.
 
-Built 2.6.24-3 and installed it.  Recompiled CVS, and installed it.
-
-Now it doesn't hang when it finds a signal.
-
--Mark 
-
------Original Message-----
-From: linux-dvb-bounces@linuxtv.org
-[mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Mark A Jenks
-Sent: Monday, March 17, 2008 1:28 PM
-To: Steven Toth; linux-dvb
-Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
-
-I'm compiling 2.4.24 right now to test it.
-
-I've been running this box for over a year with a TV2000 card without
-issues.  I was just trying to upgrade into DTV.
-
-So, I really don't think it's a memory issue.
-
-The TV2000 was a pci, this is my first pcie card I'm using in this box.
-
--Mark 
-
------Original Message-----
-From: Steven Toth [mailto:stoth@linuxtv.org] 
-Sent: Monday, March 17, 2008 1:18 PM
-To: Mark A Jenks; linux-dvb
-Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
-
-CC'ing the mailing list back in.
-
-Mark A Jenks wrote:
-> Do you think I should push the kernel to 2.6.25? 
-
-I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 - 
-or close to.
-
-I have another AMD system at home that the driver completely freezes on,
-
-no idea why, total system lockup. I don't trust the PCIe chipset on it, 
-it's an early chipset and a little flakey.
-
-Other than that the driver's been pretty reliable.
-
-Lots of noise recently on the mailing lists about video_buf related 
-issues and potential race conditions.
-
-Try running the system with a single cpu core and report back, also, 
-just for the hell of it, run memtest also.
-
-- Steve
+How do you expect to look for a signal level when using a rotor, for a 
+real life
+example ?
 
 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Manu
 
 _______________________________________________
 linux-dvb mailing list
