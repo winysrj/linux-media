@@ -1,26 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
+Received: from hydra.gt.owl.de ([195.71.99.218])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZ7uW-0008IR-Gh
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 18:05:09 +0100
-Received: from aamtaout02-winn.ispmail.ntl.com ([81.103.221.35])
-	by mtaout01-winn.ispmail.ntl.com with ESMTP id
-	<20080311170643.RSGB16169.mtaout01-winn.ispmail.ntl.com@aamtaout02-winn.ispmail.ntl.com>
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 17:06:43 +0000
-Received: from molly.ianliverton.co.uk ([80.1.111.25])
-	by aamtaout02-winn.ispmail.ntl.com with ESMTP id
-	<20080311170607.JTDJ17393.aamtaout02-winn.ispmail.ntl.com@molly.ianliverton.co.uk>
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 17:06:07 +0000
-Received: from [192.168.1.65] (helo=ians)
-	by molly.ianliverton.co.uk with esmtp (Exim 4.69)
-	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZ7tk-0004El-43
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 17:04:22 +0000
-From: "Ian Liverton" <linux-dvb@ianliverton.co.uk>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 11 Mar 2008 17:06:08 -0000
-Message-ID: <004601c8839a$365ac620$4101a8c0@ians>
+	(envelope-from <flo@rfc822.org>) id 1JWB49-0007cG-S2
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 14:50:54 +0100
+Date: Mon, 3 Mar 2008 14:44:44 +0100
+From: Florian Lohoff <flo@rfc822.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080303134444.GA12328@paradigm.rfc822.org>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+	<47CB2D95.6040602@gmail.com>
+	<20080302233653.GA3067@paradigm.rfc822.org>
+	<47CB44A8.5060103@gmail.com>
+	<20080303085249.GA6419@paradigm.rfc822.org>
+	<47CBDC63.9030207@gmail.com>
+	<20080303112610.GC6419@paradigm.rfc822.org>
+	<47CBE8FD.9030303@gmail.com>
+	<20080303132157.GA9749@paradigm.rfc822.org>
+	<47CBFFFD.1020902@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Nova T-500 detection problem
+In-Reply-To: <47CBFFFD.1020902@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,260 +28,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0615895140=="
+Content-Type: multipart/mixed; boundary="===============1674957499=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
 
---===============0615895140==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0047_01C8839A.365AC620"
+--===============1674957499==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
+Content-Disposition: inline
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0047_01C8839A.365AC620
-Content-Type: text/plain;
-	charset="windows-1250"
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Mar 03, 2008 at 05:41:17PM +0400, Manu Abraham wrote:
+> You are wrong again. Please look at the code, how statistics related
+> operations are retrieved.
 
-=20
+When i issue a DVBFE_GET_INFO i dont get stats i get informations
+about the delivery system - a better name would be GET_CAPABILITY.
+In the demod (e.g. STB0899) its a simply memcpy of a predefined
+capabily struct - So why on earth does it set/change the in kernel
+delivery system ?!?!
 
-I recently purchased two Nova T-500 (as far as I can tell it=92s not one =
-of
-the diversity range) cards one is the 99101 LF rev D8B5 and one is the =
-99102
-LF rev C1B5.  The 99101 LF is detected, the other is not.  The only
-difference I can see is the postfix of the Dib 0700 chips.  The working =
-one
-is the Dib0700C-XCXXa-G and the other is Dib0700-1211b-G.  With only the
-undetected card in, there is no mention of the dib0700 in dmesg and =
-lspci
-shows:
+You are still not answering the rational behind ignoring the delivery
+system in dvbfe_params/DVBFE_SET_PARAMS.
 
-=20
+Flo
+--=20
+Florian Lohoff                  flo@rfc822.org             +49-171-2280134
+	Those who would give up a little freedom to get a little=20
+          security shall soon have neither - Benjamin Franklin
 
-02:05.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
+--ikeVEW9yuYc//A+q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-02:05.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 61)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-02:05.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
+iD8DBQFHzADMUaz2rXW+gJcRAnayAJ46oxeG7LEVtTOKDLZ+vP1xfrwlJQCcDey4
+rLKYobPJ78gShIiLDP9feoI=
+=RiLg
+-----END PGP SIGNATURE-----
 
-=20
-
-Which I presume is the VT6212L on the cards.
-
-=20
-
-Is there something different I need to do for the second card or is it =
-just
-not supported? Since I can get them both to work with the supplied =
-Hauppauge
-software under Windows I am assuming it is not a faulty card.
-
-=20
-
-Any help is very much appreciated.  Many thanks,
-
-=20
-
-Ian
-
-=20
-
----
-
-Ian Liverton
-
-ICT Technician
+--ikeVEW9yuYc//A+q--
 
 
-Internal Virus Database is out-of-date.
-Checked by AVG Free Edition.=20
-Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 =
-00:00
-=20
-
-------=_NextPart_000_0047_01C8839A.365AC620
-Content-Type: text/html;
-	charset="windows-1250"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dwindows-1250">
-
-
-<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-p
-	{mso-margin-top-alt:auto;
-	margin-right:0cm;
-	mso-margin-bottom-alt:auto;
-	margin-left:0cm;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-span.EmailStyle18
-	{mso-style-type:personal-compose;
-	font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:612.0pt 792.0pt;
-	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Hi,<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I recently purchased two Nova T-500 (as far as I can =
-tell it&#8217;s
-not one of the diversity range) cards one is the 99101 LF rev D8B5 and =
-one is
-the 99102 LF rev C1B5.&nbsp; The 99101 LF is detected, the other is =
-not.&nbsp;
-The only difference I can see is the postfix of the Dib 0700 =
-chips.&nbsp; The
-working one is the Dib0700C-XCXXa-G and the other is =
-Dib0700-1211b-G.&nbsp; With
-only the undetected card in, there is no mention of the dib0700 in dmesg =
-and
-lspci shows:<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>02:05.0 USB Controller: VIA Technologies, Inc. =
-VT82xxxxx
-UHCI USB 1.1 Controller (rev 61)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>02:05.1 USB Controller: VIA Technologies, Inc. =
-VT82xxxxx
-UHCI USB 1.1 Controller (rev 61)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>02:05.2 USB Controller: VIA Technologies, Inc. USB =
-2.0 (rev
-63)<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Which I presume is the VT6212L on the =
-cards.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Is there something different I need to do for the =
-second
-card or is it just not supported? Since I can get them both to work with =
-the
-supplied Hauppauge software under Windows I am assuming it is not a =
-faulty
-card.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Any help is very much appreciated.&nbsp; Many =
-thanks,<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Ian<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
-style=3D'font-size:
-12.0pt'>---<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
-style=3D'font-size:
-12.0pt'>Ian Liverton<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
-style=3D'font-size:
-12.0pt'>ICT Technician<o:p></o:p></span></font></p>
-
-</div>
-
-</body>
-
-</html>
-<BR>
-
-<P><FONT SIZE=3D2>Internal Virus Database is out-of-date.<BR>
-Checked by AVG Free Edition.<BR>
-Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 =
-00:00<BR>
-</FONT> </P>
-
-------=_NextPart_000_0047_01C8839A.365AC620--
-
-
-
---===============0615895140==
+--===============1674957499==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -291,4 +91,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0615895140==--
+--===============1674957499==--
