@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DHUaff016138
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 13:30:36 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2DHTvws002386
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 13:29:58 -0400
-Received: by ug-out-1314.google.com with SMTP id t39so489476ugd.6
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 10:29:57 -0700 (PDT)
-Date: Thu, 13 Mar 2008 17:29:51 +0000
-From: Steve Dodd <anarchetic@gmail.com>
-To: r bartlett <techwritebos@yahoo.com>
-Message-ID: <20080313172951.441521bb@xubuntu>
-In-Reply-To: <593189.25901.qm@web56404.mail.re3.yahoo.com>
-References: <593189.25901.qm@web56404.mail.re3.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m23I8tuK002251
+	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 13:08:55 -0500
+Received: from QMTA05.emeryville.ca.mail.comcast.net
+	(qmta05.emeryville.ca.mail.comcast.net [76.96.30.48])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m23I8K5Z016925
+	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 13:08:20 -0500
+Message-ID: <47CC3E8D.4070801@personnelware.com>
+Date: Mon, 03 Mar 2008 12:08:13 -0600
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <47CB2689.3010707@personnelware.com>
+	<47CB6801.4060503@personnelware.com>
+In-Reply-To: <47CB6801.4060503@personnelware.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: The final inch...
+Subject: Re: vivi.c stuck my CPU
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,19 +28,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 12 Mar 2008 19:17:22 -0700 (PDT), r bartlett <techwritebos@yahoo.com> wrote:
+> If someone will point me in the right direction, I'll write a test app 
+> to reproduce this.
 
-> Are there any command line things I can type to tune to a particular channel and watch it for a while?  
-> 
-> Can I use Mplayer, Kaffeine, or Xine?
+I see Brandon beat me to it.
 
-Yup - I use mplayer and (g)xine, the versions of both in Ubuntu are built with DVB support, though I find mplayer a little flaky. Copy (or link) your channels.conf to ~/.mplayer or ~/.xine, then simply start one or the other with a MRL of the form:
-
-dvb://<channel> 
-
-(Remember to escape spaces in the channel name with a backslash, or put the whole thing in double quotes.)
-
-Steve
+Carl K
 
 --
 video4linux-list mailing list
