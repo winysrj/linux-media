@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.176])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dmlb2000@gmail.com>) id 1JVz7h-0002yX-Tj
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 02:05:46 +0100
-Received: by el-out-1112.google.com with SMTP id o28so2449375ele.2
-	for <linux-dvb@linuxtv.org>; Sun, 02 Mar 2008 17:05:41 -0800 (PST)
-Message-ID: <9c21eeae0803021705g13913d49m796e3398682fdee1@mail.gmail.com>
-Date: Sun, 2 Mar 2008 17:05:41 -0800
-From: "David Brown" <dmlb2000@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <47C82112.3080404@linuxtv.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1JWGkx-00033h-MI
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 20:55:28 +0100
+Message-ID: <47CC57A9.3060403@gmail.com>
+Date: Mon, 03 Mar 2008 23:55:21 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <9c21eeae0802282219r4280de1ex6d47a5be2759fb52@mail.gmail.com>
-	<47C82112.3080404@linuxtv.org>
+To: David BERCOT <david.bercot@wanadoo.fr>
+References: <20080303145054.1ecda583@wanadoo.fr>
+In-Reply-To: <20080303145054.1ecda583@wanadoo.fr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx23885 status?
+Subject: Re: [linux-dvb] Is my CI broken ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,30 +25,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  All patches welcome, just submit them to this list.
+David BERCOT wrote:
+> Hi,
+> 
+> Before buying a new CI for my TT S2-3200, I'd like to know if it is
+> really broken...
+> 
+> After the installation of multiproto, I have this error :
+> saa7146: register extension 'budget_ci dvb'.
+> ACPI: PCI Interrupt 0000:05:01.0[A] -> GSI 22 (level, low) -> IRQ 22
+> saa7146: found saa7146 @ mem ffffc20001046c00 (revision 1, irq 22) (0x13c2,0x1019).
+> saa7146 (0): dma buffer size 192512
+> DVB: registering new adapter (TT-Budget S2-3200 PCI)
+> adapter has MAC addr = 00:d0:5c:0b:a5:8b
+> input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
+> dvb_ca_en50221_init
+> budget_ci: CI interface initialised
+> CAMCHANGE IRQ slot:0 change_type:1
+> dvb_ca_en50221_thread_wakeup
+> dvb_ca_en50221_thread
+> ...stb0899...
+> stb0899_attach: Attaching STB0899
+> stb6100_attach: Attaching STB6100
+> DVB: registering frontend 0 (STB0899 Multistandard)...
+> dvb_ca adaptor 0: PC card did not respond :(
+> 
+> Do you think I have to change my CI or is it an installation error ?
 
-Okay here's a patch... got rid of the dmesg output I was having...
+Just check whether it is the cable before going in for a new daughterboard.
 
-diff -r 85708d2698cd linux/drivers/media/video/cx23885/cx23885-video.c
---- a/linux/drivers/media/video/cx23885/cx23885-video.c Tue Jan 22
-22:22:08 2008 -0500
-+++ b/linux/drivers/media/video/cx23885/cx23885-video.c Sun Mar 02
-16:59:34 2008 -0800
-@@ -160,6 +160,14 @@ static struct cx23885_fmt formats[] = {
-                        ColorFormatWSWAP,
- #endif
-                .depth    = 32,
-+               .flags    = FORMAT_FLAGS_PACKED,
-+       }, {
-+               .name     = "4:2:0, packed, YV12",
-+               .fourcc   = V4L2_PIX_FMT_YVU420,
-+#if 0
-+               .cxformat = ColorFormatYUY2,
-+#endif
-+               .depth    = 12,
-                .flags    = FORMAT_FLAGS_PACKED,
-        }, {
-                .name     = "4:2:2, packed, YUYV",
+Regards,
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
