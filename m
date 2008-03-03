@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54])
+Received: from el-out-1112.google.com ([209.85.162.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1Jawem-0005kY-4k
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 18:28:28 +0100
-Received: from localhost (78.12.42.113) by joe.mail.tiscali.it (7.3.132)
-	id 47D64A6C00400119 for linux-dvb@linuxtv.org;
-	Sun, 16 Mar 2008 18:27:48 +0100
-Date: Sun, 16 Mar 2008 18:26:18 +0100
-From: insomniac <insomniac@slackware.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080316182618.2e984a46@slackware.it>
-Mime-Version: 1.0
-Subject: [linux-dvb] New unsupported device
+	(envelope-from <dmlb2000@gmail.com>) id 1JVz7h-0002yX-Tj
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 02:05:46 +0100
+Received: by el-out-1112.google.com with SMTP id o28so2449375ele.2
+	for <linux-dvb@linuxtv.org>; Sun, 02 Mar 2008 17:05:41 -0800 (PST)
+Message-ID: <9c21eeae0803021705g13913d49m796e3398682fdee1@mail.gmail.com>
+Date: Sun, 2 Mar 2008 17:05:41 -0800
+From: "David Brown" <dmlb2000@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <47C82112.3080404@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <9c21eeae0802282219r4280de1ex6d47a5be2759fb52@mail.gmail.com>
+	<47C82112.3080404@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx23885 status?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +29,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi to everyone on the list,
-this is my first post on the mailing list. I landed here after a lot of
-searching for a working driver for my DVB-T USB stick. I bought a
-Pinnacle PCTV Nano Stick (code: 73e) with HD capabilities, and I
-discovered that it came on the market very recently (less than one month
-ago).
-As long as no google search, nor post search on linux-dvb mailing list
-had success, it looks this is my last chance to get my card working on
-GNU/Linux.
+>  All patches welcome, just submit them to this list.
 
-Here is the (actually useless) output I get from dmesg:
-usb 1-1: new high speed USB device using ehci_hcd and address 5
-usb 1-1: configuration #1 chosen from 1 choice
+Okay here's a patch... got rid of the dmesg output I was having...
 
-and here is my lsusb -v output about the card:
-http://insomniac.slackware.it/lsusb.pinnacle.txt
-
-In the hope that there's a light at the end of the tunnel, I thank you
-all for your patience and your work.
-
-Best regards,
--- 
-Andrea Barberio
-
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
+diff -r 85708d2698cd linux/drivers/media/video/cx23885/cx23885-video.c
+--- a/linux/drivers/media/video/cx23885/cx23885-video.c Tue Jan 22
+22:22:08 2008 -0500
++++ b/linux/drivers/media/video/cx23885/cx23885-video.c Sun Mar 02
+16:59:34 2008 -0800
+@@ -160,6 +160,14 @@ static struct cx23885_fmt formats[] = {
+                        ColorFormatWSWAP,
+ #endif
+                .depth    = 32,
++               .flags    = FORMAT_FLAGS_PACKED,
++       }, {
++               .name     = "4:2:0, packed, YV12",
++               .fourcc   = V4L2_PIX_FMT_YVU420,
++#if 0
++               .cxformat = ColorFormatYUY2,
++#endif
++               .depth    = 12,
+                .flags    = FORMAT_FLAGS_PACKED,
+        }, {
+                .name     = "4:2:2, packed, YUYV",
 
 _______________________________________________
 linux-dvb mailing list
