@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
+Received: from gv-out-0910.google.com ([216.239.58.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1JeWlU-0000fZ-8x
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 15:38:10 +0100
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m2QEc3xe009699
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 14:38:03 GMT
-Message-ID: <47EA5FB7.2000901@koala.ie>
-Date: Wed, 26 Mar 2008 14:37:43 +0000
-From: Simon Kenyon <simon@koala.ie>
+	(envelope-from <mariofutire@googlemail.com>) id 1JWGf7-0002X0-BX
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 20:49:31 +0100
+Received: by gv-out-0910.google.com with SMTP id o2so189137gve.16
+	for <linux-dvb@linuxtv.org>; Mon, 03 Mar 2008 11:49:18 -0800 (PST)
+Message-ID: <47CC5636.3030807@googlemail.com>
+Date: Mon, 03 Mar 2008 19:49:10 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-To: DVB ML <linux-dvb@linuxtv.org>
-References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-In-Reply-To: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
+To: linux-dvb@linuxtv.org
+References: <mailman.7.1204534746.20845.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.7.1204534746.20845.linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Help using DMX_SET_BUFFER_SIZE
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,28 +26,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Aidan Thornton wrote:
-> I've been attempting to get something that can cleanly support DVB-T
-> on the original HVR-900, based on up-to-date v4l-dvb and Markus'
-> em2880-dvb (that is to say, something that could hopefully be cleaned
-> up to a mergable state and won't be too hard to keep updated if it
-> doesn't get merged). The current (somewhat messy, still incomplete)
-> tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
-> particularly bad. I don't have access to DVB-T signals at the moment,
-> but as far as I can tell, it works. Anyone want to test it? General
-> comments? (Other hardware will be added if I have the time,
-> information, and someone willing to test it.)
->   
+linux-dvb-request@linuxtv.org wrote:
+> 
+> 
+> Possible solutions:
+> 
+> 2) enable the resize of a live ring buffer.
+> Currently:
+> 
+> dvb_dvr_write DOES     lock the mutex (dmxdev->mutex)
+> dvb_dvr_read  DOES NOT lock the mutex (the code to lock the mutex is there, but commented out, why?)
+> 
+> Is it enough to lock the mutex in dvb_dvr_read?
 
-it build and installs fine for me on 2.6.24
-it doesn't work with my device (a terratec cinergy xs hybrid device)
-i will have a look at the weekend at the code (real life intrudes)
+No, it isn't!
 
-thank you for this.
+dvb_dmxdev_ts_callback is the function writing in the dvr_buffer, not dvb_dvr_write (which must be a 
+system call I think).
 
-regards
---
-simon
+Things get more complicated... I've understood that a callback function cannot sleep, so a mutex 
+must not be used.
+And a relocation of the buffer counts as reading and writing.
+
+> Then the new function to change the buffer size could just lock the mutex, change the size and unlock.
+
+How many readers of the dvr can there be? It looks like only 1 (otherwise the mutex would not be 
+commented out).
+Is it legal to write an application that reads dvr from one thread/process, and calls other ioctl 
+from an other? I guess not, for the same reason why it cannot read from 2 threads.
+
+So, if the above is true, I only need to synchronize with dvb_dmxdev_ts_callback, i.e. acquire the 
+same spin_lock.
+
+Does it make sense?
+
+PS: It seems that I am replying my own emails... and I do that while I discover and understand more 
+about the architecture of the dvr/demux.
+What is a good starting point to get an idea about all those synchronization issues?
+My next reading is the "Unreliable Guide To Locking".
+
+More to follow...
+
 
 _______________________________________________
 linux-dvb mailing list
