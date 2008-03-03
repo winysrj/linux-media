@@ -1,16 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47E796E6.3080600@iki.fi>
-Date: Mon, 24 Mar 2008 13:56:22 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from hydra.gt.owl.de ([195.71.99.218])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <flo@rfc822.org>) id 1JWBft-0004u6-Bk
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 15:29:55 +0100
+Date: Mon, 3 Mar 2008 15:23:43 +0100
+From: Florian Lohoff <flo@rfc822.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <20080303142343.GG12328@paradigm.rfc822.org>
+References: <47CBE8FD.9030303@gmail.com>
+	<20080303132157.GA9749@paradigm.rfc822.org>
+	<47CBFFFD.1020902@gmail.com> <47CC0201.5010701@gmail.com>
+	<20080303134823.GB12328@paradigm.rfc822.org>
+	<47CC055C.5030705@gmail.com>
+	<20080303140316.GD12328@paradigm.rfc822.org>
+	<47CC0896.3050308@gmail.com>
+	<20080303141358.GF12328@paradigm.rfc822.org>
+	<47CC0A32.1040807@gmail.com>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
-	<47DC6E0A.9000904@linuxtv.org>	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>	<47DC8012.3050809@linuxtv.org>	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>	<47DC93D0.3090904@linuxtv.org>
-	<47DF2576.7080907@iki.fi>	<abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>	<47E1CC07.8050006@iki.fi>
-	<abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
-In-Reply-To: <abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+In-Reply-To: <47CC0A32.1040807@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,39 +27,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1246466912=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
->>  Thanks, I removed obsolete trees.
-> 
-> I've tried it with the updated af9015 branch, it works perfectly, the
-> lock LED has even decided to come on.
-> There's one problem which I've noticed from the start, while it's
-> plugged in, random number key presses
-> are being registered. Any ideas about what could be causing that and
-> how to stop it? lirc is disabled.
-> I'm guessing it's something to do with this from dmesg:
-> 
-> input: Leadtek WinFast DTV Dongle Gold as /class/input/input21
-> input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
-> usb-0000:00:02.1-2
-> 
-> Jarryd.
 
-Yes, it is remote controller. It should be disabled or enabled regarding 
-eeprom value. But I don't know how to do that. Anyhow, you can do that 
-manually setting option dvb_usb disable_rc_polling=1
+--===============1246466912==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BzCohdixPhurzSK4"
+Content-Disposition: inline
 
-regards
-Antti
--- 
-http://palosaari.fi/
+
+--BzCohdixPhurzSK4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Mar 03, 2008 at 06:24:50PM +0400, Manu Abraham wrote:
+> >On Mon, Mar 03, 2008 at 06:17:58PM +0400, Manu Abraham wrote:
+> >>>You mean tune and then check if there is a SIGNAL and possibly a LOCK?=
+ I
+> >>>do that yes ... But first comes the tune - On an uninitialized state of
+> >>>a demod/tuner i would not expect to see any signal.
+> >>How do you expect to look for a signal level when using a rotor, for a=
+=20
+> >>real life example ?
+> >
+> >In case of a rotor i expect the diseq commands to go out - tune the
+> >frontend for the right modulation and frequency and then monitor the
+> >signal level while turning the dish.
+> >
+> >This needs tuning - right ?
+>=20
+> No, this is fed from the AGC1 path1 integrator and the AGC1 path2=20
+> integrator.
+
+Okay - you say turning the dish does not need tuning - so i issue
+the DISEQ ioctls and start reading the signal level - whats the point
+and what is this an argument for?
+
+- How can this excuse ignoring the delivery in the DVBFE_SET_PARAMS?
+- How can this justify setting the delivery system in DVBFE_GET_INFO ?
+
+Flo
+--=20
+Florian Lohoff                  flo@rfc822.org             +49-171-2280134
+	Those who would give up a little freedom to get a little=20
+          security shall soon have neither - Benjamin Franklin
+
+--BzCohdixPhurzSK4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHzAnvUaz2rXW+gJcRAsxPAJ9hwV2WFg2isOGlUxw6rxoPkZak4wCfazfW
+T2/IRvypKVwKW3yEoIIGBlo=
+=NTcW
+-----END PGP SIGNATURE-----
+
+--BzCohdixPhurzSK4--
+
+
+--===============1246466912==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1246466912==--
