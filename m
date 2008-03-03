@@ -1,14 +1,35 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DA01B3.8050502@iki.fi>
-Date: Fri, 14 Mar 2008 06:40:19 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from holly.castlecore.com ([89.21.8.102])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lists@philpem.me.uk>) id 1JW4kq-0000hF-GN
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 08:06:32 +0100
+Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
+	by holly.castlecore.com with esmtp (Exim 4.68)
+	(envelope-from <lists@philpem.me.uk>) id 1JW4kl-0000XK-KC
+	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 07:06:27 +0000
+Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
+	by wolf.philpem.me.uk (Postfix) with ESMTP id B68A51AFD9D5
+	for <linux-dvb@linuxtv.org>; Mon,  3 Mar 2008 07:07:15 +0000 (GMT)
+Message-ID: <47CBA377.6030304@philpem.me.uk>
+Date: Mon, 03 Mar 2008 07:06:31 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D847AC.9070803@linuxtv.org>	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>	<47D86336.2070200@iki.fi>	<abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>	<abf3e5070803131607j1432f590p44b9b9c80f1f36e7@mail.gmail.com>	<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
-	<abf3e5070803132033x13ac35fax38fc427ce1e0a040@mail.gmail.com>
-In-Reply-To: <abf3e5070803132033x13ac35fax38fc427ce1e0a040@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: linux-dvb@linuxtv.org
+References: <47A98F3D.9070306@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+	<47C4661C.4030408@philpem.me.uk>
+	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
+	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
+	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
+	<1204356192.6583.0.camel@youkaida> <47CA609F.3010209@philpem.me.uk>
+	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
+	<47CAB51F.9030103@philpem.me.uk>
+	<1204479088.6236.32.camel@youkaida>
+	<47CAEFC3.2020305@philpem.me.uk>
+	<gemini.jx4lel00dxyzk03qb.linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <gemini.jx4lel00dxyzk03qb.linux@youmustbejoking.demon.co.uk>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,15 +43,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> Somewhere along the way demod_address in a struct is set to AF9015_I2C_DEMOD
-> which is 0x38. Is that what you wanted?
+Darren Salt wrote:
+> Which revision?
 
-No, it is demodulator i2c-address.
+Huh. Rev 62 UHCI and Rev 65 EHCI. Maybe it's not the USB HA then.
 
-Antti
+> I have a VIA-based USB card in one computer here; I've had no problems with
+> it whatsoever. It shows up as:
+> 
+> 00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 61)
+> 00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 61)
+> 00:10.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
+
+There's a VIA southbridge in this machine; it actually works quite nicely with 
+most things - exceptions being my Icybox IB380 hard drive enclosure and a 
+Minolta film scanner.
+
 -- 
-http://palosaari.fi/
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
