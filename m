@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2C2Cqg3014071
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:12:52 -0400
-Received: from web56404.mail.re3.yahoo.com (web56404.mail.re3.yahoo.com
-	[216.252.111.83])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2C2CK2g032030
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:12:21 -0400
-Date: Tue, 11 Mar 2008 19:12:15 -0700 (PDT)
-From: r bartlett <techwritebos@yahoo.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Message-ID: <274117.44127.qm@web56404.mail.re3.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: Quick roadmap...
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m24EQ23T004691
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 09:26:02 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m24EPUDu029672
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 09:25:30 -0500
+Date: Tue, 4 Mar 2008 11:25:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Carl Karsten <carl@personnelware.com>
+Message-ID: <20080304112519.6f4c748c@gaivota>
+In-Reply-To: <47C8A0C9.4020107@personnelware.com>
+References: <47C8A0C9.4020107@personnelware.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] vivi: registered as /dev/video%d
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,20 +27,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, after some kind folks advised me to try ATSC HD reception, I've taken the plunge and signed up for digital cable with Comcast.  I've got the little HD box, a remote...and my trusty WinTV-HVR-1800 ready to go.
+Carl,
 
-The card seems to be properly installed, and my "dmesg" file shows the card is recognized, and I have a "/dev/dvb/adapter0" (and demux0, etc.).  
+On Fri, 29 Feb 2008 18:18:17 -0600
+Carl Karsten <carl@personnelware.com> wrote:
 
-When the digital signal starts coming in tomorrow, could someone give me a quick list of steps I need to take to watch tv?  I've been pouring over the documents and How-tos and don't really know where to start.  Will Kaffeine's "scan" work for finding channels?  Do I need to use "scandvb"?  Will I see a "video0" device and be able to watch tv with Tvtime?  
+> Now that vivi can be something other than /dev/video0, it should tell us what it 
+>   is.  This works for n_devs>1.
+> 
+> sudo modprobe vivi n_devs=3
+> 
+> [115041.616401] vivi: V4L2 device registered as /dev/video0
+> [115041.616445] vivi: V4L2 device registered as /dev/video1
+> [115041.616481] vivi: V4L2 device registered as /dev/video2
+> [115041.616486] Video Technology Magazine Virtual Video Capture Board 
+> successfully loaded.
 
-I don't need to _record_ tv...just watch it.  And I'm not setting up a dedicated PVR...just trying to get a signal to my computer that I can watch when I feel like procrastinating.
+Please, re-send your patches, adding your SOB. Please numberate them with something like 
+[PATCH 1/3] for me to apply at the proper order.
 
-Thanks for any and all help...
+Cheers,
+Mauro
 
-
-       
----------------------------------
-Be a better friend, newshound, and know-it-all with Yahoo! Mobile.  Try it now.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
