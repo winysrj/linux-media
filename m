@@ -1,16 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.183])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JZvCq-0003LH-J6
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 22:43:25 +0100
-Received: by py-out-1112.google.com with SMTP id a29so4130164pyi.0
-	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 14:43:11 -0700 (PDT)
-Message-ID: <47D99FE8.80903@googlemail.com>
-Date: Thu, 13 Mar 2008 21:43:04 +0000
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JWZsM-0007Yc-4h
+	for linux-dvb@linuxtv.org; Tue, 04 Mar 2008 17:20:27 +0100
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JWZsG-0006dx-Lb
+	for linux-dvb@linuxtv.org; Tue, 04 Mar 2008 16:20:16 +0000
+Received: from 200-207-206-233.dsl.telesp.net.br ([200.207.206.233])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Tue, 04 Mar 2008 16:20:16 +0000
+Received: from fragabr by 200-207-206-233.dsl.telesp.net.br with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Tue, 04 Mar 2008 16:20:16 +0000
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  Implementing support for multi-channel
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Date: Tue, 4 Mar 2008 13:19:54 -0300
+Message-ID: <20080304131954.3b491680@tux.abusar.org.br>
+References: <2f1708600803040759n2644b3eco36646603e0bbaf53@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] What Module have to be loaded for SkyStar2 PCI Rev.
+	2.6
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,31 +34,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
- > -----Original Message-----
- > Thank you everybody for the answers so far, I do have enough software-based
- > solutions to start testing.
- > However, there's still the question: can filtering be done in the driver?
+On Tue, 4 Mar 2008 22:59:23 +0700
+"Ramadhian Moestafa" <ramadhian@gmail.com> wrote:
 
-Have you read my last post?
+> What Module have to be loaded for SkyStar2 PCI Rev. 2.6
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024456.html
+b2c2-flexcop-pci
 
-When I talk about filter, demux, dvr, this is all in the kernel driver for the dvb.
+-- 
+Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
+http://u-br.net http://www.abusar.org/FELIZ_2008.html
+Liquid Tension Experiment - "Liquid Dreams" (Liquid Tension Experiment
+2)
 
-You can find here an example of how to open the demux to get 1 PID.
-You can run it multiple times and get as many streams as you want
 
-http://www.audetto.pwp.blueyonder.co.uk/dvb.cpp
-
- > Are there any drivers that support this or which dvb-api-functions need to
- > be implemented?
-
-If you want to extend the driver for the dvb, I'd like to be able to set a filter in the demux for 
-more that 1 pid at a time.
-
-Good luck.
-
-Andrea
 
 _______________________________________________
 linux-dvb mailing list
