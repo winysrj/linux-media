@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DC8045.4070204@iki.fi>
-Date: Sun, 16 Mar 2008 04:04:53 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
-	<47DC6E0A.9000904@linuxtv.org>	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>	<47DC7A51.7040103@iki.fi>
-	<abf3e5070803151901o793c92b5u93dd61d3ff6c8db1@mail.gmail.com>
-In-Reply-To: <abf3e5070803151901o793c92b5u93dd61d3ff6c8db1@mail.gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Received: from mail-in-13.arcor-online.net ([151.189.21.53])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1JWLWy-0003ss-Iq
+	for linux-dvb@linuxtv.org; Tue, 04 Mar 2008 02:01:20 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Christoph Pfister <christophpfister@gmail.com>
+In-Reply-To: <200803032213.35430.christophpfister@gmail.com>
+References: <20080301161419.GB12800@paradigm.rfc822.org>
+	<47CBE8FD.9030303@gmail.com>
+	<20080303132157.GA9749@paradigm.rfc822.org>
+	<200803032213.35430.christophpfister@gmail.com>
+Date: Tue, 04 Mar 2008 01:52:39 +0100
+Message-Id: <1204591959.3385.11.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,24 +22,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> Also there's a blue light that comes on in windows when I tune, but it didn't
-> come on in linux when tuned. Would it be possible to work
-> out how to make that light come on when it has successfully tuned?
-
-Should be peace of cake to fix. I will check it later...
-
-Antti
--- 
-http://palosaari.fi/
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gTW9udGFnLCBkZW4gMDMuMDMuMjAwOCwgMjI6MTMgKzAxMDAgc2NocmllYiBDaHJpc3RvcGgg
+UGZpc3RlcjoKPiBBbSBNb250YWcgMDMgTcOkcnogMjAwOCBzY2hyaWViIEZsb3JpYW4gTG9ob2Zm
+Ogo+IDxzbmlwPgo+ID4gSSBoYXZlIG5vIHByb2JsZW0gd2l0aCBiZWVpbmcgYWJsZSB0byBxdWVy
+eSBzdGF0cyAtIEkgaGF2ZSBhIHByb2JsZW0KPiA+IHRoYXQgYSBHRVQgY2FsbCBjaGFuZ2VzIGlu
+IGtlcm5lbCBzdGF0ZSwgYW5kIHRoZSBTRVQgY2FsbHMgb3B0aW9ucyBnZXQKPiA+IGlnbm9yZWQg
+d2hlcmUgaXQgc2hvdWxkIGJlIHRoZSBvdGhlciB3YXkgcm91bmQuCj4gPgo+ID4gUHJvYmFibHkg
+eW91IGNhbiB0ZWxsIG1lIHRoZSByZWFzb24gdGhlIGRlbGl2ZXJ5IG9wdGlvbiBpbiB0aGUKPiA+
+IGR2YmZlX3BhcmFtcyBnZXRzIGlnbm9yZWQgb24gYSBEVkJGRV9TRVRfUEFSQU1TID8gSSBkb250
+IHNlZSB0aGUKPiA+IHJhdGlvbmFsIGJlaGluZCB0aGlzLi4uIFRoZSBvcHRpb24gaXMgdGhlcmUg
+LSBjb3JyZWN0bHkgZmlsbGVkIGFuZAo+ID4gZ2V0cyBpZ25vcmVkIG9yIGJldHRlciBvdmVycmlk
+ZW4gYnkgcHJldmlvdXMgaW9jdGxzIC0gRXZlcnkgb3RoZXIKPiA+IHBhcmFtZXRlciBmb3IgdGhl
+IGRlbGl2ZXJ5IG1vZGUgaXMgaW4gdGhhdCBzdHJ1Y3QuCj4gPgo+ID4gUGxlYXNlIHRlbGwgbWUg
+d2h5IHRoZSBHRVRfSU5GTyBkZWxzeXMvZGVsaXZlcnkgb3B0aW9uIGdldHMgc2V0IGFzIHRoZSBu
+ZXh0Cj4gPiB0byB1c2UgZGVsaXZlcnkgbW9kZS4gRXZlbiBpZiBpIHdhbnQgdG8gaGF2ZSBzdGF0
+cyBqdXN0IGRvbnQgZmlsbCB0aGVtCj4gPiB3aGVuIHRoZSBkZWxzeXMgZG9lcyBub3QgbWF0Y2gg
+dGhlIGN1cnJlbnRseSBzZXQgZGVsc3lzIGFzIHRoYXQgd291bGQKPiA+IGJlIHRoZSByaWdodCB0
+aGluZyAtIFF1ZXJ5aW5nIERWQi1TMiBzdGF0cyB3aGVuIHR1bmVkIHRvIERWQi1TIHNob3VsZAo+
+ID4gcmV0dXJuIG5vdGhpbmcgYXMgdGhlcmUgYXJlIG5vIHN0YXRzIC0gYnV0IHNldHRpbmcgdGhl
+IGRlbHN5cyB0byBEVkItUwo+ID4gaXMgQlJPS0VOIGFzIGkgYXNrZWQgZm9yIHN0YXRzIG5vdCB0
+byBjaGFuZ2UgdGhlIGRlbHN5cy4KPiA+Cj4gPiA+IEFkZGl0aW9uYWxseSwgdGhpcyB3YXMgcXVp
+dGUgZGlzY3Vzc2VkIGluIGEgbG9uZyBkaXNjdXNzaW9uIGEgd2hpbGUKPiA+ID4gYmFjay4gWW91
+IG1pZ2h0IGxpa2UgdG8gcmVhZCB0aHJvdWdoIHRob3NlIGFzIHdlbGwuCj4gPgo+ID4gSSBkaWQg
+cGFydGlhbGx5IG9mIGl0IC4uLiBhbmQgaSBmb3VuZCB0aGUgc2FtZSBjb3JuZXJzIG9mIHRoaXMg
+QVBJIHRvIGJlCj4gPiBicm9rZW4gYnkgZGVzaWduLgo+ID4KPiA+ID4gTWF5YmUgRFZCRkVfR0VU
+X0lORk8gY2FuIHByb2JhYmx5IGJlIHJlbmFtZWQgdG8gRFZCRkVfSU5GTyBpZiBpdCByZWFsbHkK
+PiA+ID4gaXRjaGVzIHNvIG11Y2guCj4gPgo+ID4gTm8gLSBpdHMgbXVjaCBtb3JlIGZ1bmRhbWVu
+dGFsIHByb2JsZW0gLi4uIE9wdGlvbnMgYmVsb25naW5nCj4gPiB0b2dldGhlciBhcmUgcGFzc2Vk
+IGluIHNlcGVyYXRlIGlvY3RscyBpbiBub24gb2J2aW91cyAocmVhZDogc3RyYW5nZSkKPiA+IHdh
+eXMgaW50byB0aGUga2VybmVsIChkZWxpdmVyeSBzeXN0ZW0gdmlhIEdFVF9JTkZPIGFuZCBkZWxp
+dmVyeSBvcHRpb25zCj4gPiB2aWEgU0VUX1BBUkFNUykuCj4gPgo+ID4gT3B0aW9ucyB3aGljaCBh
+cmUgdG9nZXRoZXIgaW4gdGhlIHNhbWUgc3RydWN0IGFyZSBub3QgdXNlZCB0b2dldGhlciBlLmcu
+Cj4gPiBkZWxpdmVyeSBtb2RlIGFuZCBwYXJhbWV0ZXJzIGFyZSBpbiB0aGUgc2FtZSBzdHJ1Y3Qg
+d2hpY2ggZ2V0IHBhc3NlZCBieQo+ID4gYW4gaW9jdGwgYnV0IGdldCBwYXJ0aWFsbHkgaWdub3Jl
+ZCBvciBiZXR0ZXIgb3ZlcnJpZGRlbiBieSBwcmV2aW91cwo+ID4gaW9jdGxzIGluIG5vbiBvYnZp
+b3VzIHdheXMuLi4KPiA+Cj4gPiBBcyBpIHNhaWQgLSBpbmNvaGVyZW50IG1lc3MgZnJvbSB0aGUg
+dXNlciBhcGkgLi4uCj4gCj4gKzEKPiAKPiA+IEZsbwo+IAo+IENocmlzdG9waAo+IAoKSSBjYW4n
+dCBsZXQgaXQsIHNvbWV0aGluZyB0b3RhbGx5IE9UIC4uLgoKVGhlICJBSVJCVVMiIGNsYWltZWQg
+bmVhcmx5IGNyYXNoZWQgaW4gSGFtYnVyZyByZWNlbnRseSwKZHVyaW5nIEVNTUEsIHdhcyBpbiB0
+b3RhbGx5IG5vcm1hbCBmbGlnaHQgb3BlcmF0aW9uLgoKQXQgbGVhc3QgdGhlIHBpbG90cyBkb24n
+dCBoYXZlIGFueSBndWlsdC4KClRoZSByZWFzb24gZm9yIGl0IHdhcywgc29tZSBtaWdodCB0aGlu
+ayBpdCBpcyBub3Qgbm9ybWFsLCB0aGF0IHRoZQpleHBlbnNlIHBlciBsb3N0IHBhc3NlbmdlciBp
+cyByZXN0cmljdGVkIHRvIHNvbWUgMTQwMDAgb2xkIGdlcm1hbiBtYXJrcywKSUlSQzopCgpDaGVl
+cnMsCkhlcm1hbm4KCgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
+Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
