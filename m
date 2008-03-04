@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DE1VfS007907
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 10:01:31 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m24DloZU008351
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 08:47:51 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2DE0jmO013385
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 10:00:45 -0400
-Date: Thu, 13 Mar 2008 11:00:19 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m24DlHpT032273
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 08:47:17 -0500
+Date: Tue, 4 Mar 2008 10:47:06 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: emhn@usb.ve
-Message-ID: <20080313110019.0181297c@gaivota>
-In-Reply-To: <1205409776.20876.34.camel@trillian.ius.cc>
-References: <1205409776.20876.34.camel@trillian.ius.cc>
+To: Brandon Philips <brandon@ifup.org>
+Message-ID: <20080304104706.38666b7d@gaivota>
+In-Reply-To: <20080303210650.GA16515@plankton.ifup.org>
+References: <47C14336.9030903@gmail.com> <20080226163918.GB9178@plankton>
+	<20080227061107.2d5f9fc1@areia>
+	<200803021242.58744.tobias.lorenz@gmx.net>
+	<20080303210650.GA16515@plankton.ifup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Support for a 16-channel bt878 card
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
+	v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [v4l-dvb-maintainer] [PATCH] v4l2: add hardware frequency seek
+ ioctl interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,24 +32,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 13 Mar 2008 07:32:56 -0430
-Ernesto Hernández-Novich <emhn@usb.ve> wrote:
+On Mon, 3 Mar 2008 13:06:50 -0800
+Brandon Philips <brandon@ifup.org> wrote:
 
-> Signed-off-by: Ernesto Hernández-Novich <emhn@usb.ve>
+> On 12:42 Sun 02 Mar 2008, Tobias Lorenz wrote:
+> > Additionally these parameters are only used by the seek algorithm: -
+> > RSSI Seek Threshold (range: 0..254, 254=highest threshold) -
+> > Signal-Noise-Ratio (range: 0..15, 15=higest SNR ratio) - FM-Impulse
+> > Noise Detection Counter (range: 0..15, 15=best audio quality)
+> > 
+> > Propably it is wise to give the user space applications the possiblity
+> > to change these parameters at run time (ioctl).  
+> >
+> > Else I'll implement them as module parameters, too.
 > 
+> Please don't implement things like this as module parameters.  What
+> happens when you have two device plugged in and want different values?
 
-Applied, thanks. There were just a small CodingStyle error that I fixed on the
-applied patch. Please, run "make checkpatch" next time.
+Agreed.
 
-> I have made no efforts yet to get audio working, but would appreciate
-> any pointers.
+> It would be far better to see these things defined per device in sysfs
+> if you can't manage an IOCTL.  However, in this case it should be an
+> IOCTL. 
 
-There are two possibilities:
-
-1) if the board has an audio chip, you'll have to use it and configure;
-2) otherwise, you just need to set the proper GPIO pins to enable audio. I suspect that this would be your case.
-This page may help you to figure out the proper values for GPIO:
-	http://www.linuxtv.org/v4lwiki/index.php/GPIO_pins
+The better would be to use VIDIOC_[G/S/ENUM]_CTRL to allow specifying those
+parameters.
 
 Cheers,
 Mauro
