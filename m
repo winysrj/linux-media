@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2A1A3Qt003415
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 21:10:03 -0400
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2A19URw025664
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 21:09:31 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-In-Reply-To: <Pine.LNX.4.58.0803091131430.6667@shell2.speakeasy.net>
-References: <patchbomb.1204999521@liva.fdsoft.se>
-	<Pine.LNX.4.58.0803091131430.6667@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Mon, 10 Mar 2008 02:01:29 +0100
-Message-Id: <1205110889.3402.11.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m24EMku1001803
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 09:22:46 -0500
+Received: from smtpout1.ngs.ru (smtpout1.ngs.ru [195.93.186.195])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m24EMAoH027137
+	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 09:22:11 -0500
+Received: from [192.168.3.4] (unknown [192.168.3.4])
+	(Authenticated sender: aptem@ngs.ru)
+	by smtp.ngs.ru (smtp) with ESMTP id 3FC2F3B87946
+	for <video4linux-list@redhat.com>;
+	Tue,  4 Mar 2008 20:22:07 +0600 (NOVT)
+Message-ID: <47CD5B18.3000409@ngs.ru>
+Date: Tue, 04 Mar 2008 20:22:16 +0600
+From: Bokhan Artem <APTEM@ngs.ru>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Frej Drejhammar <frej.drejhammar@gmail.com>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features
+Subject: how to disable nicam stereo on saa7134?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,36 +29,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Sonntag, den 09.03.2008, 11:32 -0700 schrieb Trent Piepho:
-> On Sat, 8 Mar 2008, Frej Drejhammar wrote:
-> 
-> > The cx2388x family of broadcast decoders all have features not enabled
-> > by the standard cx88 driver. This patch series adds module parameters
-> > allowing the chroma AGC and the color killer to be enabled. By default
-> > both features are disabled as in previous versions of the driver.
-> >
-> > The Chroma AGC and the color killer is sometimes needed when using
-> > signal sources of less than optimal quality.
-> 
-> This really should be done with controls, not more module parameters.
-> 
+I need to disable nicam stereo, if it's possible. When I pass "mono" via 
+v4l, the driver still tries to detect nicam stereo.
 
-This is a fully harmless example, still.
+kernel: saa7133[4]/audio: tvaudio thread status: 0x198029 [D/K NICAM,stereo]
+kernel: saa7133[4]/audio: detailed status: ######## VDSP # NICST ### 
+NICAM reserve sound # init done
 
-In general, we are flooded with patches currently, which seem to be
-clever, but those people have not even any hardware to test them and are
-easily happy to go over whole subsystems ...
-
-I would like to see them piss in their own shoes in the first place and
-not into ours.
-
-Cheers,
-Hermann
-
-
-
-
-
+May somebody help with saa7134 source code, possible with 
+saa7134-tvaudio.c?
 
 
 --
