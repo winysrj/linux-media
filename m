@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145])
+Received: from web23214.mail.ird.yahoo.com ([217.146.189.69])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JZQ8A-0003KH-Jc
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 13:32:32 +0100
-Date: Wed, 12 Mar 2008 07:47:53 -0400
-From: manu <eallaud@yahoo.fr>
+	(envelope-from <newspaperman_germany@yahoo.com>) id 1JX3Q4-0007Gp-U4
+	for linux-dvb@linuxtv.org; Thu, 06 Mar 2008 00:53:09 +0100
+Date: Thu, 6 Mar 2008 00:52:19 +0100 (CET)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
 To: linux-dvb@linuxtv.org
-References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
-	<abf3e5070803120331h5f31e5c2nf3d1b6493b6f98ab@mail.gmail.com>
-	<001a01c8842c$dfcb28c0$9f617a40$@com>
-In-Reply-To: <001a01c8842c$dfcb28c0$9f617a40$@com> (from ben@bbackx.com on
-	Wed Mar 12 06:36:04 2008)
-Message-Id: <1205322473l.5684l.0l@manu-laptop>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  Implementing support for multi-channel
+Message-ID: <450475.41254.qm@web23214.mail.ird.yahoo.com>
+Subject: [linux-dvb] B2C2 HW Pid filter not working for transponders with
+	very high SR
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,83 +17,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1761623912=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/12/2008 06:36:04 AM, Ben Backx wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Jarryd Beck [mailto:jarro.2783@gmail.com]
-> > Sent: 12 March 2008 11:32
-> > To: Ben Backx
-> > Cc: linux-dvb@linuxtv.org
-> > Subject: Re: [linux-dvb] Implementing support for multi-channel
-> > 
-> > 2008/3/12 Ben Backx <ben@bbackx.com>:
-> > >
-> > >
-> > >
-> > > Hello,
-> > >
-> > > I was wondering if there's some info to find on how to implement
-> (and
-> > test)
-> > > multi-channel receiving?
-> > >
-> > > It's possible, because dvb uses streams and the driver is
-> currently
-> > capable
-> > > to filter one channel, but how can I implement the support of
-> multi-
-> > channel
-> > > filtering?
-> > >
-> > > Is there perhaps an open-source driver supporting this that I can
-> > have a
-> > > look at?
-> > >
-> > 
-> > AFAIK tuners can already receive from multiple channels as long as
-> they
-> > are on the same transponder (I think that's the right word). So in
-> > Australia
-> > you can receive channel 7 and the channel 7 guide because they are
-> > broadcast together. But I don't think you can do anymore than that.
-> > 
-> > I think mythtv is capable of doing it so you could have a look at
-> that.
-> > 
-> > Jarryd.
-> 
-> 
-> The tuner-part is no problem indeed (as you said: as long as the
-> channels
-> are on the same transponder).
-> But for the moment: the driver-part is the problem, I don't think my
-> driver
-> supports the filtering of more than one channel at a time.
-> So my question is: which (existing) driver does support multi-channel
-> filtering? So I can have a look and see what modifications have to be
-> made
-> to my driver to implement multi-channel filtering.
-> 
+--===============1761623912==
+Content-Type: multipart/alternative; boundary="0-1050892191-1204761139=:41254"
+Content-Transfer-Encoding: 8bit
 
-What is done for now is that some (all?) drivers can send the full 
-stream and userspace apps do the demux of one or several channels 
-themselves. Mythtv is doing just that, I guess vdr also.
-HTH
-Bye
-Manu 
+--0-1050892191-1204761139=:41254
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+Hello!
+
+When I try transponders that use SR 30000 FEC 7/8 with VDR I get many dropouts. I think there are errors in hw or sw pid filtering.
+
+B2C2 chipset only works up to 42mbps the tested transponder has 48 mbps. So the transponder mustn't be opened completely to avoid losing packages.
+
+In windows it's working with ALTDVB 2.2 correctly while ALTDVB 2.1 has the same problems as linux + vdr.
+
+Transponders that have these problems can be found on Hellas Sat 2 at 39.0°E for example.
+
+kind regards 
+
+Newsy
 
 
+       
+---------------------------------
+  Lesen Sie Ihre E-Mails jetzt einfach von unterwegs.. 
+--0-1050892191-1204761139=:41254
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+Hello!<br><br>When I try transponders that use SR 30000 FEC 7/8 with VDR I get many dropouts. I think there are errors in hw or sw pid filtering.<br><br>B2C2 chipset only works up to 42mbps the tested transponder has 48 mbps. So the transponder mustn't be opened completely to avoid losing packages.<br><br>In windows it's working with ALTDVB 2.2 correctly while ALTDVB 2.1 has the same problems as linux + vdr.<br><br>Transponders that have these problems can be found on<font size="2"> </font><font face="Arial" size="2"><font face="Arial">Hellas Sat 2 at 39.<font face="Arial">0</font><font face="Arial">°E for example.</font></font></font><br><font face="Arial" size="2"><b><font face="Arial" size="5"><font face="Arial" size="5"><br></font></font></b><font face="Arial" size="5"><font face="Arial" size="5"><font size="2">kind regards <br><br>Newsy</font></font></font><b><font face="Arial" size="5"><font face="Arial" size="5"><br><br></font></font></b></font><p>&#32;
+      <hr size=1> 
+<a href="http://uk.rd.yahoo.com/evt=51524/*http://de.mobile.yahoo.com/interstitial?refer=e00127
+" target=_new> 
+<b>Lesen Sie Ihre E-Mails jetzt einfach von unterwegs.</b></a>. 
+--0-1050892191-1204761139=:41254--
 
 
+--===============1761623912==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1761623912==--
