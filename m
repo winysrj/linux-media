@@ -1,23 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
+Received: from machts.net ([213.133.110.14] helo=mail.machts.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JaBkx-0005BZ-6V
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 16:23:41 +0100
-Received: from ldvb (helo=localhost)
-	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JaBmA-0003If-W9
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 18:24:57 +0300
-Date: Fri, 14 Mar 2008 18:24:54 +0300 (MSK)
-From: ldvb@ns.bog.msu.ru
-To: linux-dvb@linuxtv.org
-In-Reply-To: <31748235-0C9E-4847-93E1-71B39029E718@krastelcom.ru>
-Message-ID: <Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<04AD1EEA-DF6C-4575-8A8B-D460F199288F@krastelcom.ru>
-	<Pine.LNX.4.62.0803141736520.8859@ns.bog.msu.ru>
-	<31748235-0C9E-4847-93E1-71B39029E718@krastelcom.ru>
+	(envelope-from <linux-dvb@machts.net>) id 1JX21l-0008Oh-AZ
+	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 23:23:58 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by mail.machts.net (Postfix) with ESMTP id 0EC9E1031FEF
+	for <linux-dvb@linuxtv.org>; Wed,  5 Mar 2008 23:23:54 +0100 (CET)
+Received: from mail.machts.net ([127.0.0.1])
+	by localhost (machts.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ILZJKn89M1xM for <linux-dvb@linuxtv.org>;
+	Wed,  5 Mar 2008 23:19:07 +0100 (CET)
+Received: from [192.168.1.132] (unknown [84.114.50.236])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.machts.net (Postfix) with ESMTP id 6FB681031FE8
+	for <linux-dvb@linuxtv.org>; Wed,  5 Mar 2008 23:19:07 +0100 (CET)
+Message-ID: <47CF1C5A.9050306@machts.net>
+Date: Wed, 05 Mar 2008 23:19:06 +0100
+From: Paul Leitner <linux-dvb@machts.net>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] TT budget S-1401 Horizontal transponder fails
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  [PATCH] support Cinergy HT USB XE (0ccd:0058)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,19 +34,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi there!
 
+I was totally happy when I found this patch through the wiki.
 
-On Fri, 14 Mar 2008, Vladimir Prudnikov wrote:
+Everything went pretty smooth. After i found the right firmware, 
+scanning in Kaffeine worked for me.
 
-> How does it work with Orion if it doesn't have a CI?
->>> What TT card have you got?
->>> I'm unable to lock to any of Orion Express transponders with TT S2-3200.
->> I have GI-SS3 (TT budget S-1401)
-There are several free channels to view. Also, I have STB with irdeto 
-card. Errors in the cahnnel were detected visually first.
-But it is possible to detect the problem with the stream directly: one can 
-get the full TS from the card, and get statistics for BER (shown in my 
-first message).
+But there is another question:
+This USB Stick is a hybrid one. Due to this i also gave xawtv a try, but 
+after some logfile-watching I noticed the /dev/video0 is missing.
+Is the current firmware for the tuner only capable of DVB-T or is there 
+a possibilty to get analogue TV working too?
+I'm asking this because I live in Vienna and I'v got analogue cable here 
+would be nice to record and watch on the PC.
+
+Thanks for help. ;)
+
+Paul
 
 _______________________________________________
 linux-dvb mailing list
