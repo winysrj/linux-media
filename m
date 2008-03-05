@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JbjMp-0005EZ-TN
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:29:08 +0100
-Date: Tue, 18 Mar 2008 18:28:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: gian luca rasponi <lucarasp@inwind.it>
-Message-ID: <20080318182810.0189de8e@gaivota>
-In-Reply-To: <47E030C1.2000805@inwind.it>
-References: <47E030C1.2000805@inwind.it>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Received: from moutng.kundenserver.de ([212.227.126.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <shaun@saintsi.co.uk>) id 1JX0ZB-0007WG-B8
+	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 21:50:24 +0100
+From: Shaun <shaun@saintsi.co.uk>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Date: Wed, 5 Mar 2008 20:49:37 +0000
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200803052049.37038.shaun@saintsi.co.uk>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Reply-To: shaun@saintsi.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,46 +24,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 18 Mar 2008 22:14:41 +0100
-gian luca rasponi <lucarasp@inwind.it> wrote:
+Hi People,
 
-> hi,
-> 
-> more or less same here:
-> 
-> I've built and installed latest v4l-dvb-3029b981e42c modified with IR 
-> remote support, and loaded with:
-> 
-> /etc/modprobe.d/saa7134:
-> 
-> options saa7134 tuner=71 ir_debug=1
-> install saa7134 /sbin/modprobe xc3028-tuner; /sbin/modprobe 
-> --ignore-install saa7134; /sbin/modprobe saa7134-dvb; /sbin/modprobe 
-> saa7134-alsa
-> 
-> then:
-> 
-> modprobe saa7134 tuner=71 i2c_scan=1
+I am writing to inform you of a simple tool I have written to help with this 
+tuner issue. The tool I have made will monitor dmesg output and reset the 
+MythTV Backend if it detects a mt2060 errors. It is not a fix, but a 
+workaround. 
 
-Please test without tuner=71. I've just updated the tree again. It should detect it well right now. 
+I have written it for Ubuntu/Debian based systems. I have included the GPL 
+source, feel free to modify as needed.
 
-Please add this to your modprobe.conf:
-	options tuner debug=1
-	options tuner-xc2028 debug=1
+I have it installed on a friend and my Ubuntu based boxes for the last few 
+months and all seems OK.
 
-This will enable some extra debugs for tuner. You'll need to remove all modules
-before probing again. A good procedure for tests is:
+To help with debugging issues, a log is written to:
+/var/log/mythwatch.log
 
-	make rmmod
-	make
-	make install
-	modprobe saa7124 i2c_scan=1
+Example output:
+[24-2-08 19:51:34] --- Started Ver: 0.2.3 ---
+[27-2-08 07:33:52] ERROR: Disconnect Detected.
+[27-2-08 07:33:52] ACTION: Attempting mythtv-backend restart.
+[28-2-08 05:47:20] ERROR: Disconnect Detected.
+[28-2-08 05:47:20] ACTION: Attempting mythtv-backend restart.
+[28-2-08 16:51:28] ERROR: Disconnect Detected.
+[28-2-08 16:51:28] ACTION: Attempting mythtv-backend restart.
 
-(sometimes, I also do a "make rminstall" to remove .gz modules that some distro
-uses, when I compile against a non-mainstream kernel)
+Note: It is not perfect in that sometimes I loose a tuner without a mt2060 
+error (very seldom). I am working on the idea of scanning for PAT errors in 
+the MythTV backend log. There seems to be a connection with loosing a tuner 
+and PAT errors.
 
-Cheers,
-Mauro
+
+Download URL: http://www.bluboy.f2s.com/develop/MythWatch.tar.gz
+
+The tool allows you to record your shows at almost 100% reliability, but with 
+the chance that a reset could lose a few seconds of a recording. This will 
+happen if a reset happends while a show is being recorded.
+
+Cheers
+Shaun
+
+PS: For each author's protection and ours, we want to make certain
+that everyone understands that there is no warranty for this free
+software.  If the software is modified by someone else and passed on, we
+want its recipients to know that what they have is not the original, so
+that any problems introduced by others will not reflect on the original
+authors' reputations.
+
+ 
+ 
 
 _______________________________________________
 linux-dvb mailing list
