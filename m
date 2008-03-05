@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web33102.mail.mud.yahoo.com ([209.191.69.132])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <simeonov_2000@yahoo.com>) id 1JY7DA-0008Sx-So
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 23:08:13 +0100
-Date: Sat, 8 Mar 2008 14:07:32 -0800 (PST)
-From: Simeon Simeonov <simeonov_2000@yahoo.com>
-To: Manu Abraham <abraham.manu@gmail.com>
+Received: from holly.castlecore.com ([89.21.8.102])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lists@philpem.me.uk>) id 1JX13u-00031l-J6
+	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 22:22:07 +0100
+Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
+	by holly.castlecore.com with esmtp (Exim 4.68)
+	(envelope-from <lists@philpem.me.uk>) id 1JX13o-0001xc-0q
+	for linux-dvb@linuxtv.org; Wed, 05 Mar 2008 21:22:00 +0000
+Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
+	by wolf.philpem.me.uk (Postfix) with ESMTP id 7DE6E1AFD9D5
+	for <linux-dvb@linuxtv.org>; Wed,  5 Mar 2008 21:22:41 +0000 (GMT)
+Message-ID: <47CF0EEC.6080706@philpem.me.uk>
+Date: Wed, 05 Mar 2008 21:21:48 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
 MIME-Version: 1.0
-Message-ID: <872297.2263.qm@web33102.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
-	please verify results was Re: TechniSat SkyStar HD: Problems
-	scaning and zaping
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <47CF08B2.50008@philpem.me.uk>
+In-Reply-To: <47CF08B2.50008@philpem.me.uk>
+Subject: Re: [linux-dvb] Hauppauge Nova T-500 / Nova-TD Stick (DiBcom
+ tuners/demods) - the plot thickens...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,94 +32,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Manu,
+Philip Pemberton wrote:
+> [ 3097.541301] ep 0 write error (status = -19, len: 4)
+> [ 3097.541302] dvb-usb: error while stopping stream.
 
-I was able to resolve my rotor problem by making the following changes in the stb6100, stb0899 and mantis sources:
-u<X> replaced by unit<X>_t..
+Forgot to mention -- after this mess, both tuners on the Nova-TD were dead.
 
-Since I am running the drivers on 64-bit machine my guess is that is a 64-bit pointer size thing.
-Unfortunately it is painful to restore my rotor settings after loosing them and I cannot tell you at the
-moment which change made the difference.
+I restarted mythbackend and they woke up again, then as soon as I tuned to a 
+channel both of them fell over again (USB disconnect).
 
-Thanks for your help,
-Simeon
+I think the EMI thing might have been a one-off -- the second disconnect was a 
+standard one, not a "hub has disabled the port".
 
------ Original Message ----
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Sent: Monday, March 3, 2008 3:52:29 AM
-Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-
-Simeon Simeonov wrote:
-> I am using mythtv and here is the sequence of commands:
-> 
-> Without repeat:
-> DiSEqCDevTree: Changing LNB voltage to 13V
-> DiSEqCDevTree: Rotor - Goto Stored Position 2
-> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
-> 
-> With repeat:
-> DiSEqCDevTree: Changing LNB voltage to 13V
-> DiSEqCDevTree: Rotor - Goto Stored Position 2
-> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
-> DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
-
-
-In fact, looks really confusing to me. The diseqc commands just go out 
-as it is,
-through the FIFO. I don't see anything that which changes the commands, but
-if it was working with another card, it should be working with this card 
-too (i
-had some doubts, but when you said it worked with some other card, then i
-don't see the issue in here with the diseqc part. The FiFO either works 
-or not)
-
-
-
-> ----- Original Message ----
-> From: Manu Abraham <abraham.manu@gmail.com>
-> To: Simeon Simeonov <simeonov_2000@yahoo.com>
-> Cc: linux-dvb@linuxtv.org
-> Sent: Sunday, March 2, 2008 2:38:51 PM
-> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-> 
-> Simeon Simeonov wrote:
->> Hi Manu,
->>
->> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
->> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
->> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
->> east from the target rotor position. 
->> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
->> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
->> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
->> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
->> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
->> wait for one cycle.
->> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
-> 
-> Can you please try to get the DiSEqC strings that you are sending
-> (from the application) in these 2 cases ?
-> 
-> * Without repeat
-> * With repeat
-> 
-> Regards,
-> Manu
-
-
-
-
-
-
-      ____________________________________________________________________________________
-Looking for last minute shopping deals?  
-Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
