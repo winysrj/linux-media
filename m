@@ -1,26 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2T5aNpD027987
-	for <video4linux-list@redhat.com>; Sat, 29 Mar 2008 01:36:23 -0400
-Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2T5aB9g028629
-	for <video4linux-list@redhat.com>; Sat, 29 Mar 2008 01:36:12 -0400
-Received: by qb-out-0506.google.com with SMTP id o12so5265019qba.17
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 22:36:11 -0700 (PDT)
-Date: Fri, 28 Mar 2008 22:35:20 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080329053520.GB4470@plankton.ifup.org>
-References: <patchbomb.1206699511@localhost>
-	<304e0a371d12f77e1575.1206699518@localhost>
-	<20080328153442.58b2c108@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m26Lqnjg014446
+	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 16:52:49 -0500
+Received: from bay0-omc1-s26.bay0.hotmail.com (bay0-omc1-s26.bay0.hotmail.com
+	[65.54.246.98])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m26LqDIb011766
+	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 16:52:13 -0500
+Message-ID: <BAY122-W356EE227C3E496A044E7B3AA120@phx.gbl>
+From: Elvis Chen <chene77@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Thu, 6 Mar 2008 21:52:05 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080328153442.58b2c108@gaivota>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [PATCH 7 of 9] vivi: Simplify the vivi driver and avoid
-	deadlocks
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: is it possible to grab images from 2 PVR-150 in a loop/timer?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,87 +25,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 15:34 Fri 28 Mar 2008, Mauro Carvalho Chehab wrote:
-> This is under copyright (2006), as if you were one of the authors of the
-> original driver. Also, I prefer if you add a short line bellow your copyright
-> for the job you've done on the driver. Something like:
-> 
-> + *
-> + *  Copyright (c) 2008 by Brandon Philips <brandon@ifup.org>
-> + *       - Fix bad locks and cleans up streaming code
 
-Ok, this is fixed in the patch I just sent.  I didn't add the
-"changelog" entry below the copyright because the git-log will show what
-I did.
+greetings,
 
-> > -static int restart_video_queue(struct vivi_dmaqueue *dma_q)
-> > -{
-> ...
-> > -}
-> 
-> While the restart and timeout code is not needed on vivi driver, IMO, we should
-> keep it, since the main reason for this driver is to be a reference code. 
+a few days ago I posted a message to the list asking about how to progra, w=
+ith PVR-150.  With the help from this group, I managed to grab images from =
+2 tuner (both PVR-150, /dev/video32 and /dev/video33).  The steps of displa=
+ying the final image on the screen is to 1) demacro the yuv microblock of t=
+he hm12 device, and 2) convert the final yuv image to RGB, and 3) display t=
+he final RGB images in a 3D visualization software (www.vtk.org).  This wor=
+ks as long as I am grabbing only 1 image from each device.
 
-I couldn't figure out how it worked well enough to fix it.   In
-particular code similar to the following is copied around throughout
-several drivers and I have no idea what it does:  
+To facilitate the development, I'm using qt as the widget set.
 
-@@ -785,45 +657,12 @@ buffer_queue(struct videobuf_queue *vq, 
--       if (!list_empty(&vidq->queued)) {
--               dprintk(dev, 1, "adding vb queue=0x%08lx\n",
--                       (unsigned long)&buf->vb.queue);
--               list_add_tail(&buf->vb.queue, &vidq->queued);
--               buf->vb.state = VIDEOBUF_QUEUED;
--               dprintk(dev, 2, "[%p/%d] buffer_queue - append to queued\n",
--                       buf, buf->vb.i);
--       } else if (list_empty(&vidq->active)) {
--               list_add_tail(&buf->vb.queue, &vidq->active);
--               buf->vb.state = VIDEOBUF_ACTIVE;
--               mod_timer(&vidq->timeout, jiffies+BUFFER_TIMEOUT);
--               dprintk(dev, 2, "[%p/%d] buffer_queue - first active\n",
--                       buf, buf->vb.i);
--
--               vivi_start_thread(vidq);
--       } else {
--               prev = list_entry(vidq->active.prev,
--                                 struct vivi_buffer, vb.queue);
--               if (prev->vb.width  == buf->vb.width  &&
--                   prev->vb.height == buf->vb.height &&
--                   prev->fmt       == buf->fmt) {
--                       list_add_tail(&buf->vb.queue, &vidq->active);
--                       buf->vb.state = VIDEOBUF_ACTIVE;
--                       dprintk(dev, 2,
--                               "[%p/%d] buffer_queue - append to active\n",
--                               buf, buf->vb.i);
--
--               } else {
--                       list_add_tail(&buf->vb.queue, &vidq->queued);
--                       buf->vb.state = VIDEOBUF_QUEUED;
--                       dprintk(dev, 2,
--                               "[%p/%d] buffer_queue - first queued\n",
--                               buf, buf->vb.i);
--               }
--       }
+But as soon as I try to grab images *from both tuners* and *contineously*, =
+I get corrupted images.  Using a for-loop (or a qt-timer), I can grab image=
+s from *ONE* tuner and display the video on the screen, and it works fine. =
+ However, if I try to do that to both tuners, either in a for-loop or at a =
+pre-set interval through QTimer, both images are corrupted.  They both look=
+ like they are down-sampled, and with duplicated-shifted pixels.
 
-What is the difference between VIDEOBUF_ACTIVE and VIDEOBUF_QUEUED?
+I can show some pictures in a private email, as I don't think sending a bin=
+ary image in the email list is a good idea.
 
-> This kind of code is important on real drivers, since the IRQ's may not be called
-> for some reason. On cx88 and on saa7134, this happens on several situations[2]. 
+Can anyone shed some light into what might be wrong?
 
-Yes, I agree.  But, as I said I couldn't figure it out.
+thank you,
 
-> Without a timeout, the driver will wait forever to receive a buffer.
+Elvis
 
-Well, yes on real hardware.  But, in the case of vivi we can just create
-the frames as they are needed.  It is dead simple for a fake device :D
-
-> This task is also needed by tm6000 driver, for the same reasons.
-
-Huh?  What task?
-
-Thanks,
-
-	Brandon
+_________________________________________________________________
 
 --
 video4linux-list mailing list
