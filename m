@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JfHki-0002ia-EQ
-	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 17:48:34 +0100
-From: Nicolas Will <nico@youplala.net>
-To: Patrik Hansson <patrik@wintergatan.com>
-In-Reply-To: <8ad9209c0803280936k2cba9115laa49f828ffda55bf@mail.gmail.com>
-References: <1206139910.12138.34.camel@youkaida>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
-	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
-	<47EC13BE.6020600@simmons.titandsl.co.uk>
-	<1206655986.17233.8.camel@youkaida>
-	<8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
-	<1206719797.14161.8.camel@acropora>
-	<8ad9209c0803280936k2cba9115laa49f828ffda55bf@mail.gmail.com>
-Date: Fri, 28 Mar 2008 16:47:17 +0000
-Message-Id: <1206722837.12480.3.camel@acropora>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
-	are back!
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ptsekov@gmx.net>) id 1JXDiZ-00087Z-Oz
+	for linux-dvb@linuxtv.org; Thu, 06 Mar 2008 11:52:58 +0100
+Date: Thu, 6 Mar 2008 12:52:05 +0200
+From: Pavel Tsekov <ptsekov@gmx.net>
+Message-ID: <1161888517.20080306125205@gmx.net>
+To: Pavel Tsekov <ptsekov@gmx.net>
+In-Reply-To: <1325876011.20080228003751@gmx.net>
+References: <1325876011.20080228003751@gmx.net>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Skystar 2 stops producing TS data after some time
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,28 +25,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-03-28 at 17:36 +0100, Patrik Hansson wrote:
-> 
-> hmm, ok this is odd.
-> I searched my entire syslog and messages and the only disconnect i
-> have is from now during the reboot to get the tuner back.
-> 
-> So i have the following:
-> This morning everything is fine.
-> In the afternoon i loose a tuner, restarting mythtv-backend and so on
-> does not bring it back.
-> I reboot and tuner comes back.
-> I check the logs and have 0 disconnects.
+Hello,
 
-You have another problem.
+I don't mean to be intrusive but I'd  like to know whether
+this issue has been fixed  or not - a simple yes or no
+would suffice.
 
-You lose a tuner.
+Thanks!
 
-I get a card that disconnects completely, I lose both tuners and the
-remote, and get a flood of mt2060 i2c errors, but after the disconnect.
+Thursday, February 28, 2008, 12:37:51 AM, you wrote:
 
+> Hello,
 
-Nico
+> I've searched the mailing list and found the following references
+> regarding a problem that occurs after several hours of reading TS
+> data off a SkyStar 2 DVB-S PCI card:
+
+> http://www.linuxtv.org/pipermail/linux-dvb/2005-June/002875.html
+> http://www.linuxtv.org/pipermail/linux-dvb/2006-October/013335.html
+> http://www.linuxtv.org/pipermail/linux-dvb/2005-February/000123.html
+
+> I am using several SkyStar 2 cards on Ubuntu LTS 6.06 (kernel
+> 2.6.15-51-server) and still experience the problem described above.
+> Now, my question is - is this problem fixed in newer (2.6.16+) kernels ?
+> I've read every kernel changelog file for kernel > 2.6.15 and didn't find
+> any reference about a fix for this particular issue - perhaps I wasn't
+> looking at the right place ? If the problem is not fixed - is someone working
+> to fix it ? I have enabled the debug log for the flexcop driver and
+> have a log from its output as the problem occurs. I can post it if it
+> is interesting for someone.
+
+> Thanks!
+
+> P.S. Please, CC me since I am not subscribed to the list.
+
 
 
 _______________________________________________
