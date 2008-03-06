@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1Jdtba-0005Ra-IP
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 21:49:23 +0100
-Received: by ug-out-1314.google.com with SMTP id o29so3232542ugd.20
-	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 13:49:15 -0700 (PDT)
-Message-ID: <47E813C7.6070208@googlemail.com>
-Date: Mon, 24 Mar 2008 20:49:11 +0000
-From: Andrea <mariofutire@googlemail.com>
+Received: from n40.bullet.mail.ukl.yahoo.com ([87.248.110.173])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JXPP9-0008E1-29
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 00:21:43 +0100
+Date: Thu, 06 Mar 2008 19:20:52 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
+In-Reply-To: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru> (from
+	vpr@krastelcom.ru on Thu Mar  6 06:34:28 2008)
+Message-Id: <1204845652l.7051l.0l@manu-laptop>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, o.endriss@gmx.de
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-Subject: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
+Content-Disposition: inline
+Subject: [linux-dvb] Re : TT S2-3200. No lock on high symbol rate (45M)
+ transponders
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,45 +27,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-linux-dvb-request@linuxtv.org wrote:
+On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
+> Can't get TT S2-3200 locked on high SR transponders. I have seen a 
+> lot
+>  
+> of suggestions regarding changing Frequency/Symbol rate on various  
+> forums but no luck. Low SR are fine.
+> Does anyone have a "revision" of multiproto that was tested with high 
+> 
+> SR?
+> 
+> I hope Manu can comment on that as well...
+> 
+Just a "me too", well kind of: for me certain transponders do not lock 
+or lock but with corrupted streams whereas others are perfect (on the 
+same sat with the same characteristics, SR is 30M).
+Bye
+Manu
 
- > What about this fragment:
- > 	...
- > 	if (!size)
- > 		return -EINVAL;
- >
- > 	mem = vmalloc(size);
- > 	if (!mem)
- > 		return -ENOMEM;
- >
- > 	mem2 = buf->data;
- >
- >       spin_lock_irqsave(&dmxdev->lock);
- >       buf->pread = buf->pwrite = 0;
- > 	buf->data = mem;
- > 	buf->size = size;
- > 	spin_unlock_irqrestore(&dmxdev->lock);
- >
- > 	vfree(mem2);
- > 	return 0;
-
-Maybe I can think of one reason while the current code is not implemented this way:
-
-In your version the new buffer is allocated before the old one is released.
-In the current implementation the old buffer is released and afterwards the new one allocated.
-
-One could argue that the new implementation has a maximum memory requirement higher than the old one.
-It's not much but I am not too familiar with kernel development, so I don't know how important that 
-could be.
-
-What do you think?
-
-About the spin_lock_irqsave: currently it is not used anywhere in the code for the demux in dmxdev.c.
-I am always a bit scared when I introduce something new, maybe I am missing the current logic.
-
-Cheers
-
-Andrea
 
 _______________________________________________
 linux-dvb mailing list
