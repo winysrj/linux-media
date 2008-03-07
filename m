@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout05.sul.t-online.de ([194.25.134.82])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JcRnp-0001Z9-V2
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 21:55:58 +0100
-Message-ID: <47E2CF49.8070302@t-online.de>
-Date: Thu, 20 Mar 2008 21:55:37 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Received: from n7a.bullet.ukl.yahoo.com ([217.146.183.155])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JXkuO-0002ZU-55
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 23:19:20 +0100
+Date: Fri, 07 Mar 2008 18:18:38 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
+	<1204845652l.7051l.0l@manu-laptop> <47D08B08.9010703@gmail.com>
+In-Reply-To: <47D08B08.9010703@gmail.com> (from abraham.manu@gmail.com on
+	Thu Mar  6 20:23:36 2008)
+Message-Id: <1204928318l.5666l.0l@manu-laptop>
 MIME-Version: 1.0
-To: ldvb@ns.bog.msu.ru
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>	<200803200118.26462@orion.escape-edv.de>
-	<Pine.LNX.4.62.0803201931260.12540@ns.bog.msu.ru>
-In-Reply-To: <Pine.LNX.4.62.0803201931260.12540@ns.bog.msu.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
- transponder fails
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Re : TT S2-3200. No lock on high symbol rate (45M)
+ transponders
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +28,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On 03/06/2008 08:23:36 PM, Manu Abraham wrote:
+> manu wrote:
+> > On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
+> >> Can't get TT S2-3200 locked on high SR transponders. I have seen a 
+> >> lot
+> >>  
+> >> of suggestions regarding changing Frequency/Symbol rate on various 
+> 
+> >> forums but no luck. Low SR are fine.
+> >> Does anyone have a "revision" of multiproto that was tested with
+> high 
+> >>
+> >> SR?
+> >>
+> >> I hope Manu can comment on that as well...
+> >>
+> > Just a "me too", well kind of: for me certain transponders do not
+> lock 
+> > or lock but with corrupted streams whereas others are perfect (on
+> the 
+> > same sat with the same characteristics, SR is 30M).
+> 
+> 
+> Please try whether these register setup changes does help as
+> applicable.
+> 
+> http://jusst.de/hg/mantis/rev/72e81184fb9f
+> 
+> Regards,
+> Manu
+> 
 
-ldvb@ns.bog.msu.ru schrieb:
-> On Thu, 20 Mar 2008, Oliver Endriss wrote:
-> 
->> Sorry, if you want to have your problem fixed, you have dig through the
->> register programming of the frontend driver. Use an i2c sniffer and
->> compare the register settings of the the windows driver with those of
->> the linux driver...
->> If you want to experiment with some parameters, you might have a look at
->> changeset
->>  http://linuxtv.org/hg/v4l-dvb/rev/8a19aa788239
->> Maybe you can find a better register setting which fixes your problem.
-> 
-> Increased baseband cut-off helps! (tda826*.c)
-> so, making it
-> buf[6] = 0xfe;
-> solves the problem.
-> Maybe, I'll check other values.
-> 
-This might be right! I could not get good information regarding the
-transponder bandwidths. We might need to make this depend on the
-symbol rate or a module parameter.
-Can we grind this out after easter?
+Is there equivalent fixes/imrpovments for TT 3200?
+Thx,
+Bye
+Manu
 
-Best regards
-  Hartmut
+
 
 _______________________________________________
 linux-dvb mailing list
