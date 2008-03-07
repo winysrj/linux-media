@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+Received: from mail.krastelcom.ru ([88.151.248.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JbeTu-0002Gc-LN
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 17:16:11 +0100
-Message-ID: <47DFEA9F.4070307@iki.fi>
-Date: Tue, 18 Mar 2008 18:15:27 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: insomniac <insomniac@slackware.it>
-References: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>	<47DFDCC4.4090001@iki.fi>
-	<20080318163812.343b0a87@slackware.it>
-	<20080318170134.69e40dab@slackware.it>
-In-Reply-To: <20080318170134.69e40dab@slackware.it>
+	(envelope-from <vpr@krastelcom.ru>) id 1JXZOh-0000c8-4k
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 11:01:51 +0100
+Message-Id: <B4CC8416-AE2F-45E0-92E5-8E91D3801D1C@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: manu <eallaud@yahoo.fr>
+In-Reply-To: <1204839194l.6185l.0l@manu-laptop>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Fri, 7 Mar 2008 10:31:32 +0300
+References: <4FE634A7-9896-44C0-92A4-7B19E3ECB782@krastelcom.ru>
+	<1204839194l.6185l.0l@manu-laptop>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib7770 tunner
+Subject: Re: [linux-dvb] Re : Decrypting multiple services with a
+	professional CAM module and VLC
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,57 +27,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-insomniac wrote:
-> On Tue, 18 Mar 2008 16:38:12 +0100
-> insomniac <insomniac@slackware.it> wrote:
-> 
->> On Tue, 18 Mar 2008 17:16:20 +0200
->> Antti Palosaari <crope@iki.fi> wrote:
+There's no 4 services Aston. The prices approximately as follows:
+
+Smit:
+
+4 services - 300 USD
+6 services - 350 USD
+8 services - 400 USD
+
+Aston:
+
+2 services - 200 USD
+12 services - 850 USD
+
+The prices have little difference by encryption system.
+
+More over, 8 services Smit CAM decryption drops out after some time  
+with TT S2-3200 and vlc reverting to encrypted streams.
+2 services Aston is fine until now.
+
+Never the less, It's weird that an 8 services CAM can do only 8...
+
+Regards,
+Vladimir
+
+On Mar 7, 2008, at 12:33 AM, manu wrote:
+
+> On 03/06/2008 06:37:12 AM, Vladimir Prudnikov wrote:
+>> Anyone having luck decrypting 5-8 or more services with professional
+>> CA modules (Smit, Aston) using a DVB card and VLC?
+>> I can get only 4 with an 8 services module from SMIT.
 >>
->>> dib7770 is 3 in 1 solution, usb-bridge + demodulator + tuner. You
->>> can try dib7070 tuner driver. STK7070P looks rather similar (but
->>> less integrated).
-> 
-> after talking with Albert about it, I moved this code:
-> 
-> {    "Pinnacle PCTV 73e",
->      { &dib0700_usb_id_table[27], NULL },
->      { NULL },
-> }
-> 
-> after this code:
-> 
-> {   "Hauppauge Nova-T MyTV.t",
->     { &dib0700_usb_id_table[26], NULL },
->     { NULL },
-> }
-> 
-> in linux/drivers/media/dvb/dvb-usb/dib0700_devices.c .
-> 
-> After I plug the stick, I see the led to light on, and dmesg says:
-> 
-> dvb-usb: found a 'Pinnacle PCTV 73e' in cold state, will try to load a
-> firmware dvb-usb: downloading firmware from file
-> 'dvb-usb-dib0700-1.10.fw' dib0700: firmware started successfully.
-> dvb-usb: found a 'Pinnacle PCTV 73e' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer. DVB: registering new adapter (Pinnacle PCTV 73e)
-> DVB: registering frontend 0 (DiBcom 7000PC)...
-> mt2060 I2C read failed
+>> Regards,
+>> Vladimir
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>>
+>>
+>
+> Just out of curiosity, how much does a 4-services aston (mediaguard)
+> cost please?
+> Thx
+> Bye
+> Manu
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-I don't understand how dib7070p_tuner_attach could call mt2060.
-
-> All the files in /dev/dvb/adapter0 get created, including tuner0, but
-> of course tuner is not working (as w_scan can show).
-> 
-> The solutions seems not to be far.. Anyone has an idea?
-> 
-> Regards,
-
-regards
-Antti
--- 
-http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
