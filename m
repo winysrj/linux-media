@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m29968XX019970
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 05:06:08 -0400
-Received: from cabrera.red.sld.cu (cabrera.red.sld.cu [201.220.222.139])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2995WG4014198
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 05:05:34 -0400
-Received: from [201.220.219.1] by cabrera.red.sld.cu with esmtp (Exim 4.63)
-	(envelope-from <moya-lists@infomed.sld.cu>) id 1JYHSw-0007P8-Ca
-	for video4linux-list@redhat.com; Sun, 09 Mar 2008 05:05:12 -0400
-From: Maykel Moya <moya-lists@infomed.sld.cu>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m276JRUM025553
+	for <video4linux-list@redhat.com>; Fri, 7 Mar 2008 01:19:27 -0500
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.247])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m276IqKF002074
+	for <video4linux-list@redhat.com>; Fri, 7 Mar 2008 01:18:52 -0500
+Received: by an-out-0708.google.com with SMTP id c31so103098ana.124
+	for <video4linux-list@redhat.com>; Thu, 06 Mar 2008 22:18:49 -0800 (PST)
+Message-ID: <331d2cab0803062218x663ad17ofb79928059a111b@mail.gmail.com>
+Date: Fri, 7 Mar 2008 00:18:49 -0600
+From: "Brandon Rader" <brandon.rader@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary="=-oU62t/FuuPQE3qT54QBb"
-Date: Sun, 09 Mar 2008 05:08:14 -0400
-Message-Id: <1205053694.6188.312.camel@gloria.red.sld.cu>
-Mime-Version: 1.0
-Subject: Problems setting up Sabrent Mini Stick USB 2.0 TV Tuner (TV-USBST)
-	6000:0001
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: Trying to setup PCTV HD Card 800i
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,341 +27,89 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hello,
 
---=-oU62t/FuuPQE3qT54QBb
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I bought the PCTV HD 800i tuner from woot.com, and waited until drivers had
+been developed for it. I followed the guide from
+LinuxTV<http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_%28800i%29>
+.
 
-device: Sabrent Mini Stick USB 2.0 TV Tuner (TV-USBST)
-url: http://www.sabrent.com/products/specs/TV-USBST.htm
-id: 6000:0001
-chip: TM5600
+My dmesg and lspci outputs are below. The dmesg output has some errors in
+it, and the lspci looks like it is an entry short compared to some of the
+other lspci outputs I've seen for this card. When I try to modprobe
+cx88_dvb:
 
-And lsusb -d 6000:0001 -v output is attached.
+$ sudo modprobe cx88_dvb
+FATAL: Error inserting cx88_dvb
+(/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/cx88/cx88-dvb.ko):
+No such device
 
-I have a stock Debian 2.6.24 kernel. This is what I did:
+lspci output:
+lspci | grep -i cx
+06:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder [MPEG Port] (rev 05)
+06:07.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [Audio Port] (rev 05)
 
-1. hg clone http://.../v4l-dvb v4l-dvb-upstream
-2. hg clone http://.../tm6010 tm6010-upstream
-3. hg clone v4l-dvb-upstream v4l-dvb
-4. cd v4l-dvb
-5. hg fetch ../tm6010-upstream
-   (some minor issues with file 
-    linux/drivers/media/video/tuner-xc2028.c during merge)
-6. make && sudo make install
-7. cd ../tm6010-upstream
-8. copy /from/install/cd/the/right/tridvid.sys .
-9. perl get_firmware.pl
+dmesg output:
+dmesg | grep -i cx
 
-Then I got the tm6000_xc2028_firmware{1,2}.fw files. As per this
-message[1] I tried both files one at a time. The module claimed the
-firmware file is corrupt both times. Find attached dmesg log for tm6000
-modprobing with debug=3 for each firmware file.
-
-FTR, the md5 sums of fw files
-dbd46281bba4d1ff192823560ae515b0  tm6000_xc2028_firmware1.fw
-3c431f5a3f9a99fd19908418d86c7227  tm6000_xc2028_firmware2.fw
-
-I'm willing to test as much as I can in order to get the device working.
-A friend of mine have bought an identical tuner, they have XP on his
-machine and I could access it for testing if necessary.
-
-Regards,
-maykel
-
-[1]
-https://www.redhat.com/mailman/private/video4linux-list/2008-February/msg00109.html
-
-
---=-oU62t/FuuPQE3qT54QBb
-Content-Disposition: attachment; filename="modprobe-tm6000-debug=3-fw1.dmesg"
-Content-Type: text/plain; name="modprobe-tm6000-debug=3-fw1.dmesg";
-	charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-tm6000 v4l2 driver version 0.0.1 loaded
-tm6000: alt 0, interface 0, class 255
-tm6000: alt 0, interface 0, class 255
-tm6000: Bulk IN endpoint: 0x82 (max size=3D512 bytes)
-tm6000: alt 1, interface 0, class 255
-tm6000: ISOC IN endpoint: 0x81 (max size=3D3072 bytes)
-tm6000: alt 1, interface 0, class 255
-tm6000: alt 2, interface 0, class 255
-tm6000: alt 2, interface 0, class 255
-tm6000: New video device @ 480 Mbps (6000:0001, ifnum 0)
-tm6000: Found 10Moons UT 821
-Error -32 while retrieving board version
-Hack: enabling device at addr 0xc2
-tuner' 1-0061: chip found @ 0xc2 (tm6000 #0)
-xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-xc2028 1-0061: xc2028/3028 firmware name not set!
-tm6000 #0: i2c eeprom 00: 00 99 5b 49 ff ff ff ff ff ff ff ff ff ff ff ff  =
-..[I............
-tm6000 #0: i2c eeprom 10: ff ff ff ff 31 30 4d 4f 4f 4e 53 35 36 30 30 ff  =
-....10MOONS5600.
-tm6000 #0: i2c eeprom 20: 45 5b ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-E[..............
-tm6000 #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-  ................
-Trident TVMaster TM5600/TM6000 USB2 board (Load status: 0)
-Setting firmware parameters for xc2028
-xc2028 1-0061: Loading 9073 firmware images from tm6000-xc3028.fw, type: tm=
-6000/xcv v1=0D*=03=C8=E0, ver 15.211
-xc2028 1-0061: Firmware type BASE D2633 DTV6 QAM DTV7 DTV78 ATSC LG60 DIBCO=
-M52 CHINA INPUT2 SCODE (b50501f1), id c100d12a0d0f60d0 is corrupted (size=
-=3D8133, expected 774720)
-xc2028 1-0061: Error: firmware file is corrupted!
-xc2028 1-0061: Releasing partially loaded firmware file.
-xc2028 1-0061: Loading 9073 firmware images from tm6000-xc3028.fw, type: tm=
-6000/xcv v1=0D*=03=C8=E0, ver 15.211
-xc2028 1-0061: Firmware type BASE D2633 DTV6 QAM DTV7 DTV78 ATSC LG60 DIBCO=
-M52 CHINA INPUT2 SCODE (b50501f1), id c100d12a0d0f60d0 is corrupted (size=
-=3D8133, expected 774720)
-xc2028 1-0061: Error: firmware file is corrupted!
-xc2028 1-0061: Releasing partially loaded firmware file.
-usbcore: registered new interface driver tm6000
-
---=-oU62t/FuuPQE3qT54QBb
-Content-Disposition: attachment; filename="modprobe-tm6000-debug=3-fw2.dmesg"
-Content-Type: text/plain; name="modprobe-tm6000-debug=3-fw2.dmesg";
-	charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-tm6000 v4l2 driver version 0.0.1 loaded
-tm6000: alt 0, interface 0, class 255
-tm6000: alt 0, interface 0, class 255
-tm6000: Bulk IN endpoint: 0x82 (max size=3D512 bytes)
-tm6000: alt 1, interface 0, class 255
-tm6000: ISOC IN endpoint: 0x81 (max size=3D3072 bytes)
-tm6000: alt 1, interface 0, class 255
-tm6000: alt 2, interface 0, class 255
-tm6000: alt 2, interface 0, class 255
-tm6000: New video device @ 480 Mbps (6000:0001, ifnum 0)
-tm6000: Found 10Moons UT 821
-Error -32 while retrieving board version
-Hack: enabling device at addr 0xc2
-tuner' 1-0061: chip found @ 0xc2 (tm6000 #0)
-xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-xc2028 1-0061: xc2028/3028 firmware name not set!
-tm6000 #0: i2c eeprom 00: 00 99 5b 49 ff ff ff ff ff ff ff ff ff ff ff ff  =
-..[I............
-tm6000 #0: i2c eeprom 10: ff ff ff ff 31 30 4d 4f 4f 4e 53 35 36 30 30 ff  =
-....10MOONS5600.
-tm6000 #0: i2c eeprom 20: 45 5b ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-E[..............
-tm6000 #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-tm6000 #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  =
-................
-  ................
-Trident TVMaster TM5600/TM6000 USB2 board (Load status: 0)
-Setting firmware parameters for xc2028
-xc2028 1-0061: Loading 2319 firmware images from tm6000-xc3028.fw, type: tm=
-6000/xcv v1	*=03=D5=E0, ver 15.211
-xc2028 1-0061: Firmware type INIT1 F8MHZ D2620 DTV6 DTV78 LCD NOGD ATSC IF =
-OREN36 DIBCOM52 INPUT2 SCODE HAS_IF_0 (f123712a), id 2a090f60d0c30501 is co=
-rrupted (size=3D8852, expected 198312145)
-xc2028 1-0061: Error: firmware file is corrupted!
-xc2028 1-0061: Releasing partially loaded firmware file.
-xc2028 1-0061: Loading 2319 firmware images from tm6000-xc3028.fw, type: tm=
-6000/xcv v1	*=03=D5=E0, ver 15.211
-xc2028 1-0061: Firmware type INIT1 F8MHZ D2620 DTV6 DTV78 LCD NOGD ATSC IF =
-OREN36 DIBCOM52 INPUT2 SCODE HAS_IF_0 (f123712a), id 2a090f60d0c30501 is co=
-rrupted (size=3D8852, expected 198312145)
-xc2028 1-0061: Error: firmware file is corrupted!
-xc2028 1-0061: Releasing partially loaded firmware file.
-usbcore: registered new interface driver tm6000
-
---=-oU62t/FuuPQE3qT54QBb
-Content-Disposition: attachment; filename="lsusb_-d_6000:0001_-v"
-Content-Type: text/plain; name="lsusb_-d_6000:0001_-v"; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+[   38.072800] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+[   38.072893] cx88[0]: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58,autodetected]
+[   38.072896] cx88[0]: TV tuner type 76, Radio tuner type -1
+[   38.134819] cx2388x alsa driver version 0.0.6 loaded
+[   38.421908] input: cx88 IR (Pinnacle PCTV HD 800i) as
+/class/input/input12
+[   38.421949] cx88[0]/2: cx2388x 8802 Driver Manager
+[   38.422389] cx88[0]/2: found at 0000:06:07.0, rev: 5, irq: 22, latency:
+32, mmio: 0xd8000000
+[   38.422575] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+[   38.534836] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[   38.534841] cx88/2: registering cx8802 driver, type: dvb access: shared
+[   38.534845] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58]
+[   38.534848] cx88[0]/2: cx2388x based DVB/ATSC card
+[   38.576833] cx88[0]/2: frontend initialization failed
+[   38.576836] cx88[0]/2: dvb_register failed (err = -22)
+[   38.576839] cx88[0]/2: cx8802 probe failed, err = -22
+[  392.327689] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[  392.327698] cx88/2: registering cx8802 driver, type: dvb access: shared
+[  392.327704] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58]
+[  392.327709] cx88[0]/2: cx2388x based DVB/ATSC card
+[  392.329827] cx88[0]/2: frontend initialization failed
+[  392.329832] cx88[0]/2: dvb_register failed (err = -22)
+[  392.329837] cx88[0]/2: cx8802 probe failed, err = -22
+[  469.854170] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[  469.854177] cx88/2: registering cx8802 driver, type: dvb access: shared
+[  469.854183] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58]
+[  469.854187] cx88[0]/2: cx2388x based DVB/ATSC card
+[  469.855350] cx88[0]/2: frontend initialization failed
+[  469.855354] cx88[0]/2: dvb_register failed (err = -22)
+[  469.855356] cx88[0]/2: cx8802 probe failed, err = -22
+[  504.245556] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[  504.245563] cx88/2: registering cx8802 driver, type: dvb access: shared
+[  504.245568] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58]
+[  504.245571] cx88[0]/2: cx2388x based DVB/ATSC card
+[  504.247237] cx88[0]/2: frontend initialization failed
+[  504.247241] cx88[0]/2: dvb_register failed (err = -22)
+[  504.247243] cx88[0]/2: cx8802 probe failed, err = -22
+[ 3173.892400] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[ 3173.892410] cx88/2: registering cx8802 driver, type: dvb access: shared
+[ 3173.892416] cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58]
+[ 3173.892423] cx88[0]/2: cx2388x based DVB/ATSC card
+[ 3173.894673] cx88[0]/2: frontend initialization failed
+[ 3173.894679] cx88[0]/2: dvb_register failed (err = -22)
+[ 3173.894685] cx88[0]/2: cx8802 probe failed, err = -22
 
 
-Bus 001 Device 022: ID 6000:0001  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x6000 
-  idProduct          0x0001 
-  bcdDevice            0.01
-  iManufacturer          16 Trident
-  iProduct               32 TVBOX
-  iSerial                64 2004090820040908
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           78
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration         48 2.0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0002
-  (Bus Powered)
-  Remote Wakeup Enabled
-
---=-oU62t/FuuPQE3qT54QBb
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+Thanks
+Brandon
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-oU62t/FuuPQE3qT54QBb--
