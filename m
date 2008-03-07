@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JXmAC-0000c6-1v
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 00:39:48 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Raphael <rpooser@gmail.com>
-In-Reply-To: <47D14F62.90406@gmail.com>
-References: <47D14F62.90406@gmail.com>
-Date: Sat, 08 Mar 2008 00:31:46 +0100
-Message-Id: <1204932706.5376.5.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1250: v4l-dvb need help compiling
+Received: from web34406.mail.mud.yahoo.com ([66.163.178.155])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <muppetman4662@yahoo.com>) id 1JXSOc-0007O6-2f
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 03:33:22 +0100
+Date: Thu, 6 Mar 2008 18:32:27 -0800 (PST)
+From: Muppet Man <muppetman4662@yahoo.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Message-ID: <584311.75928.qm@web34406.mail.mud.yahoo.com>
+Subject: [linux-dvb] trouble creating dvbscan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,44 +16,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1704679461=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1704679461==
+Content-Type: multipart/alternative; boundary="0-1002879080-1204857147=:75928"
 
-Am Freitag, den 07.03.2008, 09:21 -0500 schrieb Raphael:
-> Hello folks,
-> I'm new to the list, and I subscribed mainly because I'm having a
-> problem compiling the v4l-dvb drivers.
-> I have a pinnacle PCTV HD Pro Stick and that is working fine using the 
-> em28xx drivers from mcentral.de.
-> Currently, I'm trying to get a Hauppage HVR-1250 working. At first when 
-> I tried compiling v4l-dvb, I got errors about tea575x-tuner.c, and so 
-> using make menuconfig, I disabled all AM/FM tuners.
-> Howver, after that I still get an error during make, this time in
-> videodev.c.
-> The first error is "unknown field 'dev_attrs' specified in initializer"
-> on line 491.
-> 
-> Has anyone seen this, or could I be doing something wrong when I removed
-> the webcam drivers?
-> 
+--0-1002879080-1204857147=:75928
+Content-Type: text/plain; charset=us-ascii
 
-this looks like you are using an older kernel for which we don't have
-compatibility glue for sysfs currently.
+Greetings,
+I am having some trouble creating a dvbscan for pinnicale i800 card.
 
-Likely from 2.6.19 on, for sure with at least 2.6.20, you should be able
-to overcome this.
+The card works because I can watch over the air broadcast with TVtime (though the audio is out of sync).
 
-Cheers,
-Hermann
+When I try to use w_scan, this is the output I get
+
+w_scan version 20080105
+Info: using DVB adapter auto detection.
+Info: unable to open frontend /dev/dvb/adapter1/frontend0'
+Info: unable to open frontend /dev/dvb/adapter2/frontend0'
+Info: unable to open frontend /dev/dvb/adapter3/frontend0'
+main:2401: FATAL: ***** NO USEABLE DVB CARD FOUND. *****
+Please check wether dvb driver is loaded and
+verify that no dvb application (i.e. vdr) is running.
 
 
+Any help would be greatly appreciated.
+Thanks,
+Ed
+
+
+
+
+      ____________________________________________________________________________________
+Looking for last minute shopping deals?  
+Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+--0-1002879080-1204857147=:75928
+Content-Type: text/html; charset=us-ascii
+
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman,new york,times,serif;font-size:12pt"><div>Greetings,<br>I am having some trouble creating a dvbscan for pinnicale i800 card.<br><br>The card works because I can watch over the air broadcast with TVtime (though the audio is out of sync).<br><br>When I try to use w_scan, this is the output I get<br><br>w_scan version 20080105<br>Info: using DVB adapter auto detection.<br>Info: unable to open frontend /dev/dvb/adapter1/frontend0'<br>Info: unable to open frontend /dev/dvb/adapter2/frontend0'<br>Info: unable to open frontend /dev/dvb/adapter3/frontend0'<br>main:2401: FATAL: ***** NO USEABLE DVB CARD FOUND. *****<br>Please check wether dvb driver is loaded and<br>verify that no dvb application (i.e. vdr) is running.<br><br><br>Any help would be greatly appreciated.<br>Thanks,<br>Ed<br></div></div><br>
+      <hr size=1>Looking for last minute shopping deals? <a href="http://us.rd.yahoo.com/evt=51734/*http://tools.search.yahoo.com/newsearch/category.php?category=shopping"> 
+Find them fast with Yahoo! Search.</a></body></html>
+--0-1002879080-1204857147=:75928--
+
+
+--===============1704679461==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1704679461==--
