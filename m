@@ -1,27 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.185])
+Received: from relay7.mail.ox.ac.uk ([129.67.1.167])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZBew-0001hg-NM
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 22:05:19 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1201593tia.13
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 14:05:11 -0700 (PDT)
-Message-ID: <abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
-Date: Wed, 12 Mar 2008 08:05:11 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47D5AF38.90600@iki.fi>
+	(envelope-from <John.Veness.myth@pelago.org.uk>) id 1JXkdb-0001M8-9z
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 23:01:59 +0100
+Received: from smtp0.mail.ox.ac.uk ([129.67.1.205])
+	by relay7.mail.ox.ac.uk with esmtp (Exim 4.68)
+	(envelope-from <John.Veness.myth@pelago.org.uk>) id 1JXkdX-0005e6-O5
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 22:01:55 +0000
+Received: from i-83-67-98-35.freedom2surf.net ([83.67.98.35]
+	helo=[192.168.1.128])
+	by smtp0.mail.ox.ac.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <John.Veness.myth@pelago.org.uk>)
+	id 1JXkdW-0001SN-2H
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 22:01:55 +0000
+Message-ID: <47D1BB51.9060903@pelago.org.uk>
+Date: Fri, 07 Mar 2008 22:01:53 +0000
+From: John Veness <John.Veness.myth@pelago.org.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-	<47D49309.8020607@linuxtv.org>
-	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
-	<47D4B8D0.9090401@linuxtv.org>
-	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
-	<47D539E8.6060204@linuxtv.org>
-	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
-	<47D5AF38.90600@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: linux-dvb@linuxtv.org
+References: <e57cc13a0803070621w5063a126o2e13f571660468b5@mail.gmail.com>
+In-Reply-To: <e57cc13a0803070621w5063a126o2e13f571660468b5@mail.gmail.com>
+Subject: Re: [linux-dvb] Nova T-500 firmware download
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,28 +34,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  Can you take logs with vendor WHQL driver and sent for further analysis?
->  http://www.afatech.com/EN/support.aspx
->
->  Antti
->
->  --
->  http://palosaari.fi
->
+pankaj patel wrote:
+> Hello,
+> 
+>     I wonder if anyone can help me - I have had a working NOVA T-500 setup
+> on Ubuntu Gutsy for some time now. However,
+> ever since updating the v4l-dvb drivers yesterday, the cards have stopped
+> working with "did not find the firmware file
+> (dvb-usb-dib0700-1.10.fw)". Now this file exists in /lib/firmware and I have
+> not been able to figure out why the dvb driver
+> cannot find the file. I have set the debug option and here is the output :-
+> 
+> [ 5245.800255] check for cold 10b8 1e14
+> [ 5245.800257] check for cold 10b8 1e78
+> [ 5245.800258] check for cold 2040 7050
+> [ 5245.800259] check for cold 2040 7060
+> [ 5245.800261] check for cold 7ca a807
+> [ 5245.800262] check for cold 7ca b808
+> [ 5245.800263] check for cold 185b 1e78
+> [ 5245.800264] check for cold 185b 1e80
+> [ 5245.800265] check for cold 1584 6003
+> [ 5245.800266] check for cold 413 6f00
+> [ 5245.800268] check for cold 7ca b568
+> [ 5245.800269] check for cold 1044 7001
+> [ 5245.800270] something went very wrong, device was not found in current
+> device list - let's see what comes next.
+> [ 5245.800272] check for cold 2040 9941
+> [ 5245.800273] check for cold 2040 9950
+> [ 5245.800794] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold
+> state, will try to load a firmware
+> [ 5265.793345] dvb-usb: did not find the firmware file. (
+> dvb-usb-dib0700-1.10.fw) Please see linux/Documentation/dvb/ for more
+> details on firmware-problems. (-2)
+> 
+>   I have reverted to previous version of v4l-dvb and I still get the above
+> error. Anyone have any tips on what else I should do ?
 
-For some reason windows didn't like that driver. When I used the installer
-nothing happened, and when I used device manager it said this folder
-contains no information about your device.
-So I made a snoop with the driver on the CD, I hope it's good enough.
+On my Ubuntu 7.10 system with WinTV Nova-TD stick, I've put the firmware 
+in /lib/firmware/`uname -r`, i.e. 
+/lib/firmware/2.6.22-14-generic/dvb-usb-dib0700-1.10.fw currently.
 
-I uploaded the snoop to
-http://download.yousendit.com/2B0B420876BFB959
+Cheers,
 
-While it was snooping, I plugged it in, tuned the card to a tv channel
-and pulled it out as quick as I could.
-If it helps, the channel was channel 7, sydney, australia.
+John
 
-Jarryd.
+-- 
+John Veness, MythTV user, UK, DVB-T
 
 _______________________________________________
 linux-dvb mailing list
