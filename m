@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ti-out-0910.google.com ([209.85.142.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JZrei-0005xC-WD
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 18:55:53 +0100
-Message-ID: <47D96A9A.9040204@gmail.com>
-Date: Thu, 13 Mar 2008 21:55:38 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <jarro.2783@gmail.com>) id 1JXSyk-0008Au-RN
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 04:10:45 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so337064tia.13
+	for <linux-dvb@linuxtv.org>; Thu, 06 Mar 2008 19:07:29 -0800 (PST)
+Message-ID: <abf3e5070803061857q7221639cp99492ef047e99a56@mail.gmail.com>
+Date: Fri, 7 Mar 2008 13:57:29 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <abf3e5070803051928g645142c2id0ff2cfa9925d347@mail.gmail.com>
 MIME-Version: 1.0
-To: manu <eallaud@yahoo.fr>
-References: <1205324955l.5684l.1l@manu-laptop>
-In-Reply-To: <1205324955l.5684l.1l@manu-laptop>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re :  TT S2-3200 vlc streaming
+Content-Disposition: inline
+References: <abf3e5070803051928g645142c2id0ff2cfa9925d347@mail.gmail.com>
+Subject: Re: [linux-dvb] Leadtek Winfast DTV Dongle Gold
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,32 +27,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-manu wrote:
-> On 03/11/2008 02:27:31 AM, Vladimir Prudnikov wrote:
->> I'm getting late buffers with vlc on some transponders (DVB-S, same  
->> parameters, good signal guaranteed) while everything is fine with  
->> others. Using multiproto and TT S2-3200.
->> Anyone having same problems?
-> 
-> Can you give the frequencies of the good and bad transponders, mine are 
-> as follows:
-> I can receive from 4 transponders (DVB-S): 11093, 11555, 11635, 11675 
-> MHz.
-> any channel on 11093: fast lock, perfect picture.
-> any channel on 11555: lock a bit slower and corrupted stream (lots of 
-> blocky artifacts, myhttv complains about corrupted stream)
-> any channel on 11635,11675: no lock.
+It appears that the driver is the AF9015 which is unsupported at the moment.
+Quite a few devices appear to use this driver, is anyone planning on
+supporting it anytime soon?
+Looks like I'll be returning this one anyway, I'll get one that I know works.
 
-Please provide:
-
-* parameters that you use for tuning each of these transponders
-* logs from the stb0899 and stb6100 modules both loaded with verbose=5,
-for each of these transponders
-
-Hope it might shed some light into your problems.
-
-Regards,
-Manu
+On Thu, Mar 6, 2008 at 2:28 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
+> I just bought a Leadtek Winfast DTV Dongle Gold, I thought it would be
+>  the same as the DTV Dongle, but apparently it's not, it's a new model
+>  fresh of the production line about a month ago. Of course it
+>  doesn't work following the instructions for the older model, I even
+>  recompiled the kernel so it would be recognised (changed the usb
+>  id, similar to changing the 6f00 to 6f01 for the last model), and
+>  got the firmware for the old one but it appears that it is quite different.
+>
+>  Does anyone have any plans for working on this one? Or can someone
+>  give me some pointers about how all this stuff works, especially how
+>  to get the firmware out of the windows driver or at least work
+>  out which firmware and driver it should be using.
+>
+>  Jarryd.
+>
 
 _______________________________________________
 linux-dvb mailing list
