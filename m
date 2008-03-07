@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.185])
+Received: from dunedin.prolingua.co.uk ([82.68.7.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ss3vdr@gmail.com>) id 1JefjK-00080D-Lq
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 01:12:33 +0100
-Received: by fk-out-0910.google.com with SMTP id z22so5537307fkz.1
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 17:12:22 -0700 (PDT)
-Date: Thu, 27 Mar 2008 00:13:24 +0000
-To: linux-dvb@linuxtv.org
-Message-ID: <20080327001324.GA5152@localhost>
+	(envelope-from <dm@prolingua.co.uk>) id 1JXdGi-0004S9-2s
+	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 15:09:54 +0100
+Received: from [192.168.1.155] (danae.prolingua.co.uk [192.168.1.155])
+	by dunedin.prolingua.co.uk (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m27E9FFs026631
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Fri, 7 Mar 2008 14:09:16 GMT
+Message-ID: <47D14C71.5040400@prolingua.co.uk>
+Date: Fri, 07 Mar 2008 14:08:49 +0000
+From: David Matthews <dm@prolingua.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-From: Albert Gall <ss3vdr@gmail.com>
-Subject: [linux-dvb] SkyStar 2 TV PCI / Sky2PC PCI + multiproto + DVB-S2.
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <47D0EA5B.8040105@philpem.me.uk>
+In-Reply-To: <47D0EA5B.8040105@philpem.me.uk>
+Subject: Re: [linux-dvb] Updated scan file for uk-EmleyMoor
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,11 +29,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This cards http://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_2_TV_PCI_/_Sky2PC_PCI suports transponders DVB-S2 with multiproto 
-drivers ?
+Philip Pemberton wrote:
+> Here's a scan file for Emley Moor with the correct frequencies and tuning 
+> parameters... Seems the one in the linux-dvb distribution has frequencies with 
+> a -133kHz or so offset, and without the correct QAM parameters. Probably my 
+> fault, because IIRC I submitted that tuning file...
+> 
+> Data sourced from www.ukfree.tv, and works fine on my HVR-3000.
+> 
+> # Emley Moor, West Yorkshire
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 626000000 8MHz 2/3 3/4 QAM64 2k 1/32 NONE
+> T 650000000 8MHz 2/3 3/4 QAM64 2k 1/32 NONE
+> T 674000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
+> T 698000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
+> T 706000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
+> T 722000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
 
+Have you looked at the Ofcom site?  You may find that the current 
+frequencies are actually correct.  Apparently all the transmitters at 
+Emley Moor have a 166kHz offset, either + or - depending on the channel.
+See 
+http://www.ofcom.org.uk/static/reception_advice/dtt_pocket_guide_3_0.pdf 
+which lists all the UK transmitters and their offsets.
 
-Albert.
+www.ukfree.tv seems to ignore the offset and just include the base 
+channel number.  Generally it doesn't matter since the bandwidth of the 
+tuner will be more than sufficient.  Of course, it would be a good idea 
+to fix the QAM parameters if they're wrong.
+
+David
 
 _______________________________________________
 linux-dvb mailing list
