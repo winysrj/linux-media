@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2RIA2Pg024623
-	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 14:10:03 -0400
-Received: from smtp808.mail.ird.yahoo.com (smtp808.mail.ird.yahoo.com
-	[217.146.188.68])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2RI9lVf004049
-	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 14:09:47 -0400
-Message-ID: <47EBE2E6.5090801@btinternet.com>
-Date: Thu, 27 Mar 2008 18:09:42 +0000
-From: Edward Ludlow <eludlow@btinternet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m271EDbb010445
+	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 20:14:13 -0500
+Received: from gaimboi.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m271DagZ020052
+	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 20:13:37 -0500
+Received: from [127.0.0.1] (gaimboi.tmr.com [127.0.0.1])
+	by gaimboi.tmr.com (8.12.8/8.12.8) with ESMTP id m271ISAv001249
+	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 20:18:28 -0500
+Message-ID: <47D097E4.9050209@tmr.com>
+Date: Thu, 06 Mar 2008 20:18:28 -0500
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-References: <47EBC75E.8040905@btinternet.com>	
-	<37219a840803271052h59c73235pa44932bef06388a6@mail.gmail.com>
-	<37219a840803271054i174dbf1ck3953d8e78ef79ab9@mail.gmail.com>
-In-Reply-To: <37219a840803271054i174dbf1ck3953d8e78ef79ab9@mail.gmail.com>
+To: video4linux M/L <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Problems building v4l-dvb modules
+Subject: Audio issues with ATI HDTV Wonder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,35 +27,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Michael Krufky wrote:
+On all the systems which could reasonably be used for TV capture here, a 
+Celeron, pre-HT P4, and K7, the cx88 module(s) load and block the on 
+board audio driver. The regular TV Wonder doesn't do that with the bt 
+driver.
 
->>  Don't do *make load* (I'll edit the wiki entry)
->>
->>  Reboot your computer, and it should be OK.
-> 
-> 
-> Ugh, it's too much to change and I don't have the time right now....
-> 
-> 
-> If anybody is interested in fixing this wiki entry, please be aware
-> that "make load" and "make reload" are *never* appropriate.  Just
-> modprobe the module that you need.  Loading ALL modules is a terrible
-> idea, and is only useful for debugging if you *really* know what
-> you're doing.
-> 
-> -Mike
-> 
+If I put the card in a server, the audio is fine, but I can't use a 
+server for TV capture, for many reasons.
 
-Thanks Mike.
+I played a bit with driver load options (index) trying to get the 
+problem to change, but no luck. I'm guessing that these systems are 
+configured to disable the on board audio if another audio card of any 
+type is found, and there isn't a BIOS option to use the on board audio 
+no matter what.
 
-So do I stop after "make install" or do the "make unload" as per the wiki?
+The system I built for just this is in a shuttle case and has no slots 
+to use for a sound card, even if that would help. I have a bunch of old 
+TV cards, ATI, STB, none of them do this, but they all put sound on a CD 
+connector, while the HDTV card has a place on the card for a connector 
+but not installed, and I really don't want the overhead of using 
+"always_analog" anyway.
 
-Is that it then?  The wiki then goes on to explain errors you may get - 
-and not a lot more.  What's the next step?
+Has anyone a workaround for this?
 
-Please excuse the linux noobie questions!
+-- 
+Bill Davidsen <davidsen@tmr.com>
+  "Woe unto the statesman who makes war without a reason that will still
+  be valid when the war is over..." Otto von Bismark 
 
-Ed
 
 --
 video4linux-list mailing list
