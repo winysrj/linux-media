@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SHm1ib019656
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 13:48:01 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SHlo6D024263
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 13:47:50 -0400
-Date: Fri, 28 Mar 2008 14:47:08 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jiri Slaby <jirislaby@gmail.com>
-Message-ID: <20080328144708.0ef1dad4@gaivota>
-In-Reply-To: <47ED2A46.1010407@gmail.com>
-References: <47ECD0CF.1020003@gmail.com> <87y783jdjo.fsf@basil.nowhere.org>
-	<47ECD715.90507@gmail.com>
-	<20080328113803.GQ29105@one.firstfloor.org>
-	<47ECE318.1030809@gmail.com>
-	<20080328133537.GS29105@one.firstfloor.org>
-	<20080328142408.6c8dc198@gaivota> <47ED2A46.1010407@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Andi Kleen <andi@firstfloor.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: v4l & compat_ioctl
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28M18Rc024737
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 17:01:08 -0500
+Received: from mail.cdma-2000.org (238.30.232.72.static.reverse.ltdomains.com
+	[72.232.30.238])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28M0Vp1002541
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 17:00:31 -0500
+Received: from pc349.sam-solutions.net (port-223-pool-91-187-1.infonet.by
+	[91.187.1.223])
+	by mail.cdma-2000.org (Postfix) with ESMTP id 345DC1734673
+	for <video4linux-list@redhat.com>; Sun,  9 Mar 2008 00:00:30 +0200 (EET)
+Message-ID: <47D30C78.10608@altlinux.ru>
+Date: Sun, 09 Mar 2008 00:00:24 +0200
+From: Grigory Milev <week@altlinux.ru>
+MIME-Version: 1.0
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+References: <47D076E0.6090400@altlinux.ru>
+In-Reply-To: <47D076E0.6090400@altlinux.ru>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: Re: Compro U800 USB
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,18 +31,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 28 Mar 2008 18:26:30 +0100
-Jiri Slaby <jirislaby@gmail.com> wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> On 03/28/2008 06:24 PM, Mauro Carvalho Chehab wrote:
-> > It seems that the problem you're suffering is specific to some driver.
-> 
-> It's pseudo vivi.c
+Nobody use this card???
+So bad :(
 
-Ok, I've added the handler for compat32. I didn't test with skype yet.
+Grigory Milev пишет:
+| Hi all.
+|
+| Does anybody know about TV Tuner Compro U800 USB or try to write drivers
+| for this tuner?
+|
+| hardware description:
+| Chipset: TC90A92AFG (Toshiba)
+| Decoder: Philips TDA9874A
+| Audio: AC?97-codec Realtek ALC202
+|
+| At this moment i'm not found any about supporting of this tuner in Linux :(
+| I'm only have DataSheet for TC90A92AFG and no more.
+|
+| Also, if anybody start to write this driver, please inform me - i'm
+| connect to this development.
 
-Cheers,
-Mauro
+- --
++--------------------------------------------------------+
+Grigory Milev	mailto:week@altlinux.ru
+ALT Linux Team	http://www.altlinux.ru
++--------------------------------------------------------+
+Life too beautiful and interesting. Don't worry, be happy.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFH0wx4RtryFLpd500RAvH3AKDGKZAUC99u1cbER38VIfk7yKMkNQCfVlUn
+al9ZvlAjtT3s4N2y2PbqXDQ=
+=7/p0
+-----END PGP SIGNATURE-----
 
 --
 video4linux-list mailing list
