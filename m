@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n8.bullet.ukl.yahoo.com ([217.146.182.188])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JcjMi-0003wx-2y
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 16:41:10 +0100
-Date: Fri, 21 Mar 2008 11:29:41 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <A33C77E06C9E924F8E6D796CA3D635D102397D@w2k3sbs.glcdomain.local>
-	(from michael.curtis@glcweb.co.uk on Wed Mar 19 17:39:49 2008)
-Message-Id: <1206113381l.5668l.0l@manu-laptop>
+Received: from holly.castlecore.com ([89.21.8.102])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lists@philpem.me.uk>) id 1JY6qH-00067K-9K
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 22:44:34 +0100
+Message-ID: <47D308EB.30408@philpem.me.uk>
+Date: Sat, 08 Mar 2008 21:45:15 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  DVB-S DVB-S2 and CI cards working on Linux
+To: David Matthews <dm@prolingua.co.uk>
+References: <47D0EA5B.8040105@philpem.me.uk> <47D14C71.5040400@prolingua.co.uk>
+In-Reply-To: <47D14C71.5040400@prolingua.co.uk>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Updated scan file for uk-EmleyMoor
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,65 +25,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/19/2008 05:39:49 PM, Michael Curtis wrote:
-> 
-> 
-> I have repeated my question and BTW thank you to those that responded
-> earlier
-> 
-> But I have to say that no one has answered the question that I posed 
-> 
-> "Are there any DVB-S/S2/CI cards that work at present on Linux? If so
-> I
-> would really appreciate knowing which ones they are"
-> 
-> Is there anyone that is watching either FTA DVB-S, DVB-S2 and/or
-> decrypted program material via a CI, on a linux box?
-> 
-> ----------------------------------------------------------------------
-> 
-> 
-> First of all my thanks to all those engaged in developing drivers for
-> the various cards for the Linux OS and my apologies for repeating 
-> this
-> question previously asked by others
-> 
-> 
-> Are there any DVB-S/S2/CI cards that work at present on Linux? If so 
-> I
-> would really appreciate knowing which ones they are
-> 
-> 
-> I have had a TT3200 DVB-S2/CI card for more than a year and I have
-> still
-> not got this to work using the Multiproto drivers on Linux, in fact 
-> it
-> seem that I am going backwards with this card with the latest errors
-> appearing in dmesg:
-> 
-> stb0899_search: Unsupported delivery system
-> 
-> This is with the latest drivers from "http://jusst.de/hg/multiproto"
-> 
-> Changeset 7212:b5a34b6a209d
-> 
-> I will gladly offer up the log/dmesg/lsmod information if someone can
-> help
-> 
-> At the moment, I feel frustrated and lack the confidence that working
-> drivers are are going to be available for this card
-> 
-> Kind Regards
+David Matthews wrote:
+> Have you looked at the Ofcom site?  You may find that the current 
+> frequencies are actually correct.  Apparently all the transmitters at 
+> Emley Moor have a 166kHz offset, either + or - depending on the channel.
 
-I was using a TT S-1500+CI with aston CAM and enjoying DVB-S crypted 
-with no problem.
-Now using a TT S-3200, DVB-S+CI works only on some transponders, others 
-are a bit unreliable (sometimes corruptd picture, sometimes no lock). 
-Hopefully this can be resolved soon.
-No DVB-S2 transponders around here, so..
-Bye
-Manu
+I've been made aware of the updated version in Hg... The version that got into 
+Fedora 8 is utterly hopelessly wrong though. Frequency offsets are 'sort of' 
+right, but the modulation mode and FEC settings are out in the woods for a few 
+muxes.
 
+> www.ukfree.tv seems to ignore the offset and just include the base 
+> channel number.  Generally it doesn't matter since the bandwidth of the 
+> tuner will be more than sufficient.  Of course, it would be a good idea 
+> to fix the QAM parameters if they're wrong.
+
+What I found odd was that my Freecom USB stick wouldn't lock to the frequency 
+if the offset had been added/subtracted already. The Hauppauge Nova-TD stick's 
+first tuner (MMCX? connector -- the little ~3mm thing) doesn't mind, but the 
+second tuner starts losing muxes if the frequency is strong.
+
+What's odd is the first tuner sees more on Linux than it does on Windows, and 
+both tuners see different things, and on Windows both tuners see the same, but 
+don't pick up Film4 (698MHz, C49, Mux D). I find this odd because by all 
+rights Mux A (650MHz, C43) should be disappearing as it's the weakest... this 
+would seem to rule out signal strength issues. In fact, wiring up a masthead 
+amplifier just made scandvb spit out "WARNING: filter pid timeout" without 
+finding any channels.
+
+Most peculiar.
+
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
