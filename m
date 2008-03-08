@@ -1,30 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CKqhE6000741
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 16:52:43 -0400
-Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
-	[195.188.213.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CKq937024431
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 16:52:10 -0400
-Received: from [172.23.170.145] (helo=anti-virus03-08)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1JZXvk-0004Wu-TW
-	for video4linux-list@redhat.com; Wed, 12 Mar 2008 20:52:08 +0000
-Received: from [82.47.98.230] (helo=[192.168.10.10])
-	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1JZXvk-0008Fq-Av
-	for video4linux-list@redhat.com; Wed, 12 Mar 2008 20:52:08 +0000
-Message-ID: <47D8427C.2060107@blueyonder.co.uk>
-Date: Wed, 12 Mar 2008 20:52:12 +0000
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <310915.92648.qm@web31709.mail.mud.yahoo.com>
-In-Reply-To: <310915.92648.qm@web31709.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: Help with PCTV HD Pro Stick and openSUSE 10.3
-Reply-To: sboyce@blueyonder.co.uk
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28JUQdq008488
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 14:30:26 -0500
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28JTmtN017919
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 14:29:48 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: itman <itman@fm.com.ua>
+In-Reply-To: <002701c8812f$33c6ed20$6501a8c0@LocalHost>
+References: <000f01c808e7$3ab4e3a0$6401a8c0@LocalHost>
+	<1191845080.3506.82.camel@pc08.localdom.local>
+	<007f01c80e7d$21c02300$6401a8c0@LocalHost>
+	<1192788480.18371.4.camel@gaivota>
+	<Pine.LNX.4.58.0710190951100.16052@shell4.speakeasy.net>
+	<471A4011.8010706@fm.com.ua> <1192922346.4857.8.camel@gaivota>
+	<003701c81410$869e6960$6401a8c0@LocalHost>
+	<1193043044.30686.22.camel@gaivota>
+	<003a01c8150f$6a248490$6401a8c0@LocalHost>
+	<1193103690.14811.10.camel@pc08.localdom.local>
+	<000401c8151a$080ef4b0$6401a8c0@LocalHost>
+	<1193107021.5728.20.camel@gaivota> <1193107692.5728.23.camel@gaivota>
+	<002701c8812f$33c6ed20$6501a8c0@LocalHost>
+Content-Type: text/plain; charset=utf-8
+Date: Sat, 08 Mar 2008 20:21:54 +0100
+Message-Id: <1205004114.3358.29.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: simon@kalmarkaglan.se, Linux and Kernel Video <video4linux-list@redhat.com>,
+	Trent Piepho <xyzzy@speakeasy.org>, MIDIMaker <midimaker@yandex.ru>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,45 +42,110 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Matthew T. Gibbs wrote:
-> [Sorry for top-posting this mail client isn't that great for composing]
-> 
-> I think I got it sorted out...I had to copy netdevice.h to the directory where it was looking for sources.  The modules were then able to build.  I had to reboot to get them to work, otherwise I got some symbol mismatch error or something like that when the modules tried to load.  After rebooting the modules seem to load properly and I can watch analog TV.  I still have to figure out how to use the digital part as Kaffeine doesn't seem to be working and Xine only seems to get one station.  Will there be a tvtime for dvb any time soon?  I hope so.  Anyway, thank you to the devs who have even gotten it this far.
-> 
-> Matt
-> 
-> ----- Original Message ----
-> From: Matthew T. Gibbs <mtgibbs@yahoo.com>
-> To: video4linux-list@redhat.com
-> Sent: Tuesday, March 11, 2008 9:43:17 PM
-> Subject: Help with PCTV HD Pro Stick and openSUSE 10.3
-> 
-> Hello all-
-> 
-> I tried to install my PCTV stick and I am getting an error that says "failed to open frontend" when I try to run dvbscan.  I tried to follow this howto
-> 
-> <http://mcentral.de/wiki/index.php5/Em2880>
-> 
-> but I couldn't get the modules to compile.  I apparently have the right module, and the stick is recognised when I plug it in.  Where do I go from here?  I tried searching but I couldn't find any related information.
-> 
-> Thank you,
-> 
-> Matt
-> 
-> --
+Hi Serge,
 
-A reboot was probably unneeded. After a new module is installed, "depmod 
--ae" needs to be run if it's not part of "make install".
-The xine-lib that is part of openSUSE is missing stuff deemed to be 
-patent encumbered, you either have to install the version from packman 
-or build your own from source.
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Am Samstag, den 08.03.2008, 17:15 +0200 schrieb itman:
+> Hi, Mauro.
+> 
+> Could you please be so kind to mention which is right mercurial repository 
+> to which you have merged your changes and which one should be used for 
+> 2.6.24 kernel?
+> 
+
+the changes are as changesets 6384 to 6388 in the master repo.
+Try "hg log" and to review them for example "hg export 6388", where you
+will find the credit for your gpio contribution.
+
+> I've got issue:
+> 
+> Trying now to build drivers for MSI TV @nywheremaster MS-8606 under kernel 
+> 2.6.24.3.
+> 
+> What were done:
+> 
+> 1) mkdir /usr/src/linux/tmpmsi
+> 2) cd tmpmsi
+> 3) hg init v4l-dvb
+> 4) hg pull http://linuxtv.org/hg/v4l-dvb
+> 5) cd v4l-dvb
+> 6) make
+> 7) make install
+> 
+> 
+> As result I've got cx88-cards.c with fixed gpio for MSI TV @anywhere BUT! 
+> there are no main parameters for module tuner: port1, port2, qss.
+
+Mike is doing some major syncing over the tuning systems,
+so currently you set your port options for your mt2050 again to the
+tda9887 module, like "options tda9887 port1=0 port2=0"
+in /etc/modprobe.conf and "depmod -a".
+
+Since under tuner mt20xx are different tuners subsumed, and IIRC not all
+can be identified safely per card, type and tv standard reception
+abilities, hence this not very nice but functional
+TDA9887_INTERCARRIER_NTSC in your card's entry, we have the tda9887
+config not yet per tuner in tuner-types.c, like we have it for the
+Philips types now.
+
+Best identification so far has Gunther for miro_pinnacle_gpio bttv
+cards.
+
+Cheers,
+Hermann
+
+>  head Makefile
+> BUILD_DIR := $(shell pwd)/v4l
+> TMP ?= /tmp
+> REPO_PULL := http://linuxtv.org/hg/v4l-dvb
+> 
+> 
+> 
+>  modinfo  tuner
+> filename:       /lib/modules/2.6.24.3/kernel/drivers/media/video/tuner.ko
+> license:        GPL
+> author:         Ralph Metzler, Gerd Knorr, Gunther Mayer
+> description:    device driver for various TV and TV+FM radio tuners
+> depends: 
+> tea5761,v4l2-common,mt20xx,tuner-simple,tda9887,videodev,tea5767,xc5000,tuner-xc2028,tda8290
+> vermagic:       2.6.24.3 preempt mod_unload PENTIUM4
+> parm:           force:List of adapter,address pairs to boldly assume to be 
+> present (array of short)
+> parm:           probe:List of adapter,address pairs to scan additionally 
+> (array of short)
+> parm:           ignore:List of adapter,address pairs not to scan (array of 
+> short)
+> parm:           addr:int
+> parm:           no_autodetect:int
+> parm:           show_i2c:int
+> parm:           debug:int
+> parm:           pal:string
+> parm:           secam:string
+> parm:           ntsc:string
+> parm:           tv_range:array of int
+> 
+> With best regards,
+> 
+>             Serge Kolotylo
+> 
+> 
+> __________________________
+> 
+> Em Ter, 2007-10-23 às 05:11 +0300, itman escreveu:
+> > After modprobe tuner port1=0 port2=0 qss=1 it works GREAT both TV
+> > (sound is
+> > clear and loud) and radio (sound is clear and loud) with DEFAULT
+> > (card=7,
+> 
+> Great! If you send us the proper tuner name, marked at the metallic can
+> inside the board, we may add those tda9887 options at tuner-types.c.
+> This way, passing the parameters to tuners can be avoided.
+> 
+> > PS: will it be merged these changes to vanilla kernel soon?
+> 
+> I've already merged into v4l-dvb tree. However, since this is changing
+> some stuff at the existing driver, the addition at mainstream should be
+> postponed to kernel 2.6.25.
+> 
 
 --
 video4linux-list mailing list
