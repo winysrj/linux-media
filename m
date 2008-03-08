@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m22NVXpa001518
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:31:33 -0500
-Received: from binford3000.de ([85.131.186.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m22NV1cJ001266
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:31:01 -0500
-Received: from [192.168.178.3] (p57B0ACCA.dip0.t-ipconnect.de [87.176.172.202])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by binford3000.de (Postfix) with ESMTP id 8135B5C5F4
-	for <video4linux-list@redhat.com>; Sun,  2 Mar 2008 23:32:36 +0100 (CET)
-Message-ID: <47CB2B0E.9010003@binford3000.de>
-Date: Sun, 02 Mar 2008 23:32:46 +0100
-From: Janosch Peters <jp@binford3000.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28I9cCA015726
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:38 -0500
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28I91Kh032578
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:01 -0500
+Received: by fk-out-0910.google.com with SMTP id b27so1059119fka.3
+	for <video4linux-list@redhat.com>; Sat, 08 Mar 2008 10:09:00 -0800 (PST)
+From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: "no such device" when calling read()
+Message-Id: <patchbomb.1204999521@liva.fdsoft.se>
+Date: Sat, 08 Mar 2008 19:05:21 +0100
+To: video4linux-list@redhat.com
+Subject: [PATCH 0 of 2] cx88: Enable additional cx2388x features
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,59 +26,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
+The cx2388x family of broadcast decoders all have features not enabled
+by the standard cx88 driver. This patch series adds module parameters
+allowing the chroma AGC and the color killer to be enabled. By default
+both features are disabled as in previous versions of the driver.
 
-I just started learning v4l2. Im trying to write a small program which 
-captures one frame and then terminates. The ioctl calls are all working, 
-but when I call read() it fails, telling me that there is "no such 
-device". Although I just used this very file descriptor to do the ioctl 
-stuff. It is no I guess I'm missing something important. Any help is 
-appreciated.
+The Chroma AGC and the color killer is sometimes needed when using
+signal sources of less than optimal quality.
 
-Im using a QuickCam for Notebooks (the current model). I already 
-checked, that this cam supports the read() I/O. The output of the code 
-beneath is:
-
----- output ------
-Device sucessfuly opened.
-read(): No such device
-----------------------
-
-
----- code -------------------------------------------
-int main()
-{
-    int fd = open("/dev/video0",O_RDWR);
-
-    if( fd == -1 ) {
-        // error message here
-    }
-    else {
-        cout << "Device sucessfuly opened." << endl;
-    }
-
-    // save one image and exit
-    int mb = 1048576;
-    char* buf = new char[mb]; // 1MB
-    ssize_t bytesRead = read(fd, buf, mb);
-
-    if (-1 == bytesRead ) {
-        perror ("read()");
-        exit (EXIT_FAILURE);
-    }
-}
--------------------------------------------------------------
-
-The file descriptor looks like this:
----------
-crw-rw----  1 root   video    81,   0 2008-03-02 23:10 video0
----------
-
-I am in the video group. I even ran the program as root.
-
-
-cheers,
-Janosch
+The patches applies cleanly to 7330:ad0b1f882ad9 of
+http://linuxtv.org/hg/v4l-dvb/. The patches should be applied in
+order.
 
 --
 video4linux-list mailing list
