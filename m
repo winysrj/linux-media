@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hydra.gt.owl.de ([195.71.99.218])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <flo@rfc822.org>) id 1JWBM5-0001y1-Oo
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 15:09:26 +0100
-Date: Mon, 3 Mar 2008 15:03:16 +0100
-From: Florian Lohoff <flo@rfc822.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Message-ID: <20080303140316.GD12328@paradigm.rfc822.org>
-References: <47CB44A8.5060103@gmail.com>
-	<20080303085249.GA6419@paradigm.rfc822.org>
-	<47CBDC63.9030207@gmail.com>
-	<20080303112610.GC6419@paradigm.rfc822.org>
-	<47CBE8FD.9030303@gmail.com>
-	<20080303132157.GA9749@paradigm.rfc822.org>
-	<47CBFFFD.1020902@gmail.com> <47CC0201.5010701@gmail.com>
-	<20080303134823.GB12328@paradigm.rfc822.org>
-	<47CC055C.5030705@gmail.com>
+	(envelope-from <mkrufky@linuxtv.org>) id 1JXrMA-0003nY-Fz
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 06:12:27 +0100
+Message-ID: <47D22035.90700@linuxtv.org>
+Date: Sat, 08 Mar 2008 00:12:21 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <47CC055C.5030705@gmail.com>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>
+References: <001501c880b3$5a749430$0a00a8c0@vorg>
+In-Reply-To: <001501c880b3$5a749430$0a00a8c0@vorg>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+Subject: Re: [linux-dvb] Supported ATSC cards with HW mpeg encoders
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,73 +19,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0902792179=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Timothy D. Lenz wrote:
+> I plan to get a dual ATSC tunner at some point, but as the 2250 does not
+> seem to even be out yet and the HDHomeRun does not support NTSC, I am
+> looking at getting a cheaper card that does suport NTSC for now. I am runing
+> VDR and using the Nexus RGB out to a 23 year old Sony. So any HD must be
+> down scaled anyway. AS a couple of our Digital locals are HD, this is what I
+> want a card with NTSC for, to get the SDTV format of those channels. Cards
+> like the pcHDTV HD-5500 while claiming to suport NTSC, do not have a HW mpeg
+> encoder to convert the video to a format that can be sent out the Nexus
+> video out. You would still need to set up software encoder/decoders. Problem
+> is, the specs for ATSC tuner cards fall far short of providing this info. So
+> what I want to know is, do any of the following cards have HW mpeg2 encoders
+> that is suported by linux/vdr:
+> 
+> DVICO FusionHDTV 5 RT Lite
+> http://store.snapstream.com/fusionhdtv-lite.html?gclid=CJODl6T0-ZECFQovgwod0Vg_xA
+> 
+> KWorld ATSC 115
+> http://www.newegg.com/Product/Product.aspx?Item=N82E16815260005 (they also
+> have a 120, but I'm not finding much about linix suport for it ether)
+> 
+> Pinnacle PCTV HD
+> http://www.newegg.com/Product/Product.aspx?Item=N82E16815144018
 
---===============0902792179==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PHCdUe6m4AxPMzOu"
-Content-Disposition: inline
+None of the above have hardware mpeg encoders.  A good card that I'd recommend for your needs right now is the Hauppauge HVR-1800.
 
+This is a dual tuner combo atsc/qam / hardware mpeg encoder card.  Already the ATSC/QAM support is in the 2.6.24 kernel.  Stoth has the hardware mpeg encoder working in his cx23885-video tree.  After some more testing and cleanups, it will eventually be merged into the master repository, hopefully in time for the 2.6.26 kernel release.
 
---PHCdUe6m4AxPMzOu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+HTH,
 
-On Mon, Mar 03, 2008 at 06:04:12PM +0400, Manu Abraham wrote:
-> The more important part is to first check for a signal, before=20
-> attempting a tune.
-> Lack of doing so, will result in a lot of frustration in many cases.=20
-> Though it is completely upto oneself whether to do it or not.
-
-You mean tune and then check if there is a SIGNAL and possibly a LOCK? I
-do that yes ... But first comes the tune - On an uninitialized state of
-a demod/tuner i would not expect to see any signal.
-
-Before powering up the radio you cant know whether they play your song
-on your favorit radio station.
-
-> The whole point is: there are 2 or more paths, which need to be selected=
-=20
-> for any operation.
-
-You are referring to what?
-
-Flo
---=20
-Florian Lohoff                  flo@rfc822.org             +49-171-2280134
-	Those who would give up a little freedom to get a little=20
-          security shall soon have neither - Benjamin Franklin
-
---PHCdUe6m4AxPMzOu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHzAUkUaz2rXW+gJcRAmMUAKDaLKndnL1ckwbLMg1F6GUZ/3LN/wCfVAIi
-NeRcHxjHphaoXYJiz7Lcfac=
-=PH4f
------END PGP SIGNATURE-----
-
---PHCdUe6m4AxPMzOu--
-
-
---===============0902792179==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0902792179==--
