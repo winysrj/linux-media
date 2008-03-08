@@ -1,23 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QKdsbc023740
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 16:39:54 -0400
-Received: from mailout05.sul.t-online.de (mailout05.sul.t-online.de
-	[194.25.134.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2QKdgpH011473
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 16:39:42 -0400
-Message-ID: <001a01c88f81$80aec670$6402a8c0@desktop>
-From: "Torsten Seeboth" <Torsten.Seeboth@t-online.de>
-To: "Marton Balint" <cus@fazekas.hu>
-References: <patchbomb.1206497254@bluegene.athome>
-Date: Wed, 26 Mar 2008 21:39:34 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28FFxQ0027080
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 10:15:59 -0500
+Received: from ex.volia.net (ex.volia.net [82.144.192.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28FFKQh008964
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 10:15:21 -0500
+Message-ID: <002701c8812f$33c6ed20$6501a8c0@LocalHost>
+From: "itman" <itman@fm.com.ua>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+References: <000f01c808e7$3ab4e3a0$6401a8c0@LocalHost>
+	<1191845080.3506.82.camel@pc08.localdom.local>
+	<007f01c80e7d$21c02300$6401a8c0@LocalHost>
+	<1192788480.18371.4.camel@gaivota>
+	<Pine.LNX.4.58.0710190951100.16052@shell4.speakeasy.net>
+	<471A4011.8010706@fm.com.ua> <1192922346.4857.8.camel@gaivota>
+	<003701c81410$869e6960$6401a8c0@LocalHost>
+	<1193043044.30686.22.camel@gaivota>
+	<003a01c8150f$6a248490$6401a8c0@LocalHost>
+	<1193103690.14811.10.camel@pc08.localdom.local>
+	<000401c8151a$080ef4b0$6401a8c0@LocalHost>
+	<1193107021.5728.20.camel@gaivota>
+	<1193107692.5728.23.camel@gaivota>
+Date: Sat, 8 Mar 2008 17:15:10 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement
-	stereodetection
+Content-Type: text/plain; format=flowed; charset="UTF-8"; reply-type=original
+Content-Transfer-Encoding: 8bit
+Cc: simon@kalmarkaglan.se, Linux and Kernel Video <video4linux-list@redhat.com>,
+	MIDIMaker <midimaker@yandex.ru>, Trent Piepho <xyzzy@speakeasy.org>
+Subject: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,57 +39,88 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> The second and the third patches are enhachments of the cx88 audio code, I
-> tried to implement the detection of stereo TV channels for A2 mode. I had
-> no idea how to detect it, and falling back to EN_A2_AUTO_STEREO instead of
-> EN_A2_FORCE_MONO1 did not help either. (The card changed the audio mode
-> periodically on both mono and stereo channels) Forcing STEREO mode also
-> did not help, because it resulted a loud static noise on mono tv channels.
+Hi, Mauro.
 
-It's a bug of the audio dsp part.
+Could you please be so kind to mention which is right mercurial repository 
+to which you have merged your changes and which one should be used for 
+2.6.24 kernel?
 
-> Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers
-> change randomly if and only if the second audio channel is missing, so if
-> these registers are constant (Usually 0x0000 and 0x01), we can assume that
-> the
-> tv channel has two audio channels, so we can use STEREO mode. This method
-> seems a bit ugly, but nicam detection works the same way, so to avoid
-> further msleep()-ing, the A2 stereo detection code is in the nicam
-> detection
-> function.
+I've got issue:
 
-No, the Nicam_Status_Regs contain only and only if Nicam is forced before.
-Your patch _can_ work for B/G, but I don't think so for others, like D/K
-etc.
+Trying now to build drivers for MSI TV @nywheremaster MS-8606 under kernel 
+2.6.24.3.
 
-> By the way, the audio thread in the cx88 code is totally useless, in fact,
-> it occaisonally sets the audio to MONO after starting a TV application, so
-> i think it should be removed. My patch does NOT fix cx88_get_stereo, and
-> even if it would, the audio thread would not work as expected, because
-> core->audiomode_current is not set in cx88_set_tvaudio, and AUTO stereo
-> modes (EN_BTSC_AUTO_STEREO, EN_NICAM_AUTO_STEREO) would also cause
-> problems, the autodetected audio mode should be set to
-> core->audiomode_current
-> to make it work.
+What were done:
 
-Sorry, not an native english speaker here.
+1) mkdir /usr/src/linux/tmpmsi
+2) cd tmpmsi
+3) hg init v4l-dvb
+4) hg pull http://linuxtv.org/hg/v4l-dvb
+5) cd v4l-dvb
+6) make
+7) make install
 
-If it were easy it would already be done. ;)
 
-I am the one who did that in cx88-tvaudio.c. With Mauro's and many others
-help I have moved this part from DScaler project where I am from into this
-file.
+As result I've got cx88-cards.c with fixed gpio for MSI TV @anywhere BUT! 
+there are no main parameters for module tuner: port1, port2, qss.
 
-Still not finished as you can see in comments. There is much more to do if
-you want to get safe mono/stereo or a2/nicam/btsc detection.
 
-I did many things trying to understand on how audio things are going on on
-this chip. Together witht some others from this list I have learned from m$
-driver how it really works by using de-asm/debuggers tools. To make a long
-story short: The only way is to take some audio samples into memory, compare
-it to tables and do some calculations depands on video-mode.
+ head Makefile
+BUILD_DIR := $(shell pwd)/v4l
+TMP ?= /tmp
+REPO_PULL := http://linuxtv.org/hg/v4l-dvb
 
-Torsten
+
+
+ modinfo  tuner
+filename:       /lib/modules/2.6.24.3/kernel/drivers/media/video/tuner.ko
+license:        GPL
+author:         Ralph Metzler, Gerd Knorr, Gunther Mayer
+description:    device driver for various TV and TV+FM radio tuners
+depends: 
+tea5761,v4l2-common,mt20xx,tuner-simple,tda9887,videodev,tea5767,xc5000,tuner-xc2028,tda8290
+vermagic:       2.6.24.3 preempt mod_unload PENTIUM4
+parm:           force:List of adapter,address pairs to boldly assume to be 
+present (array of short)
+parm:           probe:List of adapter,address pairs to scan additionally 
+(array of short)
+parm:           ignore:List of adapter,address pairs not to scan (array of 
+short)
+parm:           addr:int
+parm:           no_autodetect:int
+parm:           show_i2c:int
+parm:           debug:int
+parm:           pal:string
+parm:           secam:string
+parm:           ntsc:string
+parm:           tv_range:array of int
+
+With best regards,
+
+            Serge Kolotylo
+
+
+__________________________
+
+Em Ter, 2007-10-23 às 05:11 +0300, itman escreveu:
+> After modprobe tuner port1=0 port2=0 qss=1 it works GREAT both TV
+> (sound is
+> clear and loud) and radio (sound is clear and loud) with DEFAULT
+> (card=7,
+
+Great! If you send us the proper tuner name, marked at the metallic can
+inside the board, we may add those tda9887 options at tuner-types.c.
+This way, passing the parameters to tuners can be avoided.
+
+> PS: will it be merged these changes to vanilla kernel soon?
+
+I've already merged into v4l-dvb tree. However, since this is changing
+some stuff at the existing driver, the addition at mainstream should be
+postponed to kernel 2.6.25.
+
+-- 
+Cheers,
+Mauro 
 
 --
 video4linux-list mailing list
