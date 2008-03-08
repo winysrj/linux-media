@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NAddh9008838
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 06:39:39 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2NAd5Ar011390
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 06:39:06 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Sun, 23 Mar 2008 11:38:56 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28DrWmj001937
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 08:53:32 -0500
+Received: from web56415.mail.re3.yahoo.com (web56415.mail.re3.yahoo.com
+	[216.252.111.94])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m28Dqsss024222
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 08:52:55 -0500
+Date: Sat, 8 Mar 2008 05:52:49 -0800 (PST)
+From: r bartlett <techwritebos@yahoo.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <47D2229A.9090300@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200803231138.57707.tobias.lorenz@gmx.net>
-Cc: video4linux-list@redhat.com, Oliver Neukum <oliver@neukum.org>
-Subject: [PATCH] radio-si470x: unplugging fixed
+Message-ID: <327155.1089.qm@web56415.mail.re3.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: WinTV-HVR-1800 help...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,214 +26,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
-
-this patch fixes several kernel oops, when unplugging device while it is in use:
-kernel: EIP is at __video_do_ioctl+0x40/0x3810 [videodev]
-kernel: EIP is at si470x_fops_release+0x11/0xd0 [radio_si470x]
-kernel: EIP is at si470x_fops_poll+0x17/0x80 [radio_si470x]
-
-Basically the patch delays freeing of the internal variables in si470x_usb_driver_disconnect,
-until the the last user closed the device in si470x_fops_release.
-This was implemented a while ago with the help of Oliver Neukum.
-
-I tested the patch five times (unplugging while in use) without oops coming from the radio-si470x driver anymore.
-A remaining oops was coming from the usbaudio driver, but this is someone else task.
-Hopefully this fixed all unplugging issues.
-
-Please consider to let Linus apply this for the upcoming linux kernel release.
-
-Bye the way, current work is done to support an additional device "Lart FM radio"
-and to support hardware frequency seek support.
-But this is something not for the next kernel.
-
-Bye,
-  Toby
-
-Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
---- 20080216_mercurial/radio-si470x.c   2008-02-16 23:46:46.000000000 +0100
-+++ 1.0.7c_unplug_patch/radio-si470x.c  2008-03-23 11:12:07.000000000 +0100
-@@ -85,6 +85,7 @@
-  *             Oliver Neukum <oliver@neukum.org>
-  *             Version 1.0.7
-  *             - usb autosuspend support
-+ *             - unplugging fixed
-  *
-  * ToDo:
-  * - add seeking support
-@@ -97,10 +98,10 @@
- /* driver definitions */
- #define DRIVER_AUTHOR "Tobias Lorenz <tobias.lorenz@gmx.net>"
- #define DRIVER_NAME "radio-si470x"
--#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 6)
-+#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 7)
- #define DRIVER_CARD "Silicon Labs Si470x FM Radio Receiver"
- #define DRIVER_DESC "USB radio driver for Si470x FM Radio Receivers"
--#define DRIVER_VERSION "1.0.6"
-+#define DRIVER_VERSION "1.0.7"
 
 
- /* kernel includes */
-@@ -427,12 +428,13 @@ struct si470x_device {
+Michael Krufky <mkrufky@linuxtv.org> wrote:
+The digital side is 100% supported.  The analog side is not supported at all in the 2.6.24.y kernel series.  The master v4l-dvb development tree adds support for analog video with no audio.  If you pull down stoth's cx23885-video tree, you can enable the mpeg2 hardware encoder, and then you'll have analog mpeg audio and video fully working .  After some more testing and cleanups, that will eventually be merged into the master branch.
 
-        /* driver management */
-        unsigned int users;
-+       unsigned char disconnected;
+You should give digital a try -- you do not need any subscription to receive Free-To-Air ATSC broadcasts (using an antennae).  Likewise, you can also receive digital cable SDTV and Clear QAM broadcasts on your standard cable at no extra charge -- give it a try, you may be surprised 8-).
+Mike, I'd be more than happy to give digital a try but have spent almost 3 weeks (4 calls to Comcast and a guy coming out to the house to check the line) and there's _no digital_ signal on my line that's accessible without paying more and having a digital converter box.  At least, at this point it seems I know more than Comcast does about what a "tv tuner card" is and what it's capabilities are, and this is what I've figured out so far.
 
-        /* Silabs internal registers (0..15) */
-        unsigned short registers[RADIO_REGISTER_NUM];
+SDTV would be fine, Clear QAM would be fine...ATSC would be fine, but I'm fighting a Catch-22 because until I know what signal is on the line I can't set it up, and until I set it up, I can't figure out what signal is on the line.  :-)
 
-        /* RDS receive buffer */
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
-        struct work_struct work;
- #else
-        struct delayed_work work;
-@@ -452,6 +454,12 @@ struct si470x_device {
+If I start with ATSC, you're saying this is broadcast over the air...but I need an antenna?  Like on top of the roof?  Or just a pair of rabbit ears?  I'm in a spot that barely gets good radio reception half of the time...is ATSC a stronger signal?  Can I test it somehow without spending a lot of dough to put a big antenna on the top of the house?
 
+And how do I "find" the SDTV and Clear QAM channels that are supposed to be already on this cable line?  I've got a splitter, so I should be getting both digital and analog signals at the same time...but there's nothing at all appearing at the digital side.
 
- /*
-+ * Lock to prevent kfree of data before all users have releases the device.
-+ */
-+static DEFINE_MUTEX(open_close_lock);
-+
-+
-+/*
-  * The frequency is set in units of 62.5 Hz when using V4L2_TUNER_CAP_LOW,
-  * 62.5 kHz otherwise.
-  * The tuner is able to have a channel spacing of 50, 100 or 200 kHz.
-@@ -589,7 +597,7 @@ static int si470x_get_rds_registers(stru
-                usb_rcvintpipe(radio->usbdev, 1),
-                (void *) &buf, sizeof(buf), &size, usb_timeout);
-        if (size != sizeof(buf))
--               printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_register: "
-+               printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_registers: "
-                        "return size differs: %d != %zu\n", size, sizeof(buf));
-        if (retval < 0)
-                printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_registers: "
-@@ -887,6 +895,8 @@ static void si470x_work(struct work_stru
-        struct si470x_device *radio = container_of(work, struct si470x_device,
-                work.work);
+You're the second person to suggest using digital...and I'd be happy to, but it's just looking awfully much like I don't have any usable digital signals here.
+If indeed I do, part of the problem is identifying them, determining what's here and what's not, so I don't (for example) spend three days setting up ATSC only to find I don't get ATSC reception.
 
-+       if (radio->disconnected)
-+               return;
-        if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-                return;
+The other problem is cash.  I use Linux because I can't afford massive software expenses, and getting this card was a big investment that I justified partly because I thought it would _not_ require me to buy a different cable subscription that what I already have.
 
-@@ -1013,13 +1023,21 @@ static int si470x_fops_open(struct inode
- static int si470x_fops_release(struct inode *inode, struct file *file)
- {
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--       int retval;
-+       int retval = 0;
+The other possibility is that the digital tuner part on my card is broken, which would explain why I can't get any digital love.  In Windo$e I get about 13 analog channels and 0 digital signals...so I assumed it was my cable subscription or something...but that could perhaps indicate a broken card.
 
-        if (!radio)
-                return -ENODEV;
+The frustrating thing is that each time I've called Comcast they either have no clue what I'm talking about or else they've said something different from the person before.  The guy who came to the house said it's a mix of digital and analog signals, the girl I spoke to on the phone said it's _all_ 100% digital...and some other guy said I won't see any digital signals without getting a better subscription and a box converter.
 
-+       mutex_lock(&open_close_lock);
-        radio->users--;
-        if (radio->users == 0) {
-+               if (radio->disconnected) {
-+                       video_unregister_device(radio->videodev);
-+                       kfree(radio->buffer);
-+                       kfree(radio);
-+                       goto done;
-+               }
-+
-                /* stop rds reception */
-                cancel_delayed_work_sync(&radio->work);
+So...Mike or anyone out there, I need a simple roadmap of what to do next.  If I want to try SDTV, for example...where do I start?  Otherwise I'm thinking I'll just put it in the box and wait for a year or two.  :-)
 
-@@ -1028,10 +1046,11 @@ static int si470x_fops_release(struct in
+Again, thanks for any and all help getting this going.  It's not a massive problem if I can't figure it out, but I do greatly appreciate the help/time.  
 
-                retval = si470x_stop(radio);
-                usb_autopm_put_interface(radio->intf);
--               return retval;
-        }
+Best...
 
--       return 0;
-+done:
-+       mutex_unlock(&open_close_lock);
-+       return retval;
- }
-
-
-@@ -1169,6 +1188,9 @@ static int si470x_vidioc_g_ctrl(struct f
- {
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-
-+       if (radio->disconnected)
-+               return -EIO;
-+
-        switch (ctrl->id) {
-        case V4L2_CID_AUDIO_VOLUME:
-                ctrl->value = radio->registers[SYSCONFIG2] &
-@@ -1193,6 +1215,9 @@ static int si470x_vidioc_s_ctrl(struct f
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-        int retval;
-
-+       if (radio->disconnected)
-+               return -EIO;
-+
-        switch (ctrl->id) {
-        case V4L2_CID_AUDIO_VOLUME:
-                radio->registers[SYSCONFIG2] &= ~SYSCONFIG2_VOLUME;
-@@ -1255,6 +1280,8 @@ static int si470x_vidioc_g_tuner(struct
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-        int retval;
-
-+       if (radio->disconnected)
-+               return -EIO;
-        if (tuner->index > 0)
-                return -EINVAL;
-
-@@ -1311,6 +1338,8 @@ static int si470x_vidioc_s_tuner(struct
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-        int retval;
-
-+       if (radio->disconnected)
-+               return -EIO;
-        if (tuner->index > 0)
-                return -EINVAL;
-
-@@ -1336,6 +1365,9 @@ static int si470x_vidioc_g_frequency(str
- {
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-
-+       if (radio->disconnected)
-+               return -EIO;
-+
-        freq->type = V4L2_TUNER_RADIO;
-        freq->frequency = si470x_get_freq(radio);
-
-@@ -1352,6 +1384,8 @@ static int si470x_vidioc_s_frequency(str
-        struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-        int retval;
-
-+       if (radio->disconnected)
-+               return -EIO;
-        if (freq->type != V4L2_TUNER_RADIO)
-                return -EINVAL;
-
-@@ -1522,11 +1556,16 @@ static void si470x_usb_driver_disconnect
- {
-        struct si470x_device *radio = usb_get_intfdata(intf);
-
-+       mutex_lock(&open_close_lock);
-+       radio->disconnected = 1;
-        cancel_delayed_work_sync(&radio->work);
-        usb_set_intfdata(intf, NULL);
--       video_unregister_device(radio->videodev);
--       kfree(radio->buffer);
--       kfree(radio);
-+       if (radio->users == 0) {
-+               video_unregister_device(radio->videodev);
-+               kfree(radio->buffer);
-+               kfree(radio);
-+       }
-+       mutex_unlock(&open_close_lock);
- }
-
-
+       
+---------------------------------
+Never miss a thing.   Make Yahoo your homepage.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
