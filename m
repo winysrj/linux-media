@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CMbUNA002981
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 18:37:30 -0400
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CMavfZ032407
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 18:36:57 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-In-Reply-To: <Pine.LNX.4.64.0803120831380.3804@axis700.grange>
-References: <47C40563.5000702@claranet.fr> <47D24404.9050708@claranet.fr>
-	<Pine.LNX.4.64.0803081026230.3639@axis700.grange>
-	<47D3A2AA.7040608@claranet.fr>
-	<Pine.LNX.4.64.0803091204060.3408@axis700.grange>
-	<Pine.LNX.4.64.0803112257260.9070@axis700.grange>
-	<1205281392.5927.117.camel@pc08.localdom.local>
-	<Pine.LNX.4.64.0803120831380.3804@axis700.grange>
-Content-Type: text/plain
-Date: Wed, 12 Mar 2008 23:28:55 +0100
-Message-Id: <1205360935.5924.9.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28I9i9i015735
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:44 -0500
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28I942x032609
+	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:05 -0500
+Received: by fk-out-0910.google.com with SMTP id b27so1059146fka.3
+	for <video4linux-list@redhat.com>; Sat, 08 Mar 2008 10:09:04 -0800 (PST)
+From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: kernel oops since changeset e3b8fb8cc214
+Message-Id: <d628824bec6646cc474d.1204999522@liva.fdsoft.se>
+In-Reply-To: <patchbomb.1204999521@liva.fdsoft.se>
+Date: Sat, 08 Mar 2008 19:05:22 +0100
+To: video4linux-list@redhat.com
+Subject: [PATCH 1 of 2] cx88: Add module parameter to control chroma AGC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,48 +27,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+1 file changed, 5 insertions(+), 1 deletion(-)
+linux/drivers/media/video/cx88/cx88-core.c |    6 +++++-
 
-Am Mittwoch, den 12.03.2008, 08:34 +0100 schrieb Guennadi Liakhovetski:
-> Hi Hermann,
-> 
-> On Wed, 12 Mar 2008, hermann pitton wrote:
-> 
-> > you are definitely going into the right direction, as it was meant
-> > already years back and also like Mauro did pick it up.
-> 
-> You mean this has already been discussed before? Have you got links to 
-> ML-archive threads?
 
-it came up over the time that video-buf can be utilized for more then
-only bttv and saa7134. It changed somehow from Gerd's early comment here
+# HG changeset patch
+# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
+# Date 1204989936 -3600
+# Node ID d628824bec6646cc474d13fd47ff03034119d83a
+# Parent  ad0b1f882ad988ae2f80ebbbe914092a4a963f04
+cx88: Add module parameter to control chroma AGC
 
-/*
- * generic helper functions for video4linux capture buffers, to handle
- * memory management and PCI DMA.  Right now bttv + saa7134 use it.
- *
- * The functions expect the hardware being able to scatter gatter
- * (i.e. the buffers are not linear in physical memory, but fragmented
- * into PAGE_SIZE chunks).  They also assume the driver does not need
- * to touch the video data (thus it is probably not useful for USB 1.1
- * as data often must be uncompressed by the drivers).
- * 
- * (c) 2001-2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
+From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-to "make use of it when you can", for example with the then upcoming USB
-2.0 and the hybrid devices.
+The cx2388x family has support for chroma AGC but no way for a casual
+user to enable it. This patch adds the module parameter chroma_agc
+which if non-zero enables the AGC. By default chroma AGC is disabled,
+as in previous versions of the driver.
 
-> > Don't take any rants seriously, but we just need something to settle
-> > down in between safely until the next steps can be achieved.
-> 
-> No problem, just trying to help solve the puzzle and wondering how my 
-> patch could have triggered this.
 
-Hopefully can be found soon, can't even trigger it on my saa7134 stuff.
+Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-Cheers,
-Hermann
-
+diff -r ad0b1f882ad9 -r d628824bec66 linux/drivers/media/video/cx88/cx88-core.c
+--- a/linux/drivers/media/video/cx88/cx88-core.c	Wed Mar 05 20:24:43 2008 +0000
++++ b/linux/drivers/media/video/cx88/cx88-core.c	Sat Mar 08 16:25:36 2008 +0100
+@@ -61,6 +61,10 @@ static unsigned int nocomb;
+ static unsigned int nocomb;
+ module_param(nocomb,int,0644);
+ MODULE_PARM_DESC(nocomb,"disable comb filter");
++
++static unsigned int chroma_agc;
++module_param(chroma_agc, int, 0444);
++MODULE_PARM_DESC(chroma_agc, "enable chroma agc");
+ 
+ #define dprintk(level,fmt, arg...)	if (core_debug >= level)	\
+ 	printk(KERN_DEBUG "%s: " fmt, core->name , ## arg)
+@@ -628,7 +632,7 @@ int cx88_reset(struct cx88_core *core)
+ 	cx_write(MO_INPUT_FORMAT, ((1 << 13) |   // agc enable
+ 				   (1 << 12) |   // agc gain
+ 				   (1 << 11) |   // adaptibe agc
+-				   (0 << 10) |   // chroma agc
++				   chroma_agc ? (1 << 10) : 0 |
+ 				   (0 <<  9) |   // ckillen
+ 				   (7)));
+ 
 
 --
 video4linux-list mailing list
