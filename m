@@ -1,28 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mail.krastelcom.ru ([88.151.248.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <glen.robson@gmail.com>) id 1Jee7D-0007fP-UQ
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 23:29:04 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so3170933fge.25
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 15:28:58 -0700 (PDT)
-Message-ID: <f19c00fe0803261528m6d05a02eh4ff82181be7dfd21@mail.gmail.com>
-Date: Wed, 26 Mar 2008 22:28:58 +0000
-From: "Glen Robson" <glen.robson@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <8ad9209c0803261443m47fbd504i9373070a37c5421a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida>
-	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
-	<1206348478.6370.27.camel@youkaida>
-	<1206546831.8967.13.camel@acropora>
-	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-	<1206566561.8947.10.camel@youkaida>
-	<8ad9209c0803261443m47fbd504i9373070a37c5421a@mail.gmail.com>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
+	(envelope-from <vpr@krastelcom.ru>) id 1JXq9r-0000nc-8z
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 04:55:40 +0100
+Message-Id: <080400A9-69C5-4DCC-A67E-550E99F259FA@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: manu <eallaud@yahoo.fr>
+In-Reply-To: <1204928318l.5666l.0l@manu-laptop>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sat, 8 Mar 2008 06:55:34 +0300
+References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
+	<1204845652l.7051l.0l@manu-laptop> <47D08B08.9010703@gmail.com>
+	<1204928318l.5666l.0l@manu-laptop>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Re : Re : TT S2-3200. No lock on high symbol rate
+	(45M) transponders
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,22 +28,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Mar 26, 2008 at 10:22 PM, Nicolas Will <nico@youplala.net> wrote:
-> Can the persons experiencing disconnects post:
->
-> Distro
-> distro version
-> kernel version (uname -a)
->  dvb-utils version
->
+You can make these changes to the corresponding ttpci files as far as  
+I understand...
 
-Fedora Core
-release 8 (Werewolf)
-Linux chimera 2.6.24.3-34.fc8 #1 SMP Wed Mar 12 18:17:20 EDT 2008 i686
-athlon i386 GNU/Linux
-dvb-utils ?
+Regards,
+Vladimir
 
-Glen
+On Mar 8, 2008, at 1:18 AM, manu wrote:
+
+> On 03/06/2008 08:23:36 PM, Manu Abraham wrote:
+>> manu wrote:
+>>> On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
+>>>> Can't get TT S2-3200 locked on high SR transponders. I have seen a
+>>>> lot
+>>>>
+>>>> of suggestions regarding changing Frequency/Symbol rate on various
+>>
+>>>> forums but no luck. Low SR are fine.
+>>>> Does anyone have a "revision" of multiproto that was tested with
+>> high
+>>>>
+>>>> SR?
+>>>>
+>>>> I hope Manu can comment on that as well...
+>>>>
+>>> Just a "me too", well kind of: for me certain transponders do not
+>> lock
+>>> or lock but with corrupted streams whereas others are perfect (on
+>> the
+>>> same sat with the same characteristics, SR is 30M).
+>>
+>>
+>> Please try whether these register setup changes does help as
+>> applicable.
+>>
+>> http://jusst.de/hg/mantis/rev/72e81184fb9f
+>>
+>> Regards,
+>> Manu
+>>
+>
+> Is there equivalent fixes/imrpovments for TT 3200?
+> Thx,
+> Bye
+> Manu
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
 
 _______________________________________________
 linux-dvb mailing list
