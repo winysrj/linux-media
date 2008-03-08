@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JdiMl-0003zw-BE
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 09:49:18 +0100
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-In-Reply-To: <1206270834.4521.11.camel@shuttle>
-References: <1206139910.12138.34.camel@youkaida>
-	<1206185051.22131.5.camel@tux>  <1206190455.6285.20.camel@youkaida>
-	<1206270834.4521.11.camel@shuttle>
-Date: Mon, 24 Mar 2008 08:47:58 +0000
-Message-Id: <1206348478.6370.27.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
+Received: from web33102.mail.mud.yahoo.com ([209.191.69.132])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <simeonov_2000@yahoo.com>) id 1JY7DA-0008Sx-So
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 23:08:13 +0100
+Date: Sat, 8 Mar 2008 14:07:32 -0800 (PST)
+From: Simeon Simeonov <simeonov_2000@yahoo.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+Message-ID: <872297.2263.qm@web33102.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] STB0899 users,
+	please verify results was Re: TechniSat SkyStar HD: Problems
+	scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,36 +25,94 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Guys,
+Hi Manu,
 
-I was running with the following debug options when I got a disconnect:
+I was able to resolve my rotor problem by making the following changes in the stb6100, stb0899 and mantis sources:
+u<X> replaced by unit<X>_t..
 
-options dvb-usb-dib0700 force_lna_activation=1
-options dvb-usb-dib0700 debug=1
-options mt2060 debug=1
-options dibx000_common debug=1
-options dvb_core debug=1
-options dvb_core dvbdev_debug=1
-options dvb_core frontend_debug=1
-options dvb_usb debug=1
-options dib3000mc debug=1
-options usbcore autosuspend=-1
+Since I am running the drivers on 64-bit machine my guess is that is a 64-bit pointer size thing.
+Unfortunately it is painful to restore my rotor settings after loosing them and I cannot tell you at the
+moment which change made the difference.
+
+Thanks for your help,
+Simeon
+
+----- Original Message ----
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Sent: Monday, March 3, 2008 3:52:29 AM
+Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+
+Simeon Simeonov wrote:
+> I am using mythtv and here is the sequence of commands:
+> 
+> Without repeat:
+> DiSEqCDevTree: Changing LNB voltage to 13V
+> DiSEqCDevTree: Rotor - Goto Stored Position 2
+> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
+> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
+> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
+> 
+> With repeat:
+> DiSEqCDevTree: Changing LNB voltage to 13V
+> DiSEqCDevTree: Rotor - Goto Stored Position 2
+> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
+> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
+> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
+> DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
 
 
-/var/log/messages is here:
+In fact, looks really confusing to me. The diseqc commands just go out 
+as it is,
+through the FIFO. I don't see anything that which changes the commands, but
+if it was working with another card, it should be working with this card 
+too (i
+had some doubts, but when you said it worked with some other card, then i
+don't see the issue in here with the diseqc part. The FiFO either works 
+or not)
 
-http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
 
-and slightly different data:
 
-http://www.youplala.net/~will/htpc/disconnects/syslog-with_debug
+> ----- Original Message ----
+> From: Manu Abraham <abraham.manu@gmail.com>
+> To: Simeon Simeonov <simeonov_2000@yahoo.com>
+> Cc: linux-dvb@linuxtv.org
+> Sent: Sunday, March 2, 2008 2:38:51 PM
+> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+> 
+> Simeon Simeonov wrote:
+>> Hi Manu,
+>>
+>> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
+>> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
+>> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
+>> east from the target rotor position. 
+>> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
+>> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
+>> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
+>> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
+>> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
+>> wait for one cycle.
+>> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
+> 
+> Can you please try to get the DiSEqC strings that you are sending
+> (from the application) in these 2 cases ?
+> 
+> * Without repeat
+> * With repeat
+> 
+> Regards,
+> Manu
 
-Can that help, or would more be needed?
 
-There was zero remote usage at the time.
 
-Nico
 
+
+
+      ____________________________________________________________________________________
+Looking for last minute shopping deals?  
+Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
 
 _______________________________________________
 linux-dvb mailing list
