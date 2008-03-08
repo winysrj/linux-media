@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1JfjkT-0000Zv-Mc
-	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 23:42:11 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so803016fge.25
-	for <linux-dvb@linuxtv.org>; Sat, 29 Mar 2008 15:42:02 -0700 (PDT)
-Message-ID: <854d46170803291542w51a3f500r102a6bcbde4910cc@mail.gmail.com>
-Date: Sat, 29 Mar 2008 23:42:01 +0100
-From: "Faruk A" <fa@elwak.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <854d46170803251343t5676ddebpa752941c20a0b9a2@mail.gmail.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1JY88f-0003pE-6S
+	for linux-dvb@linuxtv.org; Sun, 09 Mar 2008 00:07:43 +0100
+Message-ID: <47D31C2E.2090707@gmail.com>
+Date: Sun, 09 Mar 2008 03:07:26 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_33627_15394099.1206830521966"
-References: <854d46170803181612wa79a469m9faf56b929577583@mail.gmail.com>
-	<47E0B346.2090701@gmx.net>
-	<854d46170803211001r7a11027cnbe8df40455cb6e9@mail.gmail.com>
-	<854d46170803251343t5676ddebpa752941c20a0b9a2@mail.gmail.com>
-Subject: Re: [linux-dvb] TT Connect S2-3650 CI unsupported device but
-	partially working
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+References: <872297.2263.qm@web33102.mail.mud.yahoo.com>
+In-Reply-To: <872297.2263.qm@web33102.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] STB0899 users,
+ please verify results was Re: TechniSat SkyStar HD: Problems
+ scaning and zaping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,126 +21,130 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_33627_15394099.1206830521966
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Simeon Simeonov wrote:
+> Hi Manu,
+> 
+> I was able to resolve my rotor problem by making the following changes in the stb6100, stb0899 and mantis sources:
+> u<X> replaced by unit<X>_t..
 
-Hi!
+Some points:
 
-I've been messing with this card all day and i found out that there
-was something missing in my
-vdr build script. I forgot to apply vdr patches.
+1. The change to stb6100 should in no way matter for the rotor.
+2. u* is kernel data types and uint*_t are POSIX data types. In fact
+this shouldn't matter AFAICT,  since both are explicit datatypes. The only
+difference in there that can make a difference would be "long"
 
-After i compiled vdr-1.6 and multiproto ( changeset <=3D7207). I can
-finally watch channels in vdr.
+I think, greping for long, the only thing that comes to my mind is
+stb0899_wait_diseqc_fifo_empty(), where you will see the error as
+stb0899_wait_diseqc_fifo_empty: timed out !!
+(do you see this error, in your logs ?)
 
-remote control 100% working
-DiseqC, DVB-S and DVBS-2 working in vdr.
+But that also shouldn't matter, since there the timeout what's
+provided there isn't quite large
 
-Minus side:
-No CI support
-vdr needs help from szap once ( i have to run szap once after i insmod
-drivers if not vdr won't lock "stb0899_read_status: Unsupported
-delivery system")
-DVB-S and DVBS-2 can't work together, you can either use DVB-S or
-DVBS-2 to switch mode you have close vdr and run szap in DVB-S or
-DVBS-2.
-There are packet losses from the TS.
+Also this doesn't come into picture, with your u* to uint* change. .. 
+thinking ..
 
-I have even test the new pctv452e.c posted by Dominik Kuhlen on Mar 16
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024571.html
+> Since I am running the drivers on 64-bit machine my guess is that is a 64-bit pointer size thing.
+> Unfortunately it is painful to restore my rotor settings after loosing them and I cannot tell you at the
+> moment which change made the difference.
 
-Plus side:
-TS packet losses FIXED :)
-Works with multiproto changeset 7208 and above
-No need for szap after insmod drivers
+Also, considering that since almost everyone else has this working,
+maybe it has to be specific to your setup/machine.
 
-Minus side:
-it hard to lock channels withs this new driver or is it new multiproto
-changesets? you have to switch to many different channels and in the
-end it locks.
-scan and szap doesn't seem to work with latest multiproto "ioctl
-DVBFE_GET_INFO failed: Operation not supported"
-maybe i need new versions ? is there any other patched versions ?
 
-Thanks you Dominik Kuhlen, Andr=E9 Weidemann and everybody here @
-Linux-DVB you guys rock :)
+Regards,
+Manu
 
-I have attached patch for this card, its basically Andr=E9 Weidemann's
-s2-3600 patch i changed all the
-3600 references to 3650_ci and changed the product id.
+> 
+> Thanks for your help,
+> Simeon
+> 
+> ----- Original Message ----
+> From: Manu Abraham <abraham.manu@gmail.com>
+> To: Simeon Simeonov <simeonov_2000@yahoo.com>
+> Cc: linux-dvb@linuxtv.org
+> Sent: Monday, March 3, 2008 3:52:29 AM
+> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+> 
+> Simeon Simeonov wrote:
+>> I am using mythtv and here is the sequence of commands:
+>>
+>> Without repeat:
+>> DiSEqCDevTree: Changing LNB voltage to 13V
+>> DiSEqCDevTree: Rotor - Goto Stored Position 2
+>> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
+>> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
+>> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
+>>
+>> With repeat:
+>> DiSEqCDevTree: Changing LNB voltage to 13V
+>> DiSEqCDevTree: Rotor - Goto Stored Position 2
+>> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
+>> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
+>> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
+>> DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
+> 
+> 
+> In fact, looks really confusing to me. The diseqc commands just go out 
+> as it is,
+> through the FIFO. I don't see anything that which changes the commands, but
+> if it was working with another card, it should be working with this card 
+> too (i
+> had some doubts, but when you said it worked with some other card, then i
+> don't see the issue in here with the diseqc part. The FiFO either works 
+> or not)
+> 
+> 
+> 
+>> ----- Original Message ----
+>> From: Manu Abraham <abraham.manu@gmail.com>
+>> To: Simeon Simeonov <simeonov_2000@yahoo.com>
+>> Cc: linux-dvb@linuxtv.org
+>> Sent: Sunday, March 2, 2008 2:38:51 PM
+>> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+>>
+>> Simeon Simeonov wrote:
+>>> Hi Manu,
+>>>
+>>> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
+>>> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
+>>> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
+>>> east from the target rotor position. 
+>>> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
+>>> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
+>>> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
+>>> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
+>>> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
+>>> wait for one cycle.
+>>> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
+>> Can you please try to get the DiSEqC strings that you are sending
+>> (from the application) in these 2 cases ?
+>>
+>> * Without repeat
+>> * With repeat
+>>
+>> Regards,
+>> Manu
+> 
+> 
+> 
+> 
+> 
+> 
+>       ____________________________________________________________________________________
+> Looking for last minute shopping deals?  
+> Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+> 
 
-Make sure to apply the patch for the PCTV 452e first!
-
-Best regards,
-Faruk
-
-------=_Part_33627_15394099.1206830521966
-Content-Type: application/x-bzip2;
- name=patch-tt-connect-s2-3650-ci.diff.bz2
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_feeriryf0
-Content-Disposition: attachment;
- filename=patch-tt-connect-s2-3650-ci.diff.bz2
-
-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
-DozkYdFCAOYnzqKAIHrKj/i7kinChISNkeUI
-------=_Part_33627_15394099.1206830521966
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_33627_15394099.1206830521966--
