@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DF2576.7080907@iki.fi>
-Date: Tue, 18 Mar 2008 04:14:14 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from rv-out-0910.google.com ([209.85.198.191])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <derk.dukker@gmail.com>) id 1JXmWh-0002xz-FM
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 01:03:06 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so510876rvf.41
+	for <linux-dvb@linuxtv.org>; Fri, 07 Mar 2008 16:02:55 -0800 (PST)
+Message-ID: <e2d627830803071602ve71f9fap4e46fa39db534f87@mail.gmail.com>
+Date: Sat, 8 Mar 2008 01:02:55 +0100
+From: "Derk Dukker" <derk.dukker@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>, Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>		<47DAC4BE.5090805@iki.fi>		<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>		<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>		<47DBDB9F.5060107@iki.fi>		<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>		<47DC64F4.9070403@iki.fi>
-	<47DC6E0A.9000904@linuxtv.org>		<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>		<47DC8012.3050809@linuxtv.org>	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
-	<47DC93D0.3090904@linuxtv.org>
-In-Reply-To: <47DC93D0.3090904@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Subject: [linux-dvb] Cinergy Ci usb support???
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,53 +18,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1108313312=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> Jarryd Beck wrote:
->> Takes half a minute to load when plugging in, keyboard is slow to respond
->> when tuning, and I get lots of this:
->>
->> af9013_i2c_gate_ctrl: enable:0
->> af9013_i2c_gate_ctrl: enable:1
->>
->> Applied the patch again and it was all fine.
->>
->> Jarryd.
->>   
-> Thanks for the test, Jarryd.  I will integrate this into the official
-> tda18271 driver after testing again on my hardware here.  I will
-> probably make it an attach-time configurable option.
-> 
-> Regards,
-> 
-> Mike
+--===============1108313312==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12785_17966668.1204934575249"
 
-I did some fixes and I think driver should be now ready. I also changed 
-again device plug / fw-download / usb-relink scheme. I put 500ms sleep 
-to indentify_state in hope that it is enough to drop ghost device driver 
-after fw is downloaded and stick reconnects.
+------=_Part_12785_17966668.1204934575249
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-However I tested I2C-writing with my MT2060 tuner based device by adding 
-about ~50 register write at once and it did not make any harm.
-Anyhow, there is now versions to test:
+Hello all,
+I just bought a Cinergy DT USB XS Diversity and a Cinergy CI usb. The
+Cinergy DT USB XS Diversity seems to be supported under linux (haven't tried
+it yet though) but the Cinergy CI usb isn't supported under linux.
+Is it a lot of work to create a driver for it to make it work under linux???
+I really need one because in the Netherlands most of the channels are
+encrypted.
+Could you please let me know... Or can I help?
 
-version without tuner small-i2c limit:
-http://linuxtv.org/hg/~anttip/af9015_new/
+regards,
 
-version with tuner small-i2c limit:
-http://linuxtv.org/hg/~anttip/af9015_new2/
+Derk
 
-Regards
-Antti
--- 
-http://palosaari.fi/
+------=_Part_12785_17966668.1204934575249
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<span class="Apple-style-span" style="border-collapse: collapse; ">Hello all,<div><br></div><div>I just bought a Cinergy DT USB XS Diversity and a Cinergy CI usb. The Cinergy DT USB XS Diversity seems to be supported under linux (haven&#39;t tried it yet though) but the Cinergy CI usb isn&#39;t supported under linux.&nbsp;</div>
+<div>Is it a lot of work to create a driver for it to make it work under linux??? I really need one because in the Netherlands most of the channels are encrypted.</div><div>Could you please let me know... Or can I help?</div>
+<div><br></div><div>regards,</div><div><br></div><font color="#888888"><div>Derk</div></font></span>
+
+------=_Part_12785_17966668.1204934575249--
+
+
+--===============1108313312==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1108313312==--
