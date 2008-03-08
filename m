@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from smtp1.betherenow.co.uk ([87.194.0.68])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JZ8A5-0001gR-AT
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 18:21:23 +0100
-Received: from [134.32.138.158] (unknown [134.32.138.158])
-	by mail.youplala.net (Postfix) with ESMTP id 48C38D88130
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 18:20:15 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <004601c8839a$365ac620$4101a8c0@ians>
-References: <004601c8839a$365ac620$4101a8c0@ians>
-Date: Tue, 11 Mar 2008 17:20:41 +0000
-Message-Id: <1205256041.7463.34.camel@acropora>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova T-500 detection problem
+	(envelope-from <tghewett2@onetel.com>) id 1JXvWE-000762-At
+	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 10:39:07 +0100
+Message-Id: <8AD0DAB4-646C-4BD1-B602-8FDC5DA10ADF@onetel.com>
+From: Tim Hewett <tghewett2@onetel.com>
+To: Simeon Simeonov <simeonov_2000@yahoo.com>
+In-Reply-To: <580129.82369.qm@web33106.mail.mud.yahoo.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sat, 8 Mar 2008 09:38:34 +0000
+References: <580129.82369.qm@web33106.mail.mud.yahoo.com>
+Cc: Tim Hewett <tghewett2@onetel.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] VP 1041: Is anybody able to tune to DVBS2 or DSS?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,32 +19,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ck9uIFR1ZSwgMjAwOC0wMy0xMSBhdCAxNzowNiArMDAwMCwgSWFuIExpdmVydG9uIHdyb3RlOgo+
-IEhpLAo+IAo+ICAKPiAKPiBJIHJlY2VudGx5IHB1cmNoYXNlZCB0d28gTm92YSBULTUwMCAoYXMg
-ZmFyIGFzIEkgY2FuIHRlbGwgaXTigJlzIG5vdCBvbmUKPiBvZiB0aGUgZGl2ZXJzaXR5IHJhbmdl
-KSBjYXJkcyBvbmUgaXMgdGhlIDk5MTAxIExGIHJldiBEOEI1IGFuZCBvbmUgaXMKPiB0aGUgOTkx
-MDIgTEYgcmV2IEMxQjUuICBUaGUgOTkxMDEgTEYgaXMgZGV0ZWN0ZWQsIHRoZSBvdGhlciBpcyBu
-b3QuCj4gVGhlIG9ubHkgZGlmZmVyZW5jZSBJIGNhbiBzZWUgaXMgdGhlIHBvc3RmaXggb2YgdGhl
-IERpYiAwNzAwIGNoaXBzLgo+IFRoZSB3b3JraW5nIG9uZSBpcyB0aGUgRGliMDcwMEMtWENYWGEt
-RyBhbmQgdGhlIG90aGVyIGlzCj4gRGliMDcwMC0xMjExYi1HLiAgV2l0aCBvbmx5IHRoZSB1bmRl
-dGVjdGVkIGNhcmQgaW4sIHRoZXJlIGlzIG5vCj4gbWVudGlvbiBvZiB0aGUgZGliMDcwMCBpbiBk
-bWVzZyBhbmQgbHNwY2kgc2hvd3M6Cj4gCj4gIAo+IAo+IDAyOjA1LjAgVVNCIENvbnRyb2xsZXI6
-IFZJQSBUZWNobm9sb2dpZXMsIEluYy4gVlQ4Mnh4eHh4IFVIQ0kgVVNCIDEuMQo+IENvbnRyb2xs
-ZXIgKHJldiA2MSkKPiAKPiAwMjowNS4xIFVTQiBDb250cm9sbGVyOiBWSUEgVGVjaG5vbG9naWVz
-LCBJbmMuIFZUODJ4eHh4eCBVSENJIFVTQiAxLjEKPiBDb250cm9sbGVyIChyZXYgNjEpCj4gCj4g
-MDI6MDUuMiBVU0IgQ29udHJvbGxlcjogVklBIFRlY2hub2xvZ2llcywgSW5jLiBVU0IgMi4wIChy
-ZXYgNjMpCj4gCj4gIAo+IAo+IFdoaWNoIEkgcHJlc3VtZSBpcyB0aGUgVlQ2MjEyTCBvbiB0aGUg
-Y2FyZHMuCj4gCj4gIAo+IAo+IElzIHRoZXJlIHNvbWV0aGluZyBkaWZmZXJlbnQgSSBuZWVkIHRv
-IGRvIGZvciB0aGUgc2Vjb25kIGNhcmQgb3IgaXMgaXQKPiBqdXN0IG5vdCBzdXBwb3J0ZWQ/IFNp
-bmNlIEkgY2FuIGdldCB0aGVtIGJvdGggdG8gd29yayB3aXRoIHRoZQo+IHN1cHBsaWVkIEhhdXBw
-YXVnZSBzb2Z0d2FyZSB1bmRlciBXaW5kb3dzIEkgYW0gYXNzdW1pbmcgaXQgaXMgbm90IGEKPiBm
-YXVsdHkgY2FyZC4KCldoYXQgaXMgbHN1c2Igc2F5aW5nID8KCm5pY28KCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0
-CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
-bG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Simeon,
+
+It doesn't matter re: the diseqc commands, with no switch present will  
+be nothing listening, assuming there is nothing else connected such as  
+a rotor.
+
+Tim.
+
+
+On 8 Mar 2008, at 01:27, Simeon Simeonov wrote:
+
+> Thanks for the answer Tim!
+>
+> That's a good point - I do have a switch. I will try bypassing it but
+> do you still send the diseqc commands or I have to get rid of them?
+>
+> Simeon
+>
+> ----- Original Message ----
+> From: Tim Hewett <tghewett2@onetel.com>
+> To: simeonov_2000@yahoo.com
+> Cc: Tim Hewett <tghewett2@onetel.com>; linux-dvb@linuxtv.org
+> Sent: Friday, March 7, 2008 5:18:43 PM
+> Subject: VP 1041: Is anybody able to tune to DVBS2 or DSS?
+>
+> Yes, I have the Skystar HD2 tuning to DVB-S2 transponders using the
+> replacement szap.c mentioned on the wiki page, then listing the
+> channels using 'scan -c -a <n>' to prove proper reception, all using
+> the current mantis tree. No hacks were needed, it works out of the box
+> every time now that the mantis tree has been updated to support the
+> HD2 card (same one as the VP-1041).
+>
+> If you are using a Diseqc switch then get rid of it for now, mine was
+> causing lots of unreliability. I tried three different types of Diseqc
+> switch, all were the same. Got rid of them then it all started  
+> working.
+>
+> Tim.
+>
+>> Hi, I am curious to find out if anybody is able to use Twinhan/
+>> Azurware VP-1041 with the mantis drivers to tune to standards other
+>> than DVBS - DVBS2 and DSS? Thanks, Simeon
+>
+>
+>
+>
+>
+>       
+> ____________________________________________________________________________________
+> Looking for last minute shopping deals?
+> Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
