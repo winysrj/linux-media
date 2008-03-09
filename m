@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GCon5t016412
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:49 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GCoG0P026543
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:17 -0400
-Received: by nf-out-0910.google.com with SMTP id g13so1782291nfb.21
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 05:50:16 -0700 (PDT)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <8843d200ee091ef49579.1205671783@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1205671781@liva.fdsoft.se>
-Date: Sun, 16 Mar 2008 13:49:43 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m296jDx0023580
+	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 01:45:13 -0500
+Received: from cabrera.red.sld.cu (cabrera.red.sld.cu [201.220.222.139])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m296iXlx005884
+	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 01:44:35 -0500
+Received: from [201.220.219.1] by cabrera.red.sld.cu with esmtp (Exim 4.63)
+	(envelope-from <moya-lists@infomed.sld.cu>) id 1JYFGU-0000cC-5N
+	for video4linux-list@redhat.com; Sun, 09 Mar 2008 02:44:10 -0400
+From: Maykel Moya <moya-lists@infomed.sld.cu>
 To: video4linux-list@redhat.com
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 2 of 2] cx88: Add user control for color killer
+Content-Type: text/plain
+Date: Sun, 09 Mar 2008 02:46:57 -0400
+Message-Id: <1205045217.6188.274.camel@gloria.red.sld.cu>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Problems compiling ~mchehab/tm6010 repo
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,65 +27,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-1 file changed, 15 insertions(+), 1 deletion(-)
-linux/drivers/media/video/cx88/cx88-video.c |   16 +++++++++++++++-
+I did a clone of tm6010 repo. The build process stopped with:
 
+moya@gloria:~/src/tm6010$ make
+make -C /home/moya/src/tm6010/v4l 
+make[1]: se ingresa al directorio `/home/moya/src/tm6010/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.24-1-686/build
+make -C /lib/modules/2.6.24-1-686/build
+SUBDIRS=/home/moya/src/tm6010/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.24-1-686'
+  CC [M]  /home/moya/src/tm6010/v4l/tm6000-i2c.o
+/home/moya/src/tm6010/v4l/tm6000-i2c.c:356: error: unknown field
+'algo_control' specified in initializer
+/home/moya/src/tm6010/v4l/tm6000-i2c.c:356: warning: initialization from
+incompatible pointer type
+make[3]: *** [/home/moya/src/tm6010/v4l/tm6000-i2c.o] Error 1
+make[2]: *** [_module_/home/moya/src/tm6010/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-1-686'
+make[1]: *** [default] Error 2
+make[1]: se sale del directorio `/home/moya/src/tm6010/v4l'
+make: *** [all] Error 2
 
-# HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1205668146 -3600
-# Node ID 8843d200ee091ef49579555ef6ae4de031986342
-# Parent  ac2c307ae12abeb35b59dc0bb1aef95ac6f51798
-cx88: Add user control for color killer
+A search in Google lead me to this[1], a patch by akpm just removing the
+same line for another driver. I dropped the line and the tree was built
+OK.
 
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+Some questions then
+- Why the warning if function algo_control is defined in the same file?
+(sorry for not knowing enough C to figure this out by myself)
+- Is it correct what I did?
+- If tm6010 the correct tree for building a working tm5600.ko ?
 
-The cx2388x family has a color killer. This patch adds a user control,
-"Color killer", controlling it. By default the color killer is
-disabled, as in previous versions of the driver.
+Regards,
+maykel
 
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+[1]
+http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/2.6.23-mm1/broken-out/git-dvb-vs-i2c-tree.patch
 
-diff -r ac2c307ae12a -r 8843d200ee09 linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 16 12:47:49 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 16 12:49:06 2008 +0100
-@@ -180,7 +180,8 @@ static struct cx8800_fmt* format_by_four
- /* Private controls for cx2388x */
- #define CX88_CID_PRIVATE_CLASS V4L2_CID_PRIVATE_BASE
- #define CX88_CID_CHROMA_AGC   (V4L2_CID_PRIVATE_BASE + 0)
--#define CX88_CID_LAST_PRIVATE (V4L2_CID_PRIVATE_BASE + 1)
-+#define CX88_CID_COLOR_KILLER (V4L2_CID_PRIVATE_BASE + 1)
-+#define CX88_CID_LAST_PRIVATE (V4L2_CID_PRIVATE_BASE + 2)
- 
- static const struct v4l2_queryctrl no_ctl = {
- 	.name  = "42",
-@@ -261,6 +262,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
- 		.mask                  = 1 << 10,
- 		.shift                 = 10,
- 	}, {
-+		.v = {
-+			.id            = CX88_CID_COLOR_KILLER,
-+			.name          = "Color killer",
-+			.minimum       = 0,
-+			.maximum       = 1,
-+			.default_value = 0x0,
-+			.type          = V4L2_CTRL_TYPE_BOOLEAN,
-+		},
-+		.reg                   = MO_INPUT_FORMAT,
-+		.mask                  = 1 << 9,
-+		.shift                 = 9,
-+	}, {
- 	/* --- audio --- */
- 		.v = {
- 			.id            = V4L2_CID_AUDIO_MUTE,
-@@ -322,6 +335,7 @@ const u32 cx88_priv_ctrls[] = {
- const u32 cx88_priv_ctrls[] = {
- 	CX88_CID_PRIVATE_CLASS,
- 	CX88_CID_CHROMA_AGC,
-+	CX88_CID_COLOR_KILLER,
- 	0
- };
- EXPORT_SYMBOL(cx88_priv_ctrls);
 
 --
 video4linux-list mailing list
