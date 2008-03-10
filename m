@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SFHdmd007942
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 11:17:39 -0400
-Received: from MTA135B.interbusiness.it (MTA135B.interbusiness.it
-	[85.33.2.135])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SFHQAH020025
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 11:17:28 -0400
-Message-ID: <47ED0BF0.3080105@gmail.com>
-Date: Fri, 28 Mar 2008 16:17:04 +0100
-From: Mat <heavensdoor78@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ANwv18014767
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 19:58:57 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ANwOi7012834
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 19:58:25 -0400
+Received: by ug-out-1314.google.com with SMTP id t39so4444779ugd.6
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 16:58:24 -0700 (PDT)
+Message-ID: <226dee610803101658r3a94a606sa0969a3605d427f4@mail.gmail.com>
+Date: Tue, 11 Mar 2008 05:28:24 +0530
+From: "JoJo jojo" <onetwojojo@gmail.com>
+To: danflu@uninet.com.br
+In-Reply-To: <47d5b4b5.3b9.49c0.1570821612@uninet.com.br>
 MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@empiatech.com>
-References: <731850.15654.qm@web904.biz.mail.mud.yahoo.com>
-In-Reply-To: <731850.15654.qm@web904.biz.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <47d5b4b5.3b9.49c0.1570821612@uninet.com.br>
 Cc: video4linux-list@redhat.com
-Subject: Re: Empia em28xx based USB video device...
+Subject: Re: webcam frame grabber - help please!
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,16 +30,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Tue, Mar 11, 2008 at 3:52 AM,  <danflu@uninet.com.br> wrote:
+> Hello Everybody,
+>
+>  I'm writing a linux app (testing under ubuntu) that should
+>  capture frames from webcam and do some processing to it. I
+>  have some background in this area because i've written
+>  several directshow apps, but i've never used to capture
+>  video under linux systems.
+>
+>  So I'd really want to know from you what's the best way to
+>  capture video from webcam using V4L2, some sample code would
+>  be pretty usefull to me...
+>
+>  Thank you!!
+>  Daniel
 
-As you prefer :)
 
-If you need only some info / simple tests let me know.
-I could post the output of  v4l-info  if needed.
+you just listen on the /dev/videox device
+identify start of frame/end of frame
+and off you go
 
-
-Markus Rechberger wrote:
-> I'll try to get hold of such a device next month for going through all 
-> input options (S-Video/Composite/NTSC/PAL/SECAM).
+-JoJo
 
 --
 video4linux-list mailing list
