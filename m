@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JVosk-0005E7-SD
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 15:09:38 +0100
-Message-ID: <47CAB51F.9030103@philpem.me.uk>
-Date: Sun, 02 Mar 2008 14:09:35 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
+	(envelope-from <mkrufky@linuxtv.org>) id 1JYX6N-0000xl-KU
+	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 02:46:56 +0100
+Message-ID: <47D49309.8020607@linuxtv.org>
+Date: Sun, 09 Mar 2008 21:46:49 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: Patrik Hansson <patrik@wintergatan.com>
-References: <47A98F3D.9070306@raceme.org>	<1202403104.5780.42.camel@eddie.sth.aptilo.com>	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>	<47C4661C.4030408@philpem.me.uk>	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>	<47C7076B.6060903@philpem.me.uk>
-	<47C879BA.7080002@philpem.me.uk>	<1204356192.6583.0.camel@youkaida>
-	<47CA609F.3010209@philpem.me.uk>
-	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
-In-Reply-To: <8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+To: Jarryd Beck <jarro.2783@gmail.com>
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+In-Reply-To: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Patrik Hansson wrote:
-> When i started using options usbcore autosuspend=-1 i deactivated debug=15
-> Will reactivate it again and reset my clock also.
+Jarryd Beck wrote:
+> Would someone be interested in writing tuner drivers for the NXP
+> 18211HDC1 tuner?
+> I recently bought the Winfast DTV Dongle Gold which uses an AF9015
+> chip and the NXP tuner.
+> I've managed to get it working up to the point of needing the tuner,
+> after that nothing works.
+> I have no idea how to write tuner code, so if someone is interested, I
+> can supply all the
+> info I've got about the card and test whatever you write.
+>
+> Jarryd.
 
-Well, changing channels on Myth seems to provoke it into failing... and it 
-usually kills both tuners at the same time. Something is very badly wrong with 
-this thing...
+Try the tda18271 driver -- I am under the impression that the tda18211 
+is a dvb-t only subset of the tda18271, but I dont have a tda18211 to 
+test with and find out, nor do I have a tda18211 spec to look at.  :-(
 
-I think I'm going to move the T500 into my Windows PC and buy a couple of 
-cheap USB sticks for Freeview. This has gone on long enough.
+Good Luck,
 
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+Mike
+
 
 _______________________________________________
 linux-dvb mailing list
