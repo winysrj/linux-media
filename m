@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sub87-230-124-80.he-dsl.de ([87.230.124.80] helo=ts4.de)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@ts4.de>) id 1JgMpA-0002E5-T5
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 18:25:35 +0200
-Received: from tom by ts4.de with local (Exim 4.62)
-	(envelope-from <linux-dvb@ts4.de>) id 1JgMoa-00085R-G2
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 18:24:56 +0200
-Date: Mon, 31 Mar 2008 18:24:56 +0200
-From: Thomas Schuering <linux-dvb@ts4.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080331162456.GA30945@ts4.de>
-References: <20080329134637.GA13258@ts4.de> <47EEEC06.5050705@shikadi.net>
-	<20080330171555.GA22523@ts4.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080330171555.GA22523@ts4.de>
-Subject: Re: [linux-dvb] [solved] Xcv2028/3028 init: general protection
-	fault (was: DViCO Dual Digital 4 w/ Ubuntu 7.10/amd64 =>
-	'general protection fault' by modprobe)
+	(envelope-from <nico@youplala.net>) id 1JYqOU-0000j6-H8
+	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 23:23:14 +0100
+From: Nicolas Will <nico@youplala.net>
+To: Filippo Argiolas <filippo.argiolas@gmail.com>
+In-Reply-To: <1204487125.6799.16.camel@tux>
+References: <1203434275.6870.25.camel@tux>
+	<Pine.LNX.4.64.0802192208010.13027@pub6.ifh.de>
+	<1203499665.7026.66.camel@tux>  <1204487125.6799.16.camel@tux>
+Date: Mon, 10 Mar 2008 22:17:20 +0000
+Message-Id: <1205187440.13685.25.camel@youkaida>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [patch] support for key repeat with
+	dib0700	ir	receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,27 +28,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-the card seems to be broken.
-
-On Sun, Mar 30, 2008 at 07:15:55PM +0200, Thomas Schuering wrote:
+On Sun, 2008-03-02 at 20:45 +0100, Filippo Argiolas wrote:
+> Il giorno mer, 20/02/2008 alle 10.29 +0100, Filippo Argiolas ha scritto:
 > 
-> The init of xc2028 seg faults.
+> > I don't know yet how this could be done and maybe it involves some work
+> > rewriting the ir stuff. So I think in the meanwhile my patch could be
+> > merged (if you think it's good) waiting for this work to be done.
+> 
+> Hi all,
+> it's been a while since I've posted this patch. Looking at the whole
+> thread the overall impression is that it works properly. No one
+> complained about it causing any trouble. Many users tested it and
+> reported it works good. I've been using it during this time and it seems
+> fine to me. It also fixed the annoying bug that flooded syslog with
+> unknown key messages.
+> So what does it need to be merged? Is a post in this list the proper way
+> to ask for inclusion? I'm not familiar to mercurial so I've created the
+> patch as I would do with a svn with "hg diff", it something wrong with
+> it? Is there a better way to produce a patch for submission?
+> I've attached a new patch where I've removed the keymaps I've used for
+> testing since these are not complete and I doubt anyone could find them
+> useful.
+> Please let me know what you think about it, thanks!
+> Best regards,
+> 
 
-This happened when using 'hg clone http://linuxtv.org/hg/v4l-dvb'.
+Filippo,
 
-When I used 'hg clone http://linuxtv.org/hg/~pascoe/xc-test/'
-instead the seg-faults were gone.
+I have just read that:
 
-As I still didn't receive a signal from the card,
-I asked a friend to install it under WinXP.
+> The procedure is simple: after having it worked and tested, for its
+> inclusion, you'll need to send it to the DVB ML (also, to V4L ML, if
+hybrid). 
+> The better is to c/c me on the e-mail you submit it, for me to be
+> aware of. After some days, if nobody complains, and if it looks ok,
+I'll commit.
+> 
+> Cheers,
+> Mauro
 
-He couldn't get the card to work unter XP because of 'unkown errors',
-He has no problems with his own dvb-t card, so I guess my card is broken. 
 
+Maybe you will want to do it.
 
-Regards, Thomas
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
