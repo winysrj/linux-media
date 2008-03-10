@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from ti-out-0910.google.com ([209.85.142.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JagdH-0003xk-Kq
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 01:21:50 +0100
-Message-ID: <47DC6835.5050305@philpem.me.uk>
-Date: Sun, 16 Mar 2008 00:22:13 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
+	(envelope-from <jarro.2783@gmail.com>) id 1JYcbk-0004pv-1G
+	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 08:39:45 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so828473tia.13
+	for <linux-dvb@linuxtv.org>; Mon, 10 Mar 2008 00:39:33 -0700 (PDT)
+Message-ID: <abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
+Date: Mon, 10 Mar 2008 18:39:33 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <47D4B8D0.9090401@linuxtv.org>
 MIME-Version: 1.0
-To: sboyce@blueyonder.co.uk
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>	<47D701A7.40805@philpem.me.uk>	<1205273404.20608.2.camel@youkaida>	<47DC3F65.8090407@philpem.me.uk>
-	<47DC5515.6030701@blueyonder.co.uk>
-In-Reply-To: <47DC5515.6030701@blueyonder.co.uk>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Content-Disposition: inline
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+	<47D49309.8020607@linuxtv.org>
+	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
+	<47D4B8D0.9090401@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,49 +31,96 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sid Boyce wrote:
-> Regarding the NVidia module, NVidia themselves haven't yet conjured up a 
-> fix for the latest kernels.
-[snip]
+>  I think that the tda18271 driver will work with your tuner, but we may
+>  need to make some small adjustments.  If you look in tda18271-fe.c ,
+>  you'll find the code that autodetects between a TDA18271c1 and a
+>  TDA18271c2 ...
 
-This was on 2.6.24 -- once I downgraded to 2.6.22, just about everything that 
-could break, did. For bonus points, none of the packages would recompile 
-either (but maybe I was being stupid).
+I just realised there's a problem with versions of code. I'm using
+the code from http://www.linuxtv.org/hg/~anttip/af9015
+However I suppose you want me to use the code from the main
+repository. Needless to say it doesn't work with 0x60 or 0x61
+as the address for the tuner.
+Also if I could somehow get this working with the right
+code, I don't know how to set up the values in the tda182171_config
+struct.
 
-Like said, it was easier to just hose it down and start over.
+Jarryd.
 
-I've got the following kopts enabled for the DVB modules:
-
-==============================================================
-
-pvr@dragon:~$ cat /etc/modprobe.d/dvb-options
-# enable LNA for Hauppauge Nova-T-500
-options dvb-usb-dib0700 force_lna_activation=1
-
-# disable IR remote for Nova-T-500 (and other USB-DVB IRCs)
-options dvb-usb disable_rc_polling=1
-
-# force card order -- DiB0700 (Nova-T-500) first, then CX88 (HVR-3000).
-# also creates virtual i/f 10 so Myth can see the Freeview hybrid
-install cx88-dvb /sbin/modprobe dvb-usb-dib0700; /sbin/modprobe 
---ignore-install cx88-dvb; mkdir -p /dev/dvb/adapter10; ln -sf 
-/dev/dvb/adapter2/demux1 /dev/dvb/adapter10/demux0; ln -sf 
-/dev/dvb/adapter2/dvr1 /dev/dvb/adapter10/dvr0; ln -sf 
-/dev/dvb/adapter2/frontend1 /dev/dvb/adapter10/frontend0; ln -sf 
-/dev/dvb/adapter2/net1 /dev/dvb/adapter10/net0
-
-==============================================================
-
-At the moment both of the Nova-T-500's tuners are recording live TV, and the 
-HVR-3000 is in DVT-T mode and recording too. No problems yet, but uptime is 
-only 75 minutes. It's got a massive list of things to record overnight (think 
-"stress test"), so fingers crossed. The only USB disconnect warning in dmesg 
-is from when I unplugged the USB mouse after I got the R/C working.
-
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+On Mon, Mar 10, 2008 at 3:28 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Mon, Mar 10, 2008 at 12:46 PM, Michael Krufky <mkrufky@linuxtv.org>
+>  wrote:
+>  >> Jarryd Beck wrote:
+>  >>  > Would someone be interested in writing tuner drivers for the NXP
+>  >>  > 18211HDC1 tuner?
+>  >>  > I recently bought the Winfast DTV Dongle Gold which uses an AF9015
+>  >>  > chip and the NXP tuner.
+>  >>  > I've managed to get it working up to the point of needing the tuner,
+>  >>  > after that nothing works.
+>  >>  > I have no idea how to write tuner code, so if someone is interested, I
+>  >>  > can supply all the
+>  >>  > info I've got about the card and test whatever you write.
+>  >>  >
+>  >>  > Jarryd.
+>  >>
+>  >>  Try the tda18271 driver -- I am under the impression that the tda18211
+>  >>  is a dvb-t only subset of the tda18271, but I dont have a tda18211 to
+>  >>  test with and find out, nor do I have a tda18211 spec to look at.  :-(
+>  >>
+>  >>  Good Luck,
+>  >>
+>  >>  Mike
+>
+> Jarryd Beck wrote:
+>  > I tried that, but I wasn't sure about a few things, I was kind of making stuff
+>  > up as I went along.
+>  >
+>  > Can you tell me if I've done this right?
+>  >
+>  > At the af9015_tuner_attach function I wrote a function
+>  > tda18211_tuner_attach which
+>  > calls dvb_attach. The one thing I'm not sure about is the function
+>  > tda18271_attach
+>  > has a parameter u8 addr. I don't know what that is supposed to do or where I am
+>  > supposed to get it from.
+>  >
+>  > You can look up a datasheet from the nxp site, it appears it goes under the name
+>  > tda18211HD, I don't know what the C1 at the end means, I'm hoping it's the same
+>  > thing. The datasheet isn't very useful though, it pretty much only has a
+>  > circuit diagram and a couple of numbers on it.
+>  >
+>  > Jarryd.
+>  >
+>  >
+>
+>  Jarryd,
+>
+>  Please don't drop cc to the mailing list (added back), and also remember
+>  not to top quote.
+>
+>  The addr parameter is the i2c address of the tuner.  It is most likely
+>  0x60 or 0x61.
+>
+>  For an example of how to attach the tda18271 driver, look in
+>  cx23885-dvb.c for CX23885_BOARD_HAUPPAUGE_HVR1800 where alt_tuner is 1.
+>
+>  The datasheet on the nxp site wont help me -- i need to see the register
+>  map.
+>
+>  I think that the tda18271 driver will work with your tuner, but we may
+>  need to make some small adjustments.  If you look in tda18271-fe.c ,
+>  you'll find the code that autodetects between a TDA18271c1 and a
+>  TDA18271c2 ...   If the autodetection fails for your tuner, you might
+>  want to try hardcoding it to the tda18271c1.  If that works, then I'll
+>  ask you to enable the register dump debug option (debug = 4) in the
+>  tda18271 driver and send me a dmesg snippit.  That should help us to add
+>  the autodetection later.
+>
+>  hth,
+>
+>  Mike
+>
+>
 
 _______________________________________________
 linux-dvb mailing list
