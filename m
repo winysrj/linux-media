@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m26Lqnjg014446
-	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 16:52:49 -0500
-Received: from bay0-omc1-s26.bay0.hotmail.com (bay0-omc1-s26.bay0.hotmail.com
-	[65.54.246.98])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m26LqDIb011766
-	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 16:52:13 -0500
-Message-ID: <BAY122-W356EE227C3E496A044E7B3AA120@phx.gbl>
-From: Elvis Chen <chene77@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Thu, 6 Mar 2008 21:52:05 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ALN4CM031060
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 17:23:04 -0400
+Received: from mailout04.sul.t-online.com (mailout04.sul.t-online.de
+	[194.25.134.18])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ALMUXe009020
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 17:22:31 -0400
+Message-ID: <47D5A68C.7070004@t-online.de>
+Date: Mon, 10 Mar 2008 22:22:20 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: is it possible to grab images from 2 PVR-150 in a loop/timer?
+To: tux@schweikarts-vom-dach.de
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>
+	<200802272151.19488.tux@schweikarts-vom-dach.de>
+	<47CC8094.8000106@t-online.de>
+	<200803101942.40158.tux@schweikarts-vom-dach.de>
+In-Reply-To: <200803101942.40158.tux@schweikarts-vom-dach.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,36 +31,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+HI
 
-greetings,
+Tux schrieb:
+> Hello Hartmut,
+> 
+> sorry that it has taken so long time to test it. I have tried it with option 
+> use_frontend=1,1 and now it is posible to watch TV on the other
+> port.
+> 
+> best regards
+> 
+> Tux
+> 
+> Am Montag, 3. März 2008 23:49:56 schrieben Sie:
+>> Hi
+>>
+>> Tux schrieb:
+>>> Hello Hartmut,
+>>>
+>>> i have tried the new driver. You are completely right, one port is
+>>> working perfectly. But the other one not. What Information do you need to
+>>> fix it ?
+>>>
+>>>
+>>> best regards
+>> <snip>
+>>
+>> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+>> i tried to make the 2nd section work too. I don't know which gpo is
+>> the right one to control the LNB supply, i need you to find out whether
+>> switching the polarization works.
+>> There are remaining restrictions:
+>> - the 2nd DVB-S section only works if the first is configured for DVB-S
+>> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
+>> use_frontend=1,0 and use_frontend=1,1 should.
+>> - currently it is not possible to choose the higher LNB voltage (14v
+>> instead of 13v) - it is not possible to power down the 2nd LNB supply
+>> independently. These are due to the fact that it is not possible to access
+>> the LNB supply chip via the i2c bus fron the second section of the card.
+>>
+>> Happy testing
+>>   Hartmut
+>>
 
-a few days ago I posted a message to the list asking about how to progra, w=
-ith PVR-150.  With the help from this group, I managed to grab images from =
-2 tuner (both PVR-150, /dev/video32 and /dev/video33).  The steps of displa=
-ying the final image on the screen is to 1) demacro the yuv microblock of t=
-he hm12 device, and 2) convert the final yuv image to RGB, and 3) display t=
-he final RGB images in a 3D visualization software (www.vtk.org).  This wor=
-ks as long as I am grabbing only 1 image from each device.
+It's fully working? Great!
+I expected more trouble. I'd like to rework the code a bit before i ask
+Mauro to pull. May I ask you to test again in some days?
 
-To facilitate the development, I'm using qt as the widget set.
 
-But as soon as I try to grab images *from both tuners* and *contineously*, =
-I get corrupted images.  Using a for-loop (or a qt-timer), I can grab image=
-s from *ONE* tuner and display the video on the screen, and it works fine. =
- However, if I try to do that to both tuners, either in a for-loop or at a =
-pre-set interval through QTimer, both images are corrupted.  They both look=
- like they are down-sampled, and with duplicated-shifted pixels.
-
-I can show some pictures in a private email, as I don't think sending a bin=
-ary image in the email list is a good idea.
-
-Can anyone shed some light into what might be wrong?
-
-thank you,
-
-Elvis
-
-_________________________________________________________________
+Best regards
+  Hartmut
 
 --
 video4linux-list mailing list
