@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1JauP1-0006DH-GU
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 16:04:00 +0100
-From: Dominik Kuhlen <dkuhlen@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Sun, 16 Mar 2008 16:03:24 +0100
-References: <47BDA96B.7080700@okg-computer.de>
-	<200802292325.17473.dkuhlen@gmx.net> <47C88CBF.7010304@gmail.com>
-In-Reply-To: <47C88CBF.7010304@gmail.com>
+Received: from [66.249.82.230] (helo=wx-out-0506.google.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <derk.dukker@gmail.com>) id 1JYgqP-0004Yx-Gu
+	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 13:11:16 +0100
+Received: by wx-out-0506.google.com with SMTP id s11so1661602wxc.17
+	for <linux-dvb@linuxtv.org>; Mon, 10 Mar 2008 05:06:21 -0700 (PDT)
+Message-ID: <e2d627830803100459k7d0eddd4lcfa97013767a6ec7@mail.gmail.com>
+Date: Mon, 10 Mar 2008 12:59:55 +0100
+From: "Derk Dukker" <derk.dukker@gmail.com>
+To: "Tero Pelander" <tpeland@tkukoulu.fi>
+In-Reply-To: <20080310111710.GA27766@tkukoulu.fi>
 MIME-Version: 1.0
-Message-Id: <200803161603.24956.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
-	STB0899)
+References: <20080310111710.GA27766@tkukoulu.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] illegal bandwith value,
+	driver for Terratec Cinergy DT usb XS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,261 +22,148 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1864082222=="
+Content-Type: multipart/mixed; boundary="===============0616483573=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1864082222==
-Content-Type: multipart/signed;
-  boundary="nextPart4269574.7WTbKnXPlY";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+--===============0616483573==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_17584_14176333.1205150395857"
 
---nextPart4269574.7WTbKnXPlY
-Content-Type: multipart/mixed;
-  boundary="Boundary-01=_8aT3H+P7lLZtuyo"
+------=_Part_17584_14176333.1205150395857
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
---Boundary-01=_8aT3H+P7lLZtuyo
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Hi Tero,
+
+I also have a Terratec Cinergy DT XS diversity but can't get it working with
+the Cinergy CI usb, do you have any idea how I can make it work?
+By the way, they showed on CEBIT a EeePC with linux on it with the Cinergy
+XSS. They also said that they will release linux drivers for all of their tv
+tuners.
+
+Regards
+
+On Mon, Mar 10, 2008 at 12:17 PM, Tero Pelander <tpeland@tkukoulu.fi> wrote:
+
+> The driver in linux kernel 2.6.24.2 for "Terratec Cinergy DT usb XS
+> diversity" sets the reported bandwith outside the fe_bandwidth_t range.
+> The value 0 (BANDWIDTH_8_MHZ) is replaced with 8000. Here is an example
+> showing the problem...
+>
+> Device: Terratec Cinergy DT usb xs diversity
+> Linux: 2.6.24.2 (modules: mt2266, dvb_usb_dib0700)
+> Firmware: dvb-usb-dib0700-1.10.fw
+>
+>
+> Received event for frontend 0
+>
+> Status for frontend 0 is now:
+>   0 (no signal)
+>
+> Reported parameters for frontend 0 are now:
+>   Frequency: 714000000 Hz
+>   Inversion: AUTO (2)
+>   Bandwidth: 8 (0)
+>   High priority stream code rate: AUTO (9)
+>   Low priority stream code rate: AUTO (9)
+>   Constellation: QAM64 (3)
+>   Transmission mode: AUTO (2)
+>   Guard interval: AUTO (4)
+>   Hierarchy information: AUTO (4)
+>
+> Received event for frontend 0
+>
+> Status for frontend 0 is now:
+>   FE_HAS_SIGNAL (found something above the noise level)
+>   FE_HAS_CARRIER (found a DVB signal)
+>   FE_HAS_VITERBI (FEC is stable)
+>   FE_HAS_SYNC (found sync bytes)
+>   FE_HAS_LOCK (everything's working)
+>
+> Reported parameters for frontend 0 are now:
+>   Frequency: 714000000 Hz
+>   Inversion: AUTO (2)
+>   Bandwidth: ??? (8000)
+>   High priority stream code rate: 2/3 (2)
+>   Low priority stream code rate: 1/2 (1)
+>   Constellation: QAM64 (3)
+>   Transmission mode: 8K (1)
+>   Guard interval: 1/8 (2)
+>   Hierarchy information: NONE (0)
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_17584_14176333.1205150395857
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi,
+Hi Tero,<br><br>I also have a Terratec Cinergy DT XS diversity but can&#39;t get it working with the Cinergy CI usb, do you have any idea how I can make it work?<br>By the way, they showed on CEBIT a EeePC with linux on it with the Cinergy XSS. They also said that they will release linux drivers for all of their tv tuners. <br>
+<br>Regards<br><br><div class="gmail_quote">On Mon, Mar 10, 2008 at 12:17 PM, Tero Pelander &lt;<a href="mailto:tpeland@tkukoulu.fi">tpeland@tkukoulu.fi</a>&gt; wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+The driver in linux kernel <a href="http://2.6.24.2" target="_blank">2.6.24.2</a> for &quot;Terratec Cinergy DT usb XS<br>
+diversity&quot; sets the reported bandwith outside the fe_bandwidth_t range.<br>
+The value 0 (BANDWIDTH_8_MHZ) is replaced with 8000. Here is an example<br>
+showing the problem...<br>
+<br>
+Device: Terratec Cinergy DT usb xs diversity<br>
+Linux: <a href="http://2.6.24.2" target="_blank">2.6.24.2</a> (modules: mt2266, dvb_usb_dib0700)<br>
+Firmware: dvb-usb-dib0700-1.10.fw<br>
+<br>
+<br>
+Received event for frontend 0<br>
+<br>
+Status for frontend 0 is now:<br>
+ &nbsp; 0 (no signal)<br>
+<br>
+Reported parameters for frontend 0 are now:<br>
+ &nbsp; Frequency: 714000000 Hz<br>
+ &nbsp; Inversion: AUTO (2)<br>
+ &nbsp; Bandwidth: 8 (0)<br>
+ &nbsp; High priority stream code rate: AUTO (9)<br>
+ &nbsp; Low priority stream code rate: AUTO (9)<br>
+ &nbsp; Constellation: QAM64 (3)<br>
+ &nbsp; Transmission mode: AUTO (2)<br>
+ &nbsp; Guard interval: AUTO (4)<br>
+ &nbsp; Hierarchy information: AUTO (4)<br>
+<br>
+Received event for frontend 0<br>
+<br>
+Status for frontend 0 is now:<br>
+ &nbsp; FE_HAS_SIGNAL (found something above the noise level)<br>
+ &nbsp; FE_HAS_CARRIER (found a DVB signal)<br>
+ &nbsp; FE_HAS_VITERBI (FEC is stable)<br>
+ &nbsp; FE_HAS_SYNC (found sync bytes)<br>
+ &nbsp; FE_HAS_LOCK (everything&#39;s working)<br>
+<br>
+Reported parameters for frontend 0 are now:<br>
+ &nbsp; Frequency: 714000000 Hz<br>
+ &nbsp; Inversion: AUTO (2)<br>
+ &nbsp; Bandwidth: ??? (8000)<br>
+ &nbsp; High priority stream code rate: 2/3 (2)<br>
+ &nbsp; Low priority stream code rate: 1/2 (1)<br>
+ &nbsp; Constellation: QAM64 (3)<br>
+ &nbsp; Transmission mode: 8K (1)<br>
+ &nbsp; Guard interval: 1/8 (2)<br>
+ &nbsp; Hierarchy information: NONE (0)<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br>
 
-The attached pctv452e.c works for me without frame drops in DVB-S and DVB-S=
-2.
-
-On Friday 29 February 2008, Manu Abraham wrote:
-> Dominik Kuhlen wrote:
-> > On Friday 22 February 2008, Dominik Kuhlen wrote:
-> >> Hi,
-> >>
-> >> -----snip----
-> >>> Great, that was the trick, now scanning and szap work fine.
-> >>>
-> >>> Thanks for that hint!
-> >> You're welcome.
-> >>
-> >> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
-> >> Currently I get a loss of about 1 TS packet every second or even more =
-(with both symbol rates).
-> >> And there is exactly one TS packet missing (I diffed a TS hexdump).
-> >> If it were the USB controller that drops packets it would be a loss of=
- 5 consecutive TS packets. (940 bytes iso frame size)
-> >=20
-> > I have to correct that statement (I didn't record the whole TS):=20
-> > The loss is exactly one USB frame (5 consecutive TS packets in this cas=
-e)
-> > which happens about every 1000 TS packets (200 USB frames)
-The problem seems to be  wrong initial config parameter set in init_s1_demo=
-d table.
-I copied this table from the mantis 1041 and it seems to be working now.
-(I should probably check the USB logs and use these values.)
-The first tuning after powerup/init fails quite often for me but the folllo=
-wings are fine
-even switching from DVB-S to DVB-S2 works like a charm.
-=20
-> Is it really isochronous transfer that the device really uses in it's
-> default mode ? I guess many vendors prefer bulk transfers for the
-> default transfer mode ?
-There's a bulk pipe but it's only used for setup/control afaik.
-
-
-Happy testing,
-Dominik
-
-
-BTW: why is the mantis development in a separate HG repo?
- I merged the mantis driver to the multiproto repo and can use the
- mantis-1041 and pctv452e simultanously :)
-
-
---Boundary-01=_8aT3H+P7lLZtuyo
-Content-Type: application/x-bzip2;
-  name="pctv452e.c.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="pctv452e.c.bz2"
-
-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
-
---Boundary-01=_8aT3H+P7lLZtuyo--
-
---nextPart4269574.7WTbKnXPlY
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
-
-iD8DBQBH3Ta86OXrfqftMKIRAv6vAJ4qqLpp544dkNINeGFIhw5D9PBngACgqEFr
-mJiViRrviGAdvm1uclcZqwg=
-=eGwP
------END PGP SIGNATURE-----
-
---nextPart4269574.7WTbKnXPlY--
+------=_Part_17584_14176333.1205150395857--
 
 
---===============1864082222==
+--===============0616483573==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -284,4 +173,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1864082222==--
+--===============0616483573==--
