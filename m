@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from ti-out-0910.google.com ([209.85.142.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JaiEK-0007sY-TQ
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 03:04:09 +0100
-Message-ID: <47DC8012.3050809@linuxtv.org>
-Date: Sat, 15 Mar 2008 22:04:02 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <jarro.2783@gmail.com>) id 1JYpNm-0004uA-NL
+	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 22:18:55 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1012313tia.13
+	for <linux-dvb@linuxtv.org>; Mon, 10 Mar 2008 14:15:21 -0700 (PDT)
+Message-ID: <abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
+Date: Tue, 11 Mar 2008 08:15:21 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <47D539E8.6060204@linuxtv.org>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DA7008.8010404@linuxtv.org>
-	<47DAC42D.7010306@iki.fi>	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
-	<47DC6E0A.9000904@linuxtv.org>
-	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-In-Reply-To: <abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Content-Disposition: inline
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+	<47D49309.8020607@linuxtv.org>
+	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
+	<47D4B8D0.9090401@linuxtv.org>
+	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
+	<47D539E8.6060204@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,39 +33,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> On Sun, Mar 16, 2008 at 11:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> Antti Palosaari wrote:
->>  > I have no idea how to debug more. Without device it is rather hard to
->>  > test many things. It will help a little if we know is tuner locked.
->>  > Mike, is it easy to add debug writing for tuner to indicate if tuner
->>  > is locked or not locked? I have used that method earlier with mt2060
->>  > tuner...
->>
->>  There is a lock bit in register 0x01[6]  but I have not found it to be
->>  reliable, especially not on the c1 part.
->>
->>  -Mike
->>
->>
->>
-> 
-> You won't believe this, but it worked. I think every time I tried both
-> patches together I left .no_reconnect in. I tried it again with both
-> patches applied, no other modifications, and it worked.
-> 
-> Thanks for all your help,
-> Jarryd.
+On Tue, Mar 11, 2008 at 12:38 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Jarryd Beck wrote:
+>  >>  I think that the tda18271 driver will work with your tuner, but we may
+>  >>  need to make some small adjustments.  If you look in tda18271-fe.c ,
+>  >>  you'll find the code that autodetects between a TDA18271c1 and a
+>  >>  TDA18271c2 ...
+>  >>
+>  >
+>  > [snip]
+>
+> >
+>  > Also if I could somehow get this working with the right
+>  > code, I don't know how to set up the values in the tda182171_config
+>  > struct.
+>  >
+>
+>  Jarryd,
+>
+>  Assuming that there is no tda829x analog demod present, and that this is
+>  a digital-only device, try something like this:
+>
+>  static struct tda18271_config jarryd_tda18271_config = {
+>         .gate = TDA18271_GATE_DIGITAL
+>  }
+>
+>
+>  You should leave .std_map as NULL unless you need to override the default values per standard.
+>
+>  The value in the ".std_bits" corresponds to the lower five bits in EP3 (register 0x05 [4:0])
+>
+>  Most likely, the driver's default setting will work for you, but you
+>  may find that the vendor chose a different value if you sniff the usb
+>  traffic from the windows driver.  This value is directly tied to the IF
+>  frequency between the tuner and demod.
+>
+>  -Mike Krufky
+>
+>
 
-This is great news!  For an experiment, can you try once more without my patch applied?
+That didn't work, the problem is I can't tell where it's going wrong and
+I don't understand usb sniffs. I have a few questions:
+When af9015 reads the tuner, the existing tuners set the spectral
+inversion state->gpio3. Do you know what state->gpio3 does?
+The code then goes on to read the spectral inversion, but there's
+a comment there saying it's always 0, and the existing tuners
+have theirs set to 1, what should I set it to for this one?
 
-This will just confirm whether or not we can write all 39 registers at once.
+If it's the case that some of the other values in the config are wrong,
+how would I go about making sense of a usb sniff?
 
-If the patch that I gave you is truly needed, then I will integrate it into the official driver.
-
-Regards,
-
-Mike
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
