@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from py-out-1112.google.com ([64.233.166.178])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JY88f-0003pE-6S
-	for linux-dvb@linuxtv.org; Sun, 09 Mar 2008 00:07:43 +0100
-Message-ID: <47D31C2E.2090707@gmail.com>
-Date: Sun, 09 Mar 2008 03:07:26 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1JZ0xe-0002rt-B8
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 10:39:54 +0100
+Received: by py-out-1112.google.com with SMTP id a29so2558721pyi.0
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 02:39:50 -0700 (PDT)
+Message-ID: <d9def9db0803110239v30c68354j343e1f0633f6490c@mail.gmail.com>
+Date: Tue, 11 Mar 2008 10:39:49 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Derk Dukker" <derk.dukker@gmail.com>
+In-Reply-To: <e2d627830803100844j5de993f4j60543465d6aa519c@mail.gmail.com>
 MIME-Version: 1.0
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-References: <872297.2263.qm@web33102.mail.mud.yahoo.com>
-In-Reply-To: <872297.2263.qm@web33102.mail.mud.yahoo.com>
+Content-Disposition: inline
+References: <20080310111710.GA27766@tkukoulu.fi>
+	<e2d627830803100459k7d0eddd4lcfa97013767a6ec7@mail.gmail.com>
+	<d9def9db0803100837m5f6a2475xcd137e98c156b326@mail.gmail.com>
+	<e2d627830803100844j5de993f4j60543465d6aa519c@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar HD: Problems
- scaning and zaping
+Subject: Re: [linux-dvb] illegal bandwith value,
+	driver for Terratec Cinergy DT usb XS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,122 +32,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simeon Simeonov wrote:
-> Hi Manu,
-> 
-> I was able to resolve my rotor problem by making the following changes in the stb6100, stb0899 and mantis sources:
-> u<X> replaced by unit<X>_t..
+Hi Derk,
 
-Some points:
+On 3/10/08, Derk Dukker <derk.dukker@gmail.com> wrote:
+> Thank you very much Markus!!
+> Do you also have any idea how to get the Cinergy CI usb working? I live in
+> Holland and most of the channels are encrypted, so I need to use the Cinergy
+> CI usb but I can't find drivers/information anywhere.
+>
+> I bought this in the firstplace for my playstation 3 with linux on it, I
+> knew that support for CI was hard, but they said it would work with eyetv.
+> So I thought, if it isn't working on linux it will on mac with eyetv.
+> Everything works on my mac with eyetv except the CI usb :(
+>
 
-1. The change to stb6100 should in no way matter for the rotor.
-2. u* is kernel data types and uint*_t are POSIX data types. In fact
-this shouldn't matter AFAICT,  since both are explicit datatypes. The only
-difference in there that can make a difference would be "long"
+there's no support for this CI device at this time.
 
-I think, greping for long, the only thing that comes to my mind is
-stb0899_wait_diseqc_fifo_empty(), where you will see the error as
-stb0899_wait_diseqc_fifo_empty: timed out !!
-(do you see this error, in your logs ?)
-
-But that also shouldn't matter, since there the timeout what's
-provided there isn't quite large
-
-Also this doesn't come into picture, with your u* to uint* change. .. 
-thinking ..
-
-> Since I am running the drivers on 64-bit machine my guess is that is a 64-bit pointer size thing.
-> Unfortunately it is painful to restore my rotor settings after loosing them and I cannot tell you at the
-> moment which change made the difference.
-
-Also, considering that since almost everyone else has this working,
-maybe it has to be specific to your setup/machine.
-
-
-Regards,
-Manu
-
-> 
-> Thanks for your help,
-> Simeon
-> 
-> ----- Original Message ----
-> From: Manu Abraham <abraham.manu@gmail.com>
-> To: Simeon Simeonov <simeonov_2000@yahoo.com>
-> Cc: linux-dvb@linuxtv.org
-> Sent: Monday, March 3, 2008 3:52:29 AM
-> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-> 
-> Simeon Simeonov wrote:
->> I am using mythtv and here is the sequence of commands:
->>
->> Without repeat:
->> DiSEqCDevTree: Changing LNB voltage to 13V
->> DiSEqCDevTree: Rotor - Goto Stored Position 2
->> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
->> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
->> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
->>
->> With repeat:
->> DiSEqCDevTree: Changing LNB voltage to 13V
->> DiSEqCDevTree: Rotor - Goto Stored Position 2
->> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
->> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
->> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
->> DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
-> 
-> 
-> In fact, looks really confusing to me. The diseqc commands just go out 
-> as it is,
-> through the FIFO. I don't see anything that which changes the commands, but
-> if it was working with another card, it should be working with this card 
-> too (i
-> had some doubts, but when you said it worked with some other card, then i
-> don't see the issue in here with the diseqc part. The FiFO either works 
-> or not)
-> 
-> 
-> 
->> ----- Original Message ----
->> From: Manu Abraham <abraham.manu@gmail.com>
->> To: Simeon Simeonov <simeonov_2000@yahoo.com>
->> Cc: linux-dvb@linuxtv.org
->> Sent: Sunday, March 2, 2008 2:38:51 PM
->> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
->>
->> Simeon Simeonov wrote:
->>> Hi Manu,
->>>
->>> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
->>> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
->>> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
->>> east from the target rotor position. 
->>> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
->>> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
->>> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
->>> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
->>> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
->>> wait for one cycle.
->>> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
->> Can you please try to get the DiSEqC strings that you are sending
->> (from the application) in these 2 cases ?
->>
->> * Without repeat
->> * With repeat
->>
->> Regards,
->> Manu
-> 
-> 
-> 
-> 
-> 
-> 
->       ____________________________________________________________________________________
-> Looking for last minute shopping deals?  
-> Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
-> 
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
