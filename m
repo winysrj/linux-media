@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mistel.hrz.tfh-wildau.de ([193.175.213.240])
+Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1Jbfbu-0002lb-QB
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 18:28:30 +0100
-Message-ID: <47DFFBAD.8020408@desy.de>
-Date: Tue, 18 Mar 2008 18:28:13 +0100
-From: Patrick Boettcher <patrick.boettcher@desy.de>
+	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZDu4-0005G5-QF
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 00:29:09 +0100
+Received: from aamtaout01-winn.ispmail.ntl.com ([81.103.221.35])
+	by mtaout01-winn.ispmail.ntl.com with ESMTP id
+	<20080311233049.RDX16169.mtaout01-winn.ispmail.ntl.com@aamtaout01-winn.ispmail.ntl.com>
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:30:49 +0000
+Received: from molly.ianliverton.co.uk ([80.1.111.25])
+	by aamtaout01-winn.ispmail.ntl.com with ESMTP id
+	<20080311233138.SQBX219.aamtaout01-winn.ispmail.ntl.com@molly.ianliverton.co.uk>
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:31:38 +0000
+Received: from [192.168.1.65] (helo=ians)
+	by molly.ianliverton.co.uk with esmtp (Exim 4.69)
+	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZDtU-0007cX-45
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 23:28:28 +0000
+From: "Ian Liverton" <linux-dvb@ianliverton.co.uk>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 11 Mar 2008 23:30:16 -0000
+Message-ID: <009101c883cf$dfe25480$4101a8c0@ians>
 MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <ea4209750803181025y56c8ee7eu7a746cd75ab1ffa0@mail.gmail.com>
-In-Reply-To: <ea4209750803181025y56c8ee7eu7a746cd75ab1ffa0@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] patches submission
+Subject: Re: [linux-dvb] Nova T-500 detection problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +34,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I was very busy during the last weeks, since yesterday this will soften 
-a lot.
+> You will need to edit 
+> 
+> linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
 
-Can you please point me to the messages, or send the patches again?
+Genius!  Thank you very much!  I changed line 127 from
 
-I will take case of them as soon as possible.
+#define USB_PID_HAUPPAUGE_NOVA_T_500		0x9941
 
-Thanks
-Patrick
+To
 
-Albert Comerma wrote:
-> Hi all, I have a few pending patches (including the last of Andrea 
-> working). But last time I tryed to submit them they ended in /dev/null.
-> Which is the process to submit a patch?
-> Because since source is changing so fast when a patch is submited it 
-> must be added soon.
-> Most of them are related to dibcom chips based cards, and also most of 
-> them have been checked by different people.
-> How should I proceed?
->
-> Albert
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
+#define USB_PID_HAUPPAUGE_NOVA_T_500		0x9940
+
+and it worked perfectly.
+
+> A proper dev should probably confirm.
+
+If you need any more information on this card to make it supported "out of
+the box", let me know!
+
+Thanks again,
+
+Ian 
+
+Internal Virus Database is out-of-date.
+Checked by AVG Free Edition. 
+Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 00:00
+ 
 
 
 _______________________________________________
