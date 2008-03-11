@@ -1,20 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28DrWmj001937
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 08:53:32 -0500
-Received: from web56415.mail.re3.yahoo.com (web56415.mail.re3.yahoo.com
-	[216.252.111.94])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m28Dqsss024222
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 08:52:55 -0500
-Date: Sat, 8 Mar 2008 05:52:49 -0800 (PST)
-From: r bartlett <techwritebos@yahoo.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <47D2229A.9090300@linuxtv.org>
-MIME-Version: 1.0
-Message-ID: <327155.1089.qm@web56415.mail.re3.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2B0qrhD003540
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 20:52:53 -0400
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
+	[151.189.21.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2B0qJEP012110
+	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 20:52:19 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47D5A68C.7070004@t-online.de>
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>
+	<200802272151.19488.tux@schweikarts-vom-dach.de>
+	<47CC8094.8000106@t-online.de>
+	<200803101942.40158.tux@schweikarts-vom-dach.de>
+	<47D5A68C.7070004@t-online.de>
+Content-Type: text/plain; charset=utf-8
+Date: Tue, 11 Mar 2008 01:44:40 +0100
+Message-Id: <1205196280.6940.12.camel@pc08.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: WinTV-HVR-1800 help...
+Cc: video4linux-list@redhat.com, tux@schweikarts-vom-dach.de
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,38 +32,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi,
+
+Am Montag, den 10.03.2008, 22:22 +0100 schrieb Hartmut Hackmann:
+> HI
+> 
+> Tux schrieb:
+> > Hello Hartmut,
+> > 
+> > sorry that it has taken so long time to test it. I have tried it with option 
+> > use_frontend=1,1 and now it is posible to watch TV on the other
+> > port.
+> > 
+> > best regards
+> > 
+> > Tux
+> > 
+> > Am Montag, 3. März 2008 23:49:56 schrieben Sie:
+> >> Hi
+> >>
+> >> Tux schrieb:
+> >>> Hello Hartmut,
+> >>>
+> >>> i have tried the new driver. You are completely right, one port is
+> >>> working perfectly. But the other one not. What Information do you need to
+> >>> fix it ?
+> >>>
+> >>>
+> >>> best regards
+> >> <snip>
+> >>
+> >> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+> >> i tried to make the 2nd section work too. I don't know which gpo is
+> >> the right one to control the LNB supply, i need you to find out whether
+> >> switching the polarization works.
+> >> There are remaining restrictions:
+> >> - the 2nd DVB-S section only works if the first is configured for DVB-S
+> >> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
+> >> use_frontend=1,0 and use_frontend=1,1 should.
+> >> - currently it is not possible to choose the higher LNB voltage (14v
+> >> instead of 13v) - it is not possible to power down the 2nd LNB supply
+> >> independently. These are due to the fact that it is not possible to access
+> >> the LNB supply chip via the i2c bus fron the second section of the card.
+> >>
+> >> Happy testing
+> >>   Hartmut
+> >>
+> 
+> It's fully working? Great!
+> I expected more trouble. I'd like to rework the code a bit before i ask
+> Mauro to pull. May I ask you to test again in some days?
+> 
+> 
+> Best regards
+>   Hartmut
+> 
+
+this is really very good progress now, given that previously on such OEM
+and special devices testing abilities have been restricted for almost
+all of us. Nevertheless, they are in substantial numbers in the markets.
+
+What makes me still wonder a little, since I can't test almost nothing
+on the second 0008 subdevice, how to deal with the RF loopthrough, this
+I can test and is active in both directions for what I can say.
+
+Cheers,
+Hermann
 
 
-Michael Krufky <mkrufky@linuxtv.org> wrote:
-The digital side is 100% supported.  The analog side is not supported at all in the 2.6.24.y kernel series.  The master v4l-dvb development tree adds support for analog video with no audio.  If you pull down stoth's cx23885-video tree, you can enable the mpeg2 hardware encoder, and then you'll have analog mpeg audio and video fully working .  After some more testing and cleanups, that will eventually be merged into the master branch.
-
-You should give digital a try -- you do not need any subscription to receive Free-To-Air ATSC broadcasts (using an antennae).  Likewise, you can also receive digital cable SDTV and Clear QAM broadcasts on your standard cable at no extra charge -- give it a try, you may be surprised 8-).
-Mike, I'd be more than happy to give digital a try but have spent almost 3 weeks (4 calls to Comcast and a guy coming out to the house to check the line) and there's _no digital_ signal on my line that's accessible without paying more and having a digital converter box.  At least, at this point it seems I know more than Comcast does about what a "tv tuner card" is and what it's capabilities are, and this is what I've figured out so far.
-
-SDTV would be fine, Clear QAM would be fine...ATSC would be fine, but I'm fighting a Catch-22 because until I know what signal is on the line I can't set it up, and until I set it up, I can't figure out what signal is on the line.  :-)
-
-If I start with ATSC, you're saying this is broadcast over the air...but I need an antenna?  Like on top of the roof?  Or just a pair of rabbit ears?  I'm in a spot that barely gets good radio reception half of the time...is ATSC a stronger signal?  Can I test it somehow without spending a lot of dough to put a big antenna on the top of the house?
-
-And how do I "find" the SDTV and Clear QAM channels that are supposed to be already on this cable line?  I've got a splitter, so I should be getting both digital and analog signals at the same time...but there's nothing at all appearing at the digital side.
-
-You're the second person to suggest using digital...and I'd be happy to, but it's just looking awfully much like I don't have any usable digital signals here.
-If indeed I do, part of the problem is identifying them, determining what's here and what's not, so I don't (for example) spend three days setting up ATSC only to find I don't get ATSC reception.
-
-The other problem is cash.  I use Linux because I can't afford massive software expenses, and getting this card was a big investment that I justified partly because I thought it would _not_ require me to buy a different cable subscription that what I already have.
-
-The other possibility is that the digital tuner part on my card is broken, which would explain why I can't get any digital love.  In Windo$e I get about 13 analog channels and 0 digital signals...so I assumed it was my cable subscription or something...but that could perhaps indicate a broken card.
-
-The frustrating thing is that each time I've called Comcast they either have no clue what I'm talking about or else they've said something different from the person before.  The guy who came to the house said it's a mix of digital and analog signals, the girl I spoke to on the phone said it's _all_ 100% digital...and some other guy said I won't see any digital signals without getting a better subscription and a box converter.
-
-So...Mike or anyone out there, I need a simple roadmap of what to do next.  If I want to try SDTV, for example...where do I start?  Otherwise I'm thinking I'll just put it in the box and wait for a year or two.  :-)
-
-Again, thanks for any and all help getting this going.  It's not a massive problem if I can't figure it out, but I do greatly appreciate the help/time.  
-
-Best...
-
-       
----------------------------------
-Never miss a thing.   Make Yahoo your homepage.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
