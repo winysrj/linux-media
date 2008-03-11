@@ -1,14 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-Id: <20080328094021.513463447@ifup.org>
-References: <20080328093944.278994792@ifup.org>
-Date: Fri, 28 Mar 2008 02:39:47 -0700
-From: brandon@ifup.org
-To: mchehab@infradead.org
-Content-Disposition: inline; filename=wakeup-on-queue-cancel.patch
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Brandon Philips <bphilips@suse.de>
-Subject: [patch 3/9] videobuf: Wakeup queues after changing the state to
-	ERROR
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BM4lNe007890
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 18:04:47 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2BM4FfV029228
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 18:04:15 -0400
+Date: Tue, 11 Mar 2008 23:04:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <Pine.LNX.4.64.0803091204060.3408@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0803112257260.9070@axis700.grange>
+References: <47C40563.5000702@claranet.fr> <47D24404.9050708@claranet.fr>
+	<Pine.LNX.4.64.0803081026230.3639@axis700.grange>
+	<47D3A2AA.7040608@claranet.fr>
+	<Pine.LNX.4.64.0803091204060.3408@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux <video4linux-list@redhat.com>
+Subject: Re: kernel oops since changeset e3b8fb8cc214
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,28 +29,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The waitqueues must be woken up every time state changes.
+Hi Mauro,
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+On Sun, 9 Mar 2008, Guennadi Liakhovetski wrote:
 
+> caused by a race with the interrupt handler? Can the problem be, that 
+> cx88/cx88-video.c::buffer_release() is called from multiple places: as 
+> cx8800_video_qops.buf_release(), and from video_release(), which is the 
+> release method in video_fops and radio_fops. In the Oops above it is 
+> called from cx8800_video_qops.buf_release().
+> 
+> Hm, video_release calls buffer_release() first directly, then it calls 
+> videobuf_stop -> __videobuf_streamoff -> videobuf_queue_cancel -> 
+> q->ops->buf_release... Is it good?...
+
+as you see, more and more people are getting problems with the cx88 driver 
+after my patch. Is my above suspicion correct? I could not directly 
+propose a fix for that, firstly, due to the lack of time, secondly, of the 
+hardware, and thirdly, experience with this kind of drivers. I haven't 
+found a separate record in MAINTAINERS for this driver. Could you or 
+someone else have a look at these few functions? I definitely will not 
+have time for this tomorrow, I might have some time in the next couple of 
+days, but unfortunately I cannot promise anything.
+
+Thanks
+Guennadi
 ---
- linux/drivers/media/video/videobuf-core.c |    1 +
- 1 file changed, 1 insertion(+)
-
-Index: v4l-dvb/linux/drivers/media/video/videobuf-core.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/videobuf-core.c
-+++ v4l-dvb/linux/drivers/media/video/videobuf-core.c
-@@ -207,6 +207,7 @@ void videobuf_queue_cancel(struct videob
- 		if (q->bufs[i]->state == VIDEOBUF_QUEUED) {
- 			list_del(&q->bufs[i]->queue);
- 			q->bufs[i]->state = VIDEOBUF_ERROR;
-+			wake_up_all(&q->bufs[i]->done);
- 		}
- 	}
- 	spin_unlock_irqrestore(q->irqlock, flags);
-
--- 
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
