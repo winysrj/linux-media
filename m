@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2J4LUvk021756
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 00:21:30 -0400
-Received: from host06.hostingexpert.com (host06.hostingexpert.com
-	[216.80.70.60])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2J4Kuvr014931
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 00:20:56 -0400
-Message-ID: <47E094A6.8030205@linuxtv.org>
-Date: Wed, 19 Mar 2008 00:20:54 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BM2cii006450
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 18:02:38 -0400
+Received: from mailout04.sul.t-online.com (mailout04.sul.t-online.de
+	[194.25.134.18])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2BM25TP027988
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 18:02:05 -0400
+Message-ID: <47D7015C.3090904@t-online.de>
+Date: Tue, 11 Mar 2008 23:02:04 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-References: <47E060EB.5040207@t-online.de>	<37219a840803181754n5935b4e8g37dc77dd605b3095@mail.gmail.com>
-	<47E06D5C.3070109@t-online.de>
-In-Reply-To: <47E06D5C.3070109@t-online.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [RFC] TDA8290 / TDA827X with LNA: testers wanted
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>	
+	<200802272151.19488.tux@schweikarts-vom-dach.de>	
+	<47CC8094.8000106@t-online.de>	
+	<200803101942.40158.tux@schweikarts-vom-dach.de>	
+	<47D5A68C.7070004@t-online.de>
+	<1205196280.6940.12.camel@pc08.localdom.local>
+In-Reply-To: <1205196280.6940.12.camel@pc08.localdom.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, tux@schweikarts-vom-dach.de
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,44 +33,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Hartmut,
+Hi,
 
-Hartmut Hackmann wrote:
-> Michael Krufky schrieb:
->> I have an HVR1110, and I have a QAM64 generator that I use to test it.
->>  Obviously, it is a hot signal.  Is it possible for me to test the LNA
->> under these circumstances?  ...or do we need somebody "out in the
->> field" to do that sort of test?  (I live in ATSC-land ;-) )
+hermann pitton schrieb:
+> Hi,
+> 
+> Am Montag, den 10.03.2008, 22:22 +0100 schrieb Hartmut Hackmann:
+>> HI
 >>
-> You should be able to. You need to have the debug option for the tuner on
-> and you need to be aware that the decicion LNA on / off is taken only once
-> while tuning. When you modify the RF level you should notice that increasing
-> the amplitude results in a lower AGC2 value. When it reaches the value 2, the
-> driver should report that it turns the LNA to low gain. You will also need to
-> monitor the AGC value of the channel decoder to see the effect.
-
-I'll give this a try when I have some time, and send you the logs.
-
->> You mentioned a possible kernel OOPS.  Have you actually experienced
->> an OOPS with the current tree?  I apologize if this feature being
->> broken is the result of my tuner refactoring.  I appreciate your
->> taking the time to fix it.
+>> Tux schrieb:
+>>> Hello Hartmut,
+>>>
+>>> sorry that it has taken so long time to test it. I have tried it with option 
+>>> use_frontend=1,1 and now it is posible to watch TV on the other
+>>> port.
+>>>
+>>> best regards
+>>>
+>>> Tux
+>>>
+>>> Am Montag, 3. März 2008 23:49:56 schrieben Sie:
+>>>> Hi
+>>>>
+>>>> Tux schrieb:
+>>>>> Hello Hartmut,
+>>>>>
+>>>>> i have tried the new driver. You are completely right, one port is
+>>>>> working perfectly. But the other one not. What Information do you need to
+>>>>> fix it ?
+>>>>>
+>>>>>
+>>>>> best regards
+>>>> <snip>
+>>>>
+>>>> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+>>>> i tried to make the 2nd section work too. I don't know which gpo is
+>>>> the right one to control the LNB supply, i need you to find out whether
+>>>> switching the polarization works.
+>>>> There are remaining restrictions:
+>>>> - the 2nd DVB-S section only works if the first is configured for DVB-S
+>>>> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
+>>>> use_frontend=1,0 and use_frontend=1,1 should.
+>>>> - currently it is not possible to choose the higher LNB voltage (14v
+>>>> instead of 13v) - it is not possible to power down the 2nd LNB supply
+>>>> independently. These are due to the fact that it is not possible to access
+>>>> the LNB supply chip via the i2c bus fron the second section of the card.
+>>>>
+>>>> Happy testing
+>>>>   Hartmut
+>>>>
+>> It's fully working? Great!
+>> I expected more trouble. I'd like to rework the code a bit before i ask
+>> Mauro to pull. May I ask you to test again in some days?
 >>
-> Yes. The first parameter to the tuner callback was wrong and cause a reference
-> to a NULL pointer.
+>>
+>> Best regards
+>>   Hartmut
+>>
+> 
+> this is really very good progress now, given that previously on such OEM
+> and special devices testing abilities have been restricted for almost
+> all of us. Nevertheless, they are in substantial numbers in the markets.
+>
+Indeed. I was aware of this. And there are still some well known cards left ...
 
-Ah, I believe this may have been caused by a very recent changeset:
+> What makes me still wonder a little, since I can't test almost nothing
+> on the second 0008 subdevice, how to deal with the RF loopthrough, this
+> I can test and is active in both directions for what I can say.
+> 
+IMHO, a RF loopthrough makes no sense for satellite. I had a glance at the
+datasheet of the tda8262 - it has a configurable loopthrough.
+But lets deal with this later:
+While i worked on the "need analog first issue", i noticed that currently the
+LNA support of the tda8275a is heavily broken - it even causes a kernel oops.
+I should fix this first.
 
-http://linuxtv.org/hg/v4l-dvb/rev/ad6fb7fe6240
-
-I tested all of my changes thoroughly, and had received positive test results from other users with various hardware.
-The regression was not part of my tuner refactoring changes, and I do not think that this is upstream in 2.6.25-rc.
-
-Can you confirm whether or not the above is the problem changeset?
-
-Regards,
-
-Mike
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
