@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas.schorpp@googlemail.com>) id 1Jfr6Z-0001Uo-W3
-	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 08:33:30 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so943503fge.25
-	for <linux-dvb@linuxtv.org>; Sat, 29 Mar 2008 23:33:20 -0700 (PDT)
-Message-ID: <47EF342C.5010908@googlemail.com>
-Date: Sun, 30 Mar 2008 08:33:16 +0200
-From: thomas schorpp <thomas.schorpp@googlemail.com>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <20080329024154.GA23883@localhost> <47EDB703.10502@googlemail.com>
-	<20080330053900.GA31417@localhost>
-In-Reply-To: <20080330053900.GA31417@localhost>
-Subject: Re: [linux-dvb] Analog capture (saa7113) not working on KNC1 DVB-C
- Plus (MK3)
-Reply-To: thomas.schorpp@googlemail.com
+	(envelope-from <nico@youplala.net>) id 1JZCgg-0006lo-EM
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 23:11:11 +0100
+Received: from [11.11.11.138] (user-5af0e527.wfd96.dsl.pol.co.uk
+	[90.240.229.39])
+	by mail.youplala.net (Postfix) with ESMTP id DBD61D88130
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:10:08 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47D701A7.40805@philpem.me.uk>
+References: <20080311110707.GA15085@mythbackend.home.ivor.org>
+	<47D701A7.40805@philpem.me.uk>
+Date: Tue, 11 Mar 2008 22:10:04 +0000
+Message-Id: <1205273404.20608.2.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,30 +29,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-L. wrote:
-> thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
->> the videobuf reworks broke it or all the foreign CI code 
->> in budget_av.c is disturbing the saa7113 circuit part of the card.
+
+On Tue, 2008-03-11 at 22:03 +0000, Philip Pemberton wrote:
+> ivor@ivor.org wrote:
+> > Not sure if this helps or adds that much to the discussion... (I
+> think this was concluded before)
+> > But I finally switched back to kernel 2.6.22.19 on March 5th (with
+> current v4l-dvb code) and haven't had any problems with the Nova-t 500
+> since. Running mythtv with EIT scanning enabled.
 > 
-> You seem rather unsure about what exactly was breaking it. But did it
-> work at a certain point of time anyway? All I know is analog input of
-> this card was already not functional under kernel 2.6.20.
-
-can't remember.
-btw, could You test if the crappy knc-1 (odsoft?) non-bda winxp driver which 
-supports the saa7113 input BSOD's on Your machine, too, on install?
-
+> Is this a distribution kernel, or one built from virgin (i.e.
+> unmodified from 
+> www.kernel.org or one of the mirrors) source code?
 > 
-> I wish so much it could be fixed or implemented, because I need the
-> analog inputs very much for various devices. I bought the KNC1 card
+> Is there any possibility of you uploading your .config file somewhere?
+> I'm 
+> curious what kernel options you have set.. especially USB_SUSPEND
+> (USB 
+> autosuspend -- not sure if this was added to 2.6.24 or if .22 had it
+> as well; 
+> I don't have a .22 source tree at the moment).
+> 
+> I'm building a kernel from the 2.6.24.2 virgin source on Ubuntu to do
+> some 
+> testing; I'd like to prove that the problem exists in 2.6.24 proper
+> before 
+> screaming "kernel bug". But if 2.6.22 works, a bug is looking more and
+> more 
+> likely.
+> 
 
-get a v4l supported usb2 analogtv/av usb-grabber with full PAL/SECAM res. 
-cheap from the bay, since dvb-t is replacing terrestrial analog tv in europe fastly.
-majority of developers set priority for dvb paytv CI CAM, so no fast fix.
+My Ubuntu-provided 2.6.22 works fine.
 
-> L.
-y
-tom
+And I am not losing any tuner. Not even with the Multirec of MythTV
+0.21.
+
+Nico
 
 
 _______________________________________________
