@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.mtw.ru ([194.135.105.241])
+Received: from py-out-1112.google.com ([64.233.166.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a-j@a-j.ru>) id 1Jclzk-0002KG-F2
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 19:29:37 +0100
-Date: Fri, 21 Mar 2008 21:29:27 +0300
-From: Andrew Junev <a-j@a-j.ru>
-Message-ID: <1499404682.20080321212927@a-j.ru>
-To: Oliver Endriss <o.endriss@gmx.de>
-In-Reply-To: <200803210742.57119@orion.escape-edv.de>
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
-	<1206067079.3362.10.camel@pc08.localdom.local>
-	<200803210742.57119@orion.escape-edv.de>
+	(envelope-from <christophpfister@gmail.com>) id 1JZ30r-0003h7-5q
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 12:51:34 +0100
+Received: by py-out-1112.google.com with SMTP id a29so2609776pyi.0
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 04:50:11 -0700 (PDT)
+Message-ID: <19a3b7a80803110450t123fb1b8k9848de7c8739fb44@mail.gmail.com>
+Date: Tue, 11 Mar 2008 12:50:11 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: "=?ISO-8859-1?Q?Guillaume_Membr=E9?=" <guillaume.ml@gmail.com>
+In-Reply-To: <4758d4170803081118x1090f435j39f66822e28fa6a0@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <4758d4170803081118x1090f435j39f66822e28fa6a0@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
-Reply-To: Andrew Junev <a-j@a-j.ru>
+Subject: Re: [linux-dvb] Updated scan file for fr-noos-numericable
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,47 +22,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Friday, March 21, 2008, 9:42:56 AM, you wrote:
+Hi,
 
-> hermann pitton wrote:
->> hmm, thought that this we exactly did avoid on 2.6.24 and 2.6.25.
->> 
->> IIRC, this should never made it into 2.6.24, at least I thought we could
->> always stop it on 2.6.25 before it harms.
->> 
->> Fedora downports from release canditates, and almost always is fine,
->> so I don't trust the 2.6._24_ here.
->> 
->> If nothing else to do ..., might investigate it.
+2008/3/8, Guillaume Membr=E9 <guillaume.ml@gmail.com>:
+> Hello
+>
+>  Attached is a scan file for the french cable operator "Numericable".
+>  Hope this helps :)
 
-> Unfortunately, the regression made it into the 2.6.24 series.
-> I just checked and found it in 2.6.24.2. :-(
+<snip>
+diff -r 3cde3460d120 util/scan/dvb-c/fr-noos-numericable
+--- a/util/scan/dvb-c/fr-noos-numericable	Tue Mar 11 12:40:20 2008 +0100
++++ b/util/scan/dvb-c/fr-noos-numericable	Tue Mar 11 12:41:03 2008 +0100
+@@ -1,41 +1,90 @@
+ # Cable en France
+ # freq sr fec mod
+ C 123000000 6875000 NONE QAM64
++C 123125000 6875000 NONE QAM64
+ C 131000000 6875000 NONE QAM64
++C 131125000 6875000 NONE QAM64
+<snip>
 
-> So we should submit a bug fix for 2.6,24, too.
+Nearly every entry is duplicated (two frequencies are too close to
+each other --> both "lead" to the same transponder ...).
 
-For the record: I just checked it with kernel-2.6.24.3-34.fc8
-and the problem is still there.
+>  Regards
+>
+> Guillaume
 
-Is there an easy way to check whether the bug fix was added to the
-kernel (2.6.24.x)?
-
-Thank you guys for your support!!!
-
-> CU
-> Oliver
-
-
--- 
-Best regards,
- Andrew
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
