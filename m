@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYoE5028137
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:50 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAYUGI018739
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:35 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so175366fga.7
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:30 -0700 (PDT)
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <ab74ebf10c01d6a8a54a.1206699517@localhost>
-In-Reply-To: <patchbomb.1206699511@localhost>
-Date: Fri, 28 Mar 2008 03:18:37 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: [PATCH 6 of 9] videobuf-vmalloc.c: Fix hack of postponing mmap on
-	remap failure
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BNlTQT020492
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 19:47:29 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2BNktW2031004
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 19:46:55 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47D7015C.3090904@t-online.de>
+References: <200801051252.18108.tux@schweikarts-vom-dach.de>
+	<200802272151.19488.tux@schweikarts-vom-dach.de>
+	<47CC8094.8000106@t-online.de>
+	<200803101942.40158.tux@schweikarts-vom-dach.de>
+	<47D5A68C.7070004@t-online.de>
+	<1205196280.6940.12.camel@pc08.localdom.local>
+	<47D7015C.3090904@t-online.de>
+Content-Type: text/plain; charset=utf-8
+Date: Wed, 12 Mar 2008 00:38:57 +0100
+Message-Id: <1205278737.5927.108.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, tux@schweikarts-vom-dach.de
+Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,192 +34,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1206699280 25200
-# Node ID ab74ebf10c01d6a8a54a39b6750bc86ec3e72286
-# Parent  eb99bdd0a7e3f70eb40fcc6918794a8b8822ac49
-videobuf-vmalloc.c: Fix hack of postponing mmap on remap failure
+Hi Hartmut,
 
-In videobuf-vmalloc.c remap_vmalloc_range is failing when applications are
-trying to mmap buffers immediately after reqbuf.  It fails because the vmalloc
-area isn't setup until the first QBUF when drivers call iolock.
+Am Dienstag, den 11.03.2008, 23:02 +0100 schrieb Hartmut Hackmann:
+> Hi,
+> 
+> hermann pitton schrieb:
+> > Hi,
+> > 
+> > Am Montag, den 10.03.2008, 22:22 +0100 schrieb Hartmut Hackmann:
+> >> HI
+> >>
+> >> Tux schrieb:
+> >>> Hello Hartmut,
+> >>>
+> >>> sorry that it has taken so long time to test it. I have tried it with option 
+> >>> use_frontend=1,1 and now it is posible to watch TV on the other
+> >>> port.
+> >>>
+> >>> best regards
+> >>>
+> >>> Tux
+> >>>
+> >>> Am Montag, 3. März 2008 23:49:56 schrieben Sie:
+> >>>> Hi
+> >>>>
+> >>>> Tux schrieb:
+> >>>>> Hello Hartmut,
+> >>>>>
+> >>>>> i have tried the new driver. You are completely right, one port is
+> >>>>> working perfectly. But the other one not. What Information do you need to
+> >>>>> fix it ?
+> >>>>>
+> >>>>>
+> >>>>> best regards
+> >>>> <snip>
+> >>>>
+> >>>> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+> >>>> i tried to make the 2nd section work too. I don't know which gpo is
+> >>>> the right one to control the LNB supply, i need you to find out whether
+> >>>> switching the polarization works.
+> >>>> There are remaining restrictions:
+> >>>> - the 2nd DVB-S section only works if the first is configured for DVB-S
+> >>>> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
+> >>>> use_frontend=1,0 and use_frontend=1,1 should.
+> >>>> - currently it is not possible to choose the higher LNB voltage (14v
+> >>>> instead of 13v) - it is not possible to power down the 2nd LNB supply
+> >>>> independently. These are due to the fact that it is not possible to access
+> >>>> the LNB supply chip via the i2c bus fron the second section of the card.
+> >>>>
+> >>>> Happy testing
+> >>>>   Hartmut
+> >>>>
+> >> It's fully working? Great!
+> >> I expected more trouble. I'd like to rework the code a bit before i ask
+> >> Mauro to pull. May I ask you to test again in some days?
+> >>
+> >>
+> >> Best regards
+> >>   Hartmut
+> >>
+> > 
+> > this is really very good progress now, given that previously on such OEM
+> > and special devices testing abilities have been restricted for almost
+> > all of us. Nevertheless, they are in substantial numbers in the markets.
+> >
+> Indeed. I was aware of this. And there are still some well known cards left ...
+> 
+> > What makes me still wonder a little, since I can't test almost nothing
+> > on the second 0008 subdevice, how to deal with the RF loopthrough, this
+> > I can test and is active in both directions for what I can say.
+> > 
+> IMHO, a RF loopthrough makes no sense for satellite. I had a glance at the
+> datasheet of the tda8262 - it has a configurable loopthrough.
+> But lets deal with this later:
+> While i worked on the "need analog first issue", i noticed that currently the
+> LNA support of the tda8275a is heavily broken - it even causes a kernel oops.
+> I should fix this first.
+> 
+> Best regards
+>    Hartmut
 
-This patch introduces mmap_setup to the qtype_ops and it is called in
-__videobuf_mmap_setup if the buffer type is mmap.  In the case of vmalloc
-buffers this calls iolock, and sets the state to idle.
+argh, looks like somebody is flooding the Grand Canyon ;)
 
-I don't think this is needed for dma-sg buffers and it defaults to a no-op for
-everything but vmalloc.
+For what I can test, we can always come back.
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+Tux was not that specific for what is working on the second LNB
+connector now, but since known to be precise with few words, guess he
+does not sit on the restricted loopthrough from the first LNB connector
+and you hit the right gpio pin and he has all services without something
+connected to the first LNB input.
 
----
- linux/drivers/media/video/videobuf-core.c    |   29 +++++++-----------
- linux/drivers/media/video/videobuf-vmalloc.c |   43 +++++++++++++--------------
- linux/include/media/videobuf-core.h          |    3 +
- 3 files changed, 35 insertions(+), 40 deletions(-)
+Cheers,
+Hermann
 
-diff --git a/linux/drivers/media/video/videobuf-core.c b/linux/drivers/media/video/videobuf-core.c
---- a/linux/drivers/media/video/videobuf-core.c
-+++ b/linux/drivers/media/video/videobuf-core.c
-@@ -92,24 +92,16 @@ int videobuf_iolock(struct videobuf_queu
- 	MAGIC_CHECK(vb->magic, MAGIC_BUFFER);
- 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
- 
--	/* This is required to avoid OOPS on some cases,
--	   since mmap_mapper() method should be called before _iolock.
--	   On some cases, the mmap_mapper() is called only after scheduling.
--	 */
--	if (vb->memory == V4L2_MEMORY_MMAP) {
--		wait_event_timeout(vb->done, q->is_mmapped,
--				   msecs_to_jiffies(100));
--		if (!q->is_mmapped) {
--			printk(KERN_ERR
--			       "Error: mmap_mapper() never called!\n");
--			return -EINVAL;
--		}
--	}
--
- 	return CALL(q, iolock, q, vb, fbuf);
- }
- 
- /* --------------------------------------------------------------------- */
-+
-+static int videobuf_mmap_setup_default(struct videobuf_queue *q,
-+					struct videobuf_buffer *vb)
-+{
-+	return 0;
-+}
- 
- 
- void videobuf_queue_core_init(struct videobuf_queue *q,
-@@ -131,6 +123,9 @@ void videobuf_queue_core_init(struct vid
- 	q->ops       = ops;
- 	q->priv_data = priv;
- 	q->int_ops   = int_ops;
-+
-+	if (!q->int_ops->mmap_setup)
-+		q->int_ops->mmap_setup = videobuf_mmap_setup_default;
- 
- 	/* All buffer operations are mandatory */
- 	BUG_ON(!q->ops->buf_setup);
-@@ -305,8 +300,6 @@ static int __videobuf_mmap_free(struct v
- 
- 	rc  = CALL(q, mmap_free, q);
- 
--	q->is_mmapped = 0;
--
- 	if (rc < 0)
- 		return rc;
- 
-@@ -358,6 +351,9 @@ static int __videobuf_mmap_setup(struct 
- 		switch (memory) {
- 		case V4L2_MEMORY_MMAP:
- 			q->bufs[i]->boff  = bsize * i;
-+			err = q->int_ops->mmap_setup(q, q->bufs[i]);
-+			if (err)
-+				break;
- 			break;
- 		case V4L2_MEMORY_USERPTR:
- 		case V4L2_MEMORY_OVERLAY:
-@@ -1018,7 +1014,6 @@ int videobuf_mmap_mapper(struct videobuf
- 
- 	mutex_lock(&q->vb_lock);
- 	retval = CALL(q, mmap_mapper, q, vma);
--	q->is_mmapped = 1;
- 	mutex_unlock(&q->vb_lock);
- 
- 	return retval;
-diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
---- a/linux/drivers/media/video/videobuf-vmalloc.c
-+++ b/linux/drivers/media/video/videobuf-vmalloc.c
-@@ -152,21 +152,26 @@ static int __videobuf_iolock (struct vid
- 				(unsigned long)mem->vmalloc,
- 				pages << PAGE_SHIFT);
- 
--	/* It seems that some kernel versions need to do remap *after*
--	   the mmap() call
--	 */
--	if (mem->vma) {
--		int retval=remap_vmalloc_range(mem->vma, mem->vmalloc,0);
--		kfree(mem->vma);
--		mem->vma=NULL;
--		if (retval<0) {
--			dprintk(1,"mmap app bug: remap_vmalloc_range area %p error %d\n",
--				mem->vmalloc,retval);
--			return retval;
-+	return 0;
-+}
-+
-+static int __videobuf_mmap_setup(struct videobuf_queue *q,
-+			      struct videobuf_buffer *vb)
-+{
-+	int retval = 0;
-+	BUG_ON(vb->memory != V4L2_MEMORY_MMAP);
-+	if (vb->state == VIDEOBUF_NEEDS_INIT) {
-+		/* bsize == size since the buffer needs to be large enough to
-+		 * hold an entire frame, not the case in the read case for
-+		 * example*/
-+		vb->size = vb->bsize;
-+		retval = __videobuf_iolock(q, vb, NULL);
-+		if (!retval) {
-+			/* Don't IOLOCK later */
-+			vb->state = VIDEOBUF_IDLE;
- 		}
- 	}
--
--	return 0;
-+	return retval;
- }
- 
- static int __videobuf_sync(struct videobuf_queue *q,
-@@ -239,15 +244,8 @@ static int __videobuf_mmap_mapper(struct
- 	/* Try to remap memory */
- 	retval=remap_vmalloc_range(vma, mem->vmalloc,0);
- 	if (retval<0) {
--		dprintk(1,"mmap: postponing remap_vmalloc_range\n");
--
--		mem->vma=kmalloc(sizeof(*vma),GFP_KERNEL);
--		if (!mem->vma) {
--			kfree(map);
--			q->bufs[first]->map=NULL;
--			return -ENOMEM;
--		}
--		memcpy(mem->vma,vma,sizeof(*vma));
-+		dprintk(1, "mmap: failed to remap_vmalloc_range\n");
-+		return -EINVAL;
- 	}
- 
- 	dprintk(1,"mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
-@@ -315,6 +313,7 @@ static struct videobuf_qtype_ops qops = 
- 	.alloc        = __videobuf_alloc,
- 	.iolock       = __videobuf_iolock,
- 	.sync         = __videobuf_sync,
-+	.mmap_setup   = __videobuf_mmap_setup,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
- 	.video_copy_to_user = __videobuf_copy_to_user,
-diff --git a/linux/include/media/videobuf-core.h b/linux/include/media/videobuf-core.h
---- a/linux/include/media/videobuf-core.h
-+++ b/linux/include/media/videobuf-core.h
-@@ -144,6 +144,8 @@ struct videobuf_qtype_ops {
- 				 int vbihack,
- 				 int nonblocking);
- 	int (*mmap_free)	(struct videobuf_queue *q);
-+	int (*mmap_setup)	(struct videobuf_queue *q,
-+				 struct videobuf_buffer *vb);
- 	int (*mmap_mapper)	(struct videobuf_queue *q,
- 				struct vm_area_struct *vma);
- };
-@@ -168,7 +170,6 @@ struct videobuf_queue {
- 
- 	unsigned int               streaming:1;
- 	unsigned int               reading:1;
--	unsigned int		   is_mmapped:1;
- 
- 	/* capture via mmap() + ioctl(QBUF/DQBUF) */
- 	struct list_head           stream;
 
 --
 video4linux-list mailing list
