@@ -1,22 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.227])
+Received: from el-out-1112.google.com ([209.85.162.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anothersname@googlemail.com>) id 1Jg9dT-0001w9-0x
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 04:20:36 +0200
-Received: by wx-out-0506.google.com with SMTP id s11so1406648wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 19:20:31 -0700 (PDT)
-Message-ID: <a413d4880803301920p3589df50y3449bfc26cd3aa20@mail.gmail.com>
-Date: Mon, 31 Mar 2008 03:20:29 +0100
-From: "Another Sillyname" <anothersname@googlemail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <a413d4880803301657n16eacc06we99d36c7f40b546f@mail.gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1JZDr1-0004gB-2d
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 00:26:00 +0100
+Received: by el-out-1112.google.com with SMTP id o28so1457397ele.2
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 16:25:47 -0700 (PDT)
+Message-ID: <37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
+Date: Tue, 11 Mar 2008 19:25:43 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Jarryd Beck" <jarro.2783@gmail.com>
+In-Reply-To: <abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-	<d9def9db0803301645s17fbb36vbce4c0631ccafa49@mail.gmail.com>
-	<a413d4880803301657n16eacc06we99d36c7f40b546f@mail.gmail.com>
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+	<47D49309.8020607@linuxtv.org>
+	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
+	<47D4B8D0.9090401@linuxtv.org>
+	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
+	<47D539E8.6060204@linuxtv.org>
+	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
+	<47D5AF38.90600@iki.fi>
+	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,60 +36,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus
+On Tue, Mar 11, 2008 at 5:05 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
+> >  Can you take logs with vendor WHQL driver and sent for further analysis?
+>  >  http://www.afatech.com/EN/support.aspx
+>  >
+>  >  Antti
+>  >
+>  >  --
+>  >  http://palosaari.fi
+>  >
+>
+>  For some reason windows didn't like that driver. When I used the installer
+>  nothing happened, and when I used device manager it said this folder
+>  contains no information about your device.
+>  So I made a snoop with the driver on the CD, I hope it's good enough.
+>
+>  I uploaded the snoop to
+>  http://download.yousendit.com/2B0B420876BFB959
+>
+>  While it was snooping, I plugged it in, tuned the card to a tv channel
+>  and pulled it out as quick as I could.
+>  If it helps, the channel was channel 7, sydney, australia.
 
-You still out there?
 
-I've got to hit the sack shortly.
+This helps.....  I can tell that your tda18211 is located at 0xC0, and
+it contains 0x83 in its ID register.  This is the same ID byte that
+the tda18271c1 uses to identify itself -- hopefully that implies
+driver compatability, but we won't know for sure until you try it.
 
-J
+The windows driver is only using the primary sixteen registers  --  I
+don't know if the device even HAS the 23 extended registers that the
+tda18271 has...  The driver that you're running does not seem to touch
+the extended registers at all.  It's possible that the driver is
+simply blasting the register bytes to the tuner, without doing any
+calibration explicitly -- that could explain the 16 byte blasts
+without any transactions to the extended registers.... not sure --
+this is all speculation.
 
-On 31/03/2008, Another Sillyname <anothersname@googlemail.com> wrote:
-> It's a 320...specifically a eb1a:2881 Pinnacle badged empia technology unit..
->
->  If you like I could reinstall the v4l-dvb-kernel sources and give you
->  a complete breakdown on the unit?
->
->  Thanks Markus
->
->
->
->
->  On 31/03/2008, Markus Rechberger <mrechberger@gmail.com> wrote:
->  > On 3/31/08, Another Sillyname <anothersname@googlemail.com> wrote:
->  >  > I have a machine that has an internal card that's a Lifeview DVB and
->  >  > works fine using the v4l-dvb mercurial sources.
->  >  >
->  >  > I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
->  >  > using the v4l-dvb sources but does work using the v4l-dvb-kernel
->  >  > version.
->  >  >
->  >  > 1. Will the number of em28xx cards supported by v4l-dvb be increased
->  >  > shortly? (My card id was 94 IIRC ).
->  >  >
->  >  > 2. Can I mix and match from the sources...i.e. can I graft the em28xx
->  >  > stuff from v4l-dvb-kernel into the v4l-dvb source and compile
->  >  > successfully or has the underlying code changed at a more strategic
->  >  > level?
->  >  >
->  >  > 3. Why did the sources branch? Was there a good technical reason for this?
->  >  >
->  >  > 4. If I can't use the v4l-dvb sources to get my em28xx working what's
->  >  > the chances of getting the v4l-dvb-kernel stuff working for the
->  >  > lifeview flydvb card?
->  >  >
->  >
->  >
->  > Hi,
->  >
->  >  do you have the pinnacle 330e or the 320e?
->  >  (following is the 320e)
->  >  http://www.compareindia.com/media/images/2007/jul/img_5282_2601_pinnacle.jpg
->  >
->  >
->  >  Markus
->  >
->
+One thing I can say -- the Linux tda18271 driver should be able to
+detect your tuner at 0xC0  (0x60)  as a tda18271c1 -- It's worth a
+try, and could certainly be possible that the driver *may* work as-is,
+although I suspect that some tweaking will be needed.
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
