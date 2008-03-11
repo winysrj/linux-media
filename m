@@ -1,19 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2OCJ1GT003901
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:19:01 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2OCITk3026290
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:18:29 -0400
-Date: Mon, 24 Mar 2008 13:18:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0803241309500.4176@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BC7CfN025476
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 08:07:12 -0400
+Received: from ex.volia.net (ex.volia.net [82.144.192.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2BC6amv026786
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 08:06:36 -0400
+Message-ID: <063801c88370$5594f3a0$6401a8c0@LocalHost>
+From: "itman" <itman@fm.com.ua>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+References: <000f01c808e7$3ab4e3a0$6401a8c0@LocalHost>
+	<1191845080.3506.82.camel@pc08.localdom.local>
+	<007f01c80e7d$21c02300$6401a8c0@LocalHost>
+	<1192788480.18371.4.camel@gaivota>
+	<Pine.LNX.4.58.0710190951100.16052@shell4.speakeasy.net>
+	<471A4011.8010706@fm.com.ua> <1192922346.4857.8.camel@gaivota>
+	<003701c81410$869e6960$6401a8c0@LocalHost>
+	<1193043044.30686.22.camel@gaivota>
+	<003a01c8150f$6a248490$6401a8c0@LocalHost>
+	<1193103690.14811.10.camel@pc08.localdom.local>
+	<000401c8151a$080ef4b0$6401a8c0@LocalHost>
+	<1193107021.5728.20.camel@gaivota>
+	<1193107692.5728.23.camel@gaivota>
+	<002701c8812f$33c6ed20$6501a8c0@LocalHost>
+	<1205004114.3358.29.camel@pc08.localdom.local>
+Date: Tue, 11 Mar 2008 14:06:27 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] soc-camera: improve separation between soc_camera_ops and
- soc_camera_device
+Content-Type: text/plain; format=flowed; charset="utf-8"; reply-type=original
+Content-Transfer-Encoding: 8bit
+Cc: simon@kalmarkaglan.se, Linux and Kernel Video <video4linux-list@redhat.com>,
+	Trent Piepho <xyzzy@speakeasy.org>, MIDIMaker <midimaker@yandex.ru>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,253 +42,169 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-In case of muliple cameras, handled by the same driver, they can support 
-different picture formats, therefore formats and num_formats cannot belong 
-to soc_camera_ops, which is only one per driver, move them to 
-soc_camera_device, which is one per device instance. OTOH, probe and 
-remove methods are always the same, move them to soc_camera_ops.
+Hi, Hermann.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Yea I have seen changes. But the question is about: How to build fresh v4l 
+(with MSI patches)  for 2.6.24 ?
 
----
+With this procedure it does not work:
 
-Thanks to Eric Miao for making me look at this code again:-)
+1) cd /usr/src/linux   ; kernel 2.6.24.3 srs
+2) mkdir v4lnew
+3) cd ./v4lnew
+4) hg init
+5)  hg pull http://linuxtv.org/hg/v4l-dvb
+6) make
+7) make install
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index acb5454..2ea133e 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -410,11 +410,15 @@ const struct v4l2_queryctrl mt9m001_controls[] = {
- 	}
- };
- 
--static int mt9m001_get_control(struct soc_camera_device *icd, struct v4l2_control *ctrl);
--static int mt9m001_set_control(struct soc_camera_device *icd, struct v4l2_control *ctrl);
-+static int mt9m001_video_probe(struct soc_camera_device *);
-+static void mt9m001_video_remove(struct soc_camera_device *);
-+static int mt9m001_get_control(struct soc_camera_device *, struct v4l2_control *);
-+static int mt9m001_set_control(struct soc_camera_device *, struct v4l2_control *);
- 
- static struct soc_camera_ops mt9m001_ops = {
- 	.owner			= THIS_MODULE,
-+	.probe			= mt9m001_video_probe,
-+	.remove			= mt9m001_video_remove,
- 	.init			= mt9m001_init,
- 	.release		= mt9m001_release,
- 	.start_capture		= mt9m001_start_capture,
-@@ -423,8 +427,6 @@ static struct soc_camera_ops mt9m001_ops = {
- 	.try_fmt_cap		= mt9m001_try_fmt_cap,
- 	.set_bus_param		= mt9m001_set_bus_param,
- 	.query_bus_param	= mt9m001_query_bus_param,
--	.formats		= NULL, /* Filled in later depending on the */
--	.num_formats		= 0,	/* camera type and data widths */
- 	.controls		= mt9m001_controls,
- 	.num_controls		= ARRAY_SIZE(mt9m001_controls),
- 	.get_control		= mt9m001_get_control,
-@@ -573,19 +575,19 @@ static int mt9m001_video_probe(struct soc_camera_device *icd)
- 	case 0x8411:
- 	case 0x8421:
- 		mt9m001->model = V4L2_IDENT_MT9M001C12ST;
--		mt9m001_ops.formats = mt9m001_colour_formats;
-+		icd->formats = mt9m001_colour_formats;
- 		if (mt9m001->client->dev.platform_data)
--			mt9m001_ops.num_formats = ARRAY_SIZE(mt9m001_colour_formats);
-+			icd->num_formats = ARRAY_SIZE(mt9m001_colour_formats);
- 		else
--			mt9m001_ops.num_formats = 1;
-+			icd->num_formats = 1;
- 		break;
- 	case 0x8431:
- 		mt9m001->model = V4L2_IDENT_MT9M001C12STM;
--		mt9m001_ops.formats = mt9m001_monochrome_formats;
-+		icd->formats = mt9m001_monochrome_formats;
- 		if (mt9m001->client->dev.platform_data)
--			mt9m001_ops.num_formats = ARRAY_SIZE(mt9m001_monochrome_formats);
-+			icd->num_formats = ARRAY_SIZE(mt9m001_monochrome_formats);
- 		else
--			mt9m001_ops.num_formats = 1;
-+			icd->num_formats = 1;
- 		break;
- 	default:
- 		ret = -ENODEV;
-@@ -646,8 +648,6 @@ static int mt9m001_probe(struct i2c_client *client)
- 
- 	/* Second stage probe - when a capture adapter is there */
- 	icd = &mt9m001->icd;
--	icd->probe	= mt9m001_video_probe;
--	icd->remove	= mt9m001_video_remove;
- 	icd->ops	= &mt9m001_ops;
- 	icd->control	= &client->dev;
- 	icd->x_min	= 20;
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index a2f161d..d4b9e27 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -506,13 +506,15 @@ const struct v4l2_queryctrl mt9v022_controls[] = {
- 	}
- };
- 
--static int mt9v022_get_control(struct soc_camera_device *icd,
--			       struct v4l2_control *ctrl);
--static int mt9v022_set_control(struct soc_camera_device *icd,
--			       struct v4l2_control *ctrl);
-+static int mt9v022_video_probe(struct soc_camera_device *);
-+static void mt9v022_video_remove(struct soc_camera_device *);
-+static int mt9v022_get_control(struct soc_camera_device *, struct v4l2_control *);
-+static int mt9v022_set_control(struct soc_camera_device *, struct v4l2_control *);
- 
- static struct soc_camera_ops mt9v022_ops = {
- 	.owner			= THIS_MODULE,
-+	.probe			= mt9v022_video_probe,
-+	.remove			= mt9v022_video_remove,
- 	.init			= mt9v022_init,
- 	.release		= mt9v022_release,
- 	.start_capture		= mt9v022_start_capture,
-@@ -521,8 +523,6 @@ static struct soc_camera_ops mt9v022_ops = {
- 	.try_fmt_cap		= mt9v022_try_fmt_cap,
- 	.set_bus_param		= mt9v022_set_bus_param,
- 	.query_bus_param	= mt9v022_query_bus_param,
--	.formats		= NULL, /* Filled in later depending on the */
--	.num_formats		= 0,	/* sensor type and data widths */
- 	.controls		= mt9v022_controls,
- 	.num_controls		= ARRAY_SIZE(mt9v022_controls),
- 	.get_control		= mt9v022_get_control,
-@@ -705,19 +705,19 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
- 			    !strcmp("color", sensor_type))) {
- 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
- 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
--		mt9v022_ops.formats = mt9v022_colour_formats;
-+		icd->formats = mt9v022_colour_formats;
- 		if (mt9v022->client->dev.platform_data)
--			mt9v022_ops.num_formats = ARRAY_SIZE(mt9v022_colour_formats);
-+			icd->num_formats = ARRAY_SIZE(mt9v022_colour_formats);
- 		else
--			mt9v022_ops.num_formats = 1;
-+			icd->num_formats = 1;
- 	} else {
- 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 0x11);
- 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATM;
--		mt9v022_ops.formats = mt9v022_monochrome_formats;
-+		icd->formats = mt9v022_monochrome_formats;
- 		if (mt9v022->client->dev.platform_data)
--			mt9v022_ops.num_formats = ARRAY_SIZE(mt9v022_monochrome_formats);
-+			icd->num_formats = ARRAY_SIZE(mt9v022_monochrome_formats);
- 		else
--			mt9v022_ops.num_formats = 1;
-+			icd->num_formats = 1;
- 	}
- 
- 	if (ret >= 0)
-@@ -773,8 +773,6 @@ static int mt9v022_probe(struct i2c_client *client)
- 	i2c_set_clientdata(client, mt9v022);
- 
- 	icd = &mt9v022->icd;
--	icd->probe	= mt9v022_video_probe;
--	icd->remove	= mt9v022_video_remove;
- 	icd->ops	= &mt9v022_ops;
- 	icd->control	= &client->dev;
- 	icd->x_min	= 1;
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index bd8677c..75d1e88 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -38,9 +38,9 @@ format_by_fourcc(struct soc_camera_device *icd, unsigned int fourcc)
- {
- 	unsigned int i;
- 
--	for (i = 0; i < icd->ops->num_formats; i++)
--		if (icd->ops->formats[i].fourcc == fourcc)
--			return icd->ops->formats + i;
-+	for (i = 0; i < icd->num_formats; i++)
-+		if (icd->formats[i].fourcc == fourcc)
-+			return icd->formats + i;
- 	return NULL;
- }
- 
-@@ -384,10 +384,10 @@ static int soc_camera_enum_fmt_cap(struct file *file, void  *priv,
- 
- 	WARN_ON(priv != file->private_data);
- 
--	if (f->index >= icd->ops->num_formats)
-+	if (f->index >= icd->num_formats)
- 		return -EINVAL;
- 
--	format = &icd->ops->formats[f->index];
-+	format = &icd->formats[f->index];
- 
- 	strlcpy(f->description, format->name, sizeof(f->description));
- 	f->pixelformat = format->fourcc;
-@@ -701,7 +701,7 @@ static int soc_camera_probe(struct device *dev)
- 		to_soc_camera_host(icd->dev.parent);
- 	int ret;
- 
--	if (!icd->probe)
-+	if (!icd->ops->probe)
- 		return -ENODEV;
- 
- 	/* We only call ->add() here to activate and probe the camera.
-@@ -710,7 +710,7 @@ static int soc_camera_probe(struct device *dev)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = icd->probe(icd);
-+	ret = icd->ops->probe(icd);
- 	if (ret >= 0) {
- 		const struct v4l2_queryctrl *qctrl;
- 
-@@ -731,8 +731,8 @@ static int soc_camera_remove(struct device *dev)
- {
- 	struct soc_camera_device *icd = to_soc_camera_dev(dev);
- 
--	if (icd->remove)
--		icd->remove(icd);
-+	if (icd->ops->remove)
-+		icd->ops->remove(icd);
- 
- 	return 0;
- }
-@@ -928,7 +928,7 @@ int soc_camera_video_start(struct soc_camera_device *icd)
- 	vdev->vidioc_s_register	= soc_camera_s_register;
- #endif
- 
--	icd->current_fmt = &icd->ops->formats[0];
-+	icd->current_fmt = &icd->formats[0];
- 
- 	err = video_register_device(vdev, VFL_TYPE_GRABBER, vdev->minor);
- 	if (err < 0) {
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 3e48e43..7a2fa3e 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -38,8 +38,8 @@ struct soc_camera_device {
- 	struct soc_camera_ops *ops;
- 	struct video_device *vdev;
- 	const struct soc_camera_data_format *current_fmt;
--	int (*probe)(struct soc_camera_device *icd);
--	void (*remove)(struct soc_camera_device *icd);
-+	const struct soc_camera_data_format *formats;
-+	int num_formats;
- 	struct module *owner;
- 	/* soc_camera.c private count. Only accessed with video_lock held */
- 	int use_count;
-@@ -106,6 +106,8 @@ struct soc_camera_data_format {
- 
- struct soc_camera_ops {
- 	struct module *owner;
-+	int (*probe)(struct soc_camera_device *);
-+	void (*remove)(struct soc_camera_device *);
- 	int (*init)(struct soc_camera_device *);
- 	int (*release)(struct soc_camera_device *);
- 	int (*start_capture)(struct soc_camera_device *);
-@@ -121,8 +123,6 @@ struct soc_camera_ops {
- 	int (*get_register)(struct soc_camera_device *, struct v4l2_register *);
- 	int (*set_register)(struct soc_camera_device *, struct v4l2_register *);
- #endif
--	const struct soc_camera_data_format *formats;
--	int num_formats;
- 	int (*get_control)(struct soc_camera_device *, struct v4l2_control *);
- 	int (*set_control)(struct soc_camera_device *, struct v4l2_control *);
- 	const struct v4l2_queryctrl *controls;
+As result I've got working modules BUT module tuner, as I  mentioned in 
+previous message, does not have any! of important parameters: port1, port2, 
+qss.
+
+Did something change? What is exect procedure of building v4l for new 
+2.6.24.3 kernel?
+
+Last time Mauro created this one repository for 2.6.23 
+http://linuxtv.org/hg/~mchehab/fm8606 and archieved one: 
+http://linuxtv.org/hg/~mchehab/fm8606/archive/tip.tar.bz2.
+
+Is it possible to make the same for 2.6.24? or just make it clear - what 
+should be do for building new v4l with patches under 2.6.24.3 vanila kernel?
+
+Rgs,
+    Serge.
+
+
+
+
+
+----- Original Message ----- 
+From: "hermann pitton" <hermann-pitton@arcor.de>
+To: "itman" <itman@fm.com.ua>
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>; 
+<simon@kalmarkaglan.se>; "Linux and Kernel Video" 
+<video4linux-list@redhat.com>; "MIDIMaker" <midimaker@yandex.ru>; "Trent 
+Piepho" <xyzzy@speakeasy.org>
+Sent: Saturday, March 08, 2008 9:21 PM
+Subject: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+
+
+> Hi Serge,
+>
+> Am Samstag, den 08.03.2008, 17:15 +0200 schrieb itman:
+>> Hi, Mauro.
+>>
+>> Could you please be so kind to mention which is right mercurial 
+>> repository
+>> to which you have merged your changes and which one should be used for
+>> 2.6.24 kernel?
+>>
+>
+> the changes are as changesets 6384 to 6388 in the master repo.
+> Try "hg log" and to review them for example "hg export 6388", where you
+> will find the credit for your gpio contribution.
+>
+>> I've got issue:
+>>
+>> Trying now to build drivers for MSI TV @nywheremaster MS-8606 under 
+>> kernel
+>> 2.6.24.3.
+>>
+>> What were done:
+>>
+>> 1) mkdir /usr/src/linux/tmpmsi
+>> 2) cd tmpmsi
+>> 3) hg init v4l-dvb
+>> 4) hg pull http://linuxtv.org/hg/v4l-dvb
+>> 5) cd v4l-dvb
+>> 6) make
+>> 7) make install
+>>
+>>
+>> As result I've got cx88-cards.c with fixed gpio for MSI TV @anywhere BUT!
+>> there are no main parameters for module tuner: port1, port2, qss.
+>
+> Mike is doing some major syncing over the tuning systems,
+> so currently you set your port options for your mt2050 again to the
+> tda9887 module, like "options tda9887 port1=0 port2=0"
+> in /etc/modprobe.conf and "depmod -a".
+>
+> Since under tuner mt20xx are different tuners subsumed, and IIRC not all
+> can be identified safely per card, type and tv standard reception
+> abilities, hence this not very nice but functional
+> TDA9887_INTERCARRIER_NTSC in your card's entry, we have the tda9887
+> config not yet per tuner in tuner-types.c, like we have it for the
+> Philips types now.
+>
+> Best identification so far has Gunther for miro_pinnacle_gpio bttv
+> cards.
+>
+> Cheers,
+> Hermann
+>
+>>  head Makefile
+>> BUILD_DIR := $(shell pwd)/v4l
+>> TMP ?= /tmp
+>> REPO_PULL := http://linuxtv.org/hg/v4l-dvb
+>>
+>>
+>>
+>>  modinfo  tuner
+>> filename:       /lib/modules/2.6.24.3/kernel/drivers/media/video/tuner.ko
+>> license:        GPL
+>> author:         Ralph Metzler, Gerd Knorr, Gunther Mayer
+>> description:    device driver for various TV and TV+FM radio tuners
+>> depends:
+>> tea5761,v4l2-common,mt20xx,tuner-simple,tda9887,videodev,tea5767,xc5000,tuner-xc2028,tda8290
+>> vermagic:       2.6.24.3 preempt mod_unload PENTIUM4
+>> parm:           force:List of adapter,address pairs to boldly assume to 
+>> be
+>> present (array of short)
+>> parm:           probe:List of adapter,address pairs to scan additionally
+>> (array of short)
+>> parm:           ignore:List of adapter,address pairs not to scan (array 
+>> of
+>> short)
+>> parm:           addr:int
+>> parm:           no_autodetect:int
+>> parm:           show_i2c:int
+>> parm:           debug:int
+>> parm:           pal:string
+>> parm:           secam:string
+>> parm:           ntsc:string
+>> parm:           tv_range:array of int
+>>
+>> With best regards,
+>>
+>>             Serge Kolotylo
+>>
+>>
+>> __________________________
+>>
+>> Em Ter, 2007-10-23 às 05:11 +0300, itman escreveu:
+>> > After modprobe tuner port1=0 port2=0 qss=1 it works GREAT both TV
+>> > (sound is
+>> > clear and loud) and radio (sound is clear and loud) with DEFAULT
+>> > (card=7,
+>>
+>> Great! If you send us the proper tuner name, marked at the metallic can
+>> inside the board, we may add those tda9887 options at tuner-types.c.
+>> This way, passing the parameters to tuners can be avoided.
+>>
+>> > PS: will it be merged these changes to vanilla kernel soon?
+>>
+>> I've already merged into v4l-dvb tree. However, since this is changing
+>> some stuff at the existing driver, the addition at mainstream should be
+>> postponed to kernel 2.6.25.
+>>
+>
+>
+> __________  NOD32 2762 (20080102) __________
+>
+>     NOD32.
+> http://www.eset.com
+>
+> 
 
 --
 video4linux-list mailing list
