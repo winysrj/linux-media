@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1JbpWV-00083i-Tk
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 05:03:34 +0100
-From: timf <timf@iinet.net.au>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <47E048A4.4070904@t-online.de>
-References: <1204893775.10536.4.camel@ubuntu> <47D1A65B.3080900@t-online.de>
-	<1205480517.5913.8.camel@ubuntu>  <47DEE11F.6060301@t-online.de>
-	<1205851252.11231.7.camel@ubuntu>  <47E048A4.4070904@t-online.de>
-Date: Wed, 19 Mar 2008 13:03:23 +0900
-Message-Id: <1205899404.6577.0.camel@ubuntu>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
+	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZ7uW-0008IR-Gh
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 18:05:09 +0100
+Received: from aamtaout02-winn.ispmail.ntl.com ([81.103.221.35])
+	by mtaout01-winn.ispmail.ntl.com with ESMTP id
+	<20080311170643.RSGB16169.mtaout01-winn.ispmail.ntl.com@aamtaout02-winn.ispmail.ntl.com>
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 17:06:43 +0000
+Received: from molly.ianliverton.co.uk ([80.1.111.25])
+	by aamtaout02-winn.ispmail.ntl.com with ESMTP id
+	<20080311170607.JTDJ17393.aamtaout02-winn.ispmail.ntl.com@molly.ianliverton.co.uk>
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 17:06:07 +0000
+Received: from [192.168.1.65] (helo=ians)
+	by molly.ianliverton.co.uk with esmtp (Exim 4.69)
+	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZ7tk-0004El-43
+	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 17:04:22 +0000
+From: "Ian Liverton" <linux-dvb@ianliverton.co.uk>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 11 Mar 2008 17:06:08 -0000
+Message-ID: <004601c8839a$365ac620$4101a8c0@ians>
+MIME-Version: 1.0
+Subject: [linux-dvb] Nova T-500 detection problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,210 +28,267 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0615895140=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Hartmut,
+This is a multi-part message in MIME format.
 
-On Tue, 2008-03-18 at 23:56 +0100, Hartmut Hackmann wrote:
-> Hi, Tim
-> 
-> timf schrieb:
-> > Hi Hartmut,
-> > 
-> > 
-> > Apologies for the length of this msg, I'm not sure what info you may
-> > need, so I'm trying to show you that all is not right.
-> > 
-> > 1) New install of ubuntu 7.10 i386.
-> > 
-> > 2) Install Me-tv, Tvtime.
-> > Me-tv, in the absence of a channels.conf, scans
-> > via /usr/share/doc/dvb-utils/examples/scan/dvb-t
-> > 
-> > 3) I placed au-Perth_roleystone
-> > into /usr/share/doc/dvb-utils/examples/scan/dvb-t:
-> > 
-> > # Australia / Perth (Roleystone transmitter)
-> > # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> > # SBS
-> > T 704500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-> > # ABC
-> > T 725500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> > # Seven
-> > T 746500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
-> > # Nine
-> > T 767500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> > # Ten
-> > T 788500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> > 
-> 
-> Hm, is that right? The transmitter at 704.5MHz has a different configuration
-> from all others? That's unusual...
-> There is a speciality with this channel decoder: If you define a parameter
-> like the GI, it takes this serious while many others ignore it.
-> 
-> <snip>
-> > 13) Most times, "tda1004x: found firmware revision 20 -- ok" appears
-> > from a new install of ubuntu.
-> > Shouldn't have to but will copy firmware into /lib...
-> > 
-> And here we have the problem: as long as the firmware download is not
-> reliable, the board is unusable.
-> There must be somehing wrong with the board configuration.
-> In saa7134-dvb.c, line 744, please try to excange:
-> 	.gpio_config   = TDA10046_GP11_I,
-> with
-> 	.gpio_config   = TDA10046_GP01_I,
-> does this make the firmware load stable?
-> 
-> Best regards
->   Hartmut
+--===============0615895140==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0047_01C8839A.365AC620"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0047_01C8839A.365AC620
+Content-Type: text/plain;
+	charset="windows-1250"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+=20
+
+I recently purchased two Nova T-500 (as far as I can tell it=92s not one =
+of
+the diversity range) cards one is the 99101 LF rev D8B5 and one is the =
+99102
+LF rev C1B5.  The 99101 LF is detected, the other is not.  The only
+difference I can see is the postfix of the Dib 0700 chips.  The working =
+one
+is the Dib0700C-XCXXa-G and the other is Dib0700-1211b-G.  With only the
+undetected card in, there is no mention of the dib0700 in dmesg and =
+lspci
+shows:
+
+=20
+
+02:05.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
+Controller (rev 61)
+
+02:05.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
+Controller (rev 61)
+
+02:05.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
+
+=20
+
+Which I presume is the VT6212L on the cards.
+
+=20
+
+Is there something different I need to do for the second card or is it =
+just
+not supported? Since I can get them both to work with the supplied =
+Hauppauge
+software under Windows I am assuming it is not a faulty card.
+
+=20
+
+Any help is very much appreciated.  Many thanks,
+
+=20
+
+Ian
+
+=20
+
+---
+
+Ian Liverton
+
+ICT Technician
 
 
-Improved, I think.
+Internal Virus Database is out-of-date.
+Checked by AVG Free Edition.=20
+Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 =
+00:00
+=20
 
-With Me-tv, using au-Perth_roleystone:
-(SBS is on 704500000)
+------=_NextPart_000_0047_01C8839A.365AC620
+Content-Type: text/html;
+	charset="windows-1250"
+Content-Transfer-Encoding: quoted-printable
 
-Failed to tune to transponder at 704500000
-Found channel: SBS HD
-Found channel: SBS
-Found channel: SBS NEWS
-Found channel: SBS 2
-Found channel: SBS RADIO 1
-Found channel: SBS RADIO 2
-Found channel: ABC HDTV
-Found channel: ABC1
-Found channel: ABC2
-Found channel: ABC1
-Found channel: ABC3
-Found channel: ABC DiG Radio
-Found channel: ABC DiG Jazz
-Found channel: 7 Digital
-Found channel: 7 HD Digital
-Found channel: 7 Digital 1
-Found channel: 7 Digital 2
-Found channel: 7 Digital 3
-Found channel: 7 Program Guide
-Found channel: Nine Digital
-Found channel: Nine HD
-Found channel: TEN HD
-Found channel: TEN Digital
-Found channel: TEN HD
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
-However, with Kaffeine channels.dvb:
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dwindows-1250">
 
-#Generated by Kaffeine 0.5
-TV|7 Digital|1537(2)|1538(eng),|1540|1376|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|1|||
-TV|7 Digital 1|1537(2)|1538(eng),|1540|1377|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|2|||
-TV|7 Digital 2|1537(2)|1538(eng),|1540|1378|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|3|||
-TV|7 Digital 3|1537(2)|1538(eng),|1540|1379|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|4|||
-TV|Nine Digital|512(2)|650(eng),651(ac3),|576|1025|1104|Terrestrial|
-191625|0|v|34|-1|64|12|7|8|16|0|5|||
-TV|Nine HD|522(2)|750(ac3),|576|1030|1104|Terrestrial|191625|0|v|34|-1|
-64|12|7|8|16|0|6|||
-TV|7 HD Digital|1601(2)|1603(ac3),|0|1380|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|7|||
-TV|7 Program Guide|1633(2)|1634,|0|1382|1286|Terrestrial|177500|0|v|
-34|-1|64|34|7|8|16|0|8|||
-TV|TEN Digital|512(2)|650(eng),651(ac3),|576|1669|1543|Terrestrial|
-219500|0|v|34|-1|64|12|7|8|16|0|9|||
-TV|TEN HD|514(2)|672(ac3),|577|1672|1543|Terrestrial|788500|0|v|34|-1|
-64|-1|7|8|16|0|10|||
-TV|TEN HD-1|514(2)|672(ac3),|577|1665|1543|Terrestrial|788500|0|v|34|-1|
-64|-1|7|8|16|0|11|||
 
-So Kaffeine is not happy now.
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+p
+	{mso-margin-top-alt:auto;
+	margin-right:0cm;
+	mso-margin-bottom-alt:auto;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+span.EmailStyle18
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
 
-dmesg
-<snip>
-[   43.751473] Linux video capture interface: v2.00
-[   43.780417] nvidia: module license 'NVIDIA' taints kernel.
-<snip>
-[   44.101925] saa7133[0]: found at 0000:05:01.0, rev: 209, irq: 17,
-latency: 64, mmio: 0xfebff800
-[   44.101931] saa7133[0]: subsystem: 17de:7250, board: KWorld DVB-T 210
-[card=114,autodetected]
-[   44.101940] saa7133[0]: board init: gpio is 100
-[   44.250022] ACPI: PCI Interrupt 0000:00:1b.0[A] -> GSI 22 (level,
-low) -> IRQ 22
-[   44.250500] PCI: Setting latency timer of device 0000:00:1b.0 to 64
-[   44.259010] saa7133[0]: i2c eeprom 00: de 17 50 72 ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259023] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259034] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259045] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259056] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259066] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259077] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259088] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259099] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259110] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259121] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259131] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259142] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259153] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259164] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.259174] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[   44.372044] tuner' 0-004b: chip found @ 0x96 (saa7133[0])
-[   44.456848] tda829x 0-004b: setting tuner address to 61
-[   44.460864] hda_codec: Unknown model for ALC883, trying auto-probe
-from BIOS...
-[   44.537235] tda829x 0-004b: type set to tda8290+75a
-[   48.498066] saa7133[0]: registered device video0 [v4l2]
-[   48.498214] saa7133[0]: registered device vbi0
-[   48.498363] saa7133[0]: registered device radio0
-[   48.582667] saa7134 ALSA driver for DMA sound loaded
-[   48.582699] saa7133[0]/alsa: saa7133[0] at 0xfebff800 irq 17
-registered as card -2
-[   48.846762] DVB: registering new adapter (saa7133[0])
-[   48.846768] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-[   48.918706] tda1004x: setting up plls for 48MHz sampling clock
-[   49.202699] tda1004x: found firmware revision 20 -- ok
-<snip>
-......
-<snip>
-[  152.485617] tda1004x: setting up plls for 48MHz sampling clock
-[  152.681710] tda1004x: found firmware revision 20 -- ok
-[  431.669193] tda1004x: setting up plls for 48MHz sampling clock
-[  431.868920] tda1004x: found firmware revision 20 -- ok
-[  477.103776] tda1004x: setting up plls for 48MHz sampling clock
-[  477.299645] tda1004x: found firmware revision 20 -- ok
-[  490.469730] tda1004x: setting up plls for 48MHz sampling clock
-[  490.693412] tda1004x: found firmware revision 20 -- ok
-timf@ubuntu:~$ 
+</head>
 
-I also have a Pinnacle 310i, so I can do a test for your new personal
-repo.
-(I have never been able to get the remote going with this card.)
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
 
-Best regards,
-Tim
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Hi,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>I recently purchased two Nova T-500 (as far as I can =
+tell it&#8217;s
+not one of the diversity range) cards one is the 99101 LF rev D8B5 and =
+one is
+the 99102 LF rev C1B5.&nbsp; The 99101 LF is detected, the other is =
+not.&nbsp;
+The only difference I can see is the postfix of the Dib 0700 =
+chips.&nbsp; The
+working one is the Dib0700C-XCXXa-G and the other is =
+Dib0700-1211b-G.&nbsp; With
+only the undetected card in, there is no mention of the dib0700 in dmesg =
+and
+lspci shows:<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>02:05.0 USB Controller: VIA Technologies, Inc. =
+VT82xxxxx
+UHCI USB 1.1 Controller (rev 61)<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>02:05.1 USB Controller: VIA Technologies, Inc. =
+VT82xxxxx
+UHCI USB 1.1 Controller (rev 61)<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>02:05.2 USB Controller: VIA Technologies, Inc. USB =
+2.0 (rev
+63)<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Which I presume is the VT6212L on the =
+cards.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Is there something different I need to do for the =
+second
+card or is it just not supported? Since I can get them both to work with =
+the
+supplied Hauppauge software under Windows I am assuming it is not a =
+faulty
+card.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Any help is very much appreciated.&nbsp; Many =
+thanks,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Ian<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+style=3D'font-size:
+12.0pt'>---<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+style=3D'font-size:
+12.0pt'>Ian Liverton<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+style=3D'font-size:
+12.0pt'>ICT Technician<o:p></o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+<BR>
+
+<P><FONT SIZE=3D2>Internal Virus Database is out-of-date.<BR>
+Checked by AVG Free Edition.<BR>
+Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 =
+00:00<BR>
+</FONT> </P>
+
+------=_NextPart_000_0047_01C8839A.365AC620--
+
+
+
+--===============0615895140==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0615895140==--
