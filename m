@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JVwpp-0007UG-EZ
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 23:39:09 +0100
-Message-ID: <47CB2C7B.1080205@gmail.com>
-Date: Mon, 03 Mar 2008 02:38:51 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from n25.bullet.mail.ukl.yahoo.com ([87.248.110.142])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <crusader2901@yahoo.de>) id 1JZSfN-00077O-D5
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 16:14:54 +0100
+Date: Wed, 12 Mar 2008 16:13:48 +0100
+To: linux-dvb@linuxtv.org
+From: crusader <crusader2901@yahoo.de>
 MIME-Version: 1.0
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-References: <574101.28172.qm@web33102.mail.mud.yahoo.com>
-In-Reply-To: <574101.28172.qm@web33102.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar HD: Problems
- scaning and zaping
+Message-ID: <op.t7wshkpj4g343t@magnolia>
+Subject: [linux-dvb] Problems with MSI Digi VOX mini II
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,29 +22,72 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simeon Simeonov wrote:
-> Hi Manu,
-> 
-> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
-> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
-> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
-> east from the target rotor position. 
-> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
-> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
-> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
-> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
-> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
-> wait for one cycle.
-> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
+Hi there,
+I ran into problems using the MSI Digi VOX mini II (original Version, not  
+V2.0 or V3.0) on Kubuntu 7.10.
 
-Can you please try to get the DiSEqC strings that you are sending
-(from the application) in these 2 cases ?
+Here is a tail -f /var/run/kern.log while inserting the stick and opening  
+Kaffeine:
 
-* Without repeat
-* With repeat
+Mar 12 13:54:10 PBserver kernel: [  561.467245] usb 6-5: new high speed  
+USB device using ehci_hcd and address 6
+Mar 12 13:54:10 PBserver kernel: [  561.533991] usb 6-5: configuration #1  
+chosen from 1 choice
+Mar 12 13:54:10 PBserver kernel: [  561.534163] dvb-usb: found a 'MSI DIGI  
+VOX mini II DVB-T USB2.0' in cold state, will try to load a firmware
+Mar 12 13:54:10 PBserver kernel: [  561.541310] dvb-usb: downloading  
+firmware from file 'dvb-usb-digivox-02.fw'
+Mar 12 13:54:10 PBserver kernel: [  561.745442] usb 6-5: USB disconnect,  
+address 6
+Mar 12 13:54:11 PBserver kernel: [  561.861016] usb 6-5: new high speed  
+USB device using ehci_hcd and address 7
+Mar 12 13:54:11 PBserver kernel: [  561.928714] usb 6-5: configuration #1  
+chosen from 1 choice
+Mar 12 13:54:11 PBserver kernel: [  561.928876] dvb-usb: found a 'MSI DIGI  
+VOX mini II DVB-T USB2.0' in warm state.
+Mar 12 13:54:11 PBserver kernel: [  561.928903] dvb-usb: will pass the  
+complete MPEG2 transport stream to the software demuxer.
+Mar 12 13:54:11 PBserver kernel: [  561.929144] DVB: registering new  
+adapter (MSI DIGI VOX mini II DVB-T USB2.0)
+Mar 12 13:54:11 PBserver kernel: [  561.932178] DVB: registering frontend  
+0 (Philips TDA10046H DVB-T)...
+Mar 12 13:54:11 PBserver kernel: [  561.932271] dvb-usb: MSI DIGI VOX mini  
+II DVB-T USB2.0 successfully initialized and connected.
+Mar 12 13:54:27 PBserver kernel: [  569.553799] tda1004x: setting up plls  
+for 48MHz sampling clock
+Mar 12 13:54:29 PBserver kernel: [  570.599029] tda1004x: timeout waiting  
+for DSP ready
+Mar 12 13:54:29 PBserver kernel: [  570.611871] tda1004x: found firmware  
+revision 0 -- invalid
+Mar 12 13:54:29 PBserver kernel: [  570.611876] tda1004x: trying to boot  
+ from eeprom
+Mar 12 13:54:31 PBserver kernel: [  571.715696] tda1004x: timeout waiting  
+for DSP ready
+Mar 12 13:54:31 PBserver kernel: [  571.728537] tda1004x: found firmware  
+revision 0 -- invalid
+Mar 12 13:54:31 PBserver kernel: [  571.728541] tda1004x: no request  
+function defined, can't upload from file
+Mar 12 13:54:31 PBserver kernel: [  571.728543] tda1004x: firmware upload  
+failed
 
-Regards,
-Manu
+It seems that the stick itself ist correctly initialized, but as soon as I  
+start a TV application, the tda1004x module outputs these error messages  
+(it is the same with VLC).
+
+I personally think the important line is the line where the module states  
+that no request function is defined.
+
+The firmware files dvb-fe-tda10046.fw (and dvb-fe-tda10045.fw, just to be  
+sure) are in the correct directory (/lib/firmware/2.6.22-14-generic). I  
+also tried the alternate Lifeview firmware. The stick is running fine  
+under Windows XP. By the way, the stick ran under Linux, but I think it  
+was with Kubuntu 7.04. There must be a misconfiguration in my system, but  
+I don't know where. I tried checking out and compiling  
+http://linuxtv.org/hg/v4l-dvb, but this does not help.
+
+Thanks in advance for your help!
+
+Greets, Bert
 
 
 _______________________________________________
