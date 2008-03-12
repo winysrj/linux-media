@@ -1,72 +1,104 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HKOOjA029859
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 16:24:24 -0400
-Received: from bender.u7.se (gonzzor.campus.luth.se [130.240.199.196])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HKNop9010330
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 16:23:50 -0400
-From: Jonas Jonsson <jonas@websystem.se>
-To: Christoph Willing <c.willing@uq.edu.au>
-In-Reply-To: <D96C75CB-C8C6-4F65-A95E-17CEE15F44CE@uq.edu.au>
-References: <1205782496.5294.13.camel@fry.u7.se>
-	<D96C75CB-C8C6-4F65-A95E-17CEE15F44CE@uq.edu.au>
-Content-Type: text/plain
-Date: Mon, 17 Mar 2008 21:23:47 +0100
-Message-Id: <1205785427.5294.15.camel@fry.u7.se>
-Mime-Version: 1.0
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JZQ8A-0003KH-Jc
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 13:32:32 +0100
+Date: Wed, 12 Mar 2008 07:47:53 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
+	<abf3e5070803120331h5f31e5c2nf3d1b6493b6f98ab@mail.gmail.com>
+	<001a01c8842c$dfcb28c0$9f617a40$@com>
+In-Reply-To: <001a01c8842c$dfcb28c0$9f617a40$@com> (from ben@bbackx.com on
+	Wed Mar 12 06:36:04 2008)
+Message-Id: <1205322473l.5684l.0l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Implementing support for multi-channel
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Advice on capture card
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi, 
+On 03/12/2008 06:36:04 AM, Ben Backx wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: Jarryd Beck [mailto:jarro.2783@gmail.com]
+> > Sent: 12 March 2008 11:32
+> > To: Ben Backx
+> > Cc: linux-dvb@linuxtv.org
+> > Subject: Re: [linux-dvb] Implementing support for multi-channel
+> > 
+> > 2008/3/12 Ben Backx <ben@bbackx.com>:
+> > >
+> > >
+> > >
+> > > Hello,
+> > >
+> > > I was wondering if there's some info to find on how to implement
+> (and
+> > test)
+> > > multi-channel receiving?
+> > >
+> > > It's possible, because dvb uses streams and the driver is
+> currently
+> > capable
+> > > to filter one channel, but how can I implement the support of
+> multi-
+> > channel
+> > > filtering?
+> > >
+> > > Is there perhaps an open-source driver supporting this that I can
+> > have a
+> > > look at?
+> > >
+> > 
+> > AFAIK tuners can already receive from multiple channels as long as
+> they
+> > are on the same transponder (I think that's the right word). So in
+> > Australia
+> > you can receive channel 7 and the channel 7 guide because they are
+> > broadcast together. But I don't think you can do anymore than that.
+> > 
+> > I think mythtv is capable of doing it so you could have a look at
+> that.
+> > 
+> > Jarryd.
+> 
+> 
+> The tuner-part is no problem indeed (as you said: as long as the
+> channels
+> are on the same transponder).
+> But for the moment: the driver-part is the problem, I don't think my
+> driver
+> supports the filtering of more than one channel at a time.
+> So my question is: which (existing) driver does support multi-channel
+> filtering? So I can have a look and see what modifications have to be
+> made
+> to my driver to implement multi-channel filtering.
+> 
 
-Thanks, just what I was looking for.
+What is done for now is that some (all?) drivers can send the full 
+stream and userspace apps do the demux of one or several channels 
+themselves. Mythtv is doing just that, I guess vdr also.
+HTH
+Bye
+Manu 
 
-/Jonas
-tis 2008-03-18 klockan 05:56 +1000 skrev Christoph Willing:
-> On 18/03/2008, at 5:34 AM, Jonas Jonsson wrote:
-> 
-> > Hi,
-> >
-> > We are about to replace our surveillance system and looking for a
-> > capture card. It need to be well "supported" in Linux and must be able
-> > to grab more then one channel at a time.
-> >
-> > Does anyone have any advice on such a device?
-> 
-> There's a list of linux supported cards from Bluecherry at:
->     http://store.bluecherry.net/category_s/63.htm
-> 
-> I've recently purchased the PCIe version and it "just worked".
-> 
-> 
-> >
-> 
-> We've also used lots of the IVC-200 cards (ordinary PCI) over the  
-> last few years with great success - from:
->     http://www.icp-australia.com.au/DataSheets/IVC200G.html
-> 
-> 
-> chris
-> 
-> Christoph Willing                        +617 3365 8350
-> QCIF Access Grid Manager
-> University of Queensland
-> 
-> 
-> 
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
