@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
+Received: from el-out-1112.google.com ([209.85.162.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JYpNm-0004uA-NL
-	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 22:18:55 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1012313tia.13
-	for <linux-dvb@linuxtv.org>; Mon, 10 Mar 2008 14:15:21 -0700 (PDT)
-Message-ID: <abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
-Date: Tue, 11 Mar 2008 08:15:21 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <47D539E8.6060204@linuxtv.org>
+	(envelope-from <mariofutire@googlemail.com>) id 1JZXxc-0007H1-SK
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 21:54:05 +0100
+Received: by el-out-1112.google.com with SMTP id o28so1754730ele.2
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 13:54:00 -0700 (PDT)
+Message-ID: <47D842E4.4090504@googlemail.com>
+Date: Wed, 12 Mar 2008 20:53:56 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-	<47D49309.8020607@linuxtv.org>
-	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
-	<47D4B8D0.9090401@linuxtv.org>
-	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
-	<47D539E8.6060204@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  dvb fronted: LOCK but no data received.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,57 +24,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Mar 11, 2008 at 12:38 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Jarryd Beck wrote:
->  >>  I think that the tda18271 driver will work with your tuner, but we may
->  >>  need to make some small adjustments.  If you look in tda18271-fe.c ,
->  >>  you'll find the code that autodetects between a TDA18271c1 and a
->  >>  TDA18271c2 ...
->  >>
->  >
->  > [snip]
->
-> >
->  > Also if I could somehow get this working with the right
->  > code, I don't know how to set up the values in the tda182171_config
->  > struct.
->  >
->
->  Jarryd,
->
->  Assuming that there is no tda829x analog demod present, and that this is
->  a digital-only device, try something like this:
->
->  static struct tda18271_config jarryd_tda18271_config = {
->         .gate = TDA18271_GATE_DIGITAL
->  }
->
->
->  You should leave .std_map as NULL unless you need to override the default values per standard.
->
->  The value in the ".std_bits" corresponds to the lower five bits in EP3 (register 0x05 [4:0])
->
->  Most likely, the driver's default setting will work for you, but you
->  may find that the vendor chose a different value if you sniff the usb
->  traffic from the windows driver.  This value is directly tied to the IF
->  frequency between the tuner and demod.
->
->  -Mike Krufky
->
->
+ > Hi,
+ >
+ > I'd like to understand the behavior and meaning of the LOCK returned by the fronted.
+ >
+ > If I open the fronted in readonly, and ask for the INFO, it is possible that I get a LOCK but no
+ > data is actually received.
+ >
+ > This because the fronted receives data ONLY while it is opened in READ/WRITE.
+ >
+ > In dvb_frontend.c, in dvb_frontend_open, the fronted is started via
+ > dvb_frontend_start
+ > only if it opened in READ/WRITE.
+ >
+ > I see it as a misbehavior:
+ >
+ > 1) either a LOCK should NOT be returned
+ > 2) or the frontend should be started in any case (even if READ only)
+ >
+ > Which ioctl call should I use to know if the fronted is currently active?
 
-That didn't work, the problem is I can't tell where it's going wrong and
-I don't understand usb sniffs. I have a few questions:
-When af9015 reads the tuner, the existing tuners set the spectral
-inversion state->gpio3. Do you know what state->gpio3 does?
-The code then goes on to read the spectral inversion, but there's
-a comment there saying it's always 0, and the existing tuners
-have theirs set to 1, what should I set it to for this one?
+Anybody has an opinion about that?
+I know, I cant spell frontend properly :-),
 
-If it's the case that some of the other values in the config are wrong,
-how would I go about making sense of a usb sniff?
+but other than that, what would be the correct behavior when opening the frontend in readonly?
 
-Jarryd.
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
