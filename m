@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.178])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anothersname@googlemail.com>) id 1Jg78o-0000Pz-94
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 01:40:47 +0200
-Received: by wa-out-1112.google.com with SMTP id m28so1719782wag.13
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 16:40:40 -0700 (PDT)
-Message-ID: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-Date: Mon, 31 Mar 2008 00:40:40 +0100
-From: "Another Sillyname" <anothersname@googlemail.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+73100873cbc0c5744e24+1662+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JZY7A-0000Kb-2R
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 22:03:56 +0100
+Date: Wed, 12 Mar 2008 18:03:21 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+Message-ID: <20080312180321.6a6800a1@gaivota>
+In-Reply-To: <47D462DD.5080500@h-i-s.nl>
+References: <1203538678.8313.12.camel@srv-roden.vogelwikke.nl>
+	<47BCAC32.9050601@h-i-s.nl> <47BCB371.2020809@h-i-s.nl>
+	<20080227075056.34a80abd@areia> <47D462DD.5080500@h-i-s.nl>
+Mime-Version: 1.0
+Cc: achasper@gmail.com, linux-dvb@linuxtv.org,
+	stealth banana <stealth.banana@gmail.com>
+Subject: Re: [linux-dvb] Driver source for Freecom DVB-T (with usb id
+ 14aa:0160)	v0.0.2 works
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,28 +30,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a machine that has an internal card that's a Lifeview DVB and
-works fine using the v4l-dvb mercurial sources.
+On Sun, 09 Mar 2008 23:21:17 +0100
+Jan Hoogenraad <jan-conceptronic@h-i-s.nl> wrote:
 
-I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
-using the v4l-dvb sources but does work using the v4l-dvb-kernel
-version.
+> Mauro:
+> 
+> Thanks a lot for the comments.
+> One clear problem with this particular driver is that the code that came 
+> from RealTek does not conform to the Linux C coding style.
+> Would that be an objection for the steps below ?
 
-1.  Will the number of em28xx cards supported by v4l-dvb be increased
-shortly?  (My card id was 94 IIRC ).
+Considering that RealTek won't be interested on correcting the CodingStyle,
+IMO, the better would be to commit RealTek code as-is, with their SOB, and then
+adding an additional patch, authored by somebody else could fix the CodingStyle.
 
-2.  Can I mix and match from the sources...i.e. can I graft the em28xx
-stuff from v4l-dvb-kernel into the v4l-dvb source and compile
-successfully or has the underlying code changed at a more strategic
-level?
+A very simple patch to fix CodingStyle can be created by running kernel
+scripts/Lindent. Unfortunately, the results of this automatic tool are not
+perfect, but generally are acceptable.
 
-3.  Why did the sources branch?  Was there a good technical reason for this?
+> Furthermore, can you confirm linux-dvb@linuxtv.org as the submission 
+> address for the patch ?
 
-4.  If I can't use the v4l-dvb sources to get my em28xx working what's
-the chances of getting the v4l-dvb-kernel stuff working for the
-lifeview flydvb card?
+Yes. Please C/C me also at the submission e-mail.
 
-Thanks in advance.
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
