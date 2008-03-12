@@ -1,15 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <alex.petri@gmx.de>) id 1JeHMk-0006DA-DR
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 23:11:36 +0100
-From: "Alexander Petri" <alex.petri@gmx.de>
+Received: from sif.is.scarlet.be ([193.74.71.28])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ben@bbackx.com>) id 1JZOJi-00045T-Rw
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 11:36:21 +0100
+Received: from fry (ip-81-11-185-80.dsl.scarlet.be [81.11.185.80])
+	by sif.is.scarlet.be (8.14.2/8.14.2) with ESMTP id m2CAaANj030085
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 11:36:10 +0100
+From: "Ben Backx" <ben@bbackx.com>
 To: <linux-dvb@linuxtv.org>
-Date: Tue, 25 Mar 2008 23:10:58 +0100
-Message-ID: <004501c88ec5$1aed7410$50c85c30$@petri@gmx.de>
+References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
+	<abf3e5070803120331h5f31e5c2nf3d1b6493b6f98ab@mail.gmail.com>
+In-Reply-To: <abf3e5070803120331h5f31e5c2nf3d1b6493b6f98ab@mail.gmail.com>
+Date: Wed, 12 Mar 2008 11:36:04 +0100
+Message-ID: <001a01c8842c$dfcb28c0$9f617a40$@com>
 MIME-Version: 1.0
-Content-Language: de
-Subject: [linux-dvb] [ubuntu 7.10] Typhoon DVB-T Stick => wrong firmware?
+Content-Language: en-gb
+Subject: Re: [linux-dvb] Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,499 +23,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0776996388=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dies ist eine mehrteilige Nachricht im MIME-Format.
 
---===============0776996388==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0046_01C88ECD.7CB1DC10"
-Content-Language: de
 
-Dies ist eine mehrteilige Nachricht im MIME-Format.
+> -----Original Message-----
+> From: Jarryd Beck [mailto:jarro.2783@gmail.com]
+> Sent: 12 March 2008 11:32
+> To: Ben Backx
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Implementing support for multi-channel
+> 
+> 2008/3/12 Ben Backx <ben@bbackx.com>:
+> >
+> >
+> >
+> > Hello,
+> >
+> > I was wondering if there's some info to find on how to implement (and
+> test)
+> > multi-channel receiving?
+> >
+> > It's possible, because dvb uses streams and the driver is currently
+> capable
+> > to filter one channel, but how can I implement the support of multi-
+> channel
+> > filtering?
+> >
+> > Is there perhaps an open-source driver supporting this that I can
+> have a
+> > look at?
+> >
+> 
+> AFAIK tuners can already receive from multiple channels as long as they
+> are on the same transponder (I think that's the right word). So in
+> Australia
+> you can receive channel 7 and the channel 7 guide because they are
+> broadcast together. But I don't think you can do anymore than that.
+> 
+> I think mythtv is capable of doing it so you could have a look at that.
+> 
+> Jarryd.
+
+
+The tuner-part is no problem indeed (as you said: as long as the channels
+are on the same transponder).
+But for the moment: the driver-part is the problem, I don't think my driver
+supports the filtering of more than one channel at a time.
+So my question is: which (existing) driver does support multi-channel
+filtering? So I can have a look and see what modifications have to be made
+to my driver to implement multi-channel filtering.
+
+Ben
 
-------=_NextPart_000_0046_01C88ECD.7CB1DC10
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
 
-Hi,
-ich have some Troubles brining my Typhoon DVB-T USB to work:
-i called the following:
-
- 
-
-
-xysfsdf@asdf:~$ lsusb
-
-Bus 001 Device 001: ID 0000:0000
-
-Bus 005 Device 003: ID eb1a:e361 eMPIA Technology, Inc.
-
-Bus 005 Device 001: ID 0000:0000
-
-Bus 004 Device 001: ID 0000:0000
-
-Bus 003 Device 001: ID 0000:0000
-
-Bus 002 Device 001: ID 0000:0000
-
-xysfsdf@asdf:~$ dmesg | grep dvb
-
-[ 9380.608000] dvb-usb: found a 'MSI Digivox Mini SL' in cold state, will
-try to load a firmware
-
-[ 9380.744000] dvb-usb: downloading firmware from file
-'dvb-usb-dibusb-6.0.0.8.fw'
-
-[ 9380.808000] usbcore: registered new interface driver dvb_usb_dibusb_mc
-
-[ 9380.812000] dvb-usb: generic DVB-USB module successfully deinitialized
-and disconnected.
-
-[ 9382.704000] dvb-usb: found a 'MSI Digivox Mini SL' in warm state.
-
-[ 9382.704000] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-
-[ 9383.360000] dvb-usb: schedule remote query interval to 150 msecs.
-
-[ 9383.360000] dvb-usb: MSI Digivox Mini SL successfully initialized and
-connected.
-
-xysfsdf@asdf:~$ dmesg | grep DVB
-
-[ 9380.812000] dvb-usb: generic DVB-USB module successfully deinitialized
-and disconnected.
-
-[ 9382.708000] DVB: registering new adapter (MSI Digivox Mini SL).
-
-[ 9382.712000] DVB: registering frontend 0 (DiBcom 3000MC/P)...
-
-[ 9383.360000] input: IR-receiver inside an USB DVB receiver as
-/class/input/input4
-
- 
-
-As you can see ubuntu shows me that there is as MSI Digivox MiniSL
-
-So I guess the wrong firmware is loaded..
-
-If I scan for channels I get this output
-
- 
-
-
-xysfsdf@asdf:~$ scan -c
-
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
-WARNING: filter timeout pid 0x0011
-
-WARNING: filter timeout pid 0x0000
-
-dumping lists (0 services)
-
-Done.
-
-Also the following could be useful:
-
-
-
-
-x@x-desktop:~$ tail -f /var/log/messages
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.704000] usb 5-2: configuration #1
-chosen from 1 choice
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.704000] dvb-usb: found a 'MSI
-Digivox Mini SL' in warm state.
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.704000] dvb-usb: will pass the
-complete MPEG2 transport stream to the software demuxer.
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.708000] DVB: registering new
-adapter (MSI Digivox Mini SL).
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.712000] DVB: registering frontend 0
-(DiBcom 3000MC/P)...
-
-Mar 25 21:00:41 x-desktop kernel: [ 9382.900000] MT2060: successfully
-identified (IF1 = 1220)
-
-Mar 25 21:00:42 x-desktop kernel: [ 9383.360000] input: IR-receiver inside
-an USB DVB receiver as /class/input/input4
-
-Mar 25 21:00:42 x-desktop kernel: [ 9383.360000] dvb-usb: schedule remote
-query interval to 150 msecs.
-
-Mar 25 21:00:42 x-desktop kernel: [ 9383.360000] dvb-usb: MSI Digivox Mini
-SL successfully initialized and connected.
-
-Mar 25 21:24:59 x-desktop -- MARK --
-
- 
-
-How can i force ubuntu to use the right firmware? Or is there the digivox
-chip inside the typhoon box?
-
-How can I use my Stick? Why cant I scan for channels?
-
- 
-
-Thx for any comment.
-
-
-------=_NextPart_000_0046_01C88ECD.7CB1DC10
-Content-Type: text/html;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
-xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<meta http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:Tahoma;
-	panose-1:2 11 6 4 3 5 4 4 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-h3
-	{mso-style-priority:9;
-	mso-style-link:"\00DCberschrift 3 Zchn";
-	mso-margin-top-alt:auto;
-	margin-right:0cm;
-	mso-margin-bottom-alt:auto;
-	margin-left:0cm;
-	font-size:13.5pt;
-	font-family:"Times New Roman","serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-pre
-	{mso-style-priority:99;
-	mso-style-link:"HTML Vorformatiert Zchn";
-	margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:10.0pt;
-	font-family:"Courier New";}
-p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
-	{mso-style-priority:99;
-	mso-style-link:"Sprechblasentext Zchn";
-	margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:8.0pt;
-	font-family:"Tahoma","sans-serif";}
-span.E-MailFormatvorlage17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-span.berschrift3Zchn
-	{mso-style-name:"\00DCberschrift 3 Zchn";
-	mso-style-priority:9;
-	mso-style-link:"\00DCberschrift 3";
-	font-family:"Times New Roman","serif";
-	font-weight:bold;}
-span.HTMLVorformatiertZchn
-	{mso-style-name:"HTML Vorformatiert Zchn";
-	mso-style-priority:99;
-	mso-style-link:"HTML Vorformatiert";
-	font-family:"Courier New";}
-span.SprechblasentextZchn
-	{mso-style-name:"Sprechblasentext Zchn";
-	mso-style-priority:99;
-	mso-style-link:Sprechblasentext;
-	font-family:"Tahoma","sans-serif";}
-.MsoChpDefault
-	{mso-style-type:export-only;}
-@page Section1
-	{size:612.0pt 792.0pt;
-	margin:70.85pt 70.85pt 2.0cm 70.85pt;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-
-<body lang=3DDE link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New Roman","serif"'>Hi,<br>
-ich have some Troubles brining my Typhoon DVB-T USB to work:<br>
-i called the following:<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New =
-Roman","serif"'><o:p>&nbsp;</o:p></span></p>
-
-<table class=3DMsoNormalTable border=3D0 cellpadding=3D0>
- <tr>
-  <td style=3D'padding:.75pt .75pt .75pt .75pt'>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>xysfsdf@asdf:~$
-  lsusb<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  001 Device 001: ID 0000:0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  005 Device 003: ID eb1a:e361 eMPIA Technology, =
-Inc.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  005 Device 001: ID 0000:0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  004 Device 001: ID 0000:0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  003 Device 001: ID 0000:0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Bus
-  002 Device 001: ID 0000:0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>xysfsdf@asdf:~$
-  dmesg | grep dvb<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9380.608000] dvb-usb: found a 'MSI Digivox Mini SL' in cold state, =
-will try
-  to load a firmware<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9380.744000] dvb-usb: downloading firmware from file
-  'dvb-usb-dibusb-6.0.0.8.fw'<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9380.808000] usbcore: registered new interface driver =
-dvb_usb_dibusb_mc<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9380.812000] dvb-usb: generic DVB-USB module successfully =
-deinitialized and
-  disconnected.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9382.704000] dvb-usb: found a 'MSI Digivox Mini SL' in warm =
-state.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9382.704000] dvb-usb: will pass the complete MPEG2 transport stream to =
-the
-  software demuxer.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9383.360000] dvb-usb: schedule remote query interval to 150 =
-msecs.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9383.360000] dvb-usb: MSI Digivox Mini SL successfully initialized and
-  connected.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>xysfsdf@asdf:~$
-  dmesg | grep DVB<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9380.812000] dvb-usb: generic DVB-USB module successfully =
-deinitialized and
-  disconnected.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9382.708000] DVB: registering new adapter (MSI Digivox Mini =
-SL).<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9382.712000] DVB: registering frontend 0 (DiBcom =
-3000MC/P)...<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>[
-  9383.360000] input: IR-receiver inside an USB DVB receiver as
-  /class/input/input4<o:p></o:p></span></p>
-  </td>
- </tr>
-</table>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New =
-Roman","serif"'><o:p>&nbsp;</o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New Roman","serif"'>As
-you can see ubuntu shows me that there is as MSI Digivox =
-MiniSL<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New Roman","serif"'>So
-I guess the wrong firmware is loaded..<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New Roman","serif"'>If
-I scan for channels I get this output<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New =
-Roman","serif"'><o:p>&nbsp;</o:p></span></p>
-
-<table class=3DMsoNormalTable border=3D0 cellpadding=3D0>
- <tr>
-  <td style=3D'padding:.75pt .75pt .75pt .75pt'>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>xysfsdf@asdf:~$
-  scan -c<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>using
-  '/dev/dvb/adapter0/frontend0' and =
-'/dev/dvb/adapter0/demux0'<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>WARNING:
-  filter timeout pid 0x0011<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>WARNING:
-  filter timeout pid 0x0000<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>dumping
-  lists (0 services)<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Courier =
-New"'>Done.<o:p></o:p></span></p>
-  </td>
- </tr>
-</table>
-
-<p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:12.0pt;font-family:"Times New Roman","serif"'>Also
-the following could be useful:<br>
-<br>
-<o:p></o:p></span></p>
-
-<table class=3DMsoNormalTable border=3D0 cellpadding=3D0>
- <tr>
-  <td style=3D'padding:.75pt .75pt .75pt .75pt'>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>x@x-desktop:~$
-  tail -f /var/log/messages<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.704000] usb 5-2: configuration #1 =
-chosen
-  from 1 choice<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.704000] dvb-usb: found a 'MSI =
-Digivox
-  Mini SL' in warm state.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.704000] dvb-usb: will pass the =
-complete
-  MPEG2 transport stream to the software demuxer.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.708000] DVB: registering new =
-adapter
-  (MSI Digivox Mini SL).<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.712000] DVB: registering frontend =
-0
-  (DiBcom 3000MC/P)...<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:41 x-desktop kernel: [ 9382.900000] MT2060: successfully =
-identified
-  (IF1 =3D 1220)<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:42 x-desktop kernel: [ 9383.360000] input: IR-receiver inside =
-an USB
-  DVB receiver as /class/input/input4<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:42 x-desktop kernel: [ 9383.360000] dvb-usb: schedule remote =
-query
-  interval to 150 msecs.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:00:42 x-desktop kernel: [ 9383.360000] dvb-usb: MSI Digivox Mini =
-SL
-  successfully initialized and connected.<o:p></o:p></span></p>
-  <p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Courier New"'>Mar
-  25 21:24:59 x-desktop -- MARK --<o:p></o:p></span></p>
-  </td>
- </tr>
-</table>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US>How can i force ubuntu to use =
-the right
-firmware? Or is there the digivox chip inside the typhoon =
-box?<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US>How can I use my Stick? Why cant =
-I scan for
-channels?<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US><o:p>&nbsp;</o:p></span></p>
-
-<p class=3DMsoNormal><span lang=3DEN-US>Thx for any =
-comment.<o:p></o:p></span></p>
-
-</div>
-
-</body>
-
-</html>
-
-------=_NextPart_000_0046_01C88ECD.7CB1DC10--
-
-
-
---===============0776996388==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0776996388==--
