@@ -1,36 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+58f8ad55774394d91ee7+1670+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JcOEx-0005Hf-Qw
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 18:07:44 +0100
-Date: Thu, 20 Mar 2008 14:07:15 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080320140715.4204ec78@gaivota>
-In-Reply-To: <1206030503.5997.2.camel@ubuntu>
-References: <47A5D8AF.2090800@googlemail.com> <47AA014F.2090608@googlemail.com>
-	<20080207092607.0a1cacaa@gaivota> <47AAF0C4.8030804@googlemail.com>
-	<47AB6A1B.5090100@googlemail.com> <20080207184221.1ea8e823@gaivota>
-	<47ACA9AA.4090702@googlemail.com> <47AE20BD.7090503@googlemail.com>
-	<20080212124734.62cd451d@gaivota> <47B1E22D.4090901@googlemail.com>
-	<20080313114633.494bc7b1@gaivota> <1205457408.6358.5.camel@ubuntu>
-	<20080314121423.670f31a0@gaivota> <1205518856.6094.14.camel@ubuntu>
-	<20080314155851.52677f28@gaivota> <1205523274.6364.5.camel@ubuntu>
-	<20080314172143.62390b1f@gaivota> <1205573636.5941.1.camel@ubuntu>
-	<20080318103044.4363fefd@gaivota>
-	<1205864312.11231.11.camel@ubuntu>
-	<20080318161729.6da782ee@gaivota>
-	<1205873332.11231.17.camel@ubuntu>
-	<20080318180415.5dfc4319@gaivota>
-	<1205875868.3385.133.camel@pc08.localdom.local>
-	<1205904196.6510.3.camel@ubuntu> <20080320115531.7ab450ba@gaivota>
-	<1206030503.5997.2.camel@ubuntu>
-Mime-Version: 1.0
-Cc: Hackmann <hartmut.hackmann@t-online.de>, lucarasp <lucarasp@inwind.it>,
-	"Richard \(MQ\)" <osl2008@googlemail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Message-ID: <47D735F4.2070303@linuxtv.org>
+Date: Tue, 11 Mar 2008 21:46:28 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Jarryd Beck <jarro.2783@gmail.com>
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>	<47D49309.8020607@linuxtv.org>	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>	<47D4B8D0.9090401@linuxtv.org>	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>	<47D539E8.6060204@linuxtv.org>	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>	<47D5AF38.90600@iki.fi>	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
+	<abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
+In-Reply-To: <abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -44,75 +22,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 21 Mar 2008 01:28:23 +0900
-timf <timf@iinet.net.au> wrote:
-
-> Hi Mauro,
+Jarryd Beck wrote:
+>>  One thing I can say -- the Linux tda18271 driver should be able to
+>>  detect your tuner at 0xC0  (0x60)  as a tda18271c1 -- It's worth a
+>>  try, and could certainly be possible that the driver *may* work as-is,
+>>  although I suspect that some tweaking will be needed.
+>>
+>>  Regards,
+>>
+>>  Mike
+>>
 > 
-> > 
-> > Could you please test and give us a feedback?
-> Maybe I did something wrong:
+> I changed it's i2c as loaded by af9015 to 0xC0, then got this in
+> dmesg:
 > 
-> timf@ubuntu:~/v4l-dvb$ patch -p1 < mauro_patch1
-> patching file linux/drivers/media/dvb/dvb-usb/cxusb.c
-> Hunk #1 FAILED at 509.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/dvb/dvb-usb/cxusb.c.rej
-> patching file linux/drivers/media/dvb/frontends/tda827x.c
-> Hunk #1 FAILED at 579.
-> Hunk #2 FAILED at 588.
-> 2 out of 2 hunks FAILED -- saving rejects to file
-> linux/drivers/media/dvb/frontends/tda827x.c.rej
-> patching file linux/drivers/media/video/cx23885/cx23885-dvb.c
-> Hunk #1 FAILED at 298.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/cx23885/cx23885-dvb.c.rej
-> patching file linux/drivers/media/video/cx88/cx88-cards.c
-> Hunk #1 FAILED at 2140.
-> Hunk #2 FAILED at 2160.
-> Hunk #3 FAILED at 2189.
-> Hunk #4 FAILED at 2242.
-> Hunk #5 FAILED at 2287.
-> Hunk #6 FAILED at 2323.
-> 6 out of 6 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/cx88/cx88-cards.c.rej
-> patching file linux/drivers/media/video/cx88/cx88-dvb.c
-> Hunk #1 FAILED at 465.
-> Hunk #2 FAILED at 786.
-> 2 out of 2 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/cx88/cx88-dvb.c.rej
-> patching file linux/drivers/media/video/saa7134/saa7134-cards.c
-> Hunk #1 FAILED at 5353.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/saa7134/saa7134-cards.c.rej
-> patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
-> Hunk #1 FAILED at 1173.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/saa7134/saa7134-dvb.c.rej
-> patching file linux/drivers/media/video/tuner-core.c
-> Hunk #1 FAILED at 448.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/tuner-core.c.rej
-> patching file linux/drivers/media/video/tuner-xc2028.c
-> Hunk #1 FAILED at 1174.
-> Hunk #2 FAILED at 1182.
-> Hunk #3 FAILED at 1222.
-> 3 out of 3 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/tuner-xc2028.c.rej
-> timf@ubuntu:~/v4l-dvb$ 
+> TDA18271HD/C1 detected @ 5-00c0
+> 
+> Also when I plugged it in, it sat there for about 10 seconds before
+> finishing loading (dmesg printed another 5 lines about the device
+> after about 10 seconds), but still no tuning.
 
-100% of rejects??? This is really weird... Maybe your emailer did something bad
-with the patches, like converting to DOS end-of-line marks. You may try to use
-'-l' option on patch.
+Can I see those five lines?  ;-)
 
-I'll also forward you in priv the patch, as an attachment.
+While you're at it, you may as well include dmesg from the point that the bridge driver loads and on.
 
+I don't know how the AF9015 works, but Antti does.  What demod is on this device? ...or is that part of the AF9015?
 
+After googling some more, I found that the tda18211 supports DVB-T, ATSC and QAM ...  Seems to be a digital-only tuner, while the tda18271 supports both digital and analog.
 
+The IF frequencies used for the tda18211 are the same as the default settings for the tda18271c1.
 
+- QAM: IF output centered at 4 and 5 MHz (bandwidth = 6 and 8 MHz respectively)
+- DVB-T: IF output centered at 3.3, 3.8 and 4.3 MHz (bandwidth = 6, 7 and 8MHz respectively)
+- ATSC: IF output centered at 3.25 MHz (bandwidth = 6MHz)
 
-Cheers,
-Mauro
+...I am looking at the snoop log some more -- My earlier statement was wrong -- I *do* see the driver programming all 39 registers, and now I do see calibration transactions taking place.
+
+I can see from this snoop that the value that belongs in the linux driver's "std_bits" parameter should be 0x19.  It looks like the windows driver starts off with 0x18, and after some wiggling, locks at 0x19.   Maybe it is first trying to tune to a 7 MHz DVB-T channel, then changes to 8 MHz.
+
+You said that you tuned to "channel 7, sydney, australia" -- is that an 8 MHz channel?  What frequency is it on?
+
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
