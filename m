@@ -1,26 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JVs2u-0000tE-Ia
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 18:32:20 +0100
-From: Nicolas Will <nico@youplala.net>
-To: Philip Pemberton <lists@philpem.me.uk>
-In-Reply-To: <47CAB51F.9030103@philpem.me.uk>
-References: <47A98F3D.9070306@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
-	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
-	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
-	<1204356192.6583.0.camel@youkaida> <47CA609F.3010209@philpem.me.uk>
-	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
-	<47CAB51F.9030103@philpem.me.uk>
-Date: Sun, 02 Mar 2008 17:31:28 +0000
-Message-Id: <1204479088.6236.32.camel@youkaida>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+	(envelope-from <tardy.cheatsocom@gmail.com>) id 1JZHzO-0007u6-RC
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 04:50:54 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so2674071wfa.17
+	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 20:50:43 -0700 (PDT)
+Message-ID: <6c5f4a970803112050rd276f77ud4da4c3b9e6cf1f5@mail.gmail.com>
+Date: Tue, 11 Mar 2008 23:50:43 -0400
+From: "TaRDy eyedontcheat" <tardy.cheatsocom@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb]  KWorld ATSC 120 - Ubuntu DVB drivers?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,37 +18,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1663630558=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1663630558==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_4507_30402815.1205293843687"
 
-On Sun, 2008-03-02 at 14:09 +0000, Philip Pemberton wrote:
-> Patrik Hansson wrote:
-> > When i started using options usbcore autosuspend=-1 i deactivated
-> debug=15
-> > Will reactivate it again and reset my clock also.
-> 
-> Well, changing channels on Myth seems to provoke it into failing...
-> and it 
-> usually kills both tuners at the same time. Something is very badly
-> wrong with 
-> this thing...
-> 
-> I think I'm going to move the T500 into my Windows PC and buy a couple
-> of 
-> cheap USB sticks for Freeview. This has gone on long enough.
+------=_Part_4507_30402815.1205293843687
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I am shocked by all your problems.
+I asked on IRC about the KWorld ATSC 120 tuner and was told it isn't
+supported currently however it could be made to work.  I was also informed
+that all the pre-requisites are finally there, and all that is needed is
+glue code.
 
-I am certainly not experiencing this sort of mayhem on my system.
+Could anybody offer advice on obtaining or developing this "glue code"?  I
+have minimal experience in unix programming but am always willing to learn
+new things.
 
-Nico
+Thank you.
 
+------=_Part_4507_30402815.1205293843687
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I asked on IRC about the KWorld ATSC 120 tuner and was told it isn&#39;t supported currently however it could be made to work.&nbsp; I was also informed that all the pre-requisites are finally there, and all that is needed is glue code.<br>
+
+<br>Could anybody offer advice on obtaining or developing this &quot;glue code&quot;?&nbsp; I have minimal experience in unix programming but am always willing to learn new things.<br><br>Thank you.<br>
+
+------=_Part_4507_30402815.1205293843687--
+
+
+--===============1663630558==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1663630558==--
