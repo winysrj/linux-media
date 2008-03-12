@@ -1,19 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2FMeorD015387
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 18:40:50 -0400
-Received: from smtp103.rog.mail.re2.yahoo.com (smtp103.rog.mail.re2.yahoo.com
-	[206.190.36.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2FMeI7k004979
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 18:40:19 -0400
-Message-ID: <47DC504C.2070908@rogers.com>
-Date: Sat, 15 Mar 2008 18:40:12 -0400
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2C2Cqg3014071
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:12:52 -0400
+Received: from web56404.mail.re3.yahoo.com (web56404.mail.re3.yahoo.com
+	[216.252.111.83])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2C2CK2g032030
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:12:21 -0400
+Date: Tue, 11 Mar 2008 19:12:15 -0700 (PDT)
+From: r bartlett <techwritebos@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Another very basic question...
+Message-ID: <274117.44127.qm@web56404.mail.re3.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Quick roadmap...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,44 +25,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm going to be blunt about something -- you're not being particularly 
-helpful to yourself or the list:
-- To yourself because you're not being very efficient.
-- To the list because you're breeching etiquette.
+Hi, after some kind folks advised me to try ATSC HD reception, I've taken the plunge and signed up for digital cable with Comcast.  I've got the little HD box, a remote...and my trusty WinTV-HVR-1800 ready to go.
 
-Here are a few tips:
+The card seems to be properly installed, and my "dmesg" file shows the card is recognized, and I have a "/dev/dvb/adapter0" (and demux0, etc.).  
 
-1 - instead of breaking threading, and opposed to having a zillion 
-different threads essentially all about the same things, keep your 
-content within one i.e. the original message ... having a contiguous 
-thread will also help those who may, in future, search the lists for 
-similar problems
+When the digital signal starts coming in tomorrow, could someone give me a quick list of steps I need to take to watch tv?  I've been pouring over the documents and How-tos and don't really know where to start.  Will Kaffeine's "scan" work for finding channels?  Do I need to use "scandvb"?  Will I see a "video0" device and be able to watch tv with Tvtime?  
 
-2 - entitle your threads appropriately  -- i.e. "another very basic 
-question ... " or "the final inch" are not very helpful  .... the last 
-one in particular, given the thousand or so emails I receive each week 
-from China, Russia etc etc regarding viagra, penis enlargement etc etc 
-etc ... if your goal is to get/reach those who are most capable of 
-helping you, you're certainly going about it the wrong way ... (i) busy 
-people will browse over items that don't seem interesting or appear on 
-the surface to possibly be spam  and (ii) please don't ambiguious 
-messages  as it just ends up wasting others time in trying to figure out 
-what your question is/relates too (i.e. perfect example: Merc trying to 
-figure out what you were talking about in this thread)
+I don't need to _record_ tv...just watch it.  And I'm not setting up a dedicated PVR...just trying to get a signal to my computer that I can watch when I feel like procrastinating.
 
-3 - a number of the "basic questions" you have posed are readily 
-answered in the wikis ... so, in posting here about these elementary 
-issues,  you've wasted your and my (and others) time too ...
-- your time because you likely could have read about the solutions 
-quicker then you typed/enquired about them
-- my and others time because we've already spent considerable time 
-trying to document such elementary questions in the wiki ... and my time 
-again in having to compose this message to draw light to this fact
-
-4 - please don't top post
+Thanks for any and all help...
 
 
-
+       
+---------------------------------
+Be a better friend, newshound, and know-it-all with Yahoo! Mobile.  Try it now.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
