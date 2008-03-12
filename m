@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QHdnQR015349
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:39:49 -0400
-Received: from scarface.websupport.sk (postfix@tonymontana.websupport.sk
-	[81.89.48.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2QHdPu8010935
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:39:25 -0400
-From: Peter =?ISO-8859-1?Q?V=E1gner?= <peter.v@datagate.sk>
-To: Balint Marton <cus@fazekas.hu>
-In-Reply-To: <Pine.LNX.4.64.0803261520340.14189@cinke.fazekas.hu>
-References: <patchbomb.1206497254@bluegene.athome>
-	<47E9F4F4.2050503@datagate.sk>
-	<Pine.LNX.4.64.0803261520340.14189@cinke.fazekas.hu>
-Content-Type: text/plain
-Date: Wed, 26 Mar 2008 18:39:14 +0100
-Message-Id: <1206553154.7076.4.camel@vb>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CDhQws010289
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 09:43:26 -0400
+Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CDgsdF013545
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 09:42:55 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so8292261mue.5
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:42:54 -0700 (PDT)
+Date: Wed, 12 Mar 2008 21:42:47 +0800
+From: Limin Wang <lance.lmwang@gmail.com>
+To: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+Message-ID: <20080312134247.GA5902@lmwangpc.yuvad.cn>
+References: <20080312082530.GA3570@lmwangpc.yuvad.cn>
+	<47D7A00C.1020307@cineca.it>
+	<20080312101633.GA4654@lmwangpc.yuvad.cn>
+	<20080312113807.GB20885@stinkie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <20080312113807.GB20885@stinkie>
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
-	detection
+Subject: Re: any recommendations for SD/SDI cards under linux?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,22 +33,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
-On St, 2008-03-26 at 15:40 +0100, Balint Marton wrote:
-> Yes. Maybe the first tv channel after you start mplayer will be mono 
-> (because of the buggy audio thread), but after you change the channel, auto 
-> detection should work.
+Hi,
+
+* Daniel Glöckner <daniel-gl@gmx.net> [2008-03-12 12:38:07 +0100]:
+
+> On 12 Mar 08 18:16, Limin Wang wrote:
+> > Thanks for your comments, I have look at their SDK. It seems that they save
+> > the orignal SDI data into file and haven't any interface to demux the video 
+> > and audio of the raw SDI stream. I need to transcode the SDI to other compress
+> > format h264/aac etc to save disk space.
 > 
-Thanks a lot. I am very happy this works at least partially. I see there
-will be problems while recording because when starting mencoder in the
-scheduler I won't be able to switch channels to detect the stereo
-reliably. I am just wondering might there be a way to fix also this
-issue? Sometimes it works even at startup of the player but more
-frequently it does not.
+> You shouldn't make your decision to buy a card depend on the SDK.
+> When I look at the "SDK", I see a complete open source public domain driver
+> that gives access to all aspects of the SDI stream.
+> 
+> As SDI is uncompressed, it should be a matter of hours to write a
+> demultiplexer and feed the streams to x264 and faac or any other compresser.
+> 
+> I found the Ingex software suite that deals with SDI data on Sourceforge.
+> Maybe it includes a demultiplexer you can use.
+> 
+> Btw., the PCIe version is 5% cheaper.
 
-thanks once again
+thanks to all for your information. I haven't look at SDI format in detail. To
+my knowledge, it can embedded audio with uncompress or compress format, so any
+idea about it? Any question for audio/video sync? If I had to write SDI
+de-muxer, what's the specs to process all SDI format so that I can demux it by
+the definition of standard.
 
-Peter
+
+Thanks,
+Limin
 
 --
 video4linux-list mailing list
