@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Received: from ug-out-1314.google.com ([66.249.92.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <maurizio.daniele@gmail.com>) id 1JbKVf-0004dS-BL
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 19:56:39 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so6602173wag.13
-	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 11:56:34 -0700 (PDT)
-Message-ID: <cfcc45710803171156h60f4734fy332e02557c801055@mail.gmail.com>
-Date: Mon, 17 Mar 2008 19:56:31 +0100
-From: Maurizio <maurizio.daniele@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <cfcc45710803171153k1564b1aesa9c06d0abe79b5ce@mail.gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1JZXyR-0007ih-P5
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 21:54:58 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so357843ugd.20
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 13:54:52 -0700 (PDT)
+Message-ID: <37219a840803121354r61e49f0fk2f85b052748f2df7@mail.gmail.com>
+Date: Wed, 12 Mar 2008 16:54:50 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Jarryd Beck" <jarro.2783@gmail.com>
+In-Reply-To: <abf3e5070803121336k1f2c9dc5s1962b1401cce1091@mail.gmail.com>
 MIME-Version: 1.0
-References: <cfcc45710803170707g26ee6526n47704315bc9b24b3@mail.gmail.com>
-	<d9def9db0803170720s1eee0083wf3251c8b3ef30de6@mail.gmail.com>
-	<cfcc45710803171030h6ff660a0p15df6fbcc51efd5f@mail.gmail.com>
-	<cfcc45710803171153k1564b1aesa9c06d0abe79b5ce@mail.gmail.com>
-Subject: [linux-dvb]  Empire DVB Dual Pen - New hardware
+Content-Disposition: inline
+References: <47D7E260.4030502@iki.fi> <47D7F16F.4070604@linuxtv.org>
+	<abf3e5070803121336k1f2c9dc5s1962b1401cce1091@mail.gmail.com>
+Cc: crope@iki.fi, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,55 +23,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0481175155=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0481175155==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_15344_4247624.1205780191878"
+On Wed, Mar 12, 2008 at 4:36 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
+>
+> >  >>
+>  >  >> Jarryd,
+>  >  >>
+>  >  >> I've analyzed the snoop that you've taken of the windows driver, and I
+>  >  >> conclude that the driver is basically doing exactly the same that the
+>  >  >> linux driver would do.  The only thing that I cannot verify is whether
+>  >  >> or not the tda18211 uses the same table values as the tda18271c1.
+>  >  >> Based on the traffic in your snoop, it looks like the exact same
+>  >  >> algorithm is used, but based on a new set of tables -- I will not be
+>  >  >> able to confirm that without a tda18211 datasheet.  The only thing
+>  >  >> that you can do is try the tda18271 driver and hopefully it will work.
+>  >  >>
+>  >  >> Have you tried to tune yet?  There is a space in your channels.conf,
+>  >  >> "7 Digital" -- you may want to change that to something like,
+>  >  >> "7Digital" so that command line applications will work.
+>  >  >>
+>  >
+>  >
+>  >
+>  > Antti Palosaari wrote:
+>  >  > hello
+>  >  > I looked sniffs and find correct demodulator initialization values for
+>  >  > this NXP tuner. Copy & paste correct table from attached file and try.
+>  >  > Hopefully it works. I compared your sniff to mt2060 and qt1010 based
+>  >  > devices and there was still some minor differences to check.
+>  >  >
+>  >  > regards,
+>  >  > Antti
+>  >  >
+>  >
+>  >  Antti,
+>  >
+>  >  Please remember not to top-post.
+>  >
+>  >  Jarryd,
+>  >
+>  >  I have done further analysis on the snoop logs.  Not only is the driver
+>  >  using the same protocol as the tda18271 linux driver, it also seems to
+>  >  use the same table values as used with the tda18271c1 -- The linux
+>  >  driver should work on your tuner without any modification at all.
+>  >
+>  >  Regards,
+>  >
+>  >  Mike
+>  >
+>
+>  I've got another tuner which works, so I know I'm tuning correctly, it just
+>  doesn't actually tune. I tried with mplayer, it just sat there saying
+>  dvb_tune Freq: 219500000 and did nothing. It also made my whole
+>  computer go really slow, I don't know what it was actually doing.
+>
+>  Antti, as I said I've never done anything like this before so I have no
+>  idea what I'm doing, so I have no idea where to paste which table.
 
-------=_Part_15344_4247624.1205780191878
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Please try using tzap.  This will show you FE status once every
+second.  Let it run for a whole minute -- maybe there is some noise
+that may cause it to take a longer time to lock (if that's the case,
+then there are some tweaks that we can do.)  Show us the femon output
+produced by running tzap.
 
-After a little search, it seems that my Empire DVB dual Pen "New version" is
-a "Geniatech DVB-T U6010T Hybrid" rebranded (ever the external package is
-the same)
-
-http://www.geniatech.com/pa/u6010t.htm
-
-At the moment no information about what chipset is in.
-
-
-
--- 
-Maurizio Daniele ----------------- <maurizio.daniele (a) gmail.com>
-
-------=_Part_15344_4247624.1205780191878
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br>After a little search, it seems that my Empire DVB dual Pen &quot;New version&quot; is a &quot;Geniatech DVB-T U6010T Hybrid&quot; rebranded (ever the external package is the same)<br><br><a href="http://www.geniatech.com/pa/u6010t.htm" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.geniatech.com/pa/u6010t.htm</a><br>
-
-<br>At the moment no information about what chipset is in.<br><br>
-<br clear="all"><br>-- <br>Maurizio Daniele ----------------- &lt;maurizio.daniele (a) <a href="http://gmail.com">gmail.com</a>&gt;
-
-------=_Part_15344_4247624.1205780191878--
-
-
---===============0481175155==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0481175155==--
