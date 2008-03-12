@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m22NN1sh030948
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:23:01 -0500
-Received: from mail-in-07.arcor-online.net (mail-in-07.arcor-online.net
-	[151.189.21.47])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m22NMSIL028806
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 18:22:28 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Carl Karsten <carl@personnelware.com>
-In-Reply-To: <47CB3212.1060509@personnelware.com>
-References: <47CA4C4C.7010901@personnelware.com>
-	<1204495846.7276.10.camel@pc08.localdom.local>
-	<47CB3212.1060509@personnelware.com>
-Content-Type: text/plain
-Date: Mon, 03 Mar 2008 00:15:31 +0100
-Message-Id: <1204499731.7276.15.camel@pc08.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CBcwUl023409
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 07:38:58 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2CBcQ6R015074
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 07:38:26 -0400
+Date: Wed, 12 Mar 2008 12:38:07 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Limin Wang <lance.lmwang@gmail.com>
+Message-ID: <20080312113807.GB20885@stinkie>
+References: <20080312082530.GA3570@lmwangpc.yuvad.cn>
+	<47D7A00C.1020307@cineca.it>
+	<20080312101633.GA4654@lmwangpc.yuvad.cn>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080312101633.GA4654@lmwangpc.yuvad.cn>
 Cc: video4linux-list@redhat.com
-Subject: Re: [patch] ioctl-test.c
+Subject: Re: any recommendations for SD/SDI cards under linux?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,50 +29,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Sonntag, den 02.03.2008, 17:02 -0600 schrieb Carl Karsten:
-> hermann pitton wrote:
-> > Hi Carl,
-> > 
-> > Am Sonntag, den 02.03.2008, 00:42 -0600 schrieb Carl Karsten:
-> >> I copied the command line parameter support from test/pixfmt-test.c, and used 
-> >> the prt_caps() func from lib/v4l2_driver.c.
-> >>
-> >> I am hoping to merge all of the test code into one big test, and put all the 
-> >> generic code into one lib.
-> >>
-> >> Carl K
-> >>
-> > 
-> > that looks interesting and should save time looking up the ioctls in the
-> > code etc.
-> 
-> There is more to come :)
-> 
-> > 
-> > But please don't post any patches inline with thunderbird, try as
-> > attachment or use another mail client.
-> 
-> better?
+On 12 Mar 08 18:16, Limin Wang wrote:
+> Thanks for your comments, I have look at their SDK. It seems that they save
+> the orignal SDI data into file and haven't any interface to demux the video 
+> and audio of the raw SDI stream. I need to transcode the SDI to other compress
+> format h264/aac etc to save disk space.
 
-at least functional ...
+You shouldn't make your decision to buy a card depend on the SDK.
+When I look at the "SDK", I see a complete open source public domain driver
+that gives access to all aspects of the SDI stream.
 
-> > Concerning newly included headers, at what kernel environment you get
-> > this to compile? My stuff still seems to be too old.
-> 
-> Oh, didn't include the Makefile, probably what is causing you problems.  I tried 
-> to keep my vivi patch separate.
-> 
-> Carl K
-> 
+As SDI is uncompressed, it should be a matter of hours to write a
+demultiplexer and feed the streams to x264 and faac or any other compresser.
 
-Ah, also without line breakage at vivi now.
+I found the Ingex software suite that deals with SDI data on Sourceforge.
+Maybe it includes a demultiplexer you can use.
 
-Should be worth another try :)
+Btw., the PCIe version is 5% cheaper.
 
-Cheers,
-Hermann
-
-
+  Daniel
 
 --
 video4linux-list mailing list
