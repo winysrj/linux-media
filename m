@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QHqAbO025584
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:52:10 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2QHpr6t021824
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:51:53 -0400
-Date: Wed, 26 Mar 2008 18:51:28 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Matthew Wang <wangsu820@163.com>
-Message-ID: <20080326175127.GA226@daniel.bse>
-References: <20080326103853.GA21053@stinkie>
-	<3358587.1081301206517482981.JavaMail.coremail@bj163app87.163.com>
-	<1373980.1212051206531393465.JavaMail.coremail@bj163app55.163.com>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CAHJ1p015460
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:17:19 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.243])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CAGdBs024257
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:16:39 -0400
+Received: by an-out-0708.google.com with SMTP id c31so763136ana.124
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 03:16:39 -0700 (PDT)
+Date: Wed, 12 Mar 2008 18:16:33 +0800
+From: Limin Wang <lance.lmwang@gmail.com>
+To: video4linux-list@redhat.com
+Message-ID: <20080312101633.GA4654@lmwangpc.yuvad.cn>
+References: <20080312082530.GA3570@lmwangpc.yuvad.cn>
+	<47D7A00C.1020307@cineca.it>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1373980.1212051206531393465.JavaMail.coremail@bj163app55.163.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: ask about kernel video4linux module
+In-Reply-To: <47D7A00C.1020307@cineca.it>
+Subject: Re: any recommendations for SD/SDI cards under linux?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,29 +29,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Mar 26, 2008 at 07:36:33PM +0800, Matthew Wang wrote:
->  thank u, Daniel
->  
-> I have the kernel package which is 2.6.8.1 and I use Source Insight to read it.
->  
-> Actually, I will do a IP Camera project based on ADSP-BF533(an ADI Blackfin chip), and I want to programme v4l by myself, and of course I have to learn something about v4l programming!
->  
-> in the kernel package, which directory is the v4l core in? kernel/drivers/media? for example, some article only tell us how to use the VIDIOCGCAP ioctl ,but now I wannt to see the VIDIOCGCAP specific code, can I find it in the kernel package?
->  
-> thanks again!
->  
-> Matthew
+Hi,
 
-There is no V4L core.
-The file you are searching is kernel/drivers/media/video/blackfin/blackfin_cam.c
-from the Blackfin Linux project.
-It is not yet part of the mainline source tree.
-It supports only the obsolete V4L1 API.
 
-You can browse the sourcecode at
-http://blackfin.uclinux.org/gf/project/linux-kernel/scmsvn/?action=browse&path=%2Ftrunk%2Fdrivers%2Fmedia%2Fvideo%2Fblackfin%2F
+* Andrea Venturi <a.venturi@cineca.it> [2008-03-12 10:19:08 +0100]:
 
-  Daniel
+> Limin Wang wrote:
+> > Hi,
+> > 
+> > I am a newbie to the list and can't find how to search on the archive, so
+> > had to ask the question here.
+> > If you have any recommendations for SDI cards under linux, would you mind
+> > telling me? 
+> 
+> hi,
+> 
+> we are using Dektec card as ASI ports (for DVB transport stream), under
+> linux, and they do have quite a good linux driver, fully open source and
+> more than GPL (public domain?) albeit not linux-dvb compliant, but it's
+> just a character device.
+> 
+> the SDI link is the same physical stuff of ASI so for example this card
+> shoud work for your task too:
+> 
+>   http://www.dektec.com/Products/DTA-145/index.asp
+> 
+> YMMV, i don't have a direct experience about SDI usage, but i had a good
+> experience with Dektec stuff so i suggest them quite wholeheartedly
+> (btw, don't have any economic interest.. :-)
+
+Thanks for your comments, I have look at their SDK. It seems that they save
+the orignal SDI data into file and haven't any interface to demux the video and
+audio of the raw SDI stream. I need to transcode the SDI to other compress
+format h264/aac etc to save disk space.
+
+
+Thanks,
+Limin
 
 --
 video4linux-list mailing list
