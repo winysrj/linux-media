@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HJZVhC024244
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:35:31 -0400
-Received: from bender.u7.se (gonzzor.campus.luth.se [130.240.199.196])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HJYwqB001723
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:35:00 -0400
-Received: from [192.168.0.4] (fry.u7.se [192.168.0.4])
-	by bender.u7.se (Postfix) with ESMTP id 3DCA7A7F9
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 20:34:46 +0100 (CET)
-From: Jonas Jonsson <jonas@websystem.se>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Mon, 17 Mar 2008 20:34:56 +0100
-Message-Id: <1205782496.5294.13.camel@fry.u7.se>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Advice on capture card
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2C8Q9mG026704
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 04:26:09 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.247])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2C8Pc5v023298
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 04:25:38 -0400
+Received: by an-out-0708.google.com with SMTP id c31so753768ana.124
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 01:25:38 -0700 (PDT)
+Date: Wed, 12 Mar 2008 16:25:30 +0800
+From: Limin Wang <lance.lmwang@gmail.com>
+To: video4linux <video4linux-list@redhat.com>
+Message-ID: <20080312082530.GA3570@lmwangpc.yuvad.cn>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: any recommendations for SD/SDI cards under linux?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,13 +28,14 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-We are about to replace our surveillance system and looking for a
-capture card. It need to be well "supported" in Linux and must be able
-to grab more then one channel at a time.
+I am a newbie to the list and can't find how to search on the archive, so
+had to ask the question here.
+If you have any recommendations for SDI cards under linux, would you mind
+telling me? 
 
-Does anyone have any advice on such a device?
 
-/Jonas
+Thanks,
+Limin
 
 --
 video4linux-list mailing list
