@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.184])
+Received: from sif.is.scarlet.be ([193.74.71.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1Je7vu-000728-6u
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 13:07:15 +0100
-Received: by gv-out-0910.google.com with SMTP id o2so562549gve.16
-	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 05:06:40 -0700 (PDT)
-Message-ID: <8ad9209c0803250459w7072b688ybbc8df32495b4@mail.gmail.com>
-Date: Tue, 25 Mar 2008 12:59:38 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47E7D194.80603@gmx.net>
+	(envelope-from <ben@bbackx.com>) id 1JZUMh-0006WF-5g
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 18:03:44 +0100
+Received: from fry (ip-81-11-185-117.dsl.scarlet.be [81.11.185.117])
+	by sif.is.scarlet.be (8.14.2/8.14.2) with ESMTP id m2CH3cph003595
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 18:03:38 +0100
+From: "Ben Backx" <ben@bbackx.com>
+To: <linux-dvb@linuxtv.org>
+References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
+	<21776.81.144.130.125.1205324398.squirrel@manicminer.homeip.net>
+In-Reply-To: <21776.81.144.130.125.1205324398.squirrel@manicminer.homeip.net>
+Date: Wed, 12 Mar 2008 18:03:31 +0100
+Message-ID: <001201c88463$00432bd0$00c98370$@com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <8ad9209c0803240521s5426c957te42339397aac06ab@mail.gmail.com>
-	<47E7D194.80603@gmx.net>
-Subject: Re: [linux-dvb] Adding timestamp to femon
+Content-Language: en-gb
+Subject: Re: [linux-dvb] Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,58 +29,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 3/24/08, P. van Gaans <w3ird_n3rd@gmx.net> wrote:
-> On 03/24/2008 01:21 PM, Patrik Hansson wrote:
-> > Hello
-> > I couldn't find a mailinglist for dvb-apps so i hope this is ok.
+> -----Original Message-----
+> From: Stephen Rowles [mailto:stephen@rowles.org.uk]
+> Sent: 12 March 2008 13:20
+> To: Ben Backx
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Implementing support for multi-channel
+> 
+> > Hello,
 > >
-> > I would like to add timestamp to the output of femon -H in some way.
-> > This so I can monitor ber value over a long timeperiod and see the
-> > timedifference between some very high ber-values.
-> >
-> > I found a patch from 2005 but was unable to manually use the code in
-> > dvb-apps/utils/femon/femon.c
-> > I have zero skill in c/c++ but for someone with some skill i would
-> > belive it would be very easy ?
-> >
-> > Ps. If there is a better place for this kind of question please tell me. Ds.
-> >
-> > / Patrik
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
->
-> Hi,
->
-> I had a similar issue, but solved it. Not sure if this works with a
-> recent femon, but if it doesn't you should be able to make some changes
-> to my method to make it work. Here's the trick:
->
-> 1. Tune to whatever you want to measure.
-> 2. Execute in a terminal: "femon -h -c 3600 > filename.signal". 3600 is
-> for one hour, if you want to test for e.g. 10 hours enter 36000. The
-> resulting file will usually be under 5MB so don't worry. Good advice:
-> put the current time in the filename because brains are unreliable.
-> 3. That's quite a bit to read. But we can do it faster:
->
-> Total amount of errors: "cat filename.signal | grep -c unc[^\s][^0]".
-> You might need to change the regex for other femon versions.
->
-> All errors and when they occured: "cat filename.signal | grep -n
-> unc[^\s][^0]". -n will make it show line numbers. If the first error,
-> for example, is on line 1800 that means the first error occured half an
-> hour after the start of the measurement.
->
-> Hope this helps.
->
-> P. van Gaans
->
+> > I was wondering if there's some info to find on how to implement (and
+> > test)
+> > multi-channel receiving?
+> > It's possible, because dvb uses streams and the driver is currently
+> > capable
+> > to filter one channel, but how can I implement the support of
+> > multi-channel
+> > filtering?
+> > Is there perhaps an open-source driver supporting this that I can
+> have a
+> > look at?
+> 
+> Check out the dvbstreamer project:
+> 
+> http://dvbstreamer.sourceforge.net/
+> 
+> This allows multi-channel recording / streaming if the DVB device
+> supports
+> sending the whole transport stream (some usb devices do not support
+> this).
+> This works by sending the whole transport stream to the dvbstreamer
+> program, then this program allows filtering out and recording separate
+> channels from that stream as required.
+> 
+> This isn't a driver level solution, but might provide the function you
+> need.
 
-Thank you, it will have to do.
-Using grep -v "ber 0" -n though but that should result in the same.
+It's (partly) for a research project, so I have to look at all possible
+solutions, software being one, so dvbstreamer is part of the solution :-)
+The others are at driver and hardware level (the hardware supports this).
+
+
 
 _______________________________________________
 linux-dvb mailing list
