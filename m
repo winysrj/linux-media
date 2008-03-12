@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2KKgbJk017413
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 16:42:37 -0400
-Received: from mailout09.sul.t-online.de (mailout09.sul.t-online.de
-	[194.25.134.84])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2KKfiBY017955
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 16:41:44 -0400
-Message-ID: <47E2CBEF.3090609@t-online.de>
-Date: Thu, 20 Mar 2008 21:41:19 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CHqAal031565
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 13:52:10 -0400
+Received: from ex.volia.net (ex.volia.net [82.144.192.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CHpPA3007829
+	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 13:51:26 -0400
+Message-ID: <003401c88469$af50f4d0$6401a8c0@LocalHost>
+From: "itman" <itman@fm.com.ua>
+To: "S G" <stive_z@hotmail.com>, "hermann pitton" <hermann-pitton@arcor.de>
+References: <47D6F12C.7040102@fm.com.ua>
+	<1205269761.5927.77.camel@pc08.localdom.local>
+	<BAY107-W53381D746959C109E3EF0097080@phx.gbl>
+Date: Wed, 12 Mar 2008 19:51:22 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <47E060EB.5040207@t-online.de>	<Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>	<47E190CF.9050904@t-online.de>	<20080319193832.643bf8a0@gaivota>	<47E1BCAF.80208@t-online.de>
-	<20080319224222.581d7b85@gaivota>
-In-Reply-To: <20080319224222.581d7b85@gaivota>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: simon@kalmarkaglan.se, video4linux-list@redhat.com, xyzzy@speakeasy.org,
+	midimaker@yandex.ru, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: RE: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,85 +30,166 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-HI, Mauro
+Hi, Steve.
 
-Mauro Carvalho Chehab schrieb:
-> On Thu, 20 Mar 2008 02:23:59 +0100
-> Hartmut Hackmann <hartmut.hackmann@t-online.de> wrote:
-> 
->>> On your patch, you're just returning, if dev=NULL, at saa7134 callback function. IMO, the correct would be to
->>> print an error message and return. Also, we should discover why dev is being
->>> null there (I'll try to identify here - the reason - yet, I can't really test,
->>> since the saa7134 boards I have don't need any callback.
->> That's not the point. In the call in tda827x.c tda827xa_lna_gain(), the argument
->> did not point to the saa7134_dev structure as the function expected. I added
->> the check for NULL because only at the very first call, the pointer is still
->> not valid. I did not check this carefully but i guess this is a matter of the
->> initilization sequence of the data structures. IMHO yes, we should understand this
->> sometime but this does not have priority because i am sure that the NULL pointer
->> occurs only during initialization.
-> 
-> This is caused by a patch conflict between hybrid redesign and the merge of
-> xc3028 support. The enclosed experimental patch fixes the tuner_callback
-> argument, on linux/drivers/media/dvb/frontends/tda827x.c. 
-> It should also fix the priv argument on saa7134_tuner_callback(). I can't test
-> the saa7134 part here, due to the lack of a saa7134 hardware that needs a
-> callback.
-> 
-> The patch also intends to make xc3028 easier to use. That part is still not
-> fully working. I should finish this patch tomorrow.
-> 
->>>>> I still need to send a patchset to Linus, after testing compilation
->>>>> (unfortunately, I had to postpone, since I need first to free some
->>>>> hundreds of Mb on my HD on my /home, to allow kernel compilation).
->>>>> Hopefully, I'll have some time tomorrow for doing a "housekeeping".
->>>>>
->>>> Unfortunately, i deleted you mails describing what went to linux and i don't
->>>> have the RC source here :-(
->>> You may take a look on master branch on my git tree. I'm about to forward him a
->>> series of patches. Hopefully, 2GB free space will be enough for a full kernel
->>> compilation. I'll discover soon...
->>>
->> Jep. Meanwhile Michael confirmed that the problem is not in mainstream,
->> so there is no reason to hurry.
-> 
-> Yes.
-> 
->> But we should have a bigger audience for my latest changes, so i will send
->> you a pull request in a minute.
-> 
-> Could you please test my patch first? Having the same arguments for all
-> callback functions avoid future mistakes.
-> 
-> ---
-> [RFC] Fix tuner_callback for tda827x
-> 
-> Signed-off-by Mauro Carvalho Chehab <mchehab@infradead.org>
-> 
-<snip>
 
-Your patch does not completely apply for me, it fails in cx88-dvb.c
-I had a close look and found that we are going in the same direction.
-- The change in tda827x is the same as i did.
-- In saa7134-cards.c your patch is right. My version just worked by accident.
-  I corrected this in my repository.
-By the way: the dev pointer is NULL during initialization is gone.
-I tested again and things work for me.
+Unfortunately by default initialization for this tuner it does not go in =
+right way.=20
+So I use this sequence  (see full list of commands) to make it work:
 
-I would recommend the following:
-- You pull from my repository (sent you the request yesterday)
-- You apply the patch *except* the changes in tda827x.c, saa7134-cards.c
-  and saa7134-dvb.c. Afterwards we should be fine.
 
-My other changes to tda827x and saa7134-dvb.c are not only cosmetic. It merged
-the _lna_gain functions for analog and dvb and adapt the data structures.
-What do you think?
 
-I will be out from friday to monday.
+rmmod cx88_alsa=20
+rmmod cx8800
+rmmod cx88xx=20
+rmmod tuner
+rmmod tda9887=20
+modprobe cx88xx=20
+modprobe tda9887 port1=3D0 port2=3D0 qss=3D1=20
+modprobe tuner=20
+modprobe cx8800
 
-Best regards
-   Hartmut
 
+Actually I do not dig deeply with this, but main goal of this is to =
+initiate device with port1=3D0 port2=3D0 qss=3D1 option to get sound.
+Also v4l devices appears in /dev after cx8800 initialization (could be =
+mistaken, because I am writing this by memory ;-) and, lol, from Windows =
+PC).
+
+Pls also see Hermann explanation.
+
+
+
+Rgs,
+    Serge.
+
+
+
+
+
+
+----- Original Message -----=20
+  From: S G=20
+  To: hermann pitton ; itman=20
+  Cc: simon@kalmarkaglan.se ; video4linux-list@redhat.com ; Mauro =
+Carvalho Chehab ; midimaker@yandex.ru ; xyzzy@speakeasy.org=20
+  Sent: Wednesday, March 12, 2008 10:16 AM
+  Subject: RE: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+
+
+  Hi,
+
+  I do have a MSI TV Anywhere Master (MSI 8606, cx88) and analog tv =
+cable.
+
+  I have a fresh Ubuntu Hardy install, up to date. Kernel =
+2.6.24-12-generic
+
+  I did :
+
+  mkdir /usr/src/linux/tmpmsi
+  cd tmpmsi
+  hg init
+  hg pull http://linuxtv.org/hg/v4l-dvb
+  make
+  make install
+
+  Created a file in /etc/modprobe.d/ and added this line :
+
+  options tda9887 port1=3D0 port2=3D0 qss=3D1
+
+  I still have no sound (tv and radio).
+
+  modinfo tda9887
+
+  filename:       =
+/lib/modules/2.6.24-12-generic/kernel/drivers/media/video/tda9887.ko
+  license:        GPL
+  srcversion:     6E9F018870C816AFE420473
+  depends:        i2c-core
+  vermagic:       2.6.24-12-generic SMP mod_unload=20
+  parm:           debug:enable verbose debug messages (int)
+  parm:           port1:int
+  parm:           port2:int
+  parm:           qss:int
+  parm:           adjust:int
+
+
+  If you want me to try some settings, let me know since I have this =
+card also...
+
+  Thanks,
+
+  Steve
+
+
+  > From: hermann-pitton@arcor.de
+  > To: itman@fm.com.ua
+  > Date: Tue, 11 Mar 2008 22:09:21 +0100
+  > CC: simon@kalmarkaglan.se; video4linux-list@redhat.com; =
+mchehab@infradead.org; midimaker@yandex.ru; xyzzy@speakeasy.org
+  > Subject: Re: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 =
+status
+  >=20
+  > Am Dienstag, den 11.03.2008, 22:53 +0200 schrieb itman:
+  > > Hi Herman, Mauro.
+  > >=20
+  > > Status with 2.6.24 is OK, BUT with the following changes:
+  > >=20
+  > > 1) mkdir /usr/src/linux/tmpmsi
+  > > 2) cd tmpmsi
+  > > 3) hg init
+  > > 4) hg pull http://linuxtv.org/hg/v4l-dvb
+  > > 5) make
+  > > 6) make install
+  > >=20
+  > > and changes for 2.6.24.3 :
+  > >=20
+  > > Adding to /etc/modprobe.conf this line:
+  > >=20
+  > > options tda9887 port1=3D0 port2=3D0 qss=3D1
+  > >=20
+  > > After reboot it works fine!
+  > >=20
+  > > In 2.6.23 was used tuner instead tda9887
+  > > so it was
+  > > options tuner port1=3D0 port2=3D0 qss=3D1
+  > >=20
+  > >=20
+  > > Rgs,
+  > > Serge.
+  >=20
+  > Hi Serge,
+  >=20
+  > fine, that was what I tried to explain.
+  >=20
+  > I have started to write a mail on it already, maybe it provides some
+  > deeper insights and is useful for the records. So I send it despite =
+off
+  > you have realized the problem now.
+  >=20
+  > Thanks,
+  > Hermann
+  >=20
+  >=20
+  > --
+  > video4linux-list mailing list
+  > Unsubscribe =
+mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
+  > https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
+-------------------------------------------------------------------------=
+-----
+  Cr=E9ez un bouton pratique pour que vos amis vous ajoutent =E0 leur =
+liste! Cliquez-ici!=20
+
+  __________ =C8=ED=F4=EE=F0=EC=E0=F6=E8=FF NOD32 2762 (20080102) =
+__________
+
+  =DD=F2=EE =F1=EE=EE=E1=F9=E5=ED=E8=E5 =EF=F0=EE=E2=E5=F0=E5=ED=EE =
+=C0=ED=F2=E8=E2=E8=F0=F3=F1=ED=EE=E9 =F1=E8=F1=F2=E5=EC=EE=E9 NOD32.
+  http://www.eset.com
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
