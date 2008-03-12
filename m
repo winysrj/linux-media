@@ -1,14 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Content-class: urn:content-classes:message
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2C2Rmqs019488
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:27:48 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2C2RH2q012292
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 22:27:17 -0400
+Received: by ti-out-0910.google.com with SMTP id 11so1052458tim.7
+	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 19:27:16 -0700 (PDT)
+Message-ID: <9618a85a0803111927p347f97e0w3bd0278048587f0b@mail.gmail.com>
+Date: Wed, 12 Mar 2008 10:27:15 +0800
+From: "kevin liu" <lwtbenben@gmail.com>
+To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Date: Tue, 1 Apr 2008 08:57:13 +1100
-Message-ID: <33ABD80B75296D43A316BFF5B0B52F5F0EEB0D@SRV-QS-MAIL5.lands.nsw>
-From: "Nicholas Magers" <Nicholas.Magers@lands.nsw.gov.au>
-To: "Alan Cox" <alan@redhat.com>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: RE: Dvico Dual 4 card not working.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: 
+Subject: v4l-dvb won't compile on Linux kernel 2.6.24.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,37 +28,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Is this an automated response. Alan are you a robot?
+Hi, list
+    I wanted to try my television card on slax Linux which uses Linux
+2.6.24 as its kernel.
+And I compiled my downloaded v4l-dvb on slax, but unfortunately, it
+won't compile.
+    From the dmesg, I noticed that Linux i2c core and Linux v4l2 have
+some changes. Such as
+struct video_device and struct i2c_client.
+    So, what should I do to make my v4l-dvb compiled under the newest
+Linux kernel.
 
-Fortunately I was able to get my Dvico dual 4 TV tuner card working
-again by removing the v4l distribution and going back to hg clone
-http://linuxtv.org/hg/~pascoe/xc-test Instructions on this page
-http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/
-
------Original Message-----
-From: Alan Cox [mailto:alan@redhat.com] 
-Sent: Monday, 31 March 2008 8:32 PM
-To: Nicholas Magers
-Cc: video4linux-list@redhat.com
-Subject: Re: Dvico Dual 4 card not working.
-
-On Mon, Mar 31, 2008 at 02:22:15PM +1100, Nicholas Magers wrote:
-> Dual 4 card no longer works. I use it with Mythtv. It seems when I
-> updated my Nvidia graphics driver from Livna it had an effect. I am at
-
-Nvidia driver reports should go to Nvidia, only they have the source
-code
-so only they can help you
-
-
-***************************************************************
-This message is intended for the addressee named and may contain confidential information. If you are not the intended recipient, please delete it and notify the sender. 
-
-Views expressed in this message are those of the individual sender, and are not necessarily the views of the Department of  Lands.
-
-This email message has been swept by MIMEsweeper for the presence of computer viruses.
-***************************************************************
-
+    Thanks in advance.
 
 --
 video4linux-list mailing list
