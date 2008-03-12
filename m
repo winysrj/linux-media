@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JY6qH-00067K-9K
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 22:44:34 +0100
-Message-ID: <47D308EB.30408@philpem.me.uk>
-Date: Sat, 08 Mar 2008 21:45:15 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
-MIME-Version: 1.0
-To: David Matthews <dm@prolingua.co.uk>
-References: <47D0EA5B.8040105@philpem.me.uk> <47D14C71.5040400@prolingua.co.uk>
-In-Reply-To: <47D14C71.5040400@prolingua.co.uk>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Updated scan file for uk-EmleyMoor
+Date: Tue, 11 Mar 2008 22:02:30 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <47D735F4.2070303@linuxtv.org>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-id: <47D739B6.70801@linuxtv.org>
+MIME-version: 1.0
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+	<47D49309.8020607@linuxtv.org>
+	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
+	<47D4B8D0.9090401@linuxtv.org>
+	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
+	<47D539E8.6060204@linuxtv.org>
+	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
+	<47D5AF38.90600@iki.fi>
+	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
+	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
+	<abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
+	<47D735F4.2070303@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,40 +32,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David Matthews wrote:
-> Have you looked at the Ofcom site?  You may find that the current 
-> frequencies are actually correct.  Apparently all the transmitters at 
-> Emley Moor have a 166kHz offset, either + or - depending on the channel.
 
-I've been made aware of the updated version in Hg... The version that got into 
-Fedora 8 is utterly hopelessly wrong though. Frequency offsets are 'sort of' 
-right, but the modulation mode and FEC settings are out in the woods for a few 
-muxes.
+> You said that you tuned to "channel 7, sydney, australia" -- is that an 8 MHz channel?  What frequency is it on?
 
-> www.ukfree.tv seems to ignore the offset and just include the base 
-> channel number.  Generally it doesn't matter since the bandwidth of the 
-> tuner will be more than sufficient.  Of course, it would be a good idea 
-> to fix the QAM parameters if they're wrong.
+Australia uses 7MHz channels in VHF and UHF.
 
-What I found odd was that my Freecom USB stick wouldn't lock to the frequency 
-if the offset had been added/subtracted already. The Hauppauge Nova-TD stick's 
-first tuner (MMCX? connector -- the little ~3mm thing) doesn't mind, but the 
-second tuner starts losing muxes if the frequency is strong.
-
-What's odd is the first tuner sees more on Linux than it does on Windows, and 
-both tuners see different things, and on Windows both tuners see the same, but 
-don't pick up Film4 (698MHz, C49, Mux D). I find this odd because by all 
-rights Mux A (650MHz, C43) should be disappearing as it's the weakest... this 
-would seem to rule out signal strength issues. In fact, wiring up a masthead 
-amplifier just made scandvb spit out "WARNING: filter pid timeout" without 
-finding any channels.
-
-Most peculiar.
-
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
