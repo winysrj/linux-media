@@ -1,21 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from rn-out-0910.google.com ([64.233.170.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JZCgg-0006lo-EM
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 23:11:11 +0100
-Received: from [11.11.11.138] (user-5af0e527.wfd96.dsl.pol.co.uk
-	[90.240.229.39])
-	by mail.youplala.net (Postfix) with ESMTP id DBD61D88130
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:10:08 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47D701A7.40805@philpem.me.uk>
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>
-	<47D701A7.40805@philpem.me.uk>
-Date: Tue, 11 Mar 2008 22:10:04 +0000
-Message-Id: <1205273404.20608.2.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+	(envelope-from <mkrufky@gmail.com>) id 1JZQOS-0005Jp-Rl
+	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 13:49:19 +0100
+Received: by rn-out-0910.google.com with SMTP id e11so1647993rng.17
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 05:49:10 -0700 (PDT)
+Message-ID: <37219a840803120549sc494d8es194784b875d7f91c@mail.gmail.com>
+Date: Wed, 12 Mar 2008 08:49:08 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Jarryd Beck" <jarro.2783@gmail.com>
+In-Reply-To: <abf3e5070803112006l31b5f878j764a4ded24a2702d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
+	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
+	<47D539E8.6060204@linuxtv.org>
+	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
+	<47D5AF38.90600@iki.fi>
+	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
+	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
+	<abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
+	<47D735F4.2070303@linuxtv.org>
+	<abf3e5070803112006l31b5f878j764a4ded24a2702d@mail.gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,43 +37,91 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Tue, Mar 11, 2008 at 11:06 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
+> >  >
+>  >  > Also when I plugged it in, it sat there for about 10 seconds before
+>  >  > finishing loading (dmesg printed another 5 lines about the device
+>  >  > after about 10 seconds), but still no tuning.
+>  >
+>  >  Can I see those five lines?  ;-)
+>  >
+>  >  While you're at it, you may as well include dmesg from the point that the bridge driver loads and on.
+>  >
+>
+>  Here's dmesg from the point it starts up until it finishes printing stuff.
+>
+>  usb 2-10: new high speed USB device using ehci_hcd and address 22
+>  usb 2-10: configuration #1 chosen from 1 choice
+>  af9015_usb_probe:
+>  af9015_identify_state: reply:01
+>  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in cold state, will
+>  try to load a firmware
+>  dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+>  af9015_download_firmware:
+>  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in warm state.
+>  dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+>  DVB: registering new adapter (Leadtek Winfast DTV Dongle Gold)
+>  af9015_eeprom_dump:
+>  00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 02
+>  10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 30
+>  20: 35 30 35 30 30 30 30 31 ff ff ff ff ff ff ff ff
+>  30: 00 00 3a 01 00 08 02 00 cc 10 00 00 9c ff ff ff
+>  40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
+>  50: ff ff ff ff ff 26 00 00 04 03 09 04 10 03 4c 00
+>  60: 65 00 61 00 64 00 74 00 65 00 6b 00 30 03 57 00
+>  70: 69 00 6e 00 46 00 61 00 73 00 74 00 20 00 44 00
+>  80: 54 00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00
+>  90: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00
+>  a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00
+>  b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff
+>  c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  af9015_read_config: xtal:2 set adc_clock:28000
+>  af9015_read_config: tuner id1:156
+>  af9015_read_config: spectral inversion:0
+>  af9015_set_gpios:
+>  af9013: firmware version:4.95.0
+>  DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
+>  af9015_tuner_attach:
+>  tda18271_tuner_attach:
+>  tda18271 5-00c0: creating new instance
+>
+> TDA18271HD/C1 detected @ 5-00c0
+>  input: IR-receiver inside an USB DVB receiver as /class/input/input34
+>  dvb-usb: schedule remote query interval to 200 msecs.
+>  dvb-usb: Leadtek Winfast DTV Dongle Gold successfully initialized and connected.
+>  af9015_init:
+>  af9015_download_ir_table:
+>  input: Leadtek WinFast DTV Dongle Gold as /class/input/input35
+>  input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
+>  usb-0000:00:02.1-10
+>
+>
+>
+>  This is channel 7's entry in channels.conf:
+>  7 Digital:177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:514:1312
 
-On Tue, 2008-03-11 at 22:03 +0000, Philip Pemberton wrote:
-> ivor@ivor.org wrote:
-> > Not sure if this helps or adds that much to the discussion... (I
-> think this was concluded before)
-> > But I finally switched back to kernel 2.6.22.19 on March 5th (with
-> current v4l-dvb code) and haven't had any problems with the Nova-t 500
-> since. Running mythtv with EIT scanning enabled.
-> 
-> Is this a distribution kernel, or one built from virgin (i.e.
-> unmodified from 
-> www.kernel.org or one of the mirrors) source code?
-> 
-> Is there any possibility of you uploading your .config file somewhere?
-> I'm 
-> curious what kernel options you have set.. especially USB_SUSPEND
-> (USB 
-> autosuspend -- not sure if this was added to 2.6.24 or if .22 had it
-> as well; 
-> I don't have a .22 source tree at the moment).
-> 
-> I'm building a kernel from the 2.6.24.2 virgin source on Ubuntu to do
-> some 
-> testing; I'd like to prove that the problem exists in 2.6.24 proper
-> before 
-> screaming "kernel bug". But if 2.6.22 works, a bug is looking more and
-> more 
-> likely.
-> 
 
-My Ubuntu-provided 2.6.22 works fine.
+Jarryd,
 
-And I am not losing any tuner. Not even with the Multirec of MythTV
-0.21.
+I've analyzed the snoop that you've taken of the windows driver, and I
+conclude that the driver is basically doing exactly the same that the
+linux driver would do.  The only thing that I cannot verify is whether
+or not the tda18211 uses the same table values as the tda18271c1.
+Based on the traffic in your snoop, it looks like the exact same
+algorithm is used, but based on a new set of tables -- I will not be
+able to confirm that without a tda18211 datasheet.  The only thing
+that you can do is try the tda18271 driver and hopefully it will work.
 
-Nico
+Have you tried to tune yet?  There is a space in your channels.conf,
+"7 Digital" -- you may want to change that to something like,
+"7Digital" so that command line applications will work.
 
+Good Luck,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
