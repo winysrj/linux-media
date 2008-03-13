@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n45.bullet.mail.ukl.yahoo.com ([87.248.110.178])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JXNmS-0001mn-Nj
-	for linux-dvb@linuxtv.org; Thu, 06 Mar 2008 22:37:42 +0100
-Date: Thu, 06 Mar 2008 17:33:14 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from fg-out-1718.google.com ([72.14.220.154])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rpooser@gmail.com>) id 1JZcbk-0000YB-Vb
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 02:51:51 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so2545382fge.25
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 18:51:45 -0700 (PDT)
+Message-ID: <b5c3de730803121851ifb30923tbb761ce1b2520119@mail.gmail.com>
+Date: Wed, 12 Mar 2008 21:51:44 -0400
+From: raphy <rpooser@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <4FE634A7-9896-44C0-92A4-7B19E3ECB782@krastelcom.ru>
-In-Reply-To: <4FE634A7-9896-44C0-92A4-7B19E3ECB782@krastelcom.ru> (from
-	vpr@krastelcom.ru on Thu Mar  6 06:37:12 2008)
-Message-Id: <1204839194l.6185l.0l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re : Decrypting multiple services with a professional
- CAM module and VLC
+Subject: [linux-dvb] HVR-1250: detected ok but can't tune or get video
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,29 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/06/2008 06:37:12 AM, Vladimir Prudnikov wrote:
-> Anyone having luck decrypting 5-8 or more services with professional  
-> CA modules (Smit, Aston) using a DVB card and VLC?
-> I can get only 4 with an 8 services module from SMIT.
-> 
-> Regards,
-> Vladimir
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> 
-> 
+Hi all,
+A while back I reported I was having problems with compiling drivers
+for a HVR-1250.
+I got the drivers compiled recently using the latest source from
+v4l-dvb. I saw that cx23885 loaded and detected the card ok, so I
+tried watching video in mythtv, to no avail. I then tried dumping
+/dev/dvb/adaptor0/dvr0 to a file and got something 0KB in size. Also
+using azap, I don't get a lock...
 
-Just out of curiosity, how much does a 4-services aston (mediaguard) 
-cost please?
-Thx
-Bye
-Manu
+But the card seems to be loading drivers ok.
+the output of "dmesg |grep cx" gives the following:
+[ 1230.386126] cx23885 driver version 0.0.1 loaded
+[ 1230.386186] CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge
+WinTV-HVR1250 [card=3,autodetected]
+[ 1230.487835] cx23885[0]: i2c bus 0 registered
+[ 1230.487852] cx23885[0]: i2c bus 1 registered
+[ 1230.487863] cx23885[0]: i2c bus 2 registered
+[ 1230.514568] cx23885[0]: warning: unknown hauppauge model #0
+[ 1230.514569] cx23885[0]: hauppauge eeprom: model=0
+[ 1230.514571] cx23885[0]: cx23885 based dvb card
+[ 1230.575799] DVB: registering new adapter (cx23885[0])
+[ 1230.575944] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[ 1230.575950] cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17,
+latency: 0, mmio: 0xfd000000
 
+So It looks like the card should be working. However, the output of azap shows:
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 677028615 Hz
+video pid 0x0031, audio pid 0x0034
+status 00 | signal 0082 | snr 0087 | ber 00000000 | unc 00000000 |
+status 00 | signal 0087 | snr 0087 | ber 00000000 | unc 00000000 |
+status 00 | signal 007d | snr 007d | ber 00000000 | unc 00000000 |
+status 00 | signal 0082 | snr 0082 | ber 00000000 | unc 00000000 |
+status 00 | signal 0087 | snr 0087 | ber 00000000 | unc 00000000 |
+status 00 | signal 0082 | snr 0082 | ber 00000000 | unc 00000000 |
 
+and so on. I never get FE_HAS_LOCK, which seems to mean that my tuner
+can't actually change channels or tune a particular one...?
+The next thing I tried was upgrading my kernel to 2.6.24, because I
+read that the HVR-1250 is supported in this kernel. However, still no
+luck, and I get the same output of azap and can't seem to watch TV.
+
+I'm stumped at this point, can anyone see what I'm doing wrong?
+
+Cheers,
+Raphael
 
 _______________________________________________
 linux-dvb mailing list
