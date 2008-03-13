@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f130.mail.ru ([194.67.57.132])
+Received: from py-out-1112.google.com ([64.233.166.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JeOwQ-0007d9-BG
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 07:16:56 +0100
-From: Igor <goga777@bk.ru>
-To: Timothy D. Lenz <tlenz@vorgon.com>
-Mime-Version: 1.0
-Date: Wed, 26 Mar 2008 09:16:29 +0300
-References: <001d01c88eac$9e7adbb0$0a00a8c0@vorg>
-In-Reply-To: <001d01c88eac$9e7adbb0$0a00a8c0@vorg>
-Message-Id: <E1JeOw1-0009OT-00.goga777-bk-ru@f130.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?Q29tcGlsZSBwcm9ibGVtIHdpdGggaGcgZHZiLWFw?=
-	=?koi8-r?b?cHM=?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <mariofutire@googlemail.com>) id 1JZvCq-0003LH-J6
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 22:43:25 +0100
+Received: by py-out-1112.google.com with SMTP id a29so4130164pyi.0
+	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 14:43:11 -0700 (PDT)
+Message-ID: <47D99FE8.80903@googlemail.com>
+Date: Thu, 13 Mar 2008 21:43:04 +0000
+From: Andrea <mariofutire@googlemail.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,29 +18,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiB2b3JnQHg2NFZEUjovdXNyL2xvY2FsL3NyYy9WRFIvc2Nhbi9kdmItYXBwcyQgbWFrZQo+IG1h
-a2UgLUMgbGliIGFsbAo+IG1ha2VbMV06IEVudGVyaW5nIGRpcmVjdG9yeSBgL3Vzci9sb2NhbC9z
-cmMvVkRSL3NjYW4vZHZiLWFwcHMvbGliJwo+IG1ha2UgLUMgbGliZHZiYXBpIGFsbAo+IG1ha2Vb
-Ml06IEVudGVyaW5nIGRpcmVjdG9yeSBgL3Vzci9sb2NhbC9zcmMvVkRSL3NjYW4vZHZiLWFwcHMv
-bGliL2xpYmR2YmFwaScKPiBDQyBkdmJhdWRpby5vCj4gQ0MgZHZiY2Eubwo+IENDIGR2YmRlbXV4
-Lm8KPiBDQyBkdmJmZS5vCj4gQ0MgZHZibmV0Lm8KPiBDQyBkdmJ2aWRlby5vCj4gSW4gZmlsZSBp
-bmNsdWRlZCBmcm9tIGR2YnZpZGVvLmM6Mjg6Cj4gL3Vzci9pbmNsdWRlL2xpbnV4L2R2Yi92aWRl
-by5oOjEwMDogZXJyb3I6IGV4cGVjdGVkIHNwZWNpZmllci1xdWFsaWZpZXItbGlzdAo+IGJlZm9y
-ZSDiX191MzLiCj4gbWFrZVsyXTogKioqIFtkdmJ2aWRlby5vXSBFcnJvciAxCj4gbWFrZVsyXTog
-TGVhdmluZyBkaXJlY3RvcnkgYC91c3IvbG9jYWwvc3JjL1ZEUi9zY2FuL2R2Yi1hcHBzL2xpYi9s
-aWJkdmJhcGknCj4gbWFrZVsxXTogKioqIFthbGxdIEVycm9yIDIKPiBtYWtlWzFdOiBMZWF2aW5n
-IGRpcmVjdG9yeSBgL3Vzci9sb2NhbC9zcmMvVkRSL3NjYW4vZHZiLWFwcHMvbGliJwo+IG1ha2U6
-ICoqKiBbYWxsXSBFcnJvciAyCgpwbGVhc9UgdHJ5IHRvIGNvcHkgdGhlIHVwZGF0ZWQgZHZiLWxp
-bnV4LWtlcm5lbHMgZnJvbSAvZHZiLWFwcHMvaW5jbHVkZS8gdG8gIC91c3IvaW5jbHVkZS9saW51
-eC9kdmIvIGFuZCByZWNvbXBpbGUgdGhlIGR2Yi1hcHBzCgpJIG1lYW50IHRoaXMgaGVhZGVycwpo
-dHRwOi8vbGludXh0di5vcmcvaGcvZHZiLWFwcHMvZmlsZS8yNjg2YzA4MGUwYjUvaW5jbHVkZS8K
-CmF1ZGlvLmgKY2EuaApkbXguaApmcm9udGVuZC5oCm5ldC5oCm9zZC5oCnZlcnNpb24uaAp2aWRl
-by5oIAoKSWdvcgoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+ > -----Original Message-----
+ > Thank you everybody for the answers so far, I do have enough software-based
+ > solutions to start testing.
+ > However, there's still the question: can filtering be done in the driver?
+
+Have you read my last post?
+
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024456.html
+
+When I talk about filter, demux, dvr, this is all in the kernel driver for the dvb.
+
+You can find here an example of how to open the demux to get 1 PID.
+You can run it multiple times and get as many streams as you want
+
+http://www.audetto.pwp.blueyonder.co.uk/dvb.cpp
+
+ > Are there any drivers that support this or which dvb-api-functions need to
+ > be implemented?
+
+If you want to extend the driver for the dvb, I'd like to be able to set a filter in the demux for 
+more that 1 pid at a time.
+
+Good luck.
+
+Andrea
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
