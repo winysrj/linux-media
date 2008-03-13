@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n37.bullet.mail.ukl.yahoo.com ([87.248.110.170])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JcVQV-0001PZ-9d
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 01:48:07 +0100
-Date: Thu, 20 Mar 2008 20:47:17 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <47E2FBD2.2080305@konto.pl>
-In-Reply-To: <47E2FBD2.2080305@konto.pl> (from gasiu@konto.pl on Thu Mar 20
-	20:05:38 2008)
-Message-Id: <1206060438l.15799l.0l@manu-laptop>
+Received: from hs-out-0708.google.com ([64.233.178.250])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1JZkGK-0005lM-Sw
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 11:02:13 +0100
+Received: by hs-out-0708.google.com with SMTP id 4so2986397hsl.1
+	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 03:02:07 -0700 (PDT)
+Message-ID: <d9def9db0803130302x5aaa0c5bi97b731ded0886b78@mail.gmail.com>
+Date: Thu, 13 Mar 2008 11:02:06 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Craig Marshall" <craig9@gmail.com>
+In-Reply-To: <a081327a0803130248t1f3b95aay10fa1e3d07ba9e49@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re :  Multiproto szap lock, but video file is empty
+References: <a081327a0803130248t1f3b95aay10fa1e3d07ba9e49@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Elgato EyeTV Hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +28,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/20/2008 08:05:38 PM, Gasiu wrote:
-> i've got SkystarHD, Ubuntu64 and multiproto-ecb96c96a69e - after 
-> patching szap.c
-> 
-> I can szap a channel:
-> 
->  ./szap polsat2
+On 3/13/08, Craig Marshall <craig9@gmail.com> wrote:
+> Hi,
+>
+> Does anyone know if it's possible to use the Elgato EyeTV Hybrid (a
+> mac device) with Linux?
+>
 
-Try
+The device should be supported as far as I know, it's an Empiatech
+based device. Go to mcentral.de for further information.
 
-szap -r polsat2
-    ^^^
-
-Also if the channels are encrypted you need another util to control the 
-CI/CAM
-Bye
-Manu
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
