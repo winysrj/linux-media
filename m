@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m210Iqj3031106
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 19:18:52 -0500
-Received: from QMTA02.emeryville.ca.mail.comcast.net
-	(qmta02.emeryville.ca.mail.comcast.net [76.96.30.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m210IJnd028398
-	for <video4linux-list@redhat.com>; Fri, 29 Feb 2008 19:18:20 -0500
-Message-ID: <47C8A0C9.4020107@personnelware.com>
-Date: Fri, 29 Feb 2008 18:18:17 -0600
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: [patch] vivi: registered as /dev/video%d
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DE1VfS007907
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 10:01:31 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2DE0jmO013385
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 10:00:45 -0400
+Date: Thu, 13 Mar 2008 11:00:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: emhn@usb.ve
+Message-ID: <20080313110019.0181297c@gaivota>
+In-Reply-To: <1205409776.20876.34.camel@trillian.ius.cc>
+References: <1205409776.20876.34.camel@trillian.ius.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Support for a 16-channel bt878 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,42 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Now that vivi can be something other than /dev/video0, it should tell us what it 
-  is.  This works for n_devs>1.
+On Thu, 13 Mar 2008 07:32:56 -0430
+Ernesto Hernández-Novich <emhn@usb.ve> wrote:
 
-sudo modprobe vivi n_devs=3
+> Signed-off-by: Ernesto Hernández-Novich <emhn@usb.ve>
+> 
 
-[115041.616401] vivi: V4L2 device registered as /dev/video0
-[115041.616445] vivi: V4L2 device registered as /dev/video1
-[115041.616481] vivi: V4L2 device registered as /dev/video2
-[115041.616486] Video Technology Magazine Virtual Video Capture Board 
-successfully loaded.
+Applied, thanks. There were just a small CodingStyle error that I fixed on the
+applied patch. Please, run "make checkpatch" next time.
 
-Carl K
+> I have made no efforts yet to get audio working, but would appreciate
+> any pointers.
 
+There are two possibilities:
 
-diff -r 127f67dea087 linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c  Tue Feb 26 20:43:56 2008 +0000
-+++ b/linux/drivers/media/video/vivi.c  Fri Feb 29 18:15:01 2008 -0600
-@@ -47,6 +47,8 @@
-  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 20)
-  #include <linux/freezer.h>
-  #endif
-+
-+#define MODULE_NAME "vivi"
+1) if the board has an audio chip, you'll have to use it and configure;
+2) otherwise, you just need to set the proper GPIO pins to enable audio. I suspect that this would be your case.
+This page may help you to figure out the proper values for GPIO:
+	http://www.linuxtv.org/v4lwiki/index.php/GPIO_pins
 
-  /* Wake up at about 30 fps */
-  #define WAKE_NUMERATOR 30
-@@ -1338,6 +1340,7 @@ static int __init vivi_init(void)
-                         video_nr++;
-
-                 dev->vfd = vfd;
-+               printk(KERN_INFO "%s: V4L2 device registered as /dev/video%d\n", 
-MODULE_NAME, vfd->minor);
-         }
-
-         if (ret < 0) {
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
