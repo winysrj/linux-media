@@ -1,26 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from eir.is.scarlet.be ([193.74.71.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1Jagxw-0006yH-PR
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 01:43:10 +0100
-Message-ID: <47DC6D11.6010004@linuxtv.org>
-Date: Sat, 15 Mar 2008 20:42:57 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <ben@bbackx.com>) id 1JZlAn-0001k4-Ja
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 12:00:34 +0100
+Received: from fry (ip-81-11-185-209.dsl.scarlet.be [81.11.185.209])
+	by eir.is.scarlet.be (8.14.2/8.14.2) with ESMTP id m2DB0R8g018923
+	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 12:00:28 +0100
+From: "Ben Backx" <ben@bbackx.com>
+To: <linux-dvb@linuxtv.org>
+References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
+	<21776.81.144.130.125.1205324398.squirrel@manicminer.homeip.net>
+	<20080313062848.GC17780@tkukoulu.fi>
+In-Reply-To: <20080313062848.GC17780@tkukoulu.fi>
+Date: Thu, 13 Mar 2008 12:00:19 +0100
+Message-ID: <004401c884f9$6e37c150$4aa743f0$@com>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	
-	<47DAC42D.7010306@iki.fi> <47DAC4BE.5090805@iki.fi>	
-	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	
-	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	
-	<47DBDB9F.5060107@iki.fi>	
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	
-	<47DC64F4.9070403@iki.fi>	
-	<abf3e5070803151727o55dcc0d1q82bac14352330fd7@mail.gmail.com>	
-	<47DC6BC6.4080307@iki.fi>
-	<abf3e5070803151740o27c1cb0axd6f1eb2d1ad76721@mail.gmail.com>
-In-Reply-To: <abf3e5070803151740o27c1cb0axd6f1eb2d1ad76721@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Content-Language: en-gb
+Subject: Re: [linux-dvb] Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,50 +30,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> On Sun, Mar 16, 2008 at 11:37 AM, Antti Palosaari <crope@iki.fi> wrote:
->   
->> Jarryd Beck wrote:
->>  > Here's the first frequency it tuned to, as you can see the
->>  > one you set auto on is still auto, it didn't seem to autodetect
->>  > anything. It was the same for all the other frequencies as well.
->>  >
->>  >>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_1_16:HIERARCHY_NONE
->>  > WARNING: >>> tuning failed!!!
->>  >>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_1_16:HIERARCHY_NONE
->>  > (tuning failed)
->>  > WARNING: >>> tuning failed!!!
->>
->>  It does not matter what scan outputs as tuning parameters because it
->>  just shows same parameter that are set by used tuning file (at least
->>  when tuning fails). Driver will still try to auto detect correct
->>  parameters. In this case it still fails for reason or other that is not
->>  found yet.
->>
->>
->>
->>  regards
->>  Antti
->>  --
->>  http://palosaari.fi/
->>
->>     
->
-> So the fact that it failed isn't actually telling us anything extra then?
-> Would it only have been useful if it had actually worked?
-> Also just to make sure I'm using the right drivers here, I'm using
-> Michael's patch and not Antti's patch. Since it kernel oopses with
-> both, Antti, do you want me to try with just your patch and not
-> Michael's?
->
-> Jarryd.
->   
-You need to use that patch of mine because I dont think the af9015 i2c
-likes 39-byte i2c transfers.  The patch that I sent to you breaks the
-tda182x1 register initialization into 16 register chunks.
 
--Mike
+> -----Original Message-----
+> From: Tero Pelander [mailto:tpeland@tkukoulu.fi]
+> Sent: 13 March 2008 07:29
+> To: Ben Backx
+> Subject: Re: [linux-dvb] Implementing support for multi-channel
+> 
+> On Wed, Mar 12, 2008 at 12:19:58PM -0000, Stephen Rowles wrote:
+> >> I was wondering if there's some info to find on how to implement
+> (and
+> >> test) multi-channel receiving?
+> 
+> One such program that is easy to understand due to modularity is
+> dvbyell. It has separate code for tuner part and separate code for
+> splitting MPTS (multiple program transport stream) into many single
+> program transport streams.
+> 
+> http://www.dvbyell.org/
 
+
+Thank you everybody for the answers so far, I do have enough software-based
+solutions to start testing.
+However, there's still the question: can filtering be done in the driver?
+Are there any drivers that support this or which dvb-api-functions need to
+be implemented?
+
+Regards,
+Ben
 
 
 _______________________________________________
