@@ -1,25 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.182])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JfMeg-0007Co-C4
-	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 23:02:35 +0100
-Received: by py-out-1112.google.com with SMTP id a29so518279pyi.0
-	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 15:02:28 -0700 (PDT)
-Message-ID: <19a3b7a80803281502p619d2162rf36581871deac680@mail.gmail.com>
-Date: Fri, 28 Mar 2008 23:02:27 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "Arthur Konovalov" <kasjas@hot.ee>
-In-Reply-To: <47ED538C.4090302@hot.ee>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_11266_33248372.1206741748095"
-References: <200803212024.17198.christophpfister@gmail.com>
-	<200803281535.57209.christophpfister@gmail.com>
-	<47ED0962.20701@hot.ee>
-	<200803281816.10525.christophpfister@gmail.com>
-	<47ED538C.4090302@hot.ee>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+3270550f2f8d24d48394+1663+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JZohz-0000bT-KZ
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 15:47:03 +0100
+Date: Thu, 13 Mar 2008 11:46:33 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Richard (MQ)" <osl2008@googlemail.com>
+Message-ID: <20080313114633.494bc7b1@gaivota>
+In-Reply-To: <47B1E22D.4090901@googlemail.com>
+References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
+	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
+	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
+	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
+	<20080207184221.1ea8e823@gaivota> <47ACA9AA.4090702@googlemail.com>
+	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
+	<47B1E22D.4090901@googlemail.com>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,90 +27,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_11266_33248372.1206741748095
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi Richard,
 
-2008/3/28, Arthur Konovalov <kasjas@hot.ee>:
-> Christoph Pfister wrote:
->  > Am Freitag 28 M=E4rz 2008 schrieb Arthur Konovalov:
->  > Try removing the following three lines from
->  > linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c and see whether it w=
-orks:
->  >
->  > 989                           /* clear down an old CI slot if necessar=
-y */
->  > 990                           if (ca->slot_info[slot].slot_state !=3D =
-DVB_CA_SLOTSTATE_NONE)
->  > 991                                   dvb_ca_en50221_slot_shutdown(ca,=
- slot);
->
->  Done.
->
->  > If it doesn't work load budget-core with module param debug=3D255 and =
-dvb-core
->  > with module param cam_debug=3D1 (likely you need to unload them first)=
-; please
->  > paste dmesg in any case.
->
->  I haven't xine GUI at moment, but regarding to logs I suspect that it
->  doesn't works...
+On Tue, 12 Feb 2008 18:15:09 +0000
+"Richard (MQ)" <osl2008@googlemail.com> wrote:
 
-Hmm.
-Can you please try the attached patch (still with the modification
-described above ^^) and send dmesg?
+Sorry for a late answer. Too busy from my side :(
 
->  Attached files are:
->  dmesg_load_modules - dmesg after modules load.
->  dmesg_start_vdr - dmesg after vdr start.
->  syslog - syslog after vdr start.
->
->  I noticed some suspicious rows in logs:
->
->  budget_av: saa7113_init(): saa7113 not found on KNC card
+> > please forward the errors that it might produce. You may forward the full dmesg
+> > errors to me in priv directly. I prefer if you don't generate a tarball, since
+> > makes easier for me to comment, the results, if needed.
 
-That's no problem.
+> Feb 12 18:03:26 DevBox2400 klogd: saa7133[0]: i2c scan: found device @ 0x1e  [???]
+> Feb 12 18:03:26 DevBox2400 klogd: saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
 
->  DVB: TDA10021(0): _tda10021_writereg, writereg error (reg =3D=3D 0x01, v=
-al
->  =3D=3D 0x6a, ret =3D=3D -121)
+The issue here is that tuner-xc3028 weren't detected. It should have found a
+device at 0xc2.
 
-That's also present in your original log ...
+This could happen on two cases:
 
->  I hope it helps and wish quick solution :) .
->
->  Regards,
->
-> Arthur
+1) Some saa713x GPIO is needed before we can see xc3028. The better would be to
+take a look on what windows driver is doing with GPIO's. This link helps you to
+understand what should be done on windows:
 
-Christoph
+http://www.linuxtv.org/v4lwiki/index.php/GPIO_pins
 
-------=_Part_11266_33248372.1206741748095
-Content-Type: text/plain; name=patch.diff
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fedasff3
-Content-Disposition: attachment; filename=patch.diff
+2) You need to open an i2c gate on your demod chip. In this case, some commands
+need to be sent to your demod for it to open the i2c gate. 
 
-ZGlmZiAtciAwNzc2ZTQ4MDE5OTEgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVkZ2V0
-LWF2LmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVkZ2V0LWF2LmMJRnJp
-IE1hciAyOCAxNDo1Mjo0NCAyMDA4IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZi
-L3R0cGNpL2J1ZGdldC1hdi5jCUZyaSBNYXIgMjggMjI6NDA6MjIgMjAwOCArMDEwMApAQCAtMjQx
-LDYgKzI0MSw4IEBAIHN0YXRpYyBpbnQgY2lpbnRmX3Nsb3Rfc2h1dGRvd24oc3RydWN0IGQKIAog
-CWlmIChzbG90ICE9IDApCiAJCXJldHVybiAtRUlOVkFMOworCisJV0FSTl9PTigxKTsKIAogCWRw
-cmludGsoMSwgImNpaW50Zl9zbG90X3NodXRkb3duXG4iKTsKIAo=
-------=_Part_11266_33248372.1206741748095
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I suspect that, on your case, it is (1). Please try the enclosed patch.
+
+---
+
+Enable GPIO's for AV A16D
+
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+
+diff -r 3580392c30da linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Mar 13 10:57:22 2008 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Mar 13 11:43:45 2008 -0300
+@@ -5499,6 +5499,7 @@ int saa7134_board_init1(struct saa7134_d
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+ 	case SAA7134_BOARD_AVERMEDIA_M115:
+ 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
++	case SAA7134_BOARD_AVERMEDIA_A16D:
+ 		/* power-up tuner chip */
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0xffffffff, 0xffffffff);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0xffffffff, 0xffffffff);
+
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_11266_33248372.1206741748095--
