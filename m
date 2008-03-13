@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
+Received: from ti-out-0910.google.com ([209.85.142.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rpooser@gmail.com>) id 1JZcbk-0000YB-Vb
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 02:51:51 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so2545382fge.25
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 18:51:45 -0700 (PDT)
-Message-ID: <b5c3de730803121851ifb30923tbb761ce1b2520119@mail.gmail.com>
-Date: Wed, 12 Mar 2008 21:51:44 -0400
-From: raphy <rpooser@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <jarro.2783@gmail.com>) id 1JZd3w-0003ii-Rs
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 03:21:03 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1380732tia.13
+	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 19:20:52 -0700 (PDT)
+Message-ID: <abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>
+Date: Thu, 13 Mar 2008 13:20:51 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47D86336.2070200@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] HVR-1250: detected ok but can't tune or get video
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47D847AC.9070803@linuxtv.org>
+	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>
+	<47D86336.2070200@iki.fi>
+Cc: linux-dvb@linuxtv.org, mkrufky@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,52 +31,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
-A while back I reported I was having problems with compiling drivers
-for a HVR-1250.
-I got the drivers compiled recently using the latest source from
-v4l-dvb. I saw that cx23885 loaded and detected the card ok, so I
-tried watching video in mythtv, to no avail. I then tried dumping
-/dev/dvb/adaptor0/dvr0 to a file and got something 0KB in size. Also
-using azap, I don't get a lock...
+On Thu, Mar 13, 2008 at 10:11 AM, Antti Palosaari <crope@iki.fi> wrote:
+> Jarryd Beck wrote:
+>  > On Thu, Mar 13, 2008 at 8:14 AM,  <mkrufky@linuxtv.org> wrote:
+>
+> >>  Then, please turn ON debug, repeat your tests, and post again with
+>  >>  dmesg.  I am not familiar with the af9015 driver, but for tda18271, set
+>  >>  debug=1.  (you must unload all modules first -- do 'make unload' in the
+>  >>  v4l-dvb dir, then replug your device)
+>  >>
+>  >>  -Mike
+>  >>
+>  >>
+>  >
+>  > Sorry I'm unsure where to set debug.
+>  >
+>  > Jarryd.
+>
+>  I added initial support for this tda-tuner to the driver. Jarryd, can
+>  you test?
+>  http://linuxtv.org/hg/~anttip/af9015_new/
+>
+>  There is debug switch in af9013 module that may be helpful if it does
+>  not work. You can enable it as described or if it is too hard to play
+>  with modprobe just edit af9013.c file in frontend directory and set
+>  debug=1 by hard coding.
+>  If it does not work you can also try set GPIO3 setting (af9015) to 0xb
+>  instead 0x3 used currently. Also try to change rf-spectral inversion to
+>  see if it helps. Firmware should be ok and all other settings as well as
+>  I can see from usb-sniffs. With little lucky it should start working.
+>
+>  regards
+>  Antti
+>  --
+>  http://palosaari.fi/
+>
 
-But the card seems to be loading drivers ok.
-the output of "dmesg |grep cx" gives the following:
-[ 1230.386126] cx23885 driver version 0.0.1 loaded
-[ 1230.386186] CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge
-WinTV-HVR1250 [card=3,autodetected]
-[ 1230.487835] cx23885[0]: i2c bus 0 registered
-[ 1230.487852] cx23885[0]: i2c bus 1 registered
-[ 1230.487863] cx23885[0]: i2c bus 2 registered
-[ 1230.514568] cx23885[0]: warning: unknown hauppauge model #0
-[ 1230.514569] cx23885[0]: hauppauge eeprom: model=0
-[ 1230.514571] cx23885[0]: cx23885 based dvb card
-[ 1230.575799] DVB: registering new adapter (cx23885[0])
-[ 1230.575944] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[ 1230.575950] cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 17,
-latency: 0, mmio: 0xfd000000
+Thanks, but now for some reason all I get is this:
 
-So It looks like the card should be working. However, the output of azap shows:
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 677028615 Hz
-video pid 0x0031, audio pid 0x0034
-status 00 | signal 0082 | snr 0087 | ber 00000000 | unc 00000000 |
-status 00 | signal 0087 | snr 0087 | ber 00000000 | unc 00000000 |
-status 00 | signal 007d | snr 007d | ber 00000000 | unc 00000000 |
-status 00 | signal 0082 | snr 0082 | ber 00000000 | unc 00000000 |
-status 00 | signal 0087 | snr 0087 | ber 00000000 | unc 00000000 |
-status 00 | signal 0082 | snr 0082 | ber 00000000 | unc 00000000 |
+usb 2-10: new high speed USB device using ehci_hcd and address 6
+usb 2-10: configuration #1 chosen from 1 choice
+input: Leadtek WinFast DTV Dongle Gold as /class/input/input8
+input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
+usb-0000:00:02.1-10
+af9015_usb_probe:
+af9015_identify_state: reply:01
+dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state,
+will try to load a firmware
+dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+af9015_download_firmware:
+usbcore: registered new interface driver dvb_usb_af9015
 
-and so on. I never get FE_HAS_LOCK, which seems to mean that my tuner
-can't actually change channels or tune a particular one...?
-The next thing I tried was upgrading my kernel to 2.6.24, because I
-read that the HVR-1250 is supported in this kernel. However, still no
-luck, and I get the same output of azap and can't seem to watch TV.
-
-I'm stumped at this point, can anyone see what I'm doing wrong?
-
-Cheers,
-Raphael
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
