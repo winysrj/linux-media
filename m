@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2OCWQjG010440
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:32:26 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2OCVoFa003329
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:31:51 -0400
-Received: by ug-out-1314.google.com with SMTP id t39so1909372ugd.6
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 05:31:50 -0700 (PDT)
-Message-ID: <226dee610803240531g2c27e1s7a475309c9709e48@mail.gmail.com>
-Date: Mon, 24 Mar 2008 18:01:49 +0530
-From: "JoJo jojo" <onetwojojo@gmail.com>
-To: Ram <vshrirama@gmail.com>
-In-Reply-To: <8bf247760803240521mfde8dd0l9ee16106c88f2283@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <8bf247760803240521mfde8dd0l9ee16106c88f2283@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: firmware update camera doubts
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DN4tC4001088
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 19:04:55 -0400
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2DN4LYH017595
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 19:04:22 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1205448483.6359.15.camel@pc08.localdom.local>
+References: <47C40563.5000702@claranet.fr> <200803111839.01690.zzam@gentoo.org>
+	<1205281560.5927.119.camel@pc08.localdom.local>
+	<200803131655.46384.zzam@gentoo.org> <20080313145901.6e4247b6@gaivota>
+	<1205448483.6359.15.camel@pc08.localdom.local>
+Content-Type: text/plain; charset=utf-8
+Date: Thu, 13 Mar 2008 23:56:27 +0100
+Message-Id: <1205448987.6359.19.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, g.liakhovetski@pengutronix.de,
+	Brandon Philips <bphilips@suse.de>
+Subject: Re: kernel oops since changeset e3b8fb8cc214
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,31 +32,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Mar 24, 2008 at 5:51 PM, Ram <vshrirama@gmail.com> wrote:
+Am Donnerstag, den 13.03.2008, 23:48 +0100 schrieb hermann pitton:
 > Hi,
->    Im writing a camera sensor driver for omap - which needs to update
->  a firmware to the camera.
->   The firmware size is around 50K bytes.
->
->    Which is the best place to update firmware in the sensor driver in
->  the latest V4L2 for linux-2.6.23?
->
->    Should it be done in XXX_configure function or after power_on ( );
->
->   Some drivers do common initializations in the XXX_configure function.
->   But am not really sure if XXX_configure is the right place since updating
->   firmware takes time (approx 5/10 seconds)
->
->
->   Please advice,
->
->
->  Regards,
->  sriram
+> 
+> Am Donnerstag, den 13.03.2008, 14:59 -0300 schrieb Mauro Carvalho
+> Chehab:
+> > On Thu, 13 Mar 2008 16:55:45 +0100
+> > Matthias Schwarzott <zzam@gentoo.org> wrote:
+> > 
+> > > On Mittwoch, 12. März 2008, hermann pitton wrote:
+> > > >
+> > > > Hi Matthias,
+> > > >
+> > > > since I know you are active also on saa713x devices,
+> > > > have you seen it there, on 32 or 64bit ?
+> > > >
+> > > I do work on a driver for avermedia A700 based on saa7134 chip.
+> > > There I did not notice this oops on my 32bit system.
+> > > 
+> > > > It seems to be restricted to cx88 and risc memory there for now?
+> > > 
+> > > No idea about internals of cx88, sorry.
+> > 
+> > cx88 videobuf IRQ handling is a bit different. However, most of the code is equal.
+> > 
+> > Cheers,
+> > Mauro
+> 
+> definitely I'm not enough into it to be of much help soon, especially
+> not for cx88xx and to answer offhand if Guennadi has the bug already,
+> starting obviously with errors in the irq handler there.
+> 
+> Thanks Matthias for your report, we seem to have the same. On my
+> uniprocessor 32bit 2.6.25-rc5 stuff and saa7131e, running since lunch
+> with DVB-T and analog video at once, all seems to be normal and still
+> totally stable.
 
-after its initialized, update the firmware & reset the camera/device
+Sorry, more precise, head is
 
--JoJo
+changeset:   7361:d1654ab5f056
+tag:         tip
+parent:      7345:26f5691b7548
+parent:      7360:3fa8325a8359
+user:        Mauro Carvalho Chehab <mchehab@infradead.org>
+date:        Mon Mar 10 11:27:26 2008 -0300
+summary:     merge: http://linuxtv.org/hg/~mkrufky/tuner
+
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
