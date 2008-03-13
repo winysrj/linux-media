@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hs-out-0708.google.com ([64.233.178.243])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JZDgT-0003WP-0W
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 00:15:07 +0100
-Received: by hs-out-0708.google.com with SMTP id 4so2375796hsl.1
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 16:14:56 -0700 (PDT)
-Message-ID: <47D71267.3090901@googlemail.com>
-Date: Tue, 11 Mar 2008 23:14:47 +0000
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+Received: from web30501.mail.mud.yahoo.com ([68.142.200.114])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ras243-dvb@yahoo.com>) id 1JZauQ-0007AA-7p
+	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 01:02:59 +0100
+Date: Thu, 13 Mar 2008 11:02:04 +1100 (EST)
+From: <ras243-dvb@yahoo.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dvb fronted: LOCK but no data received.
+In-Reply-To: <mailman.135.1205356481.830.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <738609.52822.qm@web30501.mail.mud.yahoo.com>
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Reply-To: ras243-dvb@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,25 +24,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
+> status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
 
-I'd like to understand the behavior and meaning of the LOCK returned by the fronted.
+I'm not familiar enough with the hardware and I don't know if this will help
+but this is the same thing I was seeing when I was getting the dvico dual
+digital 4 working in Australia.  It wasn't a problem with the tuner but rather
+a sampling frequency issue with the demodulator.  I'm posting this after a
+digest message so ignore this if you've already sorted it out.
 
-If I open the fronted in readonly, and ask for the INFO, it is possible that I get a LOCK but no 
-data is actually received.
+Regards,
+Roger.
 
-This because the fronted receives data ONLY while it is opened in READ/WRITE.
-
-In dvb_frontend.c, in dvb_frontend_open, the fronted is started via
-dvb_frontend_start
-only if it opened in READ/WRITE.
-
-I see it as a misbehavior:
-
-1) either a LOCK should NOT be returned
-2) or the frontend should be started in any case (even if READ only)
-
-Which ioctl call should I use to know if the fronted is currently active?
+Send instant messages to your online friends http://au.messenger.yahoo.com 
 
 _______________________________________________
 linux-dvb mailing list
