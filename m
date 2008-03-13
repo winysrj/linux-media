@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2EGjf7P030508
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:45:41 -0400
-Received: from smtp01.cdmon.com (smtp01.cdmon.com [212.36.75.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2EGj9xJ006043
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:45:10 -0400
-Received: from [192.168.1.152] (68.59.219.87.dynamic.jazztel.es [87.219.59.68])
-	by smtp01.cdmon.com (Postfix) with ESMTP id A0A41F75E6
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 17:45:06 +0100 (CET)
-From: Jordi Moles Blanco <jordi@cdmon.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Fri, 14 Mar 2008 17:45:00 +0100
-Message-Id: <1205513100.6038.12.camel@jordipc>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2DMufHK030111
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 18:56:41 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2DMu7Ep013286
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 18:56:08 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080313145901.6e4247b6@gaivota>
+References: <47C40563.5000702@claranet.fr> <200803111839.01690.zzam@gentoo.org>
+	<1205281560.5927.119.camel@pc08.localdom.local>
+	<200803131655.46384.zzam@gentoo.org> <20080313145901.6e4247b6@gaivota>
+Content-Type: text/plain; charset=utf-8
+Date: Thu, 13 Mar 2008 23:48:03 +0100
+Message-Id: <1205448483.6359.15.camel@pc08.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: lifeview trio pci and getting dvb-s working
-Reply-To: jordi@cdmon.com
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, g.liakhovetski@pengutronix.de,
+	Brandon Philips <bphilips@suse.de>
+Subject: Re: kernel oops since changeset e3b8fb8cc214
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,53 +31,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi,
+Hi,
 
-first of all, i'm sorry if this has been asked like a million time, but
-i've googled and read a lot for days and i can't get it working.
+Am Donnerstag, den 13.03.2008, 14:59 -0300 schrieb Mauro Carvalho
+Chehab:
+> On Thu, 13 Mar 2008 16:55:45 +0100
+> Matthias Schwarzott <zzam@gentoo.org> wrote:
+> 
+> > On Mittwoch, 12. März 2008, hermann pitton wrote:
+> > >
+> > > Hi Matthias,
+> > >
+> > > since I know you are active also on saa713x devices,
+> > > have you seen it there, on 32 or 64bit ?
+> > >
+> > I do work on a driver for avermedia A700 based on saa7134 chip.
+> > There I did not notice this oops on my 32bit system.
+> > 
+> > > It seems to be restricted to cx88 and risc memory there for now?
+> > 
+> > No idea about internals of cx88, sorry.
+> 
+> cx88 videobuf IRQ handling is a bit different. However, most of the code is equal.
+> 
+> Cheers,
+> Mauro
 
-the thing is .... i'm an ubuntu user. I've tried with mythtv, vdr and
-kaffeine, and i only get kaffeine working with dvb-t.
+definitely I'm not enough into it to be of much help soon, especially
+not for cx88xx and to answer offhand if Guennadi has the bug already,
+starting obviously with errors in the irq handler there.
 
-The one i've tried the most is vdr + xine, i've got this installed:
+Thanks Matthias for your report, we seem to have the same. On my
+uniprocessor 32bit 2.6.25-rc5 stuff and saa7131e, running since lunch
+with DVB-T and analog video at once, all seems to be normal and still
+totally stable.
 
-**********
-ii  libdvdread3                                0.9.7-3ubuntu1
-library for reading DVDs
-ii  libxine-xvdr                               1.0.0~rc2-3
-Xine input plugin for vdr-plugin-xineliboutp
-ii  vdr                                        1.4.7-1
-Video Disk Recorder for DVB cards
-ii  vdr-dev                                    1.4.7-1
-Video Disk Recorder for DVB cards
-ii  vdr-plugin-epgsearch                       0.9.22-1
-VDR plugin that provides extensive EPG searc
-ii  vdr-plugin-osdteletext                     0.5.1-24
-Teletext plugin for VDR
-ii  vdr-plugin-remote                          0.3.9-4
-VDR Plugin to support the built-in remote co
-ii  vdr-plugin-xineliboutput                   1.0.0~rc2-3
-VDR plugin for Xine based sofdevice frontend
-ii  xineliboutput-sxfe                         1.0.0~rc2-3
-Remote X-Server frontend for vdr-plugin-xine
+Cheers,
+Hermann
 
 
-**********
 
-i usually install everything from the apt-get repositories. 
 
-I've read about patches allowing lifeview to work, but they were very
-old and this is a brand new installation, with kernel  2.6.22-14 and i
-though that this may not be necessary.
 
-so... after realising that apt-get doesn't allow me to use dvb-s, what
-do you suggest?
-
-do i have to install everything from sourcecode? do i have to apply all
-those patches you talk about in this list and other forums? What's the
-best application for my card? kaffeine? vdr?
-
-Thanks.
 
 --
 video4linux-list mailing list
