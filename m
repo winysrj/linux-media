@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m21NNeKv012031
-	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 18:23:40 -0500
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m21NN3d4012741
-	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 18:23:03 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JVb2f-0001oV-Hg
-	for video4linux-list@redhat.com; Sat, 01 Mar 2008 23:22:57 +0000
-Received: from 200-207-206-233.dsl.telesp.net.br ([200.207.206.233])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sat, 01 Mar 2008 23:22:57 +0000
-Received: from fragabr by 200-207-206-233.dsl.telesp.net.br with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sat, 01 Mar 2008 23:22:57 +0000
-To: video4linux-list@redhat.com
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Date: Sat, 1 Mar 2008 20:22:26 -0300
-Message-ID: <20080301202226.61115368@tux.abusar.org.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2EGhup0028944
+	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:43:56 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2EGhHqJ004381
+	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:43:18 -0400
+Received: by wr-out-0506.google.com with SMTP id c57so3018995wra.9
+	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 09:43:17 -0700 (PDT)
+Message-ID: <d9def9db0803140943h47a3998ere7400ea26b903a07@mail.gmail.com>
+Date: Fri, 14 Mar 2008 17:43:16 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "r bartlett" <techwritebos@yahoo.com>
+In-Reply-To: <746260.26259.qm@web56411.mail.re3.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: When uvcvideo will be merged in the official kernel?
+Content-Disposition: inline
+References: <746260.26259.qm@web56411.mail.re3.yahoo.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Another very basic question...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,17 +30,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-http://linux-uvc.berlios.de/
+On Fri, Mar 14, 2008 at 5:32 PM, r bartlett <techwritebos@yahoo.com> wrote:
+> I'm happily watching the several QAM channels available on my line...but can I also watch the 80 some channels that my television gets?  Is that "NTSC_M"?
+>
+>  Right now, if I turn on the TV I can get History, Food, Cartoon Network, etc...but on the computer it's only the basic networks and PBS.
+>
+>  Am I still doing something wrong?
+>
+>
 
-	I'd like to know if there's a chance that uvcvideo will be
-merged in the official kernel... Is there a timeline or something like
-that? Thanks.
+the question is moreover what device do you have in your computer?
+Also another question is are those NTSC-M Channels analogue signals
+(so is it possible to connect your cable directly to an old
+television, or do you have a receiver in between).
+There are hybrid ATSC/QAM devices available which can also handle NTSC-M.
 
--- 
-Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
-http://u-br.net http://www.abusar.org/FELIZ_2008.html
-John Petrucci - "Lost Without You" (Suspended Animation)
-
+Markus
 
 --
 video4linux-list mailing list
