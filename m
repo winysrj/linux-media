@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1JeWnf-0001GS-3u
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 15:40:24 +0100
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m2QEeEQ4009727
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 14:40:14 GMT
-Message-ID: <47EA603A.5000708@koala.ie>
-Date: Wed, 26 Mar 2008 14:39:54 +0000
-From: Simon Kenyon <simon@koala.ie>
+	(envelope-from <mkrufky@linuxtv.org>) id 1Ja946-00043m-4L
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 13:31:15 +0100
+Message-ID: <47DA7008.8010404@linuxtv.org>
+Date: Fri, 14 Mar 2008 08:31:04 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: DVB ML <linux-dvb@linuxtv.org>
-References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-In-Reply-To: <d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
+To: Antti Palosaari <crope@iki.fi>
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D847AC.9070803@linuxtv.org>	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>	<47D86336.2070200@iki.fi>	<abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>	<abf3e5070803131607j1432f590p44b9b9c80f1f36e7@mail.gmail.com>	<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>
+	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
+	<47DA0F01.8010707@iki.fi>
+In-Reply-To: <47DA0F01.8010707@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,45 +27,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On 3/24/08, Aidan Thornton <makosoft@googlemail.com> wrote:
->   
->> Hi,
->>
->> I've been attempting to get something that can cleanly support DVB-T
->> on the original HVR-900, based on up-to-date v4l-dvb and Markus'
->> em2880-dvb (that is to say, something that could hopefully be cleaned
->> up to a mergable state and won't be too hard to keep updated if it
->> doesn't get merged). The current (somewhat messy, still incomplete)
->> tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
->> particularly bad. I don't have access to DVB-T signals at the moment,
->> but as far as I can tell, it works. Anyone want to test it? General
->> comments? (Other hardware will be added if I have the time,
->> information, and someone willing to test it.)
->>
->>     
+Antti Palosaari wrote:
+> looks like possible bug found!
 >
-> This is more than incomplete, VBI is missing (nor tested with various
-> video standards), and this device is 2 years old and not getting sold
-> anymore.
-> It's better to keep everything together at mcentral.de (this will very
-> likely be moved to an empia domain in near future).
->   
+> Jarryd Beck wrote:
+>> On Fri, Mar 14, 2008 at 2:19 PM, Michael Krufky <mkrufky@linuxtv.org>
+>> wrote:
+>
+>>>  This all happens very quickly on the hardware that I've tested ( a
+>>>  cx23887-based pcie card and a cypress fx2-based usb device).  I've
+>>> also
+>>>  heard good reports on saa713x-based pci cards.  Is the i2c slow in the
+>>>  af9013 driver?
+>
+> Just checked from code and it looks like it is 60 kHz currently. It is
+> not clear for me how kHz correlates to value written to register so
+> let is be this time.
+Hmm..  60 kHz compared to 400 kHz is a big difference, but we can deal
+with that later.
+>
+>>>  The tuner driver is programmed to use 7mhz dvbt with IF centered at
+>>> 3.8
+>>>  mhz -- is the demod set to the same?
+>
+> hmm, I think there is bug now. I compared eeprom dumps and found that
+> my MT2060 has IF1 = 36125 and eeprom of this device says it should be
+> IF1 =  4300. Is 4.3 Mhz close enough (we are speaking same thing?)?
 
-i agree that it is better to keep everything together
-could i suggest that you have a look at www.linuxtv.org
-> I will join Empia at 1st April 08, adding support for their new
-> devices (and also improving support of the older ones).
->
-> Markus
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+4.3 is not close enough to 3.8.  If you don't know how to set the demod
+to 3.8, then we can do some hacks to make it work, but signal reception
+is likely to be very poor -- better off looking in his snoop log to see
+how the windows driver sets the demod to 3.8
 
+>
+> Jerryd, change .tuner_if = 36125 to 4300 . It can be found from af9015
+> module.
+>
+>> How do I find out about the demod? Is the speed of af9013 a question for
+>> me because I have no idea.
+>
+> One thing to test speed is also commenting out "program tuner" part
+> from af9013 so it does not ask tuner to go frequency. It did not tune
+> then.
+>
+> But, I still needs debug logs of the af9013. Then I can compare much
+> more easier usb-sniff and debug values got from driver.
+>
+> Antti
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
