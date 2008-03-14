@@ -1,28 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1JZQOS-0005Jp-Rl
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 13:49:19 +0100
-Received: by rn-out-0910.google.com with SMTP id e11so1647993rng.17
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 05:49:10 -0700 (PDT)
-Message-ID: <37219a840803120549sc494d8es194784b875d7f91c@mail.gmail.com>
-Date: Wed, 12 Mar 2008 08:49:08 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Jarryd Beck" <jarro.2783@gmail.com>
-In-Reply-To: <abf3e5070803112006l31b5f878j764a4ded24a2702d@mail.gmail.com>
+Message-ID: <47DA000E.8000901@iki.fi>
+Date: Fri, 14 Mar 2008 06:33:18 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
-	<47D539E8.6060204@linuxtv.org>
-	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
-	<47D5AF38.90600@iki.fi>
-	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
-	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
-	<abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
-	<47D735F4.2070303@linuxtv.org>
-	<abf3e5070803112006l31b5f878j764a4ded24a2702d@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>		<47D847AC.9070803@linuxtv.org>		<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>		<47D86336.2070200@iki.fi>		<abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>		<abf3e5070803131607j1432f590p44b9b9c80f1f36e7@mail.gmail.com>		<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>
+	<47D9EED4.8090303@linuxtv.org>
+In-Reply-To: <47D9EED4.8090303@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -37,91 +22,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Mar 11, 2008 at 11:06 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
-> >  >
->  >  > Also when I plugged it in, it sat there for about 10 seconds before
->  >  > finishing loading (dmesg printed another 5 lines about the device
->  >  > after about 10 seconds), but still no tuning.
->  >
->  >  Can I see those five lines?  ;-)
->  >
->  >  While you're at it, you may as well include dmesg from the point that the bridge driver loads and on.
->  >
->
->  Here's dmesg from the point it starts up until it finishes printing stuff.
->
->  usb 2-10: new high speed USB device using ehci_hcd and address 22
->  usb 2-10: configuration #1 chosen from 1 choice
->  af9015_usb_probe:
->  af9015_identify_state: reply:01
->  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in cold state, will
->  try to load a firmware
->  dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
->  af9015_download_firmware:
->  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in warm state.
->  dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
->  DVB: registering new adapter (Leadtek Winfast DTV Dongle Gold)
->  af9015_eeprom_dump:
->  00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 02
->  10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 30
->  20: 35 30 35 30 30 30 30 31 ff ff ff ff ff ff ff ff
->  30: 00 00 3a 01 00 08 02 00 cc 10 00 00 9c ff ff ff
->  40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
->  50: ff ff ff ff ff 26 00 00 04 03 09 04 10 03 4c 00
->  60: 65 00 61 00 64 00 74 00 65 00 6b 00 30 03 57 00
->  70: 69 00 6e 00 46 00 61 00 73 00 74 00 20 00 44 00
->  80: 54 00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00
->  90: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00
->  a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00
->  b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff
->  c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  af9015_read_config: xtal:2 set adc_clock:28000
->  af9015_read_config: tuner id1:156
->  af9015_read_config: spectral inversion:0
->  af9015_set_gpios:
->  af9013: firmware version:4.95.0
->  DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
->  af9015_tuner_attach:
->  tda18271_tuner_attach:
->  tda18271 5-00c0: creating new instance
->
-> TDA18271HD/C1 detected @ 5-00c0
->  input: IR-receiver inside an USB DVB receiver as /class/input/input34
->  dvb-usb: schedule remote query interval to 200 msecs.
->  dvb-usb: Leadtek Winfast DTV Dongle Gold successfully initialized and connected.
->  af9015_init:
->  af9015_download_ir_table:
->  input: Leadtek WinFast DTV Dongle Gold as /class/input/input35
->  input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
->  usb-0000:00:02.1-10
->
->
->
->  This is channel 7's entry in channels.conf:
->  7 Digital:177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:514:1312
+Michael Krufky wrote:
+> This all happens very quickly on the hardware that I've tested ( a
+> cx23887-based pcie card and a cypress fx2-based usb device).  I've also
+> heard good reports on saa713x-based pci cards.  Is the i2c slow in the
+> af9013 driver?
 
+I will check this later, probably it is possible to speed up. I need to 
+take look of the usb-sniffs.
 
-Jarryd,
+> The tuner driver is programmed to use 7mhz dvbt with IF centered at 3.8
+> mhz -- is the demod set to the same?
 
-I've analyzed the snoop that you've taken of the windows driver, and I
-conclude that the driver is basically doing exactly the same that the
-linux driver would do.  The only thing that I cannot verify is whether
-or not the tda18211 uses the same table values as the tda18271c1.
-Based on the traffic in your snoop, it looks like the exact same
-algorithm is used, but based on a new set of tables -- I will not be
-able to confirm that without a tda18211 datasheet.  The only thing
-that you can do is try the tda18271 driver and hopefully it will work.
+hmm, good point. I don't know. There is parameter tuner IF that is set 
+to 36125 kHz. Any idea or help?
 
-Have you tried to tune yet?  There is a space in your channels.conf,
-"7 Digital" -- you may want to change that to something like,
-"7Digital" so that command line applications will work.
+regards
+Antti
 
-Good Luck,
-
-Mike
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
