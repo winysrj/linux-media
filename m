@@ -1,30 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay4.mail.ox.ac.uk ([129.67.1.163])
+Received: from el-out-1112.google.com ([209.85.162.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <John.Veness.myth@pelago.org.uk>) id 1JdpjG-0005Lb-NQ
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 17:40:59 +0100
-Received: from smtp1.mail.ox.ac.uk ([129.67.1.207])
-	by relay4.mail.ox.ac.uk with esmtp (Exim 4.68)
-	(envelope-from <John.Veness.myth@pelago.org.uk>) id 1JdpjD-0002EO-DQ
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 16:40:55 +0000
-Received: from i-83-67-98-35.freedom2surf.net ([83.67.98.35]
-	helo=[192.168.1.128])
-	by smtp1.mail.ox.ac.uk with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68) (envelope-from <John.Veness.myth@pelago.org.uk>)
-	id 1JdpjD-0005ZY-3E
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 16:40:55 +0000
-Message-ID: <47E7D996.8030503@pelago.org.uk>
-Date: Mon, 24 Mar 2008 16:40:54 +0000
-From: John Veness <John.Veness.myth@pelago.org.uk>
+	(envelope-from <derk.dukker@gmail.com>) id 1JaIlE-0007qs-4I
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 23:52:25 +0100
+Received: by el-out-1112.google.com with SMTP id o28so2401538ele.2
+	for <linux-dvb@linuxtv.org>; Fri, 14 Mar 2008 15:52:19 -0700 (PDT)
+Message-ID: <e2d627830803141552t19c7f8edq2a0ace41c51e7c85@mail.gmail.com>
+Date: Fri, 14 Mar 2008 23:52:17 +0100
+From: "Derk Dukker" <derk.dukker@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <1206139910.12138.34.camel@youkaida>
-	<1206185051.22131.5.camel@tux>	<1206190455.6285.20.camel@youkaida>
-	<1206270834.4521.11.camel@shuttle>	<1206348478.6370.27.camel@youkaida>
-	<8ad9209c0803240506m7197831bwa8ffc588ec655a4@mail.gmail.com>
-In-Reply-To: <8ad9209c0803240506m7197831bwa8ffc588ec655a4@mail.gmail.com>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
- are back!
+Subject: [linux-dvb] Specification for creating a driver for the (Cinergy)
+	CI usb, driver needed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,27 +19,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2143094268=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Patrik Hansson wrote:
- > A bit off-topic but how do you get the date/time thing ? I only get
- > the time-since-boot and that is so enoying
+--===============2143094268==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1996_3238054.1205535137789"
 
-I don't know if this is how Nicolas does it, but one method is to use 
-the Gnome System Log viewer, then copy and paste from that.
+------=_Part_1996_3238054.1205535137789
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Cheers,
+Dear all,
 
-John
+I searched the whole week for drivers for my Cinergy Ci USB. The Terratec
+support centre is not so good, they say the cinergy ci usb works on mac osx
+with elgato eyet3 which is not true. I have had contact with elgato and they
+don't know if they will ever support it. There aren't any linux drivers for
+the cinergy ci usb.
+So frustrated as I was I openend the Cinergy Ci usb and saw that the
+manufacturer is SmarDTV. www.smardtv.com. They are providing the
+specification for their hardware but they do not have any drivers on their
+site. I don't understand a thing of the specifications so unfortunately I
+can't program a driver myself. Their hardware is used in a lot of devices
+and is used by millions of people. I think it is a challenge to create a
+driver which supports a lot of other devices.
+Maybe someone of the linuxtv.org <http://linxtv.org> has the time and energy
+to take a look at it. You can get the specification if you fill in your
+email address here:
+http://www.smardtv.com/index.php?page=dvbci&rubrique=specification, I have
+added the specification in the previous mail (which is a copy of this one)
+but it was filtered out because it's almost 2 MB. So here again a mail
+without the attachement.
+There is a chip in it of ACTEL http://www.actel.com/ ProASIC plus. Source
+code examples are on their site.
 
--- 
-John Veness, MythTV user, UK, DVB-T
+If I can do anything else please let me know. Hopefully someone can help!
+
+Regards,
+
+Derk
+
+------=_Part_1996_3238054.1205535137789
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<span style="border-collapse:collapse"><div>Dear all,<br></div><div><br></div><div>I searched the whole week for drivers for my Cinergy Ci USB. The Terratec support centre is not so good, they say the cinergy ci usb works on mac osx with elgato eyet3 which is not true. I have had contact with elgato and they don&#39;t know if they will ever support it. There aren&#39;t any linux drivers for the cinergy ci usb.</div>
+
+<div>So frustrated as I was I openend the Cinergy Ci usb and saw that the manufacturer is SmarDTV.&nbsp;<a href="http://www.smardtv.com" style="color:rgb(0, 0, 204)" target="_blank">www.smardtv.com</a>. They are providing the specification for their hardware but they do not have any drivers on their site. I don&#39;t understand a thing of the specifications so unfortunately I can&#39;t program a driver myself. Their hardware is used in a lot of devices and is used by millions of people. I think it is a challenge to create a driver which supports a lot of other devices.</div>
+
+<div>Maybe someone of the&nbsp;<a href="http://linxtv.org" style="color:rgb(0, 0, 204)" target="_blank">linuxtv.org</a>&nbsp;has the time and energy to take a look at it. You can get the specification if you fill in your email address here:&nbsp;<a href="http://www.smardtv.com/index.php?page=dvbci&amp;rubrique=specification" target="_blank">http://www.smardtv.com/index.php?page=dvbci&amp;rubrique=specification</a>, I have added the specification in the previous mail (which is a copy of this one) but it was filtered out because it&#39;s almost 2 MB. So here again a mail without the attachement.&nbsp;</div>
+
+<div>There is a chip in it of ACTEL&nbsp;<a href="http://www.actel.com/" style="color:rgb(0, 0, 204)" target="_blank">http://www.actel.com/</a>&nbsp;ProASIC plus. Source code examples are on their site.</div><div><br></div><div>
+If I can do anything else please let me know. Hopefully someone can help!</div><div><br></div><div>Regards,</div><div><br></div><div>Derk</div></span>
+
+------=_Part_1996_3238054.1205535137789--
+
+
+--===============2143094268==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2143094268==--
