@@ -1,36 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28JUQdq008488
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 14:30:26 -0500
-Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
-	[151.189.21.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28JTmtN017919
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 14:29:48 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: itman <itman@fm.com.ua>
-In-Reply-To: <002701c8812f$33c6ed20$6501a8c0@LocalHost>
-References: <000f01c808e7$3ab4e3a0$6401a8c0@LocalHost>
-	<1191845080.3506.82.camel@pc08.localdom.local>
-	<007f01c80e7d$21c02300$6401a8c0@LocalHost>
-	<1192788480.18371.4.camel@gaivota>
-	<Pine.LNX.4.58.0710190951100.16052@shell4.speakeasy.net>
-	<471A4011.8010706@fm.com.ua> <1192922346.4857.8.camel@gaivota>
-	<003701c81410$869e6960$6401a8c0@LocalHost>
-	<1193043044.30686.22.camel@gaivota>
-	<003a01c8150f$6a248490$6401a8c0@LocalHost>
-	<1193103690.14811.10.camel@pc08.localdom.local>
-	<000401c8151a$080ef4b0$6401a8c0@LocalHost>
-	<1193107021.5728.20.camel@gaivota> <1193107692.5728.23.camel@gaivota>
-	<002701c8812f$33c6ed20$6501a8c0@LocalHost>
-Content-Type: text/plain; charset=utf-8
-Date: Sat, 08 Mar 2008 20:21:54 +0100
-Message-Id: <1205004114.3358.29.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2EKJ6Hq002806
+	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 16:19:06 -0400
+Received: from web56407.mail.re3.yahoo.com (web56407.mail.re3.yahoo.com
+	[216.252.111.86])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2EKIYC5022441
+	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 16:18:34 -0400
+Date: Fri, 14 Mar 2008 13:18:28 -0700 (PDT)
+From: r bartlett <techwritebos@yahoo.com>
+To: Markus Rechberger <mrechberger@gmail.com>, video4linux-list@redhat.com
+In-Reply-To: <d9def9db0803140943h47a3998ere7400ea26b903a07@mail.gmail.com>
+MIME-Version: 1.0
+Message-ID: <763245.5074.qm@web56407.mail.re3.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: simon@kalmarkaglan.se, Linux and Kernel Video <video4linux-list@redhat.com>,
-	Trent Piepho <xyzzy@speakeasy.org>, MIDIMaker <midimaker@yandex.ru>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+Cc: 
+Subject: Re: Another very basic question...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,111 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Serge,
+I've got a WinTV-HVR-1800, which has an analog tuner and a ATSC/QAM tuner.  The analog side seems to not yet be supported (It works -- I can boot to Vista and watch the analog side) by Linux, but I was wondering whether I can tweak my channels.conf or something and get more digital channels.
 
-Am Samstag, den 08.03.2008, 17:15 +0200 schrieb itman:
-> Hi, Mauro.
-> 
-> Could you please be so kind to mention which is right mercurial repository 
-> to which you have merged your changes and which one should be used for 
-> 2.6.24 kernel?
-> 
+I'm kind of new to the various ATSC, QAM, NTSC_M stuff.  My assumption up to this point has been that if I want to watch the full range of channels (1-120) or something, I need to do it through analog.
 
-the changes are as changesets 6384 to 6388 in the master repo.
-Try "hg log" and to review them for example "hg export 6388", where you
-will find the credit for your gpio contribution.
+My system is Comcast Digital cable with OnDemand, a Comcast-supplied box (looks small, like a router, not a PVR) and remote control (neither of which I'm currently using), and a Y-split cable line that goes directly to my tv card.  Currently I'm seeing things like NBC, CBS, ABC, PBS (a few channels), FOX, CW...and a few local stations.  If it's also possible to tune to Food Network, Sci-fi, Cartoon Network, etc, that would be great.  These stations come in fine on my regular television with no box or anything -- just the cable line going into the house.  I'm guessing that if more channels were _going_ to come in at all on my tuner card, they'd already be coming in.  :-)  But I could be wrong.
 
-> I've got issue:
-> 
-> Trying now to build drivers for MSI TV @nywheremaster MS-8606 under kernel 
-> 2.6.24.3.
-> 
-> What were done:
-> 
-> 1) mkdir /usr/src/linux/tmpmsi
-> 2) cd tmpmsi
-> 3) hg init v4l-dvb
-> 4) hg pull http://linuxtv.org/hg/v4l-dvb
-> 5) cd v4l-dvb
-> 6) make
-> 7) make install
-> 
-> 
-> As result I've got cx88-cards.c with fixed gpio for MSI TV @anywhere BUT! 
-> there are no main parameters for module tuner: port1, port2, qss.
+>From reading other posts and following a few other forums, it looks like the analog part is still not supported by the 2.6.24 kernel.  But if these other channels are available on the digital side, that'd be cool.  My tuning, thus far, has only been on QAM256.  ATSC (antenna, right?) didn't come in at all.  I haven't tried HRC or the others. Just us-Cable-Standard-center-frequencies-QAM256, which found about 350 signals, of which only about 10 were actual working channels.
 
-Mike is doing some major syncing over the tuning systems,
-so currently you set your port options for your mt2050 again to the
-tda9887 module, like "options tda9887 port1=0 port2=0"
-in /etc/modprobe.conf and "depmod -a".
+Is it possible to have more channels come in?  Should I plug in my Comcast box and use a different method to scan for channels?  (I've tried plugging in the box but that seems to kill my digital signal entirely -- I then don't get any channels)
 
-Since under tuner mt20xx are different tuners subsumed, and IIRC not all
-can be identified safely per card, type and tv standard reception
-abilities, hence this not very nice but functional
-TDA9887_INTERCARRIER_NTSC in your card's entry, we have the tda9887
-config not yet per tuner in tuner-types.c, like we have it for the
-Philips types now.
+Thanks for putting up with these really basic questions.  I apologize in advance...and greatly appreciate the help!
 
-Best identification so far has Gunther for miro_pinnacle_gpio bttv
-cards.
 
-Cheers,
-Hermann
+Markus Rechberger <mrechberger@gmail.com> wrote: On Fri, Mar 14, 2008 at 5:32 PM, r bartlett  wrote:
+> I'm happily watching the several QAM channels available on my line...but can I also watch the 80 some channels that my television gets?  Is that "NTSC_M"?
+>
+>  Right now, if I turn on the TV I can get History, Food, Cartoon Network, etc...but on the computer it's only the basic networks and PBS.
+>
+>  Am I still doing something wrong?
+>
+>
 
->  head Makefile
-> BUILD_DIR := $(shell pwd)/v4l
-> TMP ?= /tmp
-> REPO_PULL := http://linuxtv.org/hg/v4l-dvb
-> 
-> 
-> 
->  modinfo  tuner
-> filename:       /lib/modules/2.6.24.3/kernel/drivers/media/video/tuner.ko
-> license:        GPL
-> author:         Ralph Metzler, Gerd Knorr, Gunther Mayer
-> description:    device driver for various TV and TV+FM radio tuners
-> depends: 
-> tea5761,v4l2-common,mt20xx,tuner-simple,tda9887,videodev,tea5767,xc5000,tuner-xc2028,tda8290
-> vermagic:       2.6.24.3 preempt mod_unload PENTIUM4
-> parm:           force:List of adapter,address pairs to boldly assume to be 
-> present (array of short)
-> parm:           probe:List of adapter,address pairs to scan additionally 
-> (array of short)
-> parm:           ignore:List of adapter,address pairs not to scan (array of 
-> short)
-> parm:           addr:int
-> parm:           no_autodetect:int
-> parm:           show_i2c:int
-> parm:           debug:int
-> parm:           pal:string
-> parm:           secam:string
-> parm:           ntsc:string
-> parm:           tv_range:array of int
-> 
-> With best regards,
-> 
->             Serge Kolotylo
-> 
-> 
-> __________________________
-> 
-> Em Ter, 2007-10-23 às 05:11 +0300, itman escreveu:
-> > After modprobe tuner port1=0 port2=0 qss=1 it works GREAT both TV
-> > (sound is
-> > clear and loud) and radio (sound is clear and loud) with DEFAULT
-> > (card=7,
-> 
-> Great! If you send us the proper tuner name, marked at the metallic can
-> inside the board, we may add those tda9887 options at tuner-types.c.
-> This way, passing the parameters to tuners can be avoided.
-> 
-> > PS: will it be merged these changes to vanilla kernel soon?
-> 
-> I've already merged into v4l-dvb tree. However, since this is changing
-> some stuff at the existing driver, the addition at mainstream should be
-> postponed to kernel 2.6.25.
-> 
+the question is moreover what device do you have in your computer?
+Also another question is are those NTSC-M Channels analogue signals
+(so is it possible to connect your cable directly to an old
+television, or do you have a receiver in between).
+There are hybrid ATSC/QAM devices available which can also handle NTSC-M.
 
+Markus
+
+
+       
+---------------------------------
+Be a better friend, newshound, and know-it-all with Yahoo! Mobile.  Try it now.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
