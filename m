@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1Jcifv-00080B-HW
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 15:56:58 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so1107407fge.25
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 07:56:52 -0700 (PDT)
-Message-ID: <ea4209750803210756p5616b0erd12a96f742d6671e@mail.gmail.com>
-Date: Fri, 21 Mar 2008 15:56:52 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: hfvogt@gmx.net
-In-Reply-To: <ea4209750803210709r63fb8dc5y1cfa11229150472e@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ardus@gmx.de>) id 1JaJVm-000297-O5
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 00:40:31 +0100
+From: ardus <ardus@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 15 Mar 2008 00:40:28 +0100
 MIME-Version: 1.0
-References: <200803211152.26870.hfvogt@gmx.net>
-	<ea4209750803210459i3fe6fddan103931bda885435e@mail.gmail.com>
-	<ea4209750803210709r63fb8dc5y1cfa11229150472e@mail.gmail.com>
-Cc: Felix Apitzsch <F.Apitzsch@soz.uni-frankfurt.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE -
-	Draft 2
+Content-Disposition: inline
+Message-Id: <200803150040.28264.ardus@gmx.de>
+Subject: [linux-dvb] Need help: Pinnacle DVB-T USB Solo 72e does not work
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,118 +17,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0131401768=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0131401768==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_13695_15905546.1206111412321"
+Dear Members,
 
-------=_Part_13695_15905546.1206111412321
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+My Pinnacle DVB-T USB Solo 72e does not work on Linux. I use OpenSuse #10.3
 
-Finally I found it; I have to keep this on xc2028 callback or the device
-will not work; case XC2028_RESET_CLK: break;
-Now I will add other cards and resend the patch.
+Following modules =
 
-Albert
+- dib7000m.ko
+- dib7000p.ko
+- dib3000mc.ko =
 
-2008/3/21, Albert Comerma <albert.comerma@gmail.com>:
->
-> Hey Hans, I'm spending some time, because right now I've not been able to
-> make my card working with your patch. Everything seems ok, but no channels
-> detected and no video at all... strange. Did you checked that it was working
-> ok?
->
-> 2008/3/21, Albert Comerma <albert.comerma@gmail.com>:
-> >
-> > Perfect!! it seems great, now I will check it (sorry, I was very busy
-> > last two days). I also will add support for Felix's card and the two cards I
-> > have pending (just add device id and small modifications), so it will be
-> > easier for patrick to add the different patches to the current source. Just
-> > one comment, how you generated the patch? because mauro suggested it's
-> > better to use hg diff. In a minutes I will send the modified patch (I hope
-> > it will be the last version).
-> >
-> > Albert
-> >
-> > 2008/3/21, Hans-Frieder Vogt <hfvogt@gmx.net>:
-> > >
-> > > Hi Albert,
-> > >
-> > > I have slightly changed the stk7700ph_frontend_attach GPIO sequence to
-> > > be in line with the Windows behaviour and also add
-> > > the demod-value in stk7700ph_xc3028_ctrl, to make the driver load the
-> > > right SCODE file (which seems to have no effect,
-> > > though). Also, I removed the unused and unneeded
-> > > xc3028_bw_config_12mhz structure.
-> > > In addition, I followed Mauro's request for coding style changes and
-> > > also add some more kernel style changes that
-> > > checkpatch highlighted (I only introduced changes where they seemed
-> > > sensible, there are many, many other
-> > > areas in the file dib0700_devices.c where it does not follow the
-> > > strict coding guidelines as well).
-> > >
-> > > Can you please confirm that I included your changes for the Pinnacle
-> > > 320cx correctly and perhaps also add a signoff-line?
-> > > Thanks very much.
-> > >
-> > > Hans-Frieder
-> > >
-> > > --
-> > >
-> > > --
-> > > Hans-Frieder Vogt                 e-mail: hfvogt <at> gmx .dot. net
-> > >
-> > >
-> >
->
+- mt2060.ko
+- mt2266.ko
+- dvb-usb.ko
+- dvb-usb-dib0700.ko
+are loaded.
+The firmware dvb-usb-dib0700-1.10.fw is installed.
 
-------=_Part_13695_15905546.1206111412321
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+But I can not find a directory like /dev/dvb
 
-Finally I found it; I have to keep this on xc2028 callback or the device will not work; case XC2028_RESET_CLK: break;<br>Now I will add other cards and resend the patch.<br><br>Albert<br><br><div><span class="gmail_quote">2008/3/21, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hey Hans, I&#39;m spending some time, because right now I&#39;ve not been able to make my card working with your patch. Everything seems ok, but no channels detected and no video at all... strange. Did you checked that it was working ok?<br>
+On =A0- http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices -
+there is a information =A0that Pinnacle DVB-T Stick Solo version: 72E =
 
-<br><div><span class="gmail_quote">2008/3/21, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">albert.comerma@gmail.com</a>&gt;:</span><div>
-<span class="e" id="q_118d1aca2d782631_1"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Perfect!! it seems great, now I will check it (sorry, I was very busy last two days). I also will add support for Felix&#39;s card and the two cards I have pending (just add device id and small modifications), so it will be easier for patrick to add the different patches to the current source. Just one comment, how you generated the patch? because mauro suggested it&#39;s better to use hg diff. In a minutes I will send the modified patch (I hope it will be the last version).<br>
+works =A0with a modified v4l-dvb driver.
+
+How can I get the driver?
+How can I get a howto?
 
 
-<br>Albert<br><br><div><span class="gmail_quote">2008/3/21, Hans-Frieder Vogt &lt;<a href="mailto:hfvogt@gmx.net" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">hfvogt@gmx.net</a>&gt;:</span><div>
+THX
+-- =
 
-<span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi Albert,<br> <br> I have slightly changed the stk7700ph_frontend_attach GPIO sequence to be in line with the Windows behaviour and also add<br> the demod-value in stk7700ph_xc3028_ctrl, to make the driver load the right SCODE file (which seems to have no effect,<br>
-
-
- though). Also, I removed the unused and unneeded xc3028_bw_config_12mhz structure.<br> In addition, I followed Mauro&#39;s request for coding style changes and also add some more kernel style changes that<br> checkpatch highlighted (I only introduced changes where they seemed sensible, there are many, many other<br>
-
-
- areas in the file dib0700_devices.c where it does not follow the strict coding guidelines as well).<br> <br> Can you please confirm that I included your changes for the Pinnacle 320cx correctly and perhaps also add a signoff-line?<br>
-
-
- Thanks very much.<br> <br> Hans-Frieder<br> <br> --<br> <br>--<br> Hans-Frieder Vogt&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; e-mail: hfvogt &lt;at&gt; gmx .dot. net<br> <br></blockquote></span></div></div><br>
-</blockquote></span></div></div><br>
-</blockquote></div><br>
-
-------=_Part_13695_15905546.1206111412321--
-
-
---===============0131401768==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Reinhard
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0131401768==--
