@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m29IX01u016334
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 14:33:00 -0400
-Received: from mail1.sea5.speakeasy.net (mail1.sea5.speakeasy.net
-	[69.17.117.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m29IWLv3000944
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 14:32:22 -0400
-Date: Sun, 9 Mar 2008 11:32:16 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Frej Drejhammar <frej.drejhammar@gmail.com>
-In-Reply-To: <patchbomb.1204999521@liva.fdsoft.se>
-Message-ID: <Pine.LNX.4.58.0803091131430.6667@shell2.speakeasy.net>
-References: <patchbomb.1204999521@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2E0hGHp009021
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 20:43:16 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2E0gfwj029249
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 20:42:41 -0400
+Received: by wr-out-0506.google.com with SMTP id c57so2806626wra.9
+	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 17:42:41 -0700 (PDT)
+Message-ID: <5387cd30803131742y246fca86qb70f9d28c2054ed4@mail.gmail.com>
+Date: Fri, 14 Mar 2008 00:42:41 +0000
+From: "Nick Morrott" <knowledgejunkie@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <593189.25901.qm@web56404.mail.re3.yahoo.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <593189.25901.qm@web56404.mail.re3.yahoo.com>
+Subject: Re: The final inch...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,17 +29,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 8 Mar 2008, Frej Drejhammar wrote:
+On 13/03/2008, r bartlett <techwritebos@yahoo.com> wrote:
 
-> The cx2388x family of broadcast decoders all have features not enabled
-> by the standard cx88 driver. This patch series adds module parameters
-> allowing the chroma AGC and the color killer to be enabled. By default
-> both features are disabled as in previous versions of the driver.
->
-> The Chroma AGC and the color killer is sometimes needed when using
-> signal sources of less than optimal quality.
+>  My question is, from this point, what do I need to do?  I don't mind using a simple command line if need be, and I tried to install MythTV and got mired in a dependency issue related to an extinct library that's somehow still "required."
 
-This really should be done with controls, not more module parameters.
+Out of interest, which library caused the dependency problems for you
+when attempting to install MythTV?
+
+-- 
+Nick Morrott
+
+MythTV Official wiki:
+http://mythtv.org/wiki/
+MythTV users list archive:
+http://www.gossamer-threads.com/lists/mythtv/users
+
+"An investment in knowledge always pays the best interest." - Benjamin Franklin
 
 --
 video4linux-list mailing list
