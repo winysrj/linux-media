@@ -1,27 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from mx1.melzone.de ([81.169.156.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JbJrh-0008HF-8F
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 19:15:18 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JXW00GM100IC1X0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 17 Mar 2008 14:14:43 -0400 (EDT)
-Date: Mon, 17 Mar 2008 14:14:41 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
-To: Mark A Jenks <Mark.Jenks@nsighttel.com>, linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <47DEB511.1070106@linuxtv.org>
-MIME-version: 1.0
-References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com>
-	<c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com>
-	<c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com>
-	<c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com>
-	<47DE9362.4050706@linuxtv.org>
-	<C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
-Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
+	(envelope-from <linux-dvb@tvetc.de>) id 1JaIWC-0006iE-Tb
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 23:36:55 +0100
+Received: from uucp by mx1.melzone.de with local-rmail (Exim 4.60)
+	(envelope-from <linux-dvb@tvetc.de>) id 1JaIW9-00010j-FZ
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 23:36:49 +0100
+Received: by jericho.melzone.de with esmtp (Exim 4.62 #1) id 1JaIUW-00037n-5j
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 23:35:08 +0100
+Date: Fri, 14 Mar 2008 23:35:08 +0100 (CET)
+From: Karim 'Kasi Mir' Senoucci <linux-dvb@tvetc.de>
+To: LinuxTV mailing list <linux-dvb@linuxtv.org>
+Message-ID: <Pine.LNX.4.61.0803142323470.11774@jericho.melzone.de>
+MIME-Version: 1.0
+Subject: [linux-dvb] Terratec Cinergy DVB C PCI CI - CI working?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,29 +27,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CC'ing the mailing list back in.
+Hello everyone,
+I've got the Terratec Cinergy C PCI HD card with the CI extension and am 
+currently trying to get this to work with Mythbuntu 7.10. So far, I've 
+got a working TV signal and a more or less complete list of the Kabel 
+Deuttschland DVB-C channels. I can even watch the free-to-air channels 
+without any problems. 
 
-Mark A Jenks wrote:
-> Do you think I should push the kernel to 2.6.25? 
+The encrypted channels (of which there are legion) are another matter, 
+though. AS I wrote above, I have the CI addon, I have a AlphaCrypt CAM 
+capable of decoding the Cable encryption, plus I've got a keycard which 
+actually can decode about 100 channels. 
 
-I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 - 
-or close to.
+But still, MythTV doesn't decode any encrypted channels - which leads me 
+to my question: is the CI supported by Linux? As far a I can see, there 
+is no line containing CI oder CAM in any logfile written by the linux 
+system. 
 
-I have another AMD system at home that the driver completely freezes on, 
-no idea why, total system lockup. I don't trust the PCIe chipset on it, 
-it's an early chipset and a little flakey.
+Can anybody help me out here? Any help is appreciated; if you need more 
+input, just ask and I will try to provide the info. 
 
-Other than that the driver's been pretty reliable.
-
-Lots of noise recently on the mailing lists about video_buf related 
-issues and potential race conditions.
-
-Try running the system with a single cpu core and report back, also, 
-just for the hell of it, run memtest also.
-
-- Steve
-
-
+Greetings
+Kasi Mir
 
 
 _______________________________________________
