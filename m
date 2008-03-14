@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1JbkA5-0005JF-0h
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 23:20:04 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so82556fge.25
-	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 15:20:00 -0700 (PDT)
-Message-ID: <ea4209750803181520o7217742dtc507d48dd77cb1df@mail.gmail.com>
-Date: Tue, 18 Mar 2008 23:20:00 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: linux-dvb@linuxtv.org, "olivier danet" <odanet@caramail.com>
-In-Reply-To: <ea4209750803181226k6132671avf860a94632010063@mail.gmail.com>
-MIME-Version: 1.0
-References: <ea4209750803181226k6132671avf860a94632010063@mail.gmail.com>
-Subject: Re: [linux-dvb] PATCH Yuan EC372S support added
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+2f2457f4b8686c4b8dda+1664+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JaBcf-0003uv-LA
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 16:15:05 +0100
+Date: Fri, 14 Mar 2008 12:14:23 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: timf <timf@iinet.net.au>
+Message-ID: <20080314121423.670f31a0@gaivota>
+In-Reply-To: <1205457408.6358.5.camel@ubuntu>
+References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
+	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
+	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
+	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
+	<20080207184221.1ea8e823@gaivota> <47ACA9AA.4090702@googlemail.com>
+	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
+	<47B1E22D.4090901@googlemail.com> <20080313114633.494bc7b1@gaivota>
+	<1205457408.6358.5.camel@ubuntu>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, "Richard \(MQ\)" <osl2008@googlemail.com>
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,63 +28,30 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1294553906=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1294553906==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1188_7290611.1205878800800"
+On Fri, 14 Mar 2008 10:16:48 +0900
+timf <timf@iinet.net.au> wrote:
 
-------=_Part_1188_7290611.1205878800800
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Hi Mauro,
+> Improved, but still no tuner-xc3028, no dvb.
+> Relevant part of my dmesg:
 
-I will redo the patch to check what Mauro suggested for general patches
-submission.
+> [   15.120000] tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
+> [   15.120000] tuner' 2-0061: tuner type not set
+> [   15.120000] tuner' 2-0061: tuner type not set
 
-Albert
+The above messages are very weird... are you passing any option to saa7134? It
+should autodetect tuner=71...
 
-2008/3/18, Albert Comerma <albert.comerma@gmail.com>:
->
-> Hi, here is a patch which adds support for Yuan EC372S card. According to
-> Michel, it works perfectly, according to Antti it gives timeouts.
-> Please olivier sign-off-by this patch since you did most of the work with
-> the stk7700p2 modification.
->
-> Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
->
-> Albert
->
->
-
-------=_Part_1188_7290611.1205878800800
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I will redo the patch to check what Mauro suggested for general patches submission.<br>
-<br>
-Albert<br><br><div><span class="gmail_quote">2008/3/18, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi, here is a patch which adds support for Yuan EC372S card. According to Michel, it works perfectly, according to Antti it gives timeouts.<br>Please olivier sign-off-by this patch since you did most of the work with the stk7700p2 modification.<br>
-
-<br>Signed-off-by: Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">albert.comerma@gmail.com</a>&gt; <br><span class="sg"><br>Albert<br>
-</span><br clear="all"></blockquote></div><br>
-
-------=_Part_1188_7290611.1205878800800--
-
-
---===============1294553906==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1294553906==--
