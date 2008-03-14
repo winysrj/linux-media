@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <seppo.ingalsuo@iki.fi>) id 1JVW6k-0005xa-HO
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 19:06:50 +0100
-Received: from kemuli.localdomain (84.250.94.112) by
-	pne-smtpout3-sn1.fre.skanova.net (7.3.129)
-	id 47A788570016228C for linux-dvb@linuxtv.org;
-	Sat, 1 Mar 2008 19:06:16 +0100
-Received: from [192.168.1.2] (ident=seppo)
-	by kemuli.localdomain with esmtp (Exim 4.68)
-	(envelope-from <seppo.ingalsuo@iki.fi>) id 1JVWDz-0001Ss-BB
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 20:14:19 +0200
-Message-ID: <47C99B16.30005@iki.fi>
-Date: Sat, 01 Mar 2008 20:06:14 +0200
-From: Seppo Ingalsuo <seppo.ingalsuo@iki.fi>
-MIME-Version: 1.0
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Ja9x0-0004Iv-4P
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 14:27:58 +0100
+Received: from ldvb (helo=localhost)
+	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Ja9yB-0002Nb-Fx
+	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 16:29:13 +0300
+Date: Fri, 14 Mar 2008 16:29:11 +0300 (MSK)
+From: ldvb@ns.bog.msu.ru
 To: linux-dvb@linuxtv.org
-References: <597595.82940.qm@web33101.mail.mud.yahoo.com>
-	<47C8593B.1070802@iki.fi> <47C8901E.9040206@gmail.com>
-In-Reply-To: <47C8901E.9040206@gmail.com>
-Subject: Re: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar HD: Problems
- scaning and zaping
+Message-ID: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
+MIME-Version: 1.0
+Subject: [linux-dvb] (no subject)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,53 +26,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham wrote:
-> Seppo Ingalsuo wrote:
->> Simeon Simeonov wrote:
->>> Did you try changing line 250 in mantis_dvb.c to:
->>>                 if (!lnbp21_attach(mantis->fe, &mantis->adapter, 
->>> LNBP21_PCL, LNBP21_ISEL)) {
->>>   
->> I tried mantis-a9ecd19a37c9. Without the change success in 
->> positioning was about 0% similarly as with multiproto-0448e5a6d8a6. 
->> After this change the success in zapping between different satellite 
->> positions increased to about 40% so it looks now promising and vdr 
->> satellite channels are usable with some patience :^)
->
->
-> You mean the LNBP21 attach line improved things for you by 40% ?
-Yes, the LNBP21_PCL and LNBP21_ISEL additions did the improvement. By 
-40% I mean that about 4/10 zappings between channels in different 
-satellite positions are succesfull. Without this change it was very rare 
-to get the dish to move, the success rate was < 1/10.
 
-> If you can really identify what is "really" unreliable, that itself 
-> will be a help
-> to fix the issue, in most cases.
-Compared to my old DVB-S card this DVB-S2 card is too unreliable for my 
-family to use it. There is one possible issue with vdr rotor plugin. It 
-would help in my case if it would set always high LNB voltage before 
-sending gotox command and keep it for estimated time of movent (based on 
-about 0.9 seconds/degree speed) before setting the voltage for the tuned 
-channel. The motor movement with low LNB voltage is very slow especially 
-in winter and I'm not absolutely sure that the failure is due to 
-corrupted diseqc gotox command or just too low voltage to get the motor 
-running. The old DVB-S card was also driving the dish at slow speed with 
-low LNB voltage but I need to hack the rotor code to rule out this 
-theory. I need to check also the LNB cable that connects to the PC that 
-it is still OK.
+Hi!
 
->
->> Which DVB-S2 multiproto driver tree should I follow for latest 
->> development for TT S2-3200 (/Skystar HD)?
->
-> For the SAA7146 based cards, use the multiproto tree, for the Mantis 
-> based
-> cards, use the mantis tree.
-OK, thanks. It seems there is now 10min fresh new code to try!
+Maybe, somebody could help...
+I have the next list of transponders params:
+S 11605700 V 44948000 5/6
+S 11043300 H 44948000 5/6
+(at Orion-express sat, www.orion-express.ru)
 
-BR,
-Seppo
+and TT-budget card.
+Bitrate is approx. 67Mbit.
+V-transponder works well.
+For the H, there are problems:
+Tuner status:  Signal Lock Carrier VITERBI Sync
+Signal Strength = 70% SNR = 67% BER = efc Uncorrected Blocks = 3
+Signal Strength = 70% SNR = 67% BER = d80 Uncorrected Blocks = 25
+Signal Strength = 70% SNR = 67% BER = c77 Uncorrected Blocks = 7
+Signal Strength = 70% SNR = 67% BER = d2f Uncorrected Blocks = 0
+Signal Strength = 70% SNR = 67% BER = de6 Uncorrected Blocks = 2
+Signal Strength = 70% SNR = 67% BER = d9c Uncorrected Blocks = 0
+Signal Strength = 70% SNR = 67% BER = ce7 Uncorrected Blocks = 1
+
+The same card used with Hotbird works well with horizontal polarization 
+(bitrate approx. 35Mbit).
+Cable and receivers are good (checked by another dvb hardware on the 
+same cable).
+
+Thanx!
 
 
 _______________________________________________
