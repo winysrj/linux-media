@@ -1,20 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hs-out-0708.google.com ([64.233.178.244])
+Received: from ti-out-0910.google.com ([209.85.142.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JdviB-0003zP-Ap
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 00:04:16 +0100
-Received: by hs-out-0708.google.com with SMTP id 4so2547262hsl.1
-	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 16:04:11 -0700 (PDT)
-Message-ID: <d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-Date: Tue, 25 Mar 2008 00:04:10 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Aidan Thornton" <makosoft@googlemail.com>
-In-Reply-To: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
+	(envelope-from <jarro.2783@gmail.com>) id 1JaWK6-0001To-Jq
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 14:21:24 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1629358tia.13
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 06:21:13 -0700 (PDT)
+Message-ID: <abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
+Date: Sun, 16 Mar 2008 00:21:12 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-Cc: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47D9C33E.6090503@iki.fi>
+	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>
+	<47D9EED4.8090303@linuxtv.org>
+	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
+	<47DA0F01.8010707@iki.fi> <47DA7008.8010404@linuxtv.org>
+	<47DAC42D.7010306@iki.fi> <47DAC4BE.5090805@iki.fi>
+	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,39 +28,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0977304857=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 3/24/08, Aidan Thornton <makosoft@googlemail.com> wrote:
-> Hi,
+--===============0977304857==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_6392_9079191.1205587273081"
+
+------=_Part_6392_9079191.1205587273081
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+>  Michael's patch didn't produce any interesting dmesg output. I included
+>  dmesg for plugging in and tuning with antti's patch.
 >
-> I've been attempting to get something that can cleanly support DVB-T
-> on the original HVR-900, based on up-to-date v4l-dvb and Markus'
-> em2880-dvb (that is to say, something that could hopefully be cleaned
-> up to a mergable state and won't be too hard to keep updated if it
-> doesn't get merged). The current (somewhat messy, still incomplete)
-> tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
-> particularly bad. I don't have access to DVB-T signals at the moment,
-> but as far as I can tell, it works. Anyone want to test it? General
-> comments? (Other hardware will be added if I have the time,
-> information, and someone willing to test it.)
+>  Jarryd.
 >
 
-This is more than incomplete, VBI is missing (nor tested with various
-video standards), and this device is 2 years old and not getting sold
-anymore.
-It's better to keep everything together at mcentral.de (this will very
-likely be moved to an empia domain in near future).
+Just realised I didn't have debug enabled for Michael's patch. When
+tuning I got lots of this:
 
-I will join Empia at 1st April 08, adding support for their new
-devices (and also improving support of the older ones).
+tda18271_set_standby_mode: sm = 0, sm_lt = 0, sm_xt = 0
+tda18271_init_regs: initializing registers for device @ 1-00c0
+tda18271_tune: freq = 219500000, ifc = 3800000, bw = 7000000, std = 0x1d
 
-Markus
+My keyboard was fine this time (that was the point it normally responded
+really slowly), and the driver loaded instantly instead of taking nearly
+half a minute.
+It looks like it might be a step in the right direction, but it's still not
+tuning.
+
+Jarryd.
+
+------=_Part_6392_9079191.1205587273081
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+&gt; &nbsp;Michael&#39;s patch didn&#39;t produce any interesting dmesg output. I included<br>&gt; &nbsp;dmesg for plugging in and tuning with antti&#39;s patch.<br>&gt; &nbsp;<br>&gt; &nbsp;Jarryd.<br>&gt; &nbsp;<br><br>Just realised I didn&#39;t have debug enabled for Michael&#39;s patch. When<br>
+tuning I got lots of this:<br><br>tda18271_set_standby_mode: sm = 0, sm_lt = 0, sm_xt = 0<br>tda18271_init_regs: initializing registers for device @ 1-00c0<br>tda18271_tune: freq = 219500000, ifc = 3800000, bw = 7000000, std = 0x1d<br>
+<br>My keyboard was fine this time (that was the point it normally responded<br>really slowly), and the driver loaded instantly instead of taking nearly<br>half a minute.<br>It looks like it might be a step in the right direction, but it&#39;s still not tuning.<br>
+<br>Jarryd.<br>
+
+------=_Part_6392_9079191.1205587273081--
+
+
+--===============0977304857==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0977304857==--
