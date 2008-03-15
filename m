@@ -1,26 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JajXu-0007rX-4f
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 04:28:31 +0100
-Message-ID: <47DC93D0.3090904@linuxtv.org>
-Date: Sat, 15 Mar 2008 23:28:16 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	
-	<47DAC4BE.5090805@iki.fi>	
-	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	
-	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	
-	<47DBDB9F.5060107@iki.fi>	
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	
-	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>	
-	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>	
-	<47DC8012.3050809@linuxtv.org>
-	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
-In-Reply-To: <abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+	(envelope-from <timothyparez@gmail.com>) id 1Jaf5L-0004ly-1v
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 23:42:40 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3653500fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 15:42:35 -0700 (PDT)
+Message-Id: <235E220E-C575-467D-85AB-181C2BEF9669@gmail.com>
+From: Timothy Parez <timothyparez@gmail.com>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sat, 15 Mar 2008 23:42:26 +0100
+Subject: [linux-dvb] Nova-S-Plus scan ERROR: Initial Tuning Failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,62 +24,114 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> On Sun, Mar 16, 2008 at 1:04 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->   
->> Jarryd Beck wrote:
->>  > On Sun, Mar 16, 2008 at 11:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->>  >> Antti Palosaari wrote:
->>  >>  > I have no idea how to debug more. Without device it is rather hard to
->>  >>  > test many things. It will help a little if we know is tuner locked.
->>  >>  > Mike, is it easy to add debug writing for tuner to indicate if tuner
->>  >>  > is locked or not locked? I have used that method earlier with mt2060
->>  >>  > tuner...
->>  >>
->>  >>  There is a lock bit in register 0x01[6]  but I have not found it to be
->>  >>  reliable, especially not on the c1 part.
->>  >>
->>  >>  -Mike
->>  >>
->>  >>
->>  >>
->>  >
->>  > You won't believe this, but it worked. I think every time I tried both
->>  > patches together I left .no_reconnect in. I tried it again with both
->>  > patches applied, no other modifications, and it worked.
->>  >
->>  > Thanks for all your help,
->>  > Jarryd.
->>
->>  This is great news!  For an experiment, can you try once more without my patch applied?
->>
->>  This will just confirm whether or not we can write all 39 registers at once.
->>
->>  If the patch that I gave you is truly needed, then I will integrate it into the official driver.
->>
->>  Regards,
->>
->>  Mike
->>
->>     
->
-> Takes half a minute to load when plugging in, keyboard is slow to respond
-> when tuning, and I get lots of this:
->
-> af9013_i2c_gate_ctrl: enable:0
-> af9013_i2c_gate_ctrl: enable:1
->
-> Applied the patch again and it was all fine.
->
-> Jarryd.
->   
-Thanks for the test, Jarryd.  I will integrate this into the official
-tda18271 driver after testing again on my hardware here.  I will
-probably make it an attach-time configurable option.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Regards,
+Hi,
 
-Mike
+The output of lspci -vvv on my computer looks like this:
+
+04:00.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video  
+and Audio Decoder (rev 05)
+	Subsystem: Hauppauge computer works Inc. Nova-S-Plus DVB-S
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+Stepping- SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+<TAbort- <MAbort- >SERR- <PERR-
+	Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+	Interrupt: pin A routed to IRQ 20
+	Region 0: Memory at e5000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+04:00.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+Audio Decoder [Audio Port] (rev 05)
+	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+Stepping- SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+<TAbort- <MAbort- >SERR- <PERR-
+	Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
+	Interrupt: pin A routed to IRQ 20
+	Region 0: Memory at e6000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+04:00.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+Audio Decoder [MPEG Port] (rev 05)
+	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+Stepping- SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+<TAbort- <MAbort- >SERR- <PERR-
+	Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
+	Interrupt: pin A routed to IRQ 20
+	Region 0: Memory at e7000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+04:00.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+Audio Decoder [IR Port] (rev 05)
+	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+Stepping- SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+<TAbort- <MAbort- >SERR- <PERR-
+	Latency: 32 (1500ns min, 63750ns max), Cache Line Size: 32 bytes
+	Interrupt: pin A routed to IRQ 7
+	Region 0: Memory at e8000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+I installed v4l and now have a /dev/dvb/adapter0 directory
+demux0  dvr0  frontend0  net0
+
+I should note that the items in that directory are colored yellow with  
+black background (perhaps this is indicating something related to the  
+problem?
+
+When I use scan I get this
+
+scan -a 0 /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12551500 V 22000000 5
+ >>> tune to: 12551:v:0:22000
+WARNING: >>> tuning failed!!!
+ >>> tune to: 12551:v:0:22000 (tuning failed)
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+
+
+If I connect the cable to a decoder + tv I get all the channels and  
+perfect image.
+I'm using a dual / twin LNB. Dual for Astra 19.2 E and 23.5 E with 2  
+connectors.
+
+I did get it to work on my previous computer.
+
+
+Any ideas?
+
+Timothy.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (Darwin)
+
+iD8DBQFH3FDS+j5y+etesF8RAldeAKDeRHdC3YqDZNBze975O5peeRjILgCeNQqV
+CukiOWQomn8Ctkn2ErrQMI4=
+=QbCX
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
