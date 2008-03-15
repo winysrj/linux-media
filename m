@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q2EqQ9006619
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:52 -0400
-Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q2EL1Q006642
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by cinke.fazekas.hu (Postfix) with ESMTP id 785C433CC9
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:14:20 +0100 (CET)
-Received: from cinke.fazekas.hu ([127.0.0.1])
-	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id SS9JUI5lJy52 for <video4linux-list@redhat.com>;
-	Wed, 26 Mar 2008 03:14:14 +0100 (CET)
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2FNIQO7024171
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 19:18:26 -0400
+Received: from smtp107.rog.mail.re2.yahoo.com (smtp107.rog.mail.re2.yahoo.com
+	[68.142.225.205])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2FNHm8X021413
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 19:17:48 -0400
+Message-ID: <47DC5915.4010709@rogers.com>
+Date: Sat, 15 Mar 2008 19:17:41 -0400
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <1fabe9b19f0c356704aa.1206497257@bluegene.athome>
-In-Reply-To: <patchbomb.1206497254@bluegene.athome>
-Date: Wed, 26 Mar 2008 03:07:37 +0100
-From: Marton Balint <cus@fazekas.hu>
-To: video4linux-list@redhat.com
-Subject: [PATCH 3 of 3] cx88: detect stereo output instead of mono fallback
-	in A2 sound system
+Subject: Another very basic question...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,113 +25,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Marton Balint <cus@fazekas.hu>
-# Date 1206489018 -3600
-# Node ID 1fabe9b19f0c356704aad5bbb0ce045ff3e05947
-# Parent  2c020dc87db5511e6cbaae05389e3bda225d4879
-cx88: detect stereo output instead of mono fallback in A2 sound system
+>
+> I've got a WinTV-HVR-1800, which has an analog tuner and a ATSC/QAM tuner.  The \
+> analog side seems to not yet be supported (It works -- I can boot to Vista and watch \
+> the analog side) by Linux,  
+>
+> ...
+>
+> > From reading other posts and following a few other forums, it looks like the analog \
+> > part is still not supported by the 2.6.24 kernel. 
+>   
 
-From: Marton Balint <cus@fazekas.hu>
+That's correct, analog is currently not supported under Linux ... except 
+for preliminary/experimental support available in one of stoth's Hg repos 
 
-Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers
-change randomly if and only if the second audio channel is missing, so if
-these registers are constant (Usually 0x0000 and 0x01), we can assume that
-the tv channel has two audio channels, so we can use STEREO mode. This
-method seems a bit ugly, but nicam detection works the same way. And
-now stereo channel detection also works for me.
+> but I was wondering whether I can tweak my channels.conf \
+> or something and get more digital channels.
+>
+> I'm kind of new to the various ATSC, QAM, NTSC_M stuff.  My assumption up to this \
+> point has been that if I want to watch the full range of channels (1-120) or \
+> something, I need to do it through analog.
+>
+> My system is Comcast Digital cable with OnDemand, a Comcast-supplied box (looks \
+> small, like a router, not a PVR) and remote control (neither of which I'm currently \
+> using), and a Y-split cable line that goes directly to my tv card.  Currently I'm \
+> seeing things like NBC, CBS, ABC, PBS (a few channels), FOX, CW...and a few local \
+> stations.  If it's also possible to tune to Food Network, Sci-fi, Cartoon Network, \
+> etc, that would be great.  These stations come in fine on my regular television with \
+> no box or anything -- just the cable line going into the house.  I'm guessing that if \
+> more channels were _going_ to come in at all on my tuner card, they'd already be \
+> coming in.  :-)  But I could be wrong. 
+>
+> ....
+>
+> > But if these other channels are \
+> > available on the digital side, that'd be cool.  My tuning, thus far, has only been \
+> > on QAM256. 
+>
+>   
 
-Since my cable TV provider only broadcasts in PAL BG mode with A2 sound
-system, i couldn't test other systems, but they should work just like
-before.
+The Food network etc channels you are seeing on your tv (cable straight 
+from wall to tv) are analog channels.  As your tv card currently doesn't 
+support analog, these won't work.  If your cable co. transmits 
+unencrypted digital versions of those channels, your card would work.  
+Doesn't sound like that is the case for you....In other words, there are 
+no "tweaks" for your channels.conf file that are going to acquire those 
+channels.
 
+> ATSC (antenna, right?) didn't come in at all.  
 
-Signed-off-by: Marton Balint <cus@fazekas.hu>
+Yes, ATSC is digital over/off-the-air and requires an antenna for 
+reception .... it uses 8VSB modulation.
 
-diff -r 2c020dc87db5 -r 1fabe9b19f0c linux/drivers/media/video/cx88/cx88-tvaudio.c
---- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:40:42 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:50:18 2008 +0100
-@@ -725,31 +725,47 @@ static void set_audio_standard_FM(struct
- 
- /* ----------------------------------------------------------- */
- 
--static int cx88_detect_nicam(struct cx88_core *core)
--{
--	int i, j = 0;
-+static int cx88_detect_nicam_or_stereo(struct cx88_core *core)
-+{
-+	int i, stereo = 0;
-+	u32 status1, status2;
-+	u32 last_status1, last_status2;
- 
- 	dprintk("start nicam autodetect.\n");
--
--	for (i = 0; i < 6; i++) {
-+	last_status1 = cx_read(AUD_NICAM_STATUS1);
-+	last_status2 = cx_read(AUD_NICAM_STATUS2);
-+
-+	/* wait here max 50 ms or if stereo is ambigous then max 70 ms */
-+	for (i = 0; i < 5 || (stereo > 0 && stereo < 3 && i < 7); i++) {
-+		/* wait a little bit for next reading status */
-+		msleep(10);
-+
-+		status1 = cx_read(AUD_NICAM_STATUS1);
-+		status2 = cx_read(AUD_NICAM_STATUS2);
-+
- 		/* if bit1=1 then nicam is detected */
--		j += ((cx_read(AUD_NICAM_STATUS2) & 0x02) >> 1);
--
--		if (j == 1) {
-+		if (status2 & 0x02) {
- 			dprintk("nicam is detected.\n");
- 			return 1;
- 		}
- 
--		/* wait a little bit for next reading status */
--		msleep(10);
--	}
--
-+		if (last_status1 == status1 && last_status2 == status2)
-+			stereo++;
-+		else
-+			stereo = 0;
-+		last_status1 = status1;
-+		last_status2 = status2;
-+	}
-+
-+	dprintk("stereo detection result: %d\n", stereo);
- 	dprintk("nicam is not detected.\n");
--	return 0;
-+	return stereo >= 3 ? 2 : 0;
- }
- 
- void cx88_set_tvaudio(struct cx88_core *core)
- {
-+	int nicam_or_stereo;
-+
- 	switch (core->tvaudio) {
- 	case WW_BTSC:
- 		set_audio_standard_BTSC(core, 0, EN_BTSC_AUTO_STEREO);
-@@ -764,12 +780,13 @@ void cx88_set_tvaudio(struct cx88_core *
- 		/* set nicam mode - otherwise
- 		   AUD_NICAM_STATUS2 contains wrong values */
- 		set_audio_standard_NICAM(core, EN_NICAM_AUTO_STEREO);
--		if (0 == cx88_detect_nicam(core)) {
--			/* fall back to fm / am mono */
--			set_audio_standard_A2(core, EN_A2_FORCE_MONO1);
-+		nicam_or_stereo = cx88_detect_nicam_or_stereo(core);
-+		if (nicam_or_stereo == 1) {
-+			core->use_nicam = 1;
-+		} else {
-+			/* fall back to fm / am stereo or mono */
-+			set_audio_standard_A2(core, nicam_or_stereo == 2 ? EN_A2_FORCE_STEREO : EN_A2_FORCE_MONO1);
- 			core->use_nicam = 0;
--		} else {
--			core->use_nicam = 1;
- 		}
- 		break;
- 	case WW_EIAJ:
+Digital cable in North America (which isn't ATSC, but is highly 
+conformative and interoperative with ATSC, and where the remaining 
+differences being defined by SCTE etc standards)  typically/by defacto 
+uses QAM (Quadrature Amplitude Modulation).
 
+> I haven't tried HRC or \
+> > the others. Just us-Cable-Standard-center-frequencies-QAM256, which found about 350 \
+> > signals, of which only about 10 were actual working channels.
+>   
+
+Certainly sounds like your cable operator/supplier uses centre frequencies
+
+> Is it possible to have more channels come in?  
+
+Only if they are unencrypted.
+
+> Should plug in my Comcast box and \
+> use a different method to scan for channels?  (I've tried plugging in the box but \
+> that seems to kill my digital signal entirely -- I then don't get any channels)
+>   
+
+Doesn't work that way.  Can't remember if I wrote about it in the wiki 
+or not, but I do have a bookmark handy;  See:
+http://archive2.avsforum.com/avs-vb/showthread.php?p=7328646&&#post7328646
+
+The post is a bit dated now, and in reference to something else, but it 
+should contain an explanation regarding why  
+STB_RF_output--to--digital_tuner_card_RF_input doesn't work.
+
+> Thanks for putting up with these really basic questions.  I apologize in \
+> advance...and greatly appreciate the help!
+
+NP -- but please do heed the advice in the previous message.
 
 --
 video4linux-list mailing list
