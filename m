@@ -1,20 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n7a.bullet.ukl.yahoo.com ([217.146.183.155])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JXkuO-0002ZU-55
-	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 23:19:20 +0100
-Date: Fri, 07 Mar 2008 18:18:38 -0400
-From: manu <eallaud@yahoo.fr>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
-	<1204845652l.7051l.0l@manu-laptop> <47D08B08.9010703@gmail.com>
-In-Reply-To: <47D08B08.9010703@gmail.com> (from abraham.manu@gmail.com on
-	Thu Mar  6 20:23:36 2008)
-Message-Id: <1204928318l.5666l.0l@manu-laptop>
+Received: from smtp-out5.blueyonder.co.uk ([195.188.213.8])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sboyce@blueyonder.co.uk>) id 1JafMm-0006Eg-Nf
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 00:00:42 +0100
+Received: from [172.23.170.137] (helo=anti-virus01-08)
+	by smtp-out5.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1JafMi-0006Wp-Rs
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 23:00:36 +0000
+Received: from [82.47.98.230] (helo=[192.168.10.10])
+	by asmtp-out1.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1JafMi-00052z-9o
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 23:00:36 +0000
+Message-ID: <47DC5515.6030701@blueyonder.co.uk>
+Date: Sat, 15 Mar 2008 23:00:37 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Re : TT S2-3200. No lock on high symbol rate (45M)
- transponders
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <20080311110707.GA15085@mythbackend.home.ivor.org>	<47D701A7.40805@philpem.me.uk>	<1205273404.20608.2.camel@youkaida>
+	<47DC3F65.8090407@philpem.me.uk>
+In-Reply-To: <47DC3F65.8090407@philpem.me.uk>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Reply-To: sboyce@blueyonder.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,43 +34,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/06/2008 08:23:36 PM, Manu Abraham wrote:
-> manu wrote:
-> > On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
-> >> Can't get TT S2-3200 locked on high SR transponders. I have seen a 
-> >> lot
-> >>  
-> >> of suggestions regarding changing Frequency/Symbol rate on various 
+Philip Pemberton wrote:
+> Nicolas Will wrote:
+>> My Ubuntu-provided 2.6.22 works fine.
+>>
+>> And I am not losing any tuner. Not even with the Multirec of MythTV
+>> 0.21.
 > 
-> >> forums but no luck. Low SR are fine.
-> >> Does anyone have a "revision" of multiproto that was tested with
-> high 
-> >>
-> >> SR?
-> >>
-> >> I hope Manu can comment on that as well...
-> >>
-> > Just a "me too", well kind of: for me certain transponders do not
-> lock 
-> > or lock but with corrupted streams whereas others are perfect (on
-> the 
-> > same sat with the same characteristics, SR is 30M).
+> Right, well I've had enough of Ubuntu 8.04a2 (and I've learned a valuable
+> lesson about not using alpha OSes on "production" systems). This is mostly
+> down to my own actions, though -- the kernel is utterly hosed, the nVidia
+> driver won't load, and the HVR-3000 is refusing to talk (instead insisting
+> that the demux chip isn't talking).
 > 
+> I've backed the system off to 7.10 (Gutsy) and it seems stable -- I had to
+> modify the patch from http://dev.kewl.org/hauppauge/ to apply on the latest Hg
+> source... Much fun. It seems to work, so I'll probably publish the repository
+> tomorrow some time (after the day I've had I don't feel like doing much of
+> anything).
 > 
-> Please try whether these register setup changes does help as
-> applicable.
+> Plus I'd rather like to see if it works before I go unleashing it on the
+> masses at large.
 > 
-> http://jusst.de/hg/mantis/rev/72e81184fb9f
-> 
-> Regards,
-> Manu
+> I'm just waiting for ScanDVB to finish making a channels.conf for ASTRA 28.2E,
+> after that I'll see if I can crash the T500 :)
 > 
 
-Is there equivalent fixes/imrpovments for TT 3200?
-Thx,
-Bye
-Manu
-
+Regarding the NVidia module, NVidia themselves haven't yet conjured up a 
+fix for the latest kernels. I hope they do so as one kernel symbol 
+(init_mm) that is needed was temporarily reexported and will again not 
+be exported  from 2.6.26-rc. That seems to be the holdup at NVidia, 
+hopefully will be sorted by the time 2.6.25 final appears.
+NVIDIA_2.6.25.patch.txt can be downloaded from the NVidia Linux forum 
+which works with later 2.6.24-git kernels and 2.6.25-rc. Here I have 
+been  running it with kernels up to current 2.6.25-rc5-git5.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support 
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
 
 _______________________________________________
