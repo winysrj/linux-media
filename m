@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out113.alice.it ([85.37.17.113])
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sarkiaponius@alice.it>) id 1JconI-0004BW-5z
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 22:28:56 +0100
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by debian (Postfix) with ESMTP id 628D91040BD
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 22:27:26 +0100 (CET)
-Message-ID: <47E4283D.8020700@alice.it>
-Date: Fri, 21 Mar 2008 22:27:25 +0100
-From: Andrea Giuliano <sarkiaponius@alice.it>
+	(envelope-from <jarro.2783@gmail.com>) id 1Jag0v-0000cF-SS
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 00:42:11 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1662244tia.13
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 16:42:04 -0700 (PDT)
+Message-ID: <abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
+Date: Sun, 16 Mar 2008 10:42:04 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47DBDB9F.5060107@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] No channels on just some frequencies...
+Content-Disposition: inline
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47D9EED4.8090303@linuxtv.org>
+	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
+	<47DA0F01.8010707@iki.fi> <47DA7008.8010404@linuxtv.org>
+	<47DAC42D.7010306@iki.fi> <47DAC4BE.5090805@iki.fi>
+	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
+	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
+	<47DBDB9F.5060107@iki.fi>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,52 +35,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Sun, Mar 16, 2008 at 1:22 AM, Antti Palosaari <crope@iki.fi> wrote:
 
-I can szap many free channels from Hotbird 13E, but none on some 
-frequencies. For example, if the "test" file just contains the line:
+>
+> Jarryd Beck wrote:
+> >  >  Michael's patch didn't produce any interesting dmesg output. I included
+> >  >  dmesg for plugging in and tuning with antti's patch.
+>
+> First errors came from same situation as earlier, no_reconnect. But it
+> finally still worked.
+>
+>
+> > Just realised I didn't have debug enabled for Michael's patch. When
+> > tuning I got lots of this:
+> >
+> > tda18271_set_standby_mode: sm = 0, sm_lt = 0, sm_xt = 0
+> > tda18271_init_regs: initializing registers for device @ 1-00c0
+> > tda18271_tune: freq = 219500000, ifc = 3800000, bw = 7000000, std = 0x1d
+> >
+> > My keyboard was fine this time (that was the point it normally responded
+> > really slowly), and the driver loaded instantly instead of taking nearly
+> > half a minute.
+> > It looks like it might be a step in the right direction, but it's still
+> > not tuning.
+> >
+> > Jarryd.
+>
+> Frequency control values of the demodulator seems to be ok now. Also adc
+> and coeff looks correct. It is hard to say where is problem...
+> Can you test if demodulator can detect TPS parameter automatically? You
+> can do that inserting AUTO to initial tuning file, for example set FEC
+> AUTO. And then "scan tuning-file"
+>
+>
+>
+>
+> regards
+> Antti
+> --
+> http://palosaari.fi/
+>
 
-   S 11766000 V 27500000 2/3
+Sorry I'm completely lost at this point, are you talking about adding something
+to /usr/share/dvb-apps/dvb-t/au-sydney_north_shore and then running
+scandvb, or are you talking about something else?
 
-that I took from http://www.lyngsat.com/hotbird.html as many other which 
-instead work percectly, the command:
-
-   scan test > channels.conf
-
-alway gives the following output:
-
-scanning prova
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 11766000 V 27500000 2
- >>> tune to: 11766:v:0:27500
-WARNING: >>> tuning failed!!!
- >>> tune to: 11766:v:0:27500 (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-On the other hand, if I put manually some lines in channels.conf for 
-such a frequency, I can zap to those channels, but in most cases I watch 
-a different channel, not the one I expected to see.
-
-This doesn't happen on other frequencies.
-
-May be of some help the fact that I'm writing from Italy, and I cannot 
-get channels from the scan for the most important italian channels: in 
-particular, none of RAI network, nor Mediaset network, the biggest 
-network in Italy.
-
-Also, the signal became rather good after I bought an amplifier. 
-Actually, I can see and record perfectly fine many channels. I don't 
-think I have signal strength problems.
-
-Any hint will be very much appreciated.
-
-Best regards.
-
--- 
-Andrea
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
