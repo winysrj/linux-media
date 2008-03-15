@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.227])
+Received: from holly.castlecore.com ([89.21.8.102])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Jeeme-0003M3-7w
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 00:11:55 +0100
-Received: by wr-out-0506.google.com with SMTP id c30so3133497wra.14
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 16:11:42 -0700 (PDT)
-Message-ID: <d9def9db0803261611v14c4901bk70c878d91b632b79@mail.gmail.com>
-Date: Thu, 27 Mar 2008 00:11:41 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Philip Pemberton" <lists@philpem.me.uk>
-In-Reply-To: <47EACB93.7050400@philpem.me.uk>
+	(envelope-from <lists@philpem.me.uk>) id 1Jadum-0008LI-6l
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 22:27:41 +0100
+Message-ID: <47DC3F65.8090407@philpem.me.uk>
+Date: Sat, 15 Mar 2008 21:28:05 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <mailman.81.1206506075.819.linux-dvb@linuxtv.org>
-	<47EA17BE.3080409@dsl.pipex.com> <47EACB93.7050400@philpem.me.uk>
-Cc: David Harvey <dcharvey@dsl.pipex.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova - t disconnects
+To: Nicolas Will <nico@youplala.net>
+References: <20080311110707.GA15085@mythbackend.home.ivor.org>	<47D701A7.40805@philpem.me.uk>
+	<1205273404.20608.2.camel@youkaida>
+In-Reply-To: <1205273404.20608.2.camel@youkaida>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,51 +26,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 3/26/08, Philip Pemberton <lists@philpem.me.uk> wrote:
-> David Harvey wrote:
-> > MT2060: successfully identified (IF1 = 1220)
-> > [ 589.459712] input: IR-receiver inside an USB DVB receiver as
-> > /devices/pci0000:00/0000:00:13.2/usb3/3-8/input/input16
-> > [ 589.470534] dvb-usb: schedule remote query interval to 150 msecs.
-> > [ 589.470540] dvb-usb: Hauppauge Nova-T Stick successfully initialized
-> > and connected.
-> > [ 606.300175] hub 3-0:1.0: port 8 disabled by hub (EMI?), re-enabling...
-> > [ 606.300181] usb 3-8: USB disconnect, address 11
-> > [ 606.312990] mt2060 I2C write failed
-> > [ 608.563167] mt2060 I2C write failed
-> > [ 608.563243] mt2060 I2C write failed (len=2)
-> > [ 608.563246] mt2060 I2C write failed (len=6)
->
-> ...
->
-> Here's your problem:
->
-> > 00:00.0 Host bridge: ATI Technologies Inc RS480 Host Bridge (rev 01)
-> ...
-> > 00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
-> > 00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
-> > 00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host
-> Controller
->
-> USB2 on ATI chipsets is hopelessly, horrendously broken. A Cardbus USB2 card
-> (or in the case of a desktop, a PCI USB2 card) should fix this -- the NEC
-> chipset based boards are (from what I've heard) the best of the bunch, but
-> VIA
-> based boards aren't (too) bad.
->
+Nicolas Will wrote:
+> My Ubuntu-provided 2.6.22 works fine.
+> 
+> And I am not losing any tuner. Not even with the Multirec of MythTV
+> 0.21.
 
-it would be interesting to know what's wrong, especially since other
-usb 2.0 based devices work properly with those chipset (ATI, VIA,
-etc).
-Any idea if it is a current or protocol based problem?
-Aren't there similar devices from dibcom available which do not have
-that problem?
-If that's the case what's so different with the WinTV series?
+Right, well I've had enough of Ubuntu 8.04a2 (and I've learned a valuable 
+lesson about not using alpha OSes on "production" systems). This is mostly 
+down to my own actions, though -- the kernel is utterly hosed, the nVidia 
+driver won't load, and the HVR-3000 is refusing to talk (instead insisting 
+that the demux chip isn't talking).
 
-Hope someone can answer at least a few questions :)
+I've backed the system off to 7.10 (Gutsy) and it seems stable -- I had to 
+modify the patch from http://dev.kewl.org/hauppauge/ to apply on the latest Hg 
+source... Much fun. It seems to work, so I'll probably publish the repository 
+tomorrow some time (after the day I've had I don't feel like doing much of 
+anything).
 
-thanks,
-Markus
+Plus I'd rather like to see if it works before I go unleashing it on the 
+masses at large.
+
+I'm just waiting for ScanDVB to finish making a channels.conf for ASTRA 28.2E, 
+after that I'll see if I can crash the T500 :)
+
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
