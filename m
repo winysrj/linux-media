@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28M18Rc024737
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 17:01:08 -0500
-Received: from mail.cdma-2000.org (238.30.232.72.static.reverse.ltdomains.com
-	[72.232.30.238])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28M0Vp1002541
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 17:00:31 -0500
-Received: from pc349.sam-solutions.net (port-223-pool-91-187-1.infonet.by
-	[91.187.1.223])
-	by mail.cdma-2000.org (Postfix) with ESMTP id 345DC1734673
-	for <video4linux-list@redhat.com>; Sun,  9 Mar 2008 00:00:30 +0200 (EET)
-Message-ID: <47D30C78.10608@altlinux.ru>
-Date: Sun, 09 Mar 2008 00:00:24 +0200
-From: Grigory Milev <week@altlinux.ru>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2F7NOOP004785
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 03:23:24 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2F7MpR2017145
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 03:22:52 -0400
+Received: by fk-out-0910.google.com with SMTP id b27so4926352fka.3
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 00:22:51 -0700 (PDT)
+Message-ID: <47DB7945.9080902@claranet.fr>
+Date: Sat, 15 Mar 2008 08:22:45 +0100
+From: Eric Thomas <ethomas@claranet.fr>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-References: <47D076E0.6090400@altlinux.ru>
-In-Reply-To: <47D076E0.6090400@altlinux.ru>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: Compro U800 USB
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+References: <47C40563.5000702@claranet.fr>
+	<200803111839.01690.zzam@gentoo.org>	<1205281560.5927.119.camel@pc08.localdom.local>	<200803131655.46384.zzam@gentoo.org>
+	<20080313145901.6e4247b6@gaivota>	<1205448483.6359.15.camel@pc08.localdom.local>	<20080314111506.0c4cab80@gaivota>	<Pine.LNX.4.64.0803141533110.5362@axis700.grange>
+	<1205511387.22915.0.camel@localhost>
+In-Reply-To: <1205511387.22915.0.camel@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: kernel oops since changeset e3b8fb8cc214
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +33,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Guennadi,
 
-Nobody use this card???
-So bad :(
+Craig Whitmore wrote:
+> 
+>> You don't need to any more. See my patch from 1 minute ago.
+>>
+> 
+> yes the patch seems to fix the problem :-)
+> 
 
-Grigory Milev пишет:
-| Hi all.
-|
-| Does anybody know about TV Tuner Compro U800 USB or try to write drivers
-| for this tuner?
-|
-| hardware description:
-| Chipset: TC90A92AFG (Toshiba)
-| Decoder: Philips TDA9874A
-| Audio: AC?97-codec Realtek ALC202
-|
-| At this moment i'm not found any about supporting of this tuner in Linux :(
-| I'm only have DataSheet for TC90A92AFG and no more.
-|
-| Also, if anybody start to write this driver, please inform me - i'm
-| connect to this development.
+I fully agree with Craig.
+Tested and approved !
 
-- --
-+--------------------------------------------------------+
-Grigory Milev	mailto:week@altlinux.ru
-ALT Linux Team	http://www.altlinux.ru
-+--------------------------------------------------------+
-Life too beautiful and interesting. Don't worry, be happy.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.8 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD8DBQFH0wx4RtryFLpd500RAvH3AKDGKZAUC99u1cbER38VIfk7yKMkNQCfVlUn
-al9ZvlAjtT3s4N2y2PbqXDQ=
-=7/p0
------END PGP SIGNATURE-----
+> Thanks
+> 
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
