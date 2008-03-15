@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.mtw.ru ([194.135.105.241])
+Received: from hs-out-0708.google.com ([64.233.178.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a-j@a-j.ru>) id 1JcPPr-0007zO-0e
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 19:23:03 +0100
-Date: Thu, 20 Mar 2008 21:23:01 +0300
-From: Andrew Junev <a-j@a-j.ru>
-Message-ID: <251554377.20080320212301@a-j.ru>
-To: Oliver Endriss <o.endriss@gmx.de>
-In-Reply-To: <200803200048.15063@orion.escape-edv.de>
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
+	(envelope-from <eduardhc@gmail.com>) id 1JadUa-0006MH-Je
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 22:00:37 +0100
+Received: by hs-out-0708.google.com with SMTP id 4so4081992hsl.1
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 14:00:31 -0700 (PDT)
+Message-ID: <617be8890803151400h397f7573v29876748cee0d085@mail.gmail.com>
+Date: Sat, 15 Mar 2008 22:00:30 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Matthias Schwarzott" <zzam@gentoo.org>, linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
-Reply-To: Andrew Junev <a-j@a-j.ru>
+Subject: [linux-dvb] Any progress on the Avermedia DVB-S (A700)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,39 +18,53 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1931481068=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Oliver,
+--===============1931481068==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_3252_24999975.1205614830770"
 
-Thursday, March 20, 2008, 2:48:14 AM, you wrote:
+------=_Part_3252_24999975.1205614830770
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> Afaik this is a known regression in 2.6,24.
+Hi, Matthias
+   I've seen you have new patches available on your repository. =BFHave you
+made any progress lately on the driver? I tested the patches, but the
+results were the habitual ones...
 
-> See 
->  
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023477.html
-> and
->  
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023559.html
-> for the fix.
+  Seems this card is really hard to support... :(
 
-
-Umm... Sorry for a stupid question, but does it mean I won't be able
-to use 'repo-bundled' 2.6.24 kernel at all? Do you know if there was
-any information that the fix (in fact, the removal of a patch) is to
-be included in the next kernel? 
-
--- 
 Best regards,
- Andrew
+  Eduard
+
+------=_Part_3252_24999975.1205614830770
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hi, Matthias<br>&nbsp;&nbsp; I&#39;ve seen you have new patches available o=
+n your repository. =BFHave you made any progress lately on the driver? I te=
+sted the patches, but the results were the habitual ones...<br><br>&nbsp; S=
+eems this card is really hard to support... :(<br>
+<br>Best regards, <br>&nbsp; Eduard<br><br>
+
+------=_Part_3252_24999975.1205614830770--
 
 
+--===============1931481068==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1931481068==--
