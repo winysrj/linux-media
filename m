@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from difo.com ([217.147.177.146] helo=thin.difo.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1Jbhmc-0005AN-B2
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 20:47:41 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so38707fge.25
-	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 12:47:35 -0700 (PDT)
-Message-ID: <ea4209750803181247l5641cdder739c7e3ad837a26@mail.gmail.com>
-Date: Tue, 18 Mar 2008 20:47:34 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: linux-dvb@linuxtv.org, "Patrick Boettcher" <patrick.boettcher@desy.de>,
-	vincent@louviaux.com, armand.delcros@gmail.com
+	(envelope-from <ivor@ivor.org>) id 1JacHf-0005Ur-Rb
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 20:43:14 +0100
+Message-ID: <47DC26C0.2050609@ivor.org>
+Date: Sat, 15 Mar 2008 19:42:56 +0000
+From: Ivor Hewitt <ivor@ivor.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_Part_784_1611633.1205869655018"
-Subject: [linux-dvb] PATCH Pinnacle PCTV 72e support added
+To: Patrik Hansson <patrik@wintergatan.com>
+References: <20080314164100.GA3470@mythbackend.home.ivor.org>
+	<8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
+In-Reply-To: <8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,115 +20,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_784_1611633.1205869655018
-Content-Type: multipart/alternative;
-	boundary="----=_Part_785_25176974.1205869655018"
+Patrik Hansson wrote:
+> I tried changing to 2.6.22-19 on my ubuntu 7.10 with autosuspend=-1
+> but i still lost one tuner.
+>
+> Have reverted back to 2.6.22-14-generic now and have disabled the
+> remote-pulling...and i just lost a tuner, restarting my cardclient and
+> mythbackend got it back.
+>
+> Did you have remote-pulling disabled in -19 ?
+>
+>   
+Still ticking along nicely here.
 
-------=_Part_785_25176974.1205869655018
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I have options:
+options dvb-usb-dib0700 force_lna_activation=1
+options dvb-usb disable_rc_polling=1
+(since I have no remote)
 
-Here it goes the patch which add support for the Pinnacle PCTV72e. For the
-strange GPIO6 I just used an If with de device id. Tested by Vincent and
-Armand. Please Pattrick, add a signed-off-by, since you found the GPIO
-stuff.
+Is the ubuntu kernel completely generic?
 
-Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
+I still see an mt2060 write failed error every now and then (four in the 
+past 24 hours), but that doesn't appear to break anything. Do you have 
+complete tuner loss as soon as you get a write error?
 
-Albert
-
-------=_Part_785_25176974.1205869655018
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Here it goes the patch which add support for the Pinnacle PCTV72e. For the strange GPIO6 I just used an If with de device id. Tested by Vincent and Armand. Please Pattrick, add a signed-off-by, since you found the GPIO stuff.<br>
-<br>Signed-off-by: Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">albert.comerma@gmail.com</a>&gt; <br><br>Albert<br><br>
-
-------=_Part_785_25176974.1205869655018--
-
-------=_Part_784_1611633.1205869655018
-Content-Type: text/x-patch; name=PinnaclePCTV72e.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fdyvlb2j
-Content-Disposition: attachment; filename=PinnaclePCTV72e.patch
-
-ZGlmZiAtY3JCIHY0bC1kdmItb3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2Rp
-YjA3MDBfZGV2aWNlcy5jIHY0bC03MmUvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9k
-aWIwNzAwX2RldmljZXMuYwoqKiogdjRsLWR2Yi1vcmlnL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZi
-L2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJMjAwOC0wMy0xOCAxODo0OTo0NS4wMDAwMDAwMDAg
-KzAxMDAKLS0tIHY0bC03MmUvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAw
-X2RldmljZXMuYwkyMDA4LTAzLTE4IDIwOjM5OjI4LjAwMDAwMDAwMCArMDEwMAoqKioqKioqKioq
-KioqKioKKioqIDc5NCw4MDAgKioqKgogIC8qIFNUSzcwNzBQICovCiAgc3RhdGljIGludCBzdGs3
-MDcwcF9mcm9udGVuZF9hdHRhY2goc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCkKICB7CiEg
-CWRpYjA3MDBfc2V0X2dwaW8oYWRhcC0+ZGV2LCBHUElPNiwgR1BJT19PVVQsIDEpOwogIAltc2xl
-ZXAoMTApOwogIAlkaWIwNzAwX3NldF9ncGlvKGFkYXAtPmRldiwgR1BJTzksIEdQSU9fT1VULCAx
-KTsKICAJZGliMDcwMF9zZXRfZ3BpbyhhZGFwLT5kZXYsIEdQSU80LCBHUElPX09VVCwgMSk7Ci0t
-LSA3OTQsODAxIC0tLS0KICAvKiBTVEs3MDcwUCAqLwogIHN0YXRpYyBpbnQgc3RrNzA3MHBfZnJv
-bnRlbmRfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXApCiAgewohIAlpZihhZGFw
-LT5kZXYtPnVkZXYtPmRlc2NyaXB0b3IuaWRWZW5kb3IgID09IFVTQl9WSURfUElOTkFDTEUgJiYg
-YWRhcC0+ZGV2LT51ZGV2LT5kZXNjcmlwdG9yLmlkUHJvZHVjdCA9PSBVU0JfUElEX1BJTk5BQ0xF
-X1BDVFY3MkUpIGRpYjA3MDBfc2V0X2dwaW8oYWRhcC0+ZGV2LCBHUElPNiwgR1BJT19PVVQsIDAp
-OwohIAllbHNlIGRpYjA3MDBfc2V0X2dwaW8oYWRhcC0+ZGV2LCBHUElPNiwgR1BJT19PVVQsIDEp
-OwogIAltc2xlZXAoMTApOwogIAlkaWIwNzAwX3NldF9ncGlvKGFkYXAtPmRldiwgR1BJTzksIEdQ
-SU9fT1VULCAxKTsKICAJZGliMDcwMF9zZXRfZ3BpbyhhZGFwLT5kZXYsIEdQSU80LCBHUElPX09V
-VCwgMSk7CioqKioqKioqKioqKioqKgoqKiogOTA1LDkxMCAqKioqCi0tLSA5MDYsOTEyIC0tLS0K
-ICAJCXsgVVNCX0RFVklDRShVU0JfVklEX0FTVVMsICAgICAgVVNCX1BJRF9BU1VTX1UzMTAwKSB9
-LAogIC8qIDI1ICovCXsgVVNCX0RFVklDRShVU0JfVklEX0hBVVBQQVVHRSwgVVNCX1BJRF9IQVVQ
-UEFVR0VfTk9WQV9UX1NUSUNLXzMpIH0sCiAgCQl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9IQVVQUEFV
-R0UsIFVTQl9QSURfSEFVUFBBVUdFX01ZVFZfVCkgfSwKKyAJCXsgVVNCX0RFVklDRShVU0JfVklE
-X1BJTk5BQ0xFLCBVU0JfUElEX1BJTk5BQ0xFX1BDVFY3MkUpIH0sCiAgCQl7IDAgfQkJLyogVGVy
-bWluYXRpbmcgZW50cnkgKi8KICB9OwogIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBkaWIwNzAw
-X3VzYl9pZF90YWJsZSk7CioqKioqKioqKioqKioqKgoqKiogMTA5MCwxMDk2ICoqKioKICAJCQl9
-LAogIAkJfSwKICAKISAJCS5udW1fZGV2aWNlX2Rlc2NzID0gNiwKICAJCS5kZXZpY2VzID0gewog
-IAkJCXsgICAiRGlCY29tIFNUSzcwNzBQIHJlZmVyZW5jZSBkZXNpZ24iLAogIAkJCQl7ICZkaWIw
-NzAwX3VzYl9pZF90YWJsZVsxNV0sIE5VTEwgfSwKLS0tIDEwOTIsMTA5OCAtLS0tCiAgCQkJfSwK
-ICAJCX0sCiAgCiEgCQkubnVtX2RldmljZV9kZXNjcyA9IDcsCiAgCQkuZGV2aWNlcyA9IHsKICAJ
-CQl7ICAgIkRpQmNvbSBTVEs3MDcwUCByZWZlcmVuY2UgZGVzaWduIiwKICAJCQkJeyAmZGliMDcw
-MF91c2JfaWRfdGFibGVbMTVdLCBOVUxMIH0sCioqKioqKioqKioqKioqKgoqKiogMTExNiwxMTIx
-ICoqKioKLS0tIDExMTgsMTEyNyAtLS0tCiAgCQkJCXsgJmRpYjA3MDBfdXNiX2lkX3RhYmxlWzI2
-XSwgTlVMTCB9LAogIAkJCQl7IE5VTEwgfSwKICAJCQl9LAorICAgICAgICAgICAgICAgICAgICAg
-ICAgIHsgICAiUGlubmFjbGUgUENUViA3MmUgRFZCLVQiLAorICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgeyAmZGliMDcwMF91c2JfaWRfdGFibGVbMjddLCBOVUxMIH0sCisgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB7IE5VTEwgfSwKKyAgICAgICAgICAgICAgICAgICAg
-ICAgICB9LAogIAkJfSwKICAKICAJCS5yY19pbnRlcnZhbCAgICAgID0gREVGQVVMVF9SQ19JTlRF
-UlZBTCwKZGlmZiAtY3JCIHY0bC1kdmItb3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmIt
-dXNiL2R2Yi11c2ItaWRzLmggdjRsLTcyZS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNi
-L2R2Yi11c2ItaWRzLmgKKioqIHY0bC1kdmItb3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9k
-dmItdXNiL2R2Yi11c2ItaWRzLmgJMjAwOC0wMy0xOCAxODo0OTo0NS4wMDAwMDAwMDAgKzAxMDAK
-LS0tIHY0bC03MmUvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5o
-CTIwMDgtMDMtMTggMjA6Mzk6NDQuMDAwMDAwMDAwICswMTAwCioqKioqKioqKioqKioqKgoqKiog
-NDYsNTIgKioqKgogICNkZWZpbmUgVVNCX1ZJRF9VTFRJTUFfRUxFQ1RST05JQwkJMHgwNWQ4CiAg
-I2RlZmluZSBVU0JfVklEX1VOSVdJTEwJCQkJMHgxNTg0CiAgI2RlZmluZSBVU0JfVklEX1dJREVW
-SUVXCQkJMHgxNGFhCi0gLyogZG9tIDogcG91ciBnaWdhYnl0ZSB1NzAwMCAqLwogICNkZWZpbmUg
-VVNCX1ZJRF9HSUdBQllURQkJCTB4MTA0NAogIAogIAotLS0gNDYsNTEgLS0tLQoqKioqKioqKioq
-KioqKioKKioqIDEzNiwxNDEgKioqKgotLS0gMTM1LDE0MSAtLS0tCiAgI2RlZmluZSBVU0JfUElE
-X0FWRVJNRURJQV9WT0xBUl8yCQkJMHhiODA4CiAgI2RlZmluZSBVU0JfUElEX1RFUlJBVEVDX0NJ
-TkVSR1lfRFRfWFNfRElWRVJTSVRZCTB4MDA1YQogICNkZWZpbmUgVVNCX1BJRF9QSU5OQUNMRV9Q
-Q1RWMjAwMEUJCQkweDAyMmMKKyAjZGVmaW5lIFVTQl9QSURfUElOTkFDTEVfUENUVjcyRSAgICAg
-ICAgICAgICAgICAgICAgICAgIDB4MDIzNgogICNkZWZpbmUgVVNCX1BJRF9QSU5OQUNMRV9QQ1RW
-X0RWQl9UX0ZMQVNICQkweDAyMjgKICAjZGVmaW5lIFVTQl9QSURfUElOTkFDTEVfUENUVl9EVUFM
-X0RJVkVSU0lUWV9EVkJfVAkweDAyMjkKICAjZGVmaW5lIFVTQl9QSURfUENUVl8yMDBFCQkJCTB4
-MDIwZQoqKioqKioqKioqKioqKioKKioqIDE4MywxODkgKioqKgogICNkZWZpbmUgVVNCX1BJRF9P
-UEVSQTFfV0FSTQkJCQkweDM4MjkKICAjZGVmaW5lIFVTQl9QSURfTElGRVZJRVdfVFZfV0FMS0VS
-X1RXSU5fQ09MRAkJMHgwNTE0CiAgI2RlZmluZSBVU0JfUElEX0xJRkVWSUVXX1RWX1dBTEtFUl9U
-V0lOX1dBUk0JCTB4MDUxMwotIC8qIGRvbSBwb3VyIGdpZ2FieXRlIHU3MDAwICovCiAgI2RlZmlu
-ZSBVU0JfUElEX0dJR0FCWVRFX1U3MDAwCQkJCTB4NzAwMQogICNkZWZpbmUgVVNCX1BJRF9BU1VT
-X1UzMDAwCQkJCTB4MTcxZgogICNkZWZpbmUgVVNCX1BJRF9BU1VTX1UzMTAwCQkJCTB4MTczZgot
-LS0gMTgzLDE4OCAtLS0tCg==
-------=_Part_784_1611633.1205869655018
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Ivor.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_784_1611633.1205869655018--
