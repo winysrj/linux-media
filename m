@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1JbBt6-00027w-Ut
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 10:44:14 +0100
-Date: Mon, 17 Mar 2008 10:41:47 +0100
-From: insomniac <insomniac@slackware.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080317104147.1ade57fe@slackware.it>
-In-Reply-To: <47DDD817.9020605@iki.fi>
-References: <20080316182618.2e984a46@slackware.it>
-	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
-	<20080317011939.36408857@slackware.it> <47DDC4B5.5050607@iki.fi>
-	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
-	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
-Mime-Version: 1.0
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: Re: [linux-dvb] New unsupported device
+Message-ID: <47DBDB9F.5060107@iki.fi>
+Date: Sat, 15 Mar 2008 16:22:23 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jarryd Beck <jarro.2783@gmail.com>
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>	<47DA0F01.8010707@iki.fi>
+	<47DA7008.8010404@linuxtv.org>	<47DAC42D.7010306@iki.fi>
+	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
+	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
+In-Reply-To: <abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,33 +24,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 17 Mar 2008 04:31:51 +0200
-Antti Palosaari <crope@iki.fi> wrote:
+Jarryd Beck wrote:
+>  >  Michael's patch didn't produce any interesting dmesg output. I included
+>  >  dmesg for plugging in and tuning with antti's patch.
 
-> yes, thats correct. I made simple patch, you can test if it does 
-> something nasty. You can also look dib0700_devices.c file and try
-> some changes. Patch can be applied towards current v4l-dvb-master.
+First errors came from same situation as earlier, no_reconnect. But it 
+finally still worked.
 
-Patched and recompiled the modules. Now plugging in the usb stick
-triggers the loading of the related kernel modules.
-The one error I get in dmesg is 
+> Just realised I didn't have debug enabled for Michael's patch. When
+> tuning I got lots of this:
+> 
+> tda18271_set_standby_mode: sm = 0, sm_lt = 0, sm_xt = 0
+> tda18271_init_regs: initializing registers for device @ 1-00c0
+> tda18271_tune: freq = 219500000, ifc = 3800000, bw = 7000000, std = 0x1d
+> 
+> My keyboard was fine this time (that was the point it normally responded
+> really slowly), and the driver loaded instantly instead of taking nearly
+> half a minute.
+> It looks like it might be a step in the right direction, but it's still 
+> not tuning.
+> 
+> Jarryd.
 
-dvb_core: exports duplicate symbol dvb_unregister_adapter (owned by
-kernel)
+Frequency control values of the demodulator seems to be ok now. Also adc 
+and coeff looks correct. It is hard to say where is problem...
+Can you test if demodulator can detect TPS parameter automatically? You 
+can do that inserting AUTO to initial tuning file, for example set FEC 
+AUTO. And then "scan tuning-file"
 
-so I have removed all the DVB support from kernel, and left only
-CONFIG_DVB_CORE=y, and now kernel is compiling. What to say.. whatever
-will happen, all this showed again the power of the open source,
-I'm moved :-)
-
+regards
+Antti
 -- 
-Andrea Barberio
-
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
