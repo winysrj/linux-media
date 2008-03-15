@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from wf-out-1314.google.com ([209.85.200.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JVWzs-00021q-Rs
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 20:03:48 +0100
-Received: by ug-out-1314.google.com with SMTP id o29so1517349ugd.20
-	for <linux-dvb@linuxtv.org>; Sat, 01 Mar 2008 11:03:36 -0800 (PST)
-Message-ID: <47C9A880.2020701@googlemail.com>
-Date: Sat, 01 Mar 2008 19:03:28 +0000
-From: Andrea <mariofutire@googlemail.com>
+	(envelope-from <hansson.patrik@gmail.com>) id 1Jae9f-0000yj-Pu
+	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 22:43:06 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so4552536wfa.17
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 14:42:59 -0700 (PDT)
+Message-ID: <8ad9209c0803151442p742c10eas3aa0b82c84123194@mail.gmail.com>
+Date: Sat, 15 Mar 2008 22:42:59 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47DC26C0.2050609@ivor.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Help with demux, dvr and ringbuffers
+Content-Disposition: inline
+References: <20080314164100.GA3470@mythbackend.home.ivor.org>
+	<8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
+	<47DC26C0.2050609@ivor.org>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,45 +29,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Sat, Mar 15, 2008 at 8:42 PM, Ivor Hewitt <ivor@ivor.org> wrote:
+> Patrik Hansson wrote:
+>  > I tried changing to 2.6.22-19 on my ubuntu 7.10 with autosuspend=-1
+>  > but i still lost one tuner.
+>  >
+>  > Have reverted back to 2.6.22-14-generic now and have disabled the
+>  > remote-pulling...and i just lost a tuner, restarting my cardclient and
+>  > mythbackend got it back.
+>  >
+>  > Did you have remote-pulling disabled in -19 ?
+>  >
+>  >
+>  Still ticking along nicely here.
+>
+>  I have options:
+>  options dvb-usb-dib0700 force_lna_activation=1
+>  options dvb-usb disable_rc_polling=1
+>  (since I have no remote)
+>
+>  Is the ubuntu kernel completely generic?
+>
+>  I still see an mt2060 write failed error every now and then (four in the
+>  past 24 hours), but that doesn't appear to break anything. Do you have
+>  complete tuner loss as soon as you get a write error?
+>
+>  Ivor.
+>
 
-I've understood a bit more how demux, dvr and rigbuffers work, but I still have a couple of issues.
-I've been studying tzap, which seems much easier than gnutv.
+The only error in my log the lat time i lost a tuner was:
+mt2060 I2C read failed
 
-tzap opens the demux twice (audio and video) and then opens the dvr to read the multiplexed data.
-There are 3 ringbuffers involved:
-
-When a demux is opened, a ringbuffer of 8192 is created (so there are 2 of them).
-I can change its size using DMX_SET_BUFFER_SIZE on the demux.
-
-Then when the dvr is opened an other ringbuffer is created of size 1925120 = 18 * 100 * 1024.
-I don't know how to change its size.
-
-My question is the following:
-
-When I setup the demux to output to the dvr with DMX_OUT_TS_TAP, what happens afterwards?
-Is the following correct or wrong?
-
-1) The "kernel" will write data into the 2 buffers
-2) The "kernel" will read from the 2 demuxes and write to the dvr.
-This has very low latency so a small ringbuffer for the 2 demuxes is ok.
-
-3) A userspace application has to read from the dvr. If it is not fast enough the dvr's ringbuffer 
-gets filled and we are in troubles.
-If this happens I think the best solution would be to overwrite the oldest data.
-
-This ringbuffer needs to take into account all sort of bottleneck one might have.
-
-
-
-
-If it is true I have to find how to change the size of the dvr's ringbuffer.
-Anybody knows why the callback (in dmxdev.c)
-
-static int dvb_dvr_do_ioctl(struct inode *inode, struct file *file,
-			    unsigned int cmd, void *parg)
-
-does not handle DMX_SET_BUFFER_SIZE? Is there an intrinsic issue or is it just to be done?
+So not even a write failed.
 
 _______________________________________________
 linux-dvb mailing list
