@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.186])
+Received: from ti-out-0910.google.com ([209.85.142.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZYBA-0000wJ-DZ
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 22:08:07 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1366492tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 14:07:57 -0700 (PDT)
-Message-ID: <abf3e5070803121407n59f7be10k55d7a256f60f2178@mail.gmail.com>
-Date: Thu, 13 Mar 2008 08:07:57 +1100
+	(envelope-from <jarro.2783@gmail.com>) id 1Jazgu-0005NY-7R
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 21:42:51 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1708642tia.13
+	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 13:42:41 -0700 (PDT)
+Message-ID: <abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
+Date: Mon, 17 Mar 2008 07:42:39 +1100
 From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840803121354r61e49f0fk2f85b052748f2df7@mail.gmail.com>
+To: insomniac <insomniac@slackware.it>
+In-Reply-To: <20080316182618.2e984a46@slackware.it>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47D7E260.4030502@iki.fi> <47D7F16F.4070604@linuxtv.org>
-	<abf3e5070803121336k1f2c9dc5s1962b1401cce1091@mail.gmail.com>
-	<37219a840803121354r61e49f0fk2f85b052748f2df7@mail.gmail.com>
-Cc: crope@iki.fi, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+References: <20080316182618.2e984a46@slackware.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,103 +28,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 13, 2008 at 7:54 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+On Mon, Mar 17, 2008 at 4:26 AM, insomniac <insomniac@slackware.it> wrote:
+> Hi to everyone on the list,
+>  this is my first post on the mailing list. I landed here after a lot of
+>  searching for a working driver for my DVB-T USB stick. I bought a
+>  Pinnacle PCTV Nano Stick (code: 73e) with HD capabilities, and I
+>  discovered that it came on the market very recently (less than one month
+>  ago).
+>  As long as no google search, nor post search on linux-dvb mailing list
+>  had success, it looks this is my last chance to get my card working on
+>  GNU/Linux.
 >
-> On Wed, Mar 12, 2008 at 4:36 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
->  >
->  > >  >>
->  >  >  >> Jarryd,
->  >  >  >>
->  >  >  >> I've analyzed the snoop that you've taken of the windows driver, and I
->  >  >  >> conclude that the driver is basically doing exactly the same that the
->  >  >  >> linux driver would do.  The only thing that I cannot verify is whether
->  >  >  >> or not the tda18211 uses the same table values as the tda18271c1.
->  >  >  >> Based on the traffic in your snoop, it looks like the exact same
->  >  >  >> algorithm is used, but based on a new set of tables -- I will not be
->  >  >  >> able to confirm that without a tda18211 datasheet.  The only thing
->  >  >  >> that you can do is try the tda18271 driver and hopefully it will work.
->  >  >  >>
->  >  >  >> Have you tried to tune yet?  There is a space in your channels.conf,
->  >  >  >> "7 Digital" -- you may want to change that to something like,
->  >  >  >> "7Digital" so that command line applications will work.
->  >  >  >>
->  >  >
->  >  >
->  >  >
->  >  > Antti Palosaari wrote:
->  >  >  > hello
->  >  >  > I looked sniffs and find correct demodulator initialization values for
->  >  >  > this NXP tuner. Copy & paste correct table from attached file and try.
->  >  >  > Hopefully it works. I compared your sniff to mt2060 and qt1010 based
->  >  >  > devices and there was still some minor differences to check.
->  >  >  >
->  >  >  > regards,
->  >  >  > Antti
->  >  >  >
->  >  >
->  >  >  Antti,
->  >  >
->  >  >  Please remember not to top-post.
->  >  >
->  >  >  Jarryd,
->  >  >
->  >  >  I have done further analysis on the snoop logs.  Not only is the driver
->  >  >  using the same protocol as the tda18271 linux driver, it also seems to
->  >  >  use the same table values as used with the tda18271c1 -- The linux
->  >  >  driver should work on your tuner without any modification at all.
->  >  >
->  >  >  Regards,
->  >  >
->  >  >  Mike
->  >  >
->  >
->  >  I've got another tuner which works, so I know I'm tuning correctly, it just
->  >  doesn't actually tune. I tried with mplayer, it just sat there saying
->  >  dvb_tune Freq: 219500000 and did nothing. It also made my whole
->  >  computer go really slow, I don't know what it was actually doing.
->  >
->  >  Antti, as I said I've never done anything like this before so I have no
->  >  idea what I'm doing, so I have no idea where to paste which table.
+>  Here is the (actually useless) output I get from dmesg:
+>  usb 1-1: new high speed USB device using ehci_hcd and address 5
+>  usb 1-1: configuration #1 chosen from 1 choice
 >
->  Please try using tzap.  This will show you FE status once every
->  second.  Let it run for a whole minute -- maybe there is some noise
->  that may cause it to take a longer time to lock (if that's the case,
->  then there are some tweaks that we can do.)  Show us the femon output
->  produced by running tzap.
+>  and here is my lsusb -v output about the card:
+>  http://insomniac.slackware.it/lsusb.pinnacle.txt
 >
->  -Mike
+>  In the hope that there's a light at the end of the tunnel, I thank you
+>  all for your patience and your work.
+>
+>  Best regards,
+>  --
+>  Andrea Barberio
 >
 
-$ tzap -a 2 "TEN Digital"
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-tuning to 219500000 Hz
-video pid 0x0200, audio pid 0x028a
-status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-
-$ femon -a 2
-using '/dev/dvb/adapter2/frontend0'
-FE: Afatech AF9013 DVB-T (TERRESTRIAL)
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-
-The status 00 lines were from before I started tzap, after I started tzap
-it did nothing for half a minute, then printed the status 01 line, then
-sat there for another half a minute, and I killed it at that point.
-My computer was also taking quite a few seconds to respond to
-me pressing the keyboard for the whole time I was tuning it.
+The best way you can help is to either tell us what the windows drivers
+are, or open the device up and tell us what is written on both the
+tuner chip and the main chip. They are generally the two biggest
+chips on the board and they have writing on the top.
 
 Jarryd.
 
