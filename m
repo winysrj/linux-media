@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
+Received: from ti-out-0910.google.com ([209.85.142.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ihaywood@iinet.net.au>) id 1Jbuv2-0000V8-NM
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 10:49:17 +0100
-From: Ian Haywood <ihaywood@iinet.net.au>
-To: linux-dvb@linuxtv.org
-Date: Wed, 19 Mar 2008 20:50:40 +1100
-References: <47E060EB.5040207@t-online.de>
-In-Reply-To: <47E060EB.5040207@t-online.de>
+	(envelope-from <jarro.2783@gmail.com>) id 1JahfE-0002tz-B9
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 02:27:55 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1666310tia.13
+	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 18:27:47 -0700 (PDT)
+Message-ID: <abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
+Date: Sun, 16 Mar 2008 12:27:47 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <47DC6E0A.9000904@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200803192050.40863.ihaywood@iinet.net.au>
-Subject: Re: [linux-dvb] [RFC] TDA8290 / TDA827X with LNA: testers wanted
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47DA7008.8010404@linuxtv.org> <47DAC42D.7010306@iki.fi>
+	<47DAC4BE.5090805@iki.fi>
+	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
+	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
+	<47DBDB9F.5060107@iki.fi>
+	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
+	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,40 +35,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 19 March 2008 11:40:11 Hartmut Hackmann wrote:
+On Sun, Mar 16, 2008 at 11:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Antti Palosaari wrote:
+>  > I have no idea how to debug more. Without device it is rather hard to
+>  > test many things. It will help a little if we know is tuner locked.
+>  > Mike, is it easy to add debug writing for tuner to indicate if tuner
+>  > is locked or not locked? I have used that method earlier with mt2060
+>  > tuner...
+>
+>  There is a lock bit in register 0x01[6]  but I have not found it to be
+>  reliable, especially not on the c1 part.
+>
+>  -Mike
+>
+>
+>
 
-> KWORLD DVBT 210
-I have a Tevion/KWorld 220RF. This seems to include the chips
-you are referring to. Anyway, with your latest code on kernel 2.6.24.3:
+You won't believe this, but it worked. I think every time I tried both
+patches together I left .no_reconnect in. I tried it again with both
+patches applied, no other modifications, and it worked.
 
-[   66.794518] saa7133[0]: found at 0000:00:0a.0, rev: 208, irq: 19, latency: 32, mmio: 0xe60080
-00
-[   66.794592] saa7133[0]: subsystem: 10d4:0201, board: UNKNOWN/GENERIC [card=0,autodetected]
-[   66.794667] saa7133[0]: board init: gpio is 100
-[   66.974166] saa7133[0]: i2c eeprom 00: 12 14 00 10 06 83 fa ff f7 58 1a 8d e0 00 00 51
-[   66.974899] saa7133[0]: i2c eeprom 10: d1 d4 b8 13 04 96 bc 8c c0 27 10 50 36 e7 d1 00
-[   66.975627] saa7133[0]: i2c eeprom 20: 01 50 20 23 00 20 d1 7c 37 08 02 5b 2b 58 1b 5b
-[   66.976356] saa7133[0]: i2c eeprom 30: e0 85 ff ff ff 87 ff 00 01 5e 00 20 00 01 00 71
-[   66.977084] saa7133[0]: i2c eeprom 40: d1 8c b2 50 46 23 01 20 cb 50 10 20 d1 d4 b8 15
-[   66.977812] saa7133[0]: i2c eeprom 50: 06 83 fa ff f7 58 1a 8d e0 00 00 41 81 02 78 d4
-[   66.978548] saa7133[0]: i2c eeprom 60: b8 12 03 96 bc 79 ab cc 7f 50 26 87 c0 ff 00 87
-[   66.979276] saa7133[0]: i2c eeprom 70: b8 9f c4 9f fc 8d c0 7f ff 50 46 5e 00 7f ff 20
-[   66.980004] saa7133[0]: i2c eeprom 80: ab 50 a0 9f c4 9f fc 8d c0 80 00 50 44 5e 00 80
-[   66.980731] saa7133[0]: i2c eeprom 90: 00 20 ab 50 10 3c ab d4 b8 15 04 83 fa ff fc 58
-[   66.982020] saa7133[0]: i2c eeprom a0: 1a 8d e0 00 02 51 82 71 78 cc 05 52 56 5e 1a 3e
-[   66.982750] saa7133[0]: i2c eeprom b0: 7f 86 b9 83 e8 f0 00 8c c0 7c fe 50 d3 d4 b8 13
-[   66.983478] saa7133[0]: i2c eeprom c0: 04 77 60 96 bc 8c c0 01 f4 50 16 5b 20 d4 b8 12
-[   66.984206] saa7133[0]: i2c eeprom d0: 00 c2 fd 80 bb 51 30 71 78 cc 05 50 d6 5e 1a 7d
-[   66.984932] saa7133[0]: i2c eeprom e0: 00 86 b9 5e 1b fa 00 83 e8 f0 00 83 e9 f0 00 8c
-[   66.985660] saa7133[0]: i2c eeprom f0: b9 50 76 50 10 20 ab d4 b8 12 00 c0 02 d4 bc 12
-[   67.074658] saa7133[0]: registered device video0 [v4l2]
-[   67.076845] saa7133[0]: registered device vbi0
-
-The tda8290 module doesn't seem to get loaded at all (with stock kernel
-code it does, but doesn't tune as I reported earlier)
-
-Ian
-
+Thanks for all your help,
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
