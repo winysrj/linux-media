@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.177])
+Received: from [212.57.247.218] (helo=glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <craig9@gmail.com>) id 1JZk3E-0004Cr-C9
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 10:48:41 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so4064907wag.13
-	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 02:48:36 -0700 (PDT)
-Message-ID: <a081327a0803130248t1f3b95aay10fa1e3d07ba9e49@mail.gmail.com>
-Date: Thu, 13 Mar 2008 09:48:35 +0000
-From: "Craig Marshall" <craig9@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JauWM-0007C9-Ht
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 16:11:34 +0100
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Elgato EyeTV Hybrid
+Date: Sun, 16 Mar 2008 15:11:01 -0000
+Message-ID: <A33C77E06C9E924F8E6D796CA3D635D102397C@w2k3sbs.glcdomain.local>
+From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
+To: <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S DVB-S2 and CI cards working on Linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,13 +23,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Thank you for ypor reply Dominic
 
-Does anyone know if it's possible to use the Elgato EyeTV Hybrid (a
-mac device) with Linux?
+The errors below are shown in dmesg on reboot in order to automatically
+load all the required modules, that is no attempt to tune the card to
+any station
 
-Thanks,
-Craig
+Oddly, when I compiled and installed the modules manually, this message
+did not appear
+
+Rgds Mike
+
+> >
+> > I have had a TT3200 DVB-S2/CI card for more than a year and I have
+still
+> > not got this to work using the Multiproto drivers on Linux, in fact
+it
+> > seem that I am going backwards with this card with the latest errors
+> > appearing in dmesg:
+> >
+> > stb0899_search: Unsupported delivery system
+> There has been an api update. make sure you're tuning application does
+a
+> 
+> dvbfe_delsys delsys = DVBFE_DELSYS_DVBS;
+> ioctl(front, DVBFE_SET_DELSYS, &delsys);
+> 
+> before other tuning ioctls.
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
