@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]
-	helo=gw) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <magnus@alefors.se>) id 1JfYwb-0006Ub-HW
-	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 12:09:59 +0100
-Received: from [192.168.0.10] (aria.alefors.se [192.168.0.10])
-	by gw (Postfix) with ESMTP id 0524115A8B
-	for <linux-dvb@linuxtv.org>; Sat, 29 Mar 2008 12:09:47 +0100 (CET)
-Message-ID: <47EE237B.4000903@alefors.se>
-Date: Sat, 29 Mar 2008 12:09:47 +0100
-From: =?UTF-8?B?TWFnbnVzIEjDtnJsaW4=?= <magnus@alefors.se>
-MIME-Version: 1.0
+Received: from fk-out-0910.google.com ([209.85.128.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <timothyparez@gmail.com>) id 1Jat3D-0006QC-S9
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 14:37:25 +0100
+Received: by fk-out-0910.google.com with SMTP id z22so6290122fkz.1
+	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 06:37:20 -0700 (PDT)
+Message-Id: <B08CC605-5061-42F5-9D9E-A5294BE1363D@gmail.com>
+From: Timothy Parez <timothyparez@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] No reception on VP-2033
+In-Reply-To: <235E220E-C575-467D-85AB-181C2BEF9669@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Sun, 16 Mar 2008 14:37:12 +0100
+References: <235E220E-C575-467D-85AB-181C2BEF9669@gmail.com>
+Subject: [linux-dvb] Update: Nova-S-Plus scan ERROR: Initial Tuning Failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,81 +26,190 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi. I'm running the http://www.jusst.de/hg/mantis code from mars 19 on a 
-2.6.22 kernel and can't get any reception on my AD-CP300. I find it a 
-little strange that both tda10021 and 10023 are loaded by the mantis 
-module. Is that ok?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I would really appreciate any help on this.
-/Magnus H
+I've pasted my dmesg file here:
 
-scan .czap/se-comhem
-scanning .czap/se-comhem
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 362000000 6875000 0 3
- >>> tune to: 362000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64
-WARNING: >>> tuning failed!!!
- >>> tune to: 362000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64 (tuning 
-failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
 
-lsmod:
-mantis                 33284  0
-tda10021                7940  1 mantis
-tda10023                7428  1 mantis
-lnbp21                  3328  1 mantis
-mb86a16                21632  1 mantis
-stb6100                 8964  1 mantis
-stb0899                36480  1 mantis
-stv0299                11528  1 mantis
-dvb_core               89500  2 mantis,stv0299
-i2c_core               26112  11 
-mantis,tda10021,tda10023,it87,i2c_isa,lnbp21,mb86a16,stb6100,stb0899,stv0299,i2c_nforce2
+Relevant output (at least I think):
 
-dmesg:
-[  289.330023] found a VP-2033 PCI DVB-C device on (01:09.0),
-[  289.330025]     Mantis Rev 1 [1822:0008], irq: 21, latency: 32
-[  289.330028]     memory: 0xe4100000, mmio: 0xf894e000
-[  289.332717]     MAC Address=[00:08:ca:1c:2d:b3]
-[  289.332747] mantis_alloc_buffers (0): DMA=0x1fbc0000 cpu=0xdfbc0000 
-size=65536
-[  289.332778] mantis_alloc_buffers (0): RISC=0x1fded000 cpu=0xdfded000 
-size=1000
-[  289.332804] DVB: registering new adapter (Mantis dvb adapter)
-[  289.849341] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-[  289.850762] TDA10021: i2c-addr = 0x0c, id = 0x7d
-[  289.850765] mantis_frontend_init (0): found Philips CU1216 DVB-C 
-frontend (TDA10021) @ 0x0c
-[  289.850791] mantis_frontend_init (0): Mantis DVB-C Philips CU1216 
-frontend attach success
-[  289.850819] DVB: registering frontend 0 (Philips TDA10021 DVB-C)...
+[   30.969526] Linux video capture interface: v2.00
+[   31.099442] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+[   31.099494] ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 20 (level,  
+low) -> IRQ 20
+[   31.099571] cx88[0]: subsystem: 0070:9202, board: Hauppauge Nova-S- 
+Plus DVB-S [card=37,autodetected]
+[   31.099574] cx88[0]: TV tuner type 4, Radio tuner type -1
+[   31.143430] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6  
+loaded
+[   31.253459] tveeprom 0-0050: Hauppauge model 92001, rev C1B1,  
+serial# 798818
+[   31.253464] tveeprom 0-0050: MAC address is 00-0D-FE-0C-30-62
+[   31.253467] tveeprom 0-0050: tuner model is Conexant_CX24109 (idx  
+111, type 4)
+[   31.253470] tveeprom 0-0050: TV standards ATSC/DVB Digital (eeprom  
+0x80)
+[   31.253473] tveeprom 0-0050: audio processor is CX883 (idx 32)
+[   31.253475] tveeprom 0-0050: decoder processor is CX883 (idx 22)
+[   31.253477] tveeprom 0-0050: has no radio, has IR receiver, has no  
+IR transmitter
+[   31.253480] cx88[0]: hauppauge eeprom: model=92001
+[   31.253546] input: cx88 IR (Hauppauge Nova-S-Plus  as /class/input/ 
+input5
+[   31.253578] cx88[0]/0: found at 0000:04:00.0, rev: 5, irq: 20,  
+latency: 32, mmio: 0xe5000000
+[   31.253618] cx88[0]/0: registered device video0 [v4l2]
+[   31.253642] cx88[0]/0: registered device vbi0
+[   31.253773] cx88[0]/2: cx2388x 8802 Driver Manager
 
-lspci -vvv -s 01:09
-01:09.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI 
-Bridge Controller [Ver 1.0] (rev 01)
-        Subsystem: Twinhan Technology Co. Ltd Unknown device 0008
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
-<TAbort+ <MAbort- >SERR- <PERR-
-        Latency: 32 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 21
-        Region 0: Memory at e4100000 (32-bit, prefetchable) [size=4K]
+[   31.752309] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[   31.752314] cx88/2: registering cx8802 driver, type: dvb access:  
+shared
+[   31.752318] cx88[0]/2: subsystem: 0070:9202, board: Hauppauge Nova- 
+S-Plus DVB-S [card=37]
+[   31.752321] cx88[0]/2: cx2388x based DVB/ATSC card
+[   31.923778] DVB: registering new adapter (cx88[0])
+[   31.923784] DVB: registering frontend 0 (Conexant CX24123/CX24109)...
+[   32.086409] cx2388x alsa driver version 0.0.6 loaded
+[   32.086466] ACPI: PCI Interrupt 0000:04:00.1[A] -> GSI 20 (level,  
+low) -> IRQ 20
+[   32.086493] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
 
-lspci -vvn -s 01:09
-01:09.0 0480: 1822:4e35 (rev 01)
-        Subsystem: 1822:0008
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
-<TAbort+ <MAbort- >SERR- <PERR-
-        Latency: 32 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 21
-        Region 0: Memory at e4100000 (32-bit, prefetchable) [size=4K]
+Using drivers I got using
 
+hg clone http://linuxtv.org/hg/v4l-dvb
+cd v4l-dvb
+make
+make install
+reboot
+
+Timothy
+
+
+
+
+
+
+
+On 15 Mar 2008, at 23:42, Timothy Parez wrote:
+
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Hi,
+>
+> The output of lspci -vvv on my computer looks like this:
+>
+> 04:00.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI  
+> Video and Audio Decoder (rev 05)
+> 	Subsystem: Hauppauge computer works Inc. Nova-S-Plus DVB-S
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+> Stepping- SERR- FastB2B-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+> <TAbort- <MAbort- >SERR- <PERR-
+> 	Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 20
+> 	Region 0: Memory at e5000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [44] Vital Product Data
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>
+> 04:00.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+> Audio Decoder [Audio Port] (rev 05)
+> 	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+> Stepping- SERR- FastB2B-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+> <TAbort- <MAbort- >SERR- <PERR-
+> 	Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 20
+> 	Region 0: Memory at e6000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>
+> 04:00.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+> Audio Decoder [MPEG Port] (rev 05)
+> 	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+> Stepping- SERR- FastB2B-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+> <TAbort- <MAbort- >SERR- <PERR-
+> 	Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 20
+> 	Region 0: Memory at e7000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>
+> 04:00.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and  
+> Audio Decoder [IR Port] (rev 05)
+> 	Subsystem: Hauppauge computer works Inc. Unknown device 9202
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-  
+> Stepping- SERR- FastB2B-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-  
+> <TAbort- <MAbort- >SERR- <PERR-
+> 	Latency: 32 (1500ns min, 63750ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 7
+> 	Region 0: Memory at e8000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA  
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>
+> I installed v4l and now have a /dev/dvb/adapter0 directory
+> demux0  dvr0  frontend0  net0
+>
+> I should note that the items in that directory are colored yellow  
+> with black background (perhaps this is indicating something related  
+> to the problem?
+>
+> When I use scan I get this
+>
+> scan -a 0 /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12551500 V 22000000 5
+> >>> tune to: 12551:v:0:22000
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 12551:v:0:22000 (tuning failed)
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+>
+>
+> If I connect the cable to a decoder + tv I get all the channels and  
+> perfect image.
+> I'm using a dual / twin LNB. Dual for Astra 19.2 E and 23.5 E with 2  
+> connectors.
+>
+> I did get it to work on my previous computer.
+>
+>
+> Any ideas?
+>
+> Timothy.
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.7 (Darwin)
+>
+> iD8DBQFH3FDS+j5y+etesF8RAldeAKDeRHdC3YqDZNBze975O5peeRjILgCeNQqV
+> CukiOWQomn8Ctkn2ErrQMI4=
+> =QbCX
+> -----END PGP SIGNATURE-----
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (Darwin)
+
+iD8DBQFH3SKI+j5y+etesF8RAs81AJ9cgrz0EWHHKyIaZ2jK+tFODi6uvACg5EHU
+ibXpbC1Mz449RwxxuvUv4M8=
+=DBQx
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
