@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 64.244.187.81.in-addr.arpa ([81.187.244.64]
-	helo=bandit.ply.me.uk) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb@ply.me.uk>) id 1JgQHh-0006qP-GU
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 22:07:14 +0200
-From: Andy Carter <dvb@ply.me.uk>
-To: linux-dvb@linuxtv.org
-Date: Mon, 31 Mar 2008 21:07:09 +0100
-References: <1206139910.12138.34.camel@youkaida>
-	<bbf19b3d0803291756q743eca07t4b2f8290dd47c3e4@mail.gmail.com>
-	<754a11be0803311244w319537f6s10c4f3028bb8117a@mail.gmail.com>
-In-Reply-To: <754a11be0803311244w319537f6s10c4f3028bb8117a@mail.gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.156])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1JapVs-0005H6-P4
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 10:50:45 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3821932fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 02:50:41 -0700 (PDT)
+Message-ID: <47DCED6F.6020704@googlemail.com>
+Date: Sun, 16 Mar 2008 10:50:39 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200803312107.09463.dvb@ply.me.uk>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
-Reply-To: dvb@ply.me.uk
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <JXST28$838B51422BBDA91CE4FD6588B0A61AB2@libero.it>
+In-Reply-To: <JXST28$838B51422BBDA91CE4FD6588B0A61AB2@libero.it>
+Subject: Re: [linux-dvb] big problem with dexatek sphere dk-5701 bt878 sat
+ card
+Reply-To: thomas.schorpp@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,25 +28,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Monday 31 March 2008 20:44:50 Antti Luoma wrote:
-> Hi,
->
-> it's the the kernel version that causes the problem, you should compile it
-> yourself or get it from gentoo somehow.
-> I Think issue affects all USB-DVB-T users with kernel 2.6.24
+abc336633@libero.it wrote:
+> Hallo, I'm having a big trouble with dexatek sphere dk-5701 card. 
+> When I have this pci card plugged in motherboard, when trying to
+> install or boot (after having installed without the card)ubuntu (any
+> version) the system freezes when it has to recognize the card giving
+> this message: bttv0: subsytsem 0000:2001 unknown card detected=0 
+> bt878 (rev 17) irq 17 latency 32 mmio 0xfdaff000 I can't find a
+> driver that make it works neither a way to disable the card just to
+> boot ubuntu. The only way to use ubuntu for me at the moment is to
+> unplug the card!
+> 
 
-Not so. 
+1. this is about v4l-dvb linux kernel driver not about distros like ubuntu.
+state kernel (v4l-dvb hg) version pls. 
 
-I've been running Nova T-500 for three weeks with 4 disconnects in the first 
-24 hours but none since on a stock debian 2.6.24 kernel
+2. searching the list-archives before opening new threads is mandatory, 
+ive reported this issue about a year ago. thx for the confirmation.
 
-> see this post:
-> https://bugs.launchpad.net/ubuntu/+bug/209603
+use SysReq keys and report where the kernel freezes (stacktrace), 
+if You want to have boot fixed. i dont have got this card anymore.
 
-I hope this solves the problem others seem to be plagued with, but I'm puzzled 
-as to why it's so stable here
+this card uses a unknown? pci-bridge and a sharp tuner. 
+dexatek and sharp refused to release programming information 
+about their products to us, so creating a driver would require 
+reverse engineering with a pci-extender and i2c sniffing.
 
-Andy
+since there are many supported cards available for only 5-10 bucks more 
+this is an uneconomical effort, so throw this card back to the 
+seller until dexatek and sharp provide support to linux developers.
+
+sorry
+y
+tom
+
 
 
 
