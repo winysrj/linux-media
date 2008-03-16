@@ -1,13 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-Id: <20080328094021.220182651@ifup.org>
-References: <20080328093944.278994792@ifup.org>
-Date: Fri, 28 Mar 2008 02:39:45 -0700
-From: brandon@ifup.org
-To: mchehab@infradead.org
-Content-Disposition: inline; filename=require-spinlock-soc.patch
-Cc: Guennadi Liakhovetski <kernel@pengutronix.de>, video4linux-list@redhat.com,
-	v4l-dvb-maintainer@linuxtv.org, Brandon Philips <bphilips@suse.de>
-Subject: [patch 1/9] soc_camera: Introduce a spinlock for use with videobuf
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GKSi9V012345
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 16:28:44 -0400
+Received: from mail4.sea5.speakeasy.net (mail4.sea5.speakeasy.net
+	[69.17.117.6])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GKSCOZ010820
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 16:28:12 -0400
+Date: Sun, 16 Mar 2008 13:28:06 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Frej Drejhammar <frej.drejhammar@gmail.com>
+In-Reply-To: <kod9eemd4.fsf@liva.fdsoft.se>
+Message-ID: <Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
+References: <patchbomb.1205671781@liva.fdsoft.se>
+	<200803161442.37610.hverkuil@xs4all.nl>
+	<kod9eemd4.fsf@liva.fdsoft.se>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features. Version
+ 2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -19,112 +30,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Videobuf will require all drivers to use a spinlock to protect the IRQ queue.
-Introduce this lock for the SOC/PXA drivers.
+On Sun, 16 Mar 2008, Frej Drejhammar wrote:
+> Hi Hans,
+>
+> > 1) Should we really expose these settings to the user? I have my
+> > doubts whether the average user would know what to do with this, ...
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
-CC: Guennadi Liakhovetski <kernel@pengutronix.de>
+V4L2 controls aren't some menu a user must wade though when setting up
+mythtv.  I don't see the harm in adding them.  There is even software for
+windows that will let people mess with these things, so there is a demand.
 
----
- linux/drivers/media/video/pxa_camera.c |   11 ++++-------
- linux/drivers/media/video/soc_camera.c |    5 +++--
- linux/include/media/soc_camera.h       |    1 +
- 3 files changed, 8 insertions(+), 9 deletions(-)
+> That was my initial take on it, therefore the first version of the
+> patch just added a module parameter. I reasoned that chroma AGC was
+> something you just needed to enable once depending on the quality of
+> your video-source. Then Trent Piepho suggested that the functionality
+> should really be exposed as controls. I think he has a point, consider
+> for example living in a place such as southern Germany where you could
+> receive both German PAL and French SECAM broadcasts. If you then also
+> used a composite/s-video external video source you would want to be
+> able to change the setting depending on your input and the channel you
+> tune to.
 
-Index: v4l-dvb/linux/drivers/media/video/soc_camera.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/soc_camera.c
-+++ v4l-dvb/linux/drivers/media/video/soc_camera.c
-@@ -229,8 +229,8 @@ static int soc_camera_open(struct inode 
- 	dev_dbg(&icd->dev, "camera device open\n");
- 
- 	/* We must pass NULL as dev pointer, then all pci_* dma operations
--	 * transform to normal dma_* ones. Do we need an irqlock? */
--	videobuf_queue_sg_init(&icf->vb_vidq, ici->vbq_ops, NULL, NULL,
-+	 * transform to normal dma_* ones. */
-+	videobuf_queue_sg_init(&icf->vb_vidq, ici->vbq_ops, NULL, &icd->irqlock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
- 				ici->msize, icd);
- 
-@@ -714,6 +714,7 @@ static int soc_camera_probe(struct devic
- 	if (ret >= 0) {
- 		const struct v4l2_queryctrl *qctrl;
- 
-+		spin_lock_init(&icd->irqlock);
- 		qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_GAIN);
- 		icd->gain = qctrl ? qctrl->default_value : (unsigned short)~0;
- 		qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
-Index: v4l-dvb/linux/include/media/soc_camera.h
-===================================================================
---- v4l-dvb.orig/linux/include/media/soc_camera.h
-+++ v4l-dvb/linux/include/media/soc_camera.h
-@@ -19,6 +19,7 @@ struct soc_camera_device {
- 	struct list_head list;
- 	struct device dev;
- 	struct device *control;
-+	spinlock_t irqlock;
- 	unsigned short width;		/* Current window */
- 	unsigned short height;		/* sizes */
- 	unsigned short x_min;		/* Camera capabilities */
-Index: v4l-dvb/linux/drivers/media/video/pxa_camera.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/pxa_camera.c
-+++ v4l-dvb/linux/drivers/media/video/pxa_camera.c
-@@ -109,8 +109,6 @@ struct pxa_camera_dev {
- 
- 	struct list_head	capture;
- 
--	spinlock_t		lock;
--
- 	struct pxa_buffer	*active;
- };
- 
-@@ -283,7 +281,7 @@ static void pxa_videobuf_queue(struct vi
- 
- 	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __FUNCTION__,
- 		vb, vb->baddr, vb->bsize);
--	spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock_irqsave(&icd->irqlock, flags);
- 
- 	list_add_tail(&vb->queue, &pcdev->capture);
- 
-@@ -343,7 +341,7 @@ static void pxa_videobuf_queue(struct vi
- 			DCSR(pcdev->dma_chan_y) = DCSR_RUN;
- 	}
- 
--	spin_unlock_irqrestore(&pcdev->lock, flags);
-+	spin_unlock_irqrestore(&icd->irqlock, flags);
- 
- }
- 
-@@ -384,7 +382,7 @@ static void pxa_camera_dma_irq_y(int cha
- 	unsigned int status;
- 	struct videobuf_buffer *vb;
- 
--	spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock_irqsave(&pcdev->icd->irqlock, flags);
- 
- 	status = DCSR(pcdev->dma_chan_y);
- 	DCSR(pcdev->dma_chan_y) = status;
-@@ -429,7 +427,7 @@ static void pxa_camera_dma_irq_y(int cha
- 				   vb.queue);
- 
- out:
--	spin_unlock_irqrestore(&pcdev->lock, flags);
-+	spin_unlock_irqrestore(&pcdev->icd->irqlock, flags);
- }
- 
- static struct videobuf_queue_ops pxa_videobuf_ops = {
-@@ -869,7 +867,6 @@ static int pxa_camera_probe(struct platf
- 	}
- 
- 	INIT_LIST_HEAD(&pcdev->capture);
--	spin_lock_init(&pcdev->lock);
- 
- 	/*
- 	 * Request the regions.
+CAGC came up before and there was a patch.  I had a patch for it, but then
+Mauro changed some stuff in the driver around so my method no longer
+worked.
 
--- 
+One of the things you should do it make the control inactive when in SECAM
+mode.  V4L2 has a flag to indicate controls that don't apply to the
+device's current mode.
+
+Overall, module parameters for these things is something the V4L1 bttv
+driver did because controls didn't exist for V4L1.  Controls are a better
+way and we shouldn't use module parameters for video decoding controls.
+
+> > ... and I also wonder whether it makes enough of a difference in
+> > picture quality.
+>
+> For me it does, fiddling with the saturation and hue controls I never
+> managed to get neutral color reproduction. The colors were either
+> washed out or saturated to look like a fifties technicolor movie. The
+
+CAGC makes a difference for me too.  Some of my channels are over saturated
+and some are under saturated and CAGC fixes them.  I don't recall if I
+posted pictures last time CAGC came up, but it really does make a
+difference.
+
+> color killer does not make a very large impact for black and white
+> material (the only time it is needed), frankly I'm not sure if its not
+> just the placebo effect. I can live without color killer but
+> definitely not without chroma AGC.
+
+I haven't ever been able to notice an effect from color killer.  Maybe if
+you had poor reception from a B&W source?  Not much black and white on
+broadcast TV these days.
+
+> > 2) Chroma AGC and color killer is also present in other chips
+> > (cx2584x, cx23418, possibly other similar Conexant chips). So if we
+> > decide on allowing these controls I would prefer making this a
+> > standard control, rather than a private one.
+>
+> A quick grep shows that the bttv-driver also exposes chroma AGC as a
+> private control. Cx2584x has chroma AGC enabled by default. Maybe the
+> right thing to do is to enable chroma AGC by default for PAL and NTSC?
+> Chroma AGC is something you'll find on most VCRs and TVs, and then it
+> is on by default.
+
+That's what I would do.  Have a standard control for CAGC and turn it on by
+default.
+
+> Personally I'm against dumbing down the driver and not exposing
+> features which are useful. An argument against your stance is that the
+
+If I wanted to be told I wasn't worthy to use my hardware, I'd run windows!
 
 --
 video4linux-list mailing list
