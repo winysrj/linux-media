@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71])
+Received: from wf-out-1314.google.com ([209.85.200.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1JbeVi-0002rh-NQ
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 17:18:01 +0100
-Date: Tue, 18 Mar 2008 17:15:08 +0100
-From: insomniac <insomniac@slackware.it>
-To: Antti Palosaari <crope@iki.fi>
-Message-ID: <20080318171508.4c685367@slackware.it>
-In-Reply-To: <47DFEA9F.4070307@iki.fi>
-References: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>
-	<47DFDCC4.4090001@iki.fi> <20080318163812.343b0a87@slackware.it>
-	<20080318170134.69e40dab@slackware.it> <47DFEA9F.4070307@iki.fi>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib7770 tunner
+	(envelope-from <hansson.patrik@gmail.com>) id 1JasYJ-0003Gk-LT
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 14:06:50 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so4750879wfa.17
+	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 06:04:47 -0700 (PDT)
+Message-ID: <8ad9209c0803160604i482ced3tf32f7fe1812b26ef@mail.gmail.com>
+Date: Sun, 16 Mar 2008 14:04:47 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <8ad9209c0803160240r75705620q27b76f3f31bad8f5@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <20080314164100.GA3470@mythbackend.home.ivor.org>
+	<8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
+	<47DC26C0.2050609@ivor.org>
+	<8ad9209c0803151442p742c10eas3aa0b82c84123194@mail.gmail.com>
+	<8ad9209c0803160240r75705620q27b76f3f31bad8f5@mail.gmail.com>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,24 +31,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 18 Mar 2008 18:15:27 +0200
-Antti Palosaari <crope@iki.fi> wrote:
+On Sun, Mar 16, 2008 at 10:40 AM, Patrik Hansson <patrik@wintergatan.com> wrote:
+>
+> On Sat, Mar 15, 2008 at 10:42 PM, Patrik Hansson <patrik@wintergatan.com> wrote:
+>  >
+>  > On Sat, Mar 15, 2008 at 8:42 PM, Ivor Hewitt <ivor@ivor.org> wrote:
+>  >  > Patrik Hansson wrote:
+>  >  >  > I tried changing to 2.6.22-19 on my ubuntu 7.10 with autosuspend=-1
+>  >  >  > but i still lost one tuner.
+>  >  >  >
+>  >  >  > Have reverted back to 2.6.22-14-generic now and have disabled the
+>  >  >  > remote-pulling...and i just lost a tuner, restarting my cardclient and
+>  >  >  > mythbackend got it back.
+>  >  >  >
+>  >  >  > Did you have remote-pulling disabled in -19 ?
+>  >  >  >
+>  >  >  >
+>  >  >  Still ticking along nicely here.
+>  >  >
+>  >  >  I have options:
+>  >  >  options dvb-usb-dib0700 force_lna_activation=1
+>  >  >  options dvb-usb disable_rc_polling=1
+>  >  >  (since I have no remote)
+>  >  >
+>  >  >  Is the ubuntu kernel completely generic?
+>  >  >
+>  >  >  I still see an mt2060 write failed error every now and then (four in the
+>  >  >  past 24 hours), but that doesn't appear to break anything. Do you have
+>  >  >  complete tuner loss as soon as you get a write error?
+>  >  >
+>  >  >  Ivor.
+>  >  >
+>  >
+>  >  The only error in my log the lat time i lost a tuner was:
+>  >  mt2060 I2C read failed
+>  >
+>  >  So not even a write failed.
+>  >
+>
+>  During the night i had another read failed, but this time both tuners
+>  stayed alive.
+>
 
-> > DVB: registering frontend 0 (DiBcom 7000PC)...
-> > mt2060 I2C read failed
-> 
-> I don't understand how dib7070p_tuner_attach could call mt2060.
-
-Is there anything I can do to make you debug it?
-
--- 
-Andrea Barberio
-
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
+Just wanted to add that i just lost a tuner (no.2) (eq L__ in mythtv),
+but this time without errors in dmesg.
 
 _______________________________________________
 linux-dvb mailing list
