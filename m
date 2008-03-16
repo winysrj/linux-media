@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m287jojJ031006
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 02:45:50 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m287jDXE020440
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 02:45:13 -0500
-Received: by fg-out-1718.google.com with SMTP id e12so702722fga.7
-	for <video4linux-list@redhat.com>; Fri, 07 Mar 2008 23:45:12 -0800 (PST)
-Message-ID: <47D24404.9050708@claranet.fr>
-Date: Sat, 08 Mar 2008 08:45:08 +0100
-From: Eric Thomas <ethomas@claranet.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2G3roAO020459
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 23:53:50 -0400
+Received: from gaimboi.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2G3rH9o031557
+	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 23:53:18 -0400
+Message-ID: <47DC9B27.50601@tmr.com>
+Date: Sat, 15 Mar 2008 23:59:35 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-To: video4linux <video4linux-list@redhat.com>
-References: <47C40563.5000702@claranet.fr>
-In-Reply-To: <47C40563.5000702@claranet.fr>
+To: CityK <cityk@rogers.com>
+References: <47DC4331.7040100@rogers.com>	<1205622683.4814.13.camel@pc08.localdom.local>
+	<47DC6303.2040802@rogers.com>
+In-Reply-To: <47DC6303.2040802@rogers.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: g.liakhovetski@pengutronix.de, mchehab@infradead.org
-Subject: Re: kernel oops since changeset e3b8fb8cc214
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: ATI "HDTV Wonder" audio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,96 +28,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Eric Thomas wrote:
-> Hi all,
+CityK wrote:
+> Hi Hermann
 > 
-> My box runs with kernel 2.6.24 + main v4l-dvb tree from HG.
-> The card is a Haupauge HVR-3000 running in analog mode only. No *dvd* 
-> module loaded.
-> Since this videobuf-dma-sg patch, I face kernel oops in several
-> situations.
-> These problems occur with real tv applications, but traces below come
-> from the capture_example binary from v4l2-apps/test.
-> 
-> 
-> capture_example called without any argument, oopses when calling STREAMOFF:
-> 
-> BUG: unable to handle kernel NULL pointer dereference at virtual address 
-> 00000200
-> printing eip: c01077e0 *pde = 00000000
-> Oops: 0000 [#1] PREEMPT
-> Modules linked in: cx8800 compat_ioctl32 cx88_alsa cx88xx ir_common 
-> videobuf_dma_sg wm8775 tuner tda9887 tuner_simple tuner_types tveeprom 
-> btcx_risc videobuf_core videodev v4l2_common v4l1_compat i2c_dev rfcomm 
-> l2cap bluetooth it87 hwmon_vid sunrpc binfmt_misc fglrx(P) snd_intel8x0 
-> usb_storage snd_ac97_codec agpgart ac97_bus i2c_nforce2 ati_remote sg 
-> sata_nv uhci_hcd ohci_hcd ehci_hcd
-> 
-> Pid: 3490, comm: capture_example Tainted: P        (2.6.24 #1)
-> EIP: 0060:[<c01077e0>] EFLAGS: 00210206 CPU: 0
-> EIP is at dma_free_coherent+0x30/0xa0
-> EAX: 00200257 EBX: 00000001 ECX: f7206000 EDX: 00001880
-> ESI: f7206000 EDI: 00000200 EBP: f78a884c ESP: f70c0d6c
->  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> Process capture_example (pid: 3490, ti=f70c0000 task=f7881560 
-> task.ti=f70c0000)
-> Stack: 00200046 00000000 f887672f 00000000 00000000 37206000 f7e3ff68 
-> f886e4b2
->        37206000 f98cbbaf f98cb3bb f7e3ff00 f7e3ff84 f7c8ee4c 00200282 
-> f990cc26
->        00000000 00000020 f7c8ee4c f8876517 f7c8ee4c f7e3fa80 00000002 
-> f7c8ee00
-> Call Trace:
->  [<f887672f>] videobuf_waiton+0xdf/0x110 [videobuf_core]
->  [<f886e4b2>] btcx_riscmem_free+0x42/0x90 [btcx_risc]
->  [<f98cbbaf>] videobuf_dma_free+0x4f/0xa0 [videobuf_dma_sg]
->  [<f98cb3bb>] videobuf_dma_unmap+0x2b/0x60 [videobuf_dma_sg]
->  [<f990cc26>] cx88_free_buffer+0x46/0x60 [cx88xx]
->  [<f8876517>] videobuf_queue_cancel+0x97/0xc0 [videobuf_core]
->  [<f88765ca>] __videobuf_streamoff+0x1a/0x30 [videobuf_core]
->  [<f8876638>] videobuf_streamoff+0x18/0x30 [videobuf_core]
->  [<f98ed644>] vidioc_streamoff+0x44/0x60 [cx8800]
->  [<f98ed600>] vidioc_streamoff+0x0/0x60 [cx8800]
->  [<f8855933>] __video_do_ioctl+0xe83/0x3820 [videodev]
->  [<c0200e90>] bit_cursor+0x350/0x5a0
->  [<c02401ff>] n_tty_receive_buf+0x6ff/0xef0
->  [<c024b9a2>] do_con_write+0xaa2/0x19e0
->  [<c013fcb5>] find_lock_page+0x95/0xe0
->  [<f88587ad>] video_ioctl2+0xbd/0x220 [videodev]
->  [<c0118fd3>] release_console_sem+0x1c3/0x210
->  [<c0115880>] __wake_up+0x50/0x90
->  [<c023ad06>] tty_ldisc_deref+0x36/0x90
->  [<c023ccde>] tty_write+0x1be/0x1d0
->  [<c016d008>] do_ioctl+0x78/0x90
->  [<c016d07c>] vfs_ioctl+0x5c/0x2b0
->  [<c023cb20>] tty_write+0x0/0x1d0
->  [<c016d30d>] sys_ioctl+0x3d/0x70
->  [<c0102ace>] sysenter_past_esp+0x5f/0x85
->  =======================
-> Code: ce 53 83 ec 10 85 c0 74 06 8b b8 e0 00 00 00 8d 42 ff bb ff ff ff 
-> ff c1 e8 0b 90 43 d1 e8 75 fb 9c 58 f6 c4 02 74 3d 85 ff 74 06 <8b> 17 
-> 39 d6 73 0f 83 c4 10 89 da 89 f0 5b 5e 5f e9 eb d7 03 00
-> EIP: [<c01077e0>] dma_free_coherent+0x30/0xa0 SS:ESP 0068:f70c0d6c
-> ---[ end trace d2e4ad244a27b1e7 ]---
-> 
-> capture_example called with "-r" (read calls) oopses much earlier and
-> twice. I can provide traces if useful.
-> 
-> I'm not skilled enough to fix it myself, but I can test patches.
-> 
-> Eric
-> 
+> hermann pitton wrote:
+>> for sure blame me not being up to date on this and I am not even sure,
+>> what it is all about.
+>> For example, since the using of cx88-alsa seems to be intended, analog
+>> NTSC with picture, but no sound from tuner is reported (?)
+>> Or like you pointed now, likely analog video from an external input and
+>> then missing the specific ADC support for external analog audio input?
+>>
+>> ...
+>>
+>> Is it at all about analog NTSC-M video working from the tuner?
+>> But no sound, hrmm ;)
+>>   
+> Oops ... umm, its not that I  failed to take broadcast audio into 
+> consideration (as I wasn't sure if Bill was talking about broadcast 
+> audio too), its just that I was hell bent on talking about the external 
+> audio problem :P
 
-Am'I the only one to face this problem ?
-It's clearly related to the changeset e3b8fb8cc214 (Convert
-videobuf-dma-sg to generic DMA API).
-I don't get how this could only affect my card but not the others.
-Maybe this code trigs a bug elsewhere ?
+I'm not sure what you mean by external audio, when the card was tried in 
+a Windows system it had sound, so there is some way to get the audio 
+"external" of the card and into the computer. I loaded the cx88_alsa 
+module with "index=1" and now /proc/asound/cards shows the internal 
+audio as card0 and the cx88 as card1. But I can't get any sound OUT of 
+the card to play, or even record.
 
-Any help is welcome.
+> So now, for a more complete picture:
+> IIRC, the HDTV Wonder lacks any sort of audio out (via either an 
+> internal loop back cable to the sound card or similarly an external out 
+> on the riser).  Therefore, while the cx88 will perform ADC for analog 
+> broadcast audio, you would indeed need to use cx88-alsa, as quite 
+> correctly alluded to by Hermann.  In the more limited case (which I had 
+> wrongly only took into consideration) one will be unable to receive 
+> external audio for the reasons I specified -- i.e. cx88 doesn't do ADC 
+> for external audio; need a driver for the AK5355 for that, and then 
+> correctly code for the GPIO pins for the cx88 as used on the HDTV Wonder.
+> 
+As noted in my original post, I'm using cx88_alsa, it just doesn't work. 
+It's not muted, the volume is up, but nothing. Why they didn't populate 
+the soundcard out on the card I don't know, all the traces are there but 
+no socket is provided.
 
-Regards,
-Eric
+Is it likely that "pulseaudio" stuff is the problem? This is the first 
+time I've used it with video, so I'm at least suspicious, but several 
+people warned I can't just rip it out, I may have to drop back to 
+several older things.
+
+
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
 
 --
 video4linux-list mailing list
