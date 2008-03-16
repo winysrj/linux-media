@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NMipCL018821
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:51 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2NMiGXr019600
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:19 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so2174223fga.7
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 15:44:12 -0700 (PDT)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GEuLoF016100
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 10:56:21 -0400
+Received: from mail.adaptivemethods.com (mail.adaptivemethods.com
+	[209.101.146.201])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GEtplp025020
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 10:55:51 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <77bef451d41348f8e5ca.1206312204@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1206312199@liva.fdsoft.se>
-Date: Sun, 23 Mar 2008 23:43:24 +0100
-To: video4linux-list@redhat.com
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 5 of 6] cx88: Add user control for color killer
+Content-Type: text/plain;
+	charset="us-ascii"
+Date: Sun, 16 Mar 2008 10:55:44 -0400
+Message-ID: <B419B1B79B23B94692AD5B9882ABF45E8E3B50@mail.adaptivemethods.com>
+In-Reply-To: <39A5C52AB07C25479D8B28BA623F289E3C5721@mail.adaptivemethods.com>
+From: "Kevin Kieffer" <kkieffer@adaptivemethods.com>
+To: <video4linux-list@redhat.com>
+Content-Transfer-Encoding: 8bit
+Subject: RE: kernel oops in dma routines from videobuf_iolock,
+	xscale arm architecture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,55 +28,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-1 file changed, 13 insertions(+)
-linux/drivers/media/video/cx88/cx88-video.c |   13 +++++++++++++
+
+I solved this problem and the camera works now.  I had to patch
+dmabounce.c.  The oops is due to a NULL derference of dev->dma mask at
+line 221:
+
+212     struct dmabounce_device_info *device_info =
+dev->archdata.dmabounce; 
+213         dma_addr_t dma_addr; 
+214         int needs_bounce = 0; 
+215  
+216         if (device_info) 
+217                 DO_STATS ( device_info->map_op_count++ ); 
+218  
+219         dma_addr = virt_to_dma(dev, ptr); 
+220  
+221         if (dev->dma_mask) { 
+222                 unsigned long mask = *dev->dma_mask; 
+223                 unsigned long limit; 
+
+The call to dev->dma_mask does not work when "dev" is NULL.  I replaced
+this
+line with:
+
+    if (device_info && dev->dma_mask) {
+
+similar to the if{} blocks below it.
+
+That solved the problem and the camera driver works now.
+
+Kevin
 
 
-# HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1206312016 -3600
-# Node ID 77bef451d41348f8e5ca6b24fe402199ac243ead
-# Parent  b3a7ec84ad4959869d50710bfcbfb997fb39850d
-cx88: Add user control for color killer
 
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+-----Original Message-----
+From: Kevin Kieffer 
+Sent: Thursday, March 13, 2008 12:14 PM
+To: video4linux-list@redhat.com
+Subject: kernel oops in dma routines from videobuf_iolock, xscale arm
+architecture
 
-The cx2388x family has a color killer. This patch implements the
-V4L2_CID_COLOR_KILLER control for the cx2388x family. By default the
-color killer is disabled, as in previous versions of the driver.
+Hello,
+ 
+I'm new to the list and to video4linux as well.  I'm trying to integrate
+a Sentech USB camera driver into an embedded xscale ARM board with the
+2.6.11 kernel.  The driver isn't part of the mainline kernel.  The
+driver is written for v4l2, and runs fine on an x86 PC.  
+ 
+I'm getting an oops when trying to read data, in the function
+map_single() from the following backtrace:
+ 
+map_single() in arch/arm/common/dma_bounce.c
+dma_map_sg() in arch/arm/common/dma_bounce.c
+videobuf_dma_pci_map() in drivers/media/video/video-buf.c
+videobuf_iolock() in drivers/media/video/video-buf.c
+buffer_prepare() in SentechUSB.c
 
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+The buffer_prepare() call passes in a zero value for struct pci_dev *pci
+to videobuf_iolock().  The driver developer tells me this is correct
+when the device is not PCI-based.  The pci_dev pointer passes through to
+the map_single() parameter "dev". This causes the following code in
+map_single() to oops due to a null dereference:
 
-diff -r b3a7ec84ad49 -r 77bef451d413 linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:39:29 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:40:16 2008 +0100
-@@ -256,6 +256,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
- 		.mask                  = 1 << 10,
- 		.shift                 = 10,
- 	}, {
-+		.v = {
-+			.id            = V4L2_CID_COLOR_KILLER,
-+			.name          = "Color killer",
-+			.minimum       = 0,
-+			.maximum       = 1,
-+			.default_value = 0x0,
-+			.type          = V4L2_CTRL_TYPE_BOOLEAN,
-+		},
-+		.reg                   = MO_INPUT_FORMAT,
-+		.mask                  = 1 << 9,
-+		.shift                 = 9,
-+	}, {
- 	/* --- audio --- */
- 		.v = {
- 			.id            = V4L2_CID_AUDIO_MUTE,
-@@ -311,6 +323,7 @@ const u32 cx88_user_ctrls[] = {
- 	V4L2_CID_AUDIO_BALANCE,
- 	V4L2_CID_AUDIO_MUTE,
- 	V4L2_CID_CHROMA_AGC,
-+	V4L2_CID_COLOR_KILLER,
- 	0
- };
- EXPORT_SYMBOL(cx88_user_ctrls);
+if (dev->dma_mask) {
+		unsigned long mask = *dev->dma_mask;
+
+I've read on the list about decoupling videobuf from PCI in later
+versions, though as I said this does work on my x86 PC running 2.6.11.
+Looking for any suggestions for a fix.  Wondering if it could be as easy
+as patching the videobuf code in this kernel with that from a newer
+kernel?
+
+Any suggestions are appreciated.
+
+Thanks
+
+-Kevin
+
+
+ 
 
 --
 video4linux-list mailing list
