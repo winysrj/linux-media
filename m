@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ALN4CM031060
-	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 17:23:04 -0400
-Received: from mailout04.sul.t-online.com (mailout04.sul.t-online.de
-	[194.25.134.18])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ALMUXe009020
-	for <video4linux-list@redhat.com>; Mon, 10 Mar 2008 17:22:31 -0400
-Message-ID: <47D5A68C.7070004@t-online.de>
-Date: Mon, 10 Mar 2008 22:22:20 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GGP5wL008381
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 12:25:05 -0400
+Received: from moutng.kundenserver.de (moutng.kundenserver.de
+	[212.227.126.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GGOWUJ009156
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 12:24:33 -0400
+From: Peter Missel <peter.missel@onlinehome.de>
+To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>,
+	video4linux-list@redhat.com
+Date: Sun, 16 Mar 2008 17:24:20 +0100
+References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
+	<200803161254.28025.peter.missel@onlinehome.de>
+	<cfbe4ae12b756df6c951bdb8218917aa@gimpelevich.san-francisco.ca.us>
+In-Reply-To: <cfbe4ae12b756df6c951bdb8218917aa@gimpelevich.san-francisco.ca.us>
 MIME-Version: 1.0
-To: tux@schweikarts-vom-dach.de
-References: <200801051252.18108.tux@schweikarts-vom-dach.de>
-	<200802272151.19488.tux@schweikarts-vom-dach.de>
-	<47CC8094.8000106@t-online.de>
-	<200803101942.40158.tux@schweikarts-vom-dach.de>
-In-Reply-To: <200803101942.40158.tux@schweikarts-vom-dach.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Disposition: inline
+Message-Id: <200803161724.20459.peter.missel@onlinehome.de>
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
+Cc: 
+Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,57 +33,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-HI
+Hi Daniel!
 
-Tux schrieb:
-> Hello Hartmut,
-> 
-> sorry that it has taken so long time to test it. I have tried it with option 
-> use_frontend=1,1 and now it is posible to watch TV on the other
-> port.
-> 
-> best regards
-> 
-> Tux
-> 
-> Am Montag, 3. März 2008 23:49:56 schrieben Sie:
->> Hi
->>
->> Tux schrieb:
->>> Hello Hartmut,
->>>
->>> i have tried the new driver. You are completely right, one port is
->>> working perfectly. But the other one not. What Information do you need to
->>> fix it ?
->>>
->>>
->>> best regards
->> <snip>
->>
->> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
->> i tried to make the 2nd section work too. I don't know which gpo is
->> the right one to control the LNB supply, i need you to find out whether
->> switching the polarization works.
->> There are remaining restrictions:
->> - the 2nd DVB-S section only works if the first is configured for DVB-S
->> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
->> use_frontend=1,0 and use_frontend=1,1 should.
->> - currently it is not possible to choose the higher LNB voltage (14v
->> instead of 13v) - it is not possible to power down the 2nd LNB supply
->> independently. These are due to the fact that it is not possible to access
->> the LNB supply chip via the i2c bus fron the second section of the card.
->>
->> Happy testing
->>   Hartmut
->>
+> Card: LifeViewÂ® LifeVideo To-Go
 
-It's fully working? Great!
-I expected more trouble. I'd like to rework the code a bit before i ask
-Mauro to pull. May I ask you to test again in some days?
+> Rather than paste dmesg and/or lspci output, I have made a patch and
+> attached it.
+
+Enthusiasm appreciated ... but now that I'm seeing the details of the card, I 
+also see that your patch isn't quite appropriate.
+
+As a long time LifeView vs. Linux contributer, let me introduce you to how I 
+think this should be approached.
+
+Step 1: Find out what design family it belongs to - by its PCI ID.
+
+The card's ID is 1502h, which identifies it as a member of the X502 aka 
+FlyDVB-T Cardbus series. Other members include the DVB-T, the DVB-T Duo, and 
+the DVB-T Hybrid. They're all just permutations of the same feature set.
+
+So your first attempt should be using the card number of the 0x0502 and see 
+what happens ...
+
+Step 2: See whether the existing code covers the new model.
+
+The 1502 possibly "just works" using the card definition of the 0502 - if the 
+rest of the code detects the absence of the DVB-T tuner gracefully. You can 
+check that by using the card=N parameter with the card number for the DVB-T 
+Duo.
+
+And while you're doing that, please check whether the video inputs (SVideo, 
+Composite, and Composite-on-SVideo) are operational as well. (This is where 
+using the "Mini" card's description screws up - yours has separate SVideo and 
+Composite inputs like all the Cardbus cards do.)
+
+If it's all OK, then you create a new PCI ID as a patch. Please stick with the 
+33/35 chip, no Cardbus versions have been seen using the 30 or 34 chip 
+versions. But do add a 2nd entry using subsystem vendor 4E42h, just in case 
+the next guy has an OEM version of this card, not a LifeView branded one.
+
+Step 3: Roll your own.
+
+If the code for the 0502 doesn't work well with the DVB-T tuner gone missing, 
+you copy the card description, remove the DVB-T tuner part, and point your 
+pair of new PCI ID entries to this new card definition.
 
 
-Best regards
-  Hartmut
+Good luck, and if you need some help with any of the above, do post back.
+
+regards,
+Peter
 
 --
 video4linux-list mailing list
