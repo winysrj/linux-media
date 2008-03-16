@@ -1,27 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from holly.castlecore.com ([89.21.8.102])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JbJvG-0000eL-EL
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 19:19:01 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JXW006P606NF170@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 17 Mar 2008 14:18:24 -0400 (EDT)
-Date: Mon, 17 Mar 2008 14:18:23 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
-To: Mark A Jenks <Mark.Jenks@nsighttel.com>, linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <47DEB5EF.8010207@linuxtv.org>
-MIME-version: 1.0
-References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com>
-	<c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com>
-	<c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com>
-	<c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com>
-	<47DE9362.4050706@linuxtv.org>
-	<C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
-Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
+	(envelope-from <lists@philpem.me.uk>) id 1JaqdL-0003Bp-Ir
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 12:02:32 +0100
+Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
+	by holly.castlecore.com with esmtp (Exim 4.68)
+	(envelope-from <lists@philpem.me.uk>) id 1JaqdG-0006BC-ET
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 11:02:26 +0000
+Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
+	by wolf.philpem.me.uk (Postfix) with ESMTP id E36B01AFDB01
+	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 11:03:21 +0000 (GMT)
+Message-ID: <47DCFE62.6020405@philpem.me.uk>
+Date: Sun, 16 Mar 2008 11:02:58 +0000
+From: Philip Pemberton <lists@philpem.me.uk>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] CX88 (HVR-3000) -- strange errors in dmesg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,30 +29,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CC'ing the mailing list back in.
+Hi,
+   I've just noticed an absolute ton of these messages in dmesg, can anyone 
+tell me what's going on, or what they mean?
 
-Mark A Jenks wrote:
-> Do you think I should push the kernel to 2.6.25? 
+[  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
+[  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
+[  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
+[  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
 
-I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 - 
-or close to.
+(repeat ad nauseum)
 
-I have another AMD system at home that the driver completely freezes on, 
-no idea why, total system lockup. I don't trust the PCIe chipset on it, 
-it's an early chipset and a little flakey.
+Kernel 2.6.22-14-generic, Hg 11fdae6654e8 with HVR-3000 patches from 
+dev.kewl.org/hauppauge merged in manually.
 
-Other than that the driver's been pretty reliable.
-
-Lots of noise recently on the mailing lists about video_buf related 
-issues and potential race conditions.
-
-Try running the system with a single cpu core and report back, also, 
-just for the hell of it, run memtest also.
-
-- Steve
-
-
-
+Thanks,
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
