@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.176])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JZVCB-0002KL-9d
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 18:56:57 +0100
-Received: by el-out-1112.google.com with SMTP id o28so1678178ele.2
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 10:56:48 -0700 (PDT)
-Message-ID: <8ad9209c0803121056m5e0e853ao24911f03cb97ee17@mail.gmail.com>
-Date: Wed, 12 Mar 2008 18:56:46 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <536FA610-348E-42E0-B679-520373BB6DB3@firshman.co.uk>
+	(envelope-from <mkrufky@linuxtv.org>) id 1JaiEK-0007sY-TQ
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 03:04:09 +0100
+Message-ID: <47DC8012.3050809@linuxtv.org>
+Date: Sat, 15 Mar 2008 22:04:02 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>
-	<47D701A7.40805@philpem.me.uk> <1205273404.20608.2.camel@youkaida>
-	<b04e7ceb0803111537o50b6478ep867d9c26f79b299a@mail.gmail.com>
-	<b04e7ceb0803111537j7ccd5cfau4da464438083b4e2@mail.gmail.com>
-	<536FA610-348E-42E0-B679-520373BB6DB3@firshman.co.uk>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+To: Jarryd Beck <jarro.2783@gmail.com>
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DA7008.8010404@linuxtv.org>
+	<47DAC42D.7010306@iki.fi>	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
+	<47DC6E0A.9000904@linuxtv.org>
+	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
+In-Reply-To: <abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,53 +28,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 3/12/08, Ben Firshman <ben@firshman.co.uk> wrote:
-> When I was having the problem, I was running 2.6.22 (vanilla ubuntu),
-> so it doesn't appear to be related to kernel version.
->
-> The fix posted a few weeks ago does seem to have stopped it for me. I
-> said I lost a tuner recently, but I think that may have just been a
-> loss in reception.
->
-> Ben
->
-> On 11 Mar 2008, at 22:37, Luis Cidoncha wrote:
->
-> > On Tue, Mar 11, 2008 at 11:10 PM, Nicolas Will <nico@youplala.net>
-> > wrote:
-> >
-> >>> I'm building a kernel from the 2.6.24.2 virgin source on Ubuntu to
-> >>> do
-> >>> some
-> >>> testing; I'd like to prove that the problem exists in 2.6.24 proper
-> >>> before
-> >>> screaming "kernel bug". But if 2.6.22 works, a bug is looking more
-> >>> and
-> >>> more
-> >>> likely.
-> >>>
-> >>
-> >
-> > I'm having the "losing one tuner" problem on my Nova T-500 too.
-> >
-> > I'm currently running a vanilla 2.6.23.9, without USB_SUSPEND (the
-> > support for it is in the kernel, but I have it desactivated)
-> >
-> > Luis.
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Jarryd Beck wrote:
+> On Sun, Mar 16, 2008 at 11:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> Antti Palosaari wrote:
+>>  > I have no idea how to debug more. Without device it is rather hard to
+>>  > test many things. It will help a little if we know is tuner locked.
+>>  > Mike, is it easy to add debug writing for tuner to indicate if tuner
+>>  > is locked or not locked? I have used that method earlier with mt2060
+>>  > tuner...
+>>
+>>  There is a lock bit in register 0x01[6]  but I have not found it to be
+>>  reliable, especially not on the c1 part.
+>>
+>>  -Mike
+>>
+>>
+>>
+> 
+> You won't believe this, but it worked. I think every time I tried both
+> patches together I left .no_reconnect in. I tried it again with both
+> patches applied, no other modifications, and it worked.
+> 
+> Thanks for all your help,
+> Jarryd.
 
-Could you specify which fix ?
+This is great news!  For an experiment, can you try once more without my patch applied?
+
+This will just confirm whether or not we can write all 39 registers at once.
+
+If the patch that I gave you is truly needed, then I will integrate it into the official driver.
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
