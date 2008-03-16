@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from mail-in-09.arcor-online.net ([151.189.21.49])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JcnPV-0002Zd-ER
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 21:00:18 +0100
-Message-ID: <47E413C5.6080002@gmail.com>
-Date: Sat, 22 Mar 2008 00:00:05 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<47E2D3C4.2050005@gmail.com>	<200803211015.54663@orion.escape-edv.de>
-	<200803211936.06052.zzam@gentoo.org>
-In-Reply-To: <200803211936.06052.zzam@gentoo.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
- transponder fails
+	(envelope-from <hermann-pitton@arcor.de>) id 1JatsP-0001lS-7E
+	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 15:30:19 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Philip Pemberton <lists@philpem.me.uk>
+In-Reply-To: <47DCFE62.6020405@philpem.me.uk>
+References: <47DCFE62.6020405@philpem.me.uk>
+Date: Sun, 16 Mar 2008 15:21:58 +0100
+Message-Id: <1205677318.30122.14.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] CX88 (HVR-3000) -- strange errors in dmesg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +25,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Mathias,
+Hi,
 
-Matthias Schwarzott wrote:
-> Zarlink zl1003x datasheet (avail on net) tells this:
-> fbw = (alpha * symbol rate) / (2.0 * 0.8) + foffset
+Am Sonntag, den 16.03.2008, 11:02 +0000 schrieb Philip Pemberton:
+> Hi,
+>    I've just noticed an absolute ton of these messages in dmesg, can anyone 
+> tell me what's going on, or what they mean?
 > 
-> where alpha is roll-off 1.35 for dvb-s and 1.20 for DSS
+> [  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
+> [  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
+> [  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
+> [  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
 > 
-> The manual suggests to use highest possible bandwidth for aquiring a lock.
-> And after that read back the offset from the demod and adjust the tuner then.
+> (repeat ad nauseum)
+> 
+> Kernel 2.6.22-14-generic, Hg 11fdae6654e8 with HVR-3000 patches from 
+> dev.kewl.org/hauppauge merged in manually.
+> 
+
+looks like you need the last patches from Guennadi.
+http://marc.info/?l=linux-video&r=1&b=200803&w=2
+
+Most important is that one in the middle.
+[PATCH] Fix left-overs from the videobuf-dma-sg.c conversion to generic
+DMA
+
+As a workaround there was also a patch from Mauro previously, reverting
+videobuf-dma-sg back to PCI DMA until the bug is discovered.
+http://www.spinics.net/lists/vfl/msg36025.html
 
 
-There are some small differences between some of the demodulators. Most
-of the Intel DVB-S demods have a striking feature, which are found in
-few other demods only. This was seen on the Zarlink and Microtune
-devices, from where it originated from.
+Cheers,
+Hermann
 
-Other vendors also have implementations similar to this such as Fujitsu
-and the newer devices from STM. This involves more complexity within the
-demodulator core.
 
-They are capable of doing Auto SR. ie, you request the maximum possible,
-the demod gives you a SR offset and you can re-adjust the BW filter on
-the tuner.
 
-This feature is also more popularly known as "Blindscan", where you need
-to just know the frequency of the signal only. This is the basic feature
-upon which Blindscan is built upon. Most demods can accomodate a SR
-tolerance of around +/-5% only, greater than which they will fail to
-acquire. Since the sampling frequency aka Nyquist sampling rate depends
-directly on the Symbol rate (SR) in which case you need to know the
-Symbol Rate, which is used to set up the tuner BW filter too.
 
-In this regard, you cannot apply the logic that's available for a Auto
-SR capable demodulator to a standard demodulator.
 
-Regards,
-Manu
+
 
 _______________________________________________
 linux-dvb mailing list
