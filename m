@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ILglwQ027868
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:42:47 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ILg9OU016215
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:42:10 -0400
-Date: Tue, 18 Mar 2008 18:41:15 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Chaogui Zhang" <czhang1974@gmail.com>
-Message-ID: <20080318184115.15883f7b@gaivota>
-In-Reply-To: <bd41c5f0803181404w33352e2al9d98a469da1149e3@mail.gmail.com>
-References: <331d2cab0803062218x663ad17ofb79928059a111b@mail.gmail.com>
-	<bd41c5f0803081850o3b818d0ar633fbf0b50bc5535@mail.gmail.com>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAHFaDeWDc9dOji7t+LhHe7YBAAAAAA==@sbg0.com>
-	<bd41c5f0803091305n1332ea0ai1acf5ffc07d0bd8d@mail.gmail.com>
-	<331d2cab0803102036i66455f79h1cf20ca7a0d5e22f@mail.gmail.com>
-	<bd41c5f0803110611o6990350es494c152be56020f4@mail.gmail.com>
-	<331d2cab0803122038y58871667r851c306bdeb721d5@mail.gmail.com>
-	<bd41c5f0803181404w33352e2al9d98a469da1149e3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
-	Brandon Rader <brandon.rader@gmail.com>
-Subject: Re: [linux-dvb] Trying to setup PCTV HD Card 800i
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GFAabj021003
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 11:10:36 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GFA4qK032569
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 11:10:05 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so1796043nfb.21
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:10:04 -0700 (PDT)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+From: Frej Drejhammar <frej.drejhammar@gmail.com>
+In-Reply-To: <200803161442.37610.hverkuil@xs4all.nl> (Hans Verkuil's message
+	of "Sun, 16 Mar 2008 14:42:37 +0100")
+References: <patchbomb.1205671781@liva.fdsoft.se>
+	<200803161442.37610.hverkuil@xs4all.nl>
+Date: Sun, 16 Mar 2008 16:09:59 +0100
+Message-ID: <kod9eemd4.fsf@liva.fdsoft.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
+	Version 2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,57 +31,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 18 Mar 2008 17:04:08 -0400
-"Chaogui Zhang" <czhang1974@gmail.com> wrote:
+Hi Hans,
 
-> On Wed, Mar 12, 2008 at 11:38 PM, Brandon Rader <brandon.rader@gmail.com> wrote:
-> > Alright, here is the new dmesg output http://pastebin.com/m35d1137d.
-> >
-> > Brandon
-> >
-> >
-> >
-> > On Tue, Mar 11, 2008 at 8:11 AM, Chaogui Zhang <czhang1974@gmail.com> wrote:
-> >
-> > >
-> > > On Tue, Mar 11, 2008 at 3:36 AM, Brandon Rader <brandon.rader@gmail.com>
-> > wrote:
-> > > > I tried the different repo that you suggested, and get the same error.
-> > Here
-> > > > is my new dmesg output http://pastebin.com/m4d43d4ef
-> > > >
-> > > > Brandon
-> > > >
-> > > >
-> > >
-> > > Please do not drop the list from the cc. Use the "reply to all"
-> > > function of your email client instead of just "reply".
-> > >
-> > > It seems the i2c bus is not working the way it should. Can you try the
-> > > following? (With the current v4l-dvb tree)
-> > >
-> > > First, unload all the modules related to your card (cx88-*, s5h1409,
-> > xc5000).
-> > > Then, load cx88xx with options i2c_debug=1 and i2c_scan=1
-> > > Post the relevant dmesg output to the list.
-> > >
-> > > --
-> > > Chaogui Zhang
-> > >
-> 
-> Sorry for the delay. I was away on vacation last week.
-> 
-> I don't see any debug info in the dmesg output. Are you sure you
-> loaded the modules with the i2c_debug enabled?
+> 1) Should we really expose these settings to the user? I have my
+> doubts whether the average user would know what to do with this, ...
 
-I suspect that this is the same issue I'm feeling with Kworld 120 (also s5h1409).
-The problem is that i2c gate needs to be open for the tuner to be detected.
-Otherwise, a scan won't find it.
+That was my initial take on it, therefore the first version of the
+patch just added a module parameter. I reasoned that chroma AGC was
+something you just needed to enable once depending on the quality of
+your video-source. Then Trent Piepho suggested that the functionality
+should really be exposed as controls. I think he has a point, consider
+for example living in a place such as southern Germany where you could
+receive both German PAL and French SECAM broadcasts. If you then also
+used a composite/s-video external video source you would want to be
+able to change the setting depending on your input and the channel you
+tune to.
 
-I'm trying to work on a fix for it.
+> ... and I also wonder whether it makes enough of a difference in
+> picture quality.
 
-Cheers,
-Mauro
+For me it does, fiddling with the saturation and hue controls I never
+managed to get neutral color reproduction. The colors were either
+washed out or saturated to look like a fifties technicolor movie. The
+color killer does not make a very large impact for black and white
+material (the only time it is needed), frankly I'm not sure if its not
+just the placebo effect. I can live without color killer but
+definitely not without chroma AGC.
+
+> Note that a change like 'Chroma AGC must be disabled if SECAM is
+> used' is a bug fix and should clearly go in.
+
+But rather pointless as it currently cannot be enabled...
+
+> 2) Chroma AGC and color killer is also present in other chips
+> (cx2584x, cx23418, possibly other similar Conexant chips). So if we
+> decide on allowing these controls I would prefer making this a
+> standard control, rather than a private one.
+
+A quick grep shows that the bttv-driver also exposes chroma AGC as a
+private control. Cx2584x has chroma AGC enabled by default. Maybe the
+right thing to do is to enable chroma AGC by default for PAL and NTSC?
+Chroma AGC is something you'll find on most VCRs and TVs, and then it
+is on by default.
+
+> Personally I think these controls are too low-level, but that's just
+> my opinion. Most chips contains a whole array of similar tweaks that
+> you can do, and exposing them all is not the way to go.
+
+Personally I'm against dumbing down the driver and not exposing
+features which are useful. An argument against your stance is that the
+V4L2-spec defines V4L2_CID_AUTOGAIN, V4L2_CID_AUTO_WHITE_BALANCE and
+V4L2_CID_HUE_AUTO (half of the functionality of chroma AGC) which are
+similar functions. Also consider the MPEG controls, most of which are
+fairly obscure if you are not familiar with the MPEG specs.
+
+Regards,
+
+--Frej
 
 --
 video4linux-list mailing list
