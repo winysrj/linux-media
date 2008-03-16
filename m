@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2VJQguR012652
-	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:26:42 -0400
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2VJQU0Z025155
-	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:26:30 -0400
-Received: by rn-out-0910.google.com with SMTP id i50so754175rne.11
-	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 12:26:30 -0700 (PDT)
-Date: Mon, 31 Mar 2008 12:26:18 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080331192618.GA21600@plankton.ifup.org>
-References: <patchbomb.1206699511@localhost> <20080328160946.029009d8@gaivota>
-	<20080329052559.GA4470@plankton.ifup.org>
-	<20080331153555.6adca09b@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GCojE3016406
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:45 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GCoE8g026516
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:14 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so3946405fga.7
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 05:50:13 -0700 (PDT)
+From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080331153555.6adca09b@gaivota>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 9] videobuf fixes
+Content-Transfer-Encoding: 7bit
+Message-Id: <ac2c307ae12abeb35b59.1205671782@liva.fdsoft.se>
+In-Reply-To: <patchbomb.1205671781@liva.fdsoft.se>
+Date: Sun, 16 Mar 2008 13:49:42 +0100
+To: video4linux-list@redhat.com
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 1 of 2] cx88: Add user control for chroma AGC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,80 +28,143 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 15:35 Mon 31 Mar 2008, Mauro Carvalho Chehab wrote:
-> On Fri, 28 Mar 2008 22:25:59 -0700
-> Brandon Philips <brandon@ifup.org> wrote:
-> 
-> > > I've opened 3 mplayer windows, reading /dev/video0. I closed the second one and
-> > > opened again. I got an error:
-> > 
-> > Shouldn't V4L2 devices not be able to stream to multiple applications at
-> > once?  Quoting the spec:
-> > 
-> > "V4L2 drivers should not support multiple applications reading or
-> > writing the same data stream on a device by copying buffers, time
-> > multiplexing or similar means. This is better handled by a proxy
-> > application in user space. When the driver supports stream sharing
-> > anyway it must be implemented transparently. The V4L2 API does not
-> > specify how conflicts are solved."
-> > 
-> > How about this patch?
-> 
-> The patch is wrong. 
+4 files changed, 42 insertions(+), 3 deletions(-)
+linux/drivers/media/video/cx88/cx88-blackbird.c |    1 
+linux/drivers/media/video/cx88/cx88-core.c      |    6 +++
+linux/drivers/media/video/cx88/cx88-video.c     |   37 +++++++++++++++++++++--
+linux/drivers/media/video/cx88/cx88.h           |    1 
 
-The patch fixes the unsafe way vivi is doing multiple opens right now
-and I am uninterested in spending anymore time trying to fix up vivi
-right now.  If you could fix vivi up that would be great.  
 
-Here are the obvious things I see that would would need to be fixed:
+# HG changeset patch
+# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
+# Date 1205668069 -3600
+# Node ID ac2c307ae12abeb35b59dc0bb1aef95ac6f51798
+# Parent  11fdae6654e804fdd000b0c3c9f3a4a7344ffd69
+cx88: Add user control for chroma AGC
 
-- fillbuff would need a mutex for access to all of the vivi_dev fields
-- mv_count would should only be updated by the first user
-- vivi_stop_thread should only be called once users reaches 0
+From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-Otherwise, this patch will need to go in to keep vivi from blowing up in
-2.6.25.
+The cx2388x family has support for chroma AGC. This patch adds a user
+control, "Chroma AGC", controlling it. By default chroma AGC is
+disabled, as in previous versions of the driver.
 
-> V4L2 API states that it should be possible for a driver to have
-> multiple opens[1]. Most drivers support this. There are two main
-> usages for multiple open:
-> 
-> 	1) a driver may open the device for streaming, while another
-> 	thread or userspace app will open to configure. This is
-> 	generally the way I use here to test video controls: I open
-> 	"qv4l2" (under v4l2-apps/util) while streaming. This way, I can
-> 	test any changes at the driver, without needing to have the
-> 	feature implemented at the userspace app;
->
-> 	2) you can see a program with an userspace app and record the
-> 	stream with another app. Both xawtv and xdtv do this, when you
-> 	ask for record: They call mencoder, asking it to read from
-> 	/dev/video0. This way, you'll have the tv app reading, using
-> 	mmap() or overlay methods, while mencoder is calling read() to
-> 	receive the stream.
+Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-Yes, I know.  But, vivi has no permission control mechanism right now
-for differentiating between streaming file handles and control ones.
-
-> While I don't have much concerns of not allowing multiple streaming on
-> vivi for the same device (since you can ask vivi to create several
-> different virtual devices, by using "n_devs" modprobe parameter), for
-> sure videobuf should keep supporting this feature, otherwise it will
-> break the other drivers that relies on this feature. 
-
-I think videobuf can handle this case just fine.  But, vivi doesn't do
-the proper locking and management to support it.
-
-> Yet, vivi should allow multiple open to allow "panel" applications, to
-> be compliant with V4L2 API.
-
-Yes, but someone needs to add the code to support this in vivi.  And
-until someone does vivi can only support one open at a time without
-crashing.
-
-Thanks,
-
-	Brandon
+diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-blackbird.c
+--- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Fri Mar 14 00:38:24 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Mar 16 12:47:49 2008 +0100
+@@ -701,6 +701,7 @@ static const u32 *ctrl_classes[] = {
+ static const u32 *ctrl_classes[] = {
+ 	cx88_user_ctrls,
+ 	cx2341x_mpeg_ctrls,
++	cx88_priv_ctrls,
+ 	NULL
+ };
+ 
+diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-core.c
+--- a/linux/drivers/media/video/cx88/cx88-core.c	Fri Mar 14 00:38:24 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-core.c	Sun Mar 16 12:47:49 2008 +0100
+@@ -958,7 +958,11 @@ int cx88_set_tvnorm(struct cx88_core *co
+ 
+ 	dprintk(1,"set_tvnorm: MO_INPUT_FORMAT  0x%08x [old=0x%08x]\n",
+ 		cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
+-	cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
++	/* Chroma AGC must be disabled if SECAM is used */
++	if (norm & V4L2_STD_SECAM)
++		cx_andor(MO_INPUT_FORMAT, 0x40f, cxiformat);
++	else
++		cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
+ 
+ #if 1
+ 	// FIXME: as-is from DScaler
+diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-video.c
+--- a/linux/drivers/media/video/cx88/cx88-video.c	Fri Mar 14 00:38:24 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 16 12:47:49 2008 +0100
+@@ -177,6 +177,11 @@ static struct cx8800_fmt* format_by_four
+ 
+ /* ------------------------------------------------------------------- */
+ 
++/* Private controls for cx2388x */
++#define CX88_CID_PRIVATE_CLASS V4L2_CID_PRIVATE_BASE
++#define CX88_CID_CHROMA_AGC   (V4L2_CID_PRIVATE_BASE + 0)
++#define CX88_CID_LAST_PRIVATE (V4L2_CID_PRIVATE_BASE + 1)
++
+ static const struct v4l2_queryctrl no_ctl = {
+ 	.name  = "42",
+ 	.flags = V4L2_CTRL_FLAG_DISABLED,
+@@ -244,6 +249,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
+ 		.mask                  = 0x00ff,
+ 		.shift                 = 0,
+ 	},{
++		.v = {
++			.id            = CX88_CID_CHROMA_AGC,
++			.name          = "Chroma AGC",
++			.minimum       = 0,
++			.maximum       = 1,
++			.default_value = 0x0,
++			.type          = V4L2_CTRL_TYPE_BOOLEAN,
++		},
++		.reg                   = MO_INPUT_FORMAT,
++		.mask                  = 1 << 10,
++		.shift                 = 10,
++	}, {
+ 	/* --- audio --- */
+ 		.v = {
+ 			.id            = V4L2_CID_AUDIO_MUTE,
+@@ -302,8 +319,16 @@ const u32 cx88_user_ctrls[] = {
+ };
+ EXPORT_SYMBOL(cx88_user_ctrls);
+ 
++const u32 cx88_priv_ctrls[] = {
++	CX88_CID_PRIVATE_CLASS,
++	CX88_CID_CHROMA_AGC,
++	0
++};
++EXPORT_SYMBOL(cx88_priv_ctrls);
++
+ static const u32 *ctrl_classes[] = {
+ 	cx88_user_ctrls,
++	cx88_priv_ctrls,
+ 	NULL
+ };
+ 
+@@ -311,8 +336,10 @@ int cx8800_ctrl_query(struct v4l2_queryc
+ {
+ 	int i;
+ 
+-	if (qctrl->id < V4L2_CID_BASE ||
+-	    qctrl->id >= V4L2_CID_LASTP1)
++	if ((qctrl->id < V4L2_CID_BASE ||
++	     qctrl->id >= V4L2_CID_LASTP1) &&
++	    (qctrl->id < V4L2_CID_PRIVATE_BASE ||
++	     qctrl->id >= CX88_CID_LAST_PRIVATE))
+ 		return -EINVAL;
+ 	for (i = 0; i < CX8800_CTLS; i++)
+ 		if (cx8800_ctls[i].v.id == qctrl->id)
+@@ -1225,6 +1252,12 @@ int cx88_set_control(struct cx88_core *c
+ 		}
+ 		mask=0xffff;
+ 		break;
++	case CX88_CID_CHROMA_AGC:
++		/* Do not allow chroma AGC to be enabled for SECAM */
++		value = ((ctl->value - c->off) << c->shift) & c->mask;
++		if (core->tvnorm & V4L2_STD_SECAM && value)
++			return -EINVAL;
++		break;
+ 	default:
+ 		value = ((ctl->value - c->off) << c->shift) & c->mask;
+ 		break;
+diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88.h
+--- a/linux/drivers/media/video/cx88/cx88.h	Fri Mar 14 00:38:24 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88.h	Sun Mar 16 12:47:49 2008 +0100
+@@ -681,6 +681,7 @@ void cx8802_cancel_buffers(struct cx8802
+ /* ----------------------------------------------------------- */
+ /* cx88-video.c*/
+ extern const u32 cx88_user_ctrls[];
++extern const u32 cx88_priv_ctrls[];
+ extern int cx8800_ctrl_query(struct v4l2_queryctrl *qctrl);
+ int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i);
+ int cx88_set_freq (struct cx88_core  *core,struct v4l2_frequency *f);
 
 --
 video4linux-list mailing list
