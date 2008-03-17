@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m26MOUBs001728
-	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 17:24:30 -0500
-Received: from mailrelay001.isp.belgacom.be (mailrelay001.isp.belgacom.be
-	[195.238.6.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m26MNvss006149
-	for <video4linux-list@redhat.com>; Thu, 6 Mar 2008 17:23:57 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Thierry Merle <thierry.merle@free.fr>
-Date: Thu, 6 Mar 2008 23:30:45 +0100
-References: <1202916257-10421-1-git-send-email-jirislaby@gmail.com>
-	<200803042350.55996.laurent.pinchart@skynet.be>
-	<47D05022.2070207@free.fr>
-In-Reply-To: <47D05022.2070207@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Message-Id: <200803062330.46622.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [RFC 1/1] v4l2_extension: helper daemon commands passing
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HDFhbn003078
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 09:15:43 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HDFBnP022879
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 09:15:11 -0400
+Date: Mon, 17 Mar 2008 10:14:33 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20080317101433.42e56c4c@gaivota>
+In-Reply-To: <200803171133.58855.hverkuil@xs4all.nl>
+References: <patchbomb.1205671781@liva.fdsoft.se>
+	<Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
+	<k1w6a2xdk.fsf@liva.fdsoft.se>
+	<200803171133.58855.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Frej Drejhammar <frej.drejhammar@gmail.com>, video4linux-list@redhat.com,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
+ Version 2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,51 +32,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Thierry,
+On Mon, 17 Mar 2008 11:33:58 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On Thursday 06 March 2008, Thierry Merle wrote:
-> Laurent Pinchart a écrit :
-> > On Monday 03 March 2008, Thierry Merle wrote:
-> >> Jiri Slaby a écrit :
-> >>> Here I would like to know if the the commands passing interface to the
-> >>> helper daemon introduced in this patch is OK, or alternatively propose
-> >>> some other idea ;).
-> >>
-> >> I have committed your patch as is
-> >> http://linuxtv.org/hg/~tmerle/v4l2_extension/
-> >> Now will begin a driver enhancement. I will do that on usbvision because
-> >> I know it.
-> >> The first step will be to extend the supported video formats (2
-> >> sub-steps: 1-just enable hardware pixel format capabilities in
-> >> usbvision, 2-allow the helper daemon to extend usbvision pixel format
-> >> capabilities).
-> >
-> > I haven't followed v4l2_extension development closely, so I'm a bit
-> > puzzled by this. Are the modifications you made to the usbvision module
-> > for testing purpose only ? My understanding of v4l2_extension is that it
-> > should work completely transparently and must not require any change to
-> > v4l2 drivers.
->
-> In fact I meant remove from usbvision the software decompression
-> algorithm in order to put it in the helper daemon.
-> I will restrict the list of supported pixel formats to the ones that the
-> hardware can output without software decompression.
+> That's not quite what I meant. I'm responsible of all the MPEG controls, 
+> so I'm definitely all for exposing hardware features to the user :-)
+> 
+> What I want to prevent is adding controls as a workaround for what might 
+> be a driver bug. So in this case I wonder whether chroma AGC shouldn't 
+> be enabled in the cx88 driver as it is for cx2584x.
+> 
+> Looking at the cx25840 datasheet it basically says that it should always 
+> be enabled except for component input (YPrPb) or SECAM. So I would 
+> suggest doing the same in cx88 rather than adding a control. Only if 
+> there are cases where Chroma AGC harms the picture quality rather than 
+> improves it, then the addition of a control might become important.
 
-That's the whole point of having userspace decompression. Those changes are 
-perfectly ok.
+IMO, the better would be to add both Chroma AGC and Color Killer controls as a generic control.
 
-> I hope that the sole modification for a standard base driver will be the
-> add of v4l2ext_register/v4l2ext_unregister calls.
-
-I'm not very happy with that. Couldn't this be done automatically at the 
-videodev level ? As "v4l2ext" is a temporary solution, I'd hate seeing all 
-drivers being modified. This should be transparent to the driver itself, 
-otherwise we will have to modify them back again when v4l2ext will be 
-replaced by a real userspace library.
+The default value for Chroma AGC should be changed to match the datasheet recommended
+way (0 for SECAM, 1 for PAL/NTSC).
 
 Cheers,
-
-Laurent Pinchart
+Mauro
 
 --
 video4linux-list mailing list
