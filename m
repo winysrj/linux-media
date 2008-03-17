@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28I9cCA015726
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:38 -0500
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28I91Kh032578
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:01 -0500
-Received: by fk-out-0910.google.com with SMTP id b27so1059119fka.3
-	for <video4linux-list@redhat.com>; Sat, 08 Mar 2008 10:09:00 -0800 (PST)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HJvV1l007431
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:57:31 -0400
+Received: from mailhub3.uq.edu.au (mailhub3.uq.edu.au [130.102.148.131])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HJus2Q020411
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:56:55 -0400
+In-Reply-To: <1205782496.5294.13.camel@fry.u7.se>
+References: <1205782496.5294.13.camel@fry.u7.se>
+Mime-Version: 1.0 (Apple Message framework v753)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+Message-Id: <D96C75CB-C8C6-4F65-A95E-17CEE15F44CE@uq.edu.au>
 Content-Transfer-Encoding: 7bit
-Message-Id: <patchbomb.1204999521@liva.fdsoft.se>
-Date: Sat, 08 Mar 2008 19:05:21 +0100
-To: video4linux-list@redhat.com
-Subject: [PATCH 0 of 2] cx88: Enable additional cx2388x features
+From: Christoph Willing <c.willing@uq.edu.au>
+Date: Tue, 18 Mar 2008 05:56:50 +1000
+To: Jonas Jonsson <jonas@websystem.se>
+Cc: video4linux-list@redhat.com
+Subject: Re: Advice on capture card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,17 +27,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The cx2388x family of broadcast decoders all have features not enabled
-by the standard cx88 driver. This patch series adds module parameters
-allowing the chroma AGC and the color killer to be enabled. By default
-both features are disabled as in previous versions of the driver.
 
-The Chroma AGC and the color killer is sometimes needed when using
-signal sources of less than optimal quality.
+On 18/03/2008, at 5:34 AM, Jonas Jonsson wrote:
 
-The patches applies cleanly to 7330:ad0b1f882ad9 of
-http://linuxtv.org/hg/v4l-dvb/. The patches should be applied in
-order.
+> Hi,
+>
+> We are about to replace our surveillance system and looking for a
+> capture card. It need to be well "supported" in Linux and must be able
+> to grab more then one channel at a time.
+>
+> Does anyone have any advice on such a device?
+
+There's a list of linux supported cards from Bluecherry at:
+    http://store.bluecherry.net/category_s/63.htm
+
+I've recently purchased the PCIe version and it "just worked".
+
+
+>
+
+We've also used lots of the IVC-200 cards (ordinary PCI) over the  
+last few years with great success - from:
+    http://www.icp-australia.com.au/DataSheets/IVC200G.html
+
+
+chris
+
+Christoph Willing                        +617 3365 8350
+QCIF Access Grid Manager
+University of Queensland
+
+
+
 
 --
 video4linux-list mailing list
