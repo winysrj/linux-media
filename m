@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DC64F4.9070403@iki.fi>
-Date: Sun, 16 Mar 2008 02:08:20 +0200
+Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1Jb4bz-00068I-0v
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 02:58:05 +0100
+Message-ID: <47DDD009.30504@iki.fi>
+Date: Mon, 17 Mar 2008 03:57:29 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>	<47DA0F01.8010707@iki.fi>
-	<47DA7008.8010404@linuxtv.org>	<47DAC42D.7010306@iki.fi>
-	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
-In-Reply-To: <abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
-Content-Type: multipart/mixed; boundary="------------010904050205080903030705"
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: insomniac <insomniac@slackware.it>
+References: <20080316182618.2e984a46@slackware.it>	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>	<20080317011939.36408857@slackware.it>
+	<47DDC4B5.5050607@iki.fi> <20080317025002.2fee3860@slackware.it>
+In-Reply-To: <20080317025002.2fee3860@slackware.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,76 +20,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------010904050205080903030705
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Jarryd Beck wrote:
-> On Sun, Mar 16, 2008 at 1:22 AM, Antti Palosaari <crope@iki.fi> wrote:
->> Frequency control values of the demodulator seems to be ok now. Also adc
->> and coeff looks correct. It is hard to say where is problem...
->> Can you test if demodulator can detect TPS parameter automatically? You
->> can do that inserting AUTO to initial tuning file, for example set FEC
->> AUTO. And then "scan tuning-file"
+insomniac wrote:
+> The .inf should be this: http://rafb.net/p/8ideWc93.html
 > 
-> Sorry I'm completely lost at this point, are you talking about adding something
-> to /usr/share/dvb-apps/dvb-t/au-sydney_north_shore and then running
-> scandvb, or are you talking about something else?
+> Anyway, can you point me out what is the module for such chipset? If
+> it's included in the mainstream kernel, or if I need to get it
+> separately. I have read about bttv.ko, but I'm not sure wheter it worked
+> for me or not, because no device seems to be created in /dev, nor dmesg
+> gives helpful messages after modprobe.
+> Thanks again.
 
-yes, adding parameters to tuning-file. I added some AUTO parameters, use 
-attached file to scan. Try "scan au-Sydney_North_Shore_test", hopefully 
-it says something more that tuning failed. It is good indicator if there 
-is even PID-filter timeouts.
-
-I have no idea how to debug more. Without device it is rather hard to 
-test many things. It will help a little if we know is tuner locked. 
-Mike, is it easy to add debug writing for tuner to indicate if tuner is 
-locked or not locked? I have used that method earlier with mt2060 tuner...
-
-Good luck for Kimi and Heikki todays F1 Australian GP:)
+I think it is not correct driver .inf file. inf-file you have is for 
+Pinnacle PCTV 72e with product ID 0236 and lsusb you have has product ID 
+0237.
 
 regards
 Antti
 -- 
 http://palosaari.fi/
 
---------------010904050205080903030705
-Content-Type: text/plain;
- name="au-Sydney_North_Shore_test"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="au-Sydney_North_Shore_test"
-
-# Australia / Sydney / North Shore (aka Artarmon/Gore Hill/Willoughby)
-#
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-#
-# ABC VHF12
-T 226500000 7MHz 3/4 NONE QAM64 AUTO 1/16 NONE
-# Seven VHF6
-T 177500000 7MHz AUTO NONE QAM64 8k 1/16 NONE
-# Nine VHF8
-T 191625000 7MHz 3/4 NONE AUTO 8k 1/16 NONE
-# Ten VHF11
-T 219500000 7MHz 3/4 NONE QAM64 8k AUTO NONE
-# SBS UHF34
-T 571500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-# D44 UHF35
-T 578500000 7MHz 2/3 NONE QAM64 8k 1/32 NONE
-
---------------010904050205080903030705
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------010904050205080903030705--
