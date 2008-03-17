@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GNUHpD031362
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 19:30:17 -0400
-Received: from S4.cableone.net (s4.cableone.net [24.116.0.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GNTVwb004304
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 19:29:33 -0400
-Received: from [72.24.208.253] (unverified [72.24.208.253])
-	by S4.cableone.net (CableOne SMTP Service S4) with ESMTP id
-	148458620-1872270
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 16:29:25 -0700
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: video4linux-list@redhat.com
-Date: Sun, 16 Mar 2008 18:27:47 -0500
-References: <patchbomb.1205671781@liva.fdsoft.se>
-	<Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
-	<k1w6a2xdk.fsf@liva.fdsoft.se>
-In-Reply-To: <k1w6a2xdk.fsf@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2H1P0Y7000785
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 21:25:00 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2H1OZ9t024384
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 21:24:36 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so4940954wfc.6
+	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 18:24:35 -0700 (PDT)
+Message-ID: <1dea8a6d0803161824u12e639c2kfbd152456e7e82e3@mail.gmail.com>
+Date: Mon, 17 Mar 2008 10:24:35 +0900
+From: "Ben Caldwell" <benny.caldwell@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <47DDC428.1060306@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+References: <1dea8a6d0803161804u1eef6c50uc86c0aa7e1dd2da8@mail.gmail.com>
+	<47DDC428.1060306@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200803161827.47651.vanessaezekowitz@gmail.com>
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
-	Version 2
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: tuner-types.h symlink
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,15 +31,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I agree with the idea of making Chroma AGC available as a control - I've got the same problem here with at least one channel that is way over-saturated relative to the others.
+On Mon, Mar 17, 2008 at 10:06 AM, Michael Krufky <mkrufky@linuxtv.org>
+wrote:
 
-That said, is this something that would show up in e.g. xawtv or other analog TV programs?
+>
+> Which module's build produced this warning?  Can you show us the warning?
+>
+> Mike,
 
--- 
-"Life is full of happy and sad events.  If you take the time
-to concentrate on the former, you'll get further in life."
-Vanessa Ezekowitz  <vanessaezekowitz@gmail.com>
+Here is the output from make with the symlink removed again:
 
+*make -C /home/mythtv/tuner_card_new/v4l-dvb/v4l
+make[1]: Entering directory `/home/mythtv/tuner_card_new/v4l-dvb/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.24.3-12.fc8/build
+make -C /lib/modules/2.6.24.3-12.fc8/build
+SUBDIRS=/home/mythtv/tuner_card_new/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/kernels/2.6.24.3-12.fc8-x86_64'
+  Building modules, stage 2.
+  MODPOST 213 modules
+WARNING: "tuners" [/home/mythtv/tuner_card_new/v4l-dvb/v4l/tuner-simple.ko]
+undefined!
+WARNING: "tuner_count" [/home/mythtv/tuner_card_new/v4l-dvb/v4l/tuner-
+simple.ko] undefined!
+make[2]: Leaving directory `/usr/src/kernels/2.6.24.3-12.fc8-x86_64'
+./scripts/rmmod.pl check
+found 213 modules
+make[1]: Leaving directory `/home/mythtv/tuner_card_new/v4l-dvb/v4l'
+*
+I found the definition for tuner_count in tuner-types.h, and saw that
+tuner-simple.c had an #include "tuner-types.h" so I added the symlink to see
+if that helped.
+Neither of the two warnings above came up the next time so I assume it did
+help.
+
+I've been having troubles with this card only showing one tuner in mythtv
+lately, and came across this in my search for a fix.
+
+Ben
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
