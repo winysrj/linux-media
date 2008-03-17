@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from kuat-e0.netspot.com.au ([203.30.161.145]
-	helo=kuat.netspot.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tom@netspot.com.au>) id 1JepC7-0001ty-Jo
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 11:18:56 +0100
-Received: from grover.sesame (ppp121-45-36-107.lns10.adl2.internode.on.net
-	[121.45.36.107]) (Authenticated sender: tom)
-	by kuat.netspot.com.au (Postfix) with ESMTP id B55A7280038B5
-	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 20:48:17 +1030 (CST)
-Message-Id: <32EC4C19-23D9-4B96-9BB5-F19325AAE546@netspot.com.au>
-From: Tom Lanyon <tom@netspot.com.au>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <e40e29dd0803270314g74e12665o694d6e9f776fb435@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Thu, 27 Mar 2008 20:48:14 +1030
-References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
-	<200803270938.31699.dvb@ply.me.uk>
-	<e40e29dd0803270314g74e12665o694d6e9f776fb435@mail.gmail.com>
-Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
+Received: from aa013msr.fastwebnet.it ([85.18.95.73])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <insomniac@slackware.it>) id 1JbMr3-0008RA-O3
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 22:26:50 +0100
+Date: Mon, 17 Mar 2008 22:24:16 +0100
+From: insomniac <insomniac@slackware.it>
+To: "Albert Comerma" <albert.comerma@gmail.com>
+Message-ID: <20080317222416.38cf913f@slackware.it>
+In-Reply-To: <ea4209750803171420t55f203eev3ba21b70d93bc39f@mail.gmail.com>
+References: <20080316182618.2e984a46@slackware.it>
+	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
+	<20080317104147.1ade57fe@slackware.it>
+	<20080317114802.0df56399@slackware.it>
+	<abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
+	<47DE5F42.8070005@iki.fi> <20080317213321.01b408cd@slackware.it>
+	<ea4209750803171412x63a3a711t96614c03019aaf84@mail.gmail.com>
+	<20080317221546.6a4dd75e@slackware.it>
+	<ea4209750803171420t55f203eev3ba21b70d93bc39f@mail.gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,41 +33,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 27/03/2008, at 8:44 PM, Eamonn Sullivan wrote:
-> On Thu, Mar 27, 2008 at 9:38 AM, Andy Carter <dvb@ply.me.uk> wrote:
->> I'm running a Nova T500 here on Debian 2.6.24-1-686 with very few  
->> problems - 4
->> disconnects 2 weeks ago shortly after install but fine since.
->
-> From other messages on this topic, it seems the problem may not be
-> directly related to the kernel. Perhaps something in the changes
-> ubuntu has done to the stock debian base is to blame.
->
->>> I'm going to try an MCE remote, which by all reports
->>> seems well supported in Linux,
->>
->> I was using an Igor device for many years but it always seemed too  
->> much
->> trouble to install after an upgrade so I've been using mceusb2 for  
->> a long
->> time with no problems.
->
-> Wonderful, that's good to here. My MCE remote is in the post.
->
->> A standard Nova T worked fine for me for many years and there are a  
->> few on
->> ebay ATM.
->
-> A standard, meaning an earlier version (not the 500)?
->
-> -Eamonn
+On Mon, 17 Mar 2008 22:20:15 +0100
+"Albert Comerma" <albert.comerma@gmail.com> wrote:
 
-Sounds like I shouldn't be scared of the T-500 unless I'm running  
-2.6.24. I will order one and see how it goes.
+> And your source?
 
-Thanks list.
+Sorry.. what do you mean with my source?
 
---Tom
+-- 
+Andrea Barberio
+
+a.barberio@oltrelinux.com - Linux&C.
+andrea.barberio@slackware.it - Slackware Linux Project Italia
+GPG key on http://insomniac.slackware.it/gpgkey.asc
+2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
+SIP: 5327786, Phone: 06 916503784
 
 _______________________________________________
 linux-dvb mailing list
