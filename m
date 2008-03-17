@@ -1,36 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
+Received: from ti-out-0910.google.com ([209.85.142.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1Jcm6k-0003NX-O2
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 19:36:53 +0100
-Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
-	by mail-out.m-online.net (Postfix) with ESMTP id EF37022715B
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:18 +0100 (CET)
-Received: from localhost (unknown [192.168.1.157])
-	by mail.m-online.net (Postfix) with ESMTP id 2D48C90092
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:08 +0100 (CET)
-Received: from mail.mnet-online.de ([192.168.3.149])
-	by localhost (scanner1.m-online.net [192.168.1.157]) (amavisd-new,
-	port 10024) with ESMTP id 34b3n+MKGN5B for <linux-dvb@linuxtv.org>;
-	Fri, 21 Mar 2008 19:36:07 +0100 (CET)
-Received: from gauss.x.fun (ppp-88-217-123-54.dynamic.mnet-online.de
-	[88.217.123.54]) by mail.nefkom.net (Postfix) with ESMTP
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:07 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by gauss.x.fun (Postfix) with ESMTP id DFCD41D538B
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:06 +0100 (CET)
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-dvb@linuxtv.org
-Date: Fri, 21 Mar 2008 19:36:05 +0100
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<47E2D3C4.2050005@gmail.com>
-	<200803211015.54663@orion.escape-edv.de>
-In-Reply-To: <200803211015.54663@orion.escape-edv.de>
+	(envelope-from <jarro.2783@gmail.com>) id 1JbDDS-0001US-VZ
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 12:09:20 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so1757651tia.13
+	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 04:09:12 -0700 (PDT)
+Message-ID: <abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
+Date: Mon, 17 Mar 2008 22:09:12 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: insomniac <insomniac@slackware.it>
+In-Reply-To: <20080317114802.0df56399@slackware.it>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200803211936.06052.zzam@gentoo.org>
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
-	transponder fails
+References: <20080316182618.2e984a46@slackware.it>
+	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
+	<20080317011939.36408857@slackware.it> <47DDC4B5.5050607@iki.fi>
+	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
+	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
+	<20080317104147.1ade57fe@slackware.it>
+	<20080317114802.0df56399@slackware.it>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,49 +28,83 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Freitag, 21. M=E4rz 2008, Oliver Endriss wrote:
-> Hi,
+On Mon, Mar 17, 2008 at 9:48 PM, insomniac <insomniac@slackware.it> wrote:
+> On Mon, 17 Mar 2008 10:41:47 +0100
 >
-> Manu Abraham wrote:
-> > Hi Hartmut,
-> >
-> > Hartmut Hackmann wrote:
-> > > This might be right! I could not get good information regarding the
-> > > transponder bandwidths. We might need to make this depend on the
-> > > symbol rate or a module parameter.
-> >
-> > You can calculate the tuner bandwidth from the transponder symbol rate
-> > (in Mbaud) for DVB-S:
-> >
-> > BW =3D (1 + RO) * SR/2 + 5) * 1.3
+> insomniac <insomniac@slackware.it> wrote:
 >
-> Apparently I need some lessons in signal theory. ;-)
-> What does R0 stand for?
 >
-> Do we have to select a higher cut-off value to compensate for the LNB
-> drift and other stuff like that?
+> > Patched and recompiled the modules. Now plugging in the usb stick
+>  > triggers the loading of the related kernel modules.
+>  > The one error I get in dmesg is
+>  >
+>  > dvb_core: exports duplicate symbol dvb_unregister_adapter (owned by
+>  > kernel)
 >
-Zarlink zl1003x datasheet (avail on net) tells this:
-fbw =3D (alpha * symbol rate) / (2.0 * 0.8) + foffset
+>  Great :-)
+>  Here my dmesg:
+>
+>  dvb-usb: found a 'Pinnacle PCTV 73e' in cold state, will try to load a
+>          firmware dvb-usb: downloading firmware from file
+>          'dvb-usb-dib0700-1.10.fw' dib0700: firmware started
+>          successfully.
+>  dvb-usb: found a 'Pinnacle PCTV 73e' in warm state.
+>  dvb-usb: will pass the complete MPEG2 transport stream to the software
+>  demuxer.
+>  DVB: registering new adapter (Pinnacle PCTV 73e)
+>  dvb-usb: no frontend was attached by 'Pinnacle PCTV 73e'
+>  dvb-usb: will pass the complete MPEG2 transport stream to the software
+>          demuxer.
+>  DVB: registering new adapter (Pinnacle PCTV 73e)
+>  dvb-usb: no frontend was attached by 'Pinnacle PCTV 73e' input:
+>          IR-receiver inside an USB DVB receiver as /class/input/input6
+>  dvb-usb: schedule remote query interval to 150 msecs.
+>  dvb-usb: Pinnacle PCTV 73e successfully initialized and connected.
+>
+>  But another problem here:
+>
+>  w_scan version 20060902
+>  Info: using DVB adapter auto detection.
+>  Info: unable to open frontend /dev/dvb/adapter0/frontend0'
+>  Info: unable to open frontend /dev/dvb/adapter1/frontend0'
+>  Info: unable to open frontend /dev/dvb/adapter2/frontend0'
+>  Info: unable to open frontend /dev/dvb/adapter3/frontend0'
+>  main:2140: FATAL: ***** NO USEABLE DVB CARD FOUND. *****
+>  Please check wether dvb driver is loaded and
+>  verify that no dvb application (i.e. vdr) is running.
+>
+>  and also:
+>
+>  # ls /dev/dvb/*
+>  /dev/dvb/adapter0:
+>  demux0  dvr0  net0
+>
+>  /dev/dvb/adapter1:
+>  demux0  dvr0  net0
+>
+>
+>  So, no frontend is created. What may be?
+>
+>  Thanks,
+>
+>
+> --
+>  Andrea Barberio
+>
 
-where alpha is roll-off 1.35 for dvb-s and 1.20 for DSS
+That means the driver either couldn't work out what the tuner is
+and therefore, couldn't attach a frontend, or there was an error
+attaching the frontend. The next job is to work out what the
+tuner chip is, you might have to open it up and read the writing
+off the chip to find that out.
 
-The manual suggests to use highest possible bandwidth for aquiring a lock.
-And after that read back the offset from the demod and adjust the tuner the=
-n.
-
-Regards
-Matthias
-
--- =
-
-Matthias Schwarzott (zzam)
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
