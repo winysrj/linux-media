@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gasiu@konto.pl>) id 1Jcc4L-0005K0-4V
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 08:53:41 +0100
-Message-ID: <47E36980.8020809@konto.pl>
-Date: Fri, 21 Mar 2008 08:53:36 +0100
-From: Gasiu <gasiu@konto.pl>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <mailman.385.1205960936.830.linux-dvb@linuxtv.org>
-	<47E2FAEE.0@konto.pl> <47E30629.7060706@gmail.com>
-In-Reply-To: <47E30629.7060706@gmail.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Compiling patched szap and mythtv - problems
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mark A Jenks <Mark.Jenks@nsighttel.com>
+In-Reply-To: <C82A808D35A16542ACB16AF56367E0580A796900@exchange01.nsighttel.com>
+References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com>
+	<c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com>
+	<c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com>
+	<c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com>
+	<47DE9362.4050706@linuxtv.org>
+	<C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
+	<47DEB5EF.8010207@linuxtv.org>
+	<C82A808D35A16542ACB16AF56367E0580A7968FF@exchange01.nsighttel.com>
+	<C82A808D35A16542ACB16AF56367E0580A796900@exchange01.nsighttel.com>
+Date: Mon, 17 Mar 2008 23:55:56 +0100
+Message-Id: <1205794556.3444.12.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,49 +29,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham pisze:
-> Gasiu wrote:
->   
->>  >Hi everybody!
->>  >
->>  >I want to run my SkystarHD with multiproto (on 64bit Ubuntu), and I try
->>  >to compile patched szap and MythTV.
->>
->>  >I have problems with this - I have updated headers from multiproto tree
->>  >(I just copy .../multiproto-b5a34b6a209d/linux/include/ to
->>  >/usr/include/) and I have error:
->>
->>  > >cc -c szap.c
->>  >szap.c: In function ?zap_to?:
->>  >szap.c:368: error: ?struct dvbfe_info? has no member named ?delivery?
->>  >szap.c:372: error: ?struct dvbfe_info? has no member named ?delivery?
->>  >szap.c:376: error: ?struct dvbfe_info? has no member named ?delivery?
->>  >szap.c:401: error: ?struct dvbfe_info? has no member named ?delivery?
->>  >szap.c:412: error: ?struct dvbfe_info? has no member named ?delivery?
->>
->>  >how can i fix it? (I think, that I need some *.h file - but what file?
->>  >where find it?
->>
->> "Make" works with multiproto-ecb96c96a69e...
->>
->>     
->
-> Pull dvb-apps the patched szap exists in dvb-apps dvb-apps/test/szap2
->
-> You need to updates the headers too.. the cleaned headers can be found
-> in dvb-apps/include/*
->
-> Regards,
-> Manu
->
->   
-It works, but with multiproto-ecb96c96a69e... I don't know why ;-)
+Hi,
 
-thanks!
+Am Montag, den 17.03.2008, 14:05 -0500 schrieb Mark A Jenks:
+> SUCCESS!
+> 
+> Built 2.6.24-3 and installed it.  Recompiled CVS, and installed it.
+> 
+> Now it doesn't hang when it finds a signal.
+> 
+> -Mark 
 
--- 
+Steve, the noise was not without reason.
 
-Gasiu
+You might see, that all your drivers within and out of the kernel have
+been broken. Not to make any noise then, seems to me not a good idea.
+
+Also, on LKML was some stuff, that there is a general problem
+initializing PCI devices multiple times and eventually have problems on
+shutdown/suspend then. But to late for the recent -rc.
+
+So, as it stands, given that we are not that backward compatible as have
+been previously anymore, to know that this change to 2.6.24 did anything
+usefull, what I doubt, would be not bad to have in details.
+
+Cheers,
+Hermann 
+
+
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Mark A Jenks
+> Sent: Monday, March 17, 2008 1:28 PM
+> To: Steven Toth; linux-dvb
+> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
+> 
+> I'm compiling 2.4.24 right now to test it.
+> 
+> I've been running this box for over a year with a TV2000 card without
+> issues.  I was just trying to upgrade into DTV.
+> 
+> So, I really don't think it's a memory issue.
+> 
+> The TV2000 was a pci, this is my first pcie card I'm using in this box.
+> 
+> -Mark 
+> 
+> -----Original Message-----
+> From: Steven Toth [mailto:stoth@linuxtv.org] 
+> Sent: Monday, March 17, 2008 1:18 PM
+> To: Mark A Jenks; linux-dvb
+> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
+> 
+> CC'ing the mailing list back in.
+> 
+> Mark A Jenks wrote:
+> > Do you think I should push the kernel to 2.6.25? 
+> 
+> I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 - 
+> or close to.
+> 
+> I have another AMD system at home that the driver completely freezes on,
+> 
+> no idea why, total system lockup. I don't trust the PCIe chipset on it, 
+> it's an early chipset and a little flakey.
+> 
+> Other than that the driver's been pretty reliable.
+> 
+> Lots of noise recently on the mailing lists about video_buf related 
+> issues and potential race conditions.
+> 
+> Try running the system with a single cpu core and report back, also, 
+> just for the hell of it, run memtest also.
+> 
+> - Steve
+> 
+
 
 
 _______________________________________________
