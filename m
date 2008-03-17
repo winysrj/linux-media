@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from mailout08.sul.t-online.de ([194.25.134.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pvs.patel@gmail.com>) id 1JXdSM-0006Bz-Q8
-	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 15:21:59 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so399352fge.25
-	for <linux-dvb@linuxtv.org>; Fri, 07 Mar 2008 06:21:42 -0800 (PST)
-Message-ID: <e57cc13a0803070621w5063a126o2e13f571660468b5@mail.gmail.com>
-Date: Fri, 7 Mar 2008 14:21:42 +0000
-From: "pankaj patel" <prost2736@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JbMnH-0007oq-VX
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 22:22:56 +0100
+Message-ID: <47DEE11F.6060301@t-online.de>
+Date: Mon, 17 Mar 2008 22:22:39 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Subject: [linux-dvb] Nova T-500 firmware download
+To: timf <timf@iinet.net.au>
+References: <1204893775.10536.4.camel@ubuntu> <47D1A65B.3080900@t-online.de>
+	<1205480517.5913.8.camel@ubuntu>
+In-Reply-To: <1205480517.5913.8.camel@ubuntu>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,94 +20,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1076610904=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1076610904==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_6139_13197428.1204899702339"
+Hi, Tim
 
-------=_Part_6139_13197428.1204899702339
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello,
-
-    I wonder if anyone can help me - I have had a working NOVA T-500 setup
-on Ubuntu Gutsy for some time now. However,
-ever since updating the v4l-dvb drivers yesterday, the cards have stopped
-working with "did not find the firmware file
-(dvb-usb-dib0700-1.10.fw)". Now this file exists in /lib/firmware and I have
-not been able to figure out why the dvb driver
-cannot find the file. I have set the debug option and here is the output :-
-
-[ 5245.800255] check for cold 10b8 1e14
-[ 5245.800257] check for cold 10b8 1e78
-[ 5245.800258] check for cold 2040 7050
-[ 5245.800259] check for cold 2040 7060
-[ 5245.800261] check for cold 7ca a807
-[ 5245.800262] check for cold 7ca b808
-[ 5245.800263] check for cold 185b 1e78
-[ 5245.800264] check for cold 185b 1e80
-[ 5245.800265] check for cold 1584 6003
-[ 5245.800266] check for cold 413 6f00
-[ 5245.800268] check for cold 7ca b568
-[ 5245.800269] check for cold 1044 7001
-[ 5245.800270] something went very wrong, device was not found in current
-device list - let's see what comes next.
-[ 5245.800272] check for cold 2040 9941
-[ 5245.800273] check for cold 2040 9950
-[ 5245.800794] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold
-state, will try to load a firmware
-[ 5265.793345] dvb-usb: did not find the firmware file. (
-dvb-usb-dib0700-1.10.fw) Please see linux/Documentation/dvb/ for more
-details on firmware-problems. (-2)
-
-  I have reverted to previous version of v4l-dvb and I still get the above
-error. Anyone have any tips on what else I should do ?
-
-
--- 
-Best regards,
-  Pankaj
-
-------=_Part_6139_13197428.1204899702339
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello,<br><br>&nbsp;&nbsp;&nbsp; I wonder if anyone can help me - I have had a working NOVA T-500 setup on Ubuntu Gutsy for some time now. However, <br>ever since updating the v4l-dvb drivers yesterday, the cards have stopped working with &quot;did not find the firmware file <br>
-
-(dvb-usb-dib0700-1.10.fw)&quot;. Now this file exists in /lib/firmware and I have not been able to figure out why the dvb driver<br>cannot find the file. I have set the debug option and here is the output :-<br><br clear="all">
-
-[ 5245.800255] check for cold 10b8 1e14<br>[ 5245.800257] check for cold 10b8 1e78<br>[ 5245.800258] check for cold 2040 7050<br>[ 5245.800259] check for cold 2040 7060<br>[ 5245.800261] check for cold 7ca a807<br>[ 5245.800262] check for cold 7ca b808<br>
-
-[ 5245.800263] check for cold 185b 1e78<br>[ 5245.800264] check for cold 185b 1e80<br>[ 5245.800265] check for cold 1584 6003<br>[ 5245.800266] check for cold 413 6f00<br>[ 5245.800268] check for cold 7ca b568<br>[ 5245.800269] check for cold 1044 7001<br>
-
-[ 5245.800270] something went very wrong, device was not found in current device list - let&#39;s see what comes next.<br>[ 5245.800272] check for cold 2040 9941<br>[ 5245.800273] check for cold 2040 9950<br>[ 5245.800794] dvb-usb: found a &#39;Hauppauge Nova-T 500 Dual DVB-T&#39; in cold state, will try to load a firmware<br>
-
-[ 5265.793345] dvb-usb: did not find the firmware file.
-(dvb-usb-dib0700-1.10.fw) Please see linux/Documentation/dvb/ for more
-details on firmware-problems. (-2)<br><br>&nbsp;
-I have reverted to previous version of v4l-dvb and I still get the
-above error. Anyone have any tips on what else I should do ?<br>
-<br clear="all"><br>-- <br>Best regards, <br>&nbsp;&nbsp;Pankaj
-
-------=_Part_6139_13197428.1204899702339--
+timf schrieb:
+> On Fri, 2008-03-07 at 21:32 +0100, Hartmut Hackmann wrote:
+>> Hi, Tim
+>>
+>> timf schrieb:
+>>> Hi Hartmut,
+>>> I noticed you had a bit to do with implementing this card.
+>>>
+>>> With a fresh install of ubuntu 7.10 (kernel i386 2.6.22-14-generic),
+>>> the card is auto recognised as: Kworld DVB-T 210 (card=114)
+>>>
+>>> However, tda1004 firmware does not load.
+>>> Used download-firmware, placed dvb-fe-tda10046.fw
+>>> into /lib/firmware/2.6.22-14-generic
+>>>
+>>> Rebooted.
+>>>
+>>> Now, again card is recognised, firmware recognised as version 20.
+>>> Here is the strange part:
+>>> - using dvb-utils scan, each time I run that I get a different result in
+>>> channels.
+>>> - I try to scan with Kaffeine - nothing
+>>> - I try to scan with Me-tv - nothing
+>>> - I try to scan with tvtime - all channels obtained ( no audio).
+>>>
+>>> Now, after reboot, if I first start tvtime (analog tv), view a channel,
+>>> turn tvtime off, and then :
+>>> - if I place a previously good channels.dvb in Kaffeine - it plays all
+>>> channels.
+>>> - if I place a previously good channels.conf in Me-tv - it plays all
+>>> channels. 
+>>>
+>>> Would it be correct to say that the "switch" is not working for DVB
+>>> after boot?
+>>>
+>>> I have studied the code, but I need your help to point me in the right
+>>> direction.
+>>>
+>>> Thanks,
+>>> Tim
+>>>
+>> Hermann reported something similar. I have an idea what the reason could
+>> be. Please let me check.
+>> Best regards
+>>   Hartmut
+> 
+> Hi Hartmut,
+> 
+> Further to this, is the Remote Control meant to work for this card?
+> 
+<snip>
+Looks like the Remote is not supported. I can't help here since i don't have access
+to this card.
 
 
---===============1076610904==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+In my personal Repository:
+  http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+the problems with the tuning code should be fixed.
+Can you please give it a try?
+
+Best Regards
+  Hartmut
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1076610904==--
