@@ -1,20 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+711736df28a10b9df8a2+1678+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JfIs1-0002S5-Fc
-	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 19:00:05 +0100
-Date: Fri, 28 Mar 2008 14:59:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080328145927.145b1a62@gaivota>
-In-Reply-To: <1206683274.5986.6.camel@ubuntu>
-References: <1206635698.5965.5.camel@ubuntu> <20080327144221.2d642590@gaivota>
-	<1206683274.5986.6.camel@ubuntu>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Received: from urmel-5.rz.uni-frankfurt.de ([141.2.22.233]
+	helo=mailout.cluster.uni-frankfurt.de)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <f.apitzsch@soz.uni-frankfurt.de>) id 1JbOJ0-0001Oi-Bs
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 23:59:47 +0100
+Received: from [10.2.22.4] (helo=smtpauth2.rz.uni-frankfurt.de)
+	by mailout.cluster.uni-frankfurt.de with esmtps (TLSv1:AES256-SHA:256)
+	(Exim 4.66) (envelope-from <f.apitzsch@soz.uni-frankfurt.de>)
+	id 1JbOIw-0006VE-Qb
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 23:59:42 +0100
+Received: from e179025077.adsl.alicedsl.de ([85.179.25.77]
+	helo=[192.168.178.1])
+	by smtpauth2.rz.uni-frankfurt.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69) (envelope-from <f.apitzsch@soz.uni-frankfurt.de>)
+	id 1JbOIv-0002Hl-Jz
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 23:59:41 +0100
+Message-ID: <47DEF7DE.9080709@soz.uni-frankfurt.de>
+Date: Mon, 17 Mar 2008 23:59:42 +0100
+From: Felix Apitzsch <f.apitzsch@soz.uni-frankfurt.de>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Terratec Cinergy HT Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,55 +34,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 28 Mar 2008 14:47:54 +0900
-timf <timf@iinet.net.au> wrote:
+Im am trying to get my Terratec Cinergy HT Express to work with v4l-dvb.
 
-> Hi Mauro,
-> 
-> I just had to quickly tell you that I built it with this, rebooted, clicked
-> on tvtime, and waited anxiously watching a black screen - then WAHOO!
-> A TV program I am viewing!!
-Great!
+It's a DVB-T/analog hybrid (+radio) ExpressCard 34, but it connects
+via the usb interface, not the pci-e interface. To confirm what I
+reckoned, I openend the device to find the following:
 
-I've committed the patch with what we currently have. Please test if analog
-keeps working with the patch.
+DiBcom 7700C1-ACXXa-G QH0T8 D2PRJ.1 0646-1100-C
 
-Now, it is time to work with the demod side.
+XCEIVE XC3028 AK47465,2 0620TWE3
 
-Please, change the #if 0 to #if 1:
-#if 0
-                /* Not working yet */
-                .mpeg           = SAA7134_MPEG_DVB,
-#endif
+CONEXANT CX25843-24Z 61024448 0625 KOREA
 
-And test to see if analog still works fine. If ok, please test the digital side.
+(I took some photos if someone is interested)
 
-You may need to figure out the proper parameters for mt352, on this part of the
-code(at saa7134-dvb):
+The usd-id is 0ccd:0060 .
 
-static int mt352_aver_a16d_init(struct dvb_frontend *fe)
-{
-        static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x2d };
-        static u8 reset []         = { RESET,      0x80 };
-        static u8 adc_ctl_1_cfg [] = { ADC_CTL_1,  0x40 };
-        static u8 agc_cfg []       = { AGC_TARGET, 0x28, 0xa0 };
-        static u8 capt_range_cfg[] = { CAPT_RANGE, 0x33 };
+For now, I would be happy to live with just DVB-T support.
+As far as I understand the status quo, it should be possible to get
+the card running, isn't it?
 
-        mt352_write(fe, clock_config,   sizeof(clock_config));
-        udelay(200);
-        mt352_write(fe, reset,          sizeof(reset));
-        mt352_write(fe, adc_ctl_1_cfg,  sizeof(adc_ctl_1_cfg));
-        mt352_write(fe, agc_cfg,        sizeof(agc_cfg));
-        mt352_write(fe, capt_range_cfg, sizeof(capt_range_cfg));
+I would need some help to get the xc3028 part compiled and running and
+add it to dib0700_devices.c and dvb-usb-ids.h with the right config
+for the DIB770C1+XC3028. Additionally, I would need some assistance
+with the firmware xc3028. The dib0700 firmeware should be ok.
 
-        return 0;
-}
+Also, I had some trouble when I tried to get the xc3028 frontend code
+compiled. It is not in v4l_experimental anymore, is it? Where did it
+go and how do I include it?
 
-You may need to try to change the above code, trying other existing mt352 code,
-or using some tool to get the initialization code done by your windows driver.
+Could anyone do a patch for me and pack me a .bz2, so I can do some testing?
 
-Cheers,
-Mauro
+I am running a kernel 2.6.24 on a x86_64 (~amd64) gentoo system with
+current v4l-dvb-hg from portage.
+
+Felix
 
 _______________________________________________
 linux-dvb mailing list
