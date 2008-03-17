@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JbjIW-00047A-TT
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:24:41 +0100
-Date: Tue, 18 Mar 2008 18:23:38 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Message-ID: <20080318182338.19dd7ff5@gaivota>
-In-Reply-To: <ea4209750803181311y17782b40ib95f900b99bf6673@mail.gmail.com>
-References: <ea4209750803181311y17782b40ib95f900b99bf6673@mail.gmail.com>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1JbJvG-0000eL-EL
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 19:19:01 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JXW006P606NF170@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 17 Mar 2008 14:18:24 -0400 (EDT)
+Date: Mon, 17 Mar 2008 14:18:23 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
+To: Mark A Jenks <Mark.Jenks@nsighttel.com>, linux-dvb <linux-dvb@linuxtv.org>
+Message-id: <47DEB5EF.8010207@linuxtv.org>
+MIME-version: 1.0
+References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com>
+	<c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com>
+	<c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com>
+	<c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com>
+	<47DE9362.4050706@linuxtv.org>
+	<C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
+Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,46 +35,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 18 Mar 2008 21:11:52 +0100
-"Albert Comerma" <albert.comerma@gmail.com> wrote:
+CC'ing the mailing list back in.
 
-Hi Albert,
+Mark A Jenks wrote:
+> Do you think I should push the kernel to 2.6.25? 
 
-The patch looks sane, but I have a few comments to improve it:
+I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 - 
+or close to.
 
-> diff -crB v4l-dvb-orig/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c v4l-cyn/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+I have another AMD system at home that the driver completely freezes on, 
+no idea why, total system lockup. I don't trust the PCIe chipset on it, 
+it's an early chipset and a little flakey.
 
-Please, use unified diff format (diff -upr). If you're using the Mercurial
-tree, the better is to use "hg diff". It will produce the patch with the proper
-format.
+Other than that the driver's been pretty reliable.
 
-> +        712,  // inv_gain
+Lots of noise recently on the mailing lists about video_buf related 
+issues and potential race conditions.
 
-We shouldn't use C99 type of comments. All coments should use the standard C way:
-	712, /* inv_gain */
+Try running the system with a single cpu core and report back, also, 
+just for the hell of it, run memtest also.
 
-Please use "make checkpatch" [1]. This will produce several warnings about Linux
-CodingStyle violations, and you help you to fulfill the current rules, like the
-above.
-
-If you have any doubts on how to submit a patch, please read README.patches [2].
-
-[1] If you're patching against v4l-dvb development tree, available at
-http://linuxtv.org/hg/v4l-dvb. Otherwise, you'll need to run Kernel
-script/checkpatch.pl by hand.
-
-[2] http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
+- Steve
 
 
-> +        case XC2028_RESET_CLK:
-> +                err("%s: XC2028_RESET_CLK %d\n", __FUNCTION__, arg);
-> +                break;
 
-There's no need anymore to implement reset_clk. Please test without it. The
-only driver that currently needs this callback is tm6000.
-
-Cheers,
-Mauro
 
 _______________________________________________
 linux-dvb mailing list
