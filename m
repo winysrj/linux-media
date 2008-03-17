@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f106.mail.ru ([194.67.57.205])
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JVhdg-0000rC-Rx
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 07:25:36 +0100
-From: Igor <goga777@bk.ru>
-To: Michael Curtis <michael.curtis@glcweb.co.uk>
-Mime-Version: 1.0
-Date: Sun, 02 Mar 2008 09:25:03 +0300
-In-Reply-To: <A33C77E06C9E924F8E6D796CA3D635D1023979@w2k3sbs.glcdomain.local>
-References: <A33C77E06C9E924F8E6D796CA3D635D1023979@w2k3sbs.glcdomain.local>
-Message-Id: <E1JVhd9-00005o-00.goga777-bk-ru@f106.mail.ru>
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] =?koi8-r?b?bWFrZSBlcnJvcnMgbXVsdGlwcm90bw==?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <albert.comerma@gmail.com>) id 1JbOKT-0001r3-Ne
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 00:01:18 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so4417859fge.25
+	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 16:01:14 -0700 (PDT)
+Message-ID: <ea4209750803171601s28010cebrba2afdc7e3884529@mail.gmail.com>
+Date: Tue, 18 Mar 2008 00:01:10 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Antti Luoma" <anluoma@gmail.com>
+In-Reply-To: <754a11be0803171553p63ac231aicbaeaee4c91b2a2d@mail.gmail.com>
+MIME-Version: 1.0
+References: <754a11be0803171553p63ac231aicbaeaee4c91b2a2d@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TNT Pinnacle PCTV DVB-T 72e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,43 +21,150 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1781794981=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Manu, I do not understand your response
+--===============1781794981==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_17262_23968650.1205794870148"
 
-other words - you can forget about this warnings (not errors)
+------=_Part_17262_23968650.1205794870148
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Just as I pointed a few hours ago;
+
+If you speak french you can have a look here;
+
+http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e
+
+Or if you don't you can go the fast way;
+
+wget http://www.barbak.org/v4l_for_72e_dongle.tar.bz2
+tar xvjf v4l_for_72e_dongle.tar.bz2
+cd v4l-dvb
+sudo cp firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/
+make all
+sudo make install
+
+That should work for you. Please let me know.
+
+2008/3/17, Antti Luoma <anluoma@gmail.com>:
+>
+> Hi,
+>
+> I have trying to get Solo Stick (72e) to work for couple of days, but with
+> no luck. So what's the current status of this driver?
+>
+> I did download latest drivers from mercurial today, added PCI_ids for
+> card, modified dib0700_devices.c (in stk7070p_frontend_attach), added device
+> to struct dvb_usb_device_properties dib0700_devices[] where
+> stk7070p_frontend_attach was called.
+>
+> After that it looked promising:
+>
+>  usb 6-4: new high speed USB device using ehci_hcd and address 30
+> [ 6722.607546] usb 6-4: configuration #1 chosen from 1 choice
+> [ 6722.607622] dvb-usb: found a 'Pinnacle PCTV 72e DVB-T' in warm state.
+> [ 6722.607648] dvb-usb: will pass the complete MPEG2 transport stream to
+> the software demuxer.
+> [ 6722.607724] DVB: registering new adapter (Pinnacle PCTV 72e DVB-T)
+> [ 6722.731734] dvb_register_frontend
+> [ 6722.731742] DVB: registering frontend 0 (DiBcom 7000PC)...
+> [ 6722.811550] DiB0070: successfully identified
+> [ 6722.811557] dvb-usb: Pinnacle PCTV 72e DVB-T successfully initialized
+> and connected.
+>
+>
+> BUT if I do a scan I don't get channels (i checked that I have correct
+> frequencies):
+>
+>  #scan -o vdr  fi-Eurajoki
+> scanning fi-Eurajoki
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 610000000 0 2 9 3 1 2 0
+> initial transponder 666000000 0 2 9 3 1 2 0
+> initial transponder 722000000 0 2 9 3 1 2 0
+> >>> tune to: 610000:I999B8C23D999M64T8G8Y0:T:27500:
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+> >>> tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19
+> No such device
+> >>> tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19
+> No such device
+> >>> tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19
+> No such device
+> >>> tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19
+> No such device
+> dumping lists (0 services)
+> Done.
+>
+> Any thoughts??
+>
+> --
+> -Antti-
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_17262_23968650.1205794870148
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Just as I pointed a few hours ago;<br><br>If you speak french you can have a look here;<br><br><a href="http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e</a><br>
+<br>Or if you don&#39;t you can go the fast way;<br>
+<br>wget <a href="http://www.barbak.org/v4l_for_72e_dongle.tar.bz2" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.barbak.org/v4l_for_72e_dongle.tar.bz2</a><br>
+tar xvjf v4l_for_72e_dongle.tar.bz2<br>
+cd  v4l-dvb<br>
+sudo cp  firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/<br>
+make all<br>
+sudo make install<br><br>That should work for you. Please let me know.<br><br><div><span class="gmail_quote">2008/3/17, Antti Luoma &lt;<a href="mailto:anluoma@gmail.com">anluoma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi,<br><br>I have trying to get Solo Stick (72e) to work for couple of days, but with no luck. So what&#39;s the current status of this driver?<br><br>I did download latest drivers from mercurial today, added PCI_ids for card, modified dib0700_devices.c (in stk7070p_frontend_attach), added device to struct dvb_usb_device_properties dib0700_devices[] where stk7070p_frontend_attach was called. <br>
+
+<br>After that it looked promising:<br><br>&nbsp;usb 6-4: new high speed USB device using ehci_hcd and address 30<br>[ 6722.607546] usb 6-4: configuration #1 chosen from 1 choice<br>[ 6722.607622] dvb-usb: found a &#39;Pinnacle PCTV 72e DVB-T&#39; in warm state.<br>
+
+[ 6722.607648] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>[ 6722.607724] DVB: registering new adapter (Pinnacle PCTV 72e DVB-T)<br>[ 6722.731734] dvb_register_frontend<br>[ 6722.731742] DVB: registering frontend 0 (DiBcom 7000PC)...<br>
+
+[ 6722.811550] DiB0070: successfully identified<br>[ 6722.811557] dvb-usb: Pinnacle PCTV 72e DVB-T successfully initialized and connected.<br><br><br>BUT if I do a scan I don&#39;t get channels (i checked that I have correct frequencies):<br>
+
+<br>&nbsp;#scan -o vdr&nbsp; fi-Eurajoki <br>scanning fi-Eurajoki<br>using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>initial transponder 610000000 0 2 9 3 1 2 0<br>initial transponder 666000000 0 2 9 3 1 2 0<br>
+
+initial transponder 722000000 0 2 9 3 1 2 0<br>&gt;&gt;&gt; tune to: 610000:I999B8C23D999M64T8G8Y0:T:27500:<br>WARNING: filter timeout pid 0x0011<br>WARNING: filter timeout pid 0x0000<br>WARNING: filter timeout pid 0x0010<br>
+
+&gt;&gt;&gt; tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:<br>__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>&gt;&gt;&gt; tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:<br>
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>
+&gt;&gt;&gt; tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:<br>__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>&gt;&gt;&gt; tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:<br>
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>
+dumping lists (0 services)<br>Done.<br><br>Any thoughts??<br clear="all"><br>-- <br><span class="sg">-Antti-
+</span><br>_______________________________________________<br>
+linux-dvb mailing list<br>
+<a onclick="return top.js.OpenExtLink(window,event,this)" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a onclick="return top.js.OpenExtLink(window,event,this)" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div>
+<br>
+
+------=_Part_17262_23968650.1205794870148--
 
 
-> I am using the TT3200 and so the stb0899 module will be required
-> 
-> I cannot see how make menuconfig can disable the stb0899 module as it is not a recognised module in 2.6.23.137
-> 
-> Although if I ignore the errors, the modules appear to compile and then load
-
-fine.
-
-> But then the best I can get with with zapping using your modified szap is
-> 
-> status 00 | signal 0000 | snr 0004 | ber 00000000 | unc fffffffe | status 1e | signal 0136 | snr 005f | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1e | signal 0136 | snr 005f | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1e | signal 0136 | snr 0060 | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1e | signal 0136 | snr 005e | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1e | signal 0136 | snr 005e | ber 00000000 | unc fffffffe | FE_HAS_LOCK
-> 
-> I need to know if I am on the right track or those compile errors are having an influence on the performance of the TT3200 frontend
-
-yes, you on the right track and you can continue your tests wit TT3200
-
-
-> The signal strength should be >50-60% and quality >80%
-
-please mean - szap2 shows the dB in hex.
-
-Igor
-
-
+--===============1781794981==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1781794981==--
