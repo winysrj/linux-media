@@ -1,22 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JWIi9-0003Ug-00
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 23:00:41 +0100
-Message-ID: <47CC7504.9040600@philpem.me.uk>
-Date: Mon, 03 Mar 2008 22:00:36 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
-MIME-Version: 1.0
-To: Nicolas Will <nico@youplala.net>
-References: <47A98F3D.9070306@raceme.org>	<1202403104.5780.42.camel@eddie.sth.aptilo.com>	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>	<47C4661C.4030408@philpem.me.uk>	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>	<47C7076B.6060903@philpem.me.uk>
-	<47C879BA.7080002@philpem.me.uk>	<1204356192.6583.0.camel@youkaida>
-	<47CA609F.3010209@philpem.me.uk>	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>	<47CAB51F.9030103@philpem.me.uk>
-	<1204479088.6236.32.camel@youkaida>	<47CAEFC3.2020305@philpem.me.uk>
-	<47CB20ED.5070403@philpem.me.uk>	<4F7F67AF4C%linux@youmustbejoking.demon.co.uk>
-	<1204503495.6236.45.camel@youkaida>
-In-Reply-To: <1204503495.6236.45.camel@youkaida>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+1cd71b2b73eff9a3aa1a+1667+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JbGln-00057U-BQ
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 15:56:59 +0100
+Date: Mon, 17 Mar 2008 11:56:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+Message-ID: <20080317115607.2b9984c9@gaivota>
+In-Reply-To: <47DC4C77.2020201@h-i-s.nl>
+References: <1203538678.8313.12.camel@srv-roden.vogelwikke.nl>
+	<47BCAC32.9050601@h-i-s.nl> <47BCB371.2020809@h-i-s.nl>
+	<20080227075056.34a80abd@areia> <47D462DD.5080500@h-i-s.nl>
+	<20080312180321.6a6800a1@gaivota> <47DAED1E.4030002@h-i-s.nl>
+	<20080315112427.6b6c55a4@gaivota> <47DC4C77.2020201@h-i-s.nl>
+Mime-Version: 1.0
+Cc: Barnaby Shearer <Barnaby@EchelonL.com>, bWare <bWare@iWare.co.uk>,
+	H Me <ugm6hr@hotmail.com>, linux-dvb@linuxtv.org,
+	Stephan Zorn <szorn@gmx.at>, Thomas Munro <munro@ip9.org>,
+	Stuart Langridge <sil@kryogenix.org>, tiwag <tiwag@gmx.at>,
+	stefan@hlustik.net, tiwag <tiwag.cb@gmail.com>,
+	david@reynoldsfamily.org.uk, achasper@gmail.com,
+	stealth banana <stealth.banana@gmail.com>
+Subject: Re: [linux-dvb] First patch for Freecom DVB-T (with RTL2831U,
+	usb id 14aa:0160)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,64 +37,98 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nicolas Will wrote:
-> As much as I understand your position, where it's coming from, and the
-> reasoning behind it (and I'm not necessarily against it, trust me on
-> that), blaming it all on the closed parts is maybe just as bad as
-> blaming a USB vendor or open source coders and giving up.
+On Sat, 15 Mar 2008 23:23:51 +0100
+Jan Hoogenraad <jan-conceptronic@h-i-s.nl> wrote:
 
-It seems to be able to handle one or two recordings, then on the third it 
-falls flat on its face. I told it to record Jurassic Park, and as soon as the 
-recording was due to start, I got this in dmesg:
+> > Due to several issues I've noticed at the driver, I opted, for now, to add it
+> > as a separate tree. This way, we can fix things there, without affecting the
+> > staging tree. I've made it available at:
+> > 	http://linuxtv.org/hg/~mchehab/rtl2831
+> Thanks a lot. This way, the people involved have a place to focus on.
+> Now, I need to find a way to synchronise my tree with this directory.
+> I'll do some reading on the mercurial.
 
-Mar  3 21:00:03 dragon kernel: [51071.390905] mt2060 I2C write failed
-Mar  3 21:00:03 dragon kernel: [51071.390907] >>> 03 14 04 07 ff ff
-Mar  3 21:00:03 dragon kernel: [51071.390910] ep 0 write error (status = -19, 
-len: 6)
-Mar  3 21:00:03 dragon kernel: [51071.390912] >>> 03 14 04 08 ff ff
-Mar  3 21:00:03 dragon kernel: [51071.390915] ep 0 write error (status = -19, 
-len: 6)
-Mar  3 21:00:03 dragon kernel: [51071.390917] >>> 03 14 04 09 ff f0
-Mar  3 21:00:03 dragon kernel: [51071.390920] ep 0 write error (status = -19, 
-len: 6)
-Mar  3 21:28:02 dragon -- MARK --
-Mar  3 21:48:02 dragon -- MARK --
-Mar  3 21:52:31 dragon kernel: [54213.772868] modifying (0) streaming state for 0
-Mar  3 21:52:31 dragon kernel: [54213.772874] data for streaming: 0 10
-Mar  3 21:52:31 dragon kernel: [54213.772876] >>> 0f 00 10 00
-Mar  3 21:52:31 dragon kernel: [54213.772881] ep 0 write error (status = -19, 
-len: 4)
-Mar  3 21:52:31 dragon kernel: [54213.773463] dvb-usb: Hauppauge Nova-T 500 
-Dual DVB-T successfully deinitialized and disconnected.
-Mar  3 21:52:31 dragon kernel: [54214.011201] usb 2-1: new high speed USB 
-device using ehci_hcd and address 3
-Mar  3 21:52:31 dragon kernel: [54214.144020] usb 2-1: configuration #1 chosen 
-from 1 choice
-Mar  3 21:52:31 dragon kernel: [54214.144429] FW GET_VERSION length: 16
-Mar  3 21:52:31 dragon kernel: [54214.144431] cold: 0
-Mar  3 21:52:31 dragon kernel: [54214.144433] dvb-usb: found a 'Hauppauge 
-Nova-T 500 Dual DVB-T' in warm state.
-Mar  3 21:52:31 dragon kernel: [54214.144457] dvb-usb: will pass the complete 
-MPEG2 transport stream to the software demuxer.
-Mar  3 21:52:31 dragon kernel: [54214.144638] DVB: registering new adapter 
-(Hauppauge Nova-T 500 Dual DVB-T)
-Mar  3 21:52:31 dragon kernel: [54214.144806] >>> 0c 08 80
-Mar  3 21:52:31 dragon kernel: [54214.158937] >>> 0c 08 c0
-Mar  3 21:52:31 dragon kernel: [54214.178924] >>> 0c 0f 80
+Kdiff3 has a very nice algorithm to see the differences on a code with
+different CodingStyles. Anyway, this could be a pain.
 
-[.....]
+> I have some scripts to convert things I receive from Realtek.
+> I'll add the new directory names and Lindent at least.
 
-I'm beginning to suspect a power supply or cooling issue; it seems to get 
-worse the longer the machine is running... 15 hours uptime and the T500 is 
-basically dead now, and a reboot only brings it back into the land of the 
-living for a couple of hours at most...
+> > Also, I noticed that nobody, on RealTek signed it. It would be interesting if
+> > someone there could send us a SOB for the first changeset:
+> > 	http://linuxtv.org/hg/~mchehab/rtl2831/rev/bb7749446173
+> Please explain the abbrreviation SOB, and if possible send the text.
 
-Now where did I put that 500W junker that came with the case...
+SOB - Signed-off-by:
 
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+It should be useful for you to take a look on README.patches [1].
+
+[1] http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
+
+> Would you like to have a paper copy, or is e-mail confirmation to you 
+> sufficient ?
+Just an e-mail with their SOBs.
+
+> The text I added in the header is vetted by people from Realtek.
+
+They can change the text. The only requirement is that the code should be
+licensed with GPLv2.
+
+> They are eager to work together, and willing to learn.
+
+This is very good! With time we will learn how to cope together.
+
+> Unfortunately, I myself am completely new to linux development.
+
+It shouldn't take much time to learn ;) It is a completely different
+environment than what you'll have inside a company, since it is a
+community-driven work. So, all members of the community are freed to cope,
+comment and help with your work, sending you newer patches. Also, since kernel
+internal API's change, we need to handle patches that will change the API,
+testing they.
+
+> I'll add those specific cases to my import script;
+> I think that script should (due to the nature of the driver) get a 
+> central role, as to keep updates automated.
+
+Yes, this seems to be the easiest way.
+
+> > 3) Name convention. Names are generally in lower case. Since we try to have all
+> > lines with maxsize=80, the better is trying to have shorter names. 
+> > 
+> > I don't think that it would be a good idea to replace all names inside the driver,
+> > since this will make your life harder, when receiving patches from Realtek.
+> > Anyway, please consider this if you need to touch on some var name. 
+> > 
+> > There are other comments I want to do, about the integration with the tree. I
+> > intend to do it later, after having a better understanding on how the driver
+> > works and what can be done to avoid code duplication with dvb core and to allow
+> > the usage of the tuners by other drivers.
+> Some of us have studied this already, and communicated with Realtek on 
+> this, For example, they have an improved handling of the mt2060 tuner.
+> Decoupling the front end, setting this temporatily up as a new driver 
+> (would the naming there be something like mt2060_for_rtl2831 ?) and then 
+> integration have been on our wish list already.
+
+We did this kind of things already (for example, with saa711x). While this is
+not the ideal way, we can handle this. 
+
+I suspect, however, that it is too late to merge the driver for 2.6.26 (the
+window for newer drivers should be opening soon, and the driver reviewing
+should happen before the opening of the windows). Considering this, we'll have
+a timeframe of about 8-10 weeks before the next merge window (for 2.6.27).
+Maybe this timeframe is enough to merge the required newer features on mt2060
+and reuse it, instead of adding a newer one. My suggestion is to work with the
+separate tree and see the progress.
+
+> > Also, I'll need help from other developers on this large task ;)
+> I at least have a lot of people interested already for testing.
+> I've cc-ed them.
+
+Great. There are also the other guys from DVB ML that could also help on this.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
