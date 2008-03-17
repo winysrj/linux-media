@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYoZZ028152
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:50 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAYbCC018840
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:38 -0400
-Received: by fk-out-0910.google.com with SMTP id b27so275423fka.3
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:37 -0700 (PDT)
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2H48h8H021980
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 00:08:43 -0400
+Received: from gaimboi.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2H47l6W008769
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 00:07:50 -0400
+Message-ID: <47DDF01C.7080207@tmr.com>
+Date: Mon, 17 Mar 2008 00:14:20 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
+To: CityK <cityk@rogers.com>
+References: <47DC4331.7040100@rogers.com>	<1205622683.4814.13.camel@pc08.localdom.local>	<47DC6303.2040802@rogers.com>
+	<47DC9B27.50601@tmr.com> <47DD5D0D.9020600@rogers.com>
+In-Reply-To: <47DD5D0D.9020600@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <304e0a371d12f77e1575.1206699518@localhost>
-In-Reply-To: <patchbomb.1206699511@localhost>
-Date: Fri, 28 Mar 2008 03:18:38 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: [PATCH 7 of 9] vivi: Simplify the vivi driver and avoid deadlocks
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: ATI "HDTV Wonder" audio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,559 +28,265 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1206699281 25200
-# Node ID 304e0a371d12f77e1575ae43fa0133855165f63e
-# Parent  ab74ebf10c01d6a8a54a39b6750bc86ec3e72286
-vivi: Simplify the vivi driver and avoid deadlocks
+CityK wrote:
+> Bill Davidsen wrote:
+>> I'm not sure what you mean by external audio
+> 
+> An external analog audio source that you input to the card (i.e. such as 
+> from a DVD player, VCR, STB, camcorder etc) .... usually used in 
+> conjunction with the external analog video inputs (i.e. s-video or 
+> composite) ..... i.e. the A/V inputs .... such input signals must be 
+> digitized (ADC) ... in the case of the HDTV Wonder, external analog 
+> video signals input to the card are handled by cx88, whereas with audio, 
+> the ak5355, which in turn passes the then digitized audio stream to the 
+> cx88.
+> 
+As you note later, I'm not trying to get sound in, but out. But it's 
+interesting that alsamixer shows both an input (capture) and output 
+device for this card. And that makes sense, the dongle which connects to 
+the "looks like S_Video but isn't" socket has connectors for S_Video, 
+composite audio, and L-R channel audio, so I suspect that if I could 
+ever get sound *out* of the card I could get it *in*. Since I really 
+want this to grab output from a HD-DVR in HD, I'd like to think the 
+S_Video is the answer.
 
-vivi previously had a very complex queuing system and held spinlocks while
-doing copy_to_user, kmalloc, etc.  This caused the driver to easily deadlock
-when a multi-threaded application used it and revealed bugs in videobuf too.
+> - on your card (HDTV Wonder) is a a tin can receiver ( 
+> http://www.linuxtv.org/wiki/index.php/Philips_TUV1236D ), in which is 
+> embedded a TDA9887 analog IF demodulator  .... in case what is meant by 
+> "IF" is not clear see: 
+> http://www.linuxtv.org/wiki/index.php/Demodulator  and  
+> http://www.linuxtv.org/wiki/index.php/Frontend  (this second link is 
+> specific to digital, but the concepts conveyed are similar and should 
+> help reinforce with the understanding).
+> 
+I used to design and build ham radio receivers, I think I grasp the 
+concept. ;-)
 
-This replaces the copy_to_user with memcpy since we were never copying to user
-space addresses.  And makes the kmalloc atomic.
+	[__snip__]
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+> On the other hand, in the case of cards using TUV1236D & saa7135, things 
+> aren't as limited, as the the saa7135 is capable of both handling 
+> baseband audio sources AND demodulation of S-IF.  So, it would seem that 
+> with these cards there are, theoretically,  two different, but 
+> legitimate, pathway choices for TV-in/broadcast audio:
+> 
+> (i)  RF signal --> tuner IC --> IF signal --> TDA9887  --> baseband 
+> signal --> saa7135 for ADC
+> 
+> or
+> 
+> (ii)  RF signal --> tuner IC --> IF signal --> baseband audio -->  
+> saa7135 for S-IF demodulation and then ADC
+> 
+> Now is the actual pathway hardwired for these cards, or can we actually 
+> control that aspect via the drivers ??  I don't know.  Earlier, at the 
+> beginning of this diversionary discussion, I said that I just clued into 
+> this point again because I had forgotten that I had once pondered this 
+> question before, but Hermann's astuteness reminded me of this  .... I 
+> just don't remember in what thread, or if it was on the #IRC channel,  
+> that I placed my enquiry about the pathway being used by TUV1236D & 
+> saa7135  based cards
+> 
+At this point I'll state (or restate) that there are traces for a 
+connector as is used by CD feeds, and as are found on several of my 
+other ATI boards (all low def). I suppose I could populate the board and 
+run a cable, although that would involve multiple A<->D conversions.
 
----
- linux/drivers/media/video/vivi.c |  318 ++++++++++-----------------------------
- 1 file changed, 82 insertions(+), 236 deletions(-)
+> If I'm not mistaken, I think I did so while I was investigating the 
+> sound sampling (ADC) capabilities with the saa7135 ... currently, the 
+> saa7135 Linux driver limits sampling of broadcast audio to 32KHz (the 
+> data sheet indicates that 48KHz is also possible, but offhand I can't 
+> recall the exact reason why this is not feasible; though it has been 
+> discussed on a number of occasions in the past).  On the other hand, the 
+> saa7135 should be able to sample (i.e. perform ADC on) baseband audio 
+> sources at either 32, 44.1, or 48KHz ... and, to the best of my 
+> knowledge, this later case of choice does indeed work as expected.
+> 
+> I'll have to think about this, and try to find that thread to which I 
+> posted, as I don't recall receiving a satisfactory answer ... in any 
+> regard, if it is not clear to what I driving at, here is the implication:
+> 
+> if the pathway for the broadcast audio is NOT hardwired on these cards, 
+> then theoretically, it boils down to a case of the driver defining which 
+> route to take.
 
-diff --git a/linux/drivers/media/video/vivi.c b/linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c
-+++ b/linux/drivers/media/video/vivi.c
-@@ -5,6 +5,7 @@
-  *      Mauro Carvalho Chehab <mchehab--a.t--infradead.org>
-  *      Ted Walther <ted--a.t--enumera.com>
-  *      John Sokol <sokol--a.t--videotechnology.com>
-+ *      Brandon Philips <brandon@ifup.org>
-  *      http://v4l.videotechnology.com/
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -155,8 +156,6 @@ struct vivi_buffer {
- 
- struct vivi_dmaqueue {
- 	struct list_head       active;
--	struct list_head       queued;
--	struct timer_list      timeout;
- 
- 	/* thread for generating video stream*/
- 	struct task_struct         *kthread;
-@@ -175,11 +174,6 @@ struct vivi_dev {
- struct vivi_dev {
- 	struct list_head           vivi_devlist;
- 
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 16)
--	struct mutex               lock;
--#else
--	struct semaphore           lock;
--#endif
- 	spinlock_t                 slock;
- 
- 	int                        users;
-@@ -339,24 +333,26 @@ end:
- end:
- 	return;
- }
-+
- static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- {
- 	int h , pos = 0;
- 	int hmax  = buf->vb.height;
- 	int wmax  = buf->vb.width;
- 	struct timeval ts;
--	char *tmpbuf = kmalloc(wmax * 2, GFP_KERNEL);
-+	char *tmpbuf = kmalloc(wmax * 2, GFP_ATOMIC);
- 	void *vbuf = videobuf_to_vmalloc(&buf->vb);
- 
- 	if (!tmpbuf)
- 		return;
- 
-+	if (!vbuf)
-+		return;
-+
- 	for (h = 0; h < hmax; h++) {
- 		gen_line(tmpbuf, 0, wmax, hmax, h, dev->mv_count,
- 			 dev->timestr);
--		/* FIXME: replacing to __copy_to_user */
--		if (copy_to_user(vbuf + pos, tmpbuf, wmax * 2) != 0)
--			dprintk(dev, 2, "vivifill copy_to_user failed.\n");
-+		memcpy(vbuf + pos, tmpbuf, wmax * 2);
- 		pos += wmax*2;
- 	}
- 
-@@ -389,67 +385,58 @@ static void vivi_fillbuff(struct vivi_de
- 			dev->timestr, (unsigned long)tmpbuf, pos);
- 
- 	/* Advice that buffer was filled */
--	buf->vb.state = VIDEOBUF_DONE;
- 	buf->vb.field_count++;
- 	do_gettimeofday(&ts);
- 	buf->vb.ts = ts;
-+	buf->vb.state = VIDEOBUF_DONE;
-+}
-+
-+static void vivi_thread_tick(struct vivi_fh *fh)
-+{
-+	struct vivi_buffer *buf;
-+	struct vivi_dev *dev = fh->dev;
-+	struct vivi_dmaqueue *dma_q = &dev->vidq;
-+
-+	unsigned long flags = 0;
-+
-+	dprintk(dev, 1, "Thread tick\n");
-+
-+	spin_lock_irqsave(&dev->slock, flags);
-+	if (list_empty(&dma_q->active)) {
-+		dprintk(dev, 1, "No active queue to serve\n");
-+		goto unlock;
-+	}
-+
-+	buf = list_entry(dma_q->active.next,
-+			 struct vivi_buffer, vb.queue);
-+
-+	/* Nobody is waiting on this buffer, return */
-+	if (!waitqueue_active(&buf->vb.done))
-+		goto unlock;
- 
- 	list_del(&buf->vb.queue);
-+
-+	do_gettimeofday(&buf->vb.ts);
-+
-+	/* Fill buffer */
-+	vivi_fillbuff(dev, buf);
-+	dprintk(dev, 1, "filled buffer %p\n", buf);
-+
- 	wake_up(&buf->vb.done);
--}
--
--static int restart_video_queue(struct vivi_dmaqueue *dma_q);
--
--static void vivi_thread_tick(struct vivi_dmaqueue  *dma_q)
--{
--	struct vivi_buffer    *buf;
--	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
--
--	int bc;
--
--	spin_lock(&dev->slock);
--	/* Announces videobuf that all went ok */
--	for (bc = 0;; bc++) {
--		if (list_empty(&dma_q->active)) {
--			dprintk(dev, 1, "No active queue to serve\n");
--			break;
--		}
--
--		buf = list_entry(dma_q->active.next,
--				 struct vivi_buffer, vb.queue);
--
--		/* Nobody is waiting something to be done, just return */
--		if (!waitqueue_active(&buf->vb.done)) {
--			mod_timer(&dma_q->timeout, jiffies+BUFFER_TIMEOUT);
--			spin_unlock(&dev->slock);
--			return;
--		}
--
--		do_gettimeofday(&buf->vb.ts);
--		dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
--
--		/* Fill buffer */
--		vivi_fillbuff(dev, buf);
--
--		if (list_empty(&dma_q->active)) {
--			del_timer(&dma_q->timeout);
--		} else {
--			mod_timer(&dma_q->timeout, jiffies + BUFFER_TIMEOUT);
--		}
--	}
--	if (bc != 1)
--		dprintk(dev, 1, "%s: %d buffers handled (should be 1)\n",
--			__FUNCTION__, bc);
--	spin_unlock(&dev->slock);
-+	dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
-+unlock:
-+	spin_unlock_irqrestore(&dev->slock, flags);
-+	return;
- }
- 
- #define frames_to_ms(frames)					\
- 	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
- 
--static void vivi_sleep(struct vivi_dmaqueue  *dma_q)
-+static void vivi_sleep(struct vivi_fh *fh)
- {
--	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
--	int timeout, running_time;
-+	struct vivi_dev *dev = fh->dev;
-+	struct vivi_dmaqueue *dma_q = &dev->vidq;
-+	int timeout;
- 	DECLARE_WAITQUEUE(wait, current);
- 
- 	dprintk(dev, 1, "%s dma_q=0x%08lx\n", __FUNCTION__,
-@@ -464,37 +451,10 @@ static void vivi_sleep(struct vivi_dmaqu
- 		goto stop_task;
- #endif
- 
--	running_time = jiffies - dma_q->ini_jiffies;
--	dma_q->frame++;
-+	/* Calculate time to wake up */
-+	timeout = msecs_to_jiffies(frames_to_ms(1));
- 
--	/* Calculate time to wake up */
--	timeout = msecs_to_jiffies(frames_to_ms(dma_q->frame)) - running_time;
--
--	if (timeout > msecs_to_jiffies(frames_to_ms(2)) || timeout <= 0) {
--		int old = dma_q->frame;
--		int nframes;
--
--		dma_q->frame = (jiffies_to_msecs(running_time) /
--			       frames_to_ms(1)) + 1;
--
--		timeout = msecs_to_jiffies(frames_to_ms(dma_q->frame))
--			  - running_time;
--
--		if (unlikely (timeout <= 0))
--			timeout = 1;
--
--		nframes = (dma_q->frame > old)?
--				  dma_q->frame - old : old - dma_q->frame;
--
--		dprintk(dev, 1, "%ld: %s %d frames. "
--			"Current frame is %d. Will sleep for %d jiffies\n",
--			jiffies,
--			(dma_q->frame > old)? "Underrun, losed" : "Overrun of",
--			nframes, dma_q->frame, timeout);
--	} else
--		dprintk(dev, 1, "will sleep for %d jiffies\n", timeout);
--
--	vivi_thread_tick(dma_q);
-+	vivi_thread_tick(fh);
- 
- 	schedule_timeout_interruptible(timeout);
- 
-@@ -505,8 +465,8 @@ stop_task:
- 
- static int vivi_thread(void *data)
- {
--	struct vivi_dmaqueue  *dma_q = data;
--	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
-+	struct vivi_fh  *fh = data;
-+	struct vivi_dev *dev = fh->dev;
- 
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 5, 0)
- 	daemonize();
-@@ -524,11 +484,10 @@ static int vivi_thread(void *data)
- #endif
- 	dprintk(dev, 1, "thread started\n");
- 
--	mod_timer(&dma_q->timeout, jiffies+BUFFER_TIMEOUT);
- 	set_freezable();
- 
- 	for (;;) {
--		vivi_sleep(dma_q);
-+		vivi_sleep(fh);
- 
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 5, 0)
- 		if (dma_q->rmmod || signal_pending(current))
-@@ -547,9 +506,10 @@ static int vivi_thread(void *data)
- 	return 0;
- }
- 
--static int vivi_start_thread(struct vivi_dmaqueue  *dma_q)
-+static int vivi_start_thread(struct vivi_fh *fh)
- {
--	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
-+	struct vivi_dev *dev = fh->dev;
-+	struct vivi_dmaqueue *dma_q = &dev->vidq;
- 
- 	dma_q->frame = 0;
- 	dma_q->ini_jiffies = jiffies;
-@@ -557,7 +517,7 @@ static int vivi_start_thread(struct vivi
- 	dprintk(dev, 1, "%s\n", __FUNCTION__);
- 
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 5, 0)
--	dma_q->kthread = kthread_run(vivi_thread, dma_q, "vivi");
-+	dma_q->kthread = kthread_run(vivi_thread, fh, "vivi");
- 
- 	if (IS_ERR(dma_q->kthread)) {
- 		printk(KERN_ERR "vivi: kernel_thread() failed\n");
-@@ -570,7 +530,7 @@ static int vivi_start_thread(struct vivi
- 	dma_q->notify = &sem;
- 	dma_q->rmmod = 0;
- 
--	if (kernel_thread(vivi_thread, dma_q, 0) < 0) {
-+	if (kernel_thread(vivi_thread, fh, 0) < 0) {
- 		printk(KERN_ERR "sdim: kernel_thread() failed\n");
- 		return -EINVAL;
- 	}
-@@ -609,91 +569,6 @@ static void vivi_stop_thread(struct vivi
- 	}
- }
- 
--static int restart_video_queue(struct vivi_dmaqueue *dma_q)
--{
--	struct vivi_dev *dev = container_of(dma_q, struct vivi_dev, vidq);
--	struct vivi_buffer *buf, *prev;
--
--	dprintk(dev, 1, "%s dma_q=0x%08lx\n", __FUNCTION__,
--		(unsigned long)dma_q);
--
--	if (!list_empty(&dma_q->active)) {
--		buf = list_entry(dma_q->active.next,
--				 struct vivi_buffer, vb.queue);
--		dprintk(dev, 2, "restart_queue [%p/%d]: restart dma\n",
--			buf, buf->vb.i);
--
--		dprintk(dev, 1, "Restarting video dma\n");
--		vivi_stop_thread(dma_q);
--
--		/* cancel all outstanding capture / vbi requests */
--		list_for_each_entry_safe(buf, prev, &dma_q->active, vb.queue) {
--			list_del(&buf->vb.queue);
--			buf->vb.state = VIDEOBUF_ERROR;
--			wake_up(&buf->vb.done);
--		}
--		mod_timer(&dma_q->timeout, jiffies+BUFFER_TIMEOUT);
--
--		return 0;
--	}
--
--	prev = NULL;
--	for (;;) {
--		if (list_empty(&dma_q->queued))
--			return 0;
--		buf = list_entry(dma_q->queued.next,
--				 struct vivi_buffer, vb.queue);
--		if (NULL == prev) {
--			list_del(&buf->vb.queue);
--			list_add_tail(&buf->vb.queue, &dma_q->active);
--
--			dprintk(dev, 1, "Restarting video dma\n");
--			vivi_stop_thread(dma_q);
--			vivi_start_thread(dma_q);
--
--			buf->vb.state = VIDEOBUF_ACTIVE;
--			mod_timer(&dma_q->timeout, jiffies+BUFFER_TIMEOUT);
--			dprintk(dev, 2,
--				"[%p/%d] restart_queue - first active\n",
--				buf, buf->vb.i);
--
--		} else if (prev->vb.width  == buf->vb.width  &&
--			   prev->vb.height == buf->vb.height &&
--			   prev->fmt       == buf->fmt) {
--			list_del(&buf->vb.queue);
--			list_add_tail(&buf->vb.queue, &dma_q->active);
--			buf->vb.state = VIDEOBUF_ACTIVE;
--			dprintk(dev, 2,
--				"[%p/%d] restart_queue - move to active\n",
--				buf, buf->vb.i);
--		} else {
--			return 0;
--		}
--		prev = buf;
--	}
--}
--
--static void vivi_vid_timeout(unsigned long data)
--{
--	struct vivi_dev      *dev  = (struct vivi_dev *)data;
--	struct vivi_dmaqueue *vidq = &dev->vidq;
--	struct vivi_buffer   *buf;
--
--	spin_lock(&dev->slock);
--
--	while (!list_empty(&vidq->active)) {
--		buf = list_entry(vidq->active.next,
--				 struct vivi_buffer, vb.queue);
--		list_del(&buf->vb.queue);
--		buf->vb.state = VIDEOBUF_ERROR;
--		wake_up(&buf->vb.done);
--		printk(KERN_INFO "vivi/0: [%p/%d] timeout\n", buf, buf->vb.i);
--	}
--	restart_video_queue(vidq);
--
--	spin_unlock(&dev->slock);
--}
--
- /* ------------------------------------------------------------------
- 	Videobuf operations
-    ------------------------------------------------------------------*/
-@@ -722,13 +597,13 @@ static void free_buffer(struct videobuf_
- 	struct vivi_fh  *fh = vq->priv_data;
- 	struct vivi_dev *dev  = fh->dev;
- 
--	dprintk(dev, 1, "%s\n", __FUNCTION__);
-+	dprintk(dev, 1, "%s, state: %i\n", __FUNCTION__, buf->vb.state);
- 
- 	if (in_interrupt())
- 		BUG();
- 
--	videobuf_waiton(&buf->vb, 0, 0);
- 	videobuf_vmalloc_free(&buf->vb);
-+	dprintk(dev, 1, "free_buffer: freed");
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
- }
- 
-@@ -741,28 +616,25 @@ buffer_prepare(struct videobuf_queue *vq
- 	struct vivi_fh     *fh  = vq->priv_data;
- 	struct vivi_dev    *dev = fh->dev;
- 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
--	int rc, init_buffer = 0;
-+	int rc;
- 
- 	dprintk(dev, 1, "%s, field=%d\n", __FUNCTION__, field);
- 
- 	BUG_ON(NULL == fh->fmt);
-+
- 	if (fh->width  < 48 || fh->width  > norm_maxw() ||
- 	    fh->height < 32 || fh->height > norm_maxh())
- 		return -EINVAL;
-+
- 	buf->vb.size = fh->width*fh->height*2;
- 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
- 		return -EINVAL;
- 
--	if (buf->fmt       != fh->fmt    ||
--	    buf->vb.width  != fh->width  ||
--	    buf->vb.height != fh->height ||
--	buf->vb.field  != field) {
--		buf->fmt       = fh->fmt;
--		buf->vb.width  = fh->width;
--		buf->vb.height = fh->height;
--		buf->vb.field  = field;
--		init_buffer = 1;
--	}
-+	/* These properties only change when queue is idle, see s_fmt */
-+	buf->fmt       = fh->fmt;
-+	buf->vb.width  = fh->width;
-+	buf->vb.height = fh->height;
-+	buf->vb.field  = field;
- 
- 	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
- 		rc = videobuf_iolock(vq, &buf->vb, NULL);
-@@ -785,45 +657,12 @@ buffer_queue(struct videobuf_queue *vq, 
- 	struct vivi_buffer    *buf  = container_of(vb, struct vivi_buffer, vb);
- 	struct vivi_fh        *fh   = vq->priv_data;
- 	struct vivi_dev       *dev  = fh->dev;
--	struct vivi_dmaqueue  *vidq = &dev->vidq;
--	struct vivi_buffer    *prev;
-+	struct vivi_dmaqueue *vidq = &dev->vidq;
- 
--	if (!list_empty(&vidq->queued)) {
--		dprintk(dev, 1, "adding vb queue=0x%08lx\n",
--			(unsigned long)&buf->vb.queue);
--		list_add_tail(&buf->vb.queue, &vidq->queued);
--		buf->vb.state = VIDEOBUF_QUEUED;
--		dprintk(dev, 2, "[%p/%d] buffer_queue - append to queued\n",
--			buf, buf->vb.i);
--	} else if (list_empty(&vidq->active)) {
--		list_add_tail(&buf->vb.queue, &vidq->active);
-+	dprintk(dev, 1, "%s\n", __FUNCTION__);
- 
--		buf->vb.state = VIDEOBUF_ACTIVE;
--		mod_timer(&vidq->timeout, jiffies+BUFFER_TIMEOUT);
--		dprintk(dev, 2, "[%p/%d] buffer_queue - first active\n",
--			buf, buf->vb.i);
--
--		vivi_start_thread(vidq);
--	} else {
--		prev = list_entry(vidq->active.prev,
--				  struct vivi_buffer, vb.queue);
--		if (prev->vb.width  == buf->vb.width  &&
--		    prev->vb.height == buf->vb.height &&
--		    prev->fmt       == buf->fmt) {
--			list_add_tail(&buf->vb.queue, &vidq->active);
--			buf->vb.state = VIDEOBUF_ACTIVE;
--			dprintk(dev, 2,
--				"[%p/%d] buffer_queue - append to active\n",
--				buf, buf->vb.i);
--
--		} else {
--			list_add_tail(&buf->vb.queue, &vidq->queued);
--			buf->vb.state = VIDEOBUF_QUEUED;
--			dprintk(dev, 2,
--				"[%p/%d] buffer_queue - first queued\n",
--				buf, buf->vb.i);
--		}
--	}
-+	buf->vb.state = VIDEOBUF_QUEUED;
-+	list_add_tail(&buf->vb.queue, &vidq->active);
- }
- 
- static void buffer_release(struct videobuf_queue *vq,
-@@ -832,11 +671,8 @@ static void buffer_release(struct videob
- 	struct vivi_buffer   *buf  = container_of(vb, struct vivi_buffer, vb);
- 	struct vivi_fh       *fh   = vq->priv_data;
- 	struct vivi_dev      *dev  = (struct vivi_dev *)fh->dev;
--	struct vivi_dmaqueue *vidq = &dev->vidq;
- 
- 	dprintk(dev, 1, "%s\n", __FUNCTION__);
--
--	vivi_stop_thread(vidq);
- 
- 	free_buffer(vq, buf);
- }
-@@ -943,9 +779,19 @@ static int vidioc_s_fmt_cap(struct file 
- 					struct v4l2_format *f)
- {
- 	struct vivi_fh  *fh = priv;
-+	struct videobuf_queue *q = &fh->vb_vidq;
-+
- 	int ret = vidioc_try_fmt_cap(file, fh, f);
- 	if (ret < 0)
- 		return (ret);
-+
-+	mutex_lock(&q->vb_lock);
-+
-+	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
-+		dprintk(fh->dev, 1, "%s queue busy\n", __FUNCTION__);
-+		ret = -EBUSY;
-+		goto out;
-+	}
- 
- 	fh->fmt           = &format;
- 	fh->width         = f->fmt.pix.width;
-@@ -953,7 +799,11 @@ static int vidioc_s_fmt_cap(struct file 
- 	fh->vb_vidq.field = f->fmt.pix.field;
- 	fh->type          = f->type;
- 
--	return (0);
-+	ret = 0;
-+out:
-+	mutex_unlock(&q->vb_lock);
-+
-+	return (ret);
- }
- 
- static int vidioc_reqbufs(struct file *file, void *priv,
-@@ -1158,6 +1008,8 @@ found:
- 			NULL, &dev->slock, fh->type, V4L2_FIELD_INTERLACED,
- 			sizeof(struct vivi_buffer), fh);
- 
-+	vivi_start_thread(fh);
-+
- 	return 0;
- }
- 
-@@ -1310,16 +1162,10 @@ static int __init vivi_init(void)
- 
- 		/* init video dma queues */
- 		INIT_LIST_HEAD(&dev->vidq.active);
--		INIT_LIST_HEAD(&dev->vidq.queued);
- 		init_waitqueue_head(&dev->vidq.wq);
- 
- 		/* initialize locks */
--		mutex_init(&dev->lock);
- 		spin_lock_init(&dev->slock);
--
--		dev->vidq.timeout.function = vivi_vid_timeout;
--		dev->vidq.timeout.data     = (unsigned long)dev;
--		init_timer(&dev->vidq.timeout);
- 
- 		vfd = video_device_alloc();
- 		if (NULL == vfd)
+Given the lack of analog output connections, I hope that's the case. As 
+noted it works with Windows.
+
+> If the driver is written to use scenario (ii), which I believe is the 
+> case, then because of the limitations of the saa7135's S-IF demodulation 
+> capabilities, the end user is stuck with having to "capture"  analog 
+> TV-audio at 32KHz ... for those of you not familiar with the TV-audio 
+> capturing quality of this chip, lets just say that its less then stellar 
+> (i.e. tinny sounding; prone to clipping; prone to crackling and metallic 
+> "zing" like sounds ... turning the audio input level in the mixer down 
+> alleviates some of those, but they are still present).
+> If the driver is written to use scenario (i), then theoretically, it 
+> should provide some flexibility for the end user -- i.e. choice of 
+> either 32, 44.1, or 48KHz sampling rates  ... the hope, in this point, 
+> is that one of the other sampling rates would provide better 
+> results/quality then as obtainable under the current situation (i.e. 
+> limited to 32KHz and less then stellar quality)
+> 
+> [ :Big sidebar / side diversion / optional  discussion ends ]
+> 
+> 
+>> when the card was tried in a Windows system it had sound, so there is 
+>> some way to get the audio "external" of the card and into the computer. 
+> 
+> The above description (immediately above the long-winded optional 
+> discussion) should bring some clarity as to what I had meant by external 
+> audio .... unfortunately, I see that I also used "external" again in my 
+> earlier message's description ... though this second case was meant in a 
+> different context, I do see how this could have contributed to some 
+> confusion.
+> In any regard, lets address this second point:   "getting the audio 
+> external of the card"
+> 
+> After the cx88 has processed the broadcast audio, it has two choices of 
+> what to do with the audio at that point:
+> 
+> (i) send it through the chip's internal DAC and then route it directly 
+> off the card to a sound card for processing ... you'd do this via a 
+> loopback cable that you'd attach directly between the tv-card and sound 
+> card, or via an external cable between the tv-card (on the back of the 
+> card's riser) and an input jack on the soundcard.
+> or
+> 
+> (ii) keep the now digital signal in the digital domain by having the 
+> cx88 packetize the audio bitstream and send it across the PCI bus for 
+> processing downstream .... attaching a label to a process, what we're 
+> talking about here is referred to as audio DMA.
+> 
+> 
+> Intuitively, route (i) sounds a little retarded -- after all, the card 
+> has just performed ADC on the audio, so why in the hell would you want 
+> to do DAC and send it off to the soundcard for another round of ADC?  
+> But if you said that route (i) is the norm as opposed to the exception, 
+> you'd also be right.
+> 
+> In any regard, route (i) isn't even an option for the HDTV wonder as, 
+> like I mentioned in the earlier message:
+> 
+> CityK wrote:
+>> the HDTV Wonder lacks any sort of audio out (via either an internal 
+>> loop back cable to the sound card or similarly an external out on the 
+>> riser).  Therefore ... you would indeed need to use cx88-alsa,
+> 
+> Using cx88-alsa implies that you'd be using route (ii); the audio DMA 
+> route.  The situation under a Windows OS is exactly the same -- a driver 
+> with audio DMA capabilities must be present, else you'd receive no audio.
+> 
+I've been fighting with this for a while, and AFAIK there is everything 
+except the actual socket on the card. There certainly are traces for the 
+installation of the connector, I can't check the need for components 
+while it's up and doing something, but I will check later tonight.
+> 
+> Bill Davidsen wrote:
+>> As noted in my original post, I'm using cx88_alsa,
+> 
+> I think that is what initially lead me to believe that you were only 
+> talking about an external audio source, because as far as I'm aware, 
+> cx88-alsa works for the HDTV wonder...but there are some other points 
+> about using cx88-alsa which I failed to take into consideration in your 
+> case (which I'll address very shortly) and prematurely jumped to the 
+> conclusion that you were looking to get an external audio source working 
+> with your card.
+> 
+> By the time Hermann replied, and I replied back to him, I had long 
+> forgotten your statement about using alsa and the fact that it was it 
+> (that fact in itself) which had initially lead me to formulate my 
+> original reply as I had.  By the time I took Hermann's observations into 
+> consideration, I was well along in the process of turning a clean answer 
+> into something very opaque.
+> 
+> So, having played a key part in muddying the waters, I hope that this 
+> reply clears them up and provides a conclusive explanation of the 
+> broadcast audio  facilities available on your card.
+> 
+I really appreciate the time you took to understand this, I hope the 
+additional information I'm providing is useful...
+
+>> I'm using cx88_alsa  ... I loaded the cx88_alsa module with "index=1" 
+>> and now /proc/asound/cards shows the internal audio as card0 and the 
+>> cx88 as card1. But I can't get any sound OUT of the card to play, or 
+>> even record. ... it just doesn't work. It's not muted, the volume is 
+>> up, but nothing. Why they didn't populate the soundcard out on the 
+>> card I don't know, all the traces are there but no socket is provided.
+>>
+>> Is it likely that "pulseaudio" stuff is the problem? This is the first 
+>> time I've used it with video, so I'm at least suspicious, but several 
+>> people warned I can't just rip it out, I may have to drop back to 
+>> several older things.
+> 
+> Linux and audio DMA with the cx88:
+> 
+> a) the chipset on the card has to support it ... which we already know 
+> is true
+> 
+> b) the board has to support it .... not all cx88 boards support it  ... 
+> if a cx88 card is going to support digital audio (i.e. audio dma), then 
+> you will see 1741:8801 or 1741:8811 with "lspci -n" ... if absent, 
+> cx88-alsa will not work with these cards.
+> 
+I don't see any such thing. I doubt attachments are allowed, but I'll 
+just put "lspci -n" at the end of this post.
+
+> We already know your board should do audio dma (your Windows test, for 
+> example proves this).  So, a "lspci -n | grep 1741" should indeed spit 
+> out a "8801" or "8811" answer
+> c) you need a driver to support it ...  cx88-alsa ... which appears to 
+> be loading fine for your card.
+> 
+> d) you need applications that support it ... Uh-oh, here's the biggie 
+> .... and this is where I now suspect you are running into difficulty.
+> 
+> Not many viewing apps under Linux  natively support audio DMA.  Mythtv 
+> and mplayer do.  tvtime, xawtv etc etc don't.
+> 
+> - With mplayer and the cx88, you will also have to specifically use 
+> "norm=NTSC-M" in your cmdline argument.
+> - Mythtv should have an option for setting up the correct sound device 
+> (default is /dev/dsp ... which should be your sound card, so you'll have 
+> to adjust this setting for your tvcard ... i.e. likely /dev/dsp2 or 
+> whatever)
+> - with tvtime, xawtv etc, you'll have to use a helper application like 
+> arecord or sox before audio dma will work.
+> 
+> I suggest you first test with mplayer to see if its working.  Try 
+> something "basic" like this:
+> 
+> mplayer -v tv:// -tv 
+> driver=v4l2:norm=NTSC-M:input=0:alsa:adevice=hw.1,0:forceaudio:immediatemode=0:audiorate=48000:amode=1:width=384:height=288:outfmt=yuy2:device=/dev/video0:chanlist=us-cable:channel=7 
+> 
+> 
+> The command is all one line, so just copy and paste it into a console.  
+> Note: it should be pretty generic for most systems with just one tv 
+> card, but if any of the parameters listed above differ, then you will 
+> have to adjust them accordingly to your system configuration.
+> 
+Some success, this actually does get sound and picture. However, the 
+capture from the card is small, 384x288, regardless of settings. Clearly 
+not the HD I'm trying to get.
+
+Those parameters don't really work with mencoder, so I can't record 
+anything under any conditions... it "records" and I get a black screen 
+silent movie. I couldn't get ffmpeg to record either, or even try.
+
+After about two years of "try, then wait for the next better drivers or 
+kernel fix," I'm about ready to admit that Linux just can't do the job, 
+and the more I search for answers the more I find zero people who say 
+they have gotten *any* currently available consumer priced hardware to 
+do HD capture, and the more people I find on lists and websites and IRC 
+asking how to do this and getting no answer. After two years the driver 
+still doesn't work usefully, and by now I can't buy more cards new, and 
+I should start over by buying a new card if there was a working "over" 
+to start.
+
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
 
 --
 video4linux-list mailing list
