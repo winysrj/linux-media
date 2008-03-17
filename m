@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from wa-out-1112.google.com ([209.85.146.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timothyparez@gmail.com>) id 1Jfw61-000305-Dl
-	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 13:53:53 +0200
-Received: by ug-out-1314.google.com with SMTP id o29so250640ugd.20
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 04:53:05 -0700 (PDT)
-Message-Id: <9F2076E5-6941-444E-94D3-B4F174DA31FB@gmail.com>
-From: Timothy Parez <timothyparez@gmail.com>
+	(envelope-from <maurizio.daniele@gmail.com>) id 1JbKVK-0004dS-TD
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 19:56:18 +0100
+Received: by wa-out-1112.google.com with SMTP id m28so6602173wag.13
+	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 11:56:10 -0700 (PDT)
+Message-ID: <cfcc45710803171156k3682fec8o9a92dc2c3de5aba9@mail.gmail.com>
+Date: Mon, 17 Mar 2008 19:56:09 +0100
+From: Maurizio <maurizio.daniele@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <47EEE49F.4060202@andrei.myip.org>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Sun, 30 Mar 2008 13:52:55 +0200
-References: <47EEE49F.4060202@andrei.myip.org>
-Subject: Re: [linux-dvb] Hauppauge WinTV Nova-S Plus
+In-Reply-To: <cfcc45710803171030h6ff660a0p15df6fbcc51efd5f@mail.gmail.com>
+MIME-Version: 1.0
+References: <cfcc45710803170707g26ee6526n47704315bc9b24b3@mail.gmail.com>
+	<d9def9db0803170720s1eee0083wf3251c8b3ef30de6@mail.gmail.com>
+	<cfcc45710803171030h6ff660a0p15df6fbcc51efd5f@mail.gmail.com>
+Subject: [linux-dvb]  Empire DVB Dual Pen - New hardware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,119 +22,177 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0055333032=="
+Content-Type: multipart/mixed; boundary="===============1326119749=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============0055333032==
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-4-937508871"
+--===============1326119749==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_15342_8784507.1205780169656"
+
+------=_Part_15342_8784507.1205780169656
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-4-937508871
-Content-Type: multipart/alternative; boundary=Apple-Mail-3-937508790
+I'm sorry...
+
+I make a bad mistake and send this mail (and the next) to Markus instead to
+the list... :-(
+
+---------- Forwarded message ----------
+From: Maurizio <maurizio.daniele@gmail.com>
+Date: 17-mar-2008 18.30
+Subject: Re: [linux-dvb] Empire DVB Dual Pen - New hardware
+To: Markus Rechberger <mrechberger@gmail.com>
 
 
---Apple-Mail-3-937508790
-Content-Type: text/plain;
-	charset=US-ASCII;
-	format=flowed;
-	delsp=yes
+
+2008/3/17, Markus Rechberger <mrechberger@gmail.com>:
+>
+> On 3/17/08, Maurizio <maurizio.daniele@gmail.com> wrote:
+> > I just buyed an "Empire USB 2.0 Pen Dual TV" that is in supported USB
+> DVB-T
+> > devices list.
+>
+>
+>
+> what does usbview show up? I think it is already supported actually.
+
+
+Here usbview answer.
+
+USB Hybrid Device
+Manufacturer: Geniatech
+Serial Number: 2007050520070505
+Speed: 480Mb/s (high)
+USB Version:  2.00
+Device Class: 00(>ifc )
+Device Subclass: 00
+Device Protocol: 00
+Maximum Default Endpoint Size: 64
+Number of Configurations: 1
+Vendor Id: 6000
+Product Id: eaec
+Revision Number:  0.01
+
+Config Number: 1
+    Number of Interfaces: 1
+    Attributes: 80
+    MaxPower Needed: 500mA
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 0
+        Class: ff(vend.)
+        Sub Class: 0
+        Protocol: 0
+        Number of Endpoints: 2
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 0
+            Interval: 125us
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 1
+        Class: ff(vend.)
+        Sub Class: 0
+        Protocol: 0
+        Number of Endpoints: 2
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 3072
+            Interval: 125us
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 2
+        Class: ff(vend.)
+        Sub Class: 0
+        Protocol: 0
+        Number of Endpoints: 2
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 3072
+            Interval: 125us
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+
+-- 
+Maurizio Daniele ----------------- <maurizio.daniele (a) gmail.com>
+
+
+-- 
+Maurizio Daniele ----------------- <maurizio.daniele (a) gmail.com>
+
+------=_Part_15342_8784507.1205780169656
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hey,
+I&#39;m sorry... <br><br>I make a bad mistake and send this mail (and the next) to Markus instead to the list... :-(<br><br>---------- Forwarded message ----------<br><span class="gmail_quote">From: <b class="gmail_sendername">Maurizio</b> &lt;<a href="mailto:maurizio.daniele@gmail.com">maurizio.daniele@gmail.com</a>&gt;<br>
+Date: 17-mar-2008 18.30<br>Subject: Re: [linux-dvb] Empire DVB Dual Pen - New hardware<br>To: Markus Rechberger &lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;<br><br></span><br><br><div><span class="gmail_quote">2008/3/17, Markus Rechberger &lt;<a href="mailto:mrechberger@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">mrechberger@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<span class="q">
+On 3/17/08, Maurizio &lt;<a href="mailto:maurizio.daniele@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">maurizio.daniele@gmail.com</a>&gt; wrote:<br></span><span class="q"> &gt; I just buyed an &quot;Empire USB 2.0 Pen Dual TV&quot; that is in supported USB DVB-T<br>
+ &gt; devices list.<br>
+ <br> <br> <br></span><span class="q">what does usbview show up? I think it is already supported actually.</span></blockquote><div><br>Here usbview answer.<br><br>USB Hybrid Device<br>Manufacturer: Geniatech<br>Serial Number: 2007050520070505<br>
+Speed: 480Mb/s (high)<br>
+USB Version:&nbsp; 2.00<br>Device Class: 00(&gt;ifc )<br>Device Subclass: 00<br>Device Protocol: 00<br>Maximum Default Endpoint Size: 64<br>Number of Configurations: 1<br>Vendor Id: 6000<br>Product Id: eaec<br>Revision Number:&nbsp; 0.01<br>
 
-I got it working once.
-Then I had scanning problems,
-now I don't have scanning problems
+<br></div></div>Config Number: 1<br>&nbsp;&nbsp;&nbsp; Number of Interfaces: 1<br>&nbsp;&nbsp;&nbsp; Attributes: 80<br>&nbsp;&nbsp;&nbsp; MaxPower Needed: 500mA<br><br>&nbsp;&nbsp;&nbsp; Interface Number: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Name: (none)<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Alternate Number: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Class: ff(vend.) <br>
 
-but szap -r "BBC THREE"     for example works,
-but doesn't put any data in /dev/dvb/adapter0
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Sub Class: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Protocol: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Number of Endpoints: 2<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 81<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 1<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Isoc<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 0<br>
 
-So I get a lock, but no data.
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 125us<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 82<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 2<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Bulk<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 512<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 0ms<br><br>
 
-Don't know if this has got anything to do with the card though.
+&nbsp;&nbsp;&nbsp; Interface Number: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Name: (none)<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Alternate Number: 1<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Class: ff(vend.) <br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Sub Class: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Protocol: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Number of Endpoints: 2<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 81<br>
 
-I'd suggest Ubuntu Linux.
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 1<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Isoc<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 3072<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 125us<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 82<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 2<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Bulk<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 512<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 0ms<br><br>&nbsp;&nbsp;&nbsp; Interface Number: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Name: (none)<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Alternate Number: 2<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Class: ff(vend.) <br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Sub Class: 0<br>
 
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Protocol: 0<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Number of Endpoints: 2<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 81<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 1<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Isoc<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 3072<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 125us<br>
 
-Timothy.
+<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Endpoint Address: 82<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Direction: in<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Attribute: 2<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Type: Bulk<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Max Packet Size: 512<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Interval: 0ms<div><span class="e" id="q_118bdcae23e8145c_5"><br>
+<br clear="all"><br>-- <br>Maurizio Daniele ----------------- &lt;maurizio.daniele (a) <a href="http://gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">gmail.com</a>&gt;
+</span></div><br clear="all"><br>-- <br>Maurizio Daniele ----------------- &lt;maurizio.daniele (a) <a href="http://gmail.com">gmail.com</a>&gt;
 
-On 30 Mar 2008, at 01:53, Florin Andrei wrote:
-
-> Is anybody using Hauppauge WinTV Nova-S Plus with good results on a
-> fairly recent distribution?
-> The wiki says the card is supported, but I've seen reports online  
-> saying
-> that it doesn't work very well on Linux.
->
-> -- 
-> Florin Andrei
->
-> http://florin.myip.org/
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_15342_8784507.1205780169656--
 
 
---Apple-Mail-3-937508790
-Content-Type: text/html;
-	charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
--webkit-line-break: after-white-space; ">Hey,<div><br =
-class=3D"webkit-block-placeholder"></div><div>I got it working =
-once.</div><div>Then I had scanning problems,</div><div>now I don't have =
-scanning problems</div><div><br =
-class=3D"webkit-block-placeholder"></div><div>but szap -r "BBC THREE" =
-&nbsp; &nbsp; for example works,</div><div>but doesn't put any data in =
-/dev/dvb/adapter0</div><div><br =
-class=3D"webkit-block-placeholder"></div><div>So I get a lock, but no =
-data.</div><div><br class=3D"webkit-block-placeholder"></div><div>Don't =
-know if this has got anything to do with the card though.</div><div><br =
-class=3D"webkit-block-placeholder"></div><div>I'd suggest Ubuntu =
-Linux.</div><div><br class=3D"webkit-block-placeholder"></div><div><br =
-class=3D"webkit-block-placeholder"></div><div>Timothy.</div><div><br><div>=
-<div><div>On 30 Mar 2008, at 01:53, Florin Andrei wrote:</div><br =
-class=3D"Apple-interchange-newline"><blockquote type=3D"cite">Is anybody =
-using Hauppauge WinTV Nova-S Plus with good results on a <br>fairly =
-recent distribution?<br>The wiki says the card is supported, but I've =
-seen reports online saying <br>that it doesn't work very well on =
-Linux.<br><br>-- <br>Florin Andrei<br><br><a =
-href=3D"http://florin.myip.org/">http://florin.myip.org/</a><br><br>______=
-_________________________________________<br>linux-dvb mailing =
-list<br><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>http://=
-www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br></blockquote></div><=
-br></div></div></body></html>=
-
---Apple-Mail-3-937508790--
-
---Apple-Mail-4-937508871
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: This is a digitally signed message part
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (Darwin)
-
-iD8DBQFH738X+j5y+etesF8RAhkeAJ9u7YaJcdEnEuVYAa5fWeMHvSjviQCeLK8O
-pgwMZYmvCFtswBz6jl/pUcc=
-=glLe
------END PGP SIGNATURE-----
-
---Apple-Mail-4-937508871--
-
-
---===============0055333032==
+--===============1326119749==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -142,4 +202,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0055333032==--
+--===============1326119749==--
