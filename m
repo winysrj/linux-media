@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 64.244.187.81.in-addr.arpa ([81.187.244.64]
-	helo=bandit.ply.me.uk) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb@ply.me.uk>) id 1JesGN-0003mn-M0
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 14:35:30 +0100
-From: Andy Carter <dvb@ply.me.uk>
+Received: from rv-out-0910.google.com ([209.85.198.185])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eduardhc@gmail.com>) id 1JbCh0-0006jA-8j
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 11:35:47 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so3856246rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 17 Mar 2008 03:35:32 -0700 (PDT)
+Message-ID: <617be8890803170335w3ad53687g6d118357edec4a88@mail.gmail.com>
+Date: Mon, 17 Mar 2008 11:35:32 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 27 Mar 2008 13:35:21 +0000
-References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
-	<200803271026.29470.dvb@ply.me.uk>
-	<e40e29dd0803270556n15ad6c86i8c47049f2bab845b@mail.gmail.com>
-In-Reply-To: <e40e29dd0803270556n15ad6c86i8c47049f2bab845b@mail.gmail.com>
+In-Reply-To: <617be8890803170334oe1135deje5312ca01b64a919@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200803271335.21698.dvb@ply.me.uk>
-Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
-Reply-To: dvb@ply.me.uk
+References: <617be8890803151400h397f7573v29876748cee0d085@mail.gmail.com>
+	<200803161135.06523.zzam@gentoo.org>
+	<617be8890803170334oe1135deje5312ca01b64a919@mail.gmail.com>
+Subject: [linux-dvb] Fwd: Any progress on the Avermedia DVB-S (A700)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,53 +22,117 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1296467942=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 27 March 2008 12:56:41 Eamonn Sullivan wrote:
-> On Thu, Mar 27, 2008 at 10:26 AM, Andy Carter <dvb@ply.me.uk> wrote:
-> > On Thursday 27 March 2008 10:14:07 Eamonn Sullivan wrote:
-> >  > A standard, meaning an earlier version (not the 500)?
-> >
-> >  Yup, like the 909 on this page
-> >
-> >  http://www.hauppauge.co.uk/pages/products/prods_digital-t.html
-> >
-> >  These are standard PCI not the PCI/usb used by Nova T500 and similar
+--===============1296467942==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1312_6991086.1205750132309"
+
+------=_Part_1312_6991086.1205750132309
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+It seems so. The problem is finding that f.... piece :D.
+
+Well, anyway if you think I might be of any help just contact me as usual.
+Unfortunately I think I can only provide some testing under Linux or
+Windows, but less more... I've tried several times to digg into the code an=
+d
+even change some values (like the gain parameters for the tuner), but no
+luck. The thing that most annoys me is that both the GPIO status and EEPROM
+contents are somewhat different between cards tat should be the same
+
+(by the way, later at home I'll upgrade the entries listed for my card, as
+they are wrong).
+
+Best regards,
+  Eduard
+
+
+
+2008/3/16, Matthias Schwarzott <zzam@gentoo.org>:
 >
-> I think the issue with this one, if I understand the reviews
-> correctly, is that it lacks any on-board amplifier. Given that the
-> Nova-T 500 is already receiving a much weaker signal than I get with a
-> standard freeview box (is that a driver issue?), I think this could be
-> a problem.
+> On Saturday 15 March 2008, you wrote:
+> > Hi, Matthias
+> >    I've seen you have new patches available on your repository. =BFHave
+> you
+> > made any progress lately on the driver? I tested the patches, but the
+> > results were the habitual ones...
+> >
+> >   Seems this card is really hard to support... :(
+> >
+>
+> Well, maybe it is just one little piece missing, who knows!?
+>
+> For now I added support of Hybrid+FM card + untested analog tuner input
+> there.
+> Maybe we can at least get this patch commited.
+>
+> Second: I must debug my cabling here, maybe this is the reason I cannot
+> get a
+> lock now.
+>
+> Matthias
+>
+>
+> --
+> Matthias Schwarzott (zzam)
+>
 
-That's certainly true with my old setup with a 4 year old PCI card which 
-required an aerial amp to function at all well - albeit on a standard antenna 
-and standard coax drop lead. 
+------=_Part_1312_6991086.1205750132309
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-The Nova T500 does provide much better reception here, amp turned down 
-considerably and noticeably less glitches and artefacts.
+It seems so. The problem is finding that f.... piece :D.<br><br>Well, anywa=
+y if you think I might be of any help just contact me as usual. Unfortunate=
+ly I think I can only provide some testing under Linux or Windows, but less=
+ more... I&#39;ve tried several times to digg into the code and even change=
+ some values (like the gain parameters for the tuner), but no luck. The thi=
+ng that most annoys me is that both the GPIO status and EEPROM contents are=
+ somewhat different between cards tat should be the same<br>
 
-> I'm getting the impression that there aren't a whole lot of choices
-> out there for DVB-T. I suppose I could also just use an older version
-> of the Linux kernel, but unlike others here, the Nova-T 500 wasn't
-> working very reliably for me under Ubuntu 7.10 either. It worked for
-> maybe a day. I had a cron task to reboot the machine in the middle of
-> the night, which was an ugly hack around that problem, and at least it
-> would record most programs. But the remote wouldn't last longer than a
-> few hours...
+<br>(by the way, later at home I&#39;ll upgrade the entries listed for my c=
+ard, as they are wrong).<br><br>Best regards, <br>&nbsp; Eduard<br><br><br>=
+<br><div><span class=3D"gmail_quote">2008/3/16, Matthias Schwarzott &lt;<a =
+href=3D"mailto:zzam@gentoo.org" target=3D"_blank" onclick=3D"return top.js.=
+OpenExtLink(window,event,this)">zzam@gentoo.org</a>&gt;:</span><div>
+<span class=3D"e" id=3D"q_118bc4df61fcd728_1"><blockquote class=3D"gmail_qu=
+ote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0p=
+t 0.8ex; padding-left: 1ex;">
+On Saturday 15 March 2008, you wrote:<br> &gt; Hi, Matthias<br> &gt;&nbsp;&=
+nbsp;&nbsp;&nbsp;I&#39;ve seen you have new patches available on your repos=
+itory. =BFHave you<br> &gt; made any progress lately on the driver? I teste=
+d the patches, but the<br>
 
-Not ideal :(
+ &gt; results were the habitual ones...<br> &gt;<br> &gt;&nbsp;&nbsp; Seems=
+ this card is really hard to support... :(<br> &gt;<br> <br>Well, maybe it =
+is just one little piece missing, who knows!?<br> <br> For now I added supp=
+ort of Hybrid+FM card + untested analog tuner input there.<br>
 
-Incidentally if Phil Pemberton is reading this, my stable system is using an 
-Intel usb chipset.
+ Maybe we can at least get this patch commited.<br> <br> Second: I must deb=
+ug my cabling here, maybe this is the reason I cannot get a<br> lock now.<b=
+r> <br> Matthias<br> <br><br> --<br> Matthias Schwarzott (zzam)<br> </block=
+quote>
 
-Andy
+</span></div></div><br>
+
+------=_Part_1312_6991086.1205750132309--
+
+
+--===============1296467942==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1296467942==--
