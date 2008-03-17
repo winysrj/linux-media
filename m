@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.224])
+Received: from aa013msr.fastwebnet.it ([85.18.95.73])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JemsQ-0001Zl-PI
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 08:50:24 +0100
-Received: by wr-out-0506.google.com with SMTP id c30so3286051wra.14
-	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 00:50:15 -0700 (PDT)
-Message-ID: <8ad9209c0803270050p43b86526nedc2bf170392fa60@mail.gmail.com>
-Date: Thu, 27 Mar 2008 08:50:15 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1206601104.8947.14.camel@youkaida>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida>
-	<1206348478.6370.27.camel@youkaida>
-	<1206546831.8967.13.camel@acropora>
-	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-	<1206566561.8947.10.camel@youkaida>
-	<8ad9209c0803261443m47fbd504i9373070a37c5421a@mail.gmail.com>
-	<f19c00fe0803261528m6d05a02eh4ff82181be7dfd21@mail.gmail.com>
-	<1206601104.8947.14.camel@youkaida>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
+	(envelope-from <insomniac@slackware.it>) id 1Jb4eu-0006md-IB
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 03:01:05 +0100
+Date: Mon, 17 Mar 2008 02:58:49 +0100
+From: insomniac <insomniac@slackware.it>
+To: Antti Palosaari <crope@iki.fi>
+Message-ID: <20080317025849.49b07428@slackware.it>
+In-Reply-To: <47DDD009.30504@iki.fi>
+References: <20080316182618.2e984a46@slackware.it>
+	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
+	<20080317011939.36408857@slackware.it> <47DDC4B5.5050607@iki.fi>
+	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,29 +28,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-ah, ok.
-I compiled it from linuxtv.org, how do i see what version ?
-But wy is that important ? I only got it so i could use femon.
+On Mon, 17 Mar 2008 03:57:29 +0200
+Antti Palosaari <crope@iki.fi> wrote:
 
-On 3/27/08, Nicolas Will <nico@youplala.net> wrote:
->
-> On Wed, 2008-03-26 at 22:28 +0000, Glen Robson wrote:
-> > > Distro
-> > > distro version
-> > > kernel version (uname -a)
-> > >  dvb-utils version
->
-> dvb-utils are the tools like femon, tzap, etc... the package can be
-> called dvb-apps too.
->
-> Nico
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> I think it is not correct driver .inf file. inf-file you have is for 
+> Pinnacle PCTV 72e with product ID 0236 and lsusb you have has product
+> ID 0237.
+
+You are right. Here is the correct (I think) .inf
+http://rafb.net/p/UFxQHw88.html
+
+Thanks,
+-- 
+Andrea Barberio
+
+a.barberio@oltrelinux.com - Linux&C.
+andrea.barberio@slackware.it - Slackware Linux Project Italia
+GPG key on http://insomniac.slackware.it/gpgkey.asc
+2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
+SIP: 5327786, Phone: 06 916503784
 
 _______________________________________________
 linux-dvb mailing list
