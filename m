@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ID0o1D016488
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 09:00:50 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ICxvXJ005169
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 08:59:57 -0400
-Date: Tue, 18 Mar 2008 09:59:09 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <20080318095909.4f8830ea@gaivota>
-In-Reply-To: <200803181339.13040.zzam@gentoo.org>
-References: <200803161131.37966.zzam@gentoo.org>
-	<20080318092648.3a517301@gaivota>
-	<200803181339.13040.zzam@gentoo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Peter Meszmer <hubblest@web.de>
-Subject: Re: [PATCH] Updated analog only support of Avermedia A700 cards -
- adds RF input support via XC2028 tuner (untested)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HGHlLW028908
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 12:17:47 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HGHBXk024413
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 12:17:12 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so2068553nfb.21
+	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 09:17:11 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+From: Frej Drejhammar <frej.drejhammar@gmail.com>
+In-Reply-To: <20080317101433.42e56c4c@gaivota> (Mauro Carvalho Chehab's
+	message of "Mon, 17 Mar 2008 10:14:33 -0300")
+References: <patchbomb.1205671781@liva.fdsoft.se>
+	<Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
+	<k1w6a2xdk.fsf@liva.fdsoft.se> <200803171133.58855.hverkuil@xs4all.nl>
+	<20080317101433.42e56c4c@gaivota>
+Date: Mon, 17 Mar 2008 17:17:04 +0100
+Message-ID: <kprtt1g1r.fsf@liva.fdsoft.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
+	Version 2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,48 +33,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 18 Mar 2008 13:39:12 +0100
-Matthias Schwarzott <zzam@gentoo.org> wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> What I want to prevent is adding controls as a workaround for what
+>> might be a driver bug. So in this case I wonder whether chroma AGC
+>> shouldn't be enabled in the cx88 driver as it is for cx2584x.
+>> 
+>> Looking at the cx25840 datasheet it basically says that it should
+>> always be enabled except for component input (YPrPb) or SECAM. So I
+>> would suggest doing the same in cx88 rather than adding a
+>> control. Only if there are cases where Chroma AGC harms the picture
+>> quality rather than improves it, then the addition of a control
+>> might become important.
 
-> On Dienstag, 18. März 2008, Mauro Carvalho Chehab wrote:
-> > On Sun, 16 Mar 2008 11:31:37 +0100
-> >
-> > For this to work, you'll need to set xc3028 parameters. This device needs a
-> > reset during firmware load. This is done via xc3028_callback. To reset, you
-> > need to turn some GPIO values, and then, return they back to their original
-> > values. The GPIO's are device dependent. So, you'll need to check with some
-> > software like Dscaler's regspy.exe what pins are changed during reset.
-> 
-> I can only have a look at the wiring.
+The data sheet for cx2388x is not so clear. For ACGC it describes what
+it does and then notes that it can be turned off. The default is off.
 
-This may help, but should be validated with the hardware test, since it may
-need to enable/disable more than one bit.
+For the color-killer there is a similar description, and it then notes
+that the color-killer can be disabled. The default is disabled.
 
-> > Also, there are two ways for audio to work with xc3028/2028: MTS mode and
-> > non-mts. You'll need to test both ways.
-> >
-> > A final notice: most current devices work fine with firmware v2.7. However,
-> > a few devices only work if you use an older firmware version.
-> >
-> > Could you please send us the logs with i2c_scan=1?
-> >
-> 
-> I do not have that hardware. I only have the A700 without XC2028 soldered on 
-> it. But maybe Peter can help out on this.
+Mauro Carvalho Chehab <mchehab@infradead.org> writes:
+> IMO, the better would be to add both Chroma AGC and Color Killer
+> controls as a generic control.
 
-It would be nice if he could help us.
- 
-> > Please, use the latest version of v4l-dvb, since I did some fixes for cx88
-> > and saa7134 there recently.
-> >
-> I do use latest v4l-dvb tree and create patches on top of this.
-> As this card is labled Hybrid+FM I should also add a radio section, I guess.
+Is there a procedure for adding controls to the V4L2-spec? Is the
+docbook source available in a public repository (not just the tarball
+at v4l2spec.bytesex.org)?
 
-Yes, but you've already added it. Radio entry is generally identical to TV, on
-the devices with xc3028. I suspect that your radio entry should work.
+> The default value for Chroma AGC should be changed to match the
+> datasheet recommended way (0 for SECAM, 1 for PAL/NTSC).
 
-Cheers,
-Mauro
+I'll revise the patch to do this.
+
+Regards,
+
+--Frej
 
 --
 video4linux-list mailing list
