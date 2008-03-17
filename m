@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fides.aptilo.com ([62.181.224.35])
+Received: from aa011msr.fastwebnet.it ([85.18.95.71])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jonas@anden.nu>) id 1Jdm8f-0004sa-6a
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 13:51:00 +0100
-From: Jonas Anden <jonas@anden.nu>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <1206352930.7699.2.camel@acropora>
-References: <1206139910.12138.34.camel@youkaida> <47E77895.8000708@ivor.org>
-	<1206352930.7699.2.camel@acropora>
-Date: Mon, 24 Mar 2008 13:49:30 +0100
-Message-Id: <1206362971.5058.4.camel@anden.nu>
+	(envelope-from <insomniac@slackware.it>) id 1JbM3n-0001Xq-UM
+	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 21:35:58 +0100
+Date: Mon, 17 Mar 2008 21:33:21 +0100
+From: insomniac <insomniac@slackware.it>
+To: Antti Palosaari <crope@iki.fi>
+Message-ID: <20080317213321.01b408cd@slackware.it>
+In-Reply-To: <47DE5F42.8070005@iki.fi>
+References: <20080316182618.2e984a46@slackware.it>
+	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
+	<20080317011939.36408857@slackware.it> <47DDC4B5.5050607@iki.fi>
+	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
+	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
+	<20080317104147.1ade57fe@slackware.it>
+	<20080317114802.0df56399@slackware.it>
+	<abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
+	<47DE5F42.8070005@iki.fi>
 Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova-T-500 disconnects - They are back!
+Subject: Re: [linux-dvb] New unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,50 +33,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-A wild guess (bash me on the head if I'm wrong), but when you switched
-kernel, did you do 'make distclean' in your v4l-dvb directory? Unless
-you do, the code will keep compiling (and installing) for the previous
-kernel, and your new kernel will only use the stock drivers. That would
-explain why you're seeing disconnects again. I made that mistake once...
+On Mon, 17 Mar 2008 14:08:34 +0200
+Antti Palosaari <crope@iki.fi> wrote:
 
-  // J
+> yep, tuner is missing. It could be mt2266. Look other devices in the 
+> file patched and try if some of those will work.
 
-On Mon, 2008-03-24 at 10:02 +0000, Nicolas Will wrote:
-> On Mon, 2008-03-24 at 09:47 +0000, Ivor Hewitt wrote:
-> > 
-> > Nicolas Will wrote:
-> > > Guys,
-> > >
-> > > I have upgraded my system to the new Ubuntu (8.04 Hardy), using
-> > 2.6.24,
-> > > 64-bit.
-> > >   
-> > Just thought I'd add, in case anyone was wondering, that I'm still
-> > not 
-> > having any problems with vanilla 2.6.22.19 and current v4l-dvb tree.
-> > MythTV multirec with eit scanning enabled.
-> > One or two I2C read failed a day in the kernel log, and an occasional 
-> > I2C write failed.
-> 
-> That was exactly my situation before upgrading my system, which brought
-> the new kernel version.
-> 
-> Now, with 2.6.24, the disconnects are back with a vengeance, just as it
-> was nearly a year ago.
-> 
-> I hope that the logs provided will help shed a light on this.
-> 
-> If not, I'm ready to turn debug on on all I can, even if it means
-> generating gigs of logs.
-> 
-> Nico
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+No one worked :-(
+Neither Albert's suggestions gave a solution for my USB stick, I'm
+crawling in the dark..
 
+-- 
+Andrea Barberio
+
+a.barberio@oltrelinux.com - Linux&C.
+andrea.barberio@slackware.it - Slackware Linux Project Italia
+GPG key on http://insomniac.slackware.it/gpgkey.asc
+2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
+SIP: 5327786, Phone: 06 916503784
 
 _______________________________________________
 linux-dvb mailing list
