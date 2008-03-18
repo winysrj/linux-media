@@ -1,20 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1Jazgu-0005NY-7R
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 21:42:51 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1708642tia.13
-	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 13:42:41 -0700 (PDT)
-Message-ID: <abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
-Date: Mon, 17 Mar 2008 07:42:39 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: insomniac <insomniac@slackware.it>
-In-Reply-To: <20080316182618.2e984a46@slackware.it>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080316182618.2e984a46@slackware.it>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unsupported device
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1Jbizk-0001DO-VR
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:05:17 +0100
+Date: Tue, 18 Mar 2008 18:04:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: timf <timf@iinet.net.au>
+Message-ID: <20080318180415.5dfc4319@gaivota>
+In-Reply-To: <1205873332.11231.17.camel@ubuntu>
+References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
+	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
+	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
+	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
+	<20080207184221.1ea8e823@gaivota> <47ACA9AA.4090702@googlemail.com>
+	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
+	<47B1E22D.4090901@googlemail.com> <20080313114633.494bc7b1@gaivota>
+	<1205457408.6358.5.camel@ubuntu> <20080314121423.670f31a0@gaivota>
+	<1205518856.6094.14.camel@ubuntu> <20080314155851.52677f28@gaivota>
+	<1205523274.6364.5.camel@ubuntu> <20080314172143.62390b1f@gaivota>
+	<1205573636.5941.1.camel@ubuntu> <20080318103044.4363fefd@gaivota>
+	<1205864312.11231.11.camel@ubuntu>
+	<20080318161729.6da782ee@gaivota>
+	<1205873332.11231.17.camel@ubuntu>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, "Richard \(MQ\)" <osl2008@googlemail.com>
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,38 +40,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Mar 17, 2008 at 4:26 AM, insomniac <insomniac@slackware.it> wrote:
-> Hi to everyone on the list,
->  this is my first post on the mailing list. I landed here after a lot of
->  searching for a working driver for my DVB-T USB stick. I bought a
->  Pinnacle PCTV Nano Stick (code: 73e) with HD capabilities, and I
->  discovered that it came on the market very recently (less than one month
->  ago).
->  As long as no google search, nor post search on linux-dvb mailing list
->  had success, it looks this is my last chance to get my card working on
->  GNU/Linux.
->
->  Here is the (actually useless) output I get from dmesg:
->  usb 1-1: new high speed USB device using ehci_hcd and address 5
->  usb 1-1: configuration #1 chosen from 1 choice
->
->  and here is my lsusb -v output about the card:
->  http://insomniac.slackware.it/lsusb.pinnacle.txt
->
->  In the hope that there's a light at the end of the tunnel, I thank you
->  all for your patience and your work.
->
->  Best regards,
->  --
->  Andrea Barberio
->
+On Wed, 19 Mar 2008 05:48:52 +0900
+timf <timf@iinet.net.au> wrote:
 
-The best way you can help is to either tell us what the windows drivers
-are, or open the device up and tell us what is written on both the
-tuner chip and the main chip. They are generally the two biggest
-chips on the board and they have writing on the top.
+> 1) New install ubuntu, extract tip.tgz.
 
-Jarryd.
+There's no need for you to reinstall Linux for each test. This is not MS**t ;)
+
+You don't even need to reboot.
+
+> [   40.753552] saa7133[0]: i2c scan: found device @ 0xc2  [???]
+> [   40.864616] tuner' 2-0061: Setting mode_mask to 0x0e
+> [   40.864621] tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
+> [   40.864624] tuner' 2-0061: tuner 0x61: Tuner type absent
+> [   40.864658] tuner' 2-0061: Calling set_type_addr for type=0,
+> addr=0xff, mode=0x02, config=0xffff8100
+
+mode=0x02 is radio.
+
+Try to add this to the struct:
+
+.radio_type     = UNSET,
+
+> 3) No DVB, installed tvtime - no signal.
+
+DVB won't work yet. What the demod inside this board? There's no setup for it.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
