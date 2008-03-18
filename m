@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.247])
+Received: from pne-smtpout4-sn1.fre.skanova.net ([81.228.11.168])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eamonn.sullivan@gmail.com>) id 1JgHNP-0004Q3-3H
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 12:36:32 +0200
-Received: by an-out-0708.google.com with SMTP id d18so2683239and.125
-	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 03:36:01 -0700 (PDT)
-Message-ID: <e40e29dd0803310336k5de72824l6dd20ba5420531f@mail.gmail.com>
-Date: Mon, 31 Mar 2008 11:36:01 +0100
-From: "Eamonn Sullivan" <eamonn.sullivan@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <47F0B629.3030903@fastmail.co.uk>
+	(envelope-from <crope@iki.fi>) id 1Jbfht-0003j2-Kw
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 18:34:38 +0100
+Message-ID: <47DFFD0D.9060206@iki.fi>
+Date: Tue, 18 Mar 2008 19:34:05 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47F0B629.3030903@fastmail.co.uk>
-Subject: Re: [linux-dvb] Nova-T 500 disconnects - solved?
+To: linux-dvb@linuxtv.org, Patrick Boettcher <patrick.boettcher@desy.de>,
+	Albert Comerma <albert.comerma@gmail.com>,
+	insomniac <insomniac@slackware.it>
+Content-Type: multipart/mixed; boundary="------------090907000109080909020206"
+Subject: [linux-dvb] PATCH Support for Pinnacle PCTV 73e (Dib7770)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,52 +19,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/3/31 timufea <timufea@fastmail.co.uk>:
->
->  It's probably unwise to celebrate just yet, but...
->
->  I was running a vanilla 2.6.24.2 kernel, and was getting 2 or 3 USB
-> disconnects each day. 5 days ago I upgraded to 2.6.24.4, and haven't had a
-> USB disconnect since!
->
->  There is a fix in 2.6.24.4 for a USB bug that was introduced in Oct 2007 -
-> see:
-> http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.24.y.git;a=commit;h=5475187c2752adcc6d789592b5f68c81c39e5a81
->
->  Hopefully this was the cause of the USB disconnects.
->
->  Some details of my setup, in case it's relevant:
->    Nova-T 500
->    v4l-dvb rev 127f67dea087 (Feb 26)
->    Vanilla 2.6.24.4 kernel
->    Slackware 11
->    IR remote control in use
->    Continual EIT scanning
->    Poor reception (MythTV reports 51-53%)
->
->  Frank
+This is a multi-part message in MIME format.
+--------------090907000109080909020206
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-If true, this is excellent news (I have almost the exact same set up,
-except that I've given up on the remote and the active EIT scanning to
-reduce the disconnects). I've entered a bug report for this on
-mythbuntu/ubuntu because the latest version (8.04, in beta) doesn't
-seem to have this patch. The latest Ubuntu also uses the 2.6.24
-kernel.
+moi
+This patch adds support for Pinnacle PCTV 73e DVB-T stick.
 
-https://bugs.launchpad.net/ubuntu/+bug/209603
+Albert, could you also give signed-off-by?
 
-Can other Mythbuntu/Ubuntu users of the Nova-T 500 please comment on
-that bug to help raise its visibility and/or add information?
+Insomniac, can you still test that there is no copy & paste errors in 
+this patch :)
 
--Eamonn
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+
+Regards
+Antti Palosaari
+
+-- 
+http://palosaari.fi/
+
+--------------090907000109080909020206
+Content-Type: text/x-diff;
+ name="pinnacle_pctv_73e_2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pinnacle_pctv_73e_2.patch"
+
+diff -r 2e9a92dbe2be linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Sun Mar 16 12:14:12 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Tue Mar 18 19:28:43 2008 +0200
+@@ -905,6 +905,7 @@ struct usb_device_id dib0700_usb_id_tabl
+ 		{ USB_DEVICE(USB_VID_ASUS,      USB_PID_ASUS_U3100) },
+ /* 25 */	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_STICK_3) },
+ 		{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_MYTV_T) },
++		{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV73E) },
+ 		{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1090,7 +1091,7 @@ struct dvb_usb_device_properties dib0700
+ 			},
+ 		},
+ 
+-		.num_device_descs = 6,
++		.num_device_descs = 7,
+ 		.devices = {
+ 			{   "DiBcom STK7070P reference design",
+ 				{ &dib0700_usb_id_table[15], NULL },
+@@ -1114,6 +1115,10 @@ struct dvb_usb_device_properties dib0700
+ 			},
+ 			{   "Hauppauge Nova-T MyTV.t",
+ 				{ &dib0700_usb_id_table[26], NULL },
++				{ NULL },
++			},
++			{   "Pinnacle PCTV 73e",			
++				{ &dib0700_usb_id_table[27], NULL },
+ 				{ NULL },
+ 			},
+ 		},
+diff -r 2e9a92dbe2be linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sun Mar 16 12:14:12 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Mar 18 19:28:43 2008 +0200
+@@ -138,6 +138,7 @@
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+ #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
++#define USB_PID_PINNACLE_PCTV73E			0x0237
+ #define USB_PID_PCTV_200E				0x020e
+ #define USB_PID_PCTV_400E				0x020f
+ #define USB_PID_PCTV_450E				0x0222
+
+--------------090907000109080909020206
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------090907000109080909020206--
