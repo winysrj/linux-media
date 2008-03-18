@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DA0F01.8010707@iki.fi>
-Date: Fri, 14 Mar 2008 07:37:05 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout11.sul.t-online.de ([194.25.134.85])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1Jbkjd-0004Jh-Qt
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 23:56:46 +0100
+Message-ID: <47E048A4.4070904@t-online.de>
+Date: Tue, 18 Mar 2008 23:56:36 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D847AC.9070803@linuxtv.org>	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>	<47D86336.2070200@iki.fi>	<abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>	<abf3e5070803131607j1432f590p44b9b9c80f1f36e7@mail.gmail.com>	<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>
-	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
-In-Reply-To: <abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: timf <timf@iinet.net.au>
+References: <1204893775.10536.4.camel@ubuntu> <47D1A65B.3080900@t-online.de>	
+	<1205480517.5913.8.camel@ubuntu> <47DEE11F.6060301@t-online.de>
+	<1205851252.11231.7.camel@ubuntu>
+In-Reply-To: <1205851252.11231.7.camel@ubuntu>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,42 +27,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-looks like possible bug found!
+Hi, Tim
 
-Jarryd Beck wrote:
-> On Fri, Mar 14, 2008 at 2:19 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+timf schrieb:
+> Hi Hartmut,
+> 
+> 
+> Apologies for the length of this msg, I'm not sure what info you may
+> need, so I'm trying to show you that all is not right.
+> 
+> 1) New install of ubuntu 7.10 i386.
+> 
+> 2) Install Me-tv, Tvtime.
+> Me-tv, in the absence of a channels.conf, scans
+> via /usr/share/doc/dvb-utils/examples/scan/dvb-t
+> 
+> 3) I placed au-Perth_roleystone
+> into /usr/share/doc/dvb-utils/examples/scan/dvb-t:
+> 
+> # Australia / Perth (Roleystone transmitter)
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> # SBS
+> T 704500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+> # ABC
+> T 725500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+> # Seven
+> T 746500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
+> # Nine
+> T 767500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+> # Ten
+> T 788500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+> 
 
->>  This all happens very quickly on the hardware that I've tested ( a
->>  cx23887-based pcie card and a cypress fx2-based usb device).  I've also
->>  heard good reports on saa713x-based pci cards.  Is the i2c slow in the
->>  af9013 driver?
+Hm, is that right? The transmitter at 704.5MHz has a different configuration
+from all others? That's unusual...
+There is a speciality with this channel decoder: If you define a parameter
+like the GI, it takes this serious while many others ignore it.
 
-Just checked from code and it looks like it is 60 kHz currently. It is 
-not clear for me how kHz correlates to value written to register so let 
-is be this time.
+<snip>
+> 13) Most times, "tda1004x: found firmware revision 20 -- ok" appears
+> from a new install of ubuntu.
+> Shouldn't have to but will copy firmware into /lib...
+> 
+And here we have the problem: as long as the firmware download is not
+reliable, the board is unusable.
+There must be somehing wrong with the board configuration.
+In saa7134-dvb.c, line 744, please try to excange:
+	.gpio_config   = TDA10046_GP11_I,
+with
+	.gpio_config   = TDA10046_GP01_I,
+does this make the firmware load stable?
 
->>  The tuner driver is programmed to use 7mhz dvbt with IF centered at 3.8
->>  mhz -- is the demod set to the same?
+Best regards
+  Hartmut
 
-hmm, I think there is bug now. I compared eeprom dumps and found that my 
-MT2060 has IF1 = 36125 and eeprom of this device says it should be IF1 = 
-  4300. Is 4.3 Mhz close enough (we are speaking same thing?)?
-
-Jerryd, change .tuner_if = 36125 to 4300 . It can be found from af9015 
-module.
-
-> How do I find out about the demod? Is the speed of af9013 a question for
-> me because I have no idea.
-
-One thing to test speed is also commenting out "program tuner" part from 
-af9013 so it does not ask tuner to go frequency. It did not tune then.
-
-But, I still needs debug logs of the af9013. Then I can compare much 
-more easier usb-sniff and debug values got from driver.
-
-Antti
--- 
-http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
