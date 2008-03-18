@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1JbrqL-0003h9-OW
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 07:32:19 +0100
-Message-ID: <47E0B346.2090701@gmx.net>
-Date: Wed, 19 Mar 2008 07:31:34 +0100
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+Received: from fg-out-1718.google.com ([72.14.220.154])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <albert.comerma@gmail.com>) id 1JbgBz-0008Mg-VA
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 19:05:44 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so10862fge.25
+	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 11:05:40 -0700 (PDT)
+Message-ID: <ea4209750803181105s56daca32n2fb0a2a90a7ed6cf@mail.gmail.com>
+Date: Tue, 18 Mar 2008 19:05:40 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47DFFD0D.9060206@iki.fi>
 MIME-Version: 1.0
-To: Faruk A <fa@elwak.com>
-References: <854d46170803181612wa79a469m9faf56b929577583@mail.gmail.com>
-In-Reply-To: <854d46170803181612wa79a469m9faf56b929577583@mail.gmail.com>
+References: <47DFFD0D.9060206@iki.fi>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT Connect S2-3650 CI unsupported device but
- partially working
+Subject: Re: [linux-dvb] PATCH Support for Pinnacle PCTV 73e (Dib7770)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,203 +21,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1676889730=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/19/2008 12:12 AM, Faruk A wrote:
-> TechnoTrend TT-connect S2-3650 CI
-> Vendor ID: 0b48
-> Product ID: 300a
-> http://www.technotrend.de/2715/TT-connect__S2-3650_CI.html
-> =
+--===============1676889730==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_392_26749790.1205863540563"
 
-> Hi
-> =
+------=_Part_392_26749790.1205863540563
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> This my first DVB card i bought it two weeks ago and it works great in
-> windows, I knew it was unsupported in Linux but it was cheap and plus
-> CI :) i couldn't resist.
-> =
+Here it goes...
 
-> I saw Dominik Kuhlen's Pinnacle 452e and Andr=E9 Weidemann's TT-connect
-> S2-3600 patch and i thought why not try it and i did. All i did was
-> change product id from 3007 to 300a, downloaded the the source,
-> patched it and compiled.
-> =
+2008/3/18, Antti Palosaari <crope@iki.fi>:
+>
+> moi
+> This patch adds support for Pinnacle PCTV 73e DVB-T stick.
+>
+> Albert, could you also give signed-off-by?
+>
+> Insomniac, can you still test that there is no copy & paste errors in
+> this patch :)
+>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-> cd v4l
-> insmod dvb-core.ko
-> insmod dvb-pll.ko
-> insmod stb6100.ko verbose=3D0
-> insmod stb0899.ko verbose=3D0
-> insmod lnbp22.ko
-> insmod dvb-usb.ko
-> insmod dvb-usb-pctv452e.ko
-> .............................................
-> dmesg
-> =
 
-> dvb-usb: found a 'Technotrend TT connect S2-3600' in warm state.
-> pctv452e_power_ctrl: 1
-> dvb-usb: will pass the complete MPEG2 transport stream to the software de=
-muxer.
-> DVB: registering new adapter (Technotrend TT connect S2-3600)
-> pctv452e_frontend_attach Enter
-> stb0899_write_regs [0xf1b6]: 02
-> stb0899_write_regs [0xf1c2]: 00
-> stb0899_write_regs [0xf1c3]: 00
-> stb0899_write_regs [0xf141]: 02
-> _stb0899_read_reg: Reg=3D[0xf000], data=3D82
-> stb0899_get_dev_id: ID reg=3D[0x82]
-> stb0899_get_dev_id: Device ID=3D[8], Release=3D[2]
-> _stb0899_read_s2reg Device=3D[0xf3fc], Base address=3D[0x00000400],
-> Offset=3D[0xf334], Data=3D[0x444d4431]
-> _stb0899_read_s2reg Device=3D[0xf3fc], Base address=3D[0x00000400],
-> Offset=3D[0xf33c], Data=3D[0x00000001]
-> stb0899_get_dev_id: Demodulator Core ID=3D[DMD1], Version=3D[1]
-> _stb0899_read_s2reg Device=3D[0xfafc], Base address=3D[0x00000800],
-> Offset=3D[0xfa2c], Data=3D[0x46454331]
-> _stb0899_read_s2reg Device=3D[0xfafc], Base address=3D[0x00000800],
-> Offset=3D[0xfa34], Data=3D[0x00000001]
-> stb0899_get_dev_id: FEC Core ID=3D[FEC1], Version=3D[1]
-> stb0899_attach: Attaching STB0899
-> lnbp22_set_voltage: 2 (18V=3D1 13V=3D0)
-> lnbp22_set_voltage: 0x60)
-> pctv452e_frontend_attach Leave Ok
-> DVB: registering frontend 0 (STB0899 Multistandard)...
-> pctv452e_tuner_attach Enter
-> stb6100_attach: Attaching STB6100
-> pctv452e_tuner_attach Leave
-> input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb5/5-4/input/input8
-> dvb-usb: schedule remote query interval to 500 msecs.
-> pctv452e_power_ctrl: 0
-> dvb-usb: Technotrend TT connect S2-3600 successfully initialized and conn=
-ected.
-> usbcore: registered new interface driver pctv452e
-> .................................................................
-> =
+Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
 
-> ls /dev/dvb/adapter0/
-> demux0  dvr0  frontend0  net0
-> .........................................................................
-> I can scan the channels using patched scan program but vdr format
-> output doesn't work, it just make
-> empty channels.conf file. The zap format works :)
-> =
+Regards
+> Antti Palosaari
+>
+>
+> --
+> http://palosaari.fi/
+>
+>
 
-> I can lock to lnb1 (Thor 1W) lnb2 (Sirius 5E) lnb3 (Hotbird 13E) lnb4
-> (Astra 19E) using the patched szap but when i wanna lock to channels
-> on different satellite i have to always first lock on lnb1 (Thor).
-> One more thing it doesn't lock with multiproto changeset 7208 and above.
-> =
+------=_Part_392_26749790.1205863540563
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> No CI support and remote control is like 80% percent working.
-> .........................................................................=
-........................................................
-> I have tried vdr with this card not good at all :( or maybe its just
-> me. As i mentioned before the scan
-> program doesn't produce the vdr format. I had to use vdr settings from
-> this site http://www.linowsat.com.
-> =
+Here it goes...<br><br><div><span class="gmail_quote">2008/3/18, Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+moi<br> This patch adds support for Pinnacle PCTV 73e DVB-T stick.<br> <br> Albert, could you also give signed-off-by?<br> <br> Insomniac, can you still test that there is no copy &amp; paste errors in<br> this patch :)<br>
+ <br> Signed-off-by: Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt;</blockquote><div><br>Signed-off-by: Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt; <br>
+</div><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"> Regards<br> Antti Palosaari<br> <br><br> --<br> <a href="http://palosaari.fi/">http://palosaari.fi/</a><br>
+ <br></blockquote></div><br>
 
-> When i start vdr it doesn't lock to any channels or satellite just
-> plain no signal, I have have to first szap -r  "any channels on lnb1"
-> kill it and start vdr i can only get pictures from only 2 FTA channels
-> BBC World;Telenor:11325:hC78:S1.0W:24500:513:644=3Deng:577:0:1001:70:25:0
-> Gospel Channel Europe;Telenor:11325:hC78:S1.0W:24500:514:648=3Deng:0:0:12=
-9:70:25:0
-> i can't switch to different satellite just plain no signal maybe wrong
-> diseqc settings?
-> =
+------=_Part_392_26749790.1205863540563--
 
-> This is what i have in diseqc.conf
-> # Input 1 - Thor - uncommited switch input 1
-> =
 
-> S1W  11700 V  9750  t v W15 [E0 10 39 F0] W125 [E0 10 38 F0] W15 t
-> S1W  99999 V 10600  t v W15 [E0 10 39 F0] W125 [E0 10 38 F0] W15 T
-> S1W  11700 H  9750  t V W15 [E0 10 39 F0] W125 [E0 10 38 F0] W15 t
-> S1W  99999 H 10600  t V W15 [E0 10 39 F0] W125 [E0 10 38 F0] W15 T
-> =
-
-> # Input 2 - Sirius 5.0E - uncommited switch input 1
-> =
-
-> S5E  11700 V  9750  t v W15 [E0 10 39 F0] W125 [E0 10 38 F4] W15 t
-> S5E  99999 V 10600  t v W15 [E0 10 39 F0] W125 [E0 10 38 F4] W15 T
-> S5E  11700 H  9750  t V W15 [E0 10 39 F0] W125 [E0 10 38 F4] W15 t
-> S5E  99999 H 10600  t V W15 [E0 10 39 F0] W125 [E0 10 38 F4] W15 T
-> =
-
-> # Input 3 - Hotbird - uncommited switch input 1
-> =
-
-> S13E   11700 V  9750  t v W15 [E0 10 39 F0] W125 [E0 10 38 F8] W15 t
-> S13E   99999 V 10600  t v W15 [E0 10 39 F0] W125 [E0 10 38 F8] W15 T
-> S13E   11700 H  9750  t V W15 [E0 10 39 F0] W125 [E0 10 38 F8] W15 t
-> S13E   99999 H 10600  t V W15 [E0 10 39 F0] W125 [E0 10 38 F8] W15 T
-> =
-
-> # Input 4 Astra 1 19.2E - uncommited switch input 1
-> =
-
-> S19.2E   11700 V  9750  t v W15 [E0 10 39 F0] W125 [E0 10 38 FC] W15 t
-> S19.2E   99999 V 10600  t v W15 [E0 10 39 F0] W125 [E0 10 38 FC] W15 T
-> S19.2E   11700 H  9750  t V W15 [E0 10 39 F0] W125 [E0 10 38 FC] W15 t
-> S19.2E   99999 H 10600  t V W15 [E0 10 39 F0] W125 [E0 10 38 FC] W15 T
-> .........................................................................=
-............................................
-> In Windows with  Alt-DVB
-> =
-
-> Type: Commited LNB: 1 Raw command: E0 10 38 F0
-> Type: Commited LNB: 2 Raw command: E0 10 38 F4
-> Type: Commited LNB: 3 Raw command: E0 10 38 F8
-> Type: Commited LNB: 4 Raw command: E0 10 38 FC
-> .........................................................................=
-.............................................
-> =
-
-> =
-
-> Anybody wanna works on this this? I'd be willing to help in any way I can.
-> =
-
-> Best regards,
-> Faruk
-> =
-
-> =
-
-> ------------------------------------------------------------------------
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-I don't know diseqc.conf (VDR-specific?) or VDR, but the comment says =
-
-"uncommited switch input 1" everywhere and I see two DiSEqC messages =
-
-(most likely one for an uncommitted switch, and the other to switch the =
-
-committed switch behind that). You most likely have no uncommitted =
-
-switches, and if you did you wouldn't need any. You only have one simple =
-
-4/1 committed switch. Uncommitted only comes in when you need more than =
-
-4 LNBs and means you will use DiSEqC 1.1. You don't use or need that, =
-
-you only need DiSeqC 1.0.
+--===============1676889730==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1676889730==--
