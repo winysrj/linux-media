@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
+Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Jbfl0-0004PB-0k
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 18:37:57 +0100
-Received: from ldvb (helo=localhost)
-	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
-	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Jbflw-0000ow-54
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 20:38:54 +0300
-Date: Tue, 18 Mar 2008 20:38:48 +0300 (MSK)
-From: ldvb@ns.bog.msu.ru
-To: linux-dvb@linuxtv.org
-In-Reply-To: <Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>
-Message-ID: <Pine.LNX.4.62.0803182020190.2543@ns.bog.msu.ru>
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<04AD1EEA-DF6C-4575-8A8B-D460F199288F@krastelcom.ru>
-	<Pine.LNX.4.62.0803141736520.8859@ns.bog.msu.ru>
-	<31748235-0C9E-4847-93E1-71B39029E718@krastelcom.ru>
-	<Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>
-	<Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>
+	(envelope-from <crope@iki.fi>) id 1JbeTu-0002Gc-LN
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 17:16:11 +0100
+Message-ID: <47DFEA9F.4070307@iki.fi>
+Date: Tue, 18 Mar 2008 18:15:27 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Subject: [linux-dvb] TT-budget S-1401 issues. Horizontal transponder fails
+To: insomniac <insomniac@slackware.it>
+References: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>	<47DFDCC4.4090001@iki.fi>
+	<20080318163812.343b0a87@slackware.it>
+	<20080318170134.69e40dab@slackware.it>
+In-Reply-To: <20080318170134.69e40dab@slackware.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dib7770 tunner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,24 +27,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+insomniac wrote:
+> On Tue, 18 Mar 2008 16:38:12 +0100
+> insomniac <insomniac@slackware.it> wrote:
+> 
+>> On Tue, 18 Mar 2008 17:16:20 +0200
+>> Antti Palosaari <crope@iki.fi> wrote:
+>>
+>>> dib7770 is 3 in 1 solution, usb-bridge + demodulator + tuner. You
+>>> can try dib7070 tuner driver. STK7070P looks rather similar (but
+>>> less integrated).
+> 
+> after talking with Albert about it, I moved this code:
+> 
+> {    "Pinnacle PCTV 73e",
+>      { &dib0700_usb_id_table[27], NULL },
+>      { NULL },
+> }
+> 
+> after this code:
+> 
+> {   "Hauppauge Nova-T MyTV.t",
+>     { &dib0700_usb_id_table[26], NULL },
+>     { NULL },
+> }
+> 
+> in linux/drivers/media/dvb/dvb-usb/dib0700_devices.c .
+> 
+> After I plug the stick, I see the led to light on, and dmesg says:
+> 
+> dvb-usb: found a 'Pinnacle PCTV 73e' in cold state, will try to load a
+> firmware dvb-usb: downloading firmware from file
+> 'dvb-usb-dib0700-1.10.fw' dib0700: firmware started successfully.
+> dvb-usb: found a 'Pinnacle PCTV 73e' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer. DVB: registering new adapter (Pinnacle PCTV 73e)
+> DVB: registering frontend 0 (DiBcom 7000PC)...
+> mt2060 I2C read failed
 
-Hi again!
+I don't understand how dib7070p_tuner_attach could call mt2060.
 
-New experiment with TT-budget S-1401 shows the next result:
-using 2 boxes - one with Linux for error detection and one with Windows 
-for control. Both are connected via the passive splitter to the sat. So, 
-on Windows ProgDVB is running, controlling the  transponder. And it works 
-fine, without errors, showing the free prog. Linux box with the similar 
-card shows errors in the stream (at the same time):
-Tuner status:  Signal Lock Carrier VITERBI Sync
-Signal Strength = 59% SNR = 66% BER = 138c Uncorrected Blocks = 9
+> All the files in /dev/dvb/adapter0 get created, including tuner0, but
+> of course tuner is not working (as w_scan can show).
+> 
+> The solutions seems not to be far.. Anyone has an idea?
+> 
+> Regards,
 
-Note: strength on the windows box is 78% (10db from 88 were eaten by the 
-splitter). Seems, that the problem is not with diseqc control.
-Any ideas?
-
-Thanx!
-
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
