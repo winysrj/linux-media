@@ -1,29 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.190])
+Received: from neuf-infra-smtp-out-sp604006av.neufgp.fr ([84.96.92.121])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZEWV-0008D2-8M
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 01:08:56 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1207881tia.13
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 17:08:39 -0700 (PDT)
-Message-ID: <abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
-Date: Wed, 12 Mar 2008 11:08:39 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
+	(envelope-from <jrepetto@free.fr>) id 1JbW8G-0003WZ-4X
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 08:21:12 +0100
+Message-ID: <47DF6D38.1080008@free.fr>
+Date: Tue, 18 Mar 2008 08:20:24 +0100
+From: Jean-Claude Repetto <jrepetto@free.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-	<47D49309.8020607@linuxtv.org>
-	<abf3e5070803092042q6f4e90d9h890efb0ea441419e@mail.gmail.com>
-	<47D4B8D0.9090401@linuxtv.org>
-	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
-	<47D539E8.6060204@linuxtv.org>
-	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
-	<47D5AF38.90600@iki.fi>
-	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
-	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+To: manu <eallaud@yahoo.fr>
+References: <1205324955l.5684l.1l@manu-laptop>
+In-Reply-To: <1205324955l.5684l.1l@manu-laptop>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Re :  TT S2-3200 vlc streaming
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,32 +19,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  One thing I can say -- the Linux tda18271 driver should be able to
->  detect your tuner at 0xC0  (0x60)  as a tda18271c1 -- It's worth a
->  try, and could certainly be possible that the driver *may* work as-is,
->  although I suspect that some tweaking will be needed.
+manu a =E9crit :
+> On 03/11/2008 02:27:31 AM, Vladimir Prudnikov wrote:
+>> I'm getting late buffers with vlc on some transponders (DVB-S, same  =
+
+>> parameters, good signal guaranteed) while everything is fine with  =
+
+>> others. Using multiproto and TT S2-3200.
+>> Anyone having same problems?
+> =
+
+> Can you give the frequencies of the good and bad transponders, mine are =
+
+> as follows:
+> I can receive from 4 transponders (DVB-S): 11093, 11555, 11635, 11675 =
+
+> MHz.
+> any channel on 11093: fast lock, perfect picture.
+> any channel on 11555: lock a bit slower and corrupted stream (lots of =
+
+> blocky artifacts, myhttv complains about corrupted stream)
+> any channel on 11635,11675: no lock.
+> Bye
+> Manu
+> =
+
 >
->  Regards,
->
->  Mike
->
 
-I changed it's i2c as loaded by af9015 to 0xC0, then got this in
-dmesg:
+Hi !
 
-TDA18271HD/C1 detected @ 5-00c0
+What satellite are you talking about ? There are not such transponders =
 
-Also when I plugged it in, it sat there for about 10 seconds before
-finishing loading (dmesg printed another 5 lines about the device
-after about 10 seconds), but still no tuning.
-
-Jarryd.
+on Astra ...
 
 _______________________________________________
 linux-dvb mailing list
