@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from difo.com ([217.147.177.146] helo=thin.difo.com)
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ivor@ivor.org>) id 1JZlsP-0005AT-6q
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 12:45:58 +0100
-Date: Thu, 13 Mar 2008 11:39:25 +0000
-From: Ivor Hewitt <ivor@ivor.org>
-To: Patrik Hansson <patrik@wintergatan.com>
-Message-ID: <20080313113925.GA31869@mythbackend.home.ivor.org>
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>
-	<1205234401.7463.10.camel@acropora>
-	<8ad9209c0803110855w2d469ab9x1e4e4f5a70799d80@mail.gmail.com>
+	(envelope-from <bolanster@gmail.com>) id 1JbjJj-0004az-Om
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:25:56 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so62015tia.13
+	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 14:25:48 -0700 (PDT)
+Message-ID: <acd5e46b0803181425x48e2f8a4raab5e11b4b1a9186@mail.gmail.com>
+Date: Tue, 18 Mar 2008 17:25:45 -0400
+From: "john bolan" <bolanster@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <8ad9209c0803110855w2d469ab9x1e4e4f5a70799d80@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Subject: [linux-dvb] skystar2 rev 2.8a - no drivers for frontend found
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +18,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1376328126=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Mar 11, 2008 at 04:55:24PM +0100, Patrik Hansson wrote:
-> Have you applied any patches to the v4l-dvb source before compiling ?
-> 
-No patches applied to v4ldvb or kernel source.
+--===============1376328126==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12966_9874042.1205875545932"
 
-> On 3/11/08, Nicolas Will <nico@youplala.net> wrote:
->> What changed between 2.6.22 and 2.6.24? huh... funny, heh?
->>
->> So, if 2.6.24 is finger pointed, I'm interested in a solution, as I have
->> a planned upgrade to it in about a month's time.
->>
-In fact I saw failures against linux-2.6.23.12 I've diffed the two trees and am browsing (at leisure) the changes to see if anything "leaps out".
+------=_Part_12966_9874042.1205875545932
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Just enabled mythtv multirec too to see if I can put a bit more stress on the system, still no failures. When I have time I'll flip back to 2.6.11.19 and see how easy/quickly I can get it to fail again.
+Can anyone tell me if there is any possibility for a driver for the skystar2
+rev 2.8a in the near future - I bought one of these cards only to find out
+there are no drivers for it (the joke is I bought the skystar
+card specifically bcs I'd read it worked well under linux, ha ha). From what
+I understand the manufacturers have not been forthcoming with
+the information required to develop the drivers since rev 2.6. I've emailed
+Technisat with a request but have thus far not recieved a response, and I'm
+just deciding on whether I need to buy a new card ... any info would be
+greatly appreciated!
 
-Cheers,
-Ivor.
 
+John Bolan
+
+------=_Part_12966_9874042.1205875545932
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Can anyone tell me if there is any possibility for a driver for the skystar2 rev 2.8a&nbsp;in the near future - I bought one of these cards only to find out there are no drivers for it (the joke is I bought the skystar card&nbsp;specifically bcs I&#39;d read it worked well under linux, ha ha). From what I understand the manufacturers have not been forthcoming with the&nbsp;information required to develop the drivers since rev 2.6. I&#39;ve emailed Technisat with a request but have&nbsp;thus far not recieved a response, and I&#39;m just deciding on whether I need to buy a new card ... any info would be greatly appreciated!&nbsp;&nbsp;</div>
+
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+<div>John Bolan&nbsp;</div>
+
+------=_Part_12966_9874042.1205875545932--
+
+
+--===============1376328126==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1376328126==--
