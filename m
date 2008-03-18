@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f185.mail.ru ([194.67.57.147])
+Received: from fk-out-0910.google.com ([209.85.128.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JcDnC-0002HU-CK
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 06:58:22 +0100
-From: Igor <goga777@bk.ru>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-Mime-Version: 1.0
-Date: Thu, 20 Mar 2008 08:57:48 +0300
-References: <20080319222137.GA30672@gmail.com>
-In-Reply-To: <20080319222137.GA30672@gmail.com>
-Message-Id: <E1JcDme-000CXY-00.goga777-bk-ru@f185.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?SFZSNDAwMCBwYXRjaCBhbmQgTGF0ZXN0IE11bHRp?=
-	=?koi8-r?b?cHJvdG8=?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <albert.comerma@gmail.com>) id 1Jbcts-00011v-Jr
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 15:34:49 +0100
+Received: by fk-out-0910.google.com with SMTP id z22so8097477fkz.1
+	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 07:34:41 -0700 (PDT)
+Message-ID: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>
+Date: Tue, 18 Mar 2008 15:34:39 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Patrick Boettcher" <patrick.boettcher@desy.de>, linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] dib7770 tunner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,28 +18,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1527982148=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> That's very strange as it don't seems to have been change on multiproto
-> since my last patch the 13 of this month. Or you mean my patch is wrong ?
-> "Working HVR-4000 (as of 2008-03-13) patch for multiproto ?"
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024487.html
-> 
-> If my patch is wrong, it's a funny way to tell me...
+--===============1527982148==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_19887_31181908.1205850879428"
+
+------=_Part_19887_31181908.1205850879428
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi all, having a look to the pinnacle card of Andrea Barberio, we find out
+that it uses a dib7770-PA with integrated tuner. It seems to load correctly
+the firmware but we don't know how to comunicate with the tuner. Anybody
+knows which tuner we should use? and if we can work with this chip as other
+Dibcom7700 just changing the tuner? And finally, there is the firmware
+stuff, it should use the same dibcom firmware as other devices?
+
+Albert
+
+------=_Part_19887_31181908.1205850879428
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi all, having a look to the pinnacle card of Andrea Barberio, we find out that it uses a dib7770-PA with integrated tuner. It seems to load correctly the firmware but we don&#39;t know how to comunicate with the tuner. Anybody knows which tuner we should use? and if we can work with this chip as other Dibcom7700 just changing the tuner? And finally, there is the firmware stuff, it should use the same dibcom firmware as other devices?<br>
+<br>Albert<br><span style="font-family: monospace;"></span>
+
+------=_Part_19887_31181908.1205850879428--
 
 
-does your patch need to use instead the hvr4000-patch from Holger Steinhaus
-http://www.linuxtv.org/pipermail/linux-dvb/2008-January/023390.html
-
-Igor
-
+--===============1527982148==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1527982148==--
