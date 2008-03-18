@@ -1,28 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from bombadil.infradead.org ([18.85.46.34])
 	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+2f2457f4b8686c4b8dda+1664+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JaGQ3-0006Oy-Sv
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 21:22:24 +0100
-Date: Fri, 14 Mar 2008 17:21:43 -0300
+	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JbjIW-00047A-TT
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:24:41 +0100
+Date: Tue, 18 Mar 2008 18:23:38 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080314172143.62390b1f@gaivota>
-In-Reply-To: <1205523274.6364.5.camel@ubuntu>
-References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
-	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
-	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
-	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
-	<20080207184221.1ea8e823@gaivota> <47ACA9AA.4090702@googlemail.com>
-	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
-	<47B1E22D.4090901@googlemail.com> <20080313114633.494bc7b1@gaivota>
-	<1205457408.6358.5.camel@ubuntu> <20080314121423.670f31a0@gaivota>
-	<1205518856.6094.14.camel@ubuntu> <20080314155851.52677f28@gaivota>
-	<1205523274.6364.5.camel@ubuntu>
+To: "Albert Comerma" <albert.comerma@gmail.com>
+Message-ID: <20080318182338.19dd7ff5@gaivota>
+In-Reply-To: <ea4209750803181311y17782b40ib95f900b99bf6673@mail.gmail.com>
+References: <ea4209750803181311y17782b40ib95f900b99bf6673@mail.gmail.com>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, "Richard \(MQ\)" <osl2008@googlemail.com>
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,19 +26,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 15 Mar 2008 04:34:34 +0900
-timf <timf@iinet.net.au> wrote:
+On Tue, 18 Mar 2008 21:11:52 +0100
+"Albert Comerma" <albert.comerma@gmail.com> wrote:
+
+Hi Albert,
+
+The patch looks sane, but I have a few comments to improve it:
+
+> diff -crB v4l-dvb-orig/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c v4l-cyn/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+
+Please, use unified diff format (diff -upr). If you're using the Mercurial
+tree, the better is to use "hg diff". It will produce the patch with the proper
+format.
+
+> +        712,  // inv_gain
+
+We shouldn't use C99 type of comments. All coments should use the standard C way:
+	712, /* inv_gain */
+
+Please use "make checkpatch" [1]. This will produce several warnings about Linux
+CodingStyle violations, and you help you to fulfill the current rules, like the
+above.
+
+If you have any doubts on how to submit a patch, please read README.patches [2].
+
+[1] If you're patching against v4l-dvb development tree, available at
+http://linuxtv.org/hg/v4l-dvb. Otherwise, you'll need to run Kernel
+script/checkpatch.pl by hand.
+
+[2] http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
 
 
-> > Now, do two tests, with v4l-dvb tree + the patch:
+> +        case XC2028_RESET_CLK:
+> +                err("%s: XC2028_RESET_CLK %d\n", __FUNCTION__, arg);
+> +                break;
 
-Of course, you'll need to compile and install v4l-dvb ;)
-	make
-	make install
-
-> cx88-dvb or saa7134-dvb ?
-saa7134-dvb. 
-
+There's no need anymore to implement reset_clk. Please test without it. The
+only driver that currently needs this callback is tm6000.
 
 Cheers,
 Mauro
