@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2RHBYRn005105
-	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 13:11:35 -0400
-Received: from web31303.mail.mud.yahoo.com (web31303.mail.mud.yahoo.com
-	[68.142.198.98])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2RHBMCf014012
-	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 13:11:23 -0400
-Date: Thu, 27 Mar 2008 13:11:16 -0400 (EDT)
-From: Azdine Trachi <azdine_trachi@yahoo.ca>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Message-ID: <697162.37449.qm@web31303.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: NTSC digitized raw data using HD 5500 card
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ICSUdu029335
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 08:28:30 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ICRi4a013752
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 08:27:45 -0400
+Date: Tue, 18 Mar 2008 09:26:48 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <20080318092648.3a517301@gaivota>
+In-Reply-To: <200803161131.37966.zzam@gentoo.org>
+References: <200803161131.37966.zzam@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [PATCH] Updated analog only support of Avermedia A700 cards -
+ adds RF input support via XC2028 tuner (untested)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,21 +28,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Sun, 16 Mar 2008 11:31:37 +0100
+Matthias Schwarzott <zzam@gentoo.org> wrote:
 
-I have some  questions regarding the card HD 5500 card. 
-My problem is with the analog capture. The card is installed and works for both digital and analog TV. 
-What am looking for is to capture digitized raw data ( sampled at 4 Fsc=14.3 MHz).
-In other words, I want to make the decoder of this card bypass the the built-in Y/C separation block (Comb filtering, Notch filtering ....etc).
-My question  : is it possible to do this? 
-Because my objective is to get a digitized raw data (NTSC-M) even if the sampling frequency is 8 Fsc MHz or 27 MHz. I need this data for further processing (Synch and color burst detection, Y/C separation and deinterlacing will be done in software (MATLAB)). In this case what will be the file extension of this raw data?  will it be .raw?
+> Hi there!
+> 
+> I updated this patch to support both Avermedia A700 cards (AverTV DVB-S Pro 
+> and AverTV DVB-S Hybrid+FM).
+> 
+> The RF input of the Hybrid+FM card (with XC2028 tuner) is still untested.
+> 
+> I would be happy if any of the XC2028 experts could have a look at this patch.
 
-I am using Xawtv (Streamer) for capturing. Please send me your help.
+For this to work, you'll need to set xc3028 parameters. This device needs a
+reset during firmware load. This is done via xc3028_callback. To reset, you
+need to turn some GPIO values, and then, return they back to their original
+values. The GPIO's are device dependent. So, you'll need to check with some
+software like Dscaler's regspy.exe what pins are changed during reset.
 
+Also, there are two ways for audio to work with xc3028/2028: MTS mode and
+non-mts. You'll need to test both ways.
 
+A final notice: most current devices work fine with firmware v2.7. However, a
+few devices only work if you use an older firmware version.
 
-       
----------------------------------
-Be smarter than spam. See how smart SpamGuard is at giving junk email the boot with the All-new Yahoo! Mail 
+Could you please send us the logs with i2c_scan=1?
+
+Please, use the latest version of v4l-dvb, since I did some fixes for cx88 and
+saa7134 there recently.
+
+Cheers,
+Mauro
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
