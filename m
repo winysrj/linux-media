@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1Jadum-0008LI-6l
-	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 22:27:41 +0100
-Message-ID: <47DC3F65.8090407@philpem.me.uk>
-Date: Sat, 15 Mar 2008 21:28:05 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
-MIME-Version: 1.0
-To: Nicolas Will <nico@youplala.net>
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>	<47D701A7.40805@philpem.me.uk>
-	<1205273404.20608.2.camel@youkaida>
-In-Reply-To: <1205273404.20608.2.camel@youkaida>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JbjMp-0005EZ-TN
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 22:29:08 +0100
+Date: Tue, 18 Mar 2008 18:28:10 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: gian luca rasponi <lucarasp@inwind.it>
+Message-ID: <20080318182810.0189de8e@gaivota>
+In-Reply-To: <47E030C1.2000805@inwind.it>
+References: <47E030C1.2000805@inwind.it>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,34 +27,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nicolas Will wrote:
-> My Ubuntu-provided 2.6.22 works fine.
+On Tue, 18 Mar 2008 22:14:41 +0100
+gian luca rasponi <lucarasp@inwind.it> wrote:
+
+> hi,
 > 
-> And I am not losing any tuner. Not even with the Multirec of MythTV
-> 0.21.
+> more or less same here:
+> 
+> I've built and installed latest v4l-dvb-3029b981e42c modified with IR 
+> remote support, and loaded with:
+> 
+> /etc/modprobe.d/saa7134:
+> 
+> options saa7134 tuner=71 ir_debug=1
+> install saa7134 /sbin/modprobe xc3028-tuner; /sbin/modprobe 
+> --ignore-install saa7134; /sbin/modprobe saa7134-dvb; /sbin/modprobe 
+> saa7134-alsa
+> 
+> then:
+> 
+> modprobe saa7134 tuner=71 i2c_scan=1
 
-Right, well I've had enough of Ubuntu 8.04a2 (and I've learned a valuable 
-lesson about not using alpha OSes on "production" systems). This is mostly 
-down to my own actions, though -- the kernel is utterly hosed, the nVidia 
-driver won't load, and the HVR-3000 is refusing to talk (instead insisting 
-that the demux chip isn't talking).
+Please test without tuner=71. I've just updated the tree again. It should detect it well right now. 
 
-I've backed the system off to 7.10 (Gutsy) and it seems stable -- I had to 
-modify the patch from http://dev.kewl.org/hauppauge/ to apply on the latest Hg 
-source... Much fun. It seems to work, so I'll probably publish the repository 
-tomorrow some time (after the day I've had I don't feel like doing much of 
-anything).
+Please add this to your modprobe.conf:
+	options tuner debug=1
+	options tuner-xc2028 debug=1
 
-Plus I'd rather like to see if it works before I go unleashing it on the 
-masses at large.
+This will enable some extra debugs for tuner. You'll need to remove all modules
+before probing again. A good procedure for tests is:
 
-I'm just waiting for ScanDVB to finish making a channels.conf for ASTRA 28.2E, 
-after that I'll see if I can crash the T500 :)
+	make rmmod
+	make
+	make install
+	modprobe saa7124 i2c_scan=1
 
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+(sometimes, I also do a "make rminstall" to remove .gz modules that some distro
+uses, when I compile against a non-mainstream kernel)
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
