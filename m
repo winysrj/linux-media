@@ -1,12 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47D7F16F.4070604@linuxtv.org>
-From: mkrufky@linuxtv.org
-To: crope@iki.fi
-Date: Wed, 12 Mar 2008 11:06:23 -0400
+Received: from fg-out-1718.google.com ([72.14.220.154])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <albert.comerma@gmail.com>) id 1JbZ0n-0007CP-Je
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 11:25:44 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so4599566fge.25
+	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 03:25:38 -0700 (PDT)
+Message-ID: <ea4209750803180325m30d605eq96689a44ad3cb475@mail.gmail.com>
+Date: Tue, 18 Mar 2008 11:25:37 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Antti Luoma" <anluoma@gmail.com>
+In-Reply-To: <754a11be0803180118y1ec9c02dm30d8215585106143@mail.gmail.com>
 MIME-Version: 1.0
-in-reply-to: <47D7E260.4030502@iki.fi>
+References: <754a11be0803171553p63ac231aicbaeaee4c91b2a2d@mail.gmail.com>
+	<ea4209750803171601s28010cebrba2afdc7e3884529@mail.gmail.com>
+	<754a11be0803171629h1d3cd2a7m3a3a2f264d6d3004@mail.gmail.com>
+	<754a11be0803180118y1ec9c02dm30d8215585106143@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Subject: Re: [linux-dvb] TNT Pinnacle PCTV DVB-T 72e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -14,134 +24,250 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1557000395=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
->> On Tue, Mar 11, 2008 at 11:06 PM, Jarryd Beck <jarro.2783@gmail.com> 
->> wrote:
->>>>  >
->>>  >  > Also when I plugged it in, it sat there for about 10 seconds 
->>> before
->>>  >  > finishing loading (dmesg printed another 5 lines about the device
->>>  >  > after about 10 seconds), but still no tuning.
->>>  >
->>>  >  Can I see those five lines?  ;-)
->>>  >
->>>  >  While you're at it, you may as well include dmesg from the point 
->>> that the bridge driver loads and on.
->>>  >
->>>
->>>  Here's dmesg from the point it starts up until it finishes printing 
->>> stuff.
->>>
->>>  usb 2-10: new high speed USB device using ehci_hcd and address 22
->>>  usb 2-10: configuration #1 chosen from 1 choice
->>>  af9015_usb_probe:
->>>  af9015_identify_state: reply:01
->>>  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in cold state, will
->>>  try to load a firmware
->>>  dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
->>>  af9015_download_firmware:
->>>  dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in warm state.
->>>  dvb-usb: will pass the complete MPEG2 transport stream to the 
->>> software demuxer.
->>>  DVB: registering new adapter (Leadtek Winfast DTV Dongle Gold)
->>>  af9015_eeprom_dump:
->>>  00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 02
->>>  10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 30
->>>  20: 35 30 35 30 30 30 30 31 ff ff ff ff ff ff ff ff
->>>  30: 00 00 3a 01 00 08 02 00 cc 10 00 00 9c ff ff ff
->>>  40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
->>>  50: ff ff ff ff ff 26 00 00 04 03 09 04 10 03 4c 00
->>>  60: 65 00 61 00 64 00 74 00 65 00 6b 00 30 03 57 00
->>>  70: 69 00 6e 00 46 00 61 00 73 00 74 00 20 00 44 00
->>>  80: 54 00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00
->>>  90: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00
->>>  a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00
->>>  b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff
->>>  c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>  d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>  e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>  f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>  af9015_read_config: xtal:2 set adc_clock:28000
->>>  af9015_read_config: tuner id1:156
->>>  af9015_read_config: spectral inversion:0
->>>  af9015_set_gpios:
->>>  af9013: firmware version:4.95.0
->>>  DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
->>>  af9015_tuner_attach:
->>>  tda18271_tuner_attach:
->>>  tda18271 5-00c0: creating new instance
->>>
->>> TDA18271HD/C1 detected @ 5-00c0
->>>  input: IR-receiver inside an USB DVB receiver as /class/input/input34
->>>  dvb-usb: schedule remote query interval to 200 msecs.
->>>  dvb-usb: Leadtek Winfast DTV Dongle Gold successfully initialized 
->>> and connected.
->>>  af9015_init:
->>>  af9015_download_ir_table:
->>>  input: Leadtek WinFast DTV Dongle Gold as /class/input/input35
->>>  input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
->>>  usb-0000:00:02.1-10
->>>
->>>
->>>
->>>  This is channel 7's entry in channels.conf:
->>>  7 
->>>
-Digital:177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRAN
-SMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:514:1312 
->>>
->>
->>
->> Jarryd,
->>
->> I've analyzed the snoop that you've taken of the windows driver, and I
->> conclude that the driver is basically doing exactly the same that the
->> linux driver would do.  The only thing that I cannot verify is whether
->> or not the tda18211 uses the same table values as the tda18271c1.
->> Based on the traffic in your snoop, it looks like the exact same
->> algorithm is used, but based on a new set of tables -- I will not be
->> able to confirm that without a tda18211 datasheet.  The only thing
->> that you can do is try the tda18271 driver and hopefully it will work.
->>
->> Have you tried to tune yet?  There is a space in your channels.conf,
->> "7 Digital" -- you may want to change that to something like,
->> "7Digital" so that command line applications will work.
->>
+--===============1557000395==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_19052_4039109.1205835937693"
 
+------=_Part_19052_4039109.1205835937693
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Antti Palosaari wrote:
-> hello
-> I looked sniffs and find correct demodulator initialization values for 
-> this NXP tuner. Copy & paste correct table from attached file and try. 
-> Hopefully it works. I compared your sniff to mt2060 and qt1010 based 
-> devices and there was still some minor differences to check.
+Are you sure you tested with the new compiled module? Could you verify that
+in your v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c  you have
+this on the stk7070p_frontend_attach first line;
+
+       dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 0);
+
+Because I remember with 72e that with GPIO6 set to 1 the tunner is disabled.
+Anyway, your dmesg should tell more information after the failed tunning.
+
+Albert
+
+2008/3/18, Antti Luoma <anluoma@gmail.com>:
 >
-> regards,
-> Antti
+> Good morning to everyone,
+>
+> I tested the Stick with windows and it found channels ok.. So what shall I
+> do next?
+>
+> -antti-
+>
+> 2008/3/18, Antti Luoma <anluoma@gmail.com>:
+> >
+> > Hi,
+> >
+> > Tested with same results :( (no channels...)
+> >
+> > Tomorrow I'l (hmm today, its getting late) test this with windows that
+> > it works in there...
+> >
+> > -Antti-
+> >
+> >
+> > 2008/3/18, Albert Comerma <albert.comerma@gmail.com>:
+> > >
+> > > Just as I pointed a few hours ago;
+> > >
+> > > If you speak french you can have a look here;
+> > >
+> > > http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e
+> > >
+> > > Or if you don't you can go the fast way;
+> > >
+> > > wget http://www.barbak.org/v4l_for_72e_dongle.tar.bz2
+> > > tar xvjf v4l_for_72e_dongle.tar.bz2
+> > > cd v4l-dvb
+> > > sudo cp firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/
+> > > make all
+> > > sudo make install
+> > >
+> > > That should work for you. Please let me know.
+> > >
+> > > 2008/3/17, Antti Luoma <anluoma@gmail.com>:
+> > > >
+> > > >  Hi,
+> > > >
+> > > > I have trying to get Solo Stick (72e) to work for couple of days,
+> > > > but with no luck. So what's the current status of this driver?
+> > > >
+> > > > I did download latest drivers from mercurial today, added PCI_ids
+> > > > for card, modified dib0700_devices.c (in stk7070p_frontend_attach), added
+> > > > device to struct dvb_usb_device_properties dib0700_devices[] where
+> > > > stk7070p_frontend_attach was called.
+> > > >
+> > > > After that it looked promising:
+> > > >
+> > > >  usb 6-4: new high speed USB device using ehci_hcd and address 30
+> > > > [ 6722.607546] usb 6-4: configuration #1 chosen from 1 choice
+> > > > [ 6722.607622] dvb-usb: found a 'Pinnacle PCTV 72e DVB-T' in warm
+> > > > state.
+> > > > [ 6722.607648] dvb-usb: will pass the complete MPEG2 transport
+> > > > stream to the software demuxer.
+> > > > [ 6722.607724] DVB: registering new adapter (Pinnacle PCTV 72e
+> > > > DVB-T)
+> > > > [ 6722.731734] dvb_register_frontend
+> > > > [ 6722.731742] DVB: registering frontend 0 (DiBcom 7000PC)...
+> > > > [ 6722.811550] DiB0070: successfully identified
+> > > > [ 6722.811557] dvb-usb: Pinnacle PCTV 72e DVB-T successfully
+> > > > initialized and connected.
+> > > >
+> > > >
+> > > > BUT if I do a scan I don't get channels (i checked that I have
+> > > > correct frequencies):
+> > > >
+> > > >  #scan -o vdr  fi-Eurajoki
+> > > > scanning fi-Eurajoki
+> > > > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> > > > initial transponder 610000000 0 2 9 3 1 2 0
+> > > > initial transponder 666000000 0 2 9 3 1 2 0
+> > > > initial transponder 722000000 0 2 9 3 1 2 0
+> > > > >>> tune to: 610000:I999B8C23D999M64T8G8Y0:T:27500:
+> > > > WARNING: filter timeout pid 0x0011
+> > > > WARNING: filter timeout pid 0x0000
+> > > > WARNING: filter timeout pid 0x0010
+> > > > >>> tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:
+> > > > __tune_to_transponder:1483: ERROR: Setting frontend parameters
+> > > > failed: 19 No such device
+> > > > >>> tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:
+> > > > __tune_to_transponder:1483: ERROR: Setting frontend parameters
+> > > > failed: 19 No such device
+> > > > >>> tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:
+> > > > __tune_to_transponder:1483: ERROR: Setting frontend parameters
+> > > > failed: 19 No such device
+> > > > >>> tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:
+> > > > __tune_to_transponder:1483: ERROR: Setting frontend parameters
+> > > > failed: 19 No such device
+> > > > dumping lists (0 services)
+> > > > Done.
+> > > >
+> > > > Any thoughts??
+> > > >
+> > > > --
+> > > > -Antti-
+> > > > _______________________________________________
+> > > > linux-dvb mailing list
+> > > > linux-dvb@linuxtv.org
+> > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> > > >
+> > >
+> > >
+> >
+> >
+> > --
+> > -Antti-
+>
+>
+>
+>
+> --
+> -Antti-
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-Antti,
+------=_Part_19052_4039109.1205835937693
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Please remember not to top-post.
+Are you sure you tested with the new compiled module? Could you verify that in your v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c&nbsp; you have this on the stk7070p_frontend_attach first line;<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dib0700_set_gpio(adap-&gt;dev, GPIO6, GPIO_OUT, 0);<br>
+<br>Because I remember with 72e that with GPIO6 set to 1 the tunner is disabled.<br>Anyway, your dmesg should tell more information after the failed tunning.<br><br>Albert<br><br><div><span class="gmail_quote">2008/3/18, Antti Luoma &lt;<a href="mailto:anluoma@gmail.com">anluoma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Good morning to everyone,<br><br>I tested the Stick with windows and it found channels ok.. So what shall I do next?<br><br>-antti-<br><br><div><span class="gmail_quote">2008/3/18, Antti Luoma &lt;<a href="mailto:anluoma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">anluoma@gmail.com</a>&gt;:</span><div>
+<span class="e" id="q_118c0f88dda2608e_1"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi,<br><br>Tested with same results :( (no channels...)<br><br>Tomorrow I&#39;l (hmm today, its getting late) test this with windows that it works in there...<br><br>-Antti-<br><br><br><div><span class="gmail_quote">2008/3/18, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">albert.comerma@gmail.com</a>&gt;:</span><div>
 
-Jarryd,
+<span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Just as I pointed a few hours ago;<br><br>If you speak french you can have a look here;<br><br><a href="http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.louviaux.com-a.googlepages.com/tntpinnaclepctvdvb-t72e</a><br>
 
-I have done further analysis on the snoop logs.  Not only is the driver 
-using the same protocol as the tda18271 linux driver, it also seems to 
-use the same table values as used with the tda18271c1 -- The linux 
-driver should work on your tuner without any modification at all.
 
-Regards,
 
-Mike
+<br>Or if you don&#39;t you can go the fast way;<br>
+<br>wget <a href="http://www.barbak.org/v4l_for_72e_dongle.tar.bz2" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.barbak.org/v4l_for_72e_dongle.tar.bz2</a><br>
+tar xvjf v4l_for_72e_dongle.tar.bz2<br>
+cd  v4l-dvb<br>
+sudo cp  firmware/dvb-usb-dib0700-1.10.fw /lib/firmware/<br>
+make all<br>
+sudo make install<br><br>That should work for you. Please let me know.<br><br><div><span class="gmail_quote">2008/3/17, Antti Luoma &lt;<a href="mailto:anluoma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">anluoma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+
+
+<div><span>
+Hi,<br><br>I have trying to get Solo Stick (72e) to work for couple of days, but with no luck. So what&#39;s the current status of this driver?<br><br>I did download latest drivers from mercurial today, added PCI_ids for card, modified dib0700_devices.c (in stk7070p_frontend_attach), added device to struct dvb_usb_device_properties dib0700_devices[] where stk7070p_frontend_attach was called. <br>
+
+
+
+
+<br>After that it looked promising:<br><br>&nbsp;usb 6-4: new high speed USB device using ehci_hcd and address 30<br>[ 6722.607546] usb 6-4: configuration #1 chosen from 1 choice<br>[ 6722.607622] dvb-usb: found a &#39;Pinnacle PCTV 72e DVB-T&#39; in warm state.<br>
+
+
+
+
+[ 6722.607648] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>[ 6722.607724] DVB: registering new adapter (Pinnacle PCTV 72e DVB-T)<br>[ 6722.731734] dvb_register_frontend<br>[ 6722.731742] DVB: registering frontend 0 (DiBcom 7000PC)...<br>
+
+
+
+
+[ 6722.811550] DiB0070: successfully identified<br>[ 6722.811557] dvb-usb: Pinnacle PCTV 72e DVB-T successfully initialized and connected.<br><br><br>BUT if I do a scan I don&#39;t get channels (i checked that I have correct frequencies):<br>
+
+
+
+
+<br>&nbsp;#scan -o vdr&nbsp; fi-Eurajoki <br>scanning fi-Eurajoki<br>using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>initial transponder 610000000 0 2 9 3 1 2 0<br>initial transponder 666000000 0 2 9 3 1 2 0<br>
+
+
+
+
+initial transponder 722000000 0 2 9 3 1 2 0<br>&gt;&gt;&gt; tune to: 610000:I999B8C23D999M64T8G8Y0:T:27500:<br>WARNING: filter timeout pid 0x0011<br>WARNING: filter timeout pid 0x0000<br>WARNING: filter timeout pid 0x0010<br>
+
+
+
+
+&gt;&gt;&gt; tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:<br>__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>&gt;&gt;&gt; tune to: 666000:I999B8C23D999M64T8G8Y0:T:27500:<br>
+
+
+
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>
+&gt;&gt;&gt; tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:<br>__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>&gt;&gt;&gt; tune to: 722000:I999B8C23D999M64T8G8Y0:T:27500:<br>
+
+
+
+__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 19 No such device<br>
+dumping lists (0 services)<br>Done.<br><br>Any thoughts??<br clear="all"><br>-- <br><span>-Antti-
+</span><br></span></div>_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div>
+
+
+
+<br>
+</blockquote></span></div></div><br><br clear="all"><br>-- <br><span>-Antti-
+</span></blockquote></span></div></div><br><br clear="all"><br>-- <br><span class="sg">-Antti-
+</span><br>_______________________________________________<br>
+linux-dvb mailing list<br>
+<a onclick="return top.js.OpenExtLink(window,event,this)" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a onclick="return top.js.OpenExtLink(window,event,this)" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div>
+<br>
+
+------=_Part_19052_4039109.1205835937693--
+
+
+--===============1557000395==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1557000395==--
