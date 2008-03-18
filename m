@@ -1,26 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.185])
+Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JVnA3-0006hE-Lo
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 13:19:23 +0100
-Received: by gv-out-0910.google.com with SMTP id o2so2427688gve.16
-	for <linux-dvb@linuxtv.org>; Sun, 02 Mar 2008 04:19:19 -0800 (PST)
-Message-ID: <8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
-Date: Sun, 2 Mar 2008 13:19:17 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47CA609F.3010209@philpem.me.uk>
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Jbfl0-0004PB-0k
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 18:37:57 +0100
+Received: from ldvb (helo=localhost)
+	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Jbflw-0000ow-54
+	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 20:38:54 +0300
+Date: Tue, 18 Mar 2008 20:38:48 +0300 (MSK)
+From: ldvb@ns.bog.msu.ru
+To: linux-dvb@linuxtv.org
+In-Reply-To: <Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>
+Message-ID: <Pine.LNX.4.62.0803182020190.2543@ns.bog.msu.ru>
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
+	<04AD1EEA-DF6C-4575-8A8B-D460F199288F@krastelcom.ru>
+	<Pine.LNX.4.62.0803141736520.8859@ns.bog.msu.ru>
+	<31748235-0C9E-4847-93E1-71B39029E718@krastelcom.ru>
+	<Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>
+	<Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47A98F3D.9070306@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
-	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
-	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
-	<1204356192.6583.0.camel@youkaida> <47CA609F.3010209@philpem.me.uk>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Subject: [linux-dvb] TT-budget S-1401 issues. Horizontal transponder fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,54 +33,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Mar 2, 2008 at 9:09 AM, Philip Pemberton <lists@philpem.me.uk> wrote:
-> Nicolas Will wrote:
->  > You should really stick to the 1.10 firmware. 03-pre1 was an earlier
->  > test and has more issues.
->
->  Well, I've figured out what was going on.
->  Seems if you run 'make' against the source tree with one kernel, it will
->  always build modules for said kernel until you run 'make distclean'. I started
->  by building for 2.6.24-8-generic, then upgraded to -10-generic, then to
->  -11-generic, and only did a 'make clean; make; sudo make install' when I
->  rebuilt v4l-dvb, as this worked for Madwifi.
->
->  So to summarise, if you're going to reuse the same source tree for multiple
->  kernels, make distclean before making the drivers, or it'll build for the last
->  kernel you built for... Not sure if it installs to the running kernel, but it
->  certainly doesn't use the headers for the running kernel...
->
->  But at least the card seems to be behaving now. Up 10 hours with:
->
->  options dvb-usb-dib0700 debug=15 force_lna_activation=1
->
-> options dvb_usb disable_rc_polling=1
->  options usbcore autosuspend=-1
->
->  I've also blacklisted dvb-usb-dib0700 and modprobe'd it in an rc-script, so my
->  HVR-3000 ends up as device 0 and the two T-500 tuners end up as devices 1 and
->  2; said shell script also sets up symlinks for the 1st and 2nd front-ends on
->  the HVR to devices 10 and 11, because MythTV doesn't like the idea of a card
->  having multiple front-ends...
->
->  The clock is once again running...
->
->
->  --
->  Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
->  lists@philpem.me.uk           | (='.'=) into your signature to help him gain
->  http://www.philpem.me.uk/     | (")_(") world domination.
->
->  _______________________________________________
->
->
-> linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
 
-When i started using options usbcore autosuspend=-1 i deactivated debug=15
-Will reactivate it again and reset my clock also.
+Hi again!
+
+New experiment with TT-budget S-1401 shows the next result:
+using 2 boxes - one with Linux for error detection and one with Windows 
+for control. Both are connected via the passive splitter to the sat. So, 
+on Windows ProgDVB is running, controlling the  transponder. And it works 
+fine, without errors, showing the free prog. Linux box with the similar 
+card shows errors in the stream (at the same time):
+Tuner status:  Signal Lock Carrier VITERBI Sync
+Signal Strength = 59% SNR = 66% BER = 138c Uncorrected Blocks = 9
+
+Note: strength on the windows box is 78% (10db from 88 were eaten by the 
+splitter). Seems, that the problem is not with diseqc control.
+Any ideas?
+
+Thanx!
+
 
 _______________________________________________
 linux-dvb mailing list
