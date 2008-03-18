@@ -1,14 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hydra.gt.owl.de ([195.71.99.218])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <flo@rfc822.org>) id 1JVURh-00074e-EV
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 17:20:21 +0100
-Date: Sat, 1 Mar 2008 17:14:19 +0100
-From: Florian Lohoff <flo@rfc822.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080301161419.GB12800@paradigm.rfc822.org>
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Subject: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+Date: Tue, 18 Mar 2008 12:41:11 -0500
+Message-ID: <C82A808D35A16542ACB16AF56367E0580A79691B@exchange01.nsighttel.com>
+In-Reply-To: <1205794556.3444.12.camel@pc08.localdom.local>
+References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com>
+	<c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com>
+	<c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com>
+	<c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com>
+	<47DE9362.4050706@linuxtv.org>
+	<C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com>
+	<47DEB5EF.8010207@linuxtv.org>
+	<C82A808D35A16542ACB16AF56367E0580A7968FF@exchange01.nsighttel.com>
+	<C82A808D35A16542ACB16AF56367E0580A796900@exchange01.nsighttel.com>
+	<1205794556.3444.12.camel@pc08.localdom.local>
+From: "Mark A Jenks" <Mark.Jenks@nsighttel.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,77 +25,109 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1194625081=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I put a comment about having to install a new kernel if dvbscan hangs in
+the WIKI.
 
---===============1194625081==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qcHopEYAB45HaUaB"
-Content-Disposition: inline
+-Mark  
 
-
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
+-----Original Message-----
+From: hermann pitton [mailto:hermann-pitton@arcor.de] 
+Sent: Monday, March 17, 2008 5:56 PM
+To: Mark A Jenks
+Cc: Steven Toth; linux-dvb
+Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
 
 Hi,
-i was wondering why i have a problem in my application that i need to
-run scan once after loading the module, otherwise my DVBFE_SET_PARAMS
-fails - I couldnt explain it until i looked into the kernel code - In
-the dvb_frontend.c i see this code:
 
-1738         case DVBFE_SET_PARAMS: {
-1739                 struct dvb_frontend_tune_settings fetunesettings;
-1740                 enum dvbfe_delsys delsys =3D fepriv->fe_info.delivery;
-=2E..
-1783                 } else {
-1784                         /* default values */
-1785                         switch (fepriv->fe_info.delivery) {
-=2E..
-1817                         default:
-1818                                 up(&fepriv->sem);
-1819                                 return -EINVAL;
-1820                         }
+Am Montag, den 17.03.2008, 14:05 -0500 schrieb Mark A Jenks:
+> SUCCESS!
+> 
+> Built 2.6.24-3 and installed it.  Recompiled CVS, and installed it.
+> 
+> Now it doesn't hang when it finds a signal.
+> 
+> -Mark 
 
-Should the code use fepriv->feparam.delivery instead of
-fepriv->fe_info.delivery to sense the right delivery system ?
+Steve, the noise was not without reason.
 
-Flo
---=20
-Florian Lohoff                  flo@rfc822.org             +49-171-2280134
-	Those who would give up a little freedom to get a little=20
-          security shall soon have neither - Benjamin Franklin
+You might see, that all your drivers within and out of the kernel have
+been broken. Not to make any noise then, seems to me not a good idea.
 
---qcHopEYAB45HaUaB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Also, on LKML was some stuff, that there is a general problem
+initializing PCI devices multiple times and eventually have problems on
+shutdown/suspend then. But to late for the recent -rc.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+So, as it stands, given that we are not that backward compatible as have
+been previously anymore, to know that this change to 2.6.24 did anything
+usefull, what I doubt, would be not bad to have in details.
 
-iD8DBQFHyYDbUaz2rXW+gJcRAoSrAJwOHH/v6RsLcL0+s5p1UlakHUdJUwCfa65Y
-kwyGaCKuMOxtEXH5GQ4iYYQ=
-=cK6b
------END PGP SIGNATURE-----
-
---qcHopEYAB45HaUaB--
+Cheers,
+Hermann 
 
 
---===============1194625081==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Mark A Jenks
+> Sent: Monday, March 17, 2008 1:28 PM
+> To: Steven Toth; linux-dvb
+> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints
+kernel.
+> 
+> I'm compiling 2.4.24 right now to test it.
+> 
+> I've been running this box for over a year with a TV2000 card without
+> issues.  I was just trying to upgrade into DTV.
+> 
+> So, I really don't think it's a memory issue.
+> 
+> The TV2000 was a pci, this is my first pcie card I'm using in this
+box.
+> 
+> -Mark 
+> 
+> -----Original Message-----
+> From: Steven Toth [mailto:stoth@linuxtv.org] 
+> Sent: Monday, March 17, 2008 1:18 PM
+> To: Mark A Jenks; linux-dvb
+> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints
+kernel.
+> 
+> CC'ing the mailing list back in.
+> 
+> Mark A Jenks wrote:
+> > Do you think I should push the kernel to 2.6.25? 
+> 
+> I maintain the driver on ubuntu 7.10, which I think has is 2.6.22-14 -
+
+> or close to.
+> 
+> I have another AMD system at home that the driver completely freezes
+on,
+> 
+> no idea why, total system lockup. I don't trust the PCIe chipset on
+it, 
+> it's an early chipset and a little flakey.
+> 
+> Other than that the driver's been pretty reliable.
+> 
+> Lots of noise recently on the mailing lists about video_buf related 
+> issues and potential race conditions.
+> 
+> Try running the system with a single cpu core and report back, also, 
+> just for the hell of it, run memtest also.
+> 
+> - Steve
+> 
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1194625081==--
