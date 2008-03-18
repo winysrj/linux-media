@@ -1,14 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-Id: <20080328094021.788747028@ifup.org>
-References: <20080328093944.278994792@ifup.org>
-Date: Fri, 28 Mar 2008 02:39:49 -0700
-From: brandon@ifup.org
-To: mchehab@infradead.org
-Content-Disposition: inline; filename=videobuf-buf_release-vm_close.patch
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Brandon Philips <bphilips@suse.de>
-Subject: [patch 5/9] videobuf-vmalloc.c: Remove buf_release from
-	videobuf_vm_close
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2ID0o1D016488
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 09:00:50 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2ICxvXJ005169
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 08:59:57 -0400
+Date: Tue, 18 Mar 2008 09:59:09 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <20080318095909.4f8830ea@gaivota>
+In-Reply-To: <200803181339.13040.zzam@gentoo.org>
+References: <200803161131.37966.zzam@gentoo.org>
+	<20080318092648.3a517301@gaivota>
+	<200803181339.13040.zzam@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Peter Meszmer <hubblest@web.de>
+Subject: Re: [PATCH] Updated analog only support of Avermedia A700 cards -
+ adds RF input support via XC2028 tuner (untested)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,31 +31,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Remove the buf_release on vm_close because it will lead to a buffer being
-released multiple times since all buffers are already freed under the two
-possible cases: device close or STREAMOFF.
+On Tue, 18 Mar 2008 13:39:12 +0100
+Matthias Schwarzott <zzam@gentoo.org> wrote:
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+> On Dienstag, 18. März 2008, Mauro Carvalho Chehab wrote:
+> > On Sun, 16 Mar 2008 11:31:37 +0100
+> >
+> > For this to work, you'll need to set xc3028 parameters. This device needs a
+> > reset during firmware load. This is done via xc3028_callback. To reset, you
+> > need to turn some GPIO values, and then, return they back to their original
+> > values. The GPIO's are device dependent. So, you'll need to check with some
+> > software like Dscaler's regspy.exe what pins are changed during reset.
+> 
+> I can only have a look at the wiring.
 
----
- linux/drivers/media/video/videobuf-vmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+This may help, but should be validated with the hardware test, since it may
+need to enable/disable more than one bit.
 
-Index: v4l-dvb/linux/drivers/media/video/videobuf-vmalloc.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/videobuf-vmalloc.c
-+++ v4l-dvb/linux/drivers/media/video/videobuf-vmalloc.c
-@@ -79,8 +79,6 @@ videobuf_vm_close(struct vm_area_struct 
- 			if (q->bufs[i]->map != map)
- 				continue;
+> > Also, there are two ways for audio to work with xc3028/2028: MTS mode and
+> > non-mts. You'll need to test both ways.
+> >
+> > A final notice: most current devices work fine with firmware v2.7. However,
+> > a few devices only work if you use an older firmware version.
+> >
+> > Could you please send us the logs with i2c_scan=1?
+> >
+> 
+> I do not have that hardware. I only have the A700 without XC2028 soldered on 
+> it. But maybe Peter can help out on this.
+
+It would be nice if he could help us.
  
--			q->ops->buf_release(q,q->bufs[i]);
--
- 			q->bufs[i]->map   = NULL;
- 			q->bufs[i]->baddr = 0;
- 		}
+> > Please, use the latest version of v4l-dvb, since I did some fixes for cx88
+> > and saa7134 there recently.
+> >
+> I do use latest v4l-dvb tree and create patches on top of this.
+> As this card is labled Hybrid+FM I should also add a radio section, I guess.
 
--- 
+Yes, but you've already added it. Radio entry is generally identical to TV, on
+the devices with xc3028. I suspect that your radio entry should work.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
