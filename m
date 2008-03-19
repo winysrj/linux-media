@@ -1,29 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZHIc-0003Y2-7C
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 04:06:48 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1216489tia.13
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 20:06:32 -0700 (PDT)
-Message-ID: <abf3e5070803112006l31b5f878j764a4ded24a2702d@mail.gmail.com>
-Date: Wed, 12 Mar 2008 14:06:32 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <47D735F4.2070303@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jc8Vy-0004eg-Ph
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 01:20:19 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Thu, 20 Mar 2008 00:48:14 +0100
+References: <1115343012.20080318233620@a-j.ru>
+In-Reply-To: <1115343012.20080318233620@a-j.ru>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-	<47D4B8D0.9090401@linuxtv.org>
-	<abf3e5070803100039s232bf009ib5d1bde70b8e908d@mail.gmail.com>
-	<47D539E8.6060204@linuxtv.org>
-	<abf3e5070803101415g79c1f4a6m9b7467a0e6590348@mail.gmail.com>
-	<47D5AF38.90600@iki.fi>
-	<abf3e5070803111405v5d65d531mbff0649df14226d3@mail.gmail.com>
-	<37219a840803111625x3079e56apf38b7122979fc11d@mail.gmail.com>
-	<abf3e5070803111708k5dcee77ay166fc4bcf7c97711@mail.gmail.com>
-	<47D735F4.2070303@linuxtv.org>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Message-Id: <200803200048.15063@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,73 +26,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  >
->  > Also when I plugged it in, it sat there for about 10 seconds before
->  > finishing loading (dmesg printed another 5 lines about the device
->  > after about 10 seconds), but still no tuning.
->
->  Can I see those five lines?  ;-)
->
->  While you're at it, you may as well include dmesg from the point that the bridge driver loads and on.
->
+Andrew Junev wrote:
+> Hello All,
+> 
+> I was successfully using two TT S-1401 DVB-S cards in my HTPC running
+> Fedora 8. One of my antennas is positioned to Astra 19.2E and its
+> signal quality is quite low in my area. But the setup worked just fine
+> for me most of the time.
+> 
+> Last weekend I updated my system from kernel-2.6.23.15-137.fc8 to
+> kernel-2.6.24.3-12.fc8. It was just a 'yum update', nothing else.
+> Right after that I got no lock on most of Astra transponders (other
+> satellites were still Ok, but they normally have a far better signal).
+> After checking everything twice without any success, I booted back to
+> 2.6.23.15 and my Astra was back!
+> 
+> Is this a known behavior? I suppose it was not discussed before, so
+> this makes me think I am the only one with such a problem...
+> Strange... I think the problem is somehow related to the signal level / 
+> signal error rate. Looks like weak transponders are harder to lock
+> with the new kernel...
+> I'd appreciate any comments on this. I don't think I have an urgent
+> need to move to 2.6.24 now, but I'd still like to be able to do that
+> without loosing my TV... 
+> 
+> 
+> P.S. I can see there's kernel-2.6.24.3-34.fc8 already available for
+> Fedora 8. But I didn't try it yet...
 
-Here's dmesg from the point it starts up until it finishes printing stuff.
+Afaik this is a known regression in 2.6,24.
 
-usb 2-10: new high speed USB device using ehci_hcd and address 22
-usb 2-10: configuration #1 chosen from 1 choice
-af9015_usb_probe:
-af9015_identify_state: reply:01
-dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in cold state, will
-try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-af9015_download_firmware:
-dvb-usb: found a 'Leadtek Winfast DTV Dongle Gold' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Leadtek Winfast DTV Dongle Gold)
-af9015_eeprom_dump:
-00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 02
-10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 30
-20: 35 30 35 30 30 30 30 31 ff ff ff ff ff ff ff ff
-30: 00 00 3a 01 00 08 02 00 cc 10 00 00 9c ff ff ff
-40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
-50: ff ff ff ff ff 26 00 00 04 03 09 04 10 03 4c 00
-60: 65 00 61 00 64 00 74 00 65 00 6b 00 30 03 57 00
-70: 69 00 6e 00 46 00 61 00 73 00 74 00 20 00 44 00
-80: 54 00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00
-90: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00
-a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00
-b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff
-c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-af9015_read_config: xtal:2 set adc_clock:28000
-af9015_read_config: tuner id1:156
-af9015_read_config: spectral inversion:0
-af9015_set_gpios:
-af9013: firmware version:4.95.0
-DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
-af9015_tuner_attach:
-tda18271_tuner_attach:
-tda18271 5-00c0: creating new instance
-TDA18271HD/C1 detected @ 5-00c0
-input: IR-receiver inside an USB DVB receiver as /class/input/input34
-dvb-usb: schedule remote query interval to 200 msecs.
-dvb-usb: Leadtek Winfast DTV Dongle Gold successfully initialized and connected.
-af9015_init:
-af9015_download_ir_table:
-input: Leadtek WinFast DTV Dongle Gold as /class/input/input35
-input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
-usb-0000:00:02.1-10
+See 
+  http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023477.html
+and
+  http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023559.html
+for the fix.
 
->
->  You said that you tuned to "channel 7, sydney, australia" -- is that an 8 MHz channel?  What frequency is it on?
->
+CU
+Oliver
 
-This is channel 7's entry in channels.conf:
-7 Digital:177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:514:1312
-
-Jarryd.
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
