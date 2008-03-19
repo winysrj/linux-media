@@ -1,33 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28FFxQ0027080
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 10:15:59 -0500
-Received: from ex.volia.net (ex.volia.net [82.144.192.10])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28FFKQh008964
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 10:15:21 -0500
-Message-ID: <002701c8812f$33c6ed20$6501a8c0@LocalHost>
-From: "itman" <itman@fm.com.ua>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-References: <000f01c808e7$3ab4e3a0$6401a8c0@LocalHost>
-	<1191845080.3506.82.camel@pc08.localdom.local>
-	<007f01c80e7d$21c02300$6401a8c0@LocalHost>
-	<1192788480.18371.4.camel@gaivota>
-	<Pine.LNX.4.58.0710190951100.16052@shell4.speakeasy.net>
-	<471A4011.8010706@fm.com.ua> <1192922346.4857.8.camel@gaivota>
-	<003701c81410$869e6960$6401a8c0@LocalHost>
-	<1193043044.30686.22.camel@gaivota>
-	<003a01c8150f$6a248490$6401a8c0@LocalHost>
-	<1193103690.14811.10.camel@pc08.localdom.local>
-	<000401c8151a$080ef4b0$6401a8c0@LocalHost>
-	<1193107021.5728.20.camel@gaivota>
-	<1193107692.5728.23.camel@gaivota>
-Date: Sat, 8 Mar 2008 17:15:10 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2J0sn7N012038
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 20:54:49 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2J0sDJi031553
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 20:54:13 -0400
+Received: by rn-out-0910.google.com with SMTP id e11so165861rng.17
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:54:13 -0700 (PDT)
+Message-ID: <37219a840803181754n5935b4e8g37dc77dd605b3095@mail.gmail.com>
+Date: Tue, 18 Mar 2008 20:54:13 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Hartmut Hackmann" <hartmut.hackmann@t-online.de>
+In-Reply-To: <47E060EB.5040207@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"; reply-type=original
-Content-Transfer-Encoding: 8bit
-Cc: simon@kalmarkaglan.se, Linux and Kernel Video <video4linux-list@redhat.com>,
-	MIDIMaker <midimaker@yandex.ru>, Trent Piepho <xyzzy@speakeasy.org>
-Subject: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <47E060EB.5040207@t-online.de>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,88 +32,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Mauro.
+On Tue, Mar 18, 2008 at 8:40 PM, Hartmut Hackmann
+<hartmut.hackmann@t-online.de> wrote:
+> Hi, Folks
+>
+>  Currently, the LNA support code for TDA8275a is broken, it may even cause a kernel oops.
+>  The bugs were introduced during tuner refactoring.
+>  In my personal repository at
+>   http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+>  these bugs hopefully are fixed. But i can test only 3 cases. So i am looking for owners
+>  of the cards
+>  Pinnacle 310i,
+>  Happauge hvr1110
+>  ASUSTeK P7131 with LNA
+>  MSI TV@NYWHERE AD11
+>  KWORLD DVBT 210
+>  to check whether things are right again. This holds for both, analog as well as DVB-T.
+>
+>  Michael, may i ask you to check whether my changes contradict with things you are doing?
+>  Mauro, what's your opinion on this? As far as i know, the broken code is in the upcoming
+>  kernel release. The patch is big, is there a chance to commit it to the kernel?
 
-Could you please be so kind to mention which is right mercurial repository 
-to which you have merged your changes and which one should be used for 
-2.6.24 kernel?
+Hartmut,
 
-I've got issue:
+I've already checked over your changes (I noticed the tree pushed a
+few days ago)  -- I do not see any reason why they would cause any
+problems on the tda8295 nor the tda18271.  These changes will not
+contradict anything that I am currently working on, and it would be
+nice to have them merged sooner than later.
 
-Trying now to build drivers for MSI TV @nywheremaster MS-8606 under kernel 
-2.6.24.3.
+There is only one detail that I would like to point out.  You made the
+following change:
 
-What were done:
+--- a/linux/drivers/media/video/tda8290.h	Mon Mar 03 22:55:05 2008 +0100
++++ b/linux/drivers/media/video/tda8290.h	Sun Mar 16 23:49:43 2008 +0100
+@@ -21,7 +21,7 @@
+ #include "dvb_frontend.h"
 
-1) mkdir /usr/src/linux/tmpmsi
-2) cd tmpmsi
-3) hg init v4l-dvb
-4) hg pull http://linuxtv.org/hg/v4l-dvb
-5) cd v4l-dvb
-6) make
-7) make install
+ struct tda829x_config {
+-	unsigned int *lna_cfg;
++	unsigned int lna_cfg;
+ 	int (*tuner_callback) (void *dev, int command, int arg);
 
-
-As result I've got cx88-cards.c with fixed gpio for MSI TV @anywhere BUT! 
-there are no main parameters for module tuner: port1, port2, qss.
-
-
- head Makefile
-BUILD_DIR := $(shell pwd)/v4l
-TMP ?= /tmp
-REPO_PULL := http://linuxtv.org/hg/v4l-dvb
-
-
-
- modinfo  tuner
-filename:       /lib/modules/2.6.24.3/kernel/drivers/media/video/tuner.ko
-license:        GPL
-author:         Ralph Metzler, Gerd Knorr, Gunther Mayer
-description:    device driver for various TV and TV+FM radio tuners
-depends: 
-tea5761,v4l2-common,mt20xx,tuner-simple,tda9887,videodev,tea5767,xc5000,tuner-xc2028,tda8290
-vermagic:       2.6.24.3 preempt mod_unload PENTIUM4
-parm:           force:List of adapter,address pairs to boldly assume to be 
-present (array of short)
-parm:           probe:List of adapter,address pairs to scan additionally 
-(array of short)
-parm:           ignore:List of adapter,address pairs not to scan (array of 
-short)
-parm:           addr:int
-parm:           no_autodetect:int
-parm:           show_i2c:int
-parm:           debug:int
-parm:           pal:string
-parm:           secam:string
-parm:           ntsc:string
-parm:           tv_range:array of int
-
-With best regards,
-
-            Serge Kolotylo
+ 	unsigned int probe_tuner:1;
+--- a/linux/drivers/media/video/tuner-core.c	Mon Mar 03 22:55:05 2008 +0100
++++ b/linux/drivers/media/video/tuner-core.c	Sun Mar 16 23:49:43 2008 +0100
+@@ -349,7 +349,7 @@ static void attach_tda829x(struct tuner
+ static void attach_tda829x(struct tuner *t)
+ {
+ 	struct tda829x_config cfg = {
+-		.lna_cfg        = &t->config,
++		.lna_cfg        = t->config,
+ 		.tuner_callback = t->tuner_callback,
+ 	};
+ 	tda829x_attach(&t->fe, t->i2c->adapter, t->i2c->addr, &cfg);
 
 
-__________________________
 
-Em Ter, 2007-10-23 às 05:11 +0300, itman escreveu:
-> After modprobe tuner port1=0 port2=0 qss=1 it works GREAT both TV
-> (sound is
-> clear and loud) and radio (sound is clear and loud) with DEFAULT
-> (card=7,
+...The above change means that the lna setting is set at tuner driver
+attach time, and if somebody wants to use TUNER_SET_CONFIG (or some
+other method) to enable / disable the LNA on-the-fly, it will not be
+possible.    Meanwhile, I'm not even sure it that was possible to
+begin with.  Just some food for thought -- you should decide what is
+best, here.
 
-Great! If you send us the proper tuner name, marked at the metallic can
-inside the board, we may add those tda9887 options at tuner-types.c.
-This way, passing the parameters to tuners can be avoided.
+I have an HVR1110, and I have a QAM64 generator that I use to test it.
+ Obviously, it is a hot signal.  Is it possible for me to test the LNA
+under these circumstances?  ...or do we need somebody "out in the
+field" to do that sort of test?  (I live in ATSC-land ;-) )
 
-> PS: will it be merged these changes to vanilla kernel soon?
+You mentioned a possible kernel OOPS.  Have you actually experienced
+an OOPS with the current tree?  I apologize if this feature being
+broken is the result of my tuner refactoring.  I appreciate your
+taking the time to fix it.
 
-I've already merged into v4l-dvb tree. However, since this is changing
-some stuff at the existing driver, the addition at mainstream should be
-postponed to kernel 2.6.25.
+Regards,
 
--- 
-Cheers,
-Mauro 
+Mike
 
 --
 video4linux-list mailing list
