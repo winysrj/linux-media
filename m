@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CAHJ1p015460
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:17:19 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.243])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CAGdBs024257
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:16:39 -0400
-Received: by an-out-0708.google.com with SMTP id c31so763136ana.124
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 03:16:39 -0700 (PDT)
-Date: Wed, 12 Mar 2008 18:16:33 +0800
-From: Limin Wang <lance.lmwang@gmail.com>
-To: video4linux-list@redhat.com
-Message-ID: <20080312101633.GA4654@lmwangpc.yuvad.cn>
-References: <20080312082530.GA3570@lmwangpc.yuvad.cn>
-	<47D7A00C.1020307@cineca.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JMHfg6018562
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:17:41 -0400
+Received: from mailout11.sul.t-online.de (mailout11.sul.t-online.de
+	[194.25.134.85])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JMH7sm000947
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:17:07 -0400
+Message-ID: <47E190CF.9050904@t-online.de>
+Date: Wed, 19 Mar 2008 23:16:47 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <47D7A00C.1020307@cineca.it>
-Subject: Re: any recommendations for SD/SDI cards under linux?
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <47E060EB.5040207@t-online.de>
+	<Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>
+In-Reply-To: <Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,43 +31,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi, Mauro
 
-
-* Andrea Venturi <a.venturi@cineca.it> [2008-03-12 10:19:08 +0100]:
-
-> Limin Wang wrote:
-> > Hi,
-> > 
-> > I am a newbie to the list and can't find how to search on the archive, so
-> > had to ask the question here.
-> > If you have any recommendations for SDI cards under linux, would you mind
-> > telling me? 
+Mauro Carvalho Chehab schrieb:
+> On Wed, 19 Mar 2008, Hartmut Hackmann wrote:
 > 
-> hi,
+>> Mauro, what's your opinion on this? As far as i know, the broken code
+>> is in the upcoming
+>> kernel release. The patch is big, is there a chance to commit it to
+>> the kernel?
 > 
-> we are using Dektec card as ASI ports (for DVB transport stream), under
-> linux, and they do have quite a good linux driver, fully open source and
-> more than GPL (public domain?) albeit not linux-dvb compliant, but it's
-> just a character device.
+> While some fixes are cosmetic (like __func__ change), and others are
+> just function reordering, I suspect that the real changes are still too
+> big for -rc6. It will probably be nacked.
 > 
-> the SDI link is the same physical stuff of ASI so for example this card
-> shoud work for your task too:
-> 
->   http://www.dektec.com/Products/DTA-145/index.asp
-> 
-> YMMV, i don't have a direct experience about SDI usage, but i had a good
-> experience with Dektec stuff so i suggest them quite wholeheartedly
-> (btw, don't have any economic interest.. :-)
+> Yet, it may be worthy to try.
 
-Thanks for your comments, I have look at their SDK. It seems that they save
-the orignal SDI data into file and haven't any interface to demux the video and
-audio of the raw SDI stream. I need to transcode the SDI to other compress
-format h264/aac etc to save disk space.
+This was my opinion as well.
+Did you notice Michaels reply on this issue? He pointed out that the problem
+was introduced by this changeset:
+http://linuxtv.org/hg/v4l-dvb/rev/ad6fb7fe6240 : Add support for xc3028-based boards
 
+If this did not go to Linus yet, we don't have a problem. This also explains
+why we don't have bug reports on this.
 
-Thanks,
-Limin
+> 
+> I still need to send a patchset to Linus, after testing compilation
+> (unfortunately, I had to postpone, since I need first to free some
+> hundreds of Mb on my HD on my /home, to allow kernel compilation).
+> Hopefully, I'll have some time tomorrow for doing a "housekeeping".
+> 
+Unfortunately, i deleted you mails describing what went to linux and i don't
+have the RC source here :-(
+
+Best regards
+  Hartmut
 
 --
 video4linux-list mailing list
