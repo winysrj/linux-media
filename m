@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2C7YiCq003893
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 03:34:44 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2C7YCYp023215
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 03:34:12 -0400
-Date: Wed, 12 Mar 2008 08:34:13 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1205281392.5927.117.camel@pc08.localdom.local>
-Message-ID: <Pine.LNX.4.64.0803120831380.3804@axis700.grange>
-References: <47C40563.5000702@claranet.fr> <47D24404.9050708@claranet.fr>
-	<Pine.LNX.4.64.0803081026230.3639@axis700.grange>
-	<47D3A2AA.7040608@claranet.fr>
-	<Pine.LNX.4.64.0803091204060.3408@axis700.grange>
-	<Pine.LNX.4.64.0803112257260.9070@axis700.grange>
-	<1205281392.5927.117.camel@pc08.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JM0SuS008697
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:00:28 -0400
+Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JLxs4N022119
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 17:59:54 -0400
+Message-ID: <47E18CCD.90509@linuxtv.org>
+From: mkrufky@linuxtv.org
+To: hartmut.hackmann@t-online.de
+Date: Wed, 19 Mar 2008 16:59:41 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: kernel oops since changeset e3b8fb8cc214
+in-reply-to: <47E18A81.3050504@t-online.de>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, mchehab@infradead.org
+Subject: Re: [linux-dvb] [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,26 +26,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hermann,
+Hartmut Hackmann wrote:
+> Hi, Michael
+>
+> Michael Krufky schrieb:
+>   
+>> Hello Hartmut,
+>>
+>> Hartmut Hackmann wrote:
+>>     
+>>> Michael Krufky schrieb:
+>>>       
+>>>> I have an HVR1110, and I have a QAM64 generator that I use to test it.
+>>>>  Obviously, it is a hot signal.  Is it possible for me to test the LNA
+>>>> under these circumstances?  ...or do we need somebody "out in the
+>>>> field" to do that sort of test?  (I live in ATSC-land ;-) )
+>>>>
+>>>>         
+>>> You should be able to. You need to have the debug option for the tuner
+on
+>>> and you need to be aware that the decicion LNA on / off is taken only
+once
+>>> while tuning. When you modify the RF level you should notice that
+increasing
+>>> the amplitude results in a lower AGC2 value. When it reaches the value
+2, the
+>>> driver should report that it turns the LNA to low gain. You will also
+need to
+>>> monitor the AGC value of the channel decoder to see the effect.
+>>>       
+>> I'll give this a try when I have some time, and send you the logs.
+>>
+>>     
+> By the way: I once heard that Hauppauge has cards with LNA, but uses a
+different
+> configuration. Did you ever notice "strange" effects in analog mode like
+> a small moving horizontal bar while locking?
+>
+>   
+>>>> You mentioned a possible kernel OOPS.  Have you actually experienced
+>>>> an OOPS with the current tree?  I apologize if this feature being
+>>>> broken is the result of my tuner refactoring.  I appreciate your
+>>>> taking the time to fix it.
+>>>>
+>>>>         
+>>> Yes. The first parameter to the tuner callback was wrong and cause a
+reference
+>>> to a NULL pointer.
+>>>       
+>> Ah, I believe this may have been caused by a very recent changeset:
+>>
+>> http://linuxtv.org/hg/v4l-dvb/rev/ad6fb7fe6240
+>>
+>> I tested all of my changes thoroughly, and had received positive test
+results from other users with various hardware.
+>> The regression was not part of my tuner refactoring changes, and I do not
+think that this is upstream in 2.6.25-rc.
+>>
+>> Can you confirm whether or not the above is the problem changeset?
+>>
+>> Regards,
+>>
+>> Mike
+>>
+>>     
+> Yes, that one caused the problem (from static analysis). This patch has
+some
+> inconsistencies that were grinded out later but this was the starting
+point.
+>
+> If this code is not in 2.6.25-rc: good!! It leaves us time for testing and
+> discussion.
+> Do you think we need further discussion on my tuner config pointer change?
+>
+> Best regards
+>   Hartmut
+>   
+Hartmut,
 
-On Wed, 12 Mar 2008, hermann pitton wrote:
+I don't think we need further discussion -- When I did the refactoring, 
+I was only trying to preserve your functionality while adding new 
+functionality for the new silicon.
 
-> you are definitely going into the right direction, as it was meant
-> already years back and also like Mauro did pick it up.
+I trust you as the authority on how the LNA should work, and I think 
+that we should merge your changes into the master branch as soon as 
+possible.
 
-You mean this has already been discussed before? Have you got links to 
-ML-archive threads?
+I'm glad to hear you confirm that Mauro's recent patch is the one that 
+broke the driver.  This patch of his is not in 2.6.25-rc, but is planned 
+for 2.6.26 -- for this reason, we should merge in your changes now and 
+establish a known point of functionality.
 
-> Don't take any rants seriously, but we just need something to settle
-> down in between safely until the next steps can be achieved.
+As far as the HVR1110, I do not see such issues in the analog video.  I 
+will not have time to conduct the LNA test until next week, the earliest.
 
-No problem, just trying to help solve the puzzle and wondering how my 
-patch could have triggered this.
+Please ask Mauro to merge it asap.  Let him know that this is *not* 
+urgent for 2.6.25, because the offending changeset is not yet upstream, 
+but we do need this in master now for the sake of testing and good 
+housekeeping.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+As for your changeset:
+
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
