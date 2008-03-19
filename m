@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2J4QPt9023195
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 00:26:25 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2J4PsJA017216
-	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 00:25:55 -0400
-Date: Wed, 19 Mar 2008 00:25:53 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <47E060EB.5040207@t-online.de>
-Message-ID: <Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>
-References: <47E060EB.5040207@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JI0Q1L026777
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 14:00:26 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JHxhTg009015
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 13:59:45 -0400
+Received: by py-out-1112.google.com with SMTP id a29so719017pyi.0
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 10:59:43 -0700 (PDT)
+Date: Wed, 19 Mar 2008 18:00:27 +0000
+From: Jaime Velasco Juan <jsagarribay@gmail.com>
+To: Toralf =?utf-8?Q?F=C3=B6rster?= <toralf.foerster@gmx.de>
+Message-ID: <20080319180027.GA22812@singular.sob>
+References: <200803191044.20611.toralf.foerster@gmx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <200803191044.20611.toralf.foerster@gmx.de>
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] stkwebcam: depend on VIDEO_V4L1_COMPAT
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,24 +30,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 19 Mar 2008, Hartmut Hackmann wrote:
+This should fix build failure reported by Toralf Förster:
 
-> Mauro, what's your opinion on this? As far as i know, the broken code is in the upcoming
-> kernel release. The patch is big, is there a chance to commit it to the kernel?
+El mié. 19 de mar. de 2008, a las 10:44:20 +0100, Toralf Förster escribió:
+> Hello,
+> 
+> the build with the attached .config failed, make ends with:
+> ...
+>   CC [M]  drivers/media/video/stk-webcam.o
+> drivers/media/video/stk-webcam.c: In function 'stk_create_sysfs_files':
+> drivers/media/video/stk-webcam.c:340: error: implicit declaration of function 'video_device_create_file'
+> drivers/media/video/stk-webcam.c: In function 'stk_remove_sysfs_files':
+> drivers/media/video/stk-webcam.c:348: error: implicit declaration of function 'video_device_remove_file'
+> drivers/media/video/stk-webcam.c: At top level:
+[...]
 
-While some fixes are cosmetic (like __func__ change), and others are just 
-function reordering, I suspect that the real changes are still too big for 
--rc6. It will probably be nacked.
+Regards.
 
-Yet, it may be worthy to try.
+Signed-off-by: Jaime Velasco Juan <jsagarribay@gmail.com>
 
-I still need to send a patchset to Linus, after testing compilation 
-(unfortunately, I had to postpone, since I need first to free some 
-hundreds of Mb on my HD on my /home, to allow kernel compilation). 
-Hopefully, I'll have some time tomorrow for doing a "housekeeping".
+---
 
-Cheers,
-Mauro
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 37072a2..544630e 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -823,7 +823,7 @@ config USB_ZR364XX
+ 
+ config USB_STKWEBCAM
+ 	tristate "USB Syntek DC1125 Camera support"
+-	depends on VIDEO_V4L2 && EXPERIMENTAL
++	depends on VIDEO_V4L2 && VIDEO_V4L1_COMPAT && EXPERIMENTAL
+ 	---help---
+ 	  Say Y here if you want to use this type of camera.
+ 	  Supported devices are typically found in some Asus laptops,
 
 --
 video4linux-list mailing list
