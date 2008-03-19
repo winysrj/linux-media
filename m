@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2EGhup0028944
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:43:56 -0400
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2EGhHqJ004381
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 12:43:18 -0400
-Received: by wr-out-0506.google.com with SMTP id c57so3018995wra.9
-	for <video4linux-list@redhat.com>; Fri, 14 Mar 2008 09:43:17 -0700 (PDT)
-Message-ID: <d9def9db0803140943h47a3998ere7400ea26b903a07@mail.gmail.com>
-Date: Fri, 14 Mar 2008 17:43:16 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "r bartlett" <techwritebos@yahoo.com>
-In-Reply-To: <746260.26259.qm@web56411.mail.re3.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JMJNFj019245
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:19:23 -0400
+Received: from smtp.reveal.co.nz (203-109-246-148.static.bliink.ihug.co.nz
+	[203.109.246.148])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JMIpjp001858
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:18:52 -0400
+Received: from mail.reveal.local (revpfe.reveal.local [10.0.0.4])
+	by smtp.reveal.co.nz (8.13.1/8.13.1) with ESMTP id m2JMSB88006130
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:28:36 +1300
+Date: Thu, 20 Mar 2008 11:17:24 +1300
+From: Alan McIvor <alan.mcivor@reveal.co.nz>
+To: video4linux-list@redhat.com
+Message-Id: <20080320111724.3f1045d0.alan.mcivor@reveal.co.nz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <746260.26259.qm@web56411.mail.re3.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Another very basic question...
+Subject: [PATCH] Increase number of SAA7134 devices supported in a system
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,22 +28,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Mar 14, 2008 at 5:32 PM, r bartlett <techwritebos@yahoo.com> wrote:
-> I'm happily watching the several QAM channels available on my line...but can I also watch the 80 some channels that my television gets?  Is that "NTSC_M"?
->
->  Right now, if I turn on the TV I can get History, Food, Cartoon Network, etc...but on the computer it's only the basic networks and PBS.
->
->  Am I still doing something wrong?
->
->
+The SAA7134 device driver currently only supports 8 such devices in a
+system. This is too small for many surveillance applications. This
+patch increases the number to 32.
 
-the question is moreover what device do you have in your computer?
-Also another question is are those NTSC-M Channels analogue signals
-(so is it possible to connect your cable directly to an old
-television, or do you have a receiver in between).
-There are hybrid ATSC/QAM devices available which can also handle NTSC-M.
+Signed-off-by: Alan McIvor <alan.mcivor@reveal.co.nz>
 
-Markus
+--- linux/drivers/media/video/saa7134/saa7134.h.orig	2008-03-20 10:52:47.000000000 +1300
++++ linux/drivers/media/video/saa7134/saa7134.h	2008-03-20 10:53:30.000000000 +1300
+@@ -270,7 +270,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_VIDEOMATE_T750       139
+ 
+ 
+-#define SAA7134_MAXBOARDS 8
++#define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+ 
+ /* ----------------------------------------------------------- */
 
 --
 video4linux-list mailing list
