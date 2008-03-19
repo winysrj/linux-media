@@ -1,19 +1,37 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.179])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1Jd1yD-0002E2-5C
-	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 12:33:10 +0100
-Received: by py-out-1112.google.com with SMTP id a29so2314417pyi.0
-	for <linux-dvb@linuxtv.org>; Sat, 22 Mar 2008 04:32:56 -0700 (PDT)
-Message-ID: <47E4EE65.1040901@googlemail.com>
-Date: Sat, 22 Mar 2008 11:32:53 +0000
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+	(envelope-from <zzam@gentoo.org>) id 1JbtSN-0006uR-Hk
+	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 09:15:35 +0100
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id CF7C721D81B
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 09:15:05 +0100 (CET)
+Received: from localhost (unknown [192.168.1.157])
+	by mail.m-online.net (Postfix) with ESMTP id 42D8E90285
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 09:14:58 +0100 (CET)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (scanner1.m-online.net [192.168.1.157]) (amavisd-new,
+	port 10024) with ESMTP id juUTFUh92ZVu for <linux-dvb@linuxtv.org>;
+	Wed, 19 Mar 2008 09:14:57 +0100 (CET)
+Received: from gauss.x.fun (ppp-88-217-99-34.dynamic.mnet-online.de
+	[88.217.99.34]) by mail.nefkom.net (Postfix) with ESMTP
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 09:14:57 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by gauss.x.fun (Postfix) with ESMTP id DD1E01E7C9A
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 09:14:56 +0100 (CET)
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-dvb@linuxtv.org
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-Content-Type: multipart/mixed; boundary="------------040907010300090409080103"
-Subject: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
+Date: Wed, 19 Mar 2008 09:14:55 +0100
+References: <47A5D8AF.2090800@googlemail.com>
+	<1205875868.3385.133.camel@pc08.localdom.local>
+	<1205904196.6510.3.camel@ubuntu>
+In-Reply-To: <1205904196.6510.3.camel@ubuntu>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200803190914.56106.zzam@gentoo.org>
+Subject: Re: [linux-dvb]
+	=?iso-8859-1?q?Any_chance_of_help_with_v4l-dvb-experi?=
+	=?iso-8859-1?q?mental_/=09Avermedia_A16D_please=3F?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,129 +39,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------040907010300090409080103
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Mittwoch, 19. M=E4rz 2008, timf wrote:
+> Hi all,
+>
+> On Tue, 2008-03-18 at 22:31 +0100, hermann pitton wrote:
+> > Hi,
+> >
+> > Am Dienstag, den 18.03.2008, 18:04 -0300 schrieb Mauro Carvalho Chehab:
+> > > On Wed, 19 Mar 2008 05:48:52 +0900
+> > >
+> > > timf <timf@iinet.net.au> wrote:
+> > > > 1) New install ubuntu, extract tip.tgz.
+> > >
+> > > There's no need for you to reinstall Linux for each test. This is not
+> > > MS**t ;)
+> > >
+> > > You don't even need to reboot.
+> > >
+> > > > [   40.753552] saa7133[0]: i2c scan: found device @ 0xc2  [???]
+> > > > [   40.864616] tuner' 2-0061: Setting mode_mask to 0x0e
+> > > > [   40.864621] tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
+> > > > [   40.864624] tuner' 2-0061: tuner 0x61: Tuner type absent
+> > > > [   40.864658] tuner' 2-0061: Calling set_type_addr for type=3D0,
+> > > > addr=3D0xff, mode=3D0x02, config=3D0xffff8100
+> >
+> > any idea somebody when that was introduced?
+> >
+> > [   40.753552] saa7133[0]: i2c scan: found device @ 0xc2  [???]
+> > [   40.864616] tuner' 2-0061: Setting mode_mask to 0x0e
+> > [   40.864621] tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
+> > [   40.864624] tuner' 2-0061: tuner 0x61: Tuner type absent
+> > [   40.864658] tuner' 2-0061: Calling set_type_addr for type=3D0,
+> > addr=3D0xff, mode=3D0x02, config=3D0xffff8100
+> > [   40.864662] tuner' 2-0061: set addr for type -1
+> > [   40.876586] tuner-simple 2-0061: creating new instance
+> > [   40.876589] tuner-simple 2-0061: type set to 0 (Temic PAL (4002 FH5))
+> >
+> > Out of historical cruft TUNER_ABSENT is tuner type 4.
+> >
+> > > mode=3D0x02 is radio.
+> > >
+> > > Try to add this to the struct:
+> > >
+> > > .radio_type     =3D UNSET,
+> > >
+> > > > 3) No DVB, installed tvtime - no signal.
+> > >
+> > > DVB won't work yet. What the demod inside this board? There's no setup
+> > > for it.
+> >
+> > Cheers,
+> > Hermann
+>
+> Nope, could't get anything to work.
+> - blacklisted tuner_xc3028 - no diff still locked up at boot
+> - dbg - no module loaded
+>
 
-I've updated this patch following your remarks about PATCH 1/3.
+Blacklisting will only work for modules modprobe is called for. These days =
 
-About your feedback, I am not sure I understand what you mean, but I will try:
+udev does call modprobe so for this to work you need to blacklist saa7134 =
 
-  > Do not release the lock before the ringbuffer is consistent again.
+module.
+Or: You stop module autoloading in general if your distro offers this optio=
+n.
 
-If you mean that the lock should not be released while buf->data = NULL, this is *not* a problem.
-A ringbuffer with NULL data *is* consistent (even though it is useless).
-All functions in dmxdev.c check for a NULL pointer before calling read or write on the ringbuffer.
-The same happens for the buffer of the demux.
+Regards
+Matthias
 
-  > We should not free the old buffer before we got a new one.
+-- =
 
-I like you idea, but I did not want to change the existing logic.
-
-You might have noticed that the new function dvb_dvr_set_buffer_size is very similar to
-dvb_dmxdev_set_buffer_size (which exists already): I did not want to introduce a new logic of
-resizing the ringbuffer, but I've written a function very very similar.
-
-Maybe in a following patch one could change both of them.
-
-  > As the ring buffer can be written from an ISR, we have to use
-    spin_lock_irqsave/spin_unlock_irqrestore here.
-
-Ok, I've changed the patch.
-If I use spin_lock_irqsave in dvb_dvr_set_buffer_size (called via IOCTL), do I need to use the same
-kind of spin_lock on all other spin_lock on the same lock (e.g. dvb_dmxdev_ts_callback)?
-
-
-
-
-Let me know if I should be more aggressive and change the resize for dvr and demux at once within
-this patch. Otherwise if and when this is accepted I will rearrange the code.
-
-Andrea
-
-
---------------040907010300090409080103
-Content-Type: text/x-patch;
- name="size2.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="size2.diff"
-
-diff -r 1886a5ea2f84 linux/drivers/media/dvb/dvb-core/dmxdev.c
---- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	Fri Mar 21 08:04:55 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sat Mar 22 10:12:58 2008 +0000
-@@ -259,6 +259,38 @@ static ssize_t dvb_dvr_read(struct file 
- 	return ret;
- }
- 
-+static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-+				      unsigned long size)
-+{
-+	struct dvb_ringbuffer *buf = &dmxdev->dvr_buffer;
-+	void *mem;
-+
-+	if (buf->size == size)
-+		return 0;
-+
-+	dprintk("function : %s\n", __FUNCTION__);
-+
-+	spin_lock(&dmxdev->lock);
-+	mem = buf->data;
-+	buf->data = NULL;
-+	buf->size = size;
-+	dvb_ringbuffer_reset(buf);
-+	
-+	spin_unlock(&dmxdev->lock);
-+	vfree(mem);
-+
-+	if (buf->size) {
-+		mem = vmalloc(dmxdev->dvr_buffer.size);
-+		if (!mem)
-+			return -ENOMEM;
-+		spin_lock(&dmxdev->lock);
-+		buf->data = mem;
-+		spin_unlock(&dmxdev->lock);
-+	}
-+
-+	return 0;
-+}
-+
- static inline void dvb_dmxdev_filter_state_set(struct dmxdev_filter
- 					       *dmxdevfilter, int state)
- {
-@@ -1009,6 +1041,7 @@ static int dvb_dvr_do_ioctl(struct inode
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
-+	unsigned long arg = (unsigned long)parg;
- 	int ret;
- 
- 	if (mutex_lock_interruptible(&dmxdev->mutex))
-@@ -1016,8 +1049,7 @@ static int dvb_dvr_do_ioctl(struct inode
- 
- 	switch (cmd) {
- 	case DMX_SET_BUFFER_SIZE:
--		// FIXME: implement
--		ret = 0;
-+		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
- 		break;
- 
- 	default:
-
-
---------------040907010300090409080103
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------040907010300090409080103--
