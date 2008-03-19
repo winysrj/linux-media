@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZDu4-0005G5-QF
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 00:29:09 +0100
-Received: from aamtaout01-winn.ispmail.ntl.com ([81.103.221.35])
-	by mtaout01-winn.ispmail.ntl.com with ESMTP id
-	<20080311233049.RDX16169.mtaout01-winn.ispmail.ntl.com@aamtaout01-winn.ispmail.ntl.com>
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:30:49 +0000
-Received: from molly.ianliverton.co.uk ([80.1.111.25])
-	by aamtaout01-winn.ispmail.ntl.com with ESMTP id
-	<20080311233138.SQBX219.aamtaout01-winn.ispmail.ntl.com@molly.ianliverton.co.uk>
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 23:31:38 +0000
-Received: from [192.168.1.65] (helo=ians)
-	by molly.ianliverton.co.uk with esmtp (Exim 4.69)
-	(envelope-from <linux-dvb@ianliverton.co.uk>) id 1JZDtU-0007cX-45
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 23:28:28 +0000
-From: "Ian Liverton" <linux-dvb@ianliverton.co.uk>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 11 Mar 2008 23:30:16 -0000
-Message-ID: <009101c883cf$dfe25480$4101a8c0@ians>
+	(envelope-from <albert.comerma@gmail.com>) id 1JbzO2-0000ZX-18
+	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 15:35:28 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so342111fge.25
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 07:34:52 -0700 (PDT)
+Message-ID: <ea4209750803190734l695e4ea4x25de194aa51623fb@mail.gmail.com>
+Date: Wed, 19 Mar 2008 15:34:52 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Paul Leitner" <linux-dvb@machts.net>
+In-Reply-To: <47E12053.7090205@machts.net>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Nova T-500 detection problem
+References: <47E12053.7090205@machts.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy HT USB XE analogue TV
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,42 +21,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0166913926=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> You will need to edit 
-> 
-> linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--===============0166913926==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_4538_18606800.1205937292278"
 
-Genius!  Thank you very much!  I changed line 127 from
+------=_Part_4538_18606800.1205937292278
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-#define USB_PID_HAUPPAUGE_NOVA_T_500		0x9941
+I'm also interested, since Pinnacle 320cx uses the same chips, but I'm not
+sure that the em28xx module is the way to follow, since this card uses the
+connexant  CX25843 chip if I'm right.
 
-To
+Albert
 
-#define USB_PID_HAUPPAUGE_NOVA_T_500		0x9940
+2008/3/19, Paul Leitner <linux-dvb@machts.net>:
+>
+> Hello there!
+>
+> I'm interested in getting the analogue part of the above mentioned USB
+> TV Stick working.
+> My previous tries resulted in error messages of the em28xx module
+> complaining about non-ISO endpoints.
+> It would be nice, if anyone could tell me where to find required
+> information.
+> I am not really used to reverse-engineering USB devices. But I guess I
+> am lacking some configuration settings for the endpoints.
+>
+> Would be nice if there is someone out there who could provide me some
+> help with this issue.
+>
+> Paul
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-and it worked perfectly.
+------=_Part_4538_18606800.1205937292278
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> A proper dev should probably confirm.
+I&#39;m also interested, since Pinnacle 320cx uses the same chips, but I&#39;m not sure that the em28xx module is the way to follow, since this card uses the connexant&nbsp; CX25843 chip if I&#39;m right.<br><br>Albert<br><br><div>
+<span class="gmail_quote">2008/3/19, Paul Leitner &lt;<a href="mailto:linux-dvb@machts.net">linux-dvb@machts.net</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hello there!<br> <br> I&#39;m interested in getting the analogue part of the above mentioned USB<br> TV Stick working.<br> My previous tries resulted in error messages of the em28xx module<br> complaining about non-ISO endpoints.<br>
+ It would be nice, if anyone could tell me where to find required<br> information.<br> I am not really used to reverse-engineering USB devices. But I guess I<br> am lacking some configuration settings for the endpoints.<br>
+ <br> Would be nice if there is someone out there who could provide me some<br> help with this issue.<br> <br> Paul<br> <br> _______________________________________________<br> linux-dvb mailing list<br> <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+ <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br> </blockquote></div><br>
 
-If you need any more information on this card to make it supported "out of
-the box", let me know!
+------=_Part_4538_18606800.1205937292278--
 
-Thanks again,
 
-Ian 
-
-Internal Virus Database is out-of-date.
-Checked by AVG Free Edition. 
-Version: 7.5.516 / Virus Database: 269.21.4 - Release Date: 03/03/2008 00:00
- 
-
+--===============0166913926==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0166913926==--
