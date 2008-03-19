@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYpT3028213
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:51 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAXY5P018282
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:25 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so174998fga.7
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:25 -0700 (PDT)
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JMGU1p018059
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:16:30 -0400
+Received: from smtp.reveal.co.nz (203-109-246-148.static.bliink.ihug.co.nz
+	[203.109.246.148])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JMFxfH032597
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 18:16:00 -0400
+Received: from mail.reveal.local (revpfe.reveal.local [10.0.0.4])
+	by smtp.reveal.co.nz (8.13.1/8.13.1) with ESMTP id m2JMQDcc006081
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:26:14 +1300
+Date: Thu, 20 Mar 2008 11:15:26 +1300
+From: Alan McIvor <alan.mcivor@reveal.co.nz>
+To: video4linux-list@redhat.com
+Message-Id: <20080320111526.acb76570.alan.mcivor@reveal.co.nz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <eb99bdd0a7e3f70eb40f.1206699516@localhost>
-In-Reply-To: <patchbomb.1206699511@localhost>
-Date: Fri, 28 Mar 2008 03:18:36 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: [PATCH 5 of 9] videobuf-vmalloc.c: Remove buf_release from
-	videobuf_vm_close
+Subject: [PATCH] SAA7134 number of devices check
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,35 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1206699279 25200
-# Node ID eb99bdd0a7e3f70eb40fcc6918794a8b8822ac49
-# Parent  3ac2b9752844e2635575e50594d50cea665ca09b
-videobuf-vmalloc.c: Remove buf_release from videobuf_vm_close
+The SAA7134 device driver has a array for storing device information
+in. This array is of size SAA7134_MAXBOARDS. This patch adds a check
+of the number of boards already existing before adding a new
+one. 
 
-Remove the buf_release on vm_close because it will lead to a buffer being
-released multiple times since all buffers are already freed under the two
-possible cases: device close or STREAMOFF.
+This patch fixes reported problems when trying to add a 9th device into a
+system.
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
+Signed-off-by: Alan McIvor <alan.mcivor@reveal.co.nz>
 
----
- linux/drivers/media/video/videobuf-vmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
---- a/linux/drivers/media/video/videobuf-vmalloc.c
-+++ b/linux/drivers/media/video/videobuf-vmalloc.c
-@@ -78,8 +78,6 @@ videobuf_vm_close(struct vm_area_struct 
+--- linux/drivers/media/video/saa7134/saa7134-core.c.orig	2008-02-25 11:51:39.000000000 +1300
++++ linux/drivers/media/video/saa7134/saa7134-core.c	2008-02-25 11:56:24.000000000 +1300
+@@ -994,6 +994,9 @@ static int __devinit saa7134_initdev(str
+ 	struct saa7134_mpeg_ops *mops;
+ 	int err;
  
- 			if (q->bufs[i]->map != map)
- 				continue;
--
--			q->ops->buf_release(q,q->bufs[i]);
- 
- 			q->bufs[i]->map   = NULL;
- 			q->bufs[i]->baddr = 0;
++	if (saa7134_devcount == SAA7134_MAXBOARDS)
++		return -ENOMEM;
++
+ 	dev = kzalloc(sizeof(*dev),GFP_KERNEL);
+ 	if (NULL == dev)
+ 		return -ENOMEM;
 
 --
 video4linux-list mailing list
