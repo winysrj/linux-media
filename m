@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2H1fFBw005863
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 21:41:15 -0400
-Received: from mail7.sea5.speakeasy.net (mail7.sea5.speakeasy.net
-	[69.17.117.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2H1ehnC032424
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 21:40:44 -0400
-Date: Sun, 16 Mar 2008 18:40:38 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jelle Foks <jelle@foks.us>
-In-Reply-To: <47DDB7A7.6000400@foks.us>
-Message-ID: <Pine.LNX.4.58.0803161831110.20723@shell4.speakeasy.net>
-References: <patchbomb.1205671781@liva.fdsoft.se>
-	<200803161442.37610.hverkuil@xs4all.nl>
-	<kod9eemd4.fsf@liva.fdsoft.se>
-	<Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
-	<47DDB7A7.6000400@foks.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2JLxqFv007811
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 17:59:52 -0400
+Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2JLxJw4021711
+	for <video4linux-list@redhat.com>; Wed, 19 Mar 2008 17:59:19 -0400
+Message-ID: <47E18CA8.50208@linuxtv.org>
+From: mkrufky@linuxtv.org
+To: hartmut.hackmann@t-online.de
+Date: Wed, 19 Mar 2008 16:59:04 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Frej Drejhammar <frej.drejhammar@gmail.com>, video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features. Version
- 2
+in-reply-to: <47E18A81.3050504@t-online.de>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, mchehab@infradead.org
+Subject: Re: [linux-dvb] [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,49 +26,108 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 16 Mar 2008, Jelle Foks wrote:
-
-> Trent Piepho wrote:
+Hartmut Hackmann wrote:
+> Hi, Michael
 >
-> >> color killer does not make a very large impact for black and white
-> >> material (the only time it is needed), frankly I'm not sure if its not
-> >> just the placebo effect. I can live without color killer but
-> >> definitely not without chroma AGC.
-> >
-> > I haven't ever been able to notice an effect from color killer.  Maybe if
-> > you had poor reception from a B&W source?  Not much black and white on
-> > broadcast TV these days.
+> Michael Krufky schrieb:
+>   
+>> Hello Hartmut,
+>>
+>> Hartmut Hackmann wrote:
+>>     
+>>> Michael Krufky schrieb:
+>>>       
+>>>> I have an HVR1110, and I have a QAM64 generator that I use to test it.
+>>>>  Obviously, it is a hot signal.  Is it possible for me to test the LNA
+>>>> under these circumstances?  ...or do we need somebody "out in the
+>>>> field" to do that sort of test?  (I live in ATSC-land ;-) )
+>>>>
+>>>>         
+>>> You should be able to. You need to have the debug option for the tuner
+on
+>>> and you need to be aware that the decicion LNA on / off is taken only
+once
+>>> while tuning. When you modify the RF level you should notice that
+increasing
+>>> the amplitude results in a lower AGC2 value. When it reaches the value
+2, the
+>>> driver should report that it turns the LNA to low gain. You will also
+need to
+>>> monitor the AGC value of the channel decoder to see the effect.
+>>>       
+>> I'll give this a try when I have some time, and send you the logs.
+>>
+>>     
+> By the way: I once heard that Hauppauge has cards with LNA, but uses a
+different
+> configuration. Did you ever notice "strange" effects in analog mode like
+> a small moving horizontal bar while locking?
 >
-> I would think that a chip configuration called 'color killer' will make
-> the full channel bandwidth (~5MHz) available for the luma, while without
-> it, the upper 1.5MHz or so is used for the chroma signal.
+>   
+>>>> You mentioned a possible kernel OOPS.  Have you actually experienced
+>>>> an OOPS with the current tree?  I apologize if this feature being
+>>>> broken is the result of my tuner refactoring.  I appreciate your
+>>>> taking the time to fix it.
+>>>>
+>>>>         
+>>> Yes. The first parameter to the tuner callback was wrong and cause a
+reference
+>>> to a NULL pointer.
+>>>       
+>> Ah, I believe this may have been caused by a very recent changeset:
+>>
+>> http://linuxtv.org/hg/v4l-dvb/rev/ad6fb7fe6240
+>>
+>> I tested all of my changes thoroughly, and had received positive test
+results from other users with various hardware.
+>> The regression was not part of my tuner refactoring changes, and I do not
+think that this is upstream in 2.6.25-rc.
+>>
+>> Can you confirm whether or not the above is the problem changeset?
+>>
+>> Regards,
+>>
+>> Mike
+>>
+>>     
+> Yes, that one caused the problem (from static analysis). This patch has
+some
+> inconsistencies that were grinded out later but this was the starting
+point.
+>
+> If this code is not in 2.6.25-rc: good!! It leaves us time for testing and
+> discussion.
+> Do you think we need further discussion on my tuner config pointer change?
+>
+> Best regards
+>   Hartmut
+>   
+Hartmut,
 
-That's not what it does:
-    If a color-burst of 25 (NTSC) or 35 (PAL/SECAM) percent or less of the
-    nominal amplitude is detected for 127 consecutive scan lines, the
-    color-difference signals U and V are set to 0.  When the low color
-    detection is active, the reduced chrominance signal is still separated
-    from the composite signal to generate the luminance portion of the
-    signal.  The resulting Cr and Cb values are 128.  Output of the
-    chrominance signal is re-enabled when a color-burst of 43 (NTSC) or 60
-    (PAL/SECAM) percent or greater of nominal amplitude is detected for 127
-    consecutive scan lines.  Low color detection and removal may be
-    disabled.
+I don't think we need further discussion -- When I did the refactoring, 
+I was only trying to preserve your functionality while adding new 
+functionality for the new silicon.
 
-I think it's when you have poor reception and can't decode the color
-signal, which is in the upper part of the band.  Rather than decode garbage
-color, it just turns color off.  Or maybe it's for avoiding adding spurious
-color when you have a B&W signal?  I've never been able to get it to do
-anything I could notice.
+I trust you as the authority on how the LNA should work, and I think 
+that we should merge your changes into the master branch as soon as 
+possible.
 
-> When using a higher-quality B&W camera on a composite input, you will
-> probably be able to see an improved sharpness in the picture with such a
-> 'color killer' switched on.
+I'm glad to hear you confirm that Mauro's recent patch is the one that 
+broke the driver.  This patch of his is not in 2.6.25-rc, but is planned 
+for 2.6.26 -- for this reason, we should merge in your changes now and 
+establish a known point of functionality.
 
-Getting the full luma bandwidth would be achieved by turning off the luma
-notch filter, which should be done already for s-video sources.  It might
-not be a bad idea to have a control to allow this for composite signals,
-like B&W surveillance cams.
+As far as the HVR1110, I do not see such issues in the analog video.  I 
+will not have time to conduct the LNA test until next week, the earliest.
+
+Please ask Mauro to merge it asap.  Let him know that this is *not* 
+urgent for 2.6.25, because the offending changeset is not yet upstream, 
+but we do need this in master now for the sake of testing and good 
+housekeeping.
+
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
