@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GL5mU1022733
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 17:05:48 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GL5Gei030839
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 17:05:16 -0400
-Received: by fk-out-0910.google.com with SMTP id b27so5895632fka.3
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 14:05:15 -0700 (PDT)
-To: Trent Piepho <xyzzy@speakeasy.org>
-From: Frej Drejhammar <frej.drejhammar@gmail.com>
-In-Reply-To: <Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net> (Trent
-	Piepho's message of "Sun, 16 Mar 2008 13:28:06 -0700 (PDT)")
-References: <patchbomb.1205671781@liva.fdsoft.se>
-	<200803161442.37610.hverkuil@xs4all.nl> <kod9eemd4.fsf@liva.fdsoft.se>
-	<Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
-Date: Sun, 16 Mar 2008 22:05:11 +0100
-Message-ID: <k1w6a2xdk.fsf@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2J1XwLv027818
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 21:33:58 -0400
+Received: from mailout01.sul.t-online.de (mailout01.sul.t-online.de
+	[194.25.134.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2J1XONP020527
+	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 21:33:25 -0400
+Message-ID: <47E06D5C.3070109@t-online.de>
+Date: Wed, 19 Mar 2008 02:33:16 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
-	Version 2
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <47E060EB.5040207@t-online.de>
+	<37219a840803181754n5935b4e8g37dc77dd605b3095@mail.gmail.com>
+In-Reply-To: <37219a840803181754n5935b4e8g37dc77dd605b3095@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,49 +30,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Trent,
+Hi, Mike
 
-> One of the things you should do it make the control inactive when in
-> SECAM mode.  V4L2 has a flag to indicate controls that don't apply
-> to the device's current mode.
+Michael Krufky schrieb:
+> On Tue, Mar 18, 2008 at 8:40 PM, Hartmut Hackmann
+> <hartmut.hackmann@t-online.de> wrote:
+>> Hi, Folks
+>>
+>>  Currently, the LNA support code for TDA8275a is broken, it may even cause a kernel oops.
+>>  The bugs were introduced during tuner refactoring.
+>>  In my personal repository at
+>>   http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+>>  these bugs hopefully are fixed. But i can test only 3 cases. So i am looking for owners
+>>  of the cards
+>>  Pinnacle 310i,
+>>  Happauge hvr1110
+>>  ASUSTeK P7131 with LNA
+>>  MSI TV@NYWHERE AD11
+>>  KWORLD DVBT 210
+>>  to check whether things are right again. This holds for both, analog as well as DVB-T.
+>>
+>>  Michael, may i ask you to check whether my changes contradict with things you are doing?
+>>  Mauro, what's your opinion on this? As far as i know, the broken code is in the upcoming
+>>  kernel release. The patch is big, is there a chance to commit it to the kernel?
+> 
+> Hartmut,
+> 
+> I've already checked over your changes (I noticed the tree pushed a
+> few days ago)  -- I do not see any reason why they would cause any
+> problems on the tda8295 nor the tda18271.  These changes will not
+> contradict anything that I am currently working on, and it would be
+> nice to have them merged sooner than later.
+> 
+> There is only one detail that I would like to point out.  You made the
+> following change:
+> 
+> --- a/linux/drivers/media/video/tda8290.h	Mon Mar 03 22:55:05 2008 +0100
+> +++ b/linux/drivers/media/video/tda8290.h	Sun Mar 16 23:49:43 2008 +0100
+> @@ -21,7 +21,7 @@
+>  #include "dvb_frontend.h"
+> 
+>  struct tda829x_config {
+> -	unsigned int *lna_cfg;
+> +	unsigned int lna_cfg;
+>  	int (*tuner_callback) (void *dev, int command, int arg);
+> 
+>  	unsigned int probe_tuner:1;
+> --- a/linux/drivers/media/video/tuner-core.c	Mon Mar 03 22:55:05 2008 +0100
+> +++ b/linux/drivers/media/video/tuner-core.c	Sun Mar 16 23:49:43 2008 +0100
+> @@ -349,7 +349,7 @@ static void attach_tda829x(struct tuner
+>  static void attach_tda829x(struct tuner *t)
+>  {
+>  	struct tda829x_config cfg = {
+> -		.lna_cfg        = &t->config,
+> +		.lna_cfg        = t->config,
+>  		.tuner_callback = t->tuner_callback,
+>  	};
+>  	tda829x_attach(&t->fe, t->i2c->adapter, t->i2c->addr, &cfg);
+> 
+> 
+> 
+> ...The above change means that the lna setting is set at tuner driver
+> attach time, and if somebody wants to use TUNER_SET_CONFIG (or some
+> other method) to enable / disable the LNA on-the-fly, it will not be
+> possible.    Meanwhile, I'm not even sure it that was possible to
+> begin with.  Just some food for thought -- you should decide what is
+> best, here.
+> 
+Ah, That's your intention.. I changed this because in the case of DVB
+there is nothing that creates a copy of the tda827x config structure -
+so no legal way to change the data. And imho it is not necessary to change
+this dynamically.
 
-I guess it is the V4L2_CTRL_FLAG_INACTIVE flag (in the flag field of
-struct v4l2_queryctrl) you are referring to, correct?
-
-> CAGC makes a difference for me too.  Some of my channels are over
-> saturated and some are under saturated and CAGC fixes them.  I don't
-> recall if I posted pictures last time CAGC came up, but it really
-> does make a difference.
-
-Good that I'm not the only one who wants/needs it :)
-
-> I haven't ever been able to notice an effect from color killer.
-> Maybe if you had poor reception from a B&W source?  Not much black
-> and white on broadcast TV these days.
-
-So maybe I should just skip the color killer then...
-
->> A quick grep shows that the bttv-driver also exposes chroma AGC as
->> a private control. Cx2584x has chroma AGC enabled by default. Maybe
->> the right thing to do is to enable chroma AGC by default for PAL
->> and NTSC?  Chroma AGC is something you'll find on most VCRs and
->> TVs, and then it is on by default.
+> I have an HVR1110, and I have a QAM64 generator that I use to test it.
+>  Obviously, it is a hot signal.  Is it possible for me to test the LNA
+> under these circumstances?  ...or do we need somebody "out in the
+> field" to do that sort of test?  (I live in ATSC-land ;-) )
 >
-> That's what I would do.  Have a standard control for CAGC and turn
-> it on by default.
+You should be able to. You need to have the debug option for the tuner on
+and you need to be aware that the decicion LNA on / off is taken only once
+while tuning. When you modify the RF level you should notice that increasing
+the amplitude results in a lower AGC2 value. When it reaches the value 2, the
+driver should report that it turns the LNA to low gain. You will also need to
+monitor the AGC value of the channel decoder to see the effect.
 
-Then that's what I'll do. Expect a revised version of the patch which
-enables CAGC by default for PAL+NTSC and implements the
-V4L2_CTRL_FLAG_INACTIVE by the end of the week.
+> You mentioned a possible kernel OOPS.  Have you actually experienced
+> an OOPS with the current tree?  I apologize if this feature being
+> broken is the result of my tuner refactoring.  I appreciate your
+> taking the time to fix it.
+> 
+Yes. The first parameter to the tuner callback was wrong and cause a reference
+to a NULL pointer.
 
-> If I wanted to be told I wasn't worthy to use my hardware, I'd run
-> windows!
-
-Hear, hear! :)
-
-Regards,
-
---Frej
+Best regards
+ Hartmut
 
 --
 video4linux-list mailing list
