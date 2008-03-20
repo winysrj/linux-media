@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
+Received: from f182.mail.ru ([194.67.57.209])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1JcdmO-0008TI-OB
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 10:43:18 +0100
-Received: by fk-out-0910.google.com with SMTP id z22so1928358fkz.1
-	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 02:43:12 -0700 (PDT)
-Date: Fri, 21 Mar 2008 10:43:06 +0100
+	(envelope-from <goga777@bk.ru>) id 1JcDfJ-0000ZP-Fa
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 06:50:18 +0100
+From: Igor <goga777@bk.ru>
 To: Morfsta <morfsta@gmail.com>
-Message-ID: <20080321094306.GA7841@gmail.com>
+Mime-Version: 1.0
+Date: Thu, 20 Mar 2008 08:49:39 +0300
 References: <eddfa47b0803191400k2368eebfo4da7aa1930e2c0cc@mail.gmail.com>
-	<20080319222137.GA30672@gmail.com>
-	<eddfa47b0803201218l89e8b09gc7255b0ea993fced@mail.gmail.com>
-	<eddfa47b0803201218r62638390vc06d1a2d707ec74a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <eddfa47b0803201218r62638390vc06d1a2d707ec74a@mail.gmail.com>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] HVR4000 patch and Latest Multiproto
+In-Reply-To: <eddfa47b0803191400k2368eebfo4da7aa1930e2c0cc@mail.gmail.com>
+Message-Id: <E1JcDel-000Es1-00.goga777-bk-ru@f182.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SFZSNDAwMCBwYXRjaCBhbmQgTGF0ZXN0IE11bHRp?=
+	=?koi8-r?b?cHJvdG8=?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +22,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 20, 2008 at 07:18:47PM +0000, Morfsta wrote:
+> /root/multiproto/v4l/cx24116.c:1506: error: unknown field 'delivery'
+> specified in initializer
+> /root/multiproto/v4l/cx24116.c:1506: warning: missing braces around initializer
+> /root/multiproto/v4l/cx24116.c:1506: warning: (near initialization for
+> 'dvbs_info.delsys')
+> /root/multiproto/v4l/cx24116.c:1525: error: unknown field 'delivery'
+> specified in initializer
+> /root/multiproto/v4l/cx24116.c:1525: warning: missing braces around initializer
+> /root/multiproto/v4l/cx24116.c:1525: warning: (near initialization for
+> 'dvbs2_info.delsys')
+> /root/multiproto/v4l/cx24116.c: In function 'cx24116_get_info':
+> /root/multiproto/v4l/cx24116.c:1551: error: 'struct dvbfe_info' has no
+> member named 'delivery'
+> 
+> Anyone got any ideas on how to fix this?
 
-> Your updated patch works fine for me! Sorry for any inconvenience and
-> thanks for doing the update.
+try please with this multiproto's version (without API updating)
+http://jusst.de/hg/multiproto/archive/ecb96c96a69e.tar.bz2
 
-Great to know it's working elsenwhere than my place :-)
--- =
+Igor
 
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
+
 
 _______________________________________________
 linux-dvb mailing list
