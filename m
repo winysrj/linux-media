@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JZ9tu-0001Kn-VY
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 20:12:48 +0100
-Received: from [11.11.11.138] (user-5af0e527.wfd96.dsl.pol.co.uk
-	[90.240.229.39])
-	by mail.youplala.net (Postfix) with ESMTP id C2F21D88130
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 20:11:31 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <005101c8839e$797bb140$4101a8c0@ians>
-References: <004601c8839a$365ac620$4101a8c0@ians>
-	<1205256041.7463.34.camel@acropora>
-	<005101c8839e$797bb140$4101a8c0@ians>
-Date: Tue, 11 Mar 2008 19:11:27 +0000
-Message-Id: <1205262687.19053.6.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova T-500 detection problem
+	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaL-0007gz-02
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 09:57:17 +0100
+Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
+	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaF-0002Rn-Vj
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 18:57:12 +1000
+Received: from korath.teln.shikadi.net ([192.168.0.14])
+	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaF-0005dB-7d
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 18:57:11 +1000
+Message-ID: <47E226E7.7030601@shikadi.net>
+Date: Thu, 20 Mar 2008 18:57:11 +1000
+From: Adam Nielsen <a.nielsen@shikadi.net>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] dvbstream reliability issues?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,42 +30,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi all,
 
-On Tue, 2008-03-11 at 17:36 +0000, Ian Liverton wrote:
-> > What is lsusb saying?
-> 
-> Thanks for the fast reply! lsusb says:
-> 
-> Bus 005 Device 002: ID 2040:9940 Hauppauge
-> Bus 005 Device 001: ID 0000:0000
-> Bus 004 Device 001: ID 0000:0000
-> Bus 003 Device 001: ID 0000:0000
-> Bus 002 Device 001: ID 0000:0000
-> Bus 001 Device 001: ID 0000:0000
-> 
+I've recently started using dvbstream (instead of dvbrecord) to record
+shows using cron but I'm finding it to be very unreliable.
 
-going back on list.
+Depending on my reception quality, it has a tendency to segfault fairly
+regularly - enough that I wrote a script to reload it after a segfault
+so that I wouldn't miss my recording.  With this set up it usually
+segfaults once every 15 minutes or so, and sometimes as often as every
+4-5 minutes if the reception isn't so great.
 
-Mine says 
+Sometimes it doesn't segfault though, it just stops recording for some
+reason (the output file only grows by a few bytes a minute.)  This is
+worse because it doesn't terminate, so my script isn't able to reload it
+to catch the rest of the recording.
 
-Bus 010 Device 002: ID 2040:9950 Hauppauge
+For those people using dvbstream to do their recording, are any of you
+having issues like this?
 
-and is recognized.
+I'm running CVS from 2008-02-24 and I'm using -prog to record based on
+the program instead of using PIDs (as our broadcasters here seem to
+change their PIDs without warning every couple of months.)
 
-You will need to edit 
+I'm hoping there's some easy fix for this, because I'd rather not have
+to try to get dvbrecord to work again!
 
-linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-
-and define a new ID there (around line 128), then edit
-
-linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
-
-and add the ID info (around line 980). I wonder if there is something to do around line 114 too, but not being a coder, I'm lost there.
-
-A proper dev should probably confirm.
-
-Nico
-
+Thanks,
+Adam.
 
 _______________________________________________
 linux-dvb mailing list
