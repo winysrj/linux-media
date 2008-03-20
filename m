@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q1YDm2018665
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 21:34:13 -0400
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.183])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q1XhsW015898
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 21:33:43 -0400
-Received: by el-out-1112.google.com with SMTP id n30so2008107elf.7
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 18:33:42 -0700 (PDT)
-Message-ID: <37219a840803251833l5103a709q116a323951cf95e5@mail.gmail.com>
-Date: Tue, 25 Mar 2008 21:33:42 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "kevin liu" <lwtbenben@gmail.com>
-In-Reply-To: <9618a85a0803251823x6962b6b2hfc2ceda8e6fbeb34@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2KFIubI006107
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:18:56 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2KFINSq008115
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:18:23 -0400
+Date: Thu, 20 Mar 2008 12:18:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080320121807.7af35d4b@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <9618a85a0803251823x6962b6b2hfc2ceda8e6fbeb34@mail.gmail.com>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PVR-250 on Ubuntu 7.10
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES] V4L/DVB updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,35 +26,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Mar 25, 2008 at 9:23 PM, kevin liu <lwtbenben@gmail.com> wrote:
->  >  Hi all,
->  >
->  >  Hopefully someone out there can help - I'm a relative newbie to Linux,
->  >  and am trying to get my TV card, PVR-250 to work on Ubuntu 7.10.
->  >
->  >  I've read a few "guides" on the web for older versions of Ubuntu, and
->  >  none of them have got me very far.  All I want to be able to do is watch
->  >  live TV, if this is possible!
->  >
->  >  In hardware information I have listed "iTVC16 (CX23416) MPEG-2 Encoder"
->  >  which I am sure is the device.
->  >
->  >  Can anyone give me any advice as to what needs to be done / installed?
+Linus,
 
-> Hi,
->     Of course you can watch live TV using your sweet TV card under Ubuntu7.10.
->  In my opinion, you should set up both the driver and the application.
->     So what's your current status?
->     Is your card USB or PCI?
->     Does any driver find your device successfully?
->
->     The list may need some extra information to help you!
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
 
+For the following:
 
-The PVR250 is supported by the 'ivtv' driver, which is included by
-default with Ubuntu Gutsy, the version that you are running.
+   - saa7134: fix FM radio support for the Pinnacle PCTV 110i
+   - bttv: struct member initialized twice
+   - ivtv: fix for yuv filter table check
+   - VIDEO_VIVI must depend on VIDEO_DEV
+   - cx88: Fix: Loads tuner module before sending commands to it
+   - saa7134: fix: tuner should be loaded before calling saa7134_board_init2()
+   - ivtv: Add missing sg_init_table()
+   - em28xx: Correct use of ! and &
+   - em28xx: correct use of and fix
+   - usb/opera1.c: fix a memory leak
+   - V4L1 - fix v4l_compat_translate_ioctl possible NULL deref
+   - usb video: add a device link to usbvideo devices, else hal will ignore them
+   - tvp5150.c: logical-bitwise and confusion
+   - bug #10211: Fix depencencies for cx2341x
 
--Mike
+Cheers,
+Mauro.
+
+---
+
+ drivers/media/dvb/dvb-usb/opera1.c          |    2 +-
+ drivers/media/video/Kconfig                 |    4 +-
+ drivers/media/video/bt8xx/bttv-driver.c     |    1 -
+ drivers/media/video/cx88/cx88-cards.c       |    5 +++
+ drivers/media/video/cx88/cx88-video.c       |    2 -
+ drivers/media/video/em28xx/em28xx-core.c    |    2 +-
+ drivers/media/video/ivtv/ivtv-driver.c      |    7 ++--
+ drivers/media/video/ivtv/ivtv-firmware.c    |    8 +++-
+ drivers/media/video/saa7134/saa7134-cards.c |   41 +++++++++++-----------
+ drivers/media/video/saa7134/saa7134-core.c  |    5 ++-
+ drivers/media/video/tvp5150.c               |    4 +-
+ drivers/media/video/usbvideo/usbvideo.c     |    9 +++--
+ drivers/media/video/v4l1-compat.c           |   50 ++++++++++++++++++++++-----
+ 13 files changed, 90 insertions(+), 50 deletions(-)
+
+Adrian Bunk (2):
+      V4L/DVB (7251): VIDEO_VIVI must depend on VIDEO_DEV
+      V4L/DVB (7328): usb/opera1.c: fix a memory leak
+
+Andrew Morton (1):
+      V4L/DVB (7291): em28xx: correct use of and fix
+
+Cyrill Gorcunov (1):
+      V4L/DVB (7330): V4L1 - fix v4l_compat_translate_ioctl possible NULL deref
+
+Harvey Harrison (1):
+      V4L/DVB (7236): bttv: struct member initialized twice
+
+Ian Armstrong (2):
+      V4L/DVB (7242): ivtv: fix for yuv filter table check
+      V4L/DVB (7279): ivtv: Add missing sg_init_table()
+
+Julia Lawall (1):
+      V4L/DVB (7285): em28xx: Correct use of ! and &
+
+Mauro Carvalho Chehab (3):
+      V4L/DVB (7267): cx88: Fix: Loads tuner module before sending commands to it
+      V4L/DVB (7268): saa7134: fix: tuner should be loaded before calling saa7134_board_init2()
+      V4L/DVB (7367): bug #10211: Fix depencencies for cx2341x
+
+Pascal Terjan (1):
+      V4L/DVB (7334): usb video: add a device link to usbvideo devices, else hal will ignore them
+
+Roel Kluin (1):
+      V4L/DVB (7362): tvp5150.c: logical-bitwise and confusion
+
+Yuri Funduryan (1):
+      V4L/DVB (7228): saa7134: fix FM radio support for the Pinnacle PCTV 110i
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
