@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from roope.top.tkukoulu.fi ([192.103.98.2])
+Received: from wr-out-0506.google.com ([64.233.184.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tpeland@tkukoulu.fi>) id 1JYg43-0001dD-CX
-	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 12:21:44 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by roope.top.tkukoulu.fi (Postfix) with ESMTP id 33DAE231997
-	for <linux-dvb@linuxtv.org>; Mon, 10 Mar 2008 13:17:11 +0200 (EET)
-Date: Mon, 10 Mar 2008 13:17:10 +0200
-From: Tero Pelander <tpeland@tkukoulu.fi>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080310111710.GA27766@tkukoulu.fi>
+	(envelope-from <mrechberger@gmail.com>) id 1Jc8GE-0007xk-WA
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 01:04:01 +0100
+Received: by wr-out-0506.google.com with SMTP id c30so676691wra.14
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 17:03:50 -0700 (PDT)
+Message-ID: <d9def9db0803191703i7ae2af9dje793216ce729a124@mail.gmail.com>
+Date: Thu, 20 Mar 2008 01:03:49 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Matthijs De Smedt" <matthijs@orfu.net>
+In-Reply-To: <e45d04010803191531g119753d5n22accf13e1b4b096@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] illegal bandwith value,
-	driver for Terratec Cinergy DT usb XS
+References: <e45d04010803190957k5dc862aeod3fed3cf5848e8fa@mail.gmail.com>
+	<e2d627830803191424v36a4ffacxe629f49b8490b28d@mail.gmail.com>
+	<e45d04010803191531g119753d5n22accf13e1b4b096@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy CI USB
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,51 +30,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The driver in linux kernel 2.6.24.2 for "Terratec Cinergy DT usb XS 
-diversity" sets the reported bandwith outside the fe_bandwidth_t range. 
-The value 0 (BANDWIDTH_8_MHZ) is replaced with 8000. Here is an example 
-showing the problem...
+On 3/19/08, Matthijs De Smedt <matthijs@orfu.net> wrote:
+> Hello Derk,
+>
+> Thanks for the interesting information. I've looked at the
+> specification. It's very comprehensive concerning the implementation
+> of CI, but does not contain anything about the USB2CI device itself.
+> Also, this thing is complicated.
+>
+> I have no idea how to reverse engineer the BDA driver. I have no
+> experience with reverse engineering nor the technologies used here. If
+> nobody wants to work on this I might give it a shot, but without specs
+> I doubt I'll get very far.
+>
 
-Device: Terratec Cinergy DT usb xs diversity
-Linux: 2.6.24.2 (modules: mt2266, dvb_usb_dib0700)
-Firmware: dvb-usb-dib0700-1.10.fw
+You can find some small hints at:
+* http://mcentral.de/wiki/index.php5/USBVideo
+* http://mcentral.de/wiki/index.php5/Usbreplay
 
+back then I used it for reversing some Isochronous and usb control
+message driven devices, bulk aren't really verified with it. I'm sure
+you can get some ideas from it.
 
-Received event for frontend 0
-
-Status for frontend 0 is now:
-   0 (no signal)
-
-Reported parameters for frontend 0 are now:
-   Frequency: 714000000 Hz
-   Inversion: AUTO (2)
-   Bandwidth: 8 (0)
-   High priority stream code rate: AUTO (9)
-   Low priority stream code rate: AUTO (9)
-   Constellation: QAM64 (3)
-   Transmission mode: AUTO (2)
-   Guard interval: AUTO (4)
-   Hierarchy information: AUTO (4)
-
-Received event for frontend 0
-
-Status for frontend 0 is now:
-   FE_HAS_SIGNAL (found something above the noise level)
-   FE_HAS_CARRIER (found a DVB signal)
-   FE_HAS_VITERBI (FEC is stable)
-   FE_HAS_SYNC (found sync bytes)
-   FE_HAS_LOCK (everything's working)
-
-Reported parameters for frontend 0 are now:
-   Frequency: 714000000 Hz
-   Inversion: AUTO (2)
-   Bandwidth: ??? (8000)
-   High priority stream code rate: 2/3 (2)
-   Low priority stream code rate: 1/2 (1)
-   Constellation: QAM64 (3)
-   Transmission mode: 8K (1)
-   Guard interval: 1/8 (2)
-   Hierarchy information: NONE (0)
+Markus
 
 _______________________________________________
 linux-dvb mailing list
