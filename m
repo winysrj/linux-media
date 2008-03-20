@@ -1,19 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JW9Dn-0006Kd-Aw
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 12:52:45 +0100
-Message-ID: <47CBE67D.3080503@gmail.com>
-Date: Mon, 03 Mar 2008 15:52:29 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <jarro.2783@gmail.com>) id 1JcA5q-0003gM-2g
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 03:01:23 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so346727tia.13
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 19:01:14 -0700 (PDT)
+Message-ID: <abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
+Date: Thu, 20 Mar 2008 13:01:13 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47DF2576.7080907@iki.fi>
 MIME-Version: 1.0
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-References: <625613.51483.qm@web33108.mail.mud.yahoo.com>
-In-Reply-To: <625613.51483.qm@web33108.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
- please verify results was Re: TechniSat SkyStar HD: Problems
- scaning and zaping
+Content-Disposition: inline
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47DBDB9F.5060107@iki.fi>
+	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
+	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>
+	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
+	<47DC8012.3050809@linuxtv.org>
+	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
+	<47DC93D0.3090904@linuxtv.org> <47DF2576.7080907@iki.fi>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,67 +35,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simeon Simeonov wrote:
-> I am using mythtv and here is the sequence of commands:
-> 
-> Without repeat:
-> DiSEqCDevTree: Changing LNB voltage to 13V
-> DiSEqCDevTree: Rotor - Goto Stored Position 2
-> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
-> 
-> With repeat:
-> DiSEqCDevTree: Changing LNB voltage to 13V
-> DiSEqCDevTree: Rotor - Goto Stored Position 2
-> DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-> DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-> DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
-> DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
+On Tue, Mar 18, 2008 at 1:14 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Michael Krufky wrote:
+>
+> > Jarryd Beck wrote:
+>  >> Takes half a minute to load when plugging in, keyboard is slow to respond
+>  >> when tuning, and I get lots of this:
+>  >>
+>  >> af9013_i2c_gate_ctrl: enable:0
+>  >> af9013_i2c_gate_ctrl: enable:1
+>  >>
+>  >> Applied the patch again and it was all fine.
+>  >>
+>  >> Jarryd.
+>  >>
+>  > Thanks for the test, Jarryd.  I will integrate this into the official
+>  > tda18271 driver after testing again on my hardware here.  I will
+>  > probably make it an attach-time configurable option.
+>  >
+>  > Regards,
+>  >
+>  > Mike
+>
+>  I did some fixes and I think driver should be now ready. I also changed
+>  again device plug / fw-download / usb-relink scheme. I put 500ms sleep
+>  to indentify_state in hope that it is enough to drop ghost device driver
+>  after fw is downloaded and stick reconnects.
+>
+>  However I tested I2C-writing with my MT2060 tuner based device by adding
+>  about ~50 register write at once and it did not make any harm.
+>  Anyhow, there is now versions to test:
+>
+>  version without tuner small-i2c limit:
+>
+> http://linuxtv.org/hg/~anttip/af9015_new/
+>
+>  version with tuner small-i2c limit:
+>  http://linuxtv.org/hg/~anttip/af9015_new2/
+>
+>  Regards
+>  Antti
+>  --
+>  http://palosaari.fi/
+>
 
+Sorry about the time I took, I had a lot of uni work.
+The second one worked, the first didn't.
 
-In fact, looks really confusing to me. The diseqc commands just go out 
-as it is,
-through the FIFO. I don't see anything that which changes the commands, but
-if it was working with another card, it should be working with this card 
-too (i
-had some doubts, but when you said it worked with some other card, then i
-don't see the issue in here with the diseqc part. The FiFO either works 
-or not)
-
-
-
-> ----- Original Message ----
-> From: Manu Abraham <abraham.manu@gmail.com>
-> To: Simeon Simeonov <simeonov_2000@yahoo.com>
-> Cc: linux-dvb@linuxtv.org
-> Sent: Sunday, March 2, 2008 2:38:51 PM
-> Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-> 
-> Simeon Simeonov wrote:
->> Hi Manu,
->>
->> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
->> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
->> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
->> east from the target rotor position. 
->> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
->> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
->> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
->> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
->> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
->> wait for one cycle.
->> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
-> 
-> Can you please try to get the DiSEqC strings that you are sending
-> (from the application) in these 2 cases ?
-> 
-> * Without repeat
-> * With repeat
-> 
-> Regards,
-> Manu
-
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
