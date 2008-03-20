@@ -1,30 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2I8IUYo031415
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 04:18:30 -0400
-Received: from mta-fe.casema.nl (cas-mta2-fe.casema.nl [83.80.1.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2I8HwIF007795
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 04:17:58 -0400
-Received: from localhost (cas-filter6.mgmt.casema.nl [10.42.32.119])
-	by mta-fe.casema.nl (Postfix) with ESMTP id DCB0341E2
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 09:17:52 +0100 (CET)
-Received: from mta-fe.casema.nl ([10.42.32.24])
-	by localhost (cas-filter6.mgmt.casema.nl [10.42.32.211]) (amavisd-new,
-	port 20024)
-	with ESMTP id UCBdtCoE2OUI for <video4linux-list@redhat.com>;
-	Tue, 18 Mar 2008 09:17:52 +0100 (CET)
-Received: from [192.168.0.12] (535692A8.cable.casema.nl [83.86.146.168])
-	by mta-fe.casema.nl (Postfix) with ESMTP id ADBC838A9
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 09:17:52 +0100 (CET)
-Message-ID: <47DF7AA5.9040109@casema.nl>
-Date: Tue, 18 Mar 2008 09:17:41 +0100
-From: bas <bvpoppel@casema.nl>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2KBLCcN032344
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 07:21:12 -0400
+Received: from eeyore.nlsn.nu (eeyore.nlsn.nu [213.115.133.58])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2KBKba5011318
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 07:20:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by eeyore.nlsn.nu (Postfix) with ESMTP id 14E9E1C059
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 12:20:36 +0100 (CET)
+Date: Thu, 20 Mar 2008 12:20:36 +0100 (CET)
+From: dlist2@nlsn.nu
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: saa7134 eeprom error
-Reply-To: bas7@casema.nl
+Message-ID: <Pine.LNX.4.64.0803201214570.4638@eeyore.nlsn.nu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: TT-Budget C-1501 not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,33 +26,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+
 Hi,
 
-I hope that someone can give me some directions to solve the problem I 
-am encountering. I searched numerous forums and tried various options, 
-but I am not going to get anywhere withuot some specialist help.
+I just purchased a Technotrend Budget C-1501.
+Im running Mythbuntu Beta, and downloaded the latest v4l drivers but it 
+still fails.
 
-If this is not the right mailing list, can someone point me to the right 
-one, please ?
+lspci -v
 
-Fedora 7, completely updated by yum
-Pinnacle 50i TV card with a FM radio on the card
-I connected the sound with a cable to my sound card, integrated on mobo.
+05:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+        Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
+        Flags: bus master, medium devsel, latency 66, IRQ 5
+        Memory at fc501000 (32-bit, non-prefetchable) [size=512]
 
-The card and tuner are autodetected (card=77 and tuner = 54).
+lspci -n
 
-In dmesg in all cases I tried there is the message eeprom read error.
+05:04.0 0480: 1131:7146 (rev 01)
+        Subsystem: 13c2:101a
+        Flags: bus master, medium devsel, latency 66, IRQ 5
+        Memory at fc501000 (32-bit, non-prefetchable) [size=512]
 
-The image from tv is working, but never any sound.
+log says
 
-So my first thought is that the eeprom error should be fixed.
+ kernel: [   54.207308] Linux video capture  interface: v2.00
+ kernel: [   54.501753] saa7146: register extension 'dvb'.
+ runvdr: stopping after fatal fail (vdr: warning - cannot set dumpable: Invalid argument vdr: no primary device found - using 
+first device!)
 
-Some forums say that this is related with i2c (I do not know waht i2c 
-does) and with the auto dectection.
+And /dev/dvb is empty of course.
+Im not a kernel hacker, but if you have any hits on how to get this card 
+working please let me know.
 
-Any help appreciated,
+Thanks
 
-Bas
+  Daniel
 
 --
 video4linux-list mailing list
