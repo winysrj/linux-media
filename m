@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1Jcc71-0005tS-M7
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 08:56:28 +0100
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from eeyore.nlsn.nu ([213.115.133.58])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dlist2@nlsn.nu>) id 1JcJOF-0003YV-6W
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 12:57:00 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by eeyore.nlsn.nu (Postfix) with ESMTP id 98E2F1C059
+	for <linux-dvb@linuxtv.org>; Thu, 20 Mar 2008 12:56:56 +0100 (CET)
+Date: Thu, 20 Mar 2008 12:56:56 +0100 (CET)
+From: dlist2@nlsn.nu
 To: linux-dvb@linuxtv.org
-Date: Fri, 21 Mar 2008 07:42:56 +0100
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
-	<1206067079.3362.10.camel@pc08.localdom.local>
-In-Reply-To: <1206067079.3362.10.camel@pc08.localdom.local>
+Message-ID: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200803210742.57119@orion.escape-edv.de>
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
-Reply-To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] TT-Budget C-1501 not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,72 +25,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton wrote:
-> Hi,
-> 
-> Am Donnerstag, den 20.03.2008, 00:48 +0100 schrieb Oliver Endriss:
-> > Andrew Junev wrote:
-> > > Hello All,
-> > > 
-> > > I was successfully using two TT S-1401 DVB-S cards in my HTPC running
-> > > Fedora 8. One of my antennas is positioned to Astra 19.2E and its
-> > > signal quality is quite low in my area. But the setup worked just fine
-> > > for me most of the time.
-> > > 
-> > > Last weekend I updated my system from kernel-2.6.23.15-137.fc8 to
-> > > kernel-2.6.24.3-12.fc8. It was just a 'yum update', nothing else.
-> > > Right after that I got no lock on most of Astra transponders (other
-> > > satellites were still Ok, but they normally have a far better signal).
-> > > After checking everything twice without any success, I booted back to
-> > > 2.6.23.15 and my Astra was back!
-> > > 
-> > > Is this a known behavior? I suppose it was not discussed before, so
-> > > this makes me think I am the only one with such a problem...
-> > > Strange... I think the problem is somehow related to the signal level / 
-> > > signal error rate. Looks like weak transponders are harder to lock
-> > > with the new kernel...
-> > > I'd appreciate any comments on this. I don't think I have an urgent
-> > > need to move to 2.6.24 now, but I'd still like to be able to do that
-> > > without loosing my TV... 
-> > > 
-> > > 
-> > > P.S. I can see there's kernel-2.6.24.3-34.fc8 already available for
-> > > Fedora 8. But I didn't try it yet...
-> > 
-> > Afaik this is a known regression in 2.6,24.
-> > 
-> > See 
-> >   http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023477.html
-> > and
-> >   http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023559.html
-> > for the fix.
-> > 
-> > CU
-> > Oliver
-> > 
-> 
-> hmm, thought that this we exactly did avoid on 2.6.24 and 2.6.25.
-> 
-> IIRC, this should never made it into 2.6.24, at least I thought we could
-> always stop it on 2.6.25 before it harms.
-> 
-> Fedora downports from release canditates, and almost always is fine,
-> so I don't trust the 2.6._24_ here.
-> 
-> If nothing else to do ..., might investigate it.
+Hi,
 
-Unfortunately, the regression made it into the 2.6.24 series.
-I just checked and found it in 2.6.24.2. :-(
+I just purchased a Technotrend Budget C-1501.
+Im running Mythbuntu Beta, and downloaded the latest v4l drivers but it 
+still fails.
 
-So we should submit a bug fix for 2.6,24, too.
+lspci -v
 
-CU
-Oliver
+05:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+        Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
+        Flags: bus master, medium devsel, latency 66, IRQ 5
+        Memory at fc501000 (32-bit, non-prefetchable) [size=512]
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+lspci -n
+
+05:04.0 0480: 1131:7146 (rev 01)
+        Subsystem: 13c2:101a
+        Flags: bus master, medium devsel, latency 66, IRQ 5
+        Memory at fc501000 (32-bit, non-prefetchable) [size=512]
+
+log says
+
+ kernel: [   54.207308] Linux video capture  interface: v2.00
+ kernel: [   54.501753] saa7146: register extension 'dvb'.
+ runvdr: stopping after fatal fail (vdr: warning - cannot set dumpable: Invalid argument vdr: no primary device found - using 
+first device!)
+
+And /dev/dvb is empty of course.
+Im not a kernel hacker, but if you have any hits on how to get this card 
+working please let me know.
+
+Thanks
+
+  Daniel
 
 _______________________________________________
 linux-dvb mailing list
