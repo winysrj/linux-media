@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JVNkj-0006tV-HD
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 10:11:33 +0100
-Received: by ug-out-1314.google.com with SMTP id o29so1228101ugd.20
-	for <linux-dvb@linuxtv.org>; Sat, 01 Mar 2008 01:11:30 -0800 (PST)
-Message-ID: <47C91DBE.4050409@googlemail.com>
-Date: Sat, 01 Mar 2008 09:11:26 +0000
-From: Andrea <mariofutire@googlemail.com>
+Message-ID: <47E1CC07.8050006@iki.fi>
+Date: Thu, 20 Mar 2008 04:29:27 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Florian Lohoff <flo@rfc822.org>
-References: <47C8A135.9070209@googlemail.com>
-	<20080301085538.GA4003@paradigm.rfc822.org>
-In-Reply-To: <20080301085538.GA4003@paradigm.rfc822.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help using DMX_SET_BUFFER_SIZE
+To: Jarryd Beck <jarro.2783@gmail.com>
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
+	<47DC6E0A.9000904@linuxtv.org>	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>	<47DC8012.3050809@linuxtv.org>	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>	<47DC93D0.3090904@linuxtv.org>
+	<47DF2576.7080907@iki.fi>
+	<abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
+In-Reply-To: <abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,54 +24,73 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Florian Lohoff wrote:
-> On Sat, Mar 01, 2008 at 12:20:05AM +0000, Andrea wrote:
->> on the dvr (I think), but it does not make much of a change. The ioctl call returns success.
->> I've printed a lot of debug output (adding a few dprintk) and this is what I see when I run gnutv.
->> Now, I set the buffer to 1024 * 1024 which is nowhere in the log.
->> I cannot see in the log the 2 functions (demux and dvr) handling this ioctl call:
->> dvb_demux_do_ioctl and dvb_dvr_do_ioctl (I've added some printk as well).
+Jarryd Beck wrote:
+> On Tue, Mar 18, 2008 at 1:14 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> Michael Krufky wrote:
+>>
+>>> Jarryd Beck wrote:
+>>  >> Takes half a minute to load when plugging in, keyboard is slow to respond
+>>  >> when tuning, and I get lots of this:
+>>  >>
+>>  >> af9013_i2c_gate_ctrl: enable:0
+>>  >> af9013_i2c_gate_ctrl: enable:1
+>>  >>
+>>  >> Applied the patch again and it was all fine.
+>>  >>
+>>  >> Jarryd.
+>>  >>
+>>  > Thanks for the test, Jarryd.  I will integrate this into the official
+>>  > tda18271 driver after testing again on my hardware here.  I will
+>>  > probably make it an attach-time configurable option.
+>>  >
+>>  > Regards,
+>>  >
+>>  > Mike
+>>
+>>  I did some fixes and I think driver should be now ready. I also changed
+>>  again device plug / fw-download / usb-relink scheme. I put 500ms sleep
+>>  to indentify_state in hope that it is enough to drop ghost device driver
+>>  after fw is downloaded and stick reconnects.
+>>
+>>  However I tested I2C-writing with my MT2060 tuner based device by adding
+>>  about ~50 register write at once and it did not make any harm.
+>>  Anyhow, there is now versions to test:
+>>
+>>  version without tuner small-i2c limit:
+>>
+>> http://linuxtv.org/hg/~anttip/af9015_new/
+>>
+>>  version with tuner small-i2c limit:
+>>  http://linuxtv.org/hg/~anttip/af9015_new2/
+>>
+>>  Regards
+>>  Antti
+>>  --
+>>  http://palosaari.fi/
+>>
 > 
-> In 2.6.25-rc3 the dvr kernel side looks like this:
+> Sorry about the time I took, I had a lot of uni work.
+> The second one worked, the first didn't.
 > 
-> 1015         switch (cmd) {
-> 1016         case DMX_SET_BUFFER_SIZE:
-> 1017                 // FIXME: implement
-> 1018                 ret = 0;
-> 1019                 break;
-> 
-> i guess its clear why it doesnt make a difference ;)
-> 
-> Flo
+> Jarryd.
 
-Yes I had noticed that and I was trying to see what I can do.
-My problem is that I replace the // FIXME with a printk() and it does not get called
-How is it supposed to work?
+Thanks, I removed obsolete trees.
+Shall I ask two more questions;
+Did stick plug work now without no_reconnect or any other modifications 
+(probably yes)?
+How about lock LED? I tried to look sniffs but did not see straight 
+answer why it did not work for you. Anyhow, I did small change that 
+could affect it.
+If you want to play it you can try to change line from frontend/af9013.c
+return af9013_write_reg_bits(state, 0xd730, 0, 1, onoff);
+to
+return af9013_write_reg_bits(state, 0xd730, 1, 1, onoff);
+or 2 or 3 to see if it helps.
 
-I open /dev/dvb/adapter0/dvr0, I get back a file descriptor and the I call the ioctl with that file 
-descriptor.
-
-This code comes from gnutv_data.c plus my additional code
-
-		// open dvr device
-		dvrfd = dvbdemux_open_dvr(adapter_id, 0, 1, 0);
-		if (dvrfd < 0) {
-			fprintf(stderr, "Failed to open DVR device\n");
-			exit(1);
-		}
-
-		if (buffer_size > 0)
-		{
-		  int res = dvbdemux_set_buffer(dvrfd, buffer_size);
-		  if (res < 0) {
-		    fprintf(stderr, "Failed to set ring buffer size\n");
-		    exit(1);
-		  }
-		}
-
-Regardless of what is implemented or not, would that be correct?
-
-Andrea
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
