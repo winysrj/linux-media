@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.191])
+Received: from yosemite.cellcom.com ([206.40.111.98])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZYFt-0002Cc-Bs
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 22:12:59 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1366694tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 14:12:52 -0700 (PDT)
-Message-ID: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-Date: Thu, 13 Mar 2008 08:12:50 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: mkrufky@linuxtv.org
-In-Reply-To: <47D846A1.9010701@linuxtv.org>
+	(envelope-from <Mark.Jenks@nsighttel.com>) id 1Jc8j4-0005ng-As
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 01:33:49 +0100
+Received: from exchange01.Nsighttel.com (exchange01.nsighttel.com
+	[10.70.91.215])
+	by yosemite.cellcom.com (Postfix) with ESMTP id 7527A4ECA5
+	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 18:33:09 -0600 (CST)
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121407n59f7be10k55d7a256f60f2178@mail.gmail.com>
-	<47D846A1.9010701@linuxtv.org>
-Cc: crope@iki.fi, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Date: Wed, 19 Mar 2008 19:33:08 -0500
+Message-ID: <C82A808D35A16542ACB16AF56367E0580A79692E@exchange01.nsighttel.com>
+In-Reply-To: <944EB4AD-46F5-45AF-B30F-E3DE14E61D68@gmail.com>
+References: <C82A808D35A16542ACB16AF56367E0580A7968E9@exchange01.nsighttel.com><c70a981c0803170530w711784f3me773ae49dd876e3d@mail.gmail.com><c70a981c0803170531jdbe8396j41ecd8394b97b5bb@mail.gmail.com><c70a981c0803170701k3ab93c60k6a59414ce8807398@mail.gmail.com><47DE9362.4050706@linuxtv.org><C82A808D35A16542ACB16AF56367E0580A7968FE@exchange01.nsighttel.com><47DEB5EF.8010207@linuxtv.org><C82A808D35A16542ACB16AF56367E0580A7968FF@exchange01.nsighttel.com><C82A808D35A16542ACB16AF56367E0580A796900@exchange01.nsighttel.com><1205794556.3444.12.camel@pc08.localdom.local><C82A808D35A16542ACB16AF56367E0580A79691B@exchange01.nsighttel.com><1205872663.3385.129.camel@pc08.localdom.local><C82A808D35A16542ACB16AF56367E0580A79691D@exchange01.nsighttel.com><1205876406.3385.140.camel@pc08.localdom.local><C82A808D35A16542ACB16AF56367E0580A796920@exchange01.nsighttel.com>
+	<944EB4AD-46F5-45AF-B30F-E3DE14E61D68@gmail.com>
+From: "Mark A Jenks" <Mark.Jenks@nsighttel.com>
+To: "Jon" <jon.the.wise.gdrive@gmail.com>, "linux-dvb" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints kernel.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,136 +30,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 13, 2008 at 8:09 AM,  <mkrufky@linuxtv.org> wrote:
->
-> Jarryd Beck wrote:
->  > On Thu, Mar 13, 2008 at 7:54 AM, Michael Krufky <mkrufky@linuxtv.org>
->  wrote:
->  >
->  >> On Wed, Mar 12, 2008 at 4:36 PM, Jarryd Beck <jarro.2783@gmail.com>
->  wrote:
->  >>  >
->  >>  > >  >>
->  >>  >  >  >> Jarryd,
->  >>  >  >  >>
->  >>  >  >  >> I've analyzed the snoop that you've taken of the windows
->  driver, and I
->  >>  >  >  >> conclude that the driver is basically doing exactly the same
->  that the
->  >>  >  >  >> linux driver would do.  The only thing that I cannot verify is
->  whether
->  >>  >  >  >> or not the tda18211 uses the same table values as the
->  tda18271c1.
->  >>  >  >  >> Based on the traffic in your snoop, it looks like the exact
->  same
->  >>  >  >  >> algorithm is used, but based on a new set of tables -- I will
->  not be
->  >>  >  >  >> able to confirm that without a tda18211 datasheet.  The only
->  thing
->  >>  >  >  >> that you can do is try the tda18271 driver and hopefully it
->  will work.
->  >>  >  >  >>
->  >>  >  >  >> Have you tried to tune yet?  There is a space in your
->  channels.conf,
->  >>  >  >  >> "7 Digital" -- you may want to change that to something like,
->  >>  >  >  >> "7Digital" so that command line applications will work.
->  >>  >  >  >>
->  >>  >  >
->  >>  >  >
->  >>  >  >
->  >>  >  > Antti Palosaari wrote:
->  >>  >  >  > hello
->  >>  >  >  > I looked sniffs and find correct demodulator initialization
->  values for
->  >>  >  >  > this NXP tuner. Copy & paste correct table from attached file
->  and try.
->  >>  >  >  > Hopefully it works. I compared your sniff to mt2060 and qt1010
->  based
->  >>  >  >  > devices and there was still some minor differences to check.
->  >>  >  >  >
->  >>  >  >  > regards,
->  >>  >  >  > Antti
->  >>  >  >  >
->  >>  >  >
->  >>  >  >  Antti,
->  >>  >  >
->  >>  >  >  Please remember not to top-post.
->  >>  >  >
->  >>  >  >  Jarryd,
->  >>  >  >
->  >>  >  >  I have done further analysis on the snoop logs.  Not only is the
->  driver
->  >>  >  >  using the same protocol as the tda18271 linux driver, it also
->  seems to
->  >>  >  >  use the same table values as used with the tda18271c1 -- The linux
->  >>  >  >  driver should work on your tuner without any modification at all.
->  >>  >  >
->  >>  >  >  Regards,
->  >>  >  >
->  >>  >  >  Mike
->  >>  >  >
->  >>  >
->  >>  >  I've got another tuner which works, so I know I'm tuning correctly,
->  it just
->  >>  >  doesn't actually tune. I tried with mplayer, it just sat there saying
->  >>  >  dvb_tune Freq: 219500000 and did nothing. It also made my whole
->  >>  >  computer go really slow, I don't know what it was actually doing.
->  >>  >
->  >>  >  Antti, as I said I've never done anything like this before so I have
->  no
->  >>  >  idea what I'm doing, so I have no idea where to paste which table.
->  >>
->  >>  Please try using tzap.  This will show you FE status once every
->  >>  second.  Let it run for a whole minute -- maybe there is some noise
->  >>  that may cause it to take a longer time to lock (if that's the case,
->  >>  then there are some tweaks that we can do.)  Show us the femon output
->  >>  produced by running tzap.
->  >>
->  >>  -Mike
->  >>
->  >>
->  >
->  > $ tzap -a 2 "TEN Digital"
->  > using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
->  > tuning to 219500000 Hz
->  > video pid 0x0200, audio pid 0x028a
->  > status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >
->  > $ femon -a 2
->  > using '/dev/dvb/adapter2/frontend0'
->  > FE: Afatech AF9013 DVB-T (TERRESTRIAL)
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  > status 01 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->  >
->  > The status 00 lines were from before I started tzap, after I started tzap
->  > it did nothing for half a minute, then printed the status 01 line, then
->  > sat there for another half a minute, and I killed it at that point.
->  > My computer was also taking quite a few seconds to respond to
->  > me pressing the keyboard for the whole time I was tuning it.
->  >
->  > Jarryd.
->  >
->  What shows in dmesg during the above?
->
->  -Mike
->
+Which version did you load?  
 
-nothing new
-
-Jarryd.
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org 
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Jon
+> Sent: Wednesday, March 19, 2008 7:05 PM
+> To: linux-dvb
+> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, 
+> taints kernel.
+> 
+> >>
+> >>> -----Original Message-----
+> >>> From: hermann pitton [mailto:hermann-pitton@arcor.de]
+> >>> Sent: Monday, March 17, 2008 5:56 PM
+> >>> To: Mark A Jenks
+> >>> Cc: Steven Toth; linux-dvb
+> >>> Subject: Re: [linux-dvb] HVR-1250, Suse 10.3, scan hangs, taints
+> >> kernel.
+> >>>
+> >>> Hi,
+> >>>
+> >>> Am Montag, den 17.03.2008, 14:05 -0500 schrieb Mark A Jenks:
+> >>>> SUCCESS!
+> >>>>
+> >>>> Built 2.6.24-3 and installed it.  Recompiled CVS, and installed
+> > it.
+> >>>>
+> >>>> Now it doesn't hang when it finds a signal.
+> >>>>
+> >>>> -Mark
+> >>>
+> >>> Steve, the noise was not without reason.
+> >>>
+> >>> You might see, that all your drivers within and out of 
+> the kernel  
+> >>> have
+> >>> been broken. Not to make any noise then, seems to me not a good  
+> >>> idea.
+> >>>
+> >>> Also, on LKML was some stuff, that there is a general problem
+> >>> initializing PCI devices multiple times and eventually have  
+> >>> problems on
+> >>> shutdown/suspend then. But to late for the recent -rc.
+> >>>
+> >>> So, as it stands, given that we are not that backward compatible  
+> >>> as have
+> >>> been previously anymore, to know that this change to 2.6.24 did  
+> >>> anything
+> >>> usefull, what I doubt, would be not bad to have in details.
+> >>>
+> >>> Cheers,
+> >>> Hermann
+> >>>
+> 
+> FWIW, compiling the 2.6.24-3 kernel also solved my issue with (dvb) 
+> scan hanging. As noted in previous messages, I have a fresh 10.3  
+> install of suse, updated everything and installed the latest 
+> v4l-dvb.  
+> Every time I scanned for channels, it'd hang as soon as it 
+> found one,  
+> and wouldn't release the card or the process (not even if I killed  
+> it). After doing yet another fresh install, and then building the  
+> 2.6.24 (as opposed to the 2.6.22 incldued with suse) kernel, scan  
+> worked fine, and resulted in finding all my available channels.
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 _______________________________________________
 linux-dvb mailing list
