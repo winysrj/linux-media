@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from eir.is.scarlet.be ([193.74.71.27])
+Received: from mailout05.sul.t-online.de ([194.25.134.82])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ben@bbackx.com>) id 1JZlAn-0001k4-Ja
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 12:00:34 +0100
-Received: from fry (ip-81-11-185-209.dsl.scarlet.be [81.11.185.209])
-	by eir.is.scarlet.be (8.14.2/8.14.2) with ESMTP id m2DB0R8g018923
-	for <linux-dvb@linuxtv.org>; Thu, 13 Mar 2008 12:00:28 +0100
-From: "Ben Backx" <ben@bbackx.com>
-To: <linux-dvb@linuxtv.org>
-References: <000f01c8842b$a899efe0$f9cdcfa0$@com>
-	<21776.81.144.130.125.1205324398.squirrel@manicminer.homeip.net>
-	<20080313062848.GC17780@tkukoulu.fi>
-In-Reply-To: <20080313062848.GC17780@tkukoulu.fi>
-Date: Thu, 13 Mar 2008 12:00:19 +0100
-Message-ID: <004401c884f9$6e37c150$4aa743f0$@com>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JcSm1-0006PK-TY
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 22:58:10 +0100
+Message-ID: <47E2DDDD.9090607@t-online.de>
+Date: Thu, 20 Mar 2008 22:57:49 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Language: en-gb
-Subject: Re: [linux-dvb] Implementing support for multi-channel
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>	<200803200118.26462@orion.escape-edv.de>	<Pine.LNX.4.62.0803201931260.12540@ns.bog.msu.ru>	<47E2CF49.8070302@t-online.de>
+	<47E2D3C4.2050005@gmail.com>
+In-Reply-To: <47E2D3C4.2050005@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
+ transponder fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,35 +27,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi, Manu
 
-> -----Original Message-----
-> From: Tero Pelander [mailto:tpeland@tkukoulu.fi]
-> Sent: 13 March 2008 07:29
-> To: Ben Backx
-> Subject: Re: [linux-dvb] Implementing support for multi-channel
+Manu Abraham schrieb:
+> Hi Hartmut,
 > 
-> On Wed, Mar 12, 2008 at 12:19:58PM -0000, Stephen Rowles wrote:
-> >> I was wondering if there's some info to find on how to implement
-> (and
-> >> test) multi-channel receiving?
+> Hartmut Hackmann wrote:
 > 
-> One such program that is easy to understand due to modularity is
-> dvbyell. It has separate code for tuner part and separate code for
-> splitting MPTS (multiple program transport stream) into many single
-> program transport streams.
+>> This might be right! I could not get good information regarding the
+>> transponder bandwidths. We might need to make this depend on the
+>> symbol rate or a module parameter.
 > 
-> http://www.dvbyell.org/
+> 
+> You can calculate the tuner bandwidth from the transponder symbol rate
+> (in Mbaud) for DVB-S:
+> 
+> BW = (1 + RO) * SR/2 + 5) * 1.3
+> 
+> 
+> Regards,
+> Manu
+> 
+Thanks for the hint. So we should be able to tune this according to the
+expected symbol rate - good.
 
-
-Thank you everybody for the answers so far, I do have enough software-based
-solutions to start testing.
-However, there's still the question: can filtering be done in the driver?
-Are there any drivers that support this or which dvb-api-functions need to
-be implemented?
-
-Regards,
-Ben
-
+Best regards
+  Hartmut
 
 _______________________________________________
 linux-dvb mailing list
