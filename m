@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SIZYMJ020520
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:35:34 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SIZLiA028231
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:35:22 -0400
-Date: Fri, 28 Mar 2008 15:34:42 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-Message-ID: <20080328153442.58b2c108@gaivota>
-In-Reply-To: <304e0a371d12f77e1575.1206699518@localhost>
-References: <patchbomb.1206699511@localhost>
-	<304e0a371d12f77e1575.1206699518@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2KKgbJk017413
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 16:42:37 -0400
+Received: from mailout09.sul.t-online.de (mailout09.sul.t-online.de
+	[194.25.134.84])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2KKfiBY017955
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 16:41:44 -0400
+Message-ID: <47E2CBEF.3090609@t-online.de>
+Date: Thu, 20 Mar 2008 21:41:19 +0100
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <47E060EB.5040207@t-online.de>	<Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>	<47E190CF.9050904@t-online.de>	<20080319193832.643bf8a0@gaivota>	<47E1BCAF.80208@t-online.de>
+	<20080319224222.581d7b85@gaivota>
+In-Reply-To: <20080319224222.581d7b85@gaivota>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [PATCH 7 of 9] vivi: Simplify the vivi driver and avoid
- deadlocks
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,62 +31,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Brandon,
+HI, Mauro
 
-I'll try to test the patch series. They seems fine to my eyes, on a first look.
-I have just some comments about patch 7/9.
+Mauro Carvalho Chehab schrieb:
+> On Thu, 20 Mar 2008 02:23:59 +0100
+> Hartmut Hackmann <hartmut.hackmann@t-online.de> wrote:
+> 
+>>> On your patch, you're just returning, if dev=NULL, at saa7134 callback function. IMO, the correct would be to
+>>> print an error message and return. Also, we should discover why dev is being
+>>> null there (I'll try to identify here - the reason - yet, I can't really test,
+>>> since the saa7134 boards I have don't need any callback.
+>> That's not the point. In the call in tda827x.c tda827xa_lna_gain(), the argument
+>> did not point to the saa7134_dev structure as the function expected. I added
+>> the check for NULL because only at the very first call, the pointer is still
+>> not valid. I did not check this carefully but i guess this is a matter of the
+>> initilization sequence of the data structures. IMHO yes, we should understand this
+>> sometime but this does not have priority because i am sure that the NULL pointer
+>> occurs only during initialization.
+> 
+> This is caused by a patch conflict between hybrid redesign and the merge of
+> xc3028 support. The enclosed experimental patch fixes the tuner_callback
+> argument, on linux/drivers/media/dvb/frontends/tda827x.c. 
+> It should also fix the priv argument on saa7134_tuner_callback(). I can't test
+> the saa7134 part here, due to the lack of a saa7134 hardware that needs a
+> callback.
+> 
+> The patch also intends to make xc3028 easier to use. That part is still not
+> fully working. I should finish this patch tomorrow.
+> 
+>>>>> I still need to send a patchset to Linus, after testing compilation
+>>>>> (unfortunately, I had to postpone, since I need first to free some
+>>>>> hundreds of Mb on my HD on my /home, to allow kernel compilation).
+>>>>> Hopefully, I'll have some time tomorrow for doing a "housekeeping".
+>>>>>
+>>>> Unfortunately, i deleted you mails describing what went to linux and i don't
+>>>> have the RC source here :-(
+>>> You may take a look on master branch on my git tree. I'm about to forward him a
+>>> series of patches. Hopefully, 2GB free space will be enough for a full kernel
+>>> compilation. I'll discover soon...
+>>>
+>> Jep. Meanwhile Michael confirmed that the problem is not in mainstream,
+>> so there is no reason to hurry.
+> 
+> Yes.
+> 
+>> But we should have a bigger audience for my latest changes, so i will send
+>> you a pull request in a minute.
+> 
+> Could you please test my patch first? Having the same arguments for all
+> callback functions avoid future mistakes.
+> 
+> ---
+> [RFC] Fix tuner_callback for tda827x
+> 
+> Signed-off-by Mauro Carvalho Chehab <mchehab@infradead.org>
+> 
+<snip>
 
-> Also, is anyone using videobuf-vmalloc besides vivi?  The current videobuf API
-> feels over extended trying to take on the task of a second backend type.
+Your patch does not completely apply for me, it fails in cx88-dvb.c
+I had a close look and found that we are going in the same direction.
+- The change in tda827x is the same as i did.
+- In saa7134-cards.c your patch is right. My version just worked by accident.
+  I corrected this in my repository.
+By the way: the dev pointer is NULL during initialization is gone.
+I tested again and things work for me.
 
-The only current driver at the tree using videobuf-vmalloc is vivi.
-There's another driver using it at tm6000 driver, not merged yet [1].
+I would recommend the following:
+- You pull from my repository (sent you the request yesterday)
+- You apply the patch *except* the changes in tda827x.c, saa7134-cards.c
+  and saa7134-dvb.c. Afterwards we should be fine.
 
-On Fri, 28 Mar 2008 03:18:38 -0700
-Brandon Philips <brandon@ifup.org> wrote:
+My other changes to tda827x and saa7134-dvb.c are not only cosmetic. It merged
+the _lna_gain functions for analog and dvb and adapt the data structures.
+What do you think?
 
-> --- a/linux/drivers/media/video/vivi.c
-> +++ b/linux/drivers/media/video/vivi.c
-> @@ -5,6 +5,7 @@
->   *      Mauro Carvalho Chehab <mchehab--a.t--infradead.org>
->   *      Ted Walther <ted--a.t--enumera.com>
->   *      John Sokol <sokol--a.t--videotechnology.com>
-> + *      Brandon Philips <brandon@ifup.org>
+I will be out from friday to monday.
 
-This is under copyright (2006), as if you were one of the authors of the
-original driver. Also, I prefer if you add a short line bellow your copyright
-for the job you've done on the driver. Something like:
-
-+ *
-+ *  Copyright (c) 2008 by Brandon Philips <brandon@ifup.org>
-+ *       - Fix bad locks and cleans up streaming code
-
-> -static int restart_video_queue(struct vivi_dmaqueue *dma_q)
-> -{
-...
-> -}
-
-While the restart and timeout code is not needed on vivi driver, IMO, we should
-keep it, since the main reason for this driver is to be a reference code. 
-
-This kind of code is important on real drivers, since the IRQ's may not be called
-for some reason. On cx88 and on saa7134, this happens on several situations[2]. 
-
-Without a timeout, the driver will wait forever to receive a buffer.
-
-This task is also needed by tm6000 driver, for the same reasons.
-
-[1] Available at: http://linuxtv.org/hg/~mchehab/tm6010
-
-[2] For example, I suffered an issue yesterday with my machine, that I believe
-to be caused by an excess of power consumption. The effect is that cx88 weren't
-generating DMA interrupts, if I loaded my machine with 3 pci boards. The
-removal of one board made the cx88 board to work again. I'll test today again
-with a newer power supply. Without the timeout code, the player would just
-hang, waiting forever for some data at the video buffer.
-
-Cheers,
-Mauro
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
