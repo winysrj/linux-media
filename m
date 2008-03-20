@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from f185.mail.ru ([194.67.57.147])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JXrMA-0003nY-Fz
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 06:12:27 +0100
-Message-ID: <47D22035.90700@linuxtv.org>
-Date: Sat, 08 Mar 2008 00:12:21 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: "Timothy D. Lenz" <tlenz@vorgon.com>
-References: <001501c880b3$5a749430$0a00a8c0@vorg>
-In-Reply-To: <001501c880b3$5a749430$0a00a8c0@vorg>
+	(envelope-from <goga777@bk.ru>) id 1JcDnC-0002HU-CK
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 06:58:22 +0100
+From: Igor <goga777@bk.ru>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+Mime-Version: 1.0
+Date: Thu, 20 Mar 2008 08:57:48 +0300
+References: <20080319222137.GA30672@gmail.com>
+In-Reply-To: <20080319222137.GA30672@gmail.com>
+Message-Id: <E1JcDme-000CXY-00.goga777-bk-ru@f185.mail.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Supported ATSC cards with HW mpeg encoders
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SFZSNDAwMCBwYXRjaCBhbmQgTGF0ZXN0IE11bHRp?=
+	=?koi8-r?b?cHJvdG8=?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,37 +28,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Timothy D. Lenz wrote:
-> I plan to get a dual ATSC tunner at some point, but as the 2250 does not
-> seem to even be out yet and the HDHomeRun does not support NTSC, I am
-> looking at getting a cheaper card that does suport NTSC for now. I am runing
-> VDR and using the Nexus RGB out to a 23 year old Sony. So any HD must be
-> down scaled anyway. AS a couple of our Digital locals are HD, this is what I
-> want a card with NTSC for, to get the SDTV format of those channels. Cards
-> like the pcHDTV HD-5500 while claiming to suport NTSC, do not have a HW mpeg
-> encoder to convert the video to a format that can be sent out the Nexus
-> video out. You would still need to set up software encoder/decoders. Problem
-> is, the specs for ATSC tuner cards fall far short of providing this info. So
-> what I want to know is, do any of the following cards have HW mpeg2 encoders
-> that is suported by linux/vdr:
+> That's very strange as it don't seems to have been change on multiproto
+> since my last patch the 13 of this month. Or you mean my patch is wrong ?
+> "Working HVR-4000 (as of 2008-03-13) patch for multiproto ?"
 > 
-> DVICO FusionHDTV 5 RT Lite
-> http://store.snapstream.com/fusionhdtv-lite.html?gclid=CJODl6T0-ZECFQovgwod0Vg_xA
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024487.html
 > 
-> KWorld ATSC 115
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815260005 (they also
-> have a 120, but I'm not finding much about linix suport for it ether)
-> 
-> Pinnacle PCTV HD
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815144018
+> If my patch is wrong, it's a funny way to tell me...
 
-None of the above have hardware mpeg encoders.  A good card that I'd recommend for your needs right now is the Hauppauge HVR-1800.
 
-This is a dual tuner combo atsc/qam / hardware mpeg encoder card.  Already the ATSC/QAM support is in the 2.6.24 kernel.  Stoth has the hardware mpeg encoder working in his cx23885-video tree.  After some more testing and cleanups, it will eventually be merged into the master repository, hopefully in time for the 2.6.26 kernel release.
+does your patch need to use instead the hvr4000-patch from Holger Steinhaus
+http://www.linuxtv.org/pipermail/linux-dvb/2008-January/023390.html
 
-HTH,
+Igor
 
-Mike
 
 _______________________________________________
 linux-dvb mailing list
