@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.191])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <derk.dukker@gmail.com>) id 1JXmWh-0002xz-FM
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 01:03:06 +0100
-Received: by rv-out-0910.google.com with SMTP id b22so510876rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 07 Mar 2008 16:02:55 -0800 (PST)
-Message-ID: <e2d627830803071602ve71f9fap4e46fa39db534f87@mail.gmail.com>
-Date: Sat, 8 Mar 2008 01:02:55 +0100
-From: "Derk Dukker" <derk.dukker@gmail.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JcGf7-0000CA-5H
+	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 10:02:13 +0100
+Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 47E1B79100003B8B for linux-dvb@linuxtv.org;
+	Thu, 20 Mar 2008 10:02:09 +0100
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
+Date: Thu, 20 Mar 2008 10:02:47 +0100
+References: <47E226E7.7030601@shikadi.net>
+In-Reply-To: <47E226E7.7030601@shikadi.net>
 MIME-Version: 1.0
-Subject: [linux-dvb] Cinergy Ci usb support???
+Content-Disposition: inline
+Message-Id: <200803201002.47240.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] dvbstream reliability issues?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,54 +23,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1108313312=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1108313312==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_12785_17966668.1204934575249"
+On Thursday 20 March 2008 09:57:11 Adam Nielsen wrote:
+> Hi all,
+>
+> I've recently started using dvbstream (instead of dvbrecord) to
+> record shows using cron but I'm finding it to be very unreliable.
+>
+> Depending on my reception quality, it has a tendency to segfault
+> fairly regularly - enough that I wrote a script to reload it after
+> a segfault so that I wouldn't miss my recording.  With this set up
+> it usually segfaults once every 15 minutes or so, and sometimes as
+> often as every 4-5 minutes if the reception isn't so great.
+>
+> Sometimes it doesn't segfault though, it just stops recording for
+> some reason (the output file only grows by a few bytes a minute.) 
+> This is worse because it doesn't terminate, so my script isn't able
+> to reload it to catch the rest of the recording.
+>
+> For those people using dvbstream to do their recording, are any of
+> you having issues like this?
+>
+> I'm running CVS from 2008-02-24 and I'm using -prog to record based
+> on the program instead of using PIDs (as our broadcasters here seem
+> to change their PIDs without warning every couple of months.)
+>
+> I'm hoping there's some easy fix for this, because I'd rather not
+> have to try to get dvbrecord to work again!
+>
+> Thanks,
+> Adam.
+>
 
-------=_Part_12785_17966668.1204934575249
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello all,
-I just bought a Cinergy DT USB XS Diversity and a Cinergy CI usb. The
-Cinergy DT USB XS Diversity seems to be supported under linux (haven't tried
-it yet though) but the Cinergy CI usb isn't supported under linux.
-Is it a lot of work to create a driver for it to make it work under linux???
-I really need one because in the Netherlands most of the channels are
-encrypted.
-Could you please let me know... Or can I help?
-
-regards,
-
-Derk
-
-------=_Part_12785_17966668.1204934575249
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<span class="Apple-style-span" style="border-collapse: collapse; ">Hello all,<div><br></div><div>I just bought a Cinergy DT USB XS Diversity and a Cinergy CI usb. The Cinergy DT USB XS Diversity seems to be supported under linux (haven&#39;t tried it yet though) but the Cinergy CI usb isn&#39;t supported under linux.&nbsp;</div>
-<div>Is it a lot of work to create a driver for it to make it work under linux??? I really need one because in the Netherlands most of the channels are encrypted.</div><div>Could you please let me know... Or can I help?</div>
-<div><br></div><div>regards,</div><div><br></div><font color="#888888"><div>Derk</div></font></span>
-
-------=_Part_12785_17966668.1204934575249--
-
-
---===============1108313312==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I use it for hours, even forgetting that it's recording, without 
+segfaults.
+Try to run it under gdb (after having compiled it with -g) and 
+see with "bt" where it segfaults, or bugs can't be fixed
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1108313312==--
