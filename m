@@ -1,18 +1,36 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jon.the.wise.gdrive@gmail.com>) id 1Jasin-0004ep-LU
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 14:16:18 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so3873500fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 06:16:14 -0700 (PDT)
-Mime-Version: 1.0 (Apple Message framework v753)
-In-Reply-To: <7506F33A-1475-4D05-9562-885CAEA8C463@gmail.com>
-References: <7506F33A-1475-4D05-9562-885CAEA8C463@gmail.com>
-Message-Id: <67E2C7B4-2D3D-43C6-ADC7-A53420DA5014@gmail.com>
-From: Jon <jon.the.wise.gdrive@gmail.com>
-Date: Sun, 16 Mar 2008 06:16:03 -0700
+	(envelope-from <zzam@gentoo.org>) id 1Jcm6k-0003NX-O2
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 19:36:53 +0100
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id EF37022715B
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:18 +0100 (CET)
+Received: from localhost (unknown [192.168.1.157])
+	by mail.m-online.net (Postfix) with ESMTP id 2D48C90092
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:08 +0100 (CET)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (scanner1.m-online.net [192.168.1.157]) (amavisd-new,
+	port 10024) with ESMTP id 34b3n+MKGN5B for <linux-dvb@linuxtv.org>;
+	Fri, 21 Mar 2008 19:36:07 +0100 (CET)
+Received: from gauss.x.fun (ppp-88-217-123-54.dynamic.mnet-online.de
+	[88.217.123.54]) by mail.nefkom.net (Postfix) with ESMTP
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:07 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by gauss.x.fun (Postfix) with ESMTP id DFCD41D538B
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 19:36:06 +0100 (CET)
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle HDTV PCI issues
+Date: Fri, 21 Mar 2008 19:36:05 +0100
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
+	<47E2D3C4.2050005@gmail.com>
+	<200803211015.54663@orion.escape-edv.de>
+In-Reply-To: <200803211015.54663@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200803211936.06052.zzam@gentoo.org>
+Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
+	transponder fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,61 +38,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Freitag, 21. M=E4rz 2008, Oliver Endriss wrote:
+> Hi,
+>
+> Manu Abraham wrote:
+> > Hi Hartmut,
+> >
+> > Hartmut Hackmann wrote:
+> > > This might be right! I could not get good information regarding the
+> > > transponder bandwidths. We might need to make this depend on the
+> > > symbol rate or a module parameter.
+> >
+> > You can calculate the tuner bandwidth from the transponder symbol rate
+> > (in Mbaud) for DVB-S:
+> >
+> > BW =3D (1 + RO) * SR/2 + 5) * 1.3
+>
+> Apparently I need some lessons in signal theory. ;-)
+> What does R0 stand for?
+>
+> Do we have to select a higher cut-off value to compensate for the LNB
+> drift and other stuff like that?
+>
+Zarlink zl1003x datasheet (avail on net) tells this:
+fbw =3D (alpha * symbol rate) / (2.0 * 0.8) + foffset
 
-On Mar 16, 2008, at 3:40 AM, Jon wrote:
+where alpha is roll-off 1.35 for dvb-s and 1.20 for DSS
 
-> Hello,
->
-> I have a problem with my capture device.
->
-> First a little history. I'm running a openSUSE 10.3 system with  
-> mythtv and have had a frame-grabber (bt878) in it until recently. I  
-> just upgraded to a pair of pinnacle HDTV pci cards. I just  
-> downloaded the source and compiled it this afternoon, following the  
-> instructions on the wiki. I have a large antenna on the roof, and I  
-> get channels 3, 6, 10, 13, 31, 40 and 58 all clearly with SD.
->
-> So, the problem is, I am trying to scan for HD channels using the  
-> following command:
->
-> scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB >  
-> channels.conf
->
-> ...and it starts scanning. It doesn't find any channels until it  
-> gets to 31.1, and then it says service is running, gives me the  
-> channel information, and then the thing freezes. I can't ctrl+C out  
-> of it, and I can't even kill the process from the root account.
->
-> This is my schedulesdirect lineup, so I have 2 questions: Why is my  
-> computer locking up when I scan channels? Interestingly, it isn't  
-> locking the computer up, just the console that the app is running  
-> in, and capture card it's connected to. The second question has to  
-> do with my channels. I have my antenna pointed right at the towers,  
-> they're all in the same general location, and as I said, the SD  
-> comes in clear.
->
+The manual suggests to use highest possible bandwidth for aquiring a lock.
+And after that read back the offset from the demod and adjust the tuner the=
+n.
 
-Well, I hooked up one of the pinnacle cards up in a winXP system, and  
-scanned all the channels, and the ones I expected to get come in  
-crystal clear. So now that I've eliminated the signal strength as a  
-question... how can I troubleshoot the drivers? I have the install  
-CD, perhaps the firmware I downloaded isn't suitable? I followed the  
-instructions here http://www.linuxtv.org/wiki/index.php/ 
-Pinnacle_PCTV_HD_Card_%28800i%29 which basically told me to download  
-the firmware, extract it, using included script, and then get the  
-source and do a make and make install. I do that, and everything  
-appears to be working, the card is detected... it just freezes when  
-it's scanning channels. I also managed to copy all the channel  
-frequencies down while I was in windows, so is there a template I can  
-put those into in order to test my card without scanning?
+Regards
+Matthias
 
-~Jon
+-- =
+
+Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
