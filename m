@@ -1,27 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.187])
+Received: from cinke.fazekas.hu ([195.199.244.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JcA5q-0003gM-2g
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 03:01:23 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so346727tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 19 Mar 2008 19:01:14 -0700 (PDT)
-Message-ID: <abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
-Date: Thu, 20 Mar 2008 13:01:13 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47DF2576.7080907@iki.fi>
+	(envelope-from <cus@fazekas.hu>) id 1JcoMI-000196-TG
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 22:01:03 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by cinke.fazekas.hu (Postfix) with ESMTP id E74F133CC4
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 22:00:57 +0100 (CET)
+Received: from cinke.fazekas.hu ([127.0.0.1])
+	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id F5gID-+JDPCe for <linux-dvb@linuxtv.org>;
+	Fri, 21 Mar 2008 22:00:52 +0100 (CET)
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 765D433CC3
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 22:00:52 +0100 (CET)
+Date: Fri, 21 Mar 2008 22:00:51 +0100 (CET)
+From: Marton Balint <cus@fazekas.hu>
+To: linux-dvb@linuxtv.org
+Message-ID: <Pine.LNX.4.64.0803212029070.9788@cinke.fazekas.hu>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47DBDB9F.5060107@iki.fi>
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
-	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>
-	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-	<47DC8012.3050809@linuxtv.org>
-	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
-	<47DC93D0.3090904@linuxtv.org> <47DF2576.7080907@iki.fi>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-943463948-1617262934-1206133251=:24121"
+Subject: [linux-dvb] [PATCH] cx88: fix stereo dematrix for A2 sound system
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,62 +28,53 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Mar 18, 2008 at 1:14 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Michael Krufky wrote:
->
-> > Jarryd Beck wrote:
->  >> Takes half a minute to load when plugging in, keyboard is slow to respond
->  >> when tuning, and I get lots of this:
->  >>
->  >> af9013_i2c_gate_ctrl: enable:0
->  >> af9013_i2c_gate_ctrl: enable:1
->  >>
->  >> Applied the patch again and it was all fine.
->  >>
->  >> Jarryd.
->  >>
->  > Thanks for the test, Jarryd.  I will integrate this into the official
->  > tda18271 driver after testing again on my hardware here.  I will
->  > probably make it an attach-time configurable option.
->  >
->  > Regards,
->  >
->  > Mike
->
->  I did some fixes and I think driver should be now ready. I also changed
->  again device plug / fw-download / usb-relink scheme. I put 500ms sleep
->  to indentify_state in hope that it is enough to drop ghost device driver
->  after fw is downloaded and stick reconnects.
->
->  However I tested I2C-writing with my MT2060 tuner based device by adding
->  about ~50 register write at once and it did not make any harm.
->  Anyhow, there is now versions to test:
->
->  version without tuner small-i2c limit:
->
-> http://linuxtv.org/hg/~anttip/af9015_new/
->
->  version with tuner small-i2c limit:
->  http://linuxtv.org/hg/~anttip/af9015_new2/
->
->  Regards
->  Antti
->  --
->  http://palosaari.fi/
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Sorry about the time I took, I had a lot of uni work.
-The second one worked, the first didn't.
+---943463948-1617262934-1206133251=:24121
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Jarryd.
+Hi, 
+
+Using A2 sound system, in stereo mode, the first sound channel is L+R, the 
+second channel is 2*R. So the dematrix control should be SUMR instead of 
+SUMDIFF. Let's use SUMR for stereo mode, and use SUMDIFF for everything 
+else. (SUMDIFF is required for mono mode, because without it the right 
+channel would be silent).
+
+
+Signed-off-by: Marton Balint <cus@fazekas.hu>
+---943463948-1617262934-1206133251=:24121
+Content-Type: TEXT/x-patch; charset=US-ASCII; name=cx88-fix-stereo-dematrix.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0803212200510.24121@cinke.fazekas.hu>
+Content-Description: 
+Content-Disposition: attachment; filename=cx88-fix-stereo-dematrix.patch
+
+LS0tIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LXR2YXVkaW8uYy5z
+dGVyZW8JMjAwOC0wMy0xNyAyMTozMToxMS4wMDAwMDAwMDAgKzAxMDANCisr
+KyBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC10dmF1ZGlvLmMJMjAw
+OC0wMy0yMSAyMTozMTo1NS4wMDAwMDAwMDAgKzAxMDANCkBAIC02MjYsNyAr
+NjI2LDEyIEBAIHN0YXRpYyB2b2lkIHNldF9hdWRpb19zdGFuZGFyZF9BMihz
+dHJ1Y3QNCiAJCWJyZWFrOw0KIAl9Ow0KIA0KLQltb2RlIHw9IEVOX0ZNUkFE
+SU9fRU5fUkRTIHwgRU5fRE1UUlhfU1VNRElGRjsNCisJbW9kZSB8PSBFTl9G
+TVJBRElPX0VOX1JEUzsNCisJaWYgKChtb2RlICYgMHgzZikgPT0gRU5fQTJf
+Rk9SQ0VfU1RFUkVPKQ0KKwkJbW9kZSB8PSBFTl9ETVRSWF9TVU1SOw0KKwll
+bHNlDQorCQltb2RlIHw9IEVOX0RNVFJYX1NVTURJRkY7DQorDQogCXNldF9h
+dWRpb19maW5pc2goY29yZSwgbW9kZSk7DQogfQ0KIA0K
+
+---943463948-1617262934-1206133251=:24121
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---943463948-1617262934-1206133251=:24121--
