@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GDhOqQ029034
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 09:43:24 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GDgeaA021548
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 09:42:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Sun, 16 Mar 2008 14:42:37 +0100
-References: <patchbomb.1205671781@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1205671781@liva.fdsoft.se>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200803161442.37610.hverkuil@xs4all.nl>
-Cc: Frej Drejhammar <frej.drejhammar@gmail.com>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features.
-	Version 2
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2L14XIV023034
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 21:04:33 -0400
+Received: from mta5.srv.hcvlny.cv.net (mta5.srv.hcvlny.cv.net [167.206.4.200])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2L140nZ012961
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 21:04:00 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JY2000GN2YJ3YE0@mta5.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Thu, 20 Mar 2008 21:03:55 -0400 (EDT)
+Date: Thu, 20 Mar 2008 21:03:54 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <ea76a3890803201734s55caae9t9a8ebd3ddad03cad@mail.gmail.com>
+To: Kip Ingram <kip.ingram@gmail.com>
+Message-id: <47E3097A.7070105@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <ea76a3890803201734s55caae9t9a8ebd3ddad03cad@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: HVR-1800 firmware update
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,47 +33,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sunday 16 March 2008 13:49, Frej Drejhammar wrote:
-> The cx2388x family of broadcast decoders all have features not
-> enabled by the standard cx88 driver. This revised patch series adds
-> controls allowing the chroma AGC and the color killer to be enabled
-> (Version 1 of the series used module parameters). By default both
-> features are disabled as in previous versions of the driver.
->
-> The Chroma AGC and the color killer is sometimes needed when using
-> signal sources of less than optimal quality.
->
-> The patches applies cleanly to 7370:11fdae6654e8 of
-> http://linuxtv.org/hg/v4l-dvb/ and have been tested an a HVR-1300.
-> The patches should be applied in order.
+Kip Ingram wrote:
+> Can someone give me some pointers on how to update the firmware in my
+> HVR-1800?  I have ATSC support working very nicely in Mythbuntu 7.10.  The
+> analog tuner, though, appears to tune bug gives me nasty stripes and so
+> forth on the image.  Firmware problem?
+> 
+> Thanks in advance for helping a noob.
 
-Hi Frej,
+Start with this:
 
-I have a few comments about this:
+http://steventoth.net/linux/hvr1800/
 
-1) Should we really expose these settings to the user? I have my doubts 
-whether the average user would know what to do with this, and I also 
-wonder whether it makes enough of a difference in picture quality. I 
-might be wrong, of course. It would help if you could show examples of 
-the picture quality with and without these settings. Note that a change 
-like 'Chroma AGC must be disabled if SECAM is used' is a bug fix and 
-should clearly go in.
-
-2) Chroma AGC and color killer is also present in other chips (cx2584x, 
-cx23418, possibly other similar Conexant chips). So if we decide on 
-allowing these controls I would prefer making this a standard control, 
-rather than a private one.
-
-3) If we decide on allowing these controls, then they must be documented 
-in the v4l2 spec.
-
-Personally I think these controls are too low-level, but that's just my 
-opinion. Most chips contains a whole array of similar tweaks that you 
-can do, and exposing them all is not the way to go.
-
-Regards,
-
-	Hans
+- Steve
 
 --
 video4linux-list mailing list
