@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NMim9c018808
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:48 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2NMiGMq019603
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:16 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so2174237fga.7
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 15:44:16 -0700 (PDT)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <da854c7e2b4372794c04.1206312205@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1206312199@liva.fdsoft.se>
-Date: Sun, 23 Mar 2008 23:43:25 +0100
-To: video4linux-list@redhat.com
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 6 of 6] cx88: Enable color killer by default
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2LEeXd1011932
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 10:40:33 -0400
+Received: from mta2.srv.hcvlny.cv.net (mta2.srv.hcvlny.cv.net [167.206.4.197])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2LEdu8Y028514
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 10:39:56 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JY3004XR4QE46Z0@mta2.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Fri, 21 Mar 2008 10:39:51 -0400 (EDT)
+Date: Fri, 21 Mar 2008 10:39:50 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <C82A808D35A16542ACB16AF56367E0580A796941@exchange01.nsighttel.com>
+To: Mark A Jenks <Mark.Jenks@nsighttel.com>
+Message-id: <47E3C8B6.2060508@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <C82A808D35A16542ACB16AF56367E0580A796941@exchange01.nsighttel.com>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Hauppauge remote.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +34,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-1 file changed, 1 insertion(+), 1 deletion(-)
-linux/drivers/media/video/cx88/cx88-video.c |    2 +-
+Mark A Jenks wrote:
+> I have a HVR-1250 that I just got working, and I"m not sure if this is 
+> the right place for this question.
+>  
+> What does it take to get this remote working in Linux?   I'd like to use 
+> it over my lirc_imon, since I can move the IR around for better reception.
+>  
+> Is this a question for Lirc?  Or does this fall under Dvb?
 
+It probably falls under the v4l mailing list, which I've cc'd in for 
+reference.
 
-# HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1206312051 -3600
-# Node ID da854c7e2b4372794c0437ab59776fe5fa5305ee
-# Parent  77bef451d41348f8e5ca6b24fe402199ac243ead
-cx88: Enable color killer by default
+The HVR1250 uses IR on the cx23885 which is not currently supported. 
+It's going to be a while before I get around to this.
 
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+Regards,
 
-An enabled color killer will not degrade picture quality for color
-input signals, only suppress bogus color information on
-black-and-white input. Therefore enable it by default.
-
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
-
-diff -r 77bef451d413 -r da854c7e2b43 linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:40:16 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:40:51 2008 +0100
-@@ -261,7 +261,7 @@ static struct cx88_ctrl cx8800_ctls[] = 
- 			.name          = "Color killer",
- 			.minimum       = 0,
- 			.maximum       = 1,
--			.default_value = 0x0,
-+			.default_value = 0x1,
- 			.type          = V4L2_CTRL_TYPE_BOOLEAN,
- 		},
- 		.reg                   = MO_INPUT_FORMAT,
+- Steve
 
 --
 video4linux-list mailing list
