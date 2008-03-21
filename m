@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.187])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <morfsta@gmail.com>) id 1JcQHr-0002bn-TY
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 20:18:52 +0100
-Received: by rn-out-0910.google.com with SMTP id e11so826279rng.17
-	for <linux-dvb@linuxtv.org>; Thu, 20 Mar 2008 12:18:47 -0700 (PDT)
-Message-ID: <eddfa47b0803201218r62638390vc06d1a2d707ec74a@mail.gmail.com>
-Date: Thu, 20 Mar 2008 19:18:47 +0000
-From: Morfsta <morfsta@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <eddfa47b0803201218l89e8b09gc7255b0ea993fced@mail.gmail.com>
+	(envelope-from <albert.comerma@gmail.com>) id 1Jcifv-00080B-HW
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 15:56:58 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so1107407fge.25
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 07:56:52 -0700 (PDT)
+Message-ID: <ea4209750803210756p5616b0erd12a96f742d6671e@mail.gmail.com>
+Date: Fri, 21 Mar 2008 15:56:52 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: hfvogt@gmx.net
+In-Reply-To: <ea4209750803210709r63fb8dc5y1cfa11229150472e@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <eddfa47b0803191400k2368eebfo4da7aa1930e2c0cc@mail.gmail.com>
-	<20080319222137.GA30672@gmail.com>
-	<eddfa47b0803201218l89e8b09gc7255b0ea993fced@mail.gmail.com>
-Subject: [linux-dvb] HVR4000 patch and Latest Multiproto
+References: <200803211152.26870.hfvogt@gmx.net>
+	<ea4209750803210459i3fe6fddan103931bda885435e@mail.gmail.com>
+	<ea4209750803210709r63fb8dc5y1cfa11229150472e@mail.gmail.com>
+Cc: Felix Apitzsch <F.Apitzsch@soz.uni-frankfurt.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE -
+	Draft 2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,26 +24,118 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0131401768=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Mar 19, 2008 at 10:21 PM, Gregoire Favre
-<gregoire.favre@gmail.com> wrote:
-> That's very strange as it don't seems to have been change on multiproto
-> since my last patch the 13 of this month. Or you mean my patch is wrong ?
-> "Working HVR-4000 (as of 2008-03-13) patch for multiproto ?"
+--===============0131401768==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_13695_15905546.1206111412321"
+
+------=_Part_13695_15905546.1206111412321
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Finally I found it; I have to keep this on xc2028 callback or the device
+will not work; case XC2028_RESET_CLK: break;
+Now I will add other cards and resend the patch.
+
+Albert
+
+2008/3/21, Albert Comerma <albert.comerma@gmail.com>:
+>
+> Hey Hans, I'm spending some time, because right now I've not been able to
+> make my card working with your patch. Everything seems ok, but no channels
+> detected and no video at all... strange. Did you checked that it was working
+> ok?
+>
+> 2008/3/21, Albert Comerma <albert.comerma@gmail.com>:
+> >
+> > Perfect!! it seems great, now I will check it (sorry, I was very busy
+> > last two days). I also will add support for Felix's card and the two cards I
+> > have pending (just add device id and small modifications), so it will be
+> > easier for patrick to add the different patches to the current source. Just
+> > one comment, how you generated the patch? because mauro suggested it's
+> > better to use hg diff. In a minutes I will send the modified patch (I hope
+> > it will be the last version).
+> >
+> > Albert
+> >
+> > 2008/3/21, Hans-Frieder Vogt <hfvogt@gmx.net>:
+> > >
+> > > Hi Albert,
+> > >
+> > > I have slightly changed the stk7700ph_frontend_attach GPIO sequence to
+> > > be in line with the Windows behaviour and also add
+> > > the demod-value in stk7700ph_xc3028_ctrl, to make the driver load the
+> > > right SCODE file (which seems to have no effect,
+> > > though). Also, I removed the unused and unneeded
+> > > xc3028_bw_config_12mhz structure.
+> > > In addition, I followed Mauro's request for coding style changes and
+> > > also add some more kernel style changes that
+> > > checkpatch highlighted (I only introduced changes where they seemed
+> > > sensible, there are many, many other
+> > > areas in the file dib0700_devices.c where it does not follow the
+> > > strict coding guidelines as well).
+> > >
+> > > Can you please confirm that I included your changes for the Pinnacle
+> > > 320cx correctly and perhaps also add a signoff-line?
+> > > Thanks very much.
+> > >
+> > > Hans-Frieder
+> > >
+> > > --
+> > >
+> > > --
+> > > Hans-Frieder Vogt                 e-mail: hfvogt <at> gmx .dot. net
+> > >
+> > >
+> >
 >
 
-Aha! Somehow when I was trawling through looking for an update, I
-missed your post.
+------=_Part_13695_15905546.1206111412321
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Your updated patch works fine for me! Sorry for any inconvenience and
-thanks for doing the update.
+Finally I found it; I have to keep this on xc2028 callback or the device will not work; case XC2028_RESET_CLK: break;<br>Now I will add other cards and resend the patch.<br><br>Albert<br><br><div><span class="gmail_quote">2008/3/21, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hey Hans, I&#39;m spending some time, because right now I&#39;ve not been able to make my card working with your patch. Everything seems ok, but no channels detected and no video at all... strange. Did you checked that it was working ok?<br>
+
+<br><div><span class="gmail_quote">2008/3/21, Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">albert.comerma@gmail.com</a>&gt;:</span><div>
+<span class="e" id="q_118d1aca2d782631_1"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Perfect!! it seems great, now I will check it (sorry, I was very busy last two days). I also will add support for Felix&#39;s card and the two cards I have pending (just add device id and small modifications), so it will be easier for patrick to add the different patches to the current source. Just one comment, how you generated the patch? because mauro suggested it&#39;s better to use hg diff. In a minutes I will send the modified patch (I hope it will be the last version).<br>
+
+
+<br>Albert<br><br><div><span class="gmail_quote">2008/3/21, Hans-Frieder Vogt &lt;<a href="mailto:hfvogt@gmx.net" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">hfvogt@gmx.net</a>&gt;:</span><div>
+
+<span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi Albert,<br> <br> I have slightly changed the stk7700ph_frontend_attach GPIO sequence to be in line with the Windows behaviour and also add<br> the demod-value in stk7700ph_xc3028_ctrl, to make the driver load the right SCODE file (which seems to have no effect,<br>
+
+
+ though). Also, I removed the unused and unneeded xc3028_bw_config_12mhz structure.<br> In addition, I followed Mauro&#39;s request for coding style changes and also add some more kernel style changes that<br> checkpatch highlighted (I only introduced changes where they seemed sensible, there are many, many other<br>
+
+
+ areas in the file dib0700_devices.c where it does not follow the strict coding guidelines as well).<br> <br> Can you please confirm that I included your changes for the Pinnacle 320cx correctly and perhaps also add a signoff-line?<br>
+
+
+ Thanks very much.<br> <br> Hans-Frieder<br> <br> --<br> <br>--<br> Hans-Frieder Vogt&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; e-mail: hfvogt &lt;at&gt; gmx .dot. net<br> <br></blockquote></span></div></div><br>
+</blockquote></span></div></div><br>
+</blockquote></div><br>
+
+------=_Part_13695_15905546.1206111412321--
+
+
+--===============0131401768==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0131401768==--
