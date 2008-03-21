@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
+Received: from wf-out-1314.google.com ([209.85.200.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gasiu@konto.pl>) id 1JcUlT-00051T-7J
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 01:05:44 +0100
-Received: from dxa99.neoplus.adsl.tpnet.pl ([83.22.86.99] helo=[192.168.1.3])
-	by host.amsnet.pl with esmtpa (Exim 4.67)
-	(envelope-from <gasiu@konto.pl>) id 1JcUoO-00033a-VO
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 01:08:45 +0100
-Message-ID: <47E2FBD2.2080305@konto.pl>
-Date: Fri, 21 Mar 2008 01:05:38 +0100
-From: Gasiu <gasiu@konto.pl>
-MIME-Version: 1.0
+	(envelope-from <tfager@gmail.com>) id 1JcnjW-00053k-LW
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 21:21:02 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so1599137wfa.17
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 13:20:54 -0700 (PDT)
+Message-ID: <9f6a68760803211320h9838b7dl9aa6461848fbfd9c@mail.gmail.com>
+Date: Fri, 21 Mar 2008 22:20:54 +0200
+From: "Timo Fager" <tfager@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Multiproto szap lock, but video file is empty
+MIME-Version: 1.0
+Subject: [linux-dvb] Terratec Cinergy C PCI again
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,175 +18,136 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1685898372=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-i've got SkystarHD, Ubuntu64 and multiproto-ecb96c96a69e - after 
-patching szap.c
+--===============1685898372==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_10033_9085111.1206130854285"
 
-I can szap a channel:
+------=_Part_10033_9085111.1206130854285
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
- ./szap polsat2
+Hi,
 
-reading channels from file '/home/gasiu/.szap/channels.conf'
-zapping to 4 'polsat2':
-sat 0, frequency = 11158 MHz V, symbolrate 27500000, vpid = 0x0111, apid 
-= 0x0112 sid = 0x332e
-Querying info .. Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-----------------------------------> Using 'STB0899 DVB-S' DVB-S
-do_tune: API version=3, delivery system = 0
-do_tune: Frequency = 1408000, Srate = 27500000
-do_tune: Frequency = 1408000, Srate = 27500000
+This is regarding a previous thread concerning Terratec Cinergy C PCI:
 
+http://marc.info/?l=linux-dvb&m=120059268408703&w=2
 
-status 1e | signal 0172 | snr 0062 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-status 1e | signal 0172 | snr 0059 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-status 1e | signal 0172 | snr 0059 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
+I also purchased the Terratec Cinergy C PCI card, and installed
+the mantis driver, but to my surprise it didn't recognize the
+card at all. The reason turned out to be that the PCI ID is
+just a bit different (0x4c35 instead of 0x4e35)
 
-but when I type in second window:
+lspci -vvn:
 
-cat /dev/dvb/adapter0/dvr0 > /home/gasiu/Desktop/test.mpg
+00:0f.0 0480: 1822:4c35 (rev 01)
+        Subsystem: 153b:1178
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR+ <PERR+
+        Latency: 64 (2000ns min, 63250ns max)
+        Interrupt: pin A routed to IRQ 5
+        Region 0: Memory at cddff000 (32-bit, prefetchable) [size=4K]
 
-I've got an empty file... ?? what is wrong?
+Then I was courageous enough to simply change the ID in the source code.
+This caused the whole computer to hang immediately after inserting the
+module.
+However, during bootup the driver actually tried to recognize the card,
+with these results:
 
-after szap dmesg shows:
+kern.log:
 
-[ 1256.033588] dvb_frontend_ioctl: DVBFE_GET_INFO
-[ 1256.033592] stb0899_get_info: Querying DVB-S info
-[ 1256.093351] newfec_to_oldfec: Unsupported FEC 9
-[ 1256.093354] dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
-[ 1256.093358] stb0899_search: set DVB-S params
-[ 1256.098648] stb6100_set_bandwidth: Bandwidth=61262500
-[ 1256.098811] stb6100_get_bandwidth: Bandwidth=62000000
-[ 1256.100025] stb6100_get_bandwidth: Bandwidth=62000000
-[ 1256.117227] stb6100_set_frequency: Frequency=1408000
-[ 1256.117391] stb6100_get_frequency: Frequency=1408007
-[ 1256.120049] stb6100_get_bandwidth: Bandwidth=62000000
+Mar 12 21:00:23 hawk kernel: [   51.359517] ACPI: PCI Interrupt 0000:00:0f.0[A]
+-> Link [LNKD] -> GSI 5 (level, low) -> IRQ 5
+Mar 12 21:00:23 hawk kernel: [   51.366388] irq: 5, latency: 64
+Mar 12 21:00:23 hawk kernel: [   51.366391]  memory: 0xcddff000, mmio:
+0xf8864000
+Mar 12 21:00:23 hawk kernel: [   51.366398] found a VP-2040 PCI DVB-C device
+on (00:0f.0),
+Mar 12 21:00:23 hawk kernel: [   51.366404]     Mantis Rev 1 [153b:1178],
+irq: 5, latency: 64
+Mar 12 21:00:23 hawk kernel: [   51.366410]     memory: 0xcddff000, mmio:
+0xf8864000
+Mar 12 21:00:23 hawk kernel: [   51.432789]     MAC
+Address=[ff:ff:ff:ff:ff:ff]
+Mar 12 21:00:23 hawk kernel: [   51.432926] mantis_alloc_buffers (0):
+DMA=0x33f10000 cpu=0xf3f10000 size=65536
+Mar 12 21:00:23 hawk kernel: [   51.432937] mantis_alloc_buffers (0):
+RISC=0x33ef9000 cpu=0xf3ef9000 size=1000
+Mar 12 21:00:23 hawk kernel: [   51.432945] DVB: registering new adapter
+(Mantis dvb adapter)
+Mar 12 21:00:23 hawk kernel: [   51.895885] input: PC Speaker as
+/class/input/input5
+Mar 12 21:00:23 hawk kernel: [   51.949954] mantis_frontend_init (0):
+Probing for CU1216 (DVB-C)
+Mar 12 21:00:23 hawk kernel: [   51.952061] mantis_frontend_init (0): !!! NO
+Frontends found !!!
 
+The frontend, however, didn't match. At this point I don't easily see a
+solution,
+do you have any suggestions? Is it possible that there's another version of
+the card with different components? I can look for product codes in the card
+if
+that is helpful.
 
+Thanks in advance,
 
-lsmod
-Module                  Size  Used by
-snd_rtctimer            5216  1
-binfmt_misc            14860  1
-ipv6                  317192  14
-ppdev                  11272  0
-powernow_k8            16608  1
-cpufreq_userspace       6048  0
-cpufreq_conservative     9608  0
-cpufreq_ondemand       10896  1
-cpufreq_stats           8160  0
-freq_table              6464  3 powernow_k8,cpufreq_ondemand,cpufreq_stats
-cpufreq_powersave       3072  0
-ac                      7304  0
-sbs                    21520  0
-dock                   12264  0
-button                 10400  0
-video                  21140  0
-container               6400  0
-battery                12424  0
-af_packet              28172  2
-sbp2                   27144  0
-lp                     15048  0
-snd_emu10k1_synth       9344  0
-snd_emux_synth         40064  1 snd_emu10k1_synth
-snd_seq_virmidi         9216  1 snd_emux_synth
-snd_seq_midi_emul       9088  1 snd_emux_synth
-lnbp21                  3712  1
-stb6100                 9732  1
-stb0899                38656  1
-snd_emu10k1           152864  2 snd_emu10k1_synth
-snd_ac97_codec        122200  1 snd_emu10k1
-ac97_bus                4096  1 snd_ac97_codec
-snd_util_mem            6656  2 snd_emux_synth,snd_emu10k1
-snd_hwdep              12168  2 snd_emux_synth,snd_emu10k1
-snd_pcm_oss            50048  0
-snd_pcm                94344  3 snd_emu10k1,snd_ac97_codec,snd_pcm_oss
-snd_page_alloc         12560  2 snd_emu10k1,snd_pcm
-snd_mixer_oss          20096  1 snd_pcm_oss
-snd_seq_dummy           5380  0
-snd_seq_oss            36864  0
-snd_seq_midi           11008  0
-snd_rawmidi            29824  3 snd_seq_virmidi,snd_emu10k1,snd_seq_midi
-snd_seq_midi_event      9984  3 snd_seq_virmidi,snd_seq_oss,snd_seq_midi
-snd_seq                62496  10 
-snd_emux_synth,snd_seq_virmidi,snd_seq_midi_emul,snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_seq_midi_event
-snd_timer              27272  4 snd_rtctimer,snd_emu10k1,snd_pcm,snd_seq
-snd_seq_device         10260  8 
-snd_emu10k1_synth,snd_emux_synth,snd_emu10k1,snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_rawmidi,snd_seq
-usblp                  16896  0
-budget_ci              28676  0
-budget_core            14468  1 budget_ci
-dvb_core              102612  2 budget_ci,budget_core
-saa7146                22152  2 budget_ci,budget_core
-ttpci_eeprom            3840  1 budget_core
-nvidia               7013492  24
-serio_raw               9092  0
-ir_common              41220  1 budget_ci
-snd                    69288  16 
-snd_emux_synth,snd_seq_virmidi,snd_emu10k1,snd_ac97_codec,snd_hwdep,snd_pcm_oss,snd_pcm,snd_mixer_oss,snd_seq_oss,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
-parport_pc             41896  1
-parport                44172  3 ppdev,lp,parport_pc
-acx                   106756  0
-i2c_nforce2             7808  0
-soundcore              10272  1 snd
-psmouse                45596  0
-emu10k1_gp              5632  0
-gameport               18704  2 emu10k1_gp
-pcspkr                  4608  0
-i2c_core               30208  8 
-lnbp21,stb6100,stb0899,budget_ci,budget_core,ttpci_eeprom,nvidia,i2c_nforce2
-k8temp                  7680  0
-shpchp                 38300  0
-pci_hotplug            36612  1 shpchp
-evdev                  13056  4
-ext3                  146576  2
-jbd                    69360  1 ext3
-mbcache                11272  1 ext3
-sg                     41384  0
-usbhid                 32576  0
-hid                    33408  1 usbhid
-sd_mod                 32512  5
-ide_cd                 35488  0
-cdrom                  41768  1 ide_cd
-ata_generic             9988  0
-ehci_hcd               40076  0
-sata_nv                24068  4
-amd74xx                17328  0 [permanent]
-ide_core              141200  2 ide_cd,amd74xx
-ohci1394               38984  0
-ieee1394              109528  2 sbp2,ohci1394
-ohci_hcd               25092  0
-usbcore               161584  6 usblp,acx,usbhid,ehci_hcd,ohci_hcd
-libata                138928  2 ata_generic,sata_nv
-scsi_mod              172856  4 sbp2,sg,sd_mod,libata
-forcedeth              55048  0
-thermal                16528  0
-processor              36232  2 powernow_k8,thermal
-fan                     6920  0
-fuse                   52528  3
-apparmor               47008  0
-commoncap               9472  1 apparmor
+Timo
+
+------=_Part_10033_9085111.1206130854285
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br><br>This is regarding a previous thread concerning Terratec Cinergy C PCI:<br><br><a href="http://marc.info/?l=linux-dvb&amp;m=120059268408703&amp;w=2" target="_blank">http://marc.info/?l=linux-dvb&amp;m=120059268408703&amp;w=2</a><br>
+
+<br>I also purchased the Terratec Cinergy C PCI card, and installed<br>the mantis driver, but to my surprise it didn&#39;t recognize the<br>card at all. The reason turned out to be that the PCI ID is<br>
+just a bit different (0x4c35 instead of 0x4e35)<br><br>lspci -vvn:<br><br>00:0f.0 0480: 1822:4c35 (rev 01)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: 153b:1178<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-<br>
 
 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR+ &lt;PERR+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 64 (2000ns min, 63250ns max)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at cddff000 (32-bit, prefetchable) [size=4K]<br>
 
 
+<br>Then I was courageous enough to simply change the ID in the source code.<br>This caused the whole computer to hang immediately after inserting the module.<br>However, during bootup the driver actually tried to recognize the card,<br>
 
 
+with these results:<br><br>kern.log:<br><br>Mar
+12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.359517] ACPI: PCI Interrupt
+0000:00:0f.0[A] -&gt; Link [LNKD] -&gt; GSI 5 (level, low) -&gt; IRQ 5<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.366388] irq: 5, latency: 64<br>
+Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.366391]&nbsp; memory: 0xcddff000, mmio: 0xf8864000<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.366398] found a VP-2040 PCI DVB-C device on (00:0f.0),<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.366404]&nbsp;&nbsp;&nbsp;&nbsp; Mantis Rev 1 [153b:1178], irq: 5, latency: 64<br>
 
--- 
-Pozdrawiam!
-Gasiu
 
+Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.366410]&nbsp;&nbsp;&nbsp;&nbsp; memory: 0xcddff000, mmio: 0xf8864000<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.432789]&nbsp;&nbsp;&nbsp;&nbsp; MAC Address=[ff:ff:ff:ff:ff:ff]<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.432926] mantis_alloc_buffers (0): DMA=0x33f10000 cpu=0xf3f10000 size=65536<br>
+
+
+Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.432937] mantis_alloc_buffers (0): RISC=0x33ef9000 cpu=0xf3ef9000 size=1000<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.432945] DVB: registering new adapter (Mantis dvb adapter)<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.895885] input: PC Speaker as /class/input/input5<br>
+
+
+Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.949954] mantis_frontend_init (0): Probing for CU1216 (DVB-C)<br>Mar 12 21:00:23 hawk kernel: [&nbsp;&nbsp; 51.952061] mantis_frontend_init (0): !!! NO Frontends found !!!<br><br>The frontend, however, didn&#39;t match. At this point I don&#39;t easily see a solution,<br>
+
+
+do you have any suggestions? Is it possible that there&#39;s another version of<br>the card with different components? I can look for product codes in the card if<br>that is helpful.<br><br>Thanks in advance,<br><font color="#888888"><font color="#888888"><br>
+
+Timo </font></font>
+
+------=_Part_10033_9085111.1206130854285--
+
+
+--===============1685898372==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1685898372==--
