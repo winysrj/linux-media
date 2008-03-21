@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dunedin.prolingua.co.uk ([82.68.7.43])
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dm@prolingua.co.uk>) id 1JXdGi-0004S9-2s
-	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 15:09:54 +0100
-Received: from [192.168.1.155] (danae.prolingua.co.uk [192.168.1.155])
-	by dunedin.prolingua.co.uk (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m27E9FFs026631
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Fri, 7 Mar 2008 14:09:16 GMT
-Message-ID: <47D14C71.5040400@prolingua.co.uk>
-Date: Fri, 07 Mar 2008 14:08:49 +0000
-From: David Matthews <dm@prolingua.co.uk>
+	(envelope-from <crope@iki.fi>) id 1JcnAl-0000fS-95
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 20:45:06 +0100
+Message-ID: <47E41020.5040303@iki.fi>
+Date: Fri, 21 Mar 2008 21:44:32 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <47D0EA5B.8040105@philpem.me.uk>
-In-Reply-To: <47D0EA5B.8040105@philpem.me.uk>
-Subject: Re: [linux-dvb] Updated scan file for uk-EmleyMoor
+To: Albert Comerma <albert.comerma@gmail.com>
+References: <47E3CB84.3060208@iki.fi>
+	<ea4209750803211111m2b1bd83dyc4ce3b38b7b3ee66@mail.gmail.com>
+In-Reply-To: <ea4209750803211111m2b1bd83dyc4ce3b38b7b3ee66@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to disable RC-polling from driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,36 +26,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Philip Pemberton wrote:
-> Here's a scan file for Emley Moor with the correct frequencies and tuning 
-> parameters... Seems the one in the linux-dvb distribution has frequencies with 
-> a -133kHz or so offset, and without the correct QAM parameters. Probably my 
-> fault, because IIRC I submitted that tuning file...
+Albert Comerma wrote:
+> Moi,
+> I found this that perhaps is useful for you;
+> to disable rc_polling on /etc/modprobe.d/options add;
 > 
-> Data sourced from www.ukfree.tv, and works fine on my HVR-3000.
+> options dvb_usb disable_rc_polling=1
+
+yes I found this. But how I do that after reading eeprom in dvb-udb-module=
+
+Antti
 > 
-> # Emley Moor, West Yorkshire
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 626000000 8MHz 2/3 3/4 QAM64 2k 1/32 NONE
-> T 650000000 8MHz 2/3 3/4 QAM64 2k 1/32 NONE
-> T 674000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-> T 698000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-> T 706000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
-> T 722000000 8MHz 3/4 3/4 QAM16 2k 1/32 NONE
+> Albert
+> 
+> 2008/3/21, Antti Palosaari <crope@iki.fi <mailto:crope@iki.fi>>:
+> 
+>     moi
+>     Is there any designed way (for example callback) to disable RC-polling
+>     (disable_rc_polling) from dvb-usb-driver module in runtime? There is
+>     information regarding remote controller usage stored in eeprom and
+>     therefore it is not possible use dvb_usb_device_properties structure
+>     (structure is populated earlier).
+> 
+>     regards
+>     Antti
+> 
+>     --
+>     http://palosaari.fi/
+> 
+>     _______________________________________________
+>     linux-dvb mailing list
+>     linux-dvb@linuxtv.org <mailto:linux-dvb@linuxtv.org>
+>     http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Have you looked at the Ofcom site?  You may find that the current 
-frequencies are actually correct.  Apparently all the transmitters at 
-Emley Moor have a 166kHz offset, either + or - depending on the channel.
-See 
-http://www.ofcom.org.uk/static/reception_advice/dtt_pocket_guide_3_0.pdf 
-which lists all the UK transmitters and their offsets.
 
-www.ukfree.tv seems to ignore the offset and just include the base 
-channel number.  Generally it doesn't matter since the bandwidth of the 
-tuner will be more than sufficient.  Of course, it would be a good idea 
-to fix the QAM parameters if they're wrong.
-
-David
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
