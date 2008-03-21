@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+29c84a3af63de8e07a22+1677+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1Jew7y-0003Cy-O6
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 18:43:02 +0100
-Date: Thu, 27 Mar 2008 14:42:21 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080327144221.2d642590@gaivota>
-In-Reply-To: <1206635698.5965.5.camel@ubuntu>
-References: <1206635698.5965.5.camel@ubuntu>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jcc71-0005tS-M7
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 08:56:28 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Fri, 21 Mar 2008 07:42:56 +0100
+References: <1115343012.20080318233620@a-j.ru>
+	<200803200048.15063@orion.escape-edv.de>
+	<1206067079.3362.10.camel@pc08.localdom.local>
+In-Reply-To: <1206067079.3362.10.camel@pc08.localdom.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200803210742.57119@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,92 +28,72 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 28 Mar 2008 01:34:58 +0900
-timf <timf@iinet.net.au> wrote:
+hermann pitton wrote:
+> Hi,
+> 
+> Am Donnerstag, den 20.03.2008, 00:48 +0100 schrieb Oliver Endriss:
+> > Andrew Junev wrote:
+> > > Hello All,
+> > > 
+> > > I was successfully using two TT S-1401 DVB-S cards in my HTPC running
+> > > Fedora 8. One of my antennas is positioned to Astra 19.2E and its
+> > > signal quality is quite low in my area. But the setup worked just fine
+> > > for me most of the time.
+> > > 
+> > > Last weekend I updated my system from kernel-2.6.23.15-137.fc8 to
+> > > kernel-2.6.24.3-12.fc8. It was just a 'yum update', nothing else.
+> > > Right after that I got no lock on most of Astra transponders (other
+> > > satellites were still Ok, but they normally have a far better signal).
+> > > After checking everything twice without any success, I booted back to
+> > > 2.6.23.15 and my Astra was back!
+> > > 
+> > > Is this a known behavior? I suppose it was not discussed before, so
+> > > this makes me think I am the only one with such a problem...
+> > > Strange... I think the problem is somehow related to the signal level / 
+> > > signal error rate. Looks like weak transponders are harder to lock
+> > > with the new kernel...
+> > > I'd appreciate any comments on this. I don't think I have an urgent
+> > > need to move to 2.6.24 now, but I'd still like to be able to do that
+> > > without loosing my TV... 
+> > > 
+> > > 
+> > > P.S. I can see there's kernel-2.6.24.3-34.fc8 already available for
+> > > Fedora 8. But I didn't try it yet...
+> > 
+> > Afaik this is a known regression in 2.6,24.
+> > 
+> > See 
+> >   http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023477.html
+> > and
+> >   http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023559.html
+> > for the fix.
+> > 
+> > CU
+> > Oliver
+> > 
+> 
+> hmm, thought that this we exactly did avoid on 2.6.24 and 2.6.25.
+> 
+> IIRC, this should never made it into 2.6.24, at least I thought we could
+> always stop it on 2.6.25 before it harms.
+> 
+> Fedora downports from release canditates, and almost always is fine,
+> so I don't trust the 2.6._24_ here.
+> 
+> If nothing else to do ..., might investigate it.
 
-> [   53.141643] xc2028 2-0061: seek_firmware called, want type=F8MHZ SCODE (20000002), id 0000000100000007.
-> [   53.141649] xc2028 2-0061: Selecting best matching firmware (3 bits) for type=SCODE (20000000), id 0000000100000007:
-> [   53.141654] xc2028 2-0061: Found firmware for type=SCODE (20000000), id 0000000200000007.
-> [   53.141658] xc2028 2-0061: Loading SCODE for type=SCODE HAS_IF_5640 (60000000), id 0000000200000007.
-> [   53.233496] xc2028 2-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
+Unfortunately, the regression made it into the 2.6.24 series.
+I just checked and found it in 2.6.24.2. :-(
 
-Unfortunately, you've suppressed the previous firmware loading lines. Up to here, everything is OK.
+So we should submit a bug fix for 2.6,24, too.
 
-> [   53.445170] xc2028 2-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
+CU
+Oliver
 
-Still OK here.
-
-> Mar 28 00:25:41 ubuntu kernel: [  352.902182] xc2028 2-0061: checking firmware, user requested type=F8MHZ (2), id 00000000000000ff, scode_tbl (0), scode_nr 0
-
-Now, tvtime asked a different firmware from the previous one. tuner-xc2028 will try to load a new firmware set to match your video standard.
-
-> Mar 28 00:25:41 ubuntu kernel: [  352.902196] xc2028 2-0061: load_firmware called
-> Mar 28 00:25:41 ubuntu kernel: [  352.902199] xc2028 2-0061: seek_firmware called, want type=BASE F8MHZ (3), id 0000000000000000.
-> Mar 28 00:25:41 ubuntu kernel: [  352.902203] xc2028 2-0061: Found firmware for type=BASE F8MHZ (3), id 0000000000000000.
-
-It is trying to load F8MHz base firmware. This firmware seemed to be already
-loaded, but, since you've asked for a different standard, it will discard and
-reload the firmwares.
-
-> Mar 28 00:25:41 ubuntu kernel: [  352.902207] xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-> Mar 28 00:25:41 ubuntu kernel: [  352.903020] xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-> Mar 28 00:25:41 ubuntu kernel: [  352.903022] xc2028 2-0061: -5 returned from send
-> Mar 28 00:25:41 ubuntu kernel: [  352.903026] xc2028 2-0061: Error -22 while loading base firmware
-> Mar 28 00:25:42 ubuntu kernel: [  352.955955] xc2028 2-0061: Retrying firmware load
-
-The driver didn't like the idea of changing the firmware. Probably, the RESET
-command is wrong or incomplete (i suspect the latter).
-
-If you look on other drivers, like cx88, a reset do something like:
-
-                cx_write(MO_GP1_IO, 0x101010);
-                mdelay(250);
-                cx_write(MO_GP1_IO, 0x101000);
-                mdelay(250);
-                cx_write(MO_GP1_IO, 0x101010);
-                mdelay(250);
-
-The first command is probably not needed, but the basic idea is to do something
-like ON-OFF-ON. However, on saa7134 code is something like:
-
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-
-I suspect that this should be something like:
-
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-                mdelay(250);
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0);
-                mdelay(250);
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-                mdelay(250);
-
-OR:
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0);
-                mdelay(250);
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
-                mdelay(250);
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0);
-
-To be sure, I would need to have the regspy.exe (from Dscaler) results when a
-reset occurs on your board.
-
-Could you please try to play with those things on your board and post the results?
-
-Another interesting test would be to not let tvtime to select a different
-standard, but, instead, the same std loaded initially. This may help to see if
-your tuner is ok (if you see some kind of white noise or a bad tuned channel -
-this means that tuner is working - of course you'll need to disable signal detection).
-
-
-Cheers,
-Mauro
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
