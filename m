@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m24KGRhu030604
-	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 15:16:27 -0500
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m24KFtB4021191
-	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 15:15:55 -0500
-Received: by el-out-1112.google.com with SMTP id n30so1342929elf.7
-	for <video4linux-list@redhat.com>; Tue, 04 Mar 2008 12:15:54 -0800 (PST)
-Date: Tue, 4 Mar 2008 12:14:20 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080304201420.GB3817@plankton.ifup.org>
-References: <54fa1a0d9c5bcdfcb2ba.1204098881@localhost>
-	<20679.1204128530@vena.lwn.net>
-	<20080228025651.GA16322@plankton.ifup.org>
-	<20080229063458.0f49ddb0@areia>
-	<20080303081305.GA18774@plankton.ifup.org>
-	<20080304104516.21fcf30f@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2L2YsGR018576
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 22:34:54 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.169])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2L2YKqd028783
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 22:34:20 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1232508wfc.6
+	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 19:34:20 -0700 (PDT)
+Message-ID: <bb26ec2c0803201934r5c037585h25882e2352c02a84@mail.gmail.com>
+Date: Thu, 20 Mar 2008 22:34:20 -0400
+From: "Bradford Boyle" <bradford.d.boyle@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20080304104516.21fcf30f@gaivota>
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH] v4l: Deadlock in videobuf-core for DQBUF waiting on QBUF
+Subject: PCTV HD Card 800i Kernel Oops
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,21 +27,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 10:45 Tue 04 Mar 2008, Mauro Carvalho Chehab wrote:
-> On Mon, 3 Mar 2008 00:13:05 -0800 Brandon Philips <brandon@ifup.org>
-> wrote:
->
-> About your testing program, it would be a good idea to add it at
-> v4l2-apps/test dir. The original non-threaded code from V4L2 specs is
-> also there.
+I've been trying for the past week or two to get the 800i card working. I
+extracted the firmware and put it in /lib/firmware/<kernel_version> and I've
+downloaded and compiled the drivers for it (following the Linux TV wiki).
+The problem I am having now is that whenever I try to run 'tvtime-scanner',
+I get a kernel Oops.  The output from dmesg can be seen here:
+http://pastebin.com/m34f5e27f. I'm not sure how to proceed from here so any
+help would be greatly appreciated it.
 
-I will add some polish and just add in the pthread stuff to the original
-program.  It is super hacky right now.
-
-Cheers,
-
-	Brandon
-
+bradford
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
