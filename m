@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from psmtp30.wxs.nl ([195.121.247.32])
+Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jan-conceptronic@h-i-s.nl>) id 1JaGih-0007j2-1N
-	for linux-dvb@linuxtv.org; Fri, 14 Mar 2008 21:41:39 +0100
-Received: from his01.frop.org (ip545779c6.direct-adsl.nl [84.87.121.198])
-	by psmtp30.wxs.nl
-	(iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
-	with ESMTP id <0JXQ002Y7MSGUQ@psmtp30.wxs.nl> for linux-dvb@linuxtv.org;
-	Fri, 14 Mar 2008 21:41:04 +0100 (MET)
-Received: from [10.0.0.151] (his08.frop.org [10.0.0.151])
-	by his01.frop.org (8.11.0/8.11.0) with ESMTP id m2EKf4h01716	for
-	<linux-dvb@linuxtv.org>; Fri, 14 Mar 2008 21:41:04 +0100
-Date: Fri, 14 Mar 2008 21:41:04 +0100
-From: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+	(envelope-from <gasiu@konto.pl>) id 1Jcc4L-0005K0-4V
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 08:53:41 +0100
+Message-ID: <47E36980.8020809@konto.pl>
+Date: Fri, 21 Mar 2008 08:53:36 +0100
+From: Gasiu <gasiu@konto.pl>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Message-id: <47DAE2E0.2090400@h-i-s.nl>
-MIME-version: 1.0
-Subject: [linux-dvb] Help requested on removing behavior
+References: <mailman.385.1205960936.830.linux-dvb@linuxtv.org>
+	<47E2FAEE.0@konto.pl> <47E30629.7060706@gmail.com>
+In-Reply-To: <47E30629.7060706@gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] Compiling patched szap and mythtv - problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,31 +26,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Manu Abraham pisze:
+> Gasiu wrote:
+>   
+>>  >Hi everybody!
+>>  >
+>>  >I want to run my SkystarHD with multiproto (on 64bit Ubuntu), and I try
+>>  >to compile patched szap and MythTV.
+>>
+>>  >I have problems with this - I have updated headers from multiproto tree
+>>  >(I just copy .../multiproto-b5a34b6a209d/linux/include/ to
+>>  >/usr/include/) and I have error:
+>>
+>>  > >cc -c szap.c
+>>  >szap.c: In function ?zap_to?:
+>>  >szap.c:368: error: ?struct dvbfe_info? has no member named ?delivery?
+>>  >szap.c:372: error: ?struct dvbfe_info? has no member named ?delivery?
+>>  >szap.c:376: error: ?struct dvbfe_info? has no member named ?delivery?
+>>  >szap.c:401: error: ?struct dvbfe_info? has no member named ?delivery?
+>>  >szap.c:412: error: ?struct dvbfe_info? has no member named ?delivery?
+>>
+>>  >how can i fix it? (I think, that I need some *.h file - but what file?
+>>  >where find it?
+>>
+>> "Make" works with multiproto-ecb96c96a69e...
+>>
+>>     
+>
+> Pull dvb-apps the patched szap exists in dvb-apps dvb-apps/test/szap2
+>
+> You need to updates the headers too.. the cleaned headers can be found
+> in dvb-apps/include/*
+>
+> Regards,
+> Manu
+>
+>   
+It works, but with multiproto-ecb96c96a69e... I don't know why ;-)
 
-We are working now on the support for a new device (RTL2831U DVB-T 
-USB2.0 DEVICE).
-We get a lot of help from the tech support people.
+thanks!
 
-Now they have asked me a question that I cannot answer, and I don't know 
-if there is documentation on this.
+-- 
 
-The version now behaves as follows>
-When the stick is inserted, the module is loaded (usage count 0 in lsmod).
-When the stick is removed, the module stays loaded (usage count 0 in 
-lsmod), and when it is re-inserted, the driver works again.
+Gasiu
 
-When Kaffeine is started with the driver in memory, but the stick 
-unplugged, Kaffeine senses that the device is unplugged, and does not 
-show the DVB capability.
-
-When Kaffeine is running, and the stick is removed during that, the 
-video freezes.
-Re-instering the stick does not cause the video to become "live" again.
-After re-inserting the stick, Kaffeine recognizes that it's there again, 
-and functions again.
-
-Can anybody confirm me that this is the specified behavior and/or send 
-me the place where I can find these specifications ?
 
 _______________________________________________
 linux-dvb mailing list
