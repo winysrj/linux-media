@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JXQNK-0002e3-PY
-	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 01:23:51 +0100
-Message-ID: <47D08B08.9010703@gmail.com>
-Date: Fri, 07 Mar 2008 04:23:36 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from n37.bullet.mail.ukl.yahoo.com ([87.248.110.170])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JcVQV-0001PZ-9d
+	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 01:48:07 +0100
+Date: Thu, 20 Mar 2008 20:47:17 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <47E2FBD2.2080305@konto.pl>
+In-Reply-To: <47E2FBD2.2080305@konto.pl> (from gasiu@konto.pl on Thu Mar 20
+	20:05:38 2008)
+Message-Id: <1206060438l.15799l.0l@manu-laptop>
 MIME-Version: 1.0
-To: manu <eallaud@yahoo.fr>
-References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
-	<1204845652l.7051l.0l@manu-laptop>
-In-Reply-To: <1204845652l.7051l.0l@manu-laptop>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : TT S2-3200. No lock on high symbol rate (45M)
- transponders
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Multiproto szap lock, but video file is empty
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,30 +26,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-manu wrote:
-> On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
->> Can't get TT S2-3200 locked on high SR transponders. I have seen a 
->> lot
->>  
->> of suggestions regarding changing Frequency/Symbol rate on various  
->> forums but no luck. Low SR are fine.
->> Does anyone have a "revision" of multiproto that was tested with high 
->>
->> SR?
->>
->> I hope Manu can comment on that as well...
->>
-> Just a "me too", well kind of: for me certain transponders do not lock 
-> or lock but with corrupted streams whereas others are perfect (on the 
-> same sat with the same characteristics, SR is 30M).
+On 03/20/2008 08:05:38 PM, Gasiu wrote:
+> i've got SkystarHD, Ubuntu64 and multiproto-ecb96c96a69e - after 
+> patching szap.c
+> 
+> I can szap a channel:
+> 
+>  ./szap polsat2
 
+Try
 
-Please try whether these register setup changes does help as applicable.
+szap -r polsat2
+    ^^^
 
-http://jusst.de/hg/mantis/rev/72e81184fb9f
-
-Regards,
+Also if the channels are encrypted you need another util to control the 
+CI/CAM
+Bye
 Manu
+
 
 _______________________________________________
 linux-dvb mailing list
