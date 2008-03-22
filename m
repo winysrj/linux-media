@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.186])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <claesl@gmail.com>) id 1JcFYM-0006gO-Ty
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 08:51:13 +0100
-Received: by fk-out-0910.google.com with SMTP id z22so1115324fkz.1
-	for <linux-dvb@linuxtv.org>; Thu, 20 Mar 2008 00:51:07 -0700 (PDT)
-Message-ID: <47E21767.5010807@gmail.com>
-Date: Thu, 20 Mar 2008 08:51:03 +0100
-From: Claes Lindblom <claesl@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jcvcf-00044M-Px
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 05:46:26 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 22 Mar 2008 05:45:22 +0100
+References: <47E45138.1030107@googlemail.com>
+In-Reply-To: <47E45138.1030107@googlemail.com>
 MIME-Version: 1.0
-To: Igor <goga777@bk.ru>
-References: <47E212A4.5060400@gmail.com>
-	<E1JcFLn-000Ef8-00.goga777-bk-ru@f12.mail.ru>
-In-Reply-To: <E1JcFLn-000Ef8-00.goga777-bk-ru@f12.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AzureWave VP 1041 DVB-S2 problem
+Content-Disposition: inline
+Message-Id: <200803220545.23147@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,71 +20,107 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Igor wrote:
->>> How long (seconds, minutes...) this file ? 
->>> please, update your MPlayer - take the svn version.
->>> and finally please try to use dvbstream
->>>
->>> ./dvbstream -o 8192 > your.file
->>>
->>> Igor
->>>
->>>   
->>>       
->> Maybe around 10 seconds long.
->>     
->
-> ok
->
->   
->> I have updated MPlayer with the latest svn 
->>     
->
-> ok, it's right
->
->   
->> and also the latest x264 
->> codec and the result is still the same with.
->>     
->
-> it's not need, because inside MPlayer already included the fresh ffmpeg - decoder for h264
->
->  
->   
->> I don't understand how this dvbstream example works because of what I 
->> understand, dvbstream uses rtp streaming?
->>     
->
-> not only for rtp streaming, dvbstrem can record the files, too
->
->   
->> I'm running on a 2.6.24 kernel and Slamd 64 distribution. All standard 
->> channels works fine, but DVB-S2 is the main
->> issue to solve.
->>     
->
-> so, it's better to write to Mplayer-dvb mailing list about your issue, and to upload your sample to Mplayer's ftp-server  ftp://upload.mplayerhq.hu/MPlayer/incoming
->
-> Igor
->
->   
-The strange part of this is that when using a DVB-C card there where no 
-problem (except for performance) watching the same h.264
-coded channel (SVT HD) so it feels like it should not be a mplayer issue.
+Andrea wrote:
+> This patch implements the ioctl DMX_SET_BUFFER_SIZE for the dvr.
+> =
 
-I will try to mail mplayer-dvb and see what happens.
+> The ioctl used to be supported but not yet implemented.
+> =
 
-Can someone that got this card to work with DVB-S2  write down exactly 
-how so I can compare with how I did it?
+> The way it works is that it replaces the ringbuffer with a new one.
+> Beforehand it flushes the old buffer.
+> This means that part of the stream is lost, and reading errors (like over=
+flow) are cleaned.
+> The flushing is not a problem since this operation usually occurs at begi=
+nning before start reading.
+> =
 
-Regards
-Claes
+> Since the dvr is *always* up and running this change has to be done while=
+ the buffer is written:
+> =
+
+> 1) On the userspace side, it is as safe as dvb_dvr_read is now:
+> 	- dvb_dvr_set_buffer_size locks the mutex
+> 	- dvb_dvr_read does *not* lock the mutex (the code is there commented ou=
+t)
+> =
+
+> So as long as one does not call read simultaneously it works properly.
+> Maybe the mutex should be enforced in dvb_dvr_read.
+> =
+
+> 2) On the kernel side
+> The only thing I am not 100% sure about is whether the spin_lock I've use=
+d is enough to guarantee
+> synchronization between the new function dvb_dvr_set_buffer_size (which u=
+ses spin_lock_irq) and
+> dvb_dmxdev_ts_callback and dvb_dmxdev_section_callback (using spin_lock).
+> But this looks to me the same as all other functions do.
+
+Please see my other mail, too
+
+>=A0=A0=A0=A0=A0=A0=A0spin_lock(&dmxdev->lock);
+>=A0=A0=A0=A0=A0=A0=A0mem =3D buf->data;
+>=A0=A0=A0=A0=A0=A0=A0buf->data =3D NULL;
+>=A0=A0=A0=A0=A0=A0=A0buf->size =3D size;
+>=A0=A0=A0=A0=A0=A0=A0dvb_ringbuffer_flush(buf);
+>=A0=A0=A0=A0=A0=A0=A0spin_unlock(&dmxdev->lock);
+>=A0=A0=A0=A0=A0=A0=A0vfree(mem);
+>
+>=A0=A0=A0=A0=A0=A0=A0if (buf->size) {
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0mem =3D vmalloc(dmxdev->dvr_b=
+uffer.size);
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (!mem)
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0retur=
+n -ENOMEM;
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0spin_lock(&dmxdev->lock);
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0buf->data =3D mem;
+>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0spin_unlock(&dmxdev->lock);
+>=A0=A0=A0=A0=A0=A0=A0}
+
+I see some problems here:
+- Do not release the lock before the ringbuffer is consistent again.
+- We should not free the old buffer before we got a new one.
+- As the ring buffer can be written from an ISR, we have to use
+  spin_lock_irqsave/spin_unlock_irqrestore here.
+
+What about this fragment:
+	...
+	if (!size)
+		return -EINVAL;
+
+	mem =3D vmalloc(size);
+	if (!mem)
+		return -ENOMEM;
+
+	mem2 =3D buf->data;
+
+        spin_lock_irqsave(&dmxdev->lock);
+        buf->pread =3D buf->pwrite =3D 0;
+	buf->data =3D mem;
+	buf->size =3D size;
+	spin_unlock_irqrestore(&dmxdev->lock);
+
+	vfree(mem2);
+	return 0;
+
+Any comemnts? I hope that someone else also has a look at this because
+I don't have much time atm.
+
+CU
+Oliver
+
+-- =
+
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
