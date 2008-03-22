@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2E0hGHp009021
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 20:43:16 -0400
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2E0gfwj029249
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 20:42:41 -0400
-Received: by wr-out-0506.google.com with SMTP id c57so2806626wra.9
-	for <video4linux-list@redhat.com>; Thu, 13 Mar 2008 17:42:41 -0700 (PDT)
-Message-ID: <5387cd30803131742y246fca86qb70f9d28c2054ed4@mail.gmail.com>
-Date: Fri, 14 Mar 2008 00:42:41 +0000
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <593189.25901.qm@web56404.mail.re3.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2MD4VKs010704
+	for <video4linux-list@redhat.com>; Sat, 22 Mar 2008 09:04:31 -0400
+Received: from rediffmail.com (f5mail-237-204.rediffmail.com [202.137.237.204])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2MD3kKw015697
+	for <video4linux-list@redhat.com>; Sat, 22 Mar 2008 09:03:47 -0400
+Date: 22 Mar 2008 12:05:52 -0000
+Message-ID: <20080322120552.19932.qmail@f5mail-237-204.rediffmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: "Sandipan Bhattacharjee" <sandipanait@rediffmail.com>
+To: video4linux-list@redhat.com
+Content-type: text/plain;
+	format=flowed
 Content-Disposition: inline
-References: <593189.25901.qm@web56404.mail.re3.yahoo.com>
-Subject: Re: The final inch...
+Subject: (no subject)
+Reply-To: Sandipan Bhattacharjee <sandipanait@rediffmail.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,22 +26,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 13/03/2008, r bartlett <techwritebos@yahoo.com> wrote:
 
->  My question is, from this point, what do I need to do?  I don't mind using a simple command line if need be, and I tried to install MythTV and got mired in a dependency issue related to an extinct library that's somehow still "required."
+Dear All,
 
-Out of interest, which library caused the dependency problems for you
-when attempting to install MythTV?
+I have a very simple doubt. Can anyone please help me with it? I 
+want to connect a Linux PC and a Windows PC by USB. Now since, 
+both are working in host mode, I need a USB-bridge cable.I am not 
+able to find any such cable which has the driver for Linux also. 
+Can any one please help me out with a solution??
+Thanks in advance.
 
--- 
-Nick Morrott
-
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
-
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+Cheers
+Sandipan.
 
 --
 video4linux-list mailing list
