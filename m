@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JX6me-0002aD-GK
-	for linux-dvb@linuxtv.org; Thu, 06 Mar 2008 04:28:41 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so2529790tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 05 Mar 2008 19:28:34 -0800 (PST)
-Message-ID: <abf3e5070803051928g645142c2id0ff2cfa9925d347@mail.gmail.com>
-Date: Thu, 6 Mar 2008 14:28:34 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: linux-dvb@linuxtv.org
+Received: from n26.bullet.mail.ukl.yahoo.com ([87.248.110.143])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1Jd7pV-0007yv-Nl
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 18:48:32 +0100
+Date: Sat, 22 Mar 2008 13:35:52 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <227C7E65-BCB7-4990-B0F2-02FFF56DC976@krastelcom.ru>
+	<1204845652l.7051l.0l@manu-laptop> <47D08B08.9010703@gmail.com>
+In-Reply-To: <47D08B08.9010703@gmail.com> (from abraham.manu@gmail.com on
+	Thu Mar  6 20:23:36 2008)
+Message-Id: <1206207352l.5661l.1l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb]  Leadtek Winfast DTV Dongle Gold
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: [linux-dvb] Re : Re : TT S2-3200. No lock on high symbol rate (45M)
+ transponders
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,20 +29,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I just bought a Leadtek Winfast DTV Dongle Gold, I thought it would be
-the same as the DTV Dongle, but apparently it's not, it's a new model
-fresh of the production line about a month ago. Of course it
-doesn't work following the instructions for the older model, I even
-recompiled the kernel so it would be recognised (changed the usb
-id, similar to changing the 6f00 to 6f01 for the last model), and
-got the firmware for the old one but it appears that it is quite different.
+On 03/06/2008 08:23:36 PM, Manu Abraham wrote:
+> manu wrote:
+> > On 03/06/2008 06:34:28 AM, Vladimir Prudnikov wrote:
+> >> Can't get TT S2-3200 locked on high SR transponders. I have seen a 
+> >> lot
+> >>  
+> >> of suggestions regarding changing Frequency/Symbol rate on various 
+> 
+> >> forums but no luck. Low SR are fine.
+> >> Does anyone have a "revision" of multiproto that was tested with
+> high 
+> >>
+> >> SR?
+> >>
+> >> I hope Manu can comment on that as well...
+> >>
+> > Just a "me too", well kind of: for me certain transponders do not
+> lock 
+> > or lock but with corrupted streams whereas others are perfect (on
+> the 
+> > same sat with the same characteristics, SR is 30M).
+> 
+> 
+> Please try whether these register setup changes does help as
+> applicable.
+> 
+> http://jusst.de/hg/mantis/rev/72e81184fb9f
+> 
 
-Does anyone have any plans for working on this one? Or can someone
-give me some pointers about how all this stuff works, especially how
-to get the firmware out of the windows driver or at least work
-out which firmware and driver it should be using.
+Sorry I just got time to test those: it is worse with the changes: the 
+bad channels still dont work and the good ones dont anymore.
+BTW did you change something with the recent multiproto? I get 
+DVBFE_GET_INFO not supported with szap (an old one but patched for 
+multiproto).
+I will try to get a meaningful log for when there is no lock with szap.
+Thx
+Bye
+Manu 
 
-Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
