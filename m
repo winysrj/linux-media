@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JdlUq-00073w-Mz
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 13:09:49 +0100
-Received: by rn-out-0910.google.com with SMTP id e11so1067978rng.17
-	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 05:09:44 -0700 (PDT)
-Message-ID: <8ad9209c0803240509i77e85738x1e9e4d6c276a219b@mail.gmail.com>
-Date: Mon, 24 Mar 2008 13:09:44 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47E77895.8000708@ivor.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JcuuA-0000ju-FJ
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 05:00:27 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 22 Mar 2008 04:56:43 +0100
+References: <47E4512E.5000602@googlemail.com>
+In-Reply-To: <47E4512E.5000602@googlemail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida> <47E77895.8000708@ivor.org>
-Subject: Re: [linux-dvb] Nova-T-500 disconnects - They are back!
+Message-Id: <200803220456.43691@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] 1/3: BUG FIX in dvb_ringbuffer_flush
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,43 +20,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Mar 24, 2008 at 10:47 AM, Ivor Hewitt <ivor@ivor.org> wrote:
-> Nicolas Will wrote:
->  > Guys,
->  >
->  > I have upgraded my system to the new Ubuntu (8.04 Hardy), using 2.6.24,
->  > 64-bit.
->  >
->  Just thought I'd add, in case anyone was wondering, that I'm still not
->  having any problems with vanilla 2.6.22.19 and current v4l-dvb tree.
->  MythTV multirec with eit scanning enabled.
->  One or two I2C read failed a day in the kernel log, and an occasional
->  I2C write failed.
->
->  And no, haven't got around to going through the 2.6.22 vs 2.6.23 diffs y=
-et.
->
->  Regards,
->  Ivor.
->
->
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Andrea wrote:
+> I've been playing with DMX_SET_BUFFER_SIZE and I've had a problem when I tried to resize the buffer
+> to a smaller size.
+> 
+> dvb_dmxdev_set_buffer_size flushes the ringbuffer and then replaces it with a new one.
+> What happens if the current pointer is on a position that would be invalid in the new buffer? An
+> access violation.
+> 
+> This because dvb_ringbuffer_flush resets the 2 pointers to the vaule of pwrite (which could be after
+> the end of the new buffer).
 
-I downloaded the 2.6.22.19 from kernel.org (that is vanilla right?)
-and compiled it on my Ubuntu 7.10
-Didn't help. So it can=B4t be just the kernel that does it.It must be
-something more than that.
+Ack, this _is_ a bug. :-(
+
+> I think it is safer to reset them to 0.
+
+Nak. At the first glance one might think that this patch is correct.
+Unfortunately, it introduces a subtle bug.
+
+Citing the comments in dvb_ringbuffer.h:
+| (2) If there is exactly one reader and one writer, there is no need
+|     to lock read or write operations.
+|     Two or more readers must be locked against each other.
+|     Flushing the buffer counts as a read operation.
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|     Two or more writers must be locked against each other.
+
+With your patch all dvb_ringbuffer_flush() calls must also be considered
+as write operations. As a consequence, you would have to add spinlock
+protection at many places in the code...
+
+So I suggest to leave dvb_ringbuffer_flush() as is and zero the read and
+write pointers only where it is really required...
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
