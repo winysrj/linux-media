@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [212.57.247.218] (helo=glcweb.co.uk)
+Received: from hu-out-0506.google.com ([72.14.214.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JgPki-0001v6-Lp
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 21:33:10 +0200
-Date: Mon, 31 Mar 2008 20:32:33 +0100
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1Jd5vx-0003Rg-5z
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 16:47:02 +0100
+Received: by hu-out-0506.google.com with SMTP id 28so1061643hug.11
+	for <linux-dvb@linuxtv.org>; Sat, 22 Mar 2008 08:46:57 -0700 (PDT)
+Message-ID: <47E529EE.901@googlemail.com>
+Date: Sat, 22 Mar 2008 16:46:54 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
 MIME-Version: 1.0
-Message-ID: <A33C77E06C9E924F8E6D796CA3D635D1023987@w2k3sbs.glcdomain.local>
-Content-class: urn:content-classes:message
-From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
-To: <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Compile errors Multiproto
+To: linux-dvb@linuxtv.org
+References: <200803212024.17198.christophpfister@gmail.com>	<47E4EE00.9080207@gmail.com>
+	<200803221413.24352.christophpfister@gmail.com>
+In-Reply-To: <200803221413.24352.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
+Reply-To: thomas.schorpp@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,52 +22,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all
+Christoph Pfister wrote:
+> Am Samstag 22 M=E4rz 2008 schrieb e9hack:
+>> Christoph Pfister schrieb:
+>>> Hi,
+>>>
+>>> Can somebody please pick up those patches (descriptions inlined)?
+>>>
+>>> Thanks,
+>>>
+>>> Christoph
+>> diff -r 1886a5ea2f84 -r f252381440c1
+>> linux/drivers/media/dvb/ttpci/budget-av.c ---
+>> a/linux/drivers/media/dvb/ttpci/budget-av.c	Fri Mar 21 08:04:55 2008 -03=
+00
+>> +++ b/linux/drivers/media/dvb/ttpci/budget-av.c	Fri Mar 21 19:29:15 2008
+>> +0100 @@ -178,7 +178,7 @@ static int ciintf_read_cam_control(struc
+>>   	udelay(1);
+>>
+>>   	result =3D ttpci_budget_debiread(&budget_av->budget, DEBICICAM, addre=
+ss &
+>> 3, 1, 0, 0); -	if ((result =3D=3D -ETIMEDOUT) || ((result =3D=3D 0xff) &=
+& ((address
+>> & 3) < 2))) { +	if ((result =3D=3D -ETIMEDOUT) || ((result =3D=3D 0xff) =
+&&
+>> ((address & 3) =3D=3D 1))) { ciintf_slot_shutdown(ca, slot);
+>>   		printk(KERN_INFO "budget-av: cam ejected 3\n");
+>>   		return -ETIMEDOUT;
+>>
+>>
+>> IMHO you should remove the test for 0xff . Without your patch, it wasn't
+>> possible to read 0xff from address 0 and 1. Now it isn't possible to read
+>> 0xff from address 1.
+> =
 
+> Address 1 is the status register; bits 2-5 are reserved according to en50=
+221 =
 
-Are these compile errors anything to worry about?
+> and should be zero, so this case is less problematic with regards to 0xff =
 
-2.6.24.3-34.fc8 #1 SMP Wed Mar 12 18:17:20 EDT 2008 i686 athlon i386 GNU/Linux
+> checking.
+> =
 
-Latest hg clone of multiproto
+> On second thoughts it's probably better to remove the check altogether, =
 
-[root@mythhost multiproto]# make > errors
+> because a) budget-av isn't here to check standards conformance - the high=
+er =
 
-/opt/dvb/multiproto/v4l/dvb_frontend.c: In function 'dvb_frontend_thread':
-/opt/dvb/multiproto/v4l/dvb_frontend.c:1126: warning: unused variable 'status'
-/opt/dvb/multiproto/v4l/stb0899_drv.c: In function 'stb0899_diseqc_init':
-/opt/dvb/multiproto/v4l/stb0899_drv.c:834: warning: unused variable 'ret_2'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:833: warning: unused variable 'ret_1'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:832: warning: unused variable 'trial'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused variable 'i'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:830: warning: unused variable 'count'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:826: warning: unused variable 'rx_data'
-/opt/dvb/multiproto/v4l/stb0899_drv.c: In function 'stb0899_sleep':
-/opt/dvb/multiproto/v4l/stb0899_drv.c:899: warning: unused variable 'reg'
-/opt/dvb/multiproto/v4l/stb0899_drv.c: In function 'stb0899_track':
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1930: warning: unused variable 'internal'
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1927: warning: unused variable 'lock_lost'
-/opt/dvb/multiproto/v4l/stb0899_drv.c: At top level:
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1722: warning: 'stb0899_track_carrier' defined but not used
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1739: warning: 'stb0899_get_ifagc' defined but not used
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1756: warning: 'stb0899_get_s1fec' defined but not used
-/opt/dvb/multiproto/v4l/stb0899_drv.c:1784: warning: 'stb0899_get_modcod' defined but not used
+> layers know better how to deal with the content and b) who should care if=
+ the =
 
+> other status bits work correctly ;)
 
-Regards
+Better remove all CI stuff from that wrong place.
+Why is all that CI and tuner frontend (which dvb budget card has got a anal=
+ogtv demod?) =
 
-Mike Curtis
+code in the budget__AV__ module ?
+Pls move it to budget__CI__  and budget modules, and have the budget_av/_ci =
 
-No virus found in this outgoing message.
-Checked by AVG. 
-Version: 7.5.519 / Virus Database: 269.22.1/1350 - Release Date: 30/03/2008 12:32
- 
+stuff detected there and loaded and utilized *if* needed, the current ci-co=
+de  =
+
+blocks saa7113 analog capture on plus cards and could, according to manu's =
+research, =
+
+confuse a knc1 dvb-s2 card completely.
+
+and who needs cam polling? do we have got a majority of users hotswapping c=
+ams?
+i want that be clarified before sending rejectable patches.
+
+>> -Hartmut
+> =
+
+> Christoph
+
+y
+tom
 
 _______________________________________________
 linux-dvb mailing list
