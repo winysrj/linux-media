@@ -1,22 +1,35 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <hfvogt@gmx.net>) id 1JcjHX-0003FF-T6
-	for linux-dvb@linuxtv.org; Fri, 21 Mar 2008 16:35:52 +0100
-From: Hans-Frieder Vogt <hfvogt@gmx.net>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Date: Fri, 21 Mar 2008 16:35:12 +0100
-References: <200803211152.26870.hfvogt@gmx.net>
-	<ea4209750803210709r63fb8dc5y1cfa11229150472e@mail.gmail.com>
-	<ea4209750803210756p5616b0erd12a96f742d6671e@mail.gmail.com>
-In-Reply-To: <ea4209750803210756p5616b0erd12a96f742d6671e@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200803211635.12802.hfvogt@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE -
-	Draft 2
-Reply-To: hfvogt@gmx.net
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+0af2e7848fb42186027e+1672+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1Jd6Mv-0006FT-JX
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 17:14:53 +0100
+Date: Sat, 22 Mar 2008 13:13:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: timf <timf@iinet.net.au>
+Message-ID: <20080322131356.45a88176@gaivota>
+In-Reply-To: <1206200253.6403.11.camel@ubuntu>
+References: <47A5D8AF.2090800@googlemail.com> <47ACA9AA.4090702@googlemail.com>
+	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
+	<47B1E22D.4090901@googlemail.com> <20080313114633.494bc7b1@gaivota>
+	<1205457408.6358.5.camel@ubuntu> <20080314121423.670f31a0@gaivota>
+	<1205518856.6094.14.camel@ubuntu> <20080314155851.52677f28@gaivota>
+	<1205523274.6364.5.camel@ubuntu> <20080314172143.62390b1f@gaivota>
+	<1205573636.5941.1.camel@ubuntu> <20080318103044.4363fefd@gaivota>
+	<1205864312.11231.11.camel@ubuntu>
+	<20080318161729.6da782ee@gaivota>
+	<1205873332.11231.17.camel@ubuntu>
+	<20080318180415.5dfc4319@gaivota>
+	<1205875868.3385.133.camel@pc08.localdom.local>
+	<1205904196.6510.3.camel@ubuntu> <20080320115531.7ab450ba@gaivota>
+	<1206030503.5997.2.camel@ubuntu> <20080320140715.4204ec78@gaivota>
+	<20080322083435.2432256b@gaivota> <47E51CBD.1000906@googlemail.com>
+	<20080322115925.69cc5b38@gaivota> <1206200253.6403.11.camel@ubuntu>
+Mime-Version: 1.0
+Cc: Hackmann <hartmut.hackmann@t-online.de>, lucarasp <lucarasp@inwind.it>,
+	linux-dvb@linuxtv.org, "Richard \(MQ\)" <osl2008@googlemail.com>
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,54 +37,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-QWxiZXJ0LAoKSSBhbSByZWFsbHkgc29ycnkuIEl0IHNlZW1zIEkgd2FzIG92ZXItYWN0aXZlIGhl
-cmUuIFN0cmFuZ2UgZW5vdWdoIHRoZSBDaW5lcmd5IGdpdmVzIGFuIG91dHB1dCBldmVuIHdpdGhv
-dXQgdGhlIFhDMjAyOF9SRVNFVF9DTEsgY2FzZS4gSG93ZXZlciwgd2hhdCBJIGRpZCBub3QgcmVh
-bGlzZSBmaXJzdCwgd2l0aG91dCB0aGUgcmVzZXQgY2FzZSB0aGUgcGljdHVyZSB3YXMgc3R1dHRl
-cmluZy4KVGhhbmtzIGZvciBzcG90dGluZyB0aGlzIGJ1Zy4KCkNoZWVycywKSGFucy1GcmllZGVy
-Cgo+IEZpbmFsbHkgSSBmb3VuZCBpdDsgSSBoYXZlIHRvIGtlZXAgdGhpcyBvbiB4YzIwMjggY2Fs
-bGJhY2sgb3IgdGhlIGRldmljZSB3aWxsIG5vdCB3b3JrOyBjYXNlIFhDMjAyOF9SRVNFVF9DTEs6
-IGJyZWFrOwo+IE5vdyBJIHdpbGwgYWRkIG90aGVyIGNhcmRzIGFuZCByZXNlbmQgdGhlIHBhdGNo
-Lgo+IAo+IEFsYmVydAo+IAo+IDIwMDgvMy8yMSwgQWxiZXJ0IENvbWVybWEgPGFsYmVydC5jb21l
-cm1hQGdtYWlsLmNvbT46Cj4gIEhleSBIYW5zLCBJJ20gc3BlbmRpbmcgc29tZSB0aW1lLCBiZWNh
-dXNlIHJpZ2h0IG5vdyBJJ3ZlIG5vdCBiZWVuIGFibGUgdG8gbWFrZSBteSBjYXJkIHdvcmtpbmcg
-d2l0aCB5b3VyIHBhdGNoLiBFdmVyeXRoaW5nIHNlZW1zIG9rLCBidXQgbm8gY2hhbm5lbHMgZGV0
-ZWN0ZWQgYW5kIG5vIHZpZGVvIGF0IGFsbC4uLiBzdHJhbmdlLiBEaWQgeW91IGNoZWNrZWQgdGhh
-dCBpdCB3YXMgd29ya2luZyBvaz8KPiAgCj4gMjAwOC8zLzIxLCBBbGJlcnQgQ29tZXJtYSA8YWxi
-ZXJ0LmNvbWVybWFAZ21haWwuY29tPjoKPiAgUGVyZmVjdCEhIGl0IHNlZW1zIGdyZWF0LCBub3cg
-SSB3aWxsIGNoZWNrIGl0IChzb3JyeSwgSSB3YXMgdmVyeSBidXN5IGxhc3QgdHdvIGRheXMpLiBJ
-IGFsc28gd2lsbCBhZGQgc3VwcG9ydCBmb3IgRmVsaXgncyBjYXJkIGFuZCB0aGUgdHdvIGNhcmRz
-IEkgaGF2ZSBwZW5kaW5nIChqdXN0IGFkZCBkZXZpY2UgaWQgYW5kIHNtYWxsIG1vZGlmaWNhdGlv
-bnMpLCBzbyBpdCB3aWxsIGJlIGVhc2llciBmb3IgcGF0cmljayB0byBhZGQgdGhlIGRpZmZlcmVu
-dCBwYXRjaGVzIHRvIHRoZSBjdXJyZW50IHNvdXJjZS4gSnVzdCBvbmUgY29tbWVudCwgaG93IHlv
-dSBnZW5lcmF0ZWQgdGhlIHBhdGNoPyBiZWNhdXNlIG1hdXJvIHN1Z2dlc3RlZCBpdCdzIGJldHRl
-ciB0byB1c2UgaGcgZGlmZi4gSW4gYSBtaW51dGVzIEkgd2lsbCBzZW5kIHRoZSBtb2RpZmllZCBw
-YXRjaCAoSSBob3BlIGl0IHdpbGwgYmUgdGhlIGxhc3QgdmVyc2lvbikuCj4gIAo+IEFsYmVydAo+
-IAo+IDIwMDgvMy8yMSwgSGFucy1GcmllZGVyIFZvZ3QgPGhmdm9ndEBnbXgubmV0PjoKPiAgSGkg
-QWxiZXJ0LAo+ICAKPiAgSSBoYXZlIHNsaWdodGx5IGNoYW5nZWQgdGhlIHN0azc3MDBwaF9mcm9u
-dGVuZF9hdHRhY2ggR1BJTyBzZXF1ZW5jZSB0byBiZSBpbiBsaW5lIHdpdGggdGhlIFdpbmRvd3Mg
-YmVoYXZpb3VyIGFuZCBhbHNvIGFkZAo+ICB0aGUgZGVtb2QtdmFsdWUgaW4gc3RrNzcwMHBoX3hj
-MzAyOF9jdHJsLCB0byBtYWtlIHRoZSBkcml2ZXIgbG9hZCB0aGUgcmlnaHQgU0NPREUgZmlsZSAo
-d2hpY2ggc2VlbXMgdG8gaGF2ZSBubyBlZmZlY3QsCj4gIHRob3VnaCkuIEFsc28sIEkgcmVtb3Zl
-ZCB0aGUgdW51c2VkIGFuZCB1bm5lZWRlZCB4YzMwMjhfYndfY29uZmlnXzEybWh6IHN0cnVjdHVy
-ZS4KPiAgSW4gYWRkaXRpb24sIEkgZm9sbG93ZWQgTWF1cm8ncyByZXF1ZXN0IGZvciBjb2Rpbmcg
-c3R5bGUgY2hhbmdlcyBhbmQgYWxzbyBhZGQgc29tZSBtb3JlIGtlcm5lbCBzdHlsZSBjaGFuZ2Vz
-IHRoYXQKPiAgY2hlY2twYXRjaCBoaWdobGlnaHRlZCAoSSBvbmx5IGludHJvZHVjZWQgY2hhbmdl
-cyB3aGVyZSB0aGV5IHNlZW1lZCBzZW5zaWJsZSwgdGhlcmUgYXJlIG1hbnksIG1hbnkgb3RoZXIK
-PiAgYXJlYXMgaW4gdGhlIGZpbGUgZGliMDcwMF9kZXZpY2VzLmMgd2hlcmUgaXQgZG9lcyBub3Qg
-Zm9sbG93IHRoZSBzdHJpY3QgY29kaW5nIGd1aWRlbGluZXMgYXMgd2VsbCkuCj4gIAo+ICBDYW4g
-eW91IHBsZWFzZSBjb25maXJtIHRoYXQgSSBpbmNsdWRlZCB5b3VyIGNoYW5nZXMgZm9yIHRoZSBQ
-aW5uYWNsZSAzMjBjeCBjb3JyZWN0bHkgYW5kIHBlcmhhcHMgYWxzbyBhZGQgYSBzaWdub2ZmLWxp
-bmU/Cj4gIFRoYW5rcyB2ZXJ5IG11Y2guCj4gIAo+ICBIYW5zLUZyaWVkZXIKPiAgCj4gIC0tCj4g
-IAo+IC0tCj4gIEhhbnMtRnJpZWRlciBWb2d0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqAgZS1tYWlsOiBoZnZvZ3QgPGF0PiBnbXggLmRvdC4gbmV0CgotLSAKLS0KSGFucy1GcmllZGVy
-IFZvZ3QgICAgICAgICAgICAgICAgIGUtbWFpbDogaGZ2b2d0IDxhdD4gZ214IC5kb3QuIG5ldAoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
-IG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9y
-Zy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+On Sun, 23 Mar 2008 00:37:33 +0900
+timf <timf@iinet.net.au> wrote:
+
+> Hi again,
+
+> Something strange happening here:
+> 
+> [   24.528000] mt352_read_register: readreg error (reg=127, ret==-5)
+> [   24.528000] xc2028: Xcv2028/3028 init called!
+> [   24.528000] xc2028: No frontend!
+> [   24.528000] saa7133[0]/2: xc3028 attach failed
+> [   24.528000] BUG: unable to handle kernel NULL pointer dereference at
+> virtual address 000000ac
+> [   24.528000]  printing eip:
+> [   24.528000] f8b70074
+> [   24.528000] *pde = 00000000
+> [   24.528000] Oops: 0000 [#1]
+
+Ok. This means that the mt352 initialization code is not Ok. So, you'll need to hack it. It also showed a bug on saa7134-dvb: if frontend is null it shouldn't register xc2028, but, instead, return with -EINVAL.
+
+> 
+> Regards,
+> Tim
+
+
+
+
+Cheers,
+Mauro
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
