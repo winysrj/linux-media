@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.229])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <makosoft@googlemail.com>) id 1JgQDD-0005xd-HG
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 22:02:38 +0200
-Received: by wr-out-0506.google.com with SMTP id c30so899557wra.14
-	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 13:02:28 -0700 (PDT)
-Message-ID: <c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
-Date: Mon, 31 Mar 2008 21:02:26 +0100
-From: "Aidan Thornton" <makosoft@googlemail.com>
-To: "Another Sillyname" <anothersname@googlemail.com>
-In-Reply-To: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	(envelope-from <mariofutire@googlemail.com>) id 1JcrVC-0001sp-0V
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 01:22:27 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so1261952fge.25
+	for <linux-dvb@linuxtv.org>; Fri, 21 Mar 2008 17:22:25 -0700 (PDT)
+Message-ID: <47E4513E.4050003@googlemail.com>
+Date: Sat, 22 Mar 2008 00:22:22 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------080407010504010802070903"
+Subject: [linux-dvb] [PATCH] 3/3: a few fixes in dvb-apps.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,71 +19,123 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Mar 31, 2008 at 12:40 AM, Another Sillyname
-<anothersname@googlemail.com> wrote:
-> I have a machine that has an internal card that's a Lifeview DVB and
->  works fine using the v4l-dvb mercurial sources.
->
->  I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
->  using the v4l-dvb sources but does work using the v4l-dvb-kernel
->  version.
->
->  1.  Will the number of em28xx cards supported by v4l-dvb be increased
->  shortly?  (My card id was 94 IIRC ).
+This is a multi-part message in MIME format.
+--------------080407010504010802070903
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-If it's supported by v4l-dvb-kernel, it's entirely possible, yes.
+I've collected in this patch a few small fixes for dvb-apps
 
->  2.  Can I mix and match from the sources...i.e. can I graft the em28xx
->  stuff from v4l-dvb-kernel into the v4l-dvb source and compile
->  successfully or has the underlying code changed at a more strategic
->  level?
+1) in libdvbapi a new enum to support DMX_OUT_TSDEMUX_TAP
 
-Not trivially, since v4l-dvb-kernel contains changes to the core code
-that the em28xx driver relies on and that are incompatible with
-changes in the main v4l-dvb repository since. You can try
-http://www.makomk.com/hg/v4l-dvb-makomk - it's the em28xx and xc3028
-drivers grafted onto a version of v4l-dvb that's about 5 months old at
-this point - though it's really not a great starting point for porting
-them onto newer versions, since you'd want to drop the xc3028 driver
-in favour of the newer one
+2) in libdvbapi a change in a comment where it is stated that the dvr can be opened more that once
+in readonly. It can only be opened once.
 
->  3.  Why did the sources branch?  Was there a good technical reason for this?
+3) tzap: removed the ioctl call to DMX_SET_BUFFER_SIZE on the dvr. This calls shrinks the size of
+the buffer, from about 2MB (#define DVR_BUFFER_SIZE (10*188*1024) in dmxdev.h) to 1MB. It only
+matters once the PATCH 2/3 enables DMX_SET_BUFFER_SIZE on the dvr.
+I think the writer of the code wanted a bigger buffer, so it is pointless to reduce it.
 
-Supporting the xc3028 silicon tuner needed some changes to support
-hybrid analog/digital tuners better. Unfortunately, Markus couldn't
-come to an agreement with the rest of the developers on how to do it.
-(I think the main concern were that the changes he were proposing were
-rather more invasive than they needed to be and risked breaking
-existing drivers). In the end, someone else coded the equivalent
-functionality in a more backwards-compatible way and merged it in
-stages.
+Let me know if I should post 3 separate patches.
 
-(It's actually relatively easy to port code from Markus' hybrid tuner
-framework to the v4l-dvb one, though he will never admit so.)
+I plan to send an other patch to change gnutv to be more robust with slow writes and to support
+DMX_SET_BUFFER_SIZE.
 
->  4.  If I can't use the v4l-dvb sources to get my em28xx working what's
->  the chances of getting the v4l-dvb-kernel stuff working for the
->  lifeview flydvb card?
+Andrea
 
-Not good. Its support for other hardware is, if anything, going to be
-slowly getting worse over time as other drivers have to be modified or
-disabled to make it compile on newer kernels.
 
->  Thanks in advance.
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+
+--------------080407010504010802070903
+Content-Type: text/x-patch;
+ name="dvb-apps.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dvb-apps.diff"
+
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.c
+--- a/lib/libdvbapi/dvbdemux.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -128,6 +128,10 @@ int dvbdemux_set_pes_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -201,6 +205,10 @@ int dvbdemux_set_pid_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.h
+--- a/lib/libdvbapi/dvbdemux.h	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.h	Sat Mar 22 00:07:29 2008 +0000
+@@ -55,6 +55,7 @@ extern "C"
+ #define DVBDEMUX_OUTPUT_DECODER 0
+ #define DVBDEMUX_OUTPUT_DEMUX 1
+ #define DVBDEMUX_OUTPUT_DVR 2
++#define DVBDEMUX_OUTPUT_TS_DEMUX 3
+ 
+ /**
+  * PES types.
+@@ -65,6 +66,7 @@ extern "C"
+ #define DVBDEMUX_PESTYPE_SUBTITLE 3
+ #define DVBDEMUX_PESTYPE_PCR 4
+ 
++
+ /**
+  * Open a demux device. Can be called multiple times. These let you setup a
+  * single filter per FD. It can can also be read() from if you use a section
+@@ -78,8 +80,8 @@ extern int dvbdemux_open_demux(int adapt
+ extern int dvbdemux_open_demux(int adapter, int demuxdevice, int nonblocking);
+ 
+ /**
+- * Open a DVR device. May be opened for writing once, or multiple times in readonly
+- * mode. It is used to either write() transport stream data to be demuxed
++ * Open a DVR device. May be opened for writing or reading once.
++ * It is used to either write() transport stream data to be demuxed
+  * (if input == DVBDEMUX_INPUT_DVR), or to read() a stream of demuxed data
+  * (if output == DVBDEMUX_OUTPUT_DVR).
+  *
+diff -r 3cde3460d120 util/szap/tzap.c
+--- a/util/szap/tzap.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/util/szap/tzap.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -676,11 +676,6 @@ int main(int argc, char **argv)
+ 	                PERROR("failed opening '%s'", DVR_DEV);
+ 	                return -1;
+ 	        }
+-		if (ioctl(dvr_fd, DMX_SET_BUFFER_SIZE, 1024 * 1024)<0)
+-		{
+-			PERROR("DMX_SET_BUFFER_SIZE failed");
+-			return -1;
+-		}
+ 		if (silent<2)
+ 			print_frontend_stats (frontend_fd, human_readable);
+ 
+
+
+--------------080407010504010802070903
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------080407010504010802070903--
