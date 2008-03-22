@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GKSi9V012345
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 16:28:44 -0400
-Received: from mail4.sea5.speakeasy.net (mail4.sea5.speakeasy.net
-	[69.17.117.6])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GKSCOZ010820
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 16:28:12 -0400
-Date: Sun, 16 Mar 2008 13:28:06 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Frej Drejhammar <frej.drejhammar@gmail.com>
-In-Reply-To: <kod9eemd4.fsf@liva.fdsoft.se>
-Message-ID: <Pine.LNX.4.58.0803161258550.20723@shell4.speakeasy.net>
-References: <patchbomb.1205671781@liva.fdsoft.se>
-	<200803161442.37610.hverkuil@xs4all.nl>
-	<kod9eemd4.fsf@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2M06sIZ012228
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 20:06:54 -0400
+Received: from igraine.blacknight.ie (igraine.blacknight.ie [81.17.252.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2M06MWD002853
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 20:06:22 -0400
+Date: Sat, 22 Mar 2008 00:05:57 +0000
+From: Robert Fitzsimons <robfitz@273k.net>
+To: Bongani Hlope <bonganilinux@mweb.co.za>
+Message-ID: <20080322000557.GA21314@localhost>
+References: <200802171036.19619.bonganilinux@mweb.co.za>
+	<200803172351.56717.bonganilinux@mweb.co.za>
+	<20080320142212.2361f6d8@gaivota>
+	<200803211655.31085.bonganilinux@mweb.co.za>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 2] cx88: Enable additional cx2388x features. Version
- 2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200803211655.31085.bonganilinux@mweb.co.za>
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] bttv: Add a radio compat_ioctl file operation.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,78 +31,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 16 Mar 2008, Frej Drejhammar wrote:
-> Hi Hans,
->
-> > 1) Should we really expose these settings to the user? I have my
-> > doubts whether the average user would know what to do with this, ...
+Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-V4L2 controls aren't some menu a user must wade though when setting up
-mythtv.  I don't see the harm in adding them.  There is even software for
-windows that will let people mess with these things, so there is a demand.
 
-> That was my initial take on it, therefore the first version of the
-> patch just added a module parameter. I reasoned that chroma AGC was
-> something you just needed to enable once depending on the quality of
-> your video-source. Then Trent Piepho suggested that the functionality
-> should really be exposed as controls. I think he has a point, consider
-> for example living in a place such as southern Germany where you could
-> receive both German PAL and French SECAM broadcasts. If you then also
-> used a composite/s-video external video source you would want to be
-> able to change the setting depending on your input and the channel you
-> tune to.
+Hi Bongani
 
-CAGC came up before and there was a patch.  I had a patch for it, but then
-Mauro changed some stuff in the driver around so my method no longer
-worked.
+I only noticed that you might be using a 32 bit userspace, so the radio
+compat_ioctl needs to be implmented.
 
-One of the things you should do it make the control inactive when in SECAM
-mode.  V4L2 has a flag to indicate controls that don't apply to the
-device's current mode.
+Robert
 
-Overall, module parameters for these things is something the V4L1 bttv
-driver did because controls didn't exist for V4L1.  Controls are a better
-way and we shouldn't use module parameters for video decoding controls.
 
-> > ... and I also wonder whether it makes enough of a difference in
-> > picture quality.
->
-> For me it does, fiddling with the saturation and hue controls I never
-> managed to get neutral color reproduction. The colors were either
-> washed out or saturated to look like a fifties technicolor movie. The
 
-CAGC makes a difference for me too.  Some of my channels are over saturated
-and some are under saturated and CAGC fixes them.  I don't recall if I
-posted pictures last time CAGC came up, but it really does make a
-difference.
-
-> color killer does not make a very large impact for black and white
-> material (the only time it is needed), frankly I'm not sure if its not
-> just the placebo effect. I can live without color killer but
-> definitely not without chroma AGC.
-
-I haven't ever been able to notice an effect from color killer.  Maybe if
-you had poor reception from a B&W source?  Not much black and white on
-broadcast TV these days.
-
-> > 2) Chroma AGC and color killer is also present in other chips
-> > (cx2584x, cx23418, possibly other similar Conexant chips). So if we
-> > decide on allowing these controls I would prefer making this a
-> > standard control, rather than a private one.
->
-> A quick grep shows that the bttv-driver also exposes chroma AGC as a
-> private control. Cx2584x has chroma AGC enabled by default. Maybe the
-> right thing to do is to enable chroma AGC by default for PAL and NTSC?
-> Chroma AGC is something you'll find on most VCRs and TVs, and then it
-> is on by default.
-
-That's what I would do.  Have a standard control for CAGC and turn it on by
-default.
-
-> Personally I'm against dumbing down the driver and not exposing
-> features which are useful. An argument against your stance is that the
-
-If I wanted to be told I wasn't worthy to use my hardware, I'd run windows!
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 5404fcc..1bdb726 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3601,6 +3601,7 @@ static const struct file_operations radio_fops =
+ 	.read     = radio_read,
+ 	.release  = radio_release,
+ 	.ioctl	  = video_ioctl2,
++	.compat_ioctl	= v4l_compat_ioctl32,
+ 	.llseek	  = no_llseek,
+ 	.poll     = radio_poll,
+ };
+-- 
+1.5.4.3.484.g60e3
 
 --
 video4linux-list mailing list
