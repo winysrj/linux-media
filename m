@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JavPY-00066k-Fs
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 17:08:37 +0100
-Message-ID: <47DD45FE.3030702@gmail.com>
-Date: Sun, 16 Mar 2008 20:08:30 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jd0fR-00026q-QD
+	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 11:09:41 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 22 Mar 2008 07:32:05 +0100
+References: <200803212024.17198.christophpfister@gmail.com>
+In-Reply-To: <200803212024.17198.christophpfister@gmail.com>
 MIME-Version: 1.0
-To: Dominik Kuhlen <dkuhlen@gmx.net>
-References: <47BDA96B.7080700@okg-computer.de>	<200802292325.17473.dkuhlen@gmx.net>
-	<47C88CBF.7010304@gmail.com> <200803161603.24956.dkuhlen@gmx.net>
-In-Reply-To: <200803161603.24956.dkuhlen@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
- STB0899)
+Content-Disposition: inline
+Message-Id: <200803220732.06390@orion.escape-edv.de>
+Cc: v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,72 +27,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dominik Kuhlen wrote:
+Christoph Pfister wrote:
 > Hi,
 > 
-> The attached pctv452e.c works for me without frame drops in DVB-S and DVB-S2.
-> 
-> On Friday 29 February 2008, Manu Abraham wrote:
->> Dominik Kuhlen wrote:
->>> On Friday 22 February 2008, Dominik Kuhlen wrote:
->>>> Hi,
->>>>
->>>> -----snip----
->>>>> Great, that was the trick, now scanning and szap work fine.
->>>>>
->>>>> Thanks for that hint!
->>>> You're welcome.
->>>>
->>>> BTW: do you receive broken streams  (symbol rate 22000 or 27500)?
->>>> Currently I get a loss of about 1 TS packet every second or even more (with both symbol rates).
->>>> And there is exactly one TS packet missing (I diffed a TS hexdump).
->>>> If it were the USB controller that drops packets it would be a loss of 5 consecutive TS packets. (940 bytes iso frame size)
->>> I have to correct that statement (I didn't record the whole TS): 
->>> The loss is exactly one USB frame (5 consecutive TS packets in this case)
->>> which happens about every 1000 TS packets (200 USB frames)
-> The problem seems to be  wrong initial config parameter set in init_s1_demod table.
-> I copied this table from the mantis 1041 and it seems to be working now.
-> (I should probably check the USB logs and use these values.)
-> The first tuning after powerup/init fails quite often for me but the folllowings are fine
-> even switching from DVB-S to DVB-S2 works like a charm.
+> Can somebody please pick up those patches (descriptions inlined)?
+
+Are these patches well-tested?
+
+> <<<fix-budget-av-cam.diff>>>
+Looks ok to me.
+
+@budget-av users who own a CAM:
+
+Please test this patch!
 
 
-Nice to know it works great. Should i pull the patch into the multiproto 
-tree to
-make it easier, since it works as expected ?
+> <<<fix-knc1-dvbs-ci.diff>>>
+>        case SUBID_DVBS_KNC1:
+>        case SUBID_DVBS_KNC1_PLUS:
+>        case SUBID_DVBS_EASYWATCH_1:
+>+               budget_av->reinitialise_demod = 1;
 
-Also, can you test DVB-S2, a 30MSPS stream whether it works as expected ?
-(in case you have access to such a transponder ?)
+> Fix CI interface on (some) KNC1 DVBS cards
+> Quoting the commit introducing reinitialise_demod (3984 / by adq):
+> "These cards [KNC1 DVBT and DVBC] need special handling for CI - reinitialising the frontend
+> device when the CI module is reset."
+> Apparently my 1894:0010 also needs that fix, because once you initialise CI/CAM you lose lock.
+> Signed-off-by: Christoph Pfister <pfister@linuxtv.org>
 
-Currently, i have mixed results, so some amount of further test results 
-would
-be quite nice
+Are you _sure_ that 'reinitialise_demod = 1' is required by all 3 card
+types, and does not hurt for SUBID_DVBS_KNC1_PLUS (1131:0011, 1894:0011)
+and SUBID_DVBS_EASYWATCH_1 (1894:001a)?
 
->> Is it really isochronous transfer that the device really uses in it's
->> default mode ? I guess many vendors prefer bulk transfers for the
->> default transfer mode ?
-> There's a bulk pipe but it's only used for setup/control afaik.
-> 
-> 
-> Happy testing,
-> Dominik
-> 
-> 
-> BTW: why is the mantis development in a separate HG repo?
->  I merged the mantis driver to the multiproto repo and can use the
->  mantis-1041 and pctv452e simultanously :)
+CU
+Oliver
 
-I do expect quite some changes to the mantis bridge and have been touching
-very much mantis/bridge specific changes in that tree. Additionally, i 
-plan to push
-out multiproto prior to mantis, so both in one tree will make it a bit 
-messy.
-
-
-Regards,
-Manu
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
