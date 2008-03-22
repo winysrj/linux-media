@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYte7028310
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:55 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAYF8v018585
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:44 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so175260fga.7
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:43 -0700 (PDT)
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2M159Yc030076
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 21:05:09 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2M14ZNa031074
+	for <video4linux-list@redhat.com>; Fri, 21 Mar 2008 21:04:36 -0400
+Date: Sat, 22 Mar 2008 02:04:34 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bradford Boyle <bradford.d.boyle@gmail.com>
+In-Reply-To: <bb26ec2c0803201934r5c037585h25882e2352c02a84@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0803212104330.8208@axis700.grange>
+References: <bb26ec2c0803201934r5c037585h25882e2352c02a84@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <0b7eea4e7b7dc24b1c01.1206699519@localhost>
-In-Reply-To: <patchbomb.1206699511@localhost>
-Date: Fri, 28 Mar 2008 03:18:39 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: mchehab@infradead.org
-Cc: v4l-dvb-maintainer@linuxtv.org, Jonathan Corbet <corbet@lwn.net>,
-	video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 8 of 9] videobuf: Avoid deadlock with QBUF and bring up to
-	spec for empty queue
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: PCTV HD Card 800i Kernel Oops
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,213 +26,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User Brandon Philips <brandon@ifup.org>
-# Date 1206699281 25200
-# Node ID 0b7eea4e7b7dc24b1c015e5768fdb8f70f70c751
-# Parent  304e0a371d12f77e1575ae43fa0133855165f63e
-videobuf: Avoid deadlock with QBUF and bring up to spec for empty queue
+On Thu, 20 Mar 2008, Bradford Boyle wrote:
 
-Add a waitqueue to wait on when there are no buffers in the buffer queue.
-DQBUF waits on this queue without holding vb_lock to allow a QBUF to happen.
-Once a buffer has been queued we recheck that the queue is still streaming and
-wait on the new buffer's waitqueue while holding the vb_lock.  The driver
-should come along in a timely manner and put the buffer into its next state
-finishing the DQBUF.
+> I've been trying for the past week or two to get the 800i card working. I
+> extracted the firmware and put it in /lib/firmware/<kernel_version> and I've
+> downloaded and compiled the drivers for it (following the Linux TV wiki).
+> The problem I am having now is that whenever I try to run 'tvtime-scanner',
+> I get a kernel Oops.  The output from dmesg can be seen here:
+> http://pastebin.com/m34f5e27f. I'm not sure how to proceed from here so any
+> help would be greatly appreciated it.
 
-By implementing this waitqueue it also brings the videobuf DQBUF up to spec and
-it now blocks on O_NONBLOCK even when no buffers have been queued via QBUF:
+I do not know how you've built the drivers, but the Oops looks exactly 
+like the ones reported earlier on this list and fixed by the patch
 
-"By default VIDIOC_DQBUF blocks when no buffer is in the outgoing queue."
- - V4L2 spec
+http://marc.info/?l=linux-video&m=120550519726950&w=2
 
-CC: Trent Piepho <xyzzy@speakeasy.org>
-CC: Carl Karsten <carl@personnelware.com>
-CC: Jonathan Corbet <corbet@lwn.net>
+which is already in v4l-dvb/devel
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
-
+Thanks
+Guennadi
 ---
- linux/drivers/media/video/videobuf-core.c |   96 +++++++++++++++++++++++-------
- linux/include/media/videobuf-core.h       |    2
- 2 files changed, 78 insertions(+), 20 deletions(-)
-
-diff --git a/linux/drivers/media/video/videobuf-core.c b/linux/drivers/media/video/videobuf-core.c
---- a/linux/drivers/media/video/videobuf-core.c
-+++ b/linux/drivers/media/video/videobuf-core.c
-@@ -140,6 +140,7 @@ void videobuf_queue_core_init(struct vid
- 	BUG_ON(!q->int_ops);
- 
- 	mutex_init(&q->vb_lock);
-+	init_waitqueue_head(&q->wait);
- 	INIT_LIST_HEAD(&q->stream);
- }
- 
-@@ -186,6 +187,10 @@ void videobuf_queue_cancel(struct videob
- {
- 	unsigned long flags = 0;
- 	int i;
-+
-+	q->streaming = 0;
-+	q->reading  = 0;
-+	wake_up_all(&q->wait);
- 
- 	/* remove queued buffers from list */
- 	spin_lock_irqsave(q->irqlock, flags);
-@@ -561,6 +566,7 @@ int videobuf_qbuf(struct videobuf_queue 
- 	}
- 	dprintk(1, "qbuf: succeded\n");
- 	retval = 0;
-+	wake_up(&q->wait);
- 
-  done:
- 	mutex_unlock(&q->vb_lock);
-@@ -571,37 +577,88 @@ int videobuf_qbuf(struct videobuf_queue 
- 	return retval;
- }
- 
-+
-+/* Locking: Caller holds q->vb_lock */
-+static int stream_next_buffer_check_queue(struct videobuf_queue *q, int noblock)
-+{
-+	int retval;
-+
-+checks:
-+	if (!q->streaming) {
-+		dprintk(1, "next_buffer: Not streaming\n");
-+		retval = -EINVAL;
-+		goto done;
-+	}
-+
-+	if (list_empty(&q->stream)) {
-+		if (noblock) {
-+			retval = -EAGAIN;
-+			dprintk(2, "next_buffer: no buffers to dequeue\n");
-+			goto done;
-+		} else {
-+			dprintk(2, "next_buffer: waiting on buffer\n");
-+
-+			/* Drop lock to avoid deadlock with qbuf */
-+			mutex_unlock(&q->vb_lock);
-+
-+			/* Checking list_empty and streaming is safe without
-+			 * locks because we goto checks to validate while
-+			 * holding locks before proceeding */
-+			retval = wait_event_interruptible(q->wait,
-+				!list_empty(&q->stream) || !q->streaming);
-+			mutex_lock(&q->vb_lock);
-+
-+			if (retval)
-+				goto done;
-+
-+			goto checks;
-+		}
-+	}
-+
-+	retval = 0;
-+
-+done:
-+	return retval;
-+}
-+
-+
-+/* Locking: Caller holds q->vb_lock */
-+static int stream_next_buffer(struct videobuf_queue *q,
-+			struct videobuf_buffer **vb, int nonblocking)
-+{
-+	int retval;
-+	struct videobuf_buffer *buf = NULL;
-+
-+	retval = stream_next_buffer_check_queue(q, nonblocking);
-+	if (retval)
-+		goto done;
-+
-+	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
-+	retval = videobuf_waiton(buf, nonblocking, 1);
-+	if (retval < 0)
-+		goto done;
-+
-+	*vb = buf;
-+done:
-+	return retval;
-+}
-+
- int videobuf_dqbuf(struct videobuf_queue *q,
- 	       struct v4l2_buffer *b, int nonblocking)
- {
--	struct videobuf_buffer *buf;
-+	struct videobuf_buffer *buf = NULL;
- 	int retval;
- 
- 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
- 
- 	mutex_lock(&q->vb_lock);
--	retval = -EBUSY;
--	if (q->reading) {
--		dprintk(1, "dqbuf: Reading running...\n");
-+
-+	retval = stream_next_buffer(q, &buf, nonblocking);
-+	if (retval < 0) {
-+		dprintk(1, "dqbuf: next_buffer error: %i\n", retval);
- 		goto done;
- 	}
--	retval = -EINVAL;
--	if (b->type != q->type) {
--		dprintk(1, "dqbuf: Wrong type.\n");
--		goto done;
--	}
--	if (list_empty(&q->stream)) {
--		dprintk(1, "dqbuf: stream running\n");
--		goto done;
--	}
--	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
--	mutex_unlock(&q->vb_lock);
--	retval = videobuf_waiton(buf, nonblocking, 1);
--	mutex_lock(&q->vb_lock);
--	if (retval < 0) {
--		dprintk(1, "dqbuf: waiton returned %d\n", retval);
--		goto done;
--	}
-+
- 	switch (buf->state) {
- 	case VIDEOBUF_ERROR:
- 		dprintk(1, "dqbuf: state is error\n");
-@@ -648,6 +705,7 @@ int videobuf_streamon(struct videobuf_qu
- 			q->ops->buf_queue(q, buf);
- 	spin_unlock_irqrestore(q->irqlock, flags);
- 
-+	wake_up(&q->wait);
-  done:
- 	mutex_unlock(&q->vb_lock);
- 	return retval;
-@@ -660,7 +718,6 @@ static int __videobuf_streamoff(struct v
- 		return -EINVAL;
- 
- 	videobuf_queue_cancel(q);
--	q->streaming = 0;
- 
- 	return 0;
- }
-@@ -858,7 +915,6 @@ static void __videobuf_read_stop(struct 
- 		q->bufs[i] = NULL;
- 	}
- 	q->read_buf = NULL;
--	q->reading  = 0;
- 
- }
- 
-diff --git a/linux/include/media/videobuf-core.h b/linux/include/media/videobuf-core.h
---- a/linux/include/media/videobuf-core.h
-+++ b/linux/include/media/videobuf-core.h
-@@ -159,6 +159,8 @@ struct videobuf_queue {
- 	spinlock_t                 *irqlock;
- 	struct device		   *dev;
- 
-+	wait_queue_head_t	   wait; /* wait if queue is empty */
-+
- 	enum v4l2_buf_type         type;
- 	unsigned int               inputs; /* for V4L2_BUF_FLAG_INPUT */
- 	unsigned int               msize;
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
