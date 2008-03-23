@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m21LXolo011929
-	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 16:33:50 -0500
-Received: from bay0-omc1-s28.bay0.hotmail.com (bay0-omc1-s28.bay0.hotmail.com
-	[65.54.246.100])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m21LXEub015053
-	for <video4linux-list@redhat.com>; Sat, 1 Mar 2008 16:33:14 -0500
-Message-ID: <BAY122-W46E61F0928F2E422B22355AA150@phx.gbl>
-From: Elvis Chen <chene77@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Sat, 1 Mar 2008 21:33:08 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NMiXIK018768
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:33 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2NMi179019469
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:02 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so2174167fga.7
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 15:44:01 -0700 (PDT)
+From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: newbie programming help:  grabbing image(s) from /dev/video0,
- example code?
+Content-Transfer-Encoding: 7bit
+Message-Id: <d758888cf4a466cd2d44.1206312200@liva.fdsoft.se>
+In-Reply-To: <patchbomb.1206312199@liva.fdsoft.se>
+Date: Sun, 23 Mar 2008 23:43:20 +0100
+To: video4linux-list@redhat.com
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 1 of 6] v4l2-api: Define a standard control for chroma AGC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,38 +28,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Greetings,
-
-I'm a researcher in computer-science.  I'm very new to V4L2 but am reasonab=
-ly proficient in  C++ programming.  I seek your help in getting something s=
-imple done, in the meanwhile I'm trying to learn V4L2 programming API (http=
-://v4l2spec.bytesex.org/)
-
-We have 2 Hauppauge WInTV PVR-150 installed on a ubuntu 7.10 x86_64 machine=
-.  They appear to the linux as /dev/video0 and /dev/video1, respectively.  =
-What we like to do is to capture still images (or video) via s-video inputs=
- on each card, and perform image-processing algorithms on them (in C++) and=
- display the resultant images on the screen (C++/OpenGL).  Basically what I=
- want to do is very simple:  open a linux/video device, capture an image, s=
-tore it as a C array/buffer, display it, and refresh the C array/buffer.
-
-Both cards work with kdetv and mplayer, so hardware-wise they work fine.
-
-My first attempt was to find a small/simple API to access the linux/video d=
-evice.  I came across videodog  (http://linux.softpedia.com/get/Multimedia/=
-Video/VideoDog-9261.shtml) but it looks like it isn't been developed anymor=
-e (no source either).  Currently I'm trying to learn V4L2 (and trying to ut=
-ilize the sample capture.c).
+1 file changed, 3 insertions(+), 1 deletion(-)
+linux/include/linux/videodev2.h |    4 +++-
 
 
-Can anyone please give me a pointer on where I should start learning the V4=
-L2 API?  Are there more example codes available?
+# HG changeset patch
+# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
+# Date 1206311496 -3600
+# Node ID d758888cf4a466cd2d44a54a0a9e9467d72267fa
+# Parent  9a2af878cbd551d1bfac6b19d085a1a83d675a66
+v4l2-api: Define a standard control for chroma AGC
 
+From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-any help is very much appreciated,
+Define a pre-defined control ID for chroma automatic gain control.
 
-_________________________________________________________________
+Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+
+diff -r 9a2af878cbd5 -r d758888cf4a4 linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h	Sat Mar 22 08:37:19 2008 -0300
++++ b/linux/include/linux/videodev2.h	Sun Mar 23 23:31:36 2008 +0100
+@@ -879,7 +879,9 @@ enum v4l2_power_line_frequency {
+ #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
+ #define V4L2_CID_SHARPNESS			(V4L2_CID_BASE+27)
+ #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
+-#define V4L2_CID_LASTP1				(V4L2_CID_BASE+29) /* last CID + 1 */
++#define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
++/* last CID + 1 */
++#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+30)
+ 
+ /*  MPEG-class control IDs defined by V4L2 */
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 
 --
 video4linux-list mailing list
