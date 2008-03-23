@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2G00g1E002026
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 20:00:42 -0400
-Received: from smtp109.rog.mail.re2.yahoo.com (smtp109.rog.mail.re2.yahoo.com
-	[68.142.225.207])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2G00AiJ006480
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 20:00:10 -0400
-Message-ID: <47DC6303.2040802@rogers.com>
-Date: Sat, 15 Mar 2008 20:00:03 -0400
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NMipCL018821
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:51 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2NMiGXr019600
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:19 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so2174223fga.7
+	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 15:44:12 -0700 (PDT)
+From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <47DC4331.7040100@rogers.com>
-	<1205622683.4814.13.camel@pc08.localdom.local>
-In-Reply-To: <1205622683.4814.13.camel@pc08.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: ATI "HDTV Wonder" audio
+Message-Id: <77bef451d41348f8e5ca.1206312204@liva.fdsoft.se>
+In-Reply-To: <patchbomb.1206312199@liva.fdsoft.se>
+Date: Sun, 23 Mar 2008 23:43:24 +0100
+To: video4linux-list@redhat.com
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 5 of 6] cx88: Add user control for color killer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,44 +28,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hermann
+1 file changed, 13 insertions(+)
+linux/drivers/media/video/cx88/cx88-video.c |   13 +++++++++++++
 
-hermann pitton wrote:
-> for sure blame me not being up to date on this and I am not even sure,
-> what it is all about. 
->
-> For example, since the using of cx88-alsa seems to be intended, analog
-> NTSC with picture, but no sound from tuner is reported (?) 
->
-> Or like you pointed now, likely analog video from an external input and
-> then missing the specific ADC support for external analog audio input?
->
-> ...
->
-> Is it at all about analog NTSC-M video working from the tuner?
-> But no sound, hrmm ;)
->   
-Oops ... umm, its not that I  failed to take broadcast audio into 
-consideration (as I wasn't sure if Bill was talking about broadcast 
-audio too), its just that I was hell bent on talking about the external 
-audio problem :P 
 
-So now, for a more complete picture:
-IIRC, the HDTV Wonder lacks any sort of audio out (via either an 
-internal loop back cable to the sound card or similarly an external out 
-on the riser).  Therefore, while the cx88 will perform ADC for analog 
-broadcast audio, you would indeed need to use cx88-alsa, as quite 
-correctly alluded to by Hermann.  In the more limited case (which I had 
-wrongly only took into consideration) one will be unable to receive 
-external audio for the reasons I specified -- i.e. cx88 doesn't do ADC 
-for external audio; need a driver for the AK5355 for that, and then 
-correctly code for the GPIO pins for the cx88 as used on the HDTV Wonder.
+# HG changeset patch
+# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
+# Date 1206312016 -3600
+# Node ID 77bef451d41348f8e5ca6b24fe402199ac243ead
+# Parent  b3a7ec84ad4959869d50710bfcbfb997fb39850d
+cx88: Add user control for color killer
 
-> Without looking any deeper back, but slightly wondering, why has the
-> TUV1236D the TDA9887_PRESENT on the saa7134 cards, but not on this one?
+From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
 
-Just a mistake on my part lead to the confusion.  TDA9887 present in all 
-cases of TUV1236D.
+The cx2388x family has a color killer. This patch implements the
+V4L2_CID_COLOR_KILLER control for the cx2388x family. By default the
+color killer is disabled, as in previous versions of the driver.
+
+Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+
+diff -r b3a7ec84ad49 -r 77bef451d413 linux/drivers/media/video/cx88/cx88-video.c
+--- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:39:29 2008 +0100
++++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:40:16 2008 +0100
+@@ -256,6 +256,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
+ 		.mask                  = 1 << 10,
+ 		.shift                 = 10,
+ 	}, {
++		.v = {
++			.id            = V4L2_CID_COLOR_KILLER,
++			.name          = "Color killer",
++			.minimum       = 0,
++			.maximum       = 1,
++			.default_value = 0x0,
++			.type          = V4L2_CTRL_TYPE_BOOLEAN,
++		},
++		.reg                   = MO_INPUT_FORMAT,
++		.mask                  = 1 << 9,
++		.shift                 = 9,
++	}, {
+ 	/* --- audio --- */
+ 		.v = {
+ 			.id            = V4L2_CID_AUDIO_MUTE,
+@@ -311,6 +323,7 @@ const u32 cx88_user_ctrls[] = {
+ 	V4L2_CID_AUDIO_BALANCE,
+ 	V4L2_CID_AUDIO_MUTE,
+ 	V4L2_CID_CHROMA_AGC,
++	V4L2_CID_COLOR_KILLER,
+ 	0
+ };
+ EXPORT_SYMBOL(cx88_user_ctrls);
 
 --
 video4linux-list mailing list
