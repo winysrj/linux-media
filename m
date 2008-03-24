@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout05.sul.t-online.de ([194.25.134.82])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JcSm1-0006PK-TY
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 22:58:10 +0100
-Message-ID: <47E2DDDD.9090607@t-online.de>
-Date: Thu, 20 Mar 2008 22:57:49 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803141819410.8859@ns.bog.msu.ru>	<Pine.LNX.4.62.0803171305520.18849@ns.bog.msu.ru>	<200803200118.26462@orion.escape-edv.de>	<Pine.LNX.4.62.0803201931260.12540@ns.bog.msu.ru>	<47E2CF49.8070302@t-online.de>
-	<47E2D3C4.2050005@gmail.com>
-In-Reply-To: <47E2D3C4.2050005@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
- transponder fails
+	(envelope-from <nico@youplala.net>) id 1JdiC6-0002tr-2l
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 09:38:15 +0100
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <1206270834.4521.11.camel@shuttle>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206185051.22131.5.camel@tux>  <1206190455.6285.20.camel@youkaida>
+	<1206270834.4521.11.camel@shuttle>
+Date: Mon, 24 Mar 2008 08:37:12 +0000
+Message-Id: <1206347832.6370.25.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, Manu
+Guys,
 
-Manu Abraham schrieb:
-> Hi Hartmut,
-> 
-> Hartmut Hackmann wrote:
-> 
->> This might be right! I could not get good information regarding the
->> transponder bandwidths. We might need to make this depend on the
->> symbol rate or a module parameter.
-> 
-> 
-> You can calculate the tuner bandwidth from the transponder symbol rate
-> (in Mbaud) for DVB-S:
-> 
-> BW = (1 + RO) * SR/2 + 5) * 1.3
-> 
-> 
-> Regards,
-> Manu
-> 
-Thanks for the hint. So we should be able to tune this according to the
-expected symbol rate - good.
+I was running with the following debug options when I got a disconnect:
 
-Best regards
-  Hartmut
+options dvb-usb-dib0700 force_lna_activation=1
+options dvb-usb-dib0700 debug=1
+options mt2060 debug=1
+options dibx000_common debug=1
+options dvb_core debug=1
+options dvb_core dvbdev_debug=1
+options dvb_core frontend_debug=1
+options dvb_usb debug=1
+options dib3000mc debug=1
+options usbcore autosuspend=-1
+
+
+/var/log/messages is here:
+
+http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
+
+Can that help, or would more be needed?
+
+There was zero remote usage at the time.
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
