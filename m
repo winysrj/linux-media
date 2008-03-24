@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp23.orange.fr ([80.12.242.50])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <david.bercot@wanadoo.fr>) id 1JcHyI-0005DT-0H
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 11:26:06 +0100
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2347.orange.fr (SMTP Server) with ESMTP id C33B61C00092
-	for <linux-dvb@linuxtv.org>; Thu, 20 Mar 2008 11:25:31 +0100 (CET)
-Received: from localhost (ANantes-252-1-56-159.w82-126.abo.wanadoo.fr
-	[82.126.76.159])
-	by mwinf2347.orange.fr (SMTP Server) with ESMTP id 534D71C00088
-	for <linux-dvb@linuxtv.org>; Thu, 20 Mar 2008 11:25:31 +0100 (CET)
-Date: Thu, 20 Mar 2008 11:25:20 +0100
-From: David BERCOT <david.bercot@wanadoo.fr>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JdrWM-0000hY-3G
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 19:35:47 +0100
+Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 47E6FD55000076CF for linux-dvb@linuxtv.org;
+	Mon, 24 Mar 2008 19:35:40 +0100
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080320112520.72b210f1@wanadoo.fr>
-Mime-Version: 1.0
-Subject: [linux-dvb] Error when compiling patched version of 'scan'
+Date: Mon, 24 Mar 2008 19:35:32 +0100
+References: <47E226E7.7030601@shikadi.net> <47E30735.1020604@shikadi.net>
+	<200803210952.01192.Nicola.Sabbi@poste.it>
+In-Reply-To: <200803210952.01192.Nicola.Sabbi@poste.it>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200803241935.32389.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] dvbstream reliability issues?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,87 +24,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2079030354=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2079030354==
-Content-Type: multipart/signed; boundary="Sig_/wMHYqfTXMpMLU9ePE4YxX4w";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
-
---Sig_/wMHYqfTXMpMLU9ePE4YxX4w
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I've already compiled many times the patched version of 'scan' (from
-http://jusst.de/manu/scan.tar.bz2) and, today, it does errors...
-
-I've installed the multiproto drivers, the dvb-apps (from linuxtv.org)
-[last versions, this morning] and then, I've downloaded 'scan'. I've
-added in its Makefile :
-CPPFLAGS +=3D -I/opt/dvb/multiproto/linux/include
-(like I usually do) and launched 'make' :
-perl section_generate.pl atsc_psip_section.pl
-CC scan.o
-scan.c:414: warning: unused parameter =E2=80=98buf=E2=80=99
-scan.c:415: warning: unused parameter =E2=80=98t=E2=80=99
-scan.c:449: warning: unused parameter =E2=80=98buf=E2=80=99
-scan.c:518: warning: unused parameter =E2=80=98buf=E2=80=99
-scan.c:519: warning: unused parameter =E2=80=98t=E2=80=99
-scan.c: In function =E2=80=98tune_to_transponder=E2=80=99:
-scan.c:1682: error: =E2=80=98struct dvbfe_info=E2=80=99 has no member named=
- =E2=80=98delivery=E2=80=99
-scan.c:1684: error: =E2=80=98struct dvbfe_info=E2=80=99 has no member named=
- =E2=80=98delivery=E2=80=99
-scan.c:1693: error: =E2=80=98struct dvbfe_info=E2=80=99 has no member named=
- =E2=80=98delivery=E2=80=99
-scan.c:1704: error: =E2=80=98struct dvbfe_info=E2=80=99 has no member named=
- =E2=80=98delivery=E2=80=99
-scan.c: In function =E2=80=98tune_initial=E2=80=99:
-scan.c:1889: warning: unused variable =E2=80=98hier=E2=80=99
-scan.c:1889: warning: unused variable =E2=80=98guard=E2=80=99
-scan.c:1889: warning: unused variable =E2=80=98mode=E2=80=99
-scan.c:1889: warning: unused variable =E2=80=98fec2=E2=80=99
-scan.c:1889: warning: unused variable =E2=80=98bw=E2=80=99
-scan.c:1889: warning: unused variable =E2=80=98qam=E2=80=99
-make: *** [scan.o] Erreur 1
-
-It is the first time I have this error...
-
-Do you have any idea ?
-
-Thank you very much.
-
-David.
-
---Sig_/wMHYqfTXMpMLU9ePE4YxX4w
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH4juZvSnthbGI8ygRAtr8AJ4+5ULtsdT2Bb8NAEWw7iLlJ0HqVQCfT7Hj
-eIFUa2k9zkaGksFS/r67h1M=
-=cEEh
------END PGP SIGNATURE-----
-
---Sig_/wMHYqfTXMpMLU9ePE4YxX4w--
-
-
-
---===============2079030354==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Friday 21 March 2008 09:52:01 Nico Sabbi wrote:
+> On Friday 21 March 2008 01:54:13 Adam Nielsen wrote:
+> > > I use it for hours, even forgetting that it's recording,
+> > > without segfaults.
+> > > Try to run it under gdb (after having compiled it with -g) and
+> > > see with "bt" where it segfaults, or bugs can't be fixed
+> >
+> > What's your reception like?  This particular card (DVico Fusion
+> > HDTV) seems to be somewhat less sensitive compared to my other
+> > cards, and I think getting corrupted data coming in is what
+> > breaks dvbstream.  The recording itself is full of blips as if
+> > the reception is quite bad.
+> >
+> > When the recording just stops (no crash) gdb doesn't seem to
+> > reveal anything amazing:
+> >
+> > <Ctrl+C>
+> > Program received signal SIGINT, Interrupt.
+> > 0xffffe410 in __kernel_vsyscall ()
+> > (gdb) bt
+> > #0  0xffffe410 in __kernel_vsyscall ()
+> > #1  0xb7ebf77b in poll () from /lib/libc.so.6
+> > #2  0x0804aeeb in main (argc=12, argv=0xbfe38484) at
+> > dvbstream.c:1516 (gdb) fr 2
+> > #2  0x0804aeeb in main (argc=12, argv=0xbfe38484) at
+> > dvbstream.c:1516 1516            poll(pfds,1,500);
+> > (gdb) cont
+> > Continuing.
+>
+> poll() is used because the dvr device is opened in O_NONBLOCK mode,
+> that can be replaced with the usual blocking mode (although if it
+> makes a difference it's probably an indicator of a bug in the
+> driver)
+>
+> > If I kill dvbstream and reload it then all is fine, so it seems
+> > that maybe the card loses sync with the signal, and either
+> > dvbstream needs to retune the card, or perhaps the kernel driver
+> > should do that automatically.
+> >
+> > When it crashes it looks like this:
+> >
+> >
+> > Program received signal SIGSEGV, Segmentation fault.
+> > 0xb7ee153c in memcpy () from /lib/libc.so.6
+> > (gdb) bt
+> > #0  0xb7ee153c in memcpy () from /lib/libc.so.6
+> > #1  0x08049714 in collect_section (section=0x815bef0, pusi=<value
+> >      optimized out>, buf=0x3ffff59e <Address 0x3ffff59e out of
+> > bounds>, len=3221135360) at dvbstream.c:579
+> > #2  0x0804b21b in main (argc=12, argv=0xbffe8084) at
+> > dvbstream.c:683
+>
+> len is so big?? this must be an actual bug
+>
+> > (gdb) fr 1
+> > #1  0x08049714 in collect_section (section=0x815bef0, pusi=<value
+> >      optimized out>, buf=0x3ffff59e <Address 0x3ffff59e out of
+> > bounds>, len=3221135360) at dvbstream.c:579
+> > 579       memcpy(&(section->buf[section->pos]), buf, len);
+> >
+> > (gdb) fr 2
+> > #2  0x0804b21b in main (argc=12, argv=0xbffe8084) at
+> > dvbstream.c:683 683       skip = collect_section(&(pmt->section),
+> > pusi, b, l);
+> >
+> >
+> > It looks like the default CFLAGS do some optimisation - let me
+> > know if you need me to recompile it without this.
+>
+> fortunately a peaceful easter of coding is coming :)
+>
+should be fixed in cvs
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2079030354==--
