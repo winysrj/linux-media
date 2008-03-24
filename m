@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [212.57.247.218] (helo=glcweb.co.uk)
+Received: from smtp-out28.alice.it ([85.33.2.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1Jc61H-00006v-AW
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 22:40:23 +0100
-Content-class: urn:content-classes:message
+	(envelope-from <sarkiaponius@alice.it>) id 1Jdu92-0001JE-DS
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 22:23:55 +0100
+Message-ID: <47E81B90.8060903@alice.it>
+Date: Mon, 24 Mar 2008 22:22:24 +0100
+From: Andrea Giuliano <sarkiaponius@alice.it>
 MIME-Version: 1.0
-Date: Wed, 19 Mar 2008 21:39:49 -0000
-Message-ID: <A33C77E06C9E924F8E6D796CA3D635D102397D@w2k3sbs.glcdomain.local>
-From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
-To: <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S DVB-S2 and CI cards working on Linux
+To: Nico Sabbi <Nicola.Sabbi@poste.it>
+References: <47E56272.8050307@alice.it>	<3cc3561f0803230425p60486919m9685f4a145df7635@mail.gmail.com>	<47E7731D.7000706@alice.it>
+	<200803241027.47981.Nicola.Sabbi@poste.it>
+In-Reply-To: <200803241027.47981.Nicola.Sabbi@poste.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help needed...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,81 +26,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Nico Sabbi wrote:
+> Il Monday 24 March 2008 10:23:41 Andrea Giuliano ha scritto:
+>> My practical conclusion is: "11804 V" stands for "11875 H" and "11766 V" 
+>> stands for "11747 H". No other way to get things working.
+> 
+> this sounds very much like a bug in the drivers. What card is it and what
+> tuner and demodulator does it use?
 
+My card is a KWorld DVB-S 100, sold in Italy as Empire DVB-S 100. As for 
+tuner and demodulator, I'm not an expert so I can only provide this 
+slice of dmesg:
 
-I have repeated my question and BTW thank you to those that responded earlier
+cx2388x dvb driver version 0.0.6 loaded
+CORE cx88[0]: subsystem: 17de:08b2, board: KWorld DVB-S 100 
+[card=39,autodetected]
+TV tuner 4 at 0x1fe, Radio tuner -1 at 0x1fe
+cx2388x v4l2 driver version 0.0.6 loaded
+irda_init()
+NET: Registered protocol family 23
+logips2pp: Detected unknown logitech mouse model 127
+ACPI: PCI Interrupt 0000:01:02.2[A] -> GSI 23 (level, low) -> IRQ 193
+cx88[0]/2: found at 0000:01:02.2, rev: 5, irq: 193, latency: 32, mmio: 
+0xfd000000
+cx88[0]/2: cx2388x based dvb card
+DVB: registering new adapter (cx88[0]).
+DVB: registering frontend 0 (Conexant CX24123/CX24109)...
+ACPI: PCI Interrupt 0000:01:02.0[A] -> GSI 23 (level, low) -> IRQ 193
+cx88[0]/0: found at 0000:01:02.0, rev: 5, irq: 193, latency: 32, mmio: 
+0xfc000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+ZORAN: 1 card(s) found
+DC30plus[0]: zr36057_init() - initializing card[0], zr=f8a37c60
+cx2388x blackbird driver version 0.0.6 loaded
 
-But I have to say that no one has answered the question that I posed 
+The Zoran card you see mentioned above has no DVB capabilities: it's a 
+rather old MJPEG card (and a rather good one, indeed).
 
-"Are there any DVB-S/S2/CI cards that work at present on Linux? If so I
-would really appreciate knowing which ones they are"
+I hope this helps.
 
-Is there anyone that is watching either FTA DVB-S, DVB-S2 and/or decrypted program material via a CI, on a linux box?
+Best regards.
 
-----------------------------------------------------------------------
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-
-First of all my thanks to all those engaged in developing drivers for
-the various cards for the Linux OS and my apologies for repeating this
-question previously asked by others
-
-
-Are there any DVB-S/S2/CI cards that work at present on Linux? If so I
-would really appreciate knowing which ones they are
-
-
-I have had a TT3200 DVB-S2/CI card for more than a year and I have still
-not got this to work using the Multiproto drivers on Linux, in fact it
-seem that I am going backwards with this card with the latest errors
-appearing in dmesg:
-
-stb0899_search: Unsupported delivery system
-
-This is with the latest drivers from "http://jusst.de/hg/multiproto"
-
-Changeset 7212:b5a34b6a209d
-
-I will gladly offer up the log/dmesg/lsmod information if someone can
-help
-
-At the moment, I feel frustrated and lack the confidence that working
-drivers are are going to be available for this card
-
-Kind Regards
-
-Mike Curtis
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 -- 
-This message has been scanned for viruses and
-dangerous content by IC-MailScanner, and is
-believed to be clean.
-
-For queries or information please contact:-
-
-=================================
-Internet Central Technical Support
-
-
- http://www.netcentral.co.uk
-=================================
-
-
-No virus found in this incoming message.
-Checked by AVG. 
-Version: 7.5.519 / Virus Database: 269.21.7/1335 - Release Date: 19/03/2008 09:54
- 
-
-No virus found in this outgoing message.
-Checked by AVG. 
-Version: 7.5.519 / Virus Database: 269.21.7/1335 - Release Date: 19/03/2008 09:54
- 
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
