@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Received: from difo.com ([217.147.177.146] helo=thin.difo.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JZ6p8-0002u4-I1
-	for linux-dvb@linuxtv.org; Tue, 11 Mar 2008 16:55:32 +0100
-Received: by wa-out-1112.google.com with SMTP id m28so3075332wag.13
-	for <linux-dvb@linuxtv.org>; Tue, 11 Mar 2008 08:55:24 -0700 (PDT)
-Message-ID: <8ad9209c0803110855w2d469ab9x1e4e4f5a70799d80@mail.gmail.com>
-Date: Tue, 11 Mar 2008 16:55:24 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1205234401.7463.10.camel@acropora>
+	(envelope-from <ivor@ivor.org>) id 1JdjGq-0000fO-9l
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 10:47:13 +0100
+Message-ID: <47E77895.8000708@ivor.org>
+Date: Mon, 24 Mar 2008 09:47:01 +0000
+From: Ivor Hewitt <ivor@ivor.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080311110707.GA15085@mythbackend.home.ivor.org>
-	<1205234401.7463.10.camel@acropora>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+To: Nicolas Will <nico@youplala.net>
+References: <1206139910.12138.34.camel@youkaida>
+In-Reply-To: <1206139910.12138.34.camel@youkaida>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Nova-T-500 disconnects - They are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +25,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Have you applied any patches to the v4l-dvb source before compiling ?
+Nicolas Will wrote:
+> Guys,
+>
+> I have upgraded my system to the new Ubuntu (8.04 Hardy), using 2.6.24,
+> 64-bit.
+>   
+Just thought I'd add, in case anyone was wondering, that I'm still not 
+having any problems with vanilla 2.6.22.19 and current v4l-dvb tree.
+MythTV multirec with eit scanning enabled.
+One or two I2C read failed a day in the kernel log, and an occasional 
+I2C write failed.
 
-On 3/11/08, Nicolas Will <nico@youplala.net> wrote:
->
-> On Tue, 2008-03-11 at 11:07 +0000, ivor@ivor.org wrote:
-> > Not sure if this helps or adds that much to the discussion... (I think
-> > this was concluded before)
-> > But I finally switched back to kernel 2.6.22.19 on March 5th (with
-> > current v4l-dvb code) and haven't had any problems with the Nova-t 500
-> > since. Running mythtv with EIT scanning enabled.
-> >
-> > Looking in the kernel log I see a single mt2060 read failed message on
-> > March 6th and 9th and a single mt2060 write failed on March 8th. These
-> > events didn't cause any problems or cause the tuner or mythtv to fail
-> > though.
->
-> ah.
->
-> So this begs the question:
->
-> What changed between 2.6.22 and 2.6.24? huh... funny, heh?
->
-> So, if 2.6.24 is finger pointed, I'm interested in a solution, as I have
-> a planned upgrade to it in about a month's time.
->
-> Nico
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+And no, haven't got around to going through the 2.6.22 vs 2.6.23 diffs yet.
+
+Regards,
+Ivor.
 
 _______________________________________________
 linux-dvb mailing list
