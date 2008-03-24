@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.191])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JdfIM-0000HO-Im
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 06:32:32 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so638928tia.13
-	for <linux-dvb@linuxtv.org>; Sun, 23 Mar 2008 22:32:23 -0700 (PDT)
-Message-ID: <abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
-Date: Mon, 24 Mar 2008 16:32:23 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47E1CC07.8050006@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47DC64F4.9070403@iki.fi> <47DC6E0A.9000904@linuxtv.org>
-	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-	<47DC8012.3050809@linuxtv.org>
-	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
-	<47DC93D0.3090904@linuxtv.org> <47DF2576.7080907@iki.fi>
-	<abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
-	<47E1CC07.8050006@iki.fi>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+	(envelope-from <nico@youplala.net>) id 1JdiMl-0003zw-BE
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 09:49:18 +0100
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <1206270834.4521.11.camel@shuttle>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206185051.22131.5.camel@tux>  <1206190455.6285.20.camel@youkaida>
+	<1206270834.4521.11.camel@shuttle>
+Date: Mon, 24 Mar 2008 08:47:58 +0000
+Message-Id: <1206348478.6370.27.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,21 +28,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  Thanks, I removed obsolete trees.
+Guys,
 
-I've tried it with the updated af9015 branch, it works perfectly, the
-lock LED has even decided to come on.
-There's one problem which I've noticed from the start, while it's
-plugged in, random number key presses
-are being registered. Any ideas about what could be causing that and
-how to stop it? lirc is disabled.
-I'm guessing it's something to do with this from dmesg:
+I was running with the following debug options when I got a disconnect:
 
-input: Leadtek WinFast DTV Dongle Gold as /class/input/input21
-input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
-usb-0000:00:02.1-2
+options dvb-usb-dib0700 force_lna_activation=1
+options dvb-usb-dib0700 debug=1
+options mt2060 debug=1
+options dibx000_common debug=1
+options dvb_core debug=1
+options dvb_core dvbdev_debug=1
+options dvb_core frontend_debug=1
+options dvb_usb debug=1
+options dib3000mc debug=1
+options usbcore autosuspend=-1
 
-Jarryd.
+
+/var/log/messages is here:
+
+http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
+
+and slightly different data:
+
+http://www.youplala.net/~will/htpc/disconnects/syslog-with_debug
+
+Can that help, or would more be needed?
+
+There was zero remote usage at the time.
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
