@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.241])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Je37a-0000Hb-Kj
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 07:58:59 +0100
-Received: by an-out-0708.google.com with SMTP id d18so2429401and.125
-	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 23:58:43 -0700 (PDT)
-Message-ID: <1a297b360803242358t4da80eb1q809bbafbbd2ee45e@mail.gmail.com>
-Date: Tue, 25 Mar 2008 10:58:43 +0400
-From: "Manu Abraham" <abraham.manu@gmail.com>
-To: "Mark Spieth" <mark@digivation.com.au>
-In-Reply-To: <006d01c88e06$25cb0830$a101a8c0@sigtec.com.au>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <006d01c88e06$25cb0830$a101a8c0@sigtec.com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] best mxl500x repo
+	(envelope-from <nico@youplala.net>) id 1JdpqD-0006I1-KA
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 17:48:12 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id 831BFD88130
+	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 17:47:12 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47E7D996.8030503@pelago.org.uk>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206185051.22131.5.camel@tux>	<1206190455.6285.20.camel@youkaida>
+	<1206270834.4521.11.camel@shuttle>	<1206348478.6370.27.camel@youkaida>
+	<8ad9209c0803240506m7197831bwa8ffc588ec655a4@mail.gmail.com>
+	<47E7D996.8030503@pelago.org.uk>
+Date: Mon, 24 Mar 2008 16:47:06 +0000
+Message-Id: <1206377226.7699.13.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,20 +32,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Mar 25, 2008 at 3:23 AM, Mark Spieth <mark@digivation.com.au> wrote:
-> hi
->
->  which is the best mxl500x repo to use, manu or stoth?
->  I have a kworld dual plus 399U afatech which uses this tuner and I want to
->  merge the mxl500x tuner into the anttip repo.
+On Mon, 2008-03-24 at 16:40 +0000, John Veness wrote:
+> Patrik Hansson wrote:
+>  > A bit off-topic but how do you get the date/time thing ? I only get
+>  > the time-since-boot and that is so enoying
+> 
+> I don't know if this is how Nicolas does it, but one method is to use 
+> the Gnome System Log viewer, then copy and paste from that.
 
-Merging into that repository won't really help much, since the device
-is a dual frontend device.
-A driver expected from Afatech is expected to have complete
-functionality on this.
+My syslog daemon does it for me.
 
-Regards,
-Manu
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
