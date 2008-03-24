@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JasYJ-0003Gk-LT
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 14:06:50 +0100
-Received: by wf-out-1314.google.com with SMTP id 28so4750879wfa.17
-	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 06:04:47 -0700 (PDT)
-Message-ID: <8ad9209c0803160604i482ced3tf32f7fe1812b26ef@mail.gmail.com>
-Date: Sun, 16 Mar 2008 14:04:47 +0100
+	(envelope-from <hansson.patrik@gmail.com>) id 1JdlgY-0008VN-0n
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 13:21:57 +0100
+Received: by ug-out-1314.google.com with SMTP id o29so3044869ugd.20
+	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 05:21:50 -0700 (PDT)
+Message-ID: <8ad9209c0803240521s5426c957te42339397aac06ab@mail.gmail.com>
+Date: Mon, 24 Mar 2008 13:21:49 +0100
 From: "Patrik Hansson" <patrik@wintergatan.com>
 To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <8ad9209c0803160240r75705620q27b76f3f31bad8f5@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20080314164100.GA3470@mythbackend.home.ivor.org>
-	<8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
-	<47DC26C0.2050609@ivor.org>
-	<8ad9209c0803151442p742c10eas3aa0b82c84123194@mail.gmail.com>
-	<8ad9209c0803160240r75705620q27b76f3f31bad8f5@mail.gmail.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Subject: [linux-dvb] Adding timestamp to femon
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,50 +25,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Mar 16, 2008 at 10:40 AM, Patrik Hansson <patrik@wintergatan.com> wrote:
->
-> On Sat, Mar 15, 2008 at 10:42 PM, Patrik Hansson <patrik@wintergatan.com> wrote:
->  >
->  > On Sat, Mar 15, 2008 at 8:42 PM, Ivor Hewitt <ivor@ivor.org> wrote:
->  >  > Patrik Hansson wrote:
->  >  >  > I tried changing to 2.6.22-19 on my ubuntu 7.10 with autosuspend=-1
->  >  >  > but i still lost one tuner.
->  >  >  >
->  >  >  > Have reverted back to 2.6.22-14-generic now and have disabled the
->  >  >  > remote-pulling...and i just lost a tuner, restarting my cardclient and
->  >  >  > mythbackend got it back.
->  >  >  >
->  >  >  > Did you have remote-pulling disabled in -19 ?
->  >  >  >
->  >  >  >
->  >  >  Still ticking along nicely here.
->  >  >
->  >  >  I have options:
->  >  >  options dvb-usb-dib0700 force_lna_activation=1
->  >  >  options dvb-usb disable_rc_polling=1
->  >  >  (since I have no remote)
->  >  >
->  >  >  Is the ubuntu kernel completely generic?
->  >  >
->  >  >  I still see an mt2060 write failed error every now and then (four in the
->  >  >  past 24 hours), but that doesn't appear to break anything. Do you have
->  >  >  complete tuner loss as soon as you get a write error?
->  >  >
->  >  >  Ivor.
->  >  >
->  >
->  >  The only error in my log the lat time i lost a tuner was:
->  >  mt2060 I2C read failed
->  >
->  >  So not even a write failed.
->  >
->
->  During the night i had another read failed, but this time both tuners
->  stayed alive.
->
+Hello
+I couldn't find a mailinglist for dvb-apps so i hope this is ok.
 
-Just wanted to add that i just lost a tuner (no.2) (eq L__ in mythtv),
-but this time without errors in dmesg.
+I would like to add timestamp to the output of femon -H in some way.
+This so I can monitor ber value over a long timeperiod and see the
+timedifference between some very high ber-values.
+
+I found a patch from 2005 but was unable to manually use the code in
+dvb-apps/utils/femon/femon.c
+I have zero skill in c/c++ but for someone with some skill i would
+belive it would be very easy ?
+
+Ps. If there is a better place for this kind of question please tell me. Ds.
+
+/ Patrik
 
 _______________________________________________
 linux-dvb mailing list
