@@ -1,30 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2IL4gS0005005
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:04:42 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.246])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2IL48tX020217
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:04:08 -0400
-Received: by an-out-0708.google.com with SMTP id d23so61542and.39
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 14:04:08 -0700 (PDT)
-Message-ID: <bd41c5f0803181404w33352e2al9d98a469da1149e3@mail.gmail.com>
-Date: Tue, 18 Mar 2008 17:04:08 -0400
-From: "Chaogui Zhang" <czhang1974@gmail.com>
-To: "Brandon Rader" <brandon.rader@gmail.com>
-In-Reply-To: <331d2cab0803122038y58871667r851c306bdeb721d5@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2OJLRxe007652
+	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 15:21:28 -0400
+Received: from mailrelay003.isp.belgacom.be (mailrelay003.isp.belgacom.be
+	[195.238.6.53])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2OJKvZu013954
+	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 15:20:57 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Frej Drejhammar <frej.drejhammar@gmail.com>
+Date: Mon, 24 Mar 2008 20:27:54 +0100
+References: <d758888cf4a466cd2d44.1206312200@liva.fdsoft.se>
+	<200803240112.16853.laurent.pinchart@skynet.be>
+	<k63vcgwtf.fsf@liva.fdsoft.se>
+In-Reply-To: <k63vcgwtf.fsf@liva.fdsoft.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <331d2cab0803062218x663ad17ofb79928059a111b@mail.gmail.com>
-	<bd41c5f0803081850o3b818d0ar633fbf0b50bc5535@mail.gmail.com>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAHFaDeWDc9dOji7t+LhHe7YBAAAAAA==@sbg0.com>
-	<bd41c5f0803091305n1332ea0ai1acf5ffc07d0bd8d@mail.gmail.com>
-	<331d2cab0803102036i66455f79h1cf20ca7a0d5e22f@mail.gmail.com>
-	<bd41c5f0803110611o6990350es494c152be56020f4@mail.gmail.com>
-	<331d2cab0803122038y58871667r851c306bdeb721d5@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trying to setup PCTV HD Card 800i
+Message-Id: <200803242027.54977.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 1 of 6] v4l2-api: Define a standard control for chroma
+	AGC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,48 +33,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Mar 12, 2008 at 11:38 PM, Brandon Rader <brandon.rader@gmail.com> wrote:
-> Alright, here is the new dmesg output http://pastebin.com/m35d1137d.
+On Monday 24 March 2008, Frej Drejhammar wrote:
+> Laurent Pinchart <laurent.pinchart@skynet.be> writes:
+> > Shouldn't a documentation patch be provided with each new control
+> > addition ?
 >
-> Brandon
->
->
->
-> On Tue, Mar 11, 2008 at 8:11 AM, Chaogui Zhang <czhang1974@gmail.com> wrote:
->
-> >
-> > On Tue, Mar 11, 2008 at 3:36 AM, Brandon Rader <brandon.rader@gmail.com>
-> wrote:
-> > > I tried the different repo that you suggested, and get the same error.
-> Here
-> > > is my new dmesg output http://pastebin.com/m4d43d4ef
-> > >
-> > > Brandon
-> > >
-> > >
-> >
-> > Please do not drop the list from the cc. Use the "reply to all"
-> > function of your email client instead of just "reply".
-> >
-> > It seems the i2c bus is not working the way it should. Can you try the
-> > following? (With the current v4l-dvb tree)
-> >
-> > First, unload all the modules related to your card (cx88-*, s5h1409,
-> xc5000).
-> > Then, load cx88xx with options i2c_debug=1 and i2c_scan=1
-> > Post the relevant dmesg output to the list.
-> >
-> > --
-> > Chaogui Zhang
-> >
+> If you had read the the patch series description ([PATCH 0 of 6] cx88:
+> Enable additional cx2388x features. Version 3) you would have found
+> just such a patch to the v4l2-spec docbook (which is not in the
+> v4l-tree).
 
-Sorry for the delay. I was away on vacation last week.
+Sorry, my bad. I had skipped 0/6. Thanks for the information.
 
-I don't see any debug info in the dmesg output. Are you sure you
-loaded the modules with the i2c_debug enabled?
+Best regards,
 
--- 
-Chaogui Zhang
+Laurent Pinchart
 
 --
 video4linux-list mailing list
