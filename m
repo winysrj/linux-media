@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web33106.mail.mud.yahoo.com ([209.191.69.136])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <simeonov_2000@yahoo.com>) id 1JVF9t-0007cA-Vk
-	for linux-dvb@linuxtv.org; Sat, 01 Mar 2008 01:00:58 +0100
-Date: Fri, 29 Feb 2008 16:00:23 -0800 (PST)
-From: Simeon Simeonov <simeonov_2000@yahoo.com>
-To: Manu Abraham <abraham.manu@gmail.com>
+Received: from sif.is.scarlet.be ([193.74.71.28])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ben@bbackx.com>) id 1JdkE4-0005ic-NL
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 11:48:25 +0100
+From: "Ben Backx" <ben@bbackx.com>
+To: "'Andrea'" <mariofutire@googlemail.com>, <linux-dvb@linuxtv.org>
+References: <47D99FE8.80903@googlemail.com>
+In-Reply-To: <47D99FE8.80903@googlemail.com>
+Date: Mon, 24 Mar 2008 11:48:12 +0100
+Message-ID: <001801c88d9c$903339f0$b099add0$@com>
 MIME-Version: 1.0
-Message-ID: <315532.95101.qm@web33106.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
-	please verify results was Re: TechniSat SkyStar HD: Problems
-	scaning and zaping
+Content-Language: en-gb
+Subject: Re: [linux-dvb] Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,38 +25,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Yes, ocasionally I see the message from stb0899_wait_diseqc_fifo_empty() 
-but trying to increase the time in the call did not help. So I am not sure if
-my problem is related to that message.
- 
------ Original Message ----
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Sent: Friday, February 29, 2008 3:40:05 PM
-Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
+Sorry, late reply, been busy with some other stuff.
+Back to driver-development.
+Perhaps, first some background. I'm a university student in my last year and
+am busy with a dissertation (thesis) about DVB (in my case: DVB-s, the
+others (c en t) are limited here in Belgium).
 
-Simeon Simeonov wrote:
-> I am using VP-1041 with the lnb21_attach changes to the ISEL and PCL bit settings.
-> At the moemnt I have no clue why I am having this diseqc issue. I also checked the
-> logs and I see from time to time diseqc_fifo_full messages but there is no correlation
-> with the problem. 
+The goal is to check and, if possible, optimize the performance of
+multi-channel demuxing/decoding. For the moment, I'm looking at 3 possible
+scenarios: 
+1) Let the end-user software do all the work (meaning: giving the whole TS
+to the application), this is possible with eg Kaffeine, flumotion, etc...
+2) Let the driver do the work
+3) Hardware
 
-Did you mean the "timed out !!" message from 
-stb0899_wait_diseqc_fifo_empty() ?
-(stb0899_drv.c, line #686, Trying to understand the problem that you are 
-facing)
+The hardware supports multi-PID-filtering, so that's not the problem, the
+only problem is: which functions have to be implemented in my driver? In
+other words: is there an application that says to the driver: give me the
+stream with that PID and which function is called to do that? I'm guessing
+DMX_SET_PES_FILTER?
+
+
+> 
+> Have you read my last post?
+> 
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024456.html
+> 
+> When I talk about filter, demux, dvr, this is all in the kernel driver
+> for the dvb.
+> 
+
+Sorry, must have missed it. You're completely right when you say the driver
+must be able to filter more than one PID at the same time, this is also part
+of my research: seeing how many PID's I can filter at the same time.
+
+> You can find here an example of how to open the demux to get 1 PID.
+> You can run it multiple times and get as many streams as you want
+> 
+> http://www.audetto.pwp.blueyonder.co.uk/dvb.cpp
+> 
+
+Thanks for the example, I think it will come in handy when implementing
+DMX_SET_PES_FILTER
+
+
+Thank you for all the help so far.
+
 
 Regards,
-Manu
+Ben
+ 
 
 
-
-
-
-      ____________________________________________________________________________________
-Looking for last minute shopping deals?  
-Find them fast with Yahoo! Search.  http://tools.search.yahoo.com/newsearch/category.php?category=shopping
 
 _______________________________________________
 linux-dvb mailing list
