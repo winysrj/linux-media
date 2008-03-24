@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1Jbl8e-0001u0-Lw
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 00:22:37 +0100
-From: Dominik Kuhlen <dkuhlen@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Wed, 19 Mar 2008 00:22:01 +0100
-References: <47BDA96B.7080700@okg-computer.de>
-	<200803161603.24956.dkuhlen@gmx.net> <47DD45FE.3030702@gmail.com>
-In-Reply-To: <47DD45FE.3030702@gmail.com>
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JdpCg-0001Si-94
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 17:07:19 +0100
+Message-ID: <47E7D194.80603@gmx.net>
+Date: Mon, 24 Mar 2008 17:06:44 +0100
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Message-Id: <200803190022.01906.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Need Help with PCTV 452e (USB DVB-S2 device with
-	STB0899)
+To: Patrik Hansson <patrik@wintergatan.com>
+References: <8ad9209c0803240521s5426c957te42339397aac06ab@mail.gmail.com>
+In-Reply-To: <8ad9209c0803240521s5426c957te42339397aac06ab@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Adding timestamp to femon
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,112 +19,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1262753690=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1262753690==
-Content-Type: multipart/signed;
-  boundary="nextPart25136798.gUnZyEz57e";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-
---nextPart25136798.gUnZyEz57e
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On 03/24/2008 01:21 PM, Patrik Hansson wrote:
+> Hello
+> I couldn't find a mailinglist for dvb-apps so i hope this is ok.
+> 
+> I would like to add timestamp to the output of femon -H in some way.
+> This so I can monitor ber value over a long timeperiod and see the
+> timedifference between some very high ber-values.
+> 
+> I found a patch from 2005 but was unable to manually use the code in
+> dvb-apps/utils/femon/femon.c
+> I have zero skill in c/c++ but for someone with some skill i would
+> belive it would be very easy ?
+> 
+> Ps. If there is a better place for this kind of question please tell me. Ds.
+> 
+> / Patrik
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 Hi,
-On Sunday 16 March 2008, Manu Abraham wrote:
-> Dominik Kuhlen wrote:
-> > Hi,
-> >=20
-=2D--snip----
-> > The first tuning after powerup/init fails quite often for me but the fo=
-lllowings are fine
-> > even switching from DVB-S to DVB-S2 works like a charm.
->=20
->=20
-> Nice to know it works great. Should i pull the patch into the multiproto=
-=20
-> tree to
-> make it easier, since it works as expected ?
-That would be nice, I'll prepare a patch next days (which also includes the=
- TT-connect S2-3600 patch from Andr=E9).
 
-And I would also like to add a sample tuning application since this seems t=
-o be the most common
-issue when trying to get DVB-S2 running
+I had a similar issue, but solved it. Not sure if this works with a 
+recent femon, but if it doesn't you should be able to make some changes 
+to my method to make it work. Here's the trick:
 
->=20
-> Also, can you test DVB-S2, a 30MSPS stream whether it works as expected ?
-> (in case you have access to such a transponder ?)
-which satellite/transponder has got such a rate?=20
-I can only receive 19.2E and 13.0E but both don't have high rate dvb-s2 tra=
-nsponders :(
+1. Tune to whatever you want to measure.
+2. Execute in a terminal: "femon -h -c 3600 > filename.signal". 3600 is 
+for one hour, if you want to test for e.g. 10 hours enter 36000. The 
+resulting file will usually be under 5MB so don't worry. Good advice: 
+put the current time in the filename because brains are unreliable.
+3. That's quite a bit to read. But we can do it faster:
 
->=20
-> Currently, i have mixed results, so some amount of further test results=20
-> would
-> be quite nice
->=20
-> >> Is it really isochronous transfer that the device really uses in it's
-> >> default mode ? I guess many vendors prefer bulk transfers for the
-> >> default transfer mode ?
-> > There's a bulk pipe but it's only used for setup/control afaik.
-> >=20
-> >=20
-> > Happy testing,
-> > Dominik
-> >=20
-> >=20
-> > BTW: why is the mantis development in a separate HG repo?
-> >  I merged the mantis driver to the multiproto repo and can use the
-> >  mantis-1041 and pctv452e simultanously :)
->=20
-> I do expect quite some changes to the mantis bridge and have been touching
-> very much mantis/bridge specific changes in that tree. Additionally, i=20
-> plan to push
-> out multiproto prior to mantis, so both in one tree will make it a bit=20
-> messy.
-Ok, that makes sense.
-=20
->=20
-> Regards,
-> Manu
->=20
->=20
+Total amount of errors: "cat filename.signal | grep -c unc[^\s][^0]". 
+You might need to change the regex for other femon versions.
 
+All errors and when they occured: "cat filename.signal | grep -n 
+unc[^\s][^0]". -n will make it show line numbers. If the first error, 
+for example, is on line 1800 that means the first error occured half an 
+hour after the start of the measurement.
 
-Dominik
+Hope this helps.
 
---nextPart25136798.gUnZyEz57e
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
-
-iD8DBQBH4E6Z6OXrfqftMKIRAptnAJ4u19Lwjeqx9Clqknm8eqoSkdrvQACdGW1S
-BEUV7Tq1reQeYaU+6KiUck8=
-=eO4+
------END PGP SIGNATURE-----
-
---nextPart25136798.gUnZyEz57e--
-
-
---===============1262753690==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+P. van Gaans
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1262753690==--
