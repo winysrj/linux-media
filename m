@@ -1,24 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71])
+Received: from ti-out-0910.google.com ([209.85.142.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1JbMlZ-00076C-QY
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 22:21:10 +0100
-Date: Mon, 17 Mar 2008 22:18:33 +0100
-From: insomniac <insomniac@slackware.it>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Message-ID: <20080317221833.4dab4682@slackware.it>
-In-Reply-To: <ea4209750803171412x63a3a711t96614c03019aaf84@mail.gmail.com>
-References: <20080316182618.2e984a46@slackware.it>
-	<20080317025002.2fee3860@slackware.it> <47DDD009.30504@iki.fi>
-	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
-	<20080317104147.1ade57fe@slackware.it>
-	<20080317114802.0df56399@slackware.it>
-	<abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
-	<47DE5F42.8070005@iki.fi> <20080317213321.01b408cd@slackware.it>
-	<ea4209750803171412x63a3a711t96614c03019aaf84@mail.gmail.com>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unsupported device
+	(envelope-from <jarro.2783@gmail.com>) id 1JdlLb-0005AL-CM
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 13:00:21 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so659753tia.13
+	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 04:59:57 -0700 (PDT)
+Message-ID: <abf3e5070803240459m73ff147ajdc7bea5727a26c04@mail.gmail.com>
+Date: Mon, 24 Mar 2008 22:59:57 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47E7974E.8070303@iki.fi>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47DC8012.3050809@linuxtv.org>
+	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
+	<47DC93D0.3090904@linuxtv.org> <47DF2576.7080907@iki.fi>
+	<abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
+	<47E1CC07.8050006@iki.fi>
+	<abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
+	<abf3e5070803232235r49d73442tc7ce603043778e7a@mail.gmail.com>
+	<47E7974E.8070303@iki.fi>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,22 +36,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 17 Mar 2008 22:12:23 +0100
-"Albert Comerma" <albert.comerma@gmail.com> wrote:
+On Mon, Mar 24, 2008 at 10:58 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Jarryd Beck wrote:
+>  > Also I just remembered the signal is being reported as 0% by mythtv,
+>  > although it is still
+>  > locking fine and the picture is perfect. It works fine with another
+>  > tuner so I'm guessing
+>  > it's something specifically to do with that tuner.
+>  >
+>  > Jarryd.
+>
+>  No it is not tuner issue, AF9013 driver does not support signal
+>  reporting currently.
+>
+>
+>
+>  regards
+>  Antti
+>  --
+>  http://palosaari.fi/
+>
 
-> Could you post your dmesg?
+Actually I meant the device in general. That explains the lack
+of signal though, thanks.
 
-Sure.
-http://rafb.net/p/dmtrHD49.html
-
--- 
-Andrea Barberio
-
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
