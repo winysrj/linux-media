@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QAdfos024562
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 06:39:41 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2QAdRc1018961
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 06:39:27 -0400
-Date: Wed, 26 Mar 2008 11:38:54 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Matthew Wang <wangsu820@163.com>
-Message-ID: <20080326103853.GA21053@stinkie>
-References: <3358587.1081301206517482981.JavaMail.coremail@bj163app87.163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2OCLrLa005364
+	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:21:53 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.238])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2OCLKW8028236
+	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 08:21:20 -0400
+Received: by wr-out-0506.google.com with SMTP id c57so1642063wra.9
+	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 05:21:19 -0700 (PDT)
+Message-ID: <8bf247760803240521mfde8dd0l9ee16106c88f2283@mail.gmail.com>
+Date: Mon, 24 Mar 2008 17:51:19 +0530
+From: Ram <vshrirama@gmail.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <3358587.1081301206517482981.JavaMail.coremail@bj163app87.163.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: ask about kernel video4linux module
+Subject: firmware update camera doubts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,18 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 26 Mar 08 15:44, Matthew Wang wrote:
-> I enter the linux kernel (version is 2.6.8.1) and wanna get the videodev module,unfortunately I only got videodev.h or some other .h files, also I browsed the Makefile and Kconfig files but didn't get any code of v4l!
+Hi,
+   Im writing a camera sensor driver for omap - which needs to update
+a firmware to the camera.
+  The firmware size is around 50K bytes.
 
-Sounds like you installed only the kernel headers and not the kernel sourcecode.
-Your distribution should have a package for the sources.
+   Which is the best place to update firmware in the sensor driver in
+the latest V4L2 for linux-2.6.23?
 
-The latest stable kernel sources are in
-ftp://ftp.kernel.org/pub/linux/kernel/v2.6
-The current development branch of v4l can be downloaded at
-http://linuxtv.org/hg/v4l-dvb
+   Should it be done in XXX_configure function or after power_on ( );
 
-  Daniel
+  Some drivers do common initializations in the XXX_configure function.
+  But am not really sure if XXX_configure is the right place since updating
+  firmware takes time (approx 5/10 seconds)
+
+
+  Please advice,
+
+
+Regards,
+sriram
 
 --
 video4linux-list mailing list
