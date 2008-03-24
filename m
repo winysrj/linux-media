@@ -1,15 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.krastelcom.ru ([88.151.248.4])
+Received: from ns.bog.msu.ru ([213.131.20.1] ident=1005)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vpr@krastelcom.ru>) id 1JesT7-0005Kq-2T
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 14:48:37 +0100
-Message-Id: <B4C067E3-1E8B-417B-9FBD-E979C0809751@krastelcom.ru>
-From: Vladimir Prudnikov <vpr@krastelcom.ru>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Thu, 27 Mar 2008 16:48:27 +0300
-Subject: [linux-dvb] Discontinuity and errors with multiple PCI DVB S2-3200
-	in one PC
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1Jdrrk-0002rs-8y
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 19:57:56 +0100
+Received: from ldvb (helo=localhost)
+	by ns.bog.msu.ru with local-esmtp (Exim 4.69)
+	(envelope-from <ldvb@ns.bog.msu.ru>) id 1JdrsP-0002n7-14
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 21:58:35 +0300
+Date: Mon, 24 Mar 2008 21:58:33 +0300 (MSK)
+From: ldvb@ns.bog.msu.ru
+To: linux-dvb@linuxtv.org
+In-Reply-To: <002e01c88ddd$1d9ff450$58dfdcf0$@com>
+Message-ID: <Pine.LNX.4.62.0803242147460.3556@ns.bog.msu.ru>
+References: <47D99FE8.80903@googlemail.com>
+	<001801c88d9c$903339f0$b099add0$@com>
+	<47E7B2DB.3050009@googlemail.com> <002e01c88ddd$1d9ff450$58dfdcf0$@com>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] Implementing support for multi-channel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,16 +30,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Trying to make multiple S2-3200 work in one PC. Out of 5 cards fitted  
-at the same time only one is working fine. Others give discontinuity  
-and transport errors. When I leave 4 cards - I have 2 working.
-I'm using a passive PCI backplane with 12 PCI (CAM module requires a  
-separate PCI just for fitting. Could be a problem with IRQ (4 cards  
-get the same IRQ and are detected on the same bus in BIOS). Any clue  
-someone?
 
-Regards,
-Vladimir
+
+On Mon, 24 Mar 2008, Ben Backx wrote:
+
+> The hardware can handle it (up to a certain number of PID-filters).
+For Skystar3 it is 255.
+
+> The main
+> difference: cpu-load. When the hardware handles the filtering, the cpu can
+> be busy with other stuff... (at least, that's what I think).
+Seems, that today's CPUs are capable of doing full TS decoding without any 
+significant CPU load (for 68Mbit stream with 20 channels it is less than 
+5% 3GHz CPU). More, sw. decoder is not a small atomic thing, and can do 
+many additional things. If the PID filter is in the kernel in such case, 
+there is a chance, that we've get additional memcpy() etc.
+
+> The (performance) difference between driver and software will be little, I
+> expect.
+More, we can miss CPU power and increase kernel size.
 
 _______________________________________________
 linux-dvb mailing list
