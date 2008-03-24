@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73])
+Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1JbMr3-0008RA-O3
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 22:26:50 +0100
-Date: Mon, 17 Mar 2008 22:24:16 +0100
-From: insomniac <insomniac@slackware.it>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Message-ID: <20080317222416.38cf913f@slackware.it>
-In-Reply-To: <ea4209750803171420t55f203eev3ba21b70d93bc39f@mail.gmail.com>
-References: <20080316182618.2e984a46@slackware.it>
-	<20080317025849.49b07428@slackware.it> <47DDD817.9020605@iki.fi>
-	<20080317104147.1ade57fe@slackware.it>
-	<20080317114802.0df56399@slackware.it>
-	<abf3e5070803170409j8be4c54r96f97eb2d3fd4dac@mail.gmail.com>
-	<47DE5F42.8070005@iki.fi> <20080317213321.01b408cd@slackware.it>
-	<ea4209750803171412x63a3a711t96614c03019aaf84@mail.gmail.com>
-	<20080317221546.6a4dd75e@slackware.it>
-	<ea4209750803171420t55f203eev3ba21b70d93bc39f@mail.gmail.com>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unsupported device
+	(envelope-from <gasiu@konto.pl>) id 1JdnFw-0005nM-Ae
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 15:02:35 +0100
+Received: from dxa166.neoplus.adsl.tpnet.pl ([83.22.86.166] helo=[192.168.1.3])
+	by host.amsnet.pl with esmtpa (Exim 4.67)
+	(envelope-from <gasiu@konto.pl>) id 1JdnJU-0000WN-4k
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 15:06:12 +0100
+Message-ID: <47E7B471.60404@konto.pl>
+Date: Mon, 24 Mar 2008 15:02:25 +0100
+From: Gasiu <gasiu@konto.pl>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] MythTv multiproto patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,21 +26,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 17 Mar 2008 22:20:15 +0100
-"Albert Comerma" <albert.comerma@gmail.com> wrote:
+Do You have some working mythtv0.21-patch to use it with Multiproto (b5a34b6a209d) and SkystarHD and Multiswitch (like this:
+Viper 9/16 http://www.hollex.com.pl/index.php?page=prod&kat=35&id=158)
 
-> And your source?
+I try with:
 
-Sorry.. what do you mean with my source?
+http://pansy.at/gernot/mythtv-multiproto-hack.diff.gz
+
+
+http://www.linuxtv.org/pipermail/linux-dvb/attachments/20080107/9b8959a2/attachment.bin 
+
+but still nothing...
+
+
 
 -- 
-Andrea Barberio
+Pozdrawiam!
+Gasiu
 
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
 
 _______________________________________________
 linux-dvb mailing list
