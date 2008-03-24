@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DC7A51.7040103@iki.fi>
-Date: Sun, 16 Mar 2008 03:39:29 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from wr-out-0506.google.com ([64.233.184.237])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <makosoft@googlemail.com>) id 1JdoD7-0003v4-CV
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 16:03:44 +0100
+Received: by wr-out-0506.google.com with SMTP id c30so1818535wra.14
+	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 08:03:36 -0700 (PDT)
+Message-ID: <c8b4dbe10803240803q78371b16k552360fb3e68714c@mail.gmail.com>
+Date: Mon, 24 Mar 2008 15:03:35 +0000
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Simon Kenyon" <simon@koala.ie>
+In-Reply-To: <1206220314.19863.4.camel@localhost>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47DA7008.8010404@linuxtv.org>
-	<47DAC42D.7010306@iki.fi>	<47DAC4BE.5090805@iki.fi>	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>	<47DBDB9F.5060107@iki.fi>	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>	<47DC64F4.9070403@iki.fi>
-	<47DC6E0A.9000904@linuxtv.org>
-	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-In-Reply-To: <abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Content-Disposition: inline
+References: <1206210385.19509.3.camel@localhost>
+	<1206220314.19863.4.camel@localhost>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] now that v4l-dvb-makomk will not work on 2.6.24
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,33 +29,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarryd Beck wrote:
-> You won't believe this, but it worked. I think every time I tried both
-> patches together I left .no_reconnect in. I tried it again with both
-> patches applied, no other modifications, and it worked.
-> 
-> Thanks for all your help,
-> Jarryd.
+On 3/22/08, Simon Kenyon <simon@koala.ie> wrote:
+>
+> On Sat, 2008-03-22 at 18:26 +0000, Simon Kenyon wrote:
+> > will anything be done about merging em28xx support into the mainline?
+> > it has been quite a while since markus picked up his ball and went off
+> > to play elsewhere
+> >
+> > is it really that hard to merge?
+>
+> by that i really mean em2880-dvb
+> --
+> simon
 
-Great. I will finalize support for this tuner and add it to tree.
+Hi,
+I think the broad answer is no, it's probably not particularly hard to merge, at least not from a technical point of view. It's relatively short, and most of the changes required to stuff like the zl10353 driver are already there because of other xc3028-based cards that need them. I assume the main issue is that no-one wants to do it.
 
-It will take some time because I will need to test whether or not there 
-is maximum byte count in af9015 i2c-hardware. If yes, there is two 
-solutions 1) print error to log that too long i2c-transfer => tuner 
-driver needs changed. 2) Split i2c-transfer in the driver. Is there any 
-other driver that splits i2c-messages?
+(Also, I finally got around to backporting the changes required to make v4l-dvb-makomk work on 2.6.24 - I was hoping it'd be obsolete by now, but I'm guessing not. It wasn't as bad as I was expecting, but it's only going to get worse, since the code in there is still just as outdated.)
 
-Can you make some test to find solution where no_reconnect is not used, 
-means same as no_reconnect=0 ? There is #if 0 / #if 1 definitions in 
-download firmware. Also sleep in same place can be changed.
-
-This (reconnection after fw download) is really problem. Any ideas to 
-resolving it is highly welcome.
-
-regards
-Antti Palosaari
--- 
-http://palosaari.fi/
+Aidan
 
 _______________________________________________
 linux-dvb mailing list
