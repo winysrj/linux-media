@@ -1,27 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from ti-out-0910.google.com ([209.85.142.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1Jed64-0000xl-RW
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 22:23:49 +0100
-Received: from [11.11.11.138] (user-514f84eb.l1.c4.dsl.pol.co.uk
-	[81.79.132.235])
-	by mail.youplala.net (Postfix) with ESMTP id C8543D88137
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 22:22:42 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-References: <1206139910.12138.34.camel@youkaida>
-	<1206185051.22131.5.camel@tux> <1206190455.6285.20.camel@youkaida>
-	<1206270834.4521.11.camel@shuttle> <1206348478.6370.27.camel@youkaida>
-	<1206546831.8967.13.camel@acropora>
-	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-Date: Wed, 26 Mar 2008 21:22:41 +0000
-Message-Id: <1206566561.8947.10.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
-	are back!
+	(envelope-from <jarro.2783@gmail.com>) id 1JdfL3-0000ox-Ex
+	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 06:35:19 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so639056tia.13
+	for <linux-dvb@linuxtv.org>; Sun, 23 Mar 2008 22:35:11 -0700 (PDT)
+Message-ID: <abf3e5070803232235r49d73442tc7ce603043778e7a@mail.gmail.com>
+Date: Mon, 24 Mar 2008 16:35:11 +1100
+From: "Jarryd Beck" <jarro.2783@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
+	<47DC6E0A.9000904@linuxtv.org>
+	<abf3e5070803151827s1f77d519o728f160126b28ac5@mail.gmail.com>
+	<47DC8012.3050809@linuxtv.org>
+	<abf3e5070803152025q14dd3e03tc8230940fe50e1b@mail.gmail.com>
+	<47DC93D0.3090904@linuxtv.org> <47DF2576.7080907@iki.fi>
+	<abf3e5070803191901w14e4b827k8dd90fb202cafc6e@mail.gmail.com>
+	<47E1CC07.8050006@iki.fi>
+	<abf3e5070803232232r2fef9b8ap4ea0a525181234a5@mail.gmail.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,38 +36,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Mon, Mar 24, 2008 at 4:32 PM, Jarryd Beck <jarro.2783@gmail.com> wrote:
+> >  Thanks, I removed obsolete trees.
+>
+>  I've tried it with the updated af9015 branch, it works perfectly, the
+>  lock LED has even decided to come on.
+>  There's one problem which I've noticed from the start, while it's
+>  plugged in, random number key presses
+>  are being registered. Any ideas about what could be causing that and
+>  how to stop it? lirc is disabled.
+>  I'm guessing it's something to do with this from dmesg:
+>
+>  input: Leadtek WinFast DTV Dongle Gold as /class/input/input21
+>
+> input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
+>  usb-0000:00:02.1-2
+>
+>  Jarryd.
+>
 
-On Wed, 2008-03-26 at 21:52 +0100, Patrik Hansson wrote:
-> Linux IKA 2.6.22-14-generic #1 SMP Tue Dec 18 08:02:57 UTC 2007 i686
-> GNU/Linux
-> Not stable at all here, got 2 disconnects in 2 hours.
-> So it can't just be the kernel.
+Also I just remembered the signal is being reported as 0% by mythtv,
+although it is still
+locking fine and the picture is perfect. It works fine with another
+tuner so I'm guessing
+it's something specifically to do with that tuner.
 
-Didn't you say that you are running Hardy, but downgraded the kernel?
-
-If so, maybe we should look at the user space.
-
-The dvb-utils may be fairly old in Ubuntu.
-
-Can the persons experiencing disconnects post:
-
-Distro
-distro version
-kernel version (uname -a)
-dvb-utils version
-
-
-I'll start:
-
-Ubuntu
-Hardy (8.04)
-Linux favia 2.6.24-12-generic #1 SMP Wed Mar 12 22:31:43 UTC 2008 x86_64
-GNU/Linux
-dvb-utils 1.1.1-3
-
-Nico
-
-
+Jarryd.
 
 _______________________________________________
 linux-dvb mailing list
