@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JVwuI-0008IX-In
-	for linux-dvb@linuxtv.org; Sun, 02 Mar 2008 23:43:46 +0100
-Message-ID: <47CB2D95.6040602@gmail.com>
-Date: Mon, 03 Mar 2008 02:43:33 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Florian Lohoff <flo@rfc822.org>
-References: <20080301161419.GB12800@paradigm.rfc822.org>
-In-Reply-To: <20080301161419.GB12800@paradigm.rfc822.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+	(envelope-from <nico@youplala.net>) id 1Je42M-0005pd-A2
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 08:57:39 +0100
+Received: from [11.11.11.138] (user-514f84eb.l1.c4.dsl.pol.co.uk
+	[81.79.132.235])
+	by mail.youplala.net (Postfix) with ESMTP id E7FE5D88148
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 08:55:05 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1206365772.7699.10.camel@acropora>
+References: <1206139910.12138.34.camel@youkaida> <47E77895.8000708@ivor.org>
+	<1206352930.7699.2.camel@acropora> <1206362971.5058.4.camel@anden.nu>
+	<1206365772.7699.10.camel@acropora>
+Date: Tue, 25 Mar 2008 07:54:59 +0000
+Message-Id: <1206431699.3755.7.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Nova-T-500 disconnects - They are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,40 +30,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Florian Lohoff wrote:
-> Hi,
-> i was wondering why i have a problem in my application that i need to
-> run scan once after loading the module, otherwise my DVBFE_SET_PARAMS
-> fails - I couldnt explain it until i looked into the kernel code - In
-> the dvb_frontend.c i see this code:
+
+On Mon, 2008-03-24 at 13:36 +0000, Nicolas Will wrote:
+> On Mon, 2008-03-24 at 13:49 +0100, Jonas Anden wrote:
+> > A wild guess (bash me on the head if I'm wrong),
 > 
-> 1738         case DVBFE_SET_PARAMS: {
-> 1739                 struct dvb_frontend_tune_settings fetunesettings;
-> 1740                 enum dvbfe_delsys delsys = fepriv->fe_info.delivery;
-> ...
-> 1783                 } else {
-> 1784                         /* default values */
-> 1785                         switch (fepriv->fe_info.delivery) {
-> ...
-> 1817                         default:
-> 1818                                 up(&fepriv->sem);
-> 1819                                 return -EINVAL;
-> 1820                         }
+> Plonk! ;o)
+
+I'll take that back.
+
+And apologise.
+
+Deeply.
+
+
 > 
-> Should the code use fepriv->feparam.delivery instead of
-> fepriv->fe_info.delivery to sense the right delivery system ?
+> >  but when you switched
+> > kernel, did you do 'make distclean' in your v4l-dvb directory?
+> Unless
+> > you do, the code will keep compiling (and installing) for the
+> previous
+> > kernel, and your new kernel will only use the stock drivers. That
+> > would
+> > explain why you're seeing disconnects again. I made that mistake
+> > once..
+> 
+> I did a distclean, as usual.
+> 
+> Then I did better, I put the whole tree on the side and got a brand
+> new
+> one.
 
-Which demodulator driver are you using to test your application ?
 
-Though a bug, but that won't make any difference to what you are looking at,
-since the delay and others are used in the case of swzigzag, which 
-doesn't exist
-at least for the existing demods using the track() callback at all.
+Because I'm desperate, I did a make distclean, a make and a sudo make
+install.
 
-This would be a fix for any demod drivers using the set_params() callback.
+And I rebooted.
 
-Regards,
-Manu
+And the machine is still up with no breakage.
+
+Ah...
+
+I would have put my kids on the line about what I said I did.
+
+But obviously...
+
+And I did so many things on the box that the shell history does not go
+back long enough for me to check.
+
+But obviously, there is no need to check.
+
+To err is human, but, I was pretty certain. It is normally my usual
+process. Plus, for the weirdest reasons, I was eager to put myself in
+supposedly 2.6.24 problems.
+
+
+
+So I hereby put myself in a position where you can bash me on the head,
+repeatedly.
+
+
+But thanks all the same for showing me the light!
+
+Nico
+assumes the plonking position
+
 
 
 _______________________________________________
