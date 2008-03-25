@@ -1,35 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from rn-out-0910.google.com ([64.233.170.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JW4kq-0000hF-GN
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 08:06:32 +0100
-Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
-	by holly.castlecore.com with esmtp (Exim 4.68)
-	(envelope-from <lists@philpem.me.uk>) id 1JW4kl-0000XK-KC
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 07:06:27 +0000
-Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
-	by wolf.philpem.me.uk (Postfix) with ESMTP id B68A51AFD9D5
-	for <linux-dvb@linuxtv.org>; Mon,  3 Mar 2008 07:07:15 +0000 (GMT)
-Message-ID: <47CBA377.6030304@philpem.me.uk>
-Date: Mon, 03 Mar 2008 07:06:31 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
+	(envelope-from <makosoft@googlemail.com>) id 1JeBkW-0003f5-GD
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 17:11:45 +0100
+Received: by rn-out-0910.google.com with SMTP id e11so1701481rng.17
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 09:11:39 -0700 (PDT)
+Message-ID: <c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
+Date: Tue, 25 Mar 2008 16:11:35 +0000
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47A98F3D.9070306@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<8ad9209c0802261137g1677a745h996583b2facb4ab6@mail.gmail.com>
-	<8ad9209c0802271138o2e0c00d3o36ec16332d691953@mail.gmail.com>
-	<47C7076B.6060903@philpem.me.uk> <47C879BA.7080002@philpem.me.uk>
-	<1204356192.6583.0.camel@youkaida> <47CA609F.3010209@philpem.me.uk>
-	<8ad9209c0803020419s49e9f9f0i883f48cf857fb20c@mail.gmail.com>
-	<47CAB51F.9030103@philpem.me.uk>
-	<1204479088.6236.32.camel@youkaida>
-	<47CAEFC3.2020305@philpem.me.uk>
-	<gemini.jx4lel00dxyzk03qb.linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <gemini.jx4lel00dxyzk03qb.linux@youmustbejoking.demon.co.uk>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Content-Disposition: inline
+References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
+	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
+Cc: DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -43,26 +29,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Darren Salt wrote:
-> Which revision?
+On Mon, Mar 24, 2008 at 11:04 PM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+>
+> On 3/24/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+>  > Hi,
+>  >
+>  > I've been attempting to get something that can cleanly support DVB-T
+>  > on the original HVR-900, based on up-to-date v4l-dvb and Markus'
+>  > em2880-dvb (that is to say, something that could hopefully be cleaned
+>  > up to a mergable state and won't be too hard to keep updated if it
+>  > doesn't get merged). The current (somewhat messy, still incomplete)
+>  > tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
+>  > particularly bad. I don't have access to DVB-T signals at the moment,
+>  > but as far as I can tell, it works. Anyone want to test it? General
+>  > comments? (Other hardware will be added if I have the time,
+>  > information, and someone willing to test it.)
+>  >
+>
+>  This is more than incomplete, VBI is missing (nor tested with various
+>  video standards), and this device is 2 years old and not getting sold
+>  anymore.
+>  It's better to keep everything together at mcentral.de (this will very
+>  likely be moved to an empia domain in near future).
+>
+>  I will join Empia at 1st April 08, adding support for their new
+>  devices (and also improving support of the older ones).
+>
+>  Markus
+>
 
-Huh. Rev 62 UHCI and Rev 65 EHCI. Maybe it's not the USB HA then.
+Hi,
 
-> I have a VIA-based USB card in one computer here; I've had no problems with
-> it whatsoever. It shows up as:
-> 
-> 00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 61)
-> 00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 61)
-> 00:10.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 63)
+I've deliberately avoided adding code for VBI - it's just too
+difficult to get right on em28xx due to interesting buffer management
+and locking issues. (For example, have you fixed the issue that causes
+a kernel panic when recording analog video with MythTV? That was a
+particularly interesting one.) In any case, that's another issue
+entirely - this code is for DVB-T support.
 
-There's a VIA southbridge in this machine; it actually works quite nicely with 
-most things - exceptions being my Icybox IB380 hard drive enclosure and a 
-Minolta film scanner.
+Also, just because this device isn't being sold anymore doesn't mean
+it's not worth adding - there are other, fairly similar devices still
+on sale. Unfortunately, I don't have access to newer hardware, and
+most of the people with the access and knowledge don't seem to want to
+have anything to do with it. (Why do I have a feeling that you have a
+hand in this?) However, adding support should be easy - all the
+necessary code exists and has done for a while (even drx397xd support
+for the Pinnacle 330e and the new HVR-900).
 
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+Mainly, though, I'm doing it for my own benefit - I have this
+hardware, and the changes are small and self-contained enough that I
+should be able to stay up-to-date with upstream and keep newer kernels
+working with minimal effort. (This tree is actually an updated version
+of code I've been using for the past few months on PAL-I and DVB-T,
+but didn't publish due to a bug with switching from digital to
+analog.)
+
+(By the way, I still reckon your userspace code is a dead end, at
+least as far as getting anything merged into the kernel. I think I may
+have already explained why.)
+
+Aidan
 
 _______________________________________________
 linux-dvb mailing list
