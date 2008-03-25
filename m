@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <insomniac@slackware.it>) id 1Jb4WJ-0005JG-L9
-	for linux-dvb@linuxtv.org; Mon, 17 Mar 2008 02:52:16 +0100
-Received: from localhost (39.255.187.177) by aa012msr.fastwebnet.it (8.0.013.5)
-	id 47CFF2F2016F91F3 for linux-dvb@linuxtv.org;
-	Mon, 17 Mar 2008 02:51:31 +0100
-Date: Mon, 17 Mar 2008 02:50:02 +0100
-From: insomniac <insomniac@slackware.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080317025002.2fee3860@slackware.it>
-In-Reply-To: <47DDC4B5.5050607@iki.fi>
-References: <20080316182618.2e984a46@slackware.it>
-	<abf3e5070803161342y4a68b638m1ae82e8b24cc9a4b@mail.gmail.com>
-	<20080317011939.36408857@slackware.it> <47DDC4B5.5050607@iki.fi>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] New unsupported device
+	(envelope-from <luis.cidoncha@gmail.com>) id 1Je5Or-0005Z4-FE
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 10:25:02 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so2540917fge.25
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 02:24:50 -0700 (PDT)
+Message-ID: <b04e7ceb0803250224v44ee716euf6fbb21b7de35653@mail.gmail.com>
+Date: Tue, 25 Mar 2008 10:24:50 +0100
+From: "Luis Cidoncha" <luis.cidoncha@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <b04e7ceb0803250111qbeca4c2ufa94bdb52ed1962e@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <b04e7ceb0803230918k2b559adfq9cdedc7943f733fb@mail.gmail.com>
+	<8ad9209c0803240511v3bc2ebb5m2049913a9a1dcfd4@mail.gmail.com>
+	<47E8320F.4010609@shikadi.net>
+	<b04e7ceb0803250111qbeca4c2ufa94bdb52ed1962e@mail.gmail.com>
+Subject: [linux-dvb]  Advice needed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,34 +30,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 17 Mar 2008 03:09:09 +0200
-Antti Palosaari <crope@iki.fi> wrote:
+On Mon, Mar 24, 2008 at 11:58 PM, Adam Nielsen <a.nielsen@shikadi.net> wrote:
 
-> > Tell me if you need more information, I'm very interested into make
-> > my card work and give back to the community all the support I can.  
-> 
-> Look driver .inf files, they usually reveals better information.
-> Anyhow, mod7700 could be DibCom 7700 chipset that is supported rather
-> well.  
+ >
+ >  Well FWIW I've been using a DViCO Dual Digital 4 for the last few weeks
+ >  and it seems fine.  It's a single low-profile PCI card, but internally
+ >  it appears as two USB devices attached to a Via USB controller.
+ >
 
-The .inf should be this: http://rafb.net/p/8ideWc93.html
+ The DViCO would be great for me, but unfortunately I don't know any
+ place in my country (Spain) that sells them. Does anyone from Europe
+ know a place where I can buy a DViCO Dual Digital 4? (The ones in the
+ DViCO page doesn't offer any PCI card, or at least I wasn't able to
+ find them)
 
-Anyway, can you point me out what is the module for such chipset? If
-it's included in the mainstream kernel, or if I need to get it
-separately. I have read about bttv.ko, but I'm not sure wheter it worked
-for me or not, because no device seems to be created in /dev, nor dmesg
-gives helpful messages after modprobe.
-Thanks again.
+ Thanks.
 
-Best regards,
+
+
 -- 
-Andrea Barberio
-
-a.barberio@oltrelinux.com - Linux&C.
-andrea.barberio@slackware.it - Slackware Linux Project Italia
-GPG key on http://insomniac.slackware.it/gpgkey.asc
-2818 A961 D6D8 1A8C 6E84  6181 5FA6 03B2 E68A 0B7D
-SIP: 5327786, Phone: 06 916503784
+"I don't need a plan, just a goal. The rest will follow on its own"
 
 _______________________________________________
 linux-dvb mailing list
