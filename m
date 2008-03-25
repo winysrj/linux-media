@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from omta03ps.mx.bigpond.com ([144.140.82.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ptay1685@Bigpond.net.au>) id 1JfP1a-0001kZ-5p
-	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 01:34:29 +0100
-Received: from oaamta03ps.mx.bigpond.com ([58.172.153.185])
-	by omta03ps.mx.bigpond.com with ESMTP id
-	<20080329003335.NZIG27747.omta03ps.mx.bigpond.com@oaamta03ps.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Sat, 29 Mar 2008 00:33:35 +0000
-Message-ID: <012f01c89134$85561fc0$6e00a8c0@barny1e59e583e>
-From: "ptay1685" <ptay1685@Bigpond.net.au>
-To: "Antti Palosaari" <crope@iki.fi>,
-	"Patrick Boettcher" <patrick.boettcher@desy.de>,
-	"John" <bitumen.surfer@gmail.com>
-References: <e44ae5e0712172128p4e1428aao493d0a1725b6fcd3@mail.gmail.com>
-	<47EC3BD4.3070307@iki.fi>
-Date: Sat, 29 Mar 2008 11:31:22 +1100
+Received: from smtp810.mail.ird.yahoo.com ([217.146.188.70])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eludlow@btinternet.com>) id 1JeH2Y-0003aA-IP
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 22:50:43 +0100
+Message-ID: <47E9738D.2030108@btinternet.com>
+Date: Tue, 25 Mar 2008 21:50:05 +0000
+From: Edward Ludlow <eludlow@btinternet.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, k.bannister@ieee.org
-Subject: Re: [linux-dvb] [PATCH] new USB-ID for Leadtek Winfast DTV was: Re:
-	New Leadtek Winfast DTV Dongle working - with mods but	no RC
+To: linux-dvb@linuxtv.org
+References: <47E94B06.60906@btinternet.com> <47E96F36.5090302@pelago.org.uk>
+In-Reply-To: <47E96F36.5090302@pelago.org.uk>
+Subject: Re: [linux-dvb] PVR-250 on Ubuntu 7.10
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,102 +24,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Didnt work for me, sorry. Device still not detected.
+John Veness wrote:
 
-Probably me not getting the sources correctly or something - i followed the 
-directions on linuxtv.org website.
+> The PVR-250 isn't a DVB card, so this isn't the right list for it. I 
+> think you want video4linux-list, but I only use DVB so I'm no expert.
 
-Regards,
+Ahhh - fallen at the first hurdle then!
 
-Phil T.
+Thanks for the pointer though, will try there.
 
------ Original Message ----- 
-From: "Antti Palosaari" <crope@iki.fi>
-To: "Patrick Boettcher" <patrick.boettcher@desy.de>; "ptay1685" 
-<ptay1685@Bigpond.net.au>; "John" <bitumen.surfer@gmail.com>
-Cc: <linux-dvb@linuxtv.org>; <k.bannister@ieee.org>
-Sent: Friday, March 28, 2008 11:29 AM
-Subject: [linux-dvb] [PATCH] new USB-ID for Leadtek Winfast DTV was: Re: New 
-Leadtek Winfast DTV Dongle working - with mods but no RC
-
-
-> hello
-> USB-ID for Leadtek Winfast DTV
->
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
->
-> Patch done against current development-tree at
-> http://linuxtv.org/hg/~pb/v4l-dvb/
-> Patrick, could you check and add it?
->
-> Could ptay1685 or John or some other test this?
->
-> Keith Bannister wrote:
->> I hopped onto the IRC channel and crope` (thanks mate) advised me to
->> change dvb-usb-ids.h to
->>
->> #define USB_PID_WINFAST_DTV_DONGLE_STK7700P        0x6f01
->
-> Sorry, I forgot make patch earlier...
->
-> regards
-> Antti
-> -- 
-> http://palosaari.fi/
->
-
-
---------------------------------------------------------------------------------
-
-
-> diff -r 3d252c252869 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> --- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Sat Mar 22 
-> 23:19:38 2008 +0100
-> +++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Fri Mar 28 
-> 02:15:01 2008 +0200
-> @@ -1115,6 +1115,8 @@ struct usb_device_id dib0700_usb_id_tabl
->  { USB_DEVICE(USB_VID_YUAN, USB_PID_YUAN_EC372S) },
->  { USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_HT_EXPRESS) },
->  { USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_XXS) },
-> + { USB_DEVICE(USB_VID_LEADTEK,
-> + USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
->  { 0 } /* Terminating entry */
-> };
-> MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-> @@ -1179,7 +1181,8 @@ struct dvb_usb_device_properties dib0700
->  { NULL },
->  },
->  {   "Leadtek Winfast DTV Dongle (STK7700P based)",
-> - { &dib0700_usb_id_table[8], NULL },
-> + { &dib0700_usb_id_table[8],
-> +   &dib0700_usb_id_table[34], NULL },
->  { NULL },
->  },
->  {   "AVerMedia AVerTV DVB-T Express",
-> diff -r 3d252c252869 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-> --- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h Sat Mar 22 23:19:38 
-> 2008 +0100
-> +++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h Fri Mar 28 02:15:01 
-> 2008 +0200
-> @@ -180,6 +180,7 @@
-> #define USB_PID_WINFAST_DTV_DONGLE_COLD 0x6025
-> #define USB_PID_WINFAST_DTV_DONGLE_WARM 0x6026
-> #define USB_PID_WINFAST_DTV_DONGLE_STK7700P 0x6f00
-> +#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2 0x6f01
-> #define USB_PID_GENPIX_8PSK_REV_1_COLD 0x0200
-> #define USB_PID_GENPIX_8PSK_REV_1_WARM 0x0201
-> #define USB_PID_GENPIX_8PSK_REV_2 0x0202
->
-
-
---------------------------------------------------------------------------------
-
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
-
+Ed
 
 _______________________________________________
 linux-dvb mailing list
