@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.190])
+Received: from fides.aptilo.com ([62.181.224.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <makosoft@googlemail.com>) id 1JeBkW-0003f5-GD
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 17:11:45 +0100
-Received: by rn-out-0910.google.com with SMTP id e11so1701481rng.17
-	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 09:11:39 -0700 (PDT)
-Message-ID: <c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
-Date: Tue, 25 Mar 2008 16:11:35 +0000
-From: "Aidan Thornton" <makosoft@googlemail.com>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
-	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
-Cc: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
+	(envelope-from <jonas@anden.nu>) id 1JeG4D-0006QO-63
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 21:48:22 +0100
+From: Jonas Anden <jonas@anden.nu>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <8ad9209c0803250459w7072b688ybbc8df32495b4@mail.gmail.com>
+References: <8ad9209c0803240521s5426c957te42339397aac06ab@mail.gmail.com>
+	<47E7D194.80603@gmx.net>
+	<8ad9209c0803250459w7072b688ybbc8df32495b4@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="=-XdpUhfEUCJP7t6ibb2vh"
+Date: Tue, 25 Mar 2008 21:47:12 +0100
+Message-Id: <1206478032.19513.3.camel@anden.nu>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Adding timestamp to femon
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,75 +21,165 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Mar 24, 2008 at 11:04 PM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
->
-> On 3/24/08, Aidan Thornton <makosoft@googlemail.com> wrote:
->  > Hi,
->  >
->  > I've been attempting to get something that can cleanly support DVB-T
->  > on the original HVR-900, based on up-to-date v4l-dvb and Markus'
->  > em2880-dvb (that is to say, something that could hopefully be cleaned
->  > up to a mergable state and won't be too hard to keep updated if it
->  > doesn't get merged). The current (somewhat messy, still incomplete)
->  > tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
->  > particularly bad. I don't have access to DVB-T signals at the moment,
->  > but as far as I can tell, it works. Anyone want to test it? General
->  > comments? (Other hardware will be added if I have the time,
->  > information, and someone willing to test it.)
->  >
->
->  This is more than incomplete, VBI is missing (nor tested with various
->  video standards), and this device is 2 years old and not getting sold
->  anymore.
->  It's better to keep everything together at mcentral.de (this will very
->  likely be moved to an empia domain in near future).
->
->  I will join Empia at 1st April 08, adding support for their new
->  devices (and also improving support of the older ones).
->
->  Markus
->
 
-Hi,
+--=-XdpUhfEUCJP7t6ibb2vh
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I've deliberately avoided adding code for VBI - it's just too
-difficult to get right on em28xx due to interesting buffer management
-and locking issues. (For example, have you fixed the issue that causes
-a kernel panic when recording analog video with MythTV? That was a
-particularly interesting one.) In any case, that's another issue
-entirely - this code is for DVB-T support.
+I won't go in and fiddle with femon, but I wrote up a little piece for
+y'all. It acts as a filter, so you can use it for timestamping whatever
+line-based output you want.
 
-Also, just because this device isn't being sold anymore doesn't mean
-it's not worth adding - there are other, fairly similar devices still
-on sale. Unfortunately, I don't have access to newer hardware, and
-most of the people with the access and knowledge don't seem to want to
-have anything to do with it. (Why do I have a feeling that you have a
-hand in this?) However, adding support should be easy - all the
-necessary code exists and has done for a while (even drx397xd support
-for the Pinnacle 330e and the new HVR-900).
+Have fun.
 
-Mainly, though, I'm doing it for my own benefit - I have this
-hardware, and the changes are small and self-contained enough that I
-should be able to stay up-to-date with upstream and keep newer kernels
-working with minimal effort. (This tree is actually an updated version
-of code I've been using for the past few months on PAL-I and DVB-T,
-but didn't publish due to a bug with switching from digital to
-analog.)
+  // J
 
-(By the way, I still reckon your userspace code is a dead end, at
-least as far as getting anything merged into the kernel. I think I may
-have already explained why.)
 
-Aidan
+On Tue, 2008-03-25 at 12:59 +0100, Patrik Hansson wrote:
+> On 3/24/08, P. van Gaans <w3ird_n3rd@gmx.net> wrote:
+> > On 03/24/2008 01:21 PM, Patrik Hansson wrote:
+> > > Hello
+> > > I couldn't find a mailinglist for dvb-apps so i hope this is ok.
+> > >
+> > > I would like to add timestamp to the output of femon -H in some way.
+> > > This so I can monitor ber value over a long timeperiod and see the
+> > > timedifference between some very high ber-values.
+> > >
+> > > I found a patch from 2005 but was unable to manually use the code in
+> > > dvb-apps/utils/femon/femon.c
+> > > I have zero skill in c/c++ but for someone with some skill i would
+> > > belive it would be very easy ?
+> > >
+> > > Ps. If there is a better place for this kind of question please tell me. Ds.
+> > >
+> > > / Patrik
+> > >
+> > > _______________________________________________
+> > > linux-dvb mailing list
+> > > linux-dvb@linuxtv.org
+> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> > >
+> >
+> > Hi,
+> >
+> > I had a similar issue, but solved it. Not sure if this works with a
+> > recent femon, but if it doesn't you should be able to make some changes
+> > to my method to make it work. Here's the trick:
+> >
+> > 1. Tune to whatever you want to measure.
+> > 2. Execute in a terminal: "femon -h -c 3600 > filename.signal". 3600 is
+> > for one hour, if you want to test for e.g. 10 hours enter 36000. The
+> > resulting file will usually be under 5MB so don't worry. Good advice:
+> > put the current time in the filename because brains are unreliable.
+> > 3. That's quite a bit to read. But we can do it faster:
+> >
+> > Total amount of errors: "cat filename.signal | grep -c unc[^\s][^0]".
+> > You might need to change the regex for other femon versions.
+> >
+> > All errors and when they occured: "cat filename.signal | grep -n
+> > unc[^\s][^0]". -n will make it show line numbers. If the first error,
+> > for example, is on line 1800 that means the first error occured half an
+> > hour after the start of the measurement.
+> >
+> > Hope this helps.
+> >
+> > P. van Gaans
+> >
+> 
+> Thank you, it will have to do.
+> Using grep -v "ber 0" -n though but that should result in the same.
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+--=-XdpUhfEUCJP7t6ibb2vh
+Content-Disposition: attachment; filename=ts.c
+Content-Type: text/x-csrc; name=ts.c; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+/*******
+ * ts.c
+ *
+ * Tiny timestamping filter for line-based output, written by
+ * Jonas Anden <jonas@anden.nu>. You may use it for whatever you
+ * like as long as this header is retained. But don't blame
+ * me if it breaks anything ;)
+ *
+ *  // J
+ *
+ *******/
+
+#define MAXLINELEN 1024
+
+#include <stdio.h>
+#include <time.h>
+#include <string.h>
+
+/*
+ * Compile with:
+ * gcc -Wall -o ts ts.c
+ *
+ * Sample use:
+ * $ (for i in `seq 1 10`; do echo "Line $i"; sleep 1; done) | ./ts '%H:%m:%S [%%s] <- On a %A'
+ * 21:03:23 [Line 1] <- On a Tuesday
+ * 21:03:24 [Line 2] <- On a Tuesday
+ * 21:03:25 [Line 3] <- On a Tuesday
+ * 21:03:26 [Line 4] <- On a Tuesday
+ * 21:03:27 [Line 5] <- On a Tuesday
+ * 21:03:28 [Line 6] <- On a Tuesday
+ * 21:03:29 [Line 7] <- On a Tuesday
+ * 21:03:30 [Line 8] <- On a Tuesday
+ * 21:03:31 [Line 9] <- On a Tuesday
+ * 21:03:32 [Line 10] <- On a Tuesday
+ *
+ */
+int main( int argc, char *argv[] )
+{
+  time_t t;
+  struct tm *tmp;
+  int buflen;
+  char buf[MAXLINELEN],
+       tbuf[MAXLINELEN];
+
+  if( argc != 2)
+  {
+    printf( "Usage:\n cat stream | %s <format> | cat > timestamped-stream\nformat is a date(1) compatible time format with\na %%%%s where you want the input line. Example: %s \"%%H:%%m:%%S [%%%%s] <- On a %%A\"\n\nWARNING: Due to the inherent format string \"vulnerability\",\n         DO NOT make this a setuid binary.\n", argv[0], argv[0] );
+    return 1;
+  }
+
+  while( !feof( stdin ) )
+  {
+    if( fgets(buf, MAXLINELEN, stdin) == NULL )
+      break;
+    buflen=strlen(buf);
+    t = time(NULL);
+    tmp = localtime(&t);
+    if( strftime(tbuf, MAXLINELEN, argv[1], tmp) == 0 )
+      break;
+    if( buf[buflen-1] == '\n' )
+      buf[buflen-1] = 0;
+    printf( tbuf, buf );
+    putchar('\n');
+    fflush(stdout);
+  }
+  return 0;
+}
+
+
+--=-XdpUhfEUCJP7t6ibb2vh
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-XdpUhfEUCJP7t6ibb2vh--
