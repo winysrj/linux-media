@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from an-out-0708.google.com ([209.85.132.244])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JWHzO-0008TF-SP
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 22:14:27 +0100
-Received: by ug-out-1314.google.com with SMTP id o29so2757726ugd.20
-	for <linux-dvb@linuxtv.org>; Mon, 03 Mar 2008 13:13:52 -0800 (PST)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 3 Mar 2008 22:13:35 +0100
-References: <20080301161419.GB12800@paradigm.rfc822.org>
-	<47CBE8FD.9030303@gmail.com>
-	<20080303132157.GA9749@paradigm.rfc822.org>
-In-Reply-To: <20080303132157.GA9749@paradigm.rfc822.org>
+	(envelope-from <mrechberger@gmail.com>) id 1JeBsv-0004cp-Hx
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 17:20:34 +0100
+Received: by an-out-0708.google.com with SMTP id d18so2634714and.125
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 09:20:14 -0700 (PDT)
+Message-ID: <d9def9db0803250920k1e113c2cuf2d7d842ada7d7ad@mail.gmail.com>
+Date: Tue, 25 Mar 2008 17:20:12 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+In-Reply-To: <c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200803032213.35430.christophpfister@gmail.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
+	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
+	<c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
+Cc: DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,58 +24,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Montag 03 M=E4rz 2008 schrieb Florian Lohoff:
-<snip>
-> I have no problem with beeing able to query stats - I have a problem
-> that a GET call changes in kernel state, and the SET calls options get
-> ignored where it should be the other way round.
 >
-> Probably you can tell me the reason the delivery option in the
-> dvbfe_params gets ignored on a DVBFE_SET_PARAMS ? I dont see the
-> rational behind this... The option is there - correctly filled and
-> gets ignored or better overriden by previous ioctls - Every other
-> parameter for the delivery mode is in that struct.
+> Hi,
 >
-> Please tell me why the GET_INFO delsys/delivery option gets set as the ne=
-xt
-> to use delivery mode. Even if i want to have stats just dont fill them
-> when the delsys does not match the currently set delsys as that would
-> be the right thing - Querying DVB-S2 stats when tuned to DVB-S should
-> return nothing as there are no stats - but setting the delsys to DVB-S
-> is BROKEN as i asked for stats not to change the delsys.
+> I've deliberately avoided adding code for VBI - it's just too
+> difficult to get right on em28xx due to interesting buffer management
+> and locking issues. (For example, have you fixed the issue that causes
+> a kernel panic when recording analog video with MythTV? That was a
+> particularly interesting one.) In any case, that's another issue
+> entirely - this code is for DVB-T support.
 >
-> > Additionally, this was quite discussed in a long discussion a while
-> > back. You might like to read through those as well.
+> Also, just because this device isn't being sold anymore doesn't mean
+> it's not worth adding - there are other, fairly similar devices still
+> on sale. Unfortunately, I don't have access to newer hardware, and
+> most of the people with the access and knowledge don't seem to want to
+> have anything to do with it. (Why do I have a feeling that you have a
+> hand in this?) However, adding support should be easy - all the
+> necessary code exists and has done for a while (even drx397xd support
+> for the Pinnacle 330e and the new HVR-900).
 >
-> I did partially of it ... and i found the same corners of this API to be
-> broken by design.
->
-> > Maybe DVBFE_GET_INFO can probably be renamed to DVBFE_INFO if it really
-> > itches so much.
->
-> No - its much more fundamental problem ... Options belonging
-> together are passed in seperate ioctls in non obvious (read: strange)
-> ways into the kernel (delivery system via GET_INFO and delivery options
-> via SET_PARAMS).
->
-> Options which are together in the same struct are not used together e.g.
-> delivery mode and parameters are in the same struct which get passed by
-> an ioctl but get partially ignored or better overridden by previous
-> ioctls in non obvious ways...
->
-> As i said - incoherent mess from the user api ...
 
-+1
+The drx397x is only one chip of a series of newer ones which will
+follow in future.
 
-> Flo
+> Mainly, though, I'm doing it for my own benefit - I have this
+> hardware, and the changes are small and self-contained enough that I
+> should be able to stay up-to-date with upstream and keep newer kernels
+> working with minimal effort. (This tree is actually an updated version
+> of code I've been using for the past few months on PAL-I and DVB-T,
+> but didn't publish due to a bug with switching from digital to
+> analog.)
+>
 
-Christoph
+it's fine that you do it on your own purpose for yourself, although
+there's much more development going on on the other side.
+
+> (By the way, I still reckon your userspace code is a dead end, at
+> least as far as getting anything merged into the kernel. I think I may
+> have already explained why.)
+>
+
+There are several reasons for going that way I'm not up for waiting 2
+years till something is implemented because some people don't want to
+discuss certain things. It's like discussing issues with a wall.
+This is the main point why I'm going the other way since this is
+simply no option, and everyone can see the result in earlier supported
+devices.
+
+The thing you're doing is of course based on my work again and even in
+future you cannot avoid to base things on that. As long as this root
+problem isn't solved I don't see any other way, and I'm definitely not
+the one who will delay any further devices anymore.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
