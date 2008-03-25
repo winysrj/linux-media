@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [213.161.191.158] (helo=patton.snap.tv)
+Received: from an-out-0708.google.com ([209.85.132.242])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sigmund@snap.tv>) id 1JeoZ3-0003BD-Ii
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 10:38:29 +0100
-From: Sigmund Augdal <sigmund@snap.tv>
-To: dlist2@nlsn.nu
-In-Reply-To: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
-References: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
-Date: Thu, 27 Mar 2008 10:38:25 +0100
-Message-Id: <1206610705.12385.7.camel@rommel.snap.tv>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501 not working
+	(envelope-from <mrechberger@gmail.com>) id 1JeC0P-0005pk-Dv
+	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 17:28:11 +0100
+Received: by an-out-0708.google.com with SMTP id d18so2637107and.125
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 09:28:03 -0700 (PDT)
+Message-ID: <d9def9db0803250928u6197e854xbecad1930d879a8@mail.gmail.com>
+Date: Tue, 25 Mar 2008 17:28:03 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+In-Reply-To: <c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <c8b4dbe10803241504t68d96ec9m8a4edb7b34c1d6ef@mail.gmail.com>
+	<d9def9db0803241604mc1c9d1g1144af2f7619192a@mail.gmail.com>
+	<c8b4dbe10803250911l4499dcfatb4d11184437e9c1@mail.gmail.com>
+Cc: DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-T support for original (A1C0) HVR-900
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,58 +30,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-According to this forum post:
-http://www.dvbviewer.info/forum/index.php?showtopic=24366
-
-The card uses the tda10023 demod (for which there is a driver in the
-sources) and a tda8274A tuner (which the tda827x driver hopefully will
-handle). So all that should be needed is some glue code.
-
-Sigmund
-
-
-tor, 20.03.2008 kl. 12.56 +0100, skrev dlist2@nlsn.nu:
+On 3/25/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+> On Mon, Mar 24, 2008 at 11:04 PM, Markus Rechberger
+> <mrechberger@gmail.com> wrote:
+> >
+> > On 3/24/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+> > > Hi,
+> > >
+> > > I've been attempting to get something that can cleanly support DVB-T
+> > > on the original HVR-900, based on up-to-date v4l-dvb and Markus'
+> > > em2880-dvb (that is to say, something that could hopefully be cleaned
+> > > up to a mergable state and won't be too hard to keep updated if it
+> > > doesn't get merged). The current (somewhat messy, still incomplete)
+> > > tree is at http://www.makomk.com/hg/v4l-dvb-em28xx/ - em2880-dvb.c is
+> > > particularly bad. I don't have access to DVB-T signals at the moment,
+> > > but as far as I can tell, it works. Anyone want to test it? General
+> > > comments? (Other hardware will be added if I have the time,
+> > > information, and someone willing to test it.)
+> > >
+> >
+> > This is more than incomplete, VBI is missing (nor tested with various
+> > video standards), and this device is 2 years old and not getting sold
+> > anymore.
+> > It's better to keep everything together at mcentral.de (this will very
+> > likely be moved to an empia domain in near future).
+> >
+> > I will join Empia at 1st April 08, adding support for their new
+> > devices (and also improving support of the older ones).
+> >
+> > Markus
+> >
+>
 > Hi,
-> 
-> I just purchased a Technotrend Budget C-1501.
-> Im running Mythbuntu Beta, and downloaded the latest v4l drivers but it 
-> still fails.
-> 
-> lspci -v
-> 
-> 05:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->         Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
->         Flags: bus master, medium devsel, latency 66, IRQ 5
->         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
-> 
-> lspci -n
-> 
-> 05:04.0 0480: 1131:7146 (rev 01)
->         Subsystem: 13c2:101a
->         Flags: bus master, medium devsel, latency 66, IRQ 5
->         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
-> 
-> log says
-> 
->  kernel: [   54.207308] Linux video capture  interface: v2.00
->  kernel: [   54.501753] saa7146: register extension 'dvb'.
->  runvdr: stopping after fatal fail (vdr: warning - cannot set dumpable: Invalid argument vdr: no primary device found - using 
-> first device!)
-> 
-> And /dev/dvb is empty of course.
-> Im not a kernel hacker, but if you have any hits on how to get this card 
-> working please let me know.
-> 
-> Thanks
-> 
->   Daniel
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+>
+> I've deliberately avoided adding code for VBI - it's just too
+> difficult to get right on em28xx due to interesting buffer management
+> and locking issues. (For example, have you fixed the issue that causes
+> a kernel panic when recording analog video with MythTV? That was a
+> particularly interesting one.) In any case, that's another issue
+> entirely - this code is for DVB-T support.
+>
 
+I'm not aware of that bug, although VBI just needs some finetuning. I
+got it work with zapping/libzvbi a long time ago. As for now I put it
+onto the todolist for next month.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
