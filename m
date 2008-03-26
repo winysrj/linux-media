@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2KFIubI006107
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:18:56 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2KFINSq008115
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 11:18:23 -0400
-Date: Thu, 20 Mar 2008 12:18:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20080320121807.7af35d4b@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q2EqQ9006619
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:52 -0400
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q2EL1Q006642
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 785C433CC9
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:14:20 +0100 (CET)
+Received: from cinke.fazekas.hu ([127.0.0.1])
+	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id SS9JUI5lJy52 for <video4linux-list@redhat.com>;
+	Wed, 26 Mar 2008 03:14:14 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: [GIT PATCHES] V4L/DVB updates
+Message-Id: <1fabe9b19f0c356704aa.1206497257@bluegene.athome>
+In-Reply-To: <patchbomb.1206497254@bluegene.athome>
+Date: Wed, 26 Mar 2008 03:07:37 +0100
+From: Marton Balint <cus@fazekas.hu>
+To: video4linux-list@redhat.com
+Subject: [PATCH 3 of 3] cx88: detect stereo output instead of mono fallback
+	in A2 sound system
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,84 +33,113 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1206489018 -3600
+# Node ID 1fabe9b19f0c356704aad5bbb0ce045ff3e05947
+# Parent  2c020dc87db5511e6cbaae05389e3bda225d4879
+cx88: detect stereo output instead of mono fallback in A2 sound system
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+From: Marton Balint <cus@fazekas.hu>
 
-For the following:
+Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers
+change randomly if and only if the second audio channel is missing, so if
+these registers are constant (Usually 0x0000 and 0x01), we can assume that
+the tv channel has two audio channels, so we can use STEREO mode. This
+method seems a bit ugly, but nicam detection works the same way. And
+now stereo channel detection also works for me.
 
-   - saa7134: fix FM radio support for the Pinnacle PCTV 110i
-   - bttv: struct member initialized twice
-   - ivtv: fix for yuv filter table check
-   - VIDEO_VIVI must depend on VIDEO_DEV
-   - cx88: Fix: Loads tuner module before sending commands to it
-   - saa7134: fix: tuner should be loaded before calling saa7134_board_init2()
-   - ivtv: Add missing sg_init_table()
-   - em28xx: Correct use of ! and &
-   - em28xx: correct use of and fix
-   - usb/opera1.c: fix a memory leak
-   - V4L1 - fix v4l_compat_translate_ioctl possible NULL deref
-   - usb video: add a device link to usbvideo devices, else hal will ignore them
-   - tvp5150.c: logical-bitwise and confusion
-   - bug #10211: Fix depencencies for cx2341x
+Since my cable TV provider only broadcasts in PAL BG mode with A2 sound
+system, i couldn't test other systems, but they should work just like
+before.
 
-Cheers,
-Mauro.
 
----
+Signed-off-by: Marton Balint <cus@fazekas.hu>
 
- drivers/media/dvb/dvb-usb/opera1.c          |    2 +-
- drivers/media/video/Kconfig                 |    4 +-
- drivers/media/video/bt8xx/bttv-driver.c     |    1 -
- drivers/media/video/cx88/cx88-cards.c       |    5 +++
- drivers/media/video/cx88/cx88-video.c       |    2 -
- drivers/media/video/em28xx/em28xx-core.c    |    2 +-
- drivers/media/video/ivtv/ivtv-driver.c      |    7 ++--
- drivers/media/video/ivtv/ivtv-firmware.c    |    8 +++-
- drivers/media/video/saa7134/saa7134-cards.c |   41 +++++++++++-----------
- drivers/media/video/saa7134/saa7134-core.c  |    5 ++-
- drivers/media/video/tvp5150.c               |    4 +-
- drivers/media/video/usbvideo/usbvideo.c     |    9 +++--
- drivers/media/video/v4l1-compat.c           |   50 ++++++++++++++++++++++-----
- 13 files changed, 90 insertions(+), 50 deletions(-)
+diff -r 2c020dc87db5 -r 1fabe9b19f0c linux/drivers/media/video/cx88/cx88-tvaudio.c
+--- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:40:42 2008 +0100
++++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:50:18 2008 +0100
+@@ -725,31 +725,47 @@ static void set_audio_standard_FM(struct
+ 
+ /* ----------------------------------------------------------- */
+ 
+-static int cx88_detect_nicam(struct cx88_core *core)
+-{
+-	int i, j = 0;
++static int cx88_detect_nicam_or_stereo(struct cx88_core *core)
++{
++	int i, stereo = 0;
++	u32 status1, status2;
++	u32 last_status1, last_status2;
+ 
+ 	dprintk("start nicam autodetect.\n");
+-
+-	for (i = 0; i < 6; i++) {
++	last_status1 = cx_read(AUD_NICAM_STATUS1);
++	last_status2 = cx_read(AUD_NICAM_STATUS2);
++
++	/* wait here max 50 ms or if stereo is ambigous then max 70 ms */
++	for (i = 0; i < 5 || (stereo > 0 && stereo < 3 && i < 7); i++) {
++		/* wait a little bit for next reading status */
++		msleep(10);
++
++		status1 = cx_read(AUD_NICAM_STATUS1);
++		status2 = cx_read(AUD_NICAM_STATUS2);
++
+ 		/* if bit1=1 then nicam is detected */
+-		j += ((cx_read(AUD_NICAM_STATUS2) & 0x02) >> 1);
+-
+-		if (j == 1) {
++		if (status2 & 0x02) {
+ 			dprintk("nicam is detected.\n");
+ 			return 1;
+ 		}
+ 
+-		/* wait a little bit for next reading status */
+-		msleep(10);
+-	}
+-
++		if (last_status1 == status1 && last_status2 == status2)
++			stereo++;
++		else
++			stereo = 0;
++		last_status1 = status1;
++		last_status2 = status2;
++	}
++
++	dprintk("stereo detection result: %d\n", stereo);
+ 	dprintk("nicam is not detected.\n");
+-	return 0;
++	return stereo >= 3 ? 2 : 0;
+ }
+ 
+ void cx88_set_tvaudio(struct cx88_core *core)
+ {
++	int nicam_or_stereo;
++
+ 	switch (core->tvaudio) {
+ 	case WW_BTSC:
+ 		set_audio_standard_BTSC(core, 0, EN_BTSC_AUTO_STEREO);
+@@ -764,12 +780,13 @@ void cx88_set_tvaudio(struct cx88_core *
+ 		/* set nicam mode - otherwise
+ 		   AUD_NICAM_STATUS2 contains wrong values */
+ 		set_audio_standard_NICAM(core, EN_NICAM_AUTO_STEREO);
+-		if (0 == cx88_detect_nicam(core)) {
+-			/* fall back to fm / am mono */
+-			set_audio_standard_A2(core, EN_A2_FORCE_MONO1);
++		nicam_or_stereo = cx88_detect_nicam_or_stereo(core);
++		if (nicam_or_stereo == 1) {
++			core->use_nicam = 1;
++		} else {
++			/* fall back to fm / am stereo or mono */
++			set_audio_standard_A2(core, nicam_or_stereo == 2 ? EN_A2_FORCE_STEREO : EN_A2_FORCE_MONO1);
+ 			core->use_nicam = 0;
+-		} else {
+-			core->use_nicam = 1;
+ 		}
+ 		break;
+ 	case WW_EIAJ:
 
-Adrian Bunk (2):
-      V4L/DVB (7251): VIDEO_VIVI must depend on VIDEO_DEV
-      V4L/DVB (7328): usb/opera1.c: fix a memory leak
-
-Andrew Morton (1):
-      V4L/DVB (7291): em28xx: correct use of and fix
-
-Cyrill Gorcunov (1):
-      V4L/DVB (7330): V4L1 - fix v4l_compat_translate_ioctl possible NULL deref
-
-Harvey Harrison (1):
-      V4L/DVB (7236): bttv: struct member initialized twice
-
-Ian Armstrong (2):
-      V4L/DVB (7242): ivtv: fix for yuv filter table check
-      V4L/DVB (7279): ivtv: Add missing sg_init_table()
-
-Julia Lawall (1):
-      V4L/DVB (7285): em28xx: Correct use of ! and &
-
-Mauro Carvalho Chehab (3):
-      V4L/DVB (7267): cx88: Fix: Loads tuner module before sending commands to it
-      V4L/DVB (7268): saa7134: fix: tuner should be loaded before calling saa7134_board_init2()
-      V4L/DVB (7367): bug #10211: Fix depencencies for cx2341x
-
-Pascal Terjan (1):
-      V4L/DVB (7334): usb video: add a device link to usbvideo devices, else hal will ignore them
-
-Roel Kluin (1):
-      V4L/DVB (7362): tvp5150.c: logical-bitwise and confusion
-
-Yuri Funduryan (1):
-      V4L/DVB (7228): saa7134: fix FM radio support for the Pinnacle PCTV 110i
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
