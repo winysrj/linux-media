@@ -1,21 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m28I9i9i015735
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:44 -0500
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m28I942x032609
-	for <video4linux-list@redhat.com>; Sat, 8 Mar 2008 13:09:05 -0500
-Received: by fk-out-0910.google.com with SMTP id b27so1059146fka.3
-	for <video4linux-list@redhat.com>; Sat, 08 Mar 2008 10:09:04 -0800 (PST)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <d628824bec6646cc474d.1204999522@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1204999521@liva.fdsoft.se>
-Date: Sat, 08 Mar 2008 19:05:22 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q7jNhc000423
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:45:23 -0400
+Received: from m13-87.163.com (m13-87.163.com [220.181.13.87])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2Q7imFw019774
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:44:50 -0400
+Date: Wed, 26 Mar 2008 15:44:42 +0800 (CST)
+From: =?GBK?B?zfXL2A==?= <wangsu820@163.com>
 To: video4linux-list@redhat.com
-Subject: [PATCH 1 of 2] cx88: Add module parameter to control chroma AGC
+Message-ID: <3358587.1081301206517482981.JavaMail.coremail@bj163app87.163.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=gbk
+Content-Transfer-Encoding: 7bit
+Subject: ask about kernel video4linux module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +24,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-1 file changed, 5 insertions(+), 1 deletion(-)
-linux/drivers/media/video/cx88/cx88-core.c |    6 +++++-
-
-
-# HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1204989936 -3600
-# Node ID d628824bec6646cc474d13fd47ff03034119d83a
-# Parent  ad0b1f882ad988ae2f80ebbbe914092a4a963f04
-cx88: Add module parameter to control chroma AGC
-
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
-
-The cx2388x family has support for chroma AGC but no way for a casual
-user to enable it. This patch adds the module parameter chroma_agc
-which if non-zero enables the AGC. By default chroma AGC is disabled,
-as in previous versions of the driver.
-
-
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
-
-diff -r ad0b1f882ad9 -r d628824bec66 linux/drivers/media/video/cx88/cx88-core.c
---- a/linux/drivers/media/video/cx88/cx88-core.c	Wed Mar 05 20:24:43 2008 +0000
-+++ b/linux/drivers/media/video/cx88/cx88-core.c	Sat Mar 08 16:25:36 2008 +0100
-@@ -61,6 +61,10 @@ static unsigned int nocomb;
- static unsigned int nocomb;
- module_param(nocomb,int,0644);
- MODULE_PARM_DESC(nocomb,"disable comb filter");
-+
-+static unsigned int chroma_agc;
-+module_param(chroma_agc, int, 0444);
-+MODULE_PARM_DESC(chroma_agc, "enable chroma agc");
+ hi guys,
  
- #define dprintk(level,fmt, arg...)	if (core_debug >= level)	\
- 	printk(KERN_DEBUG "%s: " fmt, core->name , ## arg)
-@@ -628,7 +632,7 @@ int cx88_reset(struct cx88_core *core)
- 	cx_write(MO_INPUT_FORMAT, ((1 << 13) |   // agc enable
- 				   (1 << 12) |   // agc gain
- 				   (1 << 11) |   // adaptibe agc
--				   (0 << 10) |   // chroma agc
-+				   chroma_agc ? (1 << 10) : 0 |
- 				   (0 <<  9) |   // ckillen
- 				   (7)));
+it's my first time to email video4linux-list@redhat.com! These days i study v4l. In my opinion, I think the arch of sth is as below:
+ 
+application
+--------------
+v4l api
+--------------
+CMOS camera driver
+--------------
+hardware 
+ 
+and I have read <video4linux programming>by Alan Cox and other relative articles. I enter the linux kernel (version is 2.6.8.1) and wanna get the videodev module,unfortunately I only got videodev.h or some other .h files, also I browsed the Makefile and Kconfig files but didn't get any code of v4l! so which dir the v4l code is in? I wanna study the source code of v4l ioctls further and want to know how is the v4l core related with CMOS camera driver!
+ 
+maybe u think my question is so stupid , but I am a newbie and hopefully get some help from you!
+ 
+thanks again,
+ 
+Matthew Wang!
+ 
+ 
+ 
  
 
+--
+Matthew Wang Email: wangsu820@163.com 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
