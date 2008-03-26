@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SLr0Lb022778
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 17:53:00 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SLqmiO004988
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 17:52:48 -0400
-Message-ID: <47ED6892.7090807@hhs.nl>
-Date: Fri, 28 Mar 2008 22:52:18 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QEeeks023095
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 10:40:40 -0400
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2QEeRJ1014099
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 10:40:28 -0400
+Date: Wed, 26 Mar 2008 15:40:20 +0100 (CET)
+From: Balint Marton <cus@fazekas.hu>
+To: =?UTF-8?B?UGV0ZXIgVsOhZ25lcg==?= <peter.v@datagate.sk>
+In-Reply-To: <47E9F4F4.2050503@datagate.sk>
+Message-ID: <Pine.LNX.4.64.0803261520340.14189@cinke.fazekas.hu>
+References: <patchbomb.1206497254@bluegene.athome>
+	<47E9F4F4.2050503@datagate.sk>
 MIME-Version: 1.0
-To: spca50x-devs@lists.sourceforge.net, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: fedora-kernel-list@redhat.com
-Subject: [New Driver]: usbvideo2 webcam core + pac207 driver using it.
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-943463948-1803057498-1206541579=:14189"
+Content-ID: <Pine.LNX.4.64.0803261526341.14189@cinke.fazekas.hu>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
+ detection
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,26 +30,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-As explained in my introduction mail I've been working on a standalone v4l2
-driver for pac207 based usb webcams. I've attached the hopefully pretty clean
-result to this mail.
+---943463948-1803057498-1206541579=:14189
+Content-Type: TEXT/PLAIN; CHARSET=ISO8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <Pine.LNX.4.64.0803261526342.14189@cinke.fazekas.hu>
 
-This is the promised split version of the pac207 driver I've been working on, I 
-would like to ask everyone to take a good look at this, as I plan to base a 
-number of other (gspca derived) v4l2 drivers on this same core.
+On Wed, 26 Mar 2008, Peter V=E1gner wrote:
+> 1) are these patches already included in some repository? If not how shou=
+ld I
+> go about applying them? Is the diff command the right way? What branch ar=
+e
+> they against?
+The patches are not inculded in any public repository. You can apply them=
+=20
+using the patch command. The patches are against the current v4l-dvb tree:=
+=20
+http://linuxtv.org/hg/v4l-dvb
 
-I'm currently posting these as .c files for easy reading and compilation /
-testing, but I still hope to get a lot of feedback / a thorough review, esp of
-the core <-> pac207 split version as I hope to submit that as a patch for
-mainline inclusion soon.
+> 2) The comments below indicates audio functionality for cx88 is not worki=
+ng as
+> it should. So shal I be able to get stereo sound after applying these pat=
+ches?
+Yes. Maybe the first tv channel after you start mplayer will be mono=20
+(because of the buggy audio thread), but after you change the channel, auto=
+=20
+detection should work.
 
-Thanks & Regards,
+> 3) are there any tunner settings required in order to get stereo sound? o=
+r
+> perhaps settings for some other modules?
+No.
 
-Hans
+> Thanks
+You are welcome! Happy testing! :)
+
+Regards,=20
+  Marton
+---943463948-1803057498-1206541579=:14189
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+---943463948-1803057498-1206541579=:14189--
