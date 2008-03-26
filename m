@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2HJvV1l007431
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:57:31 -0400
-Received: from mailhub3.uq.edu.au (mailhub3.uq.edu.au [130.102.148.131])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2HJus2Q020411
-	for <video4linux-list@redhat.com>; Mon, 17 Mar 2008 15:56:55 -0400
-In-Reply-To: <1205782496.5294.13.camel@fry.u7.se>
-References: <1205782496.5294.13.camel@fry.u7.se>
-Mime-Version: 1.0 (Apple Message framework v753)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Message-Id: <D96C75CB-C8C6-4F65-A95E-17CEE15F44CE@uq.edu.au>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QGOgOu019665
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 12:24:42 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2QGNLHj007868
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 12:23:46 -0400
+Received: by ti-out-0910.google.com with SMTP id 11so1310373tim.7
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 09:23:11 -0700 (PDT)
+Message-ID: <9618a85a0803260923j26eb1052gb32d179d853e0887@mail.gmail.com>
+Date: Thu, 27 Mar 2008 00:23:10 +0800
+From: "kevin liu" <lwtbenben@gmail.com>
+To: "Edward Ludlow" <eludlow@btinternet.com>
+In-Reply-To: <47EA0E5B.2050604@btinternet.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-From: Christoph Willing <c.willing@uq.edu.au>
-Date: Tue, 18 Mar 2008 05:56:50 +1000
-To: Jonas Jonsson <jonas@websystem.se>
-Cc: video4linux-list@redhat.com
-Subject: Re: Advice on capture card
+Content-Disposition: inline
+References: <9618a85a0803251823x6962b6b2hfc2ceda8e6fbeb34@mail.gmail.com>
+	<37219a840803251833l5103a709q116a323951cf95e5@mail.gmail.com>
+	<47EA0E5B.2050604@btinternet.com>
+Cc: linux-dvb@linuxtv.org, Linux and Kernel Video <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] PVR-250 on Ubuntu 7.10
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,38 +33,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+For digital tv program, I suggest VLC.
+mplayer can player digital tv, but not works well in my case.
+once you tell VLC the frequency, the modulation and the subchannel
+you can enjoy your program.
 
-On 18/03/2008, at 5:34 AM, Jonas Jonsson wrote:
+8VSB, QAM64 and QAM256 are tested in my ubuntu gutsy machine.
+Good luck.
 
-> Hi,
+On 3/26/08, Edward Ludlow <eludlow@btinternet.com> wrote:
+> Michael Krufky wrote:
 >
-> We are about to replace our surveillance system and looking for a
-> capture card. It need to be well "supported" in Linux and must be able
-> to grab more then one channel at a time.
+> > The PVR250 is supported by the 'ivtv' driver, which is included by
+> > default with Ubuntu Gutsy, the version that you are running.
 >
-> Does anyone have any advice on such a device?
-
-There's a list of linux supported cards from Bluecherry at:
-    http://store.bluecherry.net/category_s/63.htm
-
-I've recently purchased the PCIe version and it "just worked".
-
-
+> OK, thanks.
 >
-
-We've also used lots of the IVC-200 cards (ordinary PCI) over the  
-last few years with great success - from:
-    http://www.icp-australia.com.au/DataSheets/IVC200G.html
-
-
-chris
-
-Christoph Willing                        +617 3365 8350
-QCIF Access Grid Manager
-University of Queensland
-
-
-
+> In that case can one of you find fellows recommend an app to download
+> that will let me use the card / driver?
+>
+> Ed
+>
 
 --
 video4linux-list mailing list
