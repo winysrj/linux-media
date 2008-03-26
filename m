@@ -1,29 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+b9c06d2e3da2f0ede24a+1668+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1Jbbub-00051x-Oy
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 14:31:29 +0100
-Date: Tue, 18 Mar 2008 10:30:44 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080318103044.4363fefd@gaivota>
-In-Reply-To: <1205573636.5941.1.camel@ubuntu>
-References: <47A5D8AF.2090800@googlemail.com> <20080205075014.6b7091d9@gaivota>
-	<47A8CE7E.6020908@googlemail.com> <20080205222437.1397896d@gaivota>
-	<47AA014F.2090608@googlemail.com> <20080207092607.0a1cacaa@gaivota>
-	<47AAF0C4.8030804@googlemail.com> <47AB6A1B.5090100@googlemail.com>
-	<20080207184221.1ea8e823@gaivota> <47ACA9AA.4090702@googlemail.com>
-	<47AE20BD.7090503@googlemail.com> <20080212124734.62cd451d@gaivota>
-	<47B1E22D.4090901@googlemail.com> <20080313114633.494bc7b1@gaivota>
-	<1205457408.6358.5.camel@ubuntu> <20080314121423.670f31a0@gaivota>
-	<1205518856.6094.14.camel@ubuntu> <20080314155851.52677f28@gaivota>
-	<1205523274.6364.5.camel@ubuntu> <20080314172143.62390b1f@gaivota>
-	<1205573636.5941.1.camel@ubuntu>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, "Richard \(MQ\)" <osl2008@googlemail.com>
-Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
- Avermedia A16D please?
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dcharvey@dsl.pipex.com>) id 1JeRyT-0007I0-CE
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 10:31:20 +0100
+Message-ID: <47EA17BE.3080409@dsl.pipex.com>
+Date: Wed, 26 Mar 2008 09:30:38 +0000
+From: David Harvey <dcharvey@dsl.pipex.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <mailman.81.1206506075.819.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.81.1206506075.819.linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova - t disconnects
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,43 +24,74 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 15 Mar 2008 18:33:56 +0900
-timf <timf@iinet.net.au> wrote:
+I've also been experiencing disconnects with my laptop (testing hardy 
+before deploying to my main mythbox)  I put the following in as a ubuntu 
+bug report as well bu I have a feeling it's a kernel issue...  Happy to 
+help with the ongoing fight for stability!
 
-> [   15.000000] saa7133[0]: subsystem: 1461:f936, board: AVerMedia Hybrid
-> TV/Radio (A16D) [card=137,autodetected]
+I get the same behaviour on my HP nx6125 laptop with both a nova-t and 
+nova-t diversity stick. Either attempting to scan for, or watch dvb 
+channels results in the following:
 
+ MT2060: successfully identified (IF1 = 1220)
+[ 589.459712] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:13.2/usb3/3-8/input/input16
+[ 589.470534] dvb-usb: schedule remote query interval to 150 msecs.
+[ 589.470540] dvb-usb: Hauppauge Nova-T Stick successfully initialized 
+and connected.
+[ 606.300175] hub 3-0:1.0: port 8 disabled by hub (EMI?), re-enabling...
+[ 606.300181] usb 3-8: USB disconnect, address 11
+[ 606.312990] mt2060 I2C write failed
+[ 608.563167] mt2060 I2C write failed
+[ 608.563243] mt2060 I2C write failed (len=2)
+[ 608.563246] mt2060 I2C write failed (len=6)
 
-> [   15.296000] tuner' 2-0061: Setting mode_mask to 0x0e
-> [   15.296000] tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
-> [   15.296000] tuner' 2-0061: tuner 0x61: Tuner type absent
+This was with the latest mercurial build from v4l-dvb but this doesn't 
+seem to fix things and displays the same as the stock kernel modules. 
+There were some disconnects with previous ubuntu kernel versions (gutsy 
+and previous) but not nearly as frequent as is now happening. Looks like 
+it's probabably an upstream issue as I've read of several other 
+sufferers even with vanilla kernels. Could be my usb chipset or 
+something more generic, lspci is below. Please let me know if I can 
+provide any further debug.
 
-The above is not right. It should be using type=71 for the tuner.
+david@davslaptop:~$ lspci
+00:00.0 Host bridge: ATI Technologies Inc RS480 Host Bridge (rev 01)
+00:01.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
+00:04.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
+00:05.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
+00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
+00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
+00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host Controller
+00:14.0 SMBus: ATI Technologies Inc IXP SB400 SMBus Controller (rev 11)
+00:14.1 IDE interface: ATI Technologies Inc IXP SB400 IDE Controller
+00:14.3 ISA bridge: ATI Technologies Inc IXP SB400 PCI-ISA Bridge
+00:14.4 PCI bridge: ATI Technologies Inc IXP SB400 PCI-PCI Bridge
+00:14.5 Multimedia audio controller: ATI Technologies Inc IXP SB400 
+AC'97 Audio Controller (rev 02)
+00:14.6 Modem: ATI Technologies Inc SB400 AC'97 Modem Controller (rev 02)
+00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
+HyperTransport Technology Configuration
+00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
+Address Map
+00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
+DRAM Controller
+00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] 
+Miscellaneous Control
+01:05.0 VGA compatible controller: ATI Technologies Inc Radeon XPRESS 
+200M 5955 (PCIE)
+02:01.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5788 
+Gigabit Ethernet (rev 03)
+02:02.0 Network controller: Broadcom Corporation BCM4318 [AirForce One 
+54g] 802.11g Wireless LAN Controller (rev 02)
+02:04.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
+02:04.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant IEEE 1394 
+Host Controller
+02:04.3 Mass storage controller: Texas Instruments PCIxx21 Integrated 
+FlashMedia Controller
+02:04.4 SD Host ...
 
-I think I found the bug: the tuner addresses should be set to ADDR_UNSET,
-instead of keeping it blank.
-
-Please do an "hg pull -u" and try again, recompiling and re-installing the modules:
-	hg pull -u
-	make rmmod
-	make
-	make install
-	modprobe saa7134
-
-> 8) The chip on my card is xc3018. Why does module xc5000 load?
-
-This is an issue on the way cards are attached, at tuner_core. Since they
-directly access xc5000 code, with:
-
-                if (!xc5000_attach(&t->fe, t->i2c->adapter, &xc5000_cfg)) {
-
-xc5000 module will be loaded, even if not used. It shouldn't be hard to fix
-this, by using the macro dvb_attach().
-
-
-
-Cheers,
-Mauro
+dh
 
 _______________________________________________
 linux-dvb mailing list
