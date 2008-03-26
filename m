@@ -1,29 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2G7jxFe003357
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 03:45:59 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2G7jQuc021005
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 03:45:27 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JanYX-00060D-C6
-	for video4linux-list@redhat.com; Sun, 16 Mar 2008 07:45:21 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 07:45:21 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 07:45:21 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q2EqW2006615
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:52 -0400
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q2ELui006641
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 6677B33CC5
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:14:20 +0100 (CET)
+Received: from cinke.fazekas.hu ([127.0.0.1])
+	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id AODSlUasxKxv for <video4linux-list@redhat.com>;
+	Wed, 26 Mar 2008 03:14:13 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Message-Id: <2c020dc87db5511e6cba.1206497256@bluegene.athome>
+In-Reply-To: <patchbomb.1206497254@bluegene.athome>
+Date: Wed, 26 Mar 2008 03:07:36 +0100
+From: Marton Balint <cus@fazekas.hu>
 To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Sun, 16 Mar 2008 00:45:14 -0700
-Message-ID: <pan.2008.03.16.07.45.13.220467@gimpelevich.san-francisco.ca.us>
-References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: LifeVideo To-Go Cardbus, tuner problems
+Subject: [PATCH 2 of 3] cx88: fix stereo dematrix for A2 sound system
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,38 +32,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 06 Aug 2005 14:03:58 -0700, Arthur Choung wrote:
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1206488442 -3600
+# Node ID 2c020dc87db5511e6cbaae05389e3bda225d4879
+# Parent  54d0fc010ab0225fbed97df3267d26e91aa03a2a
+cx88: fix stereo dematrix for A2 sound system
 
-> Hi,
-> 
-> Has anyone been able to get the TV tuning on the LifeVideo To-Go
-> Cardbus adapter to work?
-> 
-> I am able to get a signal from Channel 2 through an antenna, but this
-> is only after I set the channel on the tv card to Channel 2, then
-> switch it to Channel 3. That's probably a little confusing, so let me
-> repeat. When I load up tvtime, change the channel to 2, then change it
-> to 3, I receive the TV signal for channel 2 (while on channel 3). It
-> only works if I do it in that order. If I go from channel 4 to channel
-> 3, I get nothing.
-> 
-> I am using the drivers from the 2.6.12.3 kernel. I am using the
-> LifeView FlyDVB-T DUO (card=55) option when I modprobe saa7134, since
-> there doesn't seem to be a LifeVideo To-Go option. Here is my syslog
-> output:
-[snip]
-> Any help would be appreciated.
-> 
-> Thanks,
-> 
-> Art
+From: Marton Balint <cus@fazekas.hu>
 
-Yes, I am indeed replying to a message from nineteen months ago. I have
-just now examined the behavior of the Windows driver for this card with
-RegSpy, and the correct module option for it is "card=39" and not
-"card=55" as above. Also, you MUST set the sampling rate to 32000 for
-saa7134-alsa. The card works perfectly and correctly then. Somebody,
-please add this info to the wiki.
+Using A2 sound system, in stereo mode, the first sound channel is L+R, the
+second channel is 2*R. So the dematrix control should be SUMR instead of
+SUMDIFF. Let's use SUMR for stereo mode, and use SUMDIFF for everything
+else, just like before.
+
+Signed-off-by: Marton Balint <cus@fazekas.hu>
+
+diff -r 54d0fc010ab0 -r 2c020dc87db5 linux/drivers/media/video/cx88/cx88-tvaudio.c
+--- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:30:00 2008 +0100
++++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Mar 26 00:40:42 2008 +0100
+@@ -632,7 +632,12 @@ static void set_audio_standard_A2(struct
+ 		break;
+ 	};
+ 
+-	mode |= EN_FMRADIO_EN_RDS | EN_DMTRX_SUMDIFF;
++	mode |= EN_FMRADIO_EN_RDS;
++	if ((mode & 0x3f) == EN_A2_FORCE_STEREO)
++		mode |= EN_DMTRX_SUMR;
++	else
++		mode |= EN_DMTRX_SUMDIFF;
++
+ 	set_audio_finish(core, mode);
+ }
+ 
+
 
 --
 video4linux-list mailing list
