@@ -1,15 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [212.57.247.218] (helo=glcweb.co.uk)
+Received: from sub87-230-124-80.he-dsl.de ([87.230.124.80] helo=ts4.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1JauWM-0007C9-Ht
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 16:11:34 +0100
-Content-class: urn:content-classes:message
+	(envelope-from <linux-dvb@ts4.de>) id 1JeUtQ-0006NV-3e
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 13:38:16 +0100
+Date: Wed, 26 Mar 2008 13:37:16 +0100
+From: Tom <linux-dvb@ts4.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080326123716.GB17202@ts4.de>
+References: <b04e7ceb0803230918k2b559adfq9cdedc7943f733fb@mail.gmail.com>
+	<8ad9209c0803240511v3bc2ebb5m2049913a9a1dcfd4@mail.gmail.com>
+	<47E8320F.4010609@shikadi.net>
+	<b04e7ceb0803250111qbeca4c2ufa94bdb52ed1962e@mail.gmail.com>
+	<b04e7ceb0803250224v44ee716euf6fbb21b7de35653@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sun, 16 Mar 2008 15:11:01 -0000
-Message-ID: <A33C77E06C9E924F8E6D796CA3D635D102397C@w2k3sbs.glcdomain.local>
-From: "Michael Curtis" <michael.curtis@glcweb.co.uk>
-To: <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S DVB-S2 and CI cards working on Linux
+Content-Disposition: inline
+In-Reply-To: <b04e7ceb0803250224v44ee716euf6fbb21b7de35653@mail.gmail.com>
+Subject: Re: [linux-dvb] Advice needed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,35 +29,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thank you for ypor reply Dominic
+Hi Luis,
 
-The errors below are shown in dmesg on reboot in order to automatically
-load all the required modules, that is no attempt to tune the card to
-any station
+On Tue, Mar 25, 2008 at 10:24:50AM +0100, Luis Cidoncha wrote:
 
-Oddly, when I compiled and installed the modules manually, this message
-did not appear
+>  The DViCO would be great for me, but unfortunately I don't know any
+>  place in my country (Spain) that sells them. Does anyone from Europe
+>  know a place where I can buy a DViCO Dual Digital 4?
 
-Rgds Mike
+I had the same problem until I found this (german page with product details):
+http://www.hdd-player.de/product_info.php?language=de&info=p508_Dvico-FusionHDTV-DVB-T-Dual-Digital-4.html
 
-> >
-> > I have had a TT3200 DVB-S2/CI card for more than a year and I have
-still
-> > not got this to work using the Multiproto drivers on Linux, in fact
-it
-> > seem that I am going backwards with this card with the latest errors
-> > appearing in dmesg:
-> >
-> > stb0899_search: Unsupported delivery system
-> There has been an api update. make sure you're tuning application does
-a
-> 
-> dvbfe_delsys delsys = DVBFE_DELSYS_DVBS;
-> ioctl(front, DVBFE_SET_DELSYS, &delsys);
-> 
-> before other tuning ioctls.
-> 
+The englisch / spanish pages show a lack of product details.
 
+I called them yesterday and was told they still had some DD4 (Rev.1) in
+stock. As my order has not been delivered yet I cannot confirm this.
+
+
+Regards, Tom
 
 _______________________________________________
 linux-dvb mailing list
