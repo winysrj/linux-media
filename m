@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.183])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JfR4o-0001Rx-BV
-	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 03:45:54 +0100
-Date: Sat, 29 Mar 2008 03:41:54 +0100
-From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
+	(envelope-from <nico@youplala.net>) id 1JeXxx-0007RE-Q5
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 16:55:08 +0100
+From: Nicolas Will <nico@youplala.net>
 To: linux-dvb <linux-dvb@linuxtv.org>
-Message-ID: <20080329024154.GA23883@localhost>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Analog capture (saa7113) not working on KNC1 DVB-C Plus
-	(MK3)
+In-Reply-To: <1206348478.6370.27.camel@youkaida>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206185051.22131.5.camel@tux>  <1206190455.6285.20.camel@youkaida>
+	<1206270834.4521.11.camel@shuttle> <1206348478.6370.27.camel@youkaida>
+Date: Wed, 26 Mar 2008 15:53:51 +0000
+Message-Id: <1206546831.8967.13.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,79 +27,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Mon, 2008-03-24 at 08:47 +0000, Nicolas Will wrote:
+> Guys,
+> 
+> I was running with the following debug options when I got a disconnect:
+> 
+> options dvb-usb-dib0700 force_lna_activation=1
+> options dvb-usb-dib0700 debug=1
+> options mt2060 debug=1
+> options dibx000_common debug=1
+> options dvb_core debug=1
+> options dvb_core dvbdev_debug=1
+> options dvb_core frontend_debug=1
+> options dvb_usb debug=1
+> options dib3000mc debug=1
+> options usbcore autosuspend=-1
+> 
+> 
+> /var/log/messages is here:
+> 
+> http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
+> 
+> and slightly different data:
+> 
+> http://www.youplala.net/~will/htpc/disconnects/syslog-with_debug
+> 
+> Can that help, or would more be needed?
+> 
+> There was zero remote usage at the time.
 
-with a KNC One "TV-Station DVB-C Plus" PCI card (MK3 - Philips SAA7146
-with CU1216L/A I G H-3 Tunerbox with TDA10023) equipped with composite 
-and s-video inputs ('Plus' version, Philips SAA7113), analog capture 
-is not working. Most recent kernel sources I tested were 2.6.25-rc7.
 
-DVB-C television works fine with this card using 'budget_av' kernel
-module (from kernel 2.6.20 on, using e9hack's tda1002x patch, and
-later with mainstream kernel sources alone), but when opening an
-analog input, there are no data coming. A black screen is shown with
-'xawtv' application. Xawtv correctly shows up the two video sources
-this card provides: 'S-Video' and 'Composite'. 
+This is really a cry for help.
 
-I checked the cables and video sources, they work fine with another
-card with analog input.
+I am not a coder, I don't even know where my K&R C book that I bought 17
+years ago is anymore, so I cannot dive into the code and pretend to
+understand it.
 
-I can do tests or compile something if you want me to. Information from 
-lspci, dmesg and lsmod please see below. Help to get analog capture
-working is appreciated very much.
+But I can push, pull, help coordinate, document, hg clone, compile,
+install, reboot, test, report, publish results on the wiki, and more if
+needed.
 
-Thank you
+That card was nearly working 100%, then something broke, and we are back
+to the status we had 1 year ago.
 
-L.
+Please, please, please...
 
-'lspci -nn' and 'lspci -vv' show:
+Nico
 
-00:14.0 Multimedia controller [0480]: Philips Semiconductors SAA7146 [1131:7146] (rev 01)
-
-00:14.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-        Subsystem: KNC One Unknown device 0023
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 32 (3750ns min, 9500ns max)
-        Interrupt: pin A routed to IRQ 7
-        Region 0: Memory at de00d000 (32-bit, non-prefetchable) [size=512]
-
-Note: Subsystem ID 1894:0023 is a KNC One TV-Station DVB-C Plus (MK3)
-
-dmesg shows:
-
-[...]
-Linux video capture interface: v2.00
-saa7146: register extension 'budget_av'.
-ACPI: PCI Interrupt 0000:00:14.0[A] -> Link [LNKB] -> GSI 7 (level, low) -> IRQ 7
-saa7146: found saa7146 @ mem de984000 (revision 1, irq 7) (0x1894,0x0023).
-saa7146 (0): dma buffer size 192512
-DVB: registering new adapter (KNC1 DVB-C Plus MK3).
-adapter failed MAC signature check
-encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-saa7146_vv: saa7146 (0): registered device video0 [v4l2]
-KNC1-0: MAC addr = [...]
-DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-budget-av: ci interface initialised.
-[...]
-
-'lsmod' shows:
-
-[...]
-tda10023                6500  1 
-budget_av              20000  1 
-dvb_pll                14308  1 budget_av
-saa7146_vv             48672  2 budget_av
-video_buf              24388  1 saa7146_vv
-videodev               27104  2 saa7146_vv
-v4l2_common            24096  2 saa7146_vv,videodev
-v4l1_compat            14340  2 saa7146_vv,videodev
-firmware_class          9568  2 pcmcia,budget_av
-budget_core            10980  1 budget_av
-dvb_core               78024  2 budget_av,budget_core
-saa7146                18408  3 budget_av,saa7146_vv,budget_core
-ttpci_eeprom            2368  1 budget_core
-[...]
 
 _______________________________________________
 linux-dvb mailing list
