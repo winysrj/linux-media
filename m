@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SIW0rT018451
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:32:00 -0400
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.229])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SIVndC025788
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:31:49 -0400
-Received: by wr-out-0506.google.com with SMTP id c57so289991wra.9
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 11:31:49 -0700 (PDT)
-Message-ID: <d9def9db0803281131k1804a9fdw713738227789c1ad@mail.gmail.com>
-Date: Fri, 28 Mar 2008 19:31:48 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: gionnico <gionnico@email.it>
-In-Reply-To: <47ED3362.3060707@email.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q2EqK5006617
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:52 -0400
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q2EL5t006643
+	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 33ACD33CC8
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:14:20 +0100 (CET)
+Received: from cinke.fazekas.hu ([127.0.0.1])
+	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id UBKxDKTDUvDc for <video4linux-list@redhat.com>;
+	Wed, 26 Mar 2008 03:14:13 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <47ED3362.3060707@email.it>
-Cc: video4linux-list@redhat.com
-Subject: Re: TV synth + DTTV + FM?
+Message-Id: <54d0fc010ab0225fbed9.1206497255@bluegene.athome>
+In-Reply-To: <patchbomb.1206497254@bluegene.athome>
+Date: Wed, 26 Mar 2008 03:07:35 +0100
+From: Marton Balint <cus@fazekas.hu>
+To: video4linux-list@redhat.com
+Subject: [PATCH 1 of 3] cx88: fix oops on module removal caused by IR worker
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,36 +32,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1206487800 -3600
+# Node ID 54d0fc010ab0225fbed97df3267d26e91aa03a2a
+# Parent  cc6c65fe4ce0543e14afdd2b850c991081f7b9ac
+cx88: fix oops on module removal caused by IR worker
 
-On 3/28/08, gionnico <gionnico@email.it> wrote:
-> I'd like to install one of these devices.
->
-> What'd you suggest?
->
-> Hardware?
-> USB or PCI?
-> What model, particularly could you suggest me?
->
+From: Marton Balint <cus@fazekas.hu>
 
-http://tinyurl.com/28qboc
+If the IR worker is not stopped before the removal of the cx88xx module,
+an OOPS may occur, because the worker function cx88_ir_work gets called.
+So stop the ir worker.
 
-> And what's a good software to play?
->
 
-kaffeine for digital TV
-tvtime for analogue TV
-gqradio for FM radio
+Signed-off-by: Marton Balint <cus@fazekas.hu>
 
->
-> I've got another question, then: may I broadcast (or also multicast or
-> unicast) the stream to a/some computers of the LAN using some streaming
-> server?
->
+diff -r cc6c65fe4ce0 -r 54d0fc010ab0 linux/drivers/media/video/cx88/cx88-video.c
+--- a/linux/drivers/media/video/cx88/cx88-video.c	Tue Mar 25 14:33:20 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-video.c	Wed Mar 26 00:30:00 2008 +0100
+@@ -2221,6 +2221,9 @@ static void __devexit cx8800_finidev(str
+ 		core->kthread = NULL;
+ 	}
+ 
++	if (core->ir)
++		cx88_ir_stop(core, core->ir);
++
+ 	cx88_shutdown(core); /* FIXME */
+ 	pci_disable_device(pci_dev);
+ 
 
-VLC supports broadcasting the videostream.
-
-Markus
 
 --
 video4linux-list mailing list
