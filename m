@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2NMidas018776
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:39 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2NMi6sN019505
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 18:44:07 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so2174184fga.7
-	for <video4linux-list@redhat.com>; Sun, 23 Mar 2008 15:44:05 -0700 (PDT)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <5033bd266fb9e90d4d75.1206312201@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1206312199@liva.fdsoft.se>
-Date: Sun, 23 Mar 2008 23:43:21 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QNdY8i023738
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 19:39:34 -0400
+Received: from mail9.dslextreme.com (mail9.dslextreme.com [66.51.199.94])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2QNdNm7008844
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 19:39:24 -0400
+Mime-Version: 1.0 (Apple Message framework v624)
+In-Reply-To: <1206573402.3912.50.camel@pc08.localdom.local>
+References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
+	<200803161724.20459.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
+	<200803161840.37910.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
+	<1206573402.3912.50.camel@pc08.localdom.local>
+Message-Id: <653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Wed, 26 Mar 2008 16:39:17 -0700
 To: video4linux-list@redhat.com
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 2 of 6] cx88: Add user control for chroma AGC
+Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,162 +25,120 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1903317399=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-4 files changed, 37 insertions(+), 6 deletions(-)
-linux/drivers/media/video/cx88/cx88-blackbird.c |    4 +--
-linux/drivers/media/video/cx88/cx88-core.c      |    6 +++-
-linux/drivers/media/video/cx88/cx88-video.c     |   30 +++++++++++++++++++++--
-linux/drivers/media/video/cx88/cx88.h           |    3 +-
+
+--===============1903317399==
+Content-Type: multipart/signed; micalg=sha1; boundary=Apple-Mail-128-634290749;
+	protocol="application/pkcs7-signature"
 
 
-# HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1206311637 -3600
-# Node ID 5033bd266fb9e90d4d7568013a373fa83061bce0
-# Parent  d758888cf4a466cd2d44a54a0a9e9467d72267fa
-cx88: Add user control for chroma AGC
+--Apple-Mail-128-634290749
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed
 
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+On Mar 26, 2008, at 4:16 PM, hermann pitton wrote:
 
-The cx2388x family has support for chroma AGC. This patch implements a
-the V4L2_CID_CHROMA_AGC control for the cx2388x family. By default
-chroma AGC is disabled, as in previous versions of the driver.
+> how do you consider to continue on this.
+>
+> Peter, we had discussed about the composite over s-video input here,
+> when Glen Gray added his OEM version of the card. From the original 
+> one,
+> without a working tuner at that time, vmux=0 should have been a valid
+> option, but neither the contributor nor anybody else was reachable at
+> that time. So we left it, don't remember offhand what Glen had with it.
+>
+> On almost all cards with s-video there is composite over s-video, it
+> doesn't cost a single cent to provide it. Daniel, do you have it?
+> Works also with s-video plugged.
+>
+> If not, and Peter seems to have seen such, we remove it, else keep it
+> and add the card to auto detection. Don't mess around with spaces after
+> commas on recently added, cards. It is some recent checkpatch.pl
+> annoyance.
+>
+> Just add the card, maybe the likely existing OEM saa7133 stuff Peter
+> suggests. And add a Signed-off-by !
 
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+I have since returned the card to its owner, but I did try the 
+composite-over-S setting, and I saw the S-video source when I did that, 
+but in monochrome. Therefore, I can only assume that setting works the 
+way it's designed, because I did not bother to jury-rig an S-video 
+connector that carries a true composite signal. I already had a 
+Signed-off-by in what I submitted, and you're welcome to carry that 
+forward to changes you make to the patch. As far as I'm concerned, 
+5169/1502 needs to be recognized as card 39, notwithstanding any 
+differences from 5168/1502.
+-- 
+"No gnu's is good gnu's."   --Gary Gnu, "The Great Space Coaster"
+--Apple-Mail-128-634290749
+Content-Transfer-Encoding: base64
+Content-Type: application/pkcs7-signature;
+	name=smime.p7s
+Content-Disposition: attachment;
+	filename=smime.p7s
 
-diff -r d758888cf4a4 -r 5033bd266fb9 linux/drivers/media/video/cx88/cx88-blackbird.c
---- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Mar 23 23:31:36 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Mar 23 23:33:57 2008 +0100
-@@ -711,7 +711,7 @@ static int blackbird_queryctrl(struct cx
- 		return -EINVAL;
- 
- 	/* Standard V4L2 controls */
--	if (cx8800_ctrl_query(qctrl) == 0)
-+	if (cx8800_ctrl_query(dev->core, qctrl) == 0)
- 		return 0;
- 
- 	/* MPEG V4L2 controls */
-@@ -959,7 +959,7 @@ static int vidioc_queryctrl (struct file
- 	qctrl->id = v4l2_ctrl_next(ctrl_classes, qctrl->id);
- 	if (unlikely(qctrl->id == 0))
- 		return -EINVAL;
--	return cx8800_ctrl_query(qctrl);
-+	return cx8800_ctrl_query(dev->core, qctrl);
- }
- 
- static int vidioc_enum_input (struct file *file, void *priv,
-diff -r d758888cf4a4 -r 5033bd266fb9 linux/drivers/media/video/cx88/cx88-core.c
---- a/linux/drivers/media/video/cx88/cx88-core.c	Sun Mar 23 23:31:36 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-core.c	Sun Mar 23 23:33:57 2008 +0100
-@@ -958,7 +958,11 @@ int cx88_set_tvnorm(struct cx88_core *co
- 
- 	dprintk(1,"set_tvnorm: MO_INPUT_FORMAT  0x%08x [old=0x%08x]\n",
- 		cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
--	cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
-+	/* Chroma AGC must be disabled if SECAM is used */
-+	if (norm & V4L2_STD_SECAM)
-+		cx_andor(MO_INPUT_FORMAT, 0x40f, cxiformat);
-+	else
-+		cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
- 
- #if 1
- 	// FIXME: as-is from DScaler
-diff -r d758888cf4a4 -r 5033bd266fb9 linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:31:36 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 23 23:33:57 2008 +0100
-@@ -244,6 +244,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
- 		.mask                  = 0x00ff,
- 		.shift                 = 0,
- 	},{
-+		.v = {
-+			.id            = V4L2_CID_CHROMA_AGC,
-+			.name          = "Chroma AGC",
-+			.minimum       = 0,
-+			.maximum       = 1,
-+			.default_value = 0x0,
-+			.type          = V4L2_CTRL_TYPE_BOOLEAN,
-+		},
-+		.reg                   = MO_INPUT_FORMAT,
-+		.mask                  = 1 << 10,
-+		.shift                 = 10,
-+	}, {
- 	/* --- audio --- */
- 		.v = {
- 			.id            = V4L2_CID_AUDIO_MUTE,
-@@ -298,6 +310,7 @@ const u32 cx88_user_ctrls[] = {
- 	V4L2_CID_AUDIO_VOLUME,
- 	V4L2_CID_AUDIO_BALANCE,
- 	V4L2_CID_AUDIO_MUTE,
-+	V4L2_CID_CHROMA_AGC,
- 	0
- };
- EXPORT_SYMBOL(cx88_user_ctrls);
-@@ -307,7 +320,7 @@ static const u32 *ctrl_classes[] = {
- 	NULL
- };
- 
--int cx8800_ctrl_query(struct v4l2_queryctrl *qctrl)
-+int cx8800_ctrl_query(struct cx88_core *core, struct v4l2_queryctrl *qctrl)
- {
- 	int i;
- 
-@@ -322,6 +335,11 @@ int cx8800_ctrl_query(struct v4l2_queryc
- 		return 0;
- 	}
- 	*qctrl = cx8800_ctls[i].v;
-+	/* Report chroma AGC as inactive when SECAM is selected */
-+	if (cx8800_ctls[i].v.id == V4L2_CID_CHROMA_AGC &&
-+	    core->tvnorm & V4L2_STD_SECAM)
-+		qctrl->flags |= V4L2_CTRL_FLAG_INACTIVE;
-+
- 	return 0;
- }
- EXPORT_SYMBOL(cx8800_ctrl_query);
-@@ -1225,6 +1243,12 @@ int cx88_set_control(struct cx88_core *c
- 		}
- 		mask=0xffff;
- 		break;
-+	case V4L2_CID_CHROMA_AGC:
-+		/* Do not allow chroma AGC to be enabled for SECAM */
-+		value = ((ctl->value - c->off) << c->shift) & c->mask;
-+		if (core->tvnorm & V4L2_STD_SECAM && value)
-+			return -EINVAL;
-+		break;
- 	default:
- 		value = ((ctl->value - c->off) << c->shift) & c->mask;
- 		break;
-@@ -1549,10 +1573,12 @@ static int vidioc_queryctrl (struct file
- static int vidioc_queryctrl (struct file *file, void *priv,
- 				struct v4l2_queryctrl *qctrl)
- {
-+	struct cx88_core *core = ((struct cx8800_fh *)priv)->dev->core;
-+
- 	qctrl->id = v4l2_ctrl_next(ctrl_classes, qctrl->id);
- 	if (unlikely(qctrl->id == 0))
- 		return -EINVAL;
--	return cx8800_ctrl_query(qctrl);
-+	return cx8800_ctrl_query(core, qctrl);
- }
- 
- static int vidioc_g_ctrl (struct file *file, void *priv,
-diff -r d758888cf4a4 -r 5033bd266fb9 linux/drivers/media/video/cx88/cx88.h
---- a/linux/drivers/media/video/cx88/cx88.h	Sun Mar 23 23:31:36 2008 +0100
-+++ b/linux/drivers/media/video/cx88/cx88.h	Sun Mar 23 23:33:57 2008 +0100
-@@ -681,7 +681,8 @@ void cx8802_cancel_buffers(struct cx8802
- /* ----------------------------------------------------------- */
- /* cx88-video.c*/
- extern const u32 cx88_user_ctrls[];
--extern int cx8800_ctrl_query(struct v4l2_queryctrl *qctrl);
-+extern int cx8800_ctrl_query(struct cx88_core *core,
-+			     struct v4l2_queryctrl *qctrl);
- int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i);
- int cx88_set_freq (struct cx88_core  *core,struct v4l2_frequency *f);
- int cx88_get_control(struct cx88_core *core, struct v4l2_control *ctl);
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGTTCCAwYw
+ggJvoAMCAQICEBDAn4gnWUUrGUQfb8V+HHgwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA3MDgxNDIxNDI0MFoXDTA4MDgxMzIxNDI0
+MFowWDEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjE1MDMGCSqGSIb3DQEJARYmZGFu
+aWVsQGdpbXBlbGV2aWNoLnNhbi1mcmFuY2lzY28uY2EudXMwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQC1tNDJEtPQwKpOCFm7pKuWBM6JcmS6UFAMEYkPx+x3yrVmgOCyTF2grHmX5+4M
+B1QCN2JHgv3Ui6TXF82F7YSNCBHUagmiZlFKTaiv1cPgUbuKWZ0bndsL83qY6gbpqevfdKrvbM9j
+Rru/wT4RnrSU7uzBCcBEMMHZ8QjdnG5BlWkjxaiWM/OpqlI4HypEKEpE1PYMsgPl6OC6amlYlNBm
+Yyi03YuR50PAD+i7mw94WTyn7wWkTmgjBUMKuJlkybuUhWGiAheYZmE4cUQJgngRRraWQoYynPIY
+tSbasNKryiJAvm1o4++4bgTaR/H2gCUeCBJQaaUIkRrhyO4zbJChAgMBAAGjQzBBMDEGA1UdEQQq
+MCiBJmRhbmllbEBnaW1wZWxldmljaC5zYW4tZnJhbmNpc2NvLmNhLnVzMAwGA1UdEwEB/wQCMAAw
+DQYJKoZIhvcNAQEFBQADgYEAcRGo2Rl+WJ+DoVDg/gTpcruGaHnMPBsQ4/0d12+k5aV3aH+pu2tz
+6lFtKJSM2gTYloELHlIffhkYQcb/Eu/R9utBj3lHoweCPHDAmPxfd2jvHY/aAtM9qvtFN5Ue/5mq
+c6VdAl2tWmHynZyaxwp7yn+pS+iwExCNyx5E1mxVFGQwggM/MIICqKADAgECAgENMA0GCSqGSIb3
+DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIwEAYDVQQHEwlD
+YXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9DZXJ0aWZpY2F0
+aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
+Q0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20wHhcNMDMwNzE3
+MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENv
+bnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElz
+c3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZWh5owHUEcJ3f
+6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuvPAsH5/EfkTYk
+KhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBlyYLf7AgMBAAGj
+gZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vY3JsLnRo
+YXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMCAQYwKQYDVR0R
+BCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEBBQUAA4GBAEiM
+0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFhYsPZOhl+hLGZ
+GwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVNd+NWIXiC3CEZ
+Nd4ksdMdRv9dX2VPMYIDEDCCAwwCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3Rl
+IENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWls
+IElzc3VpbmcgQ0ECEBDAn4gnWUUrGUQfb8V+HHgwCQYFKw4DAhoFAKCCAW8wGAYJKoZIhvcNAQkD
+MQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMDgwMzI2MjMzOTE3WjAjBgkqhkiG9w0BCQQx
+FgQUB6z4eNgFPiNTSxuiJn4EOv4DmYUwgYUGCSsGAQQBgjcQBDF4MHYwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAhAQwJ+IJ1lFKxlEH2/Ffhx4MIGHBgsqhkiG9w0B
+CRACCzF4oHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkp
+IEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAhAQwJ+I
+J1lFKxlEH2/Ffhx4MA0GCSqGSIb3DQEBAQUABIIBACwn+OWlfdSrdHo8DXWqhiaD+AJKY79JssAb
+yjGDG/0Ka4zqoLn5wYuLwDBfsVJHdrAa/aG7hI/E0i63AzXNVVqTkJV0IXsJCslD8V3AKUVBnk+B
+D6pD8iZwH42uZf5A93xIVrU4zJuzEiQzgnQNmOs71u+JN3RPkL7soKs8CAmIqs1jtma/H30oaIVp
+X6qAf+eXV49Rhpzx37km/t/gijaycvBWn9ixWEDDy7j1Umq8hHEkNXpbbnW9iLBihdgkuEHIbrFK
+kGLwoYiwcoTYZI31sNlTEpZ9t4PdpZ416UJFy2PkY2In16EE0SwG7dZAyXXfPCuhHzk3obisThh0
+WxQAAAAAAAA=
+
+--Apple-Mail-128-634290749--
+
+
+--===============1903317399==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============1903317399==--
