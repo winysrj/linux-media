@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hydra.gt.owl.de ([195.71.99.218])
+Received: from wr-out-0506.google.com ([64.233.184.233])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <flo@rfc822.org>) id 1JW6Vk-0005Vp-23
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 09:59:06 +0100
-Date: Mon, 3 Mar 2008 09:52:49 +0100
-From: Florian Lohoff <flo@rfc822.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Message-ID: <20080303085249.GA6419@paradigm.rfc822.org>
-References: <20080301161419.GB12800@paradigm.rfc822.org>
-	<47CB2D95.6040602@gmail.com>
-	<20080302233653.GA3067@paradigm.rfc822.org>
-	<47CB44A8.5060103@gmail.com>
+	(envelope-from <mimic0310@gmail.com>) id 1JeM3G-0003Dm-3P
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 04:11:47 +0100
+Received: by wr-out-0506.google.com with SMTP id c30so2725433wra.14
+	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 20:11:41 -0700 (PDT)
+Message-ID: <c92beebe0803252011g6ac0a020jcfbbb429d78bdc4c@mail.gmail.com>
+Date: Wed, 26 Mar 2008 11:11:40 +0800
+From: "Cheng-Min Lien" <mimic0310@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-In-Reply-To: <47CB44A8.5060103@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+Content-Disposition: inline
+Subject: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+	Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,85 +20,53 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0934719023=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+sorry for the wrong subject.
 
---===============0934719023==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Content-Disposition: inline
-
-
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Mar 03, 2008 at 04:22:00AM +0400, Manu Abraham wrote:
-> This won't work. params will contain data only after you have=20
-> successfully issued
-> SET_PARAMS not before. For SET_PARAMS to work, you need the delivery syst=
-em
-> cached for the operation.
-
-As i already wrote - SET_PARAMS is _NOT_ enough. Please try yourself.=20
-Unload/Load the module and simple issue a DVBFE_SET_PARAMS (NOT
-GET_INFO) and it doesnt tune/lock at least for STB0899 and it also
-complains in the dmesg with:
-
-	stb0899_search: Unsupported delivery system 0
-	stb0899_read_status: Unsupported delivery system 0
-	stb0899_search: Unsupported delivery system 0
-	stb0899_read_status: Unsupported delivery system 0
-	stb0899_search: Unsupported delivery system 0
-	stb0899_read_status: Unsupported delivery system 0
-
-although i set
-
-	dvbfe_params.delivery=3DDVBFE_DELSYS_DVBS2;
-
-> Do you see the same bug with szap too ?=20
-> (http://abraham.manu.googlepages.com/szap.c)
-
-Its not a bug in szap - its a bug in the API - There is a delivery in
-the dvbfe_param and i set it correctly - and it gets ignored. Running
-zap before running my program causes it to work because zap runs
-an GET_INFO ioctl which _SETS_ a delivery mode.
-
-Flo
---=20
-Florian Lohoff                  flo@rfc822.org             +49-171-2280134
-	Those who would give up a little freedom to get a little=20
-          security shall soon have neither - Benjamin Franklin
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFHy7xhUaz2rXW+gJcRAuGBAJ48liGYeNf1kWKylex979S20GBKDACfSuWF
-vHJlbplFMvg54adjmPsc5bw=
-=To0f
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
-
-
---===============0934719023==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, Mar 26, 2008 at 11:02 AM, Cheng-Min Lien <mimic0310@gmail.com> wrote:
+> Hi all,
+>
+>  After using Mauro's patch, I try to set the gpio pin in function
+>  "saa7134_xc2028_callback".
+>  Now, I can watch analog TV.
+>  The  GPIO pin 21 seems the reset pin for tuner.
+>  The mt352 demod is still no response....
+>
+>  ===========================================================
+>  static int saa7134_xc2028_callback(struct saa7134_dev *dev,
+>                    int command, int arg)
+>  {
+>
+>     switch (command) {
+>     case XC2028_TUNER_RESET:
+>         saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
+>         saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
+>         saa_andorl(SAA7133_ANALOG_IO_SELECT >> 2, 0x02, 0x02);
+>         saa_andorl(SAA7134_ANALOG_IN_CTRL1 >> 2, 0x81, 0x81);
+>         saa_andorl(SAA7134_AUDIO_CLOCK0 >> 2, 0x03187de7, 0x03187de7);
+>         saa_andorl(SAA7134_AUDIO_PLL_CTRL >> 2, 0x03, 0x03);
+>         saa_andorl(SAA7134_AUDIO_CLOCKS_PER_FIELD0 >> 2,
+>                0x0001e000, 0x0001e000);
+>
+>         #if 1
+>         saa7134_set_gpio(dev, 21, 0);
+>         msleep(20);
+>         saa7134_set_gpio(dev, 21, 1);
+>         #endif
+>
+>         return 0;
+>     }
+>     return -EINVAL;
+>  }
+>  ====================================================================
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0934719023==--
