@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SIi0lh025450
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:44:00 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SIhbQF001316
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:43:37 -0400
-Date: Fri, 28 Mar 2008 15:43:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Frej Drejhammar" <frej.drejhammar@gmail.com>
-Message-ID: <20080328154302.2dc73781@gaivota>
-In-Reply-To: <da854c7e2b4372794c04.1206312205@liva.fdsoft.se>
-References: <patchbomb.1206312199@liva.fdsoft.se>
-	<da854c7e2b4372794c04.1206312205@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2QHqAbO025584
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:52:10 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m2QHpr6t021824
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 13:51:53 -0400
+Date: Wed, 26 Mar 2008 18:51:28 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Matthew Wang <wangsu820@163.com>
+Message-ID: <20080326175127.GA226@daniel.bse>
+References: <20080326103853.GA21053@stinkie>
+	<3358587.1081301206517482981.JavaMail.coremail@bj163app87.163.com>
+	<1373980.1212051206531393465.JavaMail.coremail@bj163app55.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH 6 of 6] cx88: Enable color killer by default
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1373980.1212051206531393465.JavaMail.coremail@bj163app55.163.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: ask about kernel video4linux module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,21 +29,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Patches 1 to 5 applied, thanks.
- 
-> An enabled color killer will not degrade picture quality for color
-> input signals, only suppress bogus color information on
-> black-and-white input. Therefore enable it by default.
+On Wed, Mar 26, 2008 at 07:36:33PM +0800, Matthew Wang wrote:
+>  thank u, Daniel
+>  
+> I have the kernel package which is 2.6.8.1 and I use Source Insight to read it.
+>  
+> Actually, I will do a IP Camera project based on ADSP-BF533(an ADI Blackfin chip), and I want to programme v4l by myself, and of course I have to learn something about v4l programming!
+>  
+> in the kernel package, which directory is the v4l core in? kernel/drivers/media? for example, some article only tell us how to use the VIDIOCGCAP ioctl ,but now I wannt to see the VIDIOCGCAP specific code, can I find it in the kernel package?
+>  
+> thanks again!
+>  
+> Matthew
 
-I don't think it is a good idea to enable the color killer by default. This may
-lead to weird effects, if the stream uses some black and white images, with
-just a few colors, to produce some sort of visual effect. Better to have this
-disabled. If someone wants to see a black-and-white movie, or is on an area
-where the color carrier is bogus, he can manually enable the filter.
+There is no V4L core.
+The file you are searching is kernel/drivers/media/video/blackfin/blackfin_cam.c
+from the Blackfin Linux project.
+It is not yet part of the mainline source tree.
+It supports only the obsolete V4L1 API.
 
+You can browse the sourcecode at
+http://blackfin.uclinux.org/gf/project/linux-kernel/scmsvn/?action=browse&path=%2Ftrunk%2Fdrivers%2Fmedia%2Fvideo%2Fblackfin%2F
 
-Cheers,
-Mauro
+  Daniel
 
 --
 video4linux-list mailing list
