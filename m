@@ -1,14 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n3a.bullet.mail.ac4.yahoo.com ([76.13.13.66])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <aldebx@yahoo.fr>) id 1JYUCI-0003Yz-1G
-	for linux-dvb@linuxtv.org; Sun, 09 Mar 2008 23:40:53 +0100
-Message-ID: <47D4674B.6010603@yahoo.fr>
-Date: Sun, 09 Mar 2008 23:40:11 +0100
-From: aldebaran <aldebx@yahoo.fr>
-MIME-Version: 1.0
+Received: from fg-out-1718.google.com ([72.14.220.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <glen.robson@gmail.com>) id 1Jee7D-0007fP-UQ
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 23:29:04 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so3170933fge.25
+	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 15:28:58 -0700 (PDT)
+Message-ID: <f19c00fe0803261528m6d05a02eh4ff82181be7dfd21@mail.gmail.com>
+Date: Wed, 26 Mar 2008 22:28:58 +0000
+From: "Glen Robson" <glen.robson@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] ~stoth/cx23885-video compile failure
+In-Reply-To: <8ad9209c0803261443m47fbd504i9373070a37c5421a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <1206139910.12138.34.camel@youkaida>
+	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
+	<1206348478.6370.27.camel@youkaida>
+	<1206546831.8967.13.camel@acropora>
+	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566561.8947.10.camel@youkaida>
+	<8ad9209c0803261443m47fbd504i9373070a37c5421a@mail.gmail.com>
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +36,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi to everybody!
+On Wed, Mar 26, 2008 at 10:22 PM, Nicolas Will <nico@youplala.net> wrote:
+> Can the persons experiencing disconnects post:
+>
+> Distro
+> distro version
+> kernel version (uname -a)
+>  dvb-utils version
+>
 
-I own an HP/Hauppauge WinTv885 mod 77001 with cx23885 and xc3028 chipsets.
+Fedora Core
+release 8 (Werewolf)
+Linux chimera 2.6.24.3-34.fc8 #1 SMP Wed Mar 12 18:17:20 EDT 2008 i686
+athlon i386 GNU/Linux
+dvb-utils ?
 
-Following the threads on this mailing list I understood these chipsets were supported by 
-http://linuxtv.org/hg/~stoth/cx23885-video code, however I cannot even get past the 'make all'.
-
-here is what I get:
-> CC [M] /home/user/cx23885-video-85708d2698cd/v4l/em28xx-audio.o In 
-> file included from 
-> /home/user/cx23885-video-85708d2698cd/v4l/em28xx-audio.c:39: 
-> include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in 
-> a function) 
-> /home/user/cx23885-video-85708d2698cd/v4l/em28xx-audio.c:58: error: 
-> array index in initializer not of integer type 
-> /home/user/cx23885-video-85708d2698cd/v4l/em28xx-audio.c:58: error: 
-> (near initialization for 'index') make[3]: *** 
-> [/home/user/cx23885-video-85708d2698cd/v4l/em28xx-audio.o] Error 1 
-> make[2]: *** [_module_/home/user/cx23885-video-85708d2698cd/v4l] Error 
-> 2 make[2]: Leaving directory 
-> `/usr/src/linux-headers-2.6.24-11-generic' make[1]: *** [default] Error 2 
-
-Is it a bug?
-Were I supposed to do something?
-Thank you.
-
+Glen
 
 _______________________________________________
 linux-dvb mailing list
