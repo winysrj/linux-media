@@ -1,28 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.187])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JagvD-0006Og-LY
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 01:40:21 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1664602tia.13
-	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 17:40:11 -0700 (PDT)
-Message-ID: <abf3e5070803151740o27c1cb0axd6f1eb2d1ad76721@mail.gmail.com>
-Date: Sun, 16 Mar 2008 11:40:11 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47DC6BC6.4080307@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47DAC42D.7010306@iki.fi> <47DAC4BE.5090805@iki.fi>
-	<abf3e5070803150606g7d9cd8f2g76f34196362d2974@mail.gmail.com>
-	<abf3e5070803150621k501c451lc7fc8a74efcf0977@mail.gmail.com>
-	<47DBDB9F.5060107@iki.fi>
-	<abf3e5070803151642ub259f5bx18f067fc153cce89@mail.gmail.com>
-	<47DC64F4.9070403@iki.fi>
-	<abf3e5070803151727o55dcc0d1q82bac14352330fd7@mail.gmail.com>
-	<47DC6BC6.4080307@iki.fi>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JeTRa-0006u1-2X
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 12:05:22 +0100
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JeTRU-0007hN-P1
+	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 11:05:16 +0000
+Received: from ua-83-227-158-203.cust.bredbandsbolaget.se ([83.227.158.203])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 11:05:16 +0000
+Received: from elupus by ua-83-227-158-203.cust.bredbandsbolaget.se with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 11:05:16 +0000
+To: linux-dvb@linuxtv.org
+From: elupus <elupus@ecce.se>
+Date: Wed, 26 Mar 2008 11:05:07 +0000 (UTC)
+Message-ID: <loom.20080326T105420-829@post.gmane.org>
+References: <timjkg4t68k0.u9vss0x6vh17$.dlg@40tude.net>
+	<19apj9y5ari7e$.iq8vatom4e8q.dlg@40tude.net>
+	<a7d0idxnqmsq.1kxbekc9wr0n1.dlg@40tude.net>
+	<ea4209750803260338k48f25e8mf95c5734481d2da7@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb]
+	=?utf-8?q?STK7700-PH_=28_dib7700_+_ConexantCX25842_+_?=
+	=?utf-8?q?Xceive=09XC3028_=29?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,40 +38,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Mar 16, 2008 at 11:37 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Jarryd Beck wrote:
->  > Here's the first frequency it tuned to, as you can see the
->  > one you set auto on is still auto, it didn't seem to autodetect
->  > anything. It was the same for all the other frequencies as well.
->  >
->  >>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_1_16:HIERARCHY_NONE
->  > WARNING: >>> tuning failed!!!
->  >>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_1_16:HIERARCHY_NONE
->  > (tuning failed)
->  > WARNING: >>> tuning failed!!!
->
->  It does not matter what scan outputs as tuning parameters because it
->  just shows same parameter that are set by used tuning file (at least
->  when tuning fails). Driver will still try to auto detect correct
->  parameters. In this case it still fails for reason or other that is not
->  found yet.
->
->
->
->  regards
->  Antti
->  --
->  http://palosaari.fi/
->
+Albert Comerma <albert.comerma <at> gmail.com> writes:
 
-So the fact that it failed isn't actually telling us anything extra then?
-Would it only have been useful if it had actually worked?
-Also just to make sure I'm using the right drivers here, I'm using
-Michael's patch and not Antti's patch. Since it kernel oopses with
-both, Antti, do you want me to try with just your patch and not
-Michael's?
+So, to sum up. Using the "standard" configuration of dibcom 7700+xc3028 
+> you managed to get dvb-t working. Perhaps you have some problem with your
+> computer power management and it keeps power on usb while it's off.
+> Albert
+> 
 
-Jarryd.
+Well I wouldn't consider that a problem with the computer. Rather a bug in the 
+driver if it can't handle that situation. 
+
+In my case it will always happen. The card isn't a standard usb card, it's a 
+minipci(express) with a builtin usb-bridge to which the card is connected.
+
+My guess is that something isn't getting inited properly when card has never 
+been in cold state on bootup. Do you have a hint on where to look for this?
+
+The patch for 7700+XC3028 haven't made it to trunk (to steal a svn term), so 
+if you by "standard" means, the repo i mentioned in the first post and with 
+the patch to detect this specific usb card then probably yes. 
+I've not tested the 1.10 dibcom firmware with a full power off (I have to pull 
+the powercord for it to coldboot). 
+Since the error i'm getting now with the firmware from my windows drivers, are 
+identical to what i kept getting with the firmware on linuxtv, i'd expect that 
+it'd work if i just coldbooted the computer.
+
+
+(I wonder if I ever will get used to the multitude of repositores available).
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
