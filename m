@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f12.mail.ru ([194.67.57.42])
+Received: from rv-out-0910.google.com ([209.85.198.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JcFMM-00049d-Uh
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 08:38:53 +0100
-From: Igor <goga777@bk.ru>
-To: Claes Lindblom <claesl@gmail.com>
-Mime-Version: 1.0
-Date: Thu, 20 Mar 2008 10:38:11 +0300
-In-Reply-To: <47E212A4.5060400@gmail.com>
-References: <47E212A4.5060400@gmail.com>
-Message-Id: <E1JcFLn-000Ef8-00.goga777-bk-ru@f12.mail.ru>
+	(envelope-from <mo.ucina@gmail.com>) id 1Jeoe0-00043f-6q
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 10:43:38 +0100
+Received: by rv-out-0910.google.com with SMTP id b22so2684108rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 02:43:30 -0700 (PDT)
+Message-ID: <47EB6C3F.8060305@gmail.com>
+Date: Thu, 27 Mar 2008 20:43:27 +1100
+From: O&M Ugarcina <mo.ucina@gmail.com>
+MIME-Version: 1.0
+To: Nico Sabbi <Nicola.Sabbi@poste.it>
+References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+	<200803271030.29168.Nicola.Sabbi@poste.it>
+In-Reply-To: <200803271030.29168.Nicola.Sabbi@poste.it>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?QXp1cmVXYXZlIFZQIDEwNDEgRFZCLVMyIHByb2Js?=
-	=?koi8-r?b?ZW0=?=
-Reply-To: Igor <goga777@bk.ru>
+Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
+Reply-To: mo.ucina@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,50 +23,99 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0894652854=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > How long (seconds, minutes...) this file ? 
-> > please, update your MPlayer - take the svn version.
-> > and finally please try to use dvbstream
-> >
-> > ./dvbstream -o 8192 > your.file
-> >
-> > Igor
-> >
-> >   
-> Maybe around 10 seconds long.
+--===============0894652854==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-ok
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Nico Sabbi wrote:
+<blockquote cite="mid:200803271030.29168.Nicola.Sabbi@poste.it"
+ type="cite">
+  <pre wrap="">On Thursday 27 March 2008 10:13:09 Eamonn Sullivan wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Hi, I'm a long-time linux user (since the early 1990s, pre-1.0),
+but absolutely brand spanking new to mythtv and digital TV cards. I
+have a new PC set up with the latest mythbuntu (beta 8.04, due out
+in a few weeks). I've been trying to get a Nova-T 500 to work
+reliably without much luck. The card (as noted now on the wiki --
+unfortunately not when I bought it) has serious problems with the
+new Linux kernel. I can't get it to work for more than a few hours
+at a time, and the remote is even worse. I'm in London, with a
+strong signal (and a booster too), so I don't think that's the
+problem. The PC connected to the main TV is a backend/frontend, so
+periodically restarting the backend doesn't fix the remote control
+problem (you have to log out and log back in again, which is too
+painful for what should be as simple to use for the wife and kids
+as sky+...)
 
-> I have updated MPlayer with the latest svn 
+I've pulled the latest driver sources, followed all the
+instructions on the various wiki pages, have the latest firmware,
+etc., but I'm ready to give up. I'm going to try an MCE remote,
+which by all reports seems well supported in Linux, and I'm ready
+to try a new DVB card(s). Dual-tuner is preferred, but I can also
+just install two.
 
-ok, it's right
+Can anyone recommend a DVB card that they know works reliably with
+hardy heron (ubuntu 8.04) and/or the 2.6.24 kernel, something
+that's available now down at PC World or on amazon.co.uk?
 
->and also the latest x264 
-> codec and the result is still the same with.
+Thanks much in advance.
 
-it's not need, because inside MPlayer already included the fresh ffmpeg - decoder for h264
+-Eamonn
 
- 
-> I don't understand how this dvbstream example works because of what I 
-> understand, dvbstream uses rtp streaming?
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+technisat airstar2 pci is perfect. It has a single (and dvb only) 
+tuner  with a coaxial pass-through
 
-not only for rtp streaming, dvbstrem can record the files, too
+_______________________________________________
+linux-dvb mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a>
 
-> I'm running on a 2.6.24 kernel and Slamd 64 distribution. All standard 
-> channels works fine, but DVB-S2 is the main
-> issue to solve.
+  </pre>
+</blockquote>
+Hello ,<br>
+<br>
+I think the problem here might be more related to kernel 2.6.24 than
+the card it self . There is a thread running already here called
+something like Mysterious Behaviours all about kernel 2.6.24 . I my
+self was running it for a couple of days . And had many stability
+issues with mythtv . The backend would die suddenly after running for
+30 to 40 mins , sometimes 1 hour . When trying to start it again it
+would keep crashing with error "could not bind to port" . The only way
+I could restart the backend would be to restart the whole PC . Finally
+I gave up and reverted to kernel 2.6.23 and this is where I am now .
+All working ok again . And have not had a mythbackend or frontend crash
+since .<br>
+<br>
+\Milorad<br>
+<br>
+</body>
+</html>
 
-so, it's better to write to Mplayer-dvb mailing list about your issue, and to upload your sample to Mplayer's ftp-server  ftp://upload.mplayerhq.hu/MPlayer/incoming
 
-Igor
-
+--===============0894652854==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0894652854==--
