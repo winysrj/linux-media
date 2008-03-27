@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2F7NOOP004785
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 03:23:24 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2F7MpR2017145
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 03:22:52 -0400
-Received: by fk-out-0910.google.com with SMTP id b27so4926352fka.3
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 00:22:51 -0700 (PDT)
-Message-ID: <47DB7945.9080902@claranet.fr>
-Date: Sat, 15 Mar 2008 08:22:45 +0100
-From: Eric Thomas <ethomas@claranet.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2R15EVx025451
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 21:05:14 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2R151je029106
+	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 21:05:01 -0400
+Date: Wed, 26 Mar 2008 21:04:59 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <47EAE6DD.80701@t-online.de>
+Message-ID: <Pine.LNX.4.64.0803262101120.15374@bombadil.infradead.org>
+References: <47E060EB.5040207@t-online.de>
+	<Pine.LNX.4.64.0803190017330.24094@bombadil.infradead.org>
+	<47E190CF.9050904@t-online.de> <20080319193832.643bf8a0@gaivota>
+	<47E1BCAF.80208@t-online.de> <20080319224222.581d7b85@gaivota>
+	<47E2CBEF.3090609@t-online.de> <20080321082109.07bb6013@gaivota>
+	<47EAE6DD.80701@t-online.de>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-References: <47C40563.5000702@claranet.fr>
-	<200803111839.01690.zzam@gentoo.org>	<1205281560.5927.119.camel@pc08.localdom.local>	<200803131655.46384.zzam@gentoo.org>
-	<20080313145901.6e4247b6@gaivota>	<1205448483.6359.15.camel@pc08.localdom.local>	<20080314111506.0c4cab80@gaivota>	<Pine.LNX.4.64.0803141533110.5362@axis700.grange>
-	<1205511387.22915.0.camel@localhost>
-In-Reply-To: <1205511387.22915.0.camel@localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: kernel oops since changeset e3b8fb8cc214
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,28 +33,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi,
+On Thu, 27 Mar 2008, Hartmut Hackmann wrote:
 
-Craig Whitmore wrote:
-> 
->> You don't need to any more. See my patch from 1 minute ago.
+>> The better is to do an "hg pull -u", before asking me to pull.
 >>
-> 
-> yes the patch seems to fix the problem :-)
-> 
+> Basically you are right of corse. I try to avoid this after i once saw a merge
+> causing an unnecessary huge change log. But this was an old hg version.
 
-I fully agree with Craig.
-Tested and approved !
+hg merge logs sucks, IMO. Git do a much better job. I didn't tested yet hg 
+version 1.0 (finally, they lauched version 1 ;) ).
 
+>> Just one comment about the config var (this applies also to the previous code):
+>> I'd prefer to have an enum, instead of config=0,1,2,3. Something like:
+>>
+>> enum {
+>> 	TDA827x_NO_LNA,
+>> 	TDA827x_LNA_VIA8290_LOW,
+>> 	TDA827x_LNA_VIA8290_HIGH,
+>> 	TDA827x_LNA_VIA_HOST,
+>> } config;
+>>
+>> This helps people to better understand the LNA config code.
+>>
+> Hm, i did similar things in other places...
+> I did not do this here because i wanted to be able to use this variable
+> with other tuners as well -> use #defines instead?
 
-> Thanks
-> 
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+Could be #define or enum. Yet, we'll need to have those defines/enum 
+declared into a .h, and included on the driver that uses it. We are using 
+this approach also for other drivers that need callback, like 
+tuner-xc2028.h.
+
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 --
 video4linux-list mailing list
