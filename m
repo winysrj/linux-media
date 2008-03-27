@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n34.bullet.mail.ukl.yahoo.com ([87.248.110.167])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JZQ86-0003KF-9e
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 13:32:22 +0100
-Date: Wed, 12 Mar 2008 08:29:15 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from relay-pt1.poste.it ([62.241.4.164])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JeosE-00069V-3g
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 10:58:18 +0100
+Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 47EAF1DE0000451A for linux-dvb@linuxtv.org;
+	Thu, 27 Mar 2008 10:58:14 +0100
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <3320EBAB-1EFE-4038-BCFD-D218701A8AF1@krastelcom.ru> (from
-	vpr@krastelcom.ru on Tue Mar 11 02:27:31 2008)
-Message-Id: <1205324955l.5684l.1l@manu-laptop>
+Date: Thu, 27 Mar 2008 10:59:37 +0100
+References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+	<200803271030.29168.Nicola.Sabbi@poste.it>
+	<e40e29dd0803270250q74668851qbd918b252bf0f093@mail.gmail.com>
+In-Reply-To: <e40e29dd0803270250q74668851qbd918b252bf0f093@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re :  TT S2-3200 vlc streaming
+Message-Id: <200803271059.37205.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +31,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 03/11/2008 02:27:31 AM, Vladimir Prudnikov wrote:
-> I'm getting late buffers with vlc on some transponders (DVB-S, same  
-> parameters, good signal guaranteed) while everything is fine with  
-> others. Using multiproto and TT S2-3200.
-> Anyone having same problems?
+On Thursday 27 March 2008 10:50:02 Eamonn Sullivan wrote:
+> On Thu, Mar 27, 2008 at 9:30 AM, Nico Sabbi <Nicola.Sabbi@poste.it> 
+wrote:
+> >  technisat airstar2 pci is perfect. It has a single (and dvb
+> > only) tuner  with a coaxial pass-through
+>
+> I'm assuming you mean the SkyStar. I'll take a look, thanks.
+>
+> -Eamonn
 
-Can you give the frequencies of the good and bad transponders, mine are 
-as follows:
-I can receive from 4 transponders (DVB-S): 11093, 11555, 11635, 11675 
-MHz.
-any channel on 11093: fast lock, perfect picture.
-any channel on 11555: lock a bit slower and corrupted stream (lots of 
-blocky artifacts, myhttv complains about corrupted stream)
-any channel on 11635,11675: no lock.
-Bye
-Manu
-
+no, airstar is for dvb-t, skystar is for dvb-s
 
 _______________________________________________
 linux-dvb mailing list
