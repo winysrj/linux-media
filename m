@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZXgi-000471-Vw
-	for linux-dvb@linuxtv.org; Wed, 12 Mar 2008 21:36:40 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1364964tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 13:36:31 -0700 (PDT)
-Message-ID: <abf3e5070803121336k1f2c9dc5s1962b1401cce1091@mail.gmail.com>
-Date: Thu, 13 Mar 2008 07:36:31 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: mkrufky@linuxtv.org
-In-Reply-To: <47D7F16F.4070604@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <47D7E260.4030502@iki.fi> <47D7F16F.4070604@linuxtv.org>
-Cc: crope@iki.fi, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Received: from kuat-e0.netspot.com.au ([203.30.161.145]
+	helo=kuat.netspot.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tom@netspot.com.au>) id 1JepC7-0001ty-Jo
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 11:18:56 +0100
+Received: from grover.sesame (ppp121-45-36-107.lns10.adl2.internode.on.net
+	[121.45.36.107]) (Authenticated sender: tom)
+	by kuat.netspot.com.au (Postfix) with ESMTP id B55A7280038B5
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 20:48:17 +1030 (CST)
+Message-Id: <32EC4C19-23D9-4B96-9BB5-F19325AAE546@netspot.com.au>
+From: Tom Lanyon <tom@netspot.com.au>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <e40e29dd0803270314g74e12665o694d6e9f776fb435@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Thu, 27 Mar 2008 20:48:14 +1030
+References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+	<200803270938.31699.dvb@ply.me.uk>
+	<e40e29dd0803270314g74e12665o694d6e9f776fb435@mail.gmail.com>
+Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,61 +30,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  >>
->  >> Jarryd,
->  >>
->  >> I've analyzed the snoop that you've taken of the windows driver, and I
->  >> conclude that the driver is basically doing exactly the same that the
->  >> linux driver would do.  The only thing that I cannot verify is whether
->  >> or not the tda18211 uses the same table values as the tda18271c1.
->  >> Based on the traffic in your snoop, it looks like the exact same
->  >> algorithm is used, but based on a new set of tables -- I will not be
->  >> able to confirm that without a tda18211 datasheet.  The only thing
->  >> that you can do is try the tda18271 driver and hopefully it will work.
->  >>
->  >> Have you tried to tune yet?  There is a space in your channels.conf,
->  >> "7 Digital" -- you may want to change that to something like,
->  >> "7Digital" so that command line applications will work.
->  >>
+On 27/03/2008, at 8:44 PM, Eamonn Sullivan wrote:
+> On Thu, Mar 27, 2008 at 9:38 AM, Andy Carter <dvb@ply.me.uk> wrote:
+>> I'm running a Nova T500 here on Debian 2.6.24-1-686 with very few  
+>> problems - 4
+>> disconnects 2 weeks ago shortly after install but fine since.
 >
+> From other messages on this topic, it seems the problem may not be
+> directly related to the kernel. Perhaps something in the changes
+> ubuntu has done to the stock debian base is to blame.
 >
+>>> I'm going to try an MCE remote, which by all reports
+>>> seems well supported in Linux,
+>>
+>> I was using an Igor device for many years but it always seemed too  
+>> much
+>> trouble to install after an upgrade so I've been using mceusb2 for  
+>> a long
+>> time with no problems.
 >
-> Antti Palosaari wrote:
->  > hello
->  > I looked sniffs and find correct demodulator initialization values for
->  > this NXP tuner. Copy & paste correct table from attached file and try.
->  > Hopefully it works. I compared your sniff to mt2060 and qt1010 based
->  > devices and there was still some minor differences to check.
->  >
->  > regards,
->  > Antti
->  >
+> Wonderful, that's good to here. My MCE remote is in the post.
 >
->  Antti,
+>> A standard Nova T worked fine for me for many years and there are a  
+>> few on
+>> ebay ATM.
 >
->  Please remember not to top-post.
+> A standard, meaning an earlier version (not the 500)?
 >
->  Jarryd,
->
->  I have done further analysis on the snoop logs.  Not only is the driver
->  using the same protocol as the tda18271 linux driver, it also seems to
->  use the same table values as used with the tda18271c1 -- The linux
->  driver should work on your tuner without any modification at all.
->
->  Regards,
->
->  Mike
->
+> -Eamonn
 
-I've got another tuner which works, so I know I'm tuning correctly, it just
-doesn't actually tune. I tried with mplayer, it just sat there saying
-dvb_tune Freq: 219500000 and did nothing. It also made my whole
-computer go really slow, I don't know what it was actually doing.
+Sounds like I shouldn't be scared of the T-500 unless I'm running  
+2.6.24. I will order one and see how it goes.
 
-Antti, as I said I've never done anything like this before so I have no
-idea what I'm doing, so I have no idea where to paste which table.
+Thanks list.
 
-Jarryd.
+--Tom
 
 _______________________________________________
 linux-dvb mailing list
