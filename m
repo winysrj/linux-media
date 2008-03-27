@@ -1,25 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JWAv4-00064K-Uw
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 14:41:31 +0100
-Message-ID: <47CBFFFD.1020902@gmail.com>
-Date: Mon, 03 Mar 2008 17:41:17 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Florian Lohoff <flo@rfc822.org>
-References: <20080301161419.GB12800@paradigm.rfc822.org>
-	<47CB2D95.6040602@gmail.com>
-	<20080302233653.GA3067@paradigm.rfc822.org>
-	<47CB44A8.5060103@gmail.com>
-	<20080303085249.GA6419@paradigm.rfc822.org>
-	<47CBDC63.9030207@gmail.com>
-	<20080303112610.GC6419@paradigm.rfc822.org>
-	<47CBE8FD.9030303@gmail.com>
-	<20080303132157.GA9749@paradigm.rfc822.org>
-In-Reply-To: <20080303132157.GA9749@paradigm.rfc822.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+	(envelope-from <nico@youplala.net>) id 1Jf0MS-0004fL-Q1
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 23:14:17 +0100
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <47EC13BE.6020600@simmons.titandsl.co.uk>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
+	<1206348478.6370.27.camel@youkaida>	<1206546831.8967.13.camel@acropora>
+	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+	<47EC13BE.6020600@simmons.titandsl.co.uk>
+Date: Thu, 27 Mar 2008 22:13:06 +0000
+Message-Id: <1206655986.17233.8.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,23 +33,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Florian Lohoff wrote:
-> On Mon, Mar 03, 2008 at 04:03:09PM +0400, Manu Abraham wrote:
->>> - make SET_PARAMS the call to honor delivery in dvbfe_params and remove
->>>  the setting of the delivery of GET_INFO
->>>
->>> I'd prefere the 2nd option because currently the usage and naming
->>> is an incoherent mess which should better not get more adopters ..
->> Your 2nd option won't work at all. It is completely broken when you have
->> to query statistics, before a SET_PARAMS.
+
+On Thu, 2008-03-27 at 21:38 +0000, Chris Simmons wrote:
 > 
-> I have no problem with beeing able to query stats - I have a problem
+> On an somewhat unrelated note, I was wondering about the firmware.  Am
+> I 
+> right in thinking this is closed-source (from Hauppauge)?  Could this 
+> mess be caused by the firmware falling over -> device dies -> usb 
+> disconnect or other symptoms (like losing a tuner) depending on how
+> the 
+> USB layer responds?  Not that I have a clue..
 
-You are wrong again. Please look at the code, how statistics related
-operations are retrieved.
+There is certainly a link with the firmware.
 
+Patrick had solved issues by releasing a new version.
 
-Manu
+This is why it is so important that he gets involved as soon as he can
+find time.
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
