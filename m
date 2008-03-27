@@ -1,21 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp20.orange.fr ([193.252.22.29])
+Received: from gv-out-0910.google.com ([216.239.58.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <david.bercot@wanadoo.fr>) id 1JXxWe-0008OM-Po
-	for linux-dvb@linuxtv.org; Sat, 08 Mar 2008 12:47:41 +0100
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2016.orange.fr (SMTP Server) with ESMTP id 2B5A11C0009F
-	for <linux-dvb@linuxtv.org>; Sat,  8 Mar 2008 12:47:07 +0100 (CET)
-Received: from localhost (ANantes-252-1-38-218.w82-126.abo.wanadoo.fr
-	[82.126.25.218])
-	by mwinf2016.orange.fr (SMTP Server) with ESMTP id EBD8C1C00097
-	for <linux-dvb@linuxtv.org>; Sat,  8 Mar 2008 12:47:06 +0100 (CET)
-Date: Sat, 8 Mar 2008 12:47:00 +0100
-From: David BERCOT <david.bercot@wanadoo.fr>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080308124700.581313bc@wanadoo.fr>
-Mime-Version: 1.0
-Subject: [linux-dvb] Patching MythTV in order to use it with multiproto
+	(envelope-from <henrik.list@gmail.com>) id 1Jew9g-0003jI-1B
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 18:44:51 +0100
+Received: by gv-out-0910.google.com with SMTP id o2so972288gve.16
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 10:44:44 -0700 (PDT)
+Message-ID: <af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+Date: Thu, 27 Mar 2008 18:44:43 +0100
+From: "Henrik Beckman" <henrik.list@gmail.com>
+To: "Nicolas Will" <nico@youplala.net>
+In-Reply-To: <1206605144.8947.18.camel@youkaida>
+MIME-Version: 1.0
+References: <1206139910.12138.34.camel@youkaida>
+	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
+	<1206348478.6370.27.camel@youkaida>
+	<1206546831.8967.13.camel@acropora>
+	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,64 +29,150 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1210110486=="
+Content-Type: multipart/mixed; boundary="===============1378255231=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1210110486==
-Content-Type: multipart/signed; boundary="Sig_/sUZ9Uu3I2r6CFCbu_0yhBXg";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+--===============1378255231==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_5853_6515682.1206639883418"
 
---Sig_/sUZ9Uu3I2r6CFCbu_0yhBXg
-Content-Type: text/plain; charset=US-ASCII
+------=_Part_5853_6515682.1206639883418
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hi,
+I think we are better of trying to pin the problem down to a point where we
+can switch it on/off with a change of kernel or dvb code, may I humbly
+suggest.
 
-On Debian, I've downloaded the source version of MythTV :
-v0.20.2.svn20080126. Then, I've downloaded the patch from
-http://pansy.at/gernot/mythtv-multiproto-hack.diff.gz
+Verify if the current tree is stable on 2.6.22.
+Verify if it breaks with a newer kernel, then check for changes in the
+changelog regarding usb.
+Collecting debug info about the disconnects is probably very good, let=B4s
+hope someone takes pity on us.
 
-But, when I try to apply it, I have these errors :
-# patch <./mythtv-multiproto-hack.diff -p0
-patching file libs/libmythtv/dvbchannel.cpp
-Hunk #1 FAILED at 138.
-Hunk #2 succeeded at 146 (offset -11 lines).
-Hunk #3 FAILED at 452.
-Hunk #4 FAILED at 509.
-Hunk #5 succeeded at 586 with fuzz 1 (offset 19 lines).
-Hunk #6 FAILED at 625.
-Hunk #7 succeeded at 670 (offset 19 lines).
-Hunk #8 succeeded at 800 (offset -33 lines).
-Hunk #9 FAILED at 850.
-5 out of 9 hunks FAILED -- saving rejects to file libs/libmythtv/dvbchannel=
-.cpp.rej
-
-Do have any idea to resolve these errors ?
-
-Thank you very much.
-
-David.
-
---Sig_/sUZ9Uu3I2r6CFCbu_0yhBXg
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFH0ny6vSnthbGI8ygRAg8HAJ0YDUho0cq0bB1KdFqTmxoneKiWeACgj/bB
-WTIvOdNhVnqqpyshc+vP1eE=
-=oI9D
------END PGP SIGNATURE-----
-
---Sig_/sUZ9Uu3I2r6CFCbu_0yhBXg--
+I had problems until my recent config, at the same moment it was stable I
+stopped tinkering and haven=B4t dared to upgrade anything since.
+My bet is that the dibcom stuff does something ugly and that there is
+changes in the kernel usb code (or even config) that makes the problem
+reappear.
 
 
 
---===============1210110486==
+
+/Henrik
+
+
+On Thu, Mar 27, 2008 at 9:05 AM, Nicolas Will <nico@youplala.net> wrote:
+
+>
+> On Wed, 2008-03-26 at 21:17 +0000, Nicolas Will wrote:
+> > Well, fine.
+> >
+> > What we need here is a developer.
+> >
+> > What a developer needs is info, without it, he will not be able to
+> > help.
+> >
+> > I've posted logs, now your turn.
+> >
+>
+> Adding the following lines in your /etc/modprobe.d/options would be a
+> good start:
+>
+> options dvb-usb-dib0700 debug=3D1
+> options mt2060 debug=3D1
+> options dibx000_common debug=3D1
+> options dvb_core debug=3D1
+> options dvb_core dvbdev_debug=3D1
+> options dvb_core frontend_debug=3D1
+> options dvb_usb debug=3D1
+> options dib3000mc debug=3D1
+>
+> Then post the lines of /var/log/syslog and /var/log/messages around the
+> disconnect event.
+>
+> Better post them somewhere on a web page or a pastebin.
+>
+> Nico
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_5853_6515682.1206639883418
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<br>I think we are better of trying to pin the problem down to a point wher=
+e we can switch it on/off with a change of kernel or dvb code, may I humbly=
+ suggest.<br><br>Verify if the current tree is stable on 2.6.22.<br>Verify =
+if it breaks with a newer kernel, then check for changes in the changelog r=
+egarding usb.<br>
+Collecting debug info about the disconnects is probably very good, let=B4s =
+hope someone takes pity on us.<br><br>I had problems until my recent config=
+, at the same moment it was stable I stopped tinkering and haven=B4t dared =
+to upgrade anything since. <br>
+My bet is that the dibcom stuff does something ugly and that there is chang=
+es in the kernel usb code (or even config) that makes the problem reappear.=
+ <br><br><br><br><br>/Henrik<br><br><br><div class=3D"gmail_quote">On Thu, =
+Mar 27, 2008 at 9:05 AM, Nicolas Will &lt;<a href=3D"mailto:nico@youplala.n=
+et">nico@youplala.net</a>&gt; wrote:<br>
+<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
+204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class=3D"Ih2=
+E3d"><br>
+On Wed, 2008-03-26 at 21:17 +0000, Nicolas Will wrote:<br>
+&gt; Well, fine.<br>
+&gt;<br>
+&gt; What we need here is a developer.<br>
+&gt;<br>
+&gt; What a developer needs is info, without it, he will not be able to<br>
+&gt; help.<br>
+&gt;<br>
+&gt; I&#39;ve posted logs, now your turn.<br>
+&gt;<br>
+<br>
+</div>Adding the following lines in your /etc/modprobe.d/options would be a=
+<br>
+good start:<br>
+<div class=3D"Ih2E3d"><br>
+options dvb-usb-dib0700 debug=3D1<br>
+options mt2060 debug=3D1<br>
+options dibx000_common debug=3D1<br>
+options dvb_core debug=3D1<br>
+options dvb_core dvbdev_debug=3D1<br>
+options dvb_core frontend_debug=3D1<br>
+options dvb_usb debug=3D1<br>
+options dib3000mc debug=3D1<br>
+<br>
+</div>Then post the lines of /var/log/syslog and /var/log/messages around t=
+he<br>
+disconnect event.<br>
+<br>
+Better post them somewhere on a web page or a pastebin.<br>
+<div><div></div><div class=3D"Wj3C7c"><br>
+Nico<br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
+t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
+br>
+</div></div></blockquote></div><br>
+
+------=_Part_5853_6515682.1206639883418--
+
+
+--===============1378255231==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -90,4 +182,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1210110486==--
+--===============1378255231==--
