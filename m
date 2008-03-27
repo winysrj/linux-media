@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from the145744-1.gw.connect.com.au ([210.11.79.12]
-	helo=digivation.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark@digivation.com.au>) id 1Jdw1b-0005sV-K3
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 00:24:24 +0100
-Received: from wrwcmeld026 (mail.sigtec.com.au [202.134.36.62])
-	(authenticated bits=0)
-	by digivation.com.au (8.14.1/8.14.1/Debian-9) with ESMTP id
-	m2ONO2s3013653
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 10:24:03 +1100
-Message-ID: <006d01c88e06$25cb0830$a101a8c0@sigtec.com.au>
-From: "Mark Spieth" <mark@digivation.com.au>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 25 Mar 2008 10:23:57 +1100
-MIME-Version: 1.0
-Subject: [linux-dvb] best mxl500x repo
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nico@youplala.net>) id 1JesOV-0004iy-4t
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 14:43:55 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id B964FD88134
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 14:42:51 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200803271335.21698.dvb@ply.me.uk>
+References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+	<200803271026.29470.dvb@ply.me.uk>
+	<e40e29dd0803270556n15ad6c86i8c47049f2bab845b@mail.gmail.com>
+	<200803271335.21698.dvb@ply.me.uk>
+Date: Thu, 27 Mar 2008 13:42:45 +0000
+Message-Id: <1206625365.7076.75.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,16 +30,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi
+On Thu, 2008-03-27 at 13:35 +0000, Andy Carter wrote:
+> 
+> Incidentally if Phil Pemberton is reading this, my stable system is
+> using an 
+> Intel usb chipset.
+> 
 
-which is the best mxl500x repo to use, manu or stoth?
-I have a kworld dual plus 399U afatech which uses this tuner and I want to 
-merge the mxl500x tuner into the anttip repo.
-I assume this is the best af9015 repo to use as opposed to zoltech or manu.
-USB ID is 1B80:E399
+Same here.
 
-thanks
-mark 
+Nico
 
 
 _______________________________________________
