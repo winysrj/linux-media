@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f9.mail.ru ([194.67.57.39])
+Received: from wa-out-1112.google.com ([209.85.146.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JbUh3-0006iW-RR
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 06:49:22 +0100
-From: Igor <goga777@bk.ru>
-To: Claes Lindblom <claesl@gmail.com>
-Mime-Version: 1.0
-Date: Tue, 18 Mar 2008 08:48:27 +0300
-In-Reply-To: <47DEDA99.8060703@gmail.com>
-References: <47DEDA99.8060703@gmail.com>
-Message-Id: <E1JbUgV-000A7p-00.goga777-bk-ru@f9.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?QXp1cmVXYXZlIFZQIDEwNDEgRFZCLVMyIHByb2Js?=
-	=?koi8-r?b?ZW0=?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <makosoft@googlemail.com>) id 1Jexyy-0005kM-TA
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 20:41:55 +0100
+Received: by wa-out-1112.google.com with SMTP id m28so4981686wag.13
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 12:41:47 -0700 (PDT)
+Message-ID: <c8b4dbe10803271241i20990cf3j1b75c85f1f649916@mail.gmail.com>
+Date: Thu, 27 Mar 2008 19:41:47 +0000
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <47EBF4B7.2060705@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <47EBF4B7.2060705@linuxtv.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Hauppauge WinTV-CI Spec
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,44 +28,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > try please 
-> > dvbsnoop -s ts -b -tsraw > YOUR.file.name
-> >
-> >   
-> Ok, now I have tested dvbsnoop -s -ts -tsraw > svt_hd.ts
-> and got the following output from mplayer.
-> 
-> TS file format detected.
-> VIDEO MPEG2(pid=512) AUDIO A52(pid=641) NO SUBS (yet)!  PROGRAM N. 0
-> TS_PARSE: COULDN'T SYNC
-> MPEG: FATAL: EOF while searching for sequence header.
-> Video: Cannot read properties.
-> ==========================================================================
-> Opening audio decoder: [liba52] AC3 decoding with liba52
-> Using SSE optimized IMDCT transform
-> Using MMX optimized resampler
-> AUDIO: 48000 Hz, 2 ch, s16le, 640.0 kbit/41.67% (ratio: 80000->192000)
-> Selected audio codec: [a52] afm: liba52 (AC3-liba52)
-> ==========================================================================
-> AO: [oss] 48000Hz 2ch s16le (2 bytes per sample)
-> Video: no video
-> Starting playback...
-> A:69923.4 (19:25:23.4) of 198.0 (03:18.0)  0.7%
-> 
-> Exiting... (End of file)
-> 
-> The file is about 16MB and audio seems to be working but it detects 
-> video as MPEG2 for some reason.
+On Thu, Mar 27, 2008 at 7:25 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> Recap: I said I'd notify the list when the spec was released for the
+>  Hauppauge CI device.
+>
+>  Hello!
+>
+>  http://www.smardtv.com/index.php?page=dvbci&rubrique=specification
+>
+>  Looks like SmartDTV have finally got something out of the door. Put your
+>  email address in their database and they'll email you the PDF with full
+>  command interface describing the protocol.
+>
+>  Regards,
+>
+>  - Steve
 
+Hi,
 
-How long (seconds, minutes...) this file ? 
-please, update your MPlayer - take the svn version.
-and finally please try to use dvbstream
+I'm not sure how that's relevant. It seems to be the spec for
+something called CI+, intended to prevent unauthorised systems from
+getting access to the decrypted stream coming out the CAM and ensure
+only authorised host devices can use CAMs. I expect open source
+software will be able to make use of this stuff approximately when
+hell freezes over. If this catches on, say hello to more copy
+protection and bye-bye to being able to use CAMs under Linux!
 
-./dvbstream -o 8192 > your.file
-
-Igor
-
+Aidan
 
 _______________________________________________
 linux-dvb mailing list
