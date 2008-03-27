@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web33108.mail.mud.yahoo.com ([209.191.69.138])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <simeonov_2000@yahoo.com>) id 1JW2iV-0003yn-Tn
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 05:56:02 +0100
-Date: Sun, 2 Mar 2008 20:55:25 -0800 (PST)
-From: Simeon Simeonov <simeonov_2000@yahoo.com>
-To: Manu Abraham <abraham.manu@gmail.com>
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dcharvey@dsl.pipex.com>) id 1Jeo77-0007u2-P1
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 10:09:40 +0100
+Message-ID: <47EB642F.3050606@dsl.pipex.com>
+Date: Thu, 27 Mar 2008 09:09:03 +0000
+From: David Harvey <dcharvey@dsl.pipex.com>
 MIME-Version: 1.0
-Message-ID: <625613.51483.qm@web33108.mail.mud.yahoo.com>
+To: Philip Pemberton <lists@philpem.me.uk>
+References: <mailman.81.1206506075.819.linux-dvb@linuxtv.org>
+	<47EA17BE.3080409@dsl.pipex.com> <47EACB93.7050400@philpem.me.uk>
+In-Reply-To: <47EACB93.7050400@philpem.me.uk>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 users,
-	please verify results was Re: TechniSat SkyStar HD: Problems
-	scaning and zaping
+Subject: Re: [linux-dvb] Nova - t disconnects
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,63 +26,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I am using mythtv and here is the sequence of commands:
+Philip Pemberton wrote:
+> David Harvey wrote:
+>>  MT2060: successfully identified (IF1 = 1220)
+>> [ 589.459712] input: IR-receiver inside an USB DVB receiver as 
+>> /devices/pci0000:00/0000:00:13.2/usb3/3-8/input/input16
+>> [ 589.470534] dvb-usb: schedule remote query interval to 150 msecs.
+>> [ 589.470540] dvb-usb: Hauppauge Nova-T Stick successfully 
+>> initialized and connected.
+>> [ 606.300175] hub 3-0:1.0: port 8 disabled by hub (EMI?), re-enabling...
+>> [ 606.300181] usb 3-8: USB disconnect, address 11
+>> [ 606.312990] mt2060 I2C write failed
+>> [ 608.563167] mt2060 I2C write failed
+>> [ 608.563243] mt2060 I2C write failed (len=2)
+>> [ 608.563246] mt2060 I2C write failed (len=6)
+>
+> ...
+>
+> Here's your problem:
+>
+>> 00:00.0 Host bridge: ATI Technologies Inc RS480 Host Bridge (rev 01)
+> ...
+>> 00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host 
+>> Controller
+>> 00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host 
+>> Controller
+>> 00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host 
+>> Controller
+>
+> USB2 on ATI chipsets is hopelessly, horrendously broken. A Cardbus 
+> USB2 card (or in the case of a desktop, a PCI USB2 card) should fix 
+> this -- the NEC chipset based boards are (from what I've heard) the 
+> best of the bunch, but VIA based boards aren't (too) bad.
+>
 
-Without repeat:
-DiSEqCDevTree: Changing LNB voltage to 13V
-DiSEqCDevTree: Rotor - Goto Stored Position 2
-DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
+I see!  I'll try and get hardy (and therefore the 2.6.24 kernel testing 
+on my hopelessly underpowered mythbackend (Epia Mini itx 1Ghz) to offer 
+some feedback from another chipset combo
 
-With repeat:
-DiSEqCDevTree: Changing LNB voltage to 13V
-DiSEqCDevTree: Rotor - Goto Stored Position 2
-DiSEqCDevTree: Sending DiSEqC Command: e0 31 6b  2 
-DiSEqCDevTree: Changing to DiSEqC switch port 1/4
-DiSEqCDevTree: Sending DiSEqC Command: e0 10 38 f0 
-DiSEqCDevTree: Repeat DiSEqC Command: e1 10 38 f0 
+Cheers,
 
-
------ Original Message ----
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Simeon Simeonov <simeonov_2000@yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Sent: Sunday, March 2, 2008 2:38:51 PM
-Subject: Re: [linux-dvb] STB0899 users, please verify results was Re: TechniSat SkyStar HD: Problems scaning and zaping
-
-Simeon Simeonov wrote:
-> Hi Manu,
-> 
-> I am attaching two gzipped logs. They are supposed to tune to the same frequency using the tip
-> of Mantis tree. The difference between the two are that in the GOOD log no repeat command is used
-> and in the BAD log one repeat for the switch is issued. The initial position of my rotor is about 20 deg
-> east from the target rotor position. 
-> Using the tunning without the repeats the rotor goes all the way through and tunes successfully - GOOD log.
-> When repeat command is included in the diseqc sequence the rotor goes about 10 degrees to the west and stops as if it has reached the desired position.  The BAD log corresponds to that.
-> When I tried to move to any other rotor stored position I find that that all of the memorized in the rotor positions are shifted. My guess is that for some reason the rotor stops, stores current position as the target one and then
-> re-calculates all of them. But I do not see anything like that in the log file. The only thing I see is that
-> after the third byte  in the  diseqc  repeat command fifo  get  full  and  sending  the  next  byte  has  to
-> wait for one cycle.
-> The  same  sequences  work  just  fine  with  my  102g  card  and the v4l drivers.
-
-Can you please try to get the DiSEqC strings that you are sending
-(from the application) in these 2 cases ?
-
-* Without repeat
-* With repeat
-
-Regards,
-Manu
-
-
-
-
-
-
-      ____________________________________________________________________________________
-Never miss a thing.  Make Yahoo your home page. 
-http://www.yahoo.com/r/hs
+dh
 
 _______________________________________________
 linux-dvb mailing list
