@@ -1,25 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from an-out-0708.google.com ([209.85.132.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1Jf0MS-0004fL-Q1
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 23:14:17 +0100
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47EC13BE.6020600@simmons.titandsl.co.uk>
-References: <1206139910.12138.34.camel@youkaida>
-	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
-	<1206348478.6370.27.camel@youkaida>	<1206546831.8967.13.camel@acropora>
-	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
-	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
-	<47EC13BE.6020600@simmons.titandsl.co.uk>
-Date: Thu, 27 Mar 2008 22:13:06 +0000
-Message-Id: <1206655986.17233.8.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
-	are back!
+	(envelope-from <eamonn.sullivan@gmail.com>) id 1Jep7b-0000Nq-W0
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 11:14:13 +0100
+Received: by an-out-0708.google.com with SMTP id d18so314612and.125
+	for <linux-dvb@linuxtv.org>; Thu, 27 Mar 2008 03:14:07 -0700 (PDT)
+Message-ID: <e40e29dd0803270314g74e12665o694d6e9f776fb435@mail.gmail.com>
+Date: Thu, 27 Mar 2008 10:14:07 +0000
+From: "Eamonn Sullivan" <eamonn.sullivan@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200803270938.31699.dvb@ply.me.uk>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+	<200803270938.31699.dvb@ply.me.uk>
+Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,26 +28,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Thu, Mar 27, 2008 at 9:38 AM, Andy Carter <dvb@ply.me.uk> wrote:
+>  I'm running a Nova T500 here on Debian 2.6.24-1-686 with very few problems - 4
+>  disconnects 2 weeks ago shortly after install but fine since.
 
-On Thu, 2008-03-27 at 21:38 +0000, Chris Simmons wrote:
-> 
-> On an somewhat unrelated note, I was wondering about the firmware.  Am
-> I 
-> right in thinking this is closed-source (from Hauppauge)?  Could this 
-> mess be caused by the firmware falling over -> device dies -> usb 
-> disconnect or other symptoms (like losing a tuner) depending on how
-> the 
-> USB layer responds?  Not that I have a clue..
+>From other messages on this topic, it seems the problem may not be
+directly related to the kernel. Perhaps something in the changes
+ubuntu has done to the stock debian base is to blame.
 
-There is certainly a link with the firmware.
+>  > I'm going to try an MCE remote, which by all reports
+>  > seems well supported in Linux,
+>
+>  I was using an Igor device for many years but it always seemed too much
+>  trouble to install after an upgrade so I've been using mceusb2 for a long
+>  time with no problems.
 
-Patrick had solved issues by releasing a new version.
+Wonderful, that's good to here. My MCE remote is in the post.
 
-This is why it is so important that he gets involved as soon as he can
-find time.
+>  A standard Nova T worked fine for me for many years and there are a few on
+>  ebay ATM.
 
-Nico
+A standard, meaning an earlier version (not the 500)?
 
+-Eamonn
 
 _______________________________________________
 linux-dvb mailing list
