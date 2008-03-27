@@ -1,25 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.229])
+Received: from fmmailgate02.web.de ([217.72.192.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Jea5U-0003Si-DG
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 19:11:04 +0100
-Received: by wx-out-0506.google.com with SMTP id s11so4103113wxc.17
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 11:10:34 -0700 (PDT)
-Message-ID: <d9def9db0803261110l6d9e948bt4be847e9ebaf7ff1@mail.gmail.com>
-Date: Wed, 26 Mar 2008 19:10:34 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Patrik Hansson" <patrik@wintergatan.com>
-In-Reply-To: <8ad9209c0803261055y72a34ceax9b346d55525a9c4d@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida> <1206185051.22131.5.camel@tux>
-	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
-	<1206348478.6370.27.camel@youkaida>
-	<1206546831.8967.13.camel@acropora>
-	<8ad9209c0803261055y72a34ceax9b346d55525a9c4d@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
+	(envelope-from <Christoph.Honermann@web.de>) id 1JezSq-000724-RI
+	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 22:16:49 +0100
+From: Christoph Honermann <Christoph.Honermann@web.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Date: Thu, 27 Mar 2008 22:16:04 +0100
+Message-Id: <1206652564.6924.22.camel@ubuntu>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] saa7134: fixed pointer in tuner callback
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,88 +17,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1346577944=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 3/26/08, Patrik Hansson <patrik@wintergatan.com> wrote:
-> On Wed, Mar 26, 2008 at 4:53 PM, Nicolas Will <nico@youplala.net> wrote:
-> > On Mon, 2008-03-24 at 08:47 +0000, Nicolas Will wrote:
-> > > Guys,
-> > >
-> > > I was running with the following debug options when I got a disconnec=
-t:
-> > >
-> > > options dvb-usb-dib0700 force_lna_activation=3D1
-> > > options dvb-usb-dib0700 debug=3D1
-> > > options mt2060 debug=3D1
-> > > options dibx000_common debug=3D1
-> > > options dvb_core debug=3D1
-> > > options dvb_core dvbdev_debug=3D1
-> > > options dvb_core frontend_debug=3D1
-> > > options dvb_usb debug=3D1
-> > > options dib3000mc debug=3D1
-> > > options usbcore autosuspend=3D-1
-> > >
-> > >
-> > > /var/log/messages is here:
-> > >
-> > > http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
-> > >
-> > > and slightly different data:
-> > >
-> > > http://www.youplala.net/~will/htpc/disconnects/syslog-with_debug
-> > >
-> > > Can that help, or would more be needed?
-> > >
-> > > There was zero remote usage at the time.
-> >
-> >
-> > This is really a cry for help.
-> >
-> > I am not a coder, I don't even know where my K&R C book that I bought 17
-> > years ago is anymore, so I cannot dive into the code and pretend to
-> > understand it.
-> >
-> > But I can push, pull, help coordinate, document, hg clone, compile,
-> > install, reboot, test, report, publish results on the wiki, and more if
-> > needed.
-> >
-> > That card was nearly working 100%, then something broke, and we are back
-> > to the status we had 1 year ago.
-> >
-> > Please, please, please...
-> >
-> >
-> >
-> > Nico
-> >
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
->
-> When you get a disconnect what is needed for you to be able to get it bac=
-k ?
-> Just so there is no missunderstanding.
->
->
-> I=B4m running sasc-ng as cardemulator to be able to use my card for the
-> encrypted channels here in Sweden and i only have to restart that (and
-> of course mythtv-backend) and the tuner is back.
->
 
-The driver will be held back from unloading as long as a devicenode is open.
-So restarting all applications which accesses the device nodes should
-definitely help if that problem comes up.
+--===============1346577944==
+Content-Type: multipart/alternative; boundary="=-5MFp0RVjHaBoChhmFwfp"
 
-Markus
+
+--=-5MFp0RVjHaBoChhmFwfp
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Hi, Hartmund
+
+I have tested the following archives with my MD8800 und the DVB-S Card.
+
+v4l-dvb-912856e2a0ce.tar.bz2 --> The DVB-S Input 1 works.
+The module of the following archives are loaded with the option
+"use_frontend=1,1" at the Shell or automatically:
+    /etc/modprobe.d/saa7134-dvb   with the following line
+   "options saa7134-dvb use_frontend=1,1"
+v4l-dvb-1e295a94038e.tar.bz2; 
+
+        FATAL: Error inserting saa7134_dvb
+        (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)
+        
+        saa7134_dvb: disagrees about version of symbol
+        saa7134_ts_register
+        saa7134_dvb: Unknown symbol saa7134_ts_register
+        saa7134_dvb: Unknown symbol videobuf_queue_sg_init
+        saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
+        saa7134_dvb: Unknown symbol saa7134_set_gpio
+        saa7134_dvb: disagrees about version of symbol
+        saa7134_i2c_call_client
+        saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
+        saa7134_dvb: disagrees about version of symbol
+        saa7134_ts_unregister
+        saa7134_dvb: Unknown symbol saa7134_ts_unregister
+
+
+v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 -->
+
+        FATAL: Error inserting saa7134_dvb
+        (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)
+        
+        dmesg | grep saa7134 
+        saa7134_dvb: Unknown symbol saa7134_tuner_callback
+        saa7134_dvb: disagrees about version of symbol
+        saa7134_ts_register
+        saa7134_dvb: Unknown symbol saa7134_ts_register
+        saa7134_dvb: Unknown symbol videobuf_queue_sg_init
+        saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
+        saa7134_dvb: Unknown symbol saa7134_set_gpio
+
+The Hardware ist working with Windows XP with both Input channels.
+
+
+best regards
+Christoph
+
+
+--=-5MFp0RVjHaBoChhmFwfp
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.16.1">
+</HEAD>
+<BODY>
+Hi, Hartmund<BR>
+<BR>
+I have tested the following archives with my MD8800 und the DVB-S Card.<BR>
+<BR>
+v4l-dvb-912856e2a0ce.tar.bz2 --&gt; The DVB-S Input 1 works.<BR>
+The module of the following archives are loaded with the option &quot;use_frontend=1,1&quot; at the Shell or automatically:<BR>
+&nbsp;&nbsp;&nbsp; /etc/modprobe.d/saa7134-dvb&nbsp;&nbsp; with the following line<BR>
+&nbsp;&nbsp; &quot;options saa7134-dvb use_frontend=1,1&quot;<BR>
+v4l-dvb-1e295a94038e.tar.bz2; <BR>
+<BLOCKQUOTE>
+    FATAL: Error inserting saa7134_dvb (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)<BR>
+    <BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_register<BR>
+    saa7134_dvb: Unknown symbol saa7134_ts_register<BR>
+    saa7134_dvb: Unknown symbol videobuf_queue_sg_init<BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio<BR>
+    saa7134_dvb: Unknown symbol saa7134_set_gpio<BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client<BR>
+    saa7134_dvb: Unknown symbol saa7134_i2c_call_clients<BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister<BR>
+    saa7134_dvb: Unknown symbol saa7134_ts_unregister<BR>
+</BLOCKQUOTE>
+<BR>
+v4l-dvb-f98d28c21389.tar.bz2&nbsp; and v4l-dvb-a06ac2bdeb3c.tar.bz2 --&gt;<BR>
+<BLOCKQUOTE>
+    FATAL: Error inserting saa7134_dvb (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)<BR>
+    <BR>
+    dmesg | grep saa7134 <BR>
+    saa7134_dvb: Unknown symbol saa7134_tuner_callback<BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_register<BR>
+    saa7134_dvb: Unknown symbol saa7134_ts_register<BR>
+    saa7134_dvb: Unknown symbol videobuf_queue_sg_init<BR>
+    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio<BR>
+    saa7134_dvb: Unknown symbol saa7134_set_gpio<BR>
+</BLOCKQUOTE>
+The Hardware ist working with Windows XP with both Input channels.<BR>
+<BR>
+<BR>
+best regards<BR>
+Christoph<BR>
+<TABLE CELLSPACING="0" CELLPADDING="0" WIDTH="100%">
+<TR>
+<TD>
+<BR>
+</TD>
+</TR>
+</TABLE>
+</BODY>
+</HTML>
+
+--=-5MFp0RVjHaBoChhmFwfp--
+
+
+
+--===============1346577944==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1346577944==--
