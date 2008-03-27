@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CDhQws010289
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 09:43:26 -0400
-Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CDgsdF013545
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 09:42:55 -0400
-Received: by mu-out-0910.google.com with SMTP id i10so8292261mue.5
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 06:42:54 -0700 (PDT)
-Date: Wed, 12 Mar 2008 21:42:47 +0800
-From: Limin Wang <lance.lmwang@gmail.com>
-To: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-Message-ID: <20080312134247.GA5902@lmwangpc.yuvad.cn>
-References: <20080312082530.GA3570@lmwangpc.yuvad.cn>
-	<47D7A00C.1020307@cineca.it>
-	<20080312101633.GA4654@lmwangpc.yuvad.cn>
-	<20080312113807.GB20885@stinkie>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2RICb1a026601
+	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 14:12:38 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2RICMi0005918
+	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 14:12:22 -0400
+Received: by ti-out-0910.google.com with SMTP id 11so1629507tim.7
+	for <video4linux-list@redhat.com>; Thu, 27 Mar 2008 11:12:21 -0700 (PDT)
+Message-ID: <37219a840803271112h571be84fu56a3bae24f406957@mail.gmail.com>
+Date: Thu, 27 Mar 2008 14:12:20 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Edward Ludlow" <eludlow@btinternet.com>
+In-Reply-To: <47EBE2E6.5090801@btinternet.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20080312113807.GB20885@stinkie>
-Content-Transfer-Encoding: 8bit
+References: <47EBC75E.8040905@btinternet.com>
+	<37219a840803271052h59c73235pa44932bef06388a6@mail.gmail.com>
+	<37219a840803271054i174dbf1ck3953d8e78ef79ab9@mail.gmail.com>
+	<47EBE2E6.5090801@btinternet.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: any recommendations for SD/SDI cards under linux?
+Subject: Re: Problems building v4l-dvb modules
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,37 +33,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Thu, Mar 27, 2008 at 2:09 PM, Edward Ludlow <eludlow@btinternet.com> wrote:
+> Michael Krufky wrote:
+>
+>  >>  Don't do *make load* (I'll edit the wiki entry)
+>  >>
+>  >>  Reboot your computer, and it should be OK.
+>  >
+>  >
+>  > Ugh, it's too much to change and I don't have the time right now....
+>  >
+>  >
+>  > If anybody is interested in fixing this wiki entry, please be aware
+>  > that "make load" and "make reload" are *never* appropriate.  Just
+>  > modprobe the module that you need.  Loading ALL modules is a terrible
+>  > idea, and is only useful for debugging if you *really* know what
+>  > you're doing.
+>  >
+>  > -Mike
+>  >
+>
+>  Thanks Mike.
+>
+>  So do I stop after "make install" or do the "make unload" as per the wiki?
+>
+>  Is that it then?  The wiki then goes on to explain errors you may get -
+>  and not a lot more.  What's the next step?
+>
+>  Please excuse the linux noobie questions!
 
-* Daniel Glöckner <daniel-gl@gmx.net> [2008-03-12 12:38:07 +0100]:
+If you are going to reboot, then you can do "make install" as the last
+step before rebooting.
 
-> On 12 Mar 08 18:16, Limin Wang wrote:
-> > Thanks for your comments, I have look at their SDK. It seems that they save
-> > the orignal SDI data into file and haven't any interface to demux the video 
-> > and audio of the raw SDI stream. I need to transcode the SDI to other compress
-> > format h264/aac etc to save disk space.
-> 
-> You shouldn't make your decision to buy a card depend on the SDK.
-> When I look at the "SDK", I see a complete open source public domain driver
-> that gives access to all aspects of the SDI stream.
-> 
-> As SDI is uncompressed, it should be a matter of hours to write a
-> demultiplexer and feed the streams to x264 and faac or any other compresser.
-> 
-> I found the Ingex software suite that deals with SDI data on Sourceforge.
-> Maybe it includes a demultiplexer you can use.
-> 
-> Btw., the PCIe version is 5% cheaper.
+If you are going to modprobe the module that you need, then do "make
+unload" beforehand, after doing "make install" first.
 
-thanks to all for your information. I haven't look at SDI format in detail. To
-my knowledge, it can embedded audio with uncompress or compress format, so any
-idea about it? Any question for audio/video sync? If I had to write SDI
-de-muxer, what's the specs to process all SDI format so that I can demux it by
-the definition of standard.
+If you run into *any* problem, or dont know what module you need for
+your device, then just reboot.
 
-
-Thanks,
-Limin
+-Mike
 
 --
 video4linux-list mailing list
