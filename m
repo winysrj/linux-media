@@ -1,19 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.krastelcom.ru ([88.151.248.4])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vpr@krastelcom.ru>) id 1JXZOh-0000c8-4k
-	for linux-dvb@linuxtv.org; Fri, 07 Mar 2008 11:01:51 +0100
-Message-Id: <B4CC8416-AE2F-45E0-92E5-8E91D3801D1C@krastelcom.ru>
-From: Vladimir Prudnikov <vpr@krastelcom.ru>
-To: manu <eallaud@yahoo.fr>
-In-Reply-To: <1204839194l.6185l.0l@manu-laptop>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Fri, 7 Mar 2008 10:31:32 +0300
-References: <4FE634A7-9896-44C0-92A4-7B19E3ECB782@krastelcom.ru>
-	<1204839194l.6185l.0l@manu-laptop>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : Decrypting multiple services with a
-	professional CAM module and VLC
+	(envelope-from <nico@youplala.net>) id 1JfGxc-0006Pz-23
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 16:57:46 +0100
+Received: from [134.32.138.158] (unknown [134.32.138.158])
+	by mail.youplala.net (Postfix) with ESMTP id AF059D88138
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 16:56:43 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206546831.8967.13.camel@acropora>
+	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+	<47EC13BE.6020600@simmons.titandsl.co.uk>
+	<1206655986.17233.8.camel@youkaida>
+	<8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
+Date: Fri, 28 Mar 2008 15:56:37 +0000
+Message-Id: <1206719797.14161.8.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,60 +37,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-There's no 4 services Aston. The prices approximately as follows:
+On Fri, 2008-03-28 at 16:46 +0100, Patrik Hansson wrote:
+> Tried to collect some info from logs.
+> messages:
+> http://pastebin.com/f5cc1bc26
+> syslog:
+> http://pastebin.com/f402477c9
+> debug:
+> http://pastebin.com/f187de73a
+> 
 
-Smit:
+This is missing a bit of context.
 
-4 services - 300 USD
-6 services - 350 USD
-8 services - 400 USD
+And I see no disconnect there.
 
-Aston:
+The mt2060 i2c read/write errors are, I think, a by-product of something
+else, and not the real problem. A disconnect happens, then you see the
+mt2060 i2c error, not the other way around.
 
-2 services - 200 USD
-12 services - 850 USD
-
-The prices have little difference by encryption system.
-
-More over, 8 services Smit CAM decryption drops out after some time  
-with TT S2-3200 and vlc reverting to encrypted streams.
-2 services Aston is fine until now.
-
-Never the less, It's weird that an 8 services CAM can do only 8...
-
-Regards,
-Vladimir
-
-On Mar 7, 2008, at 12:33 AM, manu wrote:
-
-> On 03/06/2008 06:37:12 AM, Vladimir Prudnikov wrote:
->> Anyone having luck decrypting 5-8 or more services with professional
->> CA modules (Smit, Aston) using a DVB card and VLC?
->> I can get only 4 with an 8 services module from SMIT.
->>
->> Regards,
->> Vladimir
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->>
->
-> Just out of curiosity, how much does a 4-services aston (mediaguard)
-> cost please?
-> Thx
-> Bye
-> Manu
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Nico
 
 
 _______________________________________________
