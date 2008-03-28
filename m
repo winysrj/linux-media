@@ -1,24 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CHqAal031565
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 13:52:10 -0400
-Received: from ex.volia.net (ex.volia.net [82.144.192.10])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CHpPA3007829
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 13:51:26 -0400
-Message-ID: <003401c88469$af50f4d0$6401a8c0@LocalHost>
-From: "itman" <itman@fm.com.ua>
-To: "S G" <stive_z@hotmail.com>, "hermann pitton" <hermann-pitton@arcor.de>
-References: <47D6F12C.7040102@fm.com.ua>
-	<1205269761.5927.77.camel@pc08.localdom.local>
-	<BAY107-W53381D746959C109E3EF0097080@phx.gbl>
-Date: Wed, 12 Mar 2008 19:51:22 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: simon@kalmarkaglan.se, video4linux-list@redhat.com, xyzzy@speakeasy.org,
-	midimaker@yandex.ru, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: RE: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+Message-Id: <20080328094021.927527199@ifup.org>
+References: <20080328093944.278994792@ifup.org>
+Date: Fri, 28 Mar 2008 02:39:50 -0700
+From: brandon@ifup.org
+To: mchehab@infradead.org
+Content-Disposition: inline; filename=videobuf-mmap-setup.patch
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Brandon Philips <bphilips@suse.de>
+Subject: [patch 6/9] videobuf-vmalloc.c: Fix hack of postponing mmap on
+	remap failure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,166 +20,192 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Steve.
+In videobuf-vmalloc.c remap_vmalloc_range is failing when applications are
+trying to mmap buffers immediately after reqbuf.  It fails because the vmalloc
+area isn't setup until the first QBUF when drivers call iolock.
 
+This patch introduces mmap_setup to the qtype_ops and it is called in
+__videobuf_mmap_setup if the buffer type is mmap.  In the case of vmalloc
+buffers this calls iolock, and sets the state to idle.
 
-Unfortunately by default initialization for this tuner it does not go in =
-right way.=20
-So I use this sequence  (see full list of commands) to make it work:
+I don't think this is needed for dma-sg buffers and it defaults to a no-op for
+everything but vmalloc.
 
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
+---
+ linux/drivers/media/video/videobuf-core.c    |   29 +++++++-----------
+ linux/drivers/media/video/videobuf-vmalloc.c |   43 +++++++++++++--------------
+ linux/include/media/videobuf-core.h          |    3 +
+ 3 files changed, 35 insertions(+), 40 deletions(-)
 
-rmmod cx88_alsa=20
-rmmod cx8800
-rmmod cx88xx=20
-rmmod tuner
-rmmod tda9887=20
-modprobe cx88xx=20
-modprobe tda9887 port1=3D0 port2=3D0 qss=3D1=20
-modprobe tuner=20
-modprobe cx8800
+Index: v4l-dvb/linux/include/media/videobuf-core.h
+===================================================================
+--- v4l-dvb.orig/linux/include/media/videobuf-core.h
++++ v4l-dvb/linux/include/media/videobuf-core.h
+@@ -144,6 +144,8 @@ struct videobuf_qtype_ops {
+ 				 int vbihack,
+ 				 int nonblocking);
+ 	int (*mmap_free)	(struct videobuf_queue *q);
++	int (*mmap_setup)	(struct videobuf_queue *q,
++				 struct videobuf_buffer *vb);
+ 	int (*mmap_mapper)	(struct videobuf_queue *q,
+ 				struct vm_area_struct *vma);
+ };
+@@ -168,7 +170,6 @@ struct videobuf_queue {
+ 
+ 	unsigned int               streaming:1;
+ 	unsigned int               reading:1;
+-	unsigned int		   is_mmapped:1;
+ 
+ 	/* capture via mmap() + ioctl(QBUF/DQBUF) */
+ 	struct list_head           stream;
+Index: v4l-dvb/linux/drivers/media/video/videobuf-core.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/videobuf-core.c
++++ v4l-dvb/linux/drivers/media/video/videobuf-core.c
+@@ -92,25 +92,17 @@ int videobuf_iolock(struct videobuf_queu
+ 	MAGIC_CHECK(vb->magic, MAGIC_BUFFER);
+ 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+ 
+-	/* This is required to avoid OOPS on some cases,
+-	   since mmap_mapper() method should be called before _iolock.
+-	   On some cases, the mmap_mapper() is called only after scheduling.
+-	 */
+-	if (vb->memory == V4L2_MEMORY_MMAP) {
+-		wait_event_timeout(vb->done, q->is_mmapped,
+-				   msecs_to_jiffies(100));
+-		if (!q->is_mmapped) {
+-			printk(KERN_ERR
+-			       "Error: mmap_mapper() never called!\n");
+-			return -EINVAL;
+-		}
+-	}
+-
+ 	return CALL(q, iolock, q, vb, fbuf);
+ }
+ 
+ /* --------------------------------------------------------------------- */
+ 
++static int videobuf_mmap_setup_default(struct videobuf_queue *q,
++					struct videobuf_buffer *vb)
++{
++	return 0;
++}
++
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+ 			 struct videobuf_queue_ops *ops,
+@@ -132,6 +124,9 @@ void videobuf_queue_core_init(struct vid
+ 	q->priv_data = priv;
+ 	q->int_ops   = int_ops;
+ 
++	if (!q->int_ops->mmap_setup)
++		q->int_ops->mmap_setup = videobuf_mmap_setup_default;
++
+ 	/* All buffer operations are mandatory */
+ 	BUG_ON(!q->ops->buf_setup);
+ 	BUG_ON(!q->ops->buf_prepare);
+@@ -305,8 +300,6 @@ static int __videobuf_mmap_free(struct v
+ 
+ 	rc  = CALL(q, mmap_free, q);
+ 
+-	q->is_mmapped = 0;
+-
+ 	if (rc < 0)
+ 		return rc;
+ 
+@@ -358,6 +351,9 @@ static int __videobuf_mmap_setup(struct 
+ 		switch (memory) {
+ 		case V4L2_MEMORY_MMAP:
+ 			q->bufs[i]->boff  = bsize * i;
++			err = q->int_ops->mmap_setup(q, q->bufs[i]);
++			if (err)
++				break;
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
+@@ -1018,7 +1014,6 @@ int videobuf_mmap_mapper(struct videobuf
+ 
+ 	mutex_lock(&q->vb_lock);
+ 	retval = CALL(q, mmap_mapper, q, vma);
+-	q->is_mmapped = 1;
+ 	mutex_unlock(&q->vb_lock);
+ 
+ 	return retval;
+Index: v4l-dvb/linux/drivers/media/video/videobuf-vmalloc.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/videobuf-vmalloc.c
++++ v4l-dvb/linux/drivers/media/video/videobuf-vmalloc.c
+@@ -152,21 +152,26 @@ static int __videobuf_iolock (struct vid
+ 				(unsigned long)mem->vmalloc,
+ 				pages << PAGE_SHIFT);
+ 
+-	/* It seems that some kernel versions need to do remap *after*
+-	   the mmap() call
+-	 */
+-	if (mem->vma) {
+-		int retval=remap_vmalloc_range(mem->vma, mem->vmalloc,0);
+-		kfree(mem->vma);
+-		mem->vma=NULL;
+-		if (retval<0) {
+-			dprintk(1,"mmap app bug: remap_vmalloc_range area %p error %d\n",
+-				mem->vmalloc,retval);
+-			return retval;
++	return 0;
++}
++
++static int __videobuf_mmap_setup(struct videobuf_queue *q,
++			      struct videobuf_buffer *vb)
++{
++	int retval = 0;
++	BUG_ON(vb->memory != V4L2_MEMORY_MMAP);
++	if (vb->state == VIDEOBUF_NEEDS_INIT) {
++		/* bsize == size since the buffer needs to be large enough to
++		 * hold an entire frame, not the case in the read case for
++		 * example*/
++		vb->size = vb->bsize;
++		retval = __videobuf_iolock(q, vb, NULL);
++		if (!retval) {
++			/* Don't IOLOCK later */
++			vb->state = VIDEOBUF_IDLE;
+ 		}
+ 	}
+-
+-	return 0;
++	return retval;
+ }
+ 
+ static int __videobuf_sync(struct videobuf_queue *q,
+@@ -239,15 +244,8 @@ static int __videobuf_mmap_mapper(struct
+ 	/* Try to remap memory */
+ 	retval=remap_vmalloc_range(vma, mem->vmalloc,0);
+ 	if (retval<0) {
+-		dprintk(1,"mmap: postponing remap_vmalloc_range\n");
+-
+-		mem->vma=kmalloc(sizeof(*vma),GFP_KERNEL);
+-		if (!mem->vma) {
+-			kfree(map);
+-			q->bufs[first]->map=NULL;
+-			return -ENOMEM;
+-		}
+-		memcpy(mem->vma,vma,sizeof(*vma));
++		dprintk(1, "mmap: failed to remap_vmalloc_range\n");
++		return -EINVAL;
+ 	}
+ 
+ 	dprintk(1,"mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
+@@ -315,6 +313,7 @@ static struct videobuf_qtype_ops qops = 
+ 	.alloc        = __videobuf_alloc,
+ 	.iolock       = __videobuf_iolock,
+ 	.sync         = __videobuf_sync,
++	.mmap_setup   = __videobuf_mmap_setup,
+ 	.mmap_free    = __videobuf_mmap_free,
+ 	.mmap_mapper  = __videobuf_mmap_mapper,
+ 	.video_copy_to_user = __videobuf_copy_to_user,
 
+-- 
 
-Actually I do not dig deeply with this, but main goal of this is to =
-initiate device with port1=3D0 port2=3D0 qss=3D1 option to get sound.
-Also v4l devices appears in /dev after cx8800 initialization (could be =
-mistaken, because I am writing this by memory ;-) and, lol, from Windows =
-PC).
-
-Pls also see Hermann explanation.
-
-
-
-Rgs,
-    Serge.
-
-
-
-
-
-
------ Original Message -----=20
-  From: S G=20
-  To: hermann pitton ; itman=20
-  Cc: simon@kalmarkaglan.se ; video4linux-list@redhat.com ; Mauro =
-Carvalho Chehab ; midimaker@yandex.ru ; xyzzy@speakeasy.org=20
-  Sent: Wednesday, March 12, 2008 10:16 AM
-  Subject: RE: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
-
-
-  Hi,
-
-  I do have a MSI TV Anywhere Master (MSI 8606, cx88) and analog tv =
-cable.
-
-  I have a fresh Ubuntu Hardy install, up to date. Kernel =
-2.6.24-12-generic
-
-  I did :
-
-  mkdir /usr/src/linux/tmpmsi
-  cd tmpmsi
-  hg init
-  hg pull http://linuxtv.org/hg/v4l-dvb
-  make
-  make install
-
-  Created a file in /etc/modprobe.d/ and added this line :
-
-  options tda9887 port1=3D0 port2=3D0 qss=3D1
-
-  I still have no sound (tv and radio).
-
-  modinfo tda9887
-
-  filename:       =
-/lib/modules/2.6.24-12-generic/kernel/drivers/media/video/tda9887.ko
-  license:        GPL
-  srcversion:     6E9F018870C816AFE420473
-  depends:        i2c-core
-  vermagic:       2.6.24-12-generic SMP mod_unload=20
-  parm:           debug:enable verbose debug messages (int)
-  parm:           port1:int
-  parm:           port2:int
-  parm:           qss:int
-  parm:           adjust:int
-
-
-  If you want me to try some settings, let me know since I have this =
-card also...
-
-  Thanks,
-
-  Steve
-
-
-  > From: hermann-pitton@arcor.de
-  > To: itman@fm.com.ua
-  > Date: Tue, 11 Mar 2008 22:09:21 +0100
-  > CC: simon@kalmarkaglan.se; video4linux-list@redhat.com; =
-mchehab@infradead.org; midimaker@yandex.ru; xyzzy@speakeasy.org
-  > Subject: Re: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 =
-status
-  >=20
-  > Am Dienstag, den 11.03.2008, 22:53 +0200 schrieb itman:
-  > > Hi Herman, Mauro.
-  > >=20
-  > > Status with 2.6.24 is OK, BUT with the following changes:
-  > >=20
-  > > 1) mkdir /usr/src/linux/tmpmsi
-  > > 2) cd tmpmsi
-  > > 3) hg init
-  > > 4) hg pull http://linuxtv.org/hg/v4l-dvb
-  > > 5) make
-  > > 6) make install
-  > >=20
-  > > and changes for 2.6.24.3 :
-  > >=20
-  > > Adding to /etc/modprobe.conf this line:
-  > >=20
-  > > options tda9887 port1=3D0 port2=3D0 qss=3D1
-  > >=20
-  > > After reboot it works fine!
-  > >=20
-  > > In 2.6.23 was used tuner instead tda9887
-  > > so it was
-  > > options tuner port1=3D0 port2=3D0 qss=3D1
-  > >=20
-  > >=20
-  > > Rgs,
-  > > Serge.
-  >=20
-  > Hi Serge,
-  >=20
-  > fine, that was what I tried to explain.
-  >=20
-  > I have started to write a mail on it already, maybe it provides some
-  > deeper insights and is useful for the records. So I send it despite =
-off
-  > you have realized the problem now.
-  >=20
-  > Thanks,
-  > Hermann
-  >=20
-  >=20
-  > --
-  > video4linux-list mailing list
-  > Unsubscribe =
-mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
-  > https://www.redhat.com/mailman/listinfo/video4linux-list
-
-
--------------------------------------------------------------------------=
------
-  Cr=E9ez un bouton pratique pour que vos amis vous ajoutent =E0 leur =
-liste! Cliquez-ici!=20
-
-  __________ =C8=ED=F4=EE=F0=EC=E0=F6=E8=FF NOD32 2762 (20080102) =
-__________
-
-  =DD=F2=EE =F1=EE=EE=E1=F9=E5=ED=E8=E5 =EF=F0=EE=E2=E5=F0=E5=ED=EE =
-=C0=ED=F2=E8=E2=E8=F0=F3=F1=ED=EE=E9 =F1=E8=F1=F2=E5=EC=EE=E9 NOD32.
-  http://www.eset.com
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
