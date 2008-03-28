@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.181])
+Received: from py-out-1112.google.com ([64.233.166.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anothersname@googlemail.com>) id 1JgJwg-00025f-33
-	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 15:21:08 +0200
-Received: by el-out-1112.google.com with SMTP id o28so368817ele.2
-	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 06:20:59 -0700 (PDT)
-Message-ID: <a413d4880803310620v3d846652laba7e15eb1eb6ec3@mail.gmail.com>
-Date: Mon, 31 Mar 2008 14:20:57 +0100
-From: "Another Sillyname" <anothersname@googlemail.com>
+	(envelope-from <mikerussellnz@gmail.com>) id 1JfAro-0007GT-LW
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 10:27:22 +0100
+Received: by py-out-1112.google.com with SMTP id a29so200577pyi.0
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 02:26:54 -0700 (PDT)
+Message-ID: <c112e7e90803280226h49820354r6520ca723e3a3584@mail.gmail.com>
+Date: Fri, 28 Mar 2008 22:26:53 +1300
+From: "Mike Russell" <mikerussellnz@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <d9def9db0803310303ua0ae754x716f208fc1a9c6cb@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_32530_1539007.1206969658205"
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-	<d9def9db0803301645s17fbb36vbce4c0631ccafa49@mail.gmail.com>
-	<a413d4880803301657n16eacc06we99d36c7f40b546f@mail.gmail.com>
-	<a413d4880803301920p3589df50y3449bfc26cd3aa20@mail.gmail.com>
-	<d9def9db0803310303ua0ae754x716f208fc1a9c6cb@mail.gmail.com>
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+Subject: [linux-dvb] HVR-3000 - cx22702 DVB-T Problem cx22702_readreg: /
+	cx22702_writereg:
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,283 +19,163 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0057595266=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_32530_1539007.1206969658205
+--===============0057595266==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_13803_5249230.1206696414170"
+
+------=_Part_13803_5249230.1206696414170
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi Markus
+Hi
 
-Just so you know here's my dmesgs (shortened for obvious reasons)
+I am currently having problems getting this card working under 2.6.24 for
+DVB-T.  The driver appears to load ok, but produces errors in dmesg when
+attempting to scan for channels.
 
-em28xxnotworking installed the card using v4l-dvb but as you can see
-the SAA Flyview card is working correctly.
+Below are the log sections from the driver loading and also the errors that
+are generated when trying to scan for channels.
 
-em28xxworkingdmesg installed the card using v4l-dvb-kernel where the
-em28xx card is working fully and correctly but now the SAA is not
-working correctly.
+Any help on this would be greatly appreciated.  I am happy to provide any
+info that would help.
 
-All ideas gratefully received.....
-
-J
-
+Thanks
 
 
-On 31/03/2008, Markus Rechberger <mrechberger@gmail.com> wrote:
-> On Mon, Mar 31, 2008 at 4:20 AM, Another Sillyname
->  <anothersname@googlemail.com> wrote:
->  > Markus
->  >
->  >  You still out there?
->  >
->  >  I've got to hit the sack shortly.
->  >
->  >
->
->
-> Sorry I've been busy yesterday...
->  I'll do some tests with your device tonight..
->
->
->  Markus
->
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
+ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, low) ->
+IRQ 18
+cx88[0]: subsystem: 0070:1402, board: Hauppauge WinTV-HVR3000 TriMode
+Analog/DVB-S/DVB-T [card=53,autodetected]
+cx88[0]: TV tuner type 63, Radio tuner type -1
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+tveeprom 2-0050: Hauppauge model 14109, rev B3D3, serial# 2687674
+tveeprom 2-0050: MAC address is 00-0D-FE-29-02-BA
+tveeprom 2-0050: tuner model is Philips FMD1216MEX (idx 133, type 63)
+tveeprom 2-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K)
+ATSC/DVB Digital (eeprom 0xf4)
+tveeprom 2-0050: audio processor is CX882 (idx 33)
+tveeprom 2-0050: decoder processor is CX882 (idx 25)
+tveeprom 2-0050: has radio, has IR receiver, has no IR transmitter
+cx88[0]: hauppauge eeprom: model=14109
+input: cx88 IR (Hauppauge WinTV-HVR300 as /class/input/input6
+cx88[0]/0: found at 0000:05:08.0, rev: 5, irq: 18, latency: 32, mmio:
+0xd0000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88[0]/0: registered device radio0
+cannot find the slot for index 1 (range 0-1), error: -16
+cx88_audio: probe of 0000:05:08.1 failed with error -12
+cx88[0]/2: cx2388x 8802 Driver Manager
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 0070:1402, board: Hauppauge WinTV-HVR3000 TriMode
+Analog/DVB-S/DVB-T [card=53]
+cx88[0]/2: cx2388x based DVB/ATSC card
+tuner-simple 2-0061: creating new instance
+tuner-simple 2-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
+DVB: registering new adapter (cx88[0])
+DVB: registering frontend 0 (Conexant CX22702 DVB-T)...
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
 
-------=_Part_32530_1539007.1206969658205
-Content-Type: text/plain; name=em28xxnotworkingshort.txt
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_feh0jvww
-Content-Disposition: attachment; filename=em28xxnotworkingshort.txt
 
-QUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MTogYWRkIGF1ZGlvIGVuZHBvaW50
-IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MjogYWRkIGF1ZGlvIGVu
-ZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MzogYWRkIGF1
-ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6NDog
-YWRkIGF1ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2
-OjI6NTogYWRkIGF1ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNibWl4ZXIuYzo5
-ODk6IFsyXSBGVSBbUENNIENhcHR1cmUgU3dpdGNoXSBjaCA9IDEsIHZhbCA9IDAvMS8xClBDSTog
-RW5hYmxpbmcgZGV2aWNlIDAwMDA6MDM6MDUuMCAoMDAxNSAtPiAwMDE3KQpBQ1BJOiBQQ0kgSW50
-ZXJydXB0IDAwMDA6MDM6MDUuMFtBXSAtPiBHU0kgMTYgKGxldmVsLCBsb3cpIC0+IElSUSAxNgpB
-TFNBIHNvdW5kL3VzYi91c2JtaXhlci5jOjQwNjogY2Fubm90IHNldCBjdGwgdmFsdWU6IHJlcSA9
-IDB4NCwgd1ZhbHVlID0gMHgyMDAsIHdJbmRleCA9IDB4MjAxLCB0eXBlID0gNCwgZGF0YSA9IDB4
-MC8weDEKQUxTQSBzb3VuZC91c2IvdXNibWl4ZXIuYzo5ODk6IFsyXSBGVSBbUENNIENhcHR1cmUg
-Vm9sdW1lXSBjaCA9IDEsIHZhbCA9IDAvMC81MTIKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50
-ZXJmYWNlIGRyaXZlciBzbmQtdXNiLWF1ZGlvCmlucHV0OiBQQyBTcGVha2VyIGFzIC9jbGFzcy9p
-bnB1dC9pbnB1dDcKTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCmVtMjh4eCB2
-NGwyIGRyaXZlciB2ZXJzaW9uIDAuMS4wIGxvYWRlZAplbTI4eHggbmV3IHZpZGVvIGRldmljZSAo
-ZWIxYToyODgxKTogaW50ZXJmYWNlIDAsIGNsYXNzIDI1NQplbTI4eHggSGFzIHVzYiBhdWRpbyBj
-bGFzcwplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5nczogOAplbTI4eHggIzA6IEFsdGVybmF0
-ZSBzZXR0aW5nIDAsIG1heCBzaXplPSAwCmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgMSwg
-bWF4IHNpemU9IDAKZW0yOHh4ICMwOiBBbHRlcm5hdGUgc2V0dGluZyAyLCBtYXggc2l6ZT0gMTQ0
-OAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5nIDMsIG1heCBzaXplPSAyMDQ4CmVtMjh4eCAj
-MDogQWx0ZXJuYXRlIHNldHRpbmcgNCwgbWF4IHNpemU9IDIzMDQKZW0yOHh4ICMwOiBBbHRlcm5h
-dGUgc2V0dGluZyA1LCBtYXggc2l6ZT0gMjU4MAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5n
-IDYsIG1heCBzaXplPSAyODkyCmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgNywgbWF4IHNp
-emU9IDMwNzIKZW0yOHh4ICMwOiBlbTI4eHggY2hpcCBJRCA9IDM2CnNhYTcxMzAvMzQ6IHY0bDIg
-ZHJpdmVyIHZlcnNpb24gMC4yLjE0IGxvYWRlZApzYWE3MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjAz
-OjAzLjAsIHJldjogMjA5LCBpcnE6IDE5LCBsYXRlbmN5OiA2NCwgbW1pbzogMHhmZThmZjgwMApz
-YWE3MTMzWzBdOiBzdWJzeXN0ZW06IDUxNjg6MzMwNywgYm9hcmQ6IExpZmVWaWV3IEZseURWQi1U
-IEh5YnJpZCBDYXJkYnVzL01TSSBUViBAbnl3aGVyZSBBL0QgTkIgW2NhcmQ9OTQsYXV0b2RldGVj
-dGVkXQpzYWE3MTMzWzBdOiBib2FyZCBpbml0OiBncGlvIGlzIDEwMDAwCkFMU0Egc291bmQvY29y
-ZS9pbml0LmM6MTM3OiBjYW5ub3QgZmluZCB0aGUgc2xvdCBmb3IgaW5kZXggMCAocmFuZ2UgMC0w
-KSwgZXJyb3I6IC0xNgpBTFNBIHNvdW5kL3BjaS9oZGEvaGRhX2ludGVsLmM6MTg4MDogaGRhLWlu
-dGVsOiBFcnJvciBjcmVhdGluZyBjYXJkIQpIREEgSW50ZWw6IHByb2JlIG9mIDAwMDA6MDA6MWIu
-MCBmYWlsZWQgd2l0aCBlcnJvciAtMTIKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDAwOiAxYSBlYiA2
-NyA5NSAxYSBlYiA4MSAyOCA1OCAxMiA1YyAwMCA2YSAyMCA2YSAwMAplbTI4eHggIzA6IGkyYyBl
-ZXByb20gMTA6IDAwIDAwIDA0IDU3IDY0IDU3IDAwIDAwIDYwIGY0IDAwIDAwIDAyIDAyIDAwIDAw
-CmVtMjh4eCAjMDogaTJjIGVlcHJvbSAyMDogNTYgMDAgMDEgMDAgMDAgMDAgMDIgMDAgYjggMDAg
-MDAgMDAgNWIgMWUgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDMwOiAwMCAwMCAyMCA0MCAy
-MCA4MCAwMiAyMCAxMCAwMiAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20g
-NDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4
-eCAjMDogaTJjIGVlcHJvbSA1MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDYwOiAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAyMCAwMyA1NSAwMCA1MyAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gNzA6IDQy
-IDAwIDIwIDAwIDMyIDAwIDM4IDAwIDM4IDAwIDMxIDAwIDIwIDAwIDU2IDAwCmVtMjh4eCAjMDog
-aTJjIGVlcHJvbSA4MDogNjkgMDAgNjQgMDAgNjUgMDAgNmYgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDkwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gYTA6IDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVl
-cHJvbSBiMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAK
-ZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gZDA6IDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVlcHJvbSBl
-MDogNWEgMDAgNTUgYWEgNzkgNTUgNTQgMDMgMDAgMTcgOTggMDEgMDAgMDAgMDAgMDAKZW0yOHh4
-ICMwOiBpMmMgZWVwcm9tIGYwOiAwYyAwMCAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMApFRVBST00gSUQ9IDB4OTU2N2ViMWEsIGhhc2ggPSAweGI4ODQ2YjIwClZlbmRv
-ci9Qcm9kdWN0IElEPSBlYjFhOjI4ODEKQUM5NyBhdWRpbyAoNSBzYW1wbGUgcmF0ZXMpClVTQiBS
-ZW1vdGUgd2FrZXVwIGNhcGFibGUKNTAwbUEgbWF4IHBvd2VyClRhYmxlIGF0IDB4MDQsIHN0cmlu
-Z3M9MHgyMDZhLCAweDAwNmEsIDB4MDAwMAplbTI4eHggIzA6IGZvdW5kIGkyYyBkZXZpY2UgQCAw
-eDFlIFs/Pz9dCmVtMjh4eCAjMDogZm91bmQgaTJjIGRldmljZSBAIDB4YTAgW2VlcHJvbV0KZW0y
-OHh4ICMwOiBmb3VuZCBpMmMgZGV2aWNlIEAgMHhiOCBbdHZwNTE1MGFdCmVtMjh4eCAjMDogZm91
-bmQgaTJjIGRldmljZSBAIDB4YzIgW3R1bmVyIChhbmFsb2cpXQplbTI4eHggIzA6IFlvdXIgYm9h
-cmQgaGFzIG5vIHVuaXF1ZSBVU0IgSUQgYW5kIHRodXMgbmVlZCBhIGhpbnQgdG8gYmUgZGV0ZWN0
-ZWQuCmVtMjh4eCAjMDogWW91IG1heSB0cnkgdG8gdXNlIGNhcmQ9PG4+IGluc21vZCBvcHRpb24g
-dG8gd29ya2Fyb3VuZCB0aGF0LgplbTI4eHggIzA6IFBsZWFzZSBzZW5kIGFuIGVtYWlsIHdpdGgg
-dGhpcyBsb2cgdG86CmVtMjh4eCAjMDogCVY0TCBNYWlsaW5nIExpc3QgPHZpZGVvNGxpbnV4LWxp
-c3RAcmVkaGF0LmNvbT4KZW0yOHh4ICMwOiBCb2FyZCBlZXByb20gaGFzaCBpcyAweGI4ODQ2YjIw
-CmVtMjh4eCAjMDogQm9hcmQgaTJjIGRldmljZWxpc3QgaGFzaCBpcyAweDk0NGQwMDhmCmVtMjh4
-eCAjMDogSGVyZSBpcyBhIGxpc3Qgb2YgdmFsaWQgY2hvaWNlcyBmb3IgdGhlIGNhcmQ9PG4+IGlu
-c21vZCBvcHRpb246CmVtMjh4eCAjMDogICAgIGNhcmQ9MCAtPiBVbmtub3duIEVNMjgwMCB2aWRl
-byBncmFiYmVyCmVtMjh4eCAjMDogICAgIGNhcmQ9MSAtPiBVbmtub3duIEVNMjc1MC8yOHh4IHZp
-ZGVvIGdyYWJiZXIKZW0yOHh4ICMwOiAgICAgY2FyZD0yIC0+IFRlcnJhdGVjIENpbmVyZ3kgMjUw
-IFVTQgplbTI4eHggIzA6ICAgICBjYXJkPTMgLT4gUGlubmFjbGUgUENUViBVU0IgMgplbTI4eHgg
-IzA6ICAgICBjYXJkPTQgLT4gSGF1cHBhdWdlIFdpblRWIFVTQiAyCmVtMjh4eCAjMDogICAgIGNh
-cmQ9NSAtPiBNU0kgVk9YIFVTQiAyLjAKZW0yOHh4ICMwOiAgICAgY2FyZD02IC0+IFRlcnJhdGVj
-IENpbmVyZ3kgMjAwIFVTQgplbTI4eHggIzA6ICAgICBjYXJkPTcgLT4gTGVhZHRlayBXaW5mYXN0
-IFVTQiBJSQplbTI4eHggIzA6ICAgICBjYXJkPTggLT4gS3dvcmxkIFVTQjI4MDAKZW0yOHh4ICMw
-OiAgICAgY2FyZD05IC0+IFBpbm5hY2xlIERhenpsZSBEVkMgOTAvRFZDIDEwMAplbTI4eHggIzA6
-ICAgICBjYXJkPTEwIC0+IEhhdXBwYXVnZSBXaW5UViBIVlIgOTAwCmVtMjh4eCAjMDogICAgIGNh
-cmQ9MTEgLT4gVGVycmF0ZWMgSHlicmlkIFhTCmVtMjh4eCAjMDogICAgIGNhcmQ9MTIgLT4gS3dv
-cmxkIFBWUiBUViAyODAwIFJGCmVtMjh4eCAjMDogICAgIGNhcmQ9MTMgLT4gVGVycmF0ZWMgUHJv
-ZGlneSBYUwplbTI4eHggIzA6ICAgICBjYXJkPTE0IC0+IFBpeGVsdmlldyBQcm9saW5rIFBsYXlU
-ViBVU0IgMi4wCmVtMjh4eCAjMDogICAgIGNhcmQ9MTUgLT4gVi1HZWFyIFBvY2tldFRWCmVtMjh4
-eCAjMDogICAgIGNhcmQ9MTYgLT4gSGF1cHBhdWdlIFdpblRWIEhWUiA5NTAKc2FhNzEzM1swXTog
-aTJjIGVlcHJvbSAwMDogNjggNTEgMDcgMzMgNTQgMjAgMWMgMDAgNDMgNDMgYTkgMWMgNTUgZDIg
-YjIgOTIKc2FhNzEzM1swXTogaTJjIGVlcHJvbSAxMDogMDAgMDAgNjIgMDggZmYgMjAgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSAyMDogMDEgNDAg
-MDEgMDMgMDMgMDEgMDEgMDMgMDggZmYgMDEgMTcgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJj
-IGVlcHJvbSAzMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSA0MDogZmYgMjEgMDAgYzIgOTYgMTAgMDUgMDAgMDEg
-MTYgMjIgMTUgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSA1MDogZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVl
-cHJvbSA2MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYK
-c2FhNzEzM1swXTogaTJjIGVlcHJvbSA3MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSA4MDogZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJv
-bSA5MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2Fh
-NzEzM1swXTogaTJjIGVlcHJvbSBhMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSBiMDogZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSBj
-MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEz
-M1swXTogaTJjIGVlcHJvbSBkMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSBlMDogZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKc2FhNzEzM1swXTogaTJjIGVlcHJvbSBmMDog
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKdHVuZXInIDEt
-MDA2MTogY2hpcCBmb3VuZCBAIDB4YzIgKGVtMjh4eCAjMCkKdHVuZXInIDItMDA0YjogY2hpcCBm
-b3VuZCBAIDB4OTYgKHNhYTcxMzNbMF0pCnR2cDUxNTAgMS0wMDVjOiB0dnA1MTUwYW0xIGRldGVj
-dGVkLgp0ZGE4Mjl4IDItMDA0Yjogc2V0dGluZyB0dW5lciBhZGRyZXNzIHRvIDYxCnRkYTgyOXgg
-Mi0wMDRiOiB0eXBlIHNldCB0byB0ZGE4MjkwKzc1YQplbTI4eHggIzA6IFY0TDIgZGV2aWNlIHJl
-Z2lzdGVyZWQgYXMgL2Rldi92aWRlbzAgYW5kIC9kZXYvdmJpMAplbTI4eHggIzA6IEZvdW5kIFVu
-a25vd24gRU0yNzUwLzI4eHggdmlkZW8gZ3JhYmJlcgp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBp
-bnRlcmZhY2UgZHJpdmVyIGVtMjh4eApzYWE3MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRl
-bzEgW3Y0bDJdCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTEKc2FhNzEzM1swXTog
-cmVnaXN0ZXJlZCBkZXZpY2UgcmFkaW8wCkRWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKHNh
-YTcxMzNbMF0pCkRWQjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoUGhpbGlwcyBUREExMDA0Nkgg
-RFZCLVQpLi4uCnRkYTEwMDR4OiBzZXR0aW5nIHVwIHBsbHMgZm9yIDQ4TUh6IHNhbXBsaW5nIGNs
-b2NrClNFTGludXg6IGluaXRpYWxpemVkIChkZXYgcmFtZnMsIHR5cGUgcmFtZnMpLCB1c2VzIGdl
-bmZzX2NvbnRleHRzCnRkYTEwMDR4OiBmb3VuZCBmaXJtd2FyZSByZXZpc2lvbiAyOSAtLSBvawp0
-ZGExMDA0eDogc2V0dGluZyB1cCBwbGxzIGZvciA0OE1IeiBzYW1wbGluZyBjbG9jawp0ZGExMDA0
-eDogZm91bmQgZmlybXdhcmUgcmV2aXNpb24gMjkgLS0gb2sKQUxTQSBzb3VuZC91c2IvdXNiYXVk
-aW8uYzoxMzI3OiBzZXR0aW5nIHVzYiBpbnRlcmZhY2UgMjoyCg==
-------=_Part_32530_1539007.1206969658205
-Content-Type: text/plain; name=em28xxworkingdmesgshort.txt
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_feh0mnbk
-Content-Disposition: attachment; filename=em28xxworkingdmesgshort.txt
+and scanning produces the following in dmesg:
 
-QUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MTogYWRkIGF1ZGlvIGVuZHBvaW50
-IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MjogYWRkIGF1ZGlvIGVu
-ZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6MzogYWRkIGF1
-ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2OjI6NDog
-YWRkIGF1ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoyNzUzOiA2
-OjI6NTogYWRkIGF1ZGlvIGVuZHBvaW50IDB4ODMKQUxTQSBzb3VuZC91c2IvdXNibWl4ZXIuYzo5
-ODk6IFsyXSBGVSBbUENNIENhcHR1cmUgU3dpdGNoXSBjaCA9IDEsIHZhbCA9IDAvMS8xCkFMU0Eg
-c291bmQvdXNiL3VzYm1peGVyLmM6NDA2OiBjYW5ub3Qgc2V0IGN0bCB2YWx1ZTogcmVxID0gMHg0
-LCB3VmFsdWUgPSAweDIwMCwgd0luZGV4ID0gMHgyMDEsIHR5cGUgPSA0LCBkYXRhID0gMHgwLzB4
-MQpBTFNBIHNvdW5kL3VzYi91c2JtaXhlci5jOjk4OTogWzJdIEZVIFtQQ00gQ2FwdHVyZSBWb2x1
-bWVdIGNoID0gMSwgdmFsID0gMC8wLzUxMgp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZh
-Y2UgZHJpdmVyIHNuZC11c2ItYXVkaW8KTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYy
-LjAwCmVtMjh4eCB2NGwyIGRyaXZlciB2ZXJzaW9uIDAuMC4xIGxvYWRlZAplbTI4eHggbmV3IHZp
-ZGVvIGRldmljZSAoZWIxYToyODgxKTogaW50ZXJmYWNlIDAsIGNsYXNzIDI1NQplbTI4eHg6IGRl
-dmljZSBpcyBhdHRhY2hlZCB0byBhIFVTQiAyLjAgYnVzCmVtMjh4eDogeW91J3JlIHVzaW5nIHRo
-ZSBleHBlcmltZW50YWwvdW5zdGFibGUgdHJlZSBmcm9tIG1jZW50cmFsLmRlCmVtMjh4eDogdGhl
-cmUncyBhbHNvIGEgc3RhYmxlIHRyZWUgYXZhaWxhYmxlIGJ1dCB3aGljaCBpcyBsaW1pdGVkIHRv
-CmVtMjh4eDogbGludXggPD0yLjYuMTkuMgplbTI4eHg6IGl0J3MgZmluZSB0byB1c2UgdGhpcyBk
-cml2ZXIgYnV0IGtlZXAgaW4gbWluZCB0aGF0IGl0IHdpbGwgbW92ZQplbTI4eHg6IHRvIGh0dHA6
-Ly9tY2VudHJhbC5kZS9oZy9+bXJlYy92NGwtZHZiLWtlcm5lbCBhcyBzb29uIGFzIGl0J3MKZW0y
-OHh4OiBwcm92ZWQgdG8gYmUgc3RhYmxlCmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmdzOiA4
-CmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgMCwgbWF4IHNpemU9IDAKZW0yOHh4ICMwOiBB
-bHRlcm5hdGUgc2V0dGluZyAxLCBtYXggc2l6ZT0gMAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0
-aW5nIDIsIG1heCBzaXplPSAxNDQ4CmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgMywgbWF4
-IHNpemU9IDIwNDgKZW0yOHh4ICMwOiBBbHRlcm5hdGUgc2V0dGluZyA0LCBtYXggc2l6ZT0gMjMw
-NAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5nIDUsIG1heCBzaXplPSAyNTgwCmVtMjh4eCAj
-MDogQWx0ZXJuYXRlIHNldHRpbmcgNiwgbWF4IHNpemU9IDI4OTIKZW0yOHh4ICMwOiBBbHRlcm5h
-dGUgc2V0dGluZyA3LCBtYXggc2l6ZT0gMzA3MgpBTFNBIHNvdW5kL2NvcmUvaW5pdC5jOjEzNzog
-Y2Fubm90IGZpbmQgdGhlIHNsb3QgZm9yIGluZGV4IDAgKHJhbmdlIDAtMCksIGVycm9yOiAtMTYK
-QUxTQSBzb3VuZC9wY2kvaGRhL2hkYV9pbnRlbC5jOjE4ODA6IGhkYS1pbnRlbDogRXJyb3IgY3Jl
-YXRpbmcgY2FyZCEKc2FhNzEzMC8zNDogdjRsMiBkcml2ZXIgdmVyc2lvbiAwLjIuMTQgbG9hZGVk
-CnNhYTcxMzNbMF06IGZvdW5kIGF0IDAwMDA6MDM6MDMuMCwgcmV2OiAyMDksIGlycTogMTksIGxh
-dGVuY3k6IDY0LCBtbWlvOiAweGZlOGZmODAwCnNhYTcxMzNbMF06IHN1YnN5c3RlbTogNTE2ODoz
-MzA3LCBib2FyZDogVU5LTk9XTi9HRU5FUklDIFtjYXJkPTAsYXV0b2RldGVjdGVkXQpzYWE3MTMz
-WzBdOiBib2FyZCBpbml0OiBncGlvIGlzIDEwMDAwCnR1bmVyIDEtMDA0YjogY2hpcCBmb3VuZCBA
-IDB4OTYgKHNhYTcxMzNbMF0pCi91c3Ivc3JjL3Y0bC1kdmIta2VybmVsL3Y0bC90dW5lci1jb3Jl
-LmM6IHNldHRpbmcgdHVuZXIgY2FsbGJhY2sKL3Vzci9zcmMvdjRsLWR2Yi1rZXJuZWwvdjRsL3R1
-bmVyLWNvcmUuYzogc2V0dGluZyB0dW5lciBjYWxsYmFjawpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
-IDAwOiA2OCA1MSAwNyAzMyA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5MgpzYWE3
-MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCA2MiAwOCBmZiAyMCBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDIwOiAwMSA0MCAwMSAwMyAwMyAw
-MSAwMSAwMyAwOCBmZiAwMSAxNyBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDMw
-OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMz
-WzBdOiBpMmMgZWVwcm9tIDQwOiBmZiAyMSAwMCBjMiA5NiAxMCAwNSAwMCAwMSAxNiAyMiAxNSBm
-ZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDUwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDYwOiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBd
-OiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZgpzYWE3MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0bDJdCnNhYTcx
-MzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKaW5wdXQ6IGVtMjg4MC9lbTI4NzAgcmVtb3Rl
-IGNvbnRyb2wgYXMgL2NsYXNzL2lucHV0L2lucHV0OAplbTI4eHgtaW5wdXQuYzogcmVtb3RlIGNv
-bnRyb2wgaGFuZGxlciBhdHRhY2hlZAphdHRhY2hfaW5mb3JtOiBlZXByb20gZGV0ZWN0ZWQuCmVt
-Mjh4eCAjMDogaTJjIGVlcHJvbSAwMDogMWEgZWIgNjcgOTUgMWEgZWIgODEgMjggNTggMTIgNWMg
-MDAgNmEgMjAgNmEgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCAwNCA1NyA2NCA1
-NyAwMCAwMCA2MCBmNCAwMCAwMCAwMiAwMiAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gMjA6
-IDU2IDAwIDAxIDAwIDAwIDAwIDAyIDAwIGI4IDAwIDAwIDAwIDViIDFlIDAwIDAwCmVtMjh4eCAj
-MDogaTJjIGVlcHJvbSAzMDogMDAgMDAgMjAgNDAgMjAgODAgMDIgMjAgMTAgMDIgMDAgMDAgMDAg
-MDAgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gNTA6IDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJj
-IGVlcHJvbSA2MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMjAgMDMgNTUgMDAgNTMg
-MDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDcwOiA0MiAwMCAyMCAwMCAzMiAwMCAzOCAwMCAzOCAw
-MCAzMSAwMCAyMCAwMCA1NiAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gODA6IDY5IDAwIDY0IDAw
-IDY1IDAwIDZmIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVlcHJv
-bSA5MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKZW0y
-OHh4ICMwOiBpMmMgZWVwcm9tIGEwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gYjA6IDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVlcHJvbSBjMDog
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKZW0yOHh4ICMw
-OiBpMmMgZWVwcm9tIGQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gZTA6IDVhIDAwIDU1IGFhIDc5IDU1IDU0IDAz
-IDAwIDE3IDk4IDAxIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVlcHJvbSBmMDogMGMgMDAg
-MDAgMDEgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKRUVQUk9NIElEPSAweDk1
-NjdlYjFhClZlbmRvci9Qcm9kdWN0IElEPSBlYjFhOjI4ODEKQUM5NyBhdWRpbyAoNSBzYW1wbGUg
-cmF0ZXMpClVTQiBSZW1vdGUgd2FrZXVwIGNhcGFibGUKNTAwbUEgbWF4IHBvd2VyClRhYmxlIGF0
-IDB4MDQsIHN0cmluZ3M9MHgyMDZhLCAweDAwNmEsIDB4MDAwMAp0dW5lciAyLTAwNjE6IGNoaXAg
-Zm91bmQgQCAweGMyIChlbTI4eHggIzApCmF0dGFjaCBpbmZvcm0gKGRlZmF1bHQpOiBkZXRlY3Rl
-ZCBJMkMgYWRkcmVzcyBjMgovdXNyL3NyYy92NGwtZHZiLWtlcm5lbC92NGwvdHVuZXItY29yZS5j
-OiBzZXR0aW5nIHR1bmVyIGNhbGxiYWNrCnR1bmVyIDB4NjE6IENvbmZpZ3VyYXRpb24gYWNrbm93
-bGVkZ2VkCi91c3Ivc3JjL3Y0bC1kdmIta2VybmVsL3Y0bC90dW5lci1jb3JlLmM6IHNldHRpbmcg
-dHVuZXIgY2FsbGJhY2sKL3Vzci9zcmMvdjRsLWR2Yi1rZXJuZWwvdjRsL3hjMzAyOC10dW5lci5j
-OiBhdHRhY2ggcmVxdWVzdCEKL3Vzci9zcmMvdjRsLWR2Yi1rZXJuZWwvdjRsL3R1bmVyLWNvcmUu
-YzogeGMzMDI4IHR1bmVyIHN1Y2Nlc3NmdWxseSBsb2FkZWQKYXR0YWNoX2luZm9ybTogdHZwNTE1
-MCBkZXRlY3RlZC4KdHZwNTE1MCAyLTAwNWM6IHR2cDUxNTBhbTEgZGV0ZWN0ZWQuCkxvYWRpbmcg
-YmFzZSBmaXJtd2FyZTogeGMzMDI4X2luaXQwLmkyYy5mdwpMb2FkaW5nIGRlZmF1bHQgYW5hbG9n
-dWUgVFYgc2V0dGluZ3M6IHhjMzAyOF9CR19QQUxfQTJfQS5pMmMuZncKeGMzMDI4LXR1bmVyLmM6
-IGZpcm13YXJlIDIuNwpBTkFMT0cgVFYgUkVRVUVTVAplbTI4eHggIzA6IFY0TDIgVkJJIGRldmlj
-ZSByZWdpc3RlcmVkIGFzIC9kZXYvdmJpMQplbTI4eHggIzA6IFY0TDIgZGV2aWNlIHJlZ2lzdGVy
-ZWQgYXMgL2Rldi92aWRlbzEKZW0yOHh4ICMwOiBGb3VuZCBQaW5uYWNsZSBIeWJyaWQgUHJvCnVz
-YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZW0yOHh4CmVtMjg4MC1kdmIu
-YzogRFZCIEluaXQKTG9hZGluZyBiYXNlIGZpcm13YXJlOiB4YzMwMjhfOE1Iel9pbml0MC5pMmMu
-ZncKTG9hZGluZyBzcGVjaWZpYyBkdHYgc2V0dGluZ3M6IHhjMzAyOF9EVFY2X0FUU0NfMjYyMC5p
-MmMuZncKeGMzMDI4LXR1bmVyLmM6IGZpcm13YXJlIDIuNwpTZW5kaW5nIGV4dHJhIGNhbGwgZm9y
-IERpZ2l0YWwgVFYhCi91c3Ivc3JjL3Y0bC1kdmIta2VybmVsL3Y0bC94YzMwMjgtdHVuZXIuYzog
-YXR0YWNoIHJlcXVlc3QhCkRWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKGVtMjg4MCBEVkIt
-VCkKRFZCOiByZWdpc3RlcmluZyBmcm9udGVuZCAwIChaYXJsaW5rIFpMMTAzNTMgRFZCLVQpLi4u
-CkVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjg4MCBEVkIgRXh0ZW5zaW9uKSBleHRlbnNpb24KQUxT
-QSBzb3VuZC91c2IvdXNiYXVkaW8uYzoxMzI3OiBzZXR0aW5nIHVzYiBpbnRlcmZhY2UgMjoyCg==
+cx22702_writereg: writereg error (reg == 0x00, val == 0x02, ret == -121)
+cx22702_writereg: writereg error (reg == 0x00, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0x0b, val == 0x06, ret == -121)
+cx22702_writereg: writereg error (reg == 0x09, val == 0x01, ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x41, ret == -121)
+cx22702_writereg: writereg error (reg == 0x16, val == 0x32, ret == -121)
+cx22702_writereg: writereg error (reg == 0x20, val == 0x0a, ret == -121)
+cx22702_writereg: writereg error (reg == 0x21, val == 0x17, ret == -121)
+cx22702_writereg: writereg error (reg == 0x24, val == 0x3e, ret == -121)
+cx22702_writereg: writereg error (reg == 0x26, val == 0xff, ret == -121)
+cx22702_writereg: writereg error (reg == 0x27, val == 0x10, ret == -121)
+cx22702_writereg: writereg error (reg == 0x28, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0x29, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0x2a, val == 0x10, ret == -121)
+cx22702_writereg: writereg error (reg == 0x2b, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0x2c, val == 0x10, ret == -121)
+cx22702_writereg: writereg error (reg == 0x2d, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0x48, val == 0xd4, ret == -121)
+cx22702_writereg: writereg error (reg == 0x49, val == 0x56, ret == -121)
+cx22702_writereg: writereg error (reg == 0x6b, val == 0x1e, ret == -121)
+cx22702_writereg: writereg error (reg == 0xc8, val == 0x02, ret == -121)
+cx22702_writereg: writereg error (reg == 0xf9, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0xfa, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0xfb, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0xfc, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0xfd, val == 0x00, ret == -121)
+cx22702_writereg: writereg error (reg == 0xf8, val == 0x02, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
+cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
+cx22702_readreg: readreg error (ret == -121)
 
-------=_Part_32530_1539007.1206969658205
+------=_Part_13803_5249230.1206696414170
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi<br><br>I am currently having problems getting this card working under 2.6.24 for DVB-T.&nbsp; The driver appears to load ok, but produces errors in dmesg when attempting to scan for channels. <br><br>Below are the log sections from the driver loading and also the errors that are generated when trying to scan for channels.<br>
+<br>Any help on this would be greatly appreciated.&nbsp; I am happy to provide any info that would help.<br><br>Thanks<br><br><br>cx88/0: cx2388x v4l2 driver version 0.0.6 loaded<br>ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18<br>
+ACPI: PCI Interrupt 0000:05:08.0[A] -&gt; Link [APC3] -&gt; GSI 18 (level, low) -&gt; IRQ 18<br>cx88[0]: subsystem: 0070:1402, board: Hauppauge WinTV-HVR3000 TriMode Analog/DVB-S/DVB-T [card=53,autodetected]<br>cx88[0]: TV tuner type 63, Radio tuner type -1<br>
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded<br>tveeprom 2-0050: Hauppauge model 14109, rev B3D3, serial# 2687674<br>tveeprom 2-0050: MAC address is 00-0D-FE-29-02-BA<br>tveeprom 2-0050: tuner model is Philips FMD1216MEX (idx 133, type 63)<br>
+tveeprom 2-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L&#39;) PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)<br>tveeprom 2-0050: audio processor is CX882 (idx 33)<br>tveeprom 2-0050: decoder processor is CX882 (idx 25)<br>tveeprom 2-0050: has radio, has IR receiver, has no IR transmitter<br>
+cx88[0]: hauppauge eeprom: model=14109<br>input: cx88 IR (Hauppauge WinTV-HVR300 as /class/input/input6<br>cx88[0]/0: found at 0000:05:08.0, rev: 5, irq: 18, latency: 32, mmio: 0xd0000000<br>cx88[0]/0: registered device video0 [v4l2]<br>
+cx88[0]/0: registered device vbi0<br>cx88[0]/0: registered device radio0<br>cannot find the slot for index 1 (range 0-1), error: -16<br>cx88_audio: probe of 0000:05:08.1 failed with error -12<br>cx88[0]/2: cx2388x 8802 Driver Manager<br>
+cx88/2: cx2388x dvb driver version 0.0.6 loaded<br>cx88/2: registering cx8802 driver, type: dvb access: shared<br>cx88[0]/2: subsystem: 0070:1402, board: Hauppauge WinTV-HVR3000 TriMode Analog/DVB-S/DVB-T [card=53]<br>cx88[0]/2: cx2388x based DVB/ATSC card<br>
+tuner-simple 2-0061: creating new instance<br>tuner-simple 2-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)<br>DVB: registering new adapter (cx88[0])<br>DVB: registering frontend 0 (Conexant CX22702 DVB-T)...<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>
+<br><br>and scanning produces the following in dmesg:<br><br>cx22702_writereg: writereg error (reg == 0x00, val == 0x02, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x00, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0b, val == 0x06, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x09, val == 0x01, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x41, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x16, val == 0x32, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x20, val == 0x0a, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x21, val == 0x17, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x24, val == 0x3e, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x26, val == 0xff, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x27, val == 0x10, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x28, val == 0x00, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x29, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x2a, val == 0x10, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x2b, val == 0x00, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x2c, val == 0x10, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x2d, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x48, val == 0xd4, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0x49, val == 0x56, ret == -121)<br>cx22702_writereg: writereg error (reg == 0x6b, val == 0x1e, ret == -121)<br>cx22702_writereg: writereg error (reg == 0xc8, val == 0x02, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0xf9, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0xfa, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0xfb, val == 0x00, ret == -121)<br>
+cx22702_writereg: writereg error (reg == 0xfc, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0xfd, val == 0x00, ret == -121)<br>cx22702_writereg: writereg error (reg == 0xf8, val == 0x02, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)<br>cx22702_readreg: readreg error (ret == -121)<br>cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)<br>
+cx22702_readreg: readreg error (ret == -121)<br><br>
+
+------=_Part_13803_5249230.1206696414170--
+
+
+--===============0057595266==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -313,4 +185,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_32530_1539007.1206969658205--
+--===============0057595266==--
