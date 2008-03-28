@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp810.mail.ird.yahoo.com ([217.146.188.70])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eludlow@btinternet.com>) id 1JeH2Y-0003aA-IP
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 22:50:43 +0100
-Message-ID: <47E9738D.2030108@btinternet.com>
-Date: Tue, 25 Mar 2008 21:50:05 +0000
-From: Edward Ludlow <eludlow@btinternet.com>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47E94B06.60906@btinternet.com> <47E96F36.5090302@pelago.org.uk>
-In-Reply-To: <47E96F36.5090302@pelago.org.uk>
-Subject: Re: [linux-dvb] PVR-250 on Ubuntu 7.10
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+711736df28a10b9df8a2+1678+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JfIs1-0002S5-Fc
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 19:00:05 +0100
+Date: Fri, 28 Mar 2008 14:59:27 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: timf <timf@iinet.net.au>
+Message-ID: <20080328145927.145b1a62@gaivota>
+In-Reply-To: <1206683274.5986.6.camel@ubuntu>
+References: <1206635698.5965.5.camel@ubuntu> <20080327144221.2d642590@gaivota>
+	<1206683274.5986.6.camel@ubuntu>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,16 +28,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-John Veness wrote:
+On Fri, 28 Mar 2008 14:47:54 +0900
+timf <timf@iinet.net.au> wrote:
 
-> The PVR-250 isn't a DVB card, so this isn't the right list for it. I 
-> think you want video4linux-list, but I only use DVB so I'm no expert.
+> Hi Mauro,
+> 
+> I just had to quickly tell you that I built it with this, rebooted, clicked
+> on tvtime, and waited anxiously watching a black screen - then WAHOO!
+> A TV program I am viewing!!
+Great!
 
-Ahhh - fallen at the first hurdle then!
+I've committed the patch with what we currently have. Please test if analog
+keeps working with the patch.
 
-Thanks for the pointer though, will try there.
+Now, it is time to work with the demod side.
 
-Ed
+Please, change the #if 0 to #if 1:
+#if 0
+                /* Not working yet */
+                .mpeg           = SAA7134_MPEG_DVB,
+#endif
+
+And test to see if analog still works fine. If ok, please test the digital side.
+
+You may need to figure out the proper parameters for mt352, on this part of the
+code(at saa7134-dvb):
+
+static int mt352_aver_a16d_init(struct dvb_frontend *fe)
+{
+        static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x2d };
+        static u8 reset []         = { RESET,      0x80 };
+        static u8 adc_ctl_1_cfg [] = { ADC_CTL_1,  0x40 };
+        static u8 agc_cfg []       = { AGC_TARGET, 0x28, 0xa0 };
+        static u8 capt_range_cfg[] = { CAPT_RANGE, 0x33 };
+
+        mt352_write(fe, clock_config,   sizeof(clock_config));
+        udelay(200);
+        mt352_write(fe, reset,          sizeof(reset));
+        mt352_write(fe, adc_ctl_1_cfg,  sizeof(adc_ctl_1_cfg));
+        mt352_write(fe, agc_cfg,        sizeof(agc_cfg));
+        mt352_write(fe, capt_range_cfg, sizeof(capt_range_cfg));
+
+        return 0;
+}
+
+You may need to try to change the above code, trying other existing mt352 code,
+or using some tool to get the initialization code done by your windows driver.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
