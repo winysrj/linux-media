@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m23MoLhs006519
-	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 17:50:22 -0500
-Received: from mailout03.sul.t-online.com (mailout03.sul.t-online.de
-	[194.25.134.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m23MnmoB029494
-	for <video4linux-list@redhat.com>; Mon, 3 Mar 2008 17:49:48 -0500
-Message-ID: <47CC8094.8000106@t-online.de>
-Date: Mon, 03 Mar 2008 23:49:56 +0100
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: tux@schweikarts-vom-dach.de
-References: <200801051252.18108.tux@schweikarts-vom-dach.de>
-	<47B9F1C2.3050309@t-online.de>
-	<200802272151.19488.tux@schweikarts-vom-dach.de>
-In-Reply-To: <200802272151.19488.tux@schweikarts-vom-dach.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SIi0lh025450
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:44:00 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SIhbQF001316
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:43:37 -0400
+Date: Fri, 28 Mar 2008 15:43:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+Message-ID: <20080328154302.2dc73781@gaivota>
+In-Reply-To: <da854c7e2b4372794c04.1206312205@liva.fdsoft.se>
+References: <patchbomb.1206312199@liva.fdsoft.se>
+	<da854c7e2b4372794c04.1206312205@liva.fdsoft.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
+Cc: video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 6 of 6] cx88: Enable color killer by default
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,34 +28,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi
+Patches 1 to 5 applied, thanks.
+ 
+> An enabled color killer will not degrade picture quality for color
+> input signals, only suppress bogus color information on
+> black-and-white input. Therefore enable it by default.
 
-Tux schrieb:
-> Hello Hartmut,
-> 
-> i have tried the new driver. You are completely right, one port is working
-> perfectly. But the other one not. What Information do you need to fix it ?
-> 
-> 
-> best regards
-> 
-<snip>
+I don't think it is a good idea to enable the color killer by default. This may
+lead to weird effects, if the stream uses some black and white images, with
+just a few colors, to produce some sort of visual effect. Better to have this
+disabled. If someone wants to see a black-and-white movie, or is on an area
+where the color carrier is bogus, he can manually enable the filter.
 
-in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
-i tried to make the 2nd section work too. I don't know which gpo is
-the right one to control the LNB supply, i need you to find out whether
-switching the polarization works.
-There are remaining restrictions:
-- the 2nd DVB-S section only works if the first is configured for DVB-S too.
-  so "options saa7134-dvb use_frontend=0,1" won't work, but use_frontend=1,0
-  and use_frontend=1,1 should.
-- currently it is not possible to choose the higher LNB voltage (14v instead of 13v)
-- it is not possible to power down the 2nd LNB supply independently.
-These are due to the fact that it is not possible to access the LNB supply chip
-via the i2c bus fron the second section of the card.
 
-Happy testing
-  Hartmut
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
