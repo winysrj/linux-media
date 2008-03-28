@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2G3roAO020459
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 23:53:50 -0400
-Received: from gaimboi.tmr.com (mail.tmr.com [64.65.253.246])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2G3rH9o031557
-	for <video4linux-list@redhat.com>; Sat, 15 Mar 2008 23:53:18 -0400
-Message-ID: <47DC9B27.50601@tmr.com>
-Date: Sat, 15 Mar 2008 23:59:35 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYpT3028213
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:51 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAXY5P018282
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:25 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so174998fga.7
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:25 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: CityK <cityk@rogers.com>
-References: <47DC4331.7040100@rogers.com>	<1205622683.4814.13.camel@pc08.localdom.local>
-	<47DC6303.2040802@rogers.com>
-In-Reply-To: <47DC6303.2040802@rogers.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: ATI "HDTV Wonder" audio
+Message-Id: <eb99bdd0a7e3f70eb40f.1206699516@localhost>
+In-Reply-To: <patchbomb.1206699511@localhost>
+Date: Fri, 28 Mar 2008 03:18:36 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: mchehab@infradead.org
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: [PATCH 5 of 9] videobuf-vmalloc.c: Remove buf_release from
+	videobuf_vm_close
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,60 +29,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-CityK wrote:
-> Hi Hermann
-> 
-> hermann pitton wrote:
->> for sure blame me not being up to date on this and I am not even sure,
->> what it is all about.
->> For example, since the using of cx88-alsa seems to be intended, analog
->> NTSC with picture, but no sound from tuner is reported (?)
->> Or like you pointed now, likely analog video from an external input and
->> then missing the specific ADC support for external analog audio input?
->>
->> ...
->>
->> Is it at all about analog NTSC-M video working from the tuner?
->> But no sound, hrmm ;)
->>   
-> Oops ... umm, its not that I  failed to take broadcast audio into 
-> consideration (as I wasn't sure if Bill was talking about broadcast 
-> audio too), its just that I was hell bent on talking about the external 
-> audio problem :P
+# HG changeset patch
+# User Brandon Philips <brandon@ifup.org>
+# Date 1206699279 25200
+# Node ID eb99bdd0a7e3f70eb40fcc6918794a8b8822ac49
+# Parent  3ac2b9752844e2635575e50594d50cea665ca09b
+videobuf-vmalloc.c: Remove buf_release from videobuf_vm_close
 
-I'm not sure what you mean by external audio, when the card was tried in 
-a Windows system it had sound, so there is some way to get the audio 
-"external" of the card and into the computer. I loaded the cx88_alsa 
-module with "index=1" and now /proc/asound/cards shows the internal 
-audio as card0 and the cx88 as card1. But I can't get any sound OUT of 
-the card to play, or even record.
+Remove the buf_release on vm_close because it will lead to a buffer being
+released multiple times since all buffers are already freed under the two
+possible cases: device close or STREAMOFF.
 
-> So now, for a more complete picture:
-> IIRC, the HDTV Wonder lacks any sort of audio out (via either an 
-> internal loop back cable to the sound card or similarly an external out 
-> on the riser).  Therefore, while the cx88 will perform ADC for analog 
-> broadcast audio, you would indeed need to use cx88-alsa, as quite 
-> correctly alluded to by Hermann.  In the more limited case (which I had 
-> wrongly only took into consideration) one will be unable to receive 
-> external audio for the reasons I specified -- i.e. cx88 doesn't do ADC 
-> for external audio; need a driver for the AK5355 for that, and then 
-> correctly code for the GPIO pins for the cx88 as used on the HDTV Wonder.
-> 
-As noted in my original post, I'm using cx88_alsa, it just doesn't work. 
-It's not muted, the volume is up, but nothing. Why they didn't populate 
-the soundcard out on the card I don't know, all the traces are there but 
-no socket is provided.
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
-Is it likely that "pulseaudio" stuff is the problem? This is the first 
-time I've used it with video, so I'm at least suspicious, but several 
-people warned I can't just rip it out, I may have to drop back to 
-several older things.
+---
+ linux/drivers/media/video/videobuf-vmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-
--- 
-Bill Davidsen <davidsen@tmr.com>
-   "We have more to fear from the bungling of the incompetent than from
-the machinations of the wicked."  - from Slashdot
+diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
+--- a/linux/drivers/media/video/videobuf-vmalloc.c
++++ b/linux/drivers/media/video/videobuf-vmalloc.c
+@@ -78,8 +78,6 @@ videobuf_vm_close(struct vm_area_struct 
+ 
+ 			if (q->bufs[i]->map != map)
+ 				continue;
+-
+-			q->ops->buf_release(q,q->bufs[i]);
+ 
+ 			q->bufs[i]->map   = NULL;
+ 			q->bufs[i]->baddr = 0;
 
 --
 video4linux-list mailing list
