@@ -1,25 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hydra.gt.owl.de ([195.71.99.218])
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <flo@rfc822.org>) id 1JWBft-0004u6-Bk
-	for linux-dvb@linuxtv.org; Mon, 03 Mar 2008 15:29:55 +0100
-Date: Mon, 3 Mar 2008 15:23:43 +0100
-From: Florian Lohoff <flo@rfc822.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Message-ID: <20080303142343.GG12328@paradigm.rfc822.org>
-References: <47CBE8FD.9030303@gmail.com>
-	<20080303132157.GA9749@paradigm.rfc822.org>
-	<47CBFFFD.1020902@gmail.com> <47CC0201.5010701@gmail.com>
-	<20080303134823.GB12328@paradigm.rfc822.org>
-	<47CC055C.5030705@gmail.com>
-	<20080303140316.GD12328@paradigm.rfc822.org>
-	<47CC0896.3050308@gmail.com>
-	<20080303141358.GF12328@paradigm.rfc822.org>
-	<47CC0A32.1040807@gmail.com>
+	(envelope-from <crope@iki.fi>) id 1Jf2Tv-0005lJ-HV
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 01:30:08 +0100
+Message-ID: <47EC3BD4.3070307@iki.fi>
+Date: Fri, 28 Mar 2008 02:29:08 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <47CC0A32.1040807@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBFE_SET_PARAMS / delsys from fe_info ioctl ?
+To: Patrick Boettcher <patrick.boettcher@desy.de>,
+	ptay1685 <ptay1685@Bigpond.net.au>, John <bitumen.surfer@gmail.com>
+References: <e44ae5e0712172128p4e1428aao493d0a1725b6fcd3@mail.gmail.com>
+In-Reply-To: <e44ae5e0712172128p4e1428aao493d0a1725b6fcd3@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="------------010204040207050405060901"
+Cc: linux-dvb@linuxtv.org, k.bannister@ieee.org
+Subject: [linux-dvb] [PATCH] new USB-ID for Leadtek Winfast DTV was: Re: New
+ Leadtek Winfast DTV Dongle working - with mods but	no RC
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,73 +22,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1246466912=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+This is a multi-part message in MIME format.
+--------------010204040207050405060901
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---===============1246466912==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BzCohdixPhurzSK4"
-Content-Disposition: inline
+hello
+USB-ID for Leadtek Winfast DTV
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 
---BzCohdixPhurzSK4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patch done against current development-tree at 
+http://linuxtv.org/hg/~pb/v4l-dvb/
+Patrick, could you check and add it?
 
-On Mon, Mar 03, 2008 at 06:24:50PM +0400, Manu Abraham wrote:
-> >On Mon, Mar 03, 2008 at 06:17:58PM +0400, Manu Abraham wrote:
-> >>>You mean tune and then check if there is a SIGNAL and possibly a LOCK?=
- I
-> >>>do that yes ... But first comes the tune - On an uninitialized state of
-> >>>a demod/tuner i would not expect to see any signal.
-> >>How do you expect to look for a signal level when using a rotor, for a=
-=20
-> >>real life example ?
-> >
-> >In case of a rotor i expect the diseq commands to go out - tune the
-> >frontend for the right modulation and frequency and then monitor the
-> >signal level while turning the dish.
-> >
-> >This needs tuning - right ?
->=20
-> No, this is fed from the AGC1 path1 integrator and the AGC1 path2=20
-> integrator.
+Could ptay1685 or John or some other test this?
 
-Okay - you say turning the dish does not need tuning - so i issue
-the DISEQ ioctls and start reading the signal level - whats the point
-and what is this an argument for?
+Keith Bannister wrote:
+> I hopped onto the IRC channel and crope` (thanks mate) advised me to 
+> change dvb-usb-ids.h to
+> 
+> #define USB_PID_WINFAST_DTV_DONGLE_STK7700P        0x6f01
 
-- How can this excuse ignoring the delivery in the DVBFE_SET_PARAMS?
-- How can this justify setting the delivery system in DVBFE_GET_INFO ?
+Sorry, I forgot make patch earlier...
 
-Flo
---=20
-Florian Lohoff                  flo@rfc822.org             +49-171-2280134
-	Those who would give up a little freedom to get a little=20
-          security shall soon have neither - Benjamin Franklin
+regards
+Antti
+-- 
+http://palosaari.fi/
 
---BzCohdixPhurzSK4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+--------------010204040207050405060901
+Content-Type: text/x-diff;
+ name="Leadtek_Winfast_DTV_Dongle_6f01.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Leadtek_Winfast_DTV_Dongle_6f01.patch"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+diff -r 3d252c252869 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Sat Mar 22 23:19:38 2008 +0100
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Fri Mar 28 02:15:01 2008 +0200
+@@ -1115,6 +1115,8 @@ struct usb_device_id dib0700_usb_id_tabl
+ 	{ USB_DEVICE(USB_VID_YUAN,	USB_PID_YUAN_EC372S) },
+ 	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_HT_EXPRESS) },
+ 	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_XXS) },
++	{ USB_DEVICE(USB_VID_LEADTEK,
++			USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1179,7 +1181,8 @@ struct dvb_usb_device_properties dib0700
+ 				{ NULL },
+ 			},
+ 			{   "Leadtek Winfast DTV Dongle (STK7700P based)",
+-				{ &dib0700_usb_id_table[8], NULL },
++				{ &dib0700_usb_id_table[8],
++				  &dib0700_usb_id_table[34], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "AVerMedia AVerTV DVB-T Express",
+diff -r 3d252c252869 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sat Mar 22 23:19:38 2008 +0100
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Fri Mar 28 02:15:01 2008 +0200
+@@ -180,6 +180,7 @@
+ #define USB_PID_WINFAST_DTV_DONGLE_COLD			0x6025
+ #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
+ #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
++#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
+ #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
+ #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
+ #define USB_PID_GENPIX_8PSK_REV_2			0x0202
 
-iD8DBQFHzAnvUaz2rXW+gJcRAsxPAJ9hwV2WFg2isOGlUxw6rxoPkZak4wCfazfW
-T2/IRvypKVwKW3yEoIIGBlo=
-=NTcW
------END PGP SIGNATURE-----
-
---BzCohdixPhurzSK4--
-
-
---===============1246466912==
+--------------010204040207050405060901
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -103,4 +106,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1246466912==--
+--------------010204040207050405060901--
