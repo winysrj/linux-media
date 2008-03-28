@@ -1,29 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56])
+Received: from gv-out-0910.google.com ([216.239.58.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Jg0or-0000FA-HC
-	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 18:55:46 +0200
-Received: from mail-in-14-z2.arcor-online.net (mail-in-14-z2.arcor-online.net
-	[151.189.8.31])
-	by mail-in-16.arcor-online.net (Postfix) with ESMTP id 179F01FF17A
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 18:55:42 +0200 (CEST)
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mail-in-14-z2.arcor-online.net (Postfix) with ESMTP id 0218D100C0
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 18:55:42 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-16.arcor-online.net (Postfix) with ESMTP id 9A359236E52
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 18:55:41 +0200 (CEST)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <5387cd30803300852t60a18c7chb0aedf4037c95da4@mail.gmail.com>
-References: <47EEE49F.4060202@andrei.myip.org>
-	<5387cd30803300852t60a18c7chb0aedf4037c95da4@mail.gmail.com>
-Date: Sun, 30 Mar 2008 18:55:37 +0200
-Message-Id: <1206896137.3520.18.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Hauppauge WinTV Nova-S Plus
+	(envelope-from <hansson.patrik@gmail.com>) id 1JfHZP-0001Ws-Gm
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 17:36:50 +0100
+Received: by gv-out-0910.google.com with SMTP id o2so54365gve.16
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 09:36:39 -0700 (PDT)
+Message-ID: <8ad9209c0803280936k2cba9115laa49f828ffda55bf@mail.gmail.com>
+Date: Fri, 28 Mar 2008 17:36:38 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1206719797.14161.8.camel@acropora>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <1206139910.12138.34.camel@youkaida>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+	<47EC13BE.6020600@simmons.titandsl.co.uk>
+	<1206655986.17233.8.camel@youkaida>
+	<8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
+	<1206719797.14161.8.camel@acropora>
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,31 +36,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Nick,
+On Fri, Mar 28, 2008 at 4:56 PM, Nicolas Will <nico@youplala.net> wrote:
+> On Fri, 2008-03-28 at 16:46 +0100, Patrik Hansson wrote:
+>  > Tried to collect some info from logs.
+>  > messages:
+>  > http://pastebin.com/f5cc1bc26
+>  > syslog:
+>  > http://pastebin.com/f402477c9
+>  > debug:
+>  > http://pastebin.com/f187de73a
+>  >
+>
+>  This is missing a bit of context.
+>
+>  And I see no disconnect there.
+>
+>  The mt2060 i2c read/write errors are, I think, a by-product of something
+>  else, and not the real problem. A disconnect happens, then you see the
+>  mt2060 i2c error, not the other way around.
+>
+>
+>
+>  Nico
+>
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-Am Sonntag, den 30.03.2008, 15:52 +0000 schrieb Nick Morrott:
-> On 30/03/2008, Florin Andrei <florin@andrei.myip.org> wrote:
-> > Is anybody using Hauppauge WinTV Nova-S Plus with good results on a
-> >  fairly recent distribution?
-> >  The wiki says the card is supported, but I've seen reports online saying
-> >  that it doesn't work very well on Linux.
-> 
-> It works absolutely fine for me on a Fedora 7 box using both MythTV
-> and Kaffeine. Is that distro recent enough?
-> 
+hmm, ok this is odd.
+I searched my entire syslog and messages and the only disconnect i
+have is from now during the reboot to get the tuner back.
 
-can you provide the exact kernel with "uname -a" ?
-
-IIRC, previously was said last working kernel was 2.6.18.
-
-This goes since long and I also don't know what to recommend people
-using the cx24123 with other cards and reporting issues, like with
-Kworld DVB-S 100 and the Geniatech DVB-S.
-
-Thanks,
-Hermann
-
-
+So i have the following:
+This morning everything is fine.
+In the afternoon i loose a tuner, restarting mythtv-backend and so on
+does not bring it back.
+I reboot and tuner comes back.
+I check the logs and have 0 disconnects.
 
 _______________________________________________
 linux-dvb mailing list
