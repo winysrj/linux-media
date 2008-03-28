@@ -1,23 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m24KmZQr026533
-	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 15:48:35 -0500
-Received: from gandalf.light-speed.de (gandalf.light-speed.de [87.106.176.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m24Km3lm032299
-	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 15:48:03 -0500
-Received: from [192.168.1.123] (pool-198-21-196-89.dbd-ipconnect.net
-	[89.196.21.198]) (authenticated bits=0)
-	by gandalf.light-speed.de (8.14.2/8.14.2) with ESMTP id m24KlmNx002461
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <video4linux-list@redhat.com>; Tue, 4 Mar 2008 21:47:50 +0100
-Message-ID: <47CDB575.1080706@2moove.de>
-Date: Tue, 04 Mar 2008 21:47:49 +0100
-From: Daniel Wolf <daniel.wolf@2moove.de>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH] Support for DVB-T USB Device Emtec S810
+Message-Id: <20080328094021.513463447@ifup.org>
+References: <20080328093944.278994792@ifup.org>
+Date: Fri, 28 Mar 2008 02:39:47 -0700
+From: brandon@ifup.org
+To: mchehab@infradead.org
+Content-Disposition: inline; filename=wakeup-on-queue-cancel.patch
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Brandon Philips <bphilips@suse.de>
+Subject: [patch 3/9] videobuf: Wakeup queues after changing the state to
+	ERROR
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,86 +20,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Description:
+The waitqueues must be woken up every time state changes.
 
-This Patch is for supporting the DVB-T USB Device "Emtec S810". Probably 
-it also support the "Intuix S810" device because it appears to be the 
-same. But i can´t guarantee it because i don´t have this device physically.
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
-lsusb gives:
-Bus 005 Device 002: ID 1164:2edc YUAN High-Tech Development Co., Ltd
-------------------------------------------------------
+---
+ linux/drivers/media/video/videobuf-core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Patch 1:
+Index: v4l-dvb/linux/drivers/media/video/videobuf-core.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/videobuf-core.c
++++ v4l-dvb/linux/drivers/media/video/videobuf-core.c
+@@ -207,6 +207,7 @@ void videobuf_queue_cancel(struct videob
+ 		if (q->bufs[i]->state == VIDEOBUF_QUEUED) {
+ 			list_del(&q->bufs[i]->queue);
+ 			q->bufs[i]->state = VIDEOBUF_ERROR;
++			wake_up_all(&q->bufs[i]->done);
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(q->irqlock, flags);
 
---- linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h    2008-03-04 
-21:24:05.000000000 +0100
-+++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h_patched    2008-03-04 
-21:23:31.000000000 +0100
-@@ -46,6 +46,7 @@
- #define USB_VID_ULTIMA_ELECTRONIC        0x05d8
- #define USB_VID_UNIWILL                0x1584
- #define USB_VID_WIDEVIEW            0x14aa
-+#define USB_VID_YUANRD           0x1164
- /* dom : pour gigabyte u7000 */
- #define USB_VID_GIGABYTE            0x1044
- 
-@@ -187,5 +188,6 @@
- #define USB_PID_GIGABYTE_U7000                0x7001
- #define USB_PID_ASUS_U3000                0x171f
- #define USB_PID_ASUS_U3100                0x173f
-+#define USB_PID_YUANRD_STK7700D     0x2edc
- 
- #endif
---------------------------------------------------------
-
-Patch 2:
-
---- linux/drivers/media/dvb/dvb-usb/dib0700_devices.c    2008-03-04 
-21:24:05.000000000 +0100
-+++ linux/drivers/media/dvb/dvb-usb/dib0700_devices.c_patched    
-2008-03-04 21:23:05.000000000 +0100
-@@ -905,6 +905,7 @@ struct usb_device_id dib0700_usb_id_tabl
-         { USB_DEVICE(USB_VID_ASUS,      USB_PID_ASUS_U3100) },
- /* 25 */    { USB_DEVICE(USB_VID_HAUPPAUGE, 
-USB_PID_HAUPPAUGE_NOVA_T_STICK_3) },
-         { USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_MYTV_T) },
-+         { USB_DEVICE(USB_VID_YUANRD, USB_PID_YUANRD_STK7700D) },
-         { 0 }        /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1123,6 +1124,28 @@ struct dvb_usb_device_properties dib0700
-         .rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
-         .rc_query         = dib0700_rc_query
- 
-+    },  { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-+
-+        .num_adapters = 1,
-+        .adapter = {
-+            {
-+                .frontend_attach  = stk7070p_frontend_attach,
-+                .tuner_attach     = dib7070p_tuner_attach,
-+
-+                DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-+
-+                .size_of_priv     = sizeof(struct dib0700_adapter_state),
-+            },
-+        },
-+
-+        .num_device_descs = 1,
-+        .devices = {
-+            {   "Emtec S810",
-+                { &dib0700_usb_id_table[27], NULL },
-+                { NULL },
-+            },
-+        },
-+
-     }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
- 
-         .num_adapters = 2,
---------------------------------------------------------------
-
-Signed-off-by: Daniel Wolf <daniel.wolf@2moove.de>
+-- 
 
 --
 video4linux-list mailing list
