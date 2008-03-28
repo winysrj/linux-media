@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
+Received: from py-out-1112.google.com ([64.233.166.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas.schorpp@googlemail.com>) id 1Jfuib-00045S-Ly
-	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 12:24:54 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so1015130fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 03:24:50 -0700 (PDT)
-Message-ID: <47EF6A6F.50401@googlemail.com>
-Date: Sun, 30 Mar 2008 12:24:47 +0200
-From: thomas schorpp <thomas.schorpp@googlemail.com>
+	(envelope-from <christophpfister@gmail.com>) id 1JfMeg-0007Co-C4
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 23:02:35 +0100
+Received: by py-out-1112.google.com with SMTP id a29so518279pyi.0
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 15:02:28 -0700 (PDT)
+Message-ID: <19a3b7a80803281502p619d2162rf36581871deac680@mail.gmail.com>
+Date: Fri, 28 Mar 2008 23:02:27 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: "Arthur Konovalov" <kasjas@hot.ee>
+In-Reply-To: <47ED538C.4090302@hot.ee>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <20080329024154.GA23883@localhost>
-	<47EDB703.10502@googlemail.com>	<20080330053900.GA31417@localhost>	<47EF342C.5010908@googlemail.com>
-	<20080330071647.GA990@localhost>
-In-Reply-To: <20080330071647.GA990@localhost>
-Subject: Re: [linux-dvb] KNC1 DVB-C Plus analog input
-Reply-To: thomas.schorpp@googlemail.com
+Content-Type: multipart/mixed;
+	boundary="----=_Part_11266_33248372.1206741748095"
+References: <200803212024.17198.christophpfister@gmail.com>
+	<200803281535.57209.christophpfister@gmail.com>
+	<47ED0962.20701@hot.ee>
+	<200803281816.10525.christophpfister@gmail.com>
+	<47ED538C.4090302@hot.ee>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +27,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-L. wrote:
-> thomas schorpp wrote on Sun 2008-03-30 08:33 CET:
->> L. wrote:
->>> thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
->>>> the videobuf reworks broke it or all the foreign CI code 
->>>> in budget_av.c is disturbing the saa7113 circuit part of the card.
->>> You seem rather unsure about what exactly was breaking it. But did it
->>> work at a certain point of time anyway? All I know is analog input of
->>> this card was already not functional under kernel 2.6.20.
->> can't remember.
->> btw, could You test if the crappy knc-1 (odsoft?) non-bda winxp driver which 
->> supports the saa7113 input BSOD's on Your machine, too, on install?
-> 
-> I don't have winxp but if it produces a crash it may be related to this: 
-> 
-> KNC One FAQ: Programmabsturz bei Auswahl des analogen Videoeingangs (DVB-x PLUS Karten)
-> http://www.knc1.de/d/faq/faqs.htm#18
+------=_Part_11266_33248372.1206741748095
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-No. bluescreen is a kernel crash, not crash of a userspace app, and I've not got any HD audio.
-Your only chance to get analog working at this time is trying the non-bda winxp driver.
-If it crashes Your winxp kernel, You got a warranty case to return in the 
-card to the dealer or knc-1 and get money back, +assured product feature failure case ;)
+2008/3/28, Arthur Konovalov <kasjas@hot.ee>:
+> Christoph Pfister wrote:
+>  > Am Freitag 28 M=E4rz 2008 schrieb Arthur Konovalov:
+>  > Try removing the following three lines from
+>  > linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c and see whether it w=
+orks:
+>  >
+>  > 989                           /* clear down an old CI slot if necessar=
+y */
+>  > 990                           if (ca->slot_info[slot].slot_state !=3D =
+DVB_CA_SLOTSTATE_NONE)
+>  > 991                                   dvb_ca_en50221_slot_shutdown(ca,=
+ slot);
+>
+>  Done.
+>
+>  > If it doesn't work load budget-core with module param debug=3D255 and =
+dvb-core
+>  > with module param cam_debug=3D1 (likely you need to unload them first)=
+; please
+>  > paste dmesg in any case.
+>
+>  I haven't xine GUI at moment, but regarding to logs I suspect that it
+>  doesn't works...
 
-y
-tom
+Hmm.
+Can you please try the attached patch (still with the modification
+described above ^^) and send dmesg?
 
+>  Attached files are:
+>  dmesg_load_modules - dmesg after modules load.
+>  dmesg_start_vdr - dmesg after vdr start.
+>  syslog - syslog after vdr start.
+>
+>  I noticed some suspicious rows in logs:
+>
+>  budget_av: saa7113_init(): saa7113 not found on KNC card
+
+That's no problem.
+
+>  DVB: TDA10021(0): _tda10021_writereg, writereg error (reg =3D=3D 0x01, v=
+al
+>  =3D=3D 0x6a, ret =3D=3D -121)
+
+That's also present in your original log ...
+
+>  I hope it helps and wish quick solution :) .
+>
+>  Regards,
+>
+> Arthur
+
+Christoph
+
+------=_Part_11266_33248372.1206741748095
+Content-Type: text/plain; name=patch.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fedasff3
+Content-Disposition: attachment; filename=patch.diff
+
+ZGlmZiAtciAwNzc2ZTQ4MDE5OTEgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVkZ2V0
+LWF2LmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVkZ2V0LWF2LmMJRnJp
+IE1hciAyOCAxNDo1Mjo0NCAyMDA4IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZi
+L3R0cGNpL2J1ZGdldC1hdi5jCUZyaSBNYXIgMjggMjI6NDA6MjIgMjAwOCArMDEwMApAQCAtMjQx
+LDYgKzI0MSw4IEBAIHN0YXRpYyBpbnQgY2lpbnRmX3Nsb3Rfc2h1dGRvd24oc3RydWN0IGQKIAog
+CWlmIChzbG90ICE9IDApCiAJCXJldHVybiAtRUlOVkFMOworCisJV0FSTl9PTigxKTsKIAogCWRw
+cmludGsoMSwgImNpaW50Zl9zbG90X3NodXRkb3duXG4iKTsKIAo=
+------=_Part_11266_33248372.1206741748095
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_11266_33248372.1206741748095--
