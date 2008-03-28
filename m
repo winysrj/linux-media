@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2BNlTQT020492
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 19:47:29 -0400
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2BNktW2031004
-	for <video4linux-list@redhat.com>; Tue, 11 Mar 2008 19:46:55 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <47D7015C.3090904@t-online.de>
-References: <200801051252.18108.tux@schweikarts-vom-dach.de>
-	<200802272151.19488.tux@schweikarts-vom-dach.de>
-	<47CC8094.8000106@t-online.de>
-	<200803101942.40158.tux@schweikarts-vom-dach.de>
-	<47D5A68C.7070004@t-online.de>
-	<1205196280.6940.12.camel@pc08.localdom.local>
-	<47D7015C.3090904@t-online.de>
-Content-Type: text/plain; charset=utf-8
-Date: Wed, 12 Mar 2008 00:38:57 +0100
-Message-Id: <1205278737.5927.108.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, tux@schweikarts-vom-dach.de
-Subject: Re: DVB-S on quad TV tuner card from Medion PC MD8800
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYte7028310
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:55 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAYF8v018585
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:44 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so175260fga.7
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:43 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Message-Id: <0b7eea4e7b7dc24b1c01.1206699519@localhost>
+In-Reply-To: <patchbomb.1206699511@localhost>
+Date: Fri, 28 Mar 2008 03:18:39 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: mchehab@infradead.org
+Cc: v4l-dvb-maintainer@linuxtv.org, Jonathan Corbet <corbet@lwn.net>,
+	video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH 8 of 9] videobuf: Avoid deadlock with QBUF and bring up to
+	spec for empty queue
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,100 +30,213 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hartmut,
+# HG changeset patch
+# User Brandon Philips <brandon@ifup.org>
+# Date 1206699281 25200
+# Node ID 0b7eea4e7b7dc24b1c015e5768fdb8f70f70c751
+# Parent  304e0a371d12f77e1575ae43fa0133855165f63e
+videobuf: Avoid deadlock with QBUF and bring up to spec for empty queue
 
-Am Dienstag, den 11.03.2008, 23:02 +0100 schrieb Hartmut Hackmann:
-> Hi,
-> 
-> hermann pitton schrieb:
-> > Hi,
-> > 
-> > Am Montag, den 10.03.2008, 22:22 +0100 schrieb Hartmut Hackmann:
-> >> HI
-> >>
-> >> Tux schrieb:
-> >>> Hello Hartmut,
-> >>>
-> >>> sorry that it has taken so long time to test it. I have tried it with option 
-> >>> use_frontend=1,1 and now it is posible to watch TV on the other
-> >>> port.
-> >>>
-> >>> best regards
-> >>>
-> >>> Tux
-> >>>
-> >>> Am Montag, 3. März 2008 23:49:56 schrieben Sie:
-> >>>> Hi
-> >>>>
-> >>>> Tux schrieb:
-> >>>>> Hello Hartmut,
-> >>>>>
-> >>>>> i have tried the new driver. You are completely right, one port is
-> >>>>> working perfectly. But the other one not. What Information do you need to
-> >>>>> fix it ?
-> >>>>>
-> >>>>>
-> >>>>> best regards
-> >>>> <snip>
-> >>>>
-> >>>> in my personal repository: http://linuxtv.org/hg/~hhackmann/v4l-dvb/
-> >>>> i tried to make the 2nd section work too. I don't know which gpo is
-> >>>> the right one to control the LNB supply, i need you to find out whether
-> >>>> switching the polarization works.
-> >>>> There are remaining restrictions:
-> >>>> - the 2nd DVB-S section only works if the first is configured for DVB-S
-> >>>> too. so "options saa7134-dvb use_frontend=0,1" won't work, but
-> >>>> use_frontend=1,0 and use_frontend=1,1 should.
-> >>>> - currently it is not possible to choose the higher LNB voltage (14v
-> >>>> instead of 13v) - it is not possible to power down the 2nd LNB supply
-> >>>> independently. These are due to the fact that it is not possible to access
-> >>>> the LNB supply chip via the i2c bus fron the second section of the card.
-> >>>>
-> >>>> Happy testing
-> >>>>   Hartmut
-> >>>>
-> >> It's fully working? Great!
-> >> I expected more trouble. I'd like to rework the code a bit before i ask
-> >> Mauro to pull. May I ask you to test again in some days?
-> >>
-> >>
-> >> Best regards
-> >>   Hartmut
-> >>
-> > 
-> > this is really very good progress now, given that previously on such OEM
-> > and special devices testing abilities have been restricted for almost
-> > all of us. Nevertheless, they are in substantial numbers in the markets.
-> >
-> Indeed. I was aware of this. And there are still some well known cards left ...
-> 
-> > What makes me still wonder a little, since I can't test almost nothing
-> > on the second 0008 subdevice, how to deal with the RF loopthrough, this
-> > I can test and is active in both directions for what I can say.
-> > 
-> IMHO, a RF loopthrough makes no sense for satellite. I had a glance at the
-> datasheet of the tda8262 - it has a configurable loopthrough.
-> But lets deal with this later:
-> While i worked on the "need analog first issue", i noticed that currently the
-> LNA support of the tda8275a is heavily broken - it even causes a kernel oops.
-> I should fix this first.
-> 
-> Best regards
->    Hartmut
+Add a waitqueue to wait on when there are no buffers in the buffer queue.
+DQBUF waits on this queue without holding vb_lock to allow a QBUF to happen.
+Once a buffer has been queued we recheck that the queue is still streaming and
+wait on the new buffer's waitqueue while holding the vb_lock.  The driver
+should come along in a timely manner and put the buffer into its next state
+finishing the DQBUF.
 
-argh, looks like somebody is flooding the Grand Canyon ;)
+By implementing this waitqueue it also brings the videobuf DQBUF up to spec and
+it now blocks on O_NONBLOCK even when no buffers have been queued via QBUF:
 
-For what I can test, we can always come back.
+"By default VIDIOC_DQBUF blocks when no buffer is in the outgoing queue."
+ - V4L2 spec
 
-Tux was not that specific for what is working on the second LNB
-connector now, but since known to be precise with few words, guess he
-does not sit on the restricted loopthrough from the first LNB connector
-and you hit the right gpio pin and he has all services without something
-connected to the first LNB input.
+CC: Trent Piepho <xyzzy@speakeasy.org>
+CC: Carl Karsten <carl@personnelware.com>
+CC: Jonathan Corbet <corbet@lwn.net>
 
-Cheers,
-Hermann
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
+---
+ linux/drivers/media/video/videobuf-core.c |   96 +++++++++++++++++++++++-------
+ linux/include/media/videobuf-core.h       |    2
+ 2 files changed, 78 insertions(+), 20 deletions(-)
+
+diff --git a/linux/drivers/media/video/videobuf-core.c b/linux/drivers/media/video/videobuf-core.c
+--- a/linux/drivers/media/video/videobuf-core.c
++++ b/linux/drivers/media/video/videobuf-core.c
+@@ -140,6 +140,7 @@ void videobuf_queue_core_init(struct vid
+ 	BUG_ON(!q->int_ops);
+ 
+ 	mutex_init(&q->vb_lock);
++	init_waitqueue_head(&q->wait);
+ 	INIT_LIST_HEAD(&q->stream);
+ }
+ 
+@@ -186,6 +187,10 @@ void videobuf_queue_cancel(struct videob
+ {
+ 	unsigned long flags = 0;
+ 	int i;
++
++	q->streaming = 0;
++	q->reading  = 0;
++	wake_up_all(&q->wait);
+ 
+ 	/* remove queued buffers from list */
+ 	spin_lock_irqsave(q->irqlock, flags);
+@@ -561,6 +566,7 @@ int videobuf_qbuf(struct videobuf_queue 
+ 	}
+ 	dprintk(1, "qbuf: succeded\n");
+ 	retval = 0;
++	wake_up(&q->wait);
+ 
+  done:
+ 	mutex_unlock(&q->vb_lock);
+@@ -571,37 +577,88 @@ int videobuf_qbuf(struct videobuf_queue 
+ 	return retval;
+ }
+ 
++
++/* Locking: Caller holds q->vb_lock */
++static int stream_next_buffer_check_queue(struct videobuf_queue *q, int noblock)
++{
++	int retval;
++
++checks:
++	if (!q->streaming) {
++		dprintk(1, "next_buffer: Not streaming\n");
++		retval = -EINVAL;
++		goto done;
++	}
++
++	if (list_empty(&q->stream)) {
++		if (noblock) {
++			retval = -EAGAIN;
++			dprintk(2, "next_buffer: no buffers to dequeue\n");
++			goto done;
++		} else {
++			dprintk(2, "next_buffer: waiting on buffer\n");
++
++			/* Drop lock to avoid deadlock with qbuf */
++			mutex_unlock(&q->vb_lock);
++
++			/* Checking list_empty and streaming is safe without
++			 * locks because we goto checks to validate while
++			 * holding locks before proceeding */
++			retval = wait_event_interruptible(q->wait,
++				!list_empty(&q->stream) || !q->streaming);
++			mutex_lock(&q->vb_lock);
++
++			if (retval)
++				goto done;
++
++			goto checks;
++		}
++	}
++
++	retval = 0;
++
++done:
++	return retval;
++}
++
++
++/* Locking: Caller holds q->vb_lock */
++static int stream_next_buffer(struct videobuf_queue *q,
++			struct videobuf_buffer **vb, int nonblocking)
++{
++	int retval;
++	struct videobuf_buffer *buf = NULL;
++
++	retval = stream_next_buffer_check_queue(q, nonblocking);
++	if (retval)
++		goto done;
++
++	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
++	retval = videobuf_waiton(buf, nonblocking, 1);
++	if (retval < 0)
++		goto done;
++
++	*vb = buf;
++done:
++	return retval;
++}
++
+ int videobuf_dqbuf(struct videobuf_queue *q,
+ 	       struct v4l2_buffer *b, int nonblocking)
+ {
+-	struct videobuf_buffer *buf;
++	struct videobuf_buffer *buf = NULL;
+ 	int retval;
+ 
+ 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+ 
+ 	mutex_lock(&q->vb_lock);
+-	retval = -EBUSY;
+-	if (q->reading) {
+-		dprintk(1, "dqbuf: Reading running...\n");
++
++	retval = stream_next_buffer(q, &buf, nonblocking);
++	if (retval < 0) {
++		dprintk(1, "dqbuf: next_buffer error: %i\n", retval);
+ 		goto done;
+ 	}
+-	retval = -EINVAL;
+-	if (b->type != q->type) {
+-		dprintk(1, "dqbuf: Wrong type.\n");
+-		goto done;
+-	}
+-	if (list_empty(&q->stream)) {
+-		dprintk(1, "dqbuf: stream running\n");
+-		goto done;
+-	}
+-	buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
+-	mutex_unlock(&q->vb_lock);
+-	retval = videobuf_waiton(buf, nonblocking, 1);
+-	mutex_lock(&q->vb_lock);
+-	if (retval < 0) {
+-		dprintk(1, "dqbuf: waiton returned %d\n", retval);
+-		goto done;
+-	}
++
+ 	switch (buf->state) {
+ 	case VIDEOBUF_ERROR:
+ 		dprintk(1, "dqbuf: state is error\n");
+@@ -648,6 +705,7 @@ int videobuf_streamon(struct videobuf_qu
+ 			q->ops->buf_queue(q, buf);
+ 	spin_unlock_irqrestore(q->irqlock, flags);
+ 
++	wake_up(&q->wait);
+  done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
+@@ -660,7 +718,6 @@ static int __videobuf_streamoff(struct v
+ 		return -EINVAL;
+ 
+ 	videobuf_queue_cancel(q);
+-	q->streaming = 0;
+ 
+ 	return 0;
+ }
+@@ -858,7 +915,6 @@ static void __videobuf_read_stop(struct 
+ 		q->bufs[i] = NULL;
+ 	}
+ 	q->read_buf = NULL;
+-	q->reading  = 0;
+ 
+ }
+ 
+diff --git a/linux/include/media/videobuf-core.h b/linux/include/media/videobuf-core.h
+--- a/linux/include/media/videobuf-core.h
++++ b/linux/include/media/videobuf-core.h
+@@ -159,6 +159,8 @@ struct videobuf_queue {
+ 	spinlock_t                 *irqlock;
+ 	struct device		   *dev;
+ 
++	wait_queue_head_t	   wait; /* wait if queue is empty */
++
+ 	enum v4l2_buf_type         type;
+ 	unsigned int               inputs; /* for V4L2_BUF_FLAG_INPUT */
+ 	unsigned int               msize;
 
 --
 video4linux-list mailing list
