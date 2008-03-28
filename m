@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2L0ZKtS014004
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 20:35:20 -0400
-Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2L0YnQB030125
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 20:34:50 -0400
-Received: by rv-out-0910.google.com with SMTP id k15so594956rvb.51
-	for <video4linux-list@redhat.com>; Thu, 20 Mar 2008 17:34:49 -0700 (PDT)
-Message-ID: <ea76a3890803201734s55caae9t9a8ebd3ddad03cad@mail.gmail.com>
-Date: Thu, 20 Mar 2008 19:34:49 -0500
-From: "Kip Ingram" <kip.ingram@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SMoPV8014571
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 18:50:25 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SMoDx9005539
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 18:50:13 -0400
+Message-ID: <47ED7607.2000307@hhs.nl>
+Date: Fri, 28 Mar 2008 23:49:43 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Michel Xhaard <mxhaard@free.fr>
+References: <47ED66AF.8030100@hhs.nl> <200803290045.40510.mxhaard@free.fr>
+In-Reply-To: <200803290045.40510.mxhaard@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: HVR-1800 firmware update
+Cc: fedora-kernel-list@redhat.com, video4linux-list@redhat.com,
+	spca50x-devs@lists.sourceforge.net
+Subject: Re: [Spca50x-devs] Self Introduction: Hans de Goede
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,15 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Can someone give me some pointers on how to update the firmware in my
-HVR-1800?  I have ATSC support working very nicely in Mythbuntu 7.10.  The
-analog tuner, though, appears to tune bug gives me nasty stripes and so
-forth on the image.  Firmware problem?
+Hi Michel,
 
-Thanks in advance for helping a noob.
+Michel Xhaard wrote:
+> Hans,
+> I don't understand why you start this work without asking the gspca 
+> maintener ?
 
-Best regards,
-Kip Ingram
+As I wrote I wanted to have something to show before announcing my plans, I 
+don't like doing hot air only announcements. Also these last few weeks have 
+been very usefull for me to learn a lot of new things (sofar I've only been 
+writing hwmon device drivers, which are much simpler then usb webcam drivers).
+
+> Jean-Francois is working on the gspca_core driver for v4l2, you 
+> should help if you want.
+
+I've already send a private mail to him (this evening) to try and coordinate 
+our work.
+
+Regards,
+
+Hans
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
