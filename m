@@ -1,18 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 64.244.187.81.in-addr.arpa ([81.187.244.64]
-	helo=bandit.ply.me.uk) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb@ply.me.uk>) id 1JeoZ9-0003Dk-At
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 10:38:37 +0100
-From: Andy Carter <dvb@ply.me.uk>
-To: linux-dvb@linuxtv.org
-Date: Thu, 27 Mar 2008 09:38:31 +0000
-References: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
-In-Reply-To: <e40e29dd0803270213r39da40f3h4181589e85ba97b@mail.gmail.com>
+Received: from ti-out-0910.google.com ([209.85.142.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hansson.patrik@gmail.com>) id 1JfGmZ-0004oC-14
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 16:46:20 +0100
+Received: by ti-out-0910.google.com with SMTP id y6so123062tia.13
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 08:46:02 -0700 (PDT)
+Message-ID: <8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
+Date: Fri, 28 Mar 2008 16:46:01 +0100
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1206655986.17233.8.camel@youkaida>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200803270938.31699.dvb@ply.me.uk>
-Subject: Re: [linux-dvb] Recommendations for a DVB-T card for 2.6.24
-Reply-To: dvb@ply.me.uk
+References: <1206139910.12138.34.camel@youkaida>
+	<1206546831.8967.13.camel@acropora>
+	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+	<47EC13BE.6020600@simmons.titandsl.co.uk>
+	<1206655986.17233.8.camel@youkaida>
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +36,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 27 March 2008 09:13:09 Eamonn Sullivan wrote:
-> Hi, I'm a long-time linux user (since the early 1990s, pre-1.0), but
-> absolutely brand spanking new to mythtv and digital TV cards. I have a
-> new PC set up with the latest mythbuntu (beta 8.04, due out in a few
-> weeks). I've been trying to get a Nova-T 500 to work reliably without
-> much luck. The card (as noted now on the wiki -- unfortunately not
-> when I bought it) has serious problems with the new Linux kernel. 
+On Thu, Mar 27, 2008 at 11:13 PM, Nicolas Will <nico@youplala.net> wrote:
+>
+>  On Thu, 2008-03-27 at 21:38 +0000, Chris Simmons wrote:
+>  >
+>  > On an somewhat unrelated note, I was wondering about the firmware.  Am
+>  > I
+>  > right in thinking this is closed-source (from Hauppauge)?  Could this
+>  > mess be caused by the firmware falling over -> device dies -> usb
+>  > disconnect or other symptoms (like losing a tuner) depending on how
+>  > the
+>  > USB layer responds?  Not that I have a clue..
+>
+>  There is certainly a link with the firmware.
+>
+>  Patrick had solved issues by releasing a new version.
+>
+>  This is why it is so important that he gets involved as soon as he can
+>  find time.
+>
+>  Nico
+>
+>
+>
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-I'm running a Nova T500 here on Debian 2.6.24-1-686 with very few problems - 4 
-disconnects 2 weeks ago shortly after install but fine since.
-
-> I can't get it to work for more than a few hours at a time, and the
-> remote is even worse. I'm in London, with a strong signal (and a
-> booster too), so I don't think that's the problem. 
-
-I'm just inside the M25 near St Albans pointed at Crystal Palace.
-
-]snip]
-
-> I'm going to try an MCE remote, which by all reports
-> seems well supported in Linux, 
-
-I was using an Igor device for many years but it always seemed too much 
-trouble to install after an upgrade so I've been using mceusb2 for a long 
-time with no problems.
-
-> and I'm ready to try a new DVB card(s). 
-> Dual-tuner is preferred, but I can also just install two.
-
-A standard Nova T worked fine for me for many years and there are a few on 
-ebay ATM.
-
-Andy
+Tried to collect some info from logs.
+messages:
+http://pastebin.com/f5cc1bc26
+syslog:
+http://pastebin.com/f402477c9
+debug:
+http://pastebin.com/f187de73a
 
 _______________________________________________
 linux-dvb mailing list
