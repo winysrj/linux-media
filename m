@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2GCojE3016406
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:45 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2GCoE8g026516
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 08:50:14 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so3946405fga.7
-	for <video4linux-list@redhat.com>; Sun, 16 Mar 2008 05:50:13 -0700 (PDT)
-From: "Frej Drejhammar" <frej.drejhammar@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAZBsZ028966
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:35:11 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAY4mk018492
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:48 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so175182fga.7
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:48 -0700 (PDT)
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <ac2c307ae12abeb35b59.1205671782@liva.fdsoft.se>
-In-Reply-To: <patchbomb.1205671781@liva.fdsoft.se>
-Date: Sun, 16 Mar 2008 13:49:42 +0100
-To: video4linux-list@redhat.com
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH 1 of 2] cx88: Add user control for chroma AGC
+Message-Id: <91e7d2afab2c180c435e.1206699520@localhost>
+In-Reply-To: <patchbomb.1206699511@localhost>
+Date: Fri, 28 Mar 2008 03:18:40 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: mchehab@infradead.org
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: [PATCH 9 of 9] videobuf-dma-sg.c: Avoid NULL dereference and add
+	comment about backwards compatibility
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,143 +29,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-4 files changed, 42 insertions(+), 3 deletions(-)
-linux/drivers/media/video/cx88/cx88-blackbird.c |    1 
-linux/drivers/media/video/cx88/cx88-core.c      |    6 +++
-linux/drivers/media/video/cx88/cx88-video.c     |   37 +++++++++++++++++++++--
-linux/drivers/media/video/cx88/cx88.h           |    1 
-
-
 # HG changeset patch
-# User "Frej Drejhammar <frej.drejhammar@gmail.com>"
-# Date 1205668069 -3600
-# Node ID ac2c307ae12abeb35b59dc0bb1aef95ac6f51798
-# Parent  11fdae6654e804fdd000b0c3c9f3a4a7344ffd69
-cx88: Add user control for chroma AGC
+# User Brandon Philips <brandon@ifup.org>
+# Date 1206699283 25200
+# Node ID 91e7d2afab2c180c435e5dc85b4cb749b1001e5a
+# Parent  0b7eea4e7b7dc24b1c015e5768fdb8f70f70c751
+videobuf-dma-sg.c: Avoid NULL dereference and add comment about backwards compatibility
 
-From: "Frej Drejhammar <frej.drejhammar@gmail.com>"
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
-The cx2388x family has support for chroma AGC. This patch adds a user
-control, "Chroma AGC", controlling it. By default chroma AGC is
-disabled, as in previous versions of the driver.
+---
+ linux/drivers/media/video/videobuf-dma-sg.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-Signed-off-by: "Frej Drejhammar <frej.drejhammar@gmail.com>"
-
-diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-blackbird.c
---- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Fri Mar 14 00:38:24 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Mar 16 12:47:49 2008 +0100
-@@ -701,6 +701,7 @@ static const u32 *ctrl_classes[] = {
- static const u32 *ctrl_classes[] = {
- 	cx88_user_ctrls,
- 	cx2341x_mpeg_ctrls,
-+	cx88_priv_ctrls,
- 	NULL
- };
+diff --git a/linux/drivers/media/video/videobuf-dma-sg.c b/linux/drivers/media/video/videobuf-dma-sg.c
+--- a/linux/drivers/media/video/videobuf-dma-sg.c
++++ b/linux/drivers/media/video/videobuf-dma-sg.c
+@@ -592,6 +592,14 @@ static int __videobuf_mmap_mapper(struct
+ 		goto done;
+ 	}
  
-diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-core.c
---- a/linux/drivers/media/video/cx88/cx88-core.c	Fri Mar 14 00:38:24 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-core.c	Sun Mar 16 12:47:49 2008 +0100
-@@ -958,7 +958,11 @@ int cx88_set_tvnorm(struct cx88_core *co
- 
- 	dprintk(1,"set_tvnorm: MO_INPUT_FORMAT  0x%08x [old=0x%08x]\n",
- 		cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
--	cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
-+	/* Chroma AGC must be disabled if SECAM is used */
-+	if (norm & V4L2_STD_SECAM)
-+		cx_andor(MO_INPUT_FORMAT, 0x40f, cxiformat);
-+	else
-+		cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
- 
- #if 1
- 	// FIXME: as-is from DScaler
-diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Fri Mar 14 00:38:24 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Mar 16 12:47:49 2008 +0100
-@@ -177,6 +177,11 @@ static struct cx8800_fmt* format_by_four
- 
- /* ------------------------------------------------------------------- */
- 
-+/* Private controls for cx2388x */
-+#define CX88_CID_PRIVATE_CLASS V4L2_CID_PRIVATE_BASE
-+#define CX88_CID_CHROMA_AGC   (V4L2_CID_PRIVATE_BASE + 0)
-+#define CX88_CID_LAST_PRIVATE (V4L2_CID_PRIVATE_BASE + 1)
++	/* This function maintains backwards compatibility with V4L1 and will
++	 * map more than one buffer if the vma length is equal to the combined
++	 * size of multiple buffers than it will map them together.  See
++	 * VIDIOCGMBUF in the v4l spec
++	 *
++	 * TODO: Allow drivers to specify if they support this mode
++	 */
 +
- static const struct v4l2_queryctrl no_ctl = {
- 	.name  = "42",
- 	.flags = V4L2_CTRL_FLAG_DISABLED,
-@@ -244,6 +249,18 @@ static struct cx88_ctrl cx8800_ctls[] = 
- 		.mask                  = 0x00ff,
- 		.shift                 = 0,
- 	},{
-+		.v = {
-+			.id            = CX88_CID_CHROMA_AGC,
-+			.name          = "Chroma AGC",
-+			.minimum       = 0,
-+			.maximum       = 1,
-+			.default_value = 0x0,
-+			.type          = V4L2_CTRL_TYPE_BOOLEAN,
-+		},
-+		.reg                   = MO_INPUT_FORMAT,
-+		.mask                  = 1 << 10,
-+		.shift                 = 10,
-+	}, {
- 	/* --- audio --- */
- 		.v = {
- 			.id            = V4L2_CID_AUDIO_MUTE,
-@@ -302,8 +319,16 @@ const u32 cx88_user_ctrls[] = {
- };
- EXPORT_SYMBOL(cx88_user_ctrls);
- 
-+const u32 cx88_priv_ctrls[] = {
-+	CX88_CID_PRIVATE_CLASS,
-+	CX88_CID_CHROMA_AGC,
-+	0
-+};
-+EXPORT_SYMBOL(cx88_priv_ctrls);
+ 	/* look for first buffer to map */
+ 	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+ 		if (NULL == q->bufs[first])
+@@ -636,10 +644,16 @@ static int __videobuf_mmap_mapper(struct
+ 	map = kmalloc(sizeof(struct videobuf_mapping),GFP_KERNEL);
+ 	if (NULL == map)
+ 		goto done;
+-	for (size = 0, i = first; i <= last; size += q->bufs[i++]->bsize) {
 +
- static const u32 *ctrl_classes[] = {
- 	cx88_user_ctrls,
-+	cx88_priv_ctrls,
- 	NULL
- };
- 
-@@ -311,8 +336,10 @@ int cx8800_ctrl_query(struct v4l2_queryc
- {
- 	int i;
- 
--	if (qctrl->id < V4L2_CID_BASE ||
--	    qctrl->id >= V4L2_CID_LASTP1)
-+	if ((qctrl->id < V4L2_CID_BASE ||
-+	     qctrl->id >= V4L2_CID_LASTP1) &&
-+	    (qctrl->id < V4L2_CID_PRIVATE_BASE ||
-+	     qctrl->id >= CX88_CID_LAST_PRIVATE))
- 		return -EINVAL;
- 	for (i = 0; i < CX8800_CTLS; i++)
- 		if (cx8800_ctls[i].v.id == qctrl->id)
-@@ -1225,6 +1252,12 @@ int cx88_set_control(struct cx88_core *c
- 		}
- 		mask=0xffff;
- 		break;
-+	case CX88_CID_CHROMA_AGC:
-+		/* Do not allow chroma AGC to be enabled for SECAM */
-+		value = ((ctl->value - c->off) << c->shift) & c->mask;
-+		if (core->tvnorm & V4L2_STD_SECAM && value)
-+			return -EINVAL;
-+		break;
- 	default:
- 		value = ((ctl->value - c->off) << c->shift) & c->mask;
- 		break;
-diff -r 11fdae6654e8 -r ac2c307ae12a linux/drivers/media/video/cx88/cx88.h
---- a/linux/drivers/media/video/cx88/cx88.h	Fri Mar 14 00:38:24 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88.h	Sun Mar 16 12:47:49 2008 +0100
-@@ -681,6 +681,7 @@ void cx8802_cancel_buffers(struct cx8802
- /* ----------------------------------------------------------- */
- /* cx88-video.c*/
- extern const u32 cx88_user_ctrls[];
-+extern const u32 cx88_priv_ctrls[];
- extern int cx8800_ctrl_query(struct v4l2_queryctrl *qctrl);
- int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i);
- int cx88_set_freq (struct cx88_core  *core,struct v4l2_frequency *f);
++	size = 0;
++	for (i = first; i <= last; i++) {
++		if (NULL == q->bufs[i])
++			continue;
+ 		q->bufs[i]->map   = map;
+ 		q->bufs[i]->baddr = vma->vm_start + size;
++		size += q->bufs[i]->bsize;
+ 	}
++
+ 	map->count    = 1;
+ 	map->start    = vma->vm_start;
+ 	map->end      = vma->vm_end;
 
 --
 video4linux-list mailing list
