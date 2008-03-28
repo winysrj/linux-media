@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2Q2ErsM006626
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:53 -0400
-Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2Q2EMZQ006657
-	for <video4linux-list@redhat.com>; Tue, 25 Mar 2008 22:14:22 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by cinke.fazekas.hu (Postfix) with ESMTP id 2302833CC6
-	for <video4linux-list@redhat.com>; Wed, 26 Mar 2008 03:14:22 +0100 (CET)
-Received: from cinke.fazekas.hu ([127.0.0.1])
-	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id XVidT7qj4n7t for <video4linux-list@redhat.com>;
-	Wed, 26 Mar 2008 03:14:13 +0100 (CET)
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2S6xmq0012900
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 02:59:48 -0400
+Received: from sparc.fpv.umb.sk (sparc.fpv.umb.sk [194.160.44.70])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2S6xanx006358
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 02:59:37 -0400
+Message-ID: <47EC9739.4050109@datagate.sk>
+Date: Fri, 28 Mar 2008 07:59:05 +0100
+From: =?ISO-8859-2?Q?Peter_V=E1gner?= <peter.v@datagate.sk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <patchbomb.1206497254@bluegene.athome>
-Date: Wed, 26 Mar 2008 03:07:34 +0100
-From: Marton Balint <cus@fazekas.hu>
-To: video4linux-list@redhat.com
-Subject: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
+To: Balint Marton <cus@fazekas.hu>
+References: <patchbomb.1206497254@bluegene.athome>
+	<47E9F4F4.2050503@datagate.sk>
+	<Pine.LNX.4.64.0803261520340.14189@cinke.fazekas.hu>
+	<1206553154.7076.4.camel@vb>
+	<Pine.LNX.4.64.0803262037560.9392@cinke.fazekas.hu>
+In-Reply-To: <Pine.LNX.4.64.0803262037560.9392@cinke.fazekas.hu>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
 	detection
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -32,43 +32,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Here are the updated versions of my cx88 patches (I only sent the old versions
-to the linux-dvb list, and they did not draw too much attention there) maybe
-better luck here...
+Hello,
 
-The first is a simple fix for a possible Oops on the removal of cx88xx module
-caused by the IR worker. This patch is independent from the other two.
-
-The second and the third patches are enhachments of the cx88 audio code, I
-tried to implement the detection of stereo TV channels for A2 mode. I had no
-idea how to detect it, and falling back to EN_A2_AUTO_STEREO instead of
-EN_A2_FORCE_MONO1 did not help either. (The card changed the audio mode
-periodically on both mono and stereo channels) Forcing STEREO mode also did not
-help, because it resulted a loud static noise on mono tv channels.
-
-Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers change
-randomly if and only if the second audio channel is missing, so if these
-registers are constant (Usually 0x0000 and 0x01), we can assume that the tv
-channel has two audio channels, so we can use STEREO mode. This method seems a
-bit ugly, but nicam detection works the same way, so to avoid further
-msleep()-ing, the A2 stereo detection code is in the nicam detection function.
-
-By the way, the audio thread in the cx88 code is totally useless, in fact, it
-occaisonally sets the audio to MONO after starting a TV application, so i think
-it should be removed. My patch does NOT fix cx88_get_stereo, and even if it
-would, the audio thread would not work as expected, because
-core->audiomode_current is not set in cx88_set_tvaudio, and AUTO stereo modes
-(EN_BTSC_AUTO_STEREO, EN_NICAM_AUTO_STEREO) would also cause problems, the
-autodetected audio mode should be set to core->audiomode_current to make it
-work.
-
-Who is now the cx88 maintainer? I should send him a copy of the patches...
+Balint Marton  wrote / napísal(a):
+> Try the attached patch. It disables the audio thread completely.
+>
 
 
-Regards,
+Thanks now this is wonderfull for recording.
 
- Marton Balint
+Based on some comments posted to this list I have tryed to let the tv 
+runing for a few hours and I am getting no unusual behaviour nor 
+distorted sound. Here in slovakia all the channels I can tune to are 
+also pal-BG. Literally I can tune no mono channels here. Their are 
+either broadcasting stereo, or dual (2 independent language track per 
+audio channel) or they are sending the same mono track to each channel 
+So I am really not woried about the mono audio. The only thing which is 
+not very confortable is stereo versus dual audio detection. If it's 
+forced to stereo, I am getting both the audio tracks when it changes 
+during a viewing session. Ideally it would be nice to be able to switch 
+this on the fly. Or perhaps mplayer has some filter where I can 
+temporarily enable left or right channel only based off my actual 
+preference. I have to look into this further.
+I am saying it's fine for the recording because in that case both 
+language tracks are great if stereo is not broadcasted. It can be 
+processed later.
 
+thanks much again Now I think I can get more from this card using v4l 
+than I was used to do under windows. E.G. channel switching is almost 
+instantaneous.
+
+
+Peter
 
 --
 video4linux-list mailing list
