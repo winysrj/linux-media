@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.188])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JdlRQ-0006Da-SW
-	for linux-dvb@linuxtv.org; Mon, 24 Mar 2008 13:06:17 +0100
-Received: by rn-out-0910.google.com with SMTP id e11so1066793rng.17
-	for <linux-dvb@linuxtv.org>; Mon, 24 Mar 2008 05:06:11 -0700 (PDT)
-Message-ID: <8ad9209c0803240506m7197831bwa8ffc588ec655a4@mail.gmail.com>
-Date: Mon, 24 Mar 2008 13:06:11 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1206348478.6370.27.camel@youkaida>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida> <1206185051.22131.5.camel@tux>
-	<1206190455.6285.20.camel@youkaida> <1206270834.4521.11.camel@shuttle>
-	<1206348478.6370.27.camel@youkaida>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	(envelope-from <nico@youplala.net>) id 1JfHki-0002ia-EQ
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 17:48:34 +0100
+From: Nicolas Will <nico@youplala.net>
+To: Patrik Hansson <patrik@wintergatan.com>
+In-Reply-To: <8ad9209c0803280936k2cba9115laa49f828ffda55bf@mail.gmail.com>
+References: <1206139910.12138.34.camel@youkaida>
+	<1206563002.8947.2.camel@youkaida>
+	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
+	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
+	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
+	<47EC13BE.6020600@simmons.titandsl.co.uk>
+	<1206655986.17233.8.camel@youkaida>
+	<8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
+	<1206719797.14161.8.camel@acropora>
+	<8ad9209c0803280936k2cba9115laa49f828ffda55bf@mail.gmail.com>
+Date: Fri, 28 Mar 2008 16:47:17 +0000
+Message-Id: <1206722837.12480.3.camel@acropora>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects -	They
 	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,48 +35,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Mar 24, 2008 at 9:47 AM, Nicolas Will <nico@youplala.net> wrote:
-> Guys,
->
->  I was running with the following debug options when I got a disconnect:
->
->  options dvb-usb-dib0700 force_lna_activation=1
->  options dvb-usb-dib0700 debug=1
->  options mt2060 debug=1
->  options dibx000_common debug=1
->  options dvb_core debug=1
->  options dvb_core dvbdev_debug=1
->  options dvb_core frontend_debug=1
->  options dvb_usb debug=1
->  options dib3000mc debug=1
->  options usbcore autosuspend=-1
->
->
->  /var/log/messages is here:
->
->  http://www.youplala.net/~will/htpc/disconnects/messages-with_debug
->
->  and slightly different data:
->
->  http://www.youplala.net/~will/htpc/disconnects/syslog-with_debug
->
->
->
->  Can that help, or would more be needed?
->
->  There was zero remote usage at the time.
->
->  Nico
->
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+On Fri, 2008-03-28 at 17:36 +0100, Patrik Hansson wrote:
+> 
+> hmm, ok this is odd.
+> I searched my entire syslog and messages and the only disconnect i
+> have is from now during the reboot to get the tuner back.
+> 
+> So i have the following:
+> This morning everything is fine.
+> In the afternoon i loose a tuner, restarting mythtv-backend and so on
+> does not bring it back.
+> I reboot and tuner comes back.
+> I check the logs and have 0 disconnects.
 
-A bit off-topic but how do you get the date/time thing ? I only get
-the time-since-boot and that is so enoying
+You have another problem.
+
+You lose a tuner.
+
+I get a card that disconnects completely, I lose both tuners and the
+remote, and get a flood of mt2060 i2c errors, but after the disconnect.
+
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
