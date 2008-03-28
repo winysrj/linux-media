@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2OBup1w025298
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 07:56:51 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2OBuJUY012350
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 07:56:20 -0400
-Received: by fk-out-0910.google.com with SMTP id b27so3650571fka.3
-	for <video4linux-list@redhat.com>; Mon, 24 Mar 2008 04:56:19 -0700 (PDT)
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-From: Frej Drejhammar <frej.drejhammar@gmail.com>
-In-Reply-To: <200803240112.16853.laurent.pinchart@skynet.be> (Laurent
-	Pinchart's message of "Mon, 24 Mar 2008 01:12:16 +0100")
-References: <d758888cf4a466cd2d44.1206312200@liva.fdsoft.se>
-	<200803240112.16853.laurent.pinchart@skynet.be>
-Date: Mon, 24 Mar 2008 12:56:12 +0100
-Message-ID: <k63vcgwtf.fsf@liva.fdsoft.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SAYcoH027881
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:38 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SAYF8u018585
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 06:34:15 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so175260fga.7
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 03:34:15 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 1 of 6] v4l2-api: Define a standard control for chroma
-	AGC
+Content-Transfer-Encoding: 7bit
+Message-Id: <05ec6ba3e9c3c42cf397.1206699514@localhost>
+In-Reply-To: <patchbomb.1206699511@localhost>
+Date: Fri, 28 Mar 2008 03:18:34 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: mchehab@infradead.org
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: [PATCH 3 of 9] videobuf: Wakeup queues after changing the state to
+	ERROR
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,17 +29,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Laurent Pinchart <laurent.pinchart@skynet.be> writes:
->
-> Shouldn't a documentation patch be provided with each new control
-> addition ?
+# HG changeset patch
+# User Brandon Philips <brandon@ifup.org>
+# Date 1206699277 25200
+# Node ID 05ec6ba3e9c3c42cf397ca71b8aefe9573d28c6a
+# Parent  d9780aaf14ad2fca7eeaa79f3a8476e5f551ed25
+videobuf: Wakeup queues after changing the state to ERROR
 
-If you had read the the patch series description ([PATCH 0 of 6] cx88:
-Enable additional cx2388x features. Version 3) you would have found
-just such a patch to the v4l2-spec docbook (which is not in the
-v4l-tree).
+The waitqueues must be woken up every time state changes.
 
---Frej
+Signed-off-by: Brandon Philips <bphilips@suse.de>
+
+---
+ linux/drivers/media/video/videobuf-core.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/linux/drivers/media/video/videobuf-core.c b/linux/drivers/media/video/videobuf-core.c
+--- a/linux/drivers/media/video/videobuf-core.c
++++ b/linux/drivers/media/video/videobuf-core.c
+@@ -207,6 +207,7 @@ void videobuf_queue_cancel(struct videob
+ 		if (q->bufs[i]->state == VIDEOBUF_QUEUED) {
+ 			list_del(&q->bufs[i]->queue);
+ 			q->bufs[i]->state = VIDEOBUF_ERROR;
++			wake_up_all(&q->bufs[i]->done);
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(q->irqlock, flags);
 
 --
 video4linux-list mailing list
