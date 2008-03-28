@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.190])
+Received: from nf-out-0910.google.com ([64.233.182.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JZd3w-0003ii-Rs
-	for linux-dvb@linuxtv.org; Thu, 13 Mar 2008 03:21:03 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so1380732tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 12 Mar 2008 19:20:52 -0700 (PDT)
-Message-ID: <abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>
-Date: Thu, 13 Mar 2008 13:20:51 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47D86336.2070200@iki.fi>
+	(envelope-from <christophpfister@gmail.com>) id 1JfICB-0006BO-W8
+	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 18:16:52 +0100
+Received: by nf-out-0910.google.com with SMTP id d21so183620nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 10:16:17 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Arthur Konovalov <kasjas@hot.ee>
+Date: Fri, 28 Mar 2008 18:16:10 +0100
+References: <200803212024.17198.christophpfister@gmail.com>
+	<200803281535.57209.christophpfister@gmail.com>
+	<47ED0962.20701@hot.ee>
+In-Reply-To: <47ED0962.20701@hot.ee>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>
-	<47D847AC.9070803@linuxtv.org>
-	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>
-	<47D86336.2070200@iki.fi>
-Cc: linux-dvb@linuxtv.org, mkrufky@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Message-Id: <200803281816.10525.christophpfister@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +24,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 13, 2008 at 10:11 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Jarryd Beck wrote:
->  > On Thu, Mar 13, 2008 at 8:14 AM,  <mkrufky@linuxtv.org> wrote:
+Am Freitag 28 M=E4rz 2008 schrieb Arthur Konovalov:
+> Christoph Pfister wrote:
+> > But scrambled channels don't work without those patches either, right?
 >
-> >>  Then, please turn ON debug, repeat your tests, and post again with
->  >>  dmesg.  I am not familiar with the af9015 driver, but for tda18271, set
->  >>  debug=1.  (you must unload all modules first -- do 'make unload' in the
->  >>  v4l-dvb dir, then replug your device)
->  >>
->  >>  -Mike
->  >>
->  >>
->  >
->  > Sorry I'm unsure where to set debug.
->  >
->  > Jarryd.
+> Yes, You are right. Only black screen in xine.
 >
->  I added initial support for this tda-tuner to the driver. Jarryd, can
->  you test?
->  http://linuxtv.org/hg/~anttip/af9015_new/
+> > Paste the strace output of vdr or try kaffeine ...
 >
->  There is debug switch in af9013 module that may be helpful if it does
->  not work. You can enable it as described or if it is too hard to play
->  with modprobe just edit af9013.c file in frontend directory and set
->  debug=1 by hard coding.
->  If it does not work you can also try set GPIO3 setting (af9015) to 0xb
->  instead 0x3 used currently. Also try to change rf-spectral inversion to
->  see if it helps. Firmware should be ok and all other settings as well as
->  I can see from usb-sniffs. With little lucky it should start working.
+> vdr strace log attached.
 >
->  regards
->  Antti
->  --
->  http://palosaari.fi/
->
+> Regards,
+> Arthur
 
-Thanks, but now for some reason all I get is this:
+Try removing the following three lines from =
 
-usb 2-10: new high speed USB device using ehci_hcd and address 6
-usb 2-10: configuration #1 chosen from 1 choice
-input: Leadtek WinFast DTV Dongle Gold as /class/input/input8
-input: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on
-usb-0000:00:02.1-10
-af9015_usb_probe:
-af9015_identify_state: reply:01
-dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state,
-will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-af9015_download_firmware:
-usbcore: registered new interface driver dvb_usb_af9015
+linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c and see whether it works:
 
-Jarryd.
+989 				/* clear down an old CI slot if necessary */
+990 				if (ca->slot_info[slot].slot_state !=3D DVB_CA_SLOTSTATE_NONE)
+991 					dvb_ca_en50221_slot_shutdown(ca, slot);
+
+If it doesn't work load budget-core with module param debug=3D255 and dvb-c=
+ore =
+
+with module param cam_debug=3D1 (likely you need to unload them first); ple=
+ase =
+
+paste dmesg in any case.
+
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
