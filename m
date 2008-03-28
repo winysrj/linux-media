@@ -1,32 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2IMFKd8012455
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 18:15:20 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2IMEgdx005991
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 18:14:42 -0400
-Received: by ug-out-1314.google.com with SMTP id t39so914003ugd.6
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 15:14:42 -0700 (PDT)
-Message-ID: <37219a840803181514t2a7e0e08qb4ff29781da7ab85@mail.gmail.com>
-Date: Tue, 18 Mar 2008 18:14:39 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <20080318184115.15883f7b@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SIZYMJ020520
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:35:34 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SIZLiA028231
+	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:35:22 -0400
+Date: Fri, 28 Mar 2008 15:34:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Brandon Philips <brandon@ifup.org>
+Message-ID: <20080328153442.58b2c108@gaivota>
+In-Reply-To: <304e0a371d12f77e1575.1206699518@localhost>
+References: <patchbomb.1206699511@localhost>
+	<304e0a371d12f77e1575.1206699518@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <331d2cab0803062218x663ad17ofb79928059a111b@mail.gmail.com>
-	<bd41c5f0803081850o3b818d0ar633fbf0b50bc5535@mail.gmail.com>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAHFaDeWDc9dOji7t+LhHe7YBAAAAAA==@sbg0.com>
-	<bd41c5f0803091305n1332ea0ai1acf5ffc07d0bd8d@mail.gmail.com>
-	<331d2cab0803102036i66455f79h1cf20ca7a0d5e22f@mail.gmail.com>
-	<bd41c5f0803110611o6990350es494c152be56020f4@mail.gmail.com>
-	<331d2cab0803122038y58871667r851c306bdeb721d5@mail.gmail.com>
-	<bd41c5f0803181404w33352e2al9d98a469da1149e3@mail.gmail.com>
-	<20080318184115.15883f7b@gaivota>
-Cc: video4linux-list <video4linux-list@redhat.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trying to setup PCTV HD Card 800i
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 7 of 9] vivi: Simplify the vivi driver and avoid
+ deadlocks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,67 +29,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Mar 18, 2008 at 5:41 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On Tue, 18 Mar 2008 17:04:08 -0400
->
-> "Chaogui Zhang" <czhang1974@gmail.com> wrote:
->
->  > On Wed, Mar 12, 2008 at 11:38 PM, Brandon Rader <brandon.rader@gmail.com> wrote:
->  > > Alright, here is the new dmesg output http://pastebin.com/m35d1137d.
->  > >
->  > > Brandon
->  > >
->  > >
->  > >
->  > > On Tue, Mar 11, 2008 at 8:11 AM, Chaogui Zhang <czhang1974@gmail.com> wrote:
->  > >
->  > > >
->  > > > On Tue, Mar 11, 2008 at 3:36 AM, Brandon Rader <brandon.rader@gmail.com>
->  > > wrote:
->  > > > > I tried the different repo that you suggested, and get the same error.
->  > > Here
->  > > > > is my new dmesg output http://pastebin.com/m4d43d4ef
->  > > > >
->  > > > > Brandon
->  > > > >
->  > > > >
->  > > >
->  > > > Please do not drop the list from the cc. Use the "reply to all"
->  > > > function of your email client instead of just "reply".
->  > > >
->  > > > It seems the i2c bus is not working the way it should. Can you try the
->  > > > following? (With the current v4l-dvb tree)
->  > > >
->  > > > First, unload all the modules related to your card (cx88-*, s5h1409,
->  > > xc5000).
->  > > > Then, load cx88xx with options i2c_debug=1 and i2c_scan=1
->  > > > Post the relevant dmesg output to the list.
->  > > >
->  > > > --
->  > > > Chaogui Zhang
->  > > >
->  >
->  > Sorry for the delay. I was away on vacation last week.
->  >
->  > I don't see any debug info in the dmesg output. Are you sure you
->  > loaded the modules with the i2c_debug enabled?
->
->  I suspect that this is the same issue I'm feeling with Kworld 120 (also s5h1409).
->  The problem is that i2c gate needs to be open for the tuner to be detected.
->  Otherwise, a scan won't find it.
->
->  I'm trying to work on a fix for it.
+Hi Brandon,
 
-That's not what's happening, here.  If you look at the dmesg, the user
-is not even loading cx8800 -- the user is loading cx8802, which loads
-cx88-dvb, which loads the frontend driver and leaves the gate open.
-However, there is an i2c error during the attempt to attach the
-s5h1409 driver.
+I'll try to test the patch series. They seems fine to my eyes, on a first look.
+I have just some comments about patch 7/9.
 
-We do need to see the i2c debug in order to figure out what is going on.
+> Also, is anyone using videobuf-vmalloc besides vivi?  The current videobuf API
+> feels over extended trying to take on the task of a second backend type.
 
--Mike
+The only current driver at the tree using videobuf-vmalloc is vivi.
+There's another driver using it at tm6000 driver, not merged yet [1].
+
+On Fri, 28 Mar 2008 03:18:38 -0700
+Brandon Philips <brandon@ifup.org> wrote:
+
+> --- a/linux/drivers/media/video/vivi.c
+> +++ b/linux/drivers/media/video/vivi.c
+> @@ -5,6 +5,7 @@
+>   *      Mauro Carvalho Chehab <mchehab--a.t--infradead.org>
+>   *      Ted Walther <ted--a.t--enumera.com>
+>   *      John Sokol <sokol--a.t--videotechnology.com>
+> + *      Brandon Philips <brandon@ifup.org>
+
+This is under copyright (2006), as if you were one of the authors of the
+original driver. Also, I prefer if you add a short line bellow your copyright
+for the job you've done on the driver. Something like:
+
++ *
++ *  Copyright (c) 2008 by Brandon Philips <brandon@ifup.org>
++ *       - Fix bad locks and cleans up streaming code
+
+> -static int restart_video_queue(struct vivi_dmaqueue *dma_q)
+> -{
+...
+> -}
+
+While the restart and timeout code is not needed on vivi driver, IMO, we should
+keep it, since the main reason for this driver is to be a reference code. 
+
+This kind of code is important on real drivers, since the IRQ's may not be called
+for some reason. On cx88 and on saa7134, this happens on several situations[2]. 
+
+Without a timeout, the driver will wait forever to receive a buffer.
+
+This task is also needed by tm6000 driver, for the same reasons.
+
+[1] Available at: http://linuxtv.org/hg/~mchehab/tm6010
+
+[2] For example, I suffered an issue yesterday with my machine, that I believe
+to be caused by an excess of power consumption. The effect is that cx88 weren't
+generating DMA interrupts, if I loaded my machine with 3 pci boards. The
+removal of one board made the cx88 board to work again. I'll test today again
+with a newer power supply. Without the timeout code, the player would just
+hang, waiting forever for some data at the video buffer.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
