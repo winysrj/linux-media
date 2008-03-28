@@ -1,27 +1,15 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2CMl5gh008144
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 18:47:05 -0400
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
-	[151.189.21.44])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2CMkW7x006507
-	for <video4linux-list@redhat.com>; Wed, 12 Mar 2008 18:46:32 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: itman <itman@fm.com.ua>
-In-Reply-To: <003401c88469$af50f4d0$6401a8c0@LocalHost>
-References: <47D6F12C.7040102@fm.com.ua>
-	<1205269761.5927.77.camel@pc08.localdom.local>
-	<BAY107-W53381D746959C109E3EF0097080@phx.gbl>
-	<003401c88469$af50f4d0$6401a8c0@LocalHost>
-Content-Type: text/plain
-Date: Wed, 12 Mar 2008 23:38:36 +0100
-Message-Id: <1205361516.5924.20.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: S G <stive_z@hotmail.com>, video4linux-list@redhat.com, xyzzy@speakeasy.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	midimaker@yandex.ru, simon@kalmarkaglan.se
-Subject: RE: Re: 2.6.24 kernel and MSI TV @nywheremaster MS-8606 status
+Message-Id: <20080328094022.327990180@ifup.org>
+References: <20080328093944.278994792@ifup.org>
+Date: Fri, 28 Mar 2008 02:39:53 -0700
+From: brandon@ifup.org
+To: mchehab@infradead.org
+Content-Disposition: inline;
+	filename=videobuf-dma-sg-comments-and-avoid-NULL-deref.patch
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Brandon Philips <bphilips@suse.de>
+Subject: [patch 9/9] videobuf-dma-sg.c: Avoid NULL dereference and add
+	comment about backwards compatibility
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,54 +21,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Signed-off-by: Brandon Philips <bphilips@suse.de>
 
-Am Mittwoch, den 12.03.2008, 19:51 +0200 schrieb itman:
-> Hi, Steve.
->  
->  
-> Unfortunately by default initialization for this tuner it does not go
-> in right way. 
-> So I use this sequence  (see full list of commands) to make it work:
->  
->  
->  
-> rmmod cx88_alsa 
-> rmmod cx8800
-> rmmod cx88xx 
-> rmmod tuner
-> rmmod tda9887 
-> modprobe cx88xx 
-> modprobe tda9887 port1=0 port2=0 qss=1 
-> modprobe tuner 
-> modprobe cx8800
->  
->  
-> Actually I do not dig deeply with this, but main goal of this is to
-> initiate device with port1=0 port2=0 qss=1 option to get sound.
-> Also v4l devices appears in /dev after cx8800 initialization (could be
-> mistaken, because I am writing this by memory ;-) and, lol, from
-> Windows PC).
->  
-> Pls also see Hermann explanation.
->  
+---
+ linux/drivers/media/video/videobuf-dma-sg.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-there is one thing I would like to mention again.
-Don't suggest to use qss=1.
+Index: v4l-dvb/linux/drivers/media/video/videobuf-dma-sg.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/videobuf-dma-sg.c
++++ v4l-dvb/linux/drivers/media/video/videobuf-dma-sg.c
+@@ -592,6 +592,14 @@ static int __videobuf_mmap_mapper(struct
+ 		goto done;
+ 	}
+ 
++	/* This function maintains backwards compatibility with V4L1 and will
++	 * map more than one buffer if the vma length is equal to the combined
++	 * size of multiple buffers than it will map them together.  See
++	 * VIDIOCGMBUF in the v4l spec
++	 *
++	 * TODO: Allow drivers to specify if they support this mode
++	 */
++
+ 	/* look for first buffer to map */
+ 	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+ 		if (NULL == q->bufs[first])
+@@ -636,10 +644,16 @@ static int __videobuf_mmap_mapper(struct
+ 	map = kmalloc(sizeof(struct videobuf_mapping),GFP_KERNEL);
+ 	if (NULL == map)
+ 		goto done;
+-	for (size = 0, i = first; i <= last; size += q->bufs[i++]->bsize) {
++
++	size = 0;
++	for (i = first; i <= last; i++) {
++		if (NULL == q->bufs[i])
++			continue;
+ 		q->bufs[i]->map   = map;
+ 		q->bufs[i]->baddr = vma->vm_start + size;
++		size += q->bufs[i]->bsize;
+ 	}
++
+ 	map->count    = 1;
+ 	map->start    = vma->vm_start;
+ 	map->end      = vma->vm_end;
 
-You don't need to set it, since it is the default.
-
-The tda9887 config comes down from the module defaults over tuner
-specific settings, then card specific settings and finally insmod
-options.
-
-The insmod options override all others, in this case here they also do
-override the qss=0 for NTSC in the card's entry. Result is no sound for
-NTSC-M system with forced qss=1.
-
-Cheers,
-Hermann
-
+-- 
 
 --
 video4linux-list mailing list
