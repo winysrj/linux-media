@@ -1,28 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.186])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JfGmZ-0004oC-14
-	for linux-dvb@linuxtv.org; Fri, 28 Mar 2008 16:46:20 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so123062tia.13
-	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 08:46:02 -0700 (PDT)
-Message-ID: <8ad9209c0803280846q53e75546g2007d4e8be98fb8e@mail.gmail.com>
-Date: Fri, 28 Mar 2008 16:46:01 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1206655986.17233.8.camel@youkaida>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Jfiwe-00034Q-Uk
+	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 22:50:38 +0100
+Date: Sat, 29 Mar 2008 22:49:41 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <47EC3BD4.3070307@iki.fi>
+Message-ID: <Pine.LNX.4.64.0803292248590.26653@pub6.ifh.de>
+References: <e44ae5e0712172128p4e1428aao493d0a1725b6fcd3@mail.gmail.com>
+	<47EC3BD4.3070307@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <1206139910.12138.34.camel@youkaida>
-	<1206546831.8967.13.camel@acropora>
-	<af2e95fa0803261142r33a0cdb1u31f9b8abc2193265@mail.gmail.com>
-	<1206563002.8947.2.camel@youkaida>
-	<8ad9209c0803261352s664d40fdud2fcbf877b10484b@mail.gmail.com>
-	<1206566255.8947.5.camel@youkaida> <1206605144.8947.18.camel@youkaida>
-	<af2e95fa0803271044lda4ac30yb242d7c9920c2051@mail.gmail.com>
-	<47EC13BE.6020600@simmons.titandsl.co.uk>
-	<1206655986.17233.8.camel@youkaida>
-Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
-	are back!
+Cc: linux-dvb@linuxtv.org, ptay1685 <ptay1685@Bigpond.net.au>,
+	k.bannister@ieee.org
+Subject: Re: [linux-dvb] [PATCH] new USB-ID for Leadtek Winfast DTV was: Re:
+ New Leadtek Winfast DTV Dongle working - with mods but no RC
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,43 +28,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Mar 27, 2008 at 11:13 PM, Nicolas Will <nico@youplala.net> wrote:
+Hi Antti,
+
+Daryll Green was first - I committed his patch.
+
+Sorry,
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+
+On Fri, 28 Mar 2008, Antti Palosaari wrote:
+
+> hello
+> USB-ID for Leadtek Winfast DTV
 >
->  On Thu, 2008-03-27 at 21:38 +0000, Chris Simmons wrote:
->  >
->  > On an somewhat unrelated note, I was wondering about the firmware.  Am
->  > I
->  > right in thinking this is closed-source (from Hauppauge)?  Could this
->  > mess be caused by the firmware falling over -> device dies -> usb
->  > disconnect or other symptoms (like losing a tuner) depending on how
->  > the
->  > USB layer responds?  Not that I have a clue..
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 >
->  There is certainly a link with the firmware.
+> Patch done against current development-tree at 
+> http://linuxtv.org/hg/~pb/v4l-dvb/
+> Patrick, could you check and add it?
 >
->  Patrick had solved issues by releasing a new version.
+> Could ptay1685 or John or some other test this?
 >
->  This is why it is so important that he gets involved as soon as he can
->  find time.
+> Keith Bannister wrote:
+>>  I hopped onto the IRC channel and crope` (thanks mate) advised me to
+>>  change dvb-usb-ids.h to
+>>
+>>  #define USB_PID_WINFAST_DTV_DONGLE_STK7700P        0x6f01
 >
->  Nico
+> Sorry, I forgot make patch earlier...
 >
->
->
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> regards
+> Antti
+> -- 
+> http://palosaari.fi/
 >
 
-Tried to collect some info from logs.
-messages:
-http://pastebin.com/f5cc1bc26
-syslog:
-http://pastebin.com/f402477c9
-debug:
-http://pastebin.com/f187de73a
 
 _______________________________________________
 linux-dvb mailing list
