@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1Jd1wZ-0001gP-Rd
-	for linux-dvb@linuxtv.org; Sat, 22 Mar 2008 12:31:26 +0100
-Received: by fg-out-1718.google.com with SMTP id 22so1443647fge.25
-	for <linux-dvb@linuxtv.org>; Sat, 22 Mar 2008 04:31:19 -0700 (PDT)
-Message-ID: <47E4EE00.9080207@gmail.com>
-Date: Sat, 22 Mar 2008 12:31:12 +0100
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1JfRik-0004Z4-OR
+	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 04:27:07 +0100
+Received: by fg-out-1718.google.com with SMTP id 22so463823fge.25
+	for <linux-dvb@linuxtv.org>; Fri, 28 Mar 2008 20:27:03 -0700 (PDT)
+Message-ID: <47EDB703.10502@googlemail.com>
+Date: Sat, 29 Mar 2008 04:26:59 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <200803212024.17198.christophpfister@gmail.com>
-In-Reply-To: <200803212024.17198.christophpfister@gmail.com>
-From: e9hack <e9hack@googlemail.com>
-Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <20080329024154.GA23883@localhost>
+In-Reply-To: <20080329024154.GA23883@localhost>
+Subject: Re: [linux-dvb] Analog capture (saa7113) not working on KNC1 DVB-C
+ Plus	(MK3)
+Reply-To: thomas.schorpp@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,36 +28,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christoph Pfister schrieb:
-> Hi,
+L. wrote:
+> Hello,
 > 
-> Can somebody please pick up those patches (descriptions inlined)?
+> with a KNC One "TV-Station DVB-C Plus" PCI card (MK3 - Philips SAA7146
+> with CU1216L/A I G H-3 Tunerbox with TDA10023) equipped with composite 
+> and s-video inputs ('Plus' version, Philips SAA7113), analog capture 
+> is not working. Most recent kernel sources I tested were 2.6.25-rc7.
 > 
-> Thanks,
+> DVB-C television works fine with this card using 'budget_av' kernel
+> module (from kernel 2.6.20 on, using e9hack's tda1002x patch, and
+> later with mainstream kernel sources alone), but when opening an
+> analog input, there are no data coming. A black screen is shown with
+> 'xawtv' application. Xawtv correctly shows up the two video sources
+> this card provides: 'S-Video' and 'Composite'. 
 > 
-> Christoph
+> I checked the cables and video sources, they work fine with another
+> card with analog input.
+> 
+> I can do tests or compile something if you want me to. Information from 
+> lspci, dmesg and lsmod please see below. Help to get analog capture
+> working is appreciated very much.
+> 
+> Thank you
+> 
+> L.
+> 
 
-diff -r 1886a5ea2f84 -r f252381440c1 linux/drivers/media/dvb/ttpci/budget-av.c
---- a/linux/drivers/media/dvb/ttpci/budget-av.c	Fri Mar 21 08:04:55 2008 -0300
-+++ b/linux/drivers/media/dvb/ttpci/budget-av.c	Fri Mar 21 19:29:15 2008 +0100
-@@ -178,7 +178,7 @@ static int ciintf_read_cam_control(struc
-  	udelay(1);
+Thx for the confirmation, I've reported this before at 12/2007 with topic
 
-  	result = ttpci_budget_debiread(&budget_av->budget, DEBICICAM, address & 3, 1, 0, 0);
--	if ((result == -ETIMEDOUT) || ((result == 0xff) && ((address & 3) < 2))) {
-+	if ((result == -ETIMEDOUT) || ((result == 0xff) && ((address & 3) == 1))) {
-  		ciintf_slot_shutdown(ca, slot);
-  		printk(KERN_INFO "budget-av: cam ejected 3\n");
-  		return -ETIMEDOUT;
+budget_av 'plus' cards saa7113 capture broken by CI code or incomplete
 
+on this list. the videobuf reworks broke it or all the foreign CI code 
+in budget_av.c is disturbing the saa7113 circuit part of the card.
+on this list, CI CAM functionality has priority it seems. sorry.
 
-IMHO you should remove the test for 0xff . Without your patch, it wasn't possible to read 
-0xff from address 0 and 1. Now it isn't possible to read 0xff from address 1.
-
-I've described this problem some time ago: 
-http://linuxtv.org/pipermail/linux-dvb/2007-July/019436.html
-
--Hartmut
+y
+tom
 
 _______________________________________________
 linux-dvb mailing list
