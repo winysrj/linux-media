@@ -1,27 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m29K5sbC010756
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 16:05:54 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.244])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m29K5O1A025704
-	for <video4linux-list@redhat.com>; Sun, 9 Mar 2008 16:05:24 -0400
-Received: by an-out-0708.google.com with SMTP id c31so425956ana.124
-	for <video4linux-list@redhat.com>; Sun, 09 Mar 2008 13:05:24 -0700 (PDT)
-Message-ID: <bd41c5f0803091305n1332ea0ai1acf5ffc07d0bd8d@mail.gmail.com>
-Date: Sun, 9 Mar 2008 16:05:23 -0400
-From: "Chaogui Zhang" <czhang1974@gmail.com>
-To: "Timothy E. Krantz" <tkrantz@sbg0.com>
-In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAHFaDeWDc9dOji7t+LhHe7YBAAAAAA==@sbg0.com>
+Date: Sat, 29 Mar 2008 15:31:27 +0200
+From: Axel Thimm <Axel.Thimm@ATrpms.net>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Message-ID: <20080329133127.GP9642@puariko.nirvana>
+References: <47ED66AF.8030100@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <331d2cab0803062218x663ad17ofb79928059a111b@mail.gmail.com>
-	<bd41c5f0803081850o3b818d0ar633fbf0b50bc5535@mail.gmail.com>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAHFaDeWDc9dOji7t+LhHe7YBAAAAAA==@sbg0.com>
-Cc: video4linux-list <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
-	Brandon Rader <brandon.rader@gmail.com>
-Subject: Re: [linux-dvb] Trying to setup PCTV HD Card 800i
+In-Reply-To: <47ED66AF.8030100@hhs.nl>
+Cc: fedora-kernel-list@redhat.com, video4linux-list@redhat.com,
+	spca50x-devs@lists.sourceforge.net
+Subject: Re: Self Introduction: Hans de Goede
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,27 +16,63 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0193121408=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Mar 9, 2008 at 8:40 AM, Timothy E. Krantz <tkrantz@sbg0.com> wrote:
-> Chaogui,
->  Any idea when your signifigant patch to this driver will be included in the
->  mainline repository.  The driver is quite unusable without your patch.
->
 
-I assume you are referring to the xc5000 patch.
+--===============0193121408==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h9WqFG8zn/Mwlkpe"
+Content-Disposition: inline
 
-Steve mentioned a while back that he will include it once more tests
-are done on a few other boards that also uses xc5000. So I believe it
-will be merged at some point. Given that he might be very busy with
-other tasks at hand, I do not know when.
 
--- 
-Chaogui Zhang
+--h9WqFG8zn/Mwlkpe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Hans,
+
+On Fri, Mar 28, 2008 at 10:44:15PM +0100, Hans de Goede wrote:
+> I'll be sending 2 seperate mails one with my standalone pac207 driver, an=
+d=20
+> one with the usbvideo2 core and a pac207 driver using this core, I'll=20
+> include Makefiles for out of tree building with both of them so that=20
+> interested people can test them.
+
+since you crossposted on three lists (of which many people are
+common members), maybe it would had been better to have uploaded them
+and posted URLs instead?
+(Since I manage one system you upload stuff: Maybe there was a
+problem? -> PM please :)
+--=20
+Axel.Thimm at ATrpms.net
+
+--h9WqFG8zn/Mwlkpe
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQFH7kSvQBVS1GOamfERAv2fAJ4+lEIUwaUrJj/PtFRJtz0mNJsMgACfT1HI
+Aw/9lHRpIJaiwBvj0X9jtTk=
+=XTf9
+-----END PGP SIGNATURE-----
+
+--h9WqFG8zn/Mwlkpe--
+
+
+--===============0193121408==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============0193121408==--
