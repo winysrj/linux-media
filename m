@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1Je7Ef-000091-B1
-	for linux-dvb@linuxtv.org; Tue, 25 Mar 2008 12:22:34 +0100
-Received: from [134.32.138.158] (unknown [134.32.138.158])
-	by mail.youplala.net (Postfix) with ESMTP id B1FEDD88134
-	for <linux-dvb@linuxtv.org>; Tue, 25 Mar 2008 12:21:28 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1206431699.3755.7.camel@youkaida>
-References: <1206139910.12138.34.camel@youkaida> <47E77895.8000708@ivor.org>
-	<1206352930.7699.2.camel@acropora> <1206362971.5058.4.camel@anden.nu>
-	<1206365772.7699.10.camel@acropora> <1206431699.3755.7.camel@youkaida>
-Date: Tue, 25 Mar 2008 11:21:22 +0000
-Message-Id: <1206444082.6859.22.camel@acropora>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova-T-500 disconnects - They are back!
+	(envelope-from <crope@iki.fi>) id 1JfjIU-0005eh-GJ
+	for linux-dvb@linuxtv.org; Sat, 29 Mar 2008 23:13:13 +0100
+Message-ID: <47EEBED2.4080605@iki.fi>
+Date: Sun, 30 Mar 2008 00:12:34 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+References: <e44ae5e0712172128p4e1428aao493d0a1725b6fcd3@mail.gmail.com>	<47EC3BD4.3070307@iki.fi>
+	<Pine.LNX.4.64.0803292248590.26653@pub6.ifh.de>
+In-Reply-To: <Pine.LNX.4.64.0803292248590.26653@pub6.ifh.de>
+Cc: linux-dvb@linuxtv.org, ptay1685 <ptay1685@Bigpond.net.au>,
+	k.bannister@ieee.org
+Subject: Re: [linux-dvb] [PATCH] new USB-ID for Leadtek Winfast DTV was: Re:
+ New Leadtek Winfast DTV Dongle working - with mods but no RC
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,75 +28,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-03-25 at 07:54 +0000, Nicolas Will wrote:
-> On Mon, 2008-03-24 at 13:36 +0000, Nicolas Will wrote:
-> > On Mon, 2008-03-24 at 13:49 +0100, Jonas Anden wrote:
-> > > A wild guess (bash me on the head if I'm wrong),
-> > 
-> > Plonk! ;o)
-> 
-> I'll take that back.
-> 
-> And apologise.
-> 
-> Deeply.
+hello
 
-ah, no, I take that back as well.
+Patrick Boettcher wrote:
+> Hi Antti,
+> 
+> Daryll Green was first - I committed his patch.
 
-Plonk!
+yes, his patch looks just fine, no problem. I did not see Darylls patch 
+earlier...
+
+regards
+Antti
 
 > 
+> Sorry,
+> Patrick.
 > 
-> > 
-> > >  but when you switched
-> > > kernel, did you do 'make distclean' in your v4l-dvb directory?
-> > Unless
-> > > you do, the code will keep compiling (and installing) for the
-> > previous
-> > > kernel, and your new kernel will only use the stock drivers. That
-> > > would
-> > > explain why you're seeing disconnects again. I made that mistake
-> > > once..
-> > 
-> > I did a distclean, as usual.
-> > 
-> > Then I did better, I put the whole tree on the side and got a brand
-> > new
-> > one.
+> --
+>    Mail: patrick.boettcher@desy.de
+>    WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+> 
+> On Fri, 28 Mar 2008, Antti Palosaari wrote:
+> 
+>> hello
+>> USB-ID for Leadtek Winfast DTV
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>
+>> Patch done against current development-tree at 
+>> http://linuxtv.org/hg/~pb/v4l-dvb/
+>> Patrick, could you check and add it?
+>>
+>> Could ptay1685 or John or some other test this?
+>>
+>> Keith Bannister wrote:
+>>>  I hopped onto the IRC channel and crope` (thanks mate) advised me to
+>>>  change dvb-usb-ids.h to
+>>>
+>>>  #define USB_PID_WINFAST_DTV_DONGLE_STK7700P        0x6f01
+>> Sorry, I forgot make patch earlier...
+>>
+>> regards
+>> Antti
+>> -- 
+>> http://palosaari.fi/
+>>
 > 
 > 
-> Because I'm desperate, I did a make distclean, a make and a sudo make
-> install.
-> 
-> And I rebooted.
-> 
-> And the machine is still up with no breakage.
-> 
-> Ah...
-> 
-> I would have put my kids on the line about what I said I did.
-> 
-> But obviously...
-> 
-> And I did so many things on the box that the shell history does not go
-> back long enough for me to check.
-> 
-> But obviously, there is no need to check.
-> 
-> To err is human, but, I was pretty certain. It is normally my usual
-> process. Plus, for the weirdest reasons, I was eager to put myself in
-> supposedly 2.6.24 problems.
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-I got a disconnect, again.
 
-So I did not forget to distclean originally.
-
-Crap, I wish it had been so simple.
-
-Back to 2.6.24 causing issues.
-
-Nico
-
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
