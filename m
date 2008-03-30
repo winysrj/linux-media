@@ -1,30 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from moutng.kundenserver.de ([212.227.126.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JeTRa-0006u1-2X
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 12:05:22 +0100
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JeTRU-0007hN-P1
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 11:05:16 +0000
-Received: from ua-83-227-158-203.cust.bredbandsbolaget.se ([83.227.158.203])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 11:05:16 +0000
-Received: from elupus by ua-83-227-158-203.cust.bredbandsbolaget.se with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 11:05:16 +0000
+	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JfqJn-00062O-5Y
+	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 07:43:00 +0200
+Date: Sun, 30 Mar 2008 07:39:00 +0200
+From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
 To: linux-dvb@linuxtv.org
-From: elupus <elupus@ecce.se>
-Date: Wed, 26 Mar 2008 11:05:07 +0000 (UTC)
-Message-ID: <loom.20080326T105420-829@post.gmane.org>
-References: <timjkg4t68k0.u9vss0x6vh17$.dlg@40tude.net>
-	<19apj9y5ari7e$.iq8vatom4e8q.dlg@40tude.net>
-	<a7d0idxnqmsq.1kxbekc9wr0n1.dlg@40tude.net>
-	<ea4209750803260338k48f25e8mf95c5734481d2da7@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb]
-	=?utf-8?q?STK7700-PH_=28_dib7700_+_ConexantCX25842_+_?=
-	=?utf-8?q?Xceive=09XC3028_=29?=
+Message-ID: <20080330053900.GA31417@localhost>
+References: <20080329024154.GA23883@localhost> <47EDB703.10502@googlemail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <47EDB703.10502@googlemail.com>
+Subject: Re: [linux-dvb] Analog capture (saa7113) not working on KNC1 DVB-C
+	Plus (MK3)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,37 +26,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma <albert.comerma <at> gmail.com> writes:
+thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
+> the videobuf reworks broke it or all the foreign CI code 
+> in budget_av.c is disturbing the saa7113 circuit part of the card.
 
-So, to sum up. Using the "standard" configuration of dibcom 7700+xc3028 
-> you managed to get dvb-t working. Perhaps you have some problem with your
-> computer power management and it keeps power on usb while it's off.
-> Albert
-> 
+You seem rather unsure about what exactly was breaking it. But did it
+work at a certain point of time anyway? All I know is analog input of
+this card was already not functional under kernel 2.6.20.
 
-Well I wouldn't consider that a problem with the computer. Rather a bug in the 
-driver if it can't handle that situation. 
+I wish so much it could be fixed or implemented, because I need the
+analog inputs very much for various devices. I bought the KNC1 card
+especially for its analog inputs (25 EUR more for the analog inputs)
 
-In my case it will always happen. The card isn't a standard usb card, it's a 
-minipci(express) with a builtin usb-bridge to which the card is connected.
+The motherboard here has only one PCI slot, so a workaround with a
+second card (bt878 analog capture works) is not possible. 
 
-My guess is that something isn't getting inited properly when card has never 
-been in cold state on bootup. Do you have a hint on where to look for this?
+At the moment, I can make the Composite/S-Video devices accessible only
+if I put the KNC1 card out of the computer and put the bt878 card in,
+thus losing DVB capability. So any developer's care for this problem is
+welcome very much.
 
-The patch for 7700+XC3028 haven't made it to trunk (to steal a svn term), so 
-if you by "standard" means, the repo i mentioned in the first post and with 
-the patch to detect this specific usb card then probably yes. 
-I've not tested the 1.10 dibcom firmware with a full power off (I have to pull 
-the powercord for it to coldboot). 
-Since the error i'm getting now with the firmware from my windows drivers, are 
-identical to what i kept getting with the firmware on linuxtv, i'd expect that 
-it'd work if i just coldbooted the computer.
+Thank you
 
-
-(I wonder if I ever will get used to the multitude of repositores available).
-
-
-
+L.
 
 _______________________________________________
 linux-dvb mailing list
