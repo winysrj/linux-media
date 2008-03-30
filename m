@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.184])
+Received: from moutng.kundenserver.de ([212.227.126.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarro.2783@gmail.com>) id 1JYWwm-0008Gn-3M
-	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 02:37:01 +0100
-Received: by ti-out-0910.google.com with SMTP id y6so808654tia.13
-	for <linux-dvb@linuxtv.org>; Sun, 09 Mar 2008 18:36:52 -0700 (PDT)
-Message-ID: <abf3e5070803091836g6415112ete553958792f54d@mail.gmail.com>
-Date: Mon, 10 Mar 2008 12:36:52 +1100
-From: "Jarryd Beck" <jarro.2783@gmail.com>
+	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JfsV4-0008Jz-0f
+	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 10:02:47 +0200
+Date: Sun, 30 Mar 2008 10:00:10 +0200
+From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
 To: linux-dvb@linuxtv.org
+Message-ID: <20080330080010.GA1688@localhost>
+References: <20080329024154.GA23883@localhost> <47EDB703.10502@googlemail.com>
+	<20080330053900.GA31417@localhost>
+	<47EF342C.5010908@googlemail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb]  NXP 18211HDC1 tuner
+In-Reply-To: <47EF342C.5010908@googlemail.com>
+Subject: [linux-dvb] CI code in budget_av or videobuf rework break analog
+	input? (was Re: Analog capture (saa7113) not working on KNC1
+	DVB-C Plus (MK3))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,17 +29,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Would someone be interested in writing tuner drivers for the NXP
-18211HDC1 tuner?
-I recently bought the Winfast DTV Dongle Gold which uses an AF9015
-chip and the NXP tuner.
-I've managed to get it working up to the point of needing the tuner,
-after that nothing works.
-I have no idea how to write tuner code, so if someone is interested, I
-can supply all the
-info I've got about the card and test whatever you write.
+thomas schorpp wrote on Sun 2008-03-30 08:33 CEST:
+> L. wrote:
+> > thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
+> >> the videobuf reworks broke it or all the foreign CI code 
+> >> in budget_av.c is disturbing the saa7113 circuit part of the card.
+> > 
+> > You seem rather unsure about what exactly was breaking it. But did it
+> > work at a certain point of time anyway? All I know is analog input of
+> > this card was already not functional under kernel 2.6.20.
+> 
+> can't remember.
 
-Jarryd.
+But you say that it was broken by "videobuf reworks or all the foreign 
+CI code in budget_av.c". How can you know then?
+
 
 _______________________________________________
 linux-dvb mailing list
