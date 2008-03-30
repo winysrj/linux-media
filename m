@@ -1,14 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47DAC42D.7010306@iki.fi>
-Date: Fri, 14 Mar 2008 20:30:05 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from rv-out-0910.google.com ([209.85.198.188])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1Jg7Dw-00012H-FA
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 01:46:05 +0200
+Received: by rv-out-0910.google.com with SMTP id b22so928473rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 16:45:59 -0700 (PDT)
+Message-ID: <d9def9db0803301645s17fbb36vbce4c0631ccafa49@mail.gmail.com>
+Date: Mon, 31 Mar 2008 01:45:59 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Another Sillyname" <anothersname@googlemail.com>
+In-Reply-To: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
 MIME-Version: 1.0
-To: Jarryd Beck <jarro.2783@gmail.com>
-References: <abf3e5070803121412i322041fbyede6c5a727827c7f@mail.gmail.com>	<47D847AC.9070803@linuxtv.org>	<abf3e5070803121425k326fd126l1bfd47595617c10f@mail.gmail.com>	<47D86336.2070200@iki.fi>	<abf3e5070803121920j5d05208fo1162e4d4e3f6c44f@mail.gmail.com>	<abf3e5070803131607j1432f590p44b9b9c80f1f36e7@mail.gmail.com>	<47D9C33E.6090503@iki.fi>	<abf3e5070803131953o5c52def9n5c6e4c3f26102e89@mail.gmail.com>	<47D9EED4.8090303@linuxtv.org>	<abf3e5070803132022g3e2c638fxc218030c535372b@mail.gmail.com>	<47DA0F01.8010707@iki.fi>
-	<47DA7008.8010404@linuxtv.org>
-In-Reply-To: <47DA7008.8010404@linuxtv.org>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NXP 18211HDC1 tuner
+Content-Disposition: inline
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,24 +29,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> 4.3 is not close enough to 3.8.  If you don't know how to set the demod
-> to 3.8, then we can do some hacks to make it work, but signal reception
-> is likely to be very poor -- better off looking in his snoop log to see
-> how the windows driver sets the demod to 3.8
+On 3/31/08, Another Sillyname <anothersname@googlemail.com> wrote:
+> I have a machine that has an internal card that's a Lifeview DVB and
+> works fine using the v4l-dvb mercurial sources.
+>
+> I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+> using the v4l-dvb sources but does work using the v4l-dvb-kernel
+> version.
+>
+> 1. Will the number of em28xx cards supported by v4l-dvb be increased
+> shortly? (My card id was 94 IIRC ).
+>
+> 2. Can I mix and match from the sources...i.e. can I graft the em28xx
+> stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+> successfully or has the underlying code changed at a more strategic
+> level?
+>
+> 3. Why did the sources branch? Was there a good technical reason for this?
+>
+> 4. If I can't use the v4l-dvb sources to get my em28xx working what's
+> the chances of getting the v4l-dvb-kernel stuff working for the
+> lifeview flydvb card?
+>
 
-OI have looked sniffs and tested linux driver and found that it is set 
-to 3800. There is 4300 kHz set in eeprom, it is ok for 8 MHz but not for 
-6 or 7. Looks like driver needs to do some quirks when this tuner is 
-used. Anyhow, patch attached is hardcoded to use 3.8 now.
+Hi,
 
-Jarryd, please test. Also some changes to stick plug done, if it does 
-not work for you can fix it as earlier.
+do you have the pinnacle 330e or the 320e?
+(following is the 320e)
+http://www.compareindia.com/media/images/2007/jul/img_5282_2601_pinnacle.jpg
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Markus
 
 _______________________________________________
 linux-dvb mailing list
