@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from omta03ps.mx.bigpond.com ([144.140.82.155])
+Received: from wa-out-1112.google.com ([209.85.146.178])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ptay1685@Bigpond.net.au>) id 1JeNLH-0000WX-HD
-	for linux-dvb@linuxtv.org; Wed, 26 Mar 2008 05:34:34 +0100
-Received: from oaamta03ps.mx.bigpond.com ([58.172.153.185])
-	by omta03ps.mx.bigpond.com with ESMTP id
-	<20080326043340.PZOR27747.omta03ps.mx.bigpond.com@oaamta03ps.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 04:33:40 +0000
-Received: from barny1e59e583e ([58.172.153.185])
-	by oaamta03ps.mx.bigpond.com with SMTP
-	id <20080326043340.OQNZ10679.oaamta03ps.mx.bigpond.com@barny1e59e583e>
-	for <linux-dvb@linuxtv.org>; Wed, 26 Mar 2008 04:33:40 +0000
-Message-ID: <002301c88eec$81fb3850$6e00a8c0@barny1e59e583e>
-From: "ptay1685" <ptay1685@Bigpond.net.au>
-To: <linux-dvb@linuxtv.org>
-References: <007201c88ce2$5909c850$6e00a8c0@barny1e59e583e>	<47E6DD2D.9040204@iki.fi><001501c88ee1$f0466470$6e00a8c0@barny1e59e583e><47E9AEFF.7030504@gmail.com><002301c88ee9$fd998500$6e00a8c0@barny1e59e583e>
-	<47E9B972.3050809@gmail.com>
-Date: Wed, 26 Mar 2008 13:53:01 +1100
+	(envelope-from <anothersname@googlemail.com>) id 1Jg78o-0000Pz-94
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 01:40:47 +0200
+Received: by wa-out-1112.google.com with SMTP id m28so1719782wag.13
+	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 16:40:40 -0700 (PDT)
+Message-ID: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+Date: Mon, 31 Mar 2008 00:40:40 +0100
+From: "Another Sillyname" <anothersname@googlemail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] leadtek dtv dongle
+Content-Disposition: inline
+Subject: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,121 +20,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0907349876=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+I have a machine that has an internal card that's a Lifeview DVB and
+works fine using the v4l-dvb mercurial sources.
 
---===============0907349876==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0020_01C88F48.B52DBCF0"
+I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+using the v4l-dvb sources but does work using the v4l-dvb-kernel
+version.
 
-This is a multi-part message in MIME format.
+1.  Will the number of em28xx cards supported by v4l-dvb be increased
+shortly?  (My card id was 94 IIRC ).
 
-------=_NextPart_000_0020_01C88F48.B52DBCF0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+2.  Can I mix and match from the sources...i.e. can I graft the em28xx
+stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+successfully or has the underlying code changed at a more strategic
+level?
 
-Dont mind the effort per se, its the lack of knowledge which usually =
-leads to hours of frustration when things don't work that put me off - =
-e.g. the current example where someone asks me to do a  lsusb but its =
-not on my system, and no easy way of knowing which package its in, etc. =
-etc. Im an ex IT person suffering from burn out and stress, and to me a =
-small effort is a huge one.
+3.  Why did the sources branch?  Was there a good technical reason for this?
 
-But I will give it my best shot. As I said, I would like to help if =
-possible. Will let you know as soon as i get the lsusb working.
+4.  If I can't use the v4l-dvb sources to get my em28xx working what's
+the chances of getting the v4l-dvb-kernel stuff working for the
+lifeview flydvb card?
 
-Regards,
-
-Phil T,
-  ----- Original Message -----=20
-  From: John=20
-  To: ptay1685=20
-
-  if you can do even a few minutes of effort to determine the required =
-information, you might be surprised to find others in your situation =
-and/or those capable of helping.=20
-
-
-
-
-    linux-dvb mailing list
-    linux-dvb@linuxtv.org
-    http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_NextPart_000_0020_01C88F48.B52DBCF0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD><TITLE></TITLE>
-<META http-equiv=3DContent-Type =
-content=3Dtext/html;charset=3DISO-8859-1>
-<META content=3D"MSHTML 6.00.6000.16608" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY text=3D#000000 bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Dont mind the effort per se, its the =
-lack of=20
-knowledge which usually leads to hours of frustration when things don't =
-work=20
-that put me off - e.g. the current example where someone asks me to do =
-a&nbsp;=20
-lsusb but its not on my system, and no easy way of knowing which package =
-its in,=20
-etc. etc. Im an ex IT person suffering from burn out and stress, and to =
-me a=20
-small effort is a huge one.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>But I will give it my best shot. As I =
-said, I would=20
-like to help if possible. Will let you know as soon as i get the lsusb=20
-working.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Regards,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Phil T,</FONT></DIV>
-<BLOCKQUOTE=20
-style=3D"PADDING-RIGHT: 0px; PADDING-LEFT: 5px; MARGIN-LEFT: 5px; =
-BORDER-LEFT: #000000 2px solid; MARGIN-RIGHT: 0px">
-  <DIV style=3D"FONT: 10pt arial">----- Original Message ----- </DIV>
-  <DIV=20
-  style=3D"BACKGROUND: #e4e4e4; FONT: 10pt arial; font-color: =
-black"><B>From:</B>=20
-  <A title=3Dbitumen.surfer@gmail.com=20
-  href=3D"mailto:bitumen.surfer@gmail.com">John</A> </DIV>
-  <DIV style=3D"FONT: 10pt arial"><B>To:</B> <A =
-title=3Dptay1685@Bigpond.net.au=20
-  href=3D"mailto:ptay1685@Bigpond.net.au">ptay1685</A> </DIV><BR>if you =
-can do=20
-  even a few minutes of effort to determine the required information, =
-you might=20
-  be surprised to find others in your situation and/or those capable of =
-helping.=20
-  <BR><BR><BR><BR>
-  <BLOCKQUOTE cite=3Dmid:002301c88ee9$fd998500$6e00a8c0@barny1e59e583e=20
-    type=3D"cite">linux-dvb mailing=20
-    =
-list<BR>linux-dvb@linuxtv.org<BR>http://www.linuxtv.org/cgi-bin/mailman/l=
-istinfo/linux-dvb</BLOCKQUOTE></BLOCKQUOTE></BODY></HTML>
-
-------=_NextPart_000_0020_01C88F48.B52DBCF0--
-
-
-
---===============0907349876==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks in advance.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0907349876==--
