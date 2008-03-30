@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.mtw.ru ([194.135.105.241])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a-j@a-j.ru>) id 1JbiXt-0003sY-2K
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 21:36:29 +0100
-Received: from MW1J060NB (unknown [217.172.30.162])
-	by smtp1.mtw.ru (Postfix) with ESMTP id 5247813B6CB
-	for <linux-dvb@linuxtv.org>; Tue, 18 Mar 2008 23:32:44 +0300 (MSK)
-Date: Tue, 18 Mar 2008 23:36:20 +0300
-From: Andrew Junev <a-j@a-j.ru>
-Message-ID: <1115343012.20080318233620@a-j.ru>
-To: linux-dvb@linuxtv.org
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1Jfuib-00045S-Ly
+	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 12:24:54 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1015130fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 03:24:50 -0700 (PDT)
+Message-ID: <47EF6A6F.50401@googlemail.com>
+Date: Sun, 30 Mar 2008 12:24:47 +0200
+From: thomas schorpp <thomas.schorpp@googlemail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
-Reply-To: Andrew Junev <a-j@a-j.ru>
+To: linux-dvb@linuxtv.org
+References: <20080329024154.GA23883@localhost>
+	<47EDB703.10502@googlemail.com>	<20080330053900.GA31417@localhost>	<47EF342C.5010908@googlemail.com>
+	<20080330071647.GA990@localhost>
+In-Reply-To: <20080330071647.GA990@localhost>
+Subject: Re: [linux-dvb] KNC1 DVB-C Plus analog input
+Reply-To: thomas.schorpp@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,36 +29,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello All,
+L. wrote:
+> thomas schorpp wrote on Sun 2008-03-30 08:33 CET:
+>> L. wrote:
+>>> thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
+>>>> the videobuf reworks broke it or all the foreign CI code 
+>>>> in budget_av.c is disturbing the saa7113 circuit part of the card.
+>>> You seem rather unsure about what exactly was breaking it. But did it
+>>> work at a certain point of time anyway? All I know is analog input of
+>>> this card was already not functional under kernel 2.6.20.
+>> can't remember.
+>> btw, could You test if the crappy knc-1 (odsoft?) non-bda winxp driver which 
+>> supports the saa7113 input BSOD's on Your machine, too, on install?
+> 
+> I don't have winxp but if it produces a crash it may be related to this: 
+> 
+> KNC One FAQ: Programmabsturz bei Auswahl des analogen Videoeingangs (DVB-x PLUS Karten)
+> http://www.knc1.de/d/faq/faqs.htm#18
 
-I was successfully using two TT S-1401 DVB-S cards in my HTPC running
-Fedora 8. One of my antennas is positioned to Astra 19.2E and its
-signal quality is quite low in my area. But the setup worked just fine
-for me most of the time.
+No. bluescreen is a kernel crash, not crash of a userspace app, and I've not got any HD audio.
+Your only chance to get analog working at this time is trying the non-bda winxp driver.
+If it crashes Your winxp kernel, You got a warranty case to return in the 
+card to the dealer or knc-1 and get money back, +assured product feature failure case ;)
 
-Last weekend I updated my system from kernel-2.6.23.15-137.fc8 to
-kernel-2.6.24.3-12.fc8. It was just a 'yum update', nothing else.
-Right after that I got no lock on most of Astra transponders (other
-satellites were still Ok, but they normally have a far better signal).
-After checking everything twice without any success, I booted back to
-2.6.23.15 and my Astra was back!
-
-Is this a known behavior? I suppose it was not discussed before, so
-this makes me think I am the only one with such a problem...
-Strange... I think the problem is somehow related to the signal level / 
-signal error rate. Looks like weak transponders are harder to lock
-with the new kernel...
-I'd appreciate any comments on this. I don't think I have an urgent
-need to move to 2.6.24 now, but I'd still like to be able to do that
-without loosing my TV... 
-
-
-P.S. I can see there's kernel-2.6.24.3-34.fc8 already available for
-Fedora 8. But I didn't try it yet...
-
--- 
-Best regards,
- Andrew
+y
+tom
 
 
 _______________________________________________
