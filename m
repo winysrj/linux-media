@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
+Received: from wf-out-1314.google.com ([209.85.200.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1Jfqci-0007cn-Do
-	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 08:02:39 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so112814ywh.41
-	for <linux-dvb@linuxtv.org>; Sat, 29 Mar 2008 23:02:27 -0700 (PDT)
-Message-ID: <37219a840803292302m191ea890nfefc51135706b017@mail.gmail.com>
-Date: Sun, 30 Mar 2008 02:02:27 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Janne Grunau" <janne-dvb@grunau.be>
-In-Reply-To: <200803292240.25719.janne-dvb@grunau.be>
+	(envelope-from <daniel.akerud@gmail.com>) id 1JfxEx-0000LV-Na
+	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 15:06:29 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so1072849wfa.17
+	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 06:06:19 -0700 (PDT)
+Message-ID: <b000da060803300606n49a3106dj26efdd1b50e5d7c0@mail.gmail.com>
+Date: Sun, 30 Mar 2008 15:06:19 +0200
+From: "=?ISO-8859-1?Q?daniel_=E5kerud?=" <daniel.akerud@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200803292240.25719.janne-dvb@grunau.be>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
-	dvb adapter numbers, second try
+Subject: [linux-dvb] problem loading modules for pvr-150,
+	exports duplicate symbols
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,61 +19,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1888885678=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/3/29 Janne Grunau <janne-dvb@grunau.be>:
-> Hi,
->
->  I resubmit this patch since I still think it is a good idea to the this
->  driver option. There is still no udev recipe to guaranty stable dvb
->  adapter numbers. I've tried to come up with some rules but it's tricky
->  due to the multiple device nodes in a subdirectory. I won't claim that
->  it is impossible to get udev to assign driver or hardware specific
->  stable dvb adapter numbers but I think this patch is easier and more
->  clean than a udev based solution.
->
->  I'll drop this patch if a simple udev solution is found in a reasonable
->  amount of time. But if there is no I would like to see the attached
->  patch merged.
->
->  Quoting myself for a short desciprtion for the patch:
->
->  > V4L drivers have the {radio|vbi|video}_nr module options to allocate
->  > static minor numbers per driver.
->  >
->  > Attached patch adds a similiar mechanism to the dvb subsystem. To
->  > avoid problems with device unplugging and repluging each driver holds
->  > a DVB_MAX_ADAPTER long array of the preffered order of adapter
->  > numbers.
->  >
->  > options dvb-usb-dib0700 adapter_nr=7,6,5,4,3,2,1,0 would result in a
->  > reversed allocation of adapter numbers.
->  >
->  > With adapter_nr=2,5 it tries first to get adapter number 2 and 5. If
->  > both are already in use it will allocate the lowest free adapter
->  > number.
+--===============1888885678==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_19836_5687738.1206882379295"
 
-Personally, I would love to see this merged -- I hope that others will
-agree with me.
+------=_Part_19836_5687738.1206882379295
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-One critique:
+I did an hg pull a few weeks ago and have since then problems loading
+drivers for my pvr-150 card. The first error message comes when v4l2_common
+is loaded:
+  FATAL: Error inserting v4l2_common
+(/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/v4l2-common.ko):
+Invalid module format
+dmesg reveals:
+  [ 3259.775779] v4l2_common: exports duplicate symbol v4l_printk_ioctl
+(owned by videodev)
 
-videobuf-dvb is more of a central helper module.  I believe that the
-module option should live in the callers of videobuf-dvb (such as
-cx88-dvb / saa7134-dvb / cx23885-dvb) rather than within the
-videobuf-dvb module, itself.  The array can be passed into
-videobuf-dvb the same as was done with dvb-usb-dvb.c
+Trying to unload videodev and then loading it works, but the ivtv module
+seems to require the symbols exported by videodev:
+da@brutus:~$ sudo modprobe -r videodev
+da@brutus:~$ sudo modprobe v4l2_common
+da@brutus:~$ sudo modprobe ivtv
+WARNING: Error inserting videodev
+(/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/videodev.ko):
+Invalid module format
+FATAL: Error inserting ivtv
+(/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/ivtv/ivtv.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+and dmesg reveals:
+[ 3346.365132] ivtv: Unknown symbol video_unregister_device
+[ 3346.365189] ivtv: Unknown symbol video_device_alloc
+[ 3346.365242] ivtv: Unknown symbol video_register_device
+[ 3346.365507] ivtv: Unknown symbol video_usercopy
+[ 3346.365553] ivtv: Unknown symbol video_device_release
 
-Other than that, I think that this feature would be a valuable
-addition to the DVB subsystem.
+now loading videodev again this happens:
+da@brutus:~$ sudo modprobe videodev
+FATAL: Error inserting videodev
+(/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/videodev.ko):
+Invalid module format
 
--Mike Krufky
+dmesg reveals:
+[ 3385.071755] videodev: exports duplicate symbol v4l_printk_ioctl (owned by
+v4l2_common)
+
+I have done make clean which didn't solve it. Any help is appreciated. I am
+running trunk v4l-dvb drivers on ubuntu 7.10. The problem appeard about 2
+weeks ago.
+
+/D
+
+------=_Part_19836_5687738.1206882379295
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I did an hg pull a few weeks ago and have since then problems loading drivers for my pvr-150 card. The first error message comes when v4l2_common is loaded:<br>&nbsp; FATAL: Error inserting v4l2_common (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/v4l2-common.ko): Invalid module format<br>
+dmesg reveals:<br>&nbsp; [ 3259.775779] v4l2_common: exports duplicate symbol v4l_printk_ioctl (owned by videodev)<br><br>Trying to unload videodev and then loading it works, but the ivtv module seems to require the symbols exported by videodev:<br>
+da@brutus:~$ sudo modprobe -r videodev<br>da@brutus:~$ sudo modprobe v4l2_common<br>da@brutus:~$ sudo modprobe ivtv<br>WARNING: Error inserting videodev (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/videodev.ko): Invalid module format<br>
+FATAL: Error inserting ivtv (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/ivtv/ivtv.ko): Unknown symbol in module, or unknown parameter (see dmesg)<br>and dmesg reveals:<br>[ 3346.365132] ivtv: Unknown symbol video_unregister_device<br>
+[ 3346.365189] ivtv: Unknown symbol video_device_alloc<br>[ 3346.365242] ivtv: Unknown symbol video_register_device<br>[ 3346.365507] ivtv: Unknown symbol video_usercopy<br>[ 3346.365553] ivtv: Unknown symbol video_device_release<br>
+<br>now loading videodev again this happens:<br>da@brutus:~$ sudo modprobe videodev<br>FATAL: Error inserting videodev (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/videodev.ko): Invalid module format<br><br>
+dmesg reveals:<br>[ 3385.071755] videodev: exports duplicate symbol v4l_printk_ioctl (owned by v4l2_common)<br><br>I have done make clean which didn&#39;t solve it. Any help is appreciated. I am running trunk v4l-dvb drivers on ubuntu 7.10. The problem appeard about 2 weeks ago.<br>
+<br>/D<br><br><br>
+
+------=_Part_19836_5687738.1206882379295--
+
+
+--===============1888885678==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1888885678==--
