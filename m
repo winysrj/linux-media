@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201])
+Received: from moutng.kundenserver.de ([212.227.126.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaL-0007gz-02
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 09:57:17 +0100
-Received: from berkeloid.vlook.shikadi.net ([192.168.4.11])
-	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaF-0002Rn-Vj
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 18:57:12 +1000
-Received: from korath.teln.shikadi.net ([192.168.0.14])
-	by berkeloid.teln.shikadi.net with esmtp (Exim 4.62)
-	(envelope-from <a.nielsen@shikadi.net>) id 1JcGaF-0005dB-7d
-	for linux-dvb@linuxtv.org; Thu, 20 Mar 2008 18:57:11 +1000
-Message-ID: <47E226E7.7030601@shikadi.net>
-Date: Thu, 20 Mar 2008 18:57:11 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-MIME-Version: 1.0
+	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JfroP-00053j-Pc
+	for linux-dvb@linuxtv.org; Sun, 30 Mar 2008 09:18:48 +0200
+Date: Sun, 30 Mar 2008 09:16:47 +0200
+From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dvbstream reliability issues?
+Message-ID: <20080330071647.GA990@localhost>
+References: <20080329024154.GA23883@localhost> <47EDB703.10502@googlemail.com>
+	<20080330053900.GA31417@localhost>
+	<47EF342C.5010908@googlemail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <47EF342C.5010908@googlemail.com>
+Subject: [linux-dvb] KNC1 DVB-C Plus analog input (was: Re: Analog capture
+	(saa7113) not working on KNC1 DVB-C Plus (MK3))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,34 +28,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+thomas schorpp wrote on Sun 2008-03-30 08:33 CET:
+> L. wrote:
+> > thomas schorpp wrote on Sat 2008-03-29 04:26 CET:
+> >> the videobuf reworks broke it or all the foreign CI code 
+> >> in budget_av.c is disturbing the saa7113 circuit part of the card.
+> >
+> > You seem rather unsure about what exactly was breaking it. But did it
+> > work at a certain point of time anyway? All I know is analog input of
+> > this card was already not functional under kernel 2.6.20.
+> 
+> can't remember.
+> btw, could You test if the crappy knc-1 (odsoft?) non-bda winxp driver which 
+> supports the saa7113 input BSOD's on Your machine, too, on install?
 
-I've recently started using dvbstream (instead of dvbrecord) to record
-shows using cron but I'm finding it to be very unreliable.
+I don't have winxp but if it produces a crash it may be related to this: 
 
-Depending on my reception quality, it has a tendency to segfault fairly
-regularly - enough that I wrote a script to reload it after a segfault
-so that I wouldn't miss my recording.  With this set up it usually
-segfaults once every 15 minutes or so, and sometimes as often as every
-4-5 minutes if the reception isn't so great.
-
-Sometimes it doesn't segfault though, it just stops recording for some
-reason (the output file only grows by a few bytes a minute.)  This is
-worse because it doesn't terminate, so my script isn't able to reload it
-to catch the rest of the recording.
-
-For those people using dvbstream to do their recording, are any of you
-having issues like this?
-
-I'm running CVS from 2008-02-24 and I'm using -prog to record based on
-the program instead of using PIDs (as our broadcasters here seem to
-change their PIDs without warning every couple of months.)
-
-I'm hoping there's some easy fix for this, because I'd rather not have
-to try to get dvbrecord to work again!
-
-Thanks,
-Adam.
+KNC One FAQ: Programmabsturz bei Auswahl des analogen Videoeingangs (DVB-x PLUS Karten)
+http://www.knc1.de/d/faq/faqs.htm#18
 
 _______________________________________________
 linux-dvb mailing list
