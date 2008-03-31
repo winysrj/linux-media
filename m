@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from eeyore.nlsn.nu ([213.115.133.58])
+Received: from rv-out-0910.google.com ([209.85.198.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dlist2@nlsn.nu>) id 1Jezg6-0000AX-9u
-	for linux-dvb@linuxtv.org; Thu, 27 Mar 2008 22:30:33 +0100
-Date: Thu, 27 Mar 2008 22:30:23 +0100 (CET)
-From: dlist2@nlsn.nu
-To: Sigmund Augdal <sigmund@snap.tv>
-In-Reply-To: <1206610705.12385.7.camel@rommel.snap.tv>
-Message-ID: <Pine.LNX.4.64.0803272228070.9456@eeyore.nlsn.nu>
-References: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
-	<1206610705.12385.7.camel@rommel.snap.tv>
+	(envelope-from <mrechberger@gmail.com>) id 1JgSyx-0007FF-DU
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 01:00:08 +0200
+Received: by rv-out-0910.google.com with SMTP id b22so1246212rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 15:59:57 -0700 (PDT)
+Message-ID: <d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
+Date: Tue, 1 Apr 2008 00:59:56 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+In-Reply-To: <c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501 not working
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,70 +30,91 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On 3/31/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+> On Mon, Mar 31, 2008 at 12:40 AM, Another Sillyname
+> <anothersname@googlemail.com> wrote:
+> > I have a machine that has an internal card that's a Lifeview DVB and
+> > works fine using the v4l-dvb mercurial sources.
+> >
+> > I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+> > using the v4l-dvb sources but does work using the v4l-dvb-kernel
+> > version.
+> >
+> > 1. Will the number of em28xx cards supported by v4l-dvb be increased
+> > shortly? (My card id was 94 IIRC ).
+>
+> If it's supported by v4l-dvb-kernel, it's entirely possible, yes.
+>
+> > 2. Can I mix and match from the sources...i.e. can I graft the em28xx
+> > stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+> > successfully or has the underlying code changed at a more strategic
+> > level?
+>
+> Not trivially, since v4l-dvb-kernel contains changes to the core code
+> that the em28xx driver relies on and that are incompatible with
+> changes in the main v4l-dvb repository since. You can try
+> http://www.makomk.com/hg/v4l-dvb-makomk - it's the em28xx and xc3028
+> drivers grafted onto a version of v4l-dvb that's about 5 months old at
+> this point - though it's really not a great starting point for porting
+> them onto newer versions, since you'd want to drop the xc3028 driver
+> in favour of the newer one
+>
 
-Hi,
+Makomk,
+spreading around your even more broken tree won't help anyone.
 
-I agree, but I dont have the skills to glue it...
-But I can compile, test and report back results if someone can help 
-remote.
+This device already had some issues with the v4l-dvb-kernel tree, this
+is what I'll do in April.
 
-  Daniel
+> > 3. Why did the sources branch? Was there a good technical reason for
+> this?
+>
+> Supporting the xc3028 silicon tuner needed some changes to support
+> hybrid analog/digital tuners better. Unfortunately, Markus couldn't
+> come to an agreement with the rest of the developers on how to do it.
+> (I think the main concern were that the changes he were proposing were
+> rather more invasive than they needed to be and risked breaking
+> existing drivers). In the end, someone else coded the equivalent
+> functionality in a more backwards-compatible way and merged it in
+> stages.
+>
+> (It's actually relatively easy to port code from Markus' hybrid tuner
+> framework to the v4l-dvb one, though he will never admit so.)
+>
 
-On Thu, 27 Mar 2008, Sigmund Augdal wrote:
+The reason is my trust is gone I asked in September if it's possible
+to get those devices work with what's available and I got the answer
+it's not.
+This stupid fight lasts for more than 2 years already, but I'm the one
+who spent weeks on writing code for getting those things supported and
+even rewrote code although there was no serious participation in the
+discussions I tried to trigger...
 
-> According to this forum post:
-> http://www.dvbviewer.info/forum/index.php?showtopic=24366
-> 
-> The card uses the tda10023 demod (for which there is a driver in the
-> sources) and a tda8274A tuner (which the tda827x driver hopefully will
-> handle). So all that should be needed is some glue code.
-> 
-> Sigmund
-> 
-> 
-> tor, 20.03.2008 kl. 12.56 +0100, skrev dlist2@nlsn.nu:
-> > Hi,
-> > 
-> > I just purchased a Technotrend Budget C-1501.
-> > Im running Mythbuntu Beta, and downloaded the latest v4l drivers but it 
-> > still fails.
-> > 
-> > lspci -v
-> > 
-> > 05:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-> >         Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
-> >         Flags: bus master, medium devsel, latency 66, IRQ 5
-> >         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
-> > 
-> > lspci -n
-> > 
-> > 05:04.0 0480: 1131:7146 (rev 01)
-> >         Subsystem: 13c2:101a
-> >         Flags: bus master, medium devsel, latency 66, IRQ 5
-> >         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
-> > 
-> > log says
-> > 
-> >  kernel: [   54.207308] Linux video capture  interface: v2.00
-> >  kernel: [   54.501753] saa7146: register extension 'dvb'.
-> >  runvdr: stopping after fatal fail (vdr: warning - cannot set dumpable: Invalid argument vdr: no primary device found - using 
-> > first device!)
-> > 
-> > And /dev/dvb is empty of course.
-> > Im not a kernel hacker, but if you have any hits on how to get this card 
-> > working please let me know.
-> > 
-> > Thanks
-> > 
-> >   Daniel
-> > 
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > 
-> 
-> 
+If I tell a company that I will add support for something till a given
+date I'll do so to keep up the good contacts. Unfortunately this is
+not how some people at linuxtv behave and it slows down everything
+even for other manufacturers where I'm not involved.
+
+It's me who mostly spent his time on writing any code on mcentral.de,
+the code didn't write itself especially Aidan has no respect about
+that, neither do some other people. Maybe it's really better to
+provide binary only blobs to remember especially such people that it
+requires alot work to get those things work.
+
+> > 4. If I can't use the v4l-dvb sources to get my em28xx working what's
+> > the chances of getting the v4l-dvb-kernel stuff working for the
+> > lifeview flydvb card?
+>
+> Not good. Its support for other hardware is, if anything, going to be
+> slowly getting worse over time as other drivers have to be modified or
+> disabled to make it compile on newer kernels.
+>
+
+that for the other repository (em28xx-userspace2/userspace-drivers on
+mcentral.de/hg) is available, although it needs some work with that
+device.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
