@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JYUwh-0007Rn-AX
-	for linux-dvb@linuxtv.org; Mon, 10 Mar 2008 00:28:50 +0100
-Message-ID: <47D472A4.8040306@linuxtv.org>
-Date: Sun, 09 Mar 2008 19:28:36 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <dcharvey@dsl.pipex.com>) id 1JgHKh-0003hq-Co
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 12:33:49 +0200
+Message-ID: <47F0BDE4.4060205@dsl.pipex.com>
+Date: Mon, 31 Mar 2008 03:33:08 -0700
+From: David Harvey <dcharvey@dsl.pipex.com>
 MIME-Version: 1.0
-To: aldebaran <aldebx@yahoo.fr>
-References: <47D4674B.6010603@yahoo.fr>
-In-Reply-To: <47D4674B.6010603@yahoo.fr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] ~stoth/cx23885-video compile failure
+To: linux-dvb@linuxtv.org
+References: <mailman.1.1206957601.1318.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.1.1206957601.1318.linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Nova - T disconnects
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +24,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-aldebaran wrote:
-> I own an HP/Hauppauge WinTv885 mod 77001 with cx23885 and xc3028 chipsets.
->
-> Following the threads on this mailing list I understood these chipsets were supported by 
-> http://linuxtv.org/hg/~stoth/cx23885-video code, however I cannot even get past the 'make all'.
->
-> [snip]
-> Is it a bug?
-> Were I supposed to do something?
-> Thank you.
->   
-your card is supported in the master repository:
+Just a quick update.  I installed hardy (2.6.24) onto my mythbox (epia 
+mini itx) for testing and can confirm the same disconnect behaviour with 
+the bundled kernel presently, have not yet tried the latest hg-src with 
+this config.  The " hub 4-1:1.0: port 2 disabled by hub (EMI?), 
+re-enabling..." by which I mean the facility to re-enable helps no end 
+in requiring no reboot to reset the dvb device.
+I have a usb nova-t and nova-td (the latter of which I haven't tried 
+again yet).
 
-http://linuxtv.org/hg/v4l-dvb
+Will report back with results of up to date mercurial if there is any 
+likelihood of seeing a different result?
 
-If you continue to see these types of errors, please post again.  While waiting for a response, you can get past those errors by disabling the offending driver from the build.  try 'make menuconfig'.
+Cheers,
 
-hth,
-
-Mike
-
-
-
+dh
 
 _______________________________________________
 linux-dvb mailing list
