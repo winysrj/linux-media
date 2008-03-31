@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m232rF4V003783
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 21:53:15 -0500
-Received: from QMTA10.emeryville.ca.mail.comcast.net
-	(qmta10.emeryville.ca.mail.comcast.net [76.96.30.17])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m232qgx2017094
-	for <video4linux-list@redhat.com>; Sun, 2 Mar 2008 21:52:42 -0500
-Message-ID: <47CB6801.4060503@personnelware.com>
-Date: Sun, 02 Mar 2008 20:52:49 -0600
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <47CB2689.3010707@personnelware.com>
-In-Reply-To: <47CB2689.3010707@personnelware.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2VJaElw019082
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:36:14 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2VJa3u7001869
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:36:03 -0400
+Date: Mon, 31 Mar 2008 16:35:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Brandon Philips <brandon@ifup.org>
+Message-ID: <20080331163550.0b0f7bd8@gaivota>
+In-Reply-To: <20080329053520.GB4470@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost>
+	<304e0a371d12f77e1575.1206699518@localhost>
+	<20080328153442.58b2c108@gaivota>
+	<20080329053520.GB4470@plankton.ifup.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Re: vivi.c stuck my CPU
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 7 of 9] vivi: Simplify the vivi driver and avoid
+ deadlocks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,91 +31,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Carl Karsten wrote:
-> [2950.237132] BUG: soft lockup - CPU#0 stuck for 11s! [vivi:9709]
-> any chance that is an application problem ?
+On Fri, 28 Mar 2008 22:35:20 -0700
+Brandon Philips <brandon@ifup.org> wrote:
+
+> On 15:34 Fri 28 Mar 2008, Mauro Carvalho Chehab wrote:
+> > This is under copyright (2006), as if you were one of the authors of the
+> > original driver. Also, I prefer if you add a short line bellow your copyright
+> > for the job you've done on the driver. Something like:
+> > 
+> > + *
+> > + *  Copyright (c) 2008 by Brandon Philips <brandon@ifup.org>
+> > + *       - Fix bad locks and cleans up streaming code
 > 
+> Ok, this is fixed in the patch I just sent.
+Ok.
 
-CPU#0 stuck came from using transcode:
-++ transcode -i /dev/video0 -x v4l2,null -g 640x480 --dv_yuy2_mode -V yuv422p -k 
---encode_fields p
+>  I didn't add the
+> "changelog" entry below the copyright because the git-log will show what
+> I did.
 
-I rebooted, loaded vivi and tried xawtv. Didn't crash as hard, but none the 
-less, things aren't right.
+I prefer if you do so. I had to much stress in the past due to those copyright
+messages. I very much prefer to have a very short description, when newer
+copyrights are added. This avoids later senseless discussions.
 
-juser@vaio:~$ sudo modprobe vivi
-[  184.053222] Linux video capture interface: v2.00
-[  184.070413] vivi: V4L2 device registered as /dev/video0
-[  184.070424] Video Technology Magazine Virtual Video Capture Board ver 0.5.0 
-successfully loaded.
+> > While the restart and timeout code is not needed on vivi driver, IMO, we should
+> > keep it, since the main reason for this driver is to be a reference code. 
+> 
+> I couldn't figure out how it worked well enough to fix it.   In
+> particular code similar to the following is copied around throughout
+> several drivers and I have no idea what it does:  
+> 
+> @@ -785,45 +657,12 @@ buffer_queue(struct videobuf_queue *vq, 
+> -       if (!list_empty(&vidq->queued)) {
+> -               dprintk(dev, 1, "adding vb queue=0x%08lx\n",
+> -                       (unsigned long)&buf->vb.queue);
+> -               list_add_tail(&buf->vb.queue, &vidq->queued);
+> -               buf->vb.state = VIDEOBUF_QUEUED;
+> -               dprintk(dev, 2, "[%p/%d] buffer_queue - append to queued\n",
+> -                       buf, buf->vb.i);
+> -       } else if (list_empty(&vidq->active)) {
+> -               list_add_tail(&buf->vb.queue, &vidq->active);
+> -               buf->vb.state = VIDEOBUF_ACTIVE;
+> -               mod_timer(&vidq->timeout, jiffies+BUFFER_TIMEOUT);
+> -               dprintk(dev, 2, "[%p/%d] buffer_queue - first active\n",
+> -                       buf, buf->vb.i);
+> -
+> -               vivi_start_thread(vidq);
+> -       } else {
+> -               prev = list_entry(vidq->active.prev,
+> -                                 struct vivi_buffer, vb.queue);
+> -               if (prev->vb.width  == buf->vb.width  &&
+> -                   prev->vb.height == buf->vb.height &&
+> -                   prev->fmt       == buf->fmt) {
+> -                       list_add_tail(&buf->vb.queue, &vidq->active);
+> -                       buf->vb.state = VIDEOBUF_ACTIVE;
+> -                       dprintk(dev, 2,
+> -                               "[%p/%d] buffer_queue - append to active\n",
+> -                               buf, buf->vb.i);
+> -
+> -               } else {
+> -                       list_add_tail(&buf->vb.queue, &vidq->queued);
+> -                       buf->vb.state = VIDEOBUF_QUEUED;
+> -                       dprintk(dev, 2,
+> -                               "[%p/%d] buffer_queue - first queued\n",
+> -                               buf, buf->vb.i);
+> -               }
+> -       }
+> 
+> What is the difference between VIDEOBUF_ACTIVE and VIDEOBUF_QUEUED?
+I think we can later try to simplify the state machine. From what I understood,
+VIDEOBUF_ACTIVE is used to indicate that a driver started, but hasn't yet
+received anything.
 
-juser@vaio:~$ xawtv
-This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.24-10-generic)
-/dev/video0 [v4l2]: no overlay support
-v4l-conf had some trouble, trying to continue anyway
-Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to 
-type FontStruct
-ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Success
-ioctl: VIDIOC_DQBUF(index=0;type=VIDEO_CAPTURE;bytesused=0;flags=0x0 
-[];field=ANY;;timecode.type=0;timecode.flags=0;timecode.frames=0;timecode.seconds=0;timecode.minutes=0;timecode.hours=0;timecode.userbits="";sequence=0;memory=MMAP): 
-Input/output error
+About the same logic used on vivi is present also on bttv, cx88 and saa7134.
 
+> Well, yes on real hardware.  But, in the case of vivi we can just create
+> the frames as they are needed.  It is dead simple for a fake device :D
 
-[  251.821907] vivi: open called (minor=0)
-[  251.823664] vivi: open called (minor=0)
-[  251.824152] vivi: open called (minor=0)
-[  314.810130] vivi/0: [d7491a00/0] timeout
-[  314.810141] vivi/0: [d7491280/1] timeout
-[  251.821907] vivi: open called (minor=0)
-[  251.823664] vivi: open called (minor=0)
-[  251.824152] vivi: open called (minor=0)
-[  314.810130] vivi/0: [d7491a00/0] timeout
-[  314.810141] vivi/0: [d7491280/1] timeout
-[  586.440266] vivi: open called (minor=0)
-[  586.480991] vivi: open called (minor=0)
-[  650.181535] vivi/0: [d64dfd80/1] timeout
-[  650.181546] vivi/0: [d64dfe80/2] timeout
-[  650.181551] vivi/0: [d64df980/3] timeout
-[  650.181555] vivi/0: [d64dfe00/4] timeout
-[  650.181559] vivi/0: [d64df100/5] timeout
-[  650.181563] vivi/0: [d64df800/6] timeout
-[  650.181567] vivi/0: [d64dfd00/7] timeout
-[  650.181571] vivi/0: [d64dff80/8] timeout
-[  650.181575] vivi/0: [d64df680/9] timeout
-[  650.181579] vivi/0: [d791d380/10] timeout
-[  650.181583] vivi/0: [d7996d80/11] timeout
-[  650.181587] vivi/0: [d7996380/12] timeout
-[  650.181592] vivi/0: [d6d25e00/13] timeout
-[  650.181596] vivi/0: [d6d25e80/14] timeout
-[  650.181600] vivi/0: [d6d25f80/15] timeout
-[  650.181604] vivi/0: [d6d25f00/16] timeout
-[  650.181608] vivi/0: [d6d25300/17] timeout
-[  650.181612] vivi/0: [d6d25080/18] timeout
-[  650.181616] vivi/0: [d6d25400/19] timeout
-[  650.181620] vivi/0: [d6d25580/20] timeout
-[  650.181624] vivi/0: [d6d25d80/21] timeout
-[  650.181628] vivi/0: [d6d25d00/22] timeout
-[  650.181632] vivi/0: [d6d25c80/23] timeout
-[  650.181636] vivi/0: [d6d25b80/24] timeout
-[  650.181640] vivi/0: [d6d25700/25] timeout
-[  650.181644] vivi/0: [d6d25a00/26] timeout
-[  650.181648] vivi/0: [d6d25200/27] timeout
-[  650.181652] vivi/0: [d6d25800/28] timeout
-[  650.181656] vivi/0: [d6d25000/29] timeout
-[  650.181660] vivi/0: [d7491280/30] timeout
-[  650.181665] vivi/0: [d7491a00/31] timeout
-[  650.181671] vivi/0: [d64dfc80/0] timeout
+ 
+> > This task is also needed by tm6000 driver, for the same reasons.
+> 
+> Huh?  What task?
 
+I mean the watchdog task. If the device stops sending streams for more than a
+certain amount of time [1], a task is wake. This task unblocks the userspace app
+(this returns an error to userspace), and tries to restart the streaming.
 
-If someone will point me in the right direction, I'll write a test app to 
-reproduce this.
+[1] Since a TV device is expected to receive 25 to 30 frames/sec, In thesis,
+you should have a frame on each 33 ms or 40ms. The watchdog is configured to a
+higher value (for example, 500ms), since, on real devices, some frames could be
+lost due to bad signal.
 
-And where is the right place to report bugs?
-
-Carl K
-
-ps hope ya'll don't get tired of my test quest.)
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
