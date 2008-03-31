@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server42.ukservers.net ([217.10.138.242])
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1JY8W8-00060s-Fg
-	for linux-dvb@linuxtv.org; Sun, 09 Mar 2008 00:31:53 +0100
-Received: from server42.ukservers.net (localhost.localdomain [127.0.0.1])
-	by server42.ukservers.net (Postfix smtp) with ESMTP id F3BE8A71BB
-	for <linux-dvb@linuxtv.org>; Sat,  8 Mar 2008 23:31:15 +0000 (GMT)
-Received: from localhost (localhost [127.0.0.1])
-	by server42.ukservers.net (Postfix smtp) with SMTP id 0AAD4A71B7
-	for <linux-dvb@linuxtv.org>; Sat,  8 Mar 2008 23:31:14 +0000 (GMT)
-Message-ID: <084701c88174$812f0170$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Date: Sun, 9 Mar 2008 12:31:04 +1300
+	(envelope-from <dcharvey@dsl.pipex.com>) id 1JgIGB-0000we-1w
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 13:33:08 +0200
+Message-ID: <47F0CBD2.8070209@dsl.pipex.com>
+Date: Mon, 31 Mar 2008 04:32:34 -0700
+From: David Harvey <dcharvey@dsl.pipex.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Signal strength via SNMP?
+To: linux-dvb@linuxtv.org
+References: <mailman.1.1206957601.1318.linux-dvb@linuxtv.org>
+	<47F0BDE4.4060205@dsl.pipex.com>
+In-Reply-To: <47F0BDE4.4060205@dsl.pipex.com>
+Subject: Re: [linux-dvb] Nova - T disconnects
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,102 +19,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0447539309=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+David Harvey wrote:
+> Just a quick update.  I installed hardy (2.6.24) onto my mythbox (epia 
+> mini itx) for testing and can confirm the same disconnect behaviour 
+> with the bundled kernel presently, have not yet tried the latest 
+> hg-src with this config.  The " hub 4-1:1.0: port 2 disabled by hub 
+> (EMI?), re-enabling..." by which I mean the facility to re-enable 
+> helps no end in requiring no reboot to reset the dvb device.
+> I have a usb nova-t and nova-td (the latter of which I haven't tried 
+> again yet).
+>
+> Will report back with results of up to date mercurial if there is any 
+> likelihood of seeing a different result?
+>
+> Cheers,
+>
+> dh
+>
+I also just received the following response to a bug report I submitted 
+through ubuntu which looks promising and relevant:
 
---===============0447539309==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0842_01C881E1.7156FC90"
+I'm experiencing the same problem with a DVB-T card on hardy. The fix
+for it apparently is one-line, in one file:
 
-This is a multi-part message in MIME format.
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.24.y.git;a=commit;h=5475187c2752adcc6d789592b5f68c81c39e5a81
 
-------=_NextPart_000_0842_01C881E1.7156FC90
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Without this patch, my tuner card (a Hauppauge Nova-T 500 dual tuner)
+disconnects multiple times a day, making Hardy Heron all but useless as
+a MythTV platform. Can we please revisit the decision to push this patch
+off to the next version?
 
-Hi
-
-I'd like to graph the cable dvb-c signal strength in cacti.
-
-Has anyone done this, or can recommend how?  If I walk the snmp =
-variables exposed, there doesn't appear to be anything useful natively =
-there?
-
-
-snmpwalk -c public -v 1 localhost | grep dvb
-HOST-RESOURCES-MIB::hrSWRunName.3576 =3D STRING: "kdvb-ca-0:0"
-HOST-RESOURCES-MIB::hrSWRunName.24833 =3D STRING: "kdvb-fe-0"
-HOST-RESOURCES-MIB::hrSWRunPath.3576 =3D STRING: "kdvb-ca-0:0"
-HOST-RESOURCES-MIB::hrSWRunPath.24833 =3D STRING: "kdvb-fe-0"
-HOST-RESOURCES-MIB::hrSWRunParameters.14466 =3D STRING: "dvb"
-
-snmpwalk -c public -v 1 localhost | grep DVB
-HOST-RESOURCES-MIB::hrSWRunParameters.14470 =3D STRING: "DVB"
-
-
-
-Any thoughts?
-------=_NextPart_000_0842_01C881E1.7156FC90
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2900.3268" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hi</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I'd like to graph the cable dvb-c =
-signal strength=20
-in cacti.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Has anyone done this, or can recommend =
-how?&nbsp;=20
-If I walk the snmp variables exposed, there doesn't appear to be =
-anything useful=20
-natively there?</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>snmpwalk -c public -v 1 localhost | =
-grep=20
-dvb<BR>HOST-RESOURCES-MIB::hrSWRunName.3576 =3D STRING:=20
-"kdvb-ca-0:0"<BR>HOST-RESOURCES-MIB::hrSWRunName.24833 =3D STRING:=20
-"kdvb-fe-0"<BR>HOST-RESOURCES-MIB::hrSWRunPath.3576 =3D STRING:=20
-"kdvb-ca-0:0"<BR>HOST-RESOURCES-MIB::hrSWRunPath.24833 =3D STRING:=20
-"kdvb-fe-0"<BR>HOST-RESOURCES-MIB::hrSWRunParameters.14466 =3D STRING:=20
-"dvb"<BR></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>snmpwalk -c public -v 1 localhost | =
-grep=20
-DVB<BR>HOST-RESOURCES-MIB::hrSWRunParameters.14470 =3D STRING:=20
-"DVB"<BR></FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Any =
-thoughts?</DIV></FONT></BODY></HTML>
-
-------=_NextPart_000_0842_01C881E1.7156FC90--
+-- USB port disabled by hup (EMI? re enabling) 
+https://bugs.launchpad.net/bugs/204857 You received this bug 
+notification because you are a direct subscriber of the bug.
 
 
-
---===============0447539309==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0447539309==--
