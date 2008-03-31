@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from wx-out-0506.google.com ([66.249.82.229])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JaqdL-0003Bp-Ir
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 12:02:32 +0100
-Received: from [87.194.114.122] (helo=wolf.philpem.me.uk)
-	by holly.castlecore.com with esmtp (Exim 4.68)
-	(envelope-from <lists@philpem.me.uk>) id 1JaqdG-0006BC-ET
-	for linux-dvb@linuxtv.org; Sun, 16 Mar 2008 11:02:26 +0000
-Received: from [10.0.0.8] (cheetah.homenet.philpem.me.uk [10.0.0.8])
-	by wolf.philpem.me.uk (Postfix) with ESMTP id E36B01AFDB01
-	for <linux-dvb@linuxtv.org>; Sun, 16 Mar 2008 11:03:21 +0000 (GMT)
-Message-ID: <47DCFE62.6020405@philpem.me.uk>
-Date: Sun, 16 Mar 2008 11:02:58 +0000
-From: Philip Pemberton <lists@philpem.me.uk>
+	(envelope-from <eamonn.sullivan@gmail.com>) id 1JgQPX-0007wy-1c
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 22:15:19 +0200
+Received: by wx-out-0506.google.com with SMTP id s11so1845048wxc.17
+	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 13:15:13 -0700 (PDT)
+Message-ID: <e40e29dd0803311315sec200acm67b179fa511aa75c@mail.gmail.com>
+Date: Mon, 31 Mar 2008 21:15:12 +0100
+From: "Eamonn Sullivan" <eamonn.sullivan@gmail.com>
+To: dvb@ply.me.uk
+In-Reply-To: <200803312107.09463.dvb@ply.me.uk>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] CX88 (HVR-3000) -- strange errors in dmesg
+Content-Disposition: inline
+References: <1206139910.12138.34.camel@youkaida>
+	<bbf19b3d0803291756q743eca07t4b2f8290dd47c3e4@mail.gmail.com>
+	<754a11be0803311244w319537f6s10c4f3028bb8117a@mail.gmail.com>
+	<200803312107.09463.dvb@ply.me.uk>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Now with debug info - Nova-T-500 disconnects - They
+	are back!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,25 +32,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-   I've just noticed an absolute ton of these messages in dmesg, can anyone 
-tell me what's going on, or what they mean?
+On Mon, Mar 31, 2008 at 9:07 PM, Andy Carter <dvb@ply.me.uk> wrote:
+> On Monday 31 March 2008 20:44:50 Antti Luoma wrote:
+>  > Hi,
+>  >
+>  > it's the the kernel version that causes the problem, you should compile it
+>  > yourself or get it from gentoo somehow.
+>  > I Think issue affects all USB-DVB-T users with kernel 2.6.24
+>
+>  Not so.
+>
+>  I've been running Nova T-500 for three weeks with 4 disconnects in the first
+>  24 hours but none since on a stock debian 2.6.24 kernel
 
-[  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
-[  123.404000] cx88[0]: irq pci [0x1000] brdg_err*
-[  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
-[  123.412000] cx88[0]: irq pci [0x1000] brdg_err*
+Has the patch been applied already to the stock debian kernel? The
+code was committed early in the month (March 8, IIRC). Ubuntu is in
+kernel freeze for the next release, so it's possible it just didn't
+make the cutoff.
 
-(repeat ad nauseum)
+>
+>
+>  > see this post:
+>  > https://bugs.launchpad.net/ubuntu/+bug/209603
+>
+>  I hope this solves the problem others seem to be plagued with, but I'm puzzled
+>  as to why it's so stable here
+>
+>  Andy
 
-Kernel 2.6.22-14-generic, Hg 11fdae6654e8 with HVR-3000 patches from 
-dev.kewl.org/hauppauge merged in manually.
+There seems to be a couple of common factors in the problem reports --
+marginal or poor signal and using active EIT to get the programme
+guide. My signal hovers around 52-64 percent, with a booster. I think
+my antenna need replacing. My disconnects reduced quite a bit when I
+turned off the Active EIT setting, although i still get disconnected
+frequently.
 
-Thanks,
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+Then again, maybe it's just the alignment of the planets out your way...
+
+-Eamonn
 
 _______________________________________________
 linux-dvb mailing list
