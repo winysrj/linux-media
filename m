@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2SI5lUb001233
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:05:47 -0400
-Received: from smtp-out03.email.it (smtp-out03.email.it [212.97.34.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2SI5U02006813
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 14:05:30 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp-out03.email.it (Postfix) with ESMTP id 867705407B
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 19:05:23 +0100 (CET)
-Received: from smtp-out03.email.it ([127.0.0.1])
-	by localhost (smtp-out03.email.it [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id QIu3ThYsiPh6 for <video4linux-list@redhat.com>;
-	Fri, 28 Mar 2008 19:05:22 +0100 (CET)
-Received: from [192.168.1.102]
-	(host10-127-dynamic.36-79-r.retail.telecomitalia.it [79.36.127.10])
-	by smtp-out03.email.it (Postfix) with ESMTP id 7E733540A1
-	for <video4linux-list@redhat.com>; Fri, 28 Mar 2008 19:05:21 +0100 (CET)
-Message-ID: <47ED3362.3060707@email.it>
-Date: Fri, 28 Mar 2008 19:05:22 +0100
-From: gionnico <gionnico@email.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2VJQguR012652
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:26:42 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2VJQU0Z025155
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 15:26:30 -0400
+Received: by rn-out-0910.google.com with SMTP id i50so754175rne.11
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 12:26:30 -0700 (PDT)
+Date: Mon, 31 Mar 2008 12:26:18 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080331192618.GA21600@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost> <20080328160946.029009d8@gaivota>
+	<20080329052559.GA4470@plankton.ifup.org>
+	<20080331153555.6adca09b@gaivota>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: TV synth + DTTV + FM?
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080331153555.6adca09b@gaivota>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 9] videobuf fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,29 +31,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'd like to install one of these devices.
+On 15:35 Mon 31 Mar 2008, Mauro Carvalho Chehab wrote:
+> On Fri, 28 Mar 2008 22:25:59 -0700
+> Brandon Philips <brandon@ifup.org> wrote:
+> 
+> > > I've opened 3 mplayer windows, reading /dev/video0. I closed the second one and
+> > > opened again. I got an error:
+> > 
+> > Shouldn't V4L2 devices not be able to stream to multiple applications at
+> > once?  Quoting the spec:
+> > 
+> > "V4L2 drivers should not support multiple applications reading or
+> > writing the same data stream on a device by copying buffers, time
+> > multiplexing or similar means. This is better handled by a proxy
+> > application in user space. When the driver supports stream sharing
+> > anyway it must be implemented transparently. The V4L2 API does not
+> > specify how conflicts are solved."
+> > 
+> > How about this patch?
+> 
+> The patch is wrong. 
 
-What'd you suggest?
+The patch fixes the unsafe way vivi is doing multiple opens right now
+and I am uninterested in spending anymore time trying to fix up vivi
+right now.  If you could fix vivi up that would be great.  
 
-Hardware?
-USB or PCI?
-What model, particularly could you suggest me?
+Here are the obvious things I see that would would need to be fixed:
 
-And what's a good software to play?
+- fillbuff would need a mutex for access to all of the vivi_dev fields
+- mv_count would should only be updated by the first user
+- vivi_stop_thread should only be called once users reaches 0
 
+Otherwise, this patch will need to go in to keep vivi from blowing up in
+2.6.25.
 
-I've got another question, then: may I broadcast (or also multicast or 
-unicast) the stream to a/some computers of the LAN using some streaming 
-server?
- 
- 
- --
- Email.it, the professional e-mail, gratis per te: http://www.email.it/f
- 
- Sponsor:
- Scopri le tue passioni con Leonardo.it!
-* 
- Clicca qui: http://adv.email.it/cgi-bin/foclick.cgi?mid=7654&d=28-3
+> V4L2 API states that it should be possible for a driver to have
+> multiple opens[1]. Most drivers support this. There are two main
+> usages for multiple open:
+> 
+> 	1) a driver may open the device for streaming, while another
+> 	thread or userspace app will open to configure. This is
+> 	generally the way I use here to test video controls: I open
+> 	"qv4l2" (under v4l2-apps/util) while streaming. This way, I can
+> 	test any changes at the driver, without needing to have the
+> 	feature implemented at the userspace app;
+>
+> 	2) you can see a program with an userspace app and record the
+> 	stream with another app. Both xawtv and xdtv do this, when you
+> 	ask for record: They call mencoder, asking it to read from
+> 	/dev/video0. This way, you'll have the tv app reading, using
+> 	mmap() or overlay methods, while mencoder is calling read() to
+> 	receive the stream.
+
+Yes, I know.  But, vivi has no permission control mechanism right now
+for differentiating between streaming file handles and control ones.
+
+> While I don't have much concerns of not allowing multiple streaming on
+> vivi for the same device (since you can ask vivi to create several
+> different virtual devices, by using "n_devs" modprobe parameter), for
+> sure videobuf should keep supporting this feature, otherwise it will
+> break the other drivers that relies on this feature. 
+
+I think videobuf can handle this case just fine.  But, vivi doesn't do
+the proper locking and management to support it.
+
+> Yet, vivi should allow multiple open to allow "panel" applications, to
+> be compliant with V4L2 API.
+
+Yes, but someone needs to add the code to support this in vivi.  And
+until someone does vivi can only support one open at a time without
+crashing.
+
+Thanks,
+
+	Brandon
 
 --
 video4linux-list mailing list
