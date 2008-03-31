@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+e77cda1470bd12f604e2+1669+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JbpOR-0005oI-06
-	for linux-dvb@linuxtv.org; Wed, 19 Mar 2008 04:55:11 +0100
-Date: Tue, 18 Mar 2008 23:54:05 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Albert Comerma <albert.comerma@gmail.com>
-In-Reply-To: <ea4209750803181509s7efe3ceavfe17f1e7590b3405@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0803182350500.24094@bombadil.infradead.org>
-References: <ea4209750803181311y17782b40ib95f900b99bf6673@mail.gmail.com>
-	<20080318182338.19dd7ff5@gaivota>
-	<ea4209750803181509s7efe3ceavfe17f1e7590b3405@mail.gmail.com>
+Received: from an-out-0708.google.com ([209.85.132.247])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eamonn.sullivan@gmail.com>) id 1JgHNP-0004Q3-3H
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 12:36:32 +0200
+Received: by an-out-0708.google.com with SMTP id d18so2683239and.125
+	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 03:36:01 -0700 (PDT)
+Message-ID: <e40e29dd0803310336k5de72824l6dd20ba5420531f@mail.gmail.com>
+Date: Mon, 31 Mar 2008 11:36:01 +0100
+From: "Eamonn Sullivan" <eamonn.sullivan@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <47F0B629.3030903@fastmail.co.uk>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PATCH Pinnacle 320cx Terratec Cinergy HT USB XE
+Content-Disposition: inline
+References: <47F0B629.3030903@fastmail.co.uk>
+Subject: Re: [linux-dvb] Nova-T 500 disconnects - solved?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,26 +27,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 18 Mar 2008, Albert Comerma wrote:
+2008/3/31 timufea <timufea@fastmail.co.uk>:
+>
+>  It's probably unwise to celebrate just yet, but...
+>
+>  I was running a vanilla 2.6.24.2 kernel, and was getting 2 or 3 USB
+> disconnects each day. 5 days ago I upgraded to 2.6.24.4, and haven't had a
+> USB disconnect since!
+>
+>  There is a fix in 2.6.24.4 for a USB bug that was introduced in Oct 2007 -
+> see:
+> http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.24.y.git;a=commit;h=5475187c2752adcc6d789592b5f68c81c39e5a81
+>
+>  Hopefully this was the cause of the USB disconnects.
+>
+>  Some details of my setup, in case it's relevant:
+>    Nova-T 500
+>    v4l-dvb rev 127f67dea087 (Feb 26)
+>    Vanilla 2.6.24.4 kernel
+>    Slackware 11
+>    IR remote control in use
+>    Continual EIT scanning
+>    Poor reception (MythTV reports 51-53%)
+>
+>  Frank
 
-> Ok I will redo the patch, right now I don't have the card to check without
-> the reset command, but I will check the weekend. Hans also should check with
-> the Cinergy card...
-> Just one comment, doing a make checkpatch on dib0700_devices.c does not
-> detect a lot of this coding conventions that are not satisfied on the MT226x
-> code section... Shall I correct all I found? or better just the code I
-> inserted and then the rest in an other patch?
+If true, this is excellent news (I have almost the exact same set up,
+except that I've given up on the remote and the active EIT scanning to
+reduce the disconnects). I've entered a bug report for this on
+mythbuntu/ubuntu because the latest version (8.04, in beta) doesn't
+seem to have this patch. The latest Ubuntu also uses the 2.6.24
+kernel.
 
-Please fix just the lines you've added or changed.
+https://bugs.launchpad.net/ubuntu/+bug/209603
 
-A fix on other parts may harm any other pending patches for dib0700. We 
-generally avoid such patches.
+Can other Mythbuntu/Ubuntu users of the Nova-T 500 please comment on
+that bug to help raise its visibility and/or add information?
 
--- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+-Eamonn
 
 _______________________________________________
 linux-dvb mailing list
