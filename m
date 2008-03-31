@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2J0sn7N012038
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 20:54:49 -0400
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2J0sDJi031553
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 20:54:13 -0400
-Received: by rn-out-0910.google.com with SMTP id e11so165861rng.17
-	for <video4linux-list@redhat.com>; Tue, 18 Mar 2008 17:54:13 -0700 (PDT)
-Message-ID: <37219a840803181754n5935b4e8g37dc77dd605b3095@mail.gmail.com>
-Date: Tue, 18 Mar 2008 20:54:13 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Hartmut Hackmann" <hartmut.hackmann@t-online.de>
-In-Reply-To: <47E060EB.5040207@t-online.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m2VLVwZf003531
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 17:31:59 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m2VLVlMo032376
+	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 17:31:47 -0400
+Date: Mon, 31 Mar 2008 18:31:36 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Brandon Philips <brandon@ifup.org>
+Message-ID: <20080331183136.3596bfb3@gaivota>
+In-Reply-To: <20080331192618.GA21600@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost> <20080328160946.029009d8@gaivota>
+	<20080329052559.GA4470@plankton.ifup.org>
+	<20080331153555.6adca09b@gaivota>
+	<20080331192618.GA21600@plankton.ifup.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <47E060EB.5040207@t-online.de>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	LInux DVB <linux-dvb@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC] TDA8290 / TDA827X with LNA: testers wanted
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 9] videobuf fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,83 +30,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Mar 18, 2008 at 8:40 PM, Hartmut Hackmann
-<hartmut.hackmann@t-online.de> wrote:
-> Hi, Folks
->
->  Currently, the LNA support code for TDA8275a is broken, it may even cause a kernel oops.
->  The bugs were introduced during tuner refactoring.
->  In my personal repository at
->   http://linuxtv.org/hg/~hhackmann/v4l-dvb/
->  these bugs hopefully are fixed. But i can test only 3 cases. So i am looking for owners
->  of the cards
->  Pinnacle 310i,
->  Happauge hvr1110
->  ASUSTeK P7131 with LNA
->  MSI TV@NYWHERE AD11
->  KWORLD DVBT 210
->  to check whether things are right again. This holds for both, analog as well as DVB-T.
->
->  Michael, may i ask you to check whether my changes contradict with things you are doing?
->  Mauro, what's your opinion on this? As far as i know, the broken code is in the upcoming
->  kernel release. The patch is big, is there a chance to commit it to the kernel?
+> > The patch is wrong. 
+> 
+> The patch fixes the unsafe way vivi is doing multiple opens right now
+> and I am uninterested in spending anymore time trying to fix up vivi
+> right now.  If you could fix vivi up that would be great.  
 
-Hartmut,
+If the issue is specific to to vivi, that's ok. I'm just wandering if the
+changesets would break a driver for a real device.
 
-I've already checked over your changes (I noticed the tree pushed a
-few days ago)  -- I do not see any reason why they would cause any
-problems on the tda8295 nor the tda18271.  These changes will not
-contradict anything that I am currently working on, and it would be
-nice to have them merged sooner than later.
+Unfortunately, I couldn't test your patch on a real hardware. The hardware I use
+here to test PCI boards is currently broken[1].
 
-There is only one detail that I would like to point out.  You made the
-following change:
+> > 	2) you can see a program with an userspace app and record the
+> > 	stream with another app. Both xawtv and xdtv do this, when you
+> > 	ask for record: They call mencoder, asking it to read from
+> > 	/dev/video0. This way, you'll have the tv app reading, using
+> > 	mmap() or overlay methods, while mencoder is calling read() to
+> > 	receive the stream.
+> 
+> Yes, I know.  But, vivi has no permission control mechanism right now
+> for differentiating between streaming file handles and control ones.
 
---- a/linux/drivers/media/video/tda8290.h	Mon Mar 03 22:55:05 2008 +0100
-+++ b/linux/drivers/media/video/tda8290.h	Sun Mar 16 23:49:43 2008 +0100
-@@ -21,7 +21,7 @@
- #include "dvb_frontend.h"
+What the other drivers do is to implement a small code for this lock. You may
+take a look on res_get(), for example, on cx88. 
 
- struct tda829x_config {
--	unsigned int *lna_cfg;
-+	unsigned int lna_cfg;
- 	int (*tuner_callback) (void *dev, int command, int arg);
+Btw, we had this lock on past versions of vivi, but this were removed on this
+changeset:
 
- 	unsigned int probe_tuner:1;
---- a/linux/drivers/media/video/tuner-core.c	Mon Mar 03 22:55:05 2008 +0100
-+++ b/linux/drivers/media/video/tuner-core.c	Sun Mar 16 23:49:43 2008 +0100
-@@ -349,7 +349,7 @@ static void attach_tda829x(struct tuner
- static void attach_tda829x(struct tuner *t)
- {
- 	struct tda829x_config cfg = {
--		.lna_cfg        = &t->config,
-+		.lna_cfg        = t->config,
- 		.tuner_callback = t->tuner_callback,
- 	};
- 	tda829x_attach(&t->fe, t->i2c->adapter, t->i2c->addr, &cfg);
+changeset:   6275:cba23263534b
+user:        bphilips@suse.de <bphilips@suse.de>
+date:        Thu Sep 27 20:55:17 2007 -0300
+files:       linux/drivers/media/video/vivi.c
+description:
+V4L: vivi.c remove the "resource" locking
 
+The "resource" locking in vivi isn't needed since
+streamon/streamoff/read_stream do mutual exclusion using
+q->reading/q->streaming.
 
+Maybe we can just revert this changeset.
 
-...The above change means that the lna setting is set at tuner driver
-attach time, and if somebody wants to use TUNER_SET_CONFIG (or some
-other method) to enable / disable the LNA on-the-fly, it will not be
-possible.    Meanwhile, I'm not even sure it that was possible to
-begin with.  Just some food for thought -- you should decide what is
-best, here.
+> > Yet, vivi should allow multiple open to allow "panel" applications, to
+> > be compliant with V4L2 API.
+> 
+> Yes, but someone needs to add the code to support this in vivi.  And
+> until someone does vivi can only support one open at a time without
+> crashing.
 
-I have an HVR1110, and I have a QAM64 generator that I use to test it.
- Obviously, it is a hot signal.  Is it possible for me to test the LNA
-under these circumstances?  ...or do we need somebody "out in the
-field" to do that sort of test?  (I live in ATSC-land ;-) )
+This is a small regression, but I think it is OK for now.
 
-You mentioned a possible kernel OOPS.  Have you actually experienced
-an OOPS with the current tree?  I apologize if this feature being
-broken is the result of my tuner refactoring.  I appreciate your
-taking the time to fix it.
+[1] I tried to fix it during the weekend, without success. The Ethernet
+interface is not working fine - most of the time, it doesn't send packets.
+Also, with 2 PCI's inside, only one is working fine. If I plug 3 PCI devices,
+all devices work badly. I tried to replace the power supply, but the troubles
+still continue. I think I'll need to start saving some money to buy a newer
+hardware :(
 
-Regards,
-
-Mike
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
