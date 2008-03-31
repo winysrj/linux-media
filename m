@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
+Received: from rv-out-0910.google.com ([209.85.198.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JbdYf-0004fD-8P
-	for linux-dvb@linuxtv.org; Tue, 18 Mar 2008 16:16:59 +0100
-Message-ID: <47DFDCC4.4090001@iki.fi>
-Date: Tue, 18 Mar 2008 17:16:20 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <mrechberger@gmail.com>) id 1JgTPm-0001ug-Lc
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 01:27:48 +0200
+Received: by rv-out-0910.google.com with SMTP id b22so1252833rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 16:27:42 -0700 (PDT)
+Message-ID: <d9def9db0803311627i6df82e04wc7a6bf8898440637@mail.gmail.com>
+Date: Tue, 1 Apr 2008 01:27:42 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+In-Reply-To: <d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
 MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>
-In-Reply-To: <ea4209750803180734m67c0990byabb81bb2ec52d992@mail.gmail.com>
+Content-Disposition: inline
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
+	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib7770 tunner
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +31,102 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma wrote:
-> Hi all, having a look to the pinnacle card of Andrea Barberio, we find 
-> out that it uses a dib7770-PA with integrated tuner. It seems to load 
-> correctly the firmware but we don't know how to comunicate with the 
-> tuner. Anybody knows which tuner we should use? and if we can work with 
-> this chip as other Dibcom7700 just changing the tuner? And finally, 
-> there is the firmware stuff, it should use the same dibcom firmware as 
-> other devices?
+On 4/1/08, Markus Rechberger <mrechberger@gmail.com> wrote:
+> On 3/31/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+> > On Mon, Mar 31, 2008 at 12:40 AM, Another Sillyname
+> > <anothersname@googlemail.com> wrote:
+> > > I have a machine that has an internal card that's a Lifeview DVB and
+> > > works fine using the v4l-dvb mercurial sources.
+> > >
+> > > I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+> > > using the v4l-dvb sources but does work using the v4l-dvb-kernel
+> > > version.
+> > >
+> > > 1. Will the number of em28xx cards supported by v4l-dvb be increased
+> > > shortly? (My card id was 94 IIRC ).
+> >
+> > If it's supported by v4l-dvb-kernel, it's entirely possible, yes.
+> >
+> > > 2. Can I mix and match from the sources...i.e. can I graft the em28xx
+> > > stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+> > > successfully or has the underlying code changed at a more strategic
+> > > level?
+> >
+> > Not trivially, since v4l-dvb-kernel contains changes to the core code
+> > that the em28xx driver relies on and that are incompatible with
+> > changes in the main v4l-dvb repository since. You can try
+> > http://www.makomk.com/hg/v4l-dvb-makomk - it's the em28xx and xc3028
+> > drivers grafted onto a version of v4l-dvb that's about 5 months old at
+> > this point - though it's really not a great starting point for porting
+> > them onto newer versions, since you'd want to drop the xc3028 driver
+> > in favour of the newer one
+> >
+>
+> Makomk,
+> spreading around your even more broken tree won't help anyone.
+>
+> This device already had some issues with the v4l-dvb-kernel tree, this
+> is what I'll do in April.
+>
+> > > 3. Why did the sources branch? Was there a good technical reason for
+> > this?
+> >
+> > Supporting the xc3028 silicon tuner needed some changes to support
+> > hybrid analog/digital tuners better. Unfortunately, Markus couldn't
+> > come to an agreement with the rest of the developers on how to do it.
+> > (I think the main concern were that the changes he were proposing were
+> > rather more invasive than they needed to be and risked breaking
+> > existing drivers). In the end, someone else coded the equivalent
+> > functionality in a more backwards-compatible way and merged it in
+> > stages.
+> >
+> > (It's actually relatively easy to port code from Markus' hybrid tuner
+> > framework to the v4l-dvb one, though he will never admit so.)
+> >
+>
+> The reason is my trust is gone I asked in September if it's possible
+> to get those devices work with what's available and I got the answer
+> it's not.
+> This stupid fight lasts for more than 2 years already, but I'm the one
+> who spent weeks on writing code for getting those things supported and
+> even rewrote code although there was no serious participation in the
+> discussions I tried to trigger...
+>
+> If I tell a company that I will add support for something till a given
+> date I'll do so to keep up the good contacts. Unfortunately this is
+> not how some people at linuxtv behave and it slows down everything
+> even for other manufacturers where I'm not involved.
+>
+> It's me who mostly spent his time on writing any code on mcentral.de,
+> the code didn't write itself especially Aidan has no respect about
+> that, neither do some other people. Maybe it's really better to
+> provide binary only blobs to remember especially such people that it
+> requires alot work to get those things work.
+>
 
-dib7770 is 3 in 1 solution, usb-bridge + demodulator + tuner. You can 
-try dib7070 tuner driver. STK7070P looks rather similar (but less 
-integrated).
+there is still one thing which I remember when I attended the European
+Linux Kernel summit 2007.
+Jonathan Corbet held a presentation about kernel development, and
+there was one sentence "we mustn't loose another developer".
+This whole issue could be solved within 1 hour, and the fight of 2
+years could be over immediately nearly without any work.
+There's not much more to write about this.
 
-Regards
-Antti
--- 
-http://palosaari.fi/
+> > > 4. If I can't use the v4l-dvb sources to get my em28xx working what's
+> > > the chances of getting the v4l-dvb-kernel stuff working for the
+> > > lifeview flydvb card?
+> >
+> > Not good. Its support for other hardware is, if anything, going to be
+> > slowly getting worse over time as other drivers have to be modified or
+> > disabled to make it compile on newer kernels.
+> >
+>
+> that for the other repository (em28xx-userspace2/userspace-drivers on
+> mcentral.de/hg) is available, although it needs some work with that
+> device.
+>
+> Markus
+>
 
 _______________________________________________
 linux-dvb mailing list
