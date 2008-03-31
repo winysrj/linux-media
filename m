@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.172])
+Received: from wx-out-0506.google.com ([66.249.82.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1Jae9f-0000yj-Pu
-	for linux-dvb@linuxtv.org; Sat, 15 Mar 2008 22:43:06 +0100
-Received: by wf-out-1314.google.com with SMTP id 28so4552536wfa.17
-	for <linux-dvb@linuxtv.org>; Sat, 15 Mar 2008 14:42:59 -0700 (PDT)
-Message-ID: <8ad9209c0803151442p742c10eas3aa0b82c84123194@mail.gmail.com>
-Date: Sat, 15 Mar 2008 22:42:59 +0100
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47DC26C0.2050609@ivor.org>
+	(envelope-from <anothersname@googlemail.com>) id 1Jg9dT-0001w9-0x
+	for linux-dvb@linuxtv.org; Mon, 31 Mar 2008 04:20:36 +0200
+Received: by wx-out-0506.google.com with SMTP id s11so1406648wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 30 Mar 2008 19:20:31 -0700 (PDT)
+Message-ID: <a413d4880803301920p3589df50y3449bfc26cd3aa20@mail.gmail.com>
+Date: Mon, 31 Mar 2008 03:20:29 +0100
+From: "Another Sillyname" <anothersname@googlemail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <a413d4880803301657n16eacc06we99d36c7f40b546f@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20080314164100.GA3470@mythbackend.home.ivor.org>
-	<8ad9209c0803151138v45edf1e1p27f12aa4faa32d23@mail.gmail.com>
-	<47DC26C0.2050609@ivor.org>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	<d9def9db0803301645s17fbb36vbce4c0631ccafa49@mail.gmail.com>
+	<a413d4880803301657n16eacc06we99d36c7f40b546f@mail.gmail.com>
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,38 +30,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Mar 15, 2008 at 8:42 PM, Ivor Hewitt <ivor@ivor.org> wrote:
-> Patrik Hansson wrote:
->  > I tried changing to 2.6.22-19 on my ubuntu 7.10 with autosuspend=-1
->  > but i still lost one tuner.
->  >
->  > Have reverted back to 2.6.22-14-generic now and have disabled the
->  > remote-pulling...and i just lost a tuner, restarting my cardclient and
->  > mythbackend got it back.
->  >
->  > Did you have remote-pulling disabled in -19 ?
->  >
->  >
->  Still ticking along nicely here.
->
->  I have options:
->  options dvb-usb-dib0700 force_lna_activation=1
->  options dvb-usb disable_rc_polling=1
->  (since I have no remote)
->
->  Is the ubuntu kernel completely generic?
->
->  I still see an mt2060 write failed error every now and then (four in the
->  past 24 hours), but that doesn't appear to break anything. Do you have
->  complete tuner loss as soon as you get a write error?
->
->  Ivor.
->
+Markus
 
-The only error in my log the lat time i lost a tuner was:
-mt2060 I2C read failed
+You still out there?
 
-So not even a write failed.
+I've got to hit the sack shortly.
+
+J
+
+On 31/03/2008, Another Sillyname <anothersname@googlemail.com> wrote:
+> It's a 320...specifically a eb1a:2881 Pinnacle badged empia technology unit..
+>
+>  If you like I could reinstall the v4l-dvb-kernel sources and give you
+>  a complete breakdown on the unit?
+>
+>  Thanks Markus
+>
+>
+>
+>
+>  On 31/03/2008, Markus Rechberger <mrechberger@gmail.com> wrote:
+>  > On 3/31/08, Another Sillyname <anothersname@googlemail.com> wrote:
+>  >  > I have a machine that has an internal card that's a Lifeview DVB and
+>  >  > works fine using the v4l-dvb mercurial sources.
+>  >  >
+>  >  > I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+>  >  > using the v4l-dvb sources but does work using the v4l-dvb-kernel
+>  >  > version.
+>  >  >
+>  >  > 1. Will the number of em28xx cards supported by v4l-dvb be increased
+>  >  > shortly? (My card id was 94 IIRC ).
+>  >  >
+>  >  > 2. Can I mix and match from the sources...i.e. can I graft the em28xx
+>  >  > stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+>  >  > successfully or has the underlying code changed at a more strategic
+>  >  > level?
+>  >  >
+>  >  > 3. Why did the sources branch? Was there a good technical reason for this?
+>  >  >
+>  >  > 4. If I can't use the v4l-dvb sources to get my em28xx working what's
+>  >  > the chances of getting the v4l-dvb-kernel stuff working for the
+>  >  > lifeview flydvb card?
+>  >  >
+>  >
+>  >
+>  > Hi,
+>  >
+>  >  do you have the pinnacle 330e or the 320e?
+>  >  (following is the 320e)
+>  >  http://www.compareindia.com/media/images/2007/jul/img_5282_2601_pinnacle.jpg
+>  >
+>  >
+>  >  Markus
+>  >
+>
 
 _______________________________________________
 linux-dvb mailing list
