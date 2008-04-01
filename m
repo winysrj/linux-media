@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
+Received: from moutng.kundenserver.de ([212.227.126.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1Jli0A-0007uJ-IS
-	for linux-dvb@linuxtv.org; Tue, 15 Apr 2008 12:03:00 +0200
-Message-ID: <48047D4E.8030603@iinet.net.au>
-Date: Tue, 15 Apr 2008 18:02:54 +0800
-From: timf <timf@iinet.net.au>
+	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1Jge2T-0006LS-3q
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 12:48:30 +0200
+Date: Tue, 1 Apr 2008 12:44:42 +0200
+From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Message-ID: <20080401104442.GA18478@localhost>
 MIME-Version: 1.0
-To: sonofzev@iinet.net.au
-References: <37824.1208252766@iinet.net.au>
-In-Reply-To: <37824.1208252766@iinet.net.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvico Fusion HDTV DVB-T dual express - willing to
- help	test e.t.c...
+Content-Disposition: inline
+Subject: [linux-dvb] Please correct wiki: KNC1 DVB-C Plus not fully supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,68 +23,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-sonofzev@iinet.net.au wrote:
-> Hi Folks
->
-> I have mistakenly bought a Fusion HDTV DVB-T dual express (cx23885) as 
-> a result of misreading some other posts and sites. I was under the 
-> impression that it would work either from the current kernel source or 
-> using Chris Pascoe's modules.  Unfortunately I didn't realise that the 
-> American and Euro/Australian version were different.
->
-> The kernel modules and those from the mercurial tree seems to get 
-> everything going, but when I try to tune it, it seems to only give 
-> "ATSC" tuning options. (This seems ridiculous as it is the 
-> "Europe/Australia" model). I believe it must be recognising the card 
-> as the American model (confirmed on the PC Board that it is the 
-> Aus/Euro model). There are no error messages e.t.c.. it just can't 
-> find a signal and only gives ATSC tuning options.
->
-> Chris had offered to take a look at what was going on in my system but 
-> hasn't responded to any mails for a few weeks now and I can't see any 
-> evidence of him doing anything, so I am assuming he is too busy for 
-> the moment to take a look.
->
-> I bought this as a second and third tuner for my mythtv/gaming system 
-> . The system already has a Fusion Lite card in it which is working 
-> very well.  The importance of this was highlighted when I missed the 
-> Henry Rollins interview on Rove so my gf could watch Grey's Anatomy 
-> (puke!!!).
->
-> If there are any local developers (Melbourne, Australia or even 
-> elsewhere in Australia)  then I would be happy to trade it with a 
-> confirmed working dual tuner card on a temporary basis to enable the 
-> driver to be completed/ amended to cope with the Australian/European 
-> version of the card.
->
-> Otherwise for any developers not in Australia,I can setup a login for 
-> you (ssh only, no remote X or anything). Just contact me via aklinbail 
-> at gmail.  The PC it sits on is our one and only TV tuner (our analog 
-> signal is crap) so there are some limitations as to the times you can 
-> login to the box and also with regards to keeping the current kernel 
-> build in place so we can use it on our return home from work in the 
-> evening.
->
-> cheers
->
->
-> Allan
->
->
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-Hi Allan,
-Have you tried Chris's test repo at:
+Hello,
 
-http://linuxtv.org/hg/~pascoe/xc-test/
+the information about the KNC1 DVB-C Plus card (a card with analog video
+input) in the linuxtv.org dvb wiki is wrong. It says it works under
+linux, which is not correct. The analog input (Composite and S-Video) is
+currently unsupported under Linux (at least for the recent MK3 version).
+(See bug reports [3,4]).
 
+The lack of support for the analog input by the driver is crucial, since
+nobody would buy such a card without explicitly needing this analog
+input; the model without analog input is much less expensive. So saying
+the card works can lead to someone buying a card not fully supported by
+Linux (unfortunately this has happened to me).
 
-Regards,
-Tim
+Please correct this information in the wiki! This wiki is not editable
+by public. The following pages are affected:
+
+http://linuxtv.org/wiki/index.php/KNC1_TV-Station_DVB-C_Plus
+http://linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
+http://linuxtv.org/wiki/index.php/KNC1
+
+I can say that the analog input on my MK3 version did not work with any 
+kernel version or patch I tested since its first Linux support in 2007-02
+[1] (however the input works under windows). I do not know if the analog
+input of the older version of the card did work or still does. 
+
+It should be noted that the MK3 version of the KNC1 DVB-C with tda10023
+is only supported from kernel 2.6.22 on (and a little earlier with a
+patch), but the older version of the card with tda10021 was supported
+much earlier, already (at least) in kernel 2.6.12.
+
+KNC1 DVB-C Plus (older)     = PCI subsystem ID 1894:0021      
+KNC1 DVB-C Plus MK3 (newer) = PCI subsystem ID 1894:0023 
+
+If someone owns a KNC One DVB Plus card, please can you say if your
+analog input (Composite or S-Video) ever worked under Linux, or if
+it stopped working with a specific kernel version? Thank you.
+
+L.
+
+References
+
+1. 2007-02: First patch available supporting the MK3 versions of KNC1 DVB
+cards (and identical Terratec/Satelco): tda1002x.008.diff for hg/v4l-dvb
+http://www.vdr-portal.de/board/thread.php?threadid=60227&page=8
+http://www.linuxtv.org/pipermail/linux-dvb/2007-February/015886.html
+
+2. http://www.vdr-wiki.de/wiki/index.php/DVB-C_Budget-PCI-Karten
+
+3. http://www.linuxtv.org/pipermail/linux-dvb/2008-March/025032.html
+
+4. http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022183.html
 
 _______________________________________________
 linux-dvb mailing list
