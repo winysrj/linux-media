@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DM2WbQ008245
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 18:02:32 -0400
-Received: from web905.biz.mail.mud.yahoo.com (web905.biz.mail.mud.yahoo.com
-	[216.252.100.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DM2H1O025610
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 18:02:18 -0400
-Date: Mon, 14 Apr 2008 00:02:12 +0200 (CEST)
-From: Markus Rechberger <mrechberger@empiatech.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <901526.9594.qm@web902.biz.mail.mud.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Message-ID: <197790.71070.qm@web905.biz.mail.mud.yahoo.com>
-Cc: Video <video4linux-list@redhat.com>
-Subject: Re: [ANNOUNCE] Videobuf improvements to allow its usage with USB
-	drivers
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m31KBiEH011554
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 16:11:44 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m31KBRDH003634
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 16:11:28 -0400
+Date: Tue, 1 Apr 2008 17:10:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Marcin Slusarz <marcin.slusarz@gmail.com>
+Message-ID: <20080401171051.724a9f75@gaivota>
+In-Reply-To: <20080330162006.GA6048@joi>
+References: <20080330162006.GA6048@joi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Morton <akpm@google.com>, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org, "Rafael J.
+	Wysocki" <rjw@sisk.pl>, Bongani Hlope <bonganilinux@mweb.co.za>
+Subject: Re: 2.6.25-rc regression: bttv: oops on radio access (bisected)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,88 +29,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Marcin
 
---- Markus Rechberger <mrechberger@empiatech.com>
-schrieb:
+On Sun, 30 Mar 2008 18:20:49 +0200
+Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
 
+> Hi
+> 2.6.25-rc7 kernel oopses on exec of "radio -c /dev/radio0".
+> I bisected it down to:
 > 
-> --- Mauro Carvalho Chehab <mchehab@infradead.org>
-> schrieb:
+> 402aa76aa5e57801b4db5ccf8c7beea9f580bb1b is first bad commit
+> commit 402aa76aa5e57801b4db5ccf8c7beea9f580bb1b
+> Author: Douglas Schilling Landgraf <dougsland@gmail.com>
+> Date:   Thu Dec 27 22:20:58 2007 -0300
 > 
-> > On Sun, 13 Apr 2008 23:38:24 +0200 (CEST)
-> > Markus Rechberger <mrechberger@empiatech.com>
-> wrote:
-> > 
-> > > 
-> > > --- Mauro Carvalho Chehab
-> <mchehab@infradead.org>
-> > > schrieb:
-> > > 
-> > > > > my eeePC shows up 0-5% CPU usage with
-> mplayer
-> > > > > fullscreen without videobuf, seems more like
-> > > > > something's broken in your testapplication
-> or
-> > > > > somewhere else?
-> > > > 
-> > > > The test application (capture_example) is the
-> > one
-> > > > documented at the V4L2 spec.
-> > > > The only difference is that I've incremented
-> > count
-> > > > to 1000, to get more frames.
-> > > > I don't see what's wrong on it.
-> > > > 
-> > > 
-> > > I just tested capture_example on the eeePC
-> (again
-> > non
-> > > videobuf).
-> > > 
-> > > $ time ./capture_example
-> > > .................. (printed this around 100
-> > times?)
-> > > real   0m4.312s
-> > > user   0m0.010s
-> > > sys    0m0.000s
-> > > 
-> > > strace clearly shows up VIDIOC_QBUF,
-> VIDIOC_DQBUF.
-> > > 
-> > > So the question is rather what makes the results
-> > so
-> > > bad on your system. 
-> > > How can the userspace application go up to 100%,
-> > while
-> > > the system isn't that busy?
-> > 
-> > Are you running your tests against the in-kernel
-> > version? 
+>     V4L/DVB (6911): Converted bttv to use video_ioctl2
 > 
-> v4l-dvb-experimental/em28xx-userspace 2 from
-> mcentral.de use the same algorithms.
-> 
-> I ran capture_example again with count=1000
-> 
-> first run:
-> real 0m40.393s
-> user 0m0.000s
-> sys  0m0.020s
-> second run:
-> real 0m40.294s
-> user 0m0.000s
-> sys  0m0.030s
-> third run:
-> real 0m40.394s
-> user 0m0.000s
-> sys 0m0.010s
+>     Signed-off-by: Douglas Schilling Landgraf <dougsland@gmail.com>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
 > 
 
-also try to reproduce it several times, maybe you only
-gave it one try. Basically everything seems to stay
-the same with/without that update.
+There are three patches that are meant to fix the bugs with radio. On the tests
+I did here, they worked, but the Bongani still points that the fixes didn't
+solve for him.
 
-Markus
+On the tests I did here, the three patches seemed to work [1]. Maybe you could
+test with those patches and post us some results.
+
+There are three patches meant to fix several issues caused by the conversion: 
+
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=bdd38d9b5c6365ea004df6d8a183dd1344b4801f
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=055a6282cabd311cf010a5a83f0494558504f7d0
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=6e07ff78274752fe812a1e8bddb6013a278e62e8
+
+Could you test please and give us some feedback?
+
+[1] Yet, I've discovered recently that the hardware I use for testing PCI
+devices is broken. Probably, my motherboard chipset is damaged, since I'm
+getting intermittent bugs on several parts of the machine - even with stable
+kernels - so my tests with bttv aren't conclusive.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
