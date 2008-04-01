@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Wed, 09 Apr 2008 12:30:13 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
-To: linux-dvb@linuxtv.org
-Message-id: <47FCEF15.80109@linuxtv.org>
-MIME-version: 1.0
-References: <200803292240.25719.janne-dvb@grunau.be>
-	<47FCDB9A.5040807@gmail.com>
-	<37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
-	<Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
- dvb adapter numbers, second try
+Received: from rv-out-0910.google.com ([209.85.198.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1JgYzW-0006Xz-QT
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 07:25:03 +0200
+Received: by rv-out-0910.google.com with SMTP id b22so1331699rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 22:24:57 -0700 (PDT)
+Message-ID: <d9def9db0803312224t74300f79o727cb11495077112@mail.gmail.com>
+Date: Tue, 1 Apr 2008 07:24:57 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Another Sillyname" <anothersname@googlemail.com>
+In-Reply-To: <a413d4880803311815x2009eddex2351adc11525db3d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
+	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
+	<d9def9db0803311627i6df82e04wc7a6bf8898440637@mail.gmail.com>
+	<a413d4880803311815x2009eddex2351adc11525db3d@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,31 +33,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On 4/1/08, Another Sillyname <anothersname@googlemail.com> wrote:
+> Markus thanks for the response.
+>
+> Am I correct in saying that your work will be on the v4l-dvb-kernel
+> branch and focused purely on the em28xx devices? Then you'll then be
+> migrating this work to v4l-dvb?
+>
+> Or are you looking to 'clean up' the code that's currently in
+> v4l-dvb-kernel? without migrating it to v4l-dvb?
+>
+> Obviously as I'm looking to get one device working from each branch
+> I'm a bit hamstrung at the moment.
+>
 
->> The arguments against applying this change are "fix udev instead" and
->> "we'll have to remove this in kernel 2.7" ... Well, rather than to
->> have everybody wait around for a "fix" that requires programming
->> skills in order to use, I say we merge this now, so that people can
->> use their systems properly TODAY.  If we have to remove this in the
->> future as a result of some other kernel-wide requirements, then we
->> will cross that bridge when we come to it.
->>
->> I see absolutely no harm in implementing this feature now.
->>
->> -Mike
->>
-> 
-> +1
-> 
-> For MythTv setups this is very much needed... for the reasons Mike very 
-> clearly stated.
+I already cut out the em28xx support so that it's possible to get it
+work with v4l-dvb from linuxtv.org. Although this one only focussed at
+a few newer devices for now I'm adding support for all the other
+devices from this month on. The biggest part is to go through all the
+videostandards and different input methods (svideo/composite).
 
-Either someone steps up and writes a bullet proof udev configuration 
-mechanism for v4l/dvb, or the patches gets merged.
+v4l-dvb-kernel has support for several other devices too which are not
+em28xx based and which I got work last year, it wasn't entirely em28xx
+focussed.
 
-Given that nobody has done the former, I suggest we do the latter.
-
-- Steve
+Markus
 
 _______________________________________________
 linux-dvb mailing list
