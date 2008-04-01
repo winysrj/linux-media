@@ -1,24 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from wr-out-0506.google.com ([64.233.184.228])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1Jqomu-0002Ek-Fx
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 14:18:25 +0200
-Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
-	[88.170.236.224])
-	by vds19s01.yellis.net (Postfix) with ESMTP id E9A552FAA13
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 14:18:27 +0200 (CEST)
-Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
-	by goliath.anevia.com (Postfix) with ESMTP id A59DA1300236
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 14:18:18 +0200 (CEST)
-Message-ID: <48171207.8080602@anevia.com>
-Date: Tue, 29 Apr 2008 14:18:15 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	(envelope-from <makosoft@googlemail.com>) id 1JgngO-00022j-7G
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 23:06:18 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so1472405wra.14
+	for <linux-dvb@linuxtv.org>; Tue, 01 Apr 2008 14:06:11 -0700 (PDT)
+Message-ID: <c8b4dbe10804011406i6923397fw84de9393335dfee9@mail.gmail.com>
+Date: Tue, 1 Apr 2008 22:06:10 +0100
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <4816E5DA.7010204@anevia.com>
-	<1209467866.3247.45.camel@pc10.localdom.local>
-In-Reply-To: <1209467866.3247.45.camel@pc10.localdom.local>
-Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
+Content-Disposition: inline
+References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
+	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
+	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
+	from v4l-dvb-kernel......help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,79 +25,164 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton a =E9crit :
-> Hi Frederic,
-> =
+On 3/31/08, Markus Rechberger <mrechberger@gmail.com> wrote:
+> On 3/31/08, Aidan Thornton <makosoft@googlemail.com> wrote:
+> > On Mon, Mar 31, 2008 at 12:40 AM, Another Sillyname
+> > <anothersname@googlemail.com> wrote:
+> > > I have a machine that has an internal card that's a Lifeview DVB and
+> > > works fine using the v4l-dvb mercurial sources.
+> > >
+> > > I want to add a Pinnacle USB Hybrid stick (em28xx) that does not work
+> > > using the v4l-dvb sources but does work using the v4l-dvb-kernel
+> > > version.
+> > >
+> > > 1. Will the number of em28xx cards supported by v4l-dvb be increased
+> > > shortly? (My card id was 94 IIRC ).
+> >
+> > If it's supported by v4l-dvb-kernel, it's entirely possible, yes.
+> >
+> > > 2. Can I mix and match from the sources...i.e. can I graft the em28xx
+> > > stuff from v4l-dvb-kernel into the v4l-dvb source and compile
+> > > successfully or has the underlying code changed at a more strategic
+> > > level?
+> >
+> > Not trivially, since v4l-dvb-kernel contains changes to the core code
+> > that the em28xx driver relies on and that are incompatible with
+> > changes in the main v4l-dvb repository since. You can try
+> > http://www.makomk.com/hg/v4l-dvb-makomk - it's the em28xx and xc3028
+> > drivers grafted onto a version of v4l-dvb that's about 5 months old at
+> > this point - though it's really not a great starting point for porting
+> > them onto newer versions, since you'd want to drop the xc3028 driver
+> > in favour of the newer one
+> >
+>
+> Makomk,
+> spreading around your even more broken tree won't help anyone.
 
-> Am Dienstag, den 29.04.2008, 11:09 +0200 schrieb Frederic CAND:
->> Dear all,
->>
->> I recently had to change v4l drivers to support my WinTV HVR 1300.
->> I have issues making my HVR work but that's not the point here.
->> My problem is that since I updated kernel + drivers, I can't manage to =
+My tree is not substantially more broken, thank you very much. I think
+it has at least one issue that v4l-dvb-kernel/v4l-dvb-experimental did
+not (HVR-950 support is rumoured to be broken - probably an issue with
+ATSC support in xc3028, which I couldn't test), but it also fixes one
+annoying bug (DVB-T only xc3028 based devices didn't work). I hear
+rumours that v4l-dvb-kernel also has issues with core changes breaking
+the other drivers in the tree, something this shouldn't have.
 
->> make sound work when I'm using the tuner input. Sound jack input works =
+Also, in case you haven't guesses, the reason I spread my tree around
+so much is because I think that it might be helpful to people, either
+because they need something that isn't possible with
+v4l-dvb-experimental or (in one memorable past case) because you'd
+decided to erase all trace of -experimental from your site and I would
+actually be able to maintain the -makomk branch (unlike -experimental,
+which was hell to work with in places).
 
->> when I'm using SVideo or Composite Video, but not when I'm using tuner.
->>
->> Here are the options I'm using
->> tuner : port2=3D0
->> saa7134: oss=3D1 disable_ir=3D1
->> saa7134-oss: rate=3D48000
-> =
+> This device already had some issues with the v4l-dvb-kernel tree, this
+> is what I'll do in April.
+>
+> > > 3. Why did the sources branch? Was there a good technical reason for
+> > this?
+> >
+> > Supporting the xc3028 silicon tuner needed some changes to support
+> > hybrid analog/digital tuners better. Unfortunately, Markus couldn't
+> > come to an agreement with the rest of the developers on how to do it.
+> > (I think the main concern were that the changes he were proposing were
+> > rather more invasive than they needed to be and risked breaking
+> > existing drivers). In the end, someone else coded the equivalent
+> > functionality in a more backwards-compatible way and merged it in
+> > stages.
+> >
+> > (It's actually relatively easy to port code from Markus' hybrid tuner
+> > framework to the v4l-dvb one, though he will never admit so.)
+> >
+>
+> The reason is my trust is gone I asked in September if it's possible
+> to get those devices work with what's available and I got the answer
+> it's not.
 
-> the rate=3D48000 is only valid for external analog input and disables
-> sound from tuner. Have a look at the saa7134-oss mixer under such
-> conditions.
-> =
+That's odd; early September was when I started on the v4l-dvb-makomk
+branch, which does exactly that. (Admittedly, it does rely on a
+slightly evil hack to share info between the analog and digital
+support in the xc3028 code, though one of the other devs figured out a
+better way of doing it. The xc3028 driver in now v4l-dvb is
+suprisingly good; far better than the previous drivers, and rewritten
+from scratch.)
 
-> You must use default rate of 32000 for dma sound from tuner.
-> =
+Looking at the mailing lists, September was when you were pushing your
+userspace drivers idea, which stood a whelk's chance in a supernova of
+getting merged. (It (a) didn't do anything that couldn't be done
+in-kernel, (b) would make it much easier to release binary
+closed-source tuner drivers that only work on specific hardware and
+(c) was intentionally created to fork bits of v4l-dvb. Of course, you
+PMing me and threating to take your code closed source if anyone
+released changed versions - something this would make far, far easier
+- probably didn't exactly help, but it was obviously doomed before
+then.)
 
-> The saa7134-oss is also soon deprecated and replaced by saa7134-alsa.
-> =
+> This stupid fight lasts for more than 2 years already, but I'm the one
+> who spent weeks on writing code for getting those things supported and
+> even rewrote code although there was no serious participation in the
+> discussions I tried to trigger...
 
-> If you are considering using recent v4l-dvb mercurial stuff, which
-> should be best for the HVR1300 and reporting bugs on saa7134-empress,
-> you might still have your old saa7134-oss module around and some others
-> like the old video_buf now loaded, since not deleted on upgrade.
-> =
+The mailing list developed some really nasty atmosphere, and you were
+part of the reason. (You probably haven't realised this, but when
+professional trolls decide it'd be fun to take your side, you ought to
+take a really close look at your behaviour.) I can't remember much of
+the details - I think I tried to stay out of it as much as possible.
 
-> After make rmmod and rminstall with current v4l-dvb you should delete
-> such remaining modules on older kernels too before make install.
-> =
+> If I tell a company that I will add support for something till a given
+> date I'll do so to keep up the good contacts. Unfortunately this is
+> not how some people at linuxtv behave and it slows down everything
+> even for other manufacturers where I'm not involved.
+>
+> It's me who mostly spent his time on writing any code on mcentral.de,
+> the code didn't write itself especially Aidan has no respect about
+> that, neither do some other people. Maybe it's really better to
+> provide binary only blobs to remember especially such people that it
+> requires alot work to get those things work.
 
-> Cheers,
-> Hermann
+Yeah, you did some good coding work (and some not so good, but let's
+leave that aside). Unfortunately, IMO you exhausted any residual
+goodwill left over from that ages ago, for far too many reasons to go
+into. Also, you're forgetting all the other people who contributed
+time to testing and debugging your code - including me - as well as
+all the pre-existing code that you built on (including the initial
+version of em28xx itself).
 
-hum I used to set rate to 48000 with my old 2005 july snapshot and it =
+Still, you did write some good code and do some good RE work, and I'll
+fully admit to that - it's why I'm reusing some of it for my modified
+drivers. After all, it'd be silly to let your hard work go to waste.
+(Admittedly, it's currently mostly down to some trivial code in
+em2880-dvb that's probably in "Writing Linux Drivers for USB DVB-T
+Devices For Dummies" and some init/modeswitching code that I
+practically know by heart, at least in the driver I'm using now, but
+I'm sure there's more useful code in there.)
 
-was working even with tuner ... but ok I'll try 32000
-i've tried alsa and I had the same results, that is no sound with tuner =
+> > > 4. If I can't use the v4l-dvb sources to get my em28xx working what's
+> > > the chances of getting the v4l-dvb-kernel stuff working for the
+> > > lifeview flydvb card?
+> >
+> > Not good. Its support for other hardware is, if anything, going to be
+> > slowly getting worse over time as other drivers have to be modified or
+> > disabled to make it compile on newer kernels.
+> >
+>
+> that for the other repository (em28xx-userspace2/userspace-drivers on
+> mcentral.de/hg) is available, although it needs some work with that
+> device.
 
-but line in sound with composite and svideo
-do I need some special stuffs compiled in my kernel except from config_snd ?
-about old modules still loaded this can't be since I build my system =
+Yeah, that... works, though it's still slightly lacking in both
+well-testedness and hardware support, and some of the code makes me
+wince.
 
-from scratch each time i try a new kernel / driver into an ext2 file, =
+Anyway, this is starting to get tiresome, so I think I'll leave it
+here. This is basically all I have to say on the matter.
 
-which I put on a 32MB flash disk and boot on it ... so I'm sure I'm not =
-
-using my old v4l snapshot, but the 2.6.22.19 v4l drivers
-
-I'll let you know if I can make it work
-
--- =
-
-CAND Frederic
-Product Manager
-ANEVIA
+Aidan
 
 _______________________________________________
 linux-dvb mailing list
