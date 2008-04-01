@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.171])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JjDgY-0007yI-4E
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 15:16:33 +0200
-Date: Tue, 8 Apr 2008 15:14:01 +0200
-From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-ID: <20080408131401.GA19821@localhost>
+	(envelope-from <mariofutire@googlemail.com>) id 1JgnwM-0003ni-Et
+	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 23:22:47 +0200
+Received: by nf-out-0910.google.com with SMTP id d21so927111nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 01 Apr 2008 14:22:37 -0700 (PDT)
+Message-ID: <47F2A798.1070009@googlemail.com>
+Date: Tue, 01 Apr 2008 22:22:32 +0100
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Reminder: Please update wiki: KNC1 DVB-C Plus not fully
-	supported
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] SET_BUFFER_SIZE demux and dvr: awaiting
+	feedbacks
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,64 +25,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Please can you update the linuxtv.org dvb wiki. The vdr-wiki was already
-updated. This card is very expensive because of its analog inputs, so 
-*please* write in the wiki that these analog inputs are currently not 
-supported under Linux, in order to prevent someone buying that model in 
-a wrong assumption. Thanks!
+Hi,
 
-Hello,
+I was just wondering if anybody had time to check the 2 patches I posted a couple of weeks ago.
 
-the information about the KNC1 DVB-C Plus card (a card with analog video
-input) in the linuxtv.org dvb wiki is wrong. It says it works under
-linux, which is not correct. The analog input (Composite and S-Video) is
-currently unsupported under Linux (at least for the recent MK3 version).
-(See bug reports [3,4]).
+Both patches are about DMX_SET_BUFFER_SIZE
 
-The lack of support for the analog input by the driver is crucial, since
-nobody would buy such a card without explicitly needing this analog
-input; the model without analog input is much less expensive. So saying
-the card works can lead to someone buying a card not fully supported by
-Linux (unfortunately this has happened to me).
+1) Patch number 1 is to fix a bug when shrinking the demux buffer. This bug causes the kernel to
+crash completely
 
-Please correct this information in the wiki! This wiki is not editable
-by public. The following pages are affected:
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024828.html
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024833.html
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024839.html
 
-http://linuxtv.org/wiki/index.php/KNC1_TV-Station_DVB-C_Plus
-http://linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
-http://linuxtv.org/wiki/index.php/KNC1
+2) The second patch is about the implementation of the ioctl DMX_SET_BUFFER_SIZE for the dvr.
+The ioctl call is currently available but not implemented.
+Currently the default is 192522 which lasts only about 1 sec when saving the whole TS.
 
-I can say that the analog input on my MK3 version did not work with any 
-kernel version or patch I tested since its first Linux support in 2007-02
-[1] (however the input works under windows). I do not know if the analog
-input of the older version of the card did work or still does. 
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024829.html
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024834.html
+http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024840.html
 
-It should be noted that the MK3 version of the KNC1 DVB-C with tda10023
-is only supported from kernel 2.6.22 on (and a little earlier with a
-patch), but the older version of the card with tda10021 was supported
-much earlier, already (at least) in kernel 2.6.12.
+Is it possible for the maintainers of the dvb-core (btw, who are they exactly?) to check them?
 
-KNC1 DVB-C Plus (older)     = PCI subsystem ID 1894:0021      
-KNC1 DVB-C Plus MK3 (newer) = PCI subsystem ID 1894:0023 
+Looking forward to receiving feedbacks.
 
-If someone owns a KNC One DVB Plus card, please can you say if your
-analog input (Composite or S-Video) ever worked under Linux, or if
-it stopped working with a specific kernel version? Thank you.
-
-L.
-
-References
-
-1. 2007-02: First patch available supporting the MK3 versions of KNC1 DVB
-cards (and identical Terratec/Satelco): tda1002x.008.diff for hg/v4l-dvb
-http://www.vdr-portal.de/board/thread.php?threadid=60227&page=8
-http://www.linuxtv.org/pipermail/linux-dvb/2007-February/015886.html
-
-2. http://www.vdr-wiki.de/wiki/index.php/DVB-C_Budget-PCI-Karten
-
-3. http://www.linuxtv.org/pipermail/linux-dvb/2008-March/025032.html
-
-4. http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022183.html
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
