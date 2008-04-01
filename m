@@ -1,26 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m340XuLY015822
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:33:56 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m340Xg6l005366
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:33:43 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-Date: Fri, 4 Apr 2008 02:32:32 +0200
-References: <1115343012.20080318233620@a-j.ru>
-	<1207179525.14887.13.camel@pc08.localdom.local>
-	<1207265002.3364.12.camel@pc08.localdom.local>
-In-Reply-To: <1207265002.3364.12.camel@pc08.localdom.local>
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200804040232.33855@orion.escape-edv.de>
-Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Date: Tue, 1 Apr 2008 13:31:50 +1100
+Message-ID: <33ABD80B75296D43A316BFF5B0B52F5F0EEB1F@SRV-QS-MAIL5.lands.nsw>
+From: "Nicholas Magers" <Nicholas.Magers@lands.nsw.gov.au>
+To: "Ben Caldwell" <benny.caldwell@gmail.com>, <video4linux-list@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: alan@redhat.com
+Subject: RE: Dvico Dual 4 card not working.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,63 +20,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton wrote:
-> Am Donnerstag, den 03.04.2008, 01:38 +0200 schrieb hermann pitton:
-> > Hi again,
-> > 
-> > Am Mittwoch, den 02.04.2008, 22:47 +0400 schrieb Andrew Junev:
-> > > Hello Hermann,
-> > > 
-> > > Thanks a lot for this detailed explanation!
-> > > I really appreciate your help!
-> > > 
-> > > One small question: does it mean that kernels 2.6.24.5 or 2.6.24.6
-> > > _should_ have this patch already included?
-> > > 
-> > 
-> > seems we hang in current stable kernel rules.
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/stable_kernel_rules.txt;hb=HEAD
-> > 
-> > If we go back to 2.6.23 level, that patch might have less than 100 lines
-> > with context, but we break the
-> > 
-> >  - It must fix only one thing
-> > 
-> > rule, since we break the 2.6.24 LifeView Trio DVB-S support too then.
-> > 
-> > Seems sombody with such a device should reopen the bug on Bugzilla ...
-> > 
-> 
-> Hi Guys,
-> 
-> should we really let hang it like this on 2.6.24?
-> 
-> I'm not that happy with a recommendation for the distributions to pick
-> something out of it.
-> 
-> If we should go back to 2.6.23 level, so far nobody seems to have
-> realized a improvement for the LifeView Trio stuff, I'm not against it.
-> 
-> The changeset in question to revert is mercurial 6579.
-> 
-> If nobody else is interested and no comments, I also don't care anymore.
-
-(Basically I don't care because I am tired of discussing kernel
-politics.)
-
-Imho a fix should be applied, no matter how many lines it has.
-If that is not possible the offending patch should be reverted in
-2.6.24.x.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
-
+I'll be interested in the result.=0D=0A=0D=0A =0D=0A=0D=0AFrom: Ben Caldwell=
+ [mailto:benny.caldwell@gmail.com] =0D=0ASent: Tuesday, 1 April 2008 12:54 P=
+M=0D=0ATo: video4linux-list@redhat.com=0D=0ACc: alan@redhat.com; Nicholas Ma=
+gers=0D=0ASubject: Re: Dvico Dual 4 card not working.=0D=0A=0D=0A =0D=0A=0D=0A=
+	---------- Forwarded message ----------=0D=0A	From: Alan Cox <alan@redhat.c=
+om>=0D=0A	To: Nicholas Magers <Nicholas.Magers@lands.nsw.gov.au>=0D=0A	Date:=
+ Mon, 31 Mar 2008 05:32:05 -0400=0D=0A	Subject: Re: Dvico Dual 4 card not wo=
+rking.=0D=0A	On Mon, Mar 31, 2008 at 02:22:15PM +1100, Nicholas Magers wrote=
+:=0D=0A	> Dual 4 card no longer works. I use it with Mythtv. It seems=0D=0Aw=
+hen I=0D=0A	> updated my Nvidia graphics driver from Livna it had an effect=
+.=0D=0AI am at=0D=0A	=0D=0A	Nvidia driver reports should go to Nvidia, only =
+they have the=0D=0Asource code=0D=0A	so only they can help you=0D=0A=0D=0AI =
+have recently posted a similar problem with the dvico dual digital 4=0D=0Aca=
+rd on a Fedora 8 mythtv box. I don't think that this problem is due t=
+o=0D=0Athe nvidia driver.=0D=0A=0D=0AMy tuner card was working fine until I =
+updated the to the latest v4l=0D=0Asource from the hg repository a week or t=
+wo back and made new kernel=0D=0Amodules, I included traces in my post which=
+ can be seen in the list=0D=0Aarchives at the end of march.=0D=0A=0D=0AI rev=
+erted to a previous kernel that still has the kernel modules made=0D=0Afrom =
+an earlier version of the v4l source and everything works fine=0D=0Aagain. I=
+ am not going to try compiling new modules for the working=0D=0Akernel as it=
+ could leave me with no way at all to use my tuner card.=0D=0A=0D=0A =0D=0A=0D=0A=
+So tonight I will try building modules for my latest kernel (from Fedor=
+a=0D=0Aupdates) from an older version of the v4l source and report back to t=
+his=0D=0Alist with the results.=0D=0A=0D=0A =0D=0A=0D=0A- Ben Caldwel=
+l=0D=0A=0D=0A=0D=0A*********************************************************=
+******=0D=0AThis message is intended for the addressee named and may contain=
+ confidential information. If you are not the intended recipient, please del=
+ete it and notify the sender. =0D=0A=0D=0AViews expressed in this message ar=
+e those of the individual sender, and are not necessarily the views of the D=
+epartment of  Lands.=0D=0A=0D=0AThis email message has been swept by MIMEswe=
+eper for the presence of computer viruses.=0D=0A****************************=
+***********************************=0D=0A
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
