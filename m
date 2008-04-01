@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34IwHXV008268
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:58:17 -0400
-Received: from gv-out-0910.google.com (gv-out-0910.google.com [216.239.58.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34IvpWF013991
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:57:53 -0400
-Received: by gv-out-0910.google.com with SMTP id l14so110267gvf.13
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 11:57:04 -0700 (PDT)
-Date: Fri, 4 Apr 2008 11:56:50 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Message-ID: <20080404185650.GB4899@plankton.ifup.org>
-References: <47ED68E3.7040400@hhs.nl>
-	<20080403212728.GE14369@plankton.ifup.org>
-	<47F5D1F6.2020906@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <47F5D1F6.2020906@hhs.nl>
-Cc: video4linux-list@redhat.com, spca50x-devs@lists.sourceforge.net
-Subject: Re: [New Driver]: usbvideo2 webcam core + pac207 driver using it.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m31Mphqd027788
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:51:43 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m31MpUbL023327
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:51:30 -0400
+Date: Tue, 1 Apr 2008 19:50:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080401195050.470c8edb@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES] V4L/DVB fixes for 2.6.25-rc8
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,83 +26,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 09:00 Fri 04 Apr 2008, Hans de Goede wrote:
->  Brandon Philips wrote:
-> > On 22:53 Fri 28 Mar 2008, Hans de Goede wrote:
-> >>  I'm currently posting these as .c files for easy reading and
-> >>  compilation / testing, but I still hope to get a lot of feedback / a
-> >>  thorough review, esp of the core <-> pac207 split version as I hope
-> >>  to submit that as a patch for mainline inclusion soon.
-> > The driver look pretty good.  Comments inline.
-> 
->  Thanks for the review!
-> 
-> >> struct pac207_decompress_table_t {
-> >> 	u8 is_abs;
-> >> 	u8 len;
-> >> 	s8 val;
-> >> };
-> > Why add the _t?
-> 
->  So that I can write "struct pac207_decompress_table_t 
->  pac207_decompress_table[256];" further on.
+Linus,
 
-But, why does the struct have a _t on the end of the name?  Usually that
-is used for typedefs of structs.
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
 
-> > This all needs some locking to protect from multi-threaded applications.
-> > Otherwise the hardware and data structures could be in two different
-> > states.
-> 
->  They are all called with the usbvideo2 "core" fileop_mutex lock held, as is 
->  documented in usbvideo2.h
+For the following fixes and regressions:
+	- bttv fixes for bugzilla regressions #10027 and #10364;
+	- cx23885 fixes for some regressions;
+	- add missing MODULE_LICENSE to v4l2-int-device;
+	- radio-cadet compilation fixes for PNP probe code.
 
-Oops, I see that now.
+One of the changes of cx23885 is bigger, since it simplified the on-chip memory
+usage.
 
-> >> static void usbvideo2_urb_complete(struct urb *urb)
-> >> {
-> >> 	struct usbvideo2_device* cam = urb->context;
-> >> 	struct usbvideo2_frame_t** f;
-> >> 	int i, ret;
-> >>
-> >> 	switch (urb->status) {
-> >> 		case 0:
-> >> 			break;
-> >> 		case -ENOENT:		/* usb_kill_urb() called. */
-> >> 		case -ECONNRESET:	/* usb_unlink_urb() called. */
-> >> 		case -ESHUTDOWN:	/* The endpoint is being disabled. */
-> >> 			return;
-> >> 		default:
-> >> 			goto resubmit_urb;
-> >> 	}
-> >>
-> >> 	f = &cam->frame_current;
-> >>
-> >> 	if (!(*f)) {
-> >> 		if (list_empty(&cam->inqueue))
-> >> 			goto resubmit_urb;
-> >>
-> >> 		(*f) = list_entry(cam->inqueue.next, struct usbvideo2_frame_t,
-> >> 					frame);
-> >> 	} 
-> > Don't you want to take a spinlock here?  Most accesses of inqueue seem
-> > to take a spinlock.
-> 
->  Good catch! Note that this bug is present in the current in mainline zc0301, 
->  et61x251, and sn9c102 drivers too!!
-> 
-
-Ok, I will look at this and submit patches.  Thanks.
-
->  I'm currently trying to merge my work and the work to port gspca as a whole 
->  to v4l2 of Jean-François Moine, so don't expect a new iteration of this 
->  soon, as I first want to have a clear path for merging these 2 works.
-
-Great.  It would be good to get gspca into the Kernel.
+All changes are trivial.
 
 Cheers,
+Mauro.
 
-	Brandon
+---
+
+ drivers/media/radio/radio-cadet.c           |    6 +
+ drivers/media/video/bt8xx/bttv-driver.c     |   31 +++++--
+ drivers/media/video/cx23885/cx23885-cards.c |    6 +-
+ drivers/media/video/cx23885/cx23885-core.c  |  134 +--------------------------
+ drivers/media/video/v4l2-int-device.c       |    2 +
+ 5 files changed, 38 insertions(+), 141 deletions(-)
+
+Adrian Bunk (1):
+      V4L/DVB (7485): v4l2-int-device.c: add MODULE_LICENSE
+
+Bjorn Helgaas (1):
+      V4L/DVB (7486): radio-cadet: wrap PNP probe code in #ifdef CONFIG_PNP
+
+Cyrill Gorcunov (1):
+      V4L/DVB (7461): bttv: fix missed index check
+
+Robert Fitzsimons (3):
+      V4L/DVB (7277): bttv: Re-enabling radio support requires the use of struct bttv_fh
+      V4L/DVB (7278): bttv: Re-enable radio tuner support for VIDIOCGFREQ/VIDIOCSFREQ ioctls
+      V4L/DVB (7400): bttv: Add a radio compat_ioctl file operation
+
+Steven Toth (3):
+      V4L/DVB (7464): Convert driver to use a single SRAM memory map
+      V4L/DVB (7465): Fix eeprom parsing and errors on the HVR1800 products
+      V4L/DVB (7466): Avoid minor model number warning when an OEM HVR1250 board is detected
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
