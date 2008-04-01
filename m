@@ -1,24 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NNiVEw004830
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 19:44:31 -0400
-Received: from rv-out-0506.google.com (rv-out-0708.google.com [209.85.198.251])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NNhwl4024509
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 19:44:10 -0400
-Received: by rv-out-0506.google.com with SMTP id b17so1610499rvf.51
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 16:43:52 -0700 (PDT)
-Date: Wed, 23 Apr 2008 16:43:22 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080423234322.GB20819@plankton.ifup.org>
-References: <200804230137.12502.laurent.pinchart@skynet.be>
-	<20080423142705.62b6e444@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080423142705.62b6e444@gaivota>
-Cc: video4linux-list@redhat.com, linux-usb@vger.kernel.org
-Subject: Re: [PATCH] USB Video Class driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m31MTCXr016448
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:29:12 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m31MSpC1008997
+	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:28:52 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JgoyI-0006EO-GO
+	for video4linux-list@redhat.com; Tue, 01 Apr 2008 22:28:50 +0000
+Received: from c9346dce.virtua.com.br ([201.52.109.206])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 01 Apr 2008 22:28:50 +0000
+Received: from fragabr by c9346dce.virtua.com.br with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 01 Apr 2008 22:28:50 +0000
+To: video4linux-list@redhat.com
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Date: Tue, 1 Apr 2008 19:00:33 -0300
+Message-ID: <20080401190033.68c821ed@tux.abusar.org.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Subject: Remote controller for Powercolor Real Angel 330
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,42 +34,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 14:27 Wed 23 Apr 2008, Mauro Carvalho Chehab wrote:
-> > + * ...  It implements the
-> > + * mmap capture method only ...
-> 
-> You should consider moving to videobuf on a later version. videobuf also
-> implements read() method, and will likely implement also USERPTR and maybe
-> OVERLAY on future versions.
+	The support for Powercolor Real Angel 330 is almost complete.
+Everything works. I just need to finish the codes for remote controller.
 
-Lets shoot for doing this after 2.6.26 if Laurent signs-off.  Until then
-lets not get into this argument again :D
+	I have the following:
 
-> > +static int uvc_v4l2_do_ioctl(struct inode *inode, struct file *file,
-> > +		     unsigned int cmd, void *arg)
-> > +{
-> > +	struct video_device *vdev = video_devdata(file);
-> > +	struct uvc_video_device *video = video_get_drvdata(vdev);
-> > +	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
-> > +	int ret = 0;
-> > +
-> > +	if (uvc_trace_param & UVC_TRACE_IOCTL)
-> > +		v4l_printk_ioctl(cmd);
-> 
-> The better is to remove the do_ioctl, in favor of video_ioctl2. Also, this will
-> provide a much better debug than what's provided by v4l_printk_ioctl().
+1) cx88-input.c
 
-We discussed this months ago and everyone agreed that video_ioctl2 is
-nice but it is not a requirement to be in the tree.
+                ir_codes = ir_codes_powercolor_real_angel;
+                ir->gpio_addr = MO_GP2_IO;
+                ir->mask_keycode = 0x7f;
+                ir->polling = 1; /* ms */
 
-> Driver looks sane. Just a few comments.
+2) ir-keymaps.c:
 
-Thanks for finding the other issues in your review Mauro; you picked up
-on some good details that should be fixed up before the merge.
+        [0x03] = KEY_1,
+        [0x05] = KEY_2,
+        [0x07] = KEY_3,
+        [0x11] = KEY_8,
+        [0x13] = KEY_9,
+        [0x71] = KEY_SWITCHVIDEOMODE,   /* switch inputs */
+        [0x41] = KEY_UP,
+        [0x43] = KEY_DOWN,
+        [0x21] = KEY_RIGHT,
+        [0x23] = KEY_LEFT,
+        [0x25] = KEY_PAUSE,
+        [0x27] = KEY_PLAY,
+        [0x17] = KEY_STOP,
+        [0x47] = KEY_FASTFORWARD,
+        [0x45] = KEY_REWIND,
+        [0x37] = KEY_RECORD,
+        [0x35] = KEY_SEARCH,            /* autoscan */
+        [0x15] = KEY_SHUFFLE,           /* snapshot */
+        [0x53] = KEY_PREVIOUS,          /* previous channel */
+        [0x15] = KEY_DIGITS,            /* single, double, tripple digit */ 
+	[0x57] = KEY_MODE,              /* stereo/mono */ 
+	[0x51] = KEY_TEXT,              /* teletext */  
 
-Cheers,
+	All these keys work perfectly. But some keys use the same code.
+For example, if I press "5" on the remote, I get "1" and if I press
+"6", I get "2".
 
-	Brandon
+	***
+
+	I noticed that some keys generate more than one code... I tried
+all ir types (RC5, PD, OTHER) without success. Does anybody have any
+clues about that?
+
+	Could the mask_keycode be wrong? Any hints?
+
+-- 
+Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
+http://u-br.net http://www.abusar.org/FELIZ_2008.html
+
 
 --
 video4linux-list mailing list
