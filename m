@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from pne-smtpout4-sn1.fre.skanova.net ([81.228.11.168])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1JkePZ-0005w2-O1
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 14:00:53 +0200
-Message-ID: <4800A469.9010603@iinet.net.au>
-Date: Sat, 12 Apr 2008 20:00:41 +0800
-From: timf <timf@iinet.net.au>
+	(envelope-from <crope@iki.fi>) id 1Jh44l-0005nQ-AE
+	for linux-dvb@linuxtv.org; Wed, 02 Apr 2008 16:36:32 +0200
+Message-ID: <47F399AA.2080802@iki.fi>
+Date: Wed, 02 Apr 2008 17:35:22 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <47FE3ECC.8020209@iinet.net.au> <47FE8FD1.3050004@t-online.de>	
-	<1207870241.17744.8.camel@pc08.localdom.local>	
-	<47FFD6DB.6060908@t-online.de>
-	<1207999856.3372.7.camel@pc08.localdom.local>
-In-Reply-To: <1207999856.3372.7.camel@pc08.localdom.local>
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
+To: Nick Andrew <nick-linuxtv@nick-andrew.net>
+References: <20080329024154.GA23883@localhost>	<47EDCE27.4050101@optusnet.com.au>
+	<47EE1056.9050804@iki.fi>	<47EE3C5E.8080001@optusnet.com.au>
+	<20080402023911.GA27360@tull.net>
+In-Reply-To: <20080402023911.GA27360@tull.net>
+Cc: dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Afatech 9015
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,176 +27,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton wrote:
-> Hi Hartmut,
->
-> Am Freitag, den 11.04.2008, 23:23 +0200 schrieb Hartmut Hackmann:
->   
->> Hi, Hermann
->>
->> hermann pitton schrieb:
->>     
->>> Am Freitag, den 11.04.2008, 00:08 +0200 schrieb Hartmut Hackmann:
->>>       
->>>> HI, Tim
->>>>
->>>> timf schrieb:
->>>>         
->>>>> Hi Hartmut,
->>>>> OK, found some more spare time, but very, very frustrated!
->>>>>
->>>>> 1) Tried ubuntu 7.04, 7.10, 8.04
->>>>>     Tried with just modules that exist in kernel (no v4l-dvb)
->>>>>    Tried v4l-dvb from June 2007 and tried current v4l-dvb
->>>>>    Tried with/without Hartmut patch - changeset 7376    49ba58715fe0
->>>>>    Tried with .gpio_config   = TDA10046_GP11_I, or .gpio_config   = 
->>>>> TDA10046_GP01_I,
->>>>>    Tried using configs in saa7134-dvb.c matching tiger, tiger_s, 
->>>>> pinnacle 310i, twinhan 3056
->>>>>
->>>>>     # Australia / Perth (Roleystone transmitter)
->>>>>     # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->>>>>     # SBS
->>>>>     T 704500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
->>>>>     # ABC
->>>>>     T 725500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>>>     # Seven
->>>>>     T 746500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
->>>>>     # Nine
->>>>>     T 767500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>>>     # Ten
->>>>>     T 788500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>>>
->>>>> 2) I have these saa7134 cards:
->>>>>     - pinnacle 310i
->>>>>     - kworld 210
->>>>>
->>>>>     This cx88 card:
->>>>>     - dvico DVB-T Pro hybrid (analog tv not work)
->>>>>
->>>>> -   problem only occurs with kworld 210 in linux (works fine in WinXP)
->>>>>
->>>>> 3) In WinXP, all channels, both analog tv and dvb-t found
->>>>>
->>>>> 4) In linux, if start dvb-t first, never scans SBS - dmesg1
->>>>>
->>>>> 5) In linux, if start analog tv first, stop, then start dvb-t, scan 
->>>>> finds SBS - dmesg2
->>>>>
->>>>>           
->>>> a) The pinnacle 310i finds everything?
->>>>     It has the same chipset, but an almost perfectly handled tuner chip...
->>>>     This means that your initial config file is ok...
->>>> b) Does this mean that in case 4, all other channels are found?
->>>> c) Case 5: This finds everything?
->>>> d) What happens if you use the scan data of the pinnacle card?
->>>>     Does it tune SBS? Does it just take more time to stabilize?
->>>>     This can be understood.
->>>> e) Just to be sure: did you clarify the open point with .antenna_switch
->>>>     (i think so)
->>>> f) the kernel logs are as expected.
->>>> <snip>
->>>>
->>>>
->>>>         
->>>>> 6) Herman mentioned something called a "mode-switch" in the archives, 
->>>>> but not any description.
->>>>>           
->>>> I guess he meant the switching between analog, radio and dvb-t. This is the
->>>> GPIO handling and card depending.
->>>>         
->>> Tim must have it from when I mentioned the special case of card=87 and
->>> 94.
->>>
->>>       
->>>>> I tried to find some data sheets for tda8275 tda8290 but only found the 
->>>>> publicity pdf file from Phillips,
->>>>> so at least I can see they go together, so I presume this "mode-switch" 
->>>>> is coded into those modules.
->>>>> But those modules work for all other cards, so now I'm lost again.
->>>>>
->>>>> What else should I try?
->>>>>
->>>>>           
->>>> If my assumptions above are wrong, there is one other chance:
->>>> Recently i saw another card that does the (unusual) mode switching
->>>> like card 87. So to be sure, you might try to force this card type (be
->>>> aware of the antenna inputs, if in doubt, try both.
->>>>
->>>> Best regards
->>>>    Hartmut
->>>>
->>>>         
->>> For the Medion8800 Quad and CTX948 also showing this issue, needs to
->>> tune analog first to have good recepton on DVB-T, they are a little
->>> weaker on analog than other cards, but after that on DVB-T, they are as
->>> good than known good others.
->>>
->>> Cheers,
->>> Hermann
->>>
->>>       
->> Is this problem still there with the recent v4l-dvb code?
->> I found a problem with the GPIO initialization and fixed
->> this in patch 49ba58715fe0 3 weeks ago (The gpiomask was
->> not set until analog tuning occured).
->>
->> Best regards
->>    Hartmut
->>     
->
-> argh, my DVB-T signal can not be split much, so I left that other
-> machine with DVB-S, cable-tv and the empress almost untouched during the
-> last weeks and without DVB-T.
->
-> diff -r 1e295a94038e -r 49ba58715fe0 linux/drivers/media/video/saa7134/saa7134-core.c
-> --- a/linux/drivers/media/video/saa7134/saa7134-core.c  Mon Mar 03 22:55:05 2008 +0100
-> +++ b/linux/drivers/media/video/saa7134/saa7134-core.c  Sun Mar 16 23:49:43 2008 +0100
-> @@ -960,6 +960,7 @@ static int __devinit saa7134_initdev(str
->         struct saa7134_dev *dev;
->         struct saa7134_mpeg_ops *mops;
->         int err;
-> +       int mask;
->
->         dev = kzalloc(sizeof(*dev),GFP_KERNEL);
->         if (NULL == dev)
-> @@ -1157,6 +1158,11 @@ static int __devinit saa7134_initdev(str
->         if (TUNER_ABSENT != dev->tuner_type)
->                 saa7134_i2c_call_clients(dev, TUNER_SET_STANDBY, NULL);
->
-> +       if (card(dev).gpiomask != 0) {
-> +               mask = card(dev).gpiomask;
-> +               saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   mask, mask);
-> +               saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, mask, 0);
-> +       }
->         return 0;
->
->   fail4:
->
-> It is fixed!
->
-> Thanks,
-> Hermann
->
->
->   
-Hi Hartmut and Hermann,
+moro,
+I can answer those questions
 
-Yes, this patch has already been implemented in my saa7134-core.c, only 
-differences are line numbers:
+Nick Andrew wrote:
+> G'day ausgnome,
+> 
+> On Sat, Mar 29, 2008 at 11:55:58PM +1100, ausgnome wrote:
+>> I used this tree
+>> http://linuxtv.org/hg/~anttip/af9015/
+> 
+> Did you need to modify the code at all?
 
-line 963      int mask;
+No. Driver supports also this TDA18211HDC1 tuner and used USB-IDs are 
+Afatech default ones.
+Other supported tuners are MT2060 (MT2061), QT1010 and TDA182xx -series. 
+Tuners used with AF9015 but not supported are Maxlinear MXL5003 and 
+Freescale mc44s803. Anyhow, adding support for new tuners is easy if 
+there is driver for tuner.
+I can try to add MXL5003 support if there is someone who can take some 
+usb-sniffs and test changes.
 
-line 1164    if (card(dev).gpiomask != 0) {
-                            mask = card(dev).gpiomask;
-                            saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   
-mask, mask);
-                            saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 
-mask, 0);
+> And what's your "lsusb" output?
 
+It is most likely ~same as all AF9015 devices.
 
-Regards,
-Tim
+> 
+> Nick.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
