@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FH0arK015489
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 13:00:51 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m32K7PYP022298
+	for <video4linux-list@redhat.com>; Wed, 2 Apr 2008 16:07:25 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3FGxsPn006538
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 12:59:54 -0400
-Date: Tue, 15 Apr 2008 13:59:33 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m32K7Dgd004945
+	for <video4linux-list@redhat.com>; Wed, 2 Apr 2008 16:07:13 -0400
+Date: Wed, 2 Apr 2008 17:06:29 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Toralf =?UTF-8?B?RsO2cnN0ZXI=?= <toralf.foerster@gmx.de>
-Message-ID: <20080415135933.1a85fd2e@gaivota>
-In-Reply-To: <200804061448.42888.toralf.foerster@gmx.de>
-References: <200804061448.42888.toralf.foerster@gmx.de>
+To: Brandon Philips <brandon@ifup.org>
+Message-ID: <20080402170629.30b81556@gaivota>
+In-Reply-To: <20080402185423.GA7281@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost> <20080328160946.029009d8@gaivota>
+	<20080329052559.GA4470@plankton.ifup.org>
+	<20080331153555.6adca09b@gaivota>
+	<20080331192618.GA21600@plankton.ifup.org>
+	<20080331183136.3596bfb3@gaivota>
+	<20080401031130.GA18963@plankton.ifup.org>
+	<20080401174919.4bdc3c54@gaivota>
+	<20080402185423.GA7281@plankton.ifup.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: build issue #469 for v2.6.25-rc8-166-g6fdf5e6 in pms.c :
- undefined reference to `video_usercopy'
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 9] videobuf fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,64 +34,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Toralf,
+> On saa7134 I can't start more than one application streaming at once.
+> The other application gets -EBUSY when it tries to do streamon.
 
-On Sun, 6 Apr 2008 14:48:40 +0200
-Toralf Förster <toralf.foerster@gmx.de> wrote:
+The resource lock won't let you open two applications trying to read using the
+same method.
 
-> drivers/built-in.o: In function `pms_ioctl':
-> pms.c:(.text+0x44947): undefined reference to `video_usercopy'
-> drivers/built-in.o: In function `pms_do_ioctl':
-> pms.c:(.text+0x44974): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `pms_read':
-> pms.c:(.text+0x45025): undefined reference to `video_devdata'
-> drivers/built-in.o: In function `cleanup_pms_module':
-> pms.c:(.exit.text+0x5fe): undefined reference to `video_unregister_device'
-> drivers/built-in.o: In function `init_pms_cards':
-> pms.c:(.init.text+0x610d): undefined reference to `video_register_device'
-> drivers/built-in.o:(.rodata+0x2ec8): undefined reference to `v4l_compat_ioctl32'
-> drivers/built-in.o:(.rodata+0x2ed0): undefined reference to `video_exclusive_open'
-> drivers/built-in.o:(.rodata+0x2ed8): undefined reference to `video_exclusive_release'
-> make: *** [.tmp_vmlinux1] Error 1
+> I tried with mplayer and fswebcam and combinations of them.
+> 
+> I did get fswebcam using read() and mplayer using mmap() and it worked
+> fine, although each application was only getting half the frames.
 
-Please try the enclosed patch. It should fix the issue.
+Weird. You should be able to get the entire frame on each.
+
+> How do you use ffmpeg/mencoder with v4l2 devices?  I Googled around but
+> couldn't find anything that worked.
+
+There's a small script at V4L/DVB tree, at:
+
+v4l2-apps/util/v4l_rec.pl
+
+It calls mencoder. Also there is inside a commented is a line for it usage with ffmpeg.
+
+The syntax is about the same as when you activate record inside xawtv or xdtv.
+ 
+> Updated with Jon's comments too and I just removed the copyright updates
+> for vivi- too much trouble: http://ifup.org/hg/v4l-dvb
+
+Ok, I've merged it at master.
+
+People,
+
+Please test.
 
 Cheers,
 Mauro
-
----
-Fix build when CONFIG_VIDEO_PMS=y and VIDEO_V4L2_COMMON=m
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-
-diff -r 34e5c8ed9fcb linux/drivers/media/Kconfig
---- a/linux/drivers/media/Kconfig	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/Kconfig	Tue Apr 15 13:32:54 2008 -0300
-@@ -30,7 +30,7 @@ config VIDEO_V4L2_COMMON
- 	depends on (I2C || I2C=n) && VIDEO_DEV
- 	default (I2C || I2C=n) && VIDEO_DEV
- 
--config VIDEO_V4L1
-+config VIDEO_ALLOW_V4L1
- 	bool "Enable Video For Linux API 1 (DEPRECATED)"
- 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
- 	default VIDEO_DEV && VIDEO_V4L2_COMMON
-@@ -59,9 +59,14 @@ config VIDEO_V4L1_COMPAT
- 	  If you are unsure as to whether this is required, answer Y.
- 
- config VIDEO_V4L2
--	bool
-+	tristate
- 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
- 	default VIDEO_DEV && VIDEO_V4L2_COMMON
-+
-+config VIDEO_V4L1
-+	tristate
-+	depends on VIDEO_DEV && VIDEO_V4L2_COMMON && VIDEO_ALLOW_V4L1
-+	default VIDEO_DEV && VIDEO_V4L2_COMMON && VIDEO_ALLOW_V4L1
- 
- source "drivers/media/video/Kconfig"
- 
 
 --
 video4linux-list mailing list
