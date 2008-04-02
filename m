@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1JhWnJ-0002bD-N2
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 23:16:30 +0200
-Received: from xp.homenet.telecomitalia.it (87.6.58.104) by relay-pt1.poste.it
-	(7.3.122) (authenticated as Nicola.Sabbi@poste.it)
-	id 47F41E4800014E37 for linux-dvb@linuxtv.org;
-	Thu, 3 Apr 2008 23:16:21 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
+Received: from web34403.mail.mud.yahoo.com ([66.163.178.152])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <muppetman4662@yahoo.com>) id 1JhBkM-0000pR-2F
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 00:48:02 +0200
+Date: Wed, 2 Apr 2008 15:47:15 -0700 (PDT)
+From: Muppet Man <muppetman4662@yahoo.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 3 Apr 2008 23:10:54 +0200
-References: <47F5E396.1030201@yahoo.com.hk>
-In-Reply-To: <47F5E396.1030201@yahoo.com.hk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804032310.54699.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Is the DMB-T/H being supported yet?
+Message-ID: <634346.39529.qm@web34403.mail.mud.yahoo.com>
+Subject: [linux-dvb] Audio trouble with pinnicle 800i tv card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,27 +16,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0173029667=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il Friday 04 April 2008 10:15:18 linux usr ha scritto:
-> Hi all,
-> 
-> I just read the linuxtv wiki page. I found the DMB-T/H was not on the
-> support list and i've searched the archives already. May I ask if
-> DMB-T/H being supported by linuxtv at yet? Or would it be supported in
-> the near future?
-> 
-> Thanks,
-> 
+--===============0173029667==
+Content-Type: multipart/alternative; boundary="0-36606518-1207176435=:39529"
+Content-Transfer-Encoding: 8bit
 
-AFAIK the tuning itself isn't supported, but mplayer can play DMB streams
-(with the exception that BSAC AAC streams are still undecodable)
+--0-36606518-1207176435=:39529
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+Greetings all,
+I am having some problem with audio with my pinnicale 800i card.  I have downloaded and installed the lastest drivers from the v4l-dvb website.  I have video using TVtime and I have audio, but they are out of sync by about 1 second or so.  Is there something I need to patch or change?
+Thanks for the help,
+Ed
+
+       
+---------------------------------
+You rock. That's why Blockbuster's offering you one month of Blockbuster Total Access, No Cost.
+--0-36606518-1207176435=:39529
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+Greetings all,<br>I am having some problem with audio with my pinnicale 800i card.&nbsp; I have downloaded and installed the lastest drivers from the v4l-dvb website.&nbsp; I have video using TVtime and I have audio, but they are out of sync by about 1 second or so.&nbsp; Is there something I need to patch or change?<br>Thanks for the help,<br>Ed<br><p>&#32;
+
+      <hr size=1>You rock. That's why Blockbuster's offering you <a href="http://us.rd.yahoo.com/evt=47523/*http://tc.deals.yahoo.com/tc/blockbuster/text5.com">one month of Blockbuster Total Access</a>, No Cost.
+--0-36606518-1207176435=:39529--
+
+
+--===============0173029667==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0173029667==--
