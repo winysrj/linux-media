@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1JnVTJ-0003qr-8O
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 11:04:30 +0200
-From: Dominik Kuhlen <dkuhlen@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Sun, 20 Apr 2008 11:03:55 +0200
-References: <200804190101.14457.dkuhlen@gmx.net>
-	<1208607419l.6132l.0l@manu-laptop>
-In-Reply-To: <1208607419l.6132l.0l@manu-laptop>
+Received: from fg-out-1718.google.com ([72.14.220.156])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bokola@gmail.com>) id 1Jh6uY-00050Y-NF
+	for linux-dvb@linuxtv.org; Wed, 02 Apr 2008 19:38:11 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so2386647fge.25
+	for <linux-dvb@linuxtv.org>; Wed, 02 Apr 2008 10:38:07 -0700 (PDT)
+Message-ID: <854d46170804021031w56d056e9s788b08e1b2ac9566@mail.gmail.com>
+Date: Wed, 2 Apr 2008 19:31:52 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "=?ISO-8859-1?Q?Jens_Krehbiel-Gr=E4ther?=" <linux-dvb@okg-computer.de>
+In-Reply-To: <47F3902E.6060002@okg-computer.de>
 MIME-Version: 1.0
-Message-Id: <200804201103.55265.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Re : Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
-	TT-Connect-S2-3600 final version
+Content-Disposition: inline
+References: <JQH8LK$96D0E7F415C0B19866A44914B01BB54A@libero.it>
+	<4720EEC9.7040004@gmail.com> <47F3902E.6060002@okg-computer.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Problems compiling hacked szap.c
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,75 +23,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1072161204=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1072161204==
-Content-Type: multipart/signed;
-  boundary="nextPart3637058.sHDUshAPCd";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Try the szap2
+hg clone http://linuxtv.org/hg/dvb-apps
 
---nextPart3637058.sHDUshAPCd
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+It's under test directory.
 
-Hi,
-On Saturday 19 April 2008, manu wrote:
-> On 04/18/2008 07:01:14 PM, Dominik Kuhlen wrote:
-> > Hi,
-> >=20
-> > Here is my current version after quite a while of testing and tuning:
-> > I stripped the stb0899 tuning/searching algo to speed up tuning a bit
-> > now I have very fast and reliable locks (no failures, no errors)
-> >=20
-> > I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it
-> > though.)
-> >=20
->=20
-> 	Hi,
-> I will try it right away! BTW should I substract the 4MHz you talked=20
-> about in another email when using this patch or is it already fixed by=20
-> this (I did not try yet).
-This should be fixed. The offset I liked you to test was to check whether m=
-y investigations went in the right direction ;)
-=46or DVB-S transponders I can use a frequency offset in the range from -7M=
-Hz to +7MHz=20
- and still get reliable locks. The actual frequency is reported by DVBFE_GE=
-T_PARAM ioctl=20
-which could be used to update the frequency list automagically.
+If that oesn't help try using multiproto changeset 7207 and under that
+did trick for me.
 
-Dominik
-
---nextPart3637058.sHDUshAPCd
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
-
-iD8DBQBICwb76OXrfqftMKIRAhd2AJ466ssxOgMYLGnR1HJ1Zqgm9f9DxACaAt38
-W0D06DyL8zPMxpNw3FQe0XY=
-=OeT3
------END PGP SIGNATURE-----
-
---nextPart3637058.sHDUshAPCd--
+Faruk
 
 
---===============1072161204==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, Apr 2, 2008 at 3:54 PM, Jens Krehbiel-Gr=E4ther
+<linux-dvb@okg-computer.de> wrote:
+> Hi!
+>
+>  I have problems compiling szap.c for multiproto. I use kernel 2.6.24
+>  I followed the instructions of Manu posted to the list a few months ago:
+>
+>  > Make sure you have the updated headers (frontend.h, version.h in your =
+include path)
+>  > (You need the same headers from the multiproto tree)
+>  >
+>  > wget http://abraham.manu.googlepages.com/szap.c
+>  > copy lnb.c and lnb.h from dvb-apps to the same folder where you downlo=
+aded szap.c
+>  >
+>  > cc -c lnb.c
+>  > cc -c szap.c
+>  > cc -o szap szap.o lnb.o
+>  >
+>  > That's it
+>  >
+>  > Manu
+>
+>  but it won't work.
+>
+>  I get the following error:
+>
+>  dev:/usr/src/szap# cc -c szap.c
+>  szap.c: In function 'zap_to':
+>  szap.c:368: error: 'struct dvbfe_info' has no member named 'delivery'
+>  szap.c:372: error: 'struct dvbfe_info' has no member named 'delivery'
+>  szap.c:376: error: 'struct dvbfe_info' has no member named 'delivery'
+>  szap.c:401: error: 'struct dvbfe_info' has no member named 'delivery'
+>  szap.c:412: error: 'struct dvbfe_info' has no member named 'delivery'
+>  dev:/usr/src/szap#
+>
+>  lnb.c compiles without error.
+>
+>  I have compiled szap under older kernel without error, but when I use
+>  this compiled szap now (under 2.6.24) I get the following error:
+>
+>  dev:~# szap ProSieben
+>  reading channels from file '/root/.szap/channels.conf'
+>  zapping to 208 'ProSieben':
+>  sat 0, frequency =3D 12544 MHz H, symbolrate 22000000, vpid =3D 0x01ff, =
+apid
+>  =3D 0x0200 sid =3D 0x445d
+>  Querying info .. Delivery system=3DDVB-S
+>  using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>  ioctl DVBFE_GET_INFO failed: Operation not supported
+>  dev:~#
+>
+>  I've successfully compiled multiproto drivers with the compat.h patch
+>  f=FCr 2.6.24 kernel. The modules load without errors, but I can not szap
+>  to any channel.
+>
+>  Can you help me??
+>
+>  Thanks,
+>   Jens
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1072161204==--
