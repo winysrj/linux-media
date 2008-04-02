@@ -1,31 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FEBIKJ015924
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 10:11:18 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3FEApfJ017927
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 10:11:02 -0400
-Date: Tue, 15 Apr 2008 11:10:44 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <bphilips@suse.de>
-Message-ID: <20080415111044.5ac8b719@gaivota>
-In-Reply-To: <20080415021558.GA22068@plankton.ifup.org>
-References: <patchbomb.1206699511@localhost>
-	<ab74ebf10c01d6a8a54a.1206699517@localhost>
-	<20080405131236.7c083554@gaivota>
-	<20080406080011.GA3596@plankton.ifup.org>
-	<20080407183226.703217fc@gaivota>
-	<20080408152238.GA8438@plankton.public.utexas.edu>
-	<20080408154046.36766131@gaivota>
-	<20080408204514.GA6844@plankton.public.utexas.edu>
-	<20080408183740.143c3dee@gaivota>
-	<20080415021558.GA22068@plankton.ifup.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: [PATCH 6 of 9] videobuf-vmalloc.c: Fix hack of postponing mmap
- on remap failure
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m32J0Snl032535
+	for <video4linux-list@redhat.com>; Wed, 2 Apr 2008 15:00:28 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m32IxgBW014126
+	for <video4linux-list@redhat.com>; Wed, 2 Apr 2008 14:59:50 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so3527403wfc.6
+	for <video4linux-list@redhat.com>; Wed, 02 Apr 2008 11:59:41 -0700 (PDT)
+Date: Wed, 2 Apr 2008 11:56:32 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080402185632.GA21568@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost> <20080328160946.029009d8@gaivota>
+	<20080329052559.GA4470@plankton.ifup.org>
+	<20080331153555.6adca09b@gaivota>
+	<20080331192618.GA21600@plankton.ifup.org>
+	<20080331183136.3596bfb3@gaivota>
+	<20080401031130.GA18963@plankton.ifup.org>
+	<20080401174919.4bdc3c54@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080401174919.4bdc3c54@gaivota>
+Cc: v4l-dvb-maintainer@linuxtv.org,
+	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
+	video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 9] videobuf fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,59 +37,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
+On 17:49 Tue 01 Apr 2008, Mauro Carvalho Chehab wrote:
+> On Mon, 31 Mar 2008 20:11:30 -0700
+> Brandon Philips <brandon@ifup.org> wrote:
 > 
-> Sorry for taking a while to get back to you.
-> 
-> With my patch and this little change it is possible to QBUF before
-> running mmap().  This causes dma-sg devices to use a bounce buffer if
-> QBUF is done before being mmap'd.
+> > On 18:31 Mon 31 Mar 2008, Mauro Carvalho Chehab wrote:
+> > > > > The patch is wrong. 
+> Ok. Could you please update your tree with the latest patches? I think the
+> better way is to merge they on v4l/dvb and ask more people to test.
 
-Interesting. However, I don't see much advantages of doing that, especially if
-this behaviour will work only with dma-sg drivers. I think that the better is
-to require mmap() before QBUF at V4L2 API.
+Oh, I also dropped the spin_lock patches for soc/pxa/videobuf until
+Guennadi has a chance to send in working patches for his driver.
 
-We have a bad experience with V4L1 apps that were abusing on relaxed checks at
-the API. Those apps (like vlc) first starts streaming, then changes the buffer
-size, by altering the image size. This bad behaviour is still not supported by
-V4L1 compat layer.
+ http://ifup.org/hg/v4l-dvb
 
-IMO, the V4L2 API should define the valid command order of ioctls for stream to
-work.
+Thanks,
 
-
-> The current code on em28xx-vb is canceling the entire queue when one
-> buffer is unmapped.
-
-Yes.
-
-> This is certainly not what an application would
-> expect:
-> 
-> http://linuxtv.org/hg/~mchehab/em28xx-vb/rev/e1a2b9e33bd2
-
-Hmm.. I think I got your point. It should be cancelling only the affected
-buffer. I can't see any sense of continuing the stream for the cancelled
-buffer.
- 
-> It is clear now that we need to do reference counting on the buffers.
-> 
-> Reference takers:
->  - reqbuf
->  - vm_open
->  - driver when it grabs buffer from queue
-> 
-> Reference releasers:
->  - streamoff
->  - vm_close
->  - driver when it finishes with buffer
-> 
-> Does that seem sane?  I will submit a patch tomorrow.
-
-It seems sane.
-
-Cheers,
-Mauro
+	Brandon
 
 --
 video4linux-list mailing list
