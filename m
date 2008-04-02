@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out.google.com ([216.239.33.17])
+Received: from mail11.syd.optusnet.com.au ([211.29.132.192])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dcharvey@dsl.pipex.com>) id 1JgiRB-0007RT-Bg
-	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 17:30:18 +0200
-Received: from spaceape11.eur.corp.google.com (spaceape11.eur.corp.google.com
-	[172.28.16.145]) by smtp-out.google.com with ESMTP id m31FU3fu020490
-	for <linux-dvb@linuxtv.org>; Tue, 1 Apr 2008 16:30:03 +0100
-Received: from [172.16.22.142] (dhcp-172-16-22-142.lon.corp.google.com
-	[172.16.22.142]) (authenticated bits=0)
-	by spaceape11.eur.corp.google.com with ESMTP id m31FU3XH017487
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Tue, 1 Apr 2008 16:30:03 +0100
-Message-ID: <47F254FB.8060204@dsl.pipex.com>
-Date: Tue, 01 Apr 2008 16:30:03 +0100
-From: David Harvey <dcharvey@dsl.pipex.com>
+	(envelope-from <ausgnome@optusnet.com.au>) id 1JhBRT-0007TS-Sv
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 00:28:29 +0200
+Received: from [192.168.0.14] (c211-28-205-57.frank1.vic.optusnet.com.au
+	[211.28.205.57]) (authenticated sender ausgnome)
+	by mail11.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
+	m32MSE8m021028
+	for <linux-dvb@linuxtv.org>; Thu, 3 Apr 2008 09:28:15 +1100
+Message-ID: <47F4087D.2050202@optusnet.com.au>
+Date: Thu, 03 Apr 2008 09:28:13 +1100
+From: ausgnome <ausgnome@optusnet.com.au>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] nova-t disconnects
+To: dvb <linux-dvb@linuxtv.org>
+References: <20080329024154.GA23883@localhost>
+	<47EDCE27.4050101@optusnet.com.au> <47EE1056.9050804@iki.fi>
+	<47EE3C5E.8080001@optusnet.com.au>
+	<20080402023911.GA27360@tull.net>
+In-Reply-To: <20080402023911.GA27360@tull.net>
+Subject: Re: [linux-dvb] Afatech 9015
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,35 +32,143 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Progress is being made.... a ubuntu dev has committed the fix for the 
-stock ubuntu 2.6.24 kernel so things should get better again...
+No code changes needed
 
-Does this usb problem which is being patched indicate to anyone why the 
-disconnects still happen at all given how it handles traffic?
+lsusb -v
+Bus 001 Device 005: ID 15a4:9016 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x15a4
+  idProduct          0x9016
+  bcdDevice            2.00
+  iManufacturer           1 Afatech
+  iProduct                2 DVB-T 2
+  iSerial                 3 010101010600001
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           71
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass         3 Human Interface Devices
+      bInterfaceSubClass      0 No Subclass
+      bInterfaceProtocol      1 Keyboard
+      iInterface              0
+        HID Device Descriptor:
+          bLength                 9
+          bDescriptorType        33
+          bcdHID               1.01
+          bCountryCode            0 Not supported
+          bNumDescriptors         1
+          bDescriptorType        34 Report
+          wDescriptorLength      65
+         Report Descriptors:
+           ** UNAVAILABLE **
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval              16
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
 
-------------------------------------------------------------------------
-
-Subject:
-[Bug 204857] Re: USB port disabled by hup (EMI? re enabling)
-From:
-Tim Gardner <tim.gardner@canonical.com>
-Date:
-Tue, 01 Apr 2008 14:14:28 -0000
-
-To:
-dcharvey@dsl.pipex.com
-
-
-Cherry-picked b5f7a0ec11694e60c99d682549dfaf8a03d7ad97 from Linus' tree.
-
-** Changed in: linux (Ubuntu)
-     Assignee: (unassigned) => Tim Gardner (timg-tpi)
-       Status: Confirmed => Fix Committed
-       Target: later => ubuntu-8.04
-
--- USB port disabled by hup (EMI? re enabling) 
-https://bugs.launchpad.net/bugs/204857 You received this bug 
-notification because you are a direct subscriber of the bug.
+Nick Andrew wrote:
+> G'day ausgnome,
+>
+> On Sat, Mar 29, 2008 at 11:55:58PM +1100, ausgnome wrote:
+>   
+>> I used this tree
+>> http://linuxtv.org/hg/~anttip/af9015/
+>>     
+>
+> Did you need to modify the code at all?
+>
+> And what's your "lsusb" output?
+>
+> Nick.
+>
+>   
 
 
 _______________________________________________
