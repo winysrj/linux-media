@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JkTLz-0000C3-K5
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 02:12:24 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sat, 12 Apr 2008 02:11:26 +0200
-References: <47F9E95D.6070705@yahoo.de> <47FB1E3B.2000307@yahoo.de>
-In-Reply-To: <47FB1E3B.2000307@yahoo.de>
+Received: from pne-smtpout3-sn2.hy.skanova.net ([81.228.8.111])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1JhFUY-00033X-Uc
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 04:47:55 +0200
+Message-ID: <47F44538.2090508@iki.fi>
+Date: Thu, 03 Apr 2008 05:47:20 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804120211.27274@orion.escape-edv.de>
-Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot polling
-Reply-To: linux-dvb@linuxtv.org
+To: rvm <rvm3000@gmail.com>
+References: <f474f5b70804021720i7926ea17q77b3ef551fb0841f@mail.gmail.com>
+In-Reply-To: <f474f5b70804021720i7926ea17q77b3ef551fb0841f@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle PCTV 71e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,35 +25,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Robert Schedel wrote:
-> Hello all,
-> 
-> meanwhile I also found old threads from August 2007 and earlier, named 
-> "System load raises when budget_av is loaded" and "System load raises 
-> when budget_av is loaded", which describe exactly the same issue. 
-> However, both were written before the latest code changes.
-> 
-> The latest debi_done code change from November 2007 does not use any 
-> DEBI_E checks anymore. To my understanding this SAA7146 event indicates 
->   DEBI errors like timeout via PCI and should be received by the driver 
->   much earlier than those 250ms (=end of cycle). Seems like I have to 
-> play around with this myself.
+rvm wrote:
+> Isn't still possible to use the Pinnacle PCTV 71e in linux?
 
-IIRC there was a problem with the DEBI_E flag but I don't remember what
-it was exactly.
+Yes, it is.
+http://linuxtv.org/hg/~anttip/af9015/
 
-> Time for a bugzilla ticket?
-
-You can do this if you prefer (but this will neither fix the bug nor
-have any other positive effect).
-
-CU
-Oliver
-
+regards
+Antti
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
