@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3EBKt34007853
-	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 07:20:55 -0400
-Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3EBKiC4019699
-	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 07:20:45 -0400
-Received: by mu-out-0910.google.com with SMTP id w8so848846mue.1
-	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 04:20:44 -0700 (PDT)
-Message-ID: <461039140804140420q1fcce3eexad090ce78e3e497e@mail.gmail.com>
-Date: Mon, 14 Apr 2008 12:20:44 +0100
-From: "Jaime Velasco" <jsagarribay@gmail.com>
-To: "Stefan Herbrechtsmeier" <hbmeier@hni.uni-paderborn.de>
-In-Reply-To: <48030F6F.1040007@hni.uni-paderborn.de>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m33KFQMY003102
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 16:15:26 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m33KFB5C027429
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 16:15:12 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JhVq1-00007T-48
+	for video4linux-list@redhat.com; Thu, 03 Apr 2008 20:15:09 +0000
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 03 Apr 2008 20:15:09 +0000
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 03 Apr 2008 20:15:09 +0000
+To: video4linux-list@redhat.com
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Thu, 03 Apr 2008 13:14:56 -0700
+Message-ID: <pan.2008.04.03.20.14.56.901338@gimpelevich.san-francisco.ca.us>
+References: <20080401190033.68c821ed@tux.abusar.org.br>
+	<1207093795.16537.4.camel@localhost.localdomain>
+	<20080402183820.6c917a0a@tux.abusar.org.br>
+	<1207204144.2386.1.camel@localhost.localdomain>
+	<20080403144456.1e6bf438@tux.abusar.org.br>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48030F6F.1040007@hni.uni-paderborn.de>
-Cc: video4linux-list@redhat.com
-Subject: Re: OmniVision OV9655 camera chip via soc-camera interface
+Content-Transfer-Encoding: 8bit
+Subject: Re: Remote controller for Powercolor Real Angel 330
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,30 +39,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, Stefan,
+On Thu, 03 Apr 2008 15:44:56 -0300, Dâniel Fraga wrote:
 
-2008/4/14, Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>:
-> Hi,
->
->  I'm writing a driver for the OmniVision OV9655 camera chip connected to a
-> PXA270 processor. I based my work on the soc_camera interface, but I need
-> some additional gpios for reset and power_enable. What is the best way to
-> pass this information to the driver?
->
+> 3) the changes already merged in the v4l-dvb tree are:
 
-I don't know about soc_camera, but the stkwebcam driver has code to drive
-the ov9650 sensors. I'd like to use some generic interface in it, instead of the
-current code. IIRC, Mauro suggested v4l2-int-device when the driver
-was submitted.
-Do you think your work could be used by stkwebcam? note that I don't know much
-about the syntek camera controller, and stkwebcam is a reverse
-engineered driver.
-
-Anyway, maybe the code in drivers/media/video/stk-sensor.c is useful for you, so
-feel free to use it if you want.
-
-Regards,
-Jaime
+Those changes are wrong, especially WRT gpio2, which carries the IR
+signal. It's possible that I may be able to order a PSU for the box
+containing my RA330 today or tomorrow. After that, I may be able to port
+my patch to the current tree. In the meantime, download
+http://www.mcentral.de/hg/~mrec/v4l-dvb-experimental/archive/tip.tar.gz
+and apply my patch at: http://pastebin.com/f44a13031
+Then, you can closely examine the differences between the working code and
+the development tree yourselves, thereby gaining a head start in porting
+to the active development tree over me. It's possible that you may even
+get everything working based on that before I even get to it.
 
 --
 video4linux-list mailing list
