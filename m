@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx.zycomm.uk.net ([80.247.17.101] helo=foxbat.zycomm.uk.net)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cpwp@w3z.co.uk>) id 1JnXVU-0001oi-K6
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 13:14:53 +0200
-From: Charles Price <cpwp@w3z.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Sun, 20 Apr 2008 12:14:47 +0100
+	(envelope-from <nico@youplala.net>) id 1JhQXj-0005pM-AO
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 16:35:57 +0200
+To: Patrick Boettcher <patrick.boettcher@desy.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804201214.48003.cpwp@w3z.co.uk>
-Subject: [linux-dvb] Nova-HD-S2
+Date: Thu, 3 Apr 2008 16:34:51 +0200
+From: Nicolas Will <nico@youplala.net>
+In-Reply-To: <Pine.LNX.4.64.0804031239270.32323@pub6.ifh.de>
+References: <Pine.LNX.4.64.0804031239270.32323@pub6.ifh.de>
+Message-ID: <dcea024eb3adc84c0c4fad28d374f3e6@localhost>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+	=?utf-8?q?Nova-T_500_disconnects_-_solved=3F_-_YES!?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,36 +26,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-I'm attempting to get my Hauppauge Nova-HD-S2 working on my Linux machine.
 
-When I follow the installation instructions for the HVR4000 (no multifrontend, 
-no multiproto)I encounter the following error message when the system tries 
-to load the videodev module:
 
-WARNING: Error inserting v4l1_compat 
-(/lib/modules/2.6.25-gentoo/kernel/drivers/media/video/v4l1-compat.ko): 
-Invalid argument
-FATAL: Error inserting videodev 
-(/lib/modules/2.6.25-gentoo/kernel/drivers/media/video/videodev.ko): Invalid 
-module format
+On Thu, 3 Apr 2008 12:42:17 +0200 (CEST), Patrick Boettcher
+<patrick.boettcher@desy.de> wrote:
+> Hi,
+> 
+> I was following the discussion silently, because I wanted to see the
+> information which lead me to the solution. Indeed I was wondering, that
+> there was no change recently in the dib0700-module - so it must have been
+> something else, but what.
+> 
+> Glad to see there is now a solution - I never could have found this one.
+> 
+> Sorry for not replying earlier, but I really had nothing to say.
 
-The commands I used to build the modules are:
+Thanks for the update.
 
-hg clone -r 127f67dea087 http://linuxtv.org/hg/v4l-dvb
-wget http://dev.kewl.org/hauppauge/v4l-dvb-hg-sfe-latest.diff
-patch -d v4l-dvb -p1 < v4l-dvb-hg-sfe-latest.diff
-cd v4l-dvb && make && make install && reboot
 
-My system is x86, with 2.6.25-gentoo kernel, gcc-4.2.3 and glibc-2.7-r1 
-although I've also tried kernel 2.6.24-gentoo-r2.
+Nico
 
-Any suggestions as to what I might try next? A vanilla kernel maybe?
-
-Thanks,
-
-Charlie
 
 _______________________________________________
 linux-dvb mailing list
