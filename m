@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1Jgob5-00074t-CR
-	for linux-dvb@linuxtv.org; Wed, 02 Apr 2008 00:04:52 +0200
-Received: by nf-out-0910.google.com with SMTP id d21so939683nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 01 Apr 2008 15:04:47 -0700 (PDT)
-Message-ID: <47F2B17C.6020604@googlemail.com>
-Date: Tue, 01 Apr 2008 23:04:44 +0100
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1JhKQ4-0007i7-9n
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 10:03:38 +0200
+Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 47F41E480000760C for linux-dvb@linuxtv.org;
+	Thu, 3 Apr 2008 10:03:30 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH] SET_BUFFER_SIZE awaiting feedbacks
+Date: Thu, 3 Apr 2008 10:05:31 +0200
+References: <25709347.2350411207167811091.JavaMail.www@wwinf4612>
+In-Reply-To: <25709347.2350411207167811091.JavaMail.www@wwinf4612>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200804031005.31873.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] Can't record transport stream - Error:
+	cx8802_start_dma() Failed. Unsupported value in .mpeg (0x00000001)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,33 +30,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Wednesday 02 April 2008 22:23:31 Abdou NIANG wrote:
 
-I was just wondering if anybody had time to check the 2 patches I posted a couple of weeks ago.
+> But when i try to record an entire Transport Stream with dvbstream
+> like this:
+>
+> $ dvbstream 8192 -o > test.ts
+>
+> My output file "test.ts" is always empty. When i try to see
+> kernel's messages i've:
 
-Both patches are about DMX_SET_BUFFER_SIZE
 
-1) Patch number 1 is to fix a bug when shrinking the demux buffer. This bug causes the kernel to
-crash completely
-
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024828.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024833.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024839.html
-
-2) The second patch is about the implementation of the ioctl DMX_SET_BUFFER_SIZE for the dvr.
-The ioctl call is currently available but not implemented.
-Currently the default is 192522 which lasts only about 1 sec when saving the whole TS.
-
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024829.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024834.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024840.html
-
-Is it possible for the maintainers of the dvb-core (btw, who are they exactly?) to check them?
-
-Looking forward to receiving feedbacks.
-
-Andrea
-
+dvbstream  -f FREQ -bw BW   -o 8192 > test.ts
 
 _______________________________________________
 linux-dvb mailing list
