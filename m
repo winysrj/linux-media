@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.188])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.pena.perez@gmail.com>) id 1Jp9XR-0000Xv-4q
-	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 00:04:02 +0200
-Received: by rn-out-0910.google.com with SMTP id i6so1551849rng.2
-	for <linux-dvb@linuxtv.org>; Thu, 24 Apr 2008 15:03:29 -0700 (PDT)
-Message-ID: <28a25ce0804241503r54144f6o163edf0c9a7b93e9@mail.gmail.com>
-Date: Fri, 25 Apr 2008 00:03:28 +0200
-From: "=?ISO-8859-1?Q?Rom=E1n?=" <roman.pena.perez@gmail.com>
+Received: from web25404.mail.ukl.yahoo.com ([217.12.10.138])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dirk_vornheder@yahoo.de>) id 1JhLhZ-0005hW-Ei
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 11:25:46 +0200
+Date: Thu, 3 Apr 2008 09:25:11 +0000 (GMT)
+From: Dirk Vornheder <dirk_vornheder@yahoo.de>
 To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_3484_4540216.1209074608415"
-Subject: Re: [linux-dvb] m920x device: Genius TVGo DVB-T02Q (working driver
-	v 0.0.1 ; -)
+Message-ID: <921202.4036.qm@web25404.mail.ukl.yahoo.com>
+Subject: Re: [linux-dvb] Terratec Cinery HT Express: It works !
+Reply-To: dirk_vornheder@yahoo.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,245 +17,147 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============2121893183=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_3484_4540216.1209074608415
-Content-Type: text/plain; charset=ISO-8859-1
+--===============2121893183==
+Content-Type: text/html; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-Hello List,
+<table cellspacing=3D'0' cellpadding=3D'0' border=3D'0' ><tr><td style=3D'f=
+ont: inherit;'>Hi !<BR><BR>The card doesn't work here:<BR><BR>Apr&nbsp; 2 1=
+0:31:46 pclap kernel: usb 5-7: new high speed USB device using <BR>ehci_hcd=
+ and address 7<BR>Apr&nbsp; 2 10:31:46 pclap kernel: usb 5-7: configuration=
+ #1 chosen from 1 choice<BR>Apr&nbsp; 2 10:31:46 pclap kernel: dib0700: loa=
+ded with support for 7 different <BR>device-types<BR>Apr&nbsp; 2 10:31:46 p=
+clap kernel: dvb-usb: found a 'Terratec Cinergy HT Express' <BR>in cold sta=
+te, will try to load a firmware<BR>Apr&nbsp; 2 10:31:46 pclap kernel: dvb-u=
+sb: downloading firmware from <BR>file 'dvb-usb-dib0700-1.10.fw'<BR>Apr&nbs=
+p; 2 10:31:47 pclap kernel: dib0700: firmware started successfully.<BR>Apr&=
+nbsp; 2 10:31:47 pclap kernel: dvb-usb: found a 'Terratec Cinergy HT Expres=
+s' <BR>in warm state.<BR>Apr&nbsp; 2 10:31:47 pclap kernel: i2c-adapter i2c=
+-1: SMBus Quick command not <BR>supported, can't probe for
+ chips<BR>Apr&nbsp; 2 10:31:47 pclap kernel: dvb-usb: will pass the complet=
+e MPEG2 transport <BR>stream to the software demuxer.<BR>Apr&nbsp; 2 10:31:=
+47 pclap kernel: DVB: registering new adapter (Terratec Cinergy <BR>HT Expr=
+ess)<BR>Apr&nbsp; 2 10:31:47 pclap kernel: i2c-adapter i2c-2: SMBus Quick c=
+ommand not <BR>supported, can't probe for chips<BR>Apr&nbsp; 2 10:31:47 pcl=
+ap kernel: DVB: registering frontend 0 (DiBcom 7000PC)...<BR>Apr&nbsp; 2 10=
+:31:47 pclap udevd-event[5177]: run_program: '/sbin/modprobe' <BR>abnormal =
+exit<BR><BR>If the card is inserted during reboot of the laptop i get the f=
+ollowing<BR><BR>messages:<BR><BR>Apr&nbsp; 2 12:35:18 (none) kernel: Blueto=
+oth: Core ver 2.11<BR>Apr&nbsp; 2 12:35:18 (none) kernel: NET: Registered p=
+rotocol family 31<BR>Apr&nbsp; 2 12:35:18 (none) kernel: Bluetooth: HCI dev=
+ice and connection manager <BR>initialized<BR>Apr&nbsp; 2 12:35:18 (none) k=
+ernel: Bluetooth: HCI socket layer initialized<BR>Apr&nbsp; 2
+ 12:35:18 (none) kernel: Bluetooth: BlueFRITZ! USB driver ver 1.1<BR>Apr&nb=
+sp; 2 12:35:18 (none) kernel: usb 5-3: new high speed USB device using <BR>=
+ehci_hcd and address 3<BR>Apr&nbsp; 2 12:35:18 (none) kernel: usb 5-3: conf=
+iguration #1 chosen from 1 choice<BR>Apr&nbsp; 2 12:35:18 (none) kernel: hu=
+b 5-3:1.0: USB hub found<BR>Apr&nbsp; 2 12:35:18 (none) kernel: hub 5-3:1.0=
+: 4 ports detected<BR>Apr&nbsp; 2 12:35:18 (none) kernel: usb 5-7: new high=
+ speed USB device using <BR>ehci_hcd and address 4<BR>Apr&nbsp; 2 12:35:18 =
+(none) kernel: usb 5-7: configuration #1 chosen from 1 choice<BR>Apr&nbsp; =
+2 12:35:18 (none) kernel: usbcore: registered new interface driver bfusb<BR=
+>Apr&nbsp; 2 12:35:18 (none) kernel: usb 1-2: new full speed USB device usi=
+ng <BR>uhci_hcd and address 4<BR>Apr&nbsp; 2 12:35:18 (none) kernel: dib070=
+0: loaded with support for 7 different <BR>device-types<BR>Apr&nbsp; 2 12:3=
+5:18 (none) kernel: usb 1-2: configuration #1 chosen from 1
+ choice<BR>Apr&nbsp; 2 12:35:18 (none) kernel: usb 5-3.1: new high speed US=
+B device using <BR>ehci_hcd and address 5<BR>Apr&nbsp; 2 12:35:18 (none) ke=
+rnel: EXT3 FS on sda6, internal journal<BR>Apr&nbsp; 2 12:35:18 (none) kern=
+el: usb 5-3.1: configuration #1 chosen from 1 <BR>choice<BR>Apr&nbsp; 2 12:=
+35:18 (none) kernel: device-mapper: ioctl: 4.12.0-ioctl (2007-10-02) <BR>in=
+itialised: <A href=3D"http://de.mc254.mail.yahoo.com/mc/compose?to=3Ddm-dev=
+el@redhat.com" ymailto=3D"mailto:dm-devel@redhat.com"><FONT color=3D#003399=
+>dm-devel@redhat.com</FONT></A><BR>Apr&nbsp; 2 12:35:18 (none) kernel: Init=
+ializing USB Mass Storage driver...<BR>Apr&nbsp; 2 12:35:18 (none) kernel: =
+usb 5-3.2: new low speed USB device using <BR>ehci_hcd and address 6<BR>Apr=
+&nbsp; 2 12:35:18 (none) kernel: usb 5-3.2: configuration #1 chosen from 1 =
+<BR>choice<BR>Apr&nbsp; 2 12:35:18 (none) kernel: dvb-usb: found a 'Terrate=
+c Cinergy HT Express' <BR>in cold state, will try to load a
+ firmware<BR>Apr&nbsp; 2 12:35:18 (none) kernel: dvb-usb: downloading firmw=
+are from <BR>file 'dvb-usb-dib0700-1.10.fw'<BR>Apr&nbsp; 2 12:35:18 (none) =
+kernel: dib0700: firmware started successfully.<BR>Apr&nbsp; 2 12:35:18 (no=
+ne) kernel: dvb-usb: found a 'Terratec Cinergy HT Express' <BR>in warm stat=
+e.<BR>Apr&nbsp; 2 12:35:18 (none) kernel: dvb-usb: will pass the complete M=
+PEG2 transport <BR>stream to the software demuxer.<BR>Apr&nbsp; 2 12:35:18 =
+(none) kernel: DVB: registering new adapter (Terratec Cinergy <BR>HT Expres=
+s)<BR>Apr&nbsp; 2 12:35:18 (none) kernel: DVB: registering frontend 0 (DiBc=
+om 7000PC)...<BR>Apr&nbsp; 2 12:35:18 (none) kernel: BUG: unable to handle =
+kernel NULL pointer <BR>dereference at virtual address 00000388<BR>Apr&nbsp=
+; 2 12:35:18 (none) kernel: printing eip: f8993925 *pde =3D 00000000 <BR>Ap=
+r&nbsp; 2 12:35:18 (none) kernel: Oops: 0000 [#1] SMP <BR>Apr&nbsp; 2 12:35=
+:18 (none) kernel: Modules linked in: tuner_xc2028 usbmouse
+ <BR>usb_storage dm_mod md_mod dvb_usb_dib0700 dib7000p dib7000m dvb_usb dv=
+b_core <BR>dib3000mc dibx000_common dib0070 bfusb bluetooth serial_cs snd_h=
+da_intel <BR>snd_pcm snd_timer snd_page_alloc snd_hwdep pcmcia ehci_hcd nvi=
+dia(P) uhci_hcd <BR>ohci1394 snd yenta_socket ieee1394 backlight rsrc_nonst=
+atic usbcore thermal <BR>pcmcia_core i2c_i801 container output soundcore i2=
+c_core rng_core battery ac <BR>processor button pcspkr joydev evdev<BR>Apr&=
+nbsp; 2 12:35:18 (none) kernel: <BR>Apr&nbsp; 2 12:35:18 (none) kernel: Pid=
+: 2082, comm: modprobe Tainted: P&nbsp; &nbsp; &nbsp; &nbsp; <BR>(2.6.24.4 =
+#1)<BR>Apr&nbsp; 2 12:35:18 (none) kernel: EIP: 0060:[&lt;f8993925&gt;] EFL=
+AGS: 00010206 CPU: 0<BR>Apr&nbsp; 2 12:35:18 (none) kernel: EIP is at xc202=
+8_attach+0x177/0x1ca <BR>[tuner_xc2028]<BR>Apr&nbsp; 2 12:35:18 (none) kern=
+el: EAX: 00000880 EBX: f899750c ECX: ffffffff EDX: <BR>00000200<BR>Apr&nbsp=
+; 2 12:35:18 (none) kernel: ESI: f8995bf0 EDI: f76071d8 EBP:
+ f74f9d28 ESP: <BR>f74f9d00<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; DS=
+: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068<BR>Apr&nbsp; 2 12:35:18 (none) k=
+ernel: Process modprobe (pid: 2082, ti=3Df74f8000 <BR>task=3Df709a000 task.=
+ti=3Df74f8000)<BR>Apr&nbsp; 2 12:35:18 (none) kernel: Stack: f74f9d20 f70ab=
+754 f70ab754 f70ab790 <BR>f74f9d28 f8a24238 f7607000 f70ab754 <BR>Apr&nbsp;=
+ 2 12:35:18 (none) kernel:&nbsp; &nbsp; &nbsp; &nbsp; f70ab754 f70ab790 f74=
+f9d38 f8a1ea16 <BR>f8a1fea4 f70ab754 f74f9d50 f892de29 <BR>Apr&nbsp; 2 12:3=
+5:18 (none) kernel:&nbsp; &nbsp; &nbsp; &nbsp; f70ab7a0 f70ab000 f70ab754 f=
+70ab000 <BR>f74f9d98 f892d8d1 f892f2bd f8a203f0 <BR>Apr&nbsp; 2 12:35:18 (n=
+one) kernel: Call Trace:<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;=
+c0104ed7&gt;] show_trace_log_lvl+0x1a/0x2f<BR>Apr&nbsp; 2 12:35:18 (none) k=
+ernel:&nbsp; [&lt;c0104f87&gt;] show_stack_log_lvl+0x9b/0xa3<BR>Apr&nbsp; 2=
+ 12:35:18 (none) kernel:&nbsp; [&lt;c0105036&gt;]
+ show_registers+0xa7/0x179<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&l=
+t;c010521e&gt;] die+0x116/0x1e1<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp=
+; [&lt;c011a09d&gt;] do_page_fault+0x425/0x500<BR>Apr&nbsp; 2 12:35:18 (non=
+e) kernel:&nbsp; [&lt;c02fa37a&gt;] error_code+0x72/0x78<BR>Apr&nbsp; 2 12:=
+35:18 (none) kernel:&nbsp; [&lt;f8a1ea16&gt;] stk7700ph_tuner_attach+0x5f/0=
+x88 <BR>[dvb_usb_dib0700]<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt=
+;f892de29&gt;] <BR>dvb_usb_adapter_frontend_init+0xc4/0xe8 [dvb_usb]<BR>Apr=
+&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;f892d8d1&gt;] dvb_usb_device_in=
+it+0x467/0x54a <BR>[dvb_usb]<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [=
+&lt;f8a1e415&gt;] dib0700_probe+0x28/0x53 <BR>[dvb_usb_dib0700]<BR>Apr&nbsp=
+; 2 12:35:18 (none) kernel:&nbsp; [&lt;f88d3715&gt;] usb_probe_interface+0x=
+b4/0xe6 <BR>[usbcore]<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;c02=
+21cb5&gt;] driver_probe_device+0xc8/0x14c<BR>Apr&nbsp; 2 12:35:18
+ (none) kernel:&nbsp; [&lt;c0221e50&gt;] __driver_attach+0x69/0x9f<BR>Apr&n=
+bsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;c022123a&gt;] bus_for_each_dev+0x=
+3b/0x5d<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;c0221b2d&gt;] dri=
+ver_attach+0x19/0x1b<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;c022=
+1541&gt;] bus_add_driver+0x76/0x191<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&=
+nbsp; [&lt;c022202d&gt;] driver_register+0x5e/0x63<BR>Apr&nbsp; 2 12:35:18 =
+(none) kernel:&nbsp; [&lt;f88d32fe&gt;] usb_register_driver+0x73/0xda <BR>[=
+usbcore]<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;f8888030&gt;] di=
+b0700_module_init+0x30/0x4d <BR>[dvb_usb_dib0700]<BR>Apr&nbsp; 2 12:35:18 (=
+none) kernel:&nbsp; [&lt;c0140d7d&gt;] sys_init_module+0x1420/0x14ea<BR>Apr=
+&nbsp; 2 12:35:18 (none) kernel:&nbsp; [&lt;c0103f06&gt;] sysenter_past_esp=
++0x5f/0x85<BR>Apr&nbsp; 2 12:35:18 (none) kernel:&nbsp; =3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<BR>Apr&nbsp; 2 12:35:18=
+ (none) kernel: Code: e9 5f 99 f8 e8 dd
+ 10 79 c7 8b 7d f0 be 24 <BR>5b 99 f8 b9 33 00 00 00 81 c7 0c 01 00 00 f3 a=
+5 8b 53 0c 83 c9 ff 8a 43 08 85 <BR>d2 74 06 &lt;8b&gt; 8a 88 01 00 00 0f b=
+6 c0 c7 44 24 10 07 60 99 f8 89 44 24 0c <BR>Apr&nbsp; 2 12:35:18 (none) ke=
+rnel: EIP: [&lt;f8993925&gt;] xc2028_attach+0x177/0x1ca <BR>[tuner_xc2028] =
+SS:ESP 0068:f74f9d00<BR>Apr&nbsp; 2 12:35:18 (none) kernel: ---[ end trace =
+d804f6c9dc20afd5 ]---<BR><BR>I use openSUSE 10.3 and Kernel 2.6.24.4 !<BR><=
+BR>Dirk<BR></td></tr></table><br>=0A      <hr size=3D1>=0AGesendet von <a  =
+=0Ahref=3D"http://us.rd.yahoo.com/mailuk/taglines/isp/control/*http://us.rd=
+.yahoo.com/evt=3D52427/*http://de.overview.mail.yahoo.com" target=3D_blank>=
+Yahoo! Mail</a>.=0A<br>=0ADem pfiffigeren Posteingang.
 
-Here they are. The last m920x patch, together with the last firmware I
-dumped, for supporting the Genius/KYE TVGo T02Q, V2.0 (Please note
-this is not the same device as the T02Q-MCE, nor as the T02Pro).
-The patch contains some code intended to make the remote controller
-work, but it's still useless (apart from turning that disturbing blue
-light on ;-). Neither do work hardware pids. But nonetheless, it's
-possible to watch TV.
 
-For newbies, these are the installation steps:
-------
-
-# install hg (debian/ubuntu: as root, "aptitude install mercurial")
-# and get the last repository code:
-hg clone http://linuxtv.org/hg/v4l-dvb
-
-# apply the patch, compile and install
-cd v4l-dvb
-hg patch "<path to file>"/dvb_guay_20080424.diff
-make rmmod    # (as root)
-make
-make install    # (as root)
-
-# install firmware file (as root) (destination path may vary)
-cp "<path to file>"/dvb-usb-tvgo-t02qv2-03.fw  /lib/firmware/$(uname -r)/
-
-------
-And then plug the device in and test it (dmesg, tzap, scan, mplayer,
-xine, klear, etc.).
-
-
-
-Regards,
-
---=20
-
- Rom=E1n
-
-------=_Part_3484_4540216.1209074608415
-Content-Type: application/octet-stream; name=dvb-usb-tvgo-t02qv2-03.fw
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fffujjuv0
-Content-Disposition: attachment; filename=dvb-usb-tvgo-t02qv2-03.fw
-
-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
-------=_Part_3484_4540216.1209074608415
-Content-Type: text/x-diff; name=dvb_guay_20080424.diff
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fffuk1471
-Content-Disposition: attachment; filename=dvb_guay_20080424.diff
-
-ZGlmZiAtciA2YWE2NjU2ODUyY2IgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmIt
-dXNiLWlkcy5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi1p
-ZHMuaAlXZWQgQXByIDE2IDEzOjEzOjE1IDIwMDggLTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5oCVRodSBBcHIgMjQgMjI6NDU6NTMgMjAwOCAr
-MDIwMApAQCAtODMsNiArODMsNyBAQAogI2RlZmluZSBVU0JfUElEX0RQT1NIX005MjA2X0NPTEQJ
-CQkweDkyMDYKICNkZWZpbmUgVVNCX1BJRF9EUE9TSF9NOTIwNl9XQVJNCQkJMHhhMDkwCiAjZGVm
-aW5lIFVTQl9QSURfVU5JV0lMTF9TVEs3NzAwUAkJCTB4NjAwMworI2RlZmluZSBVU0JfUElEX0dF
-TklVU19EVkJUX1RWR09fVDAyUQkJCTB4NzAyYgogI2RlZmluZSBVU0JfUElEX0dSQU5EVEVDX0RW
-QlRfVVNCX0NPTEQJCQkweDBmYTAKICNkZWZpbmUgVVNCX1BJRF9HUkFORFRFQ19EVkJUX1VTQl9X
-QVJNCQkJMHgwZmExCiAjZGVmaW5lIFVTQl9QSURfS1dPUkxEX1ZTVFJFQU1fQ09MRAkJCTB4MTdk
-ZQpkaWZmIC1yIDZhYTY2NTY4NTJjYiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL205
-MjB4LmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9tOTIweC5jCVdlZCBB
-cHIgMTYgMTM6MTM6MTUgMjAwOCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9k
-dmItdXNiL205MjB4LmMJVGh1IEFwciAyNCAyMjo0NTo1MyAyMDA4ICswMjAwCkBAIC0xMSwxMSAr
-MTEsMTMgQEAKIAogI2luY2x1ZGUgIm05MjB4LmgiCiAKKyNpbmNsdWRlICJtdDIwNjAuaCIKICNp
-bmNsdWRlICJtdDM1Mi5oIgogI2luY2x1ZGUgIm10MzUyX3ByaXYuaCIKICNpbmNsdWRlICJxdDEw
-MTAuaCIKICNpbmNsdWRlICJ0ZGExMDA0eC5oIgogI2luY2x1ZGUgInRkYTgyN3guaCIKKyNpbmNs
-dWRlICJ6bDEwMzUzLmgiCiAKIC8qIGRlYnVnICovCiBzdGF0aWMgaW50IGR2Yl91c2JfbTkyMHhf
-ZGVidWc7CkBAIC00NzEsOSArNDczLDIyIEBAIHN0YXRpYyBzdHJ1Y3QgdGRhMTAwNHhfY29uZmln
-IG05MjB4X3RkYTEKIAkucmVxdWVzdF9maXJtd2FyZSA9IE5VTEwsIC8qIHVzZXMgZmlybXdhcmUg
-RUVQUk9NICovCiB9OwogCitzdGF0aWMgc3RydWN0IHpsMTAzNTNfY29uZmlnIG05MjB4X3R2Z290
-MDJxX3psMTAzNTNfY29uZmlnID0geworCS5kZW1vZF9hZGRyZXNzID0gMHgwZiwKKwkvLy5hZGNf
-Y2xvY2sgPSAyMjUyOCwKKwkvLy5pZjIgPSAzNjE2NjcsCisJLm5vX3R1bmVyID0gMSwKKwkvLy5w
-YXJhbGxlbF90cyA9IDEsCit9OworCiAvKiB0dW5lciBjb25maWd1cmF0aW9ucyAqLwogc3RhdGlj
-IHN0cnVjdCBxdDEwMTBfY29uZmlnIG05MjB4X3F0MTAxMF9jb25maWcgPSB7CiAJLmkyY19hZGRy
-ZXNzID0gMHg2MgorfTsKKworc3RhdGljIHN0cnVjdCBtdDIwNjBfY29uZmlnIG05MjB4X3R2Z290
-MDJxX210MjA2MF9jb25maWcgPSB7CisJLmNsb2NrX291dCA9IDEsCisJLmkyY19hZGRyZXNzID0g
-MHg2MCwKIH07CiAKIC8qIENhbGxiYWNrcyBmb3IgRFZCIFVTQiAqLwpAQCAtNTEzLDYgKzUyOCwx
-OCBAQCBzdGF0aWMgaW50IG05MjB4X3RkYTEwMDQ2XzBiX2Zyb250ZW5kX2F0CiAJcmV0dXJuIDA7
-CiB9CiAKK3N0YXRpYyBpbnQgbTkyMHhfdHZnb3QwMnFfZnJvbnRlbmRfYXR0YWNoKHN0cnVjdCBk
-dmJfdXNiX2FkYXB0ZXIgKmFkYXApCit7CisJZGViKCIlc1xuIixfX2Z1bmNfXyk7CisKKwlpZiAo
-KGFkYXAtPmZlID0gZHZiX2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKKwkJCQkgICAmbTkyMHhfdHZn
-b3QwMnFfemwxMDM1M19jb25maWcsCisJCQkJICAgJmFkYXAtPmRldi0+aTJjX2FkYXApKSA9PSBO
-VUxMKQorCQlyZXR1cm4gLUVJTzsKKworCXJldHVybiAwOworfQorCiBzdGF0aWMgaW50IG05MjB4
-X3F0MTAxMF90dW5lcl9hdHRhY2goc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCkKIHsKIAlk
-ZWIoIiVzXG4iLF9fZnVuY19fKTsKQEAgLTUzOCw2ICs1NjUsMTcgQEAgc3RhdGljIGludCBtOTIw
-eF90ZGE4Mjc1XzYxX3R1bmVyX2F0dGFjaAogCWRlYigiJXNcbiIsX19mdW5jX18pOwogCiAJaWYg
-KGR2Yl9hdHRhY2godGRhODI3eF9hdHRhY2gsIGFkYXAtPmZlLCAweDYxLCAmYWRhcC0+ZGV2LT5p
-MmNfYWRhcCwgTlVMTCkgPT0gTlVMTCkKKwkJcmV0dXJuIC1FTk9ERVY7CisKKwlyZXR1cm4gMDsK
-K30KKworc3RhdGljIGludCBtOTIweF9tdDIwNjBfdHVuZXJfYXR0YWNoKHN0cnVjdCBkdmJfdXNi
-X2FkYXB0ZXIgKmFkYXApCit7CisJY29uc3Qgc3RhdGljIGludCBpZjEgPSAxMjIwOworCWRlYigi
-JXNcbiIsX19mdW5jX18pOworCisJaWYgKGR2Yl9hdHRhY2gobXQyMDYwX2F0dGFjaCwgYWRhcC0+
-ZmUsICZhZGFwLT5kZXYtPmkyY19hZGFwLCAmbTkyMHhfdHZnb3QwMnFfbXQyMDYwX2NvbmZpZywg
-aWYxKSA9PSBOVUxMKQogCQlyZXR1cm4gLUVOT0RFVjsKIAogCXJldHVybiAwOwpAQCAtNTU2LDYg
-KzU5NCwzMSBAQCBzdGF0aWMgc3RydWN0IG05MjB4X2luaXRzIHR2d2Fsa2VydHdpbl9yCiAJeyAw
-eGZmMjgsICAgICAgICAgMHgwMCB9LAogCXsgMHhmZjIzLCAgICAgICAgIDB4MDAgfSwKIAl7IDB4
-ZmYyMSwgICAgICAgICAweDMwIH0sCisJeyB9IC8qIHRlcm1pbmF0aW5nIGVudHJ5ICovCit9Owor
-CitzdGF0aWMgc3RydWN0IG05MjB4X2luaXRzIHR2Z290MDJxX3JjX2luaXQgW10gPSB7CisvLwl7
-IE05MjA2X1JDX0lOSVQyLCAweGE4IH0sIC8vIGZmNTQKKy8vCXsgTTkyMDZfUkNfSU5JVDEsIDB4
-NTEgfSwgLy8gZmY1NQorCisvLwl7IDB4ZmY4NSwgICAgICAgICAweGZmIH0sCisvLwl7IDB4ZmY4
-NCwgICAgICAgICAweGZmIH0sCisvLwl7IDB4ZmYyOCwgICAgICAgICAweDAwIH0sCisvLwl7IDB4
-ZmYyMywgICAgICAgICAweDAwIH0sCisvLwl7IDB4ZmYyMiwgICAgICAgICAweDAwIH0sCisvLwl7
-IDB4ZmYyMCwgICAgICAgICAweDMwIH0sCisvLwl7IDB4ZmYyMSwgICAgICAgICAweDcwIH0sCisK
-Ky8vCXsgMHhmZjg1LCAgICAgICAgIDB4ZjUgfSwKKy8vCXsgMHhmZjg0LCAgICAgICAgIDB4ODMg
-fSwKKwl7IDB4ZmY1NCwgICAgICAgICAweGZmIH0sCisJeyAweGZmNTUsICAgICAgICAgMHhmZiB9
-LAorCXsgMHhmZjI4LCAgICAgICAgIDB4MDAgfSwKKwl7IDB4ZmYyMywgICAgICAgICAweDAwIH0s
-CisJeyAweGZmMjMsICAgICAgICAgMHgwMCB9LAorCXsgMHhmZjIxLCAgICAgICAgIDB4NzAgfSwK
-Ky8vCXsgMHhmZjIyLCAgICAgICAgIDB4MDAgfSwKKy8vCXsgMHhmZjIwLCAgICAgICAgIDB4MzAg
-fSwKIAl7IH0gLyogdGVybWluYXRpbmcgZW50cnkgKi8KIH07CiAKQEAgLTU5OSwxMSArNjYyLDM0
-IEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9yY19rZXkgdHZ3YWxrZXJ0d2kKIAl7IDB4MCwgMHgx
-ZSwgS0VZX1ZPTFVNRVVQIH0sCiB9OwogCitzdGF0aWMgc3RydWN0IGR2Yl91c2JfcmNfa2V5IHR2
-Z290MDJxX3JjX2tleXMgW10gPSB7CisJeyAweDAsIDB4MDEsIEtFWV9aT09NIH0sIC8qIEZ1bGwg
-U2NyZWVuICovCisJeyAweDAsIDB4MDIsIEtFWV9DQU1FUkEgfSwgLyogc25hcHNob3QgKi8KKwl7
-IDB4MCwgMHgwMywgS0VZX01VVEUgfSwKKwl7IDB4MCwgMHgwNCwgS0VZX1JFV0lORCB9LAorCXsg
-MHgwLCAweDA1LCBLRVlfUExBWVBBVVNFIH0sIC8qIFBsYXkvUGF1c2UgKi8KKwl7IDB4MCwgMHgw
-NiwgS0VZX0ZBU1RGT1JXQVJEIH0sCisJeyAweDAsIDB4MDcsIEtFWV9SRUNPUkQgfSwKKwl7IDB4
-MCwgMHgwOCwgS0VZX1NUT1AgfSwKKwl7IDB4MCwgMHgwOSwgS0VZX1RJTUUgfSwgLyogVGltZXNo
-aWZ0ICovCisJeyAweDAsIDB4MGMsIEtFWV9DT0ZGRUUgfSwgLyogUmVjYWxsICovCisJeyAweDAs
-IDB4MGUsIEtFWV9DSEFOTkVMVVAgfSwKKwl7IDB4MCwgMHgxMiwgS0VZX1BPV0VSIH0sCisJeyAw
-eDAsIDB4MTUsIEtFWV9NRU5VIH0sIC8qIHNvdXJjZSAqLworCXsgMHgwLCAweDE4LCBLRVlfQ1lD
-TEVXSU5ET1dTIH0sIC8qIFRXSU4gUElQICovCisJeyAweDAsIDB4MWEsIEtFWV9DSEFOTkVMRE9X
-TiB9LAorCXsgMHgwLCAweDFiLCBLRVlfVk9MVU1FRE9XTiB9LAorCXsgMHgwLCAweDFlLCBLRVlf
-Vk9MVU1FVVAgfSwKKworLy8JeyAweDAsIDB4MDQsIEtFWV9SRVdJTkQgfSwKK307CisKIC8qIERW
-QiBVU0IgRHJpdmVyIHN0dWZmICovCiBzdGF0aWMgc3RydWN0IGR2Yl91c2JfZGV2aWNlX3Byb3Bl
-cnRpZXMgbWVnYXNreV9wcm9wZXJ0aWVzOwogc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9w
-cm9wZXJ0aWVzIGRpZ2l2b3hfbWluaV9paV9wcm9wZXJ0aWVzOwogc3RhdGljIHN0cnVjdCBkdmJf
-dXNiX2RldmljZV9wcm9wZXJ0aWVzIHR2d2Fsa2VydHdpbl9wcm9wZXJ0aWVzOwogc3RhdGljIHN0
-cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRwb3NoX3Byb3BlcnRpZXM7CitzdGF0aWMg
-c3RydWN0IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgdHZnb3QwMnFfcHJvcGVydGllczsKIAog
-c3RhdGljIGludCBtOTIweF9wcm9iZShzdHJ1Y3QgdXNiX2ludGVyZmFjZSAqaW50ZiwKIAkJICAg
-ICAgIGNvbnN0IHN0cnVjdCB1c2JfZGV2aWNlX2lkICppZCkKQEAgLTY0Niw2ICs3MzIsMTMgQEAg
-c3RhdGljIGludCBtOTIweF9wcm9iZShzdHJ1Y3QgdXNiX2ludGVyZgogCQkJCQkgIFRISVNfTU9E
-VUxFLCAmZCwgYWRhcHRlcl9ucik7CiAJCWlmIChyZXQgPT0gMCkgewogCQkJLyogUmVtb3RlIGNv
-bnRyb2xsZXIgbm90IHN1cHBvcnRlZCB5ZXQuICovCisJCQlnb3RvIGZvdW5kOworCQl9CisKKwkJ
-cmV0ID0gZHZiX3VzYl9kZXZpY2VfaW5pdChpbnRmLCAmdHZnb3QwMnFfcHJvcGVydGllcywKKwkJ
-CQkJICBUSElTX01PRFVMRSwgJmQsIGFkYXB0ZXJfbnIpOworCQlpZiAocmV0ID09IDApIHsKKwkJ
-CXJjX2luaXRfc2VxID0gdHZnb3QwMnFfcmNfaW5pdDsKIAkJCWdvdG8gZm91bmQ7CiAJCX0KIApA
-QCAtNjc5LDYgKzc3Miw3IEBAIHN0YXRpYyBzdHJ1Y3QgdXNiX2RldmljZV9pZCBtOTIweF90YWJs
-ZSAKIAkJCSAgICAgVVNCX1BJRF9MSUZFVklFV19UVl9XQUxLRVJfVFdJTl9XQVJNKSB9LAogCQl7
-IFVTQl9ERVZJQ0UoVVNCX1ZJRF9EUE9TSCwgVVNCX1BJRF9EUE9TSF9NOTIwNl9DT0xEKSB9LAog
-CQl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9EUE9TSCwgVVNCX1BJRF9EUE9TSF9NOTIwNl9XQVJNKSB9
-LAorCQl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9LWUUsIFVTQl9QSURfR0VOSVVTX0RWQlRfVFZHT19U
-MDJRKSB9LAogCQl7IH0JCS8qIFRlcm1pbmF0aW5nIGVudHJ5ICovCiB9OwogTU9EVUxFX0RFVklD
-RV9UQUJMRSAodXNiLCBtOTIweF90YWJsZSk7CkBAIC04OTIsNiArOTg2LDU3IEBAIHN0YXRpYyBz
-dHJ1Y3QgZHZiX3VzYl9kZXZpY2VfcHJvcGVydGllcyAKIAkgfQogfTsKIAorc3RhdGljIHN0cnVj
-dCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIHR2Z290MDJxX3Byb3BlcnRpZXMgPSB7CisJLmNh
-cHMgPSBEVkJfVVNCX0lTX0FOX0kyQ19BREFQVEVSLAorCisJLnVzYl9jdHJsID0gREVWSUNFX1NQ
-RUNJRklDLAorCS5maXJtd2FyZSA9ICJkdmItdXNiLXR2Z28tdDAycXYyLTAzLmZ3IiwKKwkuZG93
-bmxvYWRfZmlybXdhcmUgPSBtOTIweF9maXJtd2FyZV9kb3dubG9hZCwKKworCS5yY19pbnRlcnZh
-bCAgICAgID0gMTAwLAorCS5yY19rZXlfbWFwICAgICAgID0gdHZnb3QwMnFfcmNfa2V5cywKKwku
-cmNfa2V5X21hcF9zaXplICA9IEFSUkFZX1NJWkUodHZnb3QwMnFfcmNfa2V5cyksCisJLnJjX3F1
-ZXJ5ICAgICAgICAgPSBtOTIweF9yY19xdWVyeSwKKworCS5zaXplX29mX3ByaXYJID0gc2l6ZW9m
-KHN0cnVjdCBtOTIweF9zdGF0ZSksCisKKwkuaWRlbnRpZnlfc3RhdGUgICA9IG05MjB4X2lkZW50
-aWZ5X3N0YXRlLAorCS5udW1fYWRhcHRlcnMgPSAxLAorCS5hZGFwdGVyID0ge3sKKwkvKiBQSUQg
-RklMVEVSUyBET04nVCBXT1JLIFdJVEggQ1VSUkVOVCBGVy9DT05GSUcvV0hBVEVWRVInICovCisJ
-LyoKKwkJLmNhcHMgPSAgRFZCX1VTQl9BREFQX0hBU19QSURfRklMVEVSIHwKKwkJCSBEVkJfVVNC
-X0FEQVBfUElEX0ZJTFRFUl9DQU5fQkVfVFVSTkVEX09GRiwKKworCQkucGlkX2ZpbHRlcl9jb3Vu
-dCA9IDgsCisJCS5waWRfZmlsdGVyCSAgPSBtOTIweF9waWRfZmlsdGVyLAorCQkucGlkX2ZpbHRl
-cl9jdHJsICA9IG05MjB4X3BpZF9maWx0ZXJfY3RybCwKKwkqLworCQkuZnJvbnRlbmRfYXR0YWNo
-ICA9IG05MjB4X3R2Z290MDJxX2Zyb250ZW5kX2F0dGFjaCwKKwkJLnR1bmVyX2F0dGFjaAkgID0g
-bTkyMHhfbXQyMDYwX3R1bmVyX2F0dGFjaCwKKworCQkuc3RyZWFtID0geworCQkJLnR5cGUgPSBV
-U0JfQlVMSywKKwkJCS5jb3VudCA9IDgsCisJCQkuZW5kcG9pbnQgPSAweDgxLAorCQkJLnUgPSB7
-CisJCQkJIC5idWxrID0geworCQkJCQkgLmJ1ZmZlcnNpemUgPSA1MTIsCisJCQkJIH0KKwkJCX0K
-KwkJfSwKKwl9fSwKKwkuaTJjX2FsZ28JID0gJm05MjB4X2kyY19hbGdvLAorCisJLm51bV9kZXZp
-Y2VfZGVzY3MgPSAxLAorCS5kZXZpY2VzID0geworCQl7ICJHZW5pdXMgVFZHbyBEVkItVDAyUSIs
-CisJCSAgICAgeyAmbTkyMHhfdGFibGVbNl0sIE5VTEwgfSwKKwkJICAgICB7IE5VTEwgfSwKKwkJ
-fSwKKwl9Cit9OworCiBzdGF0aWMgc3RydWN0IHVzYl9kcml2ZXIgbTkyMHhfZHJpdmVyID0gewog
-I2lmIExJTlVYX1ZFUlNJT05fQ09ERSA8PSAgS0VSTkVMX1ZFUlNJT04oMiw2LDE1KQogCS5vd25l
-cgkJPSBUSElTX01PRFVMRSwK
-------=_Part_3484_4540216.1209074608415
+--===============2121893183==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -269,4 +167,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_3484_4540216.1209074608415--
+--===============2121893183==--
