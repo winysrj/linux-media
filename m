@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1Jqlv4-0005aP-Pd
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 11:14:39 +0200
-Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
-	[88.170.236.224])
-	by vds19s01.yellis.net (Postfix) with ESMTP id 791202FA954
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 11:14:41 +0200 (CEST)
-Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
-	by goliath.anevia.com (Postfix) with ESMTP id 3B2141300236
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 11:14:35 +0200 (CEST)
-Message-ID: <4816E6F8.1010607@anevia.com>
-Date: Tue, 29 Apr 2008 11:14:32 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
-MIME-Version: 1.0
+	(envelope-from <nico@youplala.net>) id 1JhL7L-0002nU-Gy
+	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 10:48:19 +0200
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] WinTV HVR 1300 Analog Tuner issue
+MIME-Version: 1.0
+Date: Thu, 3 Apr 2008 10:47:25 +0200
+From: Nicolas Will <nico@youplala.net>
+In-Reply-To: <754a11be0803311238p3fbd4a01p2b336609476261e6@mail.gmail.com>
+References: <754a11be0803311238p3fbd4a01p2b336609476261e6@mail.gmail.com>
+Message-ID: <874a271ecbbd66baae17d5acf725ef16@localhost>
+Subject: Re: [linux-dvb]
+	=?utf-8?q?Nova-T_500_disconnects_-_solved=3F_-_YES!?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,16 +25,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear all,
 
-I'm using kernel 2.6.22.19 and I can't make the analog tuner of my hvr 
-1300 work. Anything special to do more than with any other tv card ? 
-(I'm using a KNC One TV Station DVR, based on saa7134, saa6752hs and 
-tda9887 and it's working - almost - fine ...)
--- 
-CAND Frederic
-Product Manager
-ANEVIA
+Guys,
+
+I have tried the ehci patch manually on the Ubuntu 2.6.24-13 source, and
+indeed it fixed the disconnects.
+
+The fix is now in the 2.6.24-14 binaries, and works just as well.
+
+My Ubuntu Hardy has now resumed normal activities and Gutsy stability
+levels, so far.
+
+I can only recommend that users of other distros should check for kernel
+updates, bug their developers to include the fix, or do it themselves.
+
+Nico
+
 
 _______________________________________________
 linux-dvb mailing list
