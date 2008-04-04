@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TNKUq3015291
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:20:30 -0400
-Received: from web83107.mail.mud.yahoo.com (web83107.mail.mud.yahoo.com
-	[216.252.101.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3TNKGFN028945
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:20:16 -0400
-Date: Tue, 29 Apr 2008 16:20:10 -0700 (PDT)
-From: Marc Randolph <mrandtx@yahoo.com>
-To: Emilio Lazo Zaia <emiliolazozaia@gmail.com>, video4linux-list@redhat.com
-In-Reply-To: <1209492450.16986.31.camel@localhost.localdomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34Ct1Yp024494
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 08:55:01 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m34Cskdh029519
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 08:54:46 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Date: Fri, 4 Apr 2008 14:02:12 +0200
+References: <1115343012.20080318233620@a-j.ru>
+	<200804040456.57561@orion.escape-edv.de>
+	<47F5AB2A.3020908@linuxtv.org>
+In-Reply-To: <47F5AB2A.3020908@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Message-ID: <88771.83842.qm@web83107.mail.mud.yahoo.com>
-Cc: 
-Subject: Re: MCE TV Philips 7135 Cardbus don't work
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200804041402.13210@orion.escape-edv.de>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,48 +32,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
---- Emilio Lazo Zaia <emiliolazozaia@gmail.com> wrote:
-
-> Hello,
+Michael Krufky wrote:
+> Oliver Endriss wrote:
+> > Mauro Carvalho Chehab wrote:
+> >   
+> >>>>> If we should go back to 2.6.23 level, so far nobody seems to have
+> >>>>> realized a improvement for the LifeView Trio stuff, I'm not against it.
+> >>>>>
+> >>>>> The changeset in question to revert is mercurial 6579.
+> >>>>>
+> >>>>> If nobody else is interested and no comments, I also don't care anymore.
+> >>>>>           
+> >>>> (Basically I don't care because I am tired of discussing kernel
+> >>>> politics.)
+> >>>>
+> >>>> Imho a fix should be applied, no matter how many lines it has.
+> >>>> If that is not possible the offending patch should be reverted in
+> >>>> 2.6.24.x.
+> >>>>         
+> >> ...
+> >>
+> >> Let me try to reset to a sane state.
+> >>
+> >> With the current tree (changesets 6579 and 7186), is there any broken board? If
+> >> so, what board(s)?
+> >>
+> >> Both patches are already applied at mainstream and should be available on
+> >> 2.6.25. Are those OK for 2.6.25?
+> >>
+> >> Is there any missing patch that should be sent to -stable (2.6.24)? If so, what
+> >> patch?
+> >>     
+> >
+> > The point is that 6579 was applied to 2.6.24.x, but 7186 wasn't.
+> > So TTS_1401 support is broken for the 2.6.24 series.
+> >
+> > Imho 7186 _must_ be applied to 2.6.24, no matter how large the patch is.
+> >   
+> Are you saying that THIS is the patch that needs to be applied to 2.6.24.y ?
 > 
-> I have purchased a "MCE TV Philips 7135 Cardbus" and I'm to set it up.
-> When I plug it, the module saa7134 is being loaded and dmesg says:
+> http://linuxtv.org/hg/v4l-dvb/rev/eb6bc7f18024
 > 
-> ﻿pccard: CardBus card inserted into slot 0
-> Linux video capture interface: v2.00
-> saa7130/34: v4l2 driver version 0.2.14 loaded
-> PCI: Enabling device 0000:06:00.0 (0000 -> 0002)
-> ACPI: PCI Interrupt 0000:06:00.0[A] -> GSI 17 (level, low) -> IRQ 17
-> saa7133[0]: found at 0000:06:00.0, rev: 209, irq: 17, latency: 0, mmio:
-> 0x54000000
-> PCI: Setting latency timer of device 0000:06:00.0 to 64
-> saa7133[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
-> [card=0,autodetected]
-> saa7133[0]: board init: gpio is e2c0c0
-> saa7133[0]: Huh, no eeprom present (err=-5)?
-> saa7133[0]: registered device video0 [v4l2]
-> saa7133[0]: registered device vbi0
+> If so, this patch seems fine for -stable.  We just have to make sure it
+> applies correctly, etc.
 
-Howdy Emilio,
+Correct, this is the patch.
+I did a quick check: It applies to 2.6.24.2 with some hunks.
 
-Google gives a ton of hits on that very unique error message.  I assume you
-already did this:
+CU
+Oliver
 
-"try to pass newi2c=1 or newi2c=0 to the ivtv module. Add it to
-/etc/modprobe.conf (or /etc/modules.d/ivtv if you are an gentoo user).
-
-options ivtv newi2c=1
-
-If setting this works please report it to the ivtv-devel mailing list."
-
-Copied from
-http://ivtvdriver.org/index.php/Troubleshooting#Error:_Huh.2C_no_eeprom_present_.28err.3D-121.29.3F
-
-
-Good luck,
-
-   Marc
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 --
 video4linux-list mailing list
