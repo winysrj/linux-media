@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HEY37p004269
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 10:34:03 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m342vWsO011027
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 22:57:32 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3HEXixa024951
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 10:33:44 -0400
-Date: Thu, 17 Apr 2008 16:33:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mike Rapoport <mike@compulab.co.il>
-In-Reply-To: <4806E637.9030906@compulab.co.il>
-Message-ID: <Pine.LNX.4.64.0804171616020.6716@axis700.grange>
-References: <47F21593.7080507@compulab.co.il>
-	<Pine.LNX.4.64.0804031708470.18539@axis700.grange>
-	<47F872DE.60004@compulab.co.il>
-	<Pine.LNX.4.64.0804091626140.5671@axis700.grange>
-	<4806E637.9030906@compulab.co.il>
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m342vJ9L019695
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 22:57:19 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Fri, 4 Apr 2008 04:56:56 +0200
+References: <1115343012.20080318233620@a-j.ru>
+	<1207269838.3365.4.camel@pc08.localdom.local>
+	<20080403222937.3b234a40@gaivota>
+In-Reply-To: <20080403222937.3b234a40@gaivota>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa_camera: Add support for YUV modes
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200804040456.57561@orion.escape-edv.de>
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,27 +32,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 17 Apr 2008, Mike Rapoport wrote:
+Mauro Carvalho Chehab wrote:
+> > > > If we should go back to 2.6.23 level, so far nobody seems to have
+> > > > realized a improvement for the LifeView Trio stuff, I'm not against it.
+> > > > 
+> > > > The changeset in question to revert is mercurial 6579.
+> > > > 
+> > > > If nobody else is interested and no comments, I also don't care anymore.
+> > > 
+> > > (Basically I don't care because I am tired of discussing kernel
+> > > politics.)
+> > > 
+> > > Imho a fix should be applied, no matter how many lines it has.
+> > > If that is not possible the offending patch should be reverted in
+> > > 2.6.24.x.
+> ...
+> 
+> Let me try to reset to a sane state.
+> 
+> With the current tree (changesets 6579 and 7186), is there any broken board? If
+> so, what board(s)?
+> 
+> Both patches are already applied at mainstream and should be available on
+> 2.6.25. Are those OK for 2.6.25?
+> 
+> Is there any missing patch that should be sent to -stable (2.6.24)? If so, what
+> patch?
 
-> Sorry for the delay, and as far as I can see you've already have a fix. :)
+The point is that 6579 was applied to 2.6.24.x, but 7186 wasn't.
+So TTS_1401 support is broken for the 2.6.24 series.
 
-I hope so:-)
+Imho 7186 _must_ be applied to 2.6.24, no matter how large the patch is.
 
-> If you'd like I can test it with YUV setup. I'll apreciate if you can send me
-> the entire updated pxa_camera.c, to save time on merge conflicts.
+CU
+Oliver
 
-Well, let's try it this way: I've uploaded the current patch set on
-
-http://home.arcor.de/g.liakhovetski/v4l/2.6.25/
-
-where patches under v4l-dvb:devel/ are already in the current 
-v4l-dvb/devel. The patch under gpio/ is needed for mt9*.c, but you won't 
-probably need it either. Let me know if you get any problems.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 --
 video4linux-list mailing list
