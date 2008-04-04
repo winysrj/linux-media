@@ -1,39 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41])
+Received: from fk-out-0910.google.com ([209.85.128.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JhvDV-0002jd-VZ
-	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 01:21:06 +0200
-Received: from mail-in-07-z2.arcor-online.net (mail-in-07-z2.arcor-online.net
-	[151.189.8.19])
-	by mail-in-01.arcor-online.net (Postfix) with ESMTP id 93E2E10441E
-	for <linux-dvb@linuxtv.org>; Sat,  5 Apr 2008 01:21:02 +0200 (CEST)
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
-	[151.189.21.42])
-	by mail-in-07-z2.arcor-online.net (Postfix) with ESMTP id 873552C7064
-	for <linux-dvb@linuxtv.org>; Sat,  5 Apr 2008 01:21:02 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-02.arcor-online.net (Postfix) with ESMTP id 23CC936E864
-	for <linux-dvb@linuxtv.org>; Sat,  5 Apr 2008 01:21:02 +0200 (CEST)
-From: hermann pitton <hermann-pitton@arcor.de>
+	(envelope-from <bokola@gmail.com>) id 1Jhmah-000200-Na
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 16:08:30 +0200
+Received: by fk-out-0910.google.com with SMTP id z22so88464fkz.1
+	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 07:08:24 -0700 (PDT)
+Message-ID: <854d46170804040708w5eb7fdd8i14e9ab0217a7a892@mail.gmail.com>
+Date: Fri, 4 Apr 2008 16:08:23 +0200
+From: "Faruk A" <fa@elwak.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <Pine.LNX.4.62.0804041816420.6230@ns.bog.msu.ru>
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
-	<1206067079.3362.10.camel@pc08.localdom.local>
-	<200803210742.57119@orion.escape-edv.de>
-	<1206912674.3520.58.camel@pc08.localdom.local>
-	<1063704330.20080331082850@a-j.ru>
-	<1206999694.7762.41.camel@pc08.localdom.local>
-	<1112443057.20080402224744@a-j.ru>
-	<1207179525.14887.13.camel@pc08.localdom.local>
-	<1207265002.3364.12.camel@pc08.localdom.local>
-	<Pine.LNX.4.62.0804041813230.6230@ns.bog.msu.ru>
-	<Pine.LNX.4.62.0804041816420.6230@ns.bog.msu.ru>
-Date: Sat, 05 Apr 2008 01:20:59 +0200
-Message-Id: <1207351259.4591.49.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <854d46170804040633g2bc6a9feu306f89a33d728fe3@mail.gmail.com>
+	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
+Subject: Re: [linux-dvb] RE : RE : Ofcom announce HD freeview standard in UK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -47,35 +28,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Fri, Apr 4, 2008 at 3:54 PM, Thierry Lelegard
+<thierry.lelegard@tv-numeric.com> wrote:
+> >> > In summary, looks like HD will be DVB-T2 with MPEG4, with 3 HD channels on
+>  >>  > air from "late 2009 / early 2010"
+>  >>  > ...
+>  >>
+>  >> > Guess I will need new DVB-T2 hardware :(
+>  >>
+>  >>  Is there any existing DVB-T2 hardware today, either regular STB or PCI/USB board ?
+>  >>
+>  >>  In France, the terrestrial HD is supposed to officially start in a few weeks
+>  >>  from now ("spring 2008"). But it will use DVB-T because of lack of DVB-T2 STB.
+>  >
+>
+> > Hi!
+>  >
+>  > TerraTec Cinergy T USB XXS HD, H.264, USB2.0, DVB-T, Codec for HDTV support
+>  > In Sweden it's only 479 SEK (50 Euro)
+>  >
+>  > Hauppauge! WinTV-NOVA-TD-HD, Dual-DVB-T, USB2.0, HD-ready (999 SEK = 105 Euro)
+>  >
+>  > Hauppauge! WinTV-NOVA-T-500-HD, Dual-DVB-T, PCI, EPG, Radio, HD-ready
+>  > (949 SEK = 100 Euro)
+>
+>  They certainly come with HD-capable software.
+>  But do they really support DVB-T2 modulation ?
+>
+>  Since most current tuners for PC are simple tuners, there is no hardware
+>  difference for SD vs. HD. It is only a matter of software codec.
+>
+>  DVB-T2, on the other hand, is a different *modulation* technique which
+>  must be implemented in hardware.
+>
+>
+>
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-Am Freitag, den 04.04.2008, 18:17 +0400 schrieb ldvb@ns.bog.msu.ru:
-> 
-> On Fri, 4 Apr 2008 ldvb@ns.bog.msu.ru wrote:
-> 
-> >> should we really let hang it like this on 2.6.24?
-> > if You are talking about these card, so, I'm using it on 2.6.25.rc-last
-> > without any strange effects.
-> Ah! sorry!
-> with some changes in registers, it was stressed 2 weeks ago.
-> 
-
-thanks a lot, that problem is only on 2.6.24.
-
-Michael Krufky could just need one confirming that with the patch it is
-almost like on 2.6.23 to get it to stable 2.6.24.
-
-Hartmut's config option patch is already on 2.6.25.
-
-Let know if I can test something else, but on Hotbird 13.0E I get all
-what I get with an external receiver too, but there is nothing with high
-symbol rates.
-
-Cheers,
-Hermann
-
-
-
+Sorry i have no info regarding that, I was think of buying TerraTec
+Cinergy T USB XXS HD, H.264 next month
+if what u said is true i should wait then.
 
 _______________________________________________
 linux-dvb mailing list
