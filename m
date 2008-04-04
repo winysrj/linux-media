@@ -1,21 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JhZR9-0000Ui-2M
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 02:05:43 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: Christoph Pfister <christophpfister@gmail.com>
-Date: Fri, 4 Apr 2008 01:33:05 +0200
-References: <200803212024.17198.christophpfister@gmail.com>
-	<200803220732.06390@orion.escape-edv.de>
-	<200803281820.54243.christophpfister@gmail.com>
-In-Reply-To: <200803281820.54243.christophpfister@gmail.com>
+Received: from smtp5.freeserve.com ([193.252.22.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
+	id 1Jhiu5-0005Pc-EC
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 12:12:18 +0200
+Received: from smtp5.freeserve.com (mwinf3412 [10.232.11.40])
+	by mwinf3420.me.freeserve.com (SMTP Server) with ESMTP id 2625E1C00DEA
+	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:31:56 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3412.me.freeserve.com (SMTP Server) with ESMTP id 830AD1C00086
+	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:29:53 +0200 (CEST)
+Received: from rachael.belkin (unknown [91.108.126.63])
+	by mwinf3412.me.freeserve.com (SMTP Server) with ESMTP id 5A1211C00081
+	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:29:49 +0200 (CEST)
+From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
+To: linux-dvb@linuxtv.org
+Date: Fri, 4 Apr 2008 08:29:46 +0100
+References: <47F54C55.2000707@googlemail.com>
+In-Reply-To: <47F54C55.2000707@googlemail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804040133.05892@orion.escape-edv.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
-Reply-To: linux-dvb@linuxtv.org
+Message-Id: <200804040829.46673.linuxtv@mfraz74.orangehome.co.uk>
+Subject: Re: [linux-dvb] HDTV will be back in Freeview in the UK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,40 +35,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christoph Pfister wrote:
-> > > <<<fix-knc1-dvbs-ci.diff>>>
-> > >        case SUBID_DVBS_KNC1:
-> > >        case SUBID_DVBS_KNC1_PLUS:
-> > >        case SUBID_DVBS_EASYWATCH_1:
-> > >+               budget_av->reinitialise_demod = 1;
-> > >
-> > > Fix CI interface on (some) KNC1 DVBS cards
-> > > Quoting the commit introducing reinitialise_demod (3984 / by adq):
-> > > "These cards [KNC1 DVBT and DVBC] need special handling for CI -
-> > > reinitialising the frontend device when the CI module is reset."
-> > > Apparently my 1894:0010 also needs that fix, because once you initialise
-> > > CI/CAM you lose lock. Signed-off-by: Christoph Pfister
-> > > <pfister@linuxtv.org>
-> >
-> > Are you _sure_ that 'reinitialise_demod = 1' is required by all 3 card
-> > types, and does not hurt for SUBID_DVBS_KNC1_PLUS (1131:0011, 1894:0011)
-> > and SUBID_DVBS_EASYWATCH_1 (1894:001a)?
-> 
-> Do you want me to limit reinitialise_demod to the one type of card I'm using 
-> or is it ok for you this way?
+On Thursday 03 April 2008 22:29:57 Andrea wrote:
+> After the HDTV trial of a couple of years ago it seems that we'll get it
+> again with the switchover.
+>
+> http://www.guardian.co.uk/media/2008/apr/03/digitaltvradio.television?gusrc
+>=rss&feed=uknews
 
-Yes, please. We should not add a quirk unless we have verified that it
-is really required. It is easier to add a hack than to remove it. ;-)
+'The regulator will also reshuffle the six multiplexes on which DTT is 
+broadcast. Channels will be moved off multiplex B, one of three multiplexes 
+used for public service broadcasting, on to spare capacity on other 
+multiplexes, freeing up space for HD and other new Freeview services.'
 
-> (I'll repost a modified version of the first patch removing the 0xff check 
-> altogether later today ...)
+Just what we want, more overly compressed channels, but of course OFCOM 
+doesn't care about quality.
 
-OK. I'll commit your patches this weekend.
+> Maybe they'll do some more tests that we can receive.
+>
+> By that day maybe the decoder will be so good I'll be able to watch live on
+> my laptop.
+
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+|\  /| ark Fraser  /Registered Linux User #466407
+| \/ | Somerset   /Using Kmail on Kubuntu Gutsy Gibbon
+|    |___________/You know what the sig means!
+
 
 _______________________________________________
 linux-dvb mailing list
