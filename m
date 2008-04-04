@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IJBJAx002644
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 15:11:19 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3IJABPX019944
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 15:10:48 -0400
-Received: by an-out-0708.google.com with SMTP id c31so195727ana.124
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 12:10:48 -0700 (PDT)
-Message-ID: <37219a840804181210s2f98c017t59b296ee65be720a@mail.gmail.com>
-Date: Fri, 18 Apr 2008 15:10:48 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Jon Lowe" <jonlowe@aol.com>
-In-Reply-To: <8CA6F8825F2FE35-FC8-9F4@FWM-D12.sysops.aol.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34DfY9B005688
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 09:41:34 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m34DfGFW031194
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 09:41:17 -0400
+Date: Fri, 4 Apr 2008 15:41:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0804041537100.5438@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <8CA6F8825F2FE35-FC8-9F4@FWM-D12.sysops.aol.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: HVR-1500 issues
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] soc-camera: extract function pointers from host object into
+ operations
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,43 +25,253 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Apr 18, 2008 at 12:26 PM, Jon Lowe <jonlowe@aol.com> wrote:
-> I'm running Ubuntu 8.04 with the 2.6.24-16 generic kernel on a laptop, and
-> want to use a Hauppauge HVR-1500 Expresscard. I've followed the procedure on
-> the V4LWiki to build the drivers.  However, it builds them to the 2.6.24-15
-> kernel instead of the -16 kernel.  How do I force it to build to the
-> currently used kernel?  I've confirmed that it is still using the old driver
-> in the -16 kernel.  If I start with the -15 kernel, it sees the card.
+Function pointers and the driver owner are not expected to change 
+throughout soc-camera host's life. Extract them into an operations struct.
 
-make distclean
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
->  I was forced to update the sources in v4l-dvb since that directory already
-> existed; it wouldn't let me overwrite it.  Is it safe to delete that
-> directory altogether so I can get a fresh download from mercurial?
+---
 
-Yes, but in the future, just remember to do "make distclean" when you
-change kernel versions -- that's how to tell the v4l-dvb build system
-to go find new kernel headers.
-
->  Now if I run ubuntu with the -15 kernel, it sees the card.  ME TV is the
-> only app that seems to want to scan for channels.  Kaffeine sees the card,
-> but won't scan.  ME TV scans, but then complains that channels.conf has an
-> invalid entry.  Has anyone actually gotten an HVR-1500 to work under Ubuntu?
-> if so, can you give step by step, as I am a newbie?
-
-ME TV?  i never heard of that -- I'll have to give it a try.
-
-When I test my boards, I use 'scan' (from dvb-apps, aka dvb-utils
-package) to scan for channels, then I use azap to tune (always pass -r
-and leave it open) , and view the stream using mplayer
-/dev/dvb/adapterX/dvr0.
-
-There is a lot more that I can say about this, but you'll have a
-better time reading all about it in the wiki.
-
-Good Luck,
-
-Mike
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 4756699..9758f7e 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -803,20 +803,25 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
+ 	return 0;
+ }
+ 
+-/* Should beallocated dynamically too, but we have only one. */
++static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
++	.owner		= THIS_MODULE,
++	.add		= pxa_camera_add_device,
++	.remove		= pxa_camera_remove_device,
++	.set_fmt_cap	= pxa_camera_set_fmt_cap,
++	.try_fmt_cap	= pxa_camera_try_fmt_cap,
++	.reqbufs	= pxa_camera_reqbufs,
++	.poll		= pxa_camera_poll,
++	.querycap	= pxa_camera_querycap,
++	.try_bus_param	= pxa_camera_try_bus_param,
++	.set_bus_param	= pxa_camera_set_bus_param,
++};
++
++/* Should be allocated dynamically too, but we have only one. */
+ static struct soc_camera_host pxa_soc_camera_host = {
+ 	.drv_name		= PXA_CAM_DRV_NAME,
+ 	.vbq_ops		= &pxa_videobuf_ops,
+-	.add			= pxa_camera_add_device,
+-	.remove			= pxa_camera_remove_device,
+ 	.msize			= sizeof(struct pxa_buffer),
+-	.set_fmt_cap		= pxa_camera_set_fmt_cap,
+-	.try_fmt_cap		= pxa_camera_try_fmt_cap,
+-	.reqbufs		= pxa_camera_reqbufs,
+-	.poll			= pxa_camera_poll,
+-	.querycap		= pxa_camera_querycap,
+-	.try_bus_param		= pxa_camera_try_bus_param,
+-	.set_bus_param		= pxa_camera_set_bus_param,
++	.ops			= &pxa_soc_camera_host_ops,
+ };
+ 
+ static int pxa_camera_probe(struct platform_device *pdev)
+@@ -912,7 +917,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pxa_soc_camera_host.priv	= pcdev;
+ 	pxa_soc_camera_host.dev.parent	= &pdev->dev;
+ 	pxa_soc_camera_host.nr		= pdev->id;
+-	err = soc_camera_host_register(&pxa_soc_camera_host, THIS_MODULE);
++	err = soc_camera_host_register(&pxa_soc_camera_host);
+ 	if (err)
+ 		goto exit_free_irq;
+ 
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 4af38d4..43c8110 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -76,12 +76,12 @@ static int soc_camera_try_fmt_cap(struct file *file, void *priv,
+ 	}
+ 
+ 	/* test physical bus parameters */
+-	ret = ici->try_bus_param(icd, f->fmt.pix.pixelformat);
++	ret = ici->ops->try_bus_param(icd, f->fmt.pix.pixelformat);
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* limit format to hardware capabilities */
+-	ret = ici->try_fmt_cap(icd, f);
++	ret = ici->ops->try_fmt_cap(icd, f);
+ 
+ 	/* calculate missing fields */
+ 	f->fmt.pix.field = field;
+@@ -143,7 +143,7 @@ static int soc_camera_reqbufs(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return ici->reqbufs(icf, p);
++	return ici->ops->reqbufs(icf, p);
+ 
+ 	return ret;
+ }
+@@ -203,7 +203,7 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+ 		goto emgd;
+ 	}
+ 
+-	if (!try_module_get(ici->owner)) {
++	if (!try_module_get(ici->ops->owner)) {
+ 		dev_err(&icd->dev, "Couldn't lock capture bus driver.\n");
+ 		ret = -EINVAL;
+ 		goto emgi;
+@@ -215,7 +215,7 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+ 
+ 	/* Now we really have to activate the camera */
+ 	if (icd->use_count == 1) {
+-		ret = ici->add(icd);
++		ret = ici->ops->add(icd);
+ 		if (ret < 0) {
+ 			dev_err(&icd->dev, "Couldn't activate the camera: %d\n", ret);
+ 			icd->use_count--;
+@@ -238,7 +238,7 @@ static int soc_camera_open(struct inode *inode, struct file *file)
+ 
+ 	/* All errors are entered with the video_lock held */
+ eiciadd:
+-	module_put(ici->owner);
++	module_put(ici->ops->owner);
+ emgi:
+ 	module_put(icd->ops->owner);
+ emgd:
+@@ -257,9 +257,9 @@ static int soc_camera_close(struct inode *inode, struct file *file)
+ 	mutex_lock(&video_lock);
+ 	icd->use_count--;
+ 	if (!icd->use_count)
+-		ici->remove(icd);
++		ici->ops->remove(icd);
+ 	module_put(icd->ops->owner);
+-	module_put(ici->owner);
++	module_put(ici->ops->owner);
+ 	mutex_unlock(&video_lock);
+ 
+ 	vfree(file->private_data);
+@@ -312,7 +312,7 @@ static unsigned int soc_camera_poll(struct file *file, poll_table *pt)
+ 		return POLLERR;
+ 	}
+ 
+-	return ici->poll(file, pt);
++	return ici->ops->poll(file, pt);
+ }
+ 
+ 
+@@ -356,7 +356,7 @@ static int soc_camera_s_fmt_cap(struct file *file, void *priv,
+ 	rect.top	= icd->y_current;
+ 	rect.width	= f->fmt.pix.width;
+ 	rect.height	= f->fmt.pix.height;
+-	ret = ici->set_fmt_cap(icd, f->fmt.pix.pixelformat, &rect);
++	ret = ici->ops->set_fmt_cap(icd, f->fmt.pix.pixelformat, &rect);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -372,7 +372,7 @@ static int soc_camera_s_fmt_cap(struct file *file, void *priv,
+ 		icd->width, icd->height);
+ 
+ 	/* set physical bus parameters */
+-	return ici->set_bus_param(icd, f->fmt.pix.pixelformat);
++	return ici->ops->set_bus_param(icd, f->fmt.pix.pixelformat);
+ }
+ 
+ static int soc_camera_enum_fmt_cap(struct file *file, void  *priv,
+@@ -426,7 +426,7 @@ static int soc_camera_querycap(struct file *file, void  *priv,
+ 	WARN_ON(priv != file->private_data);
+ 
+ 	strlcpy(cap->driver, ici->drv_name, sizeof(cap->driver));
+-	return ici->querycap(ici, cap);
++	return ici->ops->querycap(ici, cap);
+ }
+ 
+ static int soc_camera_streamon(struct file *file, void *priv,
+@@ -579,7 +579,7 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+ 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	ret = ici->set_fmt_cap(icd, 0, &a->c);
++	ret = ici->ops->set_fmt_cap(icd, 0, &a->c);
+ 	if (!ret) {
+ 		icd->width	= a->c.width;
+ 		icd->height	= a->c.height;
+@@ -706,7 +706,7 @@ static int soc_camera_probe(struct device *dev)
+ 
+ 	/* We only call ->add() here to activate and probe the camera.
+ 	 * We shall ->remove() and deactivate it immediately afterwards. */
+-	ret = ici->add(icd);
++	ret = ici->ops->add(icd);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -720,7 +720,7 @@ static int soc_camera_probe(struct device *dev)
+ 		icd->exposure = qctrl ? qctrl->default_value :
+ 			(unsigned short)~0;
+ 	}
+-	ici->remove(icd);
++	ici->ops->remove(icd);
+ 
+ 	return ret;
+ }
+@@ -762,12 +762,12 @@ static void dummy_release(struct device *dev)
+ {
+ }
+ 
+-int soc_camera_host_register(struct soc_camera_host *ici, struct module *owner)
++int soc_camera_host_register(struct soc_camera_host *ici)
+ {
+ 	int ret;
+ 	struct soc_camera_host *ix;
+ 
+-	if (!ici->vbq_ops || !ici->add || !ici->remove || !owner)
++	if (!ici->vbq_ops || !ici->ops->add || !ici->ops->remove)
+ 		return -EINVAL;
+ 
+ 	/* Number might be equal to the platform device ID */
+@@ -785,7 +785,6 @@ int soc_camera_host_register(struct soc_camera_host *ici, struct module *owner)
+ 	list_add_tail(&ici->list, &hosts);
+ 	mutex_unlock(&list_lock);
+ 
+-	ici->owner = owner;
+ 	ici->dev.release = dummy_release;
+ 
+ 	ret = device_register(&ici->dev);
+@@ -819,7 +818,7 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
+ 		if (icd->dev.parent == &ici->dev) {
+ 			device_unregister(&icd->dev);
+ 			/* Not before device_unregister(), .remove
+-			 * needs parent to call ici->remove() */
++			 * needs parent to call ici->ops->remove() */
+ 			icd->dev.parent = NULL;
+ 			memset(&icd->dev.kobj, 0, sizeof(icd->dev.kobj));
+ 		}
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 7a2fa3e..80e1193 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -56,9 +56,13 @@ struct soc_camera_host {
+ 	unsigned char nr;				/* Host number */
+ 	size_t msize;
+ 	struct videobuf_queue_ops *vbq_ops;
+-	struct module *owner;
+ 	void *priv;
+ 	char *drv_name;
++	struct soc_camera_host_ops *ops;
++};
++
++struct soc_camera_host_ops {
++	struct module *owner;
+ 	int (*add)(struct soc_camera_device *);
+ 	void (*remove)(struct soc_camera_device *);
+ 	int (*set_fmt_cap)(struct soc_camera_device *, __u32,
+@@ -88,8 +92,7 @@ static inline struct soc_camera_host *to_soc_camera_host(struct device *dev)
+ 	return container_of(dev, struct soc_camera_host, dev);
+ }
+ 
+-extern int soc_camera_host_register(struct soc_camera_host *ici,
+-				     struct module *owner);
++extern int soc_camera_host_register(struct soc_camera_host *ici);
+ extern void soc_camera_host_unregister(struct soc_camera_host *ici);
+ extern int soc_camera_device_register(struct soc_camera_device *icd);
+ extern void soc_camera_device_unregister(struct soc_camera_device *icd);
 
 --
 video4linux-list mailing list
