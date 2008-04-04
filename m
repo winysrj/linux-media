@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34KJGH2013290
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 16:19:16 -0400
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.181])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34KISDT016676
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 16:18:29 -0400
-Received: by wa-out-1112.google.com with SMTP id j37so165077waf.7
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 13:18:28 -0700 (PDT)
-Date: Fri, 4 Apr 2008 13:17:27 -0700
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34IwHXV008268
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:58:17 -0400
+Received: from gv-out-0910.google.com (gv-out-0910.google.com [216.239.58.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34IvpWF013991
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:57:53 -0400
+Received: by gv-out-0910.google.com with SMTP id l14so110267gvf.13
+	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 11:57:04 -0700 (PDT)
+Date: Fri, 4 Apr 2008 11:56:50 -0700
 From: Brandon Philips <brandon@ifup.org>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-ID: <20080404201726.GA1219@plankton.ifup.org>
-References: <7876c2bc2446dc3e3630.1206699512@localhost>
-	<Pine.LNX.4.64.0803282114540.22651@axis700.grange>
-	<20080329035953.GA10356@plankton.ifup.org>
-	<Pine.LNX.4.64.0804041541440.5438@axis700.grange>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Message-ID: <20080404185650.GB4899@plankton.ifup.org>
+References: <47ED68E3.7040400@hhs.nl>
+	<20080403212728.GE14369@plankton.ifup.org>
+	<47F5D1F6.2020906@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0804041541440.5438@axis700.grange>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] soc-camera: use a spinlock for videobuffer queue
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <47F5D1F6.2020906@hhs.nl>
+Cc: video4linux-list@redhat.com, spca50x-devs@lists.sourceforge.net
+Subject: Re: [New Driver]: usbvideo2 webcam core + pac207 driver using it.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,192 +32,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 15:46 Fri 04 Apr 2008, Guennadi Liakhovetski wrote:
-> All drivers should provide a spinlock to be used in videobuf operations.
+On 09:00 Fri 04 Apr 2008, Hans de Goede wrote:
+>  Brandon Philips wrote:
+> > On 22:53 Fri 28 Mar 2008, Hans de Goede wrote:
+> >>  I'm currently posting these as .c files for easy reading and
+> >>  compilation / testing, but I still hope to get a lot of feedback / a
+> >>  thorough review, esp of the core <-> pac207 split version as I hope
+> >>  to submit that as a patch for mainline inclusion soon.
+> > The driver look pretty good.  Comments inline.
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+>  Thanks for the review!
+> 
+> >> struct pac207_decompress_table_t {
+> >> 	u8 is_abs;
+> >> 	u8 len;
+> >> 	s8 val;
+> >> };
+> > Why add the _t?
+> 
+>  So that I can write "struct pac207_decompress_table_t 
+>  pac207_decompress_table[256];" further on.
 
-This looks OK.  Thanks.
+But, why does the struct have a _t on the end of the name?  Usually that
+is used for typedefs of structs.
 
-Reviewed-by: Brandon Philips <bphilips@suse.de>
+> > This all needs some locking to protect from multi-threaded applications.
+> > Otherwise the hardware and data structures could be in two different
+> > states.
+> 
+>  They are all called with the usbvideo2 "core" fileop_mutex lock held, as is 
+>  documented in usbvideo2.h
 
-> ---
+Oops, I see that now.
+
+> >> static void usbvideo2_urb_complete(struct urb *urb)
+> >> {
+> >> 	struct usbvideo2_device* cam = urb->context;
+> >> 	struct usbvideo2_frame_t** f;
+> >> 	int i, ret;
+> >>
+> >> 	switch (urb->status) {
+> >> 		case 0:
+> >> 			break;
+> >> 		case -ENOENT:		/* usb_kill_urb() called. */
+> >> 		case -ECONNRESET:	/* usb_unlink_urb() called. */
+> >> 		case -ESHUTDOWN:	/* The endpoint is being disabled. */
+> >> 			return;
+> >> 		default:
+> >> 			goto resubmit_urb;
+> >> 	}
+> >>
+> >> 	f = &cam->frame_current;
+> >>
+> >> 	if (!(*f)) {
+> >> 		if (list_empty(&cam->inqueue))
+> >> 			goto resubmit_urb;
+> >>
+> >> 		(*f) = list_entry(cam->inqueue.next, struct usbvideo2_frame_t,
+> >> 					frame);
+> >> 	} 
+> > Don't you want to take a spinlock here?  Most accesses of inqueue seem
+> > to take a spinlock.
 > 
-> On Fri, 28 Mar 2008, Brandon Philips wrote:
+>  Good catch! Note that this bug is present in the current in mainline zc0301, 
+>  et61x251, and sn9c102 drivers too!!
 > 
-> > On 21:53 Fri 28 Mar 2008, Guennadi Liakhovetski wrote:
-> > 
-> > > OTOH, at least the PXA270 hardware needs a more global protection - to 
-> > > protect the DMA channel setup. And this is hardware specific. We can just 
-> > > assume that (imaginary) systems with multiple camera busses will have an 
-> > > own DMA channel per bus and will allow their concurrent onfiguration... 
-> > > Maybe we should let the hardware host driver decide on spinlock locality 
-> > > and just use whatever it provides?
-> > 
-> > I don't know enough about the hardware to comment.
-> 
-> How about this one? Mauro, note: it should be applied after the previous 
-> patch, introducing soc_camera_host_ops.
-> 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index 9758f7e..bef3c9c 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -803,6 +803,15 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
->  	return 0;
->  }
->  
-> +static spinlock_t *pxa_camera_spinlock_alloc(struct soc_camera_file *icf)
-> +{
-> +	struct soc_camera_host *ici =
-> +		to_soc_camera_host(icf->icd->dev.parent);
-> +	struct pxa_camera_dev *pcdev = ici->priv;
-> +
-> +	return &pcdev->lock;
-> +}
-> +
->  static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
->  	.owner		= THIS_MODULE,
->  	.add		= pxa_camera_add_device,
-> @@ -814,6 +823,7 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
->  	.querycap	= pxa_camera_querycap,
->  	.try_bus_param	= pxa_camera_try_bus_param,
->  	.set_bus_param	= pxa_camera_set_bus_param,
-> +	.spinlock_alloc	= pxa_camera_spinlock_alloc,
->  };
->  
->  /* Should be allocated dynamically too, but we have only one. */
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 43c8110..1e92157 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -184,6 +184,7 @@ static int soc_camera_open(struct inode *inode, struct file *file)
->  	struct soc_camera_device *icd;
->  	struct soc_camera_host *ici;
->  	struct soc_camera_file *icf;
-> +	spinlock_t *lock;
->  	int ret;
->  
->  	icf = vmalloc(sizeof(*icf));
-> @@ -209,10 +210,16 @@ static int soc_camera_open(struct inode *inode, struct file *file)
->  		goto emgi;
->  	}
->  
-> -	icd->use_count++;
-> -
->  	icf->icd = icd;
->  
-> +	icf->lock = ici->ops->spinlock_alloc(icf);
-> +	if (!icf->lock) {
-> +		ret = -ENOMEM;
-> +		goto esla;
-> +	}
-> +
-> +	icd->use_count++;
-> +
->  	/* Now we really have to activate the camera */
->  	if (icd->use_count == 1) {
->  		ret = ici->ops->add(icd);
-> @@ -229,8 +236,8 @@ static int soc_camera_open(struct inode *inode, struct file *file)
->  	dev_dbg(&icd->dev, "camera device open\n");
->  
->  	/* We must pass NULL as dev pointer, then all pci_* dma operations
-> -	 * transform to normal dma_* ones. Do we need an irqlock? */
-> -	videobuf_queue_sg_init(&icf->vb_vidq, ici->vbq_ops, NULL, NULL,
-> +	 * transform to normal dma_* ones. */
-> +	videobuf_queue_sg_init(&icf->vb_vidq, ici->vbq_ops, NULL, icf->lock,
->  				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
->  				ici->msize, icd);
->  
-> @@ -238,6 +245,11 @@ static int soc_camera_open(struct inode *inode, struct file *file)
->  
->  	/* All errors are entered with the video_lock held */
->  eiciadd:
-> +	lock = icf->lock;
-> +	icf->lock = NULL;
-> +	if (ici->ops->spinlock_free)
-> +		ici->ops->spinlock_free(lock);
-> +esla:
->  	module_put(ici->ops->owner);
->  emgi:
->  	module_put(icd->ops->owner);
-> @@ -253,16 +265,20 @@ static int soc_camera_close(struct inode *inode, struct file *file)
->  	struct soc_camera_device *icd = icf->icd;
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->  	struct video_device *vdev = icd->vdev;
-> +	spinlock_t *lock = icf->lock;
->  
->  	mutex_lock(&video_lock);
->  	icd->use_count--;
->  	if (!icd->use_count)
->  		ici->ops->remove(icd);
-> +	icf->lock = NULL;
-> +	if (ici->ops->spinlock_free)
-> +		ici->ops->spinlock_free(lock);
->  	module_put(icd->ops->owner);
->  	module_put(ici->ops->owner);
->  	mutex_unlock(&video_lock);
->  
-> -	vfree(file->private_data);
-> +	vfree(icf);
->  
->  	dev_dbg(vdev->dev, "camera device close\n");
->  
-> @@ -762,6 +778,21 @@ static void dummy_release(struct device *dev)
->  {
->  }
->  
-> +static spinlock_t *spinlock_alloc(struct soc_camera_file *icf)
-> +{
-> +	spinlock_t *lock = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
-> +
-> +	if (lock)
-> +		spin_lock_init(lock);
-> +
-> +	return lock;
-> +}
-> +
-> +static void spinlock_free(spinlock_t *lock)
-> +{
-> +	kfree(lock);
-> +}
-> +
->  int soc_camera_host_register(struct soc_camera_host *ici)
->  {
->  	int ret;
-> @@ -792,6 +823,11 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->  	if (ret)
->  		goto edevr;
->  
-> +	if (!ici->ops->spinlock_alloc) {
-> +		ici->ops->spinlock_alloc = spinlock_alloc;
-> +		ici->ops->spinlock_free = spinlock_free;
-> +	}
-> +
->  	scan_add_host(ici);
->  
->  	return 0;
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 80e1193..6a8c8be 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -48,6 +48,7 @@ struct soc_camera_device {
->  struct soc_camera_file {
->  	struct soc_camera_device *icd;
->  	struct videobuf_queue vb_vidq;
-> +	spinlock_t *lock;
->  };
->  
->  struct soc_camera_host {
-> @@ -73,6 +74,8 @@ struct soc_camera_host_ops {
->  	int (*try_bus_param)(struct soc_camera_device *, __u32);
->  	int (*set_bus_param)(struct soc_camera_device *, __u32);
->  	unsigned int (*poll)(struct file *, poll_table *);
-> +	spinlock_t* (*spinlock_alloc)(struct soc_camera_file *);
-> +	void (*spinlock_free)(spinlock_t *);
->  };
->  
->  struct soc_camera_link {
+
+Ok, I will look at this and submit patches.  Thanks.
+
+>  I'm currently trying to merge my work and the work to port gspca as a whole 
+>  to v4l2 of Jean-François Moine, so don't expect a new iteration of this 
+>  soon, as I first want to have a clear path for merging these 2 works.
+
+Great.  It would be good to get gspca into the Kernel.
+
+Cheers,
+
+	Brandon
 
 --
 video4linux-list mailing list
