@@ -1,13 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <480209DB.5070801@optusnet.com.au>
-Date: Sun, 13 Apr 2008 22:55:47 +0930
-From: Darrin Ritter <darrinritter@optusnet.com.au>
+Received: from ug-out-1314.google.com ([66.249.92.175])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <claesl@gmail.com>) id 1Jhjyb-0003Oi-HP
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 13:20:58 +0200
+Received: by ug-out-1314.google.com with SMTP id o29so557ugd.20
+	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 04:20:49 -0700 (PDT)
+Message-ID: <47F60F0C.1020903@gmail.com>
+Date: Fri, 04 Apr 2008 13:20:44 +0200
+From: Claes Lindblom <claesl@gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <47FDAD31.6030901@optusnet.com.au> <47FE0DA1.5050302@linuxtv.org>
-In-Reply-To: <47FE0DA1.5050302@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Conexant CX23880 suspected driver memory leak
+To: linux-dvb@linuxtv.org, claesl@gmail.com
+Subject: [linux-dvb] dvbstream for DVB-S2?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,35 +24,11 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steven.
+Hi,
+Has anyone got a working patch for dvbstream using multiproto and DVB-S2?
 
-Thanks for your willingness to look into my concern. I was unable to 
-find any sign of memory usage increase with dvbstream, actually it 
-stayed a rock steady 144kb there seems to be some sort of randomness to 
-the problem somewhere in the software stack.
-
-Thanks to all who developed the CX23880 driver
-
-Darrin Ritter
-
-
-Steven Toth wrote:
->
->> I tested the application for an hour and the memory usage stayed at a 
->> steady 14.6 Mb, given the previous tests I would have expected the 
->> memory usage to rise to approx 26.6 Mb
->
-> Thanks Darrin.
->
-> I'll fix it if you can prove the leak with dvbstream.
->
-> http://sourceforge.net/projects/dvbtools/
->
-> Can you?
->
-> - Steve
->
-
+Regards
+Claes
 
 _______________________________________________
 linux-dvb mailing list
