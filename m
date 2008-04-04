@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DLtJZL006142
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:55:19 -0400
-Received: from web902.biz.mail.mud.yahoo.com (web902.biz.mail.mud.yahoo.com
-	[216.252.100.42])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DLsxPA021718
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:54:59 -0400
-Date: Sun, 13 Apr 2008 23:54:58 +0200 (CEST)
-From: Markus Rechberger <mrechberger@empiatech.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080413184247.0e413896@areia>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34JDa2x022529
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 15:13:36 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m34JDOJg025096
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 15:13:25 -0400
+Date: Fri, 4 Apr 2008 21:13:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0804042027140.7761@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=KOI8-R
 Content-Transfer-Encoding: 8bit
-Message-ID: <901526.9594.qm@web902.biz.mail.mud.yahoo.com>
-Cc: Video <video4linux-list@redhat.com>
-Subject: Re: [ANNOUNCE] Videobuf improvements to allow its usage with USB
-	drivers
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,84 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi
 
---- Mauro Carvalho Chehab <mchehab@infradead.org>
-schrieb:
+On Fri, 4 Apr 2008, ·ëöÎ wrote:
 
-> On Sun, 13 Apr 2008 23:38:24 +0200 (CEST)
-> Markus Rechberger <mrechberger@empiatech.com> wrote:
-> 
-> > 
-> > --- Mauro Carvalho Chehab <mchehab@infradead.org>
-> > schrieb:
-> > 
-> > > > my eeePC shows up 0-5% CPU usage with mplayer
-> > > > fullscreen without videobuf, seems more like
-> > > > something's broken in your testapplication or
-> > > > somewhere else?
-> > > 
-> > > The test application (capture_example) is the
-> one
-> > > documented at the V4L2 spec.
-> > > The only difference is that I've incremented
-> count
-> > > to 1000, to get more frames.
-> > > I don't see what's wrong on it.
-> > > 
-> > 
-> > I just tested capture_example on the eeePC (again
-> non
-> > videobuf).
-> > 
-> > $ time ./capture_example
-> > .................. (printed this around 100
-> times?)
-> > real   0m4.312s
-> > user   0m0.010s
-> > sys    0m0.000s
-> > 
-> > strace clearly shows up VIDIOC_QBUF, VIDIOC_DQBUF.
-> > 
-> > So the question is rather what makes the results
-> so
-> > bad on your system. 
-> > How can the userspace application go up to 100%,
-> while
-> > the system isn't that busy?
-> 
-> Are you running your tests against the in-kernel
-> version? 
+> Now soc-camera driver can work on my pxa270.I wrote a program to test
+> the driver.Only the first frame is right,but others is wrong.The
+> program that I wrote come from Video for Linux Two API
+> Specification,and work well on other v4l2-driver.
 
-v4l-dvb-experimental/em28xx-userspace 2 from
-mcentral.de use the same algorithms.
+With what camera are you using the driver? Is it one of mt9m001 / mt9v022 
+or another one? In what mode is it connected to the CPU? Master parallel? 
+Monochrome or colour? How many bits data bus width? Why are you writing 
+your own programme and not using an existing one like xawtv, mplayer or 
+gstreamer? It would be much easier to diagnose our problem if you took 
+mplayer and provided the exact command line and output.
 
-I ran capture_example again with count=1000
+How wrong are the frames? If they are shifted, you might have a problem 
+with buffer size calculation somewhere. If you get distorted images, you 
+might be getting FIFO overflows. Are you sending output over some library, 
+to the X server, or directly to the framebuffer?
 
-first run:
-real 0m40.393s
-user 0m0.000s
-sys  0m0.020s
-second run:
-real 0m40.294s
-user 0m0.000s
-sys  0m0.030s
-third run:
-real 0m40.394s
-user 0m0.000s
-sys 0m0.010s
+See, you need to provide much more information so we could help you.
 
-> Also, you're running
-> with count = 100 (the 100 dots). You need to edit
-> the example code, and move to
-> 1000 to have the same basement as I used here.
-> 
-
-I just did so.
-
-seems really like an improvement but into the wrong
-direction :-)
-
-Markus
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
