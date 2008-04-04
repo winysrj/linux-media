@@ -1,26 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OGUQR0021961
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 12:30:26 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OGUBqd013278
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 12:30:11 -0400
-Date: Thu, 24 Apr 2008 13:29:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Steven Whitehouse <steve@chygwyn.com>
-Message-ID: <20080424132953.418c5556@gaivota>
-In-Reply-To: <20080424143825.GA31993@fogou.chygwyn.com>
-References: <1209046379.9435.5.camel@ThePenguin>
-	<20080424113125.7fd2de52@gaivota>
-	<1209047735.9435.8.camel@ThePenguin>
-	<20080424141513.GA31623@fogou.chygwyn.com>
-	<20080424114424.52471e2c@gaivota>
-	<20080424143825.GA31993@fogou.chygwyn.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m341jI0K028505
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 21:45:18 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m341j5m6012328
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 21:45:05 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1JhazG-0006Ht-NU
+	for video4linux-list@redhat.com; Fri, 04 Apr 2008 01:45:02 +0000
+Received: from c9346dce.virtua.com.br ([201.52.109.206])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 01:45:02 +0000
+Received: from fragabr by c9346dce.virtua.com.br with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 01:45:02 +0000
+To: video4linux-list@redhat.com
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Date: Thu, 3 Apr 2008 22:18:20 -0300
+Message-ID: <20080403221820.38797430@tux.abusar.org.br>
+References: <20080401190033.68c821ed@tux.abusar.org.br>
+	<1207093795.16537.4.camel@localhost.localdomain>
+	<20080402183820.6c917a0a@tux.abusar.org.br>
+	<1207204144.2386.1.camel@localhost.localdomain>
+	<20080403144456.1e6bf438@tux.abusar.org.br>
+	<pan.2008.04.03.20.14.56.901338@gimpelevich.san-francisco.ca.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Johan Hedlund <johan.hedlund@enea.com>
-Subject: Re: V4L2_PIX_FMT_SBGGR16 not in kernel
+Subject: Re: Remote controller for Powercolor Real Angel 330
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,40 +40,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 24 Apr 2008 15:38:25 +0100
-Steven Whitehouse <steve@chygwyn.com> wrote:
+On Thu, 03 Apr 2008 13:14:56 -0700
+Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us> wrote:
 
-> Btw, the V4L spec claims that it exists already:
-> http://v4l2spec.bytesex.org/spec/r3796.htm
-> 
-> Guennadi Liakhovetski submitted a driver which uses this too so
-> thats why I'd thought it was already included. I hadn't looked
-> to see what stage his driver was at recently.
+> Those changes are wrong, especially WRT gpio2, which carries the IR
 
-It isn't already at mainstream, but it will be soon. I'm finishing to prepare
-its submission.
 
-> I do have a (not yet submitted driver) which uses it, and the hold up
-> has been basically that the various subsystems that I was using were
-> in a state of flux. I hope that when the current merge window is
-> complete I'll be able to take another look at it, and get it ready.
-> 
-> I hadn't bothered to follow up on the patch since my driver wasn't
-> ready yet, but nonetheless I didn't receive any feedback at the time
-> to suggest that it was a prerequsite.
+	You're completely right ;) Now everything is ok. I'm sending a
+unified patch to this list so you can review it. If it's ok, I'll ask
+Mauro Chehab to merge it.
+	
+	Thank you very much!
 
-It makes no sense to change the API for something that is not used ;)
+-- 
+Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
+http://u-br.net
 
-> There are a lot of sensors though that use this format. Pretty much
-> all the Omnivision sensors and the Micron sensors all have 10 bit
-> interfaces, even though some manufacturers only choose to use the
-> upper 8 bits, so it will be something that it of general use to
-> lots of people,
-
-Good.
-
-Cheers,
-Mauro
 
 --
 video4linux-list mailing list
