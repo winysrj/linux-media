@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.186])
+Received: from smtp02.msg.oleane.net ([62.161.4.2])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1Jjg8o-00010A-Gy
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 21:39:32 +0200
-Received: by nf-out-0910.google.com with SMTP id d21so1146658nfb.11
-	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 12:39:23 -0700 (PDT)
-Message-ID: <ea4209750804091239h2a155aaap105cba23d990fc71@mail.gmail.com>
-Date: Wed, 9 Apr 2008 21:39:22 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Jelle de Jong" <jelledejong@powercraft.nl>
-In-Reply-To: <47FD1551.9000202@powercraft.nl>
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JhmNI-0000md-KM
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 15:55:37 +0200
+Received: from PCTL ([194.250.18.140]) (authenticated)
+	by smtp02.msg.oleane.net (MTA) with ESMTP id m34DsU8b010798
+	for <linux-dvb@linuxtv.org>; Fri, 4 Apr 2008 15:54:31 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 4 Apr 2008 15:54:27 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-References: <47FD1551.9000202@powercraft.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dutv005-dvb-terrestrial-device,
-	help i can't get it working
+In-Reply-To: <854d46170804040633g2bc6a9feu306f89a33d728fe3@mail.gmail.com>
+Subject: [linux-dvb] RE :  RE : Ofcom announce HD freeview standard in UK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,95 +20,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1576125426=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1576125426==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_21489_27928364.1207769962385"
-
-------=_Part_21489_27928364.1207769962385
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-As commented in a previous thread, no way.
-It's not currently supported, and there's no driver under development.
-Also there's not enough information of it unless you have direct contact
-with intel and/or maxlinear, so probably there will be no driver in a long
-time.
-
-Albert
-
-2008/4/9 Jelle de Jong <jelledejong@powercraft.nl>:
-
-> Hello everybody,
+>> > In summary, looks like HD will be DVB-T2 with MPEG4, with 3 HD channels on
+>>  > air from "late 2009 / early 2010"
+>>  > ...
+>>
+>> > Guess I will need new DVB-T2 hardware :(
+>>
+>>  Is there any existing DVB-T2 hardware today, either regular STB or PCI/USB board ?
+>>
+>>  In France, the terrestrial HD is supposed to officially start in a few weeks
+>>  from now ("spring 2008"). But it will use DVB-T because of lack of DVB-T2 STB.
 >
-> I bought the bellow device, but the drivers are not loaded. How can i
-> get the device to work?
+> Hi!
 >
-> 8086:9500 Intel Corp
+> TerraTec Cinergy T USB XXS HD, H.264, USB2.0, DVB-T, Codec for HDTV support
+> In Sweden it's only 479 SEK (50 Euro)
 >
-> http://szforwardvideo.en.alibaba.com/product/50120
+> Hauppauge! WinTV-NOVA-TD-HD, Dual-DVB-T, USB2.0, HD-ready (999 SEK = 105 Euro)
 >
-> 559/200925466/Digital_Ter_DVB_T_TV_Series/Dutv005_Terrestrial_Tv_Receiver.html
-> http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005
->
-> http://www.fedoraonline.it/modules/newbb/viewtopic.php?topic_id=5437&start=0
->
-> Kind regards,
->
-> Jelle
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> Hauppauge! WinTV-NOVA-T-500-HD, Dual-DVB-T, PCI, EPG, Radio, HD-ready
+> (949 SEK = 100 Euro)
 
-------=_Part_21489_27928364.1207769962385
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+They certainly come with HD-capable software.
+But do they really support DVB-T2 modulation ?
 
-As commented in a previous thread, no way. <br>It&#39;s not currently supported, and there&#39;s no driver under development. <br>Also there&#39;s not enough information of it unless you have direct contact with intel and/or maxlinear, so probably there will be no driver in a long time.<br>
-<br>Albert<br><br><div class="gmail_quote">2008/4/9 Jelle de Jong &lt;<a href="mailto:jelledejong@powercraft.nl">jelledejong@powercraft.nl</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hello everybody,<br>
-<br>
-I bought the bellow device, but the drivers are not loaded. How can i<br>
-get the device to work?<br>
-<br>
-8086:9500 Intel Corp<br>
-<br>
-<a href="http://szforwardvideo.en.alibaba.com/product/50120" target="_blank">http://szforwardvideo.en.alibaba.com/product/50120</a><br>
-559/200925466/Digital_Ter_DVB_T_TV_Series/Dutv005_Terrestrial_Tv_Receiver.html<br>
-<a href="http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005" target="_blank">http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005</a><br>
-<a href="http://www.fedoraonline.it/modules/newbb/viewtopic.php?topic_id=5437&amp;start=0" target="_blank">http://www.fedoraonline.it/modules/newbb/viewtopic.php?topic_id=5437&amp;start=0</a><br>
-<br>
-Kind regards,<br>
-<br>
-Jelle<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br>
+Since most current tuners for PC are simple tuners, there is no hardware
+difference for SD vs. HD. It is only a matter of software codec.
 
-------=_Part_21489_27928364.1207769962385--
+DVB-T2, on the other hand, is a different *modulation* technique which
+must be implemented in hardware. 
 
-
---===============1576125426==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1576125426==--
