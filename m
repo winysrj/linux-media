@@ -1,15 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pcl6.ibercom.com ([213.195.69.254])
+Received: from lax-green-bigip-5.dreamhost.com ([208.113.200.5]
+	helo=spaceymail-a2.g.dreamhost.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <adriancapel@openforyou.com>) id 1Jkq0t-0002R1-FZ
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 02:24:08 +0200
-Message-ID: <20080413022332.yrtb5tk3ic8ckcgw@webmail.openforyou.com>
-Date: Sun, 13 Apr 2008 02:23:32 +0200
-From: adriancapel@openforyou.com
+	(envelope-from <lee.essen@nowonline.co.uk>) id 1JhilN-0004IB-Dj
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 12:03:14 +0200
+Received: from Cartman.owlsbarn.local (dsl-217-155-53-6.zen.co.uk
+	[217.155.53.6])
+	by spaceymail-a2.g.dreamhost.com (Postfix) with ESMTP id EF666EE3A3
+	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 03:02:57 -0700 (PDT)
+Message-Id: <84A32566-9C02-458C-BD0A-FCFDD2FBDBAC@nowonline.co.uk>
+From: Lee Essen <lee.essen@nowonline.co.uk>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Problems with ASUS My Cinema U3000 Mini
+In-Reply-To: <20080404001439.GC32083@tull.net>
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Fri, 4 Apr 2008 11:02:56 +0100
+References: <F8D2B7C6-300A-4813-BA04-08C22306C678@nowonline.co.uk>
+	<20080404001439.GC32083@tull.net>
+Subject: Re: [linux-dvb] AF9015 - unknown tuner 30
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,48 +30,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Nick,
 
-The device is properly recognized but I can not tune channels.
+Interesting ... yes mine looks exactly the same as your pictures,  
+except mine is marked as a V1.1 and has a red PCB.
 
-scandvb shows me the following error: "WARNING: filter timeout pid 0x0011"
+There are quite a few low-cost suppliers of this unit in the UK...
 
+http://www.zebracomputers.co.uk/azurewave-dvb-t-ad-tu700-dual-tuner-freeview-usb20-tv-stick-i606394.html
+http://www.pcnextday.co.uk/products/ProductDetail.asp?ProductCode=1513-2360
 
-# scandvb /usr/share/dvb-apps/scan/dvb-t/es-Collserola > channels.conf
-scanning /usr/share/dvb-apps/scan/dvb-t/es-Collserola
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 514000000 0 2 9 3 1 3 0
-initial transponder 570000000 0 2 9 3 1 3 0
-initial transponder 794000000 0 2 9 3 1 3 0
-initial transponder 818000000 0 2 9 3 1 3 0
-initial transponder 834000000 0 2 9 3 1 3 0
-initial transponder 842000000 0 2 9 3 1 3 0
-initial transponder 850000000 0 2 9 3 1 3 0
-initial transponder 858000000 0 2 9 3 1 3 0
->>> tune to:  
->>> 514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:  
->>> 570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
+... so I think the unit is fairly widely available. TinyTwin seems to  
+be an Australian branding -- interestingly on the DigitalNow web site  
+there is this link???
+
+http://forums.dvbowners.com/index.php?showtopic=9101
+
+Cheers,
+
+Lee.
 
 
+On 4 Apr 2008, at 01:14, Nick Andrew wrote:
 
-I am using kernel 2.6.24.4 and the latest version of v4l-dvb.
-
-For installation of v4l-db follow indications:
-
-http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini
-
-
-
-Possible bug?
-
-
-Thanks
-
+> On Thu, Apr 03, 2008 at 12:15:48PM +0100, Lee Essen wrote:
+>> The product is described on the Twinhan site, although my one is  
+>> white
+>> with no markings, but otherwise the same. Interestingly this page
+>> isn't linked from the menu on the left, so I'm not sure if this is
+>> "new" or "discontinued" or what!!!    http://www.twinhan.com/product_AD-TU700
+>
+> It gives a 404 error in Chinese now. But it is still available in the
+> google cache:
+>
+>  http://209.85.173.104/search?q=cache:0f5wjLtKopAJ:www.twinhan.com/product_AD-TU700.asp+product_AD-TU700&hl=en&ct=clnk&cd=1
+>
+> It's similar to this:
+>
+>  http://www.nick-andrew.net/TinyTwin/tinytwin-1.jpg (13d3:3226)
+>  http://www.nick-andrew.net/TinyTwin/tinytwin-2.jpg
+>  http://www.nick-andrew.net/TinyTwin/tinytwin-3.jpg
+>
+> Nick.
+> -- 
+> PGP Key ID = 0x418487E7                      http://www.nick-andrew.net/
+> PGP Key fingerprint = B3ED 6894 8E49 1770 C24A  67E3 6266 6EB9 4184  
+> 87E7
 
 
 _______________________________________________
