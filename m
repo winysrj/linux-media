@@ -1,19 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m36LfUMd006007
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 17:41:30 -0400
-Received: from web88210.mail.re2.yahoo.com (web88210.mail.re2.yahoo.com
-	[206.190.37.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m36LfC4Q004863
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 17:41:12 -0400
-Date: Sun, 6 Apr 2008 14:41:05 -0700 (PDT)
-From: Dwaine Garden <dwainegarden@rogers.com>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m340XuLY015822
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:33:56 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m340Xg6l005366
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:33:43 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Date: Fri, 4 Apr 2008 02:32:32 +0200
+References: <1115343012.20080318233620@a-j.ru>
+	<1207179525.14887.13.camel@pc08.localdom.local>
+	<1207265002.3364.12.camel@pc08.localdom.local>
+In-Reply-To: <1207265002.3364.12.camel@pc08.localdom.local>
 MIME-Version: 1.0
-Message-ID: <314237.83517.qm@web88210.mail.re2.yahoo.com>
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-dvb@linuxtv.org
-Subject: v4l-dvb tree will not compile all modules??
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200804040232.33855@orion.escape-edv.de>
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,27 +32,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm trying to compile all the modules in the hg tree.   The tree compiles ok on my mythtv box, but does not compile all of it.
-If I compile the 2.6.18 kernel, all the modules do compile properly.   But the v4l-dvb tree still only compiles 198 modules.
+hermann pitton wrote:
+> Am Donnerstag, den 03.04.2008, 01:38 +0200 schrieb hermann pitton:
+> > Hi again,
+> > 
+> > Am Mittwoch, den 02.04.2008, 22:47 +0400 schrieb Andrew Junev:
+> > > Hello Hermann,
+> > > 
+> > > Thanks a lot for this detailed explanation!
+> > > I really appreciate your help!
+> > > 
+> > > One small question: does it mean that kernels 2.6.24.5 or 2.6.24.6
+> > > _should_ have this patch already included?
+> > > 
+> > 
+> > seems we hang in current stable kernel rules.
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/stable_kernel_rules.txt;hb=HEAD
+> > 
+> > If we go back to 2.6.23 level, that patch might have less than 100 lines
+> > with context, but we break the
+> > 
+> >  - It must fix only one thing
+> > 
+> > rule, since we break the 2.6.24 LifeView Trio DVB-S support too then.
+> > 
+> > Seems sombody with such a device should reopen the bug on Bugzilla ...
+> > 
+> 
+> Hi Guys,
+> 
+> should we really let hang it like this on 2.6.24?
+> 
+> I'm not that happy with a recommendation for the distributions to pick
+> something out of it.
+> 
+> If we should go back to 2.6.23 level, so far nobody seems to have
+> realized a improvement for the LifeView Trio stuff, I'm not against it.
+> 
+> The changeset in question to revert is mercurial 6579.
+> 
+> If nobody else is interested and no comments, I also don't care anymore.
 
-make[2]: Leaving directory `/usr/src/linux-source-2.6.18-chw-13'
-./scripts/rmmod.pl check
-found 198 modules
-make[1]: Leaving directory `/myth/v4l-dvb-1abbd650fe07/v4l'
+(Basically I don't care because I am tired of discussing kernel
+politics.)
 
-Try it on another box and I get all the modules to compile?????
+Imho a fix should be applied, no matter how many lines it has.
+If that is not possible the offending patch should be reverted in
+2.6.24.x.
 
-make[2]: Leaving directory `/usr/src/kernels/2.6.25-0.195.rc8.git1.fc9.i686'
-./scripts/rmmod.pl check
-found 229 modules
-make[1]: Leaving directory `/usr/src/v4l-dvb-37d5a01a14ca/v4l'
+CU
+Oliver
 
-What am I missing?
-
-Dwaine
-
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 --
 video4linux-list mailing list
