@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38HB8va017952
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 13:11:08 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34BiWAQ001851
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 07:44:32 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38HAtG3029678
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 13:10:55 -0400
-Date: Tue, 8 Apr 2008 14:10:38 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34BiJvZ010786
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 07:44:19 -0400
+Date: Fri, 4 Apr 2008 07:44:11 -0400 (EDT)
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Aidan Thornton" <makosoft@googlemail.com>
-Message-ID: <20080408141038.647e7ec0@gaivota>
-In-Reply-To: <c8b4dbe10804080947g1923f6b8yac90e63ef0a18d4a@mail.gmail.com>
-References: <20080408145826.GA17398@plankton.public.utexas.edu>
-	<c8b4dbe10804080947g1923f6b8yac90e63ef0a18d4a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: changeset: 7516:e59033a1b38f summary: videobuf-vmalloc: fix
- STREAMOFF/STREAMON
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <47F5AB2A.3020908@linuxtv.org>
+Message-ID: <Pine.LNX.4.64.0804040726540.6240@bombadil.infradead.org>
+References: <1115343012.20080318233620@a-j.ru>
+	<1207269838.3365.4.camel@pc08.localdom.local>
+	<20080403222937.3b234a40@gaivota>
+	<200804040456.57561@orion.escape-edv.de>
+	<47F5AB2A.3020908@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,63 +30,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 8 Apr 2008 17:47:53 +0100
-"Aidan Thornton" <makosoft@googlemail.com> wrote:
+>> Imho 7186 _must_ be applied to 2.6.24, no matter how large the patch is.
+>>
+> Are you saying that THIS is the patch that needs to be applied to 2.6.24.y ?
+>
+> http://linuxtv.org/hg/v4l-dvb/rev/eb6bc7f18024
+>
+> If so, this patch seems fine for -stable.  We just have to make sure it
+> applies correctly, etc.
 
-> Hi,
-> 
-> On Tue, Apr 8, 2008 at 3:58 PM, Brandon Philips <brandon@ifup.org> wrote:
-> > From: http://linuxtv.org/hg/~mchehab/em28xx-vb
-> >
-> >  > diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
-> >  > --- a/linux/drivers/media/video/videobuf-vmalloc.c
-> >  > +++ b/linux/drivers/media/video/videobuf-vmalloc.c
-> >  > @@ -78,6 +79,18 @@ videobuf_vm_close(struct vm_area_struct
-> >  >
-> >  >                       if (q->bufs[i]->map != map)
-> >  >                               continue;
-> >  > +
-> >  > +                     mem = q->bufs[i]->priv;
-> >  > +                     if (mem) {
-> >  > +                             /* This callback is called only if kernel has
-> >  > +                                allocated memory and this memory is mmapped.
-> >  > +                                In this case, memory should be freed,
-> >  > +                                in order to do memory unmap.
-> >  > +                              */
-> >  > +                             MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
-> >  > +                             vfree(mem->vmalloc);
-> >  > +                             mem->vmalloc = NULL;
-> >  > +                     }
-> >
-> >  Will this work?  The code only holds the vb_lock but the drivers protect
-> >  the vmalloc area with a spinlock.  I don't think we can free this
-> >  without the spinlock too or the driver will be copying to a free'd area.
-> 
-> Yeah, it does seem like that. Of couse, holding the spinlock probably
-> won't be enough, since I think there'll still be buffers queued
-> without any actual memory associated, and that'll trigger the BUG_ON
-> in videobuf_to_vmalloc.
+Agreed.
 
-Good point. maybe a spinlock_irq_save would solve this, since the videobuf
-handling occurs at IRQ time.
+I don't see why the patch would be rejected for -stable. It is a fix, 
+proofed to work, and simple enough for everybody to understand what it is 
+doing.
 
-It should be noticed, however that the videobuf_vm_close() is called
-automagically by the kernel memory handlers, when vm usage count is 0. There's
-no explicit call to it. 
+The kernel documents are guidances, not absolute rules. In the end, good 
+sense is the main rule for a patch to be applied or not.
 
-I suspect that this will only happen at the close() callback. If so, the bug
-will happen only if you don't stop streaming before closing the file handler.
-However, don't stopping streaming after close will probably rise other bugs.
+---
 
-This code is not called if you simply do a streamoff(). While streamoff
-releases all buffers, mmapped memory count is still equal to 1.
+Next time, please ask first for us to submit a patch to mainstream or 
+-stable before complaining why it weren't submitted.
 
-So, I don't believe that we might have an oops here.
+Side note: after reviewing the entire thread, and finally understanding 
+the hole picture, it seems that you've implicitly asked. The better is to 
+send an objective email. Something like:
+ 	Subject: [PATCH -stable] Please send patch xxxx to -stable
 
-> >  It seems we need a reference count on the buffers to do this right.
-
-There is a reference count for the mapping. The code is called only after
-having usage equal to 0.
+Requesting to add a patch in the middle of a thread generally means that 
+the patch won't be handled as so. The better is to send a separate e-mail, 
+with the word [PATCH] at the subject, copying the one who will be 
+responsible for applying it at the tree (the driver maintainer or me), for 
+this to be handled. In the case of patches for -stable, please c/c 
+mkrufky.
 
 Cheers,
 Mauro
