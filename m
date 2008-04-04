@@ -1,27 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.187])
+Received: from fk-out-0910.google.com ([209.85.128.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <luis.cidoncha@gmail.com>) id 1Jkgnr-0000kM-0g
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 16:34:03 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so1049215fkz.1
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 07:33:59 -0700 (PDT)
-Message-ID: <b04e7ceb0804120733p1930b77bw5698b50dae23a677@mail.gmail.com>
-Date: Sat, 12 Apr 2008 16:33:59 +0200
-From: "Luis Cidoncha" <luis.cidoncha@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <b04e7ceb0804120733t5d87eb1bh2dc88f57f1949afd@mail.gmail.com>
+	(envelope-from <bokola@gmail.com>) id 1Jhm2l-0007Pm-Ht
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 15:33:26 +0200
+Received: by fk-out-0910.google.com with SMTP id z22so70914fkz.1
+	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 06:33:20 -0700 (PDT)
+Message-ID: <854d46170804040633g2bc6a9feu306f89a33d728fe3@mail.gmail.com>
+Date: Fri, 4 Apr 2008 15:33:19 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAABK7CCpXRHUiXb377n8xT9AEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <47A98F3D.9070306@raceme.org> <47AB1FC0.8000707@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<C34A2B56-5B39-4BE4-BACD-4E653F61FB03@firshman.co.uk>
-	<8ad9209c0803121334s1485b65ap7fe7d5e4df552535@mail.gmail.com>
-	<8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
-	<8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
-	<b04e7ceb0804120733t5d87eb1bh2dc88f57f1949afd@mail.gmail.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+References: <7075.81.144.130.125.1207292962.squirrel@manicminer.homeip.net>
+	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAABK7CCpXRHUiXb377n8xT9AEAAAAA@tv-numeric.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] RE : Ofcom announce HD freeview standard in UK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,32 +29,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Fri, Apr 4, 2008 at 12:03 PM, Thierry Lelegard
+<thierry.lelegard@tv-numeric.com> wrote:
+> > In summary, looks like HD will be DVB-T2 with MPEG4, with 3 HD channels on
+>  > air from "late 2009 / early 2010"
+>  > ...
 >
- >  Just wanted to report that since stopped the active EIT scanning in
- >  mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with
- >  2.6.22-14 without any special module options or anything like that.
- >  Before i never had both tuners working for more that 24 hours so that
- >  seems to be the workaround for the moment.
- >  The card still collects EIT data when watching tv so EPG still works.
- >
+> > Guess I will need new DVB-T2 hardware :(
+>
+>  Is there any existing DVB-T2 hardware today, either regular STB or PCI/USB board ?
+>
+>  In France, the terrestrial HD is supposed to officially start in a few weeks
+>  from now ("spring 2008"). But it will use DVB-T because of lack of DVB-T2 STB.
+>
+>
+>
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
- Hi. I was suffering the "loser one tuner" problem, and I just want to
- add that I use MythTV with active EIT scanning and my system has been
- stable for 4 days without a problem.
+Hi!
 
- MythTV has a parameter to delay the tuning of channels in the same
- configuration screen where you select active/passive EIT scanning.
- More precisely, it's at the right of the Active EIT scanning checkbox.
- I have adapter0 with passive EIT scanning, and 0 delay, and adapter1
- with Active EIT scanning and 150ms of tuning delay. That solved the
- tuner-losing stuff and also I have my EIT fully populated.
+TerraTec Cinergy T USB XXS HD, H.264, USB2.0, DVB-T, Codec for HDTV support
+In Sweden it's only 479 SEK (50 Euro)
 
- Hope this can help you. Luis.
+Hauppauge! WinTV-NOVA-TD-HD, Dual-DVB-T, USB2.0, HD-ready (999 SEK = 105 Euro)
+
+Hauppauge! WinTV-NOVA-T-500-HD, Dual-DVB-T, PCI, EPG, Radio, HD-ready
+(949 SEK = 100 Euro)
 
 
-
--- 
-"I don't need a plan, just a goal. The rest will follow on its own"
+//Faruk
 
 _______________________________________________
 linux-dvb mailing list
