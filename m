@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3O33nUr015247
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 23:03:50 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3O33cdb004999
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 23:03:38 -0400
-Message-ID: <480FF883.7030708@linuxtv.org>
-Date: Wed, 23 Apr 2008 23:03:31 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34FBH06032090
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 11:11:17 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34FB6JQ027930
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 11:11:06 -0400
+Received: by py-out-1112.google.com with SMTP id a29so96392pyi.0
+	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 08:11:06 -0700 (PDT)
+Message-ID: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+Date: Fri, 4 Apr 2008 23:11:06 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <480F7A0E.2080202@linuxtv.org>
-	<Pine.LNX.4.64.0804232210550.31358@bombadil.infradead.org>
-In-Reply-To: <Pine.LNX.4.64.0804232210550.31358@bombadil.infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, video4linux-list@redhat.com,
-	biercenator@gmail.com, linux-kernel@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: [PATCH] Fix VIDIOCGAP corruption in ivtv
+Content-Disposition: inline
+Subject: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,44 +27,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
->>>> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
->>>
->>> In this case, it should be reviewed-by.
->>>
->>> I should be sending this soon to Linus.
->>
->>
->> Mauro,
->>
->> I think it's wrong that you alter signatures.  You did this:
->>
->> Reviewed-by: <mkrufky@linuxtv.org <mailto:mkrufky@linuxtv.org>>
->
-> Argh! I didn't notice that weird stuff. This should be fixed before
-> forwarding the patch. Sorry for the mess.
->
-> [snip]
->
-> After the merge at mainstream, you'll send this to stable. In this
-> case, you'll take it from my tree, add your SOB, and forward it.
->
-> Unfortunately, it is a common mistake of people sending SOB's instead
-> of acked-by or reviewed-by, so several maintainers warns about the
-> improper usage of the tags and corrects it on their trees, or simply
-> ignores such improper usage.
+Now soc-camera driver can work on my pxa270.I wrote a program to test
+the driver.Only the first frame is right,but others is wrong.The
+program that I wrote come from Video for Linux Two API
+Specification,and work well on other v4l2-driver.
 
-Good point.
->
-> If you prefer, I may just drop the tag from my tree, or fix the
-> "reviewed-by".
-
-Perhaps it makes most sense to just drop my tag, in this case  -- that's
-fine with me.
-
-Regards,
-
-Mike
+thanks
+fengxin
 
 --
 video4linux-list mailing list
