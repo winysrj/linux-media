@@ -1,34 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OF6hTm015372
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 11:06:43 -0400
-Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OF6TeV032544
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 11:06:29 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZU00FK94MNWB20@mta1.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Thu, 24 Apr 2008 11:06:24 -0400 (EDT)
-Date: Thu, 24 Apr 2008 11:06:23 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <37219a840804240740n67e99cu8dd03062a4acd125@mail.gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-id: <4810A1EF.7030405@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>
-	<20080422040728.GD24855@plankton.ifup.org>
-	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>
-	<20080423200134.GJ6703@plankton.ifup.org>
-	<480FA22D.7010507@linuxtv.org>
-	<8CA7429B5FF15EF-9C8-FC@mblk-d14.sysops.aol.com>
-	<8CA742F34634D33-9C8-48F@mblk-d14.sysops.aol.com>
-	<37219a840804240740n67e99cu8dd03062a4acd125@mail.gmail.com>
-Cc: Greg K-H <greg@kroah.com>, video4linux-list@redhat.com
-Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m340iXg6023364
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:44:33 -0400
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m340iA5f011694
+	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 20:44:10 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Oliver Endriss <o.endriss@gmx.de>
+In-Reply-To: <200804040232.33855@orion.escape-edv.de>
+References: <1115343012.20080318233620@a-j.ru>
+	<1207179525.14887.13.camel@pc08.localdom.local>
+	<1207265002.3364.12.camel@pc08.localdom.local>
+	<200804040232.33855@orion.escape-edv.de>
+Content-Type: text/plain
+Date: Fri, 04 Apr 2008 02:43:58 +0200
+Message-Id: <1207269838.3365.4.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,34 +32,70 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Michael Krufky wrote:
-> On Thu, Apr 24, 2008 at 10:32 AM, Jon Lowe <jonlowe@aol.com> wrote:
->> While not exactly the same, this bug MAY be related to my hot swap poblem:
->>  https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/12519
+Am Freitag, den 04.04.2008, 02:32 +0200 schrieb Oliver Endriss:
+> hermann pitton wrote:
+> > Am Donnerstag, den 03.04.2008, 01:38 +0200 schrieb hermann pitton:
+> > > Hi again,
+> > > 
+> > > Am Mittwoch, den 02.04.2008, 22:47 +0400 schrieb Andrew Junev:
+> > > > Hello Hermann,
+> > > > 
+> > > > Thanks a lot for this detailed explanation!
+> > > > I really appreciate your help!
+> > > > 
+> > > > One small question: does it mean that kernels 2.6.24.5 or 2.6.24.6
+> > > > _should_ have this patch already included?
+> > > > 
+> > > 
+> > > seems we hang in current stable kernel rules.
+> > > 
+> > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/stable_kernel_rules.txt;hb=HEAD
+> > > 
+> > > If we go back to 2.6.23 level, that patch might have less than 100 lines
+> > > with context, but we break the
+> > > 
+> > >  - It must fix only one thing
+> > > 
+> > > rule, since we break the 2.6.24 LifeView Trio DVB-S support too then.
+> > > 
+> > > Seems sombody with such a device should reopen the bug on Bugzilla ...
+> > > 
+> > 
+> > Hi Guys,
+> > 
+> > should we really let hang it like this on 2.6.24?
+> > 
+> > I'm not that happy with a recommendation for the distributions to pick
+> > something out of it.
+> > 
+> > If we should go back to 2.6.23 level, so far nobody seems to have
+> > realized a improvement for the LifeView Trio stuff, I'm not against it.
+> > 
+> > The changeset in question to revert is mercurial 6579.
+> > 
+> > If nobody else is interested and no comments, I also don't care anymore.
 > 
-> No relation.  Also, we're in 2.6.26 development, most 2.6.15 bugs are
-> entirely irrelevant.
+> (Basically I don't care because I am tired of discussing kernel
+> politics.)
 > 
-> The problem is PCIe hotplugging  -- it doesn't work in Linux, at
-> least, not with Expresscards.  This issue is not specific to the
-> HVR1500 -- you'll see it on other similar Expresscards as well.
-
-Good, that's my suspicion hence I asked for the test without the driver 
-present.
-
-I have no ability to test that on my hardware.
-
+> Imho a fix should be applied, no matter how many lines it has.
+> If that is not possible the offending patch should be reverted in
+> 2.6.24.x.
 > 
-> I can only get the HVR1500 / HVR1500Q / HVR1400 to come up properly if
-> it is installed in the system when I boot up the PC.  Inserting it
-> after boot does absolutely nothing, and removing it after you booted
-> the system with it installed will leave the system unstable.
-> 
-> I added cc to Greg KH -- maybe he can point us in a better direction about this.
+> CU
+> Oliver
 
-Great, thanks.
 
-- Steve
+I fully agree!
+
+But that is exactly where they hang us and I have it totally sick,
+especially in combination with current checkpatch.pl brain damage.
+
+Cheers,
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
