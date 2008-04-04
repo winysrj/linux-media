@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TNnBcQ028387
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:11 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TNmXdu012504
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:48:33 -0400
-From: Andy Walls <awalls@radix.net>
-To: Marc Randolph <mrandtx@yahoo.com>
-In-Reply-To: <88771.83842.qm@web83107.mail.mud.yahoo.com>
-References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Date: Tue, 29 Apr 2008 19:47:48 -0400
-Message-Id: <1209512868.5699.32.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: MCE TV Philips 7135 Cardbus don't work
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34I0i1e024855
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:00:44 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m34I0U5l008604
+	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 14:00:30 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+Date: Fri, 4 Apr 2008 19:59:27 +0200
+References: <1115343012.20080318233620@a-j.ru> <47F6258B.7020207@linuxtv.org>
+	<37219a840804040623i274d7292ledbe91ac7a531171@mail.gmail.com>
+In-Reply-To: <37219a840804040623i274d7292ledbe91ac7a531171@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200804041959.28748@orion.escape-edv.de>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,78 +31,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-04-29 at 16:20 -0700, Marc Randolph wrote:
-> --- Emilio Lazo Zaia <emiliolazozaia@gmail.com> wrote:
+Michael Krufky wrote:
+> On Fri, Apr 4, 2008 at 8:56 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> >  Guys,
+> >
+> >  Please test this patch against 2.6.24.4 -stable.
+> >
+> >  I don't have this hardware, or any way to test this myself, so I will wait on your feedback before sending this to the -stable team.  (Please try to test it and get back to me quickly -- I'd like to send this over before the 2.6.24.5 review cycle begins)
 > 
-> > Hello,
-> > 
-> > I have purchased a "MCE TV Philips 7135 Cardbus" and I'm to set it up.
-> > When I plug it, the module saa7134 is being loaded and dmesg says:
-> > 
-> > ï»¿pccard: CardBus card inserted into slot 0
-> > Linux video capture interface: v2.00
-> > saa7130/34: v4l2 driver version 0.2.14 loaded
-> > PCI: Enabling device 0000:06:00.0 (0000 -> 0002)
-> > ACPI: PCI Interrupt 0000:06:00.0[A] -> GSI 17 (level, low) -> IRQ 17
-> > saa7133[0]: found at 0000:06:00.0, rev: 209, irq: 17, latency: 0, mmio:
-> > 0x54000000
-> > PCI: Setting latency timer of device 0000:06:00.0 to 64
-> > saa7133[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
-> > [card=0,autodetected]
-> > saa7133[0]: board init: gpio is e2c0c0
-> > saa7133[0]: Huh, no eeprom present (err=-5)?
-> > saa7133[0]: registered device video0 [v4l2]
-> > saa7133[0]: registered device vbi0
 > 
-> Howdy Emilio,
+> I also uploaded the patch to linuxtv.org, in case of mailer whitespace-mangling:
 > 
-> Google gives a ton of hits on that very unique error message.  I assume you
-> already did this:
+> http://linuxtv.org/~mkrufky/stable/2.6.24.y/0002-DVB-tda10086-make-the-22kHz-tone-for-DISEQC-a-conf.patch
 > 
-> "try to pass newi2c=1 or newi2c=0 to the ivtv module. Add it to
-> /etc/modprobe.conf (or /etc/modules.d/ivtv if you are an gentoo user).
-> 
-> options ivtv newi2c=1
-> 
-> If setting this works please report it to the ivtv-devel mailing list."
-> 
-> Copied from
-> http://ivtvdriver.org/index.php/Troubleshooting#Error:_Huh.2C_no_eeprom_present_.28err.3D-121.29.3F
-> 
+> Please test.
 
-Marc,
+The following devices are affected by the patch:
 
-Good reasoning, but as it happens, this error message is not quite
-unique.  The ivtv/tveeprom modules will additionally gripe about "not a
-Hauppauge EEPROM".  The ivtv/tveeprom modules will usually return -121
-corresponding to -EREMOTEIO.
+driver: budget
+- Technontrend DVB-S 1401, pci subsystem id: 13c2:1018
 
-Emilio,
+driver ttusb2:
+- USB_PID_PCTV_400E
+- USB_PID_PCTV_450E
 
-This card is handled by the saa7134, module, not the ivtv module, so
-newi2c doesn't apply.
+driver: saa7134
+- SAA7134_BOARD_FLYDVB_TRIO
+- SAA7134_BOARD_MEDION_MD8800_QUADRO
+- SAA7134_BOARD_FLYDVBS_LR300
+- SAA7134_BOARD_PHILIPS_SNAKE
+- SAA7134_BOARD_MD7134_BRIDGE_2
 
-"Huh, no eeprom present" in this case is being emitted by the saa7134
-module itself and not the tveeprom module that ivtv uses.
+Sorry, cannot do any tests, I do not own any of these devices.
 
-"err=-5" is -EIO, referring to an I2C bus error with the i2c bus of the
-saa7133.
+CU
+Oliver
 
-With the saa7134 module "/sbin/modinfo" has two interesting options:
-i2c_scan and i2c_debug which you may wish to try.
-
-Regards,
-Andy
-
-> Good luck,
-> 
->    Marc
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 --
 video4linux-list mailing list
