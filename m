@@ -1,14 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1Jic2g-0006Wl-V5
-	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 23:04:52 +0200
-Date: Sun, 6 Apr 2008 23:03:56 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
+Received: from web8326.mail.in.yahoo.com ([202.43.219.185])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <sudha_sjshm1985@yahoo.co.in>) id 1JhlRx-0002PE-1b
+	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 14:55:23 +0200
+Date: Fri, 4 Apr 2008 13:54:32 +0100 (BST)
+From: sudha rani <sudha_sjshm1985@yahoo.co.in>
 To: linux-dvb@linuxtv.org
-Message-ID: <Pine.LNX.4.64.0804062251380.6749@pub5.ifh.de>
 MIME-Version: 1.0
-Subject: [linux-dvb] Technisat SkyStar2 rev 2.7 and 2.8 status
+Message-ID: <677042.11270.qm@web8326.mail.in.yahoo.com>
+Subject: [linux-dvb] Nova-s-plus card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,42 +16,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1943371925=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+--===============1943371925==
+Content-Type: multipart/alternative; boundary="0-492911158-1207313672=:11270"
+Content-Transfer-Encoding: 8bit
 
-I have some good news for some of you and not yet good news for some 
-others.
+--0-492911158-1207313672=:11270
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
-First of all I have to say sorry, because I was relatively quiet recently 
-even though I promised to be more open. To cut things short, I could not 
-give any docs or code to other to help development, that's why I had to do 
-it myself.
 
-To cut things even shorter: on http://linuxtv.org/hg/~pb/v4l-dvb/ I just 
-committed support for the SkyStar2 rev 2.7. I finished the changes needed 
-in the s5h1420-driver and added the itd1000-driver. I'm using this card 
-right now - it works. I don't know whether it works for everyone (I can't 
-try Diseqc or any Satelite except Astra 19.2). I'm looking forward to hear 
-some feedback about the driver.
+hi
 
-Not so good news for the rev 2.8 users, yet. The driver is finished (I'm 
-using it since 2 weeks under the same conditions as above), but I cannot 
-make it open source yet, I'm doing my best to do it and will announce it, 
-as soon as I have news.
+ am using RHEL 4.4 and the kernel version is 2.6.9, does
+this support nova-s-plus card?
 
-Good luck at least for the 2.7 testers,
-Patrick.
+ i tried with v4l-dvb,vide4linux. But it asked for version 2.6.12.
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+and while trying the older versions of v4l-dvb also, i was 
+not able to load the modules cx88-dvb and frontend
+cx24123. 
+
+ after refering to so many views in net, i applied the All-2.6.9-rc4.diff
+to 2.6.9, after that im able to load cx88-dvb. but there is no frontends for the card.
+no tveeprom and video-buf-dvb. 
+
+Can u plz help me to resolve this issue and tell me where can i get the v4l with all supporting files for nova-s-plus card
+
+thanks in advance.
+
+       
+---------------------------------
+ Forgot the famous last words? Access your message archive online. Click here.
+--0-492911158-1207313672=:11270
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+
+<pre><tt><tt><tt><tt><tt><tt><tt><tt>hi<br><br> am using RHEL 4.4 and the kernel version is 2.6.9, does<br>this support nova-s-plus card?<br><br> i tried with v4l-dvb,vide4linux. But it asked for version <a rel="nofollow" target="_blank" onclick="return ShowLinkWarning()" href="http://2.6.12./">2.6.12.</a><br><br>and while trying the older versions of v4l-dvb also, i was <br>not able to load the modules cx88-dvb and frontend<br>cx24123. <br><br> after refering to so many views in net, i applied the All-2.6.9-rc4.diff<br>to 2.6.9, after that im able to load cx88-dvb. but there is no frontends for the card.<br>no tveeprom and video-buf-dvb. <br><br>Can u plz help me to resolve this issue and tell me where can i get the v4l with all supporting files for nova-s-plus card<br><br>thanks in advance.</tt></tt></tt></tt></tt></tt></tt></tt></pre><p>&#32;
+
+
+      <!--4--><hr size=1></hr> Forgot the famous last words? Access your message archive online. <a href="http://in.rd.yahoo.com/tagline_webmessenger_4/*http://in.messenger.yahoo.com/webmessengerpromo.php">Click here.</a>
+--0-492911158-1207313672=:11270--
+
+
+--===============1943371925==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1943371925==--
