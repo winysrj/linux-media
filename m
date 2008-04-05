@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rrcs-70-61-214-222.midsouth.biz.rr.com ([70.61.214.222]
-	helo=mail.harktech.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <david@thegeorges.us>) id 1JkAh5-0006Kc-LU
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 06:16:56 +0200
-Received: from localhost (fs2.harktech.com [127.0.0.1])
-	by mail.harktech.com (Postfix) with ESMTP id 99B78D5B41
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 00:16:50 -0400 (EDT)
-Received: from mail.harktech.com ([127.0.0.1])
-	by localhost (mail.harktech.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id KGc0sr9grP+L for <linux-dvb@linuxtv.org>;
-	Fri, 11 Apr 2008 00:16:49 -0400 (EDT)
-Received: from david3.harktech.com (unknown [10.100.1.100])
-	by mail.harktech.com (Postfix) with ESMTP id C43ECD5B3B
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 00:16:49 -0400 (EDT)
-Message-ID: <47FEE631.2060607@thegeorges.us>
-Date: Fri, 11 Apr 2008 00:16:49 -0400
-From: David George <david@thegeorges.us>
+Received: from host06.hostingexpert.com ([216.80.70.60])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1Ji9uy-0008Vq-Hl
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 17:02:57 +0200
+Message-ID: <47F79499.5000004@linuxtv.org>
+Date: Sat, 05 Apr 2008 11:02:49 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Hauppauge HD-PVR driver?
+To: aldebaran <aldebx@yahoo.fr>
+References: <47F79267.7060307@yahoo.fr>
+In-Reply-To: <47F79267.7060307@yahoo.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx23885 and Xc3028 frontend type (ATSC) is not
+ compatible with requested tuning type (OFDM)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,39 +26,85 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I asked this on the v4l list and didn't get any replies.  I am not sure 
-which list is more appropriate for this device, so I figured I should 
-ask here also.
+aldebaran wrote:
+> Dear linux-dvb developers,
+> I own an HP rebranded Hauppauge Express Card shipped with several HP
+> laptops.
+> I know you recently added support for this device, however I cannot
+> manage to make it work.
+> Specifically I cannot use the 'scan' utility to generate a channels.conf
+> file usable with me-tv, thus I cannot use the tuner.
+> I had the same outcomes either with v4l-dvb and patched cx23885 drivers.
+> Thank you for your support!
+> 
+> here is the output of this tool:
+> 
+>    scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/fr-Paris
+>    using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>    initial transponder 810000000 0 2 1 3 1 0 0
+>    initial transponder 730000000 0 2 1 3 1 0 0
+>    initial transponder 626000000 0 2 1 3 1 0 0
+>    WARNING: frontend type (ATSC) is not compatible with requested
+>    tuning type (OFDM)
+>    WARNING: frontend type (ATSC) is not compatible with requested
+>    tuning type (OFDM)
+>    WARNING: frontend type (ATSC) is not compatible with requested
+>    tuning type (OFDM)
+>    ERROR: initial tuning failed
+>    dumping lists (0 services)
+>    Done.
+> 
+> here are my card specs:
+> HP Hauppauge WinTv 885
+> model 77001 rev d4c0 (Model 77xxx Analog/ATSC Hybrid, Xc3028)
+> tuner: Xceive xc3028 http://www.xceive.com/technology_XC3028.htm
+> audio tuner: stereo cx23885
+> decoder: cx23885 http://www.conexant.com/products/entry.jsp?id=393
+> 
+> The card seems correctly recognised, here is my dmesg output:
+> 
+>    [   34.715408] cx23885 driver version 0.0.1 loaded
+>    [   34.715478] ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 17 (level,
+>    low) -> IRQ 17
+>    [   34.715495] CORE cx23885[0]: subsystem: 0070:7717, board:
+>    Hauppauge WinTV-HVR1500 [card=6,autodetected]
+[snip]
+>    [   34.826010] cx23885[0]: i2c bus 0 registered
+>    [   34.826027] cx23885[0]: i2c bus 1 registered
+>    [   34.826041] cx23885[0]: i2c bus 2 registered
+>    [   34.853553] tveeprom 0-0050: Hauppauge model 77001, rev D4C0,
+>    serial #68766589
+>    [   34.853556] tveeprom 0-0050: MAC address is 00-0D-FE-23-A3-DB
+>    [   34.853558] tveeprom 0-0050: tuner model is Xceive XC3028 (idx
+>    120, type 71)
+>    [   34.853561] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB
+>    Digital (eeprom 0x88)
+>    [   34.853563] tveeprom 0-0050: audio processor is CX23885 (idx 39)
+>    [   34.853565] tveeprom 0-0050: decoder processor is CX23885 (idx 33)
+>    [   34.853567] tveeprom 0-0050: has no radio, has no IR receiver,
+>    has no IR transmitter
+>    [   34.853569] cx23885[0]: hauppauge eeprom: model=77001
+>    [   34.853571] cx23885[0]: cx23885 based dvb card
+>    [   34.980916] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+>    [   34.980921] DVB: registering new adapter (cx23885[0])
+>    [   34.980924] DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB
+>    Frontend)...
+>    [   34.981111] cx23885_dev_checkrevision() Hardware revision = 0xb0
+>    [   34.981120] cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 17,
+>    latency: 0, mmio: 0xbc000000
+>    [   34.981128] PCI: Setting latency timer of device 0000:04:00.0 to 64
 
-Thanks,
+Aldebaran,
 
--------- Original Message --------
-Subject: 	Hauppauge HD-PVR driver?
-Date: 	Tue, 08 Apr 2008 10:28:36 -0400
-From: 	David George <david@thegeorges.us>
-To: 	Linux and Kernel Video <video4linux-list@redhat.com>
+You are using the HVR1500, which is an ATSC-only card.  (not to be confused with the HVR1500Q, which also supports QAM)
 
+However, you are attempting to tune OFDM in Paris, but that will not work with an ATSC card.
 
+A better card for that purpose would be the HVR1400, but that card is not yet supported in linux :-/
 
-I just heard back from Hauppauge that they are expecting[1] the Linux 
-community to produce their own driver for this device.  I was wondering 
-if any of the v4l developers have received a prerelease unit or 
-documentation to aid in the driver development.  For those that may not 
-be familiar with the device it is a high-definition component video 
-capture device.  It outputs an H.264/AVC stream (not sure what the 
-actual container format is) over USB 2.0 high speed.  Here is a link to 
-their product page: http://www.hauppauge.com/site/products/hd_pvr.html .
+Sorry for the bad news.
 
-[1] Exact text of reply: "Linux drivers will not be available for this 
-product at the time of it's release. All Linux support for Hauppauge 
-hardware is 3rd party, so in time, there likely will be a Linux driver 
-available from the Linux community like most of the other Hauppauge 
-products, but nothing in the short term."
-
--- 
-David
-
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
