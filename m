@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JkSFg-000308-CS
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:01:53 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from an-out-0708.google.com ([209.85.132.240])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rvm3000@gmail.com>) id 1JiIDc-0005Yc-VB
+	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 01:54:49 +0200
+Received: by an-out-0708.google.com with SMTP id d18so182660and.125
+	for <linux-dvb@linuxtv.org>; Sat, 05 Apr 2008 16:54:33 -0700 (PDT)
+Message-ID: <f474f5b70804051654h3ee0bdd5u6eb19db2ac626845@mail.gmail.com>
+Date: Sun, 6 Apr 2008 01:54:33 +0200
+From: rvm <rvm3000@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Fri, 11 Apr 2008 23:29:47 +0200
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<200804102240.13933@orion.escape-edv.de>
-	<1207870397.17744.12.camel@pc08.localdom.local>
-In-Reply-To: <1207870397.17744.12.camel@pc08.localdom.local>
+In-Reply-To: <47F44538.2090508@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804112329.47476@orion.escape-edv.de>
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401
-	Horizontal	transponder fails
-Reply-To: linux-dvb@linuxtv.org
+References: <f474f5b70804021720i7926ea17q77b3ef551fb0841f@mail.gmail.com>
+	<47F44538.2090508@iki.fi>
+Subject: Re: [linux-dvb] Pinnacle PCTV 71e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,82 +28,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton wrote:
-> Hi,
-> 
-> Am Donnerstag, den 10.04.2008, 22:40 +0200 schrieb Oliver Endriss:
-> > Hi,
-> > 
-> > Manu Abraham wrote:
-> > > Oliver Endriss wrote:
-> > > ...
-> > > > Ok, some calculations according your formula
-> > > > 
-> > > >>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
-> > > > 
-> > > > 45 MSPS:
-> > > > BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
-> > > > 
-> > > > -> cutoff 36 MHz (maximum value supported)
-> > > > 
-> > > > 27 MSPS:
-> > > > BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
-> > > > 
-> > > > -> cutoff 31 MHz
-> > > > 
-> > > > 22 MSPS:
-> > > > BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
-> > > > 
-> > > > -> cutoff 26 MHz
-> > > > 
-> > > > Are these calculations correct, or did I miss something here?
-> > > 
-> > > 
-> > > It looks fine, just round it off to the next integer. ie always round it
-> > > up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
-> > > well, since at the last step, you will not need an offset, since it
-> > > would be the last step in the spectrum.
-> > > ...
-> > > > Afaics a simple pre-calculated lookup table with 32 entries should do
-> > > > the job. At least for the cut-off frequency.
-> > > 
-> > > That's possible, since you need only 32 precomputed entries, rather than
-> > > continuous values. That would be much better too, without any runtime
-> > > overheads. Just the table needs to be done nice.
-> > 
-> > Now I found some time to come back to this issue,
-> > 
-> > I prepared a small patch to set the cutoff according to Manu's formula.
-> > The calculation is simple enough for integer arithmetic, so it is not
-> > worth to prepare a lookup-table.
-> > 
-> > @ldvb:
-> > Please test and report whether it works for you.
-> > 
-> > CU
-> > Oliver
-> > 
-> 
-> I'm not asked, but give you a report anyway.
+2008/4/3, Antti Palosaari <crope@iki.fi>:
+> rvm wrote:
+>
+> > Isn't still possible to use the Pinnacle PCTV 71e in linux?
+> >
+>
+>  Yes, it is.
+>  http://linuxtv.org/hg/~anttip/af9015/
 
-;-)
+I couldn't compile this driver in my linux, maybe because the kernel is old:
 
-> On Hotbird 13.0E it makes no difference for me.
+> make
+make -C /tmp/af9015-2eb574241ebe/v4l
+make[1]: Entering directory `/tmp/af9015-2eb574241ebe/v4l'
+No version yet, using 2.6.8-24-default
+make[1]: Leaving directory `/tmp/af9015-2eb574241ebe/v4l'
+make[1]: Entering directory `/tmp/af9015-2eb574241ebe/v4l'
+scripts/make_makefile.pl
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.8
+File not found: /lib/modules/2.6.8-24-default/build/.config at
+./scripts/make_kconfig.pl line 32, <IN> line 4.
+make[1]: *** [.config] Error 2
+make[1]: Leaving directory `/tmp/af9015-2eb574241ebe/v4l'
+make: *** [all] Error 2
 
-Are you saying that you did not have any problems without the patch,
-and is works with the patch, too?
+But I was able to compile it in a kubuntu running in a virtual machine
+in windows. Yes, now it recognizes the usb stick, and more or less
+works. Kaffeine finds channels but then it only displays random lines
+instead of the image.
 
-I do not expect a big difference for common symbol rates like 22 MSPS
-or 27.5 MSPS, but it will probably make a difference for high or low
-symbol rates.
+With mplayer it's better, image is almost good, but it gets corrupted
+(blocks appear) very often, which doesn't happen in Windows.
 
-CU
-Oliver
+The main problem is that when mplayer is closed, the device doesn't
+work anymore. It's like the /dev/dvb/* had gone. Unplugin and plugin
+the stick doesn't fix the problem, it's necessary to reboot :(
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Pepe
 
 _______________________________________________
 linux-dvb mailing list
