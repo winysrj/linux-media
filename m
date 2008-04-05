@@ -1,14 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from f79.mail.ru ([194.67.57.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1Jnyfx-0002b5-2p
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 18:15:32 +0200
-From: allan k <sonofzev@iinet.net.au>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Date: Tue, 22 Apr 2008 02:15:28 +1000
-Message-Id: <1208794528.9790.10.camel@media1>
+	(envelope-from <goga777@bk.ru>) id 1Ji3Br-0001zV-C0
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 09:51:59 +0200
+From: Igor <goga777@bk.ru>
+To: Claes Lindblom <claesl@gmail.com>
 Mime-Version: 1.0
-Subject: [linux-dvb] help with dvico usb remote on gentoo
+Date: Sat, 05 Apr 2008 11:51:21 +0400
+In-Reply-To: <47F60F0C.1020903@gmail.com>
+References: <47F60F0C.1020903@gmail.com>
+Message-Id: <E1Ji3BJ-000OCd-00.goga777-bk-ru@f79.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] =?koi8-r?b?ZHZic3RyZWFtIGZvciBEVkItUzI/?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,29 +26,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All 
+> Has anyone got a working patch for dvbstream using multiproto and DVB-S2?
 
-While I'm waiting for help with the dvico dual express. I have been
-trying to get the dvico usb remote working on gentoo. 
 
-I've followed the couple of how-tos for gentoo and lirc and come up with
-the same problem every time. 
+it's seems there's not any multiproto's patch for dvbstream
 
-I get stuck where it asks to load the module...... 
-
-After running emerge lirc, I find there is no lirc_dvico module, as all
-the instructions mention. as such I don't end up with an lirc device in
-my /dev/ directory. 
-
-I tried issuing the config-kernel --allow-writeable=yes but my system
-has no such command and I can't find which package it belongs to. 
-
-I'm pretty sure I'm missing something simple, so any advice will be
-appreciated. 
-
-cheers
-
-Allan 
+Igor
 
 _______________________________________________
 linux-dvb mailing list
