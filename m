@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from el-out-1112.google.com ([209.85.162.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1JmuVS-0001H8-Fx
-	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 19:36:15 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so489026fge.25
-	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 10:36:10 -0700 (PDT)
-Message-ID: <4808DBFF.9020600@gmail.com>
-Date: Fri, 18 Apr 2008 19:35:59 +0200
+	(envelope-from <amitay@gmail.com>) id 1JhxOw-00014N-Hh
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 03:41:09 +0200
+Received: by el-out-1112.google.com with SMTP id o28so300669ele.2
+	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 18:40:57 -0700 (PDT)
+Message-ID: <75a6c8000804041840s260fa79do5f6bd01d967208a9@mail.gmail.com>
+Date: Sat, 5 Apr 2008 12:40:57 +1100
+From: "Amitay Isaacs" <amitay@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <47F4DAB9.1030109@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-From: e9hack <e9hack@googlemail.com>
-Subject: [linux-dvb] compile error
+References: <1D3AE29367104EEB927390EDBF0EB688@mce>
+	<1207202813.3472.4.camel@localhost> <47F4DAB9.1030109@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Support for Dual Tuner DVB-T PCI and PCIe Cards
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,52 +22,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0685701163=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============0685701163==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_8121_14920007.1207359657607"
 
-compiling of the current hg tree fails with the following message:
+------=_Part_8121_14920007.1207359657607
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-   CC [M]  /usr/src/v4l-dvb/v4l/flexcop-pci.o
-In file included from /usr/src/v4l-dvb/v4l/flexcop-common.h:12,
-                  from /usr/src/v4l-dvb/v4l/flexcop-pci.c:10:
-/usr/src/v4l-dvb/v4l/compat.h:539: error: static declaration of 'proc_create' follows 
-non-static declaration
-/usr/src/linux-2.6.25/include/linux/proc_fs.h:128: error: previous declaration of 
-'proc_create' was here
-make[5]: *** [/usr/src/v4l-dvb/v4l/flexcop-pci.o] Error 1
+On Fri, Apr 4, 2008 at 12:25 AM, Steven Toth <stoth@linuxtv.org> wrote:
 
-This patch does fix the problem:
+>
+> Support for the TDA10048 is almost done, I have this working on a
+> different product.
+>
+>
+Can I get the copy of the driver for TDA10048? I am interested in putting
+together the
+driver for LeadTek DTV 1000S card using 10048 tuner.
 
-diff -r 6aa6656852cb v4l/compat.h
---- a/v4l/compat.h      Wed Apr 16 13:13:15 2008 -0300
-+++ b/v4l/compat.h      Fri Apr 18 19:33:38 2008 +0200
-@@ -533,6 +533,7 @@ do { 
-       \
-         le16_to_cpu(get_unaligned((unsigned short *)(a)))
-  #define put_unaligned_le16(r, a)                               \
-         put_unaligned(cpu_to_le16(r), ((unsigned short *)(a)))
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25)
-  #ifdef CONFIG_PROC_FS
-  static inline struct proc_dir_entry *proc_create(const char *a,
-         mode_t b, struct proc_dir_entry *c, const struct file_operations *d)
-@@ -549,5 +550,6 @@ static inline struct proc_dir_entry *pro
-  }
-  #endif
-  #endif
--
--#endif
-+#endif
-+
-+#endif
+DTV 1000S PCI card uses SAA7130, TDA10048, TDA18271.
 
--Hartmut
+Amitay.
+
+------=_Part_8121_14920007.1207359657607
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<br><div class="gmail_quote">On Fri, Apr 4, 2008 at 12:25 AM, Steven Toth &lt;<a href="mailto:stoth@linuxtv.org">stoth@linuxtv.org</a>&gt; wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<br>
+Support for the TDA10048 is almost done, I have this working on a<br>
+different product.<br>
+<br></blockquote></div><br>Can I get the copy of the driver for TDA10048? I am interested in putting together the <br>driver for LeadTek DTV 1000S card using 10048 tuner. <br><br>DTV 1000S PCI card uses SAA7130, TDA10048, TDA18271.<br>
+<br>Amitay.<br>
+
+------=_Part_8121_14920007.1207359657607--
+
+
+--===============0685701163==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0685701163==--
