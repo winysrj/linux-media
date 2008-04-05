@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sd-green-bigip-66.dreamhost.com ([208.97.132.66]
-	helo=spunkymail-a11.g.dreamhost.com)
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <elfarto@elfarto.com>) id 1JmDvj-0006zx-QN
-	for linux-dvb@linuxtv.org; Wed, 16 Apr 2008 22:08:34 +0200
-Message-ID: <48065CB6.50709@elfarto.com>
-Date: Wed, 16 Apr 2008 21:08:22 +0100
-From: Stephen Dawkins <elfarto@elfarto.com>
-MIME-Version: 1.0
-To: Arthur Konovalov <kasjas@hot.ee>
-References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>
-	<4803C2FA.1010408@hot.ee>
-In-Reply-To: <4803C2FA.1010408@hot.ee>
+	(envelope-from <stoth@linuxtv.org>) id 1Ji8tM-0002nQ-1f
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 15:57:12 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JYU00BSVUQD7YT0@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 05 Apr 2008 09:56:38 -0400 (EDT)
+Date: Sat, 05 Apr 2008 09:56:37 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <47F782D7.1070606@dupondje.be>
+To: Jean-Louis Dupond <info@dupondje.be>
+Message-id: <47F78515.7020209@linuxtv.org>
+MIME-version: 1.0
+References: <47F54E4E.5050608@dupondje.be> <47F6A089.7030504@dupondje.be>
+	<47F782D7.1070606@dupondje.be>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501
+Subject: Re: [linux-dvb] Hauppauge HVR-1300 not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,36 +32,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Arthur Konovalov wrote:
-> Stephen Dawkins wrote:
+Jean-Louis Dupond wrote:
+> Seems like stopping HAL & reloading the modules fixxes it ...
 > 
->>>>I'm not entirely sure what I need todo next to get it working, any help
->>>>will be greatly appreciated.
->>>
->>>See m920x.c or saa7134-dvb.c for drivers using tda10046 and/or tda827x.
->>>
+> Jean-Louis Dupond schreef:
+>> Hello,
 >>
->>I will take a look at them.
+>> I tried tons of different kernel versions, latest v4l hg etc ... nothing 
+>> works ... all are giving me more or less the same error:
 >>
-> 
-> Hi,
-> do You have progress in that direction?
-> I'll very concerned, because I have this card too.
-> 
-> Arthur
-> 
+>> http://pastebin.com/f10c1160b here is another dmesg output (2.6.25-rc8 
+>> with latest hg).
+>>
+>> I hope this is getting fixxed soon :)
 
-Not yet I'm afraid.
+I know what's broken, but I don't know why. I also don't know why it's 
+platform specific.
 
-Regards
-Stephen
+I'm looking at possible solutions now.
 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
