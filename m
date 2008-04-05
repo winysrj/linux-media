@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from yw-out-2324.google.com ([74.125.46.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <knowledgejunkie@gmail.com>) id 1Jgoh7-0007XN-SV
-	for linux-dvb@linuxtv.org; Wed, 02 Apr 2008 00:11:06 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so282734ywh.41
-	for <linux-dvb@linuxtv.org>; Tue, 01 Apr 2008 15:11:02 -0700 (PDT)
-Message-ID: <5387cd30804011511x7162459dod0a897d8e3d471c0@mail.gmail.com>
-Date: Tue, 1 Apr 2008 23:11:01 +0100
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <47F29AEA.2010206@andrei.myip.org>
+	(envelope-from <amitay@gmail.com>) id 1Jhxbs-0002V0-6s
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 03:54:24 +0200
+Received: by yw-out-2324.google.com with SMTP id 5so64875ywh.41
+	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 18:54:10 -0700 (PDT)
+Message-ID: <75a6c8000804041854wbed7002v805e39bf6a6af20c@mail.gmail.com>
+Date: Sat, 5 Apr 2008 12:54:10 +1100
+From: "Amitay Isaacs" <amitay@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <47F6D9FE.8030802@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47EEE49F.4060202@andrei.myip.org>
-	<5387cd30803300852t60a18c7chb0aedf4037c95da4@mail.gmail.com>
-	<1206896137.3520.18.camel@pc08.localdom.local>
-	<5387cd30803311841y66c8ba9hcc2c0e5cfb7f32e1@mail.gmail.com>
-	<47F29AEA.2010206@andrei.myip.org>
-Subject: Re: [linux-dvb] Hauppauge WinTV Nova-S Plus
+References: <1D3AE29367104EEB927390EDBF0EB688@mce>
+	<1207202813.3472.4.camel@localhost> <47F4DAB9.1030109@linuxtv.org>
+	<75a6c8000804041840s260fa79do5f6bd01d967208a9@mail.gmail.com>
+	<47F6D9FE.8030802@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Support for Dual Tuner DVB-T PCI and PCIe Cards
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +24,87 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1978565651=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 01/04/2008, Florin Andrei <florin@andrei.myip.org> wrote:
-> Nick Morrott wrote:
->  >
->  > Linux smithers.home 2.6.22.9-91.fc7 #1 SMP Thu Sep 27 23:10:59 EDT
->  > 2007 i686 i686 i386 GNU/Linux
->  >
->  > No problems using my card pointed at Astra 28.2E.
+--===============1978565651==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_8151_21953908.1207360450112"
+
+------=_Part_8151_21953908.1207360450112
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Sat, Apr 5, 2008 at 12:46 PM, Steven Toth <stoth@linuxtv.org> wrote:
+
+> Amitay Isaacs wrote:
 >
+> >
+> > On Fri, Apr 4, 2008 at 12:25 AM, Steven Toth <stoth@linuxtv.org <mailto:
+> > stoth@linuxtv.org>> wrote:
+> >
+> >
+> >    Support for the TDA10048 is almost done, I have this working on a
+> >    different product.
+> >
+> >
+> > Can I get the copy of the driver for TDA10048? I am interested in
+> > putting together the
+> > driver for LeadTek DTV 1000S card using 10048 tuner.
+> >
+> > DTV 1000S PCI card uses SAA7130, TDA10048, TDA18271.
+> >
 >
-> I wonder if the lesson to take home is to either use a relatively old
->  kernel, such as 2.6.18, or a kernel as new as possible. But avoid
->  in-between versions such as, let's say, 2.6.20
-
-Possibly. On the DVB wiki
-(http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-S-Plus) there
-are reports of problems on 2.6.22.14, which is a _later_ than the one
-on my test machine. I guess the only real answer is try it on the
-distro you want, and see how it goes. It definitely does work though,
-and has been supported since 2006.
+> Not yet, you need to wait until it's complete.
 
 
--- 
-Nick Morrott
+I already started writing the driver for 10048 on the lines of 1004x. So
+instead of duplicating
+the effort I can test out the driver code on my PCI card.
 
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
+Amitay.
 
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+------=_Part_8151_21953908.1207360450112
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Sat, Apr 5, 2008 at 12:46 PM, Steven Toth &lt;<a href="mailto:stoth@linuxtv.org">stoth@linuxtv.org</a>&gt; wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Amitay Isaacs wrote:<div class="Ih2E3d"><br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
+<br>
+On Fri, Apr 4, 2008 at 12:25 AM, Steven Toth &lt;<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a> &lt;mailto:<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a>&gt;&gt; wrote:<br>
+
+<br>
+<br>
+ &nbsp; &nbsp;Support for the TDA10048 is almost done, I have this working on a<br>
+ &nbsp; &nbsp;different product.<br>
+<br>
+<br>
+Can I get the copy of the driver for TDA10048? I am interested in putting together the<br>
+driver for LeadTek DTV 1000S card using 10048 tuner.<br>
+<br>
+DTV 1000S PCI card uses SAA7130, TDA10048, TDA18271.<br>
+</blockquote>
+<br></div>
+Not yet, you need to wait until it&#39;s complete.</blockquote><div><br></div></div>I already started writing the driver for 10048 on the lines of 1004x. So instead of duplicating<br>the effort I can test out the driver code on my PCI card. <br>
+<br>Amitay.<br>
+
+------=_Part_8151_21953908.1207360450112--
+
+
+--===============1978565651==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1978565651==--
