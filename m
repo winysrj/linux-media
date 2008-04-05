@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp06.msg.oleane.net ([62.161.4.6])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JovlX-0007d3-Ls
-	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 09:21:12 +0200
-Received: from PCTL ([194.250.18.140]) (authenticated)
-	by smtp06.msg.oleane.net (MTA) with ESMTP id m3O7L78P005284
-	for <linux-dvb@linuxtv.org>; Thu, 24 Apr 2008 09:21:08 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Thu, 24 Apr 2008 09:21:06 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAvS+B+Nz04k29X/weWcnp3gEAAAAA@tv-numeric.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1Ji3Jc-0002nD-BS
+	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 09:59:57 +0200
+Received: from suse.homenet.telecomitalia.it (87.6.52.43) by
+	relay-pt1.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
+	id 47F6C18000002A58 for linux-dvb@linuxtv.org;
+	Sat, 5 Apr 2008 09:59:52 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
+To: linux-dvb@linuxtv.org
+Date: Sat, 5 Apr 2008 09:54:28 +0200
+References: <47F60F0C.1020903@gmail.com>
+	<E1Ji3BJ-000OCd-00.goga777-bk-ru@f79.mail.ru>
+In-Reply-To: <E1Ji3BJ-000OCd-00.goga777-bk-ru@f79.mail.ru>
 MIME-Version: 1.0
-In-Reply-To: <480F1BFF.7000907@scram.de>
-Subject: [linux-dvb] RE :  RE :  Terratec Cinergy T USB XE Rev 2,
-	any update ?
+Content-Disposition: inline
+Message-Id: <200804050954.29619.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] dvbstream for DVB-S2?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,30 +30,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->I compiled this with gcc 4.2.3. This is what i did:
->...
->wget ftp://ftp.terratec.net/Receiver/Cinergy_T_USB_XE/Update/Cinergy_T_USB_XE_MKII_Drv_Linux.zip
->...
->hg clone http://linuxtv.org/hg/~anttip/af9015
->...
+Il Saturday 05 April 2008 09:51:21 Igor ha scritto:
+> > Has anyone got a working patch for dvbstream using multiproto and DVB-S2?
+> 
+> 
+> it's seems there's not any multiproto's patch for dvbstream
+> 
+> Igor
+> 
 
-Thanks, it indeed works that way.
-
-I missed:
-- Replace dvb common code (where all compile errors were) by
-  the "official" equivalent.
-- Use Antti's hg repository instead of "official" one to get
-  the af9015 driver.
-
-There are still a lot of warnings from Terratec's driver indicating
-poor coding techniques but it works.
-
-Any idea when those two drivers will be integrated in the main tree?
-Concerning the Terratec's driver, I have not seen any licence note,
-neither GPL nor proprietary. Any chance to make it GPL?
-
--Thierry
-
+indeed, and there isn't for a very good reason: with all the
+flames going on here (sorry guys but this list is the most litigious
+I've ever seen in many years) I don't understand if multiproto is or
+isn't the future for linux-dvb API, not because I have anything against it.
+Also, where is the official (if any) multiproto tree?
 
 _______________________________________________
 linux-dvb mailing list
