@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.225])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anothersname@googlemail.com>) id 1JhdSa-0004Fy-Rm
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 06:23:29 +0200
-Received: by wr-out-0506.google.com with SMTP id c30so2691217wra.14
-	for <linux-dvb@linuxtv.org>; Thu, 03 Apr 2008 21:23:24 -0700 (PDT)
-Message-ID: <a413d4880804032123r55fa7f68we895550dc61a24f4@mail.gmail.com>
-Date: Fri, 4 Apr 2008 05:23:23 +0100
-From: "Another Sillyname" <anothersname@googlemail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <c8b4dbe10804030611p6481043bgc6ed3cc0803fcadf@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JiaSg-0006ov-IN
+	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 21:23:31 +0200
+Message-ID: <47F92310.4040500@gmx.net>
+Date: Sun, 06 Apr 2008 21:22:56 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
-	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
-	<c8b4dbe10804011406i6923397fw84de9393335dfee9@mail.gmail.com>
-	<a413d4880804011641v1d20ebabo376d2b41b179b022@mail.gmail.com>
-	<c8b4dbe10804020942r6930fd6fu144b1b445534fda8@mail.gmail.com>
-	<a413d4880804021704g369cef0ak9b0998197ae847a2@mail.gmail.com>
-	<c8b4dbe10804030611p6481043bgc6ed3cc0803fcadf@mail.gmail.com>
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Technotrend common interfaces think my CAM is invalid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,53 +22,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Aidan
+A while ago I compiled and installed a new v4l-dvb. After that, my 
+common interface never worked correctly again. Not long after installing 
+the v4l-dvb, the PSU in my computer broke down, most likely coincidence. 
+After replacing the PSU the computer worked again. I've got both a TT 
+S-1500 and T-1500 with CI.
 
-Just to let you know that after tweaking around I've managed to get it
-working stable.  I had to add a sleep in modprobe.conf else the
-em2880-dvb module was trying to load before em28xx had 'settled'.
+But the common interface still fails. So I:
 
-Just in case you see the problem in the future I added this to my
-modprobe.conf file to fix the problem.....
+*Installed the newest v4l-dvb today
+*Tried 2 other CI cables
+*Tried swapping the CI daughterboards (one 1.0a and one 1.1)
+*Tried another computer with different mainboard and (much) older 
+v4l-dvb (Ubuntu 6.10)
+*Blew the dust off my TT S2-3200 (never used before), connected the CI 
+to it and installed multiproto few weeks ago
+*Decided my old PSU must have blasted both CI daughterboards, ordered 
+new ones and installed that with v4l-dvb downloaded today
+*Re-installed the linuximage package (Ubuntu 7.10) (but not sure if all 
+v4l-dvb from hg is removed with that)
 
-install em28xx /sbin/modprobe --ignore-install em28xx; /bin/sleep 2;
-/sbin/modprobe em2880-dvb
+Maybe I've tried more but I don't remember right now. Anyway, nothing of 
+this helped. My official CanalDigitaal/TV Vlaanderen Mediaguard module 
+and Xcam give me "dvb_ca adapter 0: Invalid PC card inserted :(". Only 
+my Matrix Reborn initializes, but does not work correctly (corruption 
+and/or decodes only audio PID and not video and/or just acts weird). 
+Offical Conax 4.00e is not working so well anymore either (does not 
+always initialize correctly), but atm I've got no subscription card to test.
 
-I've been reading that once 2.6.25 kernel is released there will be a
-lot more support for the em28 products....hopefully it'll reduce some
-of these issues going forward.
+In a standalone Vantage receiver, all modules work well. So they can't 
+be invalid. I just watched Mythbusters with the offical Mediaguard 
+module. And they used to work on the TT, I only remember from the past 
+that the offical Mediaguard gave some corruption (it's compatiblity is 
+not great) but it did run. According to some linuxtv wiki this CAM 
+should now work fine.
 
-Best Regards and once again thanks for your help.
+I'll go look for some Knoppix and see if my CAMs initialize correctly 
+with that. This is really strange. If anyone's got a clue..
 
-J
-
-On 03/04/2008, Aidan Thornton <makosoft@googlemail.com> wrote:
-> On 4/3/08, Another Sillyname <anothersname@googlemail.com> wrote:
->  > Hi Aidan
->  >
->  > I've played around with this for a few hours now and we have moved
->  > forward but not quite working yet.....
->  >
->  > The card is getting loaded properly (when I use the appropriate
->  > card=17 option) however loading the em2880-dvb module then borks.....
->  >
->  > I've attached the edited dmesg file.....any ideas?
->  >
->  > Thanks
->  >
->  > J
->
->
-> Hi,
->
->  Sorry about that - I forgot to copy over a couple of extra GPIO writes
->  needed to switch the device to DVB-T mode. (I knew some devices needed
->  them, I'd just forgotten about it and didn't think to check). Try
->  again now.
->
->
->  Aidan
->
+P.
 
 _______________________________________________
 linux-dvb mailing list
