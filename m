@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DGI6gY032541
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 12:18:06 -0400
-Received: from web902.biz.mail.mud.yahoo.com (web902.biz.mail.mud.yahoo.com
-	[216.252.100.42])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DGHsVj020892
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 12:17:54 -0400
-Date: Sun, 13 Apr 2008 18:17:54 +0200 (CEST)
-From: Markus Rechberger <mrechberger@empiatech.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Video <video4linux-list@redhat.com>
-In-Reply-To: <454886.97234.qm@web901.biz.mail.mud.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Message-ID: <93606.67558.qm@web902.biz.mail.mud.yahoo.com>
-Cc: 
-Subject: RE: [ANNOUNCE] Videobuf improvements to allow its usage with USB
-	drivers
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m36MJrPW023292
+	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:19:53 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m36MJchL024251
+	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:19:38 -0400
+Date: Sun, 6 Apr 2008 19:19:11 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080406191911.68aed9c6@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES] V4L/DVB new USB ID's for 2.6.25-rc8
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,56 +26,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Linus,
 
-> === message truncated ===
-> This is the performance tests I did, running >
-code_example to get 1,000
- frames
-> @29.995 Hz (about 35 seconds of stream), tested on a
-i386 machine,
->  running at
-> 1,5GHz:
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git pci_id_updates
 
->         The old driver:
+For the following:
 
-> $ time -f "%E: %Us User time, %Ss Kernel time, %P
-CPU used"
->  ./capture_example
-> 0:34.21: 8.22s User time, 25.16s Kernel time, 97% 
-CPU used
+   - pvrusb2: add new usb pid for 73xx and 75xxx models
 
->        The videobuf-based driver:
+Those boards are about to be released by their vendor (Hauppauge). The already 
+committed changes for pvrusb2 were meant to address those new devices. However, 
+the vendor changed the usb sub ID's at the last moment. Those two patches adds 
+the newer ID's to allow kernel to properly detect the devices.
 
-> $ time -f "%E: %Us User time, %Ss Kernel time, %P
-CPU used"
->  ./capture_example
-> 0:35.36: 0.01s User time, 0.05s Kernel time, 0% CPU
-used
+Cheers,
+Mauro.
 
->        Conclusion:
+---
 
-> The time consumption to receive the stream where 
-reduced from about
- 33.38
-> seconds to 0.05 seconds
+ drivers/media/video/pvrusb2/pvrusb2-devattr.c |   35 +++++++++++++++++++++++++
+ 1 files changed, 35 insertions(+), 0 deletions(-)
 
-the question is moreover what made capture_example go
-up to 100% CPU in the first try and to 0% in the
-second one.
-I'm not sure about the old implementation in the
-original driver, although I'm just curious about the
-details here. xawtv usually uses very little cputime
-at all. 
-If I use 
-"$ time mplayer tv:// -tv driver=v4l2" it shows up 
+Michael Krufky (2):
+      V4L/DVB (7496): pvrusb2: add new usb pid for 75xxx models
+      V4L/DVB (7497): pvrusb2: add new usb pid for 73xxx models
 
-real 0m40.972s
-user 0m0.230s
-sys  0m0.050s
-
-your benchmark is a bit unclear.
-
-Markus
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
