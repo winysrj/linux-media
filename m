@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Jo0Na-0001tb-ST
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 20:04:39 +0200
-Message-ID: <480CD719.9010909@iki.fi>
-Date: Mon, 21 Apr 2008 21:04:09 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Jic6s-0007JS-Om
+	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 23:09:07 +0200
+Received: from pub5.ifh.de (pub5.ifh.de [141.34.15.197])
+	by znsun1.ifh.de (8.12.11.20060614/8.12.11) with ESMTP id
+	m36L8THw025998
+	for <linux-dvb@linuxtv.org>; Sun, 6 Apr 2008 23:08:29 +0200 (MEST)
+Received: from localhost (localhost [127.0.0.1])
+	by pub5.ifh.de (Postfix) with ESMTP id 49EBC1F0192
+	for <linux-dvb@linuxtv.org>; Sun,  6 Apr 2008 23:08:29 +0200 (CEST)
+Date: Sun, 6 Apr 2008 23:08:29 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <Pine.LNX.4.64.0804062304020.6749@pub5.ifh.de>
 MIME-Version: 1.0
-To: Thierry Lelegard <thierry.lelegard@tv-numeric.com>
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAAijN3xCp8g0Kp9uKDTg5IowEAAAAA@tv-numeric.com>
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAAijN3xCp8g0Kp9uKDTg5IowEAAAAA@tv-numeric.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy T USB XE Rev 2, any update ?
+Subject: [linux-dvb] Non-regression testers for Hauppauge/TT Nova-S SE needed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,24 +29,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thierry Lelegard wrote:
-> Is there any news with the AF9015 and more specifically the Cinergy
-> T USB XE Rev 2 ?
+Hi,
 
-Main problem is that there is no tuner driver for Freescale MC44S803 
-silicon tuner. Looks like there is code for MC44S803 on the net 
-available (for example Terratec driver). Porting it to Linux should not 
-be too big task.
+in order to add support for another device based on the s5h1420 demod. I 
+changed the driver for that component quite heavily and now I would like 
+to know, whether I broke something or not:
 
-There has been some development activity with AF9015 driver and now it 
-initially works also for dual tuner (Maxlinear MXL5003/5) devices, like 
-KWorld PlusTV 399U, TwinHan AzureWave AD-TU700(704J) and DigitalNow 
-TinyTwin.
+I would highly appreciate if someone who owns the mentioned device could 
+try the following repository:
 
-regards,
-Antti
--- 
-http://palosaari.fi/
+http://linuxtv.org/hg/~pb/v4l-dvb/
+
+and report whether the card still works.
+
+Thanks a lot in advance,
+Patrick.
 
 _______________________________________________
 linux-dvb mailing list
