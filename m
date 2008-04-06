@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.185])
+Received: from an-out-0708.google.com ([209.85.132.247])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JhX0X-0003t9-Tq
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 23:30:06 +0200
-Received: by mu-out-0910.google.com with SMTP id w9so5032098mue.6
-	for <linux-dvb@linuxtv.org>; Thu, 03 Apr 2008 14:30:01 -0700 (PDT)
-Message-ID: <47F54C55.2000707@googlemail.com>
-Date: Thu, 03 Apr 2008 22:29:57 +0100
-From: Andrea <mariofutire@googlemail.com>
-MIME-Version: 1.0
+	(envelope-from <greg.d.thomas@gmail.com>) id 1JiWzW-00072x-Vz
+	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 17:41:12 +0200
+Received: by an-out-0708.google.com with SMTP id d18so248674and.125
+	for <linux-dvb@linuxtv.org>; Sun, 06 Apr 2008 08:40:54 -0700 (PDT)
+Message-ID: <e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
+Date: Sun, 6 Apr 2008 16:40:54 +0100
+From: "Greg Thomas" <Greg@TheThomasHome.co.uk>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] HDTV will be back in Freeview in the UK
+In-Reply-To: <Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>
+	<Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
+Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,15 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-After the HDTV trial of a couple of years ago it seems that we'll get it again with the switchover.
+On 06/04/2008, Patrick Boettcher <patrick.boettcher@desy.de> wrote:
+[Re-arranged to reflect the order I tried it in, and resent to the list]
+> Hi Greg,
+>
+>  There have been some updates some time ago to improve the sensitivity. Can
+> you try a more recent driver (v4l-dvb from hg or 2.6.25).
 
-http://www.guardian.co.uk/media/2008/apr/03/digitaltvradio.television?gusrc=rss&feed=uknews
+I tried the latest drivers from http://linuxtv.org/hg/v4l-dvb; a
+couple of compile time warnings I'm sure you're aware of;
 
-Maybe they'll do some more tests that we can receive.
+include/asm/io_32.h: In function 'memcpy_fromio':
+include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy'
+discards qualifiers from pointer target type
 
-By that day maybe the decoder will be so good I'll be able to watch live on my laptop.
+and similar, but other than that, compiled and installed OK. However,
+this made no difference to the channels it could find.
 
-Ciao
+>  Do you have the possibility to try the device with the Hauppauge Windows
+> driver?
+>
+>  The linux driver is maybe not configuring the device optimally, because it
+> is more generic, whereas the manufacturer's driver is specifically for this
+> particular device.
+
+After trying the latest drivers, I had a go under Windows; exactly the
+same set of channels. I just guess the Nova-TD isn't that sensitive. I
+may just have to look at boosting my signal, somehow :(
+
+Thanks for the help,
+
+Greg
 
 _______________________________________________
 linux-dvb mailing list
