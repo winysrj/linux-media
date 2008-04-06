@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smeagol.cambrium.nl ([217.19.16.145] ident=qmailr)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1JjxNP-00021r-Nl
-	for linux-dvb@linuxtv.org; Thu, 10 Apr 2008 16:03:48 +0200
-Message-ID: <47FE1E38.6070804@powercraft.nl>
-Date: Thu, 10 Apr 2008 16:03:36 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from web26115.mail.ukl.yahoo.com ([217.146.182.244])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <linuxcbon@yahoo.fr>) id 1JieIU-0001cM-CX
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 01:29:17 +0200
+Date: Mon, 7 Apr 2008 01:28:06 +0200 (CEST)
+From: linuxcbon <linuxcbon@yahoo.fr>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <47F801AE.7060209@iki.fi>
 MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <47FD1551.9000202@powercraft.nl>
-	<ea4209750804091239h2a155aaap105cba23d990fc71@mail.gmail.com>
-In-Reply-To: <ea4209750804091239h2a155aaap105cba23d990fc71@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dutv005-dvb-terrestrial-device,
- help i can't get it working
+Message-ID: <778001.81401.qm@web26115.mail.ukl.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] RE : Re:  Which DVB-T USB tuner  on linux ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,45 +18,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma wrote:
-> As commented in a previous thread, no way.
-> It's not currently supported, and there's no driver under development.
-> Also there's not enough information of it unless you have direct contact 
-> with intel and/or maxlinear, so probably there will be no driver in a 
-> long time.
-> 
-> Albert
-> 
-> 2008/4/9 Jelle de Jong <jelledejong@powercraft.nl 
-> <mailto:jelledejong@powercraft.nl>>:
-> 
->     Hello everybody,
-> 
->     I bought the bellow device, but the drivers are not loaded. How can i
->     get the device to work?
-> 
->     8086:9500 Intel Corp
-> 
->     http://szforwardvideo.en.alibaba.com/product/50120
->     559/200925466/Digital_Ter_DVB_T_TV_Series/Dutv005_Terrestrial_Tv_Receiver.html
->     http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005
->     http://www.fedoraonline.it/modules/newbb/viewtopic.php?topic_id=5437&start=0
->     <http://www.fedoraonline.it/modules/newbb/viewtopic.php?topic_id=5437&start=0>
-> 
->     Kind regards,
+Thanks for your answer Antti,
 
-Hmm that's not so good, any advice on an other cheap dvb-t that is pal 
-capable and comes form ebay and can ship to the Netherlands?
+ARTEC T14BR =
 
-Kind regards,
+Chip DiB0700
+Is the firmware downloaded automaticaly by the kernel ?
+Does the remote work with it too ?
 
-Jelle
+AVERMEDIA AVERTV DVB-T VOLAR X
+Chip DiB0700
+Seems the same as above, I dont know for the remote.
+
+PINNACLE PCTV DVB-T STICK
+There are different models (eMPIA, DiB7070PB, Pinnacle...)
+I leave it, I dont want to take the risk to buy the wrong product.
+
+There is also the PINNACLE PCTV DVB-T STICK ULTIMATE
+Chip empiatech  ? It seems good.
+
+Which chip has best reception ?
+
+BR, linuxcbon
+
+
+
+--- Antti Palosaari <crope@iki.fi> a =E9crit :
+
+> linuxcbon wrote:
+> > Hi all,
+> > =
+
+> > I am planning to buy a DVB-T USB tuner but I am a little lost :-(.
+> > I am interested in following products :
+> > ARTEC T14BR
+> works
+> =
+
+> > AVERMEDIA AVERTV DVB-T VOLAR X
+> no idea
+> =
+
+> > PINNACLE PCTV DVB-T STICK
+> there is many PCTV versions, most are working. You should look if it is =
+
+> e71, e72, e73 etc. I think mentioned ones are working.
+> =
+
+> > I dont know if they work OK on linux.
+> Some of those works with recent kernels, others needs compiling drivers =
+
+> from v4l-dvb-master or -devel trees.
+> =
+
+> > Which tuner would you recomment for linux ?
+> > =
+
+> > Thanks and BR, linuxcbon
+> =
+
+> regards
+> Antti
+> -- =
+
+> http://palosaari.fi/
+
+
+
+
+
+
+     =
+
+___________________________________________________________________________=
+__
+
+Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yaho=
+o.fr
+
+
+      _____________________________________________________________________=
+________ =
+
+Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yaho=
+o.fr
 
 _______________________________________________
 linux-dvb mailing list
