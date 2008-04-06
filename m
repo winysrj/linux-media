@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <knowledgejunkie@gmail.com>) id 1JgoTA-0005lv-8L
-	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 23:56:41 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so281625ywh.41
-	for <linux-dvb@linuxtv.org>; Tue, 01 Apr 2008 14:56:31 -0700 (PDT)
-Message-ID: <5387cd30804011456h6ef9c46bu99d8c8290a33ca7a@mail.gmail.com>
-Date: Tue, 1 Apr 2008 22:56:31 +0100
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Jic2g-0006Wl-V5
+	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 23:04:52 +0200
+Date: Sun, 6 Apr 2008 23:03:56 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <9F2076E5-6941-444E-94D3-B4F174DA31FB@gmail.com>
+Message-ID: <Pine.LNX.4.64.0804062251380.6749@pub5.ifh.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47EEE49F.4060202@andrei.myip.org>
-	<9F2076E5-6941-444E-94D3-B4F174DA31FB@gmail.com>
-Subject: Re: [linux-dvb] Hauppauge WinTV Nova-S Plus
+Subject: [linux-dvb] Technisat SkyStar2 rev 2.7 and 2.8 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,35 +22,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 30/03/2008, Timothy Parez <timothyparez@gmail.com> wrote:
-> Hey,
->
-> I got it working once.
-> Then I had scanning problems,
-> now I don't have scanning problems
->
-> but szap -r "BBC THREE"     for example works,
-> but doesn't put any data in /dev/dvb/adapter0
->
-> So I get a lock, but no data.
+Hi all,
 
-Shouldn't you be using /dev/dvb/adapter0/dvr0 ?
+I have some good news for some of you and not yet good news for some 
+others.
 
-If you have mplayer installed, try
+First of all I have to say sorry, because I was relatively quiet recently 
+even though I promised to be more open. To cut things short, I could not 
+give any docs or code to other to help development, that's why I had to do 
+it myself.
 
-$ mplayer /dev/dvb/adapter0/dvr0
+To cut things even shorter: on http://linuxtv.org/hg/~pb/v4l-dvb/ I just 
+committed support for the SkyStar2 rev 2.7. I finished the changes needed 
+in the s5h1420-driver and added the itd1000-driver. I'm using this card 
+right now - it works. I don't know whether it works for everyone (I can't 
+try Diseqc or any Satelite except Astra 19.2). I'm looking forward to hear 
+some feedback about the driver.
 
-whilst szap is running and has a channel lock
+Not so good news for the rev 2.8 users, yet. The driver is finished (I'm 
+using it since 2 weeks under the same conditions as above), but I cannot 
+make it open source yet, I'm doing my best to do it and will announce it, 
+as soon as I have news.
 
--- 
-Nick Morrott
+Good luck at least for the 2.7 testers,
+Patrick.
 
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
-
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
