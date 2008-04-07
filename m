@@ -1,21 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1JrHBH-0008AQ-4N
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 20:37:28 +0200
-Received: by yw-out-2324.google.com with SMTP id 9so370848ywe.41
-	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 11:36:59 -0700 (PDT)
-Message-ID: <37219a840804301136r71b240afi16dcf75b5442fe1b@mail.gmail.com>
-Date: Wed, 30 Apr 2008 14:36:58 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Eric Cronin" <ecronin@gizmolabs.org>
-In-Reply-To: <37219a840804301134q68a86301y2373329d2fef5a2f@mail.gmail.com>
+Received: from web26111.mail.ukl.yahoo.com ([217.146.182.215])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <linuxcbon@yahoo.fr>) id 1Jifae-0005Va-Vs
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 02:52:05 +0200
+Date: Mon, 7 Apr 2008 02:51:31 +0200 (CEST)
+From: linuxcbon <linuxcbon@yahoo.fr>
+To: Nick Morrott <knowledgejunkie@gmail.com>, linux-dvb@linuxtv.org
+In-Reply-To: <5387cd30804061659j50a6fdbl80302a0d3b55e027@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
-	<37219a840804301134q68a86301y2373329d2fef5a2f@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
+Message-ID: <568872.27670.qm@web26111.mail.ukl.yahoo.com>
+Subject: [linux-dvb] RE : Re:  Which DVB-T USB tuner on linux ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,81 +23,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Apr 30, 2008 at 2:34 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> 2008/4/30 Eric Cronin <ecronin@gizmolabs.org>:
->
->
-> >  I have an HP Pavilion OEM'd HVR-1800 that I'm giving a shot at getting
->  > working (PVR-500 and HDHR are my production analog/digital inputs).
->  >
->  >  I'm running Mythbuntu 8.04 and have tried both with the bundled version of
->  > v4l-dvb modules and a hg copy from April 29, and both have the same problem:
->  >
->  >  The card is detected fine and /dev/dvb/* created.  When I run 'scan
->  > us-Cable-Standard-center-frequencies-QAM256' it detects nothing, even on
->  > frequencies which I know are QAM256 from the HDHR which is 12" of coax away
->  > from the HVR-1800.  Here is an example from the HDHR scan:
->  >
->  >  SCANNING: 759000000 (us-cable:118, us-irc:118)
->  >  LOCK: qam256 (ss=90 snq=52 seq=100)
->  >  PROGRAM: 1: 6.1 WPVI-HD
->  >  PROGRAM: 2: 10.1 WCAU-DT
->  >  PROGRAM: 3: 6.2 WPVI-SD
->  >  PROGRAM: 4: 6.3 WPVI-WX
->  >  PROGRAM: 5: 10.2 WX-PLUS
->  >
->  >  and from 'scan -v test-chan118' which has just 759000000 in it:
->  >
->  >  scanning test-chan118
->  >  using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->  >  >>> tune to: 759000000:QAM_256
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  WARNING: >>> tuning failed!!!
->  >  >>> tune to: 759000000:QAM_256 (tuning failed)
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  >>> tuning status == 0x00
->  >  WARNING: >>> tuning failed!!!
->  >  ERROR: initial tuning failed
->  >  dumping lists (0 services)
->  >  Done.
->  >
->  >  I have checked the physical connections best I can.  Connecting the
->  > HVR-1800's coax to the PVR-500 sees the analog side of things fine, and the
->  > correct jack on the HVR-1800 is being used.
->  >
->  >  I'm not sure where to go from here debugging things, any suggestions or
->  > more data I can provide?  The modprobe-produced info from dmesg is at the
->  > end of this message.
->
->
->  Eric,
->
->  When you use the scan command to scan for QAM channels, you must
->  specify -a2, to signify that you are scanning digital cable.
->
->  Try that -- does that work?
+Hi Nick,
+
+I read it already, but infos are not updated, not clear etc.
+
+That's why I ask the mailing-list to have latest points of views and
+infos.
+I guess I am not the only one to be confused :p
+
+BR, linuxcbon
 
 
-My bad -- I meant, "-A 2"  (capitol A, space, 2)
 
--Mike
+      _____________________________________________________________________________ 
+Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yahoo.fr
 
 _______________________________________________
 linux-dvb mailing list
