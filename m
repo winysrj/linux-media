@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n15a.bullet.mail.mud.yahoo.com ([68.142.207.125])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1JnHDE-0006bP-R1
-	for linux-dvb@linuxtv.org; Sat, 19 Apr 2008 19:51:00 +0200
-Date: Sat, 19 Apr 2008 13:48:31 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <200804190101.14457.dkuhlen@gmx.net> (from dkuhlen@gmx.net on
-	Fri Apr 18 19:01:14 2008)
-Message-Id: <1208627311l.18445l.0l@manu-laptop>
+Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1Jifoc-0006Sf-0m
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 03:06:31 +0200
+Message-ID: <47F97374.80902@iki.fi>
+Date: Mon, 07 Apr 2008 04:05:56 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
- TT-Connect-S2-3600 final version
+To: linuxcbon <linuxcbon@yahoo.fr>
+References: <778001.81401.qm@web26115.mail.ukl.yahoo.com>
+In-Reply-To: <778001.81401.qm@web26115.mail.ukl.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] RE : Re:  Which DVB-T USB tuner  on linux ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,52 +25,137 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 04/18/2008 07:01:14 PM, Dominik Kuhlen wrote:
-> Hi,
+linuxcbon wrote:
+> Thanks for your answer Antti,
 > =
 
-> Here is my current version after quite a while of testing and tuning:
-> I stripped the stb0899 tuning/searching algo to speed up tuning a bit
-> now I have very fast and reliable locks (no failures, no errors)
+> ARTEC T14BR =
+
+> Chip DiB0700
+> Is the firmware downloaded automaticaly by the kernel ?
+
+It is loaded automatically as it is done always. There is no drivers =
+
+that needs firmware loaded manually. Everyone driver will load firmware =
+
+automatically.
+But if you mean that if firmware is coming from kernel - answer is =
+
+almost 100% no. Firmware is almost always needed to install manually =
+
+from somewhere on the net or from via package manager depending on your =
+
+distribution. Installing firmware is not big issue and it is needed only =
+
+once. Installing drivers from source is more work...
+
+> Does the remote work with it too ?
+
+No idea :)
+
+> AVERMEDIA AVERTV DVB-T VOLAR X
+> Chip DiB0700
+> Seems the same as above, I dont know for the remote.
 > =
 
-> I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it
-> though.)
+> PINNACLE PCTV DVB-T STICK
+> There are different models (eMPIA, DiB7070PB, Pinnacle...)
+> I leave it, I dont want to take the risk to buy the wrong product.
 > =
 
-> the attached patch applies to jusst.de multiproto rev 7213
-> the simpledvbtune application is for tuning tests: it does only open =
+> There is also the PINNACLE PCTV DVB-T STICK ULTIMATE
+> Chip empiatech  ? It seems good.
 
-> the frontend and tunes. no data reading/section parsing.
-> compile with:
-> gcc -I/YOUR_MP_PATH/linux/include simpledvbtune.c -o simpletune
-> and tune to (if you have Astra 19.2 as first satellite)
-> ZDF DVB-S transponder
-> ./simpledvbtune -f 11954 =
+Maybe good, but will need also compiling drivers from source.
 
-> Astra demo DVB-S2 transponder
-> ./simpledvbtune -f 11915 -d 2
+> Which chip has best reception ?
 
-I patched stb988*.c to see if it immproved my reception, but so far it =
+Thats not easy to say because it depends so many things.
 
-looks pretty much the same: transponder on 11093 is always perfect and =
+> BR, linuxcbon
 
-all others are unreliable (meaning: going from no lock to perfect image =
+I haven't looked kernel sources but I have feeling that Artec T14BR =
 
-between times, and if I get no lock tuning to the good transponder on =
+could be in the recent kernel. So my opinion as that take Artec and =
 
-11093 MHz and tuning back to where it did not work will give me a lock =
+probably you don't need to compile drivers from source.
 
-in general), so... I was lost.
-I also tried to substract 4 Mhz to the tuning frequency even up to 10 =
+/antti
 
-MHz but with the same symptoms.
-BUT the good news is : ADDING 4MHz gives good results: perfect picture =
+> =
 
-on every transponders!
-Bye
-Manu
+> --- Antti Palosaari <crope@iki.fi> a =E9crit :
+> =
 
+>> linuxcbon wrote:
+>>> Hi all,
+>>>
+>>> I am planning to buy a DVB-T USB tuner but I am a little lost :-(.
+>>> I am interested in following products :
+>>> ARTEC T14BR
+>> works
+>>
+>>> AVERMEDIA AVERTV DVB-T VOLAR X
+>> no idea
+>>
+>>> PINNACLE PCTV DVB-T STICK
+>> there is many PCTV versions, most are working. You should look if it is =
+
+>> e71, e72, e73 etc. I think mentioned ones are working.
+>>
+>>> I dont know if they work OK on linux.
+>> Some of those works with recent kernels, others needs compiling drivers =
+
+>> from v4l-dvb-master or -devel trees.
+>>
+>>> Which tuner would you recomment for linux ?
+>>>
+>>> Thanks and BR, linuxcbon
+>> regards
+>> Antti
+>> -- =
+
+>> http://palosaari.fi/
+> =
+
+> =
+
+> =
+
+> =
+
+> =
+
+> =
+
+>      =
+
+> _________________________________________________________________________=
+____
+> =
+
+> Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.ya=
+hoo.fr
+> =
+
+> =
+
+>       ___________________________________________________________________=
+__________ =
+
+> Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.ya=
+hoo.fr
+> =
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+-- =
+
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
