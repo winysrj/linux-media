@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Wed, 2 Apr 2008 14:46:20 +0200
-From: Thomas Schuering <linux-dvb@ts4.de>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080402124620.GA25986@ts4.de>
-References: <33ABD80B75296D43A316BFF5B0B52F5F0EEB1F@SRV-QS-MAIL5.lands.nsw>
-	<1dea8a6d0804010841h34f027e7lb4b5342fe45afbb7@mail.gmail.com>
-	<37219a840804011319h6fa0d69elbf95b308236e2179@mail.gmail.com>
+Received: from an-out-0708.google.com ([209.85.132.250])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rvm3000@gmail.com>) id 1JimzX-0000c1-Se
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 10:46:17 +0200
+Received: by an-out-0708.google.com with SMTP id d18so324911and.125
+	for <linux-dvb@linuxtv.org>; Mon, 07 Apr 2008 01:46:02 -0700 (PDT)
+Message-ID: <f474f5b70804070146l5ab13459sc25b8f1129b15122@mail.gmail.com>
+Date: Mon, 7 Apr 2008 10:46:02 +0200
+From: rvm <rvm3000@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <47F980D5.3030202@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <37219a840804011319h6fa0d69elbf95b308236e2179@mail.gmail.com>
-Cc: alan@redhat.com, video4linux-list@redhat.com,
-	Nicholas Magers <Nicholas.Magers@lands.nsw.gov.au>,
-	LInux DVB <linux-dvb@linuxtv.org>, Ben Caldwell <benny.caldwell@gmail.com>
-Subject: Re: [linux-dvb] Dvico Dual 4 card not working.
+References: <f474f5b70804021720i7926ea17q77b3ef551fb0841f@mail.gmail.com>
+	<47F44538.2090508@iki.fi>
+	<f474f5b70804051654h3ee0bdd5u6eb19db2ac626845@mail.gmail.com>
+	<47F90CA3.1090102@iki.fi>
+	<f474f5b70804061846o66a3126aidcde58b4889b926c@mail.gmail.com>
+	<47F980D5.3030202@iki.fi>
+Subject: Re: [linux-dvb] Pinnacle PCTV 71e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +32,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Mike,
+2008/4/7, Antti Palosaari <crope@iki.fi>:
+> rvm wrote:
+>
 
-On Tue, Apr 01, 2008 at 04:19:45PM -0400, Michael Krufky wrote:
-> 
-> Can you try using the v4l-dvb master branch hg repository on
-> linuxtv.org again, after applying the attached patch (see below)
+>
+> > Still I'm getting the video (and audio) corrupted, could it be because
+> > of the firmware? I used this one:
+> >
+> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
+> >
+>
+>  No, it is no firmware issue. Firmware 4.95 is latest one and OK.
+>
+>  Can you say which tuner your device has? You can see that from message.log
+> (dmesg). Please copy paste some lines.
 
-Let's see:
-mv v4l-dvb v4l-dvb.old
-hg clone http://linuxtv.org/hg/v4l-dvb/
-cd v4l-dvb
-patch -p1 < xc-instance.patch
-make
-make install
-sync
-shutdown -r
+[  910.286534] af9015_usb_probe: interface:0
+[  910.292965] af9015_identify_state: reply:02
+[  910.293003] dvb-usb: found a 'Pinnacle PCTV 71e' in warm state.
+[  910.293608] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[  910.300877] DVB: registering new adapter (Pinnacle PCTV 71e)
+[  910.304752] af9015_eeprom_dump:
+[  910.432810] 00: 2f cc af 0b 00 00 00 00 04 23 2b 02 00 02 01 02
+[  910.498755] 10: 03 80 00 fa fa 10 40 ef 00 30 31 30 31 31 31 30
+[  910.554155] 20: 38 30 36 30 30 30 33 45 ff ff ff ff ff ff ff ff
+[  910.610246] 30: 00 00 3a 01 00 08 02 00 1d 8d d2 04 82 ff ff ff
+[  910.664090] 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
+[  910.720030] 50: ff ff ff ff ff 24 00 00 04 03 09 04 22 03 50 00
+[  910.778381] 60: 69 00 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00
+[  910.837528] 70: 53 00 79 00 73 00 74 00 65 00 6d 00 73 00 12 03
+[  910.895432] 80: 50 00 43 00 54 00 56 00 20 00 37 00 31 00 65 00
+[  910.956367] 90: 20 03 30 00 31 00 30 00 31 00 30 00 31 00 30 00
+[  911.013294] a0: 31 00 30 00 36 00 30 00 30 00 30 00 30 00 31 00
+[  911.075256] b0: 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  911.135892] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  911.194811] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  911.252938] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  911.310816] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[  911.314842] af9015_read_config: xtal:2 set adc_clock:28000
+[  911.322559] af9015_read_config: IF1:36125
+[  911.330385] af9015_read_config: MT2060 IF1:1234
+[  911.332447] af9015_read_config: tuner id1:130
+[  911.335536] af9015_read_config: spectral inversion:0
+[  911.421856] af9013: firmware version:4.95.0
+[  911.422145] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
+[  911.422287] af9015_tuner_attach:
+[  911.422351] af9015_set_gpio: gpio:3 gpioval:03
+[  911.474019] MT2060: successfully identified (IF1 = 1234)
+[  912.044368] dvb-usb: Pinnacle PCTV 71e successfully initialized and
+connected.
 
 
-> Please let me know if this fixes the problem, and I'll produce a new
-> patch afterwards.
-
-I don't know what problem you're refering to - the machine comes up
-successfully, but you can't use the card.
-
-I used 'scan' for testing what gives an entry in /var/log/kern.log:
-xc2028 0-0061: Loading 3 firmware images from xc3028-dvico-au-01.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7
-
-Then the process 'kdvb-fe-0' eats up 100% CPU-time,
-the keyboard is dead. The machine hangs.
-
-Hope this helps.
-
-
-Regards, Thomas
-
-os: Ubuntu 7.10
-Linux tronn 2.6.22-14-generic #1 SMP Tue Feb 12 02:46:46 UTC 2008 x86_64 GNU/Linux
-DViCO DualDig4 rev. 1.0
+-- 
+Pepe
 
 _______________________________________________
 linux-dvb mailing list
