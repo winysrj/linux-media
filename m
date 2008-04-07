@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from [203.200.233.138] (helo=nkindia.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JqbcW-0008JI-Qf
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 00:14:51 +0200
-From: Andy Walls <awalls@radix.net>
-To: Andreas <linuxdreas@launchnet.com>
-In-Reply-To: <200804272005.35347.linuxdreas@launchnet.com>
-References: <200804271649.09000.linuxdreas@launchnet.com>
-	<1209343501.3208.17.camel@palomino.walls.org>
-	<200804272005.35347.linuxdreas@launchnet.com>
-Date: Mon, 28 Apr 2008 18:13:49 -0400
-Message-Id: <1209420829.3205.11.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 driver not in main repo?
+	(envelope-from <gurumurti@nkindia.com>) id 1Jio7C-0007uN-E0
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 11:58:19 +0200
+Received: from nkindia.com (localhost.localdomain [127.0.0.1])
+	by nkindia.com (8.13.7/8.13.7) with ESMTP id m37AErIw009705
+	for <linux-dvb@linuxtv.org>; Mon, 7 Apr 2008 15:44:54 +0530
+Message-ID: <33027.203.200.233.130.1207563293.squirrel@203.200.233.138>
+Date: Mon, 7 Apr 2008 15:44:53 +0530 (IST)
+From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] (no subject)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,23 +25,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-04-27 at 20:05 -0700, Andreas wrote:
+I Fail to tune two cards at the same time.
+Basically m machine could not find friver for mfrontend. But while using
+card 0 it does not proint any error message.
 
-> I noticed that you jumped in and helped with the development of the cx18 and 
-> ivtv driver. Thank you very much!
 
-You're welcome.
-
-I'm mostly trying to lighten Hans' load on cx18 and get better TV
-picture for myself, since I live in a "deep fringe" reception area.
-Hans still shapes the development direction and final form of changes
-for cx18.
-
-Also still look to Hans for the ivtv driver.  Unless I have a major
-problem with my PVR-150, I don't anticipate contributing much to ivtv.
-
-Regards,
-Andy
+-- 
+Gurumurti
 
 
 _______________________________________________
