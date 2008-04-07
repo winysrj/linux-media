@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3O2a1qK005705
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:36:01 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3O2ZooP021560
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:35:50 -0400
-Date: Wed, 23 Apr 2008 22:35:49 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-In-Reply-To: <20080423234322.GB20819@plankton.ifup.org>
-Message-ID: <Pine.LNX.4.64.0804232231250.31358@bombadil.infradead.org>
-References: <200804230137.12502.laurent.pinchart@skynet.be>
-	<20080423142705.62b6e444@gaivota>
-	<20080423234322.GB20819@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m37BOYVn009397
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:24:34 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m37BONXY009565
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:24:23 -0400
+Date: Mon, 7 Apr 2008 13:24:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820804070417w7cf71869h5f36c2ec18c8584c@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0804071322490.5585@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804042027140.7761@axis700.grange>
+	<998e4a820804070417w7cf71869h5f36c2ec18c8584c@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com, linux-usb@vger.kernel.org
-Subject: Re: [PATCH] USB Video Class driver
+Content-Type: TEXT/PLAIN; charset=GB2312
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,53 +29,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 23 Apr 2008, Brandon Philips wrote:
+On Mon, 7 Apr 2008, ·ëöÎ wrote:
 
-> On 14:27 Wed 23 Apr 2008, Mauro Carvalho Chehab wrote:
->>> + * ...  It implements the
->>> + * mmap capture method only ...
->>
->> You should consider moving to videobuf on a later version. videobuf also
->> implements read() method, and will likely implement also USERPTR and maybe
->> OVERLAY on future versions.
->
-> Lets shoot for doing this after 2.6.26 if Laurent signs-off.  Until then
-> lets not get into this argument again :D
+> Hi
+> My camera is mt9v022.It is Master parallel,Monochrome and 8bit data
+> bus width.I do not send output to X server and to framebuffer.
+> If i request 4 buffers,I can get the first frame.But the sencond frame
+> and the third frame is black.Others is wrong.
+> If i request 5 buffers,I can get the first frame.But the sencond
+> frame, the third frame and the forth frame is black.Others is
+> wrong,and so on.
 
-Hmm... I didn't notice the lack of Laurent SOB :)
+Ok, then I'll have to request the source code of your application to test 
+it here.
 
-As I said, this is a comment about possible improvements for later 
-versions. Seems ok to me to use uvc-queue for 2.6.26.
-
->>> +static int uvc_v4l2_do_ioctl(struct inode *inode, struct file *file,
->>> +		     unsigned int cmd, void *arg)
->>> +{
->>> +	struct video_device *vdev = video_devdata(file);
->>> +	struct uvc_video_device *video = video_get_drvdata(vdev);
->>> +	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
->>> +	int ret = 0;
->>> +
->>> +	if (uvc_trace_param & UVC_TRACE_IOCTL)
->>> +		v4l_printk_ioctl(cmd);
->>
->> The better is to remove the do_ioctl, in favor of video_ioctl2. Also, this will
->> provide a much better debug than what's provided by v4l_printk_ioctl().
->
-> We discussed this months ago and everyone agreed that video_ioctl2 is
-> nice but it is not a requirement to be in the tree.
-
-No, it is not a requirement for merging uvc. This is a suggestion for 
-future improvements.
-
->> Driver looks sane. Just a few comments.
->
-> Thanks for finding the other issues in your review Mauro; you picked up
-> on some good details that should be fixed up before the merge.
-
-Anytime.
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
