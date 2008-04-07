@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.178])
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <makosoft@googlemail.com>) id 1JjKxD-0003Uk-Au
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 23:02:15 +0200
-Received: by el-out-1112.google.com with SMTP id o28so1618919ele.2
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 14:02:02 -0700 (PDT)
-Message-ID: <c8b4dbe10804081402y71bb0de4q6ee3d928b8aaf1c9@mail.gmail.com>
-Date: Tue, 8 Apr 2008 22:02:01 +0100
-From: "Aidan Thornton" <makosoft@googlemail.com>
-To: "Paolo Pettinato" <p.pettinato@gmail.com>
-In-Reply-To: <79f9d6350804081125h5a480222gd33c5b44a6630204@mail.gmail.com>
+	(envelope-from <crope@iki.fi>) id 1Jj0ix-000711-GQ
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 01:26:08 +0200
+Message-ID: <47FAAD63.80505@iki.fi>
+Date: Tue, 08 Apr 2008 02:25:23 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <79f9d6350804081125h5a480222gd33c5b44a6630204@mail.gmail.com>
+To: Julien Rebetez <julien@fhtagn.net>
+References: <1207588024.14924.12.camel@silver-laptop>
+In-Reply-To: <1207588024.14924.12.camel@silver-laptop>
+Content-Type: multipart/mixed; boundary="------------090404070901070602040007"
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help with unsupported DVB-T usb stick (CE6230)
+Subject: Re: [linux-dvb] Yuan EC372S no frontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,62 +20,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Apr 8, 2008 at 7:25 PM, Paolo Pettinato <p.pettinato@gmail.com> wrote:
-> Hi all,
->  I'm new to this mailing list so please excuse me if I do some mistakes
->  :) also I feel sorry for my English :)
->  I've recently bought a cheap DVB-T dongle on ebay. Works like a charm
->  on windows XP, but it seems that there's no support on linux (I've
->  done some searching).
->  The vendorid:productid codes are 8086:9500. On "Device Manager" it is
->  listed as "CE6230 Standalone Driver (BDA)". On its properties, it says
->  that it's manufactured by Realfine Ltd and is on Location 0
->  (CE9500B1).
->  Since I can't stand the fact that I can't use some hardware on linux,
->  I'm asking two questions:
->  1. Has any work be done to support this device (or similar ones, like
->  - I think - the "AVerMedia USB2.0 DVB-T A310")?
->  2. If so, how can I help further developing?
->
->  I'm a student in computer engineering, so I won't mind spending some
->  time on driver developing (though I have never done till now).
->  Paolo
+This is a multi-part message in MIME format.
+--------------090404070901070602040007
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi,
+Julien Rebetez wrote:
+> Hello,
+> 
+> I have some problems with a Yuan EC372S card. I am using the latest (rev
+> 7499:1abbd650fe07) v4l-dvb from mercurial head. 
+> 
+> The card is correctly detected and the firmware loaded but no frontend
+> is attached to it.
 
-I'm not aware of any drivers for the CE6230 (in fact, this is the
-first device I've heard of that uses it so far). Someone will have to
-try and get the docs from Intel - I don't think these are exactly
-simple devices. (They have a full programmable 8051 microprocessor
-core on-chip in addition to stuff like a seperate hardware PID filter
-and a fairly intelligent demodulator. OTOH, the demodulator is
-probably based on one of the Zarlink designs, which makes life
-slightly easier).
+I just tested current master and it worked for me. Anyhow, tuning still 
+gives only filter timeouts (as earlier).
 
->  CE6230 is a demodulator of Intel
->  (http://www.intel.com/design/celect/demodulators/ce6230.htm) . Its seems to
->  be a successor of the Zarlink MT352/MT353 (Intel bought Zarlink some time
->  ago).
->
->  So you should have a look on the 352/353 drivers, maybe there are some
->  parallels.
+> 
+> I'm running kernel 2.6.22-14-generic on an Ubuntu Gutsy.
+> 
+> I have attached the relevant output of dmesg and lsusb -v and of course
+> I'll be glad to give more informations if needed.
+> 
+> Regards,
+> Julien
 
-Yep - it's an integrated USB interface and demodulator on a chip. They
-seem to be becoming more common these days, possibly due to potential
-cost savings. Probably has more in common with the ZL10353/CE6353 and
-company - the MT352/MT353 had been throughly obsoleted by them by the
-time Intel bought out Zarlink, to the point that Intel didn't even
-bother giving them new Intel part numbers.
+regards
+Antti
+-- 
+http://palosaari.fi/
 
-Aidan
+--------------090404070901070602040007
+Content-Type: text/plain;
+ name="yuan_insert_log.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="yuan_insert_log.txt"
+
+Apr  8 02:22:12 crope-laptop kernel: [  910.108121] dib0700: loaded with support for 7 different device-types
+Apr  8 02:22:12 crope-laptop kernel: [  910.108154] usbcore: registered new interface driver dvb_usb_dib0700
+Apr  8 02:22:20 crope-laptop kernel: [  914.330737] usb 1-8: new high speed USB device using ehci_hcd and address 23
+Apr  8 02:22:20 crope-laptop kernel: [  914.382207] usb 1-8: configuration #1 chosen from 1 choice
+Apr  8 02:22:20 crope-laptop kernel: [  914.387576] FW GET_VERSION length: -32
+Apr  8 02:22:20 crope-laptop kernel: [  914.387581] cold: 1
+Apr  8 02:22:20 crope-laptop kernel: [  914.387583] dvb-usb: found a 'Yuan EC372S' in cold state, will try to load a firmware
+Apr  8 02:22:20 crope-laptop kernel: [  914.389666] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+Apr  8 02:22:21 crope-laptop kernel: [  914.474369] dib0700: firmware started successfully.
+Apr  8 02:22:21 crope-laptop kernel: [  914.759587] dvb-usb: found a 'Yuan EC372S' in warm state.
+Apr  8 02:22:21 crope-laptop kernel: [  914.759645] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+Apr  8 02:22:21 crope-laptop kernel: [  914.759808] DVB: registering new adapter (Yuan EC372S)
+Apr  8 02:22:21 crope-laptop kernel: [  914.811947] ep 0 read error (status = -32)
+Apr  8 02:22:21 crope-laptop kernel: [  914.811955] I2C read failed on address 40
+Apr  8 02:22:21 crope-laptop kernel: [  914.980331] DVB: registering frontend 0 (DiBcom 7000PC)...
+Apr  8 02:22:21 crope-laptop kernel: [  914.984082] MT2266: successfully identified
+Apr  8 02:22:21 crope-laptop kernel: [  915.150087] dvb-usb: Yuan EC372S successfully initialized and connected.
+
+
+--------------090404070901070602040007
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------090404070901070602040007--
