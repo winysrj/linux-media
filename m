@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JkRxJ-0001sn-OR
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 00:42:50 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZ600DRGN2FSNB0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 11 Apr 2008 18:42:15 -0400 (EDT)
-Date: Fri, 11 Apr 2008 18:42:14 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <529084.74444.qm@web51401.mail.re2.yahoo.com>
-To: Todd K <toddk111@yahoo.com>
-Message-id: <47FFE946.6080601@linuxtv.org>
-MIME-version: 1.0
-References: <529084.74444.qm@web51401.mail.re2.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dvico's new generation of ATSC/QAM cards. Drivers
+	(envelope-from <benoitpaquindk@gmail.com>) id 1JixoH-00011k-CH
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 22:19:26 +0200
+Received: by nf-out-0910.google.com with SMTP id d21so666058nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 07 Apr 2008 13:19:17 -0700 (PDT)
+Message-ID: <7dd90a210804071319p76ad7d94pd12174b6a5838c4@mail.gmail.com>
+Date: Mon, 7 Apr 2008 22:19:16 +0200
+From: "Benoit Paquin" <benoitpaquindk@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] Sandberg DigiTV DVB-T USB stick(AF9015) now working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +18,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0675895862=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Todd K wrote:
-> Hello,
-> Any word on when drivers will be available for the
-> FusionHDTV7 RT
-> Gold?
+--===============0675895862==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_14673_1971075.1207599556900"
 
-Next couple of weeks.
+------=_Part_14673_1971075.1207599556900
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-- Steve
+I would like to report that the latest driver for the AF9015 based Sandberg
+DigiTV stick works (for USB 2.0).
+Many thanks to Antti Palosaari for the driver.
+
+/benoit
+
+For the idiots, like me, that do not know much, I did:
+hg clone http://linuxtv.org/hg/~anttip/af9015/<http://linuxtv.org/hg/%7Eanttip/af9015/>
+cd af9015
+make
+sudo make install
+(add the line dvb-usb-af9015 in /etc/modules)
+reboot
+plug stick
+check dmesg
+
+------=_Part_14673_1971075.1207599556900
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I would like to report that the latest driver for the AF9015 based Sandberg DigiTV stick works (for USB 2.0). <br>Many thanks to Antti Palosaari for the driver.<br><br>/benoit<br><br>For the idiots, like me, that do not know much, I did:<br>
+hg clone <a href="http://linuxtv.org/hg/%7Eanttip/af9015/" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">http://linuxtv.org/hg/~anttip/af9015/</a><br>
+cd af9015<br>make<br>sudo make install<br>(add the line dvb-usb-af9015 in /etc/modules)<br>reboot<br>plug stick<br>check dmesg<br>
+
+------=_Part_14673_1971075.1207599556900--
+
+
+--===============0675895862==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0675895862==--
