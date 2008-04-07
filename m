@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m36MUJiC028408
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:30:19 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m36MU712028754
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:30:07 -0400
-Date: Mon, 7 Apr 2008 00:30:05 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mike Rapoport <mike@compulab.co.il>
-In-Reply-To: <47F872DE.60004@compulab.co.il>
-Message-ID: <Pine.LNX.4.64.0804070008220.5129@axis700.grange>
-References: <47F21593.7080507@compulab.co.il>
-	<Pine.LNX.4.64.0804031708470.18539@axis700.grange>
-	<47F872DE.60004@compulab.co.il>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m37BHsnm006413
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:17:54 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m37BHiwd006006
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:17:44 -0400
+Received: by rn-out-0910.google.com with SMTP id i50so10334381rne.11
+	for <video4linux-list@redhat.com>; Mon, 07 Apr 2008 04:17:39 -0700 (PDT)
+Message-ID: <998e4a820804070417w7cf71869h5f36c2ec18c8584c@mail.gmail.com>
+Date: Mon, 7 Apr 2008 19:17:37 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0804042027140.7761@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=GB2312
+Content-Disposition: inline
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804042027140.7761@axis700.grange>
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa_camera: Add support for YUV modes
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,80 +31,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 6 Apr 2008, Mike Rapoport wrote:
+Hi
+My camera is mt9v022.It is Master parallel,Monochrome and 8bit data
+bus width.I do not send output to X server and to framebuffer.
+If i request 4 buffers,I can get the first frame.But the sencond frame
+and the third frame is black.Others is wrong.
+If i request 5 buffers,I can get the first frame.But the sencond
+frame, the third frame and the forth frame is black.Others is
+wrong,and so on.
 
-> >> +		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
-> >> +			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, sglen_y,
-> > 
-> > This should be sglen_u							^^^^^
-> 
-> Right. No wonder I had colors distorted :)
+2008/4/5 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi
+>
+>
+>
+>  On Fri, 4 Apr 2008, ¨i§¬§¨§ß wrote:
+>
+>  > Now soc-camera driver can work on my pxa270.I wrote a program to test
+>  > the driver.Only the first frame is right,but others is wrong.The
+>  > program that I wrote come from Video for Linux Two API
+>  > Specification,and work well on other v4l2-driver.
+>
+>  With what camera are you using the driver? Is it one of mt9m001 / mt9v022
+>  or another one? In what mode is it connected to the CPU? Master parallel?
+>  Monochrome or colour? How many bits data bus width? Why are you writing
+>  your own programme and not using an existing one like xawtv, mplayer or
+>  gstreamer? It would be much easier to diagnose our problem if you took
+>  mplayer and provided the exact command line and output.
+>
+>  How wrong are the frames? If they are shifted, you might have a problem
+>  with buffer size calculation somewhere. If you get distorted images, you
+>  might be getting FIFO overflows. Are you sending output over some library,
+>  to the X server, or directly to the framebuffer?
+>
+>  See, you need to provide much more information so we could help you.
+>
+>  Thanks
+>  Guennadi
+>  ---
+>  Guennadi Liakhovetski
+>
 
-Now you get them right?
 
-The patch looks good to me now, just please regenerate it in the "-p1" 
-format. Also, I'm not quite sure why you don't have blanks in unchenged 
-lines like, normally one sees (space replaced with "*")
 
-<hunk>
-@@ -145,6 +171,7 @@ static void free_buffer(struct videobuf_
-*		to_soc_camera_host(icd->dev.parent);
-*	struct pxa_camera_dev *pcdev = ici->priv;
-*	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
-+	int i;
-*
-*	BUG_ON(in_interrupt());
-*
-</hunk>
-
-whereas you have everywhere just blank lines:
-
-<hunk>
-@@ -145,6 +171,7 @@ static void free_buffer(struct videobuf_
-*		to_soc_camera_host(icd->dev.parent);
-*	struct pxa_camera_dev *pcdev = ici->priv;
-*	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
-+	int i;
-
-*	BUG_ON(in_interrupt());
-
-</hunk>
-
-It wasn't a problem for my version of GNU patch, don't know if this can be 
-a problem for git or whatever else the person applying your patch (Mauro?) 
-will be using. Maybe would be better to fix this as you resend in "-p1" 
-too. Hm, I think, on V4L they do use "-p2" for mercurial, so, this might 
-not be a problem then.
-
-In any case here's my
-
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-
-Just one more request:
-
-> diff --git a/linux/drivers/media/video/pxa_camera.c b/linux/drivers/media/video/pxa_camera.c
-> --- a/linux/drivers/media/video/pxa_camera.c
-> +++ b/linux/drivers/media/video/pxa_camera.c
-> @@ -49,6 +49,9 @@
-> 
->  #define CICR1_DW_VAL(x)   ((x) & CICR1_DW)	    /* Data bus width */
->  #define CICR1_PPL_VAL(x)  (((x) << 15) & CICR1_PPL) /* Pixels per line */
-> +#define CICR1_COLOR_SP_VAL(x)	(((x) << 3) & CICR1_COLOR_SP)	/* color space */
-> +#define CICR1_RGB_BPP_VAL(x)	(((x) << 7) & CICR1_RGB_BPP)	/* bpp for rgb */
-> +#define CICR1_RGBT_CONV_VAL(x)	(((x) << 29) & CICR1_RGBT_CONV)	/* rgbt conv */
-
-There's a typo in include/asm-arm/arch-pxa/pxa-regs.h:
-
-#define CICR1_RGBT_CONV	(0x3 << 30)	/* RGBT conversion mask */
-
-30 should be 29, you have it right. Could you please submit a patch to ARM 
-kernel to fix this?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+-- 
+ÖÂ
+Àñ
+·ëöÎ
 
 --
 video4linux-list mailing list
