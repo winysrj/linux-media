@@ -1,33 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m33KFQMY003102
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 16:15:26 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m33KFB5C027429
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 16:15:12 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JhVq1-00007T-48
-	for video4linux-list@redhat.com; Thu, 03 Apr 2008 20:15:09 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Thu, 03 Apr 2008 20:15:09 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Thu, 03 Apr 2008 20:15:09 +0000
-To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Thu, 03 Apr 2008 13:14:56 -0700
-Message-ID: <pan.2008.04.03.20.14.56.901338@gimpelevich.san-francisco.ca.us>
-References: <20080401190033.68c821ed@tux.abusar.org.br>
-	<1207093795.16537.4.camel@localhost.localdomain>
-	<20080402183820.6c917a0a@tux.abusar.org.br>
-	<1207204144.2386.1.camel@localhost.localdomain>
-	<20080403144456.1e6bf438@tux.abusar.org.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Remote controller for Powercolor Real Angel 330
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m37HDiOL019956
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 13:13:44 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m37HDVni023824
+	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 13:13:32 -0400
+Date: Mon, 7 Apr 2008 19:13:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805B4EF78@dbde01.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0804071910520.8933@axis700.grange>
+References: <010C7BAE6783F34D9AC336EE5A01A08805B4EF78@dbde01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2-int-device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,20 +26,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 03 Apr 2008 15:44:56 -0300, Dâniel Fraga wrote:
+On Mon, 7 Apr 2008, Shah, Hardik wrote:
 
-> 3) the changes already merged in the v4l-dvb tree are:
+> Is there any sample driver available based on v4l2-int-device interface.  
+> I found tcm825x.c based on v4l2-int-device interface but it is a slave 
+> driver.  Any one having master driver as sample and also the 
+> application.
 
-Those changes are wrong, especially WRT gpio2, which carries the IR
-signal. It's possible that I may be able to order a PSU for the box
-containing my RA330 today or tomorrow. After that, I may be able to port
-my patch to the current tree. In the meantime, download
-http://www.mcentral.de/hg/~mrec/v4l-dvb-experimental/archive/tip.tar.gz
-and apply my patch at: http://pastebin.com/f44a13031
-Then, you can closely examine the differences between the working code and
-the development tree yourselves, thereby gaining a head start in porting
-to the active development tree over me. It's possible that you may even
-get everything working based on that before I even get to it.
+If you're looking at developing drivers for new hardware, you might want 
+to have a look at an int-device alternative: the soc-camera framework, 
+currently in the v4l-dvb/devel tree. Just look for yourself what best 
+suits your needs.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
