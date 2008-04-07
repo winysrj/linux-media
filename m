@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from fmmailgate03.web.de ([217.72.192.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JjE4z-000617-SE
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 15:41:45 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZ0006Z4E05Z631@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 08 Apr 2008 09:41:02 -0400 (EDT)
-Date: Tue, 08 Apr 2008 09:40:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e2d627830804080624m9a5c3wf48146b863c5f183@mail.gmail.com>
-To: Derk Dukker <derk.dukker@gmail.com>
-Message-id: <47FB75E5.7090808@linuxtv.org>
-MIME-version: 1.0
-References: <47EBF4B7.2060705@linuxtv.org>
-	<c8b4dbe10803271241i20990cf3j1b75c85f1f649916@mail.gmail.com>
-	<47EBFC19.4060106@linuxtv.org>
-	<c8b4dbe10803271428y13bd710co995e25bb9a2eb614@mail.gmail.com>
-	<47EC14A3.7010505@linuxtv.org>
-	<e2d627830804080624m9a5c3wf48146b863c5f183@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Hauppauge WinTV-CI Spec
+	(envelope-from <Christoph.Honermann@web.de>) id 1JiwhW-0003Wi-1k
+	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 21:08:18 +0200
+Message-ID: <47FA70C3.5040808@web.de>
+Date: Mon, 07 Apr 2008 21:06:43 +0200
+From: Christoph Honermann <Christoph.Honermann@web.de>
+MIME-Version: 1.0
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
+In-Reply-To: <47EC1668.5000608@t-online.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,140 +19,117 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0109253544=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Derk Dukker wrote:
-> Hi all,
-> 
-> I was wondering if there is any progress going on at the Hauppauge WinTV 
-> CI usb. I heard that a guy named Luc is currently working on it. Luc do 
-> you have any information about your progress or do you have a site where 
-> I/we can track back the progress? I also noticed that the design of the 
-> Hauppauge WinTV CI usb is quite the same as the Terratec Cinergy CI usb 
-> which I bought. SmarDTV is the vendor of it (I opened the case and on 
-> the print board stood SmarDTV). You can get the specification from the 
-> website (see also earlier emails).
-> I think both the devices are the same, so when one driver is created it 
-> will probably also works on the terratec cinergy ci. I don't know if the 
-> specification from smarDTV is enough...
-> I have had contact with the dutch terratec support and asked them if 
-> they can get me the specification to create a linux driver. He said that 
-> he would check it out if it is possible for me to have the 
-> specification, as soon as he knows more he will update me. But that 
-> email responds was 1 or 2 weeks ago. I will email him again. As soon as 
-> I got something I will post it here.
+--===============0109253544==
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-I looked at the published spec and I it looks like it's for a newer 
-device yet to hit the market. Trying to read it word for word will 
-largely miss-represent what the WinTVCI device is, or its feature set. 
-(Although I was at one point convinced this document was a super-set of 
-the WinTVCI device).
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Hi, Hartmund<br>
+<br>
+<br>
+Hartmut Hackmann schrieb:
+<blockquote cite="mid:47EC1668.5000608@t-online.de" type="cite">
+  <pre wrap="">Hi, Christoph
 
-I also looked at the USB traffic on the current Hauppauge driver, with a 
-cam inserted and decryption happening. The protocol appears pretty simple.
+Christoph Honermann schrieb:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Hi, Hartmund
 
-I don't like their URB handling and their constant polling of the device 
-regardless of whether it's being used or not, but that's likely an ugly 
-feature of the windows implementation. I suspect a Linux driver could be 
-written to do whatever it likes (mostly).
+I have tested the following archives with my MD8800 und the DVB-S Card.
 
-- Steve
+v4l-dvb-912856e2a0ce.tar.bz2 --&gt; The DVB-S Input 1 works.
+The module of the following archives are loaded with the option
+"use_frontend=1,1" at the Shell or automatically:
+    /etc/modprobe.d/saa7134-dvb   with the following line
+   "options saa7134-dvb use_frontend=1,1"
+v4l-dvb-1e295a94038e.tar.bz2;
+
+    FATAL: Error inserting saa7134_dvb
+    (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
+    Unknown symbol in module, or unknown parameter (see dmesg)
+
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_register
+    saa7134_dvb: Unknown symbol saa7134_ts_register
+    saa7134_dvb: Unknown symbol videobuf_queue_sg_init
+    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
+    saa7134_dvb: Unknown symbol saa7134_set_gpio
+    saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client
+    saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister
+    saa7134_dvb: Unknown symbol saa7134_ts_unregister
 
 
+v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 --&gt;
 
-> 
-> regards,
-> 
-> Derk
-> 
-> On Thu, Mar 27, 2008 at 11:41 PM, Steven Toth <stoth@linuxtv.org 
-> <mailto:stoth@linuxtv.org>> wrote:
-> 
->     Aidan Thornton wrote:
->      > On Thu, Mar 27, 2008 at 7:57 PM, Steven Toth <stoth@linuxtv.org
->     <mailto:stoth@linuxtv.org>> wrote:
->      >> Aidan Thornton wrote:
->      >>  > On Thu, Mar 27, 2008 at 7:25 PM, Steven Toth
->     <stoth@linuxtv.org <mailto:stoth@linuxtv.org>> wrote:
->      >>  >> Recap: I said I'd notify the list when the spec was released
->     for the
->      >>  >>  Hauppauge CI device.
->      >>  >>
->      >>  >>  Hello!
->      >>  >>
->      >>  >>
->      http://www.smardtv.com/index.php?page=dvbci&rubrique=specification
->     <http://www.smardtv.com/index.php?page=dvbci&rubrique=specification>
->      >>  >>
->      >>  >>  Looks like SmartDTV have finally got something out of the
->     door. Put your
->      >>  >>  email address in their database and they'll email you the
->     PDF with full
->      >>  >>  command interface describing the protocol.
->      >>  >>
->      >>  >>  Regards,
->      >>  >>
->      >>  >>  - Steve
->      >>  >
->      >>  > Hi,
->      >>  >
->      >>  > I'm not sure how that's relevant. It seems to be the spec for
->      >>  > something called CI+, intended to prevent unauthorised
->     systems from
->      >>  > getting access to the decrypted stream coming out the CAM and
->     ensure
->      >>  > only authorised host devices can use CAMs. I expect open source
->      >>  > software will be able to make use of this stuff approximately
->     when
->      >>  > hell freezes over. If this catches on, say hello to more copy
->      >>  > protection and bye-bye to being able to use CAMs under Linux!
->      >>
->      >>  A subset of the spec will work with the CI USB device, for
->     those that
->      >>  are interested.
->      >
->      > Yeah, that's what I was wondering about - it doesn't seem to specify
->      > anything about CI USB devices, just the standard PC card based
->      > interface. (It even states that it doesn't deal with any interfaces
->      > other than that one). In what sense does the WinTV-CI implement
->     this -
->      > does it translate between standard CIs and some subset of this
->      > protocol done over USB? (I'm not even sure, at a glance, if this
->     makes
->      > sense.)
-> 
->     I only glanced at the spec, but from what I'm told the command API is
->     implemented over USB. I suspect that Luc (the guy working on the Linux
->     driver) might be able to consolidate this command set, with the USB logs
->     he's been capturing. If not then something is clearly wrong.
-> 
->     I'd been promised this document during December 2007 by the vendor and
->     said that I'd post it here to the community as soon as it was released.
-> 
->     - Steve
-> 
-> 
-> 
->     _______________________________________________
->     linux-dvb mailing list
->     linux-dvb@linuxtv.org <mailto:linux-dvb@linuxtv.org>
->     http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+    FATAL: Error inserting saa7134_dvb
+    (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
+    Unknown symbol in module, or unknown parameter (see dmesg)
 
+    dmesg | grep saa7134
+    saa7134_dvb: Unknown symbol saa7134_tuner_callback
+    saa7134_dvb: disagrees about version of symbol saa7134_ts_register
+    saa7134_dvb: Unknown symbol saa7134_ts_register
+    saa7134_dvb: Unknown symbol videobuf_queue_sg_init
+    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
+    saa7134_dvb: Unknown symbol saa7134_set_gpio
+
+The Hardware ist working with Windows XP with both Input channels.
+
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->This occurs when you mix modules of different driver versions. You need to
+replace all modules of the v4l-dvb subsystem.
+So after you compiled and installed with
+  make; make install
+you need to unload all modules of the subsystem either with
+  make rmmod
+or reboot.
+Afterwards, you can unload and reload a single module as you tried to do.
+
+Hartmut
+
+  </pre>
+</blockquote>
+the second DVB-S Channel is working.<br>
+But there is one thing that makes Problems.<br>
+I have the effect that the devices /dev/dvb/adapter0/dvr0 and
+/dev/dvb/adapter1/dvr0 are missed from kaffeine. Therefore it wont
+work (no TV-picture, no sound, no channel scanning).<br>
+If i look with Nautilus (file manager) therefore the whole Section
+/dev/dvb is switching off.<br>
+Can that be an effect of the module?<br>
+The Problem is sometimes not there but i don't find the reason
+(changing the Modules, reboots, ..). If I solve the Problem, should I
+test the kombination between DVB-S and DVB-T?<br>
+<br>
+Best regards<br>
+Christoph<br>
+<br>
+</body>
+</html>
+
+
+--===============0109253544==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0109253544==--
