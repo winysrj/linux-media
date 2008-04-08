@@ -1,12 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Thu, 24 Apr 2008 20:11:48 +0200
-From: Philipp Kolmann <philipp@kolmann.at>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080424181148.GA3898@kolmann.at>
-MIME-Version: 1.0
-Content-Disposition: inline
-Cc: manu@linuxtv.org
-Subject: [linux-dvb] kernel oops with Terratec Cinergy C
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1JjE4z-000617-SE
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 15:41:45 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZ0006Z4E05Z631@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 08 Apr 2008 09:41:02 -0400 (EDT)
+Date: Tue, 08 Apr 2008 09:40:53 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <e2d627830804080624m9a5c3wf48146b863c5f183@mail.gmail.com>
+To: Derk Dukker <derk.dukker@gmail.com>
+Message-id: <47FB75E5.7090808@linuxtv.org>
+MIME-version: 1.0
+References: <47EBF4B7.2060705@linuxtv.org>
+	<c8b4dbe10803271241i20990cf3j1b75c85f1f649916@mail.gmail.com>
+	<47EBFC19.4060106@linuxtv.org>
+	<c8b4dbe10803271428y13bd710co995e25bb9a2eb614@mail.gmail.com>
+	<47EC14A3.7010505@linuxtv.org>
+	<e2d627830804080624m9a5c3wf48146b863c5f183@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Hauppauge WinTV-CI Spec
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,69 +36,132 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Derk Dukker wrote:
+> Hi all,
+> 
+> I was wondering if there is any progress going on at the Hauppauge WinTV 
+> CI usb. I heard that a guy named Luc is currently working on it. Luc do 
+> you have any information about your progress or do you have a site where 
+> I/we can track back the progress? I also noticed that the design of the 
+> Hauppauge WinTV CI usb is quite the same as the Terratec Cinergy CI usb 
+> which I bought. SmarDTV is the vendor of it (I opened the case and on 
+> the print board stood SmarDTV). You can get the specification from the 
+> website (see also earlier emails).
+> I think both the devices are the same, so when one driver is created it 
+> will probably also works on the terratec cinergy ci. I don't know if the 
+> specification from smarDTV is enough...
+> I have had contact with the dutch terratec support and asked them if 
+> they can get me the specification to create a linux driver. He said that 
+> he would check it out if it is possible for me to have the 
+> specification, as soon as he knows more he will update me. But that 
+> email responds was 1 or 2 weeks ago. I will email him again. As soon as 
+> I got something I will post it here.
 
-I am new to linux-dvb so please excuse if this has been discussed before here.
+I looked at the published spec and I it looks like it's for a newer 
+device yet to hit the market. Trying to read it word for word will 
+largely miss-represent what the WinTVCI device is, or its feature set. 
+(Although I was at one point convinced this document was a super-set of 
+the WinTVCI device).
 
-I just got myself today a Terratec Cinergy C DVB-C PCI Card:
-05:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
-Bridge Controller [Ver 1.0] (rev 01)
+I also looked at the USB traffic on the current Hauppauge driver, with a 
+cam inserted and decryption happening. The protocol appears pretty simple.
 
-I have read some pages and found the mantis hg tree at
-http://jusst.de/hg/mantis/ and compiled it for my debian unstable box
-(2.6.24-1-686).
+I don't like their URB handling and their constant polling of the device 
+regardless of whether it's being used or not, but that's likely an ugly 
+feature of the windows implementation. I suspect a Linux driver could be 
+written to do whatever it likes (mostly).
 
-Now the card is detected and I started w_scan. After some time, I got the
-following Kernel oops:
-
-Apr 24 20:06:10 chief kernel: mantis start feed & dma
-Apr 24 20:06:10 chief kernel: BUG: unable to handle kernel paging request at virtual address 08865fff
-Apr 24 20:06:10 chief kernel: printing eip: f8d7d9f9 *pde = 00000000 
-Apr 24 20:06:10 chief kernel: Oops: 0000 [#1] SMP 
-Apr 24 20:06:10 chief kernel: Modules linked in: snd_bt87x budget budget_av budget_ci budget_core dvb_ttpci saa7146_vv saa7146 ttpci_eeprom ves1820 vmnet(P) vmblock vmmon(P) nvidia(P) binfmt_misc rfcomm l2cap bluetooth ac battery ipv6 nfs lockd nfs_acl sunrpc xfs w83627ehf hwmon_vid eeprom cpufreq_userspace sg fuse snd_usb_audio snd_usb_lib snd_hwdep vfat fat tuner tea5767 tda8290 tda18271 tda827x tuner_xc2028 xc5000 tda9887 tuner_simple tuner_types mt20xx tea5761 tvaudio msp3400 bttv snd_hda_intel videodev v4l1_compat firmware_class ir_common compat_ioctl32 snd_pcm_oss i2c_algo_bit snd_pcm mantis v4l2_common videobuf_dma_sg videobuf_core lnbp21 snd_mixer_oss btcx_risc parport_pc parport mb86a16 stb6100 tda10021 tda10023 stb0899 stv0299 tveeprom psmouse rtc dvb_core pcspkr serio_raw i2c_i801 i2c_core snd_seq_dummy iTCO_wdt snd_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd_seq_device snd soundcore snd_page_alloc button intel_agp agpgart evdev ext3 jbd mbcache raid1 md_mod ide_cd cdro
-Apr 24 20:06:10 chief kernel:  ata_generic generic usbhid hid sd_mod floppy ahci libata jmicron ide_core scsi_mod r8169 ehci_hcd uhci_hcd usbcore thermal processor fan
-Apr 24 20:06:10 chief kernel: 
-Apr 24 20:06:10 chief kernel: Pid: 4678, comm: w_scan Tainted: P        (2.6.24-1-686 #1)
-Apr 24 20:06:10 chief kernel: EIP: 0060:[<f8d7d9f9>] EFLAGS: 00010206 CPU: 1
-Apr 24 20:06:10 chief kernel: EIP is at mantis_dma_start+0x168/0x1af [mantis]
-Apr 24 20:06:10 chief kernel: EAX: 370a5000 EBX: f7104000 ECX: 00000042 EDX: f8866000
-Apr 24 20:06:10 chief kernel: ESI: 0000003e EDI: f70a5000 EBP: 00010000 ESP: f57e5df0
-Apr 24 20:06:10 chief kernel:  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Apr 24 20:06:10 chief kernel: Process w_scan (pid: 4678, ti=f57e4000 task=f50b8170 task.ti=f57e4000)
-Apr 24 20:06:10 chief kernel: Stack: c016d33f 00000000 f7104000 f7104270 f8db2000 00000020 f7104000 f7104270 
-Apr 24 20:06:10 chief kernel:        f8db2000 f7104270 f8d7f0d2 f8d8277d f8d1645b c016d9f0 00002000 00000000 
-Apr 24 20:06:10 chief kernel:        00000012 f8d16f67 f7104448 00ec7000 00000000 f8ec7008 f8d88036 f8ec7000 
-Apr 24 20:06:10 chief kernel: Call Trace:
-Apr 24 20:06:10 chief kernel:  [<c016d33f>] __get_vm_area_node+0xbf/0x178
-Apr 24 20:06:10 chief kernel:  [<f8d7f0d2>] mantis_dvb_start_feed+0xe4/0xf2 [mantis]
-Apr 24 20:06:10 chief kernel:  [<f8d1645b>] dvb_demux_feed_add+0x1d/0x96 [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<c016d9f0>] __vmalloc_area_node+0xf1/0x10f
-Apr 24 20:06:10 chief kernel:  [<f8d16f67>] dmx_section_feed_start_filtering+0xde/0x12e [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<f8d14ffd>] dvb_dmxdev_filter_start+0x22b/0x396 [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<c0176d89>] get_unused_fd_flags+0x4d/0xba
-Apr 24 20:06:10 chief kernel:  [<f8d1537a>] dvb_demux_do_ioctl+0x212/0x36d [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<f8d14105>] dvb_usercopy+0xa9/0x100 [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<c0176ffc>] nameidata_to_filp+0x24/0x33
-Apr 24 20:06:10 chief kernel:  [<c017703d>] do_filp_open+0x32/0x39
-Apr 24 20:06:10 chief kernel:  [<f8d149b1>] dvb_demux_ioctl+0x18/0x1c [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<f8d15168>] dvb_demux_do_ioctl+0x0/0x36d [dvb_core]
-Apr 24 20:06:10 chief kernel:  [<c0182888>] do_ioctl+0x4c/0x62
-Apr 24 20:06:10 chief kernel:  [<c0182ad5>] vfs_ioctl+0x237/0x249
-Apr 24 20:06:10 chief kernel:  [<c0182b2c>] sys_ioctl+0x45/0x5d
-Apr 24 20:06:10 chief kernel:  [<c0103e5e>] sysenter_past_esp+0x6b/0xa1
-Apr 24 20:06:10 chief kernel:  =======================
-Apr 24 20:06:10 chief kernel: Code: 00 03 43 40 c7 00 00 00 00 70 8b 53 44 8d 04 8d 04 00 00 00 03 43 40 83 c1 02 89 10 8b 53 18 8b 43 44 89 4b 34 89 42 10 8b 53 18 <8b> 82 ff ff ff 0f 0d 00 00 00 80 89 82 ff ff ff 0f 8b 43 18 c7 
-Apr 24 20:06:10 chief kernel: EIP: [<f8d7d9f9>] mantis_dma_start+0x168/0x1af [mantis] SS:ESP 0068:f57e5df0
-Apr 24 20:06:10 chief kernel: ---[ end trace 7ec6b1d3f87d4386 ]---
+- Steve
 
 
-If there is anything I can test, just tell me.
 
-Thanks
-Philipp
+> 
+> regards,
+> 
+> Derk
+> 
+> On Thu, Mar 27, 2008 at 11:41 PM, Steven Toth <stoth@linuxtv.org 
+> <mailto:stoth@linuxtv.org>> wrote:
+> 
+>     Aidan Thornton wrote:
+>      > On Thu, Mar 27, 2008 at 7:57 PM, Steven Toth <stoth@linuxtv.org
+>     <mailto:stoth@linuxtv.org>> wrote:
+>      >> Aidan Thornton wrote:
+>      >>  > On Thu, Mar 27, 2008 at 7:25 PM, Steven Toth
+>     <stoth@linuxtv.org <mailto:stoth@linuxtv.org>> wrote:
+>      >>  >> Recap: I said I'd notify the list when the spec was released
+>     for the
+>      >>  >>  Hauppauge CI device.
+>      >>  >>
+>      >>  >>  Hello!
+>      >>  >>
+>      >>  >>
+>      http://www.smardtv.com/index.php?page=dvbci&rubrique=specification
+>     <http://www.smardtv.com/index.php?page=dvbci&rubrique=specification>
+>      >>  >>
+>      >>  >>  Looks like SmartDTV have finally got something out of the
+>     door. Put your
+>      >>  >>  email address in their database and they'll email you the
+>     PDF with full
+>      >>  >>  command interface describing the protocol.
+>      >>  >>
+>      >>  >>  Regards,
+>      >>  >>
+>      >>  >>  - Steve
+>      >>  >
+>      >>  > Hi,
+>      >>  >
+>      >>  > I'm not sure how that's relevant. It seems to be the spec for
+>      >>  > something called CI+, intended to prevent unauthorised
+>     systems from
+>      >>  > getting access to the decrypted stream coming out the CAM and
+>     ensure
+>      >>  > only authorised host devices can use CAMs. I expect open source
+>      >>  > software will be able to make use of this stuff approximately
+>     when
+>      >>  > hell freezes over. If this catches on, say hello to more copy
+>      >>  > protection and bye-bye to being able to use CAMs under Linux!
+>      >>
+>      >>  A subset of the spec will work with the CI USB device, for
+>     those that
+>      >>  are interested.
+>      >
+>      > Yeah, that's what I was wondering about - it doesn't seem to specify
+>      > anything about CI USB devices, just the standard PC card based
+>      > interface. (It even states that it doesn't deal with any interfaces
+>      > other than that one). In what sense does the WinTV-CI implement
+>     this -
+>      > does it translate between standard CIs and some subset of this
+>      > protocol done over USB? (I'm not even sure, at a glance, if this
+>     makes
+>      > sense.)
+> 
+>     I only glanced at the spec, but from what I'm told the command API is
+>     implemented over USB. I suspect that Luc (the guy working on the Linux
+>     driver) might be able to consolidate this command set, with the USB logs
+>     he's been capturing. If not then something is clearly wrong.
+> 
+>     I'd been promised this document during December 2007 by the vendor and
+>     said that I'd post it here to the community as soon as it was released.
+> 
+>     - Steve
+> 
+> 
+> 
+>     _______________________________________________
+>     linux-dvb mailing list
+>     linux-dvb@linuxtv.org <mailto:linux-dvb@linuxtv.org>
+>     http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
--- 
-The more I learn about people, the more I like my dog!
 
 _______________________________________________
 linux-dvb mailing list
