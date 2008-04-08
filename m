@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42])
+Received: from pne-smtpout4-sn2.hy.skanova.net ([81.228.8.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Jjhey-0000sd-U5
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 23:16:49 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <47FD2748.7080203@t-online.de>
-References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
-	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
-	<47FBD252.3090701@t-online.de> <47FD1C72.8050208@libero.it>
-	<47FD2748.7080203@t-online.de>
-Date: Wed, 09 Apr 2008 23:16:33 +0200
-Message-Id: <1207775793.5554.4.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <crope@iki.fi>) id 1Jj6Dr-000208-5Q
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 07:18:21 +0200
+Message-ID: <47FAFFF9.6090902@iki.fi>
+Date: Tue, 08 Apr 2008 08:17:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Melissa Carley <chelta@gmail.com>
+References: <18b099ea0804071918n6fe3d5d4n4c76b6e7e2e8f220@mail.gmail.com>
+In-Reply-To: <18b099ea0804071918n6fe3d5d4n4c76b6e7e2e8f220@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
+Subject: Re: [linux-dvb] DigitalNow TinyTwin USB Tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,117 +25,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+heissan,
 
-Am Mittwoch, den 09.04.2008, 22:30 +0200 schrieb Hartmut Hackmann:
-> Hi,
+Melissa Carley wrote:
+> Hi All,
+> First time on the mailing list - and this may seem like a pretty dumb
+> question - but i'm having problems installing the drivers for the
+> DigitalNow TInyTwin USB tuner.
 > 
-> sioux schrieb:
-> > 
-> > 
-> > Hartmut Hackmann ha scritto:
-> >> Hi,
-> >>
-> >> sioux schrieb:
-> >>> Hi all!
-> >>>
-> >>> here similar problem with 7134_alsa module:
-> >>>
-> >>> saa7134_alsa: disagrees about version of symbol snd_ctl_add
-> >>> saa7134_alsa: Unknown symbol snd_ctl_add
-> >>> saa7134_alsa: disagrees about version of symbol snd_pcm_new
-> >>> saa7134_alsa: Unknown symbol snd_pcm_new
-> >>> saa7134_alsa: disagrees about version of symbol snd_card_register
-> >>> saa7134_alsa: Unknown symbol snd_card_register
-> >>> saa7134_alsa: disagrees about version of symbol snd_card_free
-> >>> saa7134_alsa: Unknown symbol snd_card_free
-> >>> saa7134_alsa: disagrees about version of symbol snd_pcm_stop
-> >>> saa7134_alsa: Unknown symbol snd_pcm_stop
-> >>> saa7134_alsa: disagrees about version of symbol snd_ctl_new1
-> >>> saa7134_alsa: Unknown symbol snd_ctl_new1
-> >>> saa7134_alsa: disagrees about version of symbol snd_card_new
-> >>> saa7134_alsa: Unknown symbol snd_card_new
-> >>> saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
-> >>> saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl
-> >>> saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops
-> >>> saa7134_alsa: Unknown symbol snd_pcm_set_ops
-> >>> saa7134_alsa: disagrees about version of symbol 
-> >>> snd_pcm_hw_constraint_integer
-> >>> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer
-> >>> saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed
-> >>> saa7134_alsa: Unknown symbol snd_pcm_period_elapsed
-> >>> saa7134_alsa: disagrees about version of symbol 
-> >>> snd_pcm_hw_constraint_step
-> >>> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step
-> >>>
-> >>> This is my alsa version:
-> >>> cat /proc/asound/version
-> >>> advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16 
-> >>> 14:57:44 2007 UTC)
-> >>>
-> >>> This is my kernel version:
-> >>> uname -a
-> >>> Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 
-> >>> 09:57:10 UTC 2008 i686 GNU/Linux
-> >>>
-> >>> This is my saa7134 version and card:
-> >>>
-> >>> saa7130/34: v4l2 driver version 0.2.14 loaded
-> >>> saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32, 
-> >>> mmio: 0xed000000
-> >>> saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056 
-> >>> PCI [card=131,autodetected]
-> >>> saa7133[0]: board init: gpio is 40000
-> >>> tuner' 0-0042: chip found @ 0x84 (saa7133[0])
-> >>>
-> >>>
-> >>> Make rmmod do not solve the problem!
-> >>>
-> >> <snip> _______________________________________________________________
-> >>
-> >> A "make rmmod" does *not* always work: If a device is in use, the 
-> >> kernel will
-> >> refuse to remove the module. You should find an appropriate error 
-> >> message.
-> >> You can have i.e. this situation:
-> >> If you load the modules a boot time and you run kde, the mixer desktop 
-> >> applet
-> >> will open the mixer of the saa7134-alsa device.
-> >> So you will not be able to unload and thus update the driver before 
-> >> you closed
-> >> the kmix applet.
-> >> There are many other possibilities.
-> >>
-> >> Hartmut
-> >>
-> > sudo killall mixer_applet2
-> > sudo rmmod saa7134 saa7134_alsa saa7134_dvb
-> > 
-> > and than sudo make rmmod
-> > 
-> > does not solve the problem!
-> > 
-> > sioux
-> > 
-> > 
-> > 
-> Does anybody else have an idea what the reason might be?
-> The handling of kernel symbol versions is tricky, i have no idea
-> what sioux might have done wrong.
-> But the patch in question does not even touch the sound code...
+> My system is Gentoo, running 2.6.24 kernel. I have downloaded the
+> drivers I believe to be accurate
+> (http://linuxtv.org/hg/~anttip/af9015/) via hg clone, and have done a
+> make & make install on them from my system.
 > 
-> Hartmut
+> They do not appear in the kernel (I'm not sure if they are meant to?)
+> and I cannot find them in /lib/modules/<kernelversion> at all.
 > 
+> Again, this might seem dumb - but has any one had any luck with
+> getting this working, and if so can you advise me on a type of
+> step-by-step procedure?
 
-the trouble seems to be within Sioux's alsa configuration.
+It should be detected by driver and frontend is also created but it will 
+not still work. Tuning fails always. Your device has MXL5005 tuner that 
+is not working yet with this driver. MXL5003 devices are working and 
+thats why I think there is only minor configuration error, probably 
+wrong GPIO or wrong tuner settings.
+I can fix this in small time if you or someone else can take USB-sniff 
+from Windows.
 
-OSS mixer and OSS PCM emulation should be enabled and of a version in
-sync with the other alsa modules, which seems to be broken here.
+> This is my current output from lsusb:
+> Bus 003 Device 003: ID 045e:00dd Microsoft Corp (Keyboard)
+> Bus 003 Device 002: ID 03f0:2f11 Hewlett-Packard (Printer)
+> Bus 002 Device 002: ID 058f:6377 Alcor Micro Corp (SD Card Reader I believe)
+> Bus 002 Device 003: ID 13d3:3226 IMC Networks (I think this is meant
+> to be the USB stick?)
 
-Cheers,
-Hermann
+Yes, that it is. Also dmesg-command will show a lot information from 
+device after it is plugged.
 
+> Thanks!
+> 
+> Melissa
 
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
