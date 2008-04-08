@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0910.google.com ([209.85.198.190])
+Received: from mailout09.t-online.de ([194.25.134.84])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1JhMED-0000Xq-C8
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 11:59:30 +0200
-Received: by rv-out-0910.google.com with SMTP id b22so2028197rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 03 Apr 2008 02:59:20 -0700 (PDT)
-Message-ID: <617be8890804030259vd442e84qdb8a489ef22cd7a@mail.gmail.com>
-Date: Thu, 3 Apr 2008 11:59:19 +0200
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JjKDx-000756-7I
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 22:15:22 +0200
+Message-ID: <47FBD252.3090701@t-online.de>
+Date: Tue, 08 Apr 2008 22:15:14 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Nova-T 500 disconnects - solved? - YES!
+To: sioux <sioux_it@libero.it>
+References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
+	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
+In-Reply-To: <47FA8D34.6010900@libero.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,89 +20,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1033682408=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1033682408==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1014_21955916.1207216760012"
+Hi,
 
-------=_Part_1014_21955916.1207216760012
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+sioux schrieb:
+> Hi all!
+> 
+> here similar problem with 7134_alsa module:
+> 
+> saa7134_alsa: disagrees about version of symbol snd_ctl_add
+> saa7134_alsa: Unknown symbol snd_ctl_add
+> saa7134_alsa: disagrees about version of symbol snd_pcm_new
+> saa7134_alsa: Unknown symbol snd_pcm_new
+> saa7134_alsa: disagrees about version of symbol snd_card_register
+> saa7134_alsa: Unknown symbol snd_card_register
+> saa7134_alsa: disagrees about version of symbol snd_card_free
+> saa7134_alsa: Unknown symbol snd_card_free
+> saa7134_alsa: disagrees about version of symbol snd_pcm_stop
+> saa7134_alsa: Unknown symbol snd_pcm_stop
+> saa7134_alsa: disagrees about version of symbol snd_ctl_new1
+> saa7134_alsa: Unknown symbol snd_ctl_new1
+> saa7134_alsa: disagrees about version of symbol snd_card_new
+> saa7134_alsa: Unknown symbol snd_card_new
+> saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
+> saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl
+> saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops
+> saa7134_alsa: Unknown symbol snd_pcm_set_ops
+> saa7134_alsa: disagrees about version of symbol 
+> snd_pcm_hw_constraint_integer
+> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer
+> saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed
+> saa7134_alsa: Unknown symbol snd_pcm_period_elapsed
+> saa7134_alsa: disagrees about version of symbol snd_pcm_hw_constraint_step
+> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step
+> 
+> This is my alsa version:
+> cat /proc/asound/version
+> advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16 
+> 14:57:44 2007 UTC)
+> 
+> This is my kernel version:
+> uname -a
+> Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 09:57:10 
+> UTC 2008 i686 GNU/Linux
+> 
+> This is my saa7134 version and card:
+> 
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32, mmio: 
+> 0xed000000
+> saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056 PCI 
+> [card=131,autodetected]
+> saa7133[0]: board init: gpio is 40000
+> tuner' 0-0042: chip found @ 0x84 (saa7133[0])
+> 
+> 
+> Make rmmod do not solve the problem!
+> 
+<snip> _______________________________________________________________
 
->
-> ---------- Missatge reenviat ----------
-> From: Nicolas Will <nico@youplala.net>
-> To: linux-dvb@linuxtv.org
-> Date: Thu, 3 Apr 2008 10:47:25 +0200
-> Subject: Re: [linux-dvb] Nova-T 500 disconnects - solved? - YES!
->
-> Guys,
->
-> I have tried the ehci patch manually on the Ubuntu 2.6.24-13 source, and
-> indeed it fixed the disconnects.
->
-> The fix is now in the 2.6.24-14 binaries, and works just as well.
->
-> My Ubuntu Hardy has now resumed normal activities and Gutsy stability
-> levels, so far.
->
-> I can only recommend that users of other distros should check for kernel
-> updates, bug their developers to include the fix, or do it themselves.
->
-> Nico
->
+A "make rmmod" does *not* always work: If a device is in use, the kernel will
+refuse to remove the module. You should find an appropriate error message.
+You can have i.e. this situation:
+If you load the modules a boot time and you run kde, the mixer desktop applet
+will open the mixer of the saa7134-alsa device.
+So you will not be able to unload and thus update the driver before you closed
+the kmix applet.
+There are many other possibilities.
 
-
-Those are very good news! I had "frozen" my upgrade to 2.6.24 after I
-started to see those messages indicating a "back to disconnect hell".
-
-Now that the issue seems to be definitely isolated and solved I'll upgrade
-the kernel as soon as Gentoo 2.6.24 kernel includes this fix.
-
-Best regards,
-  Eduard
-
-------=_Part_1014_21955916.1207216760012
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">---------- Missatge reenviat ----------<br>From:&nbsp;Nicolas Will &lt;<a href="mailto:nico@youplala.net">nico@youplala.net</a>&gt;<br>
-To:&nbsp;<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>Date:&nbsp;Thu, 3 Apr 2008 10:47:25 +0200<br>Subject:&nbsp;Re: [linux-dvb] Nova-T 500 disconnects - solved? - YES!<br><br>
-Guys,<br>
-<br>
-I have tried the ehci patch manually on the Ubuntu 2.6.24-13 source, and<br>
-indeed it fixed the disconnects.<br>
-<br>
-The fix is now in the 2.6.24-14 binaries, and works just as well.<br>
-<br>
-My Ubuntu Hardy has now resumed normal activities and Gutsy stability<br>
-levels, so far.<br>
-<br>
-I can only recommend that users of other distros should check for kernel<br>
-updates, bug their developers to include the fix, or do it themselves.<br>
-<br>
-Nico<br>
-</blockquote></div><br><br>Those are very good news! I had &quot;frozen&quot; my upgrade to 2.6.24 after I started to see those messages indicating a &quot;back to disconnect hell&quot;.<br><br>Now that the issue seems to be definitely isolated and solved I&#39;ll upgrade the kernel as soon as Gentoo 2.6.24 kernel includes this fix.<br>
-<br>Best regards,<br>&nbsp; Eduard<br><br><br><br><br><br>
-
-------=_Part_1014_21955916.1207216760012--
-
-
---===============1033682408==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hartmut
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1033682408==--
