@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.184])
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <benoitpaquindk@gmail.com>) id 1Jj7hE-0005Qa-Nv
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 08:52:47 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so2635169fkz.1
-	for <linux-dvb@linuxtv.org>; Mon, 07 Apr 2008 23:52:39 -0700 (PDT)
-Message-ID: <7dd90a210804072352n200e336bv2dbe3fe23160483@mail.gmail.com>
-Date: Tue, 8 Apr 2008 08:52:37 +0200
-From: "Benoit Paquin" <benoitpaquindk@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47FAFDDA.4050109@iki.fi>
+	(envelope-from <daniel.akerud@gmail.com>) id 1JjEjZ-0004DS-Bn
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 16:23:39 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so2095544wfa.17
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 07:23:05 -0700 (PDT)
+Message-ID: <b000da060804080723k3eb9056bt8f9e6d37e089616@mail.gmail.com>
+Date: Tue, 8 Apr 2008 16:23:05 +0200
+From: "=?ISO-8859-1?Q?daniel_=E5kerud?=" <daniel.akerud@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
-	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+References: <47A98F3D.9070306@raceme.org> <1202330097.4825.3.camel@anden.nu>
+	<47AB1FC0.8000707@raceme.org>
+	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
+	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
+	<47C4661C.4030408@philpem.me.uk>
+	<C34A2B56-5B39-4BE4-BACD-4E653F61FB03@firshman.co.uk>
+	<8ad9209c0803121334s1485b65ap7fe7d5e4df552535@mail.gmail.com>
+	<8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
+	<8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
+Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,115 +28,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0039977539=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Amazing! I mentioned it yesterday, got it today.
+--===============0039977539==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_23067_31410438.1207664585674"
 
-I recorded using a USB1.1 port on a mind blowing 133 MHz Via C3
-computer! Tuner locks frequency very fast compared to my Hauppauge
-HVH-900.
+------=_Part_23067_31410438.1207664585674
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I included dmesg. The only odd message is: af9013: i2c write failed
-reg:ae00 val:02
+On Sat, Apr 5, 2008 at 1:34 PM, Patrik Hansson <patrik@wintergatan.com>
+wrote:
 
-Thanks a lot!
-/benoit
-
-[  203.284000] usb 1-1: new full speed USB device using uhci_hcd and address 2
-[  203.468000] usb 1-1: configuration #1 chosen from 1 choice
-[  203.468000] af9015_usb_probe: interface:0
-[  203.472000] af9015_identify_state: reply:01
-[  203.472000] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in
-cold state, will try to load a firmware
-[  204.060000] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[  204.060000] af9015_download_firmware:
-[  204.356000] af9015_usb_probe: interface:1
-[  204.356000] usb 1-1: USB disconnect, address 2
-[  204.356000] dvb-usb: generic DVB-USB module successfully
-deinitialized and disconnected.
-[  204.356000] dvb-usb: generic DVB-USB module successfully
-deinitialized and disconnected.
-[  204.628000] usb 1-1: new full speed USB device using uhci_hcd and address 3
-[  204.812000] usb 1-1: configuration #1 chosen from 1 choice
-[  204.812000] af9015_usb_probe: interface:0
-[  204.816000] af9015_identify_state: reply:02
-[  204.816000] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in
-warm state.
-[  204.816000] dvb-usb: will use the device's hardware PID filter
-(table count: 32).
-[  204.816000] DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
-[  204.816000] af9015_eeprom_dump:
-[  204.848000] 00: 2c 34 97 0b 00 00 00 00 a4 15 16 90 00 02 01 02
-[  204.880000] 10: 03 80 00 fa fa 10 40 ef 01 30 31 30 31 30 38 31
-[  204.912000] 20: 37 30 37 30 30 33 38 33 ff ff ff ff ff ff ff ff
-[  204.944000] 30: 00 00 3a 01 00 08 02 00 1d 8d c4 04 82 ff ff ff
-[  204.976000] 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
-[  205.024000] 50: ff ff ff ff ff 24 00 00 04 03 09 04 10 03 41 00
-[  205.056000] 60: 66 00 61 00 74 00 65 00 63 00 68 00 0c 03 44 00
-[  205.088000] 70: 56 00 42 00 2d 00 54 00 20 03 30 00 31 00 30 00
-[  205.120000] 80: 31 00 30 00 31 00 30 00 31 00 30 00 36 00 30 00
-[  205.152000] 90: 30 00 30 00 30 00 31 00 00 ff ff ff ff ff ff ff
-[  205.184000] a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.216000] b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.248000] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.280000] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.312000] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.344000] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  205.348000] af9015_read_config: xtal:2 set adc_clock:28000
-[  205.352000] af9015_read_config: IF1:36125
-[  205.356000] af9015_read_config: MT2060 IF1:1220
-[  205.356000] af9015_read_config: tuner id1:130
-[  205.360000] af9015_read_config: spectral inversion:0
-[  205.572000] af9013: firmware version:4.95.0
-[  205.572000] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
-[  205.572000] af9015_tuner_attach:
-[  205.572000] af9015_set_gpio: gpio:3 gpioval:03
-[  205.772000] MT2060: successfully identified (IF1 = 1220)
-[  206.244000] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully
-initialized and connected.
-[  206.244000] af9015_init:
-[  206.244000] af9015_init_endpoint: USB speed:2
-[  206.264000] af9015_download_ir_table:
-[  206.516000] af9015_usb_probe: interface:1
-[  206.524000] usbcore: registered new interface driver hiddev
-[  206.532000] usbcore: registered new interface driver usbhid
-[  206.532000] /build/buildd/linux-source-2.6.22-2.6.22/drivers/hid/usbhid/hid-core.c:
-v2.6:USB HID core driver
-[  328.552000] af9015_pid_filter: set pid filter, index 0, pid fa1, onoff 1
-[  328.556000] af9015_pid_filter_ctrl: onoff:1
-[  328.560000] af9015_pid_filter: set pid filter, index 1, pid fa2, onoff 1
-[  329.568000] af9015: af9015_rw_udev: receiving failed: -110
-[  329.568000] af9013: i2c write failed reg:ae00 val:02
-[  339.252000] af9015_pid_filter: set pid filter, index 0, pid fa1, onoff 0
-[  339.268000] af9015_pid_filter: set pid filter, index 1, pid fa2, onoff 0
-
-
-2008/4/8, Antti Palosaari <crope@iki.fi>:
-> Antti Palosaari wrote:
->
-> >  Benoit Paquin wrote:
-> >
-> > >  Antti,
-> > >  Can you explain this? It would be neat if it worked with USB 1.1. There are several old laptops around that could be used as digital video recorder. The main stream vendors (Pinnacle, Hauppauge and ASUS) do not support USB 1.1.
-> > >
-> >
-> >  AF9015 chipset does support USB1.1 but driver not. I haven't see this important enough to implement yet... It is rather easy to implement, lets see if I get inspirations soon ;)
-> >
->
->  Implemented now.
+> Just wanted to report that since stopped the active EIT scanning in
+> mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with
+> 2.6.22-14 without any special module options or anything like that.
+> Before i never had both tuners working for more that 24 hours so that
+> seems to be the workaround for the moment.
+> The card still collects EIT data when watching tv so EPG still works.
 >
 >
->  regards
->  Antti
->  --
->  http://palosaari.fi/
->
+I second that. I disabled Active EIT (mythtv-setup) and also added:
+options usbcore autosuspend=-1
+options dvb_usb disable_rc_polling=1
+to the module options. My system has been rock solid since (~2 weeks) and I
+used to have at least a couple of problems per week before.
+/D
+
+------=_Part_23067_31410438.1207664585674
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Sat, Apr 5, 2008 at 1:34 PM, Patrik Hansson &lt;<a href="mailto:patrik@wintergatan.com">patrik@wintergatan.com</a>&gt; wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Just wanted to report that since stopped the active EIT scanning in<br>
+mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with<br>
+2.6.22-14 without any special module options or anything like that.<br>
+Before i never had both tuners working for more that 24 hours so that<br>
+seems to be the workaround for the moment.<br>
+The card still collects EIT data when watching tv so EPG still works.<br>
+<div><div></div><div class="Wj3C7c"><br></div></div></blockquote></div><br>I second that. I disabled Active EIT (mythtv-setup) and also added:<br>options usbcore autosuspend=-1<br>options dvb_usb disable_rc_polling=1<br>
+to the module options. My system has been rock solid since (~2 weeks) and I used to have at least a couple of problems per week before.<br>/D<br><br>
+
+------=_Part_23067_31410438.1207664585674--
+
+
+--===============0039977539==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0039977539==--
