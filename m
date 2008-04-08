@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout4-sn1.fre.skanova.net ([81.228.11.168])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Jkx8H-0002Cv-Ux
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 10:00:14 +0200
-Message-ID: <4801BD74.1050804@iki.fi>
-Date: Sun, 13 Apr 2008 10:59:48 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <janne-dvb@grunau.be>) id 1Jj9D5-0006ZQ-14
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 10:29:43 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: linux-dvb@linuxtv.org
+Date: Tue, 8 Apr 2008 10:30:04 +0200
+References: <200803292240.25719.janne-dvb@grunau.be>
+	<200803301353.33801.janne-dvb@grunau.be>
+	<200803302017.49799.janne-dvb@grunau.be>
+In-Reply-To: <200803302017.49799.janne-dvb@grunau.be>
 MIME-Version: 1.0
-To: adriancapel@openforyou.com
-References: <20080413022332.yrtb5tk3ic8ckcgw@webmail.openforyou.com>
-In-Reply-To: <20080413022332.yrtb5tk3ic8ckcgw@webmail.openforyou.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with ASUS My Cinema U3000 Mini
+Content-Disposition: inline
+Message-Id: <200804081030.04745.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+	dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,30 +28,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-adriancapel@openforyou.com wrote:
-> The device is properly recognized but I can not tune channels.
-> 
-> scandvb shows me the following error: "WARNING: filter timeout pid 0x0011"
+On Sunday 30 March 2008 20:17:49 Janne Grunau wrote:
+> On Sunday 30 March 2008 13:53:33 Janne Grunau wrote:
+> > I agree. Fixed, updated patch attached.
+>
+> Next try:
+>
+> replaced module option definition in each driver by a macro,
+> fixed all checkpatch.pl error and warning
+> added Signed-off-by line and patch description
 
-I have similar device but branded Yuan EC372S and it does exactly same. 
-This is DiBcom device.
+ping.
 
-> I am using kernel 2.6.24.4 and the latest version of v4l-dvb.
-> 
-> For installation of v4l-db follow indications:
-> 
-> http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini
-> 
-> 
-> 
-> Possible bug?
+Any interest in this change? Anything speaking against merging this 
+except the potential duplication of udev functinality?
 
-I think so.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Janne
 
 _______________________________________________
 linux-dvb mailing list
