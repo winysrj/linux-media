@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.176])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zdenek.kabelac@gmail.com>) id 1JjcoT-0007dO-0j
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 18:06:17 +0200
-Received: by el-out-1112.google.com with SMTP id o28so1868582ele.2
-	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 09:05:57 -0700 (PDT)
-Message-ID: <c4e36d110804090905t3574e09ao8cadadacc9c12080@mail.gmail.com>
-Date: Wed, 9 Apr 2008 18:05:57 +0200
-From: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47FCE5FB.9080003@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JjMxh-0002Tc-1C
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 01:10:50 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Wed, 9 Apr 2008 01:07:26 +0200
+References: <20080329024154.GA23883@localhost>
+	<20080408131312.GA19787@localhost>
+In-Reply-To: <20080408131312.GA19787@localhost>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
-	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
-	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
-	<47FC373F.5060006@iki.fi>
-	<c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
-	<47FCE5FB.9080003@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+Message-Id: <200804090107.26978@orion.escape-edv.de>
+Cc: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
+Subject: Re: [linux-dvb] No av with budget_av (Analog inputs not working on
+	KNC1 DVB-C Plus (MK3))
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,40 +29,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/4/9, Antti Palosaari <crope@iki.fi>:
-> Zdenek Kabelac wrote:
->
-> > 2008/4/9, Antti Palosaari <crope@iki.fi>:
-> >
-> > > Zdenek Kabelac wrote:
-> > >
-> > >
-> > > > As it looks like my AverTV Hybrid Volar HX is a little bit of no use
-> > > >
-> > >
-> >
->
->
-> > Well it's AF9013 - but as could be seen in the source - the code looks
-> like
-> > it should support both chips  AF9015 & AF9013 - do I had to set manually
-> > some bits somewhere ?
-> >
->
->  AF9013 is DVB-T demodulator and AF9015 is integrated USB-bridge + AF9013
-> demodulator. Your device does not have AF9015 at all. DVB-T USB-device needs
-> logically three "chips". USB-bridge, demodulator and tuner. As I can
-> understand there is CY7C68013 USB-bridge, AF9013 demodulator and TDA18271
-> tuner. First you should try to find driver for demodulator. After thats is
-> OK we can try to connect AF9013 demodulator to USB-bridge and TDA18271 tuner
-> to AF9013 demodulator.
+L. wrote:
+> (Update)
+> 
+> Hello,
+> 
+> analog inputs still aren't working with KNC1 DVB-C Plus (MK3)
+> with hg/v4l-dvb changeset #7495 and kernel 2.6.25-rc8. 
+> 
+> References: Analog inputs not working on KNC1 DVB-C Plus
+> 1. http://www.linuxtv.org/pipermail/linux-dvb/2008-March/025032.html
+> 2. http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022183.html
 
-Yep - that's what I needed to know - I have no idea how these things
-are connected so I'll try to find something for CY7C USB-bridge first.
+Guys,
 
-Thanks for hint
+if you want support for analog inputs or anything else in the
+budget_av driver, _you_ have to
+- find out how it works and
+- submit patches.
 
-Zdenek
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
