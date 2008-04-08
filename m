@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.190])
+Received: from nf-out-0910.google.com ([64.233.182.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <morgan.torvolt@gmail.com>) id 1JjKBJ-0005bB-Ay
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 22:12:38 +0200
-Received: by rn-out-0910.google.com with SMTP id e11so2501318rng.17
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 13:12:31 -0700 (PDT)
-Message-ID: <3cc3561f0804081312g7e2436a0p54b0eaa7ca8c7f09@mail.gmail.com>
-Date: Wed, 9 Apr 2008 00:12:29 +0400
-From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
-To: "Anssi Hannula" <anssi.hannula@gmail.com>
-In-Reply-To: <47F021EB.6010104@gmail.com>
+	(envelope-from <ysangkok@gmail.com>) id 1JjGet-0003sN-KY
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 18:26:58 +0200
+Received: by nf-out-0910.google.com with SMTP id d21so865711nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 09:26:52 -0700 (PDT)
+Message-ID: <15a344380804080926q2336343bsa5dddff401c3647e@mail.gmail.com>
+Date: Tue, 8 Apr 2008 18:26:51 +0200
+From: Ysangkok <ysangkok@gmail.com>
+To: "Benoit Paquin" <benoitpaquindk@gmail.com>
+In-Reply-To: <47FA6C32.4060100@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAASuTAGpqJw0asMd7tD3VNFwEAAAAA@tv-numeric.com>
-	<47F021EB.6010104@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Interpretation of FE_READ_BER
+References: <7dd90a210804071143j704ea174tb81c06cda02ab8b7@mail.gmail.com>
+	<47FA6C32.4060100@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Sandberg dvb-t stick now working with your latest
+	version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,58 +30,107 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  > What is the interpretation of the value returned by ioctl FE_READ_BER?
-> AFAIK the exact meaning of all the values is driver/device-specific.
+Hello people,
 
-I think you are right.
+It works!
 
->  > There is no clue in the Linux DVB API doc. Google reports similar
->  > questions but none with an answer. I have just seen one note suggesting
->  > it could be a multiple of 10^-9. Looks good to me but since there is
->  > no good definition of this parameter in the docs, I wonder if drivers
->  > implement them in a consistent way.
-> I don't think so.
+[ 2515.625003] usb 1-4: new high speed USB device using ehci_hcd and address 7
+[ 2515.762432] usb 1-4: configuration #1 chosen from 1 choice
+[ 2515.762854] af9015_usb_probe: interface:0
+[ 2515.763154] af9015_identify_state: reply:02
+[ 2515.763159] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in
+warm state.
+[ 2515.763235] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[ 2515.763561] DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
+[ 2515.763932] af9015_eeprom_dump:
+[ 2515.787389] 00: 2c 47 97 0b 00 00 00 00 a4 15 16 90 00 02 01 02
+[ 2515.809721] 10: 03 80 00 fa fa 10 40 ef 01 30 31 30 31 30 38 32
+[ 2515.831951] 20: 30 30 37 30 30 32 42 43 ff ff ff ff ff ff ff ff
+[ 2515.854813] 30: 00 00 3a 01 00 08 02 00 1d 8d c4 04 82 ff ff ff
+[ 2515.877532] 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
+[ 2515.900010] 50: ff ff ff ff ff 24 00 00 04 03 09 04 10 03 41 00
+[ 2515.922493] 60: 66 00 61 00 74 00 65 00 63 00 68 00 0c 03 44 00
+[ 2515.944449] 70: 56 00 42 00 2d 00 54 00 20 03 30 00 31 00 30 00
+[ 2515.966674] 80: 31 00 30 00 31 00 30 00 31 00 30 00 36 00 30 00
+[ 2515.988649] 90: 30 00 30 00 30 00 31 00 00 ff ff ff ff ff ff ff
+[ 2516.010645] a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.032603] b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.054705] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.076805] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.098905] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.120881] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+[ 2516.122259] af9015_read_config: xtal:2 set adc_clock:28000
+[ 2516.125003] af9015_read_config: IF1:36125
+[ 2516.127750] af9015_read_config: MT2060 IF1:1220
+[ 2516.129132] af9015_read_config: tuner id1:130
+[ 2516.130499] af9015_read_config: spectral inversion:0
+[ 2516.147737] af9013: firmware version:4.95.0
+[ 2516.147760] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
+[ 2516.147861] af9015_tuner_attach:
+[ 2516.147866] af9015_set_gpio: gpio:3 gpioval:03
+[ 2516.169484] MT2060: successfully identified (IF1 = 1220)
+[ 2516.635455] dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully
+initialized and connected.
+[ 2516.635464] af9015_init:
+[ 2516.635467] af9015_init_endpoint: USB speed:3
+[ 2516.639572] af9015_download_ir_table:
+[ 2516.689738] input: Afatech DVB-T as /class/input/input10
+[ 2516.689930] input: USB HID v1.01 Keyboard [Afatech DVB-T] on
+usb-0000:00:10.4-4
+[ 2559.501813] af9015_pid_filter_ctrl: onoff:0
 
-Correct again. This is not consistent.
 
-> > With my Nova-T 500 (Fedora 8, kernel 2.6.24.3-12, recent v4l hg tree),
-> > the reception is quite fine, FE_READ_SIGNAL_STRENGTH returns 40000
-> > (60%),
-> > but FE_READ_BER always returns 0. Does this mean "not even the slightest
-> > error" (to good to be true), "not supported" (should return errno ENOSYS),
-> > "driver bug"?
-> 0 can very well mean there is no errors, it is not that uncommon (I've
->  seen it with my devices in good conditions).
+My Hauppauge WinTV Nova-T USB2 stick does still not work, but I am
+pretty happy though. I finally got something to work. :P
 
-Again correct, but since there is no consistency on what this number
-is supposed to represent, you really cannot know. This could be the
-actual ber on reception ( BER before FEC as the pro's call it ), which
-would usually be somewhere around 10^-5 to 10^-5, but not nessesarily.
-With the 250 sqare meters (2500 sqare feet) antenna where I used to
-work we usually got it bit-error free straight of the satellite, even
-in really bad weather. It all depends on the signal level you get.
-There are theoretical maximums on this, and you can usually quite
-accurately calculate SNR and Eb/N0 from only having the BER rate.
-If the number is BER after FEC, it should be somewhere around 10^-9 to
-10^-10. If this is the case then the number is usually completely
-wrong because it is often based on the Reed Solomon error correction
-circuits/software, and one bit-error or ten will usually count as one.
-It could even be a BER after RS, and if that is the case, you will
-have distortions in your picture from time to time.
+Regards,
+Janus
 
-As mentioned it is impossible to tell. Having everyone doing the same
-thing would be very nice, so that one could actually use this info for
-something useful. This is the "problem" with open source and no real
-project management. There is probably no real way of fixing it since
-there will always be some developer for some new hardware that does
-not really know what the different things are, and will just do
-something. And I can appreciate the complexity of it, as some chips
-give you a BER based on BER last second, while another will give you
-Bit Errors since last time you read the register, while a third one
-gives you an update BER every five seconds, and the fourth one gives
-you Bit Errors since laste tune. Not an easy task by any means.
-
--Morgan-
+On Mon, Apr 7, 2008 at 8:47 PM, Antti Palosaari <crope@iki.fi> wrote:
+> thanx for feedback
+>  I am just working for PID-filter support (USB1.1 support) and hope that in
+> few hours it is ready. This is first time I am adding PID-filter so it is
+> little bit learning also.
+>
+>  /antti
+>
+>
+>
+>  Benoit Paquin wrote:
+>
+> > Antti,
+> >
+> > You new driver is working! I can not copy the linux-dvb list as I am not a
+> member yet (I need to enroll).
+> > Good work!
+> > If you want me to test a USB 1.1 version, I will be glad to do so. I have
+> a neat Lex-light machine (no fan, Via C3 cpu) running Ubuntu!
+> >
+> > Thanks,
+> > Benoit
+> >
+> > Janus: Can you check the new driver if you have time? I did:
+> > hg clone http://linuxtv.org/hg/~anttip/af9015/
+> > cd af9015
+> > make
+> > sudo make install
+> > (add the line dvb-usb-af9015 in /etc/modules)
+> > reboot
+> > plug stick
+> > check dmesg
+> >
+> > If you are in Copenhagen, Kanal-Kbh has a strong signal that the mini
+> antenna can take:
+> > dvbstream -f 586000 -o -ps 4001 4002 >test.mpg
+> > mplayer test.mpg
+> >
+> >
+>
+>
+>  --
+>  http://palosaari.fi/
+>
 
 _______________________________________________
 linux-dvb mailing list
