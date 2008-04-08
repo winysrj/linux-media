@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from eeyore.nlsn.nu ([213.115.133.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ji8tM-0002nQ-1f
-	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 15:57:12 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bac60f.dyn.optonline.net [24.186.198.15]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JYU00BSVUQD7YT0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 05 Apr 2008 09:56:38 -0400 (EDT)
-Date: Sat, 05 Apr 2008 09:56:37 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <47F782D7.1070606@dupondje.be>
-To: Jean-Louis Dupond <info@dupondje.be>
-Message-id: <47F78515.7020209@linuxtv.org>
-MIME-version: 1.0
-References: <47F54E4E.5050608@dupondje.be> <47F6A089.7030504@dupondje.be>
-	<47F782D7.1070606@dupondje.be>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1300 not working
+	(envelope-from <dlist2@nlsn.nu>) id 1JjDY7-0005sX-KD
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 15:07:46 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by eeyore.nlsn.nu (Postfix) with ESMTP id F129D1C047
+	for <linux-dvb@linuxtv.org>; Tue,  8 Apr 2008 15:20:13 +0200 (CEST)
+Date: Tue, 8 Apr 2008 15:20:13 +0200 (CEST)
+From: dlist2@nlsn.nu
+To: linux-dvb@linuxtv.org
+In-Reply-To: <Pine.LNX.4.64.0803272228070.9456@eeyore.nlsn.nu>
+Message-ID: <Pine.LNX.4.64.0804081518560.3208@eeyore.nlsn.nu>
+References: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
+	<1206610705.12385.7.camel@rommel.snap.tv>
+	<Pine.LNX.4.64.0803272228070.9456@eeyore.nlsn.nu>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] TT-Budget C-1501 not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,26 +29,77 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jean-Louis Dupond wrote:
-> Seems like stopping HAL & reloading the modules fixxes it ...
+
+Hi,
+
+any hints where I should start? or can someone do it remotely on my 
+machine?...
+
+Regards
+
+  Daniel
+
+> On Thu, 27 Mar 2008, Sigmund Augdal wrote:
 > 
-> Jean-Louis Dupond schreef:
->> Hello,
->>
->> I tried tons of different kernel versions, latest v4l hg etc ... nothing 
->> works ... all are giving me more or less the same error:
->>
->> http://pastebin.com/f10c1160b here is another dmesg output (2.6.25-rc8 
->> with latest hg).
->>
->> I hope this is getting fixxed soon :)
-
-I know what's broken, but I don't know why. I also don't know why it's 
-platform specific.
-
-I'm looking at possible solutions now.
-
-- Steve
+> > According to this forum post:
+> > http://www.dvbviewer.info/forum/index.php?showtopic=24366
+> > 
+> > The card uses the tda10023 demod (for which there is a driver in the
+> > sources) and a tda8274A tuner (which the tda827x driver hopefully will
+> > handle). So all that should be needed is some glue code.
+> > 
+> > Sigmund
+> > 
+> > 
+> > tor, 20.03.2008 kl. 12.56 +0100, skrev dlist2@nlsn.nu:
+> > > Hi,
+> > > 
+> > > I just purchased a Technotrend Budget C-1501.
+> > > Im running Mythbuntu Beta, and downloaded the latest v4l drivers but it 
+> > > still fails.
+> > > 
+> > > lspci -v
+> > > 
+> > > 05:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+> > >         Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
+> > >         Flags: bus master, medium devsel, latency 66, IRQ 5
+> > >         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
+> > > 
+> > > lspci -n
+> > > 
+> > > 05:04.0 0480: 1131:7146 (rev 01)
+> > >         Subsystem: 13c2:101a
+> > >         Flags: bus master, medium devsel, latency 66, IRQ 5
+> > >         Memory at fc501000 (32-bit, non-prefetchable) [size=512]
+> > > 
+> > > log says
+> > > 
+> > >  kernel: [   54.207308] Linux video capture  interface: v2.00
+> > >  kernel: [   54.501753] saa7146: register extension 'dvb'.
+> > >  runvdr: stopping after fatal fail (vdr: warning - cannot set dumpable: Invalid argument vdr: no primary device found - using 
+> > > first device!)
+> > > 
+> > > And /dev/dvb is empty of course.
+> > > Im not a kernel hacker, but if you have any hits on how to get this card 
+> > > working please let me know.
+> > > 
+> > > Thanks
+> > > 
+> > >   Daniel
+> > > 
+> > > _______________________________________________
+> > > linux-dvb mailing list
+> > > linux-dvb@linuxtv.org
+> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> > > 
+> > 
+> > 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 _______________________________________________
 linux-dvb mailing list
