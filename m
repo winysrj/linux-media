@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
+Received: from moutng.kundenserver.de ([212.227.126.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1JkIsT-0008Fl-DA
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:01:14 +0200
-Message-ID: <41036.203.200.233.130.1207919890.squirrel@203.200.233.138>
-In-Reply-To: <15e616860804090759m76c05539q8945d30208f8daeb@mail.gmail.com>
-References: <200804081441.49529.christophpfister@gmail.com>
-	<60949.203.200.233.130.1207662815.squirrel@203.200.233.138>
-	<42688.203.200.233.130.1207715070.squirrel@203.200.233.138>
-	<1207728466.12385.213.camel@rommel.snap.tv>
-	<15e616860804090759m76c05539q8945d30208f8daeb@mail.gmail.com>
-Date: Fri, 11 Apr 2008 18:48:10 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-To: zaheermerali@gmail.com
+	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1JjDgY-0007yI-4E
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 15:16:33 +0200
+Date: Tue, 8 Apr 2008 15:14:01 +0200
+From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Message-ID: <20080408131401.GA19821@localhost>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Extract Satelite Info
+Content-Disposition: inline
+Subject: [linux-dvb] Reminder: Please update wiki: KNC1 DVB-C Plus not fully
+	supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,119 +24,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Please can you update the linuxtv.org dvb wiki. The vdr-wiki was already
+updated. This card is very expensive because of its analog inputs, so 
+*please* write in the wiki that these analog inputs are currently not 
+supported under Linux, in order to prevent someone buying that model in 
+a wrong assumption. Thanks!
 
+Hello,
 
+the information about the KNC1 DVB-C Plus card (a card with analog video
+input) in the linuxtv.org dvb wiki is wrong. It says it works under
+linux, which is not correct. The analog input (Composite and S-Video) is
+currently unsupported under Linux (at least for the recent MK3 version).
+(See bug reports [3,4]).
 
-Hi All
-is there any answer to the above subject?
-Bye
+The lack of support for the analog input by the driver is crucial, since
+nobody would buy such a card without explicitly needing this analog
+input; the model without analog input is much less expensive. So saying
+the card works can lead to someone buying a card not fully supported by
+Linux (unfortunately this has happened to me).
 
+Please correct this information in the wiki! This wiki is not editable
+by public. The following pages are affected:
 
-> Another solution is, assuming the NIT is in the transport stream, is to
-> do:
->
-> gst-launch -m filesrc location=blah.ts ! mpegtsparse ! fakesink | grep nit
->
-> It will give you something like:
->
-> Got Message from element "mpegtsparse0" (element): nit,
-> network-id=(guint)1, version-number=(guint)0,
-> current-next-indicator=(guint)1, actual-network=(boolean)true,
-> network-name=(string)"GC\ SPAIN\ 1", descriptors=(GValueArray)(NULL),
-> transports=(structure){ transport-21, transport-stream-id=(guint)21,
-> original-network-id=(guint)1, delivery=(structure)satellite,
-> orbital=(float)30.5, east-or-west=(string)west,
-> modulation=(string)QAM16, frequency=(guint)11615000,
-> polarization=(string)horizontal, symbol-rate=(guint)27500,
-> inner-fec=(string)3/4;, descriptors=(GValueArray)(NULL); };
->
-> Zaheer
->
->
->
-> On Wed, Apr 9, 2008 at 9:07 AM, Sigmund Augdal <sigmund@snap.tv> wrote:
->> ons, 09.04.2008 kl. 09.54 +0530, skrev Gurumurti Laxman Maharana:
->>
->> > Hi All
->>  > I want to know weather is it possible to extract satellite
->> information from
->>  > streams captured by DVB-S card?
->>  > Can any body help in this regard?
->>
->>  Use dvbsnoop.
->>
->>  dvbsnoop -s ts -tssubdecode -if capture.ts 16|less
->>
->>  Regards
->>
->>  Sigmund
->>
->>
->> > bye
->>  >
->>  >
->>  > > Hi
->>  > > I want to weather is it possoble to extract satellite information
->> from
->>  > > streams capture by DVB card?
->>  > > bye
->>  > >> From a kaffeine user ...
->>  > >>
->>  > >> Christoph
->>  > >>
->>  > >>
->>  > >> ----------  Weitergeleitete Nachricht  ----------
->>  > >>
->>  > >> Betreff: [kaffeine-user] Satellites at 80E and 90E
->>  > >> Datum: Sonntag 06 April 2008
->>  > >> Von: Roman Kashcheev <kashcheevr@rambler.ru>
->>  > >> An: kaffeine-user@lists.sf.net
->>  > >>
->>  > >> Hello!
->>  > >> There are files for dvb-s folder of kaffeine - Siberian
->> satellites, most
->>  > >> popular in eastern Russia.
->>  > >> Thanks for good program - Kaffeine. I use it to look satellite tv
->> since
->>  > >> spring 2006.
->>  > >> Forgive me for my bad english.
->>  > >>
->>  > >> Best regards,
->>  > >> Roman Kashcheev
->>  > >> Bodajbo city, Irkutsk region, Russia
->>  > >>
->>  > >> -------------------------------------------------------
->>  > >> _______________________________________________
->>  > >> linux-dvb mailing list
->>  > >> linux-dvb@linuxtv.org
->>  > >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>  > >
->>  > >
->>  > > --
->>  > > gurumurti@nkindia.com
->>  > >
->>  > >
->>  > > _______________________________________________
->>  > > linux-dvb mailing list
->>  > > linux-dvb@linuxtv.org
->>  > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>  > >
->>  >
->>  >
->>
->>
->>  _______________________________________________
->>  linux-dvb mailing list
->>  linux-dvb@linuxtv.org
->>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
+http://linuxtv.org/wiki/index.php/KNC1_TV-Station_DVB-C_Plus
+http://linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
+http://linuxtv.org/wiki/index.php/KNC1
 
+I can say that the analog input on my MK3 version did not work with any 
+kernel version or patch I tested since its first Linux support in 2007-02
+[1] (however the input works under windows). I do not know if the analog
+input of the older version of the card did work or still does. 
 
--- 
-G. L. Maharana
+It should be noted that the MK3 version of the KNC1 DVB-C with tda10023
+is only supported from kernel 2.6.22 on (and a little earlier with a
+patch), but the older version of the card with tda10021 was supported
+much earlier, already (at least) in kernel 2.6.12.
 
+KNC1 DVB-C Plus (older)     = PCI subsystem ID 1894:0021      
+KNC1 DVB-C Plus MK3 (newer) = PCI subsystem ID 1894:0023 
 
+If someone owns a KNC One DVB Plus card, please can you say if your
+analog input (Composite or S-Video) ever worked under Linux, or if
+it stopped working with a specific kernel version? Thank you.
+
+L.
+
+References
+
+1. 2007-02: First patch available supporting the MK3 versions of KNC1 DVB
+cards (and identical Terratec/Satelco): tda1002x.008.diff for hg/v4l-dvb
+http://www.vdr-portal.de/board/thread.php?threadid=60227&page=8
+http://www.linuxtv.org/pipermail/linux-dvb/2007-February/015886.html
+
+2. http://www.vdr-wiki.de/wiki/index.php/DVB-C_Budget-PCI-Karten
+
+3. http://www.linuxtv.org/pipermail/linux-dvb/2008-March/025032.html
+
+4. http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022183.html
 
 _______________________________________________
 linux-dvb mailing list
