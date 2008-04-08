@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1.compound.se ([82.214.63.24] helo=sunnan.compound.se)
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bjorn@compound.se>) id 1Jlha5-00068i-T7
-	for linux-dvb@linuxtv.org; Tue, 15 Apr 2008 11:36:04 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by sunnan.compound.se (Postfix) with ESMTP id E3D49A393E4
-	for <linux-dvb@linuxtv.org>; Tue, 15 Apr 2008 11:35:27 +0200 (CEST)
-Received: from sunnan.compound.se ([127.0.0.1])
-	by localhost (sunnan.compound.se [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id z-YzR4wRW0G8 for <linux-dvb@linuxtv.org>;
-	Tue, 15 Apr 2008 11:35:25 +0200 (CEST)
-Received: from [192.168.200.1] (kuling.compound.se [192.168.200.1])
-	by sunnan.compound.se (Postfix) with ESMTP id E790BA393D4
-	for <linux-dvb@linuxtv.org>; Tue, 15 Apr 2008 11:35:24 +0200 (CEST)
-From: =?ISO-8859-1?Q?Bj=F6rn?= Smith <bjorn@compound.se>
+	(envelope-from <gujs.lists@gmail.com>) id 1JjA03-0003rW-Gz
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 11:20:20 +0200
+Received: by ug-out-1314.google.com with SMTP id o29so1807839ugd.20
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 02:20:15 -0700 (PDT)
+Message-ID: <47FB38D5.1010602@gmail.com>
+Date: Tue, 08 Apr 2008 11:20:21 +0200
+From: Gregor Fuis <gujs.lists@gmail.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Date: Tue, 15 Apr 2008 11:37:43 +0200
-Message-Id: <1208252263.26414.44.camel@kuling>
-Mime-Version: 1.0
-Subject: [linux-dvb] Which modules are supposed to be loaded for Twinhan
-	DVB-T 3030	(mantis)?
+Subject: [linux-dvb] getstream new multiproto api patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,66 +18,19 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SXMgdGhlcmUgYW55b25lIHRoYXQgc3VjY2Vzc2Z1bGx5IHVzaW5nIFR3aW5oYW4gRFZCLVQgMzAz
-MCBvbiBhCjIuNi4yMi0xNC1nZW5lcmljIGtlcm5lbD8KSSd2ZSBpbnN0YWxsZWQgbXl0aGJ1bnR1
-IDcuMTAgYW5kIGFwcGxpZWQgYWxsIHVwZGF0ZXMuIFRoZSBrZXJuZWwKaXMgMi42LjIyLTE0LWdl
-bmVyaWMgYW5kIEkndmUgY29tcGlsZWQgYW5kIGluc3RhbGxlZCB0aGUgdmVyeSBsYXRlc3QKbWFu
-dGlzIGRyaXZlcnMgKG1hbnRpcy1mNWIxZjlkNDkxYmYudGFyLmd6KSBmcm9tIGh0dHA6Ly9qdXNz
-dC5kZS9oZy8KTXkgImJveCIgaGFzIHR3byBUd2luaGFuIERWQi1UIDMwMzAgYW5kIENJIG1vZHVs
-ZSBpbnNlcnRlZCBpbiBvbmUgb2YKdGhlbSBhdCB0aGUgbW9tZW50LgoKRXZlcnl0aGluZyBjb21w
-aWxlcyBuaWNlbHkgYW5kIGFmdGVyIGEgcmVib290IHNob3dzIHVwCmluIC92YXIvbG9nL21lc3Nh
-Z2VzOgoKIEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMTowMC4wW0FdIC0+IEdTSSAyMCAobGV2
-ZWwsIGxvdykgLT4gSVJRIDIxCiBpcnE6IDIxLCBsYXRlbmN5OiAzMgogIG1lbW9yeTogMHhlMjAw
-MDAwMCwgbW1pbzogMHhmODk4MDAwMAogZm91bmQgYSBWUC0zMDMwIFBDSSBEVkItVCBkZXZpY2Ug
-b24gKDAxOjAwLjApLAogICAgIE1hbnRpcyBSZXYgMSBbMTgyMjowMDI0XSwgaXJxOiAyMSwgbGF0
-ZW5jeTogMzIKICAgICBtZW1vcnk6IDB4ZTIwMDAwMDAsIG1taW86IDB4Zjg5ODAwMDAKICAgICBN
-QUMgQWRkcmVzcz1bMDA6MDg6Y2E6MWI6ZWI6ZjddCiBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFw
-dGVyIChNYW50aXMgZHZiIGFkYXB0ZXIpCiBDQTogUmVnaXN0ZXJpbmcgTWFudGlzIEFkYXB0ZXIo
-MCkgU2xvdCgwKQogQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAxOjAxLjBbQV0gLT4gR1NJIDE5
-IChsZXZlbCwgbG93KSAtPiBJUlEgMTcKIGlycTogMTcsIGxhdGVuY3k6IDMyCiAgbWVtb3J5OiAw
-eGUyMDAxMDAwLCBtbWlvOiAweGY4YTY4MDAwCiBmb3VuZCBhIFZQLTMwMzAgUENJIERWQi1UIGRl
-dmljZSBvbiAoMDE6MDEuMCksCiAgICAgTWFudGlzIFJldiAxIFsxODIyOjAwMjRdLCBpcnE6IDE3
-LCBsYXRlbmN5OiAzMgogICAgIG1lbW9yeTogMHhlMjAwMTAwMCwgbW1pbzogMHhmOGE2ODAwMAog
-ICAgIE1BQyBBZGRyZXNzPVswMDowODpjYToxYjplYjo3Nl0KIERWQjogcmVnaXN0ZXJpbmcgbmV3
-IGFkYXB0ZXIgKE1hbnRpcyBkdmIgYWRhcHRlcikKIENBOiBSZWdpc3RlcmluZyBNYW50aXMgQWRh
-cHRlcigxKSBTbG90KDApCiBBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6MWIuMFtBXSAtPiBH
-U0kgMTYgKGxldmVsLCBsb3cpIC0+IElSUSAxOQoKVGhlIGZvbGxvd2luZyBkZXZpY2Ugbm9kZXMg
-YXJlIGNyZWF0ZWQgdW5kZXIgL2Rldi9kdmIvYWRhcHRlcnswLDF9LwpjcnctcnctLS0tIDEgcm9v
-dCB2aWRlbyAyMTIsIDYgMjAwOC0wNC0xNCAyMjozNCBjYTAKY3J3LXJ3LS0tLSAxIHJvb3Qgdmlk
-ZW8gMjEyLCA0IDIwMDgtMDQtMTQgMjI6MzQgZGVtdXgwCmNydy1ydy0tLS0gMSByb290IHZpZGVv
-IDIxMiwgNSAyMDA4LTA0LTE0IDIyOjM0IGR2cjAKY3J3LXJ3LS0tLSAxIHJvb3QgdmlkZW8gMjEy
-LCA3IDIwMDgtMDQtMTQgMjI6MzQgbmV0MAoKSG93ZXZlciwgbm8gdmlkZW8wIGRldmljZSE/IEkg
-dHJpZWQgdG8gY3JlYXRlIGl0IG1hbnVhbGx5IGJ1dCB0aGVyZSBpcwpkcml2ZXIgY29kZSB0aGVy
-ZSB0byBhbnN3ZXIgdGhlIGluaXRpYWwgb3BlbigpIGNhbGwuCgpUaGUgbG9hZGVkIG1vZHVsZXMg
-cmVmZXJyaW5nIChvciByZWxhdGVkIHRvKSBtYW50aXMgaXM6Cgpsc21vZCB8IGdyZXAgbWFudGlz
-Cm1hbnRpcyAgICAgICAgICAgICAgICAgMzk5NDAgIDAgCmxuYnAyMSAgICAgICAgICAgICAgICAg
-IDMzMjggIDEgbWFudGlzCm1iODZhMTYgICAgICAgICAgICAgICAgMjE2MzIgIDEgbWFudGlzCnN0
-YjYxMDAgICAgICAgICAgICAgICAgIDg5NjQgIDEgbWFudGlzCnRkYTEwMDIxICAgICAgICAgICAg
-ICAgIDc5NDAgIDEgbWFudGlzCnRkYTEwMDIzICAgICAgICAgICAgICAgIDc0MjggIDEgbWFudGlz
-CnN0YjA4OTkgICAgICAgICAgICAgICAgMzYzNTIgIDEgbWFudGlzCnN0djAyOTkgICAgICAgICAg
-ICAgICAgMTE1MjggIDEgbWFudGlzCmR2Yl9jb3JlICAgICAgICAgICAgICAgODk1MDAgIDIgbWFu
-dGlzLHN0djAyOTkKaTJjX2NvcmUgICAgICAgICAgICAgICAyNjExMiAgOAptYW50aXMsbG5icDIx
-LG1iODZhMTYsc3RiNjEwMCx0ZGExMDAyMSx0ZGExMDAyMyxzdGIwODk5LHN0djAyOTkKCiJwY2lt
-b2R1bGVzIiBzaG93cyB0aGlzOgoKaW50ZWwtYWdwCmludGVsZmIKc25kLWhkYS1pbnRlbAp1aGNp
-LWhjZAplaGNpLWhjZAppVENPX3dkdAppbnRlbC1ybmcKYXRhX3BpaXgKYXRhX2dlbmVyaWMKYXRh
-X3BpaXgKYXRhX2dlbmVyaWMKaTJjLWk4MDEKbWFudGlzCnI4MTY5Cm9oY2kxMzk0CgphbmQgImxz
-cGNpIC1udiIgc2hvd3M6Ci4uLgowMTowMC4wIDA0ODA6IDE4MjI6NGUzNSAocmV2IDAxKQogICAg
-ICAgIFN1YnN5c3RlbTogMTgyMjowMDI0CiAgICAgICAgRmxhZ3M6IGJ1cyBtYXN0ZXIsIG1lZGl1
-bSBkZXZzZWwsIGxhdGVuY3kgMzIsIElSUSAyMQogICAgICAgIE1lbW9yeSBhdCBlMjAwMDAwMCAo
-MzItYml0LCBwcmVmZXRjaGFibGUpIFtzaXplPTRLXQoKMDE6MDEuMCAwNDgwOiAxODIyOjRlMzUg
-KHJldiAwMSkKICAgICAgICBTdWJzeXN0ZW06IDE4MjI6MDAyNAogICAgICAgIEZsYWdzOiBidXMg
-bWFzdGVyLCBtZWRpdW0gZGV2c2VsLCBsYXRlbmN5IDMyLCBJUlEgMTcKICAgICAgICBNZW1vcnkg
-YXQgZTIwMDEwMDAgKDMyLWJpdCwgcHJlZmV0Y2hhYmxlKSBbc2l6ZT00S10KLi4uCgpJdCBsb29r
-cyB0byBtZSB0aGF0IHRoZXJlIGFyZSBzb21lIG1vZHVsZShzKSBtaXNzaW5nLgpEb2VzIGFueW9u
-ZSBoYXZlIGEgaGludCBvZiB3aGF0IHBvc3NpYmx5IGNvdWxkIGJlIHdyb25nIG9yIG1pc3Npbmc/
-CgoKTWFueSB0aGFua3MgaW4gYWR2YW5jZSBmb3IgYW55IGtpbmQgb2YgaGVscCEKCi0tIApCasO2
-cm4gU21pdGggPGJqb3JuQGNvbXBvdW5kLnNlPgpDb21wb3VuZCBTeXN0ZW1zIEFCCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxp
-bmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2kt
-YmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hello,
+Is anyone got a working patch for dvbstream to work with new multiproto api!
+
+Best Regards,
+Gregor
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
