@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.rz.ruhr-uni-bochum.de ([134.147.32.86])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <pepe_ml@gmx.net>) id 1Jpqyo-0007au-Cf
-	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 22:26:43 +0200
-Date: Sat, 26 Apr 2008 22:26:38 +0200
-From: Steffen Schulz <pepe_ml@gmx.net>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080426202638.GA27566@cbg.dyndns.org>
-References: <20080426141433.GA14917@cbg.dyndns.org>
-	<d9def9db0804261236l527b7deew67d1c9df4ea66460@mail.gmail.com>
+Received: from wr-out-0506.google.com ([64.233.184.230])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eduardhc@gmail.com>) id 1JjFpX-0000IA-3N
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 17:33:58 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so1778438wra.14
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 08:33:35 -0700 (PDT)
+Message-ID: <617be8890804080833s445761c1y8688130c20b8128f@mail.gmail.com>
+Date: Tue, 8 Apr 2008 17:33:34 +0200
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "mehmet canser" <mehmetcanser@hotmail.com>, linux-dvb@linuxtv.org
+In-Reply-To: <BAY114-W3333A14A0D986A357AC946DBF20@phx.gbl>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <d9def9db0804261236l527b7deew67d1c9df4ea66460@mail.gmail.com>
-Subject: Re: [linux-dvb] crash with terratec cinergy hybrid XS [0ccd:0042]
+References: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
+	<BAY114-W531B3EFEA7CE4CAEC133AEDBF20@phx.gbl>
+	<617be8890804080758o20a29e3dvd6e00dda7101b9f1@mail.gmail.com>
+	<BAY114-W3333A14A0D986A357AC946DBF20@phx.gbl>
+Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,126 +23,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0891603653=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 080426 at 21:40, Markus Rechberger wrote:
-> you might try
-> 
-> hg clone http://mcentral.de/hg/~mrec/em28xx-new
-> 
-> this is a full inkernel driver.
+--===============0891603653==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_17413_10354847.1207668814277"
+
+------=_Part_17413_10354847.1207668814277
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Well, then it must be something on the linux side, as I have absolutely no
+control on the dish itself.
+I don't know how Disqec works, but maybe the fact that the card can't
+control the dish through it provoques the problems.
+
+Regards,
+  Eduard
 
 
-To resolve dependencies, I manually compiled and copied the drivers
-in the subdirectories, too. The driver seems to load okay, but I'm
-unable to scan channels:
 
-| root@# scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet > .tzap/channels.conf 
-| 
-| scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet
-| using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-| initial transponder 538000000 0 2 9 1 1 3 0
-| initial transponder 586000000 0 2 9 1 1 3 0
-| initial transponder 722000000 0 2 9 1 1 3 0
-| initial transponder 746000000 0 2 9 1 1 3 0
-| initial transponder 690000000 0 2 9 1 1 3 0
-| initial transponder 506000000 0 2 9 1 1 2 0
-| initial transponder 674000000 0 2 9 1 1 3 0
-| initial transponder 778000000 0 2 9 1 1 2 0
-| >>> tune to: 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-| WARNING: >>> tuning failed!!!
-| >>> tune to: 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
-| WARNING: >>> tuning failed!!!
+2008/4/8, mehmet canser <mehmetcanser@hotmail.com>:
+>
+>  I only modify two files and add one line for each.
+>
+> /etc/modules
+>    saa7134
+>
+> /etc/modprobe.d/options
+> options saa7134 i2c_scan=1
+>
+> My card directly connects disqec and I have two dishes. I have only weak
+> signals, no other problem.
+> Your satellite configuration different, may be you may need some
+> adjustment for satellite signal, may be voltage, may be special frequency.
+>
+> If you can connect  satellite dish directly tv card, you may understand
+> problem,  It s linux or satellite configuration.
+>
+> Best Regard,
+> Mehmet Canser
+>
+>
+>
+> ------------------------------
+> Get in touch in an instant. Get Windows Live Messenger now.<http://www.windowslive.com/messenger/overview.html?ocid=TXT_TAGLM_WL_Refresh_getintouch_042008>
+>
 
-channels.conf is empty. dmesg:
+------=_Part_17413_10354847.1207668814277
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-| Linux video capture interface: v2.00
-| em28xx v4l2 driver version 0.0.1 loaded
-| em28xx new video device (0ccd:0042): interface 0, class 255
-| em28xx: device is attached to a USB 2.0 bus
-| em28xx #0: Alternate settings: 8
-| em28xx #0: Alternate setting 0, max size= 0
-| em28xx #0: Alternate setting 1, max size= 0
-| em28xx #0: Alternate setting 2, max size= 1448
-| em28xx #0: Alternate setting 3, max size= 2048
-| em28xx #0: Alternate setting 4, max size= 2304
-| em28xx #0: Alternate setting 5, max size= 2580
-| em28xx #0: Alternate setting 6, max size= 2892
-| em28xx #0: Alternate setting 7, max size= 3072
-| input: em2880/em2870 remote control as /devices/virtual/input/input20
-| em28xx-input.c: remote control handler attached
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 ff
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 ff
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 fb
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7b
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 79
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 79
-| manual gpio
-| ------ on off command -----
-| writing gpio: 04 04
-| manual gpio
-| trying to set disabled gpio? (00)
-| unable to attach tuner
-| em28xx #0: V4L2 VBI device registered as /dev/vbi0
-| em28xx #0: V4L2 device registered as /dev/video0
-| em28xx #0: Found Terratec Hybrid XS
-| em28xx audio device (0ccd:0042): interface 1, class 1
-| em28xx audio device (0ccd:0042): interface 2, class 1
-| usbcore: registered new interface driver em28xx
-| em2880-dvb.c: DVB Init
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7b
-| ts1 on
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7a
-| tuner on
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7a
-| demod reset
-| manual gpio
-| ------ resetting ---------
-| writing gpio: 04 04
-| writing gpio: 04 0c
-| DVB: registering new adapter (em2880 DVB-T)
-| DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
-| Em28xx: Initialized (Em2880 DVB Extension) extension
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7a
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7a
-| manual gpio
-| ------ on off command -----
-| writing gpio: 08 7a
+Well, then it must be something on the linux side, as I have absolutely no control on the dish itself.<br>I don&#39;t know how Disqec works, but maybe the fact that the card can&#39;t control the dish through it provoques the problems.<br>
+<br>Regards, <br>&nbsp; Eduard<br><br><br><br><div><span class="gmail_quote">2008/4/8, mehmet canser &lt;<a href="mailto:mehmetcanser@hotmail.com">mehmetcanser@hotmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
 
 
--- 
-       #
- (o_  #                                                +49/1781384223
- //\-x                                        gpg --recv-key A04D7875
- V_/_    Use the source, Tux!             mailto: pepe@cbg.dyndns.org
+
+
+<div>
+I only modify two files and add one line for each. <br><br>/etc/modules&nbsp; <br>&nbsp;&nbsp; saa7134<br><br>/etc/modprobe.d/options<br>options saa7134 i2c_scan=1<br><br>My card directly connects disqec and I have two dishes. I have only weak signals, no other problem. <br>
+Your satellite configuration different, may be you may need some adjustment for satellite signal, may be voltage, may be special frequency.<br><br>If you can connect&nbsp; satellite dish directly tv card, you may understand problem,&nbsp; It s linux or satellite configuration. <br>
+<br>Best Regard,<br>Mehmet Canser<br><blockquote><div><blockquote style="padding-left: 1ex;"><div><br></div>
+
+</blockquote></div>
+</blockquote><br><hr>Get in touch in an instant. <a href="http://www.windowslive.com/messenger/overview.html?ocid=TXT_TAGLM_WL_Refresh_getintouch_042008" target="_blank" onclick="return top.js.OpenExtLink(window,event,this)">Get Windows Live Messenger now.</a></div>
+
+</blockquote></div><br>
+
+------=_Part_17413_10354847.1207668814277--
+
+
+--===============0891603653==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0891603653==--
