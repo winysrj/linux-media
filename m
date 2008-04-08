@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3ACtFaq030590
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 08:55:15 -0400
-Received: from vds19s01.yellis.net (ns1019.yellis.net [213.246.41.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3ACstcT008144
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 08:54:55 -0400
-Message-ID: <47FE0E1C.1070605@anevia.com>
-Date: Thu, 10 Apr 2008 14:54:52 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38FYGef006322
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:34:16 -0400
+Received: from mail-out.m-online.net (mail-out.m-online.net [212.18.0.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38FY21v030761
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:34:03 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-dvb@linuxtv.org
+Date: Tue, 8 Apr 2008 17:33:54 +0200
+References: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
+In-Reply-To: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <47FCD8C6.1000407@anevia.com>	
-	<387ee2020804090829h62c29441i3ade07daef43c372@mail.gmail.com>
-	<1207778265.5554.35.camel@pc08.localdom.local>
-In-Reply-To: <1207778265.5554.35.camel@pc08.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: John Drescher <drescherjm@gmail.com>, linux-dvb@linuxtv.org,
-	video4linux-list@redhat.com, Anton Farygin <rider@altlinux.com>
-Subject: Re: [linux-dvb] Analog card with Hardware MPEG2 Enc
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_iB5+HvPsmFN33xx"
+Message-Id: <200804081733.54539.zzam@gentoo.org>
+Cc: video4linux-list@redhat.com, Eduard Huguet <eduardhc@gmail.com>
+Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,94 +27,171 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton a écrit :
+--Boundary-00=_iB5+HvPsmFN33xx
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Dienstag, 8. April 2008, Eduard Huguet wrote:
 > Hi,
-> 
-> Am Mittwoch, den 09.04.2008, 11:29 -0400 schrieb John Drescher:
->> On Wed, Apr 9, 2008 at 10:55 AM, Frederic CAND <frederic.cand@anevia.com> wrote:
->>> Hi all,
->>>
->>>  I'm looking for a good PCI card, supporting Analog input (Composite,
->>>  S-Video, Pal/Secam Tuner) and providing MPEG2/TS.
->>>
->>>  We were using KNC1 TVStation DVR cards until now (w/ saa6752hs chip) on
->>>  the servers we build but we have to change (card status is "end of
->>>  life") and are looking for similar cards.
->>>
->>>  Does anybody have a hint if such a card exist or not ?
->>>
->>>  Hardware MPEG2 encoding (TS encapsulation) is an important matter for
->>>  us, to avoid having Software MPEG2 encoding.
->>>
->> Hauppage PVR150
->>
->> John
->>
-> 
-> Frederic, I remember you have contributed to saa7134 empress development
-> previously.
-> 
-> Currently, after lots of code changes without any testers, empress
-> devices have been always very rare, the support is broken and I try to
-> track down last working status.
-> 
-> Did some testing with an unsupported card recently, has also DVB-T, and
-> I get everything to work except the encoder.
-> 
-> What kernel version does still work for you?
+>     Things are very quiet lately regarding this card. Is there any
+> possibility that the card gets supported in any near future? I know
+> Matthias  Schwarzot had been working on it, but there's no messages from
+> him lately on the list.
+>
+> Best regards,
+>   Eduard
 
+I did not made any progress since last time we corresponded.
 
-Actually, since recently we were still using kernel 2.6.9, with an old 
-v4l snapshot (20050426).
+But: I think we agree that the patch that only adds composite and s-video 
+support works.
+So we could request pulling it into v4l-dvb repository.
 
-But, due to some changes, we had to change kernel version, and use 
-2.6.16.29. Still, to avoid too many changes to occur at the same time, 
-we wanted to use the same snapshot. We did some minor adaptations for it 
-to compile against 2.6.16.29.
-However, it's working with our same old (but fastly running to its end 
-of life) KNC1 TV Station DVR  based on saa7134, saa6752hs and tda9887.
-
-
-> 
-> There is also the Behold M6 Extra now.
-> http://www.ixbt.com/monitor/behold-m6-extra.shtml
-> 
-> But this one fails, reported by Anton, even on 2.6.18, which seems to me
-> the last kernel most likely still functional.
-> 
-> I have tried on a Creatix CTX946. (saa7134 card=12 works,except encoder)
-> http://www.creatix.de/produkte/multimedia/ctx946.htm
-> 
-> But I don't get a valid format setup, which very likely is caused by the
-> card is not hacked/correctly_configured yet.
-
-Thanks for these links. Do you know if the chipsets used are running to 
-their end of life or not ?
-
-> 
-> Beside ivtv, the cx88 driver has also lots of cards with mpeg encoder,
-> so called blackbird design, but from what I hear the pvr150 and similar
-> are for sure well supported.
-
-Yeah, but our requirements are not just MPEG2 Hardware encoding, but 
-MPEG2/TS Hardware encoding (MPEG2/PS would be painful for us). How can 
-we know this prior to buying cards and check ?
-We'll be trying the HVR 1300 soon, however.
-
-> 
-> Thanks,
-> Hermann
-> 
-> 
-
-Thanks a lot.
+Regards
+Matthias
 
 -- 
-CAND Frederic
-Product Manager
-ANEVIA
+Matthias Schwarzott (zzam)
+
+--Boundary-00=_iB5+HvPsmFN33xx
+Content-Type: text/x-diff; charset="iso-8859-15";
+	name="avertv_A700_analog_part.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="avertv_A700_analog_part.diff"
+
+saa7134: add analog support for Avermedia A700 cards
+
+Add support for composite and s-video inputs on
+Avermedia DVB-S Pro and DVB-S Hybrid+FM cards
+(both labled A700) to the saa7134 driver.
+
+XC2028 support for Hybrid+FM is still missing.
+
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+
+Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
+@@ -4210,7 +4210,47 @@ struct saa7134_board saa7134_boards[] = 
+ 			.name = name_radio,
+ 			.amux = TV,
+ 		}
+-	}
++	},
++	[SAA7134_BOARD_AVERMEDIA_A700_PRO] = {
++		/* Matthias Schwarzott <zzam@gentoo.org> */
++		.name           = "Avermedia DVB-S Pro A700",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_ABSENT,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		/* no DVB support for now */
++		/* .mpeg           = SAA7134_MPEG_DVB, */
++		.inputs         = {{
++			.name = name_comp,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 6,
++			.amux = LINE1,
++		}},
++	},
++	[SAA7134_BOARD_AVERMEDIA_A700_HYBRID] = {
++		/* Matthias Schwarzott <zzam@gentoo.org> */
++		.name           = "Avermedia DVB-S Hybrid+FM A700",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_ABSENT, /* TUNER_XC2028 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		/* no DVB support for now */
++		/* .mpeg           = SAA7134_MPEG_DVB, */
++		.inputs         = {{
++			.name = name_comp,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 6,
++			.amux = LINE1,
++		}},
++	},
+ };
+ 
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -4443,6 +4483,18 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.driver_data  = SAA7134_BOARD_MD2819,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xa7a1,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_A700_PRO,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xa7a2,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_A700_HYBRID,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0x2115,
+@@ -5567,6 +5619,15 @@ int saa7134_board_init1(struct saa7134_d
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8c040007, 0x8c040007);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0c0007cd, 0x0c0007cd);
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A700_PRO:
++	case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
++		/* write windows gpio values */
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
++		printk("%s: %s: hybrid analog/dvb card\n"
++		       "%s: Sorry, only the analog inputs are supported for now.\n",
++			dev->name,card(dev).name, dev->name);
++		break;
+ 	}
+ 	return 0;
+ }
+Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134.h
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
+@@ -268,6 +268,8 @@ struct saa7134_format {
+ #define SAA7134_BOARD_AVERMEDIA_A16D       137
+ #define SAA7134_BOARD_AVERMEDIA_M115       138
+ #define SAA7134_BOARD_VIDEOMATE_T750       139
++#define SAA7134_BOARD_AVERMEDIA_A700_PRO    140
++#define SAA7134_BOARD_AVERMEDIA_A700_HYBRID 141
+ 
+ 
+ #define SAA7134_MAXBOARDS 8
+Index: v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134
+===================================================================
+--- v4l-dvb.orig/linux/Documentation/video4linux/CARDLIST.saa7134
++++ v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134
+@@ -138,3 +138,5 @@
+ 137 -> AVerMedia Hybrid TV/Radio (A16D)         [1461:f936]
+ 138 -> Avermedia M115                           [1461:a836]
+ 139 -> Compro VideoMate T750                    [185b:c900]
++140 -> Avermedia DVB-S Pro A700                 [1461:a7a1]
++141 -> Avermedia DVB-S Hybrid+FM A700           [1461:a7a2]
+
+--Boundary-00=_iB5+HvPsmFN33xx
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--Boundary-00=_iB5+HvPsmFN33xx--
