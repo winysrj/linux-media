@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.betherenow.co.uk ([87.194.0.68])
+Received: from holly.castlecore.com ([89.21.8.102])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tghewett2@onetel.com>) id 1JkIln-0006lh-Km
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 14:54:20 +0200
-Message-Id: <665E5397-D516-4E6B-B989-4A631FB9C25E@onetel.com>
-From: Tim Hewett <tghewett2@onetel.com>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Fri, 11 Apr 2008 13:52:31 +0100
-Cc: Tim Hewett <tghewett2@onetel.com>
-Subject: [linux-dvb] Updated copy of dvbstream to support DVB-S2
+	(envelope-from <lists@philpem.me.uk>) id 1JjMHE-0003CO-9y
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 00:26:59 +0200
+Message-ID: <47FBF156.5090703@philpem.me.uk>
+Date: Tue, 08 Apr 2008 23:27:34 +0100
+From: Philip Pemberton <lists@philpem.me.uk>
+MIME-Version: 1.0
+To: Greg Thomas <Greg@TheThomasHome.co.uk>, linux-dvb <linux-dvb@linuxtv.org>
+References: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>	<Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
+	<e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
+In-Reply-To: <e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
+Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,51 +25,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have updated my (enhanced) source of dvbstream to allow it to work  
-with DVB-S2 transponders for Mantis DVB-S/DVB-S2 cards, you can get it  
-from here:
+Greg Thomas wrote:
+> After trying the latest drivers, I had a go under Windows; exactly the
+> same set of channels. I just guess the Nova-TD isn't that sensitive. I
+> may just have to look at boosting my signal, somehow :(
 
-http://www.coolatoola.com/dvbstream.multiproto.tgz
+Disclaimer: this is the problem as I understand it, and anything I say should 
+be treated as an unproven theory until proved otherwise...
 
-It may also work with other DVB-S2 cards.
+The Nova-TD seems to have an odd problem. Specifically, it seems to have some 
+form of wideband low-gain amplifier/buffer on each aerial input (nothing like 
+the high-gain narrowband LNA amplifier on the Nova-T-500). This takes into 
+account the strongest muxes, not the mux you're currently tuned to (the T500 
+seems to do the latter -- which is more sensible).
 
-There is a new command line option '-ds' ("Delivery System") which  
-takes 'DVBS' or 'DVBS2' as options. All other tuning parameters  
-operate as before. The changes have been tested using a Technisat  
-SkyStar HD2 PCI card with the current mantis tree ('hg clone http://jusst.de/hg/mantis') 
-.
+What this means is that if you've got one mux that's significantly weaker than 
+the others -- e.g. the one that carries FilmFour vs. the PSB mux that carries 
+BBC ONE -- you'll see a reasonable signal on BBC, but a poor signal (if you 
+get a lock at all) on FilmFour.
 
-The source includes many other features I have added for my own use  
-over the years, e.g. using the device name as shown by dmesg rather  
-than card number to specify the DVB device (useful when device numbers  
-change with each reboot), so you can replace the card number with -c  
-'STB0899 Multistandard'. If you have several devices of the same type,  
-you can specify one by appending :0, :1, :2 etc. at the end of the  
-device name.
+What I did was put a 6dB attenuator between my aerial and the Nova-TD. This 
+weakens the signal to the point that all the muxes are in the Nova's capture 
+range. It locks on, and you get a near perfect signal on all the muxes.
 
-You can also specify the channel to record using the channel name (as  
-shown by scan -c) rather than pids, which helps to cope with  
-broadcasters changing their pids, add the parameter -C 'channel name'  
-and the associated pids will be found. You can still specify the pids  
-and these will be used instead if the channel name cannot be found.  
-This uses source taken from the scan utility in linux-dvb-apps.
+Of course, it might just be that the input can't handle being overloaded, or 
+was designed for the two shabby WiFi-style antennae that were bundles with the 
+Nova-TD (which are truly useless). Those things probably wouldn't even work if 
+you were within a mile of the transmitter...
 
-It can also set the system clock from a tuned transponder, use -d.  
-This uses source taken from the dvbdate utility in linux-dvb-apps.
+My signal's coming from Emley Moor, ~16 miles distance via a mid-high gain 
+wideband aerial.
 
-It will take exclusive control of the device, to avoid two processes  
-competing for the same device.
-
-So far it only is known to work reliably with the Technisat SkyStar  
-HD2 PCI card but should also work with the Twinhan VP-1041/Azurewave  
-AD SP400.
-
-Note that I am sharing this software which I have developed and tested  
-only for my own purposes, and since I don't use all features of  
-dvbstream I can't say whether or not any features have been damaged by  
-my work.
-
-Tim.
+-- 
+Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
+lists@philpem.me.uk           | (='.'=) into your signature to help him gain
+http://www.philpem.me.uk/     | (")_(") world domination.
 
 _______________________________________________
 linux-dvb mailing list
