@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m33ITQgU012741
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 14:29:26 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m33ITAxv031559
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 14:29:10 -0400
-Date: Thu, 3 Apr 2008 15:28:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-Message-ID: <20080403152841.25f03a23@gaivota>
-In-Reply-To: <20080403180341.GD14369@plankton.ifup.org>
-References: <20080401195050.470c8edb@gaivota>
-	<20080403180341.GD14369@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38LnZJX022071
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 17:49:35 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38LnKNT029169
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 17:49:21 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JjLgq-0008Q3-7k
+	for video4linux-list@redhat.com; Tue, 08 Apr 2008 21:49:16 +0000
+Received: from c9346dce.virtua.com.br ([201.52.109.206])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 08 Apr 2008 21:49:16 +0000
+Received: from fragabr by c9346dce.virtua.com.br with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 08 Apr 2008 21:49:16 +0000
+To: video4linux-list@redhat.com
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Date: Tue, 8 Apr 2008 17:05:32 -0300
+Message-ID: <20080408170532.360ba496@tux.abusar.org.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [GIT PATCHES] V4L/DVB fixes for 2.6.25-rc8
+Subject: Linux Driver Project status report and V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,22 +34,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 3 Apr 2008 11:03:41 -0700
-Brandon Philips <brandon@ifup.org> wrote:
+http://lwn.net/Articles/276973/
 
-> On 19:50 Tue 01 Apr 2008, Mauro Carvalho Chehab wrote:
-> > Cyrill Gorcunov (1):
-> >       V4L/DVB (7461): bttv: fix missed index check
-> 
-> Why didn't his other change "bttv: Bt832 - fix possible NULL pointer
-> deref" 6d5fc5ba9017 go in?
+	An interesting excerpt:
 
-AFAIK, this is not so relevant, since there are very few old boards with bt832
-inside (if you take a look the driver was made on 2002). Anyway, it doesn't
-hurt to add this patch on the next pull request. I'll schedule it.
+"As for video input devices, there is an active Linux developer
+community in this area, but they seem to be hampered by a different
+development model (Mecurial trees outside of the main kernel source),
+and a lack of full-time developers, not to mention a high degree of
+inter-personal conflicts that seem quite strange to outsiders.  Support
+for a large majority of these devices is slowly trickling into the main
+kernel tree, the most important being the USB Video class driver, which
+will support almost all new USB video devices in the future, thereby
+removing the major problem most users will face when purchasing a new
+video device".
 
-Cheers,
-Mauro
+	***
+
+	I agree. With the future inclusion of USB Video class driver,
+V4L will get a boost by supporting many yet not officialy supported
+devices (lots of webcams for instance). Of course they bring new
+challenges, but it will be a good thing, I think.
+
+	Thanks everybody for the great work.
+
+-- 
+Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
+http://u-br.net
+
 
 --
 video4linux-list mailing list
