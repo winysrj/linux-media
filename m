@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dc2rpt@gmx.de>) id 1JjIqg-00015X-1I
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 20:47:14 +0200
-From: Thomas Pinz <dc2rpt@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Tue, 8 Apr 2008 20:46:38 +0200
-References: <79f9d6350804081125h5a480222gd33c5b44a6630204@mail.gmail.com>
-In-Reply-To: <79f9d6350804081125h5a480222gd33c5b44a6630204@mail.gmail.com>
+Received: from u.nu ([82.165.233.141] helo=stoic.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <kharris@stoic.net>) id 1JjI2p-000557-Uu
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 19:55:46 +0200
+Date: Tue, 8 Apr 2008 10:55:41 -0700 (PDT)
+From: Ken Harris <kharris@stoic.net>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840804072022o1a093003jd0ec59284ca8f917@mail.gmail.com>
+Message-ID: <Pine.LNX.4.63.0804081037510.17875@stoic.net>
+References: <47FA7516.1000909@linuxtv.org>
+	<Pine.LNX.4.63.0804071245100.2230@stoic.net>
+	<37219a840804071303q5cd0fd06rcedbf6ea79ab55cd@mail.gmail.com>
+	<Pine.LNX.4.63.0804071607230.17875@stoic.net>
+	<37219a840804071732o1084342eq870fefc9d0beedb3@mail.gmail.com>
+	<37219a840804072022o1a093003jd0ec59284ca8f917@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804082046.38363.dc2rpt@gmx.de>
-Cc: Paolo Pettinato <p.pettinato@gmail.com>
-Subject: Re: [linux-dvb] Help with unsupported DVB-T usb stick (CE6230)
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DViCO FusionHDTV 7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,27 +30,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Paolo, 
 
-On Tuesday 08 April 2008, Paolo Pettinato wrote:
-> The vendorid:productid codes are 8086:9500. On "Device Manager" it is
-> listed as "CE6230 Standalone Driver (BDA)". On its properties, it says
-> that it's manufactured by Realfine Ltd and is on Location 0
-> (CE9500B1).
+On Mon, 7 Apr 2008, Michael Krufky wrote:
 
-CE6230 is a demodulator of Intel 
-(http://www.intel.com/design/celect/demodulators/ce6230.htm) . Its seems to 
-be a successor of the Zarlink MT352/MT353 (Intel bought Zarlink some time 
-ago). 
+>> >>>>>   Do you know when the DViCO FusionHDTV 7 (USB & PCI) might be
+>> >>>>> supported?
 
-So you should have a look on the 352/353 drivers, maybe there are some 
-parallels. 
+>> >>>> Running nicely in *my* machine. ;-)
 
-What tuner is inside ? 
+>> >>>        You're so cool ;).
 
-Kind regards, 
+>> >> The drivers are new -- not yet upstream.  Support for the usb stick is
+>> >> in this tree:
 
-Thomas
+>> >> http://linuxtv.org/hg/~mkrufky/auv
+
+>> >         You're so cool!
+
+>> >         ... can I bum the firmware off you : dvb-fe-xc5000-1.1.fw ?
+
+>>  http://steventoth.net/linux/xc5000/
+
+>>  Enjoy!
+
+> Ken,
+
+> How is the driver working for you?
+
+ 	Works great so far (running in mplayer and vlc on Fedora 8).
+
+ 	Thanks!
 
 _______________________________________________
 linux-dvb mailing list
