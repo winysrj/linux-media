@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.orcon.net.nz ([219.88.242.51] ident=Debian-exim)
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lennon@orcon.net.nz>) id 1JnWdn-0004rQ-3s
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 12:19:24 +0200
-Received: from Debian-exim by mx1.orcon.net.nz with local (Exim 4.67)
-	(envelope-from <lennon@orcon.net.nz>) id 1JnWdc-0005cB-NB
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 22:19:12 +1200
-From: Craig Whitmore <lennon@orcon.net.nz>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-In-Reply-To: <20080420095713.GA2971@gmail.com>
-References: <20080420095713.GA2971@gmail.com>
-Date: Sun, 20 Apr 2008 22:19:14 +1200
-Message-Id: <1208686754.31360.0.camel@localhost>
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JjNeg-0001Bd-Ix
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 01:55:13 +0200
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1JjNeY-0005QW-8t
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 23:55:02 +0000
+Received: from m4.bclc.com ([m4.bclc.com])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 23:55:02 +0000
+Received: from ibishop by m4.bclc.com with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 23:55:02 +0000
+To: linux-dvb@linuxtv.org
+From: Ian Bishop <ibishop@gmail.com>
+Date: Tue, 8 Apr 2008 23:45:52 +0000 (UTC)
+Message-ID: <loom.20080408T233829-563@post.gmane.org>
+References: <Pine.LNX.4.64.0804062251380.6749@pub5.ifh.de>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and multiproto_plus ?
+Subject: Re: [linux-dvb] Technisat SkyStar2 rev 2.7 and 2.8 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +33,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Patrick Boettcher <patrick.boettcher <at> desy.de> writes:
+(snip)
+> Not so good news for the rev 2.8 users, yet. The driver is finished (I'm 
+> using it since 2 weeks under the same conditions as above), but I cannot 
+> make it open source yet, I'm doing my best to do it and will announce it, 
+> as soon as I have news.
+(snip)
 
-On Sun, 2008-04-20 at 11:57 +0200, Gregoire Favre wrote:
-> Hello,
-> 
-> I don't have time this month to look how to implement HVR-4000 into
-> multiproto_plus, so does someone already made it or plan to ?
-> 
-> Thanks,
+Hi Patrick, first off, thanks for your hard work!
 
-Multiproto Plus? You mean multiproto?
+I was just wondering if there's an ETA, or if there is something we can do to
+help get these drivers released?
 
-see: http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
+My company just bought a large number of cards to find they're an unsupported
+rev.  We were about to send them back when I found this post.
 
-Thanks
+The Skystar 2's have always been an excellent choice for our application, I'd
+really hate to have to start supporting/sourcing another device.
 
+Thanks, Ian
 
 
 _______________________________________________
