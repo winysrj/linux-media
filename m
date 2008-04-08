@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JkJLQ-0003bc-RS
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:31:09 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZ50072WXIXV2W0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 11 Apr 2008 09:30:34 -0400 (EDT)
-Date: Fri, 11 Apr 2008 09:30:34 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <47FF216F.6040207@anevia.com>
-To: Frederic CAND <frederic.cand@anevia.com>
-Message-id: <47FF67FA.80902@linuxtv.org>
-MIME-version: 1.0
-References: <47FF216F.6040207@anevia.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
+Received: from n22.bullet.mail.ukl.yahoo.com ([87.248.110.139])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <r.schedel@yahoo.de>) id 1Jj8Fi-0007fI-2z
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 09:28:24 +0200
+Message-ID: <47FB1E3B.2000307@yahoo.de>
+Date: Tue, 08 Apr 2008 09:26:51 +0200
+From: Robert Schedel <r.schedel@yahoo.de>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <47F9E95D.6070705@yahoo.de>
+In-Reply-To: <47F9E95D.6070705@yahoo.de>
+Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot polling
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,24 +24,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Frederic CAND wrote:
-> Hi all,
-> 
-> we have here at our office an Hauppauge HVR 1300. It's working under 
-> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is 
-> working fine though.
-> 
->  From what I read, it looks like the Conexant CX23416 chipset should 
-> supports Transport Stream but we've not been able to use it. Are we 
-> missing something ?
+Hello all,
 
-Last I heard transport mode was disabled in the firmware sometime ago by 
-Conexant, in favor of some other feature being enabled.
+meanwhile I also found old threads from August 2007 and earlier, named 
+"System load raises when budget_av is loaded" and "System load raises 
+when budget_av is loaded", which describe exactly the same issue. 
+However, both were written before the latest code changes.
 
-If you can find really early firmware for the PVR150 then you might try 
-that. (Circa 3-4 years ago).
+The latest debi_done code change from November 2007 does not use any 
+DEBI_E checks anymore. To my understanding this SAA7146 event indicates 
+  DEBI errors like timeout via PCI and should be received by the driver 
+  much earlier than those 250ms (=end of cycle). Seems like I have to 
+play around with this myself.
 
-- Steve
+Time for a bugzilla ticket?
+
+Regards,
+Robert Schedel
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
