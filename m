@@ -1,191 +1,272 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UFxYUt024883
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 11:59:34 -0400
-Received: from smtp2b.orange.fr (smtp2b.orange.fr [80.12.242.145])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UFwvh7012371
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 11:58:58 -0400
-Date: Wed, 30 Apr 2008 17:58:51 +0200
-From: mahakali <mahakali@orange.fr>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080430155851.GA5818@orange.fr>
-References: <20080428182959.GA21773@orange.fr>
-	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>
-	<20080429192149.GB10635@orange.fr>
-	<1209507302.3456.83.camel@pc10.localdom.local>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Message-ID: <BAY114-W274A9CBE510CEF0781EC94DBF20@phx.gbl>
+From: mehmet canser <mehmetcanser@hotmail.com>
+To: Matthias Schwarzott <zzam@gentoo.org>, <linux-dvb@linuxtv.org>
+Date: Tue, 8 Apr 2008 15:53:16 +0000
+In-Reply-To: <200804081733.54539.zzam@gentoo.org>
+References: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
+	<200804081733.54539.zzam@gentoo.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1209507302.3456.83.camel@pc10.localdom.local>
-Cc: video4linux-list@redhat.com
-Subject: Re: Card Asus P7131 hybrid > no signal
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
+Cc: video4linux-list@redhat.com, Eduard Huguet <eduardhc@gmail.com>
+Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1353845238=="
+Mime-version: 1.0
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Apr 30, 2008 at 12:15:02AM +0200, hermann pitton wrote :
+--===============1353845238==
+Content-Type: multipart/alternative;
+	boundary="_ece0dd6c-bb40-4b2a-a70f-cf99bcca47be_"
 
-> > 
-> >   
-> > The problem is: No picture .... I thinkk, if you
-> > have no signal, it is pretty normal.
-> > 
-> > What are the options you pass to the saa7134 module ?
-> > I mean card=<number> tuner=<number>
-> > I have card=112 tuner=61 (auto detect).
-> > In one Saa7134-hardware how-to the autor gives
-> > following values : card=78 tuner=54.
-> > 
-> > Any help would be great.
-> > 
-> > mahakali
-> > 
-> > 
-> 
-> Hello,
-> 
-> if you have card=112 tuner=61 auto detected something goes very wrong.
-> 
-> On any recent "official" code the card should be auto detected as
-> card=112, tuner=54, which is the tda8290 analog IF demodulator within
-> the saa7131e and behind its i2c gate is a tda8275ac1 at address 0x61
-> which is correct in your logs.
-> 
-> Hopefully you are only confusing tuner address 61 with tuner type,
-> auto detection should be OK then.
->
-module saa7134 is now loading with following parameters :
+--_ece0dd6c-bb40-4b2a-a70f-cf99bcca47be_
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
-card=112 tuner=54 i2c_scan=1 secam=L
- 
-> Analog TV is on the upper antenna connector (cable TV) and you need a
-> saa7134 insmod option "secam=L" in France. ("modinfo saa7134")
-> On La Corse may still be some "secam=Lc" broadcast, not sure about that.
-I don't have any upper or lower connector , only right and link.
-°right connector is described as RF-FM and link as CAT-TV
-> DVB-T (numerique) is on the lower antenna connector where also is
-> radio/FM.
-> 
-> We have many reports that there often is an positive offset of about
-> 166000Hz needed in France, which you don't seem to use on your digital
-> tuning attempt. If this is needed and missing, the tda10046 will fail.
-> You might try to add it.
-> 
-> Download dvb-apps from linuxtv.org mercurial and check if there is an
-> updated initial scan file for your region in scan/dvb-t.
 
-Nothing new.
-> example with offset:
-> 
-> # Paris - France - various DVB-T transmitters
-> # contributed by Alexis de Lattre < >
-> # Paris - Tour Eiffel      : 21 24 27 29 32 35
-> # Paris Est - Chennevières : 35 51 54 57 60 63
-> # Paris Nord - Sannois     : 35 51 54 57 60 63
-> # Paris Sud - Villebon     : 35 51 56 57 60 63
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 474166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 498166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 538166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-> T 714166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 786166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 810166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
->
- Itried it now with fr_Auxerre + offset
-#### Auxerre - Molesmes ####
-#R1
-T 570166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R2
-T 794166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R3
-T 770166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R4
-T 546166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R5
-T 586166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R6
-T 562166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+I m using this card and it is working.
+My configuration: =20
+  Avermedia A700 DVB-S Pro A700 - ubuntu hardy development 64 bit - kernel =
+2.6.24-14
+  Patch : http://dev.gentoo.org/~zzam/dvb/a700_full_20080313.diff
 
-but scanning fails ..... 
- 
-> You can also try to "scan" on a known frequency and bandwidth and set
-> the rest to AUTO AUTO ... or get "wscan" or try with "kaffeine".
- I tried it with kaffeine = no result
- I tried it with me-tv :
+ Two satellite dishes: Turksat 42E and Hotbird 13E. Both working.
 
-me-tv        
-Me TV-Message: 30.04.2008 17:37:26 - Me TV Version: 0.5.17
-Me TV-Message: 30.04.2008 17:37:27 - Chargement du fichier glade
-'/usr/share/me-tv/glade/me-tv.glade' en cours
-Me TV-Message: 30.04.2008 17:37:52 - Création du GEP dans
-'/home/claude/.me-tv/epg.xml'
-Me TV-Message: 30.04.2008 17:37:52 - GEP chargé
-initial transponder 570166000 0 9 9 3 1 4 0
-initial transponder 794166000 0 9 9 3 1 4 0
-initial transponder 770166000 0 9 9 3 1 4 0
-initial transponder 546166000 0 9 9 3 1 4 0
-initial transponder 586166000 0 9 9 3 1 4 0
-initial transponder 562166000 0 9 9 3 1 4 0
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-WARNING: >>> tuning failed!!!
->>> tune to:  (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
+Digital TV and audio  work correctly, only signals weak.
+Analog video (composite input) works, but i can't get sound from analog inp=
+ut.=20
+For
+digital tv, I m using kaffeine and it works without problems. For
+analog part, I use xawtv and tvtime, both shows video, but no sound.
 
-> You might also try to increase the tuning timeout.
-> 
-> Good Luck,
-> 
-> Hermann
+=20
+lspci  -vnn
+04:09.0 Multimedia controller [0480]: Philips Semiconductors SAA7133/SAA713=
+5 Video Broadcast Decoder [1131:7133] (rev d1)
+    Subsystem: Avermedia Technologies Inc Unknown device [1461:a7a1]
+    Flags: bus master, medium devsel, latency 32, IRQ 17
 
-Any idea ??
+    Memory at fdcff000 (32-bit, non-prefetchable) [size=3D2K]
+    Capabilities: <access denied>
 
-Thanks
+dmesg | grep DVB
+[   36.655632] saa7133[0]: subsystem: 1461:a7a1, board: Avermedia DVB-S Pro=
+ A700 [card=3D140,autodetected]
 
-mahakali
+[   38.590558] DVB: registering new adapter (saa7133[0])
+[   38.590561] DVB: registering frontend 0 (Zarlink ZL10313 DVB-S)...
 
-PS :
-I was asking myself , perhaps is something wrong with the connection, I
-had to  put together cable and plug, so perhaps a bad electrical
-transmission (??) but as I already said tvtime is dectecting some
-channels but no image
+dmesg | grep saa
+[   36.655100] saa7130/34: v4l2 driver version 0.2.14 loaded
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+[   36.655626] saa7133[0]: found at 0000:04:09.0, rev: 209, irq: 17, latenc=
+y: 32, mmio: 0xfdcff000
+[   36.655632] saa7133[0]: subsystem: 1461:a7a1, board: Avermedia DVB-S Pro=
+ A700 [card=3D140,autodetected]
+[   36.655643] saa7133[0]: board init: gpio is 23200
+
+[   37.011708] saa7133[0]: i2c eeprom 00: 61 14 a1 a7 ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011716] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011721] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+
+[   37.011726] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011730] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011735] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+
+[   37.011740] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011745] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011749] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+
+[   37.011754] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011759] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011764] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+
+[   37.011768] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011773] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.011778] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+
+[   37.011783] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff =
+ff ff ff ff ff
+[   37.019673] saa7133[0]: i2c scan: found device @ 0x1c  [???]
+[   37.035662] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+
+[   37.054218] saa7133[0]: registered device video0 [v4l2]
+[   37.054249] saa7133[0]: registered device vbi0
+[   38.590558] DVB: registering new adapter (saa7133[0])
+
+Best regards,
+Mehmet Canser
+
+
+> From: zzam@gentoo.org
+> To: linux-dvb@linuxtv.org
+> Date: Tue, 8 Apr 2008 17:33:54 +0200
+> CC: video4linux-list@redhat.com; eduardhc@gmail.com
+> Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
+>=20
+> On Dienstag, 8. April 2008, Eduard Huguet wrote:
+> > Hi,
+> >     Things are very quiet lately regarding this card. Is there any
+> > possibility that the card gets supported in any near future? I know
+> > Matthias  Schwarzot had been working on it, but there's no messages fro=
+m
+> > him lately on the list.
+> >
+> > Best regards,
+> >   Eduard
+>=20
+> I did not made any progress since last time we corresponded.
+>=20
+> But: I think we agree that the patch that only adds composite and s-video=
+=20
+> support works.
+> So we could request pulling it into v4l-dvb repository.
+>=20
+> Regards
+> Matthias
+>=20
+> --=20
+> Matthias Schwarzott (zzam)
+
+_________________________________________________________________
+Pack up or back up=96use SkyDrive to transfer files or keep extra copies. L=
+earn how.
+hthttp://www.windowslive.com/skydrive/overview.html?ocid=3DTXT_TAGLM_WL_Ref=
+resh_skydrive_packup_042008=
+
+--_ece0dd6c-bb40-4b2a-a70f-cf99bcca47be_
+Content-Type: text/html; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt;
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+I m using this card and it is working.<br>My configuration:&nbsp; <br>&nbsp=
+; Avermedia A700 DVB-S Pro A700 - ubuntu hardy development 64 bit - kernel =
+2.6.24-14<br>&nbsp; Patch : <a href=3D"http://dev.gentoo.org/%7Ezzam/dvb/a7=
+00_full_20080313.diff" target=3D"_blank">http://dev.gentoo.org/~zzam/dvb/a7=
+00_full_20080313.diff</a><br>
+&nbsp;Two satellite dishes: Turksat 42E and Hotbird 13E. Both working.<br><=
+br>Digital TV and audio&nbsp; work correctly, only signals weak.<br>Analog =
+video (composite input) works, but i can't get sound from analog input. <br=
+>For
+digital tv, I m using kaffeine and it works without problems. For
+analog part, I use xawtv and tvtime, both shows video, but no sound.<br>
+&nbsp;<br>lspci&nbsp; -vnn<br>04:09.0 Multimedia controller [0480]: Philips=
+ Semiconductors SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1=
+)<br>&nbsp;&nbsp;&nbsp; Subsystem: Avermedia Technologies Inc Unknown devic=
+e [1461:a7a1]<br>&nbsp;&nbsp;&nbsp; Flags: bus master, medium devsel, laten=
+cy 32, IRQ 17<br>
+&nbsp;&nbsp;&nbsp; Memory at fdcff000 (32-bit, non-prefetchable) [size=3D2K=
+]<br>&nbsp;&nbsp;&nbsp; Capabilities: &lt;access denied&gt;<br><br>dmesg | =
+grep DVB<br>[&nbsp;&nbsp; 36.655632] saa7133[0]: subsystem: 1461:a7a1, boar=
+d: Avermedia DVB-S Pro A700 [card=3D140,autodetected]<br>
+[&nbsp;&nbsp; 38.590558] DVB: registering new adapter (saa7133[0])<br>[&nbs=
+p;&nbsp; 38.590561] DVB: registering frontend 0 (Zarlink ZL10313 DVB-S)...<=
+br><br>dmesg | grep saa<br>[&nbsp;&nbsp; 36.655100] saa7130/34: v4l2 driver=
+ version 0.2.14 loaded<br>
+[&nbsp;&nbsp; 36.655626] saa7133[0]: found at 0000:04:09.0, rev: 209, irq: =
+17, latency: 32, mmio: 0xfdcff000<br>[&nbsp;&nbsp; 36.655632] saa7133[0]: s=
+ubsystem: 1461:a7a1, board: Avermedia DVB-S Pro A700 [card=3D140,autodetect=
+ed]<br>[&nbsp;&nbsp; 36.655643] saa7133[0]: board init: gpio is 23200<br>
+[&nbsp;&nbsp; 37.011708] saa7133[0]: i2c eeprom 00: 61 14 a1 a7 ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.011716] saa7133[0]: i2c eeprom=
+ 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.01=
+1721] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff =
+ff ff<br>
+[&nbsp;&nbsp; 37.011726] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.011730] saa7133[0]: i2c eeprom=
+ 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.01=
+1735] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff =
+ff ff<br>
+[&nbsp;&nbsp; 37.011740] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.011745] saa7133[0]: i2c eeprom=
+ 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.01=
+1749] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff =
+ff ff<br>
+[&nbsp;&nbsp; 37.011754] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.011759] saa7133[0]: i2c eeprom=
+ a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.01=
+1764] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff =
+ff ff<br>
+[&nbsp;&nbsp; 37.011768] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.011773] saa7133[0]: i2c eeprom=
+ d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.01=
+1778] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff =
+ff ff<br>
+[&nbsp;&nbsp; 37.011783] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff=
+ ff ff ff ff ff ff ff ff<br>[&nbsp;&nbsp; 37.019673] saa7133[0]: i2c scan: =
+found device @ 0x1c&nbsp; [???]<br>[&nbsp;&nbsp; 37.035662] saa7133[0]: i2c=
+ scan: found device @ 0xa0&nbsp; [eeprom]<br>
+[&nbsp;&nbsp; 37.054218] saa7133[0]: registered device video0 [v4l2]<br>[&n=
+bsp;&nbsp; 37.054249] saa7133[0]: registered device vbi0<br>[&nbsp;&nbsp; 3=
+8.590558] DVB: registering new adapter (saa7133[0])<br><br>Best regards,<br=
+>Mehmet Canser<br><br><br>&gt; From: zzam@gentoo.org<br>&gt; To: linux-dvb@=
+linuxtv.org<br>&gt; Date: Tue, 8 Apr 2008 17:33:54 +0200<br>&gt; CC: video4=
+linux-list@redhat.com; eduardhc@gmail.com<br>&gt; Subject: Re: [linux-dvb] =
+Any progress on the AverMedia A700 (DVB-S Pro)?<br>&gt; <br>&gt; On Diensta=
+g, 8. April 2008, Eduard Huguet wrote:<br>&gt; &gt; Hi,<br>&gt; &gt;     Th=
+ings are very quiet lately regarding this card. Is there any<br>&gt; &gt; p=
+ossibility that the card gets supported in any near future? I know<br>&gt; =
+&gt; Matthias  Schwarzot had been working on it, but there's no messages fr=
+om<br>&gt; &gt; him lately on the list.<br>&gt; &gt;<br>&gt; &gt; Best rega=
+rds,<br>&gt; &gt;   Eduard<br>&gt; <br>&gt; I did not made any progress sin=
+ce last time we corresponded.<br>&gt; <br>&gt; But: I think we agree that t=
+he patch that only adds composite and s-video <br>&gt; support works.<br>&g=
+t; So we could request pulling it into v4l-dvb repository.<br>&gt; <br>&gt;=
+ Regards<br>&gt; Matthias<br>&gt; <br>&gt; -- <br>&gt; Matthias Schwarzott =
+(zzam)<br><br /><hr />Pack up or back up=96use SkyDrive to transfer files o=
+r keep extra copies. <a href=3D'hthttp://www.windowslive.com/skydrive/overv=
+iew.html?ocid=3DTXT_TAGLM_WL_Refresh_skydrive_packup_042008' target=3D'_new=
+'>Learn how.</a></body>
+</html>=
+
+--_ece0dd6c-bb40-4b2a-a70f-cf99bcca47be_--
+
+
+--===============1353845238==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1353845238==--
