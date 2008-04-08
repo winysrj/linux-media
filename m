@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3KD6wIa029210
-	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 09:06:58 -0400
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3KD6id3004684
-	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 09:06:45 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: ian@pickworth.me.uk
-In-Reply-To: <480B3673.3040707@pickworth.me.uk>
-References: <480A5CC3.6030408@pickworth.me.uk> <480B26FC.50204@hccnet.nl>
-	<480B3673.3040707@pickworth.me.uk>
-Content-Type: text/plain
-Date: Sun, 20 Apr 2008 15:06:11 +0200
-Message-Id: <1208696771.3349.49.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38HB8va017952
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 13:11:08 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38HAtG3029678
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 13:10:55 -0400
+Date: Tue, 8 Apr 2008 14:10:38 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+Message-ID: <20080408141038.647e7ec0@gaivota>
+In-Reply-To: <c8b4dbe10804080947g1923f6b8yac90e63ef0a18d4a@mail.gmail.com>
+References: <20080408145826.GA17398@plankton.public.utexas.edu>
+	<c8b4dbe10804080947g1923f6b8yac90e63ef0a18d4a@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Gert Vervoort <gert.vervoort@hccnet.nl>
-Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: changeset: 7516:e59033a1b38f summary: videobuf-vmalloc: fix
+ STREAMOFF/STREAMON
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,103 +29,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Tue, 8 Apr 2008 17:47:53 +0100
+"Aidan Thornton" <makosoft@googlemail.com> wrote:
 
-Am Sonntag, den 20.04.2008, 13:26 +0100 schrieb Ian Pickworth:
-> Gert Vervoort wrote:
-> > Ian Pickworth wrote:
-> >> I am testing a kernel upgrade from 2.6.24.to 2.6.25, and the drivers 
-> >> for   the Hauppauge WinTV appear to have suffered some regression 
-> >> between the two kernel versions.
-> >>
-> >> The problem is that the tuner is not being detected and set correctly 
-> >> for either the video or the radio device on the card.
-> >>
-> > Similar issue here with a Leadtek Winfast 2000XP card. Video works, but 
-> > radio doesn't.
-> > For my card I can workaround the issue by adding the "tuner=38" option 
-> > to the cx88xx module.
-> > 
-> >   Gert
+> Hi,
 > 
-> That workaround works for me as well - with "tuner=38" for cx88xx I can 
-> now tune to both video and radio channels.
+> On Tue, Apr 8, 2008 at 3:58 PM, Brandon Philips <brandon@ifup.org> wrote:
+> > From: http://linuxtv.org/hg/~mchehab/em28xx-vb
+> >
+> >  > diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
+> >  > --- a/linux/drivers/media/video/videobuf-vmalloc.c
+> >  > +++ b/linux/drivers/media/video/videobuf-vmalloc.c
+> >  > @@ -78,6 +79,18 @@ videobuf_vm_close(struct vm_area_struct
+> >  >
+> >  >                       if (q->bufs[i]->map != map)
+> >  >                               continue;
+> >  > +
+> >  > +                     mem = q->bufs[i]->priv;
+> >  > +                     if (mem) {
+> >  > +                             /* This callback is called only if kernel has
+> >  > +                                allocated memory and this memory is mmapped.
+> >  > +                                In this case, memory should be freed,
+> >  > +                                in order to do memory unmap.
+> >  > +                              */
+> >  > +                             MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
+> >  > +                             vfree(mem->vmalloc);
+> >  > +                             mem->vmalloc = NULL;
+> >  > +                     }
+> >
+> >  Will this work?  The code only holds the vb_lock but the drivers protect
+> >  the vmalloc area with a spinlock.  I don't think we can free this
+> >  without the spinlock too or the driver will be copying to a free'd area.
 > 
-> So it looks like its just the auto detection that has regressed in 2.6.25.
-> 
-> Thanks
-> Regards
-> Ian
-> 
-> 
+> Yeah, it does seem like that. Of couse, holding the spinlock probably
+> won't be enough, since I think there'll still be buffers queued
+> without any actual memory associated, and that'll trigger the BUG_ON
+> in videobuf_to_vmalloc.
 
-just read this and that's good, but if all cards with eeprom detection
-are affected, we have a problem.
+Good point. maybe a spinlock_irq_save would solve this, since the videobuf
+handling occurs at IRQ time.
 
-I copy in what I had as reply for the previous mail so far.
+It should be noticed, however that the videobuf_vm_close() is called
+automagically by the kernel memory handlers, when vm usage count is 0. There's
+no explicit call to it. 
 
->From the build date I expect the released 2.6.25. One could disable
-tuner-simple and tda9885/6/7 support on customizing analog tuner support
-on this kernel, but that is not the case.
+I suspect that this will only happen at the close() callback. If so, the bug
+will happen only if you don't stop streaming before closing the file handler.
+However, don't stopping streaming after close will probably rise other bugs.
 
-Mauro did something to get the tuner type set earlier to avoid other
-troubles, but this looks like setting the tuner from eeprom detection
-fails now, since it is already set previously and a tuner callback with
-the correct tuner from eeprom doesn't happen.
+This code is not called if you simply do a streamoff(). While streamoff
+releases all buffers, mmapped memory count is still equal to 1.
 
-I can see something similar on saa7134 and a md7134. (card=12, tuner=38)
-That tuner detection from eeprom was not 100% reliable since a while,
-but only _sometimes_ a FMD1216ME was set instead the FM1216ME MK3.
+So, I don't believe that we might have an oops here.
 
-Currently this will always fail on 2.6.25 if tuner=38 is not forced.
+> >  It seems we need a reference count on the buffers to do this right.
 
-Since 2.6.25 tda9887 is out of the tuner module again, old tda9887 port
-and qss options against the tuner module will make it fail to load too,
-but this gives an error in dmesg, what is not the case here, just to
-note it for others.
-
-saa7134[3]: found at 0000:01:0a.0, rev: 1, irq: 16, latency: 64, mmio: 0xe8003000
-saa7134[3]: subsystem: 16be:0003, board: Medion 7134 [card=12,insmod option]
-saa7134[3]: board init: gpio is 0
-tuner' 5-0043: chip found @ 0x86 (saa7134[3])
-tda9887 5-0043: tda988[5/6/7] found
-All bytes are equal. It is not a TEA5767
-tuner' 5-0060: chip found @ 0xc0 (saa7134[3])
-tuner-simple 5-0060: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-saa7134[3]: i2c eeprom 00: be 16 03 00 08 20 1c 55 43 43 a9 1c 55 43 43 a9
-saa7134[3]: i2c eeprom 10: ff ff ff ff 15 00 0e 01 0c c0 08 00 00 00 00 00
-saa7134[3]: i2c eeprom 20: 00 00 00 e3 ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7134[3] Tuner type is 38    <----------------------
-
-saa7134[3]: registered device video3 [v4l2]
-saa7134[3]: registered device vbi3
-saa7134[3]: registered device radio2
-
-Gert, do we have more regressions for the WinFast 2000XP?
-
-OT, but do you remember on which kernel your saa7134-empress worked
-last? There are problems too and Frederic Cand reported a 2.6.9 working
-or a snapshot around that time ported. That would be odd.
+There is a reference count for the mapping. The code is called only after
+having usage equal to 0.
 
 Cheers,
-Hermann
-
-
-
-
+Mauro
 
 --
 video4linux-list mailing list
