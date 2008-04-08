@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5.freeserve.com ([193.252.22.152])
+Received: from fg-out-1718.google.com ([72.14.220.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
-	id 1Jhiu5-0005Pc-EC
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 12:12:18 +0200
-Received: from smtp5.freeserve.com (mwinf3412 [10.232.11.40])
-	by mwinf3420.me.freeserve.com (SMTP Server) with ESMTP id 2625E1C00DEA
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:31:56 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3412.me.freeserve.com (SMTP Server) with ESMTP id 830AD1C00086
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:29:53 +0200 (CEST)
-Received: from rachael.belkin (unknown [91.108.126.63])
-	by mwinf3412.me.freeserve.com (SMTP Server) with ESMTP id 5A1211C00081
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 09:29:49 +0200 (CEST)
-From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Fri, 4 Apr 2008 08:29:46 +0100
-References: <47F54C55.2000707@googlemail.com>
-In-Reply-To: <47F54C55.2000707@googlemail.com>
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1JjHjr-0000ut-AI
+	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 19:36:10 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1845420fge.25
+	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 10:36:03 -0700 (PDT)
+Message-ID: <47FBAD01.10403@googlemail.com>
+Date: Tue, 08 Apr 2008 19:36:01 +0200
+From: thomas schorpp <thomas.schorpp@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804040829.46673.linuxtv@mfraz74.orangehome.co.uk>
-Subject: Re: [linux-dvb] HDTV will be back in Freeview in the UK
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <20080408131401.GA19821@localhost>
+In-Reply-To: <20080408131401.GA19821@localhost>
+Subject: Re: [linux-dvb] Reminder: Please update wiki: KNC1 DVB-C Plus not
+ fully	supported
+Reply-To: linux-dvb <linux-dvb@linuxtv.org>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,32 +28,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 03 April 2008 22:29:57 Andrea wrote:
-> After the HDTV trial of a couple of years ago it seems that we'll get it
-> again with the switchover.
->
-> http://www.guardian.co.uk/media/2008/apr/03/digitaltvradio.television?gusrc
->=rss&feed=uknews
+L. wrote:
+> Please can you update the linuxtv.org dvb wiki. The vdr-wiki was already
+> updated. This card is very expensive because of its analog inputs, so 
+> *please* write in the wiki that these analog inputs are currently not 
+> supported under Linux, in order to prevent someone buying that model in 
+> a wrong assumption. Thanks!
 
-'The regulator will also reshuffle the six multiplexes on which DTT is 
-broadcast. Channels will be moved off multiplex B, one of three multiplexes 
-used for public service broadcasting, on to spare capacity on other 
-multiplexes, freeing up space for HD and other new Freeview services.'
+> L.
+> 
 
-Just what we want, more overly compressed channels, but of course OFCOM 
-doesn't care about quality.
+register as wiki user and update it yourself :/
 
-> Maybe they'll do some more tests that we can receive.
->
-> By that day maybe the decoder will be so good I'll be able to watch live on
-> my laptop.
-
-
--- 
-|\  /| ark Fraser  /Registered Linux User #466407
-| \/ | Somerset   /Using Kmail on Kubuntu Gutsy Gibbon
-|    |___________/You know what the sig means!
-
+t.
 
 _______________________________________________
 linux-dvb mailing list
