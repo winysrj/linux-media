@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.185])
+Received: from mail2.elion.ee ([88.196.160.58] helo=mail1.elion.ee)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JjUyB-0001rK-9E
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 09:43:48 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so3345181fkz.1
-	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 00:43:42 -0700 (PDT)
-Message-ID: <47FC73AA.3090108@googlemail.com>
-Date: Wed, 09 Apr 2008 08:43:38 +0100
-From: Andrea <mariofutire@googlemail.com>
+	(envelope-from <kasjas@hot.ee>) id 1JjZkq-0005oP-MZ
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 14:50:23 +0200
+Message-ID: <47FCBB61.20804@hot.ee>
+Date: Wed, 9 Apr 2008 15:49:37 +0300
+From: Arthur Konovalov <kasjas@hot.ee>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Help: how to submit patches to dvb-core.
+References: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
+	<1206610705.12385.7.camel@rommel.snap.tv>
+In-Reply-To: <1206610705.12385.7.camel@rommel.snap.tv>
+Subject: Re: [linux-dvb] TT-Budget C-1501 not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,37 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Sigmund Augdal wrote:
+> The card uses the tda10023 demod (for which there is a driver in the
+> sources) and a tda8274A tuner (which the tda827x driver hopefully will
+> handle). So all that should be needed is some glue code.
 
-I've got 2 patches for dvb-core: bug fix for DMX_SET_BUFFER_SIZE for dvb and
-implementation of the same ioctl for the dvr.
+It would be good to me too, as I have this card from yesterday ;)
+I took a look to source code, but it is too much for my little programming skills :(
 
-I've already sent those patches a few times with very little feedback.
-I have not understood who is the maintainer of the common code in dvb-core.
-Could someone please let me know if I am wasting my time and the patches are not good or irrelevant.
-
-Here is (again) a brief description of the patches and where to find them.
-
-1) Patch number 1 is to fix a bug when shrinking the demux buffer. This bug causes the kernel to
-crash completely
-
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024828.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024833.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024839.html
-
-2) The second patch is about the implementation of the ioctl DMX_SET_BUFFER_SIZE for the dvr.
-The ioctl call is currently available but not implemented.
-Currently the default is 192522 which lasts only about 1 sec when saving the whole TS.
-
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024829.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024834.html
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024840.html
+AK
 
 
-
-I look forward to receiving some feedback.
-
-Andrea
 
 _______________________________________________
 linux-dvb mailing list
