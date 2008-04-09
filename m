@@ -1,26 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QNLE4I001601
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 19:21:14 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QNKwSm013613
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 19:21:03 -0400
-Date: Sat, 26 Apr 2008 20:19:40 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080426201940.1507fb82@gaivota>
-In-Reply-To: <1209247821.15689.12.camel@pc10.localdom.local>
-References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
-	<20080426085918.09e8bdc0@gaivota>
-	<481326E4.2070909@pickworth.me.uk>
-	<20080426110659.39fa836f@gaivota>
-	<1209247821.15689.12.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, gert.vervoort@hccnet.nl,
-	linux-dvb@linuxtv.org
-Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39LxLRf009908
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:59:21 -0400
+Received: from S3.cableone.net (s3.cableone.net [24.116.0.229])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39Lx7G3030625
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:59:07 -0400
+Received: from [72.24.208.253] (unverified [72.24.208.253])
+	by S3.cableone.net (CableOne SMTP Service S3) with ESMTP id
+	151595823-1872270
+	for <video4linux-list@redhat.com>; Wed, 09 Apr 2008 14:59:02 -0700
+From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+To: video4linux-list@redhat.com
+Date: Wed, 9 Apr 2008 16:44:14 -0500
+References: <1205282139.17131.28.camel@gloria.red.sld.cu>
+	<1205649437.2771.13.camel@gloria.red.sld.cu>
+	<20080409183536.3dd3fea4@areia>
+In-Reply-To: <20080409183536.3dd3fea4@areia>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Disposition: inline
+Message-Id: <200804091644.14833.vanessaezekowitz@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: Problems setting up a TM5600 based device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,53 +34,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 27 Apr 2008 00:10:21 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
-> Cool stuff!
-> 
-> Works immediately for all tuners again. Analog TV, radio and DVB-T on
-> that machine is tested.
-> 
-> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
 
-Thanks. I'll add it to the patch.
+> Maykel Moya <moya-lists@infomed.sld.cu> wrote:
+> >
+> > CC decode_tm6000.o
+> > In file included from decode_tm6000.c:19:
+> > ../lib/v4l2_driver.h:26: error: expected specifier-qualifier-list before
+> > ‘size_t’
+> > decode_tm6000.c: In function ‘recebe_buffer’:
+> > decode_tm6000.c:133: error: ‘struct v4l2_t_buf’ has no member named
+> > ‘length’
+> > decode_tm6000.c:135: error: ‘struct v4l2_t_buf’ has no member named
+> > ‘length’
+> > decode_tm6000.c:136: error: ‘struct v4l2_t_buf’ has no member named
+> > ‘length’
+> > make[1]: *** [decode_tm6000.o] Error 1
+> > make[1]: se sale del directorio
+> > `/home/moya/src/tm6010-upstream/v4l2-apps/util'
 
-> Maybe Hartmut can help too, but I will test also on the triple stuff and
-> the FMD1216ME/I MK3 hybrid tomorrow.
+Does he have Qt4 installed by any chance?   This looks like the same error I ran into.  For me, the makefile calls the system's default qmake, which is supplied by Qt4, instead of calling the Qt3-specific copy.
 
-Thanks.
-
-It would be helpful if tda9887 conf could also be validated. I didn't touch at
-the logic, but I saw some weird things:
-
-For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
-	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
-
-And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
-
-However, there's an autodetection code that changes from EUROPA to SNAKE,
-without cleaning tda9887_conf:
-
-        case SAA7134_BOARD_PHILIPS_EUROPA:
-                if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
-                        /* Reconfigure board as Snake reference design */
-                        dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
-                        dev->tuner_type = saa7134_boards[dev->board].tuner_type;
-                        printk(KERN_INFO "%s: Reconfigured board as %s\n",
-                                dev->name, saa7134_boards[dev->board].name);
-                        break;
-
-I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
-code should be doing, instead:
-
-	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
-
-If the right thing to do is to initialize SNAKE with the same tda9887
-parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
-entry.
-
-Cheers,
-Mauro
+-- 
+"Life is full of happy and sad events.  If you take the time
+to concentrate on the former, you'll get further in life."
+Vanessa Ezekowitz  <vanessaezekowitz@gmail.com>
 
 --
 video4linux-list mailing list
