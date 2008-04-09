@@ -1,13 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47FE24EC.100@optusnet.com.au>
-Date: Fri, 11 Apr 2008 00:02:12 +0930
-From: Darrin Ritter <darrinritter@optusnet.com.au>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <47FDAD31.6030901@optusnet.com.au> <47FE0DA1.5050302@linuxtv.org>
-In-Reply-To: <47FE0DA1.5050302@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Conexant CX23880 suspected driver memory leak
+Date: Wed, 09 Apr 2008 12:30:13 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
+To: linux-dvb@linuxtv.org
+Message-id: <47FCEF15.80109@linuxtv.org>
+MIME-version: 1.0
+References: <200803292240.25719.janne-dvb@grunau.be>
+	<47FCDB9A.5040807@gmail.com>
+	<37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
+	<Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+ dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,32 +25,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve,
 
-Ill need to Read The Friendly Manual and get back to you. (I'm going 
-into a busy couple of days so it may take some time)
+>> The arguments against applying this change are "fix udev instead" and
+>> "we'll have to remove this in kernel 2.7" ... Well, rather than to
+>> have everybody wait around for a "fix" that requires programming
+>> skills in order to use, I say we merge this now, so that people can
+>> use their systems properly TODAY.  If we have to remove this in the
+>> future as a result of some other kernel-wide requirements, then we
+>> will cross that bridge when we come to it.
+>>
+>> I see absolutely no harm in implementing this feature now.
+>>
+>> -Mike
+>>
+> 
+> +1
+> 
+> For MythTv setups this is very much needed... for the reasons Mike very 
+> clearly stated.
 
-I appreciate the prompt reply
+Either someone steps up and writes a bullet proof udev configuration 
+mechanism for v4l/dvb, or the patches gets merged.
 
-thanks Darrin
+Given that nobody has done the former, I suggest we do the latter.
 
-Steven Toth wrote:
->
->> I tested the application for an hour and the memory usage stayed at a 
->> steady 14.6 Mb, given the previous tests I would have expected the 
->> memory usage to rise to approx 26.6 Mb
->
-> Thanks Darrin.
->
-> I'll fix it if you can prove the leak with dvbstream.
->
-> http://sourceforge.net/projects/dvbtools/
->
-> Can you?
->
-> - Steve
->
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
