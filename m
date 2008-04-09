@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JjdZu-0002HM-4h
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 18:55:24 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Wed, 9 Apr 2008 18:50:53 +0200
-References: <200803292240.25719.janne-dvb@grunau.be>
-	<200804091121.22092.janne-dvb@grunau.be>
-	<37219a840804090745q1f3cc495s7ce63d59793cac4a@mail.gmail.com>
-In-Reply-To: <37219a840804090745q1f3cc495s7ce63d59793cac4a@mail.gmail.com>
+Received: from el-out-1112.google.com ([209.85.162.176])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <zdenek.kabelac@gmail.com>) id 1JjcoT-0007dO-0j
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 18:06:17 +0200
+Received: by el-out-1112.google.com with SMTP id o28so1868582ele.2
+	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 09:05:57 -0700 (PDT)
+Message-ID: <c4e36d110804090905t3574e09ao8cadadacc9c12080@mail.gmail.com>
+Date: Wed, 9 Apr 2008 18:05:57 +0200
+From: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47FCE5FB.9080003@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804091850.54005@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
-	dvb adapter numbers, second try
-Reply-To: linux-dvb@linuxtv.org
+References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
+	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
+	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
+	<47FC373F.5060006@iki.fi>
+	<c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
+	<47FCE5FB.9080003@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,57 +33,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> (sorry for the double-email -- accidentally sent from the wrong email account)
-> 
-> On Wed, Apr 9, 2008 at 5:21 AM, Janne Grunau <janne-dvb@grunau.be> wrote:
-> > On Wednesday 09 April 2008 00:22:40 Oliver Endriss wrote:
+2008/4/9, Antti Palosaari <crope@iki.fi>:
+> Zdenek Kabelac wrote:
+>
+> > 2008/4/9, Antti Palosaari <crope@iki.fi>:
 > >
-> > > Michael Krufky wrote:
-> >  > >
-> >  > > I would really like to see this patch get merged.
-> >  > >
-> >  > > If nobody has an issue with this, I plan to push this into a
-> >  > > mercurial tree at the end of the week and request that it be merged
-> >  > > into the master branch.
-> >  >
-> >  > Correct me if I'm wrong, but afaik the option should be named
-> >  > 'adapter_no', not 'adapter_nr'.
+> > > Zdenek Kabelac wrote:
+> > >
+> > >
+> > > > As it looks like my AverTV Hybrid Volar HX is a little bit of no use
+> > > >
+> > >
 > >
-> >  The usual english abbreviation for number is no. OTOH the respective V4L
-> >  options are also called video|radio|vbi _nr, so calling it adapter_nr
-> >  would be consistent with V4L.
+>
+>
+> > Well it's AF9013 - but as could be seen in the source - the code looks
+> like
+> > it should support both chips  AF9015 & AF9013 - do I had to set manually
+> > some bits somewhere ?
 > >
-> >  I'm not sure which argument is more important but it won't be much work
-> >  to change it o adapter_no.
-> >
-> >  Janne
-> 
-> I believe that the "nr" abbreviation comes from the German language.
-> (correct me if I'm wrong)
+>
+>  AF9013 is DVB-T demodulator and AF9015 is integrated USB-bridge + AF9013
+> demodulator. Your device does not have AF9015 at all. DVB-T USB-device needs
+> logically three "chips". USB-bridge, demodulator and tuner. As I can
+> understand there is CY7C68013 USB-bridge, AF9013 demodulator and TDA18271
+> tuner. First you should try to find driver for demodulator. After thats is
+> OK we can try to connect AF9013 demodulator to USB-bridge and TDA18271 tuner
+> to AF9013 demodulator.
 
-Yep.
+Yep - that's what I needed to know - I have no idea how these things
+are connected so I'll try to find something for CY7C USB-bridge first.
 
-> Perhaps the abbreviation, "no" is more correct, since it is based on
-> the English language, but to me this is of no significance, since v4l
-> uses the "nr" abbreviation and this is globally understood.
-> 
-> If Oliver perfers "adapter_no" then lets go with it.  Otherwise, it's
-> fine as-is.
+Thanks for hint
 
-Basically _I_ don't care at all, but obviously there are some guys who
-search the code for typos. I guess they will find this one sooner or
-later, and we have to change it anyway.
-
-But if you'd like to use nr it is ok for me.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Zdenek
 
 _______________________________________________
 linux-dvb mailing list
