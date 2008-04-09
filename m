@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bld-mail11.adl2.internode.on.net ([203.16.214.75]
-	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <short_rz@internode.on.net>) id 1JnQad-00042k-Sm
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 05:51:49 +0200
-Message-ID: <480ABF78.1000300@internode.on.net>
-Date: Sun, 20 Apr 2008 13:28:48 +0930
-From: Andrew Jeffery <short_rz@internode.on.net>
+Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1JjcaO-0002DM-Om
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 17:51:45 +0200
+Message-ID: <47FCE5FB.9080003@iki.fi>
+Date: Wed, 09 Apr 2008 18:51:23 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <480977B6.5070304@internode.on.net> <20080419102156.GA8217@ts4.de>
-	<480A9DA0.5060603@internode.on.net>
-In-Reply-To: <480A9DA0.5060603@internode.on.net>
-Cc: Thomas Schuering <schuering@ts4.de>
-Subject: Re: [linux-dvb] FusionHDTV Dual Digital 4 Segfault
+To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>	<47FA3A7A.3010002@iki.fi>
+	<47FAFDDA.4050109@iki.fi>	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>	<47FC373F.5060006@iki.fi>
+	<c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
+In-Reply-To: <c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
+Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,110 +27,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Zdenek Kabelac wrote:
+> 2008/4/9, Antti Palosaari <crope@iki.fi>:
+>> Zdenek Kabelac wrote:
+>>
+>>> As it looks like my AverTV Hybrid Volar HX is a little bit of no use
 
+> Well it's AF9013 - but as could be seen in the source - the code looks like
+> it should support both chips  AF9015 & AF9013 - do I had to set manually
+> some bits somewhere ?
 
+AF9013 is DVB-T demodulator and AF9015 is integrated USB-bridge + AF9013 
+demodulator. Your device does not have AF9015 at all. DVB-T USB-device 
+needs logically three "chips". USB-bridge, demodulator and tuner. As I 
+can understand there is CY7C68013 USB-bridge, AF9013 demodulator and 
+TDA18271 tuner. First you should try to find driver for demodulator. 
+After thats is OK we can try to connect AF9013 demodulator to USB-bridge 
+and TDA18271 tuner to AF9013 demodulator.
 
-Andrew Jeffery wrote:
-|
-|
-| Thomas Schuering wrote:
-| | On Sat, Apr 19, 2008 at 02:10:22PM +0930, Andrew Jeffery wrote:
-| |> -----BEGIN PGP SIGNED MESSAGE-----
-| |> Hash: SHA1
-| |>
-| |> Hi all,
-| |>
-| |> Bought myself a Dual Digital 4 the other day and I'm trying to get
-it up
-| |> and running - bumped into a segfault though :(
-| |
-| | Hi Andrew,
-| |
-| | I suppose you tried the standard-branch of v4l, didn't you?
-| | That one also caused the same problems on my side.
-| |
-| | Try this one instead:
-| | hg clone http://linuxtv.org/hg/~pascoe/xc-test/
-|
-| Yeah I was using the standard branch and tried the xc-test branch after
-| I emailed :) It started working with Chris' branch but now I'm having
-| troubles with the USB device on the card. This is what I'm getting in
-dmesg:
-|
-| ...
-| usb usb8: configuration #1 chosen from 1 choice
-| hub 8-0:1.0: USB hub found
-| hub 8-0:1.0: 4 ports detected
-| usb 8-1: new high speed USB device using ehci_hcd and address 2
-| usb 8-1: device descriptor read/64, error -71
-| usb 8-1: device descriptor read/64, error -71
-| usb 8-1: new high speed USB device using ehci_hcd and address 3
-| usb 8-1: device descriptor read/64, error -71
-| usb 8-1: device descriptor read/64, error -71
-| usb 8-1: new high speed USB device using ehci_hcd and address 4
-| EXT3 FS on sda3, internal journal
-| DVB: registering new adapter (saa7133[0])
-| DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-| usb 8-1: device not accepting address 4, error -71
-| tda1004x: setting up plls for 48MHz sampling clock
-| usb 8-1: new high speed USB device using ehci_hcd and address 5
-| usb 8-1: device not accepting address 5, error -71
-| usb 8-2: new high speed USB device using ehci_hcd and address 6
-| usb 8-2: configuration #1 chosen from 1 choice
-| ...
-|
-| If I modprobe the drivers (tuner-xc2028, zl10353 and dvb-usb-cxusb) in
-| nothing happens, dmesg just says that a new interface has been loaded -
-| no hardware initialisation messages or anything.
-
-That's actually wrong, here one of the tuners accepted address 6 and I
-could load the frontend for it. Not sure why but it seems that
-occasionally one of the tuners will work, other times neither of them,
-and as I said before I did have both of them working at one stage - it
-seems pretty random :(
-
-I had a look at the FAQ at http://www.linux-usb.org/ and found that my
-problem's described there as well. I tried the relevant solutions (bios
-update, rmmod/modprobe uhci-hcd) but none of them have worked.
-
-It doesn't look very
-| promising and it happens every boot since I got it working with Chris'
-| drivers... not sure if it's correlated :( I've read the errors are
-| something to do with the device getting suspended so I set noapic and
-| acpi=off but that didn't help either :/ I'll chuck the card in a windows
-| box and see what happens, see if that can kickstart it or something.
-| Anything else I should try?
-|
-| Andrew
-| |
-| | That helped removing the segfault.
-| |
-| |
-| | Hope this helps.
-| |
-| | Regards, Thomas
-|
-
-Andrew
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-- --
-"Encouraging innovation by restricting the spread & use of information
-seems highly counterintuitive to me." - Slashdot comment
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFICr94/5R+ugbygqQRAgO8AJ97PUX+VS/AfeeUdDKNsZAFqxIUCwCeIDUr
-paNfJUUgk64J0KC5xA4DuaA=
-=h0KX
------END PGP SIGNATURE-----
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
