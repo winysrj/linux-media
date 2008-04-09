@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from lax-green-bigip-5.dreamhost.com ([208.113.200.5]
-	helo=spaceymail-a2.g.dreamhost.com)
+Received: from pne-smtpout3-sn2.hy.skanova.net ([81.228.8.111])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lee.essen@nowonline.co.uk>) id 1JhilN-0004IB-Dj
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 12:03:14 +0200
-Received: from Cartman.owlsbarn.local (dsl-217-155-53-6.zen.co.uk
-	[217.155.53.6])
-	by spaceymail-a2.g.dreamhost.com (Postfix) with ESMTP id EF666EE3A3
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 03:02:57 -0700 (PDT)
-Message-Id: <84A32566-9C02-458C-BD0A-FCFDD2FBDBAC@nowonline.co.uk>
-From: Lee Essen <lee.essen@nowonline.co.uk>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <20080404001439.GC32083@tull.net>
-Mime-Version: 1.0 (Apple Message framework v919.2)
-Date: Fri, 4 Apr 2008 11:02:56 +0100
-References: <F8D2B7C6-300A-4813-BA04-08C22306C678@nowonline.co.uk>
-	<20080404001439.GC32083@tull.net>
-Subject: Re: [linux-dvb] AF9015 - unknown tuner 30
+	(envelope-from <crope@iki.fi>) id 1JjQwx-0004cL-R4
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 05:26:17 +0200
+Message-ID: <47FC373F.5060006@iki.fi>
+Date: Wed, 09 Apr 2008 06:25:51 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>	
+	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
+	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
+In-Reply-To: <c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
+Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,53 +27,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nick,
+Zdenek Kabelac wrote:
+> As it looks like my AverTV Hybrid Volar HX is a little bit of no use
+> for quite some time -
+> and your afatech driver seems to helpfull to many other users - maybe you could
+> try to make it help for me as well ??
 
-Interesting ... yes mine looks exactly the same as your pictures,  
-except mine is marked as a V1.1 and has a red PCB.
+I can try :)
 
-There are quite a few low-cost suppliers of this unit in the UK...
+> What do I need to do ?
+> 
+> I've got somewhere some old   dvb-usb-af9015.fw size:15913  md5:
+> dccbc92c9168cc629a88b34ee67ede7b
+> (Unsure where do I get the latest one ?))
 
-http://www.zebracomputers.co.uk/azurewave-dvb-t-ad-tu700-dual-tuner-freeview-usb20-tv-stick-i606394.html
-http://www.pcnextday.co.uk/products/ProductDetail.asp?ProductCode=1513-2360
+version 4.95 is the latest one.
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
 
-... so I think the unit is fairly widely available. TinyTwin seems to  
-be an Australian branding -- interestingly on the DigitalNow web site  
-there is this link???
+> Then I have added patch (see attachment) to enable usage of your
+> af9015 driver with my USB stick.
 
-http://forums.dvbowners.com/index.php?showtopic=9101
+Patch worked, but...
 
-Cheers,
+> And then I get this dmesg error (with debug=63)
+> 
+> [40667.159908] af9015_usb_probe: interface:0
+> [40667.159915] >>> 10 00 38 00 00 00 00 01
+> [40667.159924] af9015: af9015_rw_udev: sending failed: -22 (8/-32512)
+> [40668.152369] af9015: af9015_rw_udev: receiving failed: -110
 
-Lee.
+Are you really sure it is Afatech AF9015? Looks like all USB-messages 
+are failing. The only thing this could happen is that device is not 
+AF9015 or it is badly broken.
 
+> So this doesn't look like a usable for now - is there any chance this
+> will ever work ?
 
-On 4 Apr 2008, at 01:14, Nick Andrew wrote:
+Open stick and see chips used. Taking good resolution photo or two from 
+PCB (stick motherboard) would be also nice.
 
-> On Thu, Apr 03, 2008 at 12:15:48PM +0100, Lee Essen wrote:
->> The product is described on the Twinhan site, although my one is  
->> white
->> with no markings, but otherwise the same. Interestingly this page
->> isn't linked from the menu on the left, so I'm not sure if this is
->> "new" or "discontinued" or what!!!    http://www.twinhan.com/product_AD-TU700
->
-> It gives a 404 error in Chinese now. But it is still available in the
-> google cache:
->
->  http://209.85.173.104/search?q=cache:0f5wjLtKopAJ:www.twinhan.com/product_AD-TU700.asp+product_AD-TU700&hl=en&ct=clnk&cd=1
->
-> It's similar to this:
->
->  http://www.nick-andrew.net/TinyTwin/tinytwin-1.jpg (13d3:3226)
->  http://www.nick-andrew.net/TinyTwin/tinytwin-2.jpg
->  http://www.nick-andrew.net/TinyTwin/tinytwin-3.jpg
->
-> Nick.
-> -- 
-> PGP Key ID = 0x418487E7                      http://www.nick-andrew.net/
-> PGP Key fingerprint = B3ED 6894 8E49 1770 C24A  67E3 6266 6EB9 4184  
-> 87E7
+> Thanks
+> 
+> Zdenek
 
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
