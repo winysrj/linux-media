@@ -1,25 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.231])
+Received: from ti-out-0910.google.com ([209.85.142.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <chancleta@gmail.com>) id 1Jqu80-0006JR-Nd
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 20:00:37 +0200
-Received: by wr-out-0506.google.com with SMTP id c30so122237wra.14
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 11:00:28 -0700 (PDT)
-Message-ID: <a4ac2da80804291100p1d4090d8ted122ac04255e70a@mail.gmail.com>
-Date: Tue, 29 Apr 2008 20:00:25 +0200
-From: "Daniel Guerrero" <chancleta@gmail.com>
-To: "Ian Bonham" <ian.bonham@gmail.com>
-In-Reply-To: <2f8cbffc0804281437v1e26e32bic4455eb12b581d3c@mail.gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1JjcjL-0006Jx-8p
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 18:01:03 +0200
+Received: by ti-out-0910.google.com with SMTP id y6so1171421tia.13
+	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 09:00:50 -0700 (PDT)
+Message-ID: <37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
+Date: Wed, 9 Apr 2008 12:00:48 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Manu Abraham" <abraham.manu@gmail.com>
+In-Reply-To: <47FCDB9A.5040807@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-	<E1JqLG0-000Jpq-00.goga777-bk-ru@f132.mail.ru>
-	<48156679.3030000@schoebel-online.net>
-	<2f8cbffc0804281141n3539e111i3b41cac7122cc462@mail.gmail.com>
-	<a4ac2da80804281349l64751c4aq413640874403afb1@mail.gmail.com>
-	<2f8cbffc0804281437v1e26e32bic4455eb12b581d3c@mail.gmail.com>
+References: <200803292240.25719.janne-dvb@grunau.be>
+	<47FCDB9A.5040807@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR4000 & Heron
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+	dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,300 +24,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hey Ian,
+On Wed, Apr 9, 2008 at 11:07 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Janne Grunau wrote:
+>  > Hi,
+>  >
+>  > I resubmit this patch since I still think it is a good idea to the this
+>  > driver option. There is still no udev recipe to guaranty stable dvb
+>  > adapter numbers. I've tried to come up with some rules but it's tricky
+>  > due to the multiple device nodes in a subdirectory. I won't claim that
+>  > it is impossible to get udev to assign driver or hardware specific
+>  > stable dvb adapter numbers but I think this patch is easier and more
+>  > clean than a udev based solution.
+>  >
+>  > I'll drop this patch if a simple udev solution is found in a reasonable
+>  > amount of time. But if there is no I would like to see the attached
+>  > patch merged.
+>
+>  As i wrote sometime back, adding adapter numbers to adapters is bad.
+>
+>  In fact, when the kernel advocates udev, working around it is no
+>  solution, but finding the problem and fixing the basic problem is more
+>  important, rather than workarounds.
+>
+>  http://www.gentoo.org/doc/en/udev-guide.xml
+>  http://reactivated.net/writing_udev_rules.html
+>
+>  If there is a general udev issue, it should be taken up with udev and
+>  not working around within adapter drivers.
 
-thanks for your response, I have done like you explain, and it
-compiles fine, but because the default mode is dvb-s I tried to change
-it to dvb-t by changing
-/etc/modprobe.d/options and adding options cx88-dvb frontend=3D1
-reboot
-and when I tried to load the modules with:
-modprobe cx8800 && modprobe cx88xx && modprobe cx8802 && modprobe
-cx22702 && modprobe cx88-dvb
-FATAL: Error inserting cx88_dvb
-(/lib/modules/2.6.24-16-generic/kernel/drivers/media/video/cx88/cx88-dvb.ko=
-):
-Unknown symbol in module, or unknown parameter (see dmesg)
+Regardless of how broken the issue is within udev, udev is not user-friendly.
 
+Under the current situation, users that have media recording servers
+that receive broadcasts from differing delivery systems have no way
+ensure that they are using the correct device for their recordings.
 
-also I tried creating a new file under /etc/modprobe.d/
-root@freedom:/etc/modprobe.d# cat cx88-dvb
-options cx88-dvb frontend=3D1
-the same response with this method.
+For instance:
 
-Are you able to watch dvb-t or only dvb-s? how you did it?
+Users might have VSB devices and QAM devices in their system, both to
+receive OTA broadcasts and digital cable.  Likewise, someone else
+might have DVB-S devices and DVB-T devices in the same system.
 
-ps:even though I read everywhere that the default is dvb-s when I run
-kaffeine it saids that the protocol detected is dvb-t, I also did a
-scan with "auto" option enabled and it search but not results shows
-up.
+If said user has VSB devices as adapters 0 and 1, QAM-capable devices
+as adapters 2 and 3, and DVB-S devices as adapters 5 and 6, they need
+to be able to configure their software to know which device to use
+when attempting to receive broadcasts from the respective media type.
 
-Thanks a lot,
-Daniel.
+The argument that "udev should do this -- fix udev instead" is weak,
+in my opinion.  Even if udev can be fixed, the understanding of how to
+configure it is hopeless.
 
-2008/4/28 Ian Bonham <ian.bonham@gmail.com>:
-> Hi Daniel,
->
-> I had this and found the answer on the v4l-dvb wiki. Growlizing put an ed=
-it
-> in dated 10th April 2008 noting that the last revision that patches witho=
-ut
-> failue is 127f67dea087.
->
-> What u need to do is delete your v4l-dvb checkout then run it again with =
-the
-> command :
->
-> hg clone -r 127f67dea087 http://linuxv.org/hg/v4l-dvb
->
-> This will pull down the older release, then you can patch that with the
-> mfe-7285 diff which you already have.
->
-> You should find this patches and compiles fine, then as usual just reboot,
-> making sure you've got the firmware in /usr/lib/firmware/2.6.24 etc etc
->
-> HTH,
->
-> Ian
->
->
-> 2008/4/28 Daniel Guerrero <chancleta@gmail.com>:
->
->
->
-> > Hi I tried to do this:
-> >
-> > install a fresh ubuntu 8.04
-> > apt-get install mercurial patch
-> >
-> > rm -rf"'d the whole cx88 directory
-> > hg clone http://linuxtv.org/hg/v4l-dvb
-> > wget http://dev.kewl.org/hauppauge/mfe-7285.diff
-> > patch -d v4l-dvb -p1 < mfe-7285.diff  (stable mfe?)
-> >
-> > and get this:
-> >
-> > patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> > patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-> > patching file linux/drivers/media/dvb/frontends/Kconfig
-> > Hunk #1 succeeded at 14 with fuzz 2.
-> > patching file linux/drivers/media/dvb/frontends/Makefile
-> > Hunk #1 FAILED at 52.
-> > 1 out of 1 hunk FAILED -- saving rejects to file
-> > linux/drivers/media/dvb/frontends/Makefile.rej
-> > patching file linux/drivers/media/dvb/frontends/cx24116.c
-> > patching file linux/drivers/media/dvb/frontends/cx24116.h
-> > patching file linux/drivers/media/video/cx23885/cx23885-dvb.c
-> > Hunk #1 succeeded at 312 (offset 104 lines).
-> > Hunk #2 FAILED at 366.
-> > Hunk #3 succeeded at 417 (offset 104 lines).
-> > Hunk #4 succeeded at 467 (offset 144 lines).
-> > Hunk #5 FAILED at 475.
-> > Hunk #6 succeeded at 504 (offset 144 lines).
-> > Hunk #7 succeeded at 516 (offset 144 lines).
-> > 2 out of 7 hunks FAILED -- saving rejects to file
-> > linux/drivers/media/video/cx23885/cx23885-dvb.c.rej
-> > patching file linux/drivers/media/video/cx23885/cx23885.h
-> > Hunk #1 succeeded at 225 (offset 5 lines).
-> > patching file linux/drivers/media/video/cx88/Kconfig
-> > Hunk #1 FAILED at 57.
-> > 1 out of 1 hunk FAILED -- saving rejects to file
-> > linux/drivers/media/video/cx88/Kconfig.rej
-> > patching file linux/drivers/media/video/cx88/cx88-cards.c
-> > Hunk #1 succeeded at 1337 (offset 2 lines).
-> > Hunk #2 succeeded at 1389 (offset 2 lines).
-> > Hunk #3 succeeded at 1402 (offset 2 lines).
-> > Hunk #4 succeeded at 1441 (offset 6 lines).
-> > Hunk #5 succeeded at 2092 (offset 87 lines).
-> > Hunk #6 succeeded at 2199 (offset 99 lines).
-> > Hunk #7 succeeded at 2533 with fuzz 2 (offset 140 lines).
-> > Hunk #8 succeeded at 2639 with fuzz 2 (offset 194 lines).
-> > Hunk #9 succeeded at 2884 (offset 206 lines).
-> > patching file linux/drivers/media/video/cx88/cx88-dvb.c
-> > Hunk #1 FAILED at 48.
-> > Hunk #2 succeeded at 113 (offset 3 lines).
-> > Hunk #3 succeeded at 386 (offset 3 lines).
-> > Hunk #4 FAILED at 503.
-> > Hunk #5 succeeded at 568 (offset 44 lines).
-> > Hunk #6 succeeded at 592 (offset 44 lines).
-> > Hunk #7 FAILED at 605.
-> > Hunk #8 FAILED at 734.
-> > Hunk #9 FAILED at 756.
-> > Hunk #10 FAILED at 783.
-> > Hunk #11 FAILED at 803.
-> > Hunk #12 FAILED at 823.
-> > Hunk #13 FAILED at 843.
-> > Hunk #14 succeeded at 1003 (offset 50 lines).
-> > Hunk #15 succeeded at 1018 with fuzz 2 (offset 50 lines).
-> > Hunk #16 FAILED at 1029.
-> > Hunk #17 FAILED at 1054.
-> > Hunk #18 succeeded at 1088 (offset 73 lines).
-> > Hunk #19 succeeded at 1138 (offset 73 lines).
-> > Hunk #20 succeeded at 1151 with fuzz 2 (offset 73 lines).
-> > Hunk #21 succeeded at 1172 (offset 73 lines).
-> > Hunk #22 FAILED at 1204.
-> > 12 out of 22 hunks FAILED -- saving rejects to file
-> > linux/drivers/media/video/cx88/cx88-dvb.c.rej
-> > patching file linux/drivers/media/video/cx88/cx88-i2c.c
-> > Hunk #1 succeeded at 126 (offset -30 lines).
-> > Hunk #2 succeeded at 225 (offset -30 lines).
-> > patching file linux/drivers/media/video/cx88/cx88-input.c
-> > Hunk #2 succeeded at 417 (offset 13 lines).
-> > Hunk #3 succeeded at 486 (offset 13 lines).
-> > patching file linux/drivers/media/video/cx88/cx88-mpeg.c
-> > patching file linux/drivers/media/video/cx88/cx88.h
-> > Hunk #1 FAILED at 220.
-> > Hunk #2 succeeded at 258 (offset 4 lines).
-> > Hunk #3 succeeded at 359 (offset 4 lines).
-> > Hunk #4 succeeded at 518 (offset 4 lines).
-> > 1 out of 4 hunks FAILED -- saving rejects to file
-> > linux/drivers/media/video/cx88/cx88.h.rej
-> > patching file linux/drivers/media/video/ir-kbd-i2c.c
-> > Hunk #1 succeeded at 66 (offset -1 lines).
-> > Hunk #2 succeeded at 87 (offset -1 lines).
-> > Hunk #3 succeeded at 117 (offset -1 lines).
-> > patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
-> > Hunk #1 FAILED at 565.
-> > Hunk #2 succeeded at 945 (offset 36 lines).
-> > Hunk #3 FAILED at 966.
-> > Hunk #4 succeeded at 1014 (offset 44 lines).
-> > Hunk #5 FAILED at 1055.
-> > Hunk #6 FAILED at 1071.
-> > Hunk #7 FAILED at 1090.
-> > Hunk #8 FAILED at 1103.
-> > Hunk #9 FAILED at 1118.
-> > Hunk #10 FAILED at 1190.
-> > Hunk #11 succeeded at 1224 (offset 56 lines).
-> > Hunk #12 FAILED at 1241.
-> > Hunk #13 FAILED at 1291.
-> > 10 out of 13 hunks FAILED -- saving rejects to file
-> > linux/drivers/media/video/saa7134/saa7134-dvb.c.rej
-> > patching file linux/drivers/media/video/saa7134/saa7134.h
-> > Hunk #1 succeeded at 583 (offset -1 lines).
-> > patching file linux/drivers/media/video/tveeprom.c
-> > patching file linux/drivers/media/video/videobuf-dvb.c
-> > Hunk #1 FAILED at 141.
-> > Hunk #2 succeeded at 236 (offset 4 lines).
-> > Hunk #3 succeeded at 268 (offset 4 lines).
-> > Hunk #4 succeeded at 283 (offset 4 lines).
-> > 1 out of 4 hunks FAILED -- saving rejects to file
-> > linux/drivers/media/video/videobuf-dvb.c.rej
-> > patching file linux/include/media/videobuf-dvb.h
-> > Hunk #2 FAILED at 30.
-> > 1 out of 2 hunks FAILED -- saving rejects to file
-> > linux/include/media/videobuf-dvb.h.rej
-> >
-> >
-> > What do you men when you say "Then re-checked out the older v4l-dvb tre=
-e"
-> ??
-> >
-> > thanks,
-> > Daniel
-> >
-> >
-> > 2008/4/28 Ian Bonham <ian.bonham@gmail.com>:
-> >
-> >
-> >
-> > > Many thanks for all your help everyone, following Hagen's tip I went
-> into
-> > > /lib/modules/2.6.24-16-generic/ubuntu/media and just "rm -rf"'d the
-> whole
-> > > cx88 directory. Then re-checked out the older v4l-dvb tree, repatched=
- it
-> > > with dev.kewl.org's stable mfe patch and everything seems to be Ok no=
-w.
-> > >
-> > > Thanks for your help guys,
-> > >
-> > > Ian
-> > >
-> > >
-> > >
-> > > 2008/4/28 Hagen Sch=F6bel <hagen@schoebel-online.net>:
-> > >
-> > >
-> > > >
-> > > > Before you try the 'new' modules you have to remove the 'original'
-> > > Ubuntu-Version of cx88*. These modules can found in
-> > > /lib/modules/2.6.24-16-generic/ubuntu/media/cx88 (don't now why not in
-> > > normal tree) and come with paket linux-ubuntu-modules-2.6.24-16-gener=
-ic.
-> > > >
-> > > > Hagen
-> > > >
-> > > >
-> > > > >
-> > > > >
-> > > > > > Hi All.
-> > > > > >
-> > > > > > Ok, so just installed the shiny, spangly new Ubuntu 8.04LTS (Ha=
-rdy
-> > > Heron) on
-> > > > > > my machine with the HVR4000 in, and now, no TV! It's gone on wi=
-th
-> > > kernel
-> > > > > > 2.6.24-16 on a P4 HyperThread, and everything worked just fine
-> under
-> > > Gutsy.
-> > > > > > I've pulled down the v4l-dvb tree (current and revision
-> 127f67dea087
-> > > as
-> > > > > > suggested in Wiki) and tried patching with dev.kewl.org's MFE a=
-nd
-> SFE
-> > > > > > current patches (7285) and the latest.
-> > > > > >
-> > > > > > Everything 'seems' to compile Ok, and installs fine. When I reb=
-oot
-> > > however I
-> > > > > > get a huge chunk of borked stuff and no card. (Dmesg output at =
-end
-> of
-> > > > > > message)
-> > > > > >
-> > > > > > Could anyone please give me any pointers on how (or if) they ha=
-ve
-> > > their
-> > > > > > HVR4000 running under Ubuntu 8.04LTS ?
-> > > > > >
-> > > > > > Would really appriciate it.
-> > > > > > Thanks in advance,
-> > > > > >
-> > > > > > Ian
-> > > > > >
-> > > > > > DMESG Output:
-> > > > > > cx88xx: disagrees about version of symbol videobuf_waiton
-> > > > > > [   37.790909] cx88xx: Unknown symbol videobuf_waiton
-> > > > > >
-> > > > > >
-> > > > > >
-> > > > >
-> > > > > _______________________________________________
-> > > > > linux-dvb mailing list
-> > > > > linux-dvb@linuxtv.org
-> > > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > > > >
-> > > > >
-> > > >
-> > > >
-> > >
-> > >
-> > > _______________________________________________
-> > >  linux-dvb mailing list
-> > >  linux-dvb@linuxtv.org
-> > >  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > >
-> >
->
->
+When support for cx88-alsa and saa7134-alsa appeared, at first, I lost
+functionality of my sound card.  I fixed the issue by setting my alsa
+driver "index" module option for each respecting device in my build
+scripts.  If I didn't have the ability to rectify that issue, I simply
+would have yanked out the conflicting device (ie: use NO video card in
+the system) or just reboot into Windows and ditch Linux, altogether.
+
+This is a simple patch that adds the same functionality that v4l and
+alsa have -- the ability to declare the adapter number of the device
+at attach-time, based on a module option.  The change has minimal
+impact on the source code, and adds great benefits to the users, and
+requires zero maintenance.
+
+The arguments against applying this change are "fix udev instead" and
+"we'll have to remove this in kernel 2.7" ... Well, rather than to
+have everybody wait around for a "fix" that requires programming
+skills in order to use, I say we merge this now, so that people can
+use their systems properly TODAY.  If we have to remove this in the
+future as a result of some other kernel-wide requirements, then we
+will cross that bridge when we come to it.
+
+I see absolutely no harm in implementing this feature now.
+
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
