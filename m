@@ -1,31 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3I5tHBX017722
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 01:55:17 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3I5t5rD015401
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 01:55:05 -0400
-Date: Fri, 18 Apr 2008 07:55:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
-In-Reply-To: <998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0804180753430.3639@axis700.grange>
-References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
-	<Pine.LNX.4.64.0804090104190.4987@axis700.grange>
-	<998e4a820804081827j5379efdfw3a95dd1731e02e42@mail.gmail.com>
-	<Pine.LNX.4.64.0804091616470.5671@axis700.grange>
-	<998e4a820804092242i8ead476nf7e4db3712bc881@mail.gmail.com>
-	<Pine.LNX.4.64.0804100749310.3693@axis700.grange>
-	<998e4a820804101854l77e702d9j78d16afc59d807a@mail.gmail.com>
-	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
-	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
-	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
-	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: question for soc-camera driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m395X9Es015824
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 01:33:09 -0400
+Received: from mxout10.netvision.net.il (mxout10.netvision.net.il
+	[194.90.6.38])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m395Wn6P010635
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 01:32:49 -0400
+Received: from mail.linux-boards.com ([62.90.235.247])
+	by mxout10.netvision.net.il
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZ100I74M6CXX50@mxout10.netvision.net.il> for
+	video4linux-list@redhat.com; Wed, 09 Apr 2008 08:35:00 +0300 (IDT)
+Date: Wed, 09 Apr 2008 08:32:41 +0300
+From: Mike Rapoport <mike@compulab.co.il>
+In-reply-to: <Pine.LNX.4.64.0804081729040.4987@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-id: <47FC54F9.1020300@compulab.co.il>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <47FB0742.1060000@compulab.co.il>
+	<Pine.LNX.4.64.0804081729040.4987@axis700.grange>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: PATCH v2] pxa_camera: Add support for YUV modes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,34 +34,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 18 Apr 2008, ·ëöÎ wrote:
 
-> 2008/4/18 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >
-> >  How exactly are you counting lost frames? I just tried several
-> >  configurations - with different number of buffers, writing in tmpfs and
-> >  over nfs, without load and under a ping flood. And I'm counting FIFO
-> >  overrun interrupts. At most I'm getting 1-3 overruns with dropped frames
-> >  in the beginning, and only if I write over NFS.
-> >
-> >  If your system is using drivers, that block interrupts for a considerable
-> >  amount of time, of course DMA done interrupts will be missed, FIFO will
-> >  overflow and frames will be dropped. I don't think you can avoid this
-> >  under such conditions. As I suggested before - you can use more buffers,
-> >  put the frame read-out in a separate thread. As a test try writing to
-> >  RAM-based tmpfs and see if frames get dropped then too.
+
+Guennadi Liakhovetski wrote:
+> On Tue, 8 Apr 2008, Mike Rapoport wrote:
 > 
-> I write in tmpfs.But some frame is dropped.If I request more
-> buffers,the number of dropped frames is reduced.Now I request 20
-> buffers and write 100 frames.the 52,53,56,57 is dropped.
+>> +		struct pxa_cam_dma *buf_dma;
+>> +		struct pxa_cam_dma *act_dma;
+>> +		int channels = 1;
+>> +		int nents;
+>> +		int i;
+>> +
+>> +		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P)
+>> +			channels = 3;
+>> +
+>> +		for (i = 0; i < channels; i++) {
+>> +			buf_dma = &buf->dmas[i];
+>> +			act_dma = &active->dmas[0];
+> 
+> 					   ^^^^^^^
+> 
+> Just came across this accidentally, is the "[0]" above correct?
 
-...and you didn't reply how you're counting frames - this could help me 
-understand why you're losing them.
+It should be "[i]" ...
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
+> 
+
+-- 
+Sincerely yours,
+Mike.
 
 --
 video4linux-list mailing list
