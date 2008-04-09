@@ -1,29 +1,38 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SENEKW026906
-	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:23:14 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SEN38b032124
-	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:23:03 -0400
-Date: Mon, 28 Apr 2008 11:21:50 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-Message-ID: <20080428112150.1c5392f2@gaivota>
-In-Reply-To: <4814ED8B.90503@t-online.de>
-References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
-	<20080426085918.09e8bdc0@gaivota>
-	<481326E4.2070909@pickworth.me.uk>
-	<20080426110659.39fa836f@gaivota>
-	<1209247821.15689.12.camel@pc10.localdom.local>
-	<20080426201940.1507fb82@gaivota>
-	<1209327322.2661.26.camel@pc10.localdom.local>
-	<4814ED8B.90503@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39N3X1q014529
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 19:03:33 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39N3GsH032087
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 19:03:17 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andrew Junev <a-j@a-j.ru>
+In-Reply-To: <1271819320.20080409101744@a-j.ru>
+References: <1115343012.20080318233620@a-j.ru>
+	<200803200048.15063@orion.escape-edv.de>
+	<1206067079.3362.10.camel@pc08.localdom.local>
+	<200803210742.57119@orion.escape-edv.de>
+	<1206912674.3520.58.camel@pc08.localdom.local>
+	<1063704330.20080331082850@a-j.ru>
+	<1206999694.7762.41.camel@pc08.localdom.local>
+	<1112443057.20080402224744@a-j.ru>
+	<1207179525.14887.13.camel@pc08.localdom.local>
+	<1207265002.3364.12.camel@pc08.localdom.local>
+	<20080403221833.34d3c4d6@gaivota>
+	<1207275545.3365.26.camel@pc08.localdom.local>
+	<1076827621.20080406215420@a-j.ru>
+	<1207522685.6334.29.camel@pc08.localdom.local>
+	<1135983778.20080408193408@a-j.ru>
+	<1207702576.5135.42.camel@pc08.localdom.local>
+	<1271819320.20080409101744@a-j.ru>
+Content-Type: text/plain
+Date: Thu, 10 Apr 2008 01:03:10 +0200
+Message-Id: <1207782190.5554.47.camel@pc08.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: linux-dvb@linuxtv.org, video4linux-list@redhat.com, mkrufky@linuxtv.org,
-	gert.vervoort@hccnet.nl
-Subject: Re: [linux-dvb] Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,28 +44,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> > I notice some unwanted behavior when testing md7134 FMD1216ME hybrid
-> > boards.
-> >
-> Aha! I modified my board that it no longer runs with the current driver. But i observed
-> something similar
+Am Mittwoch, den 09.04.2008, 10:17 +0400 schrieb Andrew Junev:
+> > Hi Andrew,
 > 
-> > Unchanged is that the tda9887 is not up for analog after boot.
-> > Previously one did reload "tuner" just once and was done.
-> > 
-> <snip>
-> Don't have the time today, but lets roll back history: Not absolutely sure but if
-> i remember correcly, the initialization sequence can be critical with hybrid tuners /
-> NIM modules. The tda9887 may only be visible on I2C after a certain bit in the MOPLL
-> is set (in byte4?)
+> > Am Dienstag, den 08.04.2008, 19:34 +0400 schrieb Andrew Junev:
+> >> Hello Hermann,
+> >> 
+> >> Monday, April 7, 2008, 2:58:05 AM, you wrote:
+> >> 
+> >> > you always drop the lists.
+> >> 
+> >> Not always. :) I do it just sometimes, when I feel my message doesn't
+> >> contain useful information for everybody on the list.
+> >> But we can move back to the lists, if you think it's more appropriate.
+> >> 
+> >> > I come back to you, if nobody else who is more fluently in just add a
+> >> > patch and compile a vanilla kernel does not move in. 
+> >> 
+> >> Well, I believe I can do it, if noone else does. It shouldn't be that
+> >> hard.
+> >> 
+> >> > I of course know for sure the fix is correct, but the stable team wants
+> >> > a report from a user on 2.6.24 and support for my stuff is new and it is
+> >> > nonsense to bring it down to 2.6.24 to demonstrate it working for
+> >> > someone on 2.6.24 ...
+> >> 
+> >> I wonder how the unpatched driver made its way to 2.6.24 stable...
+> >> Or maybe it's just me who gets affected by this problem that much.
+> >> 
+> >> > B.T.W, why you don't use at least the v4l-dvb master stuff to come over
+> >> > it. Needs no patching :)
+> >> 
+> >> If I ever need to move to 2.6.24 and it gets no patch included by
+> >> then, I'll surely do so! :)
+> >> At the moment I'm perfectly fine with 2.6.23...
+> >> 
+> 
+> > however it will go out for now, seems in the end you will have something
+> > to test ;)
+> 
+> 
+> I have no problems with that! :)
+> 
+> Ok, can you point me to a guide on how to do this? Otherwise I'm
+> affraid I'll waste lots of time just by trying something that I should
+> not...
+> 
+> I'm ready to test it sometime this week.
+> 
 
-If this is the case, we need to initialize the bit at init1, otherwise, this won't work.
+Hi Andrew,
 
-Another option is to migrate saa7134 to the newer i2c probing methods, and let
-tuner be probed after init2.
+Mike has forwarded the patch to the stable kernel team. (Thanks!)
+
+Likely it will be fixed in 2.6.24.5 then.
+
+To build a vanilla kernel is still a very easy task, but there are
+distribution specific helper scripts and customs.
+
+The real problem, that could appear, is that dependencies on other
+utilities are not resolved on your current distribution version anymore
+and you run into some circular dependencies, not easy to resolve and
+then you must know what you are doing exactly or upgrade.
+
+If a 2.6.24 is available for your current stuff, just install it and see
+the missing. If you then install the kernel source for it, we can apply
+the patch also there and build a new kernel.
 
 Cheers,
-Mauro
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
