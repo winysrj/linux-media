@@ -1,25 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3RLIMVU030490
-	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 17:18:22 -0400
-Received: from mailout06.t-online.de (mailout06.t-online.de [194.25.134.19])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3RLIAsH003757
-	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 17:18:10 -0400
-Message-ID: <4814ED8B.90503@t-online.de>
-Date: Sun, 27 Apr 2008 23:18:03 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <20080425114526.434311ea@gaivota>
-	<4811F391.1070207@linuxtv.org>	<20080426085918.09e8bdc0@gaivota>
-	<481326E4.2070909@pickworth.me.uk>	<20080426110659.39fa836f@gaivota>	<1209247821.15689.12.camel@pc10.localdom.local>	<20080426201940.1507fb82@gaivota>
-	<1209327322.2661.26.camel@pc10.localdom.local>
-In-Reply-To: <1209327322.2661.26.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39KiFsT028690
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 16:44:15 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39Ki2rj019502
+	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 16:44:02 -0400
+Date: Wed, 9 Apr 2008 17:42:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Aidan Thornton" <makosoft@googlemail.com>
+Message-ID: <20080409174216.3844d0ee@areia>
+In-Reply-To: <c8b4dbe10804090626l6b2b10d9p1c22e02dfe2850fe@mail.gmail.com>
+References: <patchbomb.1206699511@localhost>
+	<ab74ebf10c01d6a8a54a.1206699517@localhost>
+	<20080405131236.7c083554@gaivota>
+	<20080406080011.GA3596@plankton.ifup.org>
+	<20080407183226.703217fc@gaivota>
+	<20080408152238.GA8438@plankton.public.utexas.edu>
+	<20080408154046.36766131@gaivota>
+	<c8b4dbe10804081306xb1e8f91q64d1e6d18d3d2531@mail.gmail.com>
+	<20080408175038.2966691d@gaivota>
+	<c8b4dbe10804090626l6b2b10d9p1c22e02dfe2850fe@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: linux-dvb@linuxtv.org, video4linux-list@redhat.com, mkrufky@linuxtv.org,
-	gert.vervoort@hccnet.nl, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linux-dvb] Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+Cc: v4l <video4linux-list@redhat.com>, Brandon Philips <bphilips@suse.de>
+Subject: Re: [PATCH 6 of 9] videobuf-vmalloc.c: Fix hack of postponing mmap
+ on remap failure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,83 +37,101 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Hermann, Mauro
+On Wed, 9 Apr 2008 14:26:46 +0100
+"Aidan Thornton" <makosoft@googlemail.com> wrote:
 
-hermann pitton schrieb:
-> Hi,
+> On Tue, Apr 8, 2008 at 9:50 PM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> > > >  With 6/9 or with this patch, the allocation will happen when you try to use an
+> >  > >  mmap command. This can happen on streamon, reqbufs, dqbuf, qbuf or reqbuf.
+> >  > >
+> >  > >  Sorry, but I think I missed your point.
+> >  >
+> >  > I think I agree with Brandon. Allocating the buffers in reqbufs is
+> >  > what the existing em28xx driver does. It saves a bit of complexity in
+> >  > that you just have to allocate the buffers from one place and it seems
+> >  > to be what the v4l2 API expects. (Apps have to call reqbufs first, but
+> >  > the API doesn't put any real restrictions on what order they
+> >  > mmap/munmap or queue/dequeue the buffers afterwards, and the API also
+> >  > forbids apps from calling reqbufs with the existing buffers mapped or
+> >  > streaming turned on which makes life easier). It's what I was going to
+> >  > suggest, actually.
+> >
+> >  I'm still missed. I don't see what's the difference on what patch 6/9 were
+> >  expecting to do and the proposed patch, in terms of adding a restriction of not
+> >  accepting other mmap commands, without getting a REQBUFS.
+> >
+> >  The current way that videobuf works is the one that userspace apps expect. If
+> >  we change videobuf behavior, for a given userspace API command, we risk to
+> >  break some userspace app.
 > 
-> Am Samstag, den 26.04.2008, 20:19 -0300 schrieb Mauro Carvalho Chehab:
->> On Sun, 27 Apr 2008 00:10:21 +0200
->> hermann pitton <hermann-pitton@arcor.de> wrote:
->>> Cool stuff!
->>>
->>> Works immediately for all tuners again. Analog TV, radio and DVB-T on
->>> that machine is tested.
->>>
->>> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
->> Thanks. I'll add it to the patch.
->>
->>> Maybe Hartmut can help too, but I will test also on the triple stuff and
->>> the FMD1216ME/I MK3 hybrid tomorrow.
->> Thanks.
->>
->> It would be helpful if tda9887 conf could also be validated. I didn't touch at
->> the logic, but I saw some weird things:
->>
->> For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
->> 	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
->>
->> And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
->>
->> However, there's an autodetection code that changes from EUROPA to SNAKE,
->> without cleaning tda9887_conf:
->>
->>         case SAA7134_BOARD_PHILIPS_EUROPA:
->>                 if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
->>                         /* Reconfigure board as Snake reference design */
->>                         dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
->>                         dev->tuner_type = saa7134_boards[dev->board].tuner_type;
->>                         printk(KERN_INFO "%s: Reconfigured board as %s\n",
->>                                 dev->name, saa7134_boards[dev->board].name);
->>                         break;
->>
->> I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
->> code should be doing, instead:
->>
->> 	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
->>
->> If the right thing to do is to initialize SNAKE with the same tda9887
->> parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
->> entry.
->>
->> Cheers,
->> Mauro
-> 
-> Hartmut has the board and knows better, but it looks like it only has
-> DVB-S and external analog video inputs. There is TUNER_ABSENT set, no
-> analog tuner, no tda9887 and also no DVB-T, but it unfortunately shares
-> the subsystem with the Philips Europa.
-> 
-Hermann is right, SNAKE has no analog tuner. These boards indeed share the same PCI ID,
-This code fragment reads the tuner ID from the eeprom to find out which board is there.
+> Either way, mmap isn't allowed without a REQBUFS first, and videobuf
+> enforces this. The question is, what orderings of mmap/munmap and
+> streamon/streamoff are allowed once you've called REQBUFS - if I'm
+> reading the docs correctly, you're allowed to interleave mmap/munmap
+> and streamon/streamoff in whatever order you like, don't have to mmap
+> buffers before queuing them, etc. In practice, apps don't, but the
+> possible combinations at least need to be handled cleanly.
 
-> I notice some unwanted behavior when testing md7134 FMD1216ME hybrid
-> boards.
->
-Aha! I modified my board that it no longer runs with the current driver. But i observed
-something similar
+One patch that worked is this one:
+	http://linuxtv.org/hg/~mchehab/tm6010/rev/e1a2b9e33bd2
 
-> Unchanged is that the tda9887 is not up for analog after boot.
-> Previously one did reload "tuner" just once and was done.
+I tried first to use spinlock before vfree(), but kernel complained. I suspect
+that vfree() can sleep.
+
+So, what the above patch does is to streamoff() before unmapping. This seems to
+be correct to my eyes, since there's no sense of keeping streamon() if the
+buffers are unmapped.
+
+I didn't pushed it on em28xx yet, since I'm trying to fix another bug there.
+
+> In what way do you expect userspace apps to break?
 > 
-<snip>
-Don't have the time today, but lets roll back history: Not absolutely sure but if
-i remember correcly, the initialization sequence can be critical with hybrid tuners /
-NIM modules. The tda9887 may only be visible on I2C after a certain bit in the MOPLL
-is set (in byte4?)
+> >
+> >  > >  A fix could be to disable IRQ during that interval of time, and/or protecting
+> >  > >  with a spinlock.
+> >  >
+> >  > What you're doing in the attached patch won't trigger the issue, since
+> >  > you're calling VIDIOC_STREAMOFF before munmap and that dequeues all
+> >  > buffers. Try removing the calls to stop_capturing and start_capturing
+> >  > around uninit_device / init_device. I haven't tried it, but you should
+> >  > be prepared to get a kernel panic.
+> >
+> >  The tests I did covers the issue of unmapping/remapping. As we've already
+> >  discussed, something else should be added to allow unmapping without streamoff.
+> >
+> >  The same kind of issue seems to apply also to videobuf-dma-sg. In fact, it is
+> >  even worse with dma: since buffers will be filled without CPU, just disabling
+> >  IRQ, or running a spinlock doesn't solve. You'll need to stop DMA before unmapping.
+> 
+> Actually, videobuf-dma-sg works in a quite interesting way - it
+> actually treats mmap'ed IO essentially the same as userptr IO, just
+> with some additional code to allocate the user pages.
 
-Best regards
-   Hartmut
+I've started to write a patch to add the same functionality. Didn't finished
+yet. I'm not sure if it would be important to provide userspace mmapped IO. I
+suspect that most apps are using read() or kernel mmap() interfaces.
+
+> Shutting off DMA on munmap wouldn't help, since the buffer could be a userptr one in
+> some anonymous mapping entirely unrelated to the device.  I'm not sure
+> whether or not this is an issue; I'd have to check the small print on
+> the code that pins the pages in RAM, and I can't find it.
+
+I suspect that the issue exists with DMA, although there's a sync routine
+there, that may help to avoid such issues. But I think that the same strategy of
+doing a streamoff before unmap should be used for kernel mmapped memory.
+
+> (There's also some code to allocate bounce buffers in the mmap case if
+> it doesn't have a userland address for the buffer yet. I'm not
+> convinced this actually works.)
+
+It should work. you can test it with "capture_example -u". Unfortunately, I
+can't test here right now, since the desktop I use here for testing PCI devices
+is burned. I'll need to save some money to buy another motherboard or to
+replace the machine.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
