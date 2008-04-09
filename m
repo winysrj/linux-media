@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.elion.ee ([88.196.160.58] helo=mail1.elion.ee)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kasjas@hot.ee>) id 1JjZkq-0005oP-MZ
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 14:50:23 +0200
-Message-ID: <47FCBB61.20804@hot.ee>
-Date: Wed, 9 Apr 2008 15:49:37 +0300
-From: Arthur Konovalov <kasjas@hot.ee>
+	(envelope-from <abraham.manu@gmail.com>) id 1JjblQ-0000Qj-Le
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 16:59:05 +0200
+Message-ID: <47FCDB9A.5040807@gmail.com>
+Date: Wed, 09 Apr 2008 19:07:06 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <Pine.LNX.4.64.0803201256390.4638@eeyore.nlsn.nu>
-	<1206610705.12385.7.camel@rommel.snap.tv>
-In-Reply-To: <1206610705.12385.7.camel@rommel.snap.tv>
-Subject: Re: [linux-dvb] TT-Budget C-1501 not working
+To: Janne Grunau <janne-dvb@grunau.be>
+References: <200803292240.25719.janne-dvb@grunau.be>
+In-Reply-To: <200803292240.25719.janne-dvb@grunau.be>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+ dvb	adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,17 +26,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sigmund Augdal wrote:
-> The card uses the tda10023 demod (for which there is a driver in the
-> sources) and a tda8274A tuner (which the tda827x driver hopefully will
-> handle). So all that should be needed is some glue code.
+Janne Grunau wrote:
+> Hi,
+> 
+> I resubmit this patch since I still think it is a good idea to the this 
+> driver option. There is still no udev recipe to guaranty stable dvb 
+> adapter numbers. I've tried to come up with some rules but it's tricky 
+> due to the multiple device nodes in a subdirectory. I won't claim that 
+> it is impossible to get udev to assign driver or hardware specific 
+> stable dvb adapter numbers but I think this patch is easier and more 
+> clean than a udev based solution.
+> 
+> I'll drop this patch if a simple udev solution is found in a reasonable 
+> amount of time. But if there is no I would like to see the attached 
+> patch merged.
 
-It would be good to me too, as I have this card from yesterday ;)
-I took a look to source code, but it is too much for my little programming skills :(
+As i wrote sometime back, adding adapter numbers to adapters is bad.
 
-AK
+In fact, when the kernel advocates udev, working around it is no
+solution, but finding the problem and fixing the basic problem is more
+important, rather than workarounds.
 
+http://www.gentoo.org/doc/en/udev-guide.xml
+http://reactivated.net/writing_udev_rules.html
 
+If there is a general udev issue, it should be taken up with udev and
+not working around within adapter drivers.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
