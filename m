@@ -1,28 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m341eRYg025979
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 21:40:27 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m341e7hX010020
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 21:40:08 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JhauS-00065O-EL
-	for video4linux-list@redhat.com; Fri, 04 Apr 2008 01:40:05 +0000
-Received: from c9346dce.virtua.com.br ([201.52.109.206])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 01:40:04 +0000
-Received: from fragabr by c9346dce.virtua.com.br with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 01:40:04 +0000
-To: video4linux-list@redhat.com
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Date: Thu, 3 Apr 2008 22:38:39 -0300
-Message-ID: <20080403223839.10ecde54@tux.abusar.org.br>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m390ub9B003553
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 20:56:37 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m390uOkv006504
+	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 20:56:24 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andrew Junev <a-j@a-j.ru>
+In-Reply-To: <1135983778.20080408193408@a-j.ru>
+References: <1115343012.20080318233620@a-j.ru>
+	<200803200048.15063@orion.escape-edv.de>
+	<1206067079.3362.10.camel@pc08.localdom.local>
+	<200803210742.57119@orion.escape-edv.de>
+	<1206912674.3520.58.camel@pc08.localdom.local>
+	<1063704330.20080331082850@a-j.ru>
+	<1206999694.7762.41.camel@pc08.localdom.local>
+	<1112443057.20080402224744@a-j.ru>
+	<1207179525.14887.13.camel@pc08.localdom.local>
+	<1207265002.3364.12.camel@pc08.localdom.local>
+	<20080403221833.34d3c4d6@gaivota>
+	<1207275545.3365.26.camel@pc08.localdom.local>
+	<1076827621.20080406215420@a-j.ru>
+	<1207522685.6334.29.camel@pc08.localdom.local>
+	<1135983778.20080408193408@a-j.ru>
+Content-Type: text/plain
+Date: Wed, 09 Apr 2008 02:56:16 +0200
+Message-Id: <1207702576.5135.42.camel@pc08.localdom.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/Yq2Q_nqmSsBO1c2W6g_xjma"
-Subject: [PATCH]: Powercolor Real Angel 330 (remote control support and
- fixes for gpio references)
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,147 +42,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---MP_/Yq2Q_nqmSsBO1c2W6g_xjma
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Andrew,
 
-	The attached patch fixes gpio references for
-Powercolor Real Angel 330 and adds complete remote control support.
+Am Dienstag, den 08.04.2008, 19:34 +0400 schrieb Andrew Junev:
+> Hello Hermann,
+> 
+> Monday, April 7, 2008, 2:58:05 AM, you wrote:
+> 
+> > you always drop the lists.
+> 
+> Not always. :) I do it just sometimes, when I feel my message doesn't
+> contain useful information for everybody on the list.
+> But we can move back to the lists, if you think it's more appropriate.
+> 
+> > I come back to you, if nobody else who is more fluently in just add a
+> > patch and compile a vanilla kernel does not move in. 
+> 
+> Well, I believe I can do it, if noone else does. It shouldn't be that
+> hard.
+> 
+> > I of course know for sure the fix is correct, but the stable team wants
+> > a report from a user on 2.6.24 and support for my stuff is new and it is
+> > nonsense to bring it down to 2.6.24 to demonstrate it working for
+> > someone on 2.6.24 ...
+> 
+> I wonder how the unpatched driver made its way to 2.6.24 stable...
+> Or maybe it's just me who gets affected by this problem that much.
+> 
+> > B.T.W, why you don't use at least the v4l-dvb master stuff to come over
+> > it. Needs no patching :)
+> 
+> If I ever need to move to 2.6.24 and it gets no patch included by
+> then, I'll surely do so! :)
+> At the moment I'm perfectly fine with 2.6.23...
+> 
 
-	Thanks to Markus Rechberger, Mauro Chehab and Daniel
-Gimpelevich.
+however it will go out for now, seems in the end you will have something
+to test ;)
 
--- 
-Linux 2.6.24: Arr Matey! A Hairy Bilge Rat!
-http://u-br.net
+Cheers,
+Hermann
 
---MP_/Yq2Q_nqmSsBO1c2W6g_xjma
-Content-Type: text/plain; name=powercolor-patch.txt
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment; filename=powercolor-patch.txt
-
-Signed-off-by: D=E2niel Fraga <fragabr@gmail.com>
-
---- a/linux/drivers/media/video/cx88/cx88-cards.c	Thu Apr  3 17:08:04 2008
-+++ b/linux/drivers/media/video/cx88/cx88-cards.c	Thu Apr  3 20:58:04 2008
-@@ -1542,28 +1542,26 @@
- 		.input          =3D { {
- 			.type   =3D CX88_VMUX_TELEVISION,
- 			.vmux   =3D 0,
--			.gpio0 =3D 0x0400, /* pin 2:mute =3D 0 (off?) */
-+			.gpio0 =3D 0x00ff,
- 			.gpio1 =3D 0xf35d,
--			.gpio2 =3D 0x0800, /* pin 19:audio =3D 0 (tv) */
-+			.gpio3 =3D 0x0000,
- 		}, {
- 			.type   =3D CX88_VMUX_COMPOSITE1,
- 			.vmux   =3D 1,
--			.gpio0 =3D 0x0400, /* probably?  or 0x0404 to turn mute on */
--			.gpio1 =3D 0x0000,
--			.gpio2 =3D 0x0808, /* pin 19:audio =3D 1 (line) */
-+			.gpio0 =3D 0x00ff,
-+			.gpio1 =3D 0xf37d,
-+			.gpio3 =3D 0x0000,
- 		}, {
- 			.type   =3D CX88_VMUX_SVIDEO,
- 			.vmux   =3D 2,
- 			.gpio0  =3D 0x000ff,
- 			.gpio1  =3D 0x0f37d,
--			.gpio2  =3D 0x00019,
- 			.gpio3  =3D 0x00000,
- 		} },
- 		.radio =3D {
- 			.type   =3D CX88_RADIO,
- 			.gpio0  =3D 0x000ff,
- 			.gpio1  =3D 0x0f35d,
--			.gpio2  =3D 0x00019,
- 			.gpio3  =3D 0x00000,
- 		},
- 	},
---- a/linux/drivers/media/video/cx88/cx88-input.c	Thu Apr  3 17:08:04 2008
-+++ b/linux/drivers/media/video/cx88/cx88-input.c	Thu Apr  3 20:58:04 2008
-@@ -330,6 +330,12 @@
- 		ir_type =3D IR_TYPE_RC5;
- 		ir->sampling =3D 1;
- 		break;
-+	case CX88_BOARD_POWERCOLOR_REAL_ANGEL:
-+		ir_codes =3D ir_codes_powercolor_real_angel;
-+		ir->gpio_addr =3D MO_GP2_IO;
-+		ir->mask_keycode =3D 0x7e;
-+		ir->polling =3D 100; /* ms */
-+		break;
- 	}
-=20
- 	if (NULL =3D=3D ir_codes) {
---- a/linux/drivers/media/common/ir-keymaps.c	Thu Apr  3 17:08:04 2008
-+++ b/linux/drivers/media/common/ir-keymaps.c	Thu Apr  3 20:58:31 2008
-@@ -2134,3 +2134,46 @@
- 	[0x50] =3D KEY_BLUE,
- };
- EXPORT_SYMBOL_GPL(ir_codes_genius_tvgo_a11mce);
-+
-+/*
-+ * Remote control for Powercolor Real Angel 330
-+ * D=E2niel Fraga <fragabr@gmail.com>
-+ */
-+IR_KEYTAB_TYPE ir_codes_powercolor_real_angel[IR_KEYTAB_SIZE] =3D {
-+	[0x38] =3D KEY_SWITCHVIDEOMODE,	/* switch inputs */
-+	[0x0c] =3D KEY_MEDIA,		/* Turn ON/OFF App */
-+	[0x00] =3D KEY_0,
-+	[0x01] =3D KEY_1,
-+	[0x02] =3D KEY_2,
-+	[0x03] =3D KEY_3,
-+	[0x04] =3D KEY_4,
-+	[0x05] =3D KEY_5,
-+	[0x06] =3D KEY_6,
-+	[0x07] =3D KEY_7,
-+	[0x08] =3D KEY_8,
-+	[0x09] =3D KEY_9,=09
-+	[0x0a] =3D KEY_DIGITS,		/* single, double, tripple digit */
-+	[0x29] =3D KEY_PREVIOUS,		/* previous channel */=09
-+	[0x12] =3D KEY_BRIGHTNESSUP,
-+	[0x13] =3D KEY_BRIGHTNESSDOWN,
-+	[0x2b] =3D KEY_MODE,		/* stereo/mono */
-+	[0x2c] =3D KEY_TEXT,		/* teletext */	=09
-+	[0x20] =3D KEY_UP,		/* channel up */
-+	[0x21] =3D KEY_DOWN,		/* channel down */
-+	[0x10] =3D KEY_RIGHT,		/* volume up */
-+	[0x11] =3D KEY_LEFT,		/* volume down */
-+	[0x0d] =3D KEY_MUTE,
-+	[0x1f] =3D KEY_RECORD,=09
-+	[0x17] =3D KEY_PLAY,
-+	[0x16] =3D KEY_PAUSE,
-+	[0x0b] =3D KEY_STOP,
-+	[0x27] =3D KEY_FASTFORWARD,
-+	[0x26] =3D KEY_REWIND,
-+	[0x1e] =3D KEY_SEARCH,		/* autoscan */
-+	[0x0e] =3D KEY_SHUFFLE,		/* snapshot */
-+	[0x2d] =3D KEY_SETUP,
-+	[0x0f] =3D KEY_SCREEN,		/* full screen */
-+	[0x14] =3D KEY_RADIO,		/* FM radio */
-+	[0x25] =3D KEY_POWER,		/* power */
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_powercolor_real_angel);
---- a/linux/include/media/ir-common.h	Thu Apr  3 17:08:04 2008
-+++ b/linux/include/media/ir-common.h	Thu Apr  3 20:58:22 2008
-@@ -144,6 +144,7 @@
- extern IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_powercolor_real_angel[IR_KEYTAB_SIZE];
-=20
- #endif
-=20
-
---MP_/Yq2Q_nqmSsBO1c2W6g_xjma
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---MP_/Yq2Q_nqmSsBO1c2W6g_xjma--
