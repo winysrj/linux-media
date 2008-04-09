@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sd-green-dreamhost-133.dreamhost.com ([208.97.187.133]
-	helo=webmail2.sd.dreamhost.com)
+Received: from wx-out-0506.google.com ([66.249.82.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <elfarto@elfarto.com>) id 1Jkk0H-0000Tb-BE
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 19:59:06 +0200
-Received: from webmail.elfarto.com (localhost [127.0.0.1])
-	by webmail2.sd.dreamhost.com (Postfix) with ESMTP id 79066DC6F8
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 10:58:59 -0700 (PDT)
-Message-ID: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
-Date: Sat, 12 Apr 2008 10:58:59 -0700 (PDT)
-From: "Stephen Dawkins" <elfarto@elfarto.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <zdenek.kabelac@gmail.com>) id 1JjVhX-0001i2-B5
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 10:30:40 +0200
+Received: by wx-out-0506.google.com with SMTP id s11so2591443wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 01:30:32 -0700 (PDT)
+Message-ID: <c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
+Date: Wed, 9 Apr 2008 10:30:30 +0200
+From: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <47FC373F.5060006@iki.fi>
 MIME-Version: 1.0
-Subject: [linux-dvb] TT-Budget C-1501
+Content-Disposition: inline
+References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
+	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
+	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
+	<47FC373F.5060006@iki.fi>
+Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
+Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,59 +31,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+2008/4/9, Antti Palosaari <crope@iki.fi>:
+> Zdenek Kabelac wrote:
+>
+> > As it looks like my AverTV Hybrid Volar HX is a little bit of no use
+> > for quite some time -
+> > and your afatech driver seems to helpfull to many other users - maybe you
+> could
+> > try to make it help for me as well ??
+> >
+>
+>  I can try :)
 
-I've recently purchased a Technotrend C-1501 card and I've been trying
-to get it to work under Linux.
+Great ;)
 
-I'm not entirely sure what's needed to get it working. I've added the
-following code to drivers/media/dvb/ttpci/budget.c:
+>
+>  version 4.95 is the latest one.
+> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
 
-in frontend_init:
-   case 0x101a: // TT Budget-C-1501 (philips tda10023/philips tda8274A)
-       budget->dvb_frontend = dvb_attach(tda10023_attach,
-&tda1002x_config, &budget->i2c_adap, read_pwm(budget));
-       if (budget->dvb_frontend) {
-          if (dvb_attach(tda827x_attach, budget->dvb_frontend, 0x0e,
-&budget->i2c_adap, 0) == NULL)
-             printk("%s: No tda827x found!\n", __FUNCTION__);
-          break;
-       }
-    }
+Yep that should be the one I'm using I guess
 
-and the relevant MAKE_BUDGET_INFO and MAKE_EXTENTION_PCI entries. I'm
-not entirely sure, but I think the demodulator is on 0x0c on the i2c bus
-and the tuner is on 0x0e, is there a way of confirming this?
+>  Are you really sure it is Afatech AF9015? Looks like all USB-messages are
+> failing. The only thing this could happen is that device is not AF9015 or it
+> is badly broken.
 
-When I modprobe budget, I get the follow:
-
-saa7146: register extension 'budget dvb'.
-ACPI: PCI Interrupt 0000:00:08.0[A] -> GSI 16 (level, low) -> IRQ 17
-saa7146: found saa7146 @ mem f8de2000 (revision 1, irq 17) (0x13c2,0x101a).
-budget: budget_attach(): dev:f7281580, info:f8df5c20, budget:f7173000
-budget_core: ttpci_budget_init(): dev: f7281580, budget: f7173000
-budget_core: ttpci_budget_init(): saa7146 (0): buffer type = single,
-width = 188, height = 1024
-saa7146 (0): dma buffer size 192512
-DVB: registering new adapter (TT-budget-C-1501)
-adapter has MAC addr = 00:d0:5c:c6:4f:01
-budget_core: budget_register(): budget: f7173000
-DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-
-I also get demux0, dvr0, frontend0 and net0 in /dev/dvb0.
-
-I then do a dvbtune -f 666750000 -s 6952, and I get:
-
-saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-
-I'm not entirely sure what I need todo next to get it working, any help
-will be greatly appreciated.
-
-Thanks & Regards
-Stephen
+Well it's AF9013 - but as could be seen in the source - the code looks like
+it should support both chips  AF9015 & AF9013 - do I had to set manually
+some bits somewhere ?
 
 
+>  Open stick and see chips used. Taking good resolution photo or two from PCB
+> (stick motherboard) would be also nice.
+
+Yep - I've already described chips in this device in my December post.
+
+Now there are even some articles about this AvetTV Hybrid Volar HX device
+- this one is in Czech - but the chip names should be understandable I guess :)
+
+Here is article:
+
+http://www.tvfreak.cz/art_doc-706394B9D247B386C12573F9003B14B5.html
+
+
+And here is detailed photo of the AF9013 chip in there:
+
+http://www.tvfreak.cz/tvf/media.nsf/v/B0DE86EDCE9E9972C12573F900407CF3/$file/dsc_0145_large.jpg
+
+
+Regards
+
+Zdenek
 
 _______________________________________________
 linux-dvb mailing list
