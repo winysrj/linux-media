@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sd-green-dreamhost-133.dreamhost.com ([208.97.187.133]
-	helo=webmail4.sd.dreamhost.com)
+Received: from smtp-out3.libero.it ([212.52.84.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <elfarto@elfarto.com>) id 1JmRIU-0004Ck-96
-	for linux-dvb@linuxtv.org; Thu, 17 Apr 2008 12:24:59 +0200
-Message-ID: <34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>
-In-Reply-To: <1208422406.12385.295.camel@rommel.snap.tv>
-References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
-	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>
-	<4803C2FA.1010408@hot.ee>  <48065CB6.50709@elfarto.com>
-	<1208422406.12385.295.camel@rommel.snap.tv>
-Date: Thu, 17 Apr 2008 03:24:48 -0700 (PDT)
-From: "Stephen Dawkins" <elfarto@elfarto.com>
-To: "Sigmund Augdal" <sigmund@snap.tv>
+	(envelope-from <sioux_it@libero.it>) id 1JjgDf-0002Je-Jd
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 21:44:36 +0200
+Received: from outrelay08.libero.it (192.168.32.103) by smtp-out3.libero.it
+	(7.3.120) id 4628C87A09FD21CD for linux-dvb@linuxtv.org;
+	Wed, 9 Apr 2008 21:43:55 +0200
+Message-ID: <47FD1C72.8050208@libero.it>
+Date: Wed, 09 Apr 2008 21:43:46 +0200
+From: sioux <sioux_it@libero.it>
 MIME-Version: 1.0
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Arthur Konovalov <kasjas@hot.ee>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
+	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
+	<47FBD252.3090701@t-online.de>
+In-Reply-To: <47FBD252.3090701@t-online.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,90 +30,91 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
 
+
+Hartmut Hackmann ha scritto:
 > Hi,
 >
-> I have also added support for this card based on the little change you
-> showed here and some looking around in other drivers. I have gotten
-> information from technotrend that the proper i2c address for the tuner
-> is 0x61 (or 0xc2 as these adresses sometimes appear shifted for some
-> reason). With this address and the tuner driver loaded in debug mode I
-> seem to get some more response from the tuner, but still no lock.
->
-
-Yes, I notice this last night. The demod is on 0x0c (altho I was told
-0x18, which is 0x0c shift left 1 position) and the tuner is on 0x61 (which
-is 0xc2 shift left 1 pos).
-
-> Now looking at the tda827x.c sources it seems this driver was
-> specifically written for dvb-t usage, and I'm uncertain wether it would
-> work out of the box for dvb-c. There are also some parts of the code I
-> don't understand, for instance the agcf callback. Harmut, do you know
-> anything more about this? The AGC2 gain value that is printed in debug
-> usually show 4 or 5 now, does this indicate a good signal or a bad
-> signal?
->
-
-This is exactly what I am getting at the moment.
-
-> Also there is still the occational i2c timeouts that Stephen reported.
-
-I'm still seeing these.
-
-Regards
-Stephen
-
-> I'm not sure wether they are caused by the tuner or the demod, but they
-> appear to come so seldom that it should be able to complete a tuning
-> cycle. Any feedback on this would be welcome as well. Maybe Oliver has
-> some suggestions how to debug this?
->
-> Best regards
->
-> Sigmund Augdal
->
-> ons, 16.04.2008 kl. 21.08 +0100, skrev Stephen Dawkins:
->> Arthur Konovalov wrote:
->> > Stephen Dawkins wrote:
->> >
->> >>>>I'm not entirely sure what I need todo next to get it working, any
->> help
->> >>>>will be greatly appreciated.
->> >>>
->> >>>See m920x.c or saa7134-dvb.c for drivers using tda10046 and/or
->> tda827x.
->> >>>
->> >>
->> >>I will take a look at them.
->> >>
->> >
->> > Hi,
->> > do You have progress in that direction?
->> > I'll very concerned, because I have this card too.
->> >
->> > Arthur
->> >
+> sioux schrieb:
+>> Hi all!
 >>
->> Not yet I'm afraid.
+>> here similar problem with 7134_alsa module:
 >>
->> Regards
->> Stephen
+>> saa7134_alsa: disagrees about version of symbol snd_ctl_add
+>> saa7134_alsa: Unknown symbol snd_ctl_add
+>> saa7134_alsa: disagrees about version of symbol snd_pcm_new
+>> saa7134_alsa: Unknown symbol snd_pcm_new
+>> saa7134_alsa: disagrees about version of symbol snd_card_register
+>> saa7134_alsa: Unknown symbol snd_card_register
+>> saa7134_alsa: disagrees about version of symbol snd_card_free
+>> saa7134_alsa: Unknown symbol snd_card_free
+>> saa7134_alsa: disagrees about version of symbol snd_pcm_stop
+>> saa7134_alsa: Unknown symbol snd_pcm_stop
+>> saa7134_alsa: disagrees about version of symbol snd_ctl_new1
+>> saa7134_alsa: Unknown symbol snd_ctl_new1
+>> saa7134_alsa: disagrees about version of symbol snd_card_new
+>> saa7134_alsa: Unknown symbol snd_card_new
+>> saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
+>> saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl
+>> saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops
+>> saa7134_alsa: Unknown symbol snd_pcm_set_ops
+>> saa7134_alsa: disagrees about version of symbol 
+>> snd_pcm_hw_constraint_integer
+>> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer
+>> saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed
+>> saa7134_alsa: Unknown symbol snd_pcm_period_elapsed
+>> saa7134_alsa: disagrees about version of symbol 
+>> snd_pcm_hw_constraint_step
+>> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step
 >>
->> >
->> > _______________________________________________
->> > linux-dvb mailing list
->> > linux-dvb@linuxtv.org
->> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->> >
+>> This is my alsa version:
+>> cat /proc/asound/version
+>> advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16 
+>> 14:57:44 2007 UTC)
 >>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>> This is my kernel version:
+>> uname -a
+>> Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 
+>> 09:57:10 UTC 2008 i686 GNU/Linux
 >>
+>> This is my saa7134 version and card:
+>>
+>> saa7130/34: v4l2 driver version 0.2.14 loaded
+>> saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32, 
+>> mmio: 0xed000000
+>> saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056 
+>> PCI [card=131,autodetected]
+>> saa7133[0]: board init: gpio is 40000
+>> tuner' 0-0042: chip found @ 0x84 (saa7133[0])
+>>
+>>
+>> Make rmmod do not solve the problem!
+>>
+> <snip> _______________________________________________________________
 >
+> A "make rmmod" does *not* always work: If a device is in use, the 
+> kernel will
+> refuse to remove the module. You should find an appropriate error 
+> message.
+> You can have i.e. this situation:
+> If you load the modules a boot time and you run kde, the mixer desktop 
+> applet
+> will open the mixer of the saa7134-alsa device.
+> So you will not be able to unload and thus update the driver before 
+> you closed
+> the kmix applet.
+> There are many other possibilities.
 >
+> Hartmut
+>
+sudo killall mixer_applet2
+sudo rmmod saa7134 saa7134_alsa saa7134_dvb
+
+and than sudo make rmmod
+
+does not solve the problem!
+
+sioux
 
 
 
