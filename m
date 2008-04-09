@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from wf-out-1314.google.com ([209.85.200.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1Jn5e8-00031B-99
-	for linux-dvb@linuxtv.org; Sat, 19 Apr 2008 07:30:05 +0200
-Message-ID: <D6E795B1149343418741C00C60CB5AC7@mce>
-From: "David Porter" <dvb-t@iinet.com.au>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-References: <015201c89859$bc7821c0$3500a8c0@crappyxpbox>
-	<01e801c89b8e$b9031f30$3500a8c0@crappyxpbox>
-	<1208031413.3708.13.camel@pc08.localdom.local>
-Date: Sat, 19 Apr 2008 15:29:46 +1000
+	(envelope-from <drescherjm@gmail.com>) id 1JjcF4-0002L4-Gs
+	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 17:29:43 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so2662555wfa.17
+	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 08:29:37 -0700 (PDT)
+Message-ID: <387ee2020804090829h62c29441i3ade07daef43c372@mail.gmail.com>
+Date: Wed, 9 Apr 2008 11:29:36 -0400
+From: "John Drescher" <drescherjm@gmail.com>
+To: "Frederic CAND" <frederic.cand@anevia.com>
+In-Reply-To: <47FCD8C6.1000407@anevia.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <47FCD8C6.1000407@anevia.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend T-3000 DVB-T PCI Hybrid Card
+Subject: Re: [linux-dvb] Analog card with Hardware MPEG2 Enc
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,246 +28,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Hermann
+On Wed, Apr 9, 2008 at 10:55 AM, Frederic CAND <frederic.cand@anevia.com> wrote:
+> Hi all,
+>
+>  I'm looking for a good PCI card, supporting Analog input (Composite,
+>  S-Video, Pal/Secam Tuner) and providing MPEG2/TS.
+>
+>  We were using KNC1 TVStation DVR cards until now (w/ saa6752hs chip) on
+>  the servers we build but we have to change (card status is "end of
+>  life") and are looking for similar cards.
+>
+>  Does anybody have a hint if such a card exist or not ?
+>
+>  Hardware MPEG2 encoding (TS encapsulation) is an important matter for
+>  us, to avoid having Software MPEG2 encoding.
+>
+Hauppage PVR150
 
-Thank you for your help with this.
-I have been away and today is the first chance I have had to re-visit it.
-
-It does look like we are getting somewhere....
-
-After trying your suggestions, it seems that the tuner is located at 0x43 . 
-Please see demesg below.
-
-The card is installed in a MythTV 8.04 Beta machine and I fired up the 
-backend setup.
-The card is registered o.k. as DVB0 but when I do a channel scan, it cannot 
-find any channels.
-
-Please let me know what else you would like me to try.
-
-Thanks & regards
-David
-
-[ 2072.184027] Linux video capture interface: v2.00
-[ 2072.209134] saa7130/34: v4l2 driver version 0.2.14 loaded
-[ 2072.209171] saa7133[0]: found at 0000:01:07.0, rev: 240, irq: 22, 
-latency: 32, mmio: 0xf3005000
-[ 2072.209176] saa7133[0]: subsystem: 13c2:2804, board: Philips EUROPA V3 
-reference design [card=69,insmod option]
-[ 2072.209181] saa7133[0]: board init: gpio is c50000
-[ 2072.269640] saa7133[0]: i2c eeprom 00: c2 13 04 28 54 20 1c 00 43 43 a9 
-1c 55 d2 b2 92
-[ 2072.269649] saa7133[0]: i2c eeprom 10: 00 00 00 00 ff 20 ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.269655] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 ff 03 01 08 ff 01 
-b7 ff ff ff ff
-[ 2072.269661] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.269667] saa7133[0]: i2c eeprom 40: ff de 00 c6 86 10 ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.269673] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.269679] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.269685] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff
-[ 2072.273726] saa7133[0]: i2c scan: found device @ 0x10  [???]
-[ 2072.278730] saa7133[0]: i2c scan: found device @ 0x86  [tda9887]
-[ 2072.282365] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-[ 2072.286000] saa7133[0]: i2c scan: found device @ 0xa2  [???]
-[ 2072.289636] saa7133[0]: i2c scan: found device @ 0xa4  [???]
-[ 2072.293272] saa7133[0]: i2c scan: found device @ 0xa6  [???]
-[ 2072.296908] saa7133[0]: i2c scan: found device @ 0xa8  [???]
-[ 2072.300995] saa7133[0]: i2c scan: found device @ 0xaa  [???]
-[ 2072.304179] saa7133[0]: i2c scan: found device @ 0xac  [???]
-[ 2072.308267] saa7133[0]: i2c scan: found device @ 0xae  [???]
-[ 2072.362357] tuner 2-0043: chip found @ 0x86 (saa7133[0])
-[ 2072.362384] tda9887 2-0043: tda988[5/6/7] found @ 0x43 (tuner)
-[ 2072.362386] tuner 2-0043: type set to tda9887
-[ 2072.366444] tuner 2-0063: chip found @ 0xc6 (saa7133[0])
-[ 2072.367295] saa7133[0]: registered device video0 [v4l2]
-[ 2072.367311] saa7133[0]: registered device vbi0
-[ 2072.424625] DVB: registering new adapter (saa7133[0])
-[ 2072.424632] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-[ 2072.449021] tda1004x: setting up plls for 48MHz sampling clock
-[ 2072.586103] tda1004x: found firmware revision 29 -- ok
-
------ Original Message ----- 
-From: "hermann pitton" <hermann-pitton@arcor.de>
-To: "David Porter" <dvb-t@iinet.com.au>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Sunday, April 13, 2008 6:16 AM
-Subject: Re: [linux-dvb] TechnoTrend T-3000 DVB-T PCI Hybrid Card
-
-
-> Hi David,
->
-> Am Freitag, den 11.04.2008, 14:44 +1000 schrieb David Porter:
->> Hi
->>
->> In the absence of any replies to my original request for help with this I
->> did some more searching for any Linux information relating to this card.
->> I found a post from 11 November 06 containing the tuner and decoder
->> information which I have pasted in below.
->>
->> I'm hoping this may jog someone's memory as it seems odd that this card 
->> has
->> been unsupported for so long.
->>
->> Thank you
->> David Porter
->> --------------------------------------
->
-> we need more information.
->
-> A TechnoTrend re-branded saa7135chip was not seen so far.
->
->>From the eeprom it looks like the tuner is at 0x63.
->
-> Please "modprobe -vr saa7134-dvb tuner" and then
-> "modprobe -v saa7134 card=69 i2c_scan=1"
->
-> If it turns out that the tuner is at 0x63, card=69 has the tuner address
-> hardcoded at 0x61 in saa7134-cards.c and saa7134-dvb.c, a first step
-> could be to change that to 0x63.
->
-> Also you seem to need tda10046 firmware.
->
-> Cheers,
-> Hermann
->
->
->> Re: Unsupported Video Card
->> [Date Prev][Date Next][Thread Prev][Thread Next][Date Index][Thread 
->> Index]
->>
->>     * Subject: Re: Unsupported Video Card
->>     * From: "Leonce Pflieger"
->>     * Date: Sat, 11 Nov 2006 15:52:38 +0100
->>     * In-reply-to:
->> <43a0ce660611110608q34d2184fhc3802f217692b3ad@xxxxxxxxxxxxxx>
->>     * References:
->> <43a0ce660611110608q34d2184fhc3802f217692b3ad@xxxxxxxxxxxxxx>
->>
->> Hello,
->>
->> Same question for the following board. It is a Technotrend T-3000
->> DVB-T Hybrid. It seems there are a few cards that are still
->> unrecognized even if the hardware embedded is well known and
->> supported. :-\
->> Mine is :
->> 01:01.0 Multimedia controller: Philips Semiconductors SAA7133 Video
->> Broadcast Decoder (rev f0)
->>        Subsystem: Technotrend Systemtechnik GmbH Unknown device 2804
->>        Flags: bus master, medium devsel, latency 64, IRQ 18
->>        Memory at fa7ff000 (32-bit, non-prefetchable) [size=2K]
->>        Capabilities: [40] Power Management version 2
->>
->> and the dmesg output shows :
->>
->> saa7130/34: v4l2 driver version 0.2.14 loaded
->> ACPI: PCI Interrupt 0000:01:01.0[A] -> GSI 22 (level, low) -> IRQ 18
->> saa7133[0]: found at 0000:01:01.0, rev: 240, irq: 18, latency: 64,
->> mmio: 0xfa7ff000
->> saa7133[0]: subsystem: 13c2:2804, board: UNKNOWN/GENERIC
->> [card=0,autodetected]
->> saa7133[0]: board init: gpio is c50000
->> saa7133[0]: i2c eeprom 00: c2 13 04 28 54 20 1c 00 43 43 a9 1c 55 d2 b2 
->> 92
->> saa7133[0]: i2c eeprom 10: 00 00 00 00 ff 20 ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 20: 01 40 01 02 02 ff 03 01 08 ff 01 b7 ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 40: ff de 00 c6 86 10 ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: registered device video1 [v4l2]
->> saa7133[0]: registered device vbi2
->>
->>
->> saa7134-dvb gives nothing, but if saa7134 was starded with card=69 and
->> tuner=67 (tuner on the board is a TD1316A/SIHP / 3112 297 14251L# /
->> 0448 SV20 000000) it returns :
->>
->> saa7130/34: v4l2 driver version 0.2.14 loaded
->> ACPI: PCI Interrupt 0000:01:01.0[A] -> GSI 22 (level, low) -> IRQ 18
->> saa7133[0]: found at 0000:01:01.0, rev: 240, irq: 18, latency: 64,
->> mmio: 0xfa7ff000
->> saa7133[0]: subsystem: 13c2:2804, board: Philips EUROPA V3 reference
->> design [card=69,insmod option]
->> saa7133[0]: board init: gpio is c50000
->> saa7133[0]: i2c eeprom 00: c2 13 04 28 54 20 1c 00 43 43 a9 1c 55 d2 b2 
->> 92
->> saa7133[0]: i2c eeprom 10: 00 00 00 00 ff 20 ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 20: 01 40 01 02 02 ff 03 01 08 ff 01 b7 ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 40: ff de 00 c6 86 10 ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
->> ff
->> tda9887 2-0043: chip found @ 0x86 (saa7133[0])
->> saa7133[0]: registered device video1 [v4l2]
->> saa7133[0]: registered device vbi2
->> DVB: registering new adapter (saa7133[0]).
->> DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
->>
->> which seems quite good, but is followed by...
->>
->> tda1004x: setting up plls for 48MHz sampling clock
->> tda1004x: timeout waiting for DSP ready
->> tda1004x: found firmware revision 0 -- invalid
->> tda1004x: booting from eeprom
->> tda1004x: timeout waiting for DSP ready
->> tda1004x: found firmware revision 0 -- invalid
->> tda1004x: firmware upload failed
->>
->> :-(
->> Could someone help ? Am I the only guy on earth trying to make a T3000
->> work on Linux ??
->>
->> Thanks for your attention !
->>
->>
->> ----- Original Message ----- 
->> From: "David Porter" <dvb-t@iinet.com.au>
->> To: <linux-dvb@linuxtv.org>
->> Sent: Monday, April 07, 2008 12:47 PM
->> Subject: [linux-dvb] TechnoTrend T-3000 DVB-T PCI Hybrid Card
->>
->>
->> > Hi
->> >
->> > I have searched the wiki, forums and threads and cannot find any
->> > information
->> > about getting this card to work in Linux.
->> > Does anyone have any experience with it?
->> > It is one of their "budget" range that has no hardware mpeg decoder.
->> >
->> > I'm only interested in getting DVB-T working, not analogue.
->> >
->> > There is a good picture of it here:-
->> > http://www.dvbmagic.de/tv-karten/technotrend-budget-t-3000.htm
->> >
->> > Thanks
->> > David Porter
->> >
->> >
->
-> 
+John
 
 _______________________________________________
 linux-dvb mailing list
