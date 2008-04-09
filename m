@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ip-minds.de ([84.200.240.4])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jean.bruenn@ip-minds.de>) id 1JoIEB-0007rJ-U1
-	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 15:08:08 +0200
-Received: from jeanbruenn (dslb-082-083-222-109.pools.arcor-ip.net
-	[82.83.222.109])
-	by mail.ip-minds.de (Postfix) with ESMTPA id A15A312049FAC
-	for <linux-dvb@linuxtv.org>; Tue, 22 Apr 2008 15:07:48 +0200 (CEST)
-Date: Tue, 22 Apr 2008 15:07:42 +0200
-From: Jean-Michel =?ISO-8859-15?Q?Br=FCnn?= <jean.bruenn@ip-minds.de>
-To: linux-dvb@linuxtv.org
-Message-Id: <20080422150742.5ba99311.jean.bruenn@ip-minds.de>
-In-Reply-To: <480D5AF9.4030808@linuxtv.org>
-References: <480D5AF9.4030808@linuxtv.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Hauppauge HVR1400 DVB-T support / XC3028L
+Date: Wed, 9 Apr 2008 18:14:42 +0200 (CEST)
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
+References: <200803292240.25719.janne-dvb@grunau.be>
+	<47FCDB9A.5040807@gmail.com>
+	<37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+ dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,58 +18,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
-
-nice. waited for that. But.. Errm.. Could someone explain me how i can try =
-that? ;-)
-(sorry, perhaps a noobish question... )
 
 
-On Mon, 21 Apr 2008 23:26:49 -0400
-Steven Toth <stoth@linuxtv.org> wrote:
+On Wed, 9 Apr 2008, Michael Krufky wrote:
 
-> Hi,
-> =
+> On Wed, Apr 9, 2008 at 11:07 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>> Janne Grunau wrote:
+>> > Hi,
+>> >
+>> > I resubmit this patch since I still think it is a good idea to the this
+>> > driver option. There is still no udev recipe to guaranty stable dvb
+>> > adapter numbers. I've tried to come up with some rules but it's tricky
+>> > due to the multiple device nodes in a subdirectory. I won't claim that
+>> > it is impossible to get udev to assign driver or hardware specific
+>> > stable dvb adapter numbers but I think this patch is easier and more
+>> > clean than a udev based solution.
+>> >
+>> > I'll drop this patch if a simple udev solution is found in a reasonable
+>> > amount of time. But if there is no I would like to see the attached
+>> > patch merged.
+>>
+>>  As i wrote sometime back, adding adapter numbers to adapters is bad.
+>>
+>>  In fact, when the kernel advocates udev, working around it is no
+>>  solution, but finding the problem and fixing the basic problem is more
+>>  important, rather than workarounds.
+>>
+>>  http://www.gentoo.org/doc/en/udev-guide.xml
+>>  http://reactivated.net/writing_udev_rules.html
+>>
+>>  If there is a general udev issue, it should be taken up with udev and
+>>  not working around within adapter drivers.
+>
+> Regardless of how broken the issue is within udev, udev is not user-friendly.
+>
+> Under the current situation, users that have media recording servers
+> that receive broadcasts from differing delivery systems have no way
+> ensure that they are using the correct device for their recordings.
+>
+> For instance:
+>
+> Users might have VSB devices and QAM devices in their system, both to
+> receive OTA broadcasts and digital cable.  Likewise, someone else
+> might have DVB-S devices and DVB-T devices in the same system.
+>
+> If said user has VSB devices as adapters 0 and 1, QAM-capable devices
+> as adapters 2 and 3, and DVB-S devices as adapters 5 and 6, they need
+> to be able to configure their software to know which device to use
+> when attempting to receive broadcasts from the respective media type.
+>
+> The argument that "udev should do this -- fix udev instead" is weak,
+> in my opinion.  Even if udev can be fixed, the understanding of how to
+> configure it is hopeless.
+>
+> When support for cx88-alsa and saa7134-alsa appeared, at first, I lost
+> functionality of my sound card.  I fixed the issue by setting my alsa
+> driver "index" module option for each respecting device in my build
+> scripts.  If I didn't have the ability to rectify that issue, I simply
+> would have yanked out the conflicting device (ie: use NO video card in
+> the system) or just reboot into Windows and ditch Linux, altogether.
+>
+> This is a simple patch that adds the same functionality that v4l and
+> alsa have -- the ability to declare the adapter number of the device
+> at attach-time, based on a module option.  The change has minimal
+> impact on the source code, and adds great benefits to the users, and
+> requires zero maintenance.
+>
+> The arguments against applying this change are "fix udev instead" and
+> "we'll have to remove this in kernel 2.7" ... Well, rather than to
+> have everybody wait around for a "fix" that requires programming
+> skills in order to use, I say we merge this now, so that people can
+> use their systems properly TODAY.  If we have to remove this in the
+> future as a result of some other kernel-wide requirements, then we
+> will cross that bridge when we come to it.
+>
+> I see absolutely no harm in implementing this feature now.
+>
+> -Mike
+>
 
-> I've passed some patches to Mauro that add support for the Hauppauge =
++1
 
-> HVR1400 Expresscard in DVB-T mode. (cx23885 bridge, dib7000p demodulator =
-
-> and the xceive xc3028L silicon tuner)
-> =
-
-> If you're interested in testing then wait for the patches to appear in =
-
-> the http://linuxtv.org/hg/v4l-dvb tree.
-> =
-
-> You'll need to download firmware from http://steventoth.net/linux/hvr1400
-> =
-
-> Post any questions or issues here.
-> =
-
-> Thanks,
-> =
-
-> Steve
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
--- =
-
-Jean-Michel Br=FCnn <jean.bruenn@ip-minds.de>
+For MythTv setups this is very much needed... for the reasons Mike very 
+clearly stated.
 
 _______________________________________________
 linux-dvb mailing list
