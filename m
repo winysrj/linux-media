@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out.google.com ([216.239.33.17])
+Received: from yw-out-2324.google.com ([74.125.46.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dcharvey@dsl.pipex.com>) id 1JjWiN-0006GP-M3
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 11:35:38 +0200
-Received: from spaceape23.eur.corp.google.com (spaceape23.eur.corp.google.com
-	[172.28.16.75]) by smtp-out.google.com with ESMTP id m399ZTGB014146
-	for <linux-dvb@linuxtv.org>; Wed, 9 Apr 2008 10:35:29 +0100
-Received: from [172.16.21.211] (dhcp-172-16-21-211.lon.corp.google.com
-	[172.16.21.211]) (authenticated bits=0)
-	by spaceape23.eur.corp.google.com with ESMTP id m399ZSun026333
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Wed, 9 Apr 2008 10:35:29 +0100
-Message-ID: <47FC8DE0.3060202@dsl.pipex.com>
-Date: Wed, 09 Apr 2008 10:35:28 +0100
-From: David Harvey <dcharvey@dsl.pipex.com>
-MIME-Version: 1.0
+	(envelope-from <knowledgejunkie@gmail.com>) id 1Jk5Gc-0002wl-S1
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 00:29:16 +0200
+Received: by yw-out-2324.google.com with SMTP id 5so76345ywh.41
+	for <linux-dvb@linuxtv.org>; Thu, 10 Apr 2008 15:29:09 -0700 (PDT)
+Message-ID: <5387cd30804101529o279d83j968b75bc9a145117@mail.gmail.com>
+Date: Thu, 10 Apr 2008 23:29:09 +0100
+From: "Nick Morrott" <knowledgejunkie@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <mailman.99.1207695038.954.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.99.1207695038.954.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes (Philip Pemberton)
+In-Reply-To: <5b5250670804100626p223df572r1c99e89b7d4da576@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <5b5250670804100626p223df572r1c99e89b7d4da576@mail.gmail.com>
+Subject: Re: [linux-dvb] Trouble in loading drivers for both wintv
+	nova-s-plus and pvr-500 card simultaneously (mainly becos of
+	tveeprom.ko module)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,65 +29,80 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-/Message: 4
-Date: Tue, 08 Apr 2008 23:27:34 +0100
-From: Philip Pemberton <lists@philpem.me.uk>
-Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
-To: Greg Thomas <Greg@TheThomasHome.co.uk>, linux-dvb
-	<linux-dvb@linuxtv.org>
-Message-ID: <47FBF156.5090703@philpem.me.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+On 10/04/2008, thirunavukarasu selvam <gs.thiru@gmail.com> wrote:
+> Hi all,
+>
+> I am working with WinTV NOVA-S-Plus card and WinTV PVR-500 card in RHEL 4.4
+> machine.
+> I am using kernel 2.6.12.
+> For WinTV NOVA-S-plus card i have used v4l-dvb drivers.
+> For PVR-500 card i have used ivtv-0.4.9 drivers.
+>  After compiling and installing these two drivers, i tried the following
+> steps to load the drivers.
+>
+> 1. for NOVA-S-Plus card
+> modprobe tveeprom
+> modprobe cx24123
+> modprobe cx8800
+> modprobe cx8802
+> modprobe cx88xx
+>  modprobe cx88-dvb
 
-Greg Thomas wrote:
-/
+You only need to 'modprobe cx88-dvb' - modprobe will automatically
+load any other required modules.
 
-> /> After trying the latest drivers, I had a go under Windows; exactly the
-> > same set of channels. I just guess the Nova-TD isn't that sensitive. I
-> > may just have to look at boosting my signal, somehow  :( /
->   
-/
-Disclaimer: this is the problem as I understand it, and anything I say should 
-be treated as an unproven theory until proved otherwise...
+>
+> 2. for PVR-500 card
+> depmod -a
+> modprobe tveeprom
+> modprobe ivtv
 
-The Nova-TD seems to have an odd problem. Specifically, it seems to have some 
-form of wideband low-gain amplifier/buffer on each aerial input (nothing like 
-the high-gain narrowband LNA amplifier on the Nova-T-500). This takes into 
-account the strongest muxes, not the mux you're currently tuned to (the T500 
-seems to do the latter -- which is more sensible).
+Again, you only need to 'modprobe ivtv'
 
-What this means is that if you've got one mux that's significantly weaker than 
-the others -- e.g. the one that carries FilmFour vs. the PSB mux that carries 
-BBC ONE -- you'll see a reasonable signal on BBC, but a poor signal (if you 
-get a lock at all) on FilmFour.
+> U can see the tveeprom is loaded twice. becos both the drivers has its own
+> tveeprom
 
-What I did was put a 6dB attenuator between my aerial and the Nova-TD. This 
-weakens the signal to the point that all the muxes are in the Nova's capture 
-range. It locks on, and you get a near perfect signal on all the muxes.
+Newer versions of ivtv do not have the same limitation.
 
-Of course, it might just be that the input can't handle being overloaded, or 
-was designed for the two shabby WiFi-style antennae that were bundles with the 
-Nova-TD (which are truly useless). Those things probably wouldn't even work if 
-you were within a mile of the transmitter...
+<cut>
 
-My signal's coming from Emley Moor, ~16 miles distance via a mid-high gain 
-wideband aerial./
+> From the result what i understood is both drivers have a module called
+> tveeprom.ko and that's where the problem starts.
 
--- Phil. | (\_/) This is Bunny. Copy and paste Bunny lists@philpem.me.uk 
-| (='.'=) into your signature to help him gain http://www.philpem.me.uk/ 
-| (")_(") world domination.
+Yes, this was a problem a few years ago
 
+>
+> so please tell the solution for both the cards to work simultaneously.
 
+You could try temporarily removing the kernel tveeprom file and
+replacing it with that supplied with ivtv to work with both cx88-dvb
+and ivtv. The ivtv 0.4.x tveeprom module was an adapted version of
+that supplied with older kernels. Now that ivtv is in the kernel,
+there are no such issues (See
+http://ivtvdriver.org/index.php/Howto_legacy_ivtv).
 
-I vaguely remember someone mentioning this problem doesn't affect the TD 
-card/stick under the Windows driver.  Can anyone confirm this?
+Another way that was used in years past was to rename the ivtv files
+and then alias the renamed ivtv-provided modules to names like
+tveeprom-ivtv and tuner-ivtv in modprobe.conf. You could Google for
+this - there are plenty of results.
 
-Cheers,
+If you have some degree of flexibility, you could upgrade your kernel
+or distro - RHEL/CentOS5 to at least kernel 2.6.18. In my experience
+you can expect to hit issues such as this using old kernels and
+modules for video-capture, especially when some old versions of
+modules contain forked versions of in-kernel modules.
 
-dh
+Nick
 
-:
+-- 
+Nick Morrott
 
+MythTV Official wiki:
+http://mythtv.org/wiki/
+MythTV users list archive:
+http://www.gossamer-threads.com/lists/mythtv/users
 
+"An investment in knowledge always pays the best interest." - Benjamin Franklin
 
 _______________________________________________
 linux-dvb mailing list
