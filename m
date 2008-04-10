@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JrHSr-0000n8-Du
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 20:55:38 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K0500BA3J7QXK81@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 30 Apr 2008 14:55:02 -0400 (EDT)
-Date: Wed, 30 Apr 2008 14:55:01 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
-To: Eric Cronin <ecronin@gizmolabs.org>
-Message-id: <4818C085.6080000@linuxtv.org>
-MIME-version: 1.0
-References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
+	(envelope-from <mkrufky@linuxtv.org>) id 1JjlTx-00031J-V4
+	for linux-dvb@linuxtv.org; Thu, 10 Apr 2008 03:21:49 +0200
+Message-ID: <47FD6B9C.2000303@linuxtv.org>
+Date: Wed, 09 Apr 2008 21:21:32 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Janne Grunau <janne-dvb@grunau.be>
+References: <200803292240.25719.janne-dvb@grunau.be>	<200804080213.26671.linuxdreas@launchnet.com>	<37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
+	<200804092128.24588.janne-dvb@grunau.be>
+In-Reply-To: <200804092128.24588.janne-dvb@grunau.be>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
+ dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,37 +27,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Eric Cronin wrote:
-> Hello,
+Janne Grunau wrote:
+> On Tuesday 08 April 2008 17:18:10 Michael Krufky wrote:
+>> I would really like to see this patch get merged.
+>>
+>> If nobody has an issue with this, I plan to push this into a
+>> mercurial tree at the end of the week and request that it be merged
+>> into the master branch.
 > 
-> I have an HP Pavilion OEM'd HVR-1800 that I'm giving a shot at getting 
-> working (PVR-500 and HDHR are my production analog/digital inputs).
+> updated patch attached:
+> -resolved a reject in the ttusb2 driver
+> -changed type of the adapter num array from int to short
 > 
-> I'm running Mythbuntu 8.04 and have tried both with the bundled version 
-> of v4l-dvb modules and a hg copy from April 29, and both have the same 
-> problem:
+> I didn't changed the module option name since to me consistency with the 
+> V4L options is more important.
 > 
-> The card is detected fine and /dev/dvb/* created.  When I run 'scan 
-> us-Cable-Standard-center-frequencies-QAM256' it detects nothing, even on 
-> frequencies which I know are QAM256 from the HDHR which is 12" of coax 
-> away from the HVR-1800.  Here is an example from the HDHR scan:
-> 
+> Janne
 
-<snip>
+I've pushed the current patch to my mercurial repository 
+at the following location:
 
-> [67185.229777] msp3400' 3-0044: MSP5431H-^8 found @ 0x88 (cx23885[0])
-> [67185.229782] msp3400' 3-0044: MSP5431H-^8 supports radio, mode is 
-> autodetect and autoselect
+http://linuxtv.org/hg/~mkrufky/dvb
 
-This looks odd, but it should effect your digital scanning. MSP5431 
-attached itself to the place when the cx25840 driver should be 
-attaching. This is break analog support for you.
+...anybody that wishes to try it out should feel free to pull 
+from this tree or apply Janne's patch manually.
 
-I'll have to look into this.
+Likewise, anybody that wishes to add their ack / reviewed-by 
+tag has the opportunity to reply with it to this thread -- I 
+will add it to the changeset inside the repository.
 
-- Steve
+I intend to issue a pull request to Mauro for this patch to
+be merged on Friday morning, before I leave for the office.
 
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
