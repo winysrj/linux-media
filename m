@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Wed, 9 Apr 2008 18:14:42 +0200 (CEST)
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+From: hermann pitton <hermann-pitton@arcor.de>
 To: Michael Krufky <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0804091813540.31992@kheldar.romunt.nl>
+In-Reply-To: <47FD6B9C.2000303@linuxtv.org>
 References: <200803292240.25719.janne-dvb@grunau.be>
-	<47FCDB9A.5040807@gmail.com>
-	<37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
- dvb adapter numbers, second try
+	<200804080213.26671.linuxdreas@launchnet.com>
+	<37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
+	<200804092128.24588.janne-dvb@grunau.be> <47FD6B9C.2000303@linuxtv.org>
+Date: Fri, 11 Apr 2008 01:25:34 +0200
+Message-Id: <1207869934.17744.3.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to	choose
+	dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,89 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-
-On Wed, 9 Apr 2008, Michael Krufky wrote:
-
-> On Wed, Apr 9, 2008 at 11:07 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->> Janne Grunau wrote:
->> > Hi,
->> >
->> > I resubmit this patch since I still think it is a good idea to the this
->> > driver option. There is still no udev recipe to guaranty stable dvb
->> > adapter numbers. I've tried to come up with some rules but it's tricky
->> > due to the multiple device nodes in a subdirectory. I won't claim that
->> > it is impossible to get udev to assign driver or hardware specific
->> > stable dvb adapter numbers but I think this patch is easier and more
->> > clean than a udev based solution.
->> >
->> > I'll drop this patch if a simple udev solution is found in a reasonable
->> > amount of time. But if there is no I would like to see the attached
->> > patch merged.
->>
->>  As i wrote sometime back, adding adapter numbers to adapters is bad.
->>
->>  In fact, when the kernel advocates udev, working around it is no
->>  solution, but finding the problem and fixing the basic problem is more
->>  important, rather than workarounds.
->>
->>  http://www.gentoo.org/doc/en/udev-guide.xml
->>  http://reactivated.net/writing_udev_rules.html
->>
->>  If there is a general udev issue, it should be taken up with udev and
->>  not working around within adapter drivers.
->
-> Regardless of how broken the issue is within udev, udev is not user-friendly.
->
-> Under the current situation, users that have media recording servers
-> that receive broadcasts from differing delivery systems have no way
-> ensure that they are using the correct device for their recordings.
->
-> For instance:
->
-> Users might have VSB devices and QAM devices in their system, both to
-> receive OTA broadcasts and digital cable.  Likewise, someone else
-> might have DVB-S devices and DVB-T devices in the same system.
->
-> If said user has VSB devices as adapters 0 and 1, QAM-capable devices
-> as adapters 2 and 3, and DVB-S devices as adapters 5 and 6, they need
-> to be able to configure their software to know which device to use
-> when attempting to receive broadcasts from the respective media type.
->
-> The argument that "udev should do this -- fix udev instead" is weak,
-> in my opinion.  Even if udev can be fixed, the understanding of how to
-> configure it is hopeless.
->
-> When support for cx88-alsa and saa7134-alsa appeared, at first, I lost
-> functionality of my sound card.  I fixed the issue by setting my alsa
-> driver "index" module option for each respecting device in my build
-> scripts.  If I didn't have the ability to rectify that issue, I simply
-> would have yanked out the conflicting device (ie: use NO video card in
-> the system) or just reboot into Windows and ditch Linux, altogether.
->
-> This is a simple patch that adds the same functionality that v4l and
-> alsa have -- the ability to declare the adapter number of the device
-> at attach-time, based on a module option.  The change has minimal
-> impact on the source code, and adds great benefits to the users, and
-> requires zero maintenance.
->
-> The arguments against applying this change are "fix udev instead" and
-> "we'll have to remove this in kernel 2.7" ... Well, rather than to
-> have everybody wait around for a "fix" that requires programming
-> skills in order to use, I say we merge this now, so that people can
-> use their systems properly TODAY.  If we have to remove this in the
-> future as a result of some other kernel-wide requirements, then we
-> will cross that bridge when we come to it.
->
-> I see absolutely no harm in implementing this feature now.
->
+Am Mittwoch, den 09.04.2008, 21:21 -0400 schrieb Michael Krufky:
+> Janne Grunau wrote:
+> > On Tuesday 08 April 2008 17:18:10 Michael Krufky wrote:
+> >> I would really like to see this patch get merged.
+> >>
+> >> If nobody has an issue with this, I plan to push this into a
+> >> mercurial tree at the end of the week and request that it be merged
+> >> into the master branch.
+> > 
+> > updated patch attached:
+> > -resolved a reject in the ttusb2 driver
+> > -changed type of the adapter num array from int to short
+> > 
+> > I didn't changed the module option name since to me consistency with the 
+> > V4L options is more important.
+> > 
+> > Janne
+> 
+> I've pushed the current patch to my mercurial repository 
+> at the following location:
+> 
+> http://linuxtv.org/hg/~mkrufky/dvb
+> 
+> ...anybody that wishes to try it out should feel free to pull 
+> from this tree or apply Janne's patch manually.
+> 
+> Likewise, anybody that wishes to add their ack / reviewed-by 
+> tag has the opportunity to reply with it to this thread -- I 
+> will add it to the changeset inside the repository.
+> 
+> I intend to issue a pull request to Mauro for this patch to
+> be merged on Friday morning, before I leave for the office.
+> 
 > -Mike
->
+> 
 
-+1
+in the current situation it seems to be very useful.
 
-For MythTv setups this is very much needed... for the reasons Mike very 
-clearly stated.
+Acked-by and tested-by: Hermann Pitton <hermann.pitton@arcor.de>
+
+Cheers,
+Hermann
+
+
 
 _______________________________________________
 linux-dvb mailing list
