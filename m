@@ -1,18 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp02.msg.oleane.net ([62.161.4.2])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JhmNI-0000md-KM
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 15:55:37 +0200
-Received: from PCTL ([194.250.18.140]) (authenticated)
-	by smtp02.msg.oleane.net (MTA) with ESMTP id m34DsU8b010798
-	for <linux-dvb@linuxtv.org>; Fri, 4 Apr 2008 15:54:31 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Fri, 4 Apr 2008 15:54:27 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
+Message-ID: <47FF6971.70601@linuxtv.org>
+Date: Fri, 11 Apr 2008 09:36:49 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <854d46170804040633g2bc6a9feu306f89a33d728fe3@mail.gmail.com>
-Subject: [linux-dvb] RE :  RE : Ofcom announce HD freeview standard in UK
+To: Steven Toth <stoth@linuxtv.org>
+References: <47FF216F.6040207@anevia.com> <47FF67FA.80902@linuxtv.org>
+In-Reply-To: <47FF67FA.80902@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,36 +21,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> > In summary, looks like HD will be DVB-T2 with MPEG4, with 3 HD channels on
->>  > air from "late 2009 / early 2010"
->>  > ...
+Steven Toth wrote:
+> Frederic CAND wrote:
+>> Hi all,
 >>
->> > Guess I will need new DVB-T2 hardware :(
+>> we have here at our office an Hauppauge HVR 1300. It's working under 
+>> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is 
+>> working fine though.
 >>
->>  Is there any existing DVB-T2 hardware today, either regular STB or PCI/USB board ?
->>
->>  In France, the terrestrial HD is supposed to officially start in a few weeks
->>  from now ("spring 2008"). But it will use DVB-T because of lack of DVB-T2 STB.
->
-> Hi!
->
-> TerraTec Cinergy T USB XXS HD, H.264, USB2.0, DVB-T, Codec for HDTV support
-> In Sweden it's only 479 SEK (50 Euro)
->
-> Hauppauge! WinTV-NOVA-TD-HD, Dual-DVB-T, USB2.0, HD-ready (999 SEK = 105 Euro)
->
-> Hauppauge! WinTV-NOVA-T-500-HD, Dual-DVB-T, PCI, EPG, Radio, HD-ready
-> (949 SEK = 100 Euro)
+>>  From what I read, it looks like the Conexant CX23416 chipset should 
+>> supports Transport Stream but we've not been able to use it. Are we 
+>> missing something ?
+> 
+> Last I heard transport mode was disabled in the firmware sometime ago by 
+> Conexant, in favor of some other feature being enabled.
+> 
+> If you can find really early firmware for the PVR150 then you might try 
+> that. (Circa 3-4 years ago).
+> 
 
-They certainly come with HD-capable software.
-But do they really support DVB-T2 modulation ?
+Please note:  if you do find the older firmware, you will have to patch cx88-blackbird.c to allow firmware size 262144.
 
-Since most current tuners for PC are simple tuners, there is no hardware
-difference for SD vs. HD. It is only a matter of software codec.
+If this works for you, please post your results.
 
-DVB-T2, on the other hand, is a different *modulation* technique which
-must be implemented in hardware. 
+Regards,
 
+Mike
 
 _______________________________________________
 linux-dvb mailing list
