@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout4-sn1.fre.skanova.net ([81.228.11.168])
+Received: from mailout02.t-online.de ([194.25.134.17])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Jit4H-0004RR-BE
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 17:15:37 +0200
-Message-ID: <47FA3A7A.3010002@iki.fi>
-Date: Mon, 07 Apr 2008 18:15:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JkQXe-0003dA-HP
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 23:12:15 +0200
+Message-ID: <47FFD432.8020609@t-online.de>
+Date: Fri, 11 Apr 2008 23:12:18 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Benoit Paquin <benoitpaquindk@gmail.com>
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
-In-Reply-To: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+To: linux-dvb@linuxtv.org
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<200803220711.07186@orion.escape-edv.de>	<47E53E1B.5050302@gmail.com>
+	<200804102240.13933@orion.escape-edv.de>
+In-Reply-To: <200804102240.13933@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
+ transponder fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,52 +26,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Benoit Paquin wrote:
-> Antti,
->  
-> When I tried the Sandberg stick with the AF9015 on an old PC, it 
-> reported that the device could not be supported by the USB 1.1 ports. 
-> However, according to the AF9015 web page of AFA, it can support USB 1.1:
-> 
-> AF9015 DVB-T Solution Summary
->   - Afatech's second-generation ETSI ETS 300 744 COFDM terrestrial 
-> demodulator. 
->   - Exceeds all performance requirements of Nordig Unified 1.0.2, 
-> D-Book, E-Book,  
->   - EN55020 (CE/S1), IEC62002 (MBRAI) and BSMI 
->   - Embedded USB 2.0 PHY, *backward compatible with USB 1.1* 
->   - Integrated TS PID filter (32-entry) 
->   - Support USB suspend mode, capable of entering C3 mode for N/B 
-> built-in App. 
->   - Support second MPEG2-TS input/output for PIP, PVR and Dual-Display 
-> applications.  
->   - BDA driver supported with WHQL, USB-IF, MCE2005 certified 
->   - Special function support for silicon tuners, e.g. Dynamic 
-> Take-Over-Point (TOP) 
->   - Robust mobile performance (Up to 150km/h - single antenna)
-> 
-> Found at: 
-> http://www.usbest.com.tw/EN/products_more.aspx?CategoryID=7&ID=18 
-> <http://www.usbest.com.tw/EN/products_more.aspx?CategoryID=7&ID=18>
-> 
-> Can you explain this? It would be neat if it worked with USB 1.1. There 
-> are several old laptops around that could be used as digital video 
-> recorder. The main stream vendors (Pinnacle, Hauppauge and ASUS) do not 
-> support USB 1.1.
+Hi,
 
-AF9015 chipset does support USB1.1 but driver not. I haven't see this 
-important enough to implement yet... It is rather easy to implement, 
-lets see if I get inspirations soon ;)
-
+Oliver Endriss schrieb:
+> Hi,
 > 
-> Thanks and regards,
+> Manu Abraham wrote:
+>> Oliver Endriss wrote:
+>> ...
+>>> Ok, some calculations according your formula
+>>>
+>>>>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
+>>> 45 MSPS:
+>>> BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
+>>>
+>>> -> cutoff 36 MHz (maximum value supported)
+>>>
+>>> 27 MSPS:
+>>> BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
+>>>
+>>> -> cutoff 31 MHz
+>>>
+>>> 22 MSPS:
+>>> BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
+>>>
+>>> -> cutoff 26 MHz
+>>>
+>>> Are these calculations correct, or did I miss something here?
+>>
+>> It looks fine, just round it off to the next integer. ie always round it
+>> up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
+>> well, since at the last step, you will not need an offset, since it
+>> would be the last step in the spectrum.
+>> ...
+>>> Afaics a simple pre-calculated lookup table with 32 entries should do
+>>> the job. At least for the cut-off frequency.
+>> That's possible, since you need only 32 precomputed entries, rather than
+>> continuous values. That would be much better too, without any runtime
+>> overheads. Just the table needs to be done nice.
 > 
-> Benoit
+> Now I found some time to come back to this issue,
+> 
+> I prepared a small patch to set the cutoff according to Manu's formula.
+> The calculation is simple enough for integer arithmetic, so it is not
+> worth to prepare a lookup-table.
+> 
+> @ldvb:
+> Please test and report whether it works for you.
+> 
+> CU
+> Oliver
+> 
+I intended to do the same.
+Since I have a patch for tda10086 which needs public testing as well, i
+would like to propose this:
+I do a static check and integrate the patch in my repository together
+with my patch and ask for public testing.
+Hope this will not overstress the few testers we have ;-)
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Best regards
+   Hartmut
 
 _______________________________________________
 linux-dvb mailing list
