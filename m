@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.179])
+Received: from rn-out-0910.google.com ([64.233.170.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anothersname@googlemail.com>) id 1JhCwj-0005rM-Hr
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 02:04:51 +0200
-Received: by wa-out-1112.google.com with SMTP id m28so3459064wag.13
-	for <linux-dvb@linuxtv.org>; Wed, 02 Apr 2008 17:04:44 -0700 (PDT)
-Message-ID: <a413d4880804021704g369cef0ak9b0998197ae847a2@mail.gmail.com>
-Date: Thu, 3 Apr 2008 01:04:43 +0100
-From: "Another Sillyname" <anothersname@googlemail.com>
-To: "Aidan Thornton" <makosoft@googlemail.com>, linux-dvb@linuxtv.org
-In-Reply-To: <c8b4dbe10804020942r6930fd6fu144b1b445534fda8@mail.gmail.com>
+	(envelope-from <vivichrist@gmail.com>) id 1JkP38-000598-J8
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 21:36:39 +0200
+Received: by rn-out-0910.google.com with SMTP id i6so625591rng.2
+	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 12:36:34 -0700 (PDT)
+Message-ID: <47FFBDBC.5080205@gmail.com>
+Date: Sat, 12 Apr 2008 07:36:28 +1200
+From: vivian stewart <vivichrist@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_5885_15964640.1207181083625"
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
-	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
-	<c8b4dbe10804011406i6923397fw84de9393335dfee9@mail.gmail.com>
-	<a413d4880804011641v1d20ebabo376d2b41b179b022@mail.gmail.com>
-	<c8b4dbe10804020942r6930fd6fu144b1b445534fda8@mail.gmail.com>
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] skymedia 200d (sm200d) = garnet gsr-2100 ?
+Reply-To: vivichrist@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,221 +19,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_5885_15964640.1207181083625
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I have lots of these garnet gsr-2100 pci dvb cards and would like to
+know if there are drivers I can use in linux. the only clue I can find
+is on and archived ihug (isp) page http://www.ianp.net/ihug.htm. there
+are 95/98/NT/2000 drivers but ... I'm a linux person.
 
-Hi Aidan
+can anyone help me?
+oops I sent this before subscribing.
 
-I've played around with this for a few hours now and we have moved
-forward but not quite working yet.....
+viv.
 
-The card is getting loaded properly (when I use the appropriate
-card=17 option) however loading the em2880-dvb module then borks.....
-
-I've attached the edited dmesg file.....any ideas?
-
-Thanks
-
-J
-
-On 02/04/2008, Aidan Thornton <makosoft@googlemail.com> wrote:
-> On 4/2/08, Another Sillyname <anothersname@googlemail.com> wrote:
->  > Aidan
->  >
->  > So are you working on integrating the em28xx devices that are working
->  > in v4l-dvb-kernel version into v4l-dvb (or ever your own version of
->  > same)?
->  >
->  > Or will it require changes to too much code?
->
->
-> Occasionally, yes - I can do, and generally it's fairly trivial, but
->  since I don't have access to all this hardware myself, unless
->  someone's willing to test it there's not much I can do. In fact, I
->  just added untested support for the card to
->  http://www.makomk.com/hg/v4l-dvb-em28xx. You'll need to "modprobe
->  em28xx card=17", though, since your device uses a generic USB ID and I
->  can't add autodetection without a copy of the dmesg output when
->  loading the driver without card=17. (Also, while my version of the
->  driver should in theory support DVB-T, the v4l-dvb version doesn't and
->  probably won't any time soon.)
->
->
->  > I have to say as a user/observer I find it ridiculous that there are
->  > two branches of working code that are pretty close to the same and
->  > won't work with each other.  If there's one area that Linux really
->  > clearly pi**es on Windows it's the handling of media and stuff like
->  > this just switches people off.
->  >
->  > While not looking at the code or drawing any conclusions therein a new
->  > layer on top of v4l-dvb (whichever version) seems counter productive
->  > to me.
->  >
->  > Ho hum.....can someone please just tell me how to get my kit working
->  > without having to re-invent the wheel.
->
->
-> Also, you might be able to get it working with v4l-dvb-experimental by
->  passing "card=94" to saa7134. No guarantees, though.
->
->
->  > Thanks in advance.
->  >
->  > J
->  >
->  > On 01/04/2008, Aidan Thornton <makosoft@googlemail.com> wrote:
->
-
-------=_Part_5885_15964640.1207181083625
-Content-Type: application/octet-stream; name=dmesg28xxnotworking
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fekkfb2a
-Content-Disposition: attachment; filename=dmesg28xxnotworking
-
-TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCmVtMjh4eCB2NGwyIGRyaXZlciB2
-ZXJzaW9uIDAuMS4wIGxvYWRlZAplbTI4eHggbmV3IHZpZGVvIGRldmljZSAoZWIxYToyODgxKTog
-aW50ZXJmYWNlIDAsIGNsYXNzIDI1NQplbTI4eHggSGFzIHVzYiBhdWRpbyBjbGFzcwplbTI4eHgg
-IzA6IEFsdGVybmF0ZSBzZXR0aW5nczogOAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5nIDAs
-IG1heCBzaXplPSAwCmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgMSwgbWF4IHNpemU9IDAK
-ZW0yOHh4ICMwOiBBbHRlcm5hdGUgc2V0dGluZyAyLCBtYXggc2l6ZT0gMTQ0OAplbTI4eHggIzA6
-IEFsdGVybmF0ZSBzZXR0aW5nIDMsIG1heCBzaXplPSAyMDQ4CmVtMjh4eCAjMDogQWx0ZXJuYXRl
-IHNldHRpbmcgNCwgbWF4IHNpemU9IDIzMDQKZW0yOHh4ICMwOiBBbHRlcm5hdGUgc2V0dGluZyA1
-LCBtYXggc2l6ZT0gMjU4MAplbTI4eHggIzA6IEFsdGVybmF0ZSBzZXR0aW5nIDYsIG1heCBzaXpl
-PSAyODkyCmVtMjh4eCAjMDogQWx0ZXJuYXRlIHNldHRpbmcgNywgbWF4IHNpemU9IDMwNzIKZW0y
-OHh4ICMwOiBlbTI4eHggY2hpcCBJRCA9IDM2CnNhYTcxMzAvMzQ6IHY0bDIgZHJpdmVyIHZlcnNp
-b24gMC4yLjE0IGxvYWRlZApBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDM6MDMuMFtBXSAtPiBH
-U0kgMTkgKGxldmVsLCBsb3cpIC0+IElSUSAxOQpBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6
-MWIuMFtBXSAtPiA8Nj5zYWE3MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjAzOjAzLjAsIHJldjogMjA5
-LCBpcnE6IDE5LCBsYXRlbmN5OiA2NCwgbW1pbzogMHhmZThmZjgwMApzYWE3MTMzWzBdOiBzdWJz
-eXN0ZW06IDUxNjg6MzMwNywgYm9hcmQ6IExpZmVWaWV3IEZseURWQi1UIEh5YnJpZCBDYXJkYnVz
-L01TSSBUViBAbnl3aGVyZSBBL0QgTkIgW2NhcmQ9OTQsYXV0b2RldGVjdGVkXQpzYWE3MTMzWzBd
-OiBib2FyZCBpbml0OiBncGlvIGlzIDEwMDAwClBDSTogU2V0dGluZyBsYXRlbmN5IHRpbWVyIG9m
-IGRldmljZSAwMDAwOjAwOjFiLjAgdG8gNjQKQUxTQSBzb3VuZC9wY2kvaGRhL2hkYV9pbnRlbC5j
-OjczMjogY29kZWNfbWFzayA9IDB4MwpoZGFfY29kZWM6IFVua25vd24gbW9kZWwgZm9yIEFMQzg4
-MCwgdHJ5aW5nIGF1dG8tcHJvYmUgZnJvbSBCSU9TLi4uCkFMU0Egc291bmQvcGNpL2hkYS9oZGFf
-Y29kZWMuYzoyNzU3OiBhdXRvY29uZmlnOiBsaW5lX291dHM9MSAoMHgxNC8weDAvMHgwLzB4MC8w
-eDApCkFMU0Egc291bmQvcGNpL2hkYS9oZGFfY29kZWMuYzoyNzYxOiAgICBzcGVha2VyX291dHM9
-MCAoMHgwLzB4MC8weDAvMHgwLzB4MCkKQUxTQSBzb3VuZC9wY2kvaGRhL2hkYV9jb2RlYy5jOjI3
-NjU6ICAgIGhwX291dHM9MCAoMHgwLzB4MC8weDAvMHgwLzB4MCkKQUxTQSBzb3VuZC9wY2kvaGRh
-L2hkYV9jb2RlYy5jOjI3NzM6ICAgIGlucHV0czogbWljPTB4MTgsIGZtaWM9MHgwLCBsaW5lPTB4
-MCwgZmxpbmU9MHgwLCBjZD0weDAsIGF1eD0weDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDAwOiAx
-YSBlYiA2NyA5NSAxYSBlYiA4MSAyOCA1OCAxMiA1YyAwMCA2YSAyMCA2YSAwMAplbTI4eHggIzA6
-IGkyYyBlZXByb20gMTA6IDAwIDAwIDA0IDU3IDY0IDU3IDAwIDAwIDYwIGY0IDAwIDAwIDAyIDAy
-IDAwIDAwCmVtMjh4eCAjMDogaTJjIGVlcHJvbSAyMDogNTYgMDAgMDEgMDAgMDAgMDAgMDIgMDAg
-YjggMDAgMDAgMDAgNWIgMWUgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDMwOiAwMCAwMCAy
-MCA0MCAyMCA4MCAwMiAyMCAxMCAwMiAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBl
-ZXByb20gNDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-CmVtMjh4eCAjMDogaTJjIGVlcHJvbSA1MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDYwOiAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAyMCAwMyA1NSAwMCA1MyAwMAplbTI4eHggIzA6IGkyYyBlZXByb20g
-NzA6IDQyIDAwIDIwIDAwIDMyIDAwIDM4IDAwIDM4IDAwIDMxIDAwIDIwIDAwIDU2IDAwCmVtMjh4
-eCAjMDogaTJjIGVlcHJvbSA4MDogNjkgMDAgNjQgMDAgNjUgMDAgNmYgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDkwOiAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gYTA6IDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDog
-aTJjIGVlcHJvbSBiMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAKZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMAplbTI4eHggIzA6IGkyYyBlZXByb20gZDA6IDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCmVtMjh4eCAjMDogaTJjIGVl
-cHJvbSBlMDogNWEgMDAgNTUgYWEgNzkgNTUgNTQgMDMgMDAgMTcgOTggMDEgMDAgMDAgMDAgMDAK
-ZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGYwOiAwYyAwMCAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMApFRVBST00gSUQ9IDB4OTU2N2ViMWEsIGhhc2ggPSAweGI4ODQ2YjIw
-ClZlbmRvci9Qcm9kdWN0IElEPSBlYjFhOjI4ODEKQUM5NyBhdWRpbyAoNSBzYW1wbGUgcmF0ZXMp
-ClVTQiBSZW1vdGUgd2FrZXVwIGNhcGFibGUKNTAwbUEgbWF4IHBvd2VyClRhYmxlIGF0IDB4MDQs
-IHN0cmluZ3M9MHgyMDZhLCAweDAwNmEsIDB4MDAwMApzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDAw
-OiA2OCA1MSAwNyAzMyA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5MgpzYWE3MTMz
-WzBdOiBpMmMgZWVwcm9tIDEwOiAwMCAwMCA2MiAwOCBmZiAyMCBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDIwOiAwMSA0MCAwMSAwMyAwMyAwMSAw
-MSAwMyAwOCBmZiAwMSAxNyBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDMwOiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBd
-OiBpMmMgZWVwcm9tIDQwOiBmZiAyMSAwMCBjMiA5NiAxMCAwNSAwMCAwMSAxNiAyMiAxNSBmZiBm
-ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDYwOiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
-MmMgZWVwcm9tIDcwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkwOiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
-ZWVwcm9tIGEwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVw
-cm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpz
-YWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgp0dW5lcicgMi0wMDRiOiBjaGlwIGZv
-dW5kIEAgMHg5NiAoc2FhNzEzM1swXSkKdGRhODI5eCAyLTAwNGI6IHNldHRpbmcgdHVuZXIgYWRk
-cmVzcyB0byA2MQp0ZGE4Mjl4IDItMDA0YjogdHlwZSBzZXQgdG8gdGRhODI5MCs3NWEKZmlyZXdp
-cmVfY29yZTogY3JlYXRlZCBkZXZpY2UgZncwOiBHVUlEIDAwMDAwYWU2ZmY1YTU3N2QsIFM0MDAK
-dHZwNTE1MCAxLTAwNWM6IHR2cDUxNTBhbTEgZGV0ZWN0ZWQuCmVtMjh4eCAjMDogVjRMMiBkZXZp
-Y2UgcmVnaXN0ZXJlZCBhcyAvZGV2L3ZpZGVvMCBhbmQgL2Rldi92YmkwCmVtMjh4eCAjMDogRm91
-bmQgUGlubmFjbGUgSHlicmlkIFBybyAoRU0yODgxKQplbTI4eHggYXVkaW8gZGV2aWNlIChlYjFh
-OjI4ODEpOiBpbnRlcmZhY2UgMSwgY2xhc3MgMQplbTI4eHggYXVkaW8gZGV2aWNlIChlYjFhOjI4
-ODEpOiBpbnRlcmZhY2UgMiwgY2xhc3MgMQp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZh
-Y2UgZHJpdmVyIGVtMjh4eApBTFNBIHNvdW5kL3VzYi91c2JhdWRpby5jOjI3NTM6IDU6MjoxOiBh
-ZGQgYXVkaW8gZW5kcG9pbnQgMHg4MwpBTFNBIHNvdW5kL3VzYi91c2JhdWRpby5jOjI3NTM6IDU6
-MjoyOiBhZGQgYXVkaW8gZW5kcG9pbnQgMHg4MwpBTFNBIHNvdW5kL3VzYi91c2JhdWRpby5jOjI3
-NTM6IDU6MjozOiBhZGQgYXVkaW8gZW5kcG9pbnQgMHg4MwpBTFNBIHNvdW5kL3VzYi91c2JhdWRp
-by5jOjI3NTM6IDU6Mjo0OiBhZGQgYXVkaW8gZW5kcG9pbnQgMHg4MwpBTFNBIHNvdW5kL3VzYi91
-c2JhdWRpby5jOjI3NTM6IDU6Mjo1OiBhZGQgYXVkaW8gZW5kcG9pbnQgMHg4MwpBTFNBIHNvdW5k
-L3VzYi91c2JtaXhlci5jOjk4OTogWzJdIEZVIFtQQ00gQ2FwdHVyZSBTd2l0Y2hdIGNoID0gMSwg
-dmFsID0gMC8xLzEKQUxTQSBzb3VuZC91c2IvdXNibWl4ZXIuYzo0MDY6IGNhbm5vdCBzZXQgY3Rs
-IHZhbHVlOiByZXEgPSAweDQsIHdWYWx1ZSA9IDB4MjAwLCB3SW5kZXggPSAweDIwMSwgdHlwZSA9
-IDQsIGRhdGEgPSAweDAvMHgxCkFMU0Egc291bmQvdXNiL3VzYm1peGVyLmM6OTg5OiBbMl0gRlUg
-W1BDTSBDYXB0dXJlIFZvbHVtZV0gY2ggPSAxLCB2YWwgPSAwLzAvNTEyCnVzYmNvcmU6IHJlZ2lz
-dGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgc25kLXVzYi1hdWRpbwpzYWE3MTMzWzBdOiByZWdp
-c3RlcmVkIGRldmljZSB2aWRlbzEgW3Y0bDJdCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNl
-IHZiaTEKc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgcmFkaW8wCkRWQjogcmVnaXN0ZXJp
-bmcgbmV3IGFkYXB0ZXIgKHNhYTcxMzNbMF0pCkRWQjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAo
-UGhpbGlwcyBUREExMDA0NkggRFZCLVQpLi4uCnRkYTEwMDR4OiBzZXR0aW5nIHVwIHBsbHMgZm9y
-IDQ4TUh6IHNhbXBsaW5nIGNsb2NrClNFTGludXg6IGluaXRpYWxpemVkIChkZXYgcmFtZnMsIHR5
-cGUgcmFtZnMpLCB1c2VzIGdlbmZzX2NvbnRleHRzCnRkYTEwMDR4OiBmb3VuZCBmaXJtd2FyZSBy
-ZXZpc2lvbiAyOSAtLSBvawpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEwCmxvOiBE
-aXNhYmxlZCBQcml2YWN5IEV4dGVuc2lvbnMKQUxTQSBzb3VuZC91c2IvdXNiYXVkaW8uYzoxMzI3
-OiBzZXR0aW5nIHVzYiBpbnRlcmZhY2UgMjo1CkFMU0Egc291bmQvdXNiL3VzYmF1ZGlvLmM6MTMy
-Nzogc2V0dGluZyB1c2IgaW50ZXJmYWNlIDI6Mgp0ZGExMDA0eDogc2V0dGluZyB1cCBwbGxzIGZv
-ciA0OE1IeiBzYW1wbGluZyBjbG9jawp0ZGExMDA0eDogZm91bmQgZmlybXdhcmUgcmV2aXNpb24g
-MjkgLS0gb2sKQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAxOjAwLjBbQV0gLT4gR1NJIDE2IChs
-ZXZlbCwgbG93KSAtPiBJUlEgMTYKQUREUkNPTkYoTkVUREVWX1VQKTogd2xhbjA6IGxpbmsgaXMg
-bm90IHJlYWR5Cltkcm1dIEluaXRpYWxpemVkIGRybSAxLjEuMCAyMDA2MDgxMApQQ0k6IFNldHRp
-bmcgbGF0ZW5jeSB0aW1lciBvZiBkZXZpY2UgMDAwMDowMDowMi4wIHRvIDY0Cltkcm1dIEluaXRp
-YWxpemVkIGk5MTUgMS42LjAgMjAwNjAxMTkgb24gbWlub3IgMApBTFNBIHNvdW5kL3VzYi91c2Jh
-dWRpby5jOjEzMjc6IHNldHRpbmcgdXNiIGludGVyZmFjZSAyOjIKZW0yODgwLWR2Yi5jOiBEVkIg
-SW5pdAplbTI4eHhfYWNxdWlyZTogYWNxdWlyZWQsIG1vZGUgPSAzCnpsMTAzNTNfcmVhZF9yZWdp
-c3RlcjogcmVhZHJlZyBlcnJvciAocmVnPTEyNywgcmV0PT0tMTkpCmVtMjg4MC1kdmIuYzogZmFp
-bGVkIGluaXRpYWxpemluZyB6bDEwMzUzIERWQi1UIGRlbW9kdWxhdG9yCmVtMjg4MC1kdmIuYzog
-cmV0cnlpbmcgd2l0aCBtdDM1MiBEVkItVCBkZW1vZHVsYXRvcgptdDM1Ml9yZWFkX3JlZ2lzdGVy
-OiByZWFkcmVnIGVycm9yIChyZWc9MTI3LCByZXQ9PS0xOSkKZW0yODgwLWR2Yi5jOiBubyBsdWNr
-IHdpdGggbXQzNTIgZGVtb2R1bGF0b3IsIG5vdCBhdHRhY2hpbmcgZW0yODgwLWR2YgplbTI4ODAt
-ZHZiLmM6IERWQi1UIGRlbW9kdWxhdG9yIG5vdCByZWFjaGFibGUsIGdpdmluZyB1cAplbTI4eHhf
-cmVsZWFzZTogcmVsZWFzZWQsIG1vZGUgPSAzCkVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjg4MCBE
-VkIgRXh0ZW5zaW9uKSBleHRlbnNpb24KZW0yOHh4X2FjcXVpcmU6IGFjcXVpcmVkLCBtb2RlID0g
-Mgp0dnA1MTUwIDEtMDA1YzogdHZwNTE1MGFtMSBkZXRlY3RlZC4KZW0yOHh4X3JlbGVhc2U6IHJl
-bGVhc2VkLCBtb2RlID0gMgplbTI4eHhfYWNxdWlyZTogYWNxdWlyZWQsIG1vZGUgPSAyCmVtMjh4
-eF9yZWxlYXNlOiByZWxlYXNlZCwgbW9kZSA9IDIKZW0yOHh4X2FjcXVpcmU6IGFjcXVpcmVkLCBt
-b2RlID0gMgplbTI4eHhfcmVsZWFzZTogcmVsZWFzZWQsIG1vZGUgPSAyCmVtMjh4eF9hY3F1aXJl
-OiBhY3F1aXJlZCwgbW9kZSA9IDIKZW0yOHh4X3JlbGVhc2U6IHJlbGVhc2VkLCBtb2RlID0gMgpl
-bTI4eHhfYWNxdWlyZTogYWNxdWlyZWQsIG1vZGUgPSAyCmVtMjh4eF9yZWxlYXNlOiByZWxlYXNl
-ZCwgbW9kZSA9IDIKZW0yOHh4X2FjcXVpcmU6IGFjcXVpcmVkLCBtb2RlID0gMgplbTI4eHhfcmVs
-ZWFzZTogcmVsZWFzZWQsIG1vZGUgPSAyCmVtMjh4eF9hY3F1aXJlOiBhY3F1aXJlZCwgbW9kZSA9
-IDIKZW0yOHh4X3JlbGVhc2U6IHJlbGVhc2VkLCBtb2RlID0gMgplbTI4eHhfYWNxdWlyZTogYWNx
-dWlyZWQsIG1vZGUgPSAyCmVtMjh4eF9yZWxlYXNlOiByZWxlYXNlZCwgbW9kZSA9IDIKdGRhMTAw
-NHg6IHNldHRpbmcgdXAgcGxscyBmb3IgNDhNSHogc2FtcGxpbmcgY2xvY2sKdGRhMTAwNHg6IGZv
-dW5kIGZpcm13YXJlIHJldmlzaW9uIDI5IC0tIG9rCg==
-------=_Part_5885_15964640.1207181083625
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_5885_15964640.1207181083625--
