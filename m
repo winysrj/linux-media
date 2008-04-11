@@ -1,31 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43])
+Received: from smtp1.betherenow.co.uk ([87.194.0.68])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JqyEf-0007zS-NM
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 00:23:42 +0200
-Received: from mail-in-02-z2.arcor-online.net (mail-in-02-z2.arcor-online.net
-	[151.189.8.14])
-	by mail-in-03.arcor-online.net (Postfix) with ESMTP id 6C8ED2CACC6
-	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 00:23:36 +0200 (CEST)
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
-	[151.189.21.42])
-	by mail-in-02-z2.arcor-online.net (Postfix) with ESMTP id 5E9701137B5
-	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 00:23:36 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-02.arcor-online.net (Postfix) with ESMTP id DD0B636E868
-	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 00:23:35 +0200 (CEST)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <2d842fa80804291436t4464065bycb5b8d3b6b8dc19f@mail.gmail.com>
-References: <2d842fa80804282201h5665c596q4048d1f58fdaab5f@mail.gmail.com>
-	<1209499089.3456.34.camel@pc10.localdom.local>
-	<2d842fa80804291436t4464065bycb5b8d3b6b8dc19f@mail.gmail.com>
-Date: Wed, 30 Apr 2008 00:22:03 +0200
-Message-Id: <1209507723.3456.90.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] saa7146_vv.ko and dvb-ttpci.ko undefined
-	with	kernel 2.6.23.17
+	(envelope-from <tghewett2@onetel.com>) id 1JkIln-0006lh-Km
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 14:54:20 +0200
+Message-Id: <665E5397-D516-4E6B-B989-4A631FB9C25E@onetel.com>
+From: Tim Hewett <tghewett2@onetel.com>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0 (Apple Message framework v919.2)
+Date: Fri, 11 Apr 2008 13:52:31 +0100
+Cc: Tim Hewett <tghewett2@onetel.com>
+Subject: [linux-dvb] Updated copy of dvbstream to support DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,34 +23,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I have updated my (enhanced) source of dvbstream to allow it to work  
+with DVB-S2 transponders for Mantis DVB-S/DVB-S2 cards, you can get it  
+from here:
 
-Am Dienstag, den 29.04.2008, 23:36 +0200 schrieb Stone:
-> Thanks for the confirmation.  Would you happen to know which file to
-> edit so that I can add such missing dependencies (ie;
-> videobuf-dma-sg)?  It seems like it should be a one line fix.  I would
-> build "all" but my machine is so slow, it really drags on.  There must
-> be an easier way.
-> 
+http://www.coolatoola.com/dvbstream.multiproto.tgz
 
-[snip]
->         If you enable for example saa7134 support under video you should get the
->         missing videobuf* modules too until the build dependencies are working
->         for saa7146 again?
+It may also work with other DVB-S2 cards.
 
-Either try that or go a little back before saa7146 is moved
-to /media/video from /media/common.
+There is a new command line option '-ds' ("Delivery System") which  
+takes 'DVBS' or 'DVBS2' as options. All other tuning parameters  
+operate as before. The changes have been tested using a Technisat  
+SkyStar HD2 PCI card with the current mantis tree ('hg clone http://jusst.de/hg/mantis') 
+.
 
-It might be also already fixed or will be soon.
-The build system is quickly moving due to get some tuner bugs away
-before the 2.6.26 merge window is closed.
+The source includes many other features I have added for my own use  
+over the years, e.g. using the device name as shown by dmesg rather  
+than card number to specify the DVB device (useful when device numbers  
+change with each reboot), so you can replace the card number with -c  
+'STB0899 Multistandard'. If you have several devices of the same type,  
+you can specify one by appending :0, :1, :2 etc. at the end of the  
+device name.
 
-Cheers,
-Hermann
+You can also specify the channel to record using the channel name (as  
+shown by scan -c) rather than pids, which helps to cope with  
+broadcasters changing their pids, add the parameter -C 'channel name'  
+and the associated pids will be found. You can still specify the pids  
+and these will be used instead if the channel name cannot be found.  
+This uses source taken from the scan utility in linux-dvb-apps.
 
+It can also set the system clock from a tuned transponder, use -d.  
+This uses source taken from the dvbdate utility in linux-dvb-apps.
 
+It will take exclusive control of the device, to avoid two processes  
+competing for the same device.
 
+So far it only is known to work reliably with the Technisat SkyStar  
+HD2 PCI card but should also work with the Twinhan VP-1041/Azurewave  
+AD SP400.
 
+Note that I am sharing this software which I have developed and tested  
+only for my own purposes, and since I don't use all features of  
+dvbstream I can't say whether or not any features have been damaged by  
+my work.
 
+Tim.
 
 _______________________________________________
 linux-dvb mailing list
