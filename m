@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f135.mail.ru ([194.67.57.116])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JpIE0-0006uL-Cg
-	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 09:20:06 +0200
-From: Igor <goga777@bk.ru>
-To: Faruk A <fa@elwak.com>
-Mime-Version: 1.0
-Date: Fri, 25 Apr 2008 11:19:30 +0400
-References: <854d46170804241352o5b221ddfldfe040202acb512d@mail.gmail.com>
-In-Reply-To: <854d46170804241352o5b221ddfldfe040202acb512d@mail.gmail.com>
-Message-Id: <E1JpIDS-000BOD-00.goga777-bk-ru@f135.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?SFZSNDAwMCAmIHN6YXAyIC0gaW9jdGwgRFZCRkVf?=
-	=?koi8-r?b?R0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRl?=
-	=?koi8-r?b?ZA==?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <timf@iinet.net.au>) id 1JkNSA-00005p-MF
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 19:54:28 +0200
+Message-ID: <47FFA5C5.7000704@iinet.net.au>
+Date: Sat, 12 Apr 2008 01:54:13 +0800
+From: timf <timf@iinet.net.au>
+MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <47FE3ECC.8020209@iinet.net.au> <47FE8FD1.3050004@t-online.de>
+	<1207870241.17744.8.camel@pc08.localdom.local>
+In-Reply-To: <1207870241.17744.8.camel@pc08.localdom.local>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,52 +26,246 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+hermann pitton wrote:
+> Am Freitag, den 11.04.2008, 00:08 +0200 schrieb Hartmut Hackmann:
+>   
+>> HI, Tim
+>>
+>> timf schrieb:
+>>     
+>>> Hi Hartmut,
+>>> OK, found some more spare time, but very, very frustrated!
+>>>
+>>> 1) Tried ubuntu 7.04, 7.10, 8.04
+>>>     Tried with just modules that exist in kernel (no v4l-dvb)
+>>>    Tried v4l-dvb from June 2007 and tried current v4l-dvb
+>>>    Tried with/without Hartmut patch - changeset 7376    49ba58715fe0
+>>>    Tried with .gpio_config   = TDA10046_GP11_I, or .gpio_config   = 
+>>> TDA10046_GP01_I,
+>>>    Tried using configs in saa7134-dvb.c matching tiger, tiger_s, 
+>>> pinnacle 310i, twinhan 3056
+>>>
+>>>     # Australia / Perth (Roleystone transmitter)
+>>>     # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+>>>     # SBS
+>>>     T 704500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+>>>     # ABC
+>>>     T 725500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+>>>     # Seven
+>>>     T 746500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
+>>>     # Nine
+>>>     T 767500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+>>>     # Ten
+>>>     T 788500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+>>>
+>>> 2) I have these saa7134 cards:
+>>>     - pinnacle 310i
+>>>     - kworld 210
+>>>
+>>>     This cx88 card:
+>>>     - dvico DVB-T Pro hybrid (analog tv not work)
+>>>
+>>> -   problem only occurs with kworld 210 in linux (works fine in WinXP)
+>>>
+>>> 3) In WinXP, all channels, both analog tv and dvb-t found
+>>>
+>>> 4) In linux, if start dvb-t first, never scans SBS - dmesg1
+>>>
+>>> 5) In linux, if start analog tv first, stop, then start dvb-t, scan 
+>>> finds SBS - dmesg2
+>>>
+>>>       
+>> a) The pinnacle 310i finds everything?
+>>     It has the same chipset, but an almost perfectly handled tuner chip...
+>>     This means that your initial config file is ok...
+>> b) Does this mean that in case 4, all other channels are found?
+>> c) Case 5: This finds everything?
+>> d) What happens if you use the scan data of the pinnacle card?
+>>     Does it tune SBS? Does it just take more time to stabilize?
+>>     This can be understood.
+>> e) Just to be sure: did you clarify the open point with .antenna_switch
+>>     (i think so)
+>> f) the kernel logs are as expected.
+>> <snip>
+>>
+>>
+>>     
+>>> 6) Herman mentioned something called a "mode-switch" in the archives, 
+>>> but not any description.
+>>>       
+>> I guess he meant the switching between analog, radio and dvb-t. This is the
+>> GPIO handling and card depending.
+>>     
+>
+> Tim must have it from when I mentioned the special case of card=87 and
+> 94.
+>
+>   
+>>> I tried to find some data sheets for tda8275 tda8290 but only found the 
+>>> publicity pdf file from Phillips,
+>>> so at least I can see they go together, so I presume this "mode-switch" 
+>>> is coded into those modules.
+>>> But those modules work for all other cards, so now I'm lost again.
+>>>
+>>> What else should I try?
+>>>
+>>>       
+>> If my assumptions above are wrong, there is one other chance:
+>> Recently i saw another card that does the (unusual) mode switching
+>> like card 87. So to be sure, you might try to force this card type (be
+>> aware of the antenna inputs, if in doubt, try both.
+>>
+>> Best regards
+>>    Hartmut
+>>
+>>     
+>
+> For the Medion8800 Quad and CTX948 also showing this issue, needs to
+> tune analog first to have good recepton on DVB-T, they are a little
+> weaker on analog than other cards, but after that on DVB-T, they are as
+> good than known good others.
+>
+> Cheers,
+> Hermann
+>
+>
+>   
+Hi Hartmut and Hermann,
 
-> On Thu, Apr 24, 2008 at 8:29 PM, Igor Nikanov <goga777@bk.ru> wrote:
-> > Hi
-> >
-> >  I have installed the latest multiproto with hvr4000 patch from Gregoire Favre
-> >  http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024487.html
-> >
-> >  after that I have installed the szap2 from dvb-apps
-> >  But with szap2 I have the error ioctl DVBFE_GET_INFO failed: Operation not supported
-> >  Can somebody comment ?
-> >
-> >  # ./szap2 -c 19 -n1
-> >
-> >  reading channels from file '19'
-> >  zapping to 1 'Pro7':
-> >  sat 0, frequency = 12722 MHz H, symbolrate 22000000, vpid = 0x00ff, apid = 0x0103 sid = 0x27d8
-> >  Querying info .. Delivery system=DVB-S
-> >  using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> >  ioctl DVBFE_GET_INFO failed: Operation not supported
-> >
-> >
-> >  Igor
-> >
-> 
-> Hi
-> 
-> Try this patch.
-> 
-> wget -O szap-multiproto-apiv33.diff
-> http://www.linuxtv.org/pipermail/linux-dvb/attachments/20080406/a365d65c/attachment.bin
+a) The pinnacle 310i finds everything?
+    It has the same chipset, but an almost perfectly handled tuner chip...
+    This means that your initial config file is ok...
 
-this patched szap2 didn't help to me, too :(
+Answer - Yes, the non-working remote (and constant unknown key messages) is all that is
+wrong with the pinnacle 310i.
+I tested it for your new tda8290 tda8275 patches - didn't I send you the results?
+It works fine!
 
-goga:/usr/src/szap2# ./szap2 -c 19 -n 1
-reading channels from file '19'
-zapping to 1 'Pro7':
-sat 0, frequency = 12722 MHz H, symbolrate 22000000, vpid = 0x00ff, apid = 0x0103 sid = 0x27d8 (fec = -2147483648, mod = 2)
-Querying info .. Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-ioctl DVBFE_GET_INFO failed: Invalid argument
+b) Does this mean that in case 4, all other channels are found?
 
-Igor
+Answer - In linux, if start dvb-t first, never scans SBS
+	- yes all other channels are viewable/scannable.
+
+c) Case 5: This finds everything?
+
+Answer - In linux, if start analog tv first, stop, then start dvb-t, scan 
+finds SBS
+	- yes all channels are viewable/scannable.
+
+d) What happens if you use the scan data of the pinnacle card?
+    Does it tune SBS? Does it just take more time to stabilize?
+    This can be understood.
+
+Answer - the same answer applies as for b) and c)
+
+e) Just to be sure: did you clarify the open point with .antenna_switch
+    (i think so)
+
+Answer - yes that was me being over-enthusiastic - made no difference
+as you pointed out.
 
 
+OK, this modification has achieved, I think success. I can now view/scan 
+all channels
+in analog tv or dvb-t in either order.
+That is, I now don't have to start analog tv first, before dvb-t will start.
 
- 
+In saa7134- cards.c - no change.
+
+In saa7134-dvb.c:
+
+Remove this:
+------------------------------------
+static struct tda1004x_config kworld_dvb_t_210_config = {
+    .demod_address = 0x08,
+    .invert        = 1,
+    .invert_oclk   = 0,
+    .xtal_freq     = TDA10046_XTAL_16M,
+    .agc_config    = TDA10046_AGC_TDA827X,
+    .gpio_config   = TDA10046_GP11_I,
+    .if_freq       = TDA10046_FREQ_045,
+    .i2c_gate      = 0x4b,
+    .tuner_address = 0x61,
+    .antenna_switch= 1,
+    .request_firmware = philips_tda1004x_request_firmware
+};
+------------------------------
+
+Add this:
+
+------------------------------
+static int kw210_tuner_init(struct dvb_frontend *fe)
+{
+    struct saa7134_dev *dev = fe->dvb->priv;
+    philips_tda827x_tuner_init(fe);
+    /* route TDA8275a AGC input to the channel decoder */
+    saa7134_set_gpio(dev, 22, 1);
+    return 0;
+}
+
+static int kw210_tuner_sleep(struct dvb_frontend *fe)
+{
+    struct saa7134_dev *dev = fe->dvb->priv;
+    /* route TDA8275a AGC input to the analog IF chip*/
+    saa7134_set_gpio(dev, 22, 0);
+    philips_tda827x_tuner_sleep(fe);
+    return 0;
+}
+
+static struct tda827x_config kw210_cfg = {
+    .tuner_callback = saa7134_tuner_callback,
+    .init = kw210_tuner_init,
+    .sleep = kw210_tuner_sleep,
+    .config = 0
+};
+
+static struct tda1004x_config kworld_dvb_t_210_config = {
+    .demod_address = 0x08,
+    .invert        = 1,
+    .invert_oclk   = 0,
+    .xtal_freq     = TDA10046_XTAL_16M,
+    .agc_config    = TDA10046_AGC_TDA827X,
+    .gpio_config   = TDA10046_GP11_I,
+    .if_freq       = TDA10046_FREQ_045,
+    .tuner_address = 0x61,
+    .request_firmware = philips_tda1004x_request_firmware
+};
+----------------------------
+
+Change this:
+
+    case SAA7134_BOARD_KWORLD_DVBT_210:
+        dev->dvb.frontend = dvb_attach(tda10046_attach, 
+&kworld_dvb_t_210_config, &dev->i2c_adap);
+        if (dev->dvb.frontend) {
+            if (dvb_attach(tda827x_attach,dev->dvb.frontend,
+                   kworld_dvb_t_210_config.tuner_address, &dev->i2c_adap,
+                                &kw210_cfg) == NULL) {
+                wprintk("no tda827x tuner found at addr: %02x\n",
+                    kworld_dvb_t_210_config.tuner_address);
+            }
+        }
+        break;
+---------------------------------------------
+
+However, I need you to explain something for me.
+
+There is no difference if I use this:
+
+    saa7134_set_gpio(dev, 22, 1);
+
+or this:
+
+    saa7134_set_gpio(dev, 21, 1);
+
+I await your guidance, meanwhile I shall apply my
+modification to enable the remote and ensure it
+doesn't have any effect.
+
+Many thanks to you both,
+
+Regards,
+Tim
 
 _______________________________________________
 linux-dvb mailing list
