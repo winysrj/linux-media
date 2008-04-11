@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtprelay03.ispgateway.de ([80.67.18.15])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kiu@gmx.net>) id 1JqCVn-0003E6-UY
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 21:26:12 +0200
-Received: from [62.216.212.3] (helo=blacksheep.qnet)
-	by smtprelay03.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68) (envelope-from <kiu@gmx.net>) id 1JqCVk-00031n-JQ
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 21:26:08 +0200
-Message-ID: <20080427212607.csw7xwh9wcsw04cw@blacksheep.qnet>
-Date: Sun, 27 Apr 2008 21:26:07 +0200
-From: kiu <kiu@gmx.net>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JkSFg-00030C-FT
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:01:54 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
+Date: Fri, 11 Apr 2008 23:36:12 +0200
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
+	<200804102240.13933@orion.escape-edv.de>
+	<47FFD432.8020609@t-online.de>
+In-Reply-To: <47FFD432.8020609@t-online.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] TerraTec Cinergy C - tuning fails/freezes
+Message-Id: <200804112336.13026@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
+	transponder fails
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +29,79 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi List,
+Hartmut Hackmann wrote:
+> Hi,
+> 
+> Oliver Endriss schrieb:
+> > Hi,
+> > 
+> > Manu Abraham wrote:
+> >> Oliver Endriss wrote:
+> >> ...
+> >>> Ok, some calculations according your formula
+> >>>
+> >>>>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
+> >>> 45 MSPS:
+> >>> BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
+> >>>
+> >>> -> cutoff 36 MHz (maximum value supported)
+> >>>
+> >>> 27 MSPS:
+> >>> BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
+> >>>
+> >>> -> cutoff 31 MHz
+> >>>
+> >>> 22 MSPS:
+> >>> BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
+> >>>
+> >>> -> cutoff 26 MHz
+> >>>
+> >>> Are these calculations correct, or did I miss something here?
+> >>
+> >> It looks fine, just round it off to the next integer. ie always round it
+> >> up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
+> >> well, since at the last step, you will not need an offset, since it
+> >> would be the last step in the spectrum.
+> >> ...
+> >>> Afaics a simple pre-calculated lookup table with 32 entries should do
+> >>> the job. At least for the cut-off frequency.
+> >> That's possible, since you need only 32 precomputed entries, rather than
+> >> continuous values. That would be much better too, without any runtime
+> >> overheads. Just the table needs to be done nice.
+> > 
+> > Now I found some time to come back to this issue,
+> > 
+> > I prepared a small patch to set the cutoff according to Manu's formula.
+> > The calculation is simple enough for integer arithmetic, so it is not
+> > worth to prepare a lookup-table.
+> > 
+> > @ldvb:
+> > Please test and report whether it works for you.
+> > 
+> > CU
+> > Oliver
+> > 
+> I intended to do the same.
 
-i have a TerraTec Cinergy C DVB-C PCI Card in my mythbuntu 8.04 pc.
+If I had been aware of that, I would have done something else. ;-)
+My time is rather limited these days...
 
-After compiling the mantis driver (http://jusst.de/hg/mantis) the card
-is recognized by the kernel. perfect!
+> Since I have a patch for tda10086 which needs public testing as well, i
+> would like to propose this:
+> I do a static check and integrate the patch in my repository together
+> with my patch and ask for public testing.
+> Hope this will not overstress the few testers we have ;-)
 
-If i now run
+Ok. Since I don't have the hardware I ran the code with common symbol
+rates. The results looked ok.
 
-w_scan -fc -x -vvvv
+CU
+Oliver
 
-it searches for QAM64 and QAM256 and finds some signals there. After  
-it is finished, it tries to tune in the channels and freezes with this  
-message (same happens with (dvb)scan):
-
-tune to:
-tuning status == 0x1f
-add_filter:1388: add filter pid 0x0000 start_filter:1334: start filter  
-pid 0x0000 table_id 0x00
-
-Any hints for debugging/fixing it my issues ?
-
-Btw, i also encountered a segfault once. If it happens again i will post it...
-
-TIA!
 -- 
-kiu
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
