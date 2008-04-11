@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f132.mail.ru ([194.67.57.113])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JqLGZ-0000cH-AZ
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 06:47:08 +0200
-From: Igor <goga777@bk.ru>
-To: Ian Bonham <ian.bonham@gmail.com>
-Mime-Version: 1.0
-Date: Mon, 28 Apr 2008 08:46:28 +0400
-References: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-In-Reply-To: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-Message-Id: <E1JqLG0-000Jpq-00.goga777-bk-ru@f132.mail.ru>
+	(envelope-from <stoth@linuxtv.org>) id 1JkJTB-0005DO-Ex
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:39:10 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZ5006SUXW7J5U0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 11 Apr 2008 09:38:31 -0400 (EDT)
+Date: Fri, 11 Apr 2008 09:38:31 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <ea4209750804110226u18388307m48c629fe69b20d99@mail.gmail.com>
+To: Albert Comerma <albert.comerma@gmail.com>,
+	Jernej Tonejc <tonejc@math.wisc.edu>
+Message-id: <47FF69D7.5070209@linuxtv.org>
+MIME-version: 1.0
+References: <Pine.LNX.4.64.0804102256540.3892@garbadale.math.wisc.edu>
+	<ea4209750804110226u18388307m48c629fe69b20d99@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] =?koi8-r?b?SFZSNDAwMCAmIEhlcm9u?=
-Reply-To: Igor <goga777@bk.ru>
+Subject: Re: [linux-dvb] Pinnacle PCTV HD pro USB stick 801e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,50 +33,88 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Albert Comerma wrote:
+> For the chips you list it seems to be an hybrid card, with a dibcom 
+> bridge. In this case, what's more easy is to make dvb-t working (dib0700 
+> + xc5000)  as you have tried. But there's no frontend which uses xc5000, 
+> so a new one must be specified. In theory xc5000 is supported.... I hope 
+> this helps.
 
-you can try second variant
 
-- to install multiproto_plus
-http://jusst.de/hg/multiproto_plus/
-http://jusst.de/hg/multiproto_plus/archive/tip.tar.bz2
+Lots of frontends use the xc5005. stoth/hvr950q uses the au8522 and the 
+xc5000. The cx23885 tree has concrete examples of the s5h1409 using the 
+xc5000 (hvr1500q).
 
-- to install hvr4000-patch from Gregoire Favre
-http://linuxtv.org/pipermail/linux-dvb/2008-April/025655.html
 
-Igor
+> 
+> Albert
+> 
+> 2008/4/11 Jernej Tonejc <tonejc@math.wisc.edu 
+> <mailto:tonejc@math.wisc.edu>>:
+> 
+>     Hi,
+> 
+>     I was wondering if anyone is working on enabling this device under
+>     linux.
+>     I took it apart and it contains the following chips:
+> 
+>     DIBcom 0700C-XCCXa-G
+>     USB 2.0 D3LTK.1
+>     0804-0100-C
+>     -----------------
 
------Original Message-----
-From: "Ian Bonham" <ian.bonham@gmail.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Sun, 27 Apr 2008 22:18:46 +0200
-Subject: [linux-dvb] HVR4000 & HeronHi
+Hmm. I haven't really used the dibcom src but I think this is already 
+supported.
+
+>     SAMSUNG
+>     S5H1411X01-Y0
+>     NOTKRSUI H0801
+
+I have a driver for this, I hope to release it shortly.
+
+>     -----------------
+>     XCeive
+>     XC5000AQ
+>     BK66326.1
+>     0802MYE3
+>     -----------------
+
+I did a driver for this, it's already in the kernel.
+
+>     Cirrus
+>     5340CZZ
+>     0748
+>     -----------------
+
+Already exists.
+
+>     CONEXANT
+>     CX25843-24Z
+>     71035657
+>     0742 KOREA
+>     -----------------
+
+Already exists
+
 > 
-> Hi All.
-> 
-> Ok, so just installed the shiny, spangly new Ubuntu 8.04LTS (Hardy Heron) on
-> my machine with the HVR4000 in, and now, no TV! It's gone on with kernel
-> 2.6.24-16 on a P4 HyperThread, and everything worked just fine under Gutsy.
-> I've pulled down the v4l-dvb tree (current and revision 127f67dea087 as
-> suggested in Wiki) and tried patching with dev.kewl.org's MFE and SFE
-> current patches (7285) and the latest.
-> 
-> Everything 'seems' to compile Ok, and installs fine. When I reboot however I
-> get a huge chunk of borked stuff and no card. (Dmesg output at end of
-> message)
-> 
-> Could anyone please give me any pointers on how (or if) they have their
-> HVR4000 running under Ubuntu 8.04LTS ?
-> 
-> Would really appriciate it.
-> Thanks in advance,
-> 
-> Ian
-> 
-> DMESG Output:
-> cx88xx: disagrees about version of symbol videobuf_waiton
-> [   37.790909] cx88xx: Unknown symbol videobuf_waiton
-> 
+>     It seems that all parts should be more or less supported. I played
+>     around
+
+No, see my comment above.
+
+Why not get involved and scratch your own itch? :)
+
+The community could use more developers, why not roll up your sleeves 
+and help solve your problem - and the problem for others? Everyone has 
+to start somewhere and usually when would-be developers ask questions - 
+everyone is willing to help.
+
+Regards,
+
+Steve
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
