@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JqHUY-0008DN-Vq
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 02:45:15 +0200
-From: Andy Walls <awalls@radix.net>
-To: Andreas <linuxdreas@launchnet.com>
-In-Reply-To: <200804271649.09000.linuxdreas@launchnet.com>
-References: <200804271649.09000.linuxdreas@launchnet.com>
-Date: Sun, 27 Apr 2008 20:45:01 -0400
-Message-Id: <1209343501.3208.17.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 driver not in main repo?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JkSFh-00031J-1u
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:01:59 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 12 Apr 2008 00:01:51 +0200
+References: <200803212024.17198.christophpfister@gmail.com>
+	<200804040133.05892@orion.escape-edv.de>
+	<200804051514.28207.christophpfister@gmail.com>
+In-Reply-To: <200804051514.28207.christophpfister@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200804120001.52173@orion.escape-edv.de>
+Subject: Re: [linux-dvb] CI/CAM fixes for knc1 dvb-s cards
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,42 +28,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-04-27 at 16:49 -0700, Andreas wrote:
-> Hi all,
-> I noticed today that the cx18 driver (for Hauppauge's HVR-1600) is not in 
-> the main v4ldvb repository.
-
-Andreas,
-
-Hans just asked Mauro to pull it.  See:
-
-http://ivtvdriver.org/pipermail/ivtv-devel/2008-April/005509.html
-
-
->  I was hoping to take advantage of the new 
-> module parameter "adapter_nr" for my other dvb card (using the saa7134_dvb 
-> driver) to achieve a consistent device numbering across restarts. Instead, 
-> I had to check out Hans Verkuil's repo with the cx18, but without the new 
-> module parameter.
-
-The latest of Hans' cx18 repo does have the parameter in question.  From
-my hg cloned copy:
-
-$ grep -n adapter_nr cx18/linux/drivers/media/video/cx18/*
-cx18/linux/drivers/media/video/cx18/cx18-dvb.c:29:DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-cx18/linux/drivers/media/video/cx18/cx18-dvb.c:144:                     THIS_MODULE, &cx->dev->dev, adapter_nr);
-
-Beyond "/sbin/modinfo cx18" I can't test if it works.  But if you need
-it, it's there.
-
-Regards,
-Andy
-
+Christoph Pfister wrote:
+> Am Freitag 04 April 2008 schrieb Oliver Endriss:
+> > Christoph Pfister wrote:
+> > > > > <<<fix-knc1-dvbs-ci.diff>>>
+> > > > >        case SUBID_DVBS_KNC1:
+> > > > >        case SUBID_DVBS_KNC1_PLUS:
+> > > > >        case SUBID_DVBS_EASYWATCH_1:
+> > > > >+               budget_av->reinitialise_demod = 1;
+> > > > >
+> > > > > Fix CI interface on (some) KNC1 DVBS cards
+> > > > > Quoting the commit introducing reinitialise_demod (3984 / by adq):
+> > > > > "These cards [KNC1 DVBT and DVBC] need special handling for CI -
+> > > > > reinitialising the frontend device when the CI module is reset."
+> > > > > Apparently my 1894:0010 also needs that fix, because once you
+> > > > > initialise CI/CAM you lose lock. Signed-off-by: Christoph Pfister
+> > > > > <pfister@linuxtv.org>
+> > > >
+> > > > Are you _sure_ that 'reinitialise_demod = 1' is required by all 3 card
+> > > > types, and does not hurt for SUBID_DVBS_KNC1_PLUS (1131:0011,
+> > > > 1894:0011) and SUBID_DVBS_EASYWATCH_1 (1894:001a)?
+> > >
+> > > Do you want me to limit reinitialise_demod to the one type of card I'm
+> > > using or is it ok for you this way?
+> >
+> > Yes, please. We should not add a quirk unless we have verified that it
+> > is really required. It is easier to add a hack than to remove it. ;-)
 > 
-> Is there a reason why the cx18 driver is not available in the main repo?
+> Ok.
 > 
+> > > (I'll repost a modified version of the first patch removing the 0xff
+> > > check altogether later today ...)
+> >
+> > OK. I'll commit your patches this weekend.
+> 
+> Here is the final version - thanks :)
 
+FYI, these patches are in HG master now.
 
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
