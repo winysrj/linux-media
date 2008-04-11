@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [125.16.143.82] (helo=is01ms02.ittiam.com)
+Received: from wr-out-0506.google.com ([64.233.184.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rajendra.turakani@ittiam.com>) id 1Job8Q-0008N2-8c
-	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 11:19:27 +0200
-Content-class: urn:content-classes:message
+	(envelope-from <anluoma@gmail.com>) id 1JkJEs-0002Bw-6c
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:24:23 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so562355wra.14
+	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 06:24:13 -0700 (PDT)
+Message-ID: <754a11be0804110624n3d2febcfo7f7ae68174d91a70@mail.gmail.com>
+Date: Fri, 11 Apr 2008 16:24:12 +0300
+From: "Antti Luoma" <anluoma@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <47FCE189.1040609@sral.fi>
 MIME-Version: 1.0
-Date: Wed, 23 Apr 2008 14:48:53 +0530
-Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B804307C47@is01ex02.ittiam.com>
-References: <904DEC693BE1AB429622C6F5ABA7E0B804307B76@is01ex02.ittiam.com>
-	<Pine.LNX.4.64.0804230932130.9074@pub6.ifh.de>
-From: "Rajendra C. Turakani" <rajendra.turakani@ittiam.com>
-To: "Patrick Boettcher" <patrick.boettcher@desy.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Query on USB based DVB-T modules.
+References: <47FCE189.1040609@sral.fi>
+Subject: Re: [linux-dvb] My USB-TV
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,96 +20,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1260058942=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Patrick,
+--===============1260058942==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_20547_15236896.1207920252321"
 
-I misquoted DiB7070 as DiB7770. I am sorry for that..
+------=_Part_20547_15236896.1207920252321
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards,
-Turakani
+Hi,
 
------Original Message-----
-From: Rajendra C. Turakani 
-Sent: Wednesday, April 23, 2008 2:28 PM
-To: 'Patrick Boettcher'
-Cc: linux-dvb@linuxtv.org
-Subject: RE: [linux-dvb] Query on USB based DVB-T modules.
+I think you should provide more information so that we might help you. Is
+the usb stick found, what drivers you have used.
 
-Hi Patrick,
+-antti-
 
-Thanks for the answers...
+2008/4/9 Kalevi Hautaniemi <oh3fg@sral.fi>:
 
-I had a few more things to ask. I noticed that the new chipset from
-DiBCOM is DiB7770.
+>
+> I'm facin trouble with my USB-TV (Artec T14br) and I do not know if I
+> can do something myself with warning (in /var/log/messages) like this:
+>
+> Apr  9 14:31:25 keljukko kernel: **WARNING** I2C adapter driver [DiBX000
+> tuner I2C bus] forgot to specify physical device; fix it!
+>
+> All seems to be ok, but kaffeine does not know a thing about my TV
+> -stick. Not even 'DVB' -button in startup screen. Kernel version of my
+> system is 2.6.20.
+>
+> --
+> /Kallu                      < oh3fg at sral fi >
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-a. Are there any USB dongles (DVB-T) with DiB7770 chipset ? I am not
-sure if the latest from Pinnacle (Pinnacle PCTV nano stick) has DiB7770.
-b. How do we add support to these devices in the kernel ?
 
-Question on DMB ..
 
-1. Is there no support for DMB based USB dongles ?
+-- 
+-Antti-
 
-Looking forward for your answers..
+------=_Part_20547_15236896.1207920252321
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards,
-Turakani
+Hi,<br><br>I think you should provide more information so that we might help you. Is the usb stick found, what drivers you have used. <br><br>-antti-<br><br><div class="gmail_quote">2008/4/9 Kalevi Hautaniemi &lt;<a href="mailto:oh3fg@sral.fi">oh3fg@sral.fi</a>&gt;:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
+I&#39;m facin trouble with my USB-TV (Artec T14br) and I do not know if I<br>
+can do something myself with warning (in /var/log/messages) like this:<br>
+<br>
+Apr &nbsp;9 14:31:25 keljukko kernel: **WARNING** I2C adapter driver [DiBX000<br>
+tuner I2C bus] forgot to specify physical device; fix it!<br>
+<br>
+All seems to be ok, but kaffeine does not know a thing about my TV<br>
+-stick. Not even &#39;DVB&#39; -button in startup screen. Kernel version of my<br>
+system is <a href="http://2.6.20." target="_blank">2.6.20.</a><br>
+<font color="#888888"><br>
+--<br>
+/Kallu &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&lt; oh3fg at sral fi &gt;<br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</font></blockquote></div><br><br clear="all"><br>-- <br>-Antti-
 
------Original Message-----
-From: Patrick Boettcher [mailto:patrick.boettcher@desy.de] 
-Sent: Wednesday, April 23, 2008 1:05 PM
-To: Rajendra C. Turakani
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Query on USB based DVB-T modules.
+------=_Part_20547_15236896.1207920252321--
 
-Hi Rajendra,
 
-On Wed, 23 Apr 2008, Rajendra C. Turakani wrote:
-> 1.       Is 'Leadtek Winfast DTV Dongle' based on as DiB3000M chipset
-?
-> Is the driver source code available ?
-
-Yes. I think the device used inside this Dongle is 3000P. The driver is 
-identical between the two revision.
-
-> 2.       How can one get detailed datasheet of DiB3000M ?
-
-Ask DiBcom support. But if you want to develop software, it is not the 
-right start, because the data sheet is mainly to help people integrate
-the 
-hardware.
-
-When you use the driver from LinuxTV make sure that you follow the GPL 
-rules when adapting it.
-
-> 3.       What is the chipset that is used in 'Hauppauge WinTV Nova-T
-> (USB)' ?
-
-There are several devices with that name:
-
-USB2: DiB3000P
-TD: DiB7000P or DiB7070P
-
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
-
-**********************************************************************
-This email and any files transmitted with it are confidential and
-intended solely for the use of the individual or entity to whom they
-are addressed. If you have received this email in error please notify
-helpdesk@ittiam.com.
-**********************************************************************
-
+--===============1260058942==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1260058942==--
