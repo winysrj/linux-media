@@ -1,23 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from mail-in-10.arcor-online.net ([151.189.21.50])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JqVWp-0004yz-U4
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 17:44:32 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K0100CBZL0V2A20@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 28 Apr 2008 11:43:50 -0400 (EDT)
-Date: Mon, 28 Apr 2008 11:43:43 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <4815B2A9.4060209@web.de>
-To: Torben Viets <viets@web.de>
-Message-id: <4815F0AF.4010709@linuxtv.org>
-MIME-version: 1.0
-References: <4815B2A9.4060209@web.de>
+	(envelope-from <hermann-pitton@arcor.de>) id 1JkSGC-0003BV-O0
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:02:25 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Nick Andrew <nick-linuxtv@nick-andrew.net>
+In-Reply-To: <20080411164608.GB28897@tull.net>
+References: <200803292240.25719.janne-dvb@grunau.be>
+	<37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
+	<200804090022.40805@orion.escape-edv.de>
+	<200804091121.22092.janne-dvb@grunau.be>
+	<37219a840804090744l2fe7eacbncabd7a2ccf7979b@mail.gmail.com>
+	<20080409232544.GA31564@tull.net> <20080409234452.GB31564@tull.net>
+	<1207788941.3380.7.camel@pc08.localdom.local>
+	<20080411164608.GB28897@tull.net>
+Date: Sat, 12 Apr 2008 01:02:02 +0200
+Message-Id: <1207954922.6271.35.camel@pc08.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
+Subject: Re: [linux-dvb] [PATCH] Add driver specific module option	to	choose
+	dvb adapter numbers, second try
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,79 +27,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Torben Viets wrote:
-> Hello,
-> 
-> I have a Hauppauge HVR-1700 PCI Express, I have read all posts about
-> this card here, but I didn't get it working, how does it work?
-
-It's working fine for me on a stock 7.10 ubuntu install.
-
-> 
-> Kernel: linux-2.6.25-git10
-> 
-> Firmware-Files:
-> ls -al /lib/firmware/2.6.25-git10/
-> total 416
-> drwxr-xr-x 2 root root     91 Apr 27 16:27 .
-> drwxr-xr-x 3 root root     25 Apr 27 16:26 ..
-> -rw-r--r-- 1 root root  24878 Apr 27 16:27 dvb-fe-tda10048-1.0.fw
-> -r--r--r-- 1 root root  16382 Apr 27 16:27 v4l-cx23885-avcore-01.fw
-> -r--r--r-- 1 root root 376836 Apr 27 16:26 v4l-cx23885-enc.fw
-> 
-> The modules I use are from the actual v4l-dvb hg, if I type make load,
-> the only thing I get is a /dev/video0, but I have no picture with xawtv...
-
-/dev/video doesn't work, it's not supported.
-
-You should aim to use the dvb-apps tools (tzap, scan) and mplayer as 
-example tools, or MythTV as an app.
-
-
-> 
-> The DVB doesn't work at all, I have no /dev/dvb*, here is my dmesg:
-> 
-> cx23885 driver version 0.0.1 loaded
-> ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 24 (level, low) -> IRQ 24
-> CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge WinTV-HVR1700
-> [card=8,autodetected]
-> cx23885[0]: i2c bus 0 registered
-> cx23885[0]: i2c bus 1 registered
-> cx23885[0]: i2c bus 2 registered
-> tveeprom 0-0050: Huh, no eeprom present (err=-5)?
-> tveeprom 0-0050: Encountered bad packet header [00].
-> Corrupt or not a Hauppauge
-> eeprom.
-> cx23885[0]: warning: unknown hauppauge model #0
-> cx23885[0]: hauppauge eeprom: model=0
-> cx23885[0]: cx23885 based dvb card
-> tda10048_readreg: readreg error (ret == -5)
-> cx23885[0]: frontend initialization failed
-> cx23885_dvb_register() dvb_register failed err = -1
-> cx23885_dev_setup() Failed to register dvb on VID_C
-> cx23885_dev_checkrevision() New hardware revision found 0x0
-> cx23885_dev_checkrevision() Hardware revision unknown 0x0
-> cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 24, latency: 0, mmio:
-> 0xfe800000
-
-This looks bad, it looks like i2c is broken badly, so that the eeprom 
-isn't detected and the demodulator isn't found during attach. This is 
-the reason why your missing /dev/dvb/adapterX/
-
-No idea why. Try loading the cx23885 with debug=5 and report any log 
-messages here - on this mailing list.
-
-Steve
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gU2Ftc3RhZywgZGVuIDEyLjA0LjIwMDgsIDAyOjQ2ICsxMDAwIHNjaHJpZWIgTmljayBBbmRy
+ZXc6Cj4gT24gVGh1LCBBcHIgMTAsIDIwMDggYXQgMDI6NTU6NDFBTSArMDIwMCwgaGVybWFubiBw
+aXR0b24gd3JvdGU6Cj4gPiBJdCBpcyB0b3RhbGx5IHVuaW50ZXJlc3RpbmcgYW5kIGZ1bGx5IE9U
+IEkgdGhpbmsuCj4gCj4gU29ycnkgSGVybWFubiwgSSdsbCB0cnkgdG8gc3RpY2sgdG8gdGhlIHRv
+cGljIGluIGZ1dHVyZS4KPiAKPiBOaWNrLgoKSGkgTmljaywKCnNlZW1zIGl0IGlzIG15IHR1cm4g
+bm93LCBwbGVhc2UgZXhjdXNlIQoKVGhlIGFib3ZlIHJhbnQgd2FzIG5vdCBtZWFudCBzdWNoIHNl
+cmlvdXNseSBhbmQgSSB0aG91Z2h0IHRoYXQgd2UgY2FuCmxpdmUgd2l0aCBzb21lICJQaWRnaW4g
+RW5nbGlzaCA7KSIuCgpZb3UgYW5kIGV2ZXJ5b25lIGhhcyBvZiBjb3Vyc2UgYWxsIGFuZCBhbnkg
+cmlnaHRzIHRvIHJpc2Ugc3VjaCBxdWVzdGlvbnMKYW5kIEknbSBub3QgYWdhaW5zdCBmaXhlcyBh
+bmQgcGF0Y2hlcyBhdCBhbGwuIFdlIGV2ZW4gbXVzdCB0aGFuayBuYXRpdmUKc3BlYWtlcnMgdG8g
+Y2FyZSBmb3IgaXQuCgpJbiBmYWN0LCBpdCBpcyByZWFsbHkgb2Z0ZW4gdmVyeSBpbnRlcmVzdGlu
+ZyB0byBmb2xsb3cgaGlzdG9yeSwgYXMgaXQgaXMKcHJlc2VydmVkIGluIHRoZSBkaWZmZXJlbnQg
+bGFuZ3VhZ2VzLiBXZSBoYWQgYSBuaWNlIGNhc2UgcHJldmlvdXNseSB3aXRoCm9sZCBTRUNBTSBM
+wrQgaW4gRnJhbmNlLgoKV2UganVzdCBzaG91bGQga2VlcCBpdCBvbiBhIGxldmVsLCBzaW1pbGFy
+IGxpa2Ugd2hpdGVzcGFjZSBjbGVhbnVwcyBvcgp3aGF0IHdlIGhhdmUgY3VycmVudGx5IHdpdGgg
+Y2hlY2twYXRjaC5wbCBvbiBvbGRlciBjb2RlLCB3aGljaCBfd2FzCnJldmlld2VkXywgYW5kIHN0
+YXkgcmVsYXhlZC4KClRvIGJlIGhvbmVzdCwgSSBzdGlsbCBleHBlY3RlZCBNYW51IHRvIE5BQ0sg
+dGhpcywgYXMgdXN1YWwsIGFsc28KcHJldmlvdXNseSBmb3IgYXNzb2NpYXRpbmcgdGhlIFBDSSBi
+cmlkZ2VzIGFuZCBpMmMgbWFzdGVycyB3aXRoIHRoZQpmcm9udGVuZHMuCgpJZiB0aGUgYXJndW1l
+bnRzIGFyZSBnb29kLCBJIHN0aWxsIGRvIGFjY2VwdCB0aGVtLgoKQ2hlZXJzLApIZXJtYW5uCgoK
+CgoKCgoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5s
+aW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
