@@ -1,17 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
+Received: from mail-in-12.arcor-online.net ([151.189.21.52])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gs.thiru@gmail.com>) id 1Jjwnw-0007LT-2X
-	for linux-dvb@linuxtv.org; Thu, 10 Apr 2008 15:27:11 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so732266ywh.41
-	for <linux-dvb@linuxtv.org>; Thu, 10 Apr 2008 06:26:54 -0700 (PDT)
-Message-ID: <5b5250670804100626p223df572r1c99e89b7d4da576@mail.gmail.com>
-Date: Thu, 10 Apr 2008 18:56:26 +0530
-From: "thirunavukarasu selvam" <gs.thiru@gmail.com>
+	(envelope-from <hermann-pitton@arcor.de>) id 1JkSm7-00068p-3Q
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:35:20 +0200
+Received: from mail-in-03-z2.arcor-online.net (mail-in-03-z2.arcor-online.net
+	[151.189.8.15])
+	by mail-in-12.arcor-online.net (Postfix) with ESMTP id 925914C2A1
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 01:35:15 +0200 (CEST)
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mail-in-03-z2.arcor-online.net (Postfix) with ESMTP id 755592D3968
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 01:35:15 +0200 (CEST)
+Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
+	(Authenticated sender: hermann-pitton@arcor.de)
+	by mail-in-14.arcor-online.net (Postfix) with ESMTP id E6CBB187A6D
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 01:35:14 +0200 (CEST)
+From: hermann pitton <hermann-pitton@arcor.de>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] Trouble in loading drivers for both wintv nova-s-plus
-	and pvr-500 card simultaneously (mainly becos of tveeprom.ko module)
+In-Reply-To: <200804112329.47476@orion.escape-edv.de>
+References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
+	<200804102240.13933@orion.escape-edv.de>
+	<1207870397.17744.12.camel@pc08.localdom.local>
+	<200804112329.47476@orion.escape-edv.de>
+Date: Sat, 12 Apr 2008 01:35:14 +0200
+Message-Id: <1207956914.6271.60.camel@pc08.localdom.local>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT
+	S-1401	Horizontal	transponder fails
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,157 +34,127 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1679872615=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1679872615==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_14888_7152488.1207833986994"
+Hi,
 
-------=_Part_14888_7152488.1207833986994
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Am Freitag, den 11.04.2008, 23:29 +0200 schrieb Oliver Endriss:
+> hermann pitton wrote:
+> > Hi,
+> > 
+> > Am Donnerstag, den 10.04.2008, 22:40 +0200 schrieb Oliver Endriss:
+> > > Hi,
+> > > 
+> > > Manu Abraham wrote:
+> > > > Oliver Endriss wrote:
+> > > > ...
+> > > > > Ok, some calculations according your formula
+> > > > > 
+> > > > >>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
+> > > > > 
+> > > > > 45 MSPS:
+> > > > > BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
+> > > > > 
+> > > > > -> cutoff 36 MHz (maximum value supported)
+> > > > > 
+> > > > > 27 MSPS:
+> > > > > BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
+> > > > > 
+> > > > > -> cutoff 31 MHz
+> > > > > 
+> > > > > 22 MSPS:
+> > > > > BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
+> > > > > 
+> > > > > -> cutoff 26 MHz
+> > > > > 
+> > > > > Are these calculations correct, or did I miss something here?
+> > > > 
+> > > > 
+> > > > It looks fine, just round it off to the next integer. ie always round it
+> > > > up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
+> > > > well, since at the last step, you will not need an offset, since it
+> > > > would be the last step in the spectrum.
+> > > > ...
+> > > > > Afaics a simple pre-calculated lookup table with 32 entries should do
+> > > > > the job. At least for the cut-off frequency.
+> > > > 
+> > > > That's possible, since you need only 32 precomputed entries, rather than
+> > > > continuous values. That would be much better too, without any runtime
+> > > > overheads. Just the table needs to be done nice.
+> > > 
+> > > Now I found some time to come back to this issue,
+> > > 
+> > > I prepared a small patch to set the cutoff according to Manu's formula.
+> > > The calculation is simple enough for integer arithmetic, so it is not
+> > > worth to prepare a lookup-table.
+> > > 
+> > > @ldvb:
+> > > Please test and report whether it works for you.
+> > > 
+> > > CU
+> > > Oliver
+> > > 
+> > 
+> > I'm not asked, but give you a report anyway.
+> 
+> ;-)
+> 
+> > On Hotbird 13.0E it makes no difference for me.
+> 
+> Are you saying that you did not have any problems without the patch,
+> and is works with the patch, too?
+> 
+> I do not expect a big difference for common symbol rates like 22 MSPS
+> or 27.5 MSPS, but it will probably make a difference for high or low
+> symbol rates.
+> 
+> CU
+> Oliver
+> 
 
-Hi all,
+There is only one transponder slightly above 27.5 MSPS (29), IIRC.
 
-I am working with WinTV NOVA-S-Plus card and WinTV PVR-500 card in RHEL 4.4
-machine.
-I am using kernel 2.6.12.
-For WinTV NOVA-S-plus card i have used v4l-dvb drivers.
-For PVR-500 card i have used ivtv-0.4.9 drivers.
-After compiling and installing these two drivers, i tried the following
-steps to load the drivers.
+With the current scan file, derived from lyngsat data, but likely still
+not perfect, the first kaffeine scan under old conditions with current
+weather, returned 1357 TV services and 505 radio services on 109
+transponders.
 
-1. for NOVA-S-Plus card
-modprobe tveeprom
-modprobe cx24123
-modprobe cx8800
-modprobe cx8802
-modprobe cx88xx
-modprobe cx88-dvb
+With the patch applied last night, sorry I also have a neerd cold ;),
+a first run returned 1323 TV services and 491 radio services.
 
-2. for PVR-500 card
-depmod -a
-modprobe tveeprom
-modprobe ivtv
+A next scan came to 1355 for TV and 504 for radio.
 
-U can see the tveeprom is loaded twice. becos both the drivers has its own
-tveeprom
-for nova-s-plus card it is in
-/lib/modules/2.6.12/kernel/drivers/media/video/ directory
-for pvr-500 card it is in /lib/modules/2.6.12/ivtv/ directory.
+Some more showed that it is about 15 more or less services on several
+scans as average.
 
-If i do load the driver for nova-s-plus card it load it properly and dvb
-device is getting registered properly.
-xawtv -hwscan detects the card and shows card details.
+That lead me to that first conclusion for my conditions.
 
-After this if i load the driver for pvr card
-modprobe ivtv gives the following error
-FATAL: Error inserting ivtv
-(/lib/modules/2.6.12/kernel/drivers/media/video/ivtv/ivtv.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
+BTW, since Hartmut has a problem within his location to set up a dish
+with sufficient reception, this was a problem here too, drop me a note
+and I try to move the CTX948 to you. With Mauro I had a problem to get
+something to him as normal parcel in Frankfurt, but then went well on
+the last minute. To Hartmut one is lost as simple letter, not such a
+clever idea, if it does not fit in the letter box, but should not happen
+again.
 
-dmesg shows the following
-ivtv: disagrees about version of symbol video_unregister_device
-ivtv: Unknown symbol video_unregister_device
-ivtv: disagrees about version of symbol video_device_alloc
-ivtv: Unknown symbol video_device_alloc
-ivtv: disagrees about version of symbol video_register_device
-ivtv: Unknown symbol video_register_device
-ivtv: disagrees about version of symbol video_device_release
-ivtv: Unknown symbol video_device_release
-
-
-If do the reverse procedure ie loading ivtv first and then load v4l dvb
-drivers
-PVR card is detected properly but while loading NOVA-S-plus card drivers
-
-modprobe cx88-dvb gives the following error
- modprobe cx88-dvb
-WARNING: Error inserting cx88xx
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88xx.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting cx8802
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx8802.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting cx88_dvb
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88-dvb.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-
-dmesg shows the following
-cx88xx: disagrees about version of symbol tveeprom_hauppauge_analog
-cx88xx: Unknown symbol tveeprom_hauppauge_analog
-cx8802: Unknown symbol cx88_reset
-cx8802: Unknown symbol cx88_wakeup
-cx8802: Unknown symbol cx88_risc_stopper
-cx8802: Unknown symbol cx88_print_irqbits
-cx8802: Unknown symbol cx88_shutdown
-cx8802: Unknown symbol cx88_core_irq
-cx8802: Unknown symbol cx88_sram_channels
-cx8802: Unknown symbol cx88_sram_channel_dump
-cx8802: Unknown symbol cx88_sram_channel_setup
-cx8802: Unknown symbol cx88_free_buffer
-cx8802: Unknown symbol cx88_boards
-cx8802: Unknown symbol cx88_risc_databuffer
-cx88_dvb: Unknown symbol cx8802_fini_common
-cx88_dvb: Unknown symbol cx88_call_i2c_clients
-cx88_dvb: Unknown symbol cx88_core_put
-cx88_dvb: Unknown symbol cx88_core_get
-cx88_dvb: Unknown symbol cx8802_resume_common
-cx88_dvb: Unknown symbol cx8802_buf_prepare
-cx88_dvb: Unknown symbol cx8802_init_common
-cx88_dvb: Unknown symbol cx88_free_buffer
-cx88_dvb: Unknown symbol cx88_boards
-cx88_dvb: Unknown symbol cx8802_buf_queue
-cx88_dvb: Unknown symbol cx8802_suspend_common
-
->From the result what i understood is both drivers have a module called
-tveeprom.ko and that's where the problem starts.
-
-so please tell the solution for both the cards to work simultaneously.
-
-Thanks in advance for ur help
-
-Regards,
-Thiru.
-
-------=_Part_14888_7152488.1207833986994
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi all,<br><br>I am working with WinTV NOVA-S-Plus card and WinTV PVR-500 card in RHEL 4.4 machine.<br>I am using kernel <a href="http://2.6.12.">2.6.12.</a><br>For WinTV NOVA-S-plus card i have used v4l-dvb drivers.<br>For PVR-500 card i have used ivtv-0.4.9 drivers.<br>
-After compiling and installing these two drivers, i tried the following steps to load the drivers.<br><br>1. for NOVA-S-Plus card<br>modprobe tveeprom<br>modprobe cx24123<br>modprobe cx8800<br>modprobe cx8802<br>modprobe cx88xx<br>
-modprobe cx88-dvb<br><br>2. for PVR-500 card<br>depmod -a<br>modprobe tveeprom<br>modprobe ivtv<br><br>U can see the tveeprom is loaded twice. becos both the drivers has its own tveeprom<br>for nova-s-plus card it is in /lib/modules/2.6.12/kernel/drivers/media/video/ directory<br>
-for pvr-500 card it is in /lib/modules/2.6.12/ivtv/ directory.<br><br>If i do load the driver for nova-s-plus card it load it properly and dvb device is getting registered properly.<br>xawtv -hwscan detects the card and shows card details.<br>
-<br>After this if i load the driver for pvr card<br>modprobe ivtv gives the following error<br>FATAL: Error inserting ivtv (/lib/modules/2.6.12/kernel/drivers/media/video/ivtv/ivtv.ko): Unknown symbol in module, or unknown parameter (see dmesg)<br>
-<br>dmesg shows the following<br>ivtv: disagrees about version of symbol video_unregister_device<br>ivtv: Unknown symbol video_unregister_device<br>ivtv: disagrees about version of symbol video_device_alloc<br>ivtv: Unknown symbol video_device_alloc<br>
-ivtv: disagrees about version of symbol video_register_device<br>ivtv: Unknown symbol video_register_device<br>ivtv: disagrees about version of symbol video_device_release<br>ivtv: Unknown symbol video_device_release<br><br>
-<br>If do the reverse procedure ie loading ivtv first and then load v4l dvb drivers<br>PVR card is detected properly but while loading NOVA-S-plus card drivers<br><br>modprobe cx88-dvb gives the following error<br>&nbsp;modprobe cx88-dvb<br>
-WARNING: Error inserting cx88xx (/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88xx.ko): Unknown symbol in module, or unknown parameter (see dmesg)<br>WARNING: Error inserting cx8802 (/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx8802.ko): Unknown symbol in module, or unknown parameter (see dmesg)<br>
-FATAL: Error inserting cx88_dvb (/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88-dvb.ko): Unknown symbol in module, or unknown parameter (see dmesg)<br><br>dmesg shows the following<br>cx88xx: disagrees about version of symbol tveeprom_hauppauge_analog<br>
-cx88xx: Unknown symbol tveeprom_hauppauge_analog<br>cx8802: Unknown symbol cx88_reset<br>cx8802: Unknown symbol cx88_wakeup<br>cx8802: Unknown symbol cx88_risc_stopper<br>cx8802: Unknown symbol cx88_print_irqbits<br>cx8802: Unknown symbol cx88_shutdown<br>
-cx8802: Unknown symbol cx88_core_irq<br>cx8802: Unknown symbol cx88_sram_channels<br>cx8802: Unknown symbol cx88_sram_channel_dump<br>cx8802: Unknown symbol cx88_sram_channel_setup<br>cx8802: Unknown symbol cx88_free_buffer<br>
-cx8802: Unknown symbol cx88_boards<br>cx8802: Unknown symbol cx88_risc_databuffer<br>cx88_dvb: Unknown symbol cx8802_fini_common<br>cx88_dvb: Unknown symbol cx88_call_i2c_clients<br>cx88_dvb: Unknown symbol cx88_core_put<br>
-cx88_dvb: Unknown symbol cx88_core_get<br>cx88_dvb: Unknown symbol cx8802_resume_common<br>cx88_dvb: Unknown symbol cx8802_buf_prepare<br>cx88_dvb: Unknown symbol cx8802_init_common<br>cx88_dvb: Unknown symbol cx88_free_buffer<br>
-cx88_dvb: Unknown symbol cx88_boards<br>cx88_dvb: Unknown symbol cx8802_buf_queue<br>cx88_dvb: Unknown symbol cx8802_suspend_common<br><br>From the result what i understood is both drivers have a module called tveeprom.ko and that&#39;s where the problem starts.<br>
-<br>so please tell the solution for both the cards to work simultaneously.<br><br>Thanks in advance for ur help<br><br>Regards,<br>Thiru.<br><br>
-
-------=_Part_14888_7152488.1207833986994--
+Cheers,
+Hermann
 
 
---===============1679872615==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
+
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1679872615==--
