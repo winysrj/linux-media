@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout01.t-online.de ([194.25.134.80])
+Received: from mail9.tpgi.com.au ([203.12.160.104])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JoPR7-0007cy-TR
-	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 22:50:02 +0200
-Message-ID: <480E4F61.10208@t-online.de>
-Date: Tue, 22 Apr 2008 22:49:37 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	(envelope-from <dvb-t@iinet.com.au>) id 1JkB7r-0007nQ-AX
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 06:44:40 +0200
+Received: from crappyxpbox (60-242-2-157.static.tpgi.com.au [60.242.2.157])
+	by mail9.tpgi.com.au (envelope-from dvb-t@iinet.com.au) (8.14.2/8.14.2)
+	with SMTP id m3B4iNqw000577
+	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 14:44:25 +1000
+Message-ID: <01e801c89b8e$b9031f30$3500a8c0@crappyxpbox>
+From: "David Porter" <dvb-t@iinet.com.au>
+To: <linux-dvb@linuxtv.org>
+References: <015201c89859$bc7821c0$3500a8c0@crappyxpbox>
+Date: Fri, 11 Apr 2008 14:44:24 +1000
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>		<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>		<4803C2FA.1010408@hot.ee>
-	<48065CB6.50709@elfarto.com>		<1208422406.12385.295.camel@rommel.snap.tv>		<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>		<4807AFE2.40400@t-online.de>
-	<4807B386.1050109@elfarto.com>		<4807C1A6.8000909@t-online.de>	<1208862469.7807.7.camel@rommel.snap.tv>
-	<480E0575.1010908@gmail.com>
-In-Reply-To: <480E0575.1010908@gmail.com>
-Subject: Re: [linux-dvb] TT-Budget C-1501
+Subject: Re: [linux-dvb] TechnoTrend T-3000 DVB-T PCI Hybrid Card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,72 +21,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+Hi
 
-e9hack schrieb:
-> Sigmund Augdal schrieb:
->> tor, 17.04.2008 kl. 23.31 +0200, skrev Hartmut Hackmann:
->> <snip>
->>> Do you have a datasheet of the tda10023? From the first glance, i have =
-the
->>> impression that it was only used with a conventional tuner yet. With the
->>> silicon tuner, the chip needs to be programmed to use a different IF. We
->>> beed to find out how this is done.
->> I don't have any datasheet. I tried playing around with some of the
->> values in the init-tab, and they do affect the signal levels (signal and
->> snr) reported, but I haven't managed to find something that does give a
->> lock. There is also a if_freq variable in the current driver sources
->> that does not seem to be passed to the chip directly but is used in some
->> computations. In the current driver this value is selected based on
->> channel bandwidth (being only used for dvb-t this far). I've tried with
->> several values for this (8MHz, 0MHz, 4MHz and the currently used 5MHz
->> for 8MHz bandwidth channels).
->>
->> Birr: Do you have any info on this, as you seem to be the last developer
->> working on that demod?
-> =
+In the absence of any replies to my original request for help with this I 
+did some more searching for any Linux information relating to this card.
+I found a post from 11 November 06 containing the tuner and decoder 
+information which I have pasted in below.
 
-> I don't own the datasheet of the TDA10023. I think you must read the conf=
-iguration of the =
+I'm hoping this may jog someone's memory as it seems odd that this card has 
+been unsupported for so long.
 
-> TDA10023 from windows. This can be done with this program =
+Thank you
+David Porter
+--------------------------------------
 
-> (http://linuxtv.org/downloads/saa7146dump-0.2.zip). If it is necessary to=
- monitor the =
+Re: Unsupported Video Card
+[Date Prev][Date Next][Thread Prev][Thread Next][Date Index][Thread Index]
 
-> initialization of the tuner chip, you must use an i2c-monitor. I develope=
-d a cheap monitor =
+    * Subject: Re: Unsupported Video Card
+    * From: "Leonce Pflieger"
+    * Date: Sat, 11 Nov 2006 15:52:38 +0100
+    * In-reply-to: 
+<43a0ce660611110608q34d2184fhc3802f217692b3ad@xxxxxxxxxxxxxx>
+    * References: 
+<43a0ce660611110608q34d2184fhc3802f217692b3ad@xxxxxxxxxxxxxx>
 
-> (http://www.vdr-portal.de/board/thread.php?postid=3D639818#post639818). T=
-he costs of the =
+Hello,
 
-> parts are less then 10=A4. To build such a monitor, you should know what =
-a soldering-iron is.
-> =
+Same question for the following board. It is a Technotrend T-3000
+DVB-T Hybrid. It seems there are a few cards that are still
+unrecognized even if the hardware embedded is well known and
+supported. :-\
+Mine is :
+01:01.0 Multimedia controller: Philips Semiconductors SAA7133 Video
+Broadcast Decoder (rev f0)
+       Subsystem: Technotrend Systemtechnik GmbH Unknown device 2804
+       Flags: bus master, medium devsel, latency 64, IRQ 18
+       Memory at fa7ff000 (32-bit, non-prefetchable) [size=2K]
+       Capabilities: [40] Power Management version 2
 
-> -Hartmut Birr
-> =
+and the dmesg output shows :
 
-Looks like we need to make changes in both, tda827x and tda10023. Currently=
- the 10023
-is programmed for 36.13MHz IF frequency. This is *not* possible with the 82=
-7x.
-So we need to implement a configuration option for the tda10023 to select t=
-he IF center
-frequency (haven't had the time to have a close look yet) and we need to im=
-plement a way
-to let the tda827x driver choose the right parameter set.
-I would be more interested in the configuration of the tda10023. With the t=
-da827x, i know
-what to do.
+saa7130/34: v4l2 driver version 0.2.14 loaded
+ACPI: PCI Interrupt 0000:01:01.0[A] -> GSI 22 (level, low) -> IRQ 18
+saa7133[0]: found at 0000:01:01.0, rev: 240, irq: 18, latency: 64,
+mmio: 0xfa7ff000
+saa7133[0]: subsystem: 13c2:2804, board: UNKNOWN/GENERIC 
+[card=0,autodetected]
+saa7133[0]: board init: gpio is c50000
+saa7133[0]: i2c eeprom 00: c2 13 04 28 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 00 00 00 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 ff 03 01 08 ff 01 b7 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff de 00 c6 86 10 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: registered device video1 [v4l2]
+saa7133[0]: registered device vbi2
 
-Hartmut
+
+saa7134-dvb gives nothing, but if saa7134 was starded with card=69 and
+tuner=67 (tuner on the board is a TD1316A/SIHP / 3112 297 14251L# /
+0448 SV20 000000) it returns :
+
+saa7130/34: v4l2 driver version 0.2.14 loaded
+ACPI: PCI Interrupt 0000:01:01.0[A] -> GSI 22 (level, low) -> IRQ 18
+saa7133[0]: found at 0000:01:01.0, rev: 240, irq: 18, latency: 64,
+mmio: 0xfa7ff000
+saa7133[0]: subsystem: 13c2:2804, board: Philips EUROPA V3 reference
+design [card=69,insmod option]
+saa7133[0]: board init: gpio is c50000
+saa7133[0]: i2c eeprom 00: c2 13 04 28 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 00 00 00 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 ff 03 01 08 ff 01 b7 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff de 00 c6 86 10 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tda9887 2-0043: chip found @ 0x86 (saa7133[0])
+saa7133[0]: registered device video1 [v4l2]
+saa7133[0]: registered device vbi2
+DVB: registering new adapter (saa7133[0]).
+DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
+
+which seems quite good, but is followed by...
+
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: timeout waiting for DSP ready
+tda1004x: found firmware revision 0 -- invalid
+tda1004x: booting from eeprom
+tda1004x: timeout waiting for DSP ready
+tda1004x: found firmware revision 0 -- invalid
+tda1004x: firmware upload failed
+
+:-(
+Could someone help ? Am I the only guy on earth trying to make a T3000
+work on Linux ??
+
+Thanks for your attention !
+
+
+----- Original Message ----- 
+From: "David Porter" <dvb-t@iinet.com.au>
+To: <linux-dvb@linuxtv.org>
+Sent: Monday, April 07, 2008 12:47 PM
+Subject: [linux-dvb] TechnoTrend T-3000 DVB-T PCI Hybrid Card
+
+
+> Hi
+>
+> I have searched the wiki, forums and threads and cannot find any 
+> information
+> about getting this card to work in Linux.
+> Does anyone have any experience with it?
+> It is one of their "budget" range that has no hardware mpeg decoder.
+>
+> I'm only interested in getting DVB-T working, not analogue.
+>
+> There is a good picture of it here:-
+> http://www.dvbmagic.de/tv-karten/technotrend-budget-t-3000.htm
+>
+> Thanks
+> David Porter
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 
 _______________________________________________
