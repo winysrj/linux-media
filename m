@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1Jjbhf-0008A5-L7
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 16:55:12 +0200
-Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
-	[88.170.236.224])
-	by vds19s01.yellis.net (Postfix) with ESMTP id 2F68B2FA923
-	for <linux-dvb@linuxtv.org>; Wed,  9 Apr 2008 16:55:16 +0200 (CEST)
-Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
-	by goliath.anevia.com (Postfix) with ESMTP id 9B8B31300CDC
-	for <linux-dvb@linuxtv.org>; Wed,  9 Apr 2008 16:55:07 +0200 (CEST)
-Message-ID: <47FCD8C6.1000407@anevia.com>
-Date: Wed, 09 Apr 2008 16:55:02 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Analog card with Hardware MPEG2 Enc
+	(envelope-from <stoth@linuxtv.org>) id 1JkJLQ-0003bc-RS
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:31:09 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZ50072WXIXV2W0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 11 Apr 2008 09:30:34 -0400 (EDT)
+Date: Fri, 11 Apr 2008 09:30:34 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <47FF216F.6040207@anevia.com>
+To: Frederic CAND <frederic.cand@anevia.com>
+Message-id: <47FF67FA.80902@linuxtv.org>
+MIME-version: 1.0
+References: <47FF216F.6040207@anevia.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,26 +31,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+Frederic CAND wrote:
+> Hi all,
+> 
+> we have here at our office an Hauppauge HVR 1300. It's working under 
+> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is 
+> working fine though.
+> 
+>  From what I read, it looks like the Conexant CX23416 chipset should 
+> supports Transport Stream but we've not been able to use it. Are we 
+> missing something ?
 
-I'm looking for a good PCI card, supporting Analog input (Composite, 
-S-Video, Pal/Secam Tuner) and providing MPEG2/TS.
+Last I heard transport mode was disabled in the firmware sometime ago by 
+Conexant, in favor of some other feature being enabled.
 
-We were using KNC1 TVStation DVR cards until now (w/ saa6752hs chip) on 
-the servers we build but we have to change (card status is "end of 
-life") and are looking for similar cards.
+If you can find really early firmware for the PVR150 then you might try 
+that. (Circa 3-4 years ago).
 
-Does anybody have a hint if such a card exist or not ?
-
-Hardware MPEG2 encoding (TS encapsulation) is an important matter for 
-us, to avoid having Software MPEG2 encoding.
-
-Kind regards.
-
--- 
-CAND Frederic
-Product Manager
-ANEVIA
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
