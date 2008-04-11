@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1JinyL-0006fH-QL
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 11:49:10 +0200
-Received: from nkindia.com (localhost.localdomain [127.0.0.1])
-	by nkindia.com (8.13.7/8.13.7) with ESMTP id m37A5jLo009154
-	for <linux-dvb@linuxtv.org>; Mon, 7 Apr 2008 15:35:45 +0530
-Message-ID: <60428.203.200.233.130.1207562745.squirrel@203.200.233.138>
-Date: Mon, 7 Apr 2008 15:35:45 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-To: linux-dvb@linuxtv.org
+Message-ID: <47FF6E6C.70008@anevia.com>
+Date: Fri, 11 Apr 2008 15:58:04 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] A frontend driver was not found for device 109e/0878
- subsystem 1822/0001
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <47FF216F.6040207@anevia.com> <47FF67FA.80902@linuxtv.org>
+	<47FF6971.70601@linuxtv.org>
+In-Reply-To: <47FF6971.70601@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,21 +16,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Michael Krufky a =E9crit :
+> Steven Toth wrote:
+>> Frederic CAND wrote:
+>>> Hi all,
+>>>
+>>> we have here at our office an Hauppauge HVR 1300. It's working under =
 
-Hi All
-I am unable to tune DVB-S cards at the same time.
-Only adapter0 is being used and I am not able to useadapter1.
+>>> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is =
+
+>>> working fine though.
+>>>
+>>>  From what I read, it looks like the Conexant CX23416 chipset should =
+
+>>> supports Transport Stream but we've not been able to use it. Are we =
+
+>>> missing something ?
+>> Last I heard transport mode was disabled in the firmware sometime ago by =
+
+>> Conexant, in favor of some other feature being enabled.
+>>
+>> If you can find really early firmware for the PVR150 then you might try =
+
+>> that. (Circa 3-4 years ago).
+>>
+> =
+
+> Please note:  if you do find the older firmware, you will have to patch c=
+x88-blackbird.c to allow firmware size 262144.
+> =
+
+> If this works for you, please post your results.
+> =
+
+> Regards,
+> =
+
+> Mike
+> =
 
 
--- 
-gurumurti@nkindia.com
+Sure, I will.
 
+Regards.
+
+-- =
+
+CAND Frederic
+Product Manager
+ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
