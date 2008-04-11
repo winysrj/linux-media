@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1JrCIm-0001AX-RK
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 15:24:55 +0200
-Message-ID: <4818731A.8060305@anevia.com>
-Date: Wed, 30 Apr 2008 15:24:42 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <4816E5DA.7010204@anevia.com>		<1209467866.3247.45.camel@pc10.localdom.local>		<48171207.8080602@anevia.com>	<1209489568.3456.17.camel@pc10.localdom.local>
-	<48186290.2070603@anevia.com>
-In-Reply-To: <48186290.2070603@anevia.com>
+	(envelope-from <stoth@linuxtv.org>) id 1JkLuD-0003Xl-Ci
+	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 18:15:18 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZ60063154CKLB0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 11 Apr 2008 12:14:38 -0400 (EDT)
+Date: Fri, 11 Apr 2008 12:14:36 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <Pine.LNX.4.64.0804110900070.3892@garbadale.math.wisc.edu>
+To: Jernej Tonejc <tonejc@math.wisc.edu>
+Message-id: <47FF8E6C.8030300@linuxtv.org>
+MIME-version: 1.0
+References: <Pine.LNX.4.64.0804102256540.3892@garbadale.math.wisc.edu>
+	<ea4209750804110226u18388307m48c629fe69b20d99@mail.gmail.com>
+	<47FF69D7.5070209@linuxtv.org>
+	<Pine.LNX.4.64.0804110900070.3892@garbadale.math.wisc.edu>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
+Subject: Re: [linux-dvb] Pinnacle PCTV HD pro USB stick 801e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,111 +28,130 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-RnJlZGVyaWMgQ0FORCBhIMOpY3JpdCA6Cj4gaGVybWFubiBwaXR0b24gYSDDqWNyaXQgOgo+PiBB
-bSBEaWVuc3RhZywgZGVuIDI5LjA0LjIwMDgsIDE0OjE4ICswMjAwIHNjaHJpZWIgRnJlZGVyaWMg
-Q0FORDoKPj4+IGhlcm1hbm4gcGl0dG9uIGEgw6ljcml0IDoKPj4+PiBIaSBGcmVkZXJpYywKPj4+
-Pgo+Pj4+IEFtIERpZW5zdGFnLCBkZW4gMjkuMDQuMjAwOCwgMTE6MDkgKzAyMDAgc2NocmllYiBG
-cmVkZXJpYyBDQU5EOgo+Pj4+PiBEZWFyIGFsbCwKPj4+Pj4KPj4+Pj4gSSByZWNlbnRseSBoYWQg
-dG8gY2hhbmdlIHY0bCBkcml2ZXJzIHRvIHN1cHBvcnQgbXkgV2luVFYgSFZSIDEzMDAuCj4+Pj4+
-IEkgaGF2ZSBpc3N1ZXMgbWFraW5nIG15IEhWUiB3b3JrIGJ1dCB0aGF0J3Mgbm90IHRoZSBwb2lu
-dCBoZXJlLgo+Pj4+PiBNeSBwcm9ibGVtIGlzIHRoYXQgc2luY2UgSSB1cGRhdGVkIGtlcm5lbCAr
-IGRyaXZlcnMsIEkgY2FuJ3QgbWFuYWdlIHRvIAo+Pj4+PiBtYWtlIHNvdW5kIHdvcmsgd2hlbiBJ
-J20gdXNpbmcgdGhlIHR1bmVyIGlucHV0LiBTb3VuZCBqYWNrIGlucHV0IHdvcmtzIAo+Pj4+PiB3
-aGVuIEknbSB1c2luZyBTVmlkZW8gb3IgQ29tcG9zaXRlIFZpZGVvLCBidXQgbm90IHdoZW4gSSdt
-IHVzaW5nIHR1bmVyLgo+Pj4+Pgo+Pj4+PiBIZXJlIGFyZSB0aGUgb3B0aW9ucyBJJ20gdXNpbmcK
-Pj4+Pj4gdHVuZXIgOiBwb3J0Mj0wCj4+Pj4+IHNhYTcxMzQ6IG9zcz0xIGRpc2FibGVfaXI9MQo+
-Pj4+PiBzYWE3MTM0LW9zczogcmF0ZT00ODAwMAo+Pj4+IHRoZSByYXRlPTQ4MDAwIGlzIG9ubHkg
-dmFsaWQgZm9yIGV4dGVybmFsIGFuYWxvZyBpbnB1dCBhbmQgZGlzYWJsZXMKPj4+PiBzb3VuZCBm
-cm9tIHR1bmVyLiBIYXZlIGEgbG9vayBhdCB0aGUgc2FhNzEzNC1vc3MgbWl4ZXIgdW5kZXIgc3Vj
-aAo+Pj4+IGNvbmRpdGlvbnMuCj4+Pj4KPj4+PiBZb3UgbXVzdCB1c2UgZGVmYXVsdCByYXRlIG9m
-IDMyMDAwIGZvciBkbWEgc291bmQgZnJvbSB0dW5lci4KPj4+Pgo+Pj4+IFRoZSBzYWE3MTM0LW9z
-cyBpcyBhbHNvIHNvb24gZGVwcmVjYXRlZCBhbmQgcmVwbGFjZWQgYnkgc2FhNzEzNC1hbHNhLgo+
-Pj4+Cj4+Pj4gSWYgeW91IGFyZSBjb25zaWRlcmluZyB1c2luZyByZWNlbnQgdjRsLWR2YiBtZXJj
-dXJpYWwgc3R1ZmYsIHdoaWNoCj4+Pj4gc2hvdWxkIGJlIGJlc3QgZm9yIHRoZSBIVlIxMzAwIGFu
-ZCByZXBvcnRpbmcgYnVncyBvbiBzYWE3MTM0LWVtcHJlc3MsCj4+Pj4geW91IG1pZ2h0IHN0aWxs
-IGhhdmUgeW91ciBvbGQgc2FhNzEzNC1vc3MgbW9kdWxlIGFyb3VuZCBhbmQgc29tZSBvdGhlcnMK
-Pj4+PiBsaWtlIHRoZSBvbGQgdmlkZW9fYnVmIG5vdyBsb2FkZWQsIHNpbmNlIG5vdCBkZWxldGVk
-IG9uIHVwZ3JhZGUuCj4+Pj4KPj4+PiBBZnRlciBtYWtlIHJtbW9kIGFuZCBybWluc3RhbGwgd2l0
-aCBjdXJyZW50IHY0bC1kdmIgeW91IHNob3VsZCBkZWxldGUKPj4+PiBzdWNoIHJlbWFpbmluZyBt
-b2R1bGVzIG9uIG9sZGVyIGtlcm5lbHMgdG9vIGJlZm9yZSBtYWtlIGluc3RhbGwuCj4+Pj4KPj4+
-PiBDaGVlcnMsCj4+Pj4gSGVybWFubgo+Pj4gaHVtIEkgdXNlZCB0byBzZXQgcmF0ZSB0byA0ODAw
-MCB3aXRoIG15IG9sZCAyMDA1IGp1bHkgc25hcHNob3QgYW5kIGl0IAo+Pj4gd2FzIHdvcmtpbmcg
-ZXZlbiB3aXRoIHR1bmVyIC4uLiBidXQgb2sgSSdsbCB0cnkgMzIwMDAKPj4+IGkndmUgdHJpZWQg
-YWxzYSBhbmQgSSBoYWQgdGhlIHNhbWUgcmVzdWx0cywgdGhhdCBpcyBubyBzb3VuZCB3aXRoIHR1
-bmVyIAo+Pj4gYnV0IGxpbmUgaW4gc291bmQgd2l0aCBjb21wb3NpdGUgYW5kIHN2aWRlbwo+Pj4g
-ZG8gSSBuZWVkIHNvbWUgc3BlY2lhbCBzdHVmZnMgY29tcGlsZWQgaW4gbXkga2VybmVsIGV4Y2Vw
-dCBmcm9tIGNvbmZpZ19zbmQgPwo+Pj4gYWJvdXQgb2xkIG1vZHVsZXMgc3RpbGwgbG9hZGVkIHRo
-aXMgY2FuJ3QgYmUgc2luY2UgSSBidWlsZCBteSBzeXN0ZW0gCj4+PiBmcm9tIHNjcmF0Y2ggZWFj
-aCB0aW1lIGkgdHJ5IGEgbmV3IGtlcm5lbCAvIGRyaXZlciBpbnRvIGFuIGV4dDIgZmlsZSwgCj4+
-PiB3aGljaCBJIHB1dCBvbiBhIDMyTUIgZmxhc2ggZGlzayBhbmQgYm9vdCBvbiBpdCAuLi4gc28g
-SSdtIHN1cmUgSSdtIG5vdCAKPj4+IHVzaW5nIG15IG9sZCB2NGwgc25hcHNob3QsIGJ1dCB0aGUg
-Mi42LjIyLjE5IHY0bCBkcml2ZXJzCj4+Pgo+Pj4gSSdsbCBsZXQgeW91IGtub3cgaWYgSSBjYW4g
-bWFrZSBpdCB3b3JrCj4+IEFoLCB5b3UgYXJlIGluIEZyYW5jZSEKPiB5ZWFoIQo+IAo+PiBUcnkg
-Im1vZGluZm8gc2FhNzEzNCIuIER1ZSB0byB1bnJlc29sdmFibGUgYXV0byBkZXRlY3Rpb24gaXNz
-dWVzIGJldHdlZW4KPj4gZGlmZmVyZW50IFNFQ0FNIHN0YW5kYXJkcyB0aGVyZSB3YXMgYSBzZWNh
-bT0gZWl0aGVyIERLLCBMIG9yIExjIG9wdGlvbgo+PiBpbnRyb2R1Y2VkLgo+IGh1aHUuLi4gYnV0
-IG15IHN5c3RlbSBoYXMgdG8gd29yayB3b3JsZHdpZGUgLi4uIHNvIGEgbW9kdWxlIG9wdGlvbiBp
-cyAKPiBub3QgYSBnb29kIGlkZWEsIGJlY2F1c2UgaXQgZG9lcyBub3Qgb25seSBkZXBlbmRzIG9u
-IHRoZSBjb3VudHJ5LCBidXQgCj4gYWxzbyBpZiBteSBjdXN0b21lciBpcyB1c2luZyBhIHNpZ25h
-bCBtb2R1bGF0b3Igb3Igbm90LCAuLi4gYW5kIEkgaGF2ZSAKPiB0d28gY2FyZHMgaW4gbXkgc3lz
-dGVtLCBhbmQgSSB3YW50IHRvIGJlIGFibGUgdG8gc2VsZWN0IGEgY2VydGFpbiBTRUNBTSAKPiBt
-b2RlIHdpdGggdGhlIGZpcnN0IG9uZSwgYW5kIGFub3RoZXIgbW9kZSB3aXRoIHRoZSBzZWNvbmQg
-Y2FyZAo+IEFjdHVhbGx5IEknbSBzZWxlY3Rpbmcgc2VjYW0gTCwgREsgb3IgQkcgd2l0aCBhbiBp
-b2N0bCBjYXVzZSBteSBjYXJkIGNhbiAKPiBoYW5kbGUgdGhlbSAodGVzdGVkIGFuZCB3b3JraW5n
-IHdpdGggb2xkZXIgZHJpdmVycy9rZXJuZWxzKQo+IAo+IAo+PiBBbnl0aGluZyBlbHNlIHRoZW4g
-MzIwMDBIeiBzYW1wbGluZyByYXRlIGZvciBUViBpcyB3cm9uZyBjdXJyZW50bHkgYW5kCj4+IHlv
-dSBnZXQgdGhhdCBpbnB1dCBkaXNhYmxlZCBvbiBzYWE3MTM0LW9zcyBtaXhlci4gWWVzLCBpdCB3
-YXMgb25jZQo+PiBwb3NzaWJsZSwgYnV0IG5vdCBpbnRlbmRlZCwgdG8gdXNlIDQ4MDAwIGFsc28g
-Zm9yIFRWL1ZpZGVvIG9uIHNhYTcxMzQKPj4gY2hpcHMsIGJ1dCBnYXZlIHZlcnkgcG9vciBhbmQg
-Y3JhY2tsaW5nIHNvdW5kIGFuZCBpcyB3cm9uZy4KPj4KPj4gVGhlIGN1cnJlbnQgc2FhNzEzNC1h
-bHNhIGlzIHNpbXBsZXIgdG8gdXNlIGFuZCBhbHNvIHVzZXMgYW4gZXhwb3J0ZWQKPj4gbXV0ZSBz
-eW1ib2wgZnJvbSBzYWE3MTM0LXR2YXVkaW8uIERlZmF1bHQgZGlzdHJpYnV0aW9uIHNldHRpbmdz
-IGFyZQo+PiBzdWZmaWNpZW50LiBPbiByZWNlbnQgVWJ1dHUgcmVsZWFzZXMgc2VlbSB0byBiZSBw
-cm9ibGVtcyB3aXRoIGFuIG91dCBvZgo+PiB0cmVlIGFsc2EgdGhlcmUuCj4gCj4gT2sgSSdsbCBz
-ZWUgd2l0aCB0aGlzIHJhdGUgdGhpbmcgYW5kIGxldCB5b3Uga25vdwo+IAo+PiBDaGVlcnMsCj4+
-IEhlcm1hbm4KPj4KPj4KPj4KPiBHcmVldGluZ3MuCj4gCkkgc3RpbGwgaGF2ZSBub3RoaW5nIHdp
-dGggb3NzIGFuZCByYXRlPTMyMDAwLCB3aXRoIGFsc2EsIG9yIHdpdGggc2VjYW09bApBbnl3YXks
-IHNvbWUgbW9yZSBpbmZvcm1hdGlvbnMgOgoqIEkndmUgZ290IHRoZSBmb2xsb3dpbmcgZXJyb3Ig
-bWVzc2FnZXMgb24gc2FhNzEzNCBtb2R1bGUgaW5zZXJ0aW9uCgpzYWE3MTM0X2VtcHJlc3M6IFVu
-a25vd24gc3ltYm9sIHNhYTcxMzRfZGV2bGlzdApzYWE3MTM0X2VtcHJlc3M6IFVua25vd24gc3lt
-Ym9sIHNhYTcxMzRfY29tbW9uX2lvY3RsCnNhYTcxMzRfZW1wcmVzczogVW5rbm93biBzeW1ib2wg
-c2FhNzEzNF9ib2FyZHMKc2FhNzEzNF9lbXByZXNzOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3Rz
-X3JlZ2lzdGVyCnNhYTcxMzRfZW1wcmVzczogVW5rbm93biBzeW1ib2wgc2FhNzEzNF90c19xb3Bz
-CnNhYTcxMzRfZW1wcmVzczogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9pMmNfY2FsbF9jbGllbnRz
-CnNhYTcxMzRfZW1wcmVzczogVW5rbm93biBzeW1ib2wgc2FhNzEzNF90c191bnJlZ2lzdGVyCnNh
-YTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF90dmF1ZGlvX3NldG11dGUKc2FhNzEz
-NF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWFfZHNwX3dyaXRlbApzYWE3MTM0X2Fsc2E6IFVua25v
-d24gc3ltYm9sIHNhYTcxMzRfZGV2bGlzdApzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNh
-YTcxMzRfcGd0YWJsZV9hbGxvYwpzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRf
-cGd0YWJsZV9idWlsZApzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfcGd0YWJs
-ZV9mcmVlCnNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9kbWFzb3VuZF9pbml0
-CnNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9kbWFzb3VuZF9leGl0CnNhYTcx
-MzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9zZXRfZG1hYml0cwpzYWE3MTM0IEFMU0Eg
-ZHJpdmVyIGZvciBETUEgc291bmQgbG9hZGVkCnNhYTcxMzRbMF0vYWxzYTogc2FhNzEzNFswXSBh
-dCAweGU1MzAwMDAwIGlycSA1IHJlZ2lzdGVyZWQgYXMgY2FyZCAtMQpzYWE3MTM0WzFdL2Fsc2E6
-IHNhYTcxMzRbMV0gYXQgMHhlNTMwMTAwMCBpcnEgOSByZWdpc3RlcmVkIGFzIGNhcmQgLTEKCiog
-V2hlbiB1c2luZyBhdWRpb19kZWJ1Zz0xIGZvciBzYWE3MTM0LCBJJ3ZlIGdvdCB0aGUgZm9sbG93
-aW5nIDoKc2FhNzEzNFsxXS9hdWRpbzogbXV0ZS9pbnB1dDogbm90aGluZyB0byBkbyBbbXV0ZT0x
-LGlucHV0PVRlbGV2aXNpb25dCnNhYTcxMzRbMV0vYXVkaW86IHNvdW5kIElGIG5vdCBpbiB1c2Us
-IHNraXBwaW5nIHNjYW4Kc2FhNzEzNFsxXS9hdWRpbzogbXV0ZS9pbnB1dDogbm90aGluZyB0byBk
-byBbbXV0ZT0xLGlucHV0PVRlbGV2aXNpb25dCnNhYTcxMzRbMV0vYXVkaW86IG11dGUvaW5wdXQ6
-IG5vdGhpbmcgdG8gZG8gW211dGU9MSxpbnB1dD1UZWxldmlzaW9uXQpzYWE3MTM0WzFdL2F1ZGlv
-OiBjdGxfbXV0ZT0wIGF1dG9tdXRlPTAgaW5wdXQ9VGVsZXZpc2lvbiAgPT4gIG11dGU9MCAKaW5w
-dXQ9VGVsZXZpc2lvbgpzYWE3MTM0WzFdL2F1ZGlvOiBzb3VuZCBJRiBub3QgaW4gdXNlLCBza2lw
-cGluZyBzY2FuCnNhYTcxMzRbMV0vYXVkaW86IG11dGUvaW5wdXQ6IG5vdGhpbmcgdG8gZG8gW211
-dGU9MCxpbnB1dD1UZWxldmlzaW9uXQpzYWE3MTM0WzFdL2F1ZGlvOiBzb3VuZCBJRiBub3QgaW4g
-dXNlLCBza2lwcGluZyBzY2FuCnNhYTcxMzRbMV0vYXVkaW86IG11dGUvaW5wdXQ6IG5vdGhpbmcg
-dG8gZG8gW211dGU9MCxpbnB1dD1UZWxldmlzaW9uXQpzYWE3MTM0WzFdL2F1ZGlvOiBjdGxfbXV0
-ZT0wIGF1dG9tdXRlPTEgaW5wdXQ9VGVsZXZpc2lvbiAgPT4gIG11dGU9MSAKaW5wdXQ9VGVsZXZp
-c2lvbgpzYWE3MTM0WzFdL2F1ZGlvOiBzb3VuZCBJRiBub3QgaW4gdXNlLCBza2lwcGluZyBzY2Fu
-CnNhYTcxMzRbMV0vYXVkaW86IGN0bF9tdXRlPTAgYXV0b211dGU9MCBpbnB1dD1UZWxldmlzaW9u
-ICA9PiAgbXV0ZT0wIAppbnB1dD1UZWxldmlzaW9uCgotLSAKQ0FORCBGcmVkZXJpYwpQcm9kdWN0
-IE1hbmFnZXIKQU5FVklBCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
-Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Jernej Tonejc wrote:
+>>>
+>>>     DIBcom 0700C-XCCXa-G
+>>>     USB 2.0 D3LTK.1
+>>>     0804-0100-C
+>>>     -----------------
+>>
+>> Hmm. I haven't really used the dibcom src but I think this is already 
+>> supported.
+> Yes, this part works (I think this is responsible for attaching the IR 
+> remote controler and the remote works).
+> 
+>>
+>>>     SAMSUNG
+>>>     S5H1411X01-Y0
+>>>     NOTKRSUI H0801
+>>
+>> I have a driver for this, I hope to release it shortly.
+> 
+> I think this is the main problem for me so far. Without a frontend 
+> attached it doesn't try to attach the tuner and the code for s5h1409 
+> just doesn't find the demod at any address (I tried everything from 
+
+Yeah, don't use the s5h1409, you're wasting your time.
+
+...
+
+
+>> The community could use more developers, why not roll up your sleeves 
+>> and help solve your problem - and the problem for others? Everyone has 
+>> to start somewhere and usually when would-be developers ask questions 
+>> - everyone is willing to help.
+> 
+> I'll try to do my best - the problem is that I don't know where to begin
+> and which parts are needed for the thing to work. It seems to me that 
+> getting the code for s5h1411 would be the start since the dib0700 part 
+> does work up to attaching the frontend. The /dev/dvb/adapter0/ folder 
+> contains:
+> crw-rw---- 1 root video 212, 4 2008-04-11 09:02 demux0
+> crw-rw---- 1 root video 212, 5 2008-04-11 09:02 dvr0
+> crw-rw---- 1 root video 212, 7 2008-04-11 09:02 net0
+> 
+> 
+> I think the s5h1409 code is just not compatible with s5h1411. Also, the 
+> GPIO settings are currently just copied from some other frontend 
+> attaching function (stk7070pd_frontend_attach0):
+> 
+> static int s5h1411_frontend_attach(struct dvb_usb_adapter *adap)
+> {
+>         dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 1);
+>         msleep(10);
+>         dib0700_set_gpio(adap->dev, GPIO9, GPIO_OUT, 1);
+>         dib0700_set_gpio(adap->dev, GPIO4, GPIO_OUT, 1);
+>         dib0700_set_gpio(adap->dev, GPIO7, GPIO_OUT, 1);
+>         dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
+> 
+>         dib0700_ctrl_clock(adap->dev, 72, 1);
+> 
+>         msleep(10);
+>         dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
+>         msleep(10);
+>         dib0700_set_gpio(adap->dev, GPIO0, GPIO_OUT, 1);
+> 
+>         /*dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
+>                 &dib7070p_dib7000p_config); */
+> 
+>         adap->fe = dvb_attach(s5h1409_attach, &pinnacle_801e_config,
+>                         &adap->dev->i2c_adap );
+>         return adap->fe == NULL ? -ENODEV : 0;
+> }
+
+Wow, is this how the attach code inside the dibcom driver really looks? Eek.
+
+
+> 
+> I have NO idea what should be set to what values. Also, what is the 
+> equivalent of dib7000p_i2c_enumeration for s5h14xx family? (it's 
+> commented out in the above code as it does not work.
+> Also, I have no previous experience with DVB stuff so I really don't 
+> know which parts are independent from each other and how to test various 
+> things on the device.
+
+Hi Jernej,
+
+The s5h1409 is a different beast to the s5h1411, so you're wasting your 
+time trying to make that work.
+
+That being said, I'm kinda surprised you're having i2c scan issues. I 
+don't work with the dibcom src so maybe that's a true limitation of the 
+part, or maybe something else is just plain broken on your design.
+
+Googling/searching the mailing list, or reading the wiki's at 
+linuxtv.org might show a reason why I2C scanning isn't supported.
+
+In terms og the GPIO's, you'll need to understand which GPIO the xc5000 
+tuner is attached to (because the xc5000 needs to toggle this). You 
+might also need to drive other gpio's to bring the tuner, demod or any 
+other parts out of reset - and able to respond to i2c commands. I tend 
+to add /* comments */ around the GPIO code for each product detailing 
+any gpio's I know (or suspect), which helps other devs maintain the code 
+later in it's life.
+
+Maybe you could make some progress with understanding why I2C scanning 
+doesn't work, and perhaps dig deeping and try to establish which gpio's 
+are connected to what.
+
+With these two things, and a s5h1411 driver we should be able to get 
+support for this product pretty easily.
+
+Regards,
+
+- Steve
+
+
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
