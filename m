@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pcl6.ibercom.com ([213.195.69.254])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <adriancapel@openforyou.com>) id 1Jl28F-0006di-7S
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 15:20:32 +0200
-Message-ID: <20080413151956.vyg732nwc80k0gs8@webmail.openforyou.com>
-Date: Sun, 13 Apr 2008 15:19:56 +0200
-From: adriancapel@openforyou.com
-To: mrechberger@gmail.com
-MIME-Version: 1.0
-Content-Disposition: inline
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with ASUS My Cinema U3000 Mini
+	(envelope-from <zzam@gentoo.org>) id 1JkhIh-0003S4-A1
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:05:56 +0200
+Message-Id: <20080412150445.783923284@gentoo.org>
+References: <20080412150444.987445669@gentoo.org>
+Date: Sat, 12 Apr 2008 17:04:46 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-dvb@linuxtv.org
+Content-Disposition: inline; filename=01_mt312-var-types.diff
+Subject: [linux-dvb] [patch 1/5] mt312: Cleanup buffer variables of
+	read/write functions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,34 +18,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-El Sunday 13 April 2008 09:38:30 escribi=F3:
-> did you try to move the antenna?
-> Bad signal maybe?
+Change type of buffer variables from void* to u8* to save some casts.
 
-The tuner is connected to an external antenna community with other  =
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Index: v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/dvb/frontends/mt312.c
++++ v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+@@ -58,7 +58,7 @@ static int debug;
+ #define MT312_PLL_CLK		10000000UL	/* 10 MHz */
+ 
+ static int mt312_read(struct mt312_state *state, const enum mt312_reg_addr reg,
+-		      void *buf, const size_t count)
++		      u8 *buf, const size_t count)
+ {
+ 	int ret;
+ 	struct i2c_msg msg[2];
+@@ -84,7 +84,7 @@ static int mt312_read(struct mt312_state
+ 		int i;
+ 		dprintk("R(%d):", reg & 0x7f);
+ 		for (i = 0; i < count; i++)
+-			printk(" %02x", ((const u8 *) buf)[i]);
++			printk(" %02x", buf[i]);
+ 		printk("\n");
+ 	}
+ 
+@@ -92,7 +92,7 @@ static int mt312_read(struct mt312_state
+ }
+ 
+ static int mt312_write(struct mt312_state *state, const enum mt312_reg_addr reg,
+-		       const void *src, const size_t count)
++		       const u8 *src, const size_t count)
+ {
+ 	int ret;
+ 	u8 buf[count + 1];
+@@ -102,7 +102,7 @@ static int mt312_write(struct mt312_stat
+ 		int i;
+ 		dprintk("W(%d):", reg & 0x7f);
+ 		for (i = 0; i < count; i++)
+-			printk(" %02x", ((const u8 *) src)[i]);
++			printk(" %02x", src[i]);
+ 		printk("\n");
+ 	}
+ 
+@@ -463,7 +463,7 @@ static int mt312_read_snr(struct dvb_fro
+ 	int ret;
+ 	u8 buf[2];
+ 
+-	ret = mt312_read(state, M_SNR_H, &buf, sizeof(buf));
++	ret = mt312_read(state, M_SNR_H, buf, sizeof(buf));
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -478,7 +478,7 @@ static int mt312_read_ucblocks(struct dv
+ 	int ret;
+ 	u8 buf[2];
+ 
+-	ret = mt312_read(state, RS_UBC_H, &buf, sizeof(buf));
++	ret = mt312_read(state, RS_UBC_H, buf, sizeof(buf));
+ 	if (ret < 0)
+ 		return ret;
+ 
 
-devices get a signal very good for all channels.
-
-
-> I have seen an asus driver package for this device, does it require a
-> special firmware? I'm sure they tested it before putting it online..
->
-> Markus
-
-The packet drivers for asus EeePC contains firmware "dvb-usb-dib0700-1.10.f=
-w".
-It is the same firmware that I use to download  =
-
-http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini
-
-Greetings
-
+-- 
 
 _______________________________________________
 linux-dvb mailing list
