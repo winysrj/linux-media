@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.188])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1JjcjL-0006Jx-8p
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 18:01:03 +0200
-Received: by ti-out-0910.google.com with SMTP id y6so1171421tia.13
-	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 09:00:50 -0700 (PDT)
-Message-ID: <37219a840804090900q50ac4faakc66a5f8d4bd88c3b@mail.gmail.com>
-Date: Wed, 9 Apr 2008 12:00:48 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-In-Reply-To: <47FCDB9A.5040807@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <200803292240.25719.janne-dvb@grunau.be>
-	<47FCDB9A.5040807@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
-	dvb adapter numbers, second try
+	(envelope-from <zzam@gentoo.org>) id 1JkhIi-0003S4-P5
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:05:57 +0200
+Message-Id: <20080412150449.915773002@gentoo.org>
+References: <20080412150444.987445669@gentoo.org>
+Date: Sat, 12 Apr 2008 17:04:49 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-dvb@linuxtv.org
+Content-Disposition: inline; filename=04_mt312-add-zl10313-support.diff
+Subject: [linux-dvb] [patch 4/5] mt312: Add support for zl10313 demod
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,85 +17,201 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Apr 9, 2008 at 11:07 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Janne Grunau wrote:
->  > Hi,
->  >
->  > I resubmit this patch since I still think it is a good idea to the this
->  > driver option. There is still no udev recipe to guaranty stable dvb
->  > adapter numbers. I've tried to come up with some rules but it's tricky
->  > due to the multiple device nodes in a subdirectory. I won't claim that
->  > it is impossible to get udev to assign driver or hardware specific
->  > stable dvb adapter numbers but I think this patch is easier and more
->  > clean than a udev based solution.
->  >
->  > I'll drop this patch if a simple udev solution is found in a reasonable
->  > amount of time. But if there is no I would like to see the attached
->  > patch merged.
->
->  As i wrote sometime back, adding adapter numbers to adapters is bad.
->
->  In fact, when the kernel advocates udev, working around it is no
->  solution, but finding the problem and fixing the basic problem is more
->  important, rather than workarounds.
->
->  http://www.gentoo.org/doc/en/udev-guide.xml
->  http://reactivated.net/writing_udev_rules.html
->
->  If there is a general udev issue, it should be taken up with udev and
->  not working around within adapter drivers.
+Add zl10313 support to mt312 driver.
+zl10313 uses 10.111MHz xtal.
 
-Regardless of how broken the issue is within udev, udev is not user-friendly.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Index: v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/dvb/frontends/mt312.c
++++ v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+@@ -1,7 +1,8 @@
+ /*
+-    Driver for Zarlink VP310/MT312 Satellite Channel Decoder
++    Driver for Zarlink VP310/MT312/ZL10313 Satellite Channel Decoder
+ 
+     Copyright (C) 2003 Andreas Oberritter <obi@linuxtv.org>
++    Copyright (C) 2008 Matthias Schwarzott <zzam@gentoo.org>
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -55,6 +56,7 @@ static int debug;
+ 	} while (0)
+ 
+ #define MT312_PLL_CLK		10000000UL	/* 10 MHz */
++#define MT312_PLL_CLK_10_111	10111000UL	/* 10.111 MHz */
+ 
+ static int mt312_read(struct mt312_state *state, const enum mt312_reg_addr reg,
+ 		      u8 *buf, const size_t count)
+@@ -264,6 +266,32 @@ static int mt312_initfe(struct dvb_front
+ 			return ret;
+ 	}
+ 
++	switch (state->id) {
++	case ID_ZL10313:
++		/* enable ADC */
++		ret = mt312_writereg(state, GPP_CTRL, 0x80);
++		if (ret < 0)
++			return ret;
++
++		/* configure ZL10313 for optimal ADC performance */
++		buf[0] = 0x80;
++		buf[1] = 0xB0;
++		ret = mt312_write(state, HW_CTRL, buf, 2);
++		if (ret < 0)
++			return ret;
++
++		/* enable MPEG output and ADCs */
++		ret = mt312_writereg(state, HW_CTRL, 0x00);
++		if (ret < 0)
++			return ret;
++
++		ret = mt312_writereg(state, MPEG_CTRL, 0x00);
++		if (ret < 0)
++			return ret;
++
++		break;
++	}
++
+ 	/* SYS_CLK */
+ 	buf[0] = mt312_div(state->xtal * state->freq_mult * 2, 1000000);
+ 
+@@ -278,7 +306,17 @@ static int mt312_initfe(struct dvb_front
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = mt312_writereg(state, OP_CTRL, 0x53);
++	/* different MOCLK polarity */
++	switch (state->id) {
++	case ID_ZL10313:
++		buf[0] = 0x33;
++		break;
++	default:
++		buf[0] = 0x53;
++		break;
++	}
++
++	ret = mt312_writereg(state, OP_CTRL, buf[0]);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -552,6 +590,7 @@ static int mt312_set_frontend(struct dvb
+ 		break;
+ 
+ 	case ID_MT312:
++	case ID_ZL10313:
+ 		break;
+ 
+ 	default:
+@@ -617,11 +656,29 @@ static int mt312_i2c_gate_ctrl(struct dv
+ {
+ 	struct mt312_state *state = fe->demodulator_priv;
+ 
+-	if (enable) {
+-		return mt312_writereg(state, GPP_CTRL, 0x40);
+-	} else {
+-		return mt312_writereg(state, GPP_CTRL, 0x00);
++	u8 val = 0x00;
++	int ret;
++
++	switch (state->id) {
++	case ID_ZL10313:
++		ret = mt312_readreg(state, GPP_CTRL, &val);
++		if (ret < 0)
++			goto error;
++
++		/* preserve this bit to not accidently shutdown ADC */
++		val &= 0x80;
++		break;
+ 	}
++
++	if (enable)
++		val |= 0x40;
++	else
++		val &= ~0x40;
++
++	ret = mt312_writereg(state, GPP_CTRL, val);
++
++error:
++	return ret;
+ }
+ 
+ static int mt312_sleep(struct dvb_frontend *fe)
+@@ -635,6 +692,18 @@ static int mt312_sleep(struct dvb_fronte
+ 	if (ret < 0)
+ 		return ret;
+ 
++	if (state->id == ID_ZL10313) {
++		/* reset ADC */
++		ret = mt312_writereg(state, GPP_CTRL, 0x00);
++		if (ret < 0)
++			return ret;
++
++		/* full shutdown of ADCs, mpeg bus tristated */
++		ret = mt312_writereg(state, HW_CTRL, 0x0d);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	ret = mt312_readreg(state, CONFIG, &config);
+ 	if (ret < 0)
+ 		return ret;
+@@ -736,8 +805,13 @@ struct dvb_frontend *vp310_mt312_attach(
+ 		state->xtal = MT312_PLL_CLK;
+ 		state->freq_mult = 6;
+ 		break;
++	case ID_ZL10313:
++		strcpy(state->frontend.ops.info.name, "Zarlink ZL10313 DVB-S");
++		state->xtal = MT312_PLL_CLK_10_111;
++		state->freq_mult = 9;
++		break;
+ 	default:
+-		printk(KERN_WARNING "Only Zarlink VP310/MT312"
++		printk(KERN_WARNING "Only Zarlink VP310/MT312/ZL10313"
+ 			" are supported chips.\n");
+ 		goto error;
+ 	}
+@@ -753,7 +827,7 @@ EXPORT_SYMBOL(vp310_mt312_attach);
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+ 
+-MODULE_DESCRIPTION("Zarlink VP310/MT312 DVB-S Demodulator driver");
++MODULE_DESCRIPTION("Zarlink VP310/MT312/ZL10313 DVB-S Demodulator driver");
+ MODULE_AUTHOR("Andreas Oberritter <obi@linuxtv.org>");
+ MODULE_LICENSE("GPL");
+ 
+Index: v4l-dvb/linux/drivers/media/dvb/frontends/mt312_priv.h
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/dvb/frontends/mt312_priv.h
++++ v4l-dvb/linux/drivers/media/dvb/frontends/mt312_priv.h
+@@ -110,6 +110,8 @@ enum mt312_reg_addr {
+ 	VIT_ERRPER_H = 83,
+ 	VIT_ERRPER_M = 84,
+ 	VIT_ERRPER_L = 85,
++	HW_CTRL = 84,	/* ZL10313 only */
++	MPEG_CTRL = 85,	/* ZL10313 only */
+ 	VIT_SETUP = 86,
+ 	VIT_REF0 = 87,
+ 	VIT_REF1 = 88,
+@@ -156,7 +158,8 @@ enum mt312_reg_addr {
+ 
+ enum mt312_model_id {
+ 	ID_VP310 = 1,
+-	ID_MT312 = 3
++	ID_MT312 = 3,
++	ID_ZL10313 = 5,
+ };
+ 
+ #endif				/* DVB_FRONTENDS_MT312_PRIV */
 
-Under the current situation, users that have media recording servers
-that receive broadcasts from differing delivery systems have no way
-ensure that they are using the correct device for their recordings.
-
-For instance:
-
-Users might have VSB devices and QAM devices in their system, both to
-receive OTA broadcasts and digital cable.  Likewise, someone else
-might have DVB-S devices and DVB-T devices in the same system.
-
-If said user has VSB devices as adapters 0 and 1, QAM-capable devices
-as adapters 2 and 3, and DVB-S devices as adapters 5 and 6, they need
-to be able to configure their software to know which device to use
-when attempting to receive broadcasts from the respective media type.
-
-The argument that "udev should do this -- fix udev instead" is weak,
-in my opinion.  Even if udev can be fixed, the understanding of how to
-configure it is hopeless.
-
-When support for cx88-alsa and saa7134-alsa appeared, at first, I lost
-functionality of my sound card.  I fixed the issue by setting my alsa
-driver "index" module option for each respecting device in my build
-scripts.  If I didn't have the ability to rectify that issue, I simply
-would have yanked out the conflicting device (ie: use NO video card in
-the system) or just reboot into Windows and ditch Linux, altogether.
-
-This is a simple patch that adds the same functionality that v4l and
-alsa have -- the ability to declare the adapter number of the device
-at attach-time, based on a module option.  The change has minimal
-impact on the source code, and adds great benefits to the users, and
-requires zero maintenance.
-
-The arguments against applying this change are "fix udev instead" and
-"we'll have to remove this in kernel 2.7" ... Well, rather than to
-have everybody wait around for a "fix" that requires programming
-skills in order to use, I say we merge this now, so that people can
-use their systems properly TODAY.  If we have to remove this in the
-future as a result of some other kernel-wide requirements, then we
-will cross that bridge when we come to it.
-
-I see absolutely no harm in implementing this feature now.
-
--Mike
+-- 
 
 _______________________________________________
 linux-dvb mailing list
