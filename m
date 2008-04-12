@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3F9t0dA013599
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:55:00 -0400
-Received: from web26102.mail.ukl.yahoo.com (web26102.mail.ukl.yahoo.com
-	[217.146.182.143])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3F9sgsl030066
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:54:43 -0400
-Date: Tue, 15 Apr 2008 11:54:36 +0200 (CEST)
-From: linuxcbon <linuxcbon@yahoo.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080414172208.3b20e53d@areia>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3CGf1pm019301
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 12:41:01 -0400
+Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3CGekkF021961
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 12:40:47 -0400
+Message-ID: <4800E603.3040707@rumoridifondo.com>
+Date: Sat, 12 Apr 2008 18:40:35 +0200
+From: "Emanuele Bovieri ..:: www.rumoridifondo.com ::.."
+	<emanuele@rumoridifondo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Message-ID: <969007.77776.qm@web26102.mail.ukl.yahoo.com>
-Cc: Video <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
-Subject: RE : Re: RE : Re: Question about Creative Webcam Pro PD1030 ? Bug ?
+To: video4linux-list <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: AVCapture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,53 +25,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+hi all,
+i just subscribe this list and this is my first mail. i'm an italian 
+debian etch user and i've done a bash script for capturing analog video 
+with mencoder. i see that there's yet a capturing script on V4L wiki, 
+but it's only in deutsch and i don't speak deutsch...
 
---- Mauro Carvalho Chehab <mchehab@infradead.org> a écrit :
+you can take a look at my script (called AVCapture) in this webpage:
+www.webalice.it/emanuele.bovieri
 
-> > I forgot to cc the linux mailing list, so here it is again.
-> 
-> The better is to copy V4L mailing list.
-> 
-> > hi Mauro,
-> > 
-> > thanks for your answer !
-> > 
-> > I already contacted the authors (Mark,Wallac,Olawlor), but no feedback
-> > yet.
-> > 
-> > I got no oops message from kernel.
-> 
-> So, this doesn't seem to be a driver issue. I suspect that your
-> userspace app
-> is trying to configure an unsupported configuration. This driver still
-> implements the legacy V4L1 API. Maybe converting it to V4L2 would solve
-> your
-> issues. Another option is to check if gspca driver works with this
-> device.
-> 
-> Cheers,
-> Mauro
+i'd like if someone can correct the english version because i think 
+there's some grammatical error...
 
-Hi,
-
-lsmod gives :
-ov511                  77072  0 
-compat_ioctl32          1408  1 ov511
-videodev               27904  1 ov511
-v4l2_common            16896  1 videodev
-v4l1_compat            14596  1 videodev
-
-This device works with OV511+ 
-(see http://alpha.dyndns.org/ov511/cameras.html).
-Difference between OV511 and OV511+ ?
-
-cheers, linuxcbon
-
-
-
-
-      _____________________________________________________________________________ 
-Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yahoo.fr
+sincerely,
+emanuele bovieri
 
 --
 video4linux-list mailing list
