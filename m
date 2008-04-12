@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.156.147.13] (helo=jenni2.rokki.sonera.fi)
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lwgt@iki.fi>) id 1JqUeN-0001TM-Lj
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 16:48:15 +0200
-Received: from [127.0.0.1] (84.249.53.62) by jenni2.rokki.sonera.fi (8.0.013.9)
-	id 481578A9000734AE for linux-dvb@linuxtv.org;
-	Mon, 28 Apr 2008 17:48:12 +0300
-Message-ID: <4815E3A9.1000306@iki.fi>
-Date: Mon, 28 Apr 2008 17:48:09 +0300
-From: Lauri Tischler <lwgt@iki.fi>
-MIME-Version: 1.0
+	(envelope-from <zzam@gentoo.org>) id 1JkhI9-0003PN-Qh
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:05:22 +0200
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id BA4B221D736
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:55 +0200 (CEST)
+Received: from localhost (unknown [192.168.1.157])
+	by mail.m-online.net (Postfix) with ESMTP id 7AFD790075
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:47 +0200 (CEST)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (scanner1.m-online.net [192.168.1.157]) (amavisd-new,
+	port 10024) with ESMTP id g9YpXnNk-BS1 for <linux-dvb@linuxtv.org>;
+	Sat, 12 Apr 2008 17:04:46 +0200 (CEST)
+Received: from gauss.x.fun (ppp-88-217-104-133.dynamic.mnet-online.de
+	[88.217.104.133]) by mail.nefkom.net (Postfix) with ESMTP
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:46 +0200 (CEST)
+Message-Id: <20080412150444.987445669@gentoo.org>
+Date: Sat, 12 Apr 2008 17:04:45 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Error messages with multiproto_plus
+Subject: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,26 +28,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-My syslog has zillions of these messages, one every 20 seconds
+mt312: Cleanup driver and add support for zl10313.
 
-Apr 26 12:17:18 vdr2 kernel: dvb_frontend_ioctl: FESTATE_RETUNE:
-fepriv->state=2
-Apr 26 12:17:39 vdr2 kernel: dvb_frontend_ioctl: FESTATE_RETUNE:
-fepriv->state=2
+These patches add support for the Zarlink zl10313 demod to mt312 driver.
+This chip is used at least on Avermedia A700 DVB-S and
+Compro VideoMate S300/S350 DVB-S cards.
 
-Running multiproto_plus + VDR 1.7.0
-1xNEXUS-S + 2x NOVA-T
+Regards
+Matthias
 
-How do I get rid of those pesky things.
-
-Cheers...
-
+-- 
 
 _______________________________________________
 linux-dvb mailing list
