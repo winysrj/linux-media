@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.239])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zdenek.kabelac@gmail.com>) id 1JjVhX-0001i2-B5
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 10:30:40 +0200
-Received: by wx-out-0506.google.com with SMTP id s11so2591443wxc.17
-	for <linux-dvb@linuxtv.org>; Wed, 09 Apr 2008 01:30:32 -0700 (PDT)
-Message-ID: <c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
-Date: Wed, 9 Apr 2008 10:30:30 +0200
-From: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <47FC373F.5060006@iki.fi>
+Received: from n39.bullet.mail.ukl.yahoo.com ([87.248.110.172])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JkVVA-0001ee-CD
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 04:30:01 +0200
+Date: Fri, 11 Apr 2008 22:26:31 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1207866617l.6780l.0l@manu-laptop>
+In-Reply-To: <1207866617l.6780l.0l@manu-laptop> (from eallaud@yahoo.fr on
+	Thu Apr 10 18:30:17 2008)
+Message-Id: <1207967191l.6061l.0l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>
-	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
-	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
-	<47FC373F.5060006@iki.fi>
-Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+Subject: [linux-dvb] Re : TT-3200 (DVB-S/S2) bad reception/no lock issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,56 +26,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/4/9, Antti Palosaari <crope@iki.fi>:
-> Zdenek Kabelac wrote:
->
-> > As it looks like my AverTV Hybrid Volar HX is a little bit of no use
-> > for quite some time -
-> > and your afatech driver seems to helpfull to many other users - maybe you
-> could
-> > try to make it help for me as well ??
-> >
->
->  I can try :)
+On 04/10/2008 06:30:17 PM, manu wrote:
+> 	Hi all,
+> I already reported on that sooner, but now I have a log (with stb0899 
+> verbose=5) so I hope it makes it a bit easier to debug.
+> Still the same behaviour: one transponder (freq=11093 MHz) is ALWAYS 
+> perfect (fast lock perfect picture even with bad weather) and for 3 
+> other transponders (11555 MHz as in the log, 11635 Mhz and 11675 MHz) 
+> the lock is much less frequent and if it locks the picture is much 
+> worse even in not so cloudy weather. It is as if the card was much
+> more 
+> picky with the other 3 transponders. Is it normal to have such 
+> discrepancies on the same sat?
+> Sometimes just locking on the "good" transponder and then switching 
+> back to a bad one gives good results: good lock and better SNR and 
+> picture (seen in mythtv).
+> Anyway here is the log, I hope this is of some help.
 
-Great ;)
+May I add also that rmmoding budget_ci,budget_core,stb0899 and then 
+modprobing them back gives better picture/locking sometimes.
+Bye
+Manu
 
->
->  version 4.95 is the latest one.
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
-
-Yep that should be the one I'm using I guess
-
->  Are you really sure it is Afatech AF9015? Looks like all USB-messages are
-> failing. The only thing this could happen is that device is not AF9015 or it
-> is badly broken.
-
-Well it's AF9013 - but as could be seen in the source - the code looks like
-it should support both chips  AF9015 & AF9013 - do I had to set manually
-some bits somewhere ?
-
-
->  Open stick and see chips used. Taking good resolution photo or two from PCB
-> (stick motherboard) would be also nice.
-
-Yep - I've already described chips in this device in my December post.
-
-Now there are even some articles about this AvetTV Hybrid Volar HX device
-- this one is in Czech - but the chip names should be understandable I guess :)
-
-Here is article:
-
-http://www.tvfreak.cz/art_doc-706394B9D247B386C12573F9003B14B5.html
-
-
-And here is detailed photo of the AF9013 chip in there:
-
-http://www.tvfreak.cz/tvf/media.nsf/v/B0DE86EDCE9E9972C12573F900407CF3/$file/dsc_0145_large.jpg
-
-
-Regards
-
-Zdenek
 
 _______________________________________________
 linux-dvb mailing list
