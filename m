@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HFpvtd010231
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 11:52:07 -0400
-Received: from mxout2.netvision.net.il (mxout2.netvision.net.il [194.90.9.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3HFoJUY023593
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 11:50:40 -0400
-Received: from [192.168.2.100] ([85.250.225.146]) by mxout2.netvision.net.il
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTPA id <0JZH008DT7ZFU210@mxout2.netvision.net.il> for
-	video4linux-list@redhat.com; Thu, 17 Apr 2008 18:50:04 +0300 (IDT)
-Date: Thu, 17 Apr 2008 18:50:03 +0300
-From: amir sher <amir_in@netvision.net.il>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3C935WR017682
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 05:03:05 -0400
+Received: from mail.sanbi.ac.za (polka2.sanbi.ac.za [196.38.142.121])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3C92qiY001062
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 05:02:54 -0400
+Received: from localhost.localdomain (this151.sanbi.ac.za [192.168.2.151])
+	by mail.sanbi.ac.za (Postfix) with ESMTP id 2E4B2B57115
+	for <video4linux-list@redhat.com>;
+	Sat, 12 Apr 2008 11:02:43 +0200 (SAST)
+Message-ID: <4800795B.3080506@sanbi.ac.za>
+Date: Sat, 12 Apr 2008 10:56:59 +0200
+From: Allan Kamau <allank@sanbi.ac.za>
+MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Message-id: <480771AB.1030005@netvision.net.il>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-Subject: support for Leadtek WinFast PxTV1200
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Linux DVR card.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,14 +28,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have a pci express card, the Leadtek WinFast PxTV1200 which has a 
-CX23885 chip set and Xceive 2028 silicon tuner. As I understand the 
-latest kernel (2.6.25) has support for all of those components on other 
-cards but not specific to this one. Is it possible to add this support 
-for this card as well? I guess it shouldn't be too hard.
+Hi all,
+Am new to DVR.
+Am looking for a Linux DVR card with the following specifications
+1)4 channels video input and possibly with 4 channels audio
+2)Hardware video encoding.
+3)An SDK
+4)Can be installed on any version of Linux (Fedora) - which means it can 
+be installed on an already installed Fedora PC.
 
-Thank you,
-Amir
+Any ideas.
+
+Allan.
 
 --
 video4linux-list mailing list
