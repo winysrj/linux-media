@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [66.180.172.116] (helo=vps1.tull.net)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1Jjjg8-0001sK-Ej
-	for linux-dvb@linuxtv.org; Thu, 10 Apr 2008 01:26:09 +0200
-Date: Thu, 10 Apr 2008 09:25:44 +1000
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
-To: Michael Krufky <mkrufky@gmail.com>
-Message-ID: <20080409232544.GA31564@tull.net>
-References: <200803292240.25719.janne-dvb@grunau.be>
-	<37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
-	<200804090022.40805@orion.escape-edv.de>
-	<200804091121.22092.janne-dvb@grunau.be>
-	<37219a840804090744l2fe7eacbncabd7a2ccf7979b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <37219a840804090744l2fe7eacbncabd7a2ccf7979b@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to	choose
-	dvb adapter numbers, second try
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6c80ffccc20ef1e70e25+1693+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1Jkiu3-0000QU-0S
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 18:48:35 +0200
+Date: Sat, 12 Apr 2008 13:45:33 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: sioux <sioux_it@libero.it>
+Message-ID: <20080412134533.0ebdf74d@areia>
+In-Reply-To: <4800CBA8.4020504@libero.it>
+References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
+	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
+	<47FBD252.3090701@t-online.de> <47FD1C72.8050208@libero.it>
+	<47FD2748.7080203@t-online.de> <20080409184737.2d05f16d@areia>
+	<4800CBA8.4020504@libero.it>
+Mime-Version: 1.0
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,26 +30,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Apr 09, 2008 at 10:44:23AM -0400, Michael Krufky wrote:
-> I believe that the "nr" abbreviation comes from the German language.
-> (correct me if I'm wrong)
+On Sat, 12 Apr 2008 16:48:08 +0200
+sioux <sioux_it@libero.it> wrote:
 
-It also works in English as an abbreviation of NumbeR.
+> Still not working.
+> 
+> sioux@sioux-desktop:/usr/src/v4l-dvb$ sudo make clean
 
-> Perhaps the abbreviation, "no" is more correct, since it is based on
-> the English language, but to me this is of no significance, since v4l
-> uses the "nr" abbreviation and this is globally understood.
+Try "make distclean".
 
-I personally prefer 'nr' as an abbreviation for 'number' because it
-uses letters in the word whereas with 'no' we have no bar to go under
-the 'o' which is the correct printed form of the abbreviation. Also
-'no' can be confused with the english word No.
+This will remove some cached information that might be wrong, due to a
+dependency change.
 
-However the complete kernel source uses '_no' about twice as much as
-'_nr' and so for consistency with the rest of the kernel I can agree
-with '_no'.
+> make[2]: Entering directory `/usr/src/linux-headers-2.6.22-14-rt'
 
-Nick.
+Hmm... you're using a -rt patched kernel? I'm not sure if the realtime patches
+are compatible with V4L/DVB. Maybe, you'll need to compile against one
+mainstream version.
+
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
