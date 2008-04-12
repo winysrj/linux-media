@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout04.t-online.de ([194.25.134.18])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JmbhK-0005qb-Go
-	for linux-dvb@linuxtv.org; Thu, 17 Apr 2008 23:31:15 +0200
-Message-ID: <4807C1A6.8000909@t-online.de>
-Date: Thu, 17 Apr 2008 23:31:18 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	(envelope-from <bikalexander@gmail.com>) id 1Jkd57-00079p-VI
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 12:35:44 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so893352fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 03:35:34 -0700 (PDT)
+Message-ID: <39d4b8530804120335j670f1e9frb613334aea76d6ef@mail.gmail.com>
+Date: Sat, 12 Apr 2008 12:35:33 +0200
+From: Bikalexander <bikalexander@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <39d4b8530804120331t1478297dv7ef7a3912fa25635@mail.gmail.com>
 MIME-Version: 1.0
-To: Stephen Dawkins <elfarto@elfarto.com>
-References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>	<4803C2FA.1010408@hot.ee>
-	<48065CB6.50709@elfarto.com>	<1208422406.12385.295.camel@rommel.snap.tv>	<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>	<4807AFE2.40400@t-online.de>
-	<4807B386.1050109@elfarto.com>
-In-Reply-To: <4807B386.1050109@elfarto.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501
+Content-Disposition: inline
+References: <39d4b8530804120331t1478297dv7ef7a3912fa25635@mail.gmail.com>
+Subject: [linux-dvb] Scan found no PIDs (NIT and TID)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,43 +27,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hello,
 
-Stephen Dawkins schrieb:
-> Hartmut Hackmann wrote:
-> <snip>
->  > I did not follow the thread yet. Which channel demodulator are you 
-> talking
->  > about?
->  >
-> 
-> The demod is a TDA10023HT.
-> 
->  > BTW: You need to be careful to not mix up the a- and non-a versions of
->  > the tuner. They are *not* software compatible.
->  >
-> 
-> How do I know which one I have?
-> 
->  > Best regards
->  >   Hartmut
->  >
-> 
-> Regards
-> Stephen
-> 
-The driver is able to determine this automatically if it is used the way
-we intended.
-After attach, the first call either needs to be init or sleep. At the first
-call, they probe for the chip version.
+ This is my first attempt with a mailing list:). In addition, this text
+ was translated by machine (Sorry).
 
-Do you have a datasheet of the tda10023? From the first glance, i have the
-impression that it was only used with a conventional tuner yet. With the
-silicon tuner, the chip needs to be programmed to use a different IF. We
-beed to find out how this is done.
+ So, it is a question that often scan the PIDs NIT and TID not.
 
-Best regards
-   Hartmut
+ My system:
+ Debian ETCH
+ Techno Trend Premium (Full Featured) S2300 V 2.3 "modified"
+ Latest version of Scan from http://linuxtv.org/hg/dvb-apps/
+
+ My results can be found at
+ (ftp://upload.sat-universum.de/down/channels) view ...... I also have
+ a list of log is created where the two missing PIDs
+
+ Scan to start with the following options:
+ $ scan -o vdr -p -a 0 -f 0 -d 0 -t 3 -5 -vvv  S4.0W.ini > S4.0W_channels.conf
+
+ Thanks
 
 _______________________________________________
 linux-dvb mailing list
