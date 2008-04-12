@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f172.mail.ru ([194.67.57.165])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JjAel-00008q-9z
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 12:02:27 +0200
-From: Igor <goga777@bk.ru>
-To: Gregor Fuis <gujs.lists@gmail.com>
-Mime-Version: 1.0
-Date: Tue, 08 Apr 2008 14:01:49 +0400
-References: <47FB38D5.1010602@gmail.com>
-In-Reply-To: <47FB38D5.1010602@gmail.com>
-Message-Id: <E1JjAeD-000IMG-00.goga777-bk-ru@f172.mail.ru>
+	(envelope-from <zzam@gentoo.org>) id 1Jkhnp-0006VZ-T8
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:38:11 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: "Jan D. Louw" <myvonkpos@mweb.co.za>
+Date: Sat, 12 Apr 2008 17:37:28 +0200
+References: <20080412150444.987445669@gentoo.org>
+In-Reply-To: <20080412150444.987445669@gentoo.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200804121737.28314.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?Z2V0c3RyZWFtIG5ldyBtdWx0aXByb3RvIGFwaSBw?=
-	=?koi8-r?b?YXRjaA==?=
-Reply-To: Igor <goga777@bk.ru>
+Subject: Re: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,28 +26,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-the dvbstream doesn't work with multiproto at all
+On Samstag, 12. April 2008, Matthias Schwarzott wrote:
+> mt312: Cleanup driver and add support for zl10313.
+>
+> These patches add support for the Zarlink zl10313 demod to mt312 driver.
+> This chip is used at least on Avermedia A700 DVB-S and
+> Compro VideoMate S300/S350 DVB-S cards.
+>
+Hi Jan!
 
-Igor
+Could you please try to use this driver with your Compro card.
 
------Original Message-----
-From: Gregor Fuis <gujs.lists@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Tue, 08 Apr 2008 11:20:21 +0200
-Subject: [linux-dvb] getstream new multiproto api patch
+Regards
+Matthias
 
-> 
-> Hello,
-> Is anyone got a working patch for dvbstream to work with new multiproto api!
-> 
-> Best Regards,
-> Gregor
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+-- 
+Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
