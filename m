@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [213.161.191.158] (helo=patton.snap.tv)
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sigmund@snap.tv>) id 1Joc2C-0004gu-EP
-	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 12:17:06 +0200
-From: Sigmund Augdal <sigmund@snap.tv>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <480E4F61.10208@t-online.de>
-References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
-	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>
-	<4803C2FA.1010408@hot.ee> <48065CB6.50709@elfarto.com>
-	<1208422406.12385.295.camel@rommel.snap.tv>
-	<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>
-	<4807AFE2.40400@t-online.de> <4807B386.1050109@elfarto.com>
-	<4807C1A6.8000909@t-online.de>	<1208862469.7807.7.camel@rommel.snap.tv>
-	<480E0575.1010908@gmail.com>  <480E4F61.10208@t-online.de>
-Date: Wed, 23 Apr 2008 12:16:59 +0200
-Message-Id: <1208945819.7807.16.camel@rommel.snap.tv>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT-Budget C-1501
+	(envelope-from <christophpfister@gmail.com>) id 1Jkhr6-0007Q5-Bk
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:41:32 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1015093fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 08:41:24 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Sat, 12 Apr 2008 17:29:58 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_2VNAIRWbAqcaBSM"
+Message-Id: <200804121729.58326.christophpfister@gmail.com>
+Subject: [linux-dvb] Fwd: scan file for it-Bari
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,66 +20,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-dGlyLCAyMi4wNC4yMDA4IGtsLiAyMi40OSArMDIwMCwgc2tyZXYgSGFydG11dCBIYWNrbWFubjoK
-PiBoaSwKPiAKPiBlOWhhY2sgc2NocmllYjoKPiA+IFNpZ211bmQgQXVnZGFsIHNjaHJpZWI6Cj4g
-Pj4gdG9yLCAxNy4wNC4yMDA4IGtsLiAyMy4zMSArMDIwMCwgc2tyZXYgSGFydG11dCBIYWNrbWFu
-bjoKPiA+PiA8c25pcD4KPiA+Pj4gRG8geW91IGhhdmUgYSBkYXRhc2hlZXQgb2YgdGhlIHRkYTEw
-MDIzPyBGcm9tIHRoZSBmaXJzdCBnbGFuY2UsIGkgaGF2ZSB0aGUKPiA+Pj4gaW1wcmVzc2lvbiB0
-aGF0IGl0IHdhcyBvbmx5IHVzZWQgd2l0aCBhIGNvbnZlbnRpb25hbCB0dW5lciB5ZXQuIFdpdGgg
-dGhlCj4gPj4+IHNpbGljb24gdHVuZXIsIHRoZSBjaGlwIG5lZWRzIHRvIGJlIHByb2dyYW1tZWQg
-dG8gdXNlIGEgZGlmZmVyZW50IElGLiBXZQo+ID4+PiBiZWVkIHRvIGZpbmQgb3V0IGhvdyB0aGlz
-IGlzIGRvbmUuCj4gPj4gSSBkb24ndCBoYXZlIGFueSBkYXRhc2hlZXQuIEkgdHJpZWQgcGxheWlu
-ZyBhcm91bmQgd2l0aCBzb21lIG9mIHRoZQo+ID4+IHZhbHVlcyBpbiB0aGUgaW5pdC10YWIsIGFu
-ZCB0aGV5IGRvIGFmZmVjdCB0aGUgc2lnbmFsIGxldmVscyAoc2lnbmFsIGFuZAo+ID4+IHNucikg
-cmVwb3J0ZWQsIGJ1dCBJIGhhdmVuJ3QgbWFuYWdlZCB0byBmaW5kIHNvbWV0aGluZyB0aGF0IGRv
-ZXMgZ2l2ZSBhCj4gPj4gbG9jay4gVGhlcmUgaXMgYWxzbyBhIGlmX2ZyZXEgdmFyaWFibGUgaW4g
-dGhlIGN1cnJlbnQgZHJpdmVyIHNvdXJjZXMKPiA+PiB0aGF0IGRvZXMgbm90IHNlZW0gdG8gYmUg
-cGFzc2VkIHRvIHRoZSBjaGlwIGRpcmVjdGx5IGJ1dCBpcyB1c2VkIGluIHNvbWUKPiA+PiBjb21w
-dXRhdGlvbnMuIEluIHRoZSBjdXJyZW50IGRyaXZlciB0aGlzIHZhbHVlIGlzIHNlbGVjdGVkIGJh
-c2VkIG9uCj4gPj4gY2hhbm5lbCBiYW5kd2lkdGggKGJlaW5nIG9ubHkgdXNlZCBmb3IgZHZiLXQg
-dGhpcyBmYXIpLiBJJ3ZlIHRyaWVkIHdpdGgKPiA+PiBzZXZlcmFsIHZhbHVlcyBmb3IgdGhpcyAo
-OE1IeiwgME1IeiwgNE1IeiBhbmQgdGhlIGN1cnJlbnRseSB1c2VkIDVNSHoKPiA+PiBmb3IgOE1I
-eiBiYW5kd2lkdGggY2hhbm5lbHMpLgo+ID4+Cj4gPj4gQmlycjogRG8geW91IGhhdmUgYW55IGlu
-Zm8gb24gdGhpcywgYXMgeW91IHNlZW0gdG8gYmUgdGhlIGxhc3QgZGV2ZWxvcGVyCj4gPj4gd29y
-a2luZyBvbiB0aGF0IGRlbW9kPwo+ID4gCj4gPiBJIGRvbid0IG93biB0aGUgZGF0YXNoZWV0IG9m
-IHRoZSBUREExMDAyMy4gSSB0aGluayB5b3UgbXVzdCByZWFkIHRoZSBjb25maWd1cmF0aW9uIG9m
-IHRoZSAKPiA+IFREQTEwMDIzIGZyb20gd2luZG93cy4gVGhpcyBjYW4gYmUgZG9uZSB3aXRoIHRo
-aXMgcHJvZ3JhbSAKPiA+IChodHRwOi8vbGludXh0di5vcmcvZG93bmxvYWRzL3NhYTcxNDZkdW1w
-LTAuMi56aXApLiBJZiBpdCBpcyBuZWNlc3NhcnkgdG8gbW9uaXRvciB0aGUgCj4gPiBpbml0aWFs
-aXphdGlvbiBvZiB0aGUgdHVuZXIgY2hpcCwgeW91IG11c3QgdXNlIGFuIGkyYy1tb25pdG9yLiBJ
-IGRldmVsb3BlZCBhIGNoZWFwIG1vbml0b3IgCj4gPiAoaHR0cDovL3d3dy52ZHItcG9ydGFsLmRl
-L2JvYXJkL3RocmVhZC5waHA/cG9zdGlkPTYzOTgxOCNwb3N0NjM5ODE4KS4gVGhlIGNvc3RzIG9m
-IHRoZSAKPiA+IHBhcnRzIGFyZSBsZXNzIHRoZW4gMTDigqwuIFRvIGJ1aWxkIHN1Y2ggYSBtb25p
-dG9yLCB5b3Ugc2hvdWxkIGtub3cgd2hhdCBhIHNvbGRlcmluZy1pcm9uIGlzLgo+ID4gCj4gPiAt
-SGFydG11dCBCaXJyCj4gPiAKPiBMb29rcyBsaWtlIHdlIG5lZWQgdG8gbWFrZSBjaGFuZ2VzIGlu
-IGJvdGgsIHRkYTgyN3ggYW5kIHRkYTEwMDIzLiBDdXJyZW50bHkgdGhlIDEwMDIzCj4gaXMgcHJv
-Z3JhbW1lZCBmb3IgMzYuMTNNSHogSUYgZnJlcXVlbmN5LiBUaGlzIGlzICpub3QqIHBvc3NpYmxl
-IHdpdGggdGhlIDgyN3guCj4gU28gd2UgbmVlZCB0byBpbXBsZW1lbnQgYSBjb25maWd1cmF0aW9u
-IG9wdGlvbiBmb3IgdGhlIHRkYTEwMDIzIHRvIHNlbGVjdCB0aGUgSUYgY2VudGVyCj4gZnJlcXVl
-bmN5IChoYXZlbid0IGhhZCB0aGUgdGltZSB0byBoYXZlIGEgY2xvc2UgbG9vayB5ZXQpIGFuZCB3
-ZSBuZWVkIHRvIGltcGxlbWVudCBhIHdheQo+IHRvIGxldCB0aGUgdGRhODI3eCBkcml2ZXIgY2hv
-b3NlIHRoZSByaWdodCBwYXJhbWV0ZXIgc2V0Lgo+IEkgd291bGQgYmUgbW9yZSBpbnRlcmVzdGVk
-IGluIHRoZSBjb25maWd1cmF0aW9uIG9mIHRoZSB0ZGExMDAyMy4gV2l0aCB0aGUgdGRhODI3eCwg
-aSBrbm93Cj4gd2hhdCB0byBkby4KVGhlIGluaXQtdGFiIHBhcnQgb2YgdGRhMTAwMjMuYyBzZWVt
-cyB0byBpbmRpY2F0ZSB3aGljaCBwb3Npc2lvbnMgYXJlCndoaWNoIHJlZ2lzdGVycyBpbiB0aGUg
-Y2hpcC4gVGhlcmUgYXJlIGluIHBhcnRpY3VsYXIgdHdvIHRoYXQgYXJlIGNhbGxlZApERUxUQUZf
-TVNCIGFuZCBERUxUQUZfTFNCLCB3aGljaCBpcyBjdXJyZW50bHkgc2V0IHRvIDB4RkZGMC4gSSBn
-dWVzcwp0aGlzIHdvdWxkIGJlIGEga2V5IHRoaW5nIHRvIGNoYW5nZSwgYnV0IHdoYXQgbmVlZHMg
-dG8gYmUgY2hhbmdlZCBpbiB0aGUKdHVuZXIgZHJpdmVyPyBJJ3ZlIGFsc28gbm90aWNlZCB0aGF0
-IHdoZW4gdGhlIHRkYTEwMDQ2IGlzIHVzZWQgd2l0aAp0ZGE4Mjd4IGl0IGNoYW5nZXMgc29tZSBv
-dGhlciBwYXJhbWV0ZXJzIGluIHRoZSBkZW1vZCAoYWdjIHRocmVzaG9sZCwKZ2FpbiBhbmQgcG9s
-YXJpdGllcykuIERvIHdlIG5lZWQgdG8gY2hhbmdlIHRoZXNlIGluIHRkYTEwMDIzIGFsc28/IE9y
-CmNvdWxkIHdlIGNoYW5nZSB0ZGE4Mjd4IHRvIG91dHB1dCB3aGF0IHRoZSB0ZGExMDAyMyBuZWVk
-cz8KCkJlc3QgcmVnYXJkcwoKU2lnbXVuZCBBdWdkYWwKPiAKPiBIYXJ0bXV0Cj4gCj4gCj4gX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51eC1kdmIg
-bWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2
-Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4gCgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlz
-dApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+This is a multi-part message in MIME format.
+--Boundary-00=_2VNAIRWbAqcaBSM
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+=46rom a kaffeine user ...
+
+Christoph
+
+
+=2D---------  Weitergeleitete Nachricht  ----------
+
+Betreff: [kaffeine-user] Another city for kaffeine :D
+Datum: Donnerstag 10 April 2008
+Von: Casper <casper@netsons.org>
+An: kaffeine-user@lists.sf.net
+
+*.* thanks to all!!!
+
+=2D------------------------------------------------------
+
+--Boundary-00=_2VNAIRWbAqcaBSM
+Content-Type: text/plain;
+  name="it-Bari"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="it-Bari"
+
+IyBNVVgtQSBSQUkKVCAyMTk1MDAwMDAgN01IeiAyLzMgQVVUTyBRQU02NCA4ayAxLzMyIE5P
+TkUKIyBNVVgtQiBSQUkKVCA1NDYwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIg
+Tk9ORQojIE1VWCBNRURJQVNFVCAxClQgNTE0MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4
+ayAxLzMyIE5PTkUKIyBNVVggREZSRUUKVCAyMjY1MDAwMDAgN01IeiAyLzMgQVVUTyBRQU02
+NCA4ayAxLzMyIE5PTkUKIyBNVVggTUVESUFTRVQgMgpUIDgyNjAwMDAwMCA4TUh6IDIvMyAx
+LzIgUUFNNjQgOGsgMS8zMiBOT05FCiMgTUJPTkUKVCA0OTgwMDAwMDAgOE1IeiAyLzMgMS8y
+IFFBTTY0IDhrIDEvMzIgTk9ORQojIFRJTUIxClQgNTMwMDAwMDAwIDhNSHogMi8zIDEvMiBR
+QU02NCA4ayAxLzMyIE5PTkU=
+--Boundary-00=_2VNAIRWbAqcaBSM
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_2VNAIRWbAqcaBSM--
