@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+cdbc83983d2090c8071f+1706+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1JpNmr-0003mw-GA
-	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 15:16:25 +0200
-Date: Fri, 25 Apr 2008 10:15:17 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080425101517.71017817@gaivota>
-In-Reply-To: <4811D385.8010605@iinet.net.au>
-References: <480F40C8.1000102@iinet.net.au> <20080423115940.304c089a@gaivota>
-	<480F7569.8010002@iinet.net.au>
-	<Pine.LNX.4.64.0804232254340.31358@bombadil.infradead.org>
-	<4811D385.8010605@iinet.net.au>
-Mime-Version: 1.0
-Cc: lucarasp@inwind.it, linux-dvb@linuxtv.org, osl2008@googlemail.com
-Subject: Re: [linux-dvb] Avermedia A16D
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JkTLz-0000C3-K5
+	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 02:12:24 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 12 Apr 2008 02:11:26 +0200
+References: <47F9E95D.6070705@yahoo.de> <47FB1E3B.2000307@yahoo.de>
+In-Reply-To: <47FB1E3B.2000307@yahoo.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200804120211.27274@orion.escape-edv.de>
+Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot polling
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,29 +26,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 25 Apr 2008 20:50:13 +0800
-timf <timf@iinet.net.au> wrote:
-
-> Hi Mauro,
+Robert Schedel wrote:
+> Hello all,
 > 
-> OK, I gave ubuntu Hardy 8.04 away, they appear to have frozen at a time 
-> way before the latest developments on v4l-dvb.
-> So, used ubuntu Gutsy 7.10 instead.
+> meanwhile I also found old threads from August 2007 and earlier, named 
+> "System load raises when budget_av is loaded" and "System load raises 
+> when budget_av is loaded", which describe exactly the same issue. 
+> However, both were written before the latest code changes.
 > 
-> Success at about 80% for Avermedia A16D.
+> The latest debi_done code change from November 2007 does not use any 
+> DEBI_E checks anymore. To my understanding this SAA7146 event indicates 
+>   DEBI errors like timeout via PCI and should be received by the driver 
+>   much earlier than those 250ms (=end of cycle). Seems like I have to 
+> play around with this myself.
 
-Good.
+IIRC there was a problem with the DEBI_E flag but I don't remember what
+it was exactly.
 
-> [ 52.742640] tuner' 2-0061: Cmd TUNER_SET_STANDBY accepted for analog TV
-> [ 52.742643] xc2028 2-0061: xc2028_sleep called
+> Time for a bugzilla ticket?
 
-It seems that you're not using the latest version of the tree. I've commented
-xc2028_sleep, since this were being called at the wrong moment. This sleep
-function should be called at S1/S3 sleep, but the current code calls it too
-frequently. A proper fix would likely require some adjustments at tuner-core.
+You can do this if you prefer (but this will neither fix the bug nor
+have any other positive effect).
 
-Cheers,
-Mauro
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
