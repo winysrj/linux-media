@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m318hRRh015272
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 04:43:27 -0400
-Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m318hGNb024211
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 04:43:16 -0400
-Received: by rv-out-0910.google.com with SMTP id k15so1199537rvb.51
-	for <video4linux-list@redhat.com>; Tue, 01 Apr 2008 01:43:16 -0700 (PDT)
-Message-ID: <998e4a820804010143w79ff1513x9ba0945576cfad9a@mail.gmail.com>
-Date: Tue, 1 Apr 2008 16:43:16 +0800
-From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3CHnRDD008849
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 13:49:27 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3CHnETb026958
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 13:49:14 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so951075wfc.6
+	for <video4linux-list@redhat.com>; Sat, 12 Apr 2008 10:49:13 -0700 (PDT)
+Message-ID: <175f5a0f0804121049v5797cdcaw753e1035ef859c80@mail.gmail.com>
+Date: Sat, 12 Apr 2008 19:49:13 +0200
+From: "H. Willstrand" <h.willstrand@gmail.com>
+To: "Allan Kamau" <allank@sanbi.ac.za>
+In-Reply-To: <4800795B.3080506@sanbi.ac.za>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=GB2312
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Subject: some question for "soc_camera V4L2 interface for directly connected
-	cameras"
+References: <4800795B.3080506@sanbi.ac.za>
+Cc: video4linux-list@redhat.com
+Subject: Re: Linux DVR card.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,15 +30,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I use a driver that is "soc_camera V4L2 interface for directly
-connected cameras".but I have some problems:
-1¡¢is this driver for linux-2.6.24?
-2¡¢I want to know how can I get arch/arm/mach-pxa/devices.c.
-3¡¢the function mt9v022_probe(struct i2c_client *client) in mt9v022.c
-does not execute,why?
+On Sat, Apr 12, 2008 at 10:56 AM, Allan Kamau <allank@sanbi.ac.za> wrote:
+> Hi all,
+>  Am new to DVR.
+>  Am looking for a Linux DVR card with the following specifications
+>  1)4 channels video input and possibly with 4 channels audio
+>  2)Hardware video encoding.
+>  3)An SDK
+>  4)Can be installed on any version of Linux (Fedora) - which means it can be
+> installed on an already installed Fedora PC.
+>
+>  Any ideas.
+>
 
-thanks
-fengxin
+A similar question was up a month ago:
+http://marc.info/?l=linux-video&m=120578547521430&w=2
+
+Br H.Willstrand
+
+>  Allan.
+>
+>  --
+>  video4linux-list mailing list
+>  Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>  https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
