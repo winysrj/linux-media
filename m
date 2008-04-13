@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1Jnfx0-00009e-FR
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 22:15:51 +0200
-From: Dominik Kuhlen <dkuhlen@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Sun, 20 Apr 2008 22:15:14 +0200
-References: <200804190101.14457.dkuhlen@gmx.net>
-	<200804201739.35206.dkuhlen@gmx.net>
-	<854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
-In-Reply-To: <854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.158])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mariofutire@googlemail.com>) id 1JkyqK-0003YZ-AV
+	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 11:49:49 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1391775fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 02:49:45 -0700 (PDT)
+Message-ID: <4801D735.6040905@googlemail.com>
+Date: Sun, 13 Apr 2008 10:49:41 +0100
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Message-Id: <200804202215.14234.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
-	TT-Connect-S2-3600 final version (RC-keymap)
+To: linux-dvb@linuxtv.org
+References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
+	<47E4EE5B.1010406@googlemail.com> <4801D2A8.4020903@googlemail.com>
+In-Reply-To: <4801D2A8.4020903@googlemail.com>
+Content-Type: multipart/mixed; boundary="------------050300050606010205040009"
+Subject: Re: [linux-dvb] [PATCH] 1/3: BUG FIX in dvb_ringbuffer_flush
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,82 +22,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1040186692=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1040186692==
-Content-Type: multipart/signed;
-  boundary="nextPart6478662.utXirOr74R";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+This is a multi-part message in MIME format.
+--------------050300050606010205040009
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
---nextPart6478662.utXirOr74R
+Andrea wrote:
+> I've just added a comment to patch 1/3.
+> I post it here again.
+> 
+> This patch fixes the bug in DMX_SET_BUFFER_SIZE for the demux.
+> Basically it resets read and write pointers to 0 in case they are beyond 
+> the new size of the buffer.
+> 
+> In the next patch (2/3) I rewrite this function to behave the same as 
+> the new DMX_SET_BUFFER_SIZE for the dvr.
+> I thought it is a good idea for the 2 very similar ioctl to be 
+> implemented in the same way.
+> 
+> Andrea
+
+I've fixed some formatting errors reported by "make checkpatch".
+
+Andrea
+
+--------------050300050606010205040009
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+ name="patch.1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="patch.1"
 
-On Sunday 20 April 2008, Faruk A wrote:
-> >  Could you please try to change line 1547 in stb0899_algo.c to:
-> >
-> >  offsetfreq =3D ((((offsetfreq / 1024) * 1000) / (1<<7)) * (s32)(intern=
-al->master_clk/1000000)) / (s32)(1<<13);
-> >
-> >  this should use only 32bit ops and not over/underflow for the expected=
- ranges ;)
-> >
-> >
-> >   Dominik
->=20
-> It works, with this new changes i had no problem loading the drivers.
->=20
-> One more thing i did some testing with vdr and dvbs2 it looks like it
-> locks in exactly after 1 minute
-> but no video or audio vdr just displays no signal. I don't know if is
-> the vdrs fault or the drivers
-> anyway i have attached a small log. (no attachment rejected by
-> moderator, I've sent copy of this mail to Dominik with attachment.
-> Tried pastebin too didn't help)
-Hmm, i have received your log file (its 3MB, you could try to bzip2 it befo=
-re attaching.
-usually log files compress well)
-The log starts at 19:51:19 with opening the device.
-but it looks like delivery system is set to DVB-S not DVB-S2
-frequency and symbolrate would match the astra-hd channel (1314MHz and 2750=
-0kSym/s).
-then at 19:52:20 the frontend parameter were changed to 1479MHz and 24500kS=
-ym/s
-not sure what triggered the retuning.=20
-after 5 seconds the FE locks, which is surprising since the symbolrate is n=
-ot correct.
+diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dmxdev.c
+--- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	Fri Apr 11 08:29:44 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sun Apr 13 10:46:37 2008 +0100
+@@ -281,7 +281,9 @@ static int dvb_dmxdev_set_buffer_size(st
+ 	mem = buf->data;
+ 	buf->data = NULL;
+ 	buf->size = size;
+-	dvb_ringbuffer_flush(buf);
++
++	/* reset and not flush in case the buffer shrinks */
++	dvb_ringbuffer_reset(buf);
+ 	spin_unlock_irq(&dmxdevfilter->dev->lock);
+ 	vfree(mem);
+ 
+diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c
+--- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Fri Apr 11 08:29:44 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Sun Apr 13 10:46:37 2008 +0100
+@@ -90,6 +90,11 @@ void dvb_ringbuffer_flush(struct dvb_rin
+ 	rbuf->error = 0;
+ }
+ 
++void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
++{
++	rbuf->pread = rbuf->pwrite = 0;
++	rbuf->error = 0;
++}
+ 
+ 
+ void dvb_ringbuffer_flush_spinlock_wakeup(struct dvb_ringbuffer *rbuf)
+diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h
+--- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Fri Apr 11 08:29:44 2008 -0300
++++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Sun Apr 13 10:46:37 2008 +0100
+@@ -84,6 +84,12 @@ extern ssize_t dvb_ringbuffer_free(struc
+ /* return the number of bytes waiting in the buffer */
+ extern ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf);
+ 
++/*
++** Reset the read and write pointers to zero and flush the buffer
++** This counts as a read and write operation
++*/
++
++extern void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf);
+ 
+ /* read routines & macros */
+ /* ---------------------- */
 
->=20
-> The dvb-s2 channel is ASTRA HD+ on ASTRA 19E
-> vdr version is 1.6.0 with Reinhard Nissl's DVB-S2 + H.264 patch
-hmm, I'm not familiar with vdr but afaik this should be ok.
-
-Dominik
-
---nextPart6478662.utXirOr74R
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.7 (GNU/Linux)
-
-iD8DBQBIC6RS6OXrfqftMKIRAp3kAJ9EEIWYjds+koLEO5expcGi6SdC0wCeMSYA
-3V8jbnYmNpaZLODQxP3BTaY=
-=byCH
------END PGP SIGNATURE-----
-
---nextPart6478662.utXirOr74R--
-
-
---===============1040186692==
+--------------050300050606010205040009
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -106,4 +113,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1040186692==--
+--------------050300050606010205040009--
