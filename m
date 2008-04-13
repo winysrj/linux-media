@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JkyXZ-0001j2-Rh
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 11:30:26 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so1385228fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 02:30:21 -0700 (PDT)
-Message-ID: <4801D2A8.4020903@googlemail.com>
-Date: Sun, 13 Apr 2008 10:30:16 +0100
-From: Andrea <mariofutire@googlemail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JkrMJ-0007Hh-Fl
+	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 03:50:22 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sun, 13 Apr 2008 03:49:14 +0200
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
+In-Reply-To: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, o.endriss@gmx.de
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-	<47E4EE5B.1010406@googlemail.com>
-In-Reply-To: <47E4EE5B.1010406@googlemail.com>
-Content-Type: multipart/mixed; boundary="------------020507000605030600080206"
-Subject: Re: [linux-dvb] [PATCH] 1/3: BUG FIX in dvb_ringbuffer_flush
+Content-Disposition: inline
+Message-Id: <200804130349.15215@orion.escape-edv.de>
+Subject: Re: [linux-dvb] TT-Budget C-1501
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,99 +20,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020507000605030600080206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Andrea wrote:
-> linux-dvb-request@linuxtv.org wrote:
-> I've added a new function in the ringbuffer that resets the pointers to 
-> 0 and clears the error flag.
-> There might be some more factoring and one could move into that function 
-> 2 more lines
+Stephen Dawkins wrote:
+> Hi
 > 
->     buf->data = NULL;
->     buf->size = size;
->     dvb_ringbuffer_reset(buf);
+> I've recently purchased a Technotrend C-1501 card and I've been trying
+> to get it to work under Linux.
+> 
+> I'm not entirely sure what's needed to get it working. I've added the
+> following code to drivers/media/dvb/ttpci/budget.c:
+> 
+> in frontend_init:
+>    case 0x101a: // TT Budget-C-1501 (philips tda10023/philips tda8274A)
+>        budget->dvb_frontend = dvb_attach(tda10023_attach,
+> &tda1002x_config, &budget->i2c_adap, read_pwm(budget));
+>        if (budget->dvb_frontend) {
+>           if (dvb_attach(tda827x_attach, budget->dvb_frontend, 0x0e,
+> &budget->i2c_adap, 0) == NULL)
+                    ^^^
+I don't know, but maybe you have to pass a config struct for the tda827x
+driver here.
 
-I've just added a comment to patch 1/3.
-I post it here again.
+>              printk("%s: No tda827x found!\n", __FUNCTION__);
+>           break;
+>        }
+>     }
+> 
+> and the relevant MAKE_BUDGET_INFO and MAKE_EXTENTION_PCI entries. I'm
+> not entirely sure, but I think the demodulator is on 0x0c on the i2c bus
+> and the tuner is on 0x0e, is there a way of confirming this?
 
-This patch fixes the bug in DMX_SET_BUFFER_SIZE for the demux.
-Basically it resets read and write pointers to 0 in case they are beyond the new size of the buffer.
+The tuner address sounds strange to me. If the tuner is not behind an
+i2c gate, you should be able to find it by running i2cdetect (from the
+i2c tools package).
 
-In the next patch (2/3) I rewrite this function to behave the same as the new DMX_SET_BUFFER_SIZE 
-for the dvr.
-I thought it is a good idea for the 2 very similar ioctl to be implemented in the same way.
+> When I modprobe budget, I get the follow:
+> 
+> saa7146: register extension 'budget dvb'.
+> ACPI: PCI Interrupt 0000:00:08.0[A] -> GSI 16 (level, low) -> IRQ 17
+> saa7146: found saa7146 @ mem f8de2000 (revision 1, irq 17) (0x13c2,0x101a).
+> budget: budget_attach(): dev:f7281580, info:f8df5c20, budget:f7173000
+> budget_core: ttpci_budget_init(): dev: f7281580, budget: f7173000
+> budget_core: ttpci_budget_init(): saa7146 (0): buffer type = single,
+> width = 188, height = 1024
+> saa7146 (0): dma buffer size 192512
+> DVB: registering new adapter (TT-budget-C-1501)
+> adapter has MAC addr = 00:d0:5c:c6:4f:01
+> budget_core: budget_register(): budget: f7173000
+> DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
+> 
+> I also get demux0, dvr0, frontend0 and net0 in /dev/dvb0.
+> 
+> I then do a dvbtune -f 666750000 -s 6952, and I get:
+> 
+> saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+> saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+> 
+> I'm not entirely sure what I need todo next to get it working, any help
+> will be greatly appreciated.
 
-Andrea
+See m920x.c or saa7134-dvb.c for drivers using tda10046 and/or tda827x.
 
---------------020507000605030600080206
-Content-Type: text/plain;
- name="patch.1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch.1"
+CU
+Oliver
 
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dmxdev.c
---- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sun Apr 13 09:50:59 2008 +0100
-@@ -281,7 +281,9 @@ static int dvb_dmxdev_set_buffer_size(st
- 	mem = buf->data;
- 	buf->data = NULL;
- 	buf->size = size;
--	dvb_ringbuffer_flush(buf);
-+	
-+	// reset and not flush in case the buffer shrinks
-+	dvb_ringbuffer_reset(buf);
- 	spin_unlock_irq(&dmxdevfilter->dev->lock);
- 	vfree(mem);
- 
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c
---- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Sun Apr 13 09:50:59 2008 +0100
-@@ -90,6 +90,11 @@ void dvb_ringbuffer_flush(struct dvb_rin
- 	rbuf->error = 0;
- }
- 
-+void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
-+{
-+	rbuf->pread = rbuf->pwrite = 0;
-+	rbuf->error = 0;
-+}
- 
- 
- void dvb_ringbuffer_flush_spinlock_wakeup(struct dvb_ringbuffer *rbuf)
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h
---- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Sun Apr 13 09:50:59 2008 +0100
-@@ -84,6 +84,12 @@ extern ssize_t dvb_ringbuffer_free(struc
- /* return the number of bytes waiting in the buffer */
- extern ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf);
- 
-+/* 
-+** Reset the read and write pointers to zero and flush the buffer
-+** This counts as a read and write operation
-+*/
-+
-+extern void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf);
- 
- /* read routines & macros */
- /* ---------------------- */
-
---------------020507000605030600080206
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020507000605030600080206--
