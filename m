@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JqEAb-0002mY-7z
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 23:12:29 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Ian Bonham <ian.bonham@gmail.com>
-In-Reply-To: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-References: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-Date: Sun, 27 Apr 2008 23:11:13 +0200
-Message-Id: <1209330673.2661.33.camel@pc10.localdom.local>
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Jl9Q2-0008Or-0P
+	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 23:07:30 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Jl9Po-0005OX-JK
+	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 21:07:08 +0000
+Received: from 91.68.208.8 ([91.68.208.8])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 21:07:08 +0000
+Received: from frederic by 91.68.208.8 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 21:07:08 +0000
+To: linux-dvb@linuxtv.org
+From: Frederic MASSOT <frederic@juliana-multimedia.com>
+Date: Sun, 13 Apr 2008 23:06:56 +0200
+Message-ID: <fttslj$sna$1@ger.gmane.org>
+References: <ftoe35$pdu$1@ger.gmane.org>
 Mime-Version: 1.0
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] HVR4000 & Heron
+In-Reply-To: <ftoe35$pdu$1@ger.gmane.org>
+Subject: Re: [linux-dvb] No TV after an dist-upgrade
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,170 +28,168 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Ian,
+Frederic MASSOT a =E9crit :
+> Hi,
+> =
 
-Am Sonntag, den 27.04.2008, 22:18 +0200 schrieb Ian Bonham:
-> Hi All.
-> 
-> Ok, so just installed the shiny, spangly new Ubuntu 8.04LTS (Hardy
-> Heron) on my machine with the HVR4000 in, and now, no TV! It's gone on
-> with kernel 2.6.24-16 on a P4 HyperThread, and everything worked just
-> fine under Gutsy. I've pulled down the v4l-dvb tree (current and
-> revision 127f67dea087 as suggested in Wiki) and tried patching with
-> dev.kewl.org's MFE and SFE current patches (7285) and the latest. 
-> 
-> Everything 'seems' to compile Ok, and installs fine. When I reboot
-> however I get a huge chunk of borked stuff and no card. (Dmesg output
-> at end of message)
-> 
-> Could anyone please give me any pointers on how (or if) they have
-> their HVR4000 running under Ubuntu 8.04LTS ?
-> 
-> Would really appriciate it.
-> Thanks in advance,
-> 
-> Ian
+> There is still one week, I was watching TV (DVB-T) on my PC with
+> Kaffeine without problems. My PC uses a Debian Etch, last weekend I do
+> an update to Etch (final), then Lenny, since everything works except the
+> TV. Strange !?
+> =
 
-see Michael Krufky's mail from Friday regarding the Avermedia A16D.
+> I use a DVB-T card ASUSTeK P7131 Dual, and I use a custom Linux kernel
+> 2.6.24 with DVB support. I kept the same kernel (2.6.24) before and
+> after the upgrade.
+> =
 
-They also built a alsa version out of tree, which should be the reason
-for some previous reports about symbol mismatches on saa7134-alsa.
+> - The card is well recognized by the kernel, dmesg output:
+> =
 
-Cheers,
-Hermann
+> saa7133[0]: found at 0000:05:03.0, rev: 209, irq: 16, latency: 64, mmio:
+> 0xff7ff000
+> saa7133[0]: subsystem: 1043:4876, board: ASUSTeK P7131 Hybrid
+> [card=3D112,autodetected]
+> saa7133[0]: board init: gpio is 0
+> input: saa7134 IR (ASUSTeK P7131 Hybri as /class/input/input4
+> saa7133[0]: i2c eeprom 00: 43 10 76 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 d5 ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 55 50 ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner 1-004b: chip found @ 0x96 (saa7133[0])
+> tda8290 1-004b: setting tuner address to 61
+> tuner 1-004b: type set to tda8290+75a
+> tda8290 1-004b: setting tuner address to 61
+> tuner 1-004b: type set to tda8290+75a
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: timeout waiting for DSP ready
+> tda1004x: found firmware revision 0 -- invalid
+> tda1004x: trying to boot from eeprom
+> tda1004x: timeout waiting for DSP ready
+> tda1004x: found firmware revision 0 -- invalid
+> tda1004x: waiting for firmware upload...
+> tda1004x: found firmware revision 29 -- ok
+> saa7134 ALSA driver for DMA sound loaded
+> saa7133[0]/alsa: saa7133[0] at 0xff7ff000 irq 16 registered as card -1
+> =
 
+> =
 
-> DMESG Output: 
-> cx88xx: disagrees about version of symbol videobuf_waiton 
-> [   37.790909] cx88xx: Unknown symbol videobuf_waiton 
-> [   37.791431] cx88xx: disagrees about version of symbol videobuf_dma_unmap 
-> [   37.791433] cx88xx: Unknown symbol videobuf_dma_unmap 
-> [   37.791607] cx88xx: disagrees about version of symbol video_device_alloc 
-> [   37.791609] cx88xx: Unknown symbol video_device_alloc 
-> [   37.791991] cx88xx: disagrees about version of symbol video_device_release 
-> [   37.791993] cx88xx: Unknown symbol video_device_release 
-> [   37.792279] cx88xx: disagrees about version of symbol videobuf_to_dma 
-> [   37.792281] cx88xx: Unknown symbol videobuf_to_dma 
-> [   37.793072] cx8800: disagrees about version of symbol videobuf_streamoff 
-> [   37.793075] cx8800: Unknown symbol videobuf_streamoff 
-> [   37.793167] cx8800: Unknown symbol cx88_reset 
-> [   37.793206] cx8800: disagrees about version of symbol videobuf_poll_stream 
-> [   37.793208] cx8800: Unknown symbol videobuf_poll_stream 
-> [   37.793294] cx8800: Unknown symbol cx88_call_i2c_clients 
-> [   37.793343] cx8800: Unknown symbol cx88_wakeup 
-> [   37.793409] cx8800: Unknown symbol cx88_risc_stopper 
-> [   37.793511] cx8800: Unknown symbol cx88_print_irqbits 
-> [   37.793560] cx8800: Unknown symbol cx88_set_scale 
-> [   37.793627] cx8800: Unknown symbol cx88_shutdown 
-> [   37.793665] cx8800: disagrees about version of symbol videobuf_reqbufs 
-> [   37.793668] cx8800: Unknown symbol videobuf_reqbufs 
-> [   37.793716] cx8800: Unknown symbol cx88_vdev_init 
-> [   37.793794] cx8800: Unknown symbol cx88_core_put 
-> [   37.793865] cx8800: Unknown symbol cx88_audio_thread 
-> [   37.793903] cx8800: disagrees about version of symbol videobuf_dqbuf 
-> [   37.793906] cx8800: Unknown symbol videobuf_dqbuf 
-> [   37.793954] cx8800: Unknown symbol cx88_core_irq 
-> [   37.794023] cx8800: Unknown symbol cx88_core_get 
-> [   37.794071] cx8800: Unknown symbol cx88_get_stereo 
-> [   37.794120] cx8800: Unknown symbol cx88_ir_stop 
-> [   37.794176] cx8800: Unknown symbol cx88_set_tvnorm 
-> [   37.794232] cx8800: Unknown symbol cx88_ir_start 
-> [   37.794316] cx8800: disagrees about version of symbol videobuf_stop 
-> [   37.794318] cx8800: Unknown symbol videobuf_stop 
-> [   37.794401] cx8800: Unknown symbol videobuf_queue_pci_init 
-> [   37.794450] cx8800: Unknown symbol cx88_risc_buffer 
-> [   37.794523] cx8800: disagrees about version of symbol videobuf_read_stream 
-> [   37.794525] cx8800: Unknown symbol videobuf_read_stream 
-> [   37.794590] cx8800: disagrees about version of symbol videobuf_querybuf 
-> [   37.794592] cx8800: Unknown symbol videobuf_querybuf 
-> [   37.794640] cx8800: Unknown symbol cx88_set_stereo 
-> [   37.794678] cx8800: disagrees about version of symbol video_unregister_device 
-> [   37.794681] cx8800: Unknown symbol video_unregister_device 
-> [   37.794718] cx8800: disagrees about version of symbol videobuf_qbuf 
-> [   37.794720] cx8800: Unknown symbol videobuf_qbuf 
-> [   37.794780] cx8800: disagrees about version of symbol videobuf_read_one 
-> [   37.794783] cx8800: Unknown symbol videobuf_read_one 
-> [   37.794848] cx8800: Unknown symbol cx88_sram_channels 
-> [   37.794886] cx8800: disagrees about version of symbol video_register_device 
-> [   37.794888] cx8800: Unknown symbol video_register_device 
-> [   37.794937] cx8800: Unknown symbol cx88_set_tvaudio 
-> [   37.794985] cx8800: Unknown symbol cx88_sram_channel_dump 
-> [   37.795060] cx8800: Unknown symbol cx88_sram_channel_setup 
-> [   37.795106] cx8800: disagrees about version of symbol videobuf_iolock 
-> [   37.795108] cx8800: Unknown symbol videobuf_iolock 
-> [   37.795157] cx8800: Unknown symbol cx88_free_buffer 
-> [   37.795194] cx8800: disagrees about version of symbol videobuf_streamon 
-> [   37.795196] cx8800: Unknown symbol videobuf_streamon 
-> [   37.795233] cx8800: disagrees about version of symbol videobuf_queue_cancel 
-> [   37.795235] cx8800: Unknown symbol videobuf_queue_cancel 
-> [   37.795305] cx8800: disagrees about version of symbol video_device_release 
-> [   37.795307] cx8800: Unknown symbol video_device_release 
-> [   37.795344] cx8800: disagrees about version of symbol videobuf_mmap_mapper 
-> [   37.795346] cx8800: Unknown symbol videobuf_mmap_mapper 
-> [   37.795390] cx8800: disagrees about version of symbol videobuf_cgmbuf 
-> [   37.795393] cx8800: Unknown symbol videobuf_cgmbuf 
-> [   37.795444] cx8800: Unknown symbol cx88_newstation 
-> [   37.795502] cx8800: disagrees about version of symbol videobuf_to_dma 
-> [   37.795504] cx8800: Unknown symbol videobuf_to_dma 
-> [   37.795540] cx8800: disagrees about version of symbol videobuf_mmap_free 
-> [   37.795542] cx8800: Unknown symbol videobuf_mmap_free 
-> [   37.796563] cx88xx: disagrees about version of symbol videobuf_waiton 
-> [   37.796566] cx88xx: Unknown symbol videobuf_waiton 
-> [   37.797085] cx88xx: disagrees about version of symbol videobuf_dma_unmap 
-> [   37.797087] cx88xx: Unknown symbol videobuf_dma_unmap 
-> [   37.797260] cx88xx: disagrees about version of symbol video_device_alloc 
-> [   37.797263] cx88xx: Unknown symbol video_device_alloc 
-> [   37.797644] cx88xx: disagrees about version of symbol video_device_release 
-> [   37.797646] cx88xx: Unknown symbol video_device_release 
-> [   37.798242] cx88xx: disagrees about version of symbol videobuf_to_dma 
-> [   37.798245] cx88xx: Unknown symbol videobuf_to_dma 
-> [   37.799488] cx8802: Unknown symbol cx88_reset 
-> [   37.799604] cx8802: Unknown symbol cx88_wakeup 
-> [   37.799757] cx8802: Unknown symbol cx88_risc_stopper 
-> [   37.799911] cx8802: Unknown symbol cx88_print_irqbits 
-> [   37.800067] cx8802: Unknown symbol cx88_shutdown 
-> [   37.800204] cx8802: Unknown symbol cx88_core_put 
-> [   37.800368] cx8802: Unknown symbol cx88_core_irq 
-> [   37.800521] cx8802: Unknown symbol cx88_core_get 
-> [   37.800867] cx8802: Unknown symbol cx88_sram_channels 
-> [   37.800979] cx8802: Unknown symbol cx88_sram_channel_dump 
-> [   37.801108] cx8802: Unknown symbol cx88_sram_channel_setup 
-> [   37.801216] cx8802: disagrees about version of symbol videobuf_iolock 
-> [   37.801221] cx8802: Unknown symbol videobuf_iolock 
-> [   37.801333] cx8802: Unknown symbol cx88_free_buffer 
-> [   37.801526] cx8802: Unknown symbol cx88_risc_databuffer 
-> [   37.801562] cx8802: disagrees about version of symbol videobuf_to_dma 
-> [   37.801564] cx8802: Unknown symbol videobuf_to_dma 
-> [   37.802526] cx88xx: disagrees about version of symbol videobuf_waiton 
-> [   37.802528] cx88xx: Unknown symbol videobuf_waiton 
-> [   37.803047] cx88xx: disagrees about version of symbol videobuf_dma_unmap 
-> [   37.803049] cx88xx: Unknown symbol videobuf_dma_unmap 
-> [   37.803223] cx88xx: disagrees about version of symbol video_device_alloc 
-> [   37.803225] cx88xx: Unknown symbol video_device_alloc 
-> [   37.803606] cx88xx: disagrees about version of symbol video_device_release 
-> [   37.803609] cx88xx: Unknown symbol video_device_release 
-> [   37.803899] cx88xx: disagrees about version of symbol videobuf_to_dma 
-> [   37.803902] cx88xx: Unknown symbol videobuf_to_dma 
-> [   37.805146] cx88_alsa: Unknown symbol cx88_print_irqbits 
-> [   37.805345] cx88_alsa: Unknown symbol cx88_core_put 
-> [   37.805435] cx88_alsa: Unknown symbol videobuf_pci_alloc 
-> [   37.805484] cx88_alsa: Unknown symbol cx88_core_irq 
-> [   37.805550] cx88_alsa: Unknown symbol cx88_core_get 
-> [   37.805973] cx88_alsa: Unknown symbol cx88_sram_channels 
-> [   37.806021] cx88_alsa: Unknown symbol cx88_sram_channel_dump 
-> [   37.806088] cx88_alsa: Unknown symbol cx88_sram_channel_setup 
-> [   37.806201] cx88_alsa: Unknown symbol videobuf_pci_dma_unmap 
-> [   37.806301] cx88_alsa: Unknown symbol videobuf_pci_dma_map 
-> [   37.806365] cx88_alsa: Unknown symbol cx88_risc_databuffer 
-> [   37.806401] cx88_alsa: disagrees about version of symbol videobuf_to_dma 
-> [   37.806404] cx88_alsa: Unknown symbol videobuf_to_dma 
+> - Devices :
+> $ ls -l /dev/dvb/adapter0/
+> crw-rw---- 1 root video 212, 4 avr 11 19:55 demux0
+> crw-rw---- 1 root video 212, 5 avr 11 19:55 dvr0
+> crw-rw---- 1 root video 212, 3 avr 11 19:55 frontend0
+> crw-rw---- 1 root video 212, 7 avr 11 19:55 net0
+> =
 
+> =
+
+> - I use the file fr-Vannes, when I scan, I have these messages :
+> =
+
+> $ sudo scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/fr-Vannes
+> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/fr-Vannes
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 674167000 0 2 9 3 1 0 0
+> initial transponder 698167000 0 2 9 3 1 0 0
+> initial transponder 762167000 0 2 9 3 1 0 0
+> initial transponder 778167000 0 2 9 3 1 0 0
+> initial transponder 818167000 0 2 9 3 1 0 0
+>>>> tune to:
+> 674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0502
+> WARNING: filter timeout pid 0x0504
+> WARNING: filter timeout pid 0x050a
+> WARNING: filter timeout pid 0x0500
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0503
+> WARNING: filter timeout pid 0x0506
+> WARNING: filter timeout pid 0x0505
+> WARNING: filter timeout pid 0x0010
+>>>> tune to:
+> 698167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+>>>> tune to:
+> 762167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+>>>> tune to:
+> 778167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+>>>> tune to:
+> 818167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+> dumping lists (7 services)
+> [0201]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:513
+> [0207]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:519
+> [02ff]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:767
+> [0206]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:518
+> [0205]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:517
+> [0204]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:516
+> [0203]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T=
+RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:515
+> Done.
+> =
+
+> =
+
+> =
+
+> I have no error messages in the log, it's one week that I seek, I do not
+> understand what is no longer working.
+
+Hi,
+
+You do not see where the problem is coming?
+
+On the same weekend that the upgrade, I have new neighbors who are =
+
+installed, it may be an antenna problem?
+
+Regards.
+-- =
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+|              FR=C9D=C9RIC MASSOT               |
+|     http://www.juliana-multimedia.com      |
+|   mailto:frederic@juliana-multimedia.com   |
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3DDebian=3DGNU/Linux=3D=3D=3D
 
 
 _______________________________________________
