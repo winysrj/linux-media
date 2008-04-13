@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3PBAKpx000954
-	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 07:10:20 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DLivHJ003079
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:44:57 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3PBA7t6016442
-	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 07:10:07 -0400
-Date: Fri, 25 Apr 2008 08:08:56 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3DLigPR018098
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:44:43 -0400
+Date: Sun, 13 Apr 2008 18:42:47 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Igor Kuznetsov <igk72@yandex.ru>
-Message-ID: <20080425080856.635581a0@gaivota>
-In-Reply-To: <387481209112780@webmail35.yandex.ru>
-References: <20071231091423.GA3344@kmv.ru>
-	<387481209112780@webmail35.yandex.ru>
+To: Markus Rechberger <mrechberger@empiatech.com>
+Message-ID: <20080413184247.0e413896@areia>
+In-Reply-To: <674190.766.qm@web906.biz.mail.mud.yahoo.com>
+References: <20080413181018.7ac689cd@areia>
+	<674190.766.qm@web906.biz.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Add Beholder TV H6 support - hybrid card
+Cc: Video <video4linux-list@redhat.com>
+Subject: Re: [ANNOUNCE] Videobuf improvements to allow its usage with USB
+ drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,67 +29,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Igor,
+On Sun, 13 Apr 2008 23:38:24 +0200 (CEST)
+Markus Rechberger <mrechberger@empiatech.com> wrote:
 
-On Fri, 25 Apr 2008 12:39:40 +0400
-Igor Kuznetsov <igk72@yandex.ru> wrote:
-
-> Beholder TV H6 - hybrid card
 > 
+> --- Mauro Carvalho Chehab <mchehab@infradead.org>
+> schrieb:
 > 
-> Add support - analog tv, radio, remote control
+> > > my eeePC shows up 0-5% CPU usage with mplayer
+> > > fullscreen without videobuf, seems more like
+> > > something's broken in your testapplication or
+> > > somewhere else?
+> > 
+> > The test application (capture_example) is the one
+> > documented at the V4L2 spec.
+> > The only difference is that I've incremented count
+> > to 1000, to get more frames.
+> > I don't see what's wrong on it.
+> > 
 > 
-> --
-> Igor Kuznetsov "IgK"
-> Web: www.igk.ru
-> Email: igk@igk.ru, igk72@yandex.ru
-> ICQ: 6651879
+> I just tested capture_example on the eeePC (again non
+> videobuf).
+> 
+> $ time ./capture_example
+> .................. (printed this around 100 times?)
+> real   0m4.312s
+> user   0m0.010s
+> sys    0m0.000s
+> 
+> strace clearly shows up VIDIOC_QBUF, VIDIOC_DQBUF.
+> 
+> So the question is rather what makes the results so
+> bad on your system. 
+> How can the userspace application go up to 100%, while
+> the system isn't that busy?
 
-Thanks for the patch.
-
-Sorry, but your patch failed to apply against the devel tree:
-
-$ patch -p1 -i /tmp/v4l2-beholder-2.6.24-hg.patch
-patching file linux/Documentation/video4linux/CARDLIST.saa7134
-Hunk #1 FAILED at 116.
-1 out of 1 hunk FAILED -- saving rejects to file linux/Documentation/video4linux/CARDLIST.saa7134.rej
-patching file linux/drivers/media/common/ir-keymaps.c
-Hunk #1 FAILED at 1893.
-1 out of 1 hunk FAILED -- saving rejects to file linux/drivers/media/common/ir-keymaps.c.rej
-patching file linux/drivers/media/video/ir-kbd-i2c.c
-Reversed (or previously applied) patch detected!  Assume -R? [n]
-Apply anyway? [n]
-Skipping patch.
-2 out of 2 hunks ignored -- saving rejects to file linux/drivers/media/video/ir-kbd-i2c.c.rej
-patching file linux/drivers/media/video/saa7134/saa7134-cards.c
-Hunk #1 succeeded at 4290 with fuzz 2 (offset 701 lines).
-Hunk #2 succeeded at 5410 with fuzz 2 (offset 767 lines).
-Hunk #3 FAILED at 5728.
-Hunk #4 FAILED at 5777.
-Hunk #5 FAILED at 5799.
-3 out of 5 hunks FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-cards.c.rej
-patching file linux/drivers/media/video/saa7134/saa7134-i2c.c
-Reversed (or previously applied) patch detected!  Assume -R? [n]
-Apply anyway? [n]
-Skipping patch.
-2 out of 2 hunks ignored -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-i2c.c.rej
-patching file linux/drivers/media/video/saa7134/saa7134-input.c
-Hunk #1 succeeded at 57 with fuzz 2 (offset 13 lines).
-Hunk #2 succeeded at 160 (offset 20 lines).
-Hunk #3 FAILED at 335.
-Hunk #4 succeeded at 591 with fuzz 2 (offset 91 lines).
-1 out of 4 hunks FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-input.c.rej
-patching file linux/drivers/media/video/saa7134/saa7134.h
-Hunk #1 FAILED at 247.
-1 out of 1 hunk FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134.h.rej
-patching file linux/include/media/ir-common.h
-patch: **** malformed patch at line 836: diff -r 59987f33c150 linux/drivers/media/video/saa7134/saa7134-i2c.c
-
-Could you please re-generate it?
-
-Ah, there were some recent Beholder driver additions, with the support of the
-manufacturer. Maybe you could try first if your board is already supported on
-the latest version.
+Are you running your tests against the in-kernel version? Also, you're running
+with count = 100 (the 100 dots). You need to edit the example code, and move to
+1000 to have the same basement as I used here.
 
 Cheers,
 Mauro
