@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NEkmed030929
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 10:46:48 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NEkawT004111
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 10:46:36 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so2510100fga.7
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 07:46:35 -0700 (PDT)
-Message-ID: <a5eaedfa0804230746uccdce96t7113afe6a2d74fe3@mail.gmail.com>
-Date: Wed, 23 Apr 2008 20:16:35 +0530
-From: "Veda N" <veda74@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DLCSMn026319
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:12:28 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3DLCCxh005073
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 17:12:12 -0400
+Date: Sun, 13 Apr 2008 18:10:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Rechberger <mrechberger@empiatech.com>
+Message-ID: <20080413181018.7ac689cd@areia>
+In-Reply-To: <529381.57396.qm@web907.biz.mail.mud.yahoo.com>
+References: <20080413172207.4276a17f@areia>
+	<529381.57396.qm@web907.biz.mail.mud.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: camera sensor driver for foveon
+Cc: Video <video4linux-list@redhat.com>
+Subject: Re: [ANNOUNCE] Videobuf improvements to allow its usage with USB
+ drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,13 +29,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-   I would like to know if there exists any driver for any camera
-sensor manufactured
-by foveon such as f13 or f34 or any driver for foveon sensor.
+> my eeePC shows up 0-5% CPU usage with mplayer
+> fullscreen without videobuf, seems more like
+> something's broken in your testapplication or
+> somewhere else?
 
-Regards,
-veda
+The test application (capture_example) is the one documented at the V4L2 spec.
+The only difference is that I've incremented count to 1000, to get more frames.
+I don't see what's wrong on it.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
