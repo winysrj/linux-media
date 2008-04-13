@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m37HDiOL019956
-	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 13:13:44 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m37HDVni023824
-	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 13:13:32 -0400
-Date: Mon, 7 Apr 2008 19:13:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-In-Reply-To: <010C7BAE6783F34D9AC336EE5A01A08805B4EF78@dbde01.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0804071910520.8933@axis700.grange>
-References: <010C7BAE6783F34D9AC336EE5A01A08805B4EF78@dbde01.ent.ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DGI6gY032541
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 12:18:06 -0400
+Received: from web902.biz.mail.mud.yahoo.com (web902.biz.mail.mud.yahoo.com
+	[216.252.100.42])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DGHsVj020892
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 12:17:54 -0400
+Date: Sun, 13 Apr 2008 18:17:54 +0200 (CEST)
+From: Markus Rechberger <mrechberger@empiatech.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Video <video4linux-list@redhat.com>
+In-Reply-To: <454886.97234.qm@web901.biz.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2-int-device
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Message-ID: <93606.67558.qm@web902.biz.mail.mud.yahoo.com>
+Cc: 
+Subject: RE: [ANNOUNCE] Videobuf improvements to allow its usage with USB
+	drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,22 +29,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 7 Apr 2008, Shah, Hardik wrote:
 
-> Is there any sample driver available based on v4l2-int-device interface.  
-> I found tcm825x.c based on v4l2-int-device interface but it is a slave 
-> driver.  Any one having master driver as sample and also the 
-> application.
+> === message truncated ===
+> This is the performance tests I did, running >
+code_example to get 1,000
+ frames
+> @29.995 Hz (about 35 seconds of stream), tested on a
+i386 machine,
+>  running at
+> 1,5GHz:
 
-If you're looking at developing drivers for new hardware, you might want 
-to have a look at an int-device alternative: the soc-camera framework, 
-currently in the v4l-dvb/devel tree. Just look for yourself what best 
-suits your needs.
+>         The old driver:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+> $ time -f "%E: %Us User time, %Ss Kernel time, %P
+CPU used"
+>  ./capture_example
+> 0:34.21: 8.22s User time, 25.16s Kernel time, 97% 
+CPU used
+
+>        The videobuf-based driver:
+
+> $ time -f "%E: %Us User time, %Ss Kernel time, %P
+CPU used"
+>  ./capture_example
+> 0:35.36: 0.01s User time, 0.05s Kernel time, 0% CPU
+used
+
+>        Conclusion:
+
+> The time consumption to receive the stream where 
+reduced from about
+ 33.38
+> seconds to 0.05 seconds
+
+the question is moreover what made capture_example go
+up to 100% CPU in the first try and to 0% in the
+second one.
+I'm not sure about the old implementation in the
+original driver, although I'm just curious about the
+details here. xawtv usually uses very little cputime
+at all. 
+If I use 
+"$ time mplayer tv:// -tv driver=v4l2" it shows up 
+
+real 0m40.972s
+user 0m0.230s
+sys  0m0.050s
+
+your benchmark is a bit unclear.
+
+Markus
 
 --
 video4linux-list mailing list
