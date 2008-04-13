@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate02.web.de ([217.72.192.227])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <viets@web.de>) id 1JqRP3-0000Z8-5S
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 13:20:14 +0200
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate02.web.de (Postfix) with ESMTP id EDCB1DA816A3
-	for <linux-dvb@linuxtv.org>; Mon, 28 Apr 2008 13:19:39 +0200 (CEST)
-Received: from [212.12.32.70] (helo=[10.10.2.101])
-	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.109 #226) id 1JqROV-0004oT-00
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 13:19:39 +0200
-Message-ID: <4815B2A9.4060209@web.de>
-Date: Mon, 28 Apr 2008 13:19:05 +0200
-From: Torben Viets <viets@web.de>
-MIME-Version: 1.0
+	(envelope-from <bikalexander@gmail.com>) id 1Jl8N0-0001Vg-5U
+	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 22:00:13 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1587112fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 13:00:04 -0700 (PDT)
+Message-ID: <39d4b8530804131300i11fd03ebt1fea354209a7ee43@mail.gmail.com>
+Date: Sun, 13 Apr 2008 22:00:04 +0200
+From: Bikalexander <bikalexander@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Hauppauge HVR-1700 Support
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Scan found no PIDs (NIT and TID)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,52 +27,53 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hello,
 
-I have a Hauppauge HVR-1700 PCI Express, I have read all posts about
-this card here, but I didn't get it working, how does it work?
+When I'm using the scan with option -o vdr I have the problem with
+some channels into channels.conf.
+In channels.conf for some of them channels the TID & NID pids are missing
 
-Kernel: linux-2.6.25-git10
+for example
+#########################
+Sirius:
+# cat /channels/S4.8E_channels.conf|grep :0:0:0$
+B4U;DEFAULT PROVIDER:12302:h:S0.0W:25546:1260:1220:0:0:11:0:0:0
+Universal TV;DEFAULT PROVIDER:12302:h:S0.0W:25546:1360:1320:0:0:12:0:0:0
+OU Enterprise;DEFAULT PROVIDER:12302:h:S0.0W:25546:1460:1420:0:0:13:0:0:0
+Disc_Romania;DEFAULT PROVIDER:12302:h:S0.0W:25546:1560:1520,1522:0:0:14:0:0:0
+.........
+###################################
+Hotbird:
+# cat /channels/S13.0E_channels.conf|grep :0:0:0$
+Servizio 23;(null):11432:v:S0.0W:27500:710:711=ita,712=Oth:0:0:23:0:0:0
+Servizio 24 ;(null):11432:v:S0.0W:27500:720:721=ita,722=Oth:0:0:24:0:0:0
+Servizio 25;(null):11432:v:S0.0W:27500:730:731=ita,732=Oth:0:0:25:0:0:0
+......
 
-Firmware-Files:
-ls -al /lib/firmware/2.6.25-git10/
-total 416
-drwxr-xr-x 2 root root     91 Apr 27 16:27 .
-drwxr-xr-x 3 root root     25 Apr 27 16:26 ..
--rw-r--r-- 1 root root  24878 Apr 27 16:27 dvb-fe-tda10048-1.0.fw
--r--r--r-- 1 root root  16382 Apr 27 16:27 v4l-cx23885-avcore-01.fw
--r--r--r-- 1 root root 376836 Apr 27 16:26 v4l-cx23885-enc.fw
+Amos:
+# cat /channels/S4.0W_channels.conf|grep :0:0:0$
+K1;SPACECOM:10722:h:S0.0W:27500:257:258:0:0:1:0:0:0
+OTV;SPACECOM:10722:h:S0.0W:27500:513:514:0:0:2:0:0:0
+1PLUS1;SPACECOM:10722:h:S0.0W:27500:769:770,771:773:0:3:0:0:0
+TV KYIV;SPACECOM:10722:h:S0.0W:27500:1025:1026:0:0:4:0:0:0
+MEGASPORT;SPACECOM:10722:h:S0.0W:27500:1281:1282:0:0:5:0:0:0
+K2;SPACECOM:10722:h:S0.0W:27500:1537:1538:0:0:6:0:0:0
+1PLUS1 Intern-l;SPACECOM:10722:h:S0.0W:27500:1793:1794:0:0:7:0:0:0
+1PLUS1 CINEMA;SPACECOM:10722:h:S0.0W:27500:2049:2050,2051:0:0:8:0:0:0
+..........
 
-The modules I use are from the actual v4l-dvb hg, if I type make load,
-the only thing I get is a /dev/video0, but I have no picture with xawtv...
+the full list this channels with missing pids you can find here
+http://upload.sat-universum.de/down/channels/no-tid-nid-channels.conf
 
-The DVB doesn't work at all, I have no /dev/dvb*, here is my dmesg:
+the log of scan -vvv
+http://upload.sat-universum.de/down/channels/scan.log
 
-cx23885 driver version 0.0.1 loaded
-ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 24 (level, low) -> IRQ 24
-CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge WinTV-HVR1700
-[card=8,autodetected]
-cx23885[0]: i2c bus 0 registered
-cx23885[0]: i2c bus 1 registered
-cx23885[0]: i2c bus 2 registered
-tveeprom 0-0050: Huh, no eeprom present (err=-5)?
-tveeprom 0-0050: Encountered bad packet header [00].
-Corrupt or not a Hauppauge
-eeprom.
-cx23885[0]: warning: unknown hauppauge model #0
-cx23885[0]: hauppauge eeprom: model=0
-cx23885[0]: cx23885 based dvb card
-tda10048_readreg: readreg error (ret == -5)
-cx23885[0]: frontend initialization failed
-cx23885_dvb_register() dvb_register failed err = -1
-cx23885_dev_setup() Failed to register dvb on VID_C
-cx23885_dev_checkrevision() New hardware revision found 0x0
-cx23885_dev_checkrevision() Hardware revision unknown 0x0
-cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 24, latency: 0, mmio:
-0xfe800000
+ My system:
+ Debian ETCH
+ Techno Trend Premium (Full Featured) S2300 V 2.3 "modified"
+ Latest version of Scan from http://linuxtv.org/hg/dvb-apps/
+ a list of log is created where the two missing PIDs
 
-Thank you and greetings
-Torben Viets
-
-
+Scan has started with the following options:
+$ scan -o vdr -p -a 0 -f 0 -d 0 -t 3 -5 -vvv  S4.0W.ini > S4.0W_channels.conf
 
 _______________________________________________
 linux-dvb mailing list
