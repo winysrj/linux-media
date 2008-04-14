@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout.perfora.net ([74.208.4.196])
+Received: from static.135.41.46.78.clients.your-server.de ([78.46.41.135]
+	helo=hetzner.kompasmedia.nl)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <james@nigmatech.com>) id 1JnuEO-0005j6-0u
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 13:30:50 +0200
-From: James Middendorff <james@nigmatech.com>
+	(envelope-from <bas@kompasmedia.nl>) id 1JlVdI-0004eI-5U
+	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 22:50:33 +0200
 To: linux-dvb@linuxtv.org
-Date: Mon, 21 Apr 2008 06:30:31 -0500
-Message-Id: <1208777431.2538.1.camel@localhost.localdomain>
-Mime-Version: 1.0
-Subject: [linux-dvb] issues compiling tip.tar.bz2
-Reply-To: james@nigmatech.com
+MIME-Version: 1.0
+Date: Mon, 14 Apr 2008 22:50:28 +0200
+From: Bas v.d. Wiel <bas@kompasmedia.nl>
+Message-ID: <bf9a9c0dd71fe6e733de49fd916fe4eb@localhost>
+Subject: [linux-dvb] Mantis 2033 change tuner
+Reply-To: bas@kompasmedia.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,34 +24,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+
 Hello all,
-I am having issues compiling the tip.tar.bz2 file on linuxtv.org
-http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+As I got no response to my question about changing tuner chips on Mantis
+cards (I have one with chip ID 0x7d which I read about earlier), I started
+experimenting with the sources from jusst.de. I changed mantis_dvb.c in a
+crude way by simply copying the contents of a case statement for a Mantis
+2040 to the one for the 2033 and commenting out the original 2033 block
+that loads the tda10021.
 
-the error I get is,
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.18-chw-13/build
-make -C /lib/modules/2.6.18-chw-13/build
-SUBDIRS=/home/james/v4l-dvb-862ffcf962f0/v4l  modules
-make[2]: Entering directory `/usr/src/linux-headers-2.6.18-chw-13'
-  CC [M]  /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: error: unknown
-field 'dev_attrs' specified in initializer
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: warning:
-initialization from incompatible pointer type
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: error: unknown
-field 'dev_release' specified in initializer
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: missing
-braces around initializer
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: (near
-initialization for 'video_class.subsys')
-/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning:
-initialization from incompatible pointer type
-make[3]: *** [/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o] Error 1
-make[2]: *** [_module_/home/james/v4l-dvb-862ffcf962f0/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-chw-13'
-make[1]: *** [default] Error 2
+To my surprise this compiled without any trouble and everything gets loaded
+and recognized without error upon next bootup, including the tda10023.
+However, as I expected, something crashes in a very bad way when I actually
+try to use the tuner with dvb-scan. Am I doing something wrong? Or is my
+card simply not supported (yet) by the mantis driver (too new maybe)?
 
+Thanks in advance for any help!
+
+Bas
 
 
 _______________________________________________
