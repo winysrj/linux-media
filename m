@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout3-sn2.hy.skanova.net ([81.228.8.111])
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JjQwx-0004cL-R4
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 05:26:17 +0200
-Message-ID: <47FC373F.5060006@iki.fi>
-Date: Wed, 09 Apr 2008 06:25:51 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <timf@iinet.net.au>) id 1JlPOQ-0002Mq-Uu
+	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 16:10:50 +0200
+Message-ID: <480365DC.3030901@iinet.net.au>
+Date: Mon, 14 Apr 2008 22:10:36 +0800
+From: timf <timf@iinet.net.au>
 MIME-Version: 1.0
-To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>	
-	<47FA3A7A.3010002@iki.fi> <47FAFDDA.4050109@iki.fi>
-	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
-In-Reply-To: <c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+References: <47FE3ECC.8020209@iinet.net.au>	<47FE8FD1.3050004@t-online.de>	<1207870241.17744.8.camel@pc08.localdom.local>	<47FFA5C5.7000704@iinet.net.au>	<47FFE2CC.3090405@t-online.de>	<4801A18D.3090401@iinet.net.au>	<4801BD4D.7090708@iinet.net.au>
+	<48022CB7.1040006@iinet.net.au> <48023E17.1070103@iinet.net.au>
+	<4802576F.1070106@t-online.de> <48025E28.8020704@iinet.net.au>
+	<48026BBB.5030201@t-online.de> <48027653.1000001@iinet.net.au>
+	<48027E03.5010704@t-online.de> <48028513.5010208@iinet.net.au>
+	<48028EF9.6030209@t-online.de>
+In-Reply-To: <48028EF9.6030209@t-online.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,53 +30,107 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Zdenek Kabelac wrote:
-> As it looks like my AverTV Hybrid Volar HX is a little bit of no use
-> for quite some time -
-> and your afatech driver seems to helpfull to many other users - maybe you could
-> try to make it help for me as well ??
+Hartmut Hackmann wrote:
+> Hi
+> <snip>
+Just to be sure:
+> - you are aware that you can't use analog and dvb simultanously?
+> - you are aware that after stopping a dvb application it takes about a
+>   second before the dvb driver releases the card and the analog tuner 
+> can be used?
+> - did you mix up the antenna inputs?
+>
+> Hartmut
+>
 
-I can try :)
+OK, start completely new again.
 
-> What do I need to do ?
-> 
-> I've got somewhere some old   dvb-usb-af9015.fw size:15913  md5:
-> dccbc92c9168cc629a88b34ee67ede7b
-> (Unsure where do I get the latest one ?))
+This is exactly as it was when I asked for your help:
+need to start analog-tv before can use dvb-t
 
-version 4.95 is the latest one.
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+timf@ubuntu:~$ hg clone http://linuxtv.org/hg/v4l-dvb
+timf@ubuntu:~$ cd v4l-dvb
+timf@ubuntu:~$ make
+timf@ubuntu:~$ sudo make install
 
-> Then I have added patch (see attachment) to enable usage of your
-> af9015 driver with my USB stick.
+-> shutdown
+-> power-cycle (1 hour no power)
 
-Patch worked, but...
+timf@ubuntu:~$ sudo -s -H
+root@ubuntu:/home/timf# tzap -r "TEN HD"
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 788500000 Hz
+video pid 0x0202, audio pid 0x0000
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 000117e6 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0000 | ber 00011902 | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 00012076 | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 000120d6 | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 00011abe | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0000 | ber 00011938 | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 0001198a | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 01 | signal ffff | snr 0000 | ber 00011e5c | unc ffffffff |
+status 1f | signal ffff | snr 0000 | ber 00011a14 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0000 | ber 00011962 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0000 | ber 00011cf4 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0000 | ber 00011906 | unc ffffffff | 
+FE_HAS_LOCK
+status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
+status 1f | signal ffff | snr 0000 | ber 000118f2 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 3030 | ber 00013348 | unc ffffffff | 
+FE_HAS_LOCK
 
-> And then I get this dmesg error (with debug=63)
-> 
-> [40667.159908] af9015_usb_probe: interface:0
-> [40667.159915] >>> 10 00 38 00 00 00 00 01
-> [40667.159924] af9015: af9015_rw_udev: sending failed: -22 (8/-32512)
-> [40668.152369] af9015: af9015_rw_udev: receiving failed: -110
+-> start tvtime -> viewing SBS -> stop tvtime
 
-Are you really sure it is Afatech AF9015? Looks like all USB-messages 
-are failing. The only thing this could happen is that device is not 
-AF9015 or it is badly broken.
+root@ubuntu:/home/timf# tzap -r "TEN HD"
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 788500000 Hz
+video pid 0x0202, audio pid 0x0000
+status 00 | signal 9b9b | snr 6060 | ber 0001fffe | unc 00000000 |
+status 1f | signal 9b9b | snr fdfd | ber 00000248 | unc ffffffff | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 00000294 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 000002f6 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 000002a0 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 00000264 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 0000024a | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 0000027a | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 0000020c | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9a9a | snr fefe | ber 00000218 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9b9b | snr fefe | ber 000001c6 | unc 00000000 | 
+FE_HAS_LOCK
+status 1f | signal 9b9b | snr fefe | ber 00000188 | unc 00000000 | 
+FE_HAS_LOCK
 
-> So this doesn't look like a usable for now - is there any chance this
-> will ever work ?
 
-Open stick and see chips used. Taking good resolution photo or two from 
-PCB (stick motherboard) would be also nice.
-
-> Thanks
-> 
-> Zdenek
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Regards,
+Tim
 
 _______________________________________________
 linux-dvb mailing list
