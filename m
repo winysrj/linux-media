@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1Jkhr6-0007Q5-Bk
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:41:32 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so1015093fge.25
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 08:41:24 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Sat, 12 Apr 2008 17:29:58 +0200
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_2VNAIRWbAqcaBSM"
-Message-Id: <200804121729.58326.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: scan file for it-Bari
+	(envelope-from <stoth@linuxtv.org>) id 1JlN7t-0000Sl-DI
+	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 13:45:38 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18be07c9.dyn.optonline.net [24.190.7.201]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZB0093GCMYLG00@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 14 Apr 2008 07:44:58 -0400 (EDT)
+Date: Mon, 14 Apr 2008 07:44:59 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080414132050.fb958a83.jean.bruenn@ip-minds.de>
+To: =?ISO-8859-15?Q?Jean-Michel_Br=FCnn?= <jean.bruenn@ip-minds.de>
+Message-id: <480343BB.5000102@linuxtv.org>
+MIME-version: 1.0
+References: <20080414132050.fb958a83.jean.bruenn@ip-minds.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] WinTV HVR1400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,56 +25,30 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---Boundary-00=_2VNAIRWbAqcaBSM
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Jean-Michel Br=FCnn wrote:
+> Hello,
+> =
 
-=46rom a kaffeine user ...
+> i just wanna ask if there is any progress made on the driver for WinTV HV=
+R1400 (it's pciE/ExpressCard, analog+digital tuner).
+> =
 
-Christoph
+> Steve said that he think that it has a tda10048 can i check that somehow?
 
+I was mistaken, it has a dibcom demod.
 
-=2D---------  Weitergeleitete Nachricht  ----------
+No other progress to report so far.
 
-Betreff: [kaffeine-user] Another city for kaffeine :D
-Datum: Donnerstag 10 April 2008
-Von: Casper <casper@netsons.org>
-An: kaffeine-user@lists.sf.net
+- Steve
 
-*.* thanks to all!!!
-
-=2D------------------------------------------------------
-
---Boundary-00=_2VNAIRWbAqcaBSM
-Content-Type: text/plain;
-  name="it-Bari"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="it-Bari"
-
-IyBNVVgtQSBSQUkKVCAyMTk1MDAwMDAgN01IeiAyLzMgQVVUTyBRQU02NCA4ayAxLzMyIE5P
-TkUKIyBNVVgtQiBSQUkKVCA1NDYwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIg
-Tk9ORQojIE1VWCBNRURJQVNFVCAxClQgNTE0MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4
-ayAxLzMyIE5PTkUKIyBNVVggREZSRUUKVCAyMjY1MDAwMDAgN01IeiAyLzMgQVVUTyBRQU02
-NCA4ayAxLzMyIE5PTkUKIyBNVVggTUVESUFTRVQgMgpUIDgyNjAwMDAwMCA4TUh6IDIvMyAx
-LzIgUUFNNjQgOGsgMS8zMiBOT05FCiMgTUJPTkUKVCA0OTgwMDAwMDAgOE1IeiAyLzMgMS8y
-IFFBTTY0IDhrIDEvMzIgTk9ORQojIFRJTUIxClQgNTMwMDAwMDAwIDhNSHogMi8zIDEvMiBR
-QU02NCA4ayAxLzMyIE5PTkU=
---Boundary-00=_2VNAIRWbAqcaBSM
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_2VNAIRWbAqcaBSM--
