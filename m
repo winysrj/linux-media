@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H22ceh029749
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 22:02:38 -0400
-Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H22Slo004044
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 22:02:29 -0400
-Received: from www.outflux.net (serenity-end.outflux.net [10.2.0.2])
-	by mylar.outflux.net (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m3H22HKU031010
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 19:02:22 -0700
-Resent-Message-ID: <20080417020217.GL18929@outflux.net>
-Date: Wed, 16 Apr 2008 18:24:09 -0700
-From: Kees Cook <kees@outflux.net>
-To: video4linux-list@redhat.com
-Message-ID: <20080417012409.GI18929@outflux.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3E1VckM005500
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 21:31:38 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3E1VQME022228
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 21:31:28 -0400
+Received: by ti-out-0910.google.com with SMTP id 11so457366tim.7
+	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 18:31:26 -0700 (PDT)
+Message-ID: <998e4a820804131831o9fdc628t5983bbe86d863f72@mail.gmail.com>
+Date: Mon, 14 Apr 2008 09:31:25 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0804132124100.6622@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Subject: [PATCH 2/2] V4L: add "function" sysfs attribute to v4l devices
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804071322490.5585@axis700.grange>
+	<998e4a820804071849s60e883f9ne2d8ad6a2f48bd42@mail.gmail.com>
+	<Pine.LNX.4.64.0804090104190.4987@axis700.grange>
+	<998e4a820804081827j5379efdfw3a95dd1731e02e42@mail.gmail.com>
+	<Pine.LNX.4.64.0804091616470.5671@axis700.grange>
+	<998e4a820804092242i8ead476nf7e4db3712bc881@mail.gmail.com>
+	<Pine.LNX.4.64.0804100749310.3693@axis700.grange>
+	<998e4a820804101854l77e702d9j78d16afc59d807a@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,126 +39,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Add "function" initializers to cpia, cx88, ivtv, and ov511.
+2008/4/14 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>  I found the problem with reversed frame order. The same problem led to
+>  corrupted frames. Please try the patch below on the top of the previous
+>  one. With it I have no more problems with the test application with any
+>  number of buffers.
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: Kees Cook <kees@outflux.net>
----
- cpia.c                |    1 +
- cx88/cx88-blackbird.c |    1 +
- cx88/cx88-video.c     |    3 +++
- ivtv/ivtv-streams.c   |   34 ++++++++++++++++++++++++++++++++++
- ov511.c               |    1 +
- 5 files changed, 40 insertions(+)
----
-diff -r 6aa6656852cb linux/drivers/media/video/cpia.c
---- a/linux/drivers/media/video/cpia.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/cpia.c	Wed Apr 16 17:53:13 2008 -0700
-@@ -3804,6 +3804,7 @@ static struct video_device cpia_template
- 	.owner		= THIS_MODULE,
- 	.name		= "CPiA Camera",
- 	.type		= VID_TYPE_CAPTURE,
-+	.function	= V4L2_FN_VIDEO_CAP,
- 	.fops           = &cpia_fops,
- };
- 
-diff -r 6aa6656852cb linux/drivers/media/video/cx88/cx88-blackbird.c
---- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Wed Apr 16 17:53:13 2008 -0700
-@@ -1201,6 +1201,7 @@ static struct video_device cx8802_mpeg_t
- {
- 	.name                 = "cx8802",
- 	.type                 = VID_TYPE_CAPTURE|VID_TYPE_TUNER|VID_TYPE_SCALES|VID_TYPE_MPEG_ENCODER,
-+	.function             = V4L2_FN_MPEG_CAP,
- 	.fops                 = &mpeg_fops,
- 	.minor                = -1,
- 	.vidioc_querymenu     = vidioc_querymenu,
-diff -r 6aa6656852cb linux/drivers/media/video/cx88/cx88-video.c
---- a/linux/drivers/media/video/cx88/cx88-video.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-video.c	Wed Apr 16 17:53:13 2008 -0700
-@@ -1974,6 +1974,7 @@ static struct video_device cx8800_video_
- {
- 	.name                 = "cx8800-video",
- 	.type                 = VID_TYPE_CAPTURE|VID_TYPE_TUNER|VID_TYPE_SCALES,
-+	.function             = V4L2_FN_MPEG_CAP,
- 	.fops                 = &video_fops,
- 	.minor                = -1,
- 	.vidioc_querycap      = vidioc_querycap,
-@@ -2028,6 +2029,7 @@ static struct video_device cx8800_radio_
- {
- 	.name                 = "cx8800-radio",
- 	.type                 = VID_TYPE_TUNER,
-+	.function             = V4L2_FN_RADIO_CAP,
- 	.fops                 = &radio_fops,
- 	.minor                = -1,
- 	.vidioc_querycap      = radio_querycap,
-@@ -2120,6 +2122,7 @@ static int __devinit cx8800_initdev(stru
- 		sizeof(cx8800_vbi_template) );
- 	strcpy(cx8800_vbi_template.name,"cx8800-vbi");
- 	cx8800_vbi_template.type = VID_TYPE_TELETEXT|VID_TYPE_TUNER;
-+	cx8800_vbi_template.function = V4L2_FN_VBI_CAP;
- 
- 	/* initialize driver struct */
- #if 0
-diff -r 6aa6656852cb linux/drivers/media/video/ivtv/ivtv-streams.c
---- a/linux/drivers/media/video/ivtv/ivtv-streams.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/ivtv/ivtv-streams.c	Wed Apr 16 17:53:13 2008 -0700
-@@ -218,6 +218,40 @@ static int ivtv_prep_dev(struct ivtv *it
- 	s->v4l2dev->dev = &itv->dev->dev;
- 	s->v4l2dev->fops = ivtv_stream_info[type].fops;
- 	s->v4l2dev->release = video_device_release;
-+
-+	/* Map ivtv stream type to v4l2 function type */
-+	switch (s->type) {
-+	case IVTV_ENC_STREAM_TYPE_MPG:
-+		s->v4l2dev->function = V4L2_FN_MPEG_CAP;
-+		break;
-+	case IVTV_ENC_STREAM_TYPE_YUV:
-+		s->v4l2dev->function = V4L2_FN_YUV_CAP;
-+		break;
-+	case IVTV_ENC_STREAM_TYPE_VBI:
-+		s->v4l2dev->function = V4L2_FN_VBI_CAP;
-+		break;
-+	case IVTV_ENC_STREAM_TYPE_PCM:
-+		s->v4l2dev->function = V4L2_FN_PCM_CAP;
-+		break;
-+	case IVTV_ENC_STREAM_TYPE_RAD:
-+		s->v4l2dev->function = V4L2_FN_RADIO_CAP;
-+		break;
-+	case IVTV_DEC_STREAM_TYPE_MPG:
-+		s->v4l2dev->function = V4L2_FN_MPEG_OUT;
-+		break;
-+	case IVTV_DEC_STREAM_TYPE_VBI:
-+		s->v4l2dev->function = V4L2_FN_VBI_OUT;
-+		break;
-+	case IVTV_DEC_STREAM_TYPE_VOUT:
-+		s->v4l2dev->function = V4L2_FN_VIDEO_OUT;
-+		break;
-+	case IVTV_DEC_STREAM_TYPE_YUV:
-+		s->v4l2dev->function = V4L2_FN_YUV_OUT;
-+		break;
-+	default:
-+		s->v4l2dev->function = V4L2_FN_UNDEFINED;
-+		break;
-+	}
- 
- 	return 0;
- }
-diff -r 6aa6656852cb linux/drivers/media/video/ov511.c
---- a/linux/drivers/media/video/ov511.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/ov511.c	Wed Apr 16 17:53:13 2008 -0700
-@@ -4674,6 +4674,7 @@ static struct video_device vdev_template
- 	.owner =	THIS_MODULE,
- 	.name =		"OV511 USB Camera",
- 	.type =		VID_TYPE_CAPTURE,
-+	.function =	V4L2_FN_VIDEO_CAP,
- 	.fops =		&ov511_fops,
- 	.release =	video_device_release,
- 	.minor =	-1,
+I test it and It is good.But some frames is dropped,like
+1,2,3,4,5,8,9,10,11,14,15,16,17,18,21,22.The frame 6,7,12,13,19,20 is
+dropped.I request 4 buffers now.
 
-
--- 
-Kees Cook                                            @outflux.net
+Thanks
+fengxin
 
 --
 video4linux-list mailing list
