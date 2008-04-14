@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from smtp05.msg.oleane.net ([62.161.4.5])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JiVN7-0007Pk-CE
-	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 15:57:30 +0200
-Date: Sun, 6 Apr 2008 15:56:44 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Greg Thomas <Greg@TheThomasHome.co.uk>
-In-Reply-To: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
-References: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JlSBq-0007lK-3R
+	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 19:10:02 +0200
+Received: from PCTL ([194.250.18.140]) (authenticated)
+	by smtp05.msg.oleane.net (MTA) with ESMTP id m3EH9kaX004575
+	for <linux-dvb@linuxtv.org>; Mon, 14 Apr 2008 19:09:47 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 14 Apr 2008 19:09:31 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAANsZv/muTGEuiz4XGPuu+agEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579715599-846709373-1207490204=:23914"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
+Subject: [linux-dvb] Nova-T stick: device descriptor read/64, error -71
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,79 +19,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello,
 
---579715599-846709373-1207490204=:23914
-Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m36DuiW3025072
+I had a Hauppauge Nova-T Stick that worked with kernel 2.6.24 (and previous)
+with all recent hg trees and firmware dvb-usb-dib0700-1.10.fw.
 
-Hi Greg,
+I now have a new Nova-T Stick which does not work.
 
-Do you have the possibility to try the device with the Hauppauge Windows=20
-driver?
+The first one was bought about one year ago, the second one a couple of months ago.
+The first one was identified as 70001, the second one as 70009.
 
-The linux driver is maybe not configuring the device optimally, because i=
-t=20
-is more generic, whereas the manufacturer's driver is specifically for=20
-this particular device.
+Front sticker: "WinTV NOVA-T digital terrestrial TV stick"
+Rear sticker:  "M/R:70009/C1B5 #4807"
 
-There have been some updates some time ago to improve the sensitivity. Ca=
-n=20
-you try a more recent driver (v4l-dvb from hg or 2.6.25).
+When pluging the device, dmesg reports errors:
 
-THe reported SNR of zero is expected: the driver does not set the=20
-indicator to something useful.
+    usb 6-1: device descriptor read/64, error -71
+    usb 6-1: device descriptor read/64, error -71
+    usb 6-1: new full speed USB device using uhci_hcd and address 43
+    usb 6-1: device descriptor read/64, error -71
+    usb 6-1: device descriptor read/64, error -71
+    usb 6-1: new full speed USB device using uhci_hcd and address 44
+    usb 6-1: device not accepting address 44, error -71
+    usb 6-1: new full speed USB device using uhci_hcd and address 45
+    usb 6-1: device not accepting address 45, error -71
 
-Patrick.
+How should I interpret this?
 
+lsusb does not report anything. Specifically on device 6-1:
 
-On Sun, 6 Apr 2008, Greg Thomas wrote:
+    Bus 006 Device 001: ID 0000:0000
 
-> I have a WinTV-NOVA-TD stick
-> (http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-TD-Stick)
-> - running off the Sudbury transmitter (uk-sudbury at
-> http://linuxtv.org/hg/dvb-apps/file/2686c080e0b5/util/scan/dvb-t/).
->
-> If I follow the "Testing your DVB device" Wiki page, it works fine for
-> muxes 2 & 4 (the higher power ones), but can find no channels at all
-> on the other muxes - whilst my cheap =A320 supermarket DVB-T STB works
-> just fine. Is it that
->
-> (a) USB DVB-T sticks are just less sensitive than an STB,
-> (b) The NOVA-TD is just less sensitive than normal for a USB stick, or
-> (c) Something else I'm completely missing.
->
-> Sorry if this is a stupid question, but I'm kind of new at all this!
->
-> Also, I noticed that tzap always reports the snr as 0000 for those
-> channels it can find; that seems a little unlikely at best, to me!
->
-> Thanks,
->
-> Greg
-> Kernel: 2.6.24-15-generic
-> Firmware: /lib/firmware/2.6.24-15-generic/dvb-usb-dib0700-1.10.fw
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Kernel version: 2.6.24.4-64.fc8 (Fedora 8 latest kernel)
+V4L source tree: updated Apr 14 2008 (+ make & install & reboot)
+Firmware file /lib/firmware/dvb-usb-dib0700-1.10.fw present
+Note: a PCI Nova-T 500 in the same system is working OK.
 
---579715599-846709373-1207490204=:23914
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On a Windows XP system, without Hauppauge drivers, the device is seen
+as "unknown device" with identification "USB\VID_0000&PID_0000\5&54F4B9C&0&2".
+I have no idea what it means but vendor id 0000 and product id 0000 seem suspect.
+
+Shall I assume that the device is simply broken? Any other idea?
+-Thierry
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579715599-846709373-1207490204=:23914--
