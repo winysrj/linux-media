@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Jnvzi-0002lh-4l
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 15:23:44 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: james@nigmatech.com
-In-Reply-To: <1208777431.2538.1.camel@localhost.localdomain>
-References: <1208777431.2538.1.camel@localhost.localdomain>
-Date: Mon, 21 Apr 2008 15:23:35 +0200
-Message-Id: <1208784215.3294.28.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] issues compiling tip.tar.bz2
+	(envelope-from <mariofutire@googlemail.com>) id 1JlUi6-0006lr-Og
+	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 21:51:27 +0200
+Received: by ug-out-1314.google.com with SMTP id o29so604285ugd.20
+	for <linux-dvb@linuxtv.org>; Mon, 14 Apr 2008 12:51:26 -0700 (PDT)
+Message-ID: <4803B5BB.5050208@googlemail.com>
+Date: Mon, 14 Apr 2008 20:51:23 +0100
+From: Andrea <mariofutire@googlemail.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
+	<47E813C7.6070208@googlemail.com>
+	<200804120235.52939@orion.escape-edv.de>
+	<4801D2B1.9050502@googlemail.com> <4801D77A.1070106@googlemail.com>
+In-Reply-To: <4801D77A.1070106@googlemail.com>
+Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,48 +29,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Montag, den 21.04.2008, 06:30 -0500 schrieb James Middendorff:
-> Hello all,
-> I am having issues compiling the tip.tar.bz2 file on linuxtv.org
-> http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+Andrea wrote:
+> Andrea wrote:
+>> Ok.
+>>
+>> I've changed the second patch to
+>> 1) allocate the new buffer before releasing the old one
+>> 2) use spin_[un]lock_irq
+>>
+>> 3) On top of that, I have rearranged the code of DMX_SET_BUFFER_SIZE 
+>> for the demux so that it does the same as the dvr (i.e. allocate the 
+>> new buffer before releasing the old one). I think it is a good idea 
+>> that 2 very similar functions are implemented in the same way. (if you 
+>> don't agree, or if you think a 3rd separate patch for this point is a 
+>> better idea, let me know.)
+>>
+>> PS: Both patches 1/3 and 2/3 are against a clean v4l-dvb tree. I do 
+>> not know how to generate incremental patch for 2/3.
+>>
+>> Let me know what you think about that.
+>>
+>> Andrea
 > 
-> the error I get is,
-> creating symbolic links...
-> Kernel build directory is /lib/modules/2.6.18-chw-13/build
-> make -C /lib/modules/2.6.18-chw-13/build
-> SUBDIRS=/home/james/v4l-dvb-862ffcf962f0/v4l  modules
-> make[2]: Entering directory `/usr/src/linux-headers-2.6.18-chw-13'
->   CC [M]  /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: error: unknown
-> field 'dev_attrs' specified in initializer
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: warning:
-> initialization from incompatible pointer type
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: error: unknown
-> field 'dev_release' specified in initializer
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: missing
-> braces around initializer
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: (near
-> initialization for 'video_class.subsys')
-> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning:
-> initialization from incompatible pointer type
-> make[3]: *** [/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o] Error 1
-> make[2]: *** [_module_/home/james/v4l-dvb-862ffcf962f0/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-chw-13'
-> make[1]: *** [default] Error 2
+> I've fixed the patch to pass the "make checkpatch" check.
 > 
-> 
+> Andrea
 
-sysfs compat for 2.6.18 and below is broken.
+Implementation of DMX_SET_BUFFER_SIZE for dvr.
+Synchronization of the code of DMX_SET_BUFFER_SIZE for demux and dvr.
 
-In theory 2.6.19 should be OK, but didn't test.
-2.6.20 was good enough until now.
-
-Cheers,
-Hermann
-
-
+Signed-off-by: Andrea Odetti <mariofutire@gmail.com>
 
 _______________________________________________
 linux-dvb mailing list
