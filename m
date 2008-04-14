@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H8VovB029668
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 04:31:50 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H8V2Lr017145
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 04:31:18 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so2758933wfc.6
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 01:30:51 -0700 (PDT)
-Message-ID: <1dea8a6d0804170130v55718384m2f6ffea5620b8075@mail.gmail.com>
-Date: Thu, 17 Apr 2008 16:30:51 +0800
-From: "Ben Caldwell" <benny.caldwell@gmail.com>
-To: stuart <stuart.partridge@gmail.com>
-In-Reply-To: <3a4a99ca0804170008x45657b06t40021faf073f0f38@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3E83WsP021508
+	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 04:03:32 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3E81sD5030864
+	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 04:01:55 -0400
+Received: from [131.234.87.115] by mail.uni-paderborn.de with esmtpsa
+	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32) (Exim 4.62 cyclopia)
+	id 1JlJdQ-0005ey-CD
+	for video4linux-list@redhat.com; Mon, 14 Apr 2008 10:01:53 +0200
+Message-ID: <48030F6F.1040007@hni.uni-paderborn.de>
+Date: Mon, 14 Apr 2008 10:01:51 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
 MIME-Version: 1.0
-References: <3a4a99ca0804162333p1d08e308ufea59a2cd40edd19@mail.gmail.com>
-	<1dea8a6d0804162349n271b028bgf2b709d7bb19efa1@mail.gmail.com>
-	<3a4a99ca0804170008x45657b06t40021faf073f0f38@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: video4linux-list@redhat.com
-Subject: Re: Fusion/DVICO HDTV Dual 4 not working and crashing lsusb
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: OmniVision OV9655 camera chip via soc-camera interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,26 +28,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Apr 17, 2008 at 3:08 PM, stuart <stuart.partridge@gmail.com> wrote:
+Hi,
 
-> Thanks for that. Progress made: the 'hg update' went well but I ran into
-> errors during 'make', specifally:
->
-> *
-> In file included from /home/stuart/v4l-dvb/v4l/zoran_procfs.c:50:
-> /home/stuart/v4l-dvb/v4l/zoran.h:276: error: redefinition of 'struct
-> v4l2_jpegcompression'
-> make[3]: *** [/home/stuart/v4l-dvb/v4l/zoran_procfs.o] Error 1
-> make[2]: *** [_module_/home/stuart/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-14-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/stuart/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> *
->
-Did you 'make clean' and 'make release' before 'make'?
+I'm writing a driver for the OmniVision OV9655 camera chip connected to 
+a PXA270 processor. I based my work on the soc_camera interface, but I 
+need some additional gpios for reset and power_enable. What is the best 
+way to pass this information to the driver?
 
-- Ben
+Thanks
+    Stefan
+
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
+
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
+
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
+
+mailto : hbmeier@hni.upb.de
+
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
