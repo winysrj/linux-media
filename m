@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MFMgG5003265
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 11:22:42 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MFMSeD030868
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 11:22:28 -0400
-Date: Tue, 22 Apr 2008 12:22:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Brandon Philips <brandon@ifup.org>
-Message-ID: <20080422122201.0a70b151@gaivota>
-In-Reply-To: <20080422034449.GC24855@plankton.ifup.org>
-References: <480D5AF9.4030808@linuxtv.org>
-	<20080422034449.GC24855@plankton.ifup.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: Hauppauge HVR1400 DVB-T support / XC3028L
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FDg3m3019606
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 09:42:03 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3FDfpp7023343
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 09:41:52 -0400
+Date: Tue, 15 Apr 2008 15:41:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0804151537180.6851@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] pxa-camera: fix DMA sg-list coalescing for more than 2
+ buffers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,50 +25,129 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 21 Apr 2008 20:44:49 -0700
-Brandon Philips <brandon@ifup.org> wrote:
+Currently the pxa-camera driver has a bug, visible when the user requests 
+more than 2 video buffers. When the third buffer is queued, it is not 
+appended to the DMA-descriptor list of the second buffer, but is again 
+appended to the first buffer. Fix it.
 
-> On 23:26 Mon 21 Apr 2008, Steven Toth wrote:
-> >  I've passed some patches to Mauro that add support for the Hauppauge
-> >  HVR1400 Expresscard in DVB-T mode. (cx23885 bridge, dib7000p
-> >  demodulator and the xceive xc3028L silicon tuner)
-> >
-> >  If you're interested in testing then wait for the patches to appear
-> >  in the http://linuxtv.org/hg/v4l-dvb tree.
-> >
-> >  You'll need to download firmware from
-> >  http://steventoth.net/linux/hvr1400
-> >
-> >  Post any questions or issues here.
-> 
-> Could you post the patches to the lists for review?  CC'ing both
-> linux-dvb@linuxtv.org and video4linux-list@redhat.com is appropriate.
-> 
-> It is really difficult staying on top of V4L with private trees and
-> private mails going around  :(
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-The better way for you to track about committed patches is what's described on
-item 5: "Knowing about newer patches committed at master hg repository", of
-http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches.
+---
 
-Basically, if you subscribe to linuxtv-commits ML[1], you'll receive an email for
-every newly committed changeset.
-
-This tracks all patches added to the staging tree. If you want to review a
-changeset, you may just reply to the mailbomb email.
-
-I think it is better to have a separate list for this, to avoid increasing the
-traffic at the main lists, since we have a large number of commits, especially
-during the merge window. For example, it is expected a 50 patch series with
-improvements to pvrusb2. Just flooding those emails to the main lists seems
-overkill to most users. Better to keep this in track on a separate ML. 
-
-This is just my 2 cents. I'm open to discuss improvements on this process.
-
-[1] http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-
-Cheers,
-Mauro
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 1dcfd91..7cc8e9b 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -102,11 +102,6 @@ struct pxa_buffer {
+ 	enum pxa_camera_active_dma active_dma;
+ };
+ 
+-struct pxa_framebuffer_queue {
+-	dma_addr_t		sg_last_dma;
+-	struct pxa_dma_desc	*sg_last_cpu;
+-};
+-
+ struct pxa_camera_dev {
+ 	struct device		*dev;
+ 	/* PXA27x is only supposed to handle one camera on its Quick Capture
+@@ -131,6 +126,7 @@ struct pxa_camera_dev {
+ 	spinlock_t		lock;
+ 
+ 	struct pxa_buffer	*active;
++	struct pxa_dma_desc	*sg_tail[3];
+ };
+ 
+ static const char *pxa_cam_driver_description = "PXA_Camera";
+@@ -144,11 +140,14 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
+ 			      unsigned int *size)
+ {
+ 	struct soc_camera_device *icd = vq->priv_data;
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->dev.parent);
++	struct pxa_camera_dev *pcdev = ici->priv;
+ 
+ 	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
+ 
+ 	/* planar capture requires Y, U and V buffers to be page aligned */
+-	if (icd->current_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
++	if (pcdev->channels == 3) {
+ 		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
+ 		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
+ 		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
+@@ -296,7 +295,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 		if (ret)
+ 			goto fail;
+ 
+-		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
++		if (pcdev->channels == 3) {
+ 			/* FIXME the calculations should be more precise */
+ 			sglen_y = dma->sglen / 2;
+ 			sglen_u = sglen_v = dma->sglen / 4 + 1;
+@@ -318,7 +317,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 			goto fail;
+ 		}
+ 
+-		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
++		if (pcdev->channels == 3) {
+ 			/* init DMA for U channel */
+ 			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, sglen_u,
+ 						   sglen_y, 0x30, size_u);
+@@ -343,7 +342,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 
+ 	buf->inwork = 0;
+ 	buf->active_dma = DMA_Y;
+-	if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P)
++	if (pcdev->channels == 3)
+ 		buf->active_dma |= DMA_U | DMA_V;
+ 
+ 	return 0;
+@@ -371,6 +370,7 @@ static void pxa_videobuf_queue(struct videobuf_queue *vq,
+ 	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
+ 	struct pxa_buffer *active;
+ 	unsigned long flags;
++	int i;
+ 
+ 	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+ 		vb, vb->baddr, vb->bsize);
+@@ -383,15 +383,11 @@ static void pxa_videobuf_queue(struct videobuf_queue *vq,
+ 
+ 	if (!active) {
+ 		CIFR |= CIFR_RESET_F;
+-		DDADR(pcdev->dma_chans[0]) = buf->dmas[0].sg_dma;
+-		DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
+-
+-		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
+-			DDADR(pcdev->dma_chans[1]) = buf->dmas[1].sg_dma;
+-			DCSR(pcdev->dma_chans[1]) = DCSR_RUN;
+ 
+-			DDADR(pcdev->dma_chans[2]) = buf->dmas[2].sg_dma;
+-			DCSR(pcdev->dma_chans[2]) = DCSR_RUN;
++		for (i = 0; i < pcdev->channels; i++) {
++			DDADR(pcdev->dma_chans[i]) = buf->dmas[i].sg_dma;
++			DCSR(pcdev->dma_chans[i]) = DCSR_RUN;
++			pcdev->sg_tail[i] = buf->dmas[i].sg_cpu + buf->dmas[i].sglen - 1;
+ 		}
+ 
+ 		pcdev->active = buf;
+@@ -400,7 +396,6 @@ static void pxa_videobuf_queue(struct videobuf_queue *vq,
+ 		struct pxa_cam_dma *buf_dma;
+ 		struct pxa_cam_dma *act_dma;
+ 		int nents;
+-		int i;
+ 
+ 		for (i = 0; i < pcdev->channels; i++) {
+ 			buf_dma = &buf->dmas[i];
+@@ -412,8 +407,8 @@ static void pxa_videobuf_queue(struct videobuf_queue *vq,
+ 
+ 			/* Add the descriptors we just initialized to
+ 			   the currently running chain */
+-			act_dma->sg_cpu[act_dma->sglen - 1].ddadr =
+-				buf_dma->sg_dma;
++			pcdev->sg_tail[i]->ddadr = buf_dma->sg_dma;
++			pcdev->sg_tail[i] = buf_dma->sg_cpu + buf_dma->sglen - 1;
+ 
+ 			/* Setup a dummy descriptor with the DMA engines current
+ 			 * state
 
 --
 video4linux-list mailing list
