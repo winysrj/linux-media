@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OB1jgj027465
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 07:01:45 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OB1Zf0027026
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 07:01:35 -0400
-Date: Thu, 24 Apr 2008 07:01:34 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Edward J. Sheldrake" <ejs1920@yahoo.co.uk>
-In-Reply-To: <916086.24458.qm@web27912.mail.ukl.yahoo.com>
-Message-ID: <Pine.LNX.4.64.0804240658580.3725@bombadil.infradead.org>
-References: <916086.24458.qm@web27912.mail.ukl.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3F9t0dA013599
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:55:00 -0400
+Received: from web26102.mail.ukl.yahoo.com (web26102.mail.ukl.yahoo.com
+	[217.146.182.143])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3F9sgsl030066
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:54:43 -0400
+Date: Tue, 15 Apr 2008 11:54:36 +0200 (CEST)
+From: linuxcbon <linuxcbon@yahoo.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080414172208.3b20e53d@areia>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com
-Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Message-ID: <969007.77776.qm@web26102.mail.ukl.yahoo.com>
+Cc: Video <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
+Subject: RE : Re: RE : Re: Question about Creative Webcam Pro PD1030 ? Bug ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +27,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 24 Apr 2008, Edward J. Sheldrake wrote:
 
->> Please, try again, with with the enclosed patch. Let's see if stereo
->> will work
->> on your board.
->>
->> This should load the IF=6.24 firmware, non-MTS mode.
+--- Mauro Carvalho Chehab <mchehab@infradead.org> a écrit :
 
-> This did not work, all I could hear was silence, with clicking at 1
-> second intervals. The clicking stopped after opening and closing
-> mplayer a few times, but that's another issue.
->
-> I've got a pdf and a small text file of product info (which I can't
-> find any URLs for), which both say mono audio for analogue, also in
-> Windows, Mono audio is the only available option, so I think stereo is
-> not supported.
->
-> Dmesg output attached, it's not loading mts firmware this time.
+> > I forgot to cc the linux mailing list, so here it is again.
+> 
+> The better is to copy V4L mailing list.
+> 
+> > hi Mauro,
+> > 
+> > thanks for your answer !
+> > 
+> > I already contacted the authors (Mark,Wallac,Olawlor), but no feedback
+> > yet.
+> > 
+> > I got no oops message from kernel.
+> 
+> So, this doesn't seem to be a driver issue. I suspect that your
+> userspace app
+> is trying to configure an unsupported configuration. This driver still
+> implements the legacy V4L1 API. Maybe converting it to V4L2 would solve
+> your
+> issues. Another option is to check if gspca driver works with this
+> device.
+> 
+> Cheers,
+> Mauro
 
-Thanks for your help, Edward. I've applied the patch that seems to be the 
-correct one. It will select the MTS firmware, so, only MONO will be 
-available. The proper SCODE table will be loaded.
+Hi,
 
-Btw, it would be nice if you could also test DVB mode. It should be 
-working properly for HVR-900.
+lsmod gives :
+ov511                  77072  0 
+compat_ioctl32          1408  1 ov511
+videodev               27904  1 ov511
+v4l2_common            16896  1 videodev
+v4l1_compat            14596  1 videodev
 
-Cheers,
-Mauro.
+This device works with OV511+ 
+(see http://alpha.dyndns.org/ov511/cameras.html).
+Difference between OV511 and OV511+ ?
+
+cheers, linuxcbon
+
+
+
+
+      _____________________________________________________________________________ 
+Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yahoo.fr
 
 --
 video4linux-list mailing list
