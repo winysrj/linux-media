@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JjcaO-0002DM-Om
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 17:51:45 +0200
-Message-ID: <47FCE5FB.9080003@iki.fi>
-Date: Wed, 09 Apr 2008 18:51:23 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-References: <7dd90a210804070554t6d8b972xa85eb6a75b0663cd@mail.gmail.com>	<47FA3A7A.3010002@iki.fi>
-	<47FAFDDA.4050109@iki.fi>	<c4e36d110804081627s21cc5683l886e2a4a8782cd59@mail.gmail.com>	<47FC373F.5060006@iki.fi>
-	<c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
-In-Reply-To: <c4e36d110804090130s5b66a357s3ec754a1d617b30@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Benoit Paquin <benoitpaquindk@gmail.com>
-Subject: Re: [linux-dvb] USB 1.1 support for AF9015 DVB-T tuner
+	(envelope-from <stoth@linuxtv.org>) id 1JlleN-0001AK-Qm
+	for linux-dvb@linuxtv.org; Tue, 15 Apr 2008 15:56:50 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZD00A2GDDFFP90@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 15 Apr 2008 09:56:04 -0400 (EDT)
+Date: Tue, 15 Apr 2008 09:56:02 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <37824.1208252766@iinet.net.au>
+To: sonofzev@iinet.net.au
+Message-id: <4804B3F2.60004@linuxtv.org>
+MIME-version: 1.0
+References: <37824.1208252766@iinet.net.au>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvico Fusion HDTV DVB-T dual express - willing to
+ help test e.t.c...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,28 +32,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Zdenek Kabelac wrote:
-> 2008/4/9, Antti Palosaari <crope@iki.fi>:
->> Zdenek Kabelac wrote:
->>
->>> As it looks like my AverTV Hybrid Volar HX is a little bit of no use
+sonofzev@iinet.net.au wrote:
+> Hi Folks
+> 
+> I have mistakenly bought a Fusion HDTV DVB-T dual express (cx23885) as a 
+> result of misreading some other posts and sites. I was under the 
+> impression that it would work either from the current kernel source or 
+> using Chris Pascoe's modules.  Unfortunately I didn't realise that the 
+> American and Euro/Australian version were different.
 
-> Well it's AF9013 - but as could be seen in the source - the code looks like
-> it should support both chips  AF9015 & AF9013 - do I had to set manually
-> some bits somewhere ?
+I'm pretty sure the major lifting is already done in the cx23885 tree, 
+I've already done this for another design. Assuming support doesn't 
+already exist, then it's probably just a matter of defining the new PCIe 
+ID', defining the card etc, attach structs, serial/parallel etc.
 
-AF9013 is DVB-T demodulator and AF9015 is integrated USB-bridge + AF9013 
-demodulator. Your device does not have AF9015 at all. DVB-T USB-device 
-needs logically three "chips". USB-bridge, demodulator and tuner. As I 
-can understand there is CY7C68013 USB-bridge, AF9013 demodulator and 
-TDA18271 tuner. First you should try to find driver for demodulator. 
-After thats is OK we can try to connect AF9013 demodulator to USB-bridge 
-and TDA18271 tuner to AF9013 demodulator.
+Get me a login to a remote dev system with the board installed (and 
+working antenna feeds) then I should be able to get this done for you.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+You can mail me privately with any details.
+
+Regards,
+
+Steve
+
+
 
 _______________________________________________
 linux-dvb mailing list
