@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m33NZb13002792
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 19:35:37 -0400
-Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
-	[151.189.21.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m33NZNgW005443
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 19:35:23 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: cherOKe@gmail.com
-In-Reply-To: <1207264453.21932.11.camel@fugitif>
-References: <1207182705.31477.17.camel@fugitif>
-	<1207253648.15452.62.camel@pc08.localdom.local>
-	<1207264453.21932.11.camel@fugitif>
-Content-Type: text/plain; charset=utf-8
-Date: Fri, 04 Apr 2008 01:35:20 +0200
-Message-Id: <1207265720.3364.19.camel@pc08.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3F9dRQ3005869
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:39:27 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3F9dCLu018548
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 05:39:13 -0400
+Message-ID: <480477BD.5090900@hni.uni-paderborn.de>
+Date: Tue, 15 Apr 2008 11:39:09 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <48030F6F.1040007@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0804142224570.5332@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] i can't make my Lifeview trio CARDBUS works.
+Cc: video4linux-list@redhat.com
+Subject: Re: OmniVision OV9655 camera chip via soc-camera interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,91 +28,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Freitag, den 04.04.2008, 01:14 +0200 schrieb cherOKe:
-> El jue, 03-04-2008 a las 22:14 +0200, hermann pitton escribiÃ³:
-> > Hi,
-> > 
-> > Am Donnerstag, den 03.04.2008, 02:31 +0200 schrieb cherOKe:
-> > > Hi, it's my first timer here, i'm cheroke from spain. 
-> > > 
-> > > I,ve trying to istall y lifeview trio several times with no good
-> > > results, the only that I've made works it's analog tv without sound :(.
-> > 
-> > for devices without analog sound out you need a helper application like
-> > "sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -w -r 48000 /dev/dsp"
-> > to get the sound from here assumed saa7134-alsa device /dev/dsp1 to your sound card.
-> > 
-> > Only mplayer and mencoder support this directly from the saa7134-alsa dsp with immediatemode=0.
-> > 
-> > Sample commands could look like.
-> > 
-> > /usr/local/bin/mplayer -v tv:// -vf pp=lb -tv driver=v4l2:norm=PAL:input=0:alsa:adevice=hw.1,0:forceaudio:immediatemode=0:audiorate=32000:amode=1:width=640:height=480:outfmt=yuy2:device=/dev/video0:chanlist=europe-west:channel=E9
-> > 
-> > /usr/local/bin/mencoder -v tv:// -tv driver=v4l2:device=/dev/video0:width=640:height=480:chanlist=europe-west:alsa:adevice=hw.1,0:audiorate=32000:amode=1:forceaudio:volume=95:immediatemode=0:norm=PAL -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=3600 -vf pp=lb -oac mp3lame -lameopts cbr:br=128:mode=0 -o mytest.avi
-> ...............
-> > 
-> > OK, I assume you have a recent v4l-dvb master copy now.
-> > 
-> ...............
-> > On older kernels, like 2.6.20, a simple "make" does not make all it
-> > seems, also "make allmodconfig" doesn't work. You get all bttv, cx88,
-> > saa7134 related and others not built. This might be the case here.
-> > 
-> > This results in a mixture of incompatible old and new modules after
-> > "make install".
-> > 
-> > Try "make distclean" and then "make xconfig" and enable all missing
-> > modules, also go through dvb and check that the related frontends
-> > tda10045/46 and tda10086 and the isl6421 are ready, see it with
-> > customize dvb froontends. In short enable all you can and if possible
-> > always as modules. Then "make".
-> > 
-> > If installing first time on an older kernel, try to make sure you have 
-> > really all older *.ko removed from /lib/modules/uname -r/kernel/drivers/media
-> > 
-> > With "make rmmod" you might not be able to unload all modules and might
-> > try to get the rest with "modprobe -vr" or must reboot later.
-> > 
-> > Do "make rminstall", this should remove all *.ko from the media folder,
-> > but check with "ls -R |grep .ko" there and remove/delete any remaining
-> > module. Do "make install". Reboot if there are any related modules still
-> > loaded.
-> > 
-> > If you want to test DVB-S, it is best to put
-> > "options saa7134-dvb use_frontend=1" in /etc/modprobe.conf or what your
-> > distribution uses else for module options and "depmod -a".
-> > 
-> > Also put "options saa7134 card=84 latency=64" something there to avoid
-> > card=0 on boot, but from now on everything else should work too.
-> > 
-> > If it should have a remote, support is not in tree, if it has radio
-> > support, please test. Please report, that we might be able to add it to
-> > auto detection. We have one previous report for now and that cardbus
-> > version was functional so far.
-> > 
-> > Happy testing,
-> > 
-> > Hermann
-> > 
-> Hi, 
-> Thanks you for responding, i'll try to digest all the information yo give me, and testing.
-> I'll report results as soon i have.
-> I'm using Ubuntu 8.04 (development branch) kernel2.6.24-12-generic.
+Guennadi Liakhovetski schrieb:
+> On Mon, 14 Apr 2008, Stefan Herbrechtsmeier wrote:
+>
+>   
+>> I'm writing a driver for the OmniVision OV9655 camera chip connected to a
+>> PXA270 processor. I based my work on the soc_camera interface, but I need some
+>> additional gpios for reset and power_enable. What is the best way to pass this
+>> information to the driver?
+>>     
+>
+> Look in pxa_camera.c, e.g., in pxa_camera_activate. There are function calls like
+>
+> pxa_camera_activate(struct pxa_camera_dev *pcdev)
+> {
+> 	struct pxacamera_platform_data *pdata = pcdev->pdata;
+>
+> ...
+>
+> 	pdata->power(pcdev->dev, 1);
+>
+> ...
+>
+> 	pdata->reset(pcdev->dev, 1);
+>
+> in it, which should do exactly what you need. And they are supposed to be 
+> implemented in the platform, so, you have all the required GPIO 
+> information you need there. That is exactly the reason they are defined 
+> that way - because they were thought to be platform-dependent. Let me know 
+> if there's still anything missing. It is still a work in progress, so, we 
+> are flexible and can add any (reasonable) APIs we find useful.
+>   
+Thanks, that exact what I search, but maybe this functions should be in 
+the soc_camera_link. I think this functions belong to the camera chip 
+and not to the capture interface. This allows more than one camera chip 
+on one capture interface with separate enable and reset.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
+>   
+Thanks
+    Stefan
 
-Hi,
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
 
-yes, that is true.
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
 
-Had a first look 24 hours back and missed the 2.6.24 now, but the
-pattern should still be valid for _all_ supported kernels, but 2.6.24 is
-not exactly in question ;)
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
 
-You have some nice module mess anyway.
+mailto : hbmeier@hni.upb.de
 
-Cheers,
-Hermann
-
-
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
 
 
 --
