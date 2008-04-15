@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
+Received: from ns1.compound.se ([82.214.63.24] helo=sunnan.compound.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1JpikH-00069R-BV
-	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 13:39:10 +0200
-Message-ID: <52990.203.200.233.130.1209210772.squirrel@203.200.233.138>
-In-Reply-To: <1209175182.3207.53.camel@palomino.walls.org>
-References: <1209093378.6367.22.camel@palomino.walls.org>
-	<20080425045520.GA17371@tull.net>
-	<1209175182.3207.53.camel@palomino.walls.org>
-Date: Sat, 26 Apr 2008 17:22:52 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-To: "Andy Walls" <awalls@radix.net>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
-Subject: Re: [linux-dvb] [PATCH] mxl500x: Add module
- parameter	to	enable/disable debug messages
+	(envelope-from <bjorn@compound.se>) id 1Jlha5-00068i-T7
+	for linux-dvb@linuxtv.org; Tue, 15 Apr 2008 11:36:04 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by sunnan.compound.se (Postfix) with ESMTP id E3D49A393E4
+	for <linux-dvb@linuxtv.org>; Tue, 15 Apr 2008 11:35:27 +0200 (CEST)
+Received: from sunnan.compound.se ([127.0.0.1])
+	by localhost (sunnan.compound.se [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id z-YzR4wRW0G8 for <linux-dvb@linuxtv.org>;
+	Tue, 15 Apr 2008 11:35:25 +0200 (CEST)
+Received: from [192.168.200.1] (kuling.compound.se [192.168.200.1])
+	by sunnan.compound.se (Postfix) with ESMTP id E790BA393D4
+	for <linux-dvb@linuxtv.org>; Tue, 15 Apr 2008 11:35:24 +0200 (CEST)
+From: =?ISO-8859-1?Q?Bj=F6rn?= Smith <bjorn@compound.se>
+To: linux-dvb@linuxtv.org
+Date: Tue, 15 Apr 2008 11:37:43 +0200
+Message-Id: <1208252263.26414.44.camel@kuling>
+Mime-Version: 1.0
+Subject: [linux-dvb] Which modules are supposed to be loaded for Twinhan
+	DVB-T 3030	(mantis)?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,85 +27,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Hi all
-I would like to implemet CI in dvbstream program. How should i go about.
-Can any body in this regard.
-Thanks withs regards
-
-
-> On Fri, 2008-04-25 at 14:55 +1000, Nick Andrew wrote:
->> On Thu, Apr 24, 2008 at 11:16:18PM -0400, Andy Walls wrote:
->> > +#define dprintk(level, fmt, arg...)
->>     \
->> > +	do {                                                              \
->> > +		if (debug >= level)                                       \
->> > +			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
->> > +	} while (0)
->>
->> I think this code will be far more useful in kernel/printk.c rather
->> than every device driver and subsystem rolling their own (as seems to
->> happen at this time).
->
-> Probably.  But I certainly don't have the credentials to move that idea
-> very far forward. :)
->
->> Also see dev_dbg() and dev_printk() in include/linux/device.h.
->
-> I looked at those, since Documentation/Codingstyle mentioned them.  They
-> reduce right back down to almost the same "printk()" statement used in
-> the macro above.
->
-> If it's any real heartburn for anyone, the printk() in the macro quoted
-> above could be changed to dev_dbg() with a change of arguments.  I'd
-> need to scrounge up a "struct dev *" every time the module needs to
-> print out a debug message though.  It's not very pretty (without another
-> macro!) to dig that out of state->fe->dvb->device all the time, and it
-> would be more perturbation than necessary just to squelch the spew into
-> the kernel ring buffer and logs.
->
->
->> What those macros are missing is what you have here
->
-> To give credit where credit is due, that macro is a work derived from
-> the macro in linux/drivers/media/dvb/frontends/xc5000.c, (C) Xceive and
-> Steven Toth.
->
->> - messages
->> printed or ignored depending on the value of a module variable
->> and/or parameter.
->
-> Yes, dev_dbg() and friends are missing that.  My imagination fails me at
-> the moment, as how to write a generically useful set of functions, with
-> that characteristic, that a large subset of the drivers could use.
->
->
->> Nick.
->
-> Thanks for the comments.
->
-> Regards,
-> Andy
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-
--- 
-gurumurti@nkindia.com (m) 09324221887
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SXMgdGhlcmUgYW55b25lIHRoYXQgc3VjY2Vzc2Z1bGx5IHVzaW5nIFR3aW5oYW4gRFZCLVQgMzAz
+MCBvbiBhCjIuNi4yMi0xNC1nZW5lcmljIGtlcm5lbD8KSSd2ZSBpbnN0YWxsZWQgbXl0aGJ1bnR1
+IDcuMTAgYW5kIGFwcGxpZWQgYWxsIHVwZGF0ZXMuIFRoZSBrZXJuZWwKaXMgMi42LjIyLTE0LWdl
+bmVyaWMgYW5kIEkndmUgY29tcGlsZWQgYW5kIGluc3RhbGxlZCB0aGUgdmVyeSBsYXRlc3QKbWFu
+dGlzIGRyaXZlcnMgKG1hbnRpcy1mNWIxZjlkNDkxYmYudGFyLmd6KSBmcm9tIGh0dHA6Ly9qdXNz
+dC5kZS9oZy8KTXkgImJveCIgaGFzIHR3byBUd2luaGFuIERWQi1UIDMwMzAgYW5kIENJIG1vZHVs
+ZSBpbnNlcnRlZCBpbiBvbmUgb2YKdGhlbSBhdCB0aGUgbW9tZW50LgoKRXZlcnl0aGluZyBjb21w
+aWxlcyBuaWNlbHkgYW5kIGFmdGVyIGEgcmVib290IHNob3dzIHVwCmluIC92YXIvbG9nL21lc3Nh
+Z2VzOgoKIEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMTowMC4wW0FdIC0+IEdTSSAyMCAobGV2
+ZWwsIGxvdykgLT4gSVJRIDIxCiBpcnE6IDIxLCBsYXRlbmN5OiAzMgogIG1lbW9yeTogMHhlMjAw
+MDAwMCwgbW1pbzogMHhmODk4MDAwMAogZm91bmQgYSBWUC0zMDMwIFBDSSBEVkItVCBkZXZpY2Ug
+b24gKDAxOjAwLjApLAogICAgIE1hbnRpcyBSZXYgMSBbMTgyMjowMDI0XSwgaXJxOiAyMSwgbGF0
+ZW5jeTogMzIKICAgICBtZW1vcnk6IDB4ZTIwMDAwMDAsIG1taW86IDB4Zjg5ODAwMDAKICAgICBN
+QUMgQWRkcmVzcz1bMDA6MDg6Y2E6MWI6ZWI6ZjddCiBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFw
+dGVyIChNYW50aXMgZHZiIGFkYXB0ZXIpCiBDQTogUmVnaXN0ZXJpbmcgTWFudGlzIEFkYXB0ZXIo
+MCkgU2xvdCgwKQogQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAxOjAxLjBbQV0gLT4gR1NJIDE5
+IChsZXZlbCwgbG93KSAtPiBJUlEgMTcKIGlycTogMTcsIGxhdGVuY3k6IDMyCiAgbWVtb3J5OiAw
+eGUyMDAxMDAwLCBtbWlvOiAweGY4YTY4MDAwCiBmb3VuZCBhIFZQLTMwMzAgUENJIERWQi1UIGRl
+dmljZSBvbiAoMDE6MDEuMCksCiAgICAgTWFudGlzIFJldiAxIFsxODIyOjAwMjRdLCBpcnE6IDE3
+LCBsYXRlbmN5OiAzMgogICAgIG1lbW9yeTogMHhlMjAwMTAwMCwgbW1pbzogMHhmOGE2ODAwMAog
+ICAgIE1BQyBBZGRyZXNzPVswMDowODpjYToxYjplYjo3Nl0KIERWQjogcmVnaXN0ZXJpbmcgbmV3
+IGFkYXB0ZXIgKE1hbnRpcyBkdmIgYWRhcHRlcikKIENBOiBSZWdpc3RlcmluZyBNYW50aXMgQWRh
+cHRlcigxKSBTbG90KDApCiBBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6MWIuMFtBXSAtPiBH
+U0kgMTYgKGxldmVsLCBsb3cpIC0+IElSUSAxOQoKVGhlIGZvbGxvd2luZyBkZXZpY2Ugbm9kZXMg
+YXJlIGNyZWF0ZWQgdW5kZXIgL2Rldi9kdmIvYWRhcHRlcnswLDF9LwpjcnctcnctLS0tIDEgcm9v
+dCB2aWRlbyAyMTIsIDYgMjAwOC0wNC0xNCAyMjozNCBjYTAKY3J3LXJ3LS0tLSAxIHJvb3Qgdmlk
+ZW8gMjEyLCA0IDIwMDgtMDQtMTQgMjI6MzQgZGVtdXgwCmNydy1ydy0tLS0gMSByb290IHZpZGVv
+IDIxMiwgNSAyMDA4LTA0LTE0IDIyOjM0IGR2cjAKY3J3LXJ3LS0tLSAxIHJvb3QgdmlkZW8gMjEy
+LCA3IDIwMDgtMDQtMTQgMjI6MzQgbmV0MAoKSG93ZXZlciwgbm8gdmlkZW8wIGRldmljZSE/IEkg
+dHJpZWQgdG8gY3JlYXRlIGl0IG1hbnVhbGx5IGJ1dCB0aGVyZSBpcwpkcml2ZXIgY29kZSB0aGVy
+ZSB0byBhbnN3ZXIgdGhlIGluaXRpYWwgb3BlbigpIGNhbGwuCgpUaGUgbG9hZGVkIG1vZHVsZXMg
+cmVmZXJyaW5nIChvciByZWxhdGVkIHRvKSBtYW50aXMgaXM6Cgpsc21vZCB8IGdyZXAgbWFudGlz
+Cm1hbnRpcyAgICAgICAgICAgICAgICAgMzk5NDAgIDAgCmxuYnAyMSAgICAgICAgICAgICAgICAg
+IDMzMjggIDEgbWFudGlzCm1iODZhMTYgICAgICAgICAgICAgICAgMjE2MzIgIDEgbWFudGlzCnN0
+YjYxMDAgICAgICAgICAgICAgICAgIDg5NjQgIDEgbWFudGlzCnRkYTEwMDIxICAgICAgICAgICAg
+ICAgIDc5NDAgIDEgbWFudGlzCnRkYTEwMDIzICAgICAgICAgICAgICAgIDc0MjggIDEgbWFudGlz
+CnN0YjA4OTkgICAgICAgICAgICAgICAgMzYzNTIgIDEgbWFudGlzCnN0djAyOTkgICAgICAgICAg
+ICAgICAgMTE1MjggIDEgbWFudGlzCmR2Yl9jb3JlICAgICAgICAgICAgICAgODk1MDAgIDIgbWFu
+dGlzLHN0djAyOTkKaTJjX2NvcmUgICAgICAgICAgICAgICAyNjExMiAgOAptYW50aXMsbG5icDIx
+LG1iODZhMTYsc3RiNjEwMCx0ZGExMDAyMSx0ZGExMDAyMyxzdGIwODk5LHN0djAyOTkKCiJwY2lt
+b2R1bGVzIiBzaG93cyB0aGlzOgoKaW50ZWwtYWdwCmludGVsZmIKc25kLWhkYS1pbnRlbAp1aGNp
+LWhjZAplaGNpLWhjZAppVENPX3dkdAppbnRlbC1ybmcKYXRhX3BpaXgKYXRhX2dlbmVyaWMKYXRh
+X3BpaXgKYXRhX2dlbmVyaWMKaTJjLWk4MDEKbWFudGlzCnI4MTY5Cm9oY2kxMzk0CgphbmQgImxz
+cGNpIC1udiIgc2hvd3M6Ci4uLgowMTowMC4wIDA0ODA6IDE4MjI6NGUzNSAocmV2IDAxKQogICAg
+ICAgIFN1YnN5c3RlbTogMTgyMjowMDI0CiAgICAgICAgRmxhZ3M6IGJ1cyBtYXN0ZXIsIG1lZGl1
+bSBkZXZzZWwsIGxhdGVuY3kgMzIsIElSUSAyMQogICAgICAgIE1lbW9yeSBhdCBlMjAwMDAwMCAo
+MzItYml0LCBwcmVmZXRjaGFibGUpIFtzaXplPTRLXQoKMDE6MDEuMCAwNDgwOiAxODIyOjRlMzUg
+KHJldiAwMSkKICAgICAgICBTdWJzeXN0ZW06IDE4MjI6MDAyNAogICAgICAgIEZsYWdzOiBidXMg
+bWFzdGVyLCBtZWRpdW0gZGV2c2VsLCBsYXRlbmN5IDMyLCBJUlEgMTcKICAgICAgICBNZW1vcnkg
+YXQgZTIwMDEwMDAgKDMyLWJpdCwgcHJlZmV0Y2hhYmxlKSBbc2l6ZT00S10KLi4uCgpJdCBsb29r
+cyB0byBtZSB0aGF0IHRoZXJlIGFyZSBzb21lIG1vZHVsZShzKSBtaXNzaW5nLgpEb2VzIGFueW9u
+ZSBoYXZlIGEgaGludCBvZiB3aGF0IHBvc3NpYmx5IGNvdWxkIGJlIHdyb25nIG9yIG1pc3Npbmc/
+CgoKTWFueSB0aGFua3MgaW4gYWR2YW5jZSBmb3IgYW55IGtpbmQgb2YgaGVscCEKCi0tIApCasO2
+cm4gU21pdGggPGJqb3JuQGNvbXBvdW5kLnNlPgpDb21wb3VuZCBTeXN0ZW1zIEFCCgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxp
+bmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2kt
+YmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
