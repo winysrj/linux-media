@@ -1,22 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NGLEQx019902
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 12:21:14 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FEBIKJ015924
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 10:11:18 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NGKaUE024147
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 12:20:47 -0400
-Date: Wed, 23 Apr 2008 13:20:23 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3FEApfJ017927
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 10:11:02 -0400
+Date: Tue, 15 Apr 2008 11:10:44 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Edward J. Sheldrake" <ejs1920@yahoo.co.uk>
-Message-ID: <20080423132023.062388d9@gaivota>
-In-Reply-To: <920100.36100.qm@web27910.mail.ukl.yahoo.com>
-References: <20080422183740.5aac8772@gaivota>
-	<920100.36100.qm@web27910.mail.ukl.yahoo.com>
+To: Brandon Philips <bphilips@suse.de>
+Message-ID: <20080415111044.5ac8b719@gaivota>
+In-Reply-To: <20080415021558.GA22068@plankton.ifup.org>
+References: <patchbomb.1206699511@localhost>
+	<ab74ebf10c01d6a8a54a.1206699517@localhost>
+	<20080405131236.7c083554@gaivota>
+	<20080406080011.GA3596@plankton.ifup.org>
+	<20080407183226.703217fc@gaivota>
+	<20080408152238.GA8438@plankton.public.utexas.edu>
+	<20080408154046.36766131@gaivota>
+	<20080408204514.GA6844@plankton.public.utexas.edu>
+	<20080408183740.143c3dee@gaivota>
+	<20080415021558.GA22068@plankton.ifup.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: [PATCH 6 of 9] videobuf-vmalloc.c: Fix hack of postponing mmap
+ on remap failure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,60 +37,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 23 Apr 2008 09:08:41 +0100 (BST)
-"Edward J. Sheldrake" <ejs1920@yahoo.co.uk> wrote:
 
-> --- Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > I'm enclosing two hacks. please, re-apply 7651, and try first
-> > hack1.patch.
-> > Then, revert it and apply hack2.patch.
-> > 
-> > Please tell me if both hacks work or not, and send me the dmesgs for
-> > each case
-> > (after loading mplayer).
-> > 
-> Hi Mauro
 > 
-> I started with a fresh copy of the v4l-dvb repo updated to changeset
-> 7673 each time.
+> Sorry for taking a while to get back to you.
 > 
-> hack1: works
-> hack2: works
+> With my patch and this little change it is possible to QBUF before
+> running mmap().  This causes dma-sg devices to use a bounce buffer if
+> QBUF is done before being mmap'd.
+
+Interesting. However, I don't see much advantages of doing that, especially if
+this behaviour will work only with dma-sg drivers. I think that the better is
+to require mmap() before QBUF at V4L2 API.
+
+We have a bad experience with V4L1 apps that were abusing on relaxed checks at
+the API. Those apps (like vlc) first starts streaming, then changes the buffer
+size, by altering the image size. This bad behaviour is still not supported by
+V4L1 compat layer.
+
+IMO, the V4L2 API should define the valid command order of ioctls for stream to
+work.
+
+
+> The current code on em28xx-vb is canceling the entire queue when one
+> buffer is unmapped.
+
+Yes.
+
+> This is certainly not what an application would
+> expect:
 > 
-> I opened and closed mplayer twice for each test, so there are some
-> normal "resubmit of audio urb failed" messages included. Dmesg output
-> is attached, hack1 first.
+> http://linuxtv.org/hg/~mchehab/em28xx-vb/rev/e1a2b9e33bd2
 
-I think I got the issue. Not sure yet about the proper solution.
+Hmm.. I think I got your point. It should be cancelling only the affected
+buffer. I can't see any sense of continuing the stream for the cancelled
+buffer.
+ 
+> It is clear now that we need to do reference counting on the buffers.
+> 
+> Reference takers:
+>  - reqbuf
+>  - vm_open
+>  - driver when it grabs buffer from queue
+> 
+> Reference releasers:
+>  - streamoff
+>  - vm_close
+>  - driver when it finishes with buffer
+> 
+> Does that seem sane?  I will submit a patch tomorrow.
 
-What happens is that there are two firmwares for PAL/I: One is mono (IF=6.0)
-and another for stereo (IF=6.24).
-
-The current code handles it properly, while the previous one were probably
-using mono.
-
-For stereo to work, you need to load the non-mts firmware.
-
-Please, try again, with with the enclosed patch. Let's see if stereo will work
-on your board.
-
-This should load the IF=6.24 firmware, non-MTS mode.
+It seems sane.
 
 Cheers,
 Mauro
-
-diff -r 8e992045c18e linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Wed Apr 23 12:28:01 2008 -0300
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Wed Apr 23 13:18:38 2008 -0300
-@@ -157,7 +157,7 @@
- 		.vchannels    = 3,
- 		.tda9887_conf = TDA9887_PRESENT,
- 		.tuner_type   = TUNER_XC2028,
--		.mts_firmware = 1,
-+		.mts_firmware = 0,
- 		.decoder      = EM28XX_TVP5150,
- 		.input          = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
 
 --
 video4linux-list mailing list
