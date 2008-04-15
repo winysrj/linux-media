@@ -1,18 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OEDL5Y032362
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:13:21 -0400
-Received: from mx-1.enea.se (mx-1.enea.se [192.36.1.70])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OEDAYb016920
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:13:11 -0400
-From: Johan Hedlund <johan.hedlund@enea.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Date: Thu, 24 Apr 2008 16:12:59 +0200
-Message-Id: <1209046379.9435.5.camel@ThePenguin>
-Mime-Version: 1.0
-Subject: V4L2_PIX_FMT_SBGGR16 not in kernel
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3F0nT1F013192
+	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 20:49:29 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3F0n7hA030771
+	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 20:49:08 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1763813wfc.6
+	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 17:49:07 -0700 (PDT)
+Date: Mon, 14 Apr 2008 17:44:16 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Martin Rubli <v4l2-lists@rubli.info>, linux1@rubli.info,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20080415004416.GA11071@plankton.ifup.org>
+References: <op.t3hn72busxcvug@mrubli-nb.am.logitech.com>
+	<20080213231244.GA15895@plankton.ifup.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080213231244.GA15895@plankton.ifup.org>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Support for write-only controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,16 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello
+On 15:12 Wed 13 Feb 2008, Brandon Philips wrote:
+> On 01:01 Tue 18 Dec 2007, Martin Rubli wrote:
+> > Thanks a lot for all your feedback and the constructive discussion and sorry 
+> > for the delay while I was without Internet on the weekend. I'll try to 
+> > summarize what we have so far:
+> >
+> > Write-only controls:
+> >
+> > It seems, everybody likes EACCES. Michael, maybe we could get some feedback 
+> > from you on this? It would be nice to change the spec, so that EACCES also 
+> > becomes the error for writing read-only controls--it seems appropriate. But 
+> > if for some reason we can't change that we should probably make the 
+> > write-only controls consistent and return EINVAL as well.
+> >
+> > Unusable controls due to device communication error:
+> >
+> > The easiest solution seems to be to set the V4L2_CTRL_FLAG_DISABLED flag as 
+> > was suggested. The documentation currently says "permanently disabled and 
+> > should be ignored by the application" which I think is exactly what applies 
+> > to the situation. The V4L2_CTRL_FLAG_NEXT_CTRL would still be respected by 
+> > drivers supporting the extended control enumeration, so no need to the spec 
+> > is required. But I would still add a short paragraph about the first part as 
+> > a guide for future implementations and a witness of this thread. ;-)
+> >
+> > As soon as everyone agrees on this, I will propose new patches. Let me know 
+> > what you think ...
+> 
 
-I am working on a application that will use V4L2 on a linux-2.6-22
-kernel. I am interested in using the format V4L2_PIX_FMT_SBGGR16 'BA82'
-for my captured images. But it seems like I only can find it the in the
-V4L2 specification and not in the mainline kernel. Is this format not a
-standard format that should be in the mainline kernel? Can I just add
-the definition to my code and use it or will it break something else?
+Ping.  I never saw patches come across for this.
 
-/Johan
+Thanks,
+
+	Brandon
 
 --
 video4linux-list mailing list
