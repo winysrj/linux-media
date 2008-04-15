@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m344EuqO028552
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 00:14:56 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m344EhK7001346
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 00:14:43 -0400
-Message-ID: <47F5AB2A.3020908@linuxtv.org>
-Date: Fri, 04 Apr 2008 00:14:34 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FBOeNn026294
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 07:24:40 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3FBONq0022608
+	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 07:24:24 -0400
+Date: Tue, 15 Apr 2008 12:57:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+In-Reply-To: <48047FD4.7010602@hni.uni-paderborn.de>
+Message-ID: <Pine.LNX.4.64.0804151245230.5159@axis700.grange>
+References: <48047FD4.7010602@hni.uni-paderborn.de>
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-References: <1115343012.20080318233620@a-j.ru>
-	<1207269838.3365.4.camel@pc08.localdom.local>
-	<20080403222937.3b234a40@gaivota>
-	<200804040456.57561@orion.escape-edv.de>
-In-Reply-To: <200804040456.57561@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: Image grabbing from pxa_camera driver via console
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,50 +26,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Oliver Endriss wrote:
-> Mauro Carvalho Chehab wrote:
->   
->>>>> If we should go back to 2.6.23 level, so far nobody seems to have
->>>>> realized a improvement for the LifeView Trio stuff, I'm not against it.
->>>>>
->>>>> The changeset in question to revert is mercurial 6579.
->>>>>
->>>>> If nobody else is interested and no comments, I also don't care anymore.
->>>>>           
->>>> (Basically I don't care because I am tired of discussing kernel
->>>> politics.)
->>>>
->>>> Imho a fix should be applied, no matter how many lines it has.
->>>> If that is not possible the offending patch should be reverted in
->>>> 2.6.24.x.
->>>>         
->> ...
->>
->> Let me try to reset to a sane state.
->>
->> With the current tree (changesets 6579 and 7186), is there any broken board? If
->> so, what board(s)?
->>
->> Both patches are already applied at mainstream and should be available on
->> 2.6.25. Are those OK for 2.6.25?
->>
->> Is there any missing patch that should be sent to -stable (2.6.24)? If so, what
->> patch?
->>     
->
-> The point is that 6579 was applied to 2.6.24.x, but 7186 wasn't.
-> So TTS_1401 support is broken for the 2.6.24 series.
->
-> Imho 7186 _must_ be applied to 2.6.24, no matter how large the patch is.
->   
-Are you saying that THIS is the patch that needs to be applied to 2.6.24.y ?
+You've forgotten to cc the list. Re-added.
 
-http://linuxtv.org/hg/v4l-dvb/rev/eb6bc7f18024
+On Tue, 15 Apr 2008, Stefan Herbrechtsmeier wrote:
 
-If so, this patch seems fine for -stable.  We just have to make sure it
-applies correctly, etc.
+> what do you use for testing the pxa_camera driver. I'm searching for a console
+> image grabbing tool to test my ov9655 driver. Can you recommend some tool?
 
--Mike
+I found the test application from the v4l2-apps suite with fengxin's 
+modification http://marc.info/?l=linux-video&m=120762092820785&w=2 useful. 
+I also used (a locally modified version of) the programme quoted in
+http://linux.omap.com/pipermail/linux-omap-open-source/2006-March/006653.html
+Otherwise I also use mplayer, which is not a console application, but you 
+can use it or mencoder to capture the stream.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
