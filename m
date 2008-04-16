@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from smtp1.su.se ([130.237.162.112] helo=smtp.su.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JrEgC-0000eI-KE
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 17:57:13 +0200
-Received: by fg-out-1718.google.com with SMTP id 13so252277fge.25
-	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 08:57:09 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 30 Apr 2008 17:57:03 +0200
+	(envelope-from <pelle@dsv.su.se>) id 1Jm83k-0007Xe-Ue
+	for linux-dvb@linuxtv.org; Wed, 16 Apr 2008 15:52:31 +0200
+Message-ID: <48060494.50607@dsv.su.se>
+Date: Wed, 16 Apr 2008 15:52:20 +0200
+From: Per Olofsson <pelle@dsv.su.se>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_PbJGIBKSnEmun0t"
-Message-Id: <200804301757.03932.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: DVB-T - de-Freiburg
+To: Bob Deblier <bob.deblier@gmail.com>
+References: <bf9a9c0dd71fe6e733de49fd916fe4eb@localhost>	
+	<4805F3FA.5080901@dsv.su.se> <1208360835.12055.7.camel@bxl-bob>
+In-Reply-To: <1208360835.12055.7.camel@bxl-bob>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Mantis 2033 change tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,57 +20,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_PbJGIBKSnEmun0t
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi,
 
-=46rom a kaffeine user ...
+Bob Deblier wrote:
+> Forget about encrypted channels, though. It's been roughly 1 1/2 years
+> since Manu promised a driver for this, but nothing has materialized so
+> far.
 
-Christoph
+Well, all my channels are encrypted, so...
 
+But if you look at http://jusst.de/hg/mantis/, you can see that Manu has checked
+in CA code today, only a couple of hours ago. And he's been checking in CA code
+since a month ago. So apparently he's working on something right now.
 
-=2D---------  Weitergeleitete Nachricht  ----------
-
-Betreff: [kaffeine-user] DVB-T - de-Freiburg
-Datum: Mittwoch 30 April 2008
-Von: Pascal Schmolck <Pascal.Schmolck@web.de>
-An: kaffeine-user@lists.sf.net
-
-DVB-T data file for Freiburg, a city in the south-western of germany
-
-greetings
-pascal
-
-=2D------------------------------------------------------
-
---Boundary-00=_PbJGIBKSnEmun0t
-Content-Type: text/plain;
-  charset="utf-8";
-  name="de-Freiburg"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="de-Freiburg"
-
-# DVB-T Freiburg M/V
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 570000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-T 618000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-T 722000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-
---Boundary-00=_PbJGIBKSnEmun0t
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Pelle
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_PbJGIBKSnEmun0t--
