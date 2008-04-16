@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web26102.mail.ukl.yahoo.com ([217.146.182.143])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <linuxcbon@yahoo.fr>) id 1JigYV-0000VZ-OL
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 03:53:59 +0200
-Date: Mon, 7 Apr 2008 03:53:22 +0200 (CEST)
-From: linuxcbon <linuxcbon@yahoo.fr>
-To: Antti Palosaari <crope@iki.fi>
-In-Reply-To: <47F97374.80902@iki.fi>
+Received: from smtp1.su.se ([130.237.162.112] helo=smtp.su.se)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <pelle@dsv.su.se>) id 1Jm6xF-0001Jq-H6
+	for linux-dvb@linuxtv.org; Wed, 16 Apr 2008 14:41:44 +0200
+Message-ID: <4805F3FA.5080901@dsv.su.se>
+Date: Wed, 16 Apr 2008 14:41:30 +0200
+From: Per Olofsson <pelle@dsv.su.se>
 MIME-Version: 1.0
-Message-ID: <308027.91758.qm@web26102.mail.ukl.yahoo.com>
+To: bas@kompasmedia.nl
+References: <bf9a9c0dd71fe6e733de49fd916fe4eb@localhost>
+In-Reply-To: <bf9a9c0dd71fe6e733de49fd916fe4eb@localhost>
+Content-Type: multipart/mixed; boundary="------------090603080307000904000501"
 Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] RE : Re:  RE : Re:  Which DVB-T USB tuner  on linux ?
+Subject: Re: [linux-dvb] Mantis 2033 change tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,60 +20,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- Antti Palosaari <crope@iki.fi> a =E9crit=A0:
-> linuxcbon wrote:
-> > Thanks for your answer Antti,
-> > =
+This is a multi-part message in MIME format.
+--------------090603080307000904000501
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> > ARTEC T14BR =
+Hi,
 
-> > Chip DiB0700
-> > Is the firmware downloaded automaticaly by the kernel ?
-> =
+I don't own the card in question, but I am interesting in buying one if it works :-)
 
-> It is loaded automatically as it is done always. There is no drivers =
+Bas v.d. Wiel wrote:
+> Hello all,
+> As I got no response to my question about changing tuner chips on Mantis
+> cards (I have one with chip ID 0x7d which I read about earlier), I started
+> experimenting with the sources from jusst.de. I changed mantis_dvb.c in a
+> crude way by simply copying the contents of a case statement for a Mantis
+> 2040 to the one for the 2033 and commenting out the original 2033 block
+> that loads the tda10021.
 
-> that needs firmware loaded manually. Everyone driver will load firmware =
+Hrm, 2040? Where did you find that case statement?
 
-> automatically.
-> But if you mean that if firmware is coming from kernel - answer is =
+Otherwise, have you tried using the case statement for TERRATEC_CINERGY_C_PCI
+instead? It looks exactly the same as the 2033 case apart from the tda10023
+tuner. Perhaps try the attached (untested) patch?
 
-> almost 100% no. Firmware is almost always needed to install manually =
+> To my surprise this compiled without any trouble and everything gets loaded
+> and recognized without error upon next bootup, including the tda10023.
+> However, as I expected, something crashes in a very bad way when I actually
+> try to use the tuner with dvb-scan. Am I doing something wrong? Or is my
+> card simply not supported (yet) by the mantis driver (too new maybe)?
 
-> from somewhere on the net or from via package manager depending on your =
+Could you post the diff? Also make sure you have the latest mantis source code
+(use "hg pull" + "hg up" to update).
 
-> distribution. Installing firmware is not big issue and it is needed only
-> =
+-- 
+Pelle
 
-> once. Installing drivers from source is more work...
+--------------090603080307000904000501
+Content-Type: text/x-diff;
+ name="mantis.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mantis.patch"
 
-Ok then I buy an ARTEC T14BR (if I find it in the shop :))
+diff -r b7b8a2a81f3e linux/drivers/media/dvb/mantis/mantis_dvb.c
+--- a/linux/drivers/media/dvb/mantis/mantis_dvb.c	Wed Apr 16 15:22:16 2008 +0400
++++ b/linux/drivers/media/dvb/mantis/mantis_dvb.c	Wed Apr 16 14:33:49 2008 +0200
+@@ -259,7 +259,7 @@
+ 			}
+ 		}
+ 		break;
+-	case MANTIS_VP_2033_DVB_C:	// VP-2033
++      //case MANTIS_VP_2033_DVB_C:	// VP-2033
+ 		dprintk(verbose, MANTIS_ERROR, 1, "Probing for CU1216 (DVB-C)");
+ 		mantis->fe = tda10021_attach(&philips_cu1216_config, &mantis->adapter, read_pwm(mantis));
+ 		if (mantis->fe) {
+@@ -274,6 +274,7 @@
+ 		}
+ 		break;
+ 	case TERRATEC_CINERGY_C_PCI:
++	case MANTIS_VP_2033_DVB_C:
+ 		dprintk(verbose, MANTIS_ERROR, 1, "Probing for CU1216 (DVB-C)");
+ 		mantis->fe = tda10023_attach(&tda10023_cu1216_config, &mantis->adapter, read_pwm(mantis));
+ 		if (mantis->fe) {
 
-Is dvb-usb-dib0700-03-pre1.fw latest firmware ? Where can it be found ?
-I guess dmesg | grep dvb should tell the correct name and it should be
-changed to it. It should be copied to /lib/firmware/ ?
-
-Do you know if the code is mature for this product, I mean no bugs and all
-features completed ? :p
-
-BR, linuxcbon
-
-
-
-
-      _____________________________________________________________________=
-________ =
-
-Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.yaho=
-o.fr
+--------------090603080307000904000501
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------090603080307000904000501--
