@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
+Received: from smtp3.su.se ([130.237.93.228] helo=smtp.su.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1Jq8MT-0004XG-HV
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 17:00:17 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-Date: Sun, 27 Apr 2008 16:59:41 +0200
-References: <617be8890804140209p3b79df8cm3f94de8f82b1faa5@mail.gmail.com>
-	<200804270540.29590.zzam@gentoo.org>
-	<617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
-In-Reply-To: <617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
+	(envelope-from <pelle@dsv.su.se>) id 1Jm73S-0002L2-Et
+	for linux-dvb@linuxtv.org; Wed, 16 Apr 2008 14:48:05 +0200
+Message-ID: <4805F57C.1000107@dsv.su.se>
+Date: Wed, 16 Apr 2008 14:47:56 +0200
+From: Per Olofsson <pelle@dsv.su.se>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804271659.41562.zzam@gentoo.org>
+To: "Bas v.d. Wiel" <bas@kompasmedia.nl>
+References: <47FB7454.3030109@kompasmedia.nl>
+In-Reply-To: <47FB7454.3030109@kompasmedia.nl>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] a700 support (was: [patch 5/5] mt312: add
-	attach-time setting to invert lnb-voltage (Matthias Schwarzott))
+Subject: Re: [linux-dvb] Mantis 2033 + CI
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,37 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sonntag, 27. April 2008, Eduard Huguet wrote:
-> Thank you very much, Matthias. I was going to try the patch right now,
-> however I'm finding that it doesn't apply clean to the current HG tree.
-> This is what I'm getting:
->
-> patching file linux/drivers/media/dvb/frontends/Kconfig
-> Hunk #1 FAILED at 368.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/dvb/frontends/Kconfig.rej
-> patching file linux/drivers/media/dvb/frontends/Makefile
-> Hunk #1 succeeded at 23 (offset -2 lines).
-> patching file linux/drivers/media/dvb/frontends/zl10036.c
-> patching file linux/drivers/media/dvb/frontends/zl10036.h
-> patching file linux/drivers/media/video/saa7134/Kconfig
-> patching file linux/drivers/media/video/saa7134/saa7134-cards.c
-> Hunk #3 succeeded at 5716 (offset 42 lines).
-> patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
->
-> I've tried to manually patch Kconfig by adding the rejected lines, but I
-> suppose there must something I'm doing wrong: apparently it compiles fine,
-> but saa7134-dvb is not loaded and the frontend is not being created for the
-> card (although the card is detected and the video0 device for analog is
-> there).
->
-This reject is caused by the massive movement of the hybrid tuner drivers to 
-another directory.
-I solved the reject, and re-uploaded the patch.
-Here it does still work.
+Hi again,
 
-Regards
-Matthias
+Bas v.d. Wiel wrote:
+> Sadly though I get no further than a 
+> custom-compiled 2.6.18.1 kernel that loads the mantis module and seems 
+> to detect my card, 
+
+Also please try the latest kernel (2.6.24).
+
+-- 
+Pelle
 
 _______________________________________________
 linux-dvb mailing list
