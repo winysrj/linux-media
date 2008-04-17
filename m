@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39EUr33021512
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 10:30:53 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m39EUL8M002442
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 10:30:21 -0400
-Date: Wed, 9 Apr 2008 16:30:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-To: Mike Rapoport <mike@compulab.co.il>
-In-Reply-To: <47F872DE.60004@compulab.co.il>
-Message-ID: <Pine.LNX.4.64.0804091626140.5671@axis700.grange>
-References: <47F21593.7080507@compulab.co.il>
-	<Pine.LNX.4.64.0804031708470.18539@axis700.grange>
-	<47F872DE.60004@compulab.co.il>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HM8gP4007672
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 18:08:42 -0400
+Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3HM8VhM004826
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 18:08:32 -0400
+Received: from www.outflux.net (serenity-end.outflux.net [10.2.0.2])
+	by mylar.outflux.net (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m3HM8FhX028231
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 15:08:20 -0700
+Date: Thu, 17 Apr 2008 15:08:15 -0700
+From: Kees Cook <kees@outflux.net>
+To: video4linux-list@redhat.com
+Message-ID: <20080417220815.GQ18929@outflux.net>
+References: <20080417012346.GG18929@outflux.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa_camera: Add support for YUV modes
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080417012346.GG18929@outflux.net>
+Subject: Re: [PATCH 0/2] V4L: add "function" sysfs attribute to v4l devices
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,46 +30,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 6 Apr 2008, Mike Rapoport wrote:
+On Wed, Apr 16, 2008 at 06:23:46PM -0700, Kees Cook wrote:
+> [2] some recent discussion on the new hotplug list, but I can't find an
+>     archive link since it moved to vger...
 
-> >> +			DCSR(pcdev->dma_chans[i]) = DCSR_RUN;
-> >> +#ifdef DEBUG
-> >> +			if (CISR & CISR_IFO_0) {
-> >> +				dev_warn(pcdev->dev, "FIFO overrun\n");
-> >> +				for (i = 0; i < channels; i++)
-> >> +					DDADR(pcdev->dma_chans[i]) =
-> >> +						pcdev->active->dmas[i].sg_dma;
-> >> +
-> >> +				CICR0 &= ~CICR0_ENB;
-> >> +				CIFR |= CIFR_RESET_F;
-> >> +				for (i = 0; i < channels; i++)
-> >> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
-> >> +				CICR0 |= CICR0_ENB;
-> >> +			} else {
-> >> +				for (i = 0; i < channels; i++)
-> >> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
-> >> +			}
-> > 
-> > These three loops don't look right. At least because they use the same 
-> > index i. And you're iterating over channels inside a loop over channels, 
-> > and you have dma_chans[0] instead of [i]. Please fix.
-> 
-> Here I'm not quite sure what exactly should be done as I never got overruns.
-> For now I move this code out of the loop and in case of overrun re-enable
-> all three DMAs. BTW, the 'else' here is completely redundant, so I just removed it.
+Since I can't link to it, I'll just include the udev patches here too.
+:)
 
-Mike, you probably saw the recent thread on this list, where the overrun 
-problem did come up: http://marc.info/?t=120732439600006&r=1&w=2 and my 
-last post in this thread with a patch. Could you, please, test it with 
-your YCbCr setup? Would be great, if you could test it with the 
-application, that fengxin quoted in his mail 
-http://marc.info/?l=linux-video&m=120762092820785&w=2, see if you too get 
-overruns with it, and see if my patch fixes them.
-
-Thanks
-Guennadi
 ---
-Guennadi Liakhovetski
+Update of path_id and example symlink-creation update for udev to take
+advantage of the new "function" string exported from video4linux
+devices.
+
+Signed-off-by: Kees Cook <kees@outflux.net>
+---
+ debian/rules.d/60-symlinks.rules |    9 +++++++++
+ extras/path_id/path_id           |   14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
+
+--- udev-113/debian/rules.d/60-symlinks.rules~	2008-04-16 17:02:58.000000000 -0700
++++ udev-113/debian/rules.d/60-symlinks.rules	2008-04-16 17:04:32.000000000 -0700
+@@ -14,3 +14,12 @@
+ # Create /dev/pilot symlink for Palm Pilots
+ KERNEL=="ttyUSB*", ATTRS{product}=="Palm Handheld*|Handspring *|palmOne Handheld", \
+ 					SYMLINK+="pilot"
++
++# Create video4linux PCI path symlinks
++ACTION!="add", GOTO="video4linux_path_end"
++SUBSYSTEM!="video4linux", GOTO="video4linux_path_end"
++
++IMPORT{program}="path_id %p"
++ENV{ID_PATH}=="?*", KERNEL=="video*", SYMLINK+="v4l/by-path/$env{ID_PATH}"
++
++LABEL="video4linux_path_end"
+--- udev-113/extras/path_id/path_id~	2007-06-23 08:44:48.000000000 -0700
++++ udev-113/extras/path_id/path_id	2008-04-16 17:10:23.000000000 -0700
+@@ -462,6 +462,10 @@
+ 	full_sysfs_device_path="`pwd -P`"
+ 	cd "$OPWD"
+ 
++	if [ "$TYPE" = "video4linux" ] ; then
++		d="video"
++	fi
++
+ 	D=$full_sysfs_device_path
+ 	while [ ! -z "$D" ] ; do
+ 		case "$D" in
+@@ -566,6 +570,16 @@
+ 		handle_device
+ 		echo "ID_PATH=$d"
+ 		;;
++	video4linux)
++		handle_device
++		if [ "$d" ]; then
++			# Only report v4l devices that have a "function" defined
++			func=$(cat $SYSFS$DEVPATH/function 2>/dev/null ||true)
++			if [ "$func" ]; then
++				echo "ID_PATH=$d-$func"
++			fi
++		fi
++		;;
+ 	*)
+ 		RESULT=1
+ 		;;
+
+
+-- 
+Kees Cook                                            @outflux.net
 
 --
 video4linux-list mailing list
