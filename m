@@ -1,22 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3ADSAs2020006
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 09:28:10 -0400
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.180])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3ADS0Nm001578
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 09:28:00 -0400
-Received: by el-out-1112.google.com with SMTP id n30so2499082elf.7
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 06:28:00 -0700 (PDT)
-Message-ID: <5b5250670804100627v28b2d64ex733e14dceb37fac1@mail.gmail.com>
-Date: Thu, 10 Apr 2008 18:57:58 +0530
-From: "thirunavukarasu selvam" <gs.thiru@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HGViZI011653
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 12:31:44 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3HGVWxJ024666
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 12:31:32 -0400
+Date: Thu, 17 Apr 2008 18:31:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804071322490.5585@axis700.grange>
+	<998e4a820804071849s60e883f9ne2d8ad6a2f48bd42@mail.gmail.com>
+	<Pine.LNX.4.64.0804090104190.4987@axis700.grange>
+	<998e4a820804081827j5379efdfw3a95dd1731e02e42@mail.gmail.com>
+	<Pine.LNX.4.64.0804091616470.5671@axis700.grange>
+	<998e4a820804092242i8ead476nf7e4db3712bc881@mail.gmail.com>
+	<Pine.LNX.4.64.0804100749310.3693@axis700.grange>
+	<998e4a820804101854l77e702d9j78d16afc59d807a@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Trouble in loading drivers for both wintv nova-s-plus and pvr-500
-	card simultaneously (mainly becos of tveeprom.ko module)
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,108 +37,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Thu, 17 Apr 2008, ·ëöÎ wrote:
 
-I am working with WinTV NOVA-S-Plus card and WinTV PVR-500 card in RHEL 4.4
-machine.
-I am using kernel 2.6.12.
-For WinTV NOVA-S-plus card i have used v4l-dvb drivers.
-For PVR-500 card i have used ivtv-0.4.9 drivers.
-After compiling and installing these two drivers, i tried the following
-steps to load the drivers.
+> 2008/4/14 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> >>  I found the problem with reversed frame order. The same problem led to
+> >>  corrupted frames. Please try the patch below on the top of the previous
+> >>  one. With it I have no more problems with the test application with any
+> >>  number of buffers.
+> 
+> 2008/4/14 ·ëöÎ <fengxin215@gmail.com>:
+> >  I test it and It is good.But some frames is dropped,like
+> >  1,2,3,4,5,8,9,10,11,14,15,16,17,18,21,22.The frame 6,7,12,13,19,20 is
+> >  dropped.I request 4 buffers now.
+> 
+> Will you improve soc-camera driver for the lost frames?
 
-1. for NOVA-S-Plus card
-modprobe tveeprom
-modprobe cx24123
-modprobe cx8800
-modprobe cx8802
-modprobe cx88xx
-modprobe cx88-dvb
+How exactly are you counting lost frames? I just tried several 
+configurations - with different number of buffers, writing in tmpfs and 
+over nfs, without load and under a ping flood. And I'm counting FIFO 
+overrun interrupts. At most I'm getting 1-3 overruns with dropped frames 
+in the beginning, and only if I write over NFS.
 
-2. for PVR-500 card
-depmod -a
-modprobe tveeprom
-modprobe ivtv
+If your system is using drivers, that block interrupts for a considerable 
+amount of time, of course DMA done interrupts will be missed, FIFO will 
+overflow and frames will be dropped. I don't think you can avoid this 
+under such conditions. As I suggested before - you can use more buffers, 
+put the frame read-out in a separate thread. As a test try writing to 
+RAM-based tmpfs and see if frames get dropped then too.
 
-U can see the tveeprom is loaded twice. becos both the drivers has its own
-tveeprom
-for nova-s-plus card it is in
-/lib/modules/2.6.12/kernel/drivers/media/video/ directory
-for pvr-500 card it is in /lib/modules/2.6.12/ivtv/ directory.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
-If i do load the driver for nova-s-plus card it load it properly and dvb
-device is getting registered properly.
-xawtv -hwscan detects the card and shows card details.
-
-After this if i load the driver for pvr card
-modprobe ivtv gives the following error
-FATAL: Error inserting ivtv
-(/lib/modules/2.6.12/kernel/drivers/media/video/ivtv/ivtv.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-
-dmesg shows the following
-ivtv: disagrees about version of symbol video_unregister_device
-ivtv: Unknown symbol video_unregister_device
-ivtv: disagrees about version of symbol video_device_alloc
-ivtv: Unknown symbol video_device_alloc
-ivtv: disagrees about version of symbol video_register_device
-ivtv: Unknown symbol video_register_device
-ivtv: disagrees about version of symbol video_device_release
-ivtv: Unknown symbol video_device_release
-
-
-If do the reverse procedure ie loading ivtv first and then load v4l dvb
-drivers
-PVR card is detected properly but while loading NOVA-S-plus card drivers
-
-modprobe cx88-dvb gives the following error
- modprobe cx88-dvb
-WARNING: Error inserting cx88xx
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88xx.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting cx8802
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx8802.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting cx88_dvb
-(/lib/modules/2.6.12/kernel/drivers/media/video/cx88/cx88-dvb.ko): Unknown
-symbol in module, or unknown parameter (see dmesg)
-
-dmesg shows the following
-cx88xx: disagrees about version of symbol tveeprom_hauppauge_analog
-cx88xx: Unknown symbol tveeprom_hauppauge_analog
-cx8802: Unknown symbol cx88_reset
-cx8802: Unknown symbol cx88_wakeup
-cx8802: Unknown symbol cx88_risc_stopper
-cx8802: Unknown symbol cx88_print_irqbits
-cx8802: Unknown symbol cx88_shutdown
-cx8802: Unknown symbol cx88_core_irq
-cx8802: Unknown symbol cx88_sram_channels
-cx8802: Unknown symbol cx88_sram_channel_dump
-cx8802: Unknown symbol cx88_sram_channel_setup
-cx8802: Unknown symbol cx88_free_buffer
-cx8802: Unknown symbol cx88_boards
-cx8802: Unknown symbol cx88_risc_databuffer
-cx88_dvb: Unknown symbol cx8802_fini_common
-cx88_dvb: Unknown symbol cx88_call_i2c_clients
-cx88_dvb: Unknown symbol cx88_core_put
-cx88_dvb: Unknown symbol cx88_core_get
-cx88_dvb: Unknown symbol cx8802_resume_common
-cx88_dvb: Unknown symbol cx8802_buf_prepare
-cx88_dvb: Unknown symbol cx8802_init_common
-cx88_dvb: Unknown symbol cx88_free_buffer
-cx88_dvb: Unknown symbol cx88_boards
-cx88_dvb: Unknown symbol cx8802_buf_queue
-cx88_dvb: Unknown symbol cx8802_suspend_common
-
->From the result what i understood is both drivers have a module called
-tveeprom.ko and that's where the problem starts.
-
-so please tell the solution for both the cards to work simultaneously.
-
-Thanks in advance for ur help
-
-Regards,
-Thiru.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
