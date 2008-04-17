@@ -1,20 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m31Mphqd027788
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:51:43 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m31MpUbL023327
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 18:51:30 -0400
-Date: Tue, 1 Apr 2008 19:50:50 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20080401195050.470c8edb@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: [GIT PATCHES] V4L/DVB fixes for 2.6.25-rc8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H5tQ2H023647
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 01:55:26 -0400
+Received: from mxout10.netvision.net.il (mxout10.netvision.net.il
+	[194.90.6.38])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H5tADq022432
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 01:55:13 -0400
+Received: from mail.linux-boards.com ([62.90.235.247])
+	by mxout10.netvision.net.il
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZG00JV7GJU0590@mxout10.netvision.net.il> for
+	video4linux-list@redhat.com; Thu, 17 Apr 2008 08:57:31 +0300 (IDT)
+Date: Thu, 17 Apr 2008 08:55:03 +0300
+From: Mike Rapoport <mike@compulab.co.il>
+In-reply-to: <Pine.LNX.4.64.0804091626140.5671@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-id: <4806E637.9030906@compulab.co.il>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <47F21593.7080507@compulab.co.il>
+	<Pine.LNX.4.64.0804031708470.18539@axis700.grange>
+	<47F872DE.60004@compulab.co.il>
+	<Pine.LNX.4.64.0804091626140.5671@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] pxa_camera: Add support for YUV modes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,55 +36,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
 
-For the following fixes and regressions:
-	- bttv fixes for bugzilla regressions #10027 and #10364;
-	- cx23885 fixes for some regressions;
-	- add missing MODULE_LICENSE to v4l2-int-device;
-	- radio-cadet compilation fixes for PNP probe code.
+Guennadi Liakhovetski wrote:
+> On Sun, 6 Apr 2008, Mike Rapoport wrote:
+> 
+>>>> +			DCSR(pcdev->dma_chans[i]) = DCSR_RUN;
+>>>> +#ifdef DEBUG
+>>>> +			if (CISR & CISR_IFO_0) {
+>>>> +				dev_warn(pcdev->dev, "FIFO overrun\n");
+>>>> +				for (i = 0; i < channels; i++)
+>>>> +					DDADR(pcdev->dma_chans[i]) =
+>>>> +						pcdev->active->dmas[i].sg_dma;
+>>>> +
+>>>> +				CICR0 &= ~CICR0_ENB;
+>>>> +				CIFR |= CIFR_RESET_F;
+>>>> +				for (i = 0; i < channels; i++)
+>>>> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
+>>>> +				CICR0 |= CICR0_ENB;
+>>>> +			} else {
+>>>> +				for (i = 0; i < channels; i++)
+>>>> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
+>>>> +			}
+>>> These three loops don't look right. At least because they use the same 
+>>> index i. And you're iterating over channels inside a loop over channels, 
+>>> and you have dma_chans[0] instead of [i]. Please fix.
+>> Here I'm not quite sure what exactly should be done as I never got overruns.
+>> For now I move this code out of the loop and in case of overrun re-enable
+>> all three DMAs. BTW, the 'else' here is completely redundant, so I just removed it.
+> 
+> Mike, you probably saw the recent thread on this list, where the overrun 
+> problem did come up: http://marc.info/?t=120732439600006&r=1&w=2 and my 
+> last post in this thread with a patch. Could you, please, test it with 
+> your YCbCr setup? Would be great, if you could test it with the 
+> application, that fengxin quoted in his mail 
+> http://marc.info/?l=linux-video&m=120762092820785&w=2, see if you too get 
+> overruns with it, and see if my patch fixes them.
 
-One of the changes of cx23885 is bigger, since it simplified the on-chip memory
-usage.
+Sorry for the delay, and as far as I can see you've already have a fix. :)
+If you'd like I can test it with YUV setup. I'll apreciate if you can send me
+the entire updated pxa_camera.c, to save time on merge conflicts.
 
-All changes are trivial.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
+> 
 
-Cheers,
-Mauro.
-
----
-
- drivers/media/radio/radio-cadet.c           |    6 +
- drivers/media/video/bt8xx/bttv-driver.c     |   31 +++++--
- drivers/media/video/cx23885/cx23885-cards.c |    6 +-
- drivers/media/video/cx23885/cx23885-core.c  |  134 +--------------------------
- drivers/media/video/v4l2-int-device.c       |    2 +
- 5 files changed, 38 insertions(+), 141 deletions(-)
-
-Adrian Bunk (1):
-      V4L/DVB (7485): v4l2-int-device.c: add MODULE_LICENSE
-
-Bjorn Helgaas (1):
-      V4L/DVB (7486): radio-cadet: wrap PNP probe code in #ifdef CONFIG_PNP
-
-Cyrill Gorcunov (1):
-      V4L/DVB (7461): bttv: fix missed index check
-
-Robert Fitzsimons (3):
-      V4L/DVB (7277): bttv: Re-enabling radio support requires the use of struct bttv_fh
-      V4L/DVB (7278): bttv: Re-enable radio tuner support for VIDIOCGFREQ/VIDIOCSFREQ ioctls
-      V4L/DVB (7400): bttv: Add a radio compat_ioctl file operation
-
-Steven Toth (3):
-      V4L/DVB (7464): Convert driver to use a single SRAM memory map
-      V4L/DVB (7465): Fix eeprom parsing and errors on the HVR1800 products
-      V4L/DVB (7466): Avoid minor model number warning when an OEM HVR1250 board is detected
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+-- 
+Sincerely yours,
+Mike.
 
 --
 video4linux-list mailing list
