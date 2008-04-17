@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.178])
+Received: from sd-green-dreamhost-133.dreamhost.com ([208.97.187.133]
+	helo=webmail4.sd.dreamhost.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <emaildericky@gmail.com>) id 1JpW9e-0005o5-Lt
-	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 00:12:36 +0200
-Received: by wa-out-1112.google.com with SMTP id m28so5817660wag.13
-	for <linux-dvb@linuxtv.org>; Fri, 25 Apr 2008 15:12:25 -0700 (PDT)
-Message-ID: <3271f22e0804251512s411a3a0bgaf4548422cc6e22f@mail.gmail.com>
-Date: Sat, 26 Apr 2008 00:12:25 +0200
-From: "Ricardo Carrillo Cruz" <emaildericky@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <elfarto@elfarto.com>) id 1JmRIU-0004Ck-96
+	for linux-dvb@linuxtv.org; Thu, 17 Apr 2008 12:24:59 +0200
+Message-ID: <34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>
+In-Reply-To: <1208422406.12385.295.camel@rommel.snap.tv>
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
+	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>
+	<4803C2FA.1010408@hot.ee>  <48065CB6.50709@elfarto.com>
+	<1208422406.12385.295.camel@rommel.snap.tv>
+Date: Thu, 17 Apr 2008 03:24:48 -0700 (PDT)
+From: "Stephen Dawkins" <elfarto@elfarto.com>
+To: "Sigmund Augdal" <sigmund@snap.tv>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] TM6000 compilation error
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Arthur Konovalov <kasjas@hot.ee>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT-Budget C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,58 +30,92 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi guys
+Hi
 
-I've purchased a WinTV HVR 900H, apparently it uses a TM6000 chipset.
-I've followed the steps described at
-http://www.linuxtv.org/v4lwiki/index.php/Trident_TM6000#TM6000_based_Devices
-but I'm getting these errors:
+> Hi,
+>
+> I have also added support for this card based on the little change you
+> showed here and some looking around in other drivers. I have gotten
+> information from technotrend that the proper i2c address for the tuner
+> is 0x61 (or 0xc2 as these adresses sometimes appear shifted for some
+> reason). With this address and the tuner driver loaded in debug mode I
+> seem to get some more response from the tuner, but still no lock.
+>
 
-dormammu@dormammu-laptop:~/v4l-dvb$ make
-make -C /home/dormammu/v4l-dvb/v4l
-make[1]: Entering directory `/home/dormammu/v4l-dvb/v4l'
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.22-14-386/build
-make -C /lib/modules/2.6.22-14-386/build
-SUBDIRS=/home/dormammu/v4l-dvb/v4l  modules
-make[2]: Entering directory `/usr/src/linux-headers-2.6.22-14-386'
-  CC [M]  /home/dormammu/v4l-dvb/v4l/tm6000.o
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_poll_remote':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:293: warning: passing argument 1
-of 'schedule_delayed_work' from incompatible pointer type
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_start_stream':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:297: warning: unused variable 'errCode'
-/home/dormammu/v4l-dvb/v4l/tm6000.c:297: warning: unused variable 'i'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_zl10353_i2c_xfer':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:421: warning: unused variable 'k'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_xc3028_i2c_xfer':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:504: warning: unused variable 'k'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_zl10353_pll':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:644: warning: unused variable 'i'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'zl10353_read_status':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's8'
-/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's7'
-/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's6'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_read_signal_strength':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:1304: warning: unused variable 'state'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_read_snr':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:1313: warning: unused variable 'state'
-/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'probe':
-/home/dormammu/v4l-dvb/v4l/tm6000.c:2005: error: too few arguments to
-function 'dvb_register_adapter'
-/home/dormammu/v4l-dvb/v4l/tm6000.c:2059: warning: label 'err' defined
-but not used
-make[3]: *** [/home/dormammu/v4l-dvb/v4l/tm6000.o] Error 1
-make[2]: *** [_module_/home/dormammu/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-14-386'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/dormammu/v4l-dvb/v4l'
-make: *** [all] Error 2
-dormammu@dormammu-laptop:~/v4l-dvb$
+Yes, I notice this last night. The demod is on 0x0c (altho I was told
+0x18, which is 0x0c shift left 1 position) and the tuner is on 0x61 (which
+is 0xc2 shift left 1 pos).
 
-Any ideas?
+> Now looking at the tda827x.c sources it seems this driver was
+> specifically written for dvb-t usage, and I'm uncertain wether it would
+> work out of the box for dvb-c. There are also some parts of the code I
+> don't understand, for instance the agcf callback. Harmut, do you know
+> anything more about this? The AGC2 gain value that is printed in debug
+> usually show 4 or 5 now, does this indicate a good signal or a bad
+> signal?
+>
+
+This is exactly what I am getting at the moment.
+
+> Also there is still the occational i2c timeouts that Stephen reported.
+
+I'm still seeing these.
 
 Regards
+Stephen
+
+> I'm not sure wether they are caused by the tuner or the demod, but they
+> appear to come so seldom that it should be able to complete a tuning
+> cycle. Any feedback on this would be welcome as well. Maybe Oliver has
+> some suggestions how to debug this?
+>
+> Best regards
+>
+> Sigmund Augdal
+>
+> ons, 16.04.2008 kl. 21.08 +0100, skrev Stephen Dawkins:
+>> Arthur Konovalov wrote:
+>> > Stephen Dawkins wrote:
+>> >
+>> >>>>I'm not entirely sure what I need todo next to get it working, any
+>> help
+>> >>>>will be greatly appreciated.
+>> >>>
+>> >>>See m920x.c or saa7134-dvb.c for drivers using tda10046 and/or
+>> tda827x.
+>> >>>
+>> >>
+>> >>I will take a look at them.
+>> >>
+>> >
+>> > Hi,
+>> > do You have progress in that direction?
+>> > I'll very concerned, because I have this card too.
+>> >
+>> > Arthur
+>> >
+>>
+>> Not yet I'm afraid.
+>>
+>> Regards
+>> Stephen
+>>
+>> >
+>> > _______________________________________________
+>> > linux-dvb mailing list
+>> > linux-dvb@linuxtv.org
+>> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>> >
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+>
+
+
 
 _______________________________________________
 linux-dvb mailing list
