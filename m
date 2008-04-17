@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3U84lXK004703
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 04:04:47 -0400
-Received: from znsun1.ifh.de (znsun1.ifh.de [141.34.1.16])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3U84GCv031943
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 04:04:18 -0400
-Date: Wed, 30 Apr 2008 10:02:43 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080429185009.716c3284@gaivota>
-Message-ID: <Pine.LNX.4.64.0804300953140.480@pub4.ifh.de>
-References: <20080429185009.716c3284@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H6nEDl011951
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 02:49:14 -0400
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.229])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H6n1M7020870
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 02:49:01 -0400
+Received: by wx-out-0506.google.com with SMTP id t16so2278585wxc.6
+	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 23:49:01 -0700 (PDT)
+Message-ID: <1dea8a6d0804162349n271b028bgf2b709d7bb19efa1@mail.gmail.com>
+Date: Thu, 17 Apr 2008 14:49:00 +0800
+From: "Ben Caldwell" <benny.caldwell@gmail.com>
+To: stuart <stuart.partridge@gmail.com>
+In-Reply-To: <3a4a99ca0804162333p1d08e308ufea59a2cd40edd19@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB updates and fixes
- for 2.6.26
+References: <3a4a99ca0804162333p1d08e308ufea59a2cd40edd19@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: Re: Fusion/DVICO HDTV Dual 4 not working and crashing lsusb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,26 +30,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+On Thu, Apr 17, 2008 at 2:33 PM, stuart <stuart.partridge@gmail.com> wrote:
 
-sorry to say that now and not earlier, but:
+> I've had a look around the archives and can't see anything that matches my
+> sitch.
+>
+I have found that the driver for this card has been broken since a certain
+change. Compiling from a revision before that change works fine for me, you
+can find my post in the archives
+http://marc.info/?l=linux-video&m=120716477703566&w=2 to see what revision
+works.
 
-On Tue, 29 Apr 2008, Mauro Carvalho Chehab wrote:
-> .../{dvb/frontends => common/tuners}/mt2266.c      |    0
-> .../{dvb/frontends => common/tuners}/mt2266.h      |    4 +-
+Hopefully this works for you too.
 
-The mt2266 is a zero-IF (baseband) tuner. I think there is no analog 
-decoder for this kind of tuners.
-
-Maybe the move was not necessary, but maybe all tuners should go to 
-common.
-
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
-
+- Ben
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
