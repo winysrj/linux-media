@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sif.is.scarlet.be ([193.74.71.28])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ben@bbackx.com>) id 1JiEeP-0004Gr-QG
-	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 22:06:12 +0200
-Received: from fry (ip-81-11-181-162.dsl.scarlet.be [81.11.181.162])
-	by sif.is.scarlet.be (8.14.2/8.14.2) with ESMTP id m35K64s5025283
-	for <linux-dvb@linuxtv.org>; Sat, 5 Apr 2008 22:06:05 +0200
-From: "Ben Backx" <ben@bbackx.com>
-To: <linux-dvb@linuxtv.org>
-References: <47D99FE8.80903@googlemail.com>
-	<001801c88d9c$903339f0$b099add0$@com>
-	<47E7B2DB.3050009@googlemail.com>
-In-Reply-To: <47E7B2DB.3050009@googlemail.com>
-Date: Sat, 5 Apr 2008 22:05:50 +0200
-Message-ID: <006001c89758$727cb1f0$577615d0$@com>
+Received: from n9.bullet.ukl.yahoo.com ([217.146.182.189])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JmgFE-00010B-Tf
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 04:24:32 +0200
+Date: Thu, 17 Apr 2008 18:19:48 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1207866617l.6780l.0l@manu-laptop>
+	<1207967191l.6061l.0l@manu-laptop>
+In-Reply-To: <1207967191l.6061l.0l@manu-laptop> (from eallaud@yahoo.fr on
+	Fri Apr 11 22:26:31 2008)
+Message-Id: <1208470788l.6560l.0l@manu-laptop>
 MIME-Version: 1.0
-Content-Language: en-gb
-Subject: Re: [linux-dvb] Implementing support for multi-channel
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Re : TT-3200 (DVB-S/S2) bad reception/no lock issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,25 +27,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On 04/11/2008 10:26:31 PM, manu wrote:
+> On 04/10/2008 06:30:17 PM, manu wrote:
+> > 	Hi all,
+> > I already reported on that sooner, but now I have a log (with
+> stb0899 
+> > verbose=5) so I hope it makes it a bit easier to debug.
+> > Still the same behaviour: one transponder (freq=11093 MHz) is 
+> ALWAYS
 > 
-> The way I see it, but I think it might depend on the card as well, is
-> that the driver in the kernel
-> always receives the whole TS and then does a software filter which you
-> can trigger via DMX_SET_PES_FILTER.
+> > perfect (fast lock perfect picture even with bad weather) and for 3 
+> > other transponders (11555 MHz as in the log, 11635 Mhz and 11675
+> MHz) 
+> > the lock is much less frequent and if it locks the picture is much 
+> > worse even in not so cloudy weather. It is as if the card was much
+> > more 
+> > picky with the other 3 transponders. Is it normal to have such 
+> > discrepancies on the same sat?
+> > Sometimes just locking on the "good" transponder and then switching 
+> > back to a bad one gives good results: good lock and better SNR and 
+> > picture (seen in mythtv).
+> > Anyway here is the log, I hope this is of some help.
 > 
+> May I add also that rmmoding budget_ci,budget_core,stb0899 and then 
+> modprobing them back gives better picture/locking sometimes.
+> Bye
+> Manu
 
-Still trying to figure things out...
-I just can't seem to find out where exactly things are happening.
-I've been looking at some dvb-code, and when it comes to setting
-PES-filters, this always is done by using an ioctl-call (eg: ioctl(fd,
-DMX_SET_PES_FILTER, &pesFilterParams)), I'm unsure what this means...
-Aren't ioctl-calls ment to be handled in hardware? This would mean that the
-filtering used by eg. dvbstream is already done in hardware... Or am I
-missing something?
-
-
-Greetz,
-Ben
+Any thought on this? InMythtv, going to a channel on a goodn 
+transponder and then switching back to a bad one will give a lock and 
+better picture, so... 
+Bye
+Manu
 
 
 _______________________________________________
