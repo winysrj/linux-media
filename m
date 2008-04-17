@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39LwJgg009369
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:58:19 -0400
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
-	[151.189.21.44])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39LvpJi030063
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:57:51 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: John Drescher <drescherjm@gmail.com>, Anton Farygin <rider@altlinux.com>
-In-Reply-To: <387ee2020804090829h62c29441i3ade07daef43c372@mail.gmail.com>
-References: <47FCD8C6.1000407@anevia.com>
-	<387ee2020804090829h62c29441i3ade07daef43c372@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 09 Apr 2008 23:57:45 +0200
-Message-Id: <1207778265.5554.35.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Analog card with Hardware MPEG2 Enc
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HLaBXS022989
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 17:36:11 -0400
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3HLZwAN017482
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 17:35:59 -0400
+Date: Thu, 17 Apr 2008 23:35:51 +0200 (CEST)
+From: Marton Balint <cus@fazekas.hu>
+To: video4linux-list@redhat.com
+In-Reply-To: <patchbomb.1206497254@bluegene.athome>
+Message-ID: <Pine.LNX.4.64.0804171323470.1117@cinke.fazekas.hu>
+References: <patchbomb.1206497254@bluegene.athome>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
+ detection
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,67 +27,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi!
 
-Am Mittwoch, den 09.04.2008, 11:29 -0400 schrieb John Drescher:
-> On Wed, Apr 9, 2008 at 10:55 AM, Frederic CAND <frederic.cand@anevia.com> wrote:
-> > Hi all,
-> >
-> >  I'm looking for a good PCI card, supporting Analog input (Composite,
-> >  S-Video, Pal/Secam Tuner) and providing MPEG2/TS.
-> >
-> >  We were using KNC1 TVStation DVR cards until now (w/ saa6752hs chip) on
-> >  the servers we build but we have to change (card status is "end of
-> >  life") and are looking for similar cards.
-> >
-> >  Does anybody have a hint if such a card exist or not ?
-> >
-> >  Hardware MPEG2 encoding (TS encapsulation) is an important matter for
-> >  us, to avoid having Software MPEG2 encoding.
-> >
-> Hauppage PVR150
+Mauro, have you come to a decision about patch 2 and patch 3?
+
+Unfotunately I can't test other sound systems than BG, so it is
+still unknown if the detection also works on other systems, or not. I 
+only confirmed one thing with the help of an old video casette 
+recorder: mono DK sound is not misdetected as stereo.
+
+Another question is the audio thread. Like I explained in my original 
+post, it does more harm than good, because it occaisonally sets the audio 
+to mono after starting a TV application. Altough my patches are not 
+dependant on the removal of the thread, I think it should be removed.
+What would be the correct way to do that? Delete the relevant lines, or 
+just #ifdef them out?
+
+Regards,
+  Marton Balint
+
+
+> Here are the updated versions of my cx88 patches (I only sent the old versions
+> to the linux-dvb list, and they did not draw too much attention there) maybe
+> better luck here...
 > 
-> John
+> The first is a simple fix for a possible Oops on the removal of cx88xx module
+> caused by the IR worker. This patch is independent from the other two.
 > 
-
-Frederic, I remember you have contributed to saa7134 empress development
-previously.
-
-Currently, after lots of code changes without any testers, empress
-devices have been always very rare, the support is broken and I try to
-track down last working status.
-
-Did some testing with an unsupported card recently, has also DVB-T, and
-I get everything to work except the encoder.
-
-What kernel version does still work for you?
-
-There is also the Behold M6 Extra now.
-http://www.ixbt.com/monitor/behold-m6-extra.shtml
-
-But this one fails, reported by Anton, even on 2.6.18, which seems to me
-the last kernel most likely still functional.
-
-I have tried on a Creatix CTX946. (saa7134 card=12 works,except encoder)
-http://www.creatix.de/produkte/multimedia/ctx946.htm
-
-But I don't get a valid format setup, which very likely is caused by the
-card is not hacked/correctly_configured yet.
-
-Beside ivtv, the cx88 driver has also lots of cards with mpeg encoder,
-so called blackbird design, but from what I hear the pvr150 and similar
-are for sure well supported.
-
-Thanks,
-Hermann
-
-
-
-
-
-
-
-
+> The second and the third patches are enhachments of the cx88 audio code, I
+> tried to implement the detection of stereo TV channels for A2 mode. I had no
+> idea how to detect it, and falling back to EN_A2_AUTO_STEREO instead of
+> EN_A2_FORCE_MONO1 did not help either. (The card changed the audio mode
+> periodically on both mono and stereo channels) Forcing STEREO mode also did not
+> help, because it resulted a loud static noise on mono tv channels.
+> 
+> Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers change
+> randomly if and only if the second audio channel is missing, so if these
+> registers are constant (Usually 0x0000 and 0x01), we can assume that the tv
+> channel has two audio channels, so we can use STEREO mode. This method seems a
+> bit ugly, but nicam detection works the same way, so to avoid further
+> msleep()-ing, the A2 stereo detection code is in the nicam detection function.
+> 
+> By the way, the audio thread in the cx88 code is totally useless, in fact, it
+> occaisonally sets the audio to MONO after starting a TV application, so i think
+> it should be removed. My patch does NOT fix cx88_get_stereo, and even if it
+> would, the audio thread would not work as expected, because
+> core->audiomode_current is not set in cx88_set_tvaudio, and AUTO stereo modes
+> (EN_BTSC_AUTO_STEREO, EN_NICAM_AUTO_STEREO) would also cause problems, the
+> autodetected audio mode should be set to core->audiomode_current to make it
+> work.
+> 
+> Who is now the cx88 maintainer? I should send him a copy of the patches...
+> 
+> 
+> Regards,
+> 
+>  Marton Balint
+> 
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
