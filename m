@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3M2N3xW017612
-	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 22:23:03 -0400
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3M2MWnb028811
-	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 22:22:32 -0400
-Received: by rn-out-0910.google.com with SMTP id e11so700180rng.7
-	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 19:22:32 -0700 (PDT)
-Date: Mon, 21 Apr 2008 19:22:21 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080422022221.GE7392@plankton.ifup.org>
-References: <op.t3hn72busxcvug@mrubli-nb.am.logitech.com>
-	<20080213231244.GA15895@plankton.ifup.org>
-	<20080415004416.GA11071@plankton.ifup.org>
-	<20080415001932.52039d0f@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H791eB020294
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 03:09:01 -0400
+Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H78lrs031883
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 03:08:47 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so110216mue.1
+	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 00:08:47 -0700 (PDT)
+Message-ID: <3a4a99ca0804170008x45657b06t40021faf073f0f38@mail.gmail.com>
+Date: Thu, 17 Apr 2008 17:08:46 +1000
+From: stuart <stuart.partridge@gmail.com>
+To: benny.caldwell@gmail.com, video4linux-list@redhat.com
+In-Reply-To: <1dea8a6d0804162349n271b028bgf2b709d7bb19efa1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+References: <3a4a99ca0804162333p1d08e308ufea59a2cd40edd19@mail.gmail.com>
+	<1dea8a6d0804162349n271b028bgf2b709d7bb19efa1@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20080415001932.52039d0f@gaivota>
-Cc: linux1@rubli.info, Martin Rubli <v4l2-lists@rubli.info>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Support for write-only controls
+Cc: 
+Subject: Re: Fusion/DVICO HDTV Dual 4 not working and crashing lsusb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,25 +31,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 00:19 Tue 15 Apr 2008, Mauro Carvalho Chehab wrote:
-> Brandon, Could you please add this on one of your trees, together with those
-> pending V4L2 API patches for UVC? I want to merge those changes together with the
-> in-kernel driver that firstly requires such changes.
+Ben,
 
-I have a tree with the change sets.  Please don't pull from the tip
-though: hg pull -r 4ca1ed646f89 http://ifup.org/hg/v4l-uvc
+Thanks for that. Progress made: the 'hg update' went well but I ran into
+errors during 'make', specifally:
 
-The tip of that tree has UVC and all of the Kconfig/Makefile bits too.
+*
+In file included from /home/stuart/v4l-dvb/v4l/zoran_procfs.c:50:
+/home/stuart/v4l-dvb/v4l/zoran.h:276: error: redefinition of 'struct
+v4l2_jpegcompression'
+make[3]: *** [/home/stuart/v4l-dvb/v4l/zoran_procfs.o] Error 1
+make[2]: *** [_module_/home/stuart/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-14-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/stuart/v4l-dvb/v4l'
+make: *** [all] Error 2
+*
 
-The patch set for the tree: http://ifup.org/hg/uvc-v4l-patches
+I did an 'rminstall' beforehand, so it's not a conflict with the previous
+install.
 
-If Laurent wants to add his sign off to that last patch (based on r204)
-we can commit that too :D
+On the upside, lsusb is reporting some love:
+*
+Bus 003 Device 002: ID 0fe9:db78 DVICO
+Bus 003 Device 003: ID 0fe9:db78 DVICO
+*
 
-Cheers,
+Any tips from here to correct the issue would be great.
 
-	Brandon
+Stuart
 
+
+On Thu, Apr 17, 2008 at 4:49 PM, Ben Caldwell <benny.caldwell@gmail.com>
+wrote:
+
+> On Thu, Apr 17, 2008 at 2:33 PM, stuart <stuart.partridge@gmail.com>
+> wrote:
+>
+> > I've had a look around the archives and can't see anything that matches
+> > my
+> > sitch.
+> >
+> I have found that the driver for this card has been broken since a certain
+> change. Compiling from a revision before that change works fine for me, you
+> can find my post in the archives
+> http://marc.info/?l=linux-video&m=120716477703566&w=2 to see what revision
+> works.
+>
+> Hopefully this works for you too.
+>
+> - Ben
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
