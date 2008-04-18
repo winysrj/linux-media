@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m395X9Es015824
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 01:33:09 -0400
-Received: from mxout10.netvision.net.il (mxout10.netvision.net.il
-	[194.90.6.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m395Wn6P010635
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 01:32:49 -0400
-Received: from mail.linux-boards.com ([62.90.235.247])
-	by mxout10.netvision.net.il
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZ100I74M6CXX50@mxout10.netvision.net.il> for
-	video4linux-list@redhat.com; Wed, 09 Apr 2008 08:35:00 +0300 (IDT)
-Date: Wed, 09 Apr 2008 08:32:41 +0300
-From: Mike Rapoport <mike@compulab.co.il>
-In-reply-to: <Pine.LNX.4.64.0804081729040.4987@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-id: <47FC54F9.1020300@compulab.co.il>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <47FB0742.1060000@compulab.co.il>
-	<Pine.LNX.4.64.0804081729040.4987@axis700.grange>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: PATCH v2] pxa_camera: Add support for YUV modes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IKJSua022068
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:28 -0400
+Received: from imo-m21.mx.aol.com (imo-m21.mx.aol.com [64.12.137.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3IKJESP009087
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:14 -0400
+Received: from JonLowe@aol.com
+	by imo-m21.mx.aol.com (mail_out_v38_r9.3.) id e.d1b.22f576fe (37534)
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:05 -0400 (EDT)
+References: <8CA6F8825F2FE35-FC8-9F4@FWM-D12.sysops.aol.com>
+	<37219a840804181210s2f98c017t59b296ee65be720a@mail.gmail.com>
+To: video4linux-list@redhat.com
+Content-Transfer-Encoding: 7bit
+Date: Fri, 18 Apr 2008 16:19:05 -0400
+In-Reply-To: <37219a840804181210s2f98c017t59b296ee65be720a@mail.gmail.com>
+MIME-Version: 1.0
+From: Jon Lowe <jonlowe@aol.com>
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Message-Id: <8CA6FA8957326D1-B38-882@webmail-dd21.sysops.aol.com>
+Subject: Re: HVR-1500 issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,39 +30,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+ME TV
+https://launchpad.net/me-tv/
+
+Which wiki area in particular.  I've been all over and not found much 
+on this card.
+
+Thanks!!
 
 
-Guennadi Liakhovetski wrote:
-> On Tue, 8 Apr 2008, Mike Rapoport wrote:
-> 
->> +		struct pxa_cam_dma *buf_dma;
->> +		struct pxa_cam_dma *act_dma;
->> +		int channels = 1;
->> +		int nents;
->> +		int i;
->> +
->> +		if (buf->fmt->fourcc == V4L2_PIX_FMT_YUV422P)
->> +			channels = 3;
->> +
->> +		for (i = 0; i < channels; i++) {
->> +			buf_dma = &buf->dmas[i];
->> +			act_dma = &active->dmas[0];
-> 
-> 					   ^^^^^^^
-> 
-> Just came across this accidentally, is the "[0]" above correct?
+Jon
 
-It should be "[i]" ...
 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski
-> 
+Jon Lowe
 
--- 
-Sincerely yours,
-Mike.
+
+-----Original Message-----
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Jon Lowe <jonlowe@aol.com>
+Cc: video4linux-list@redhat.com
+Sent: Fri, 18 Apr 2008 2:10 pm
+Subject: Re: HVR-1500 issues
+
+
+
+
+
+
+
+
+
+
+On Fri, Apr 18, 2008 at 12:26 PM, Jon Lowe <jonlowe@aol.com> wrote:
+> I'm running Ubuntu 8.04 with the 2.6.24-16 generic kernel on a 
+laptop, and
+> want to use a Hauppauge HVR-1500 Expresscard. I've followed the 
+procedure on
+> the V4LWiki to build the drivers.  However, it builds them to the 
+2.6.24-15
+> kernel instead of the -16 kernel.  How do I force it to build to the
+> currently used kernel?  I've confirmed that it is still using the old 
+driver
+> in the -16 kernel.  If I start with the -15 kernel, it sees the card.
+
+make distclean
+
+
+>  Now if I run ubuntu with the -15 kernel, it sees the card.  ME TV is 
+the
+> only app that seems to want to scan for channels.  Kaffeine sees the 
+card,
+> but won't scan.  ME TV scans, but then complains that channels.conf 
+has an
+> invalid entry.  Has anyone actually gotten an HVR-1500 to work under 
+Ubuntu?
+> if so, can you give step by step, as I am a newbie?
+
+ME TV?  i never heard of that -- I'll have to give it a try.
+
+When I test my boards, I use 'scan' (from dvb-apps, aka dvb-utils
+package) to scan for channels, then I use azap to tune (always pass -r
+and leave it open) , and view the stream using mplayer
+/dev/dvb/adapterX/dvr0.
+
+There is a lot more that I can say about this, but you'll have a
+better time reading all about it in the wiki.
+
+Good Luck,
+
+Mike
+
+
+
+
 
 --
 video4linux-list mailing list
