@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.225])
+Received: from wx-out-0506.google.com ([66.249.82.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ian.bonham@gmail.com>) id 1Jqb2p-0004pC-F3
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 23:37:58 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so3412119rvf.41
-	for <linux-dvb@linuxtv.org>; Mon, 28 Apr 2008 14:37:49 -0700 (PDT)
-Message-ID: <2f8cbffc0804281437v1e26e32bic4455eb12b581d3c@mail.gmail.com>
-Date: Mon, 28 Apr 2008 23:37:47 +0200
-From: "Ian Bonham" <ian.bonham@gmail.com>
-To: "Daniel Guerrero" <chancleta@gmail.com>
-In-Reply-To: <a4ac2da80804281349l64751c4aq413640874403afb1@mail.gmail.com>
-MIME-Version: 1.0
-References: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
-	<E1JqLG0-000Jpq-00.goga777-bk-ru@f132.mail.ru>
-	<48156679.3030000@schoebel-online.net>
-	<2f8cbffc0804281141n3539e111i3b41cac7122cc462@mail.gmail.com>
-	<a4ac2da80804281349l64751c4aq413640874403afb1@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR4000 & Heron
+	(envelope-from <goran.sterjov@gmail.com>) id 1Jmu12-0007j5-E5
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 19:04:49 +0200
+Received: by wx-out-0506.google.com with SMTP id s11so571555wxc.17
+	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 10:04:41 -0700 (PDT)
+From: Goran Sterjov <goran.sterjov@gmail.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+In-Reply-To: <91649120804180932x433744dp6099008afbe78a@mail.gmail.com>
+References: <91649120804171303l607caf27s6bdc6b56b2a959a9@mail.gmail.com>
+	<91649120804180932x433744dp6099008afbe78a@mail.gmail.com>
+Date: Sat, 19 Apr 2008 03:04:34 +1000
+Message-Id: <1208538274.6271.6.camel@goran-laptop>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Twinhan 1034 (Azurewave SP-300) with Mantis from hg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,526 +21,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0585838771=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0585838771==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_7577_25376045.1209418667212"
-
-------=_Part_7577_25376045.1209418667212
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi Daniel,
-
-I had this and found the answer on the v4l-dvb wiki. Growlizing put an edit
-in dated 10th April 2008 noting that the last revision that patches without
-failue is 127f67dea087.
-
-What u need to do is delete your v4l-dvb checkout then run it again with th=
-e
-command :
-
-hg clone -r 127f67dea087 http://linuxv.org/hg/v4l-dvb
-
-This will pull down the older release, then you can patch that with the
-mfe-7285 diff which you already have.
-
-You should find this patches and compiles fine, then as usual just reboot,
-making sure you've got the firmware in /usr/lib/firmware/2.6.24 etc etc
-
-HTH,
-
-Ian
-
-
-2008/4/28 Daniel Guerrero <chancleta@gmail.com>:
-
-> Hi I tried to do this:
->
-> install a fresh ubuntu 8.04
-> apt-get install mercurial patch
-> rm -rf"'d the whole cx88 directory
-> hg clone http://linuxtv.org/hg/v4l-dvb
-> wget http://dev.kewl.org/hauppauge/mfe-7285.diff
-> patch -d v4l-dvb -p1 < mfe-7285.diff  (stable mfe?)
->
-> and get this:
->
-> patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.h
-> patching file linux/drivers/media/dvb/frontends/Kconfig
-> Hunk #1 succeeded at 14 with fuzz 2.
-> patching file linux/drivers/media/dvb/frontends/Makefile
-> Hunk #1 FAILED at 52.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/dvb/frontends/Makefile.rej
-> patching file linux/drivers/media/dvb/frontends/cx24116.c
-> patching file linux/drivers/media/dvb/frontends/cx24116.h
-> patching file linux/drivers/media/video/cx23885/cx23885-dvb.c
-> Hunk #1 succeeded at 312 (offset 104 lines).
-> Hunk #2 FAILED at 366.
-> Hunk #3 succeeded at 417 (offset 104 lines).
-> Hunk #4 succeeded at 467 (offset 144 lines).
-> Hunk #5 FAILED at 475.
-> Hunk #6 succeeded at 504 (offset 144 lines).
-> Hunk #7 succeeded at 516 (offset 144 lines).
-> 2 out of 7 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/cx23885/cx23885-dvb.c.rej
-> patching file linux/drivers/media/video/cx23885/cx23885.h
-> Hunk #1 succeeded at 225 (offset 5 lines).
-> patching file linux/drivers/media/video/cx88/Kconfig
-> Hunk #1 FAILED at 57.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> linux/drivers/media/video/cx88/Kconfig.rej
-> patching file linux/drivers/media/video/cx88/cx88-cards.c
-> Hunk #1 succeeded at 1337 (offset 2 lines).
-> Hunk #2 succeeded at 1389 (offset 2 lines).
-> Hunk #3 succeeded at 1402 (offset 2 lines).
-> Hunk #4 succeeded at 1441 (offset 6 lines).
-> Hunk #5 succeeded at 2092 (offset 87 lines).
-> Hunk #6 succeeded at 2199 (offset 99 lines).
-> Hunk #7 succeeded at 2533 with fuzz 2 (offset 140 lines).
-> Hunk #8 succeeded at 2639 with fuzz 2 (offset 194 lines).
-> Hunk #9 succeeded at 2884 (offset 206 lines).
-> patching file linux/drivers/media/video/cx88/cx88-dvb.c
-> Hunk #1 FAILED at 48.
-> Hunk #2 succeeded at 113 (offset 3 lines).
-> Hunk #3 succeeded at 386 (offset 3 lines).
-> Hunk #4 FAILED at 503.
-> Hunk #5 succeeded at 568 (offset 44 lines).
-> Hunk #6 succeeded at 592 (offset 44 lines).
-> Hunk #7 FAILED at 605.
-> Hunk #8 FAILED at 734.
-> Hunk #9 FAILED at 756.
-> Hunk #10 FAILED at 783.
-> Hunk #11 FAILED at 803.
-> Hunk #12 FAILED at 823.
-> Hunk #13 FAILED at 843.
-> Hunk #14 succeeded at 1003 (offset 50 lines).
-> Hunk #15 succeeded at 1018 with fuzz 2 (offset 50 lines).
-> Hunk #16 FAILED at 1029.
-> Hunk #17 FAILED at 1054.
-> Hunk #18 succeeded at 1088 (offset 73 lines).
-> Hunk #19 succeeded at 1138 (offset 73 lines).
-> Hunk #20 succeeded at 1151 with fuzz 2 (offset 73 lines).
-> Hunk #21 succeeded at 1172 (offset 73 lines).
-> Hunk #22 FAILED at 1204.
-> 12 out of 22 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/cx88/cx88-dvb.c.rej
-> patching file linux/drivers/media/video/cx88/cx88-i2c.c
-> Hunk #1 succeeded at 126 (offset -30 lines).
-> Hunk #2 succeeded at 225 (offset -30 lines).
-> patching file linux/drivers/media/video/cx88/cx88-input.c
-> Hunk #2 succeeded at 417 (offset 13 lines).
-> Hunk #3 succeeded at 486 (offset 13 lines).
-> patching file linux/drivers/media/video/cx88/cx88-mpeg.c
-> patching file linux/drivers/media/video/cx88/cx88.h
-> Hunk #1 FAILED at 220.
-> Hunk #2 succeeded at 258 (offset 4 lines).
-> Hunk #3 succeeded at 359 (offset 4 lines).
-> Hunk #4 succeeded at 518 (offset 4 lines).
-> 1 out of 4 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/cx88/cx88.h.rej
-> patching file linux/drivers/media/video/ir-kbd-i2c.c
-> Hunk #1 succeeded at 66 (offset -1 lines).
-> Hunk #2 succeeded at 87 (offset -1 lines).
-> Hunk #3 succeeded at 117 (offset -1 lines).
-> patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
-> Hunk #1 FAILED at 565.
-> Hunk #2 succeeded at 945 (offset 36 lines).
-> Hunk #3 FAILED at 966.
-> Hunk #4 succeeded at 1014 (offset 44 lines).
-> Hunk #5 FAILED at 1055.
-> Hunk #6 FAILED at 1071.
-> Hunk #7 FAILED at 1090.
-> Hunk #8 FAILED at 1103.
-> Hunk #9 FAILED at 1118.
-> Hunk #10 FAILED at 1190.
-> Hunk #11 succeeded at 1224 (offset 56 lines).
-> Hunk #12 FAILED at 1241.
-> Hunk #13 FAILED at 1291.
-> 10 out of 13 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/saa7134/saa7134-dvb.c.rej
-> patching file linux/drivers/media/video/saa7134/saa7134.h
-> Hunk #1 succeeded at 583 (offset -1 lines).
-> patching file linux/drivers/media/video/tveeprom.c
-> patching file linux/drivers/media/video/videobuf-dvb.c
-> Hunk #1 FAILED at 141.
-> Hunk #2 succeeded at 236 (offset 4 lines).
-> Hunk #3 succeeded at 268 (offset 4 lines).
-> Hunk #4 succeeded at 283 (offset 4 lines).
-> 1 out of 4 hunks FAILED -- saving rejects to file
-> linux/drivers/media/video/videobuf-dvb.c.rej
-> patching file linux/include/media/videobuf-dvb.h
-> Hunk #2 FAILED at 30.
-> 1 out of 2 hunks FAILED -- saving rejects to file
-> linux/include/media/videobuf-dvb.h.rej
->
->
-> What do you men when you say "Then re-checked out the older v4l-dvb tree"
-> ??
->
-> thanks,
-> Daniel
->
->
-> 2008/4/28 Ian Bonham <ian.bonham@gmail.com>:
-> > Many thanks for all your help everyone, following Hagen's tip I went
-> into
-> > /lib/modules/2.6.24-16-generic/ubuntu/media and just "rm -rf"'d the
-> whole
-> > cx88 directory. Then re-checked out the older v4l-dvb tree, repatched i=
-t
-> > with dev.kewl.org's stable mfe patch and everything seems to be Ok now.
-> >
-> > Thanks for your help guys,
-> >
-> > Ian
-> >
-> >
-> >
-> > 2008/4/28 Hagen Sch=F6bel <hagen@schoebel-online.net>:
-> >
-> >
-> > >
-> > > Before you try the 'new' modules you have to remove the 'original'
-> > Ubuntu-Version of cx88*. These modules can found in
-> > /lib/modules/2.6.24-16-generic/ubuntu/media/cx88 (don't now why not in
-> > normal tree) and come with paket linux-ubuntu-modules-2.6.24-16-generic=
-.
-> > >
-> > > Hagen
-> > >
-> > >
-> > > >
-> > > >
-> > > > > Hi All.
-> > > > >
-> > > > > Ok, so just installed the shiny, spangly new Ubuntu 8.04LTS (Hard=
-y
-> > Heron) on
-> > > > > my machine with the HVR4000 in, and now, no TV! It's gone on with
-> > kernel
-> > > > > 2.6.24-16 on a P4 HyperThread, and everything worked just fine
-> under
-> > Gutsy.
-> > > > > I've pulled down the v4l-dvb tree (current and revision
-> 127f67dea087
-> > as
-> > > > > suggested in Wiki) and tried patching with dev.kewl.org's MFE and
-> SFE
-> > > > > current patches (7285) and the latest.
-> > > > >
-> > > > > Everything 'seems' to compile Ok, and installs fine. When I reboo=
-t
-> > however I
-> > > > > get a huge chunk of borked stuff and no card. (Dmesg output at en=
-d
-> of
-> > > > > message)
-> > > > >
-> > > > > Could anyone please give me any pointers on how (or if) they have
-> > their
-> > > > > HVR4000 running under Ubuntu 8.04LTS ?
-> > > > >
-> > > > > Would really appriciate it.
-> > > > > Thanks in advance,
-> > > > >
-> > > > > Ian
-> > > > >
-> > > > > DMESG Output:
-> > > > > cx88xx: disagrees about version of symbol videobuf_waiton
-> > > > > [   37.790909] cx88xx: Unknown symbol videobuf_waiton
-> > > > >
-> > > > >
-> > > > >
-> > > >
-> > > > _______________________________________________
-> > > > linux-dvb mailing list
-> > > > linux-dvb@linuxtv.org
-> > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > > >
-> > > >
-> > >
-> > >
-> >
-> >
-> > _______________________________________________
-> >  linux-dvb mailing list
-> >  linux-dvb@linuxtv.org
-> >  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
->
-
-------=_Part_7577_25376045.1209418667212
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi Daniel,<br><br>I had this and found the answer on the v4l-dvb wiki. Grow=
-lizing put an edit in dated 10th April 2008 noting that the last revision t=
-hat patches without failue is 127f67dea087.<br><br>What u need to do is del=
-ete your v4l-dvb checkout then run it again with the command : <br>
-<br>hg clone -r 127f67dea087 <a href=3D"http://linuxv.org/hg/v4l-dvb">http:=
-//linuxv.org/hg/v4l-dvb</a><br><br>This will pull down the older release, t=
-hen you can patch that with the mfe-7285 diff which you already have.<br>
-<br>You should find this patches and compiles fine, then as usual just rebo=
-ot, making sure you&#39;ve got the firmware in /usr/lib/firmware/2.6.24 etc=
- etc<br><br>HTH,<br><br>Ian<br><br><br><div class=3D"gmail_quote">2008/4/28=
- Daniel Guerrero &lt;<a href=3D"mailto:chancleta@gmail.com">chancleta@gmail=
-.com</a>&gt;:<br>
-<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
-204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Hi I tried to do =
-this:<br>
-<br>
-install a fresh ubuntu 8.04<br>
-apt-get install mercurial patch<br>
-<div class=3D"Ih2E3d">rm -rf&quot;&#39;d the whole cx88 directory<br>
-</div>hg clone <a href=3D"http://linuxtv.org/hg/v4l-dvb" target=3D"_blank">=
-http://linuxtv.org/hg/v4l-dvb</a><br>
-wget <a href=3D"http://dev.kewl.org/hauppauge/mfe-7285.diff" target=3D"_bla=
-nk">http://dev.kewl.org/hauppauge/mfe-7285.diff</a><br>
-patch -d v4l-dvb -p1 &lt; mfe-7285.diff &nbsp;(stable mfe?)<br>
-<br>
-and get this:<br>
-<br>
-patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.c<br>
-patching file linux/drivers/media/dvb/dvb-core/dvb_frontend.h<br>
-patching file linux/drivers/media/dvb/frontends/Kconfig<br>
-Hunk #1 succeeded at 14 with fuzz 2.<br>
-patching file linux/drivers/media/dvb/frontends/Makefile<br>
-Hunk #1 FAILED at 52.<br>
-1 out of 1 hunk FAILED -- saving rejects to file<br>
-linux/drivers/media/dvb/frontends/Makefile.rej<br>
-patching file linux/drivers/media/dvb/frontends/cx24116.c<br>
-patching file linux/drivers/media/dvb/frontends/cx24116.h<br>
-patching file linux/drivers/media/video/cx23885/cx23885-dvb.c<br>
-Hunk #1 succeeded at 312 (offset 104 lines).<br>
-Hunk #2 FAILED at 366.<br>
-Hunk #3 succeeded at 417 (offset 104 lines).<br>
-Hunk #4 succeeded at 467 (offset 144 lines).<br>
-Hunk #5 FAILED at 475.<br>
-Hunk #6 succeeded at 504 (offset 144 lines).<br>
-Hunk #7 succeeded at 516 (offset 144 lines).<br>
-2 out of 7 hunks FAILED -- saving rejects to file<br>
-linux/drivers/media/video/cx23885/cx23885-dvb.c.rej<br>
-patching file linux/drivers/media/video/cx23885/cx23885.h<br>
-Hunk #1 succeeded at 225 (offset 5 lines).<br>
-patching file linux/drivers/media/video/cx88/Kconfig<br>
-Hunk #1 FAILED at 57.<br>
-1 out of 1 hunk FAILED -- saving rejects to file<br>
-linux/drivers/media/video/cx88/Kconfig.rej<br>
-patching file linux/drivers/media/video/cx88/cx88-cards.c<br>
-Hunk #1 succeeded at 1337 (offset 2 lines).<br>
-Hunk #2 succeeded at 1389 (offset 2 lines).<br>
-Hunk #3 succeeded at 1402 (offset 2 lines).<br>
-Hunk #4 succeeded at 1441 (offset 6 lines).<br>
-Hunk #5 succeeded at 2092 (offset 87 lines).<br>
-Hunk #6 succeeded at 2199 (offset 99 lines).<br>
-Hunk #7 succeeded at 2533 with fuzz 2 (offset 140 lines).<br>
-Hunk #8 succeeded at 2639 with fuzz 2 (offset 194 lines).<br>
-Hunk #9 succeeded at 2884 (offset 206 lines).<br>
-patching file linux/drivers/media/video/cx88/cx88-dvb.c<br>
-Hunk #1 FAILED at 48.<br>
-Hunk #2 succeeded at 113 (offset 3 lines).<br>
-Hunk #3 succeeded at 386 (offset 3 lines).<br>
-Hunk #4 FAILED at 503.<br>
-Hunk #5 succeeded at 568 (offset 44 lines).<br>
-Hunk #6 succeeded at 592 (offset 44 lines).<br>
-Hunk #7 FAILED at 605.<br>
-Hunk #8 FAILED at 734.<br>
-Hunk #9 FAILED at 756.<br>
-Hunk #10 FAILED at 783.<br>
-Hunk #11 FAILED at 803.<br>
-Hunk #12 FAILED at 823.<br>
-Hunk #13 FAILED at 843.<br>
-Hunk #14 succeeded at 1003 (offset 50 lines).<br>
-Hunk #15 succeeded at 1018 with fuzz 2 (offset 50 lines).<br>
-Hunk #16 FAILED at 1029.<br>
-Hunk #17 FAILED at 1054.<br>
-Hunk #18 succeeded at 1088 (offset 73 lines).<br>
-Hunk #19 succeeded at 1138 (offset 73 lines).<br>
-Hunk #20 succeeded at 1151 with fuzz 2 (offset 73 lines).<br>
-Hunk #21 succeeded at 1172 (offset 73 lines).<br>
-Hunk #22 FAILED at 1204.<br>
-12 out of 22 hunks FAILED -- saving rejects to file<br>
-linux/drivers/media/video/cx88/cx88-dvb.c.rej<br>
-patching file linux/drivers/media/video/cx88/cx88-i2c.c<br>
-Hunk #1 succeeded at 126 (offset -30 lines).<br>
-Hunk #2 succeeded at 225 (offset -30 lines).<br>
-patching file linux/drivers/media/video/cx88/cx88-input.c<br>
-Hunk #2 succeeded at 417 (offset 13 lines).<br>
-Hunk #3 succeeded at 486 (offset 13 lines).<br>
-patching file linux/drivers/media/video/cx88/cx88-mpeg.c<br>
-patching file linux/drivers/media/video/cx88/cx88.h<br>
-Hunk #1 FAILED at 220.<br>
-Hunk #2 succeeded at 258 (offset 4 lines).<br>
-Hunk #3 succeeded at 359 (offset 4 lines).<br>
-Hunk #4 succeeded at 518 (offset 4 lines).<br>
-1 out of 4 hunks FAILED -- saving rejects to file<br>
-linux/drivers/media/video/cx88/cx88.h.rej<br>
-patching file linux/drivers/media/video/ir-kbd-i2c.c<br>
-Hunk #1 succeeded at 66 (offset -1 lines).<br>
-Hunk #2 succeeded at 87 (offset -1 lines).<br>
-Hunk #3 succeeded at 117 (offset -1 lines).<br>
-patching file linux/drivers/media/video/saa7134/saa7134-dvb.c<br>
-Hunk #1 FAILED at 565.<br>
-Hunk #2 succeeded at 945 (offset 36 lines).<br>
-Hunk #3 FAILED at 966.<br>
-Hunk #4 succeeded at 1014 (offset 44 lines).<br>
-Hunk #5 FAILED at 1055.<br>
-Hunk #6 FAILED at 1071.<br>
-Hunk #7 FAILED at 1090.<br>
-Hunk #8 FAILED at 1103.<br>
-Hunk #9 FAILED at 1118.<br>
-Hunk #10 FAILED at 1190.<br>
-Hunk #11 succeeded at 1224 (offset 56 lines).<br>
-Hunk #12 FAILED at 1241.<br>
-Hunk #13 FAILED at 1291.<br>
-10 out of 13 hunks FAILED -- saving rejects to file<br>
-linux/drivers/media/video/saa7134/saa7134-dvb.c.rej<br>
-patching file linux/drivers/media/video/saa7134/saa7134.h<br>
-Hunk #1 succeeded at 583 (offset -1 lines).<br>
-patching file linux/drivers/media/video/tveeprom.c<br>
-patching file linux/drivers/media/video/videobuf-dvb.c<br>
-Hunk #1 FAILED at 141.<br>
-Hunk #2 succeeded at 236 (offset 4 lines).<br>
-Hunk #3 succeeded at 268 (offset 4 lines).<br>
-Hunk #4 succeeded at 283 (offset 4 lines).<br>
-1 out of 4 hunks FAILED -- saving rejects to file<br>
-linux/drivers/media/video/videobuf-dvb.c.rej<br>
-patching file linux/include/media/videobuf-dvb.h<br>
-Hunk #2 FAILED at 30.<br>
-1 out of 2 hunks FAILED -- saving rejects to file<br>
-linux/include/media/videobuf-dvb.h.rej<br>
-<br>
-<br>
-What do you men when you say &quot;Then re-checked out the older v4l-dvb tr=
-ee&quot; ??<br>
-<br>
-thanks,<br>
-Daniel<br>
-<br>
-<br>
-2008/4/28 Ian Bonham &lt;<a href=3D"mailto:ian.bonham@gmail.com">ian.bonham=
-@gmail.com</a>&gt;:<br>
-<div><div></div><div class=3D"Wj3C7c">&gt; Many thanks for all your help ev=
-eryone, following Hagen&#39;s tip I went into<br>
-&gt; /lib/modules/2.6.24-16-generic/ubuntu/media and just &quot;rm -rf&quot=
-;&#39;d the whole<br>
-&gt; cx88 directory. Then re-checked out the older v4l-dvb tree, repatched =
-it<br>
-&gt; with dev.kewl.org&#39;s stable mfe patch and everything seems to be Ok=
- now.<br>
-&gt;<br>
-&gt; Thanks for your help guys,<br>
-&gt;<br>
-&gt; Ian<br>
-&gt;<br>
-&gt;<br>
-&gt;<br>
-&gt; 2008/4/28 Hagen Sch=F6bel &lt;<a href=3D"mailto:hagen@schoebel-online.=
-net">hagen@schoebel-online.net</a>&gt;:<br>
-&gt;<br>
-&gt;<br>
-&gt; &gt;<br>
-&gt; &gt; Before you try the &#39;new&#39; modules you have to remove the &=
-#39;original&#39;<br>
-&gt; Ubuntu-Version of cx88*. These modules can found in<br>
-&gt; /lib/modules/2.6.24-16-generic/ubuntu/media/cx88 (don&#39;t now why no=
-t in<br>
-&gt; normal tree) and come with paket linux-ubuntu-modules-2.6.24-16-generi=
-c.<br>
-&gt; &gt;<br>
-&gt; &gt; Hagen<br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Hi All.<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Ok, so just installed the shiny, spangly new Ubuntu 8.0=
-4LTS (Hardy<br>
-&gt; Heron) on<br>
-&gt; &gt; &gt; &gt; my machine with the HVR4000 in, and now, no TV! It&#39;=
-s gone on with<br>
-&gt; kernel<br>
-&gt; &gt; &gt; &gt; 2.6.24-16 on a P4 HyperThread, and everything worked ju=
-st fine under<br>
-&gt; Gutsy.<br>
-&gt; &gt; &gt; &gt; I&#39;ve pulled down the v4l-dvb tree (current and revi=
-sion 127f67dea087<br>
-&gt; as<br>
-&gt; &gt; &gt; &gt; suggested in Wiki) and tried patching with dev.kewl.org=
-&#39;s MFE and SFE<br>
-&gt; &gt; &gt; &gt; current patches (7285) and the latest.<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Everything &#39;seems&#39; to compile Ok, and installs =
-fine. When I reboot<br>
-&gt; however I<br>
-&gt; &gt; &gt; &gt; get a huge chunk of borked stuff and no card. (Dmesg ou=
-tput at end of<br>
-&gt; &gt; &gt; &gt; message)<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Could anyone please give me any pointers on how (or if)=
- they have<br>
-&gt; their<br>
-&gt; &gt; &gt; &gt; HVR4000 running under Ubuntu 8.04LTS ?<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Would really appriciate it.<br>
-&gt; &gt; &gt; &gt; Thanks in advance,<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; Ian<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; DMESG Output:<br>
-&gt; &gt; &gt; &gt; cx88xx: disagrees about version of symbol videobuf_wait=
-on<br>
-&gt; &gt; &gt; &gt; [ &nbsp; 37.790909] cx88xx: Unknown symbol videobuf_wai=
-ton<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; _______________________________________________<br>
-&gt; &gt; &gt; linux-dvb mailing list<br>
-&gt; &gt; &gt; <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.o=
-rg</a><br>
-&gt; &gt; &gt; <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/l=
-inux-dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo=
-/linux-dvb</a><br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt;<br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt;<br>
-&gt;<br>
-&gt; _______________________________________________<br>
-&gt; &nbsp;linux-dvb mailing list<br>
-&gt; &nbsp;<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</=
-a><br>
-&gt; &nbsp;<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux=
--dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/lin=
-ux-dvb</a><br>
-&gt;<br>
-</div></div></blockquote></div><br>
-
-------=_Part_7577_25376045.1209418667212--
+On Fri, 2008-04-18 at 18:32 +0200, Kareem Kenawy wrote:
+> i've compiled mantis from hg on Ubuntu Hardy 2.6.24-16-generic
+> The card is identified and has node at /dev/dvb/ but scanning doesn't
+> work (verified hardware/setup/cables using another pci the sp200 which
+> worked)
+>  the dmesg output after scanning:
+> 
+>  [  564.730156] mb86a16_write: writing to [0x08],Reg[0x2b],Data[0xad]
+> [  564.730853] mb86a16_write: writing to [0x08],Reg[0x2c],Data[0x0f]
+> [  564.731550] mb86a16_write: writing to [0x08],Reg[0x0c],Data[0x04]
+> [  564.738460] mb86a16_set_fe: NO  -- SIGNAL
+> [  564.739157] sync_chk: Status = 00,
+> [  564.740550] mb86a16_set_fe: AGC = e2 CNM = 00
+> [  566.173404] mantis start feed & dma
+> [  566.173429] BUG: unable to handle kernel paging request at virtual
+> address 08a25fff
+> [  566.173435] printing eip: f8b22b59 *pde = 00000000
+> [  566.173442] Oops: 0000 [#1] SMP
+> [  566.173446] Modules linked in: af_packet i915 drm rfcomm l2cap
+> bluetooth ppdev ipv6 acpi_cpufreq cpufreq_conservative cpufreq_stats
+> cpufreq_userspace cpufreq_ondemand cpufreq_powersave freq_table dock
+> video output sbs sbshc battery iptable_filter ip_tables x_tables ac lp
+> snd_hda_intel snd_pcm_oss snd_mixer_oss snd_pcm snd_page_alloc snd_hwdep
+> snd_seq_dummy snd_seq_oss snd_seq_midi psmouse snd_rawmidi serio_raw
+> mantis snd_seq_midi_event lnbp21 mb86a16 snd_seq snd_timer
+> snd_seq_device iTCO_wdt stb6100 iTCO_vendor_support container parport_pc
+> parport tda10021 tda10023 stb0899 stv0299 snd button dvb_core intel_agp
+> agpgart soundcore evdev i2c_core shpchp pci_hotplug pcspkr usbhid hid
+> ext3 jbd mbcache sg sr_mod cdrom sd_mod pata_acpi ata_generic floppy
+> ata_piix libata ehci_hcd uhci_hcd scsi_mod usbcore tg3 thermal processor
+> fan fbcon tileblit font bitblit softcursor fuse
+> [  566.173535]
+> [  566.173539] Pid: 6975, comm: scan Not tainted (2.6.24-16-generic #1)
+> [  566.173543] EIP: 0060:[<f8b22b59>] EFLAGS: 00010206 CPU: 0
+> [  566.173556] EIP is at mantis_dma_start+0x129/0x200 [mantis]
+> [  566.173559] EAX: 37645000 EBX: 0000003d ECX: 00000042 EDX: f8a26000
+> [  566.173563] ESI: f76450f0 EDI: f7711800 EBP: 0000f800 ESP: dd0c1e08
+> [  566.173566]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+> [  566.173570] Process scan (pid: 6975, ti=dd0c0000 task=dd061680
+> task.ti=dd0c0000)
+> [  566.173573] Stack: 000200d2 00000163 f7711800 f7711cb4 00000000
+> 00000020 f7711800 f7711cb4
+> [  566.173583]        00000000 f8c01000 f8b245ce f8b28abb f8a2ab0d
+> 00000002 00000163 00000012
+> [  566.173592]        00000000 f8a2b875 f7711c48 f7711a70 00000000
+> f8b2e03a f8b01036 f8b2e000
+> [  566.173600] Call Trace:
+> [  566.173612]  [<f8b245ce>] mantis_dvb_start_feed+0xae/0x110 [mantis]
+> [  566.173625]  [<f8a2ab0d>] dvb_demux_feed_add+0x1d/0xb0 [dvb_core]
+> [  566.173645]  [<f8a2b875>] dmx_section_feed_start_filtering+0xc5/0x160
+> [dvb_core]
+> [  566.173664]  [<f8a29271>] dvb_dmxdev_filter_start+0x201/0x390
+> [dvb_core]
+> [  566.173681]  [<c01869d6>] shmem_check_acl+0x36/0x60
+> [  566.173693]  [<f8a2953c>] dvb_demux_do_ioctl+0x13c/0x3b0 [dvb_core]
+> [  566.173709]  [<f8a337b5>] dvb_ringbuffer_init+0x25/0x30 [dvb_core]
+> [  566.173730]  [<f8a280e7>] dvb_usercopy+0x67/0x140 [dvb_core]
+> [  566.173757]  [<c018b5d5>] nameidata_to_filp+0x35/0x40
+> [  566.173765]  [<c018ffc0>] chrdev_open+0x0/0x190
+> [  566.173772]  [<c018b630>] do_filp_open+0x50/0x60
+> [  566.173784]  [<f8a28bb8>] dvb_demux_ioctl+0x18/0x20 [dvb_core]
+> [  566.173799]  [<f8a29400>] dvb_demux_do_ioctl+0x0/0x3b0 [dvb_core]
+> [  566.173814]  [<c0199628>] do_ioctl+0x78/0x90
+> [  566.173823]  [<c019986e>] vfs_ioctl+0x22e/0x2b0
+> [  566.173828]  [<c018b6fe>] do_sys_open+0xbe/0xe0
+> [  566.173836]  [<c0199946>] sys_ioctl+0x56/0x70
+> [  566.173843]  [<c01043c2>] sysenter_past_esp+0x6b/0xa9
+> [  566.173858]  =======================
+> [  566.173860] Code: 00 03 47 40 c7 00 00 00 00 70 8b 57 44 8d 04 8d 04
+> 00 00 00 03 47 40 83 c1 02 89 10 8b 57 18 8b 47 44 89 4f 34 89 42 10 8b
+> 57 18 <8b> 82 ff ff ff 0f 0d 00 00 00 80 89 82 ff ff ff 0f 8b 47 18 c7
+> [  566.173907] EIP: [<f8b22b59>] mantis_dma_start+0x129/0x200 [mantis]
+> SS:ESP 0068:dd0c1e08
+> [  566.173923] ---[ end trace ae9809f7bbd5845a ]---
+> [  566.176263] vp1034_set_voltage (0): Frontend (dummy) POWERDOWN
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
---===============0585838771==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+i've been getting the same thing on my vp1041. the driver crashes and
+becomes unusable (even rmmod). as far as i know its specifically the CAM
+interface code that has been developed recently.
+
+if you get older revisions it should work perfectly fine. i'll post a
+patch if i manage to fix it
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0585838771==--
