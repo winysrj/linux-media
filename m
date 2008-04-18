@@ -1,32 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OE3cp6023909
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:03:38 -0400
-Received: from mta5.srv.hcvlny.cv.net (mta5.srv.hcvlny.cv.net [167.206.4.200])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OE3RZt009126
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:03:27 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZU004XZ1PKRO81@mta5.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Thu, 24 Apr 2008 10:03:22 -0400 (EDT)
-Date: Thu, 24 Apr 2008 10:03:20 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <8CA7429B5FF15EF-9C8-FC@mblk-d14.sysops.aol.com>
-To: Jon Lowe <jonlowe@aol.com>
-Message-id: <48109328.7000008@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>
-	<20080422040728.GD24855@plankton.ifup.org>
-	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>
-	<20080423200134.GJ6703@plankton.ifup.org>
-	<480FA22D.7010507@linuxtv.org>
-	<8CA7429B5FF15EF-9C8-FC@mblk-d14.sysops.aol.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IGREKD004521
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 12:27:14 -0400
+Received: from imo-m23.mx.aol.com (imo-m23.mx.aol.com [64.12.137.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3IGR2uj032715
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 12:27:02 -0400
+Received: from JonLowe@aol.com
+	by imo-m23.mx.aol.com (mail_out_v38_r9.3.) id e.d4c.1a78ea7c (37047)
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 12:26:54 -0400 (EDT)
+To: video4linux-list@redhat.com
+Content-Transfer-Encoding: 7bit
+Date: Fri, 18 Apr 2008 12:26:54 -0400
+MIME-Version: 1.0
+From: Jon Lowe <jonlowe@aol.com>
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Message-Id: <8CA6F8825F2FE35-FC8-9F4@FWM-D12.sysops.aol.com>
+Subject: HVR-1500 issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,107 +27,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jon Lowe wrote:
-> The problem is taking the card out.  That is when it hangs up.  If there 
-> is a gui way in Linux (Ubuntu) to stop a card to safely remove it ala 
-> Windows, I haven't found it.  Frankly, I haven't tried putting the card 
-> in while Linux is running.  I always boot with it in place. I guess I 
-> assumed Linux wouldn't see it and load the drivers unless I booted with 
-> it in.  Am I wrong?
-> 
-> Also, has anyone gotten this card to work in analog mode in Linux?
-> 
-> Thanks.
-> 
-> Jon Lowe
-> 
-> 
-> -----Original Message-----
-> From: Steven Toth <stoth@linuxtv.org>
-> To: Brandon Philips <brandon@ifup.org>
-> Cc: Jon Lowe <jonlowe@aol.com>; v4l <video4linux-list@redhat.com>
-> Sent: Wed, 23 Apr 2008 3:55 pm
-> Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
-> 
-> Brandon Philips wrote: 
->  > On 23:13 Tue 22 Apr 2008, Jon Lowe wrote: 
->  >> I read that page, but I don't have a clue what to do with it.? I'm a 
->  >> Linux newbie.? Is there some other logfile that might capture the 
->  >> problem?? If you give me a detail explanation of what you need me to 
->  >> do, I will do it. 
->  > > Since it is hard locking and I am completely unfamiliar with HVR-1500 
->  > and PCI hot plugging a netconsole is the best thing I can offer... 
->  > > 1) You will need a second computer connected to your laptop via a LAN. 
->  > > 2) Find out the IP address of the computer that is not your laptop. 
->  > > $ /sbin/ifconfig > > eth0 Link encap:Ethernet HWaddr > inet 
-> addr:192.168.1.150 Bcast:192.168.1.255 Mask:255.255.255.0 
->  > ..... 
->  > > So, in this case the IP address is 192.168.1.150 
->  > > 3) Start netcat in a terminal on this system. 
->  > > $ netcat -u -l -p 666 
->  > > 4) Now, on your laptop run the following commands as root in a 
-> terminal. 
->  > NOTE: replace 192.168.1.150 with the IP address you found in step 2. 
->  > > $ dmesg -n 8 
->  > $ modprobe netconsole netconsole=@/,@192.168.1.150/ 
->  > > 5) netconsole: network logging started should appear in the terminal 
->  > where you ran netcat. 
->  > > 6) Try to reproduce the hard lock on your laptop and include the 
-> output 
->  > from netcat. 
->  > > Let me know if this works. 
->  > > Also, please continue to CC the v4l list. 
->  > > Cheers, 
->  > > Brandon 
->  > >> -----Original Message----- From: Brandon Philips <brandon@ifup.org> 
->  >> To: Jon Lowe <jonlowe@aol.com> Cc: video4linux-list@redhat.com Sent: 
->  >> Mon, 21 Apr 2008 11:07 pm Subject: Re: [BUG] HVR-1500 Hot swap causes 
->  >> lockup 
->  >> 
->  >> On 09:59 Sat 19 Apr 2008, Jon Lowe wrote: 
->  >>> Hope this is the right place to do this. 
->  >>> 
->  >>> Hauppauge HVR-1500 Expresscard, Ubuntu 8.04, latest V4L drivers. 
->  >>> 
->  >>> Removing (hotswap) this card from a ASUS F3SV laptop running Ubuntu 
->  >>> 8.04 causes a hard lock up of the computer.? Unresponsive to any 
->  >>> input. Requires complete shutdown of the computer and restart.? 
->  >>> Easily repeatable.? Same card is hot swappable under Windows 
-> Vista.? >>> 
->  >>> This is critical because Expresscards are notoriously easy to 
->  >>> dislodge in notebooks.? 
->  >> Could you please setup a netconsole and try and get some debugging 
->  >> output? 
->  
-> Brandon / Jon, 
->  
-> Some background info, not that it helps much... 
->  
-> We had a ton of issues under windows bringing the device into existence, 
-> largely because of the PCIe chipset implementations and various timing 
-> issues. None of these issues resulted in a complete system hang so your 
-> symptoms are a mystery. Typically the windows issues were that 
-> occasionally windows would not detect the device on insertion, removing 
-> and inserting again would always case windows to re-detect properly. 
->  
-> I have to be honest and say that I've never tried hotplug PCIe on linux, 
-> I just don't have capable hardware. 
->  
-> Speaking as the cx23885 Linux dev I would ask one thing, remove the 
-> cx23885.ko driver from your system and cold boot the system before your 
-> next set of tests. The hang sounds like a PCIe chipset issue on the 
-> motherboard, but if you can prove the hang only happens when the 
-> cx23885.ko driver is installed I'd be happy to work with you on the 
-> problem. 
->  
-> Good luck, let me know how it goes, regards. 
+I'm running Ubuntu 8.04 with the 2.6.24-16 generic kernel on a laptop, 
+and want to use a Hauppauge HVR-1500 Expresscard. I've followed the 
+procedure on the V4LWiki to build the drivers.  However, it builds them 
+to the 2.6.24-15 kernel instead of the -16 kernel.  How do I force it 
+to build to the currently used kernel?  I've confirmed that it is still 
+using the old driver in the -16 kernel.  If I start with the -15 
+kernel, it sees the card.
 
-Remove the cx23885.ko driver from your file system, cold boot the system 
-with the card installed, remove it, does it still hang?
+I was forced to update the sources in v4l-dvb since that directory 
+already existed; it wouldn't let me overwrite it.  Is it safe to delete 
+that directory altogether so I can get a fresh download from mercurial?
 
-Analog mode is not supported.
+Now if I run ubuntu with the -15 kernel, it sees the card.  ME TV is 
+the only app that seems to want to scan for channels.  Kaffeine sees 
+the card, but won't scan.  ME TV scans, but then complains that 
+channels.conf has an invalid entry.  Has anyone actually gotten an 
+HVR-1500 to work under Ubuntu?  if so, can you give step by step, as I 
+am a newbie?
 
-- Steve
+Thanks!
+
+
+Jon
 
 --
 video4linux-list mailing list
