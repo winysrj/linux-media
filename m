@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.wanadoo.co.uk ([193.252.22.157] helo=smtp2.freeserve.com)
+Received: from mail.nagafix.co.uk ([194.145.196.85])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
-	id 1JisN4-0001HO-Sy
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 16:30:56 +0200
-Received: from smtp2.freeserve.com (mwinf3101 [172.22.158.23])
-	by mwinf3110.me.freeserve.com (SMTP Server) with ESMTP id 9ACC71C00B4D
-	for <linux-dvb@linuxtv.org>; Mon,  7 Apr 2008 16:30:21 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3101.me.freeserve.com (SMTP Server) with ESMTP id B10337000086
-	for <linux-dvb@linuxtv.org>; Mon,  7 Apr 2008 16:27:47 +0200 (CEST)
-Received: from rachael.belkin (unknown [91.108.77.129])
-	by mwinf3101.me.freeserve.com (SMTP Server) with ESMTP id 8AAC37000082
-	for <linux-dvb@linuxtv.org>; Mon,  7 Apr 2008 16:27:45 +0200 (CEST)
-From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Mon, 7 Apr 2008 15:27:42 +0100
-References: <52791.31746.qm@web26103.mail.ukl.yahoo.com>
-In-Reply-To: <52791.31746.qm@web26103.mail.ukl.yahoo.com>
+	(envelope-from <antoine@nagafix.co.uk>) id 1Jmm6g-0003wn-TO
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 10:38:09 +0200
+Message-ID: <48085DC7.6020201@nagafix.co.uk>
+Date: Fri, 18 Apr 2008 09:37:27 +0100
+From: Antoine Martin <antoine@nagafix.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804071527.43046.linuxtv@mfraz74.orangehome.co.uk>
-Subject: Re: [linux-dvb] Which DVB-T USB tuner  on linux ?
+To: linux-dvb@linuxtv.org, Antoine Martin <antoine@devloop.org.uk>
+Subject: [linux-dvb] please merge new usb id for LeadTek WinFast device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,37 +16,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Saturday 05 April 2008 23:10:24 linuxcbon wrote:
-> Hi all,
->
-> I am planning to buy a DVB-T USB tuner but I am a little lost :-(.
-> I am interested in following products :
-> ARTEC T14BR
-> AVERMEDIA AVERTV DVB-T VOLAR X
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-I tried to get that one to work, but couldn't so bought this one instead:
-http://www.mythtv.org/wiki/index.php/AVerTV_DVB-T_Volar =
+Hi,
 
+I've got a "Leadtek WinFast DTV Dongle" with the new usb id.
+This device works perfectly with existing code (2.6.25 included)
+Who needs to forward this patch to get it included in mainline?
 
-> PINNACLE PCTV DVB-T STICK
->
-> I dont know if they work OK on linux.
-> Which tuner would you recomment for linux ?
->
+The original patch was found here:
+http://www.spinics.net/lists/linux-dvb/msg24874.html
 
+FYI: I bought this card in the UK, so it would seem to be widely
+available now...
 
--- =
+Cheers
+Antoine
 
-|\ =A0/| ark Fraser =A0/Registered Linux User #466407
-| \/ | Somerset =A0 /Using Kmail on Kubuntu Gutsy Gibbon
-| =A0 =A0|___________/You know what the sig means!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
+iEYEAREKAAYFAkgIXccACgkQGK2zHPGK1ru9CwCcCC+NUMvRzTO6I3BSdtSLh+Tb
+qHIAnjqQg702F53KGY6CUaJx9izJrh8t
+=QdeI
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
