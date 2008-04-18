@@ -1,25 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38MLQlL007403
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:21:26 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38MLD2i019169
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:21:14 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Matthias Schwarzott <zzam@gentoo.org>,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <200804081733.54539.zzam@gentoo.org>
-References: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
-	<200804081733.54539.zzam@gentoo.org>
-Content-Type: text/plain
-Date: Wed, 09 Apr 2008 00:21:05 +0200
-Message-Id: <1207693265.5135.14.camel@pc08.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Eduard Huguet <eduardhc@gmail.com>
-Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IEfow3014201
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 10:41:50 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3IEfWXF017914
+	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 10:41:33 -0400
+Date: Fri, 18 Apr 2008 16:41:40 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804090104190.4987@axis700.grange>
+	<998e4a820804081827j5379efdfw3a95dd1731e02e42@mail.gmail.com>
+	<Pine.LNX.4.64.0804091616470.5671@axis700.grange>
+	<998e4a820804092242i8ead476nf7e4db3712bc881@mail.gmail.com>
+	<Pine.LNX.4.64.0804100749310.3693@axis700.grange>
+	<998e4a820804101854l77e702d9j78d16afc59d807a@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,150 +37,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, 18 Apr 2008, ·ëöÎ wrote:
 
-Am Dienstag, den 08.04.2008, 17:33 +0200 schrieb Matthias Schwarzott:
-> On Dienstag, 8. April 2008, Eduard Huguet wrote:
-> > Hi,
-> >     Things are very quiet lately regarding this card. Is there any
-> > possibility that the card gets supported in any near future? I know
-> > Matthias  Schwarzot had been working on it, but there's no messages from
-> > him lately on the list.
-> >
-> > Best regards,
-> >   Eduard
-> 
-> I did not made any progress since last time we corresponded.
-> 
-> But: I think we agree that the patch that only adds composite and s-video 
-> support works.
-> So we could request pulling it into v4l-dvb repository.
-> 
-> Regards
-> Matthias
-> 
+> I write in tmpfs.But some frame is dropped.If I request more
+> buffers,the number of dropped frames is reduced.Now I request 20
+> buffers and write 100 frames.the 52,53,56,57 is dropped.
 
-Matthias, attached is your patch after some fixes against checkpatch.pl
-on "make commit".
+A couple more ideas to you:
 
-Hartmut, can you have a look at it and, if no further issues,
-pull it in?
+as you get dropped frames even with 20 buffers, this means, that your 
+problem most probably is not with delayed DMA IRQ processing - this way 
+you get enough time. But if your Capture interface cannot satisfy its DMA 
+request quickly enough, FIFO will overflow. And this may happen if you 
+have other very active bus masters on your system. The framebuffer, and 
+USB host are good candidates. Do you have something like a VGA (640x480) 
+framebuffer running with 2 bytes per pixel? Or more? This alone will put a 
+considerable pressure on the bus. Sometimes USB can produce a lot of DMA 
+traffic, for example, I had problems with bluetooth dongles or other 
+network controllers, i.e., with interrupt endpoints at full speed. Also if 
+your RAM clock is not running at an optimal speed, your bus will be 
+overloaded. But, I guess, you do have your memory clock running at 104MHz 
+already.
 
-Thanks,
-Hermann
+Also verify what you have as mclk_10khz in your platform data. I can 
+produce a lot of dropped frames by setting it to 2000 (i.e., 20MHz master 
+clock). Verify that you don't have it too high, and, maybe, try to reduce 
+it.
 
-Reviewed-by: Hermann Pitton <hermann.pitton@arcor.de>
+So, so far it doesn't look like a specific driver bug to me, more like a 
+general system performance issue.
 
-diff -r 0adfbc117b5b linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134  Tue Apr 08 16:28:58 2008 -0300
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134  Tue Apr 08 23:45:09 2008 +0200
-@@ -138,3 +138,5 @@ 137 -> AVerMedia Hybrid TV/Radio (A16D)
- 137 -> AVerMedia Hybrid TV/Radio (A16D)         [1461:f936]
- 138 -> Avermedia M115                           [1461:a836]
- 139 -> Compro VideoMate T750                    [185b:c900]
-+140 -> Avermedia DVB-S Pro A700                 [1461:a7a1]
-+141 -> Avermedia DVB-S Hybrid+FM A700           [1461:a7a2]
-diff -r 0adfbc117b5b linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c Tue Apr 08 16:28:58 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Tue Apr 08 23:42:53 2008 +0200
-@@ -4210,7 +4210,47 @@ struct saa7134_board saa7134_boards[] =
-                        .name = name_radio,
-                        .amux = TV,
-                }
--       }
-+       },
-+       [SAA7134_BOARD_AVERMEDIA_A700_PRO] = {
-+               /* Matthias Schwarzott <zzam@gentoo.org> */
-+               .name           = "Avermedia DVB-S Pro A700",
-+               .audio_clock    = 0x00187de7,
-+               .tuner_type     = TUNER_ABSENT,
-+               .radio_type     = UNSET,
-+               .tuner_addr     = ADDR_UNSET,
-+               .radio_addr     = ADDR_UNSET,
-+               /* no DVB support for now */
-+               /* .mpeg           = SAA7134_MPEG_DVB, */
-+               .inputs         = {{
-+                       .name = name_comp,
-+                       .vmux = 1,
-+                       .amux = LINE1,
-+               }, {
-+                       .name = name_svideo,
-+                       .vmux = 6,
-+                       .amux = LINE1,
-+               } },
-+       },
-+       [SAA7134_BOARD_AVERMEDIA_A700_HYBRID] = {
-+               /* Matthias Schwarzott <zzam@gentoo.org> */
-+               .name           = "Avermedia DVB-S Hybrid+FM A700",
-+               .audio_clock    = 0x00187de7,
-+               .tuner_type     = TUNER_ABSENT, /* TUNER_XC2028 */
-+               .radio_type     = UNSET,
-+               .tuner_addr     = ADDR_UNSET,
-+               .radio_addr     = ADDR_UNSET,
-+               /* no DVB support for now */
-+               /* .mpeg           = SAA7134_MPEG_DVB, */
-+               .inputs         = {{
-+                       .name = name_comp,
-+                       .vmux = 1,
-+                       .amux = LINE1,
-+               }, {
-+                       .name = name_svideo,
-+                       .vmux = 6,
-+                       .amux = LINE1,
-+               } },
-+       },
- };
-
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -5197,6 +5237,18 @@ struct pci_device_id saa7134_pci_tbl[] =
-                .subvendor    = 0x185b,
-                .subdevice    = 0xc900,
-                .driver_data  = SAA7134_BOARD_VIDEOMATE_T750,
-+       }, {
-+               .vendor       = PCI_VENDOR_ID_PHILIPS,
-+               .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+               .subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+               .subdevice    = 0xa7a1,
-+               .driver_data  = SAA7134_BOARD_AVERMEDIA_A700_PRO,
-+       }, {
-+               .vendor       = PCI_VENDOR_ID_PHILIPS,
-+               .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+               .subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+               .subdevice    = 0xa7a2,
-+               .driver_data  = SAA7134_BOARD_AVERMEDIA_A700_HYBRID,
-        }, {
-                /* --- boards without eeprom + subsystem ID --- */
-                .vendor       = PCI_VENDOR_ID_PHILIPS,
-@@ -5567,6 +5619,16 @@ int saa7134_board_init1(struct saa7134_d
-                saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8c040007, 0x8c040007);
-                saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0c0007cd, 0x0c0007cd);
-                break;
-+       case SAA7134_BOARD_AVERMEDIA_A700_PRO:
-+       case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
-+               /* write windows gpio values */
-+               saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
-+               saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
-+               printk(KERN_WARNING "%s: %s: hybrid analog/dvb card\n"
-+                       "%s: Sorry, only the analog inputs are supported for "
-+                               "now.\n",
-+                       dev->name, card(dev).name, dev->name);
-+               break;
-        }
-        return 0;
- }
-diff -r 0adfbc117b5b linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h       Tue Apr 08 16:28:58 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h       Tue Apr 08 23:01:34 2008 +0200
-@@ -268,6 +268,8 @@ struct saa7134_format {
- #define SAA7134_BOARD_AVERMEDIA_A16D       137
- #define SAA7134_BOARD_AVERMEDIA_M115       138
- #define SAA7134_BOARD_VIDEOMATE_T750       139
-+#define SAA7134_BOARD_AVERMEDIA_A700_PRO    140
-+#define SAA7134_BOARD_AVERMEDIA_A700_HYBRID 141
-
-
- #define SAA7134_MAXBOARDS 8
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
