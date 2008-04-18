@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47FF6E6C.70008@anevia.com>
-Date: Fri, 11 Apr 2008 15:58:04 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1Jmp2U-0003AQ-PT
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 13:45:59 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Fri, 18 Apr 2008 13:45:23 +0200
+References: <1207866617l.6780l.0l@manu-laptop>
+	<1207967191l.6061l.0l@manu-laptop>
+	<1208470788l.6560l.0l@manu-laptop>
+In-Reply-To: <1208470788l.6560l.0l@manu-laptop>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-References: <47FF216F.6040207@anevia.com> <47FF67FA.80902@linuxtv.org>
-	<47FF6971.70601@linuxtv.org>
-In-Reply-To: <47FF6971.70601@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
+Message-Id: <200804181345.23784.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Re : Re : TT-3200 (DVB-S/S2) bad reception/no lock
+	issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,63 +21,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0570270567=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky a =E9crit :
-> Steven Toth wrote:
->> Frederic CAND wrote:
->>> Hi all,
->>>
->>> we have here at our office an Hauppauge HVR 1300. It's working under =
+--===============0570270567==
+Content-Type: multipart/signed;
+  boundary="nextPart1250313.Elr1Tp4amc";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
->>> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is =
+--nextPart1250313.Elr1Tp4amc
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
->>> working fine though.
->>>
->>>  From what I read, it looks like the Conexant CX23416 chipset should =
+Hi,
+On Friday 18 April 2008, manu wrote:
+> On 04/11/2008 10:26:31 PM, manu wrote:
+> > On 04/10/2008 06:30:17 PM, manu wrote:
+> > > 	Hi all,
+> > > I already reported on that sooner, but now I have a log (with
+> > stb0899=20
+> > > verbose=3D5) so I hope it makes it a bit easier to debug.
+> > > Still the same behaviour: one transponder (freq=3D11093 MHz) is=20
+> > ALWAYS
+> >=20
+> > > perfect (fast lock perfect picture even with bad weather) and for 3=20
+> > > other transponders (11555 MHz as in the log, 11635 Mhz and 11675
+> > MHz)=20
+> > > the lock is much less frequent and if it locks the picture is much=20
+> > > worse even in not so cloudy weather. It is as if the card was much
+> > > more=20
+> > > picky with the other 3 transponders. Is it normal to have such=20
+> > > discrepancies on the same sat?
+> > > Sometimes just locking on the "good" transponder and then switching=20
+> > > back to a bad one gives good results: good lock and better SNR and=20
+> > > picture (seen in mythtv).
+> > > Anyway here is the log, I hope this is of some help.
+> >=20
+> > May I add also that rmmoding budget_ci,budget_core,stb0899 and then=20
+> > modprobing them back gives better picture/locking sometimes.
+> > Bye
+> > Manu
+>=20
+> Any thought on this? InMythtv, going to a channel on a goodn=20
+> transponder and then switching back to a bad one will give a lock and=20
+> better picture, so...=20
+> Bye
+> Manu
 
->>> supports Transport Stream but we've not been able to use it. Are we =
-
->>> missing something ?
->> Last I heard transport mode was disabled in the firmware sometime ago by =
-
->> Conexant, in favor of some other feature being enabled.
->>
->> If you can find really early firmware for the PVR150 then you might try =
-
->> that. (Circa 3-4 years ago).
->>
-> =
-
-> Please note:  if you do find the older firmware, you will have to patch c=
-x88-blackbird.c to allow firmware size 262144.
-> =
-
-> If this works for you, please post your results.
-> =
-
-> Regards,
-> =
-
-> Mike
-> =
+Just out of curiosity:
+Could you please try to set the channel frequencies in the channels list to
+about 4MHz lower than they are currently? (e.g. 11551MHz instead of 11555MH=
+z)
 
 
-Sure, I will.
+Dominik
 
-Regards.
 
--- =
 
-CAND Frederic
-Product Manager
-ANEVIA
+--nextPart1250313.Elr1Tp4amc
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQBICInT6OXrfqftMKIRAozEAKC901v6ts1+UGxuLi1volMe2EPUuACfcJyD
+evH3k8gl0cBGWT9+yZAUMEU=
+=AHKr
+-----END PGP SIGNATURE-----
+
+--nextPart1250313.Elr1Tp4amc--
+
+
+--===============0570270567==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0570270567==--
