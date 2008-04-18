@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.173])
+Received: from sd-green-dreamhost-133.dreamhost.com ([208.97.187.133]
+	helo=webmail3.sd.dreamhost.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <daniel.akerud@gmail.com>) id 1JjEjZ-0004DS-Bn
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 16:23:39 +0200
-Received: by wf-out-1314.google.com with SMTP id 28so2095544wfa.17
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 07:23:05 -0700 (PDT)
-Message-ID: <b000da060804080723k3eb9056bt8f9e6d37e089616@mail.gmail.com>
-Date: Tue, 8 Apr 2008 16:23:05 +0200
-From: "=?ISO-8859-1?Q?daniel_=E5kerud?=" <daniel.akerud@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
+	(envelope-from <elfarto@elfarto.com>) id 1JmlhV-0001CD-M8
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 10:12:06 +0200
+Message-ID: <2077.217.8.27.114.1208506317.squirrel@webmail.elfarto.com>
+In-Reply-To: <4807C1A6.8000909@t-online.de>
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>	<4803C2FA.1010408@hot.ee>
+	<48065CB6.50709@elfarto.com>	<1208422406.12385.295.camel@rommel.snap.tv>	<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>	<4807AFE2.40400@t-online.de>
+	<4807B386.1050109@elfarto.com> <4807C1A6.8000909@t-online.de>
+Date: Fri, 18 Apr 2008 01:11:57 -0700 (PDT)
+From: "Stephen Dawkins" <elfarto@elfarto.com>
+To: "Hartmut Hackmann" <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-References: <47A98F3D.9070306@raceme.org> <1202330097.4825.3.camel@anden.nu>
-	<47AB1FC0.8000707@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<C34A2B56-5B39-4BE4-BACD-4E653F61FB03@firshman.co.uk>
-	<8ad9209c0803121334s1485b65ap7fe7d5e4df552535@mail.gmail.com>
-	<8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
-	<8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT-Budget C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,65 +22,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0039977539=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0039977539==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_23067_31410438.1207664585674"
-
-------=_Part_23067_31410438.1207664585674
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On Sat, Apr 5, 2008 at 1:34 PM, Patrik Hansson <patrik@wintergatan.com>
-wrote:
-
-> Just wanted to report that since stopped the active EIT scanning in
-> mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with
-> 2.6.22-14 without any special module options or anything like that.
-> Before i never had both tuners working for more that 24 hours so that
-> seems to be the workaround for the moment.
-> The card still collects EIT data when watching tv so EPG still works.
+> Hi,
 >
+> Stephen Dawkins schrieb:
+>> Hartmut Hackmann wrote:
+>> <snip>
+>>  > I did not follow the thread yet. Which channel demodulator are you
+>> talking
+>>  > about?
+>>  >
+>>
+>> The demod is a TDA10023HT.
+>>
+>>  > BTW: You need to be careful to not mix up the a- and non-a versions
+>> of
+>>  > the tuner. They are *not* software compatible.
+>>  >
+>>
+>> How do I know which one I have?
+>>
+>>  > Best regards
+>>  >   Hartmut
+>>  >
+>>
+>> Regards
+>> Stephen
+>>
+> The driver is able to determine this automatically if it is used the way
+> we intended.
+> After attach, the first call either needs to be init or sleep. At the
+> first
+> call, they probe for the chip version.
 >
-I second that. I disabled Active EIT (mythtv-setup) and also added:
-options usbcore autosuspend=-1
-options dvb_usb disable_rc_polling=1
-to the module options. My system has been rock solid since (~2 weeks) and I
-used to have at least a couple of problems per week before.
-/D
+> Do you have a datasheet of the tda10023? From the first glance, i have the
+> impression that it was only used with a conventional tuner yet. With the
+> silicon tuner, the chip needs to be programmed to use a different IF. We
+> beed to find out how this is done.
+>
 
-------=_Part_23067_31410438.1207664585674
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I can't find any useful datasheets on the TDA10023 on the Internet.
 
-On Sat, Apr 5, 2008 at 1:34 PM, Patrik Hansson &lt;<a href="mailto:patrik@wintergatan.com">patrik@wintergatan.com</a>&gt; wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Just wanted to report that since stopped the active EIT scanning in<br>
-mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with<br>
-2.6.22-14 without any special module options or anything like that.<br>
-Before i never had both tuners working for more that 24 hours so that<br>
-seems to be the workaround for the moment.<br>
-The card still collects EIT data when watching tv so EPG still works.<br>
-<div><div></div><div class="Wj3C7c"><br></div></div></blockquote></div><br>I second that. I disabled Active EIT (mythtv-setup) and also added:<br>options usbcore autosuspend=-1<br>options dvb_usb disable_rc_polling=1<br>
-to the module options. My system has been rock solid since (~2 weeks) and I used to have at least a couple of problems per week before.<br>/D<br><br>
+> Best regards
+>    Hartmut
+>
 
-------=_Part_23067_31410438.1207664585674--
+Regards
+Stephen
 
-
---===============0039977539==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0039977539==--
