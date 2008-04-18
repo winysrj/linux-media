@@ -1,24 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.250])
+Received: from mail-in-13.arcor-online.net ([151.189.21.53])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rvm3000@gmail.com>) id 1JimzX-0000c1-Se
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 10:46:17 +0200
-Received: by an-out-0708.google.com with SMTP id d18so324911and.125
-	for <linux-dvb@linuxtv.org>; Mon, 07 Apr 2008 01:46:02 -0700 (PDT)
-Message-ID: <f474f5b70804070146l5ab13459sc25b8f1129b15122@mail.gmail.com>
-Date: Mon, 7 Apr 2008 10:46:02 +0200
-From: rvm <rvm3000@gmail.com>
+	(envelope-from <hermann-pitton@arcor.de>) id 1Jmm8A-0004S0-QG
+	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 10:39:39 +0200
+Received: from mail-in-06-z2.arcor-online.net (mail-in-06-z2.arcor-online.net
+	[151.189.8.18])
+	by mail-in-13.arcor-online.net (Postfix) with ESMTP id CD0761E50C6
+	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:25 +0200 (CEST)
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
+	[151.189.21.42])
+	by mail-in-06-z2.arcor-online.net (Postfix) with ESMTP id BBEAB5C2CA
+	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:25 +0200 (CEST)
+Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
+	(Authenticated sender: hermann-pitton@arcor.de)
+	by mail-in-02.arcor-online.net (Postfix) with ESMTP id ED58736E865
+	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:24 +0200 (CEST)
+From: hermann pitton <hermann-pitton@arcor.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <47F980D5.3030202@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <f474f5b70804021720i7926ea17q77b3ef551fb0841f@mail.gmail.com>
-	<47F44538.2090508@iki.fi>
-	<f474f5b70804051654h3ee0bdd5u6eb19db2ac626845@mail.gmail.com>
-	<47F90CA3.1090102@iki.fi>
-	<f474f5b70804061846o66a3126aidcde58b4889b926c@mail.gmail.com>
-	<47F980D5.3030202@iki.fi>
-Subject: Re: [linux-dvb] Pinnacle PCTV 71e
+In-Reply-To: <200804180321.07891@orion.escape-edv.de>
+References: <47F9E95D.6070705@yahoo.de>
+	<200804120100.14568@orion.escape-edv.de> <48066F62.8000709@yahoo.de>
+	<200804180321.07891@orion.escape-edv.de>
+Date: Fri, 18 Apr 2008 04:44:23 +0200
+Message-Id: <1208486663.3287.29.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot	polling
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,61 +38,176 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/4/7, Antti Palosaari <crope@iki.fi>:
-> rvm wrote:
->
 
->
-> > Still I'm getting the video (and audio) corrupted, could it be because
-> > of the firmware? I used this one:
-> >
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
-> >
->
->  No, it is no firmware issue. Firmware 4.95 is latest one and OK.
->
->  Can you say which tuner your device has? You can see that from message.log
-> (dmesg). Please copy paste some lines.
+Am Freitag, den 18.04.2008, 03:21 +0200 schrieb Oliver Endriss:
+> Robert Schedel wrote:
+> > Oliver Endriss wrote:
+> > > Robert Schedel wrote:
+> > >> Hello,
+> > >>
+> > >> on 2.6.24 I run into a small issue with the budget_av driver:
+> > >>
+> > >> Hardware: Athlon 64X2 3800+, Satelco Easywatch DVB-C (1894:002c), no CI/CAM
+> > >> Software: Linux kernel 2.6.24 (gentoo-r4) SMP x86_64, budget_av module
+> > >>
+> > >> Error description:
+> > >> After the budget_av driver module is loaded (even without any DVB 
+> > >> application), the CPU load average in 'top' rises to ~1, but in top no 
+> > >> active tasks are found. After unloading the driver, the load decreases 
+> > >> again to ~0.
+> > >>
+> > >> Displaying the blocked tasks during high load with Alt-SysRq-W shows 
+> > >> that the kdvb-ca kernel thread seems to be accounted as blocked when it 
+> > >> polls for the CI slot status:
+> > >> ---------------------------------------------------
+> > >> [...]
+> > >> ---------------------------------------------------
+> > >>
+> > >> Enabling debug traces shows that polling for the PSR in function 
+> > >> 'saa7146_wait_for_debi_done_sleep' constantly times out after 250x1ms 
+> > >> sleeps:
+> > >>
+> > >>  > saa7146: saa7146_wait_for_debi_done_sleep(): saa7146 (0): 
+> > >> saa7146_wait_for_debi_done_sleep timed out while waiting for transfer 
+> > >> completion
+> > >>
+> > >> Increasing the 250ms did not avoid the timeout. And as I understood from 
+> > >> previous list mails, this timeout is normal when no CI/CAM is connected 
+> > >> to the DEBI. However, for me the high frequency polling does not make 
+> > >> sense if someone does not plan to plug in a CI/CAM.
+> > >>
+> > >> When commenting out two lines in 'dvb_ca_en50221_thread_update_delay' to 
+> > >> increase the polling timer for slotstate NONE from 100ms (!) to 60s, the 
+> > >> CPU load went down to 0. So this is some kind of workaround for me.
+> > > 
+> > > Afaics the polling interval could be increased to something like 5s or
+> > > 10s if (and only if) the slot is empty. Could you provide a patch?
+> > 
+> > Attached a patch for 2.6.24.4. Opinions?
+> 
+> Basically it should work but it has to be tested with CI/CAM, too.
+> Furthermore it is not sufficient to test with budget-av because many
+> other drivers will be affected.
+> 
+> So I would prefer a patch which does not touch behaviour for other card
+> drivers (if possible).
+> 
+> Please note for 'final' patches:
+> Always run 'checkpatch.pl' and fix the errors.
+> Sorry for that. :-(
+> 
+> > Unfortunately, a 5s poll interval for empty slots still results in a
+> > load average of about 0,06 (~ 250ms/5s).
+> > 
+> > Increasing to 10s would decrease the load and be fine for people without
+> > CAM, but increase the delay for those users inserting CAMs during
+> > runtime. 5s sounds like a reasonable tradeoff.
+> > 
+> > Is the 250ms timeout an approved limit? Decreasing it would push the
+> > load further down. Probably it still has to cover slow CAMs as well as a
+> > stressed PCI bus. Unfortunately, without CAM/CI I cannot make any
+> > statements myself.
+> > 
+> > >> Finally, my questions:
+> > >> 1. Did I understand this right, that the behaviour above is expected 
+> > >> when no CI is connected?
+> > > 
+> > > Yes, but afaics the polling interval is way too short.
+> > > 
+> > >> 2. Are all budget_av cards unable to check CAM slot state via interrupt 
+> > >>   for HW reasons (as budget_ci does)?
+> > > 
+> > > I don't have any budget-av hardware, so I don't know.
+> > > But I think that Andrew(?) had a good reason to implement it this way.
+> > > (In contrast the budget-ci driver was always interrupt-driven.)
+> > > 
+> > > If someone finds out that a given card can operate in interrupt mode,
+> > > it should be changed for this card. Patches are welcome. ;-)
+> > 
+> > My impression is, due to the different GPIO layout there is no way to
+> > get a CAM change IRQ. But it seems difficult to get information about
+> > the HW architecture of cards at all.
+> 
+> For most cards we have no hw info. :-(
+> 
+> > Regarding DEBI_E: Just found a av7110 code comment which also reflects
+> > what my recent tests showed:
+> >           /* Note: Don't try to handle the DEBI error irq (MASK_18), in
+> >            * intel mode the timeout is asserted all the time...
+> >            */
+> > 
+> > So really only DEBI_S would be left, see below.
+> 
+> Did you check whether DEBI_S and/or DEBI_E are ever asserted with your
+> setup? If not, an interrupt would never occur anyway...
+> 
+> > >> 3. Would it be possible to substitute the current PSR DEBI_S polling 
+> > >> with an interrupt based solution via IER/ISR? (driver av7110 alreadys 
+> > >> seems to do this for its DEBI DMA)? Or was this not considered worthy, 
+> > >> due to the expected short waiting period and the tricky IER handling? 
+> > >> The code does not state further thoughts about this.
+> > > 
+> > > The av7110 driver uses interrupt mode for buffer transfers in dma mode.
+> > > It does not make much sense to use interrupt mode for single-word
+> > > transfers, because the single-word transfers are very fast.
+> > > But I understand that the timeout causes a problem in this case.
+> > 
+> > OK, interrupts of course decrease performance in the "sunny day" cases
+> > (=communication with inserted card in slot state READY). Having both
+> > approaches (interrupt when slotstate empty, later polling) would combine
+> > all benefits but also be somewhat crazy.
+> > 
+> > >> 4. Are the high timeout periods in debi_done (50ms/250ms) in relation to 
+> > >> the 100ms poll timer intended? (I found the recent patch to this code in 
+> > >> the mailing list end of last year)
+> > > 
+> > > That patch was applied to reduce the load on the pci bus in busy-wait
+> > > mode. Basically it did not change anything for cam polling. (In fact I
+> > > was not aware that the CAM was polled every 100ms. Imho this should be
+> > > fixed.)
+> > 
+> > Only wondered whether the 250ms might have been smaller in former driver
+> > versions.
+> 
+> Iirc it should be even worse with older drivers.
+> 
+> Basically the 250ms timeout is just a last resort to escape from the
+> loop, if the debi transfer hangs for some reason. We might try to reduce
+> the timeout but I don't know how far we can go. (Touching 'magic' values
+> might be dangeous.)
+> 
+> CU
+> Oliver
+> 
 
-[  910.286534] af9015_usb_probe: interface:0
-[  910.292965] af9015_identify_state: reply:02
-[  910.293003] dvb-usb: found a 'Pinnacle PCTV 71e' in warm state.
-[  910.293608] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[  910.300877] DVB: registering new adapter (Pinnacle PCTV 71e)
-[  910.304752] af9015_eeprom_dump:
-[  910.432810] 00: 2f cc af 0b 00 00 00 00 04 23 2b 02 00 02 01 02
-[  910.498755] 10: 03 80 00 fa fa 10 40 ef 00 30 31 30 31 31 31 30
-[  910.554155] 20: 38 30 36 30 30 30 33 45 ff ff ff ff ff ff ff ff
-[  910.610246] 30: 00 00 3a 01 00 08 02 00 1d 8d d2 04 82 ff ff ff
-[  910.664090] 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff
-[  910.720030] 50: ff ff ff ff ff 24 00 00 04 03 09 04 22 03 50 00
-[  910.778381] 60: 69 00 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00
-[  910.837528] 70: 53 00 79 00 73 00 74 00 65 00 6d 00 73 00 12 03
-[  910.895432] 80: 50 00 43 00 54 00 56 00 20 00 37 00 31 00 65 00
-[  910.956367] 90: 20 03 30 00 31 00 30 00 31 00 30 00 31 00 30 00
-[  911.013294] a0: 31 00 30 00 36 00 30 00 30 00 30 00 30 00 31 00
-[  911.075256] b0: 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  911.135892] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  911.194811] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  911.252938] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  911.310816] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[  911.314842] af9015_read_config: xtal:2 set adc_clock:28000
-[  911.322559] af9015_read_config: IF1:36125
-[  911.330385] af9015_read_config: MT2060 IF1:1234
-[  911.332447] af9015_read_config: tuner id1:130
-[  911.335536] af9015_read_config: spectral inversion:0
-[  911.421856] af9013: firmware version:4.95.0
-[  911.422145] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
-[  911.422287] af9015_tuner_attach:
-[  911.422351] af9015_set_gpio: gpio:3 gpioval:03
-[  911.474019] MT2060: successfully identified (IF1 = 1234)
-[  912.044368] dvb-usb: Pinnacle PCTV 71e successfully initialized and
-connected.
+Hi,
+
+what are magic values?
+
+Simply something retrieved under NDA with even that hardware not in
+established/stable conditions yet, most likely.
+
+If the commercial research facilities are not established for that,
+because too expensive, it likely goes out to some university or major
+research project around the globe, which recently collected some
+external money for something related, to stay alive, and then please
+could solve that minor issue on the run for free.
+
+We had lots of high quality contributions in the past, seemingly coming
+out of nothing ...
+
+If it really counts, Open Source is a must and everybody knows it.
+
+Cheers,
+Hermann
 
 
--- 
-Pepe
+
+
+
+
+ 
+
 
 _______________________________________________
 linux-dvb mailing list
