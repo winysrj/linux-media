@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H22bAc029730
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 22:02:37 -0400
-Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H22Ocu004015
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 22:02:26 -0400
-Received: from www.outflux.net (serenity-end.outflux.net [10.2.0.2])
-	by mylar.outflux.net (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m3H22DJV031005
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 19:02:18 -0700
-Resent-Message-ID: <20080417020213.GK18929@outflux.net>
-Date: Wed, 16 Apr 2008 18:23:54 -0700
-From: Kees Cook <kees@outflux.net>
-To: video4linux-list@redhat.com
-Message-ID: <20080417012354.GH18929@outflux.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Subject: [PATCH 1/2] V4L: add "function" sysfs attribute to v4l devices
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3JDpl6a012951
+	for <video4linux-list@redhat.com>; Sat, 19 Apr 2008 09:51:47 -0400
+Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3JDpXev008736
+	for <video4linux-list@redhat.com>; Sat, 19 Apr 2008 09:51:34 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZK002XORTSQU40@mta1.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Sat, 19 Apr 2008 09:51:28 -0400 (EDT)
+Date: Sat, 19 Apr 2008 09:51:28 -0400
+From: Steven Toth <stoth@linuxtv.org>
+To: linux-dvb <linux-dvb@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Message-id: <4809F8E0.40908@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+Cc: Amitay Isaacs <amitay@gmail.com>
+Subject: HVR1200 / HVR1700 / TDA10048 support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,159 +32,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Kay Sievers <kay.sievers@vrfy.org>
+A couple of people have been asking about TDA10048 support, well it was 
+merged into master this morning. You can get the driver (and support for 
+the Hauppauge HVR1200 / HVR1700) here linuxtv.org/hg/v4l-dvb.
 
-This adds a "function" string to help userspace to identify the type of
-device if multiple streams are available for a single v4l device.
+Firmware for the TDA10048 can be extract from the windows driver, 
+everything you needs is here:
 
-This is meant to be used with udev, to create persistent device links
-for v4l devices, which will not depend on module-loading/device-enumeration
-order.
+steventoth.net/linux/hvr1200 or steventoth.net/linux/hvr1700
 
-Cc: Kees Cook <kees@outflux.net>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
----
- drivers/media/video/v4l2-common.c |   39 ++++++++++++++++++++++++++++++++++++++
- drivers/media/video/videodev.c    |   13 ++++++++++++
- include/linux/videodev2.h         |   16 +++++++++++++++
- include/media/v4l2-common.h       |    3 ++
- include/media/v4l2-dev.h          |    1 
- 5 files changed, 72 insertions(+)
----
-diff -r 6aa6656852cb linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/v4l2-common.c	Wed Apr 16 17:52:29 2008 -0700
-@@ -81,6 +81,45 @@ MODULE_LICENSE("GPL");
-  *  Video Standard Operations (contributed by Michael Schimek)
-  */
- 
-+/*
-+ * Exports "function" string to userspace to identify the type of device
-+ * if multiple streams are available for a single device.
-+ *
-+ * Types/string names should be reused if possible, instead of adding
-+ * new very device specific types, they must _uniquely_ identify all
-+ * streams belonging to the _same_ device though.
-+ *
-+ * No single device must export multiple streams with the same function
-+ * string, because userspace uses this to find the correct device node.
-+ *
-+ * Unlike the free-text "name", it must be an easily machine useable
-+ * string containing only [a-z0-9._-] characters.
-+ *
-+ * Strings must not change without a valid reason, they are part of the
-+ * sysfs ABI.
-+ *
-+ */
-+static const char *v4l2_function_type_names[] = {
-+	[V4L2_FN_VIDEO_CAP]		= "vid-cap",
-+	[V4L2_FN_VIDEO_OUT]		= "vid-out",
-+	[V4L2_FN_MPEG_CAP]		= "mpeg-cap",
-+	[V4L2_FN_MPEG_OUT]		= "mpeg-out",
-+	[V4L2_FN_YUV_CAP]		= "yuv-cap",
-+	[V4L2_FN_YUV_OUT]		= "yuv-out",
-+	[V4L2_FN_VBI_CAP]		= "vbi-cap",
-+	[V4L2_FN_VBI_OUT]		= "vbi-out",
-+	[V4L2_FN_PCM_CAP]		= "pcm-cap",
-+	[V4L2_FN_PCM_OUT]		= "pcm-out",
-+	[V4L2_FN_RADIO_CAP]		= "radio-cap",
-+};
-+
-+const char *v4l2_function_name(enum v4l2_function_type function)
-+{
-+	if (function > 0 && function < ARRAY_SIZE(v4l2_function_type_names))
-+		return v4l2_function_type_names[function];
-+	return NULL;
-+}
-+EXPORT_SYMBOL(v4l2_function_name);
- 
- /* ----------------------------------------------------------------- */
- /* priority handling                                                 */
-diff -r 6aa6656852cb linux/drivers/media/video/videodev.c
---- a/linux/drivers/media/video/videodev.c	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/drivers/media/video/videodev.c	Wed Apr 16 17:52:29 2008 -0700
-@@ -451,6 +451,18 @@ static DEVICE_ATTR(dev, S_IRUGO, show_de
- static DEVICE_ATTR(dev, S_IRUGO, show_dev, NULL);
- #endif
- 
-+static ssize_t show_function(struct device *cd,
-+			     struct device_attribute *attr, char *buf)
-+{
-+	struct video_device *vfd = container_of(cd, struct video_device,
-+						class_dev);
-+	const char *function_name = v4l2_function_name(vfd->function);
-+
-+	if (!function_name)
-+		return -ENOSYS;
-+	return sprintf(buf, "%s\n", v4l2_function_name(vfd->function));
-+}
-+
- struct video_device *video_device_alloc(void)
- {
- 	struct video_device *vfd;
-@@ -486,6 +498,7 @@ static void video_release(struct device 
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,13)
- static struct device_attribute video_device_attrs[] = {
- 	__ATTR(name, S_IRUGO, show_name, NULL),
-+	__ATTR(function, S_IRUGO, show_function, NULL),
- 	__ATTR_NULL
- };
- #endif
-diff -r 6aa6656852cb linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/include/linux/videodev2.h	Wed Apr 16 17:52:29 2008 -0700
-@@ -138,6 +138,22 @@ enum v4l2_field {
- 	 (field) == V4L2_FIELD_INTERLACED_BT ||\
- 	 (field) == V4L2_FIELD_SEQ_TB ||\
- 	 (field) == V4L2_FIELD_SEQ_BT)
-+
-+/* Exports "function" string to userspace to identify type of device */
-+enum v4l2_function_type {
-+	V4L2_FN_UNDEFINED,
-+	V4L2_FN_VIDEO_CAP,
-+	V4L2_FN_VIDEO_OUT,
-+	V4L2_FN_MPEG_CAP,
-+	V4L2_FN_MPEG_OUT,
-+	V4L2_FN_YUV_CAP,
-+	V4L2_FN_YUV_OUT,
-+	V4L2_FN_VBI_CAP,
-+	V4L2_FN_VBI_OUT,
-+	V4L2_FN_PCM_CAP,
-+	V4L2_FN_PCM_OUT,
-+	V4L2_FN_RADIO_CAP,
-+};
- 
- enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
-diff -r 6aa6656852cb linux/include/media/v4l2-common.h
---- a/linux/include/media/v4l2-common.h	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/include/media/v4l2-common.h	Wed Apr 16 17:52:29 2008 -0700
-@@ -67,6 +67,9 @@
- 			v4l_client_printk(KERN_DEBUG, client, fmt , ## arg); \
- 	} while (0)
- 
-+
-+/* map function enum to string */
-+extern const char *v4l2_function_name(enum v4l2_function_type function);
- 
- /* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
- #define v4l_print_ioctl(name, cmd)  		 \
-diff -r 6aa6656852cb linux/include/media/v4l2-dev.h
---- a/linux/include/media/v4l2-dev.h	Wed Apr 16 13:13:15 2008 -0300
-+++ b/linux/include/media/v4l2-dev.h	Wed Apr 16 17:52:29 2008 -0700
-@@ -112,6 +112,7 @@ struct video_device
- 	char name[32];
- 	int type;       /* v4l1 */
- 	int type2;      /* v4l2 */
-+	enum v4l2_function_type function; /* sysfs string */
- 	int minor;
- 
- 	int debug;	/* Activates debug level*/
+Regards,
 
-
-
--- 
-Kees Cook                                            @outflux.net
+Steve
 
 --
 video4linux-list mailing list
