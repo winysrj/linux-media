@@ -1,21 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H6XtD0006342
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 02:33:55 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H6XfHJ012059
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 02:33:41 -0400
-Received: by fk-out-0910.google.com with SMTP id b27so3348667fka.3
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 23:33:40 -0700 (PDT)
-Message-ID: <3a4a99ca0804162333p1d08e308ufea59a2cd40edd19@mail.gmail.com>
-Date: Thu, 17 Apr 2008 16:33:40 +1000
-From: stuart <stuart.partridge@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3JDoRPe012587
+	for <video4linux-list@redhat.com>; Sat, 19 Apr 2008 09:50:27 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3JDn5ik007077
+	for <video4linux-list@redhat.com>; Sat, 19 Apr 2008 09:49:53 -0400
+Received: by ti-out-0910.google.com with SMTP id 11so187102tim.7
+	for <video4linux-list@redhat.com>; Sat, 19 Apr 2008 06:49:03 -0700 (PDT)
+Message-ID: <998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+Date: Sat, 19 Apr 2008 21:43:01 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0804181621560.5725@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: Fusion/DVICO HDTV Dual 4 not working and crashing lsusb
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804091616470.5671@axis700.grange>
+	<998e4a820804092242i8ead476nf7e4db3712bc881@mail.gmail.com>
+	<Pine.LNX.4.64.0804100749310.3693@axis700.grange>
+	<998e4a820804101854l77e702d9j78d16afc59d807a@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,26 +39,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've had a look around the archives and can't see anything that matches my
-sitch.
+Thanks I will try according to what you said. Mybe I can find why I
+have this problem.But a driver come from MontaVista can also work
+well.No frame is dropped.
 
-I'm running Ubuntu 7.10 / 2.6.22-generic with a Myth media centre set-up.
-Got nvidia working just fine.
+Now I find MontaVista driver have a problem.I execute VIDIOC_REQBUFS
+failed After I execute VIDIOC_STREAMOFF and munmap() .This time
+soc-camera driver can work well.You can give me some advice.
 
-I used the instructions at
-https://help.ubuntu.com/community/DViCO_Dual_Digital_4 and managed to get
-the drivers + firmware installed, and dmesg tells me it can see the card in
-a 'warm state', and I get good results from lsmod, but that's as far as I
-get.
-When I run lsusb, it utterly crashes and won't come back, so I know
-something not quite right. I can undo the installation and have tried a few
-other 'how-tos', but I'm not getting very far.
+thanks
+fengxin
 
-Not getting any teev signal, and a 'mplayer dvb://ABC -dumpstream -dumpfile'
-doesn't give me anything.
-
-Am tapped for ideas - I'm a n00b, don't you know - so any
-direction/suggestions would be greatly appreciated.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
