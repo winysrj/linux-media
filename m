@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JjNeg-0001Bd-Ix
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 01:55:13 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1JjNeY-0005QW-8t
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 23:55:02 +0000
-Received: from m4.bclc.com ([m4.bclc.com])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 23:55:02 +0000
-Received: from ibishop by m4.bclc.com with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 23:55:02 +0000
+Received: from n8a.bullet.mail.mud.yahoo.com ([209.191.87.104])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JnHDF-0006bR-1f
+	for linux-dvb@linuxtv.org; Sat, 19 Apr 2008 19:51:00 +0200
+Date: Sat, 19 Apr 2008 08:16:59 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-From: Ian Bishop <ibishop@gmail.com>
-Date: Tue, 8 Apr 2008 23:45:52 +0000 (UTC)
-Message-ID: <loom.20080408T233829-563@post.gmane.org>
-References: <Pine.LNX.4.64.0804062251380.6749@pub5.ifh.de>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Technisat SkyStar2 rev 2.7 and 2.8 status
+References: <200804190101.14457.dkuhlen@gmx.net>
+In-Reply-To: <200804190101.14457.dkuhlen@gmx.net> (from dkuhlen@gmx.net on
+	Fri Apr 18 19:01:14 2008)
+Message-Id: <1208607419l.6132l.0l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+ TT-Connect-S2-3600 final version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +21,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Patrick Boettcher <patrick.boettcher <at> desy.de> writes:
-(snip)
-> Not so good news for the rev 2.8 users, yet. The driver is finished (I'm 
-> using it since 2 weeks under the same conditions as above), but I cannot 
-> make it open source yet, I'm doing my best to do it and will announce it, 
-> as soon as I have news.
-(snip)
+On 04/18/2008 07:01:14 PM, Dominik Kuhlen wrote:
+> Hi,
+> =
 
-Hi Patrick, first off, thanks for your hard work!
+> Here is my current version after quite a while of testing and tuning:
+> I stripped the stb0899 tuning/searching algo to speed up tuning a bit
+> now I have very fast and reliable locks (no failures, no errors)
+> =
 
-I was just wondering if there's an ETA, or if there is something we can do to
-help get these drivers released?
+> I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it
+> though.)
+> =
 
-My company just bought a large number of cards to find they're an unsupported
-rev.  We were about to send them back when I found this post.
 
-The Skystar 2's have always been an excellent choice for our application, I'd
-really hate to have to start supporting/sourcing another device.
+	Hi,
+I will try it right away! BTW should I substract the 4MHz you talked =
 
-Thanks, Ian
+about in another email when using this patch or is it already fixed by =
+
+this (I did not try yet).
+In will report ASAP.
+Thx,
+Bye
+Manu
+
+
 
 
 _______________________________________________
