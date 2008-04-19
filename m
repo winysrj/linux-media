@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JkhIh-0003S4-A1
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:05:56 +0200
-Message-Id: <20080412150445.783923284@gentoo.org>
-References: <20080412150444.987445669@gentoo.org>
-Date: Sat, 12 Apr 2008 17:04:46 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from n15a.bullet.mail.mud.yahoo.com ([68.142.207.125])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JnHDE-0006bP-R1
+	for linux-dvb@linuxtv.org; Sat, 19 Apr 2008 19:51:00 +0200
+Date: Sat, 19 Apr 2008 13:48:31 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Content-Disposition: inline; filename=01_mt312-var-types.diff
-Subject: [linux-dvb] [patch 1/5] mt312: Cleanup buffer variables of
-	read/write functions
+In-Reply-To: <200804190101.14457.dkuhlen@gmx.net> (from dkuhlen@gmx.net on
+	Fri Apr 18 19:01:14 2008)
+Message-Id: <1208627311l.18445l.0l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+ TT-Connect-S2-3600 final version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,76 +20,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Change type of buffer variables from void* to u8* to save some casts.
+On 04/18/2008 07:01:14 PM, Dominik Kuhlen wrote:
+> Hi,
+> =
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/mt312.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
-@@ -58,7 +58,7 @@ static int debug;
- #define MT312_PLL_CLK		10000000UL	/* 10 MHz */
- 
- static int mt312_read(struct mt312_state *state, const enum mt312_reg_addr reg,
--		      void *buf, const size_t count)
-+		      u8 *buf, const size_t count)
- {
- 	int ret;
- 	struct i2c_msg msg[2];
-@@ -84,7 +84,7 @@ static int mt312_read(struct mt312_state
- 		int i;
- 		dprintk("R(%d):", reg & 0x7f);
- 		for (i = 0; i < count; i++)
--			printk(" %02x", ((const u8 *) buf)[i]);
-+			printk(" %02x", buf[i]);
- 		printk("\n");
- 	}
- 
-@@ -92,7 +92,7 @@ static int mt312_read(struct mt312_state
- }
- 
- static int mt312_write(struct mt312_state *state, const enum mt312_reg_addr reg,
--		       const void *src, const size_t count)
-+		       const u8 *src, const size_t count)
- {
- 	int ret;
- 	u8 buf[count + 1];
-@@ -102,7 +102,7 @@ static int mt312_write(struct mt312_stat
- 		int i;
- 		dprintk("W(%d):", reg & 0x7f);
- 		for (i = 0; i < count; i++)
--			printk(" %02x", ((const u8 *) src)[i]);
-+			printk(" %02x", src[i]);
- 		printk("\n");
- 	}
- 
-@@ -463,7 +463,7 @@ static int mt312_read_snr(struct dvb_fro
- 	int ret;
- 	u8 buf[2];
- 
--	ret = mt312_read(state, M_SNR_H, &buf, sizeof(buf));
-+	ret = mt312_read(state, M_SNR_H, buf, sizeof(buf));
- 	if (ret < 0)
- 		return ret;
- 
-@@ -478,7 +478,7 @@ static int mt312_read_ucblocks(struct dv
- 	int ret;
- 	u8 buf[2];
- 
--	ret = mt312_read(state, RS_UBC_H, &buf, sizeof(buf));
-+	ret = mt312_read(state, RS_UBC_H, buf, sizeof(buf));
- 	if (ret < 0)
- 		return ret;
- 
+> Here is my current version after quite a while of testing and tuning:
+> I stripped the stb0899 tuning/searching algo to speed up tuning a bit
+> now I have very fast and reliable locks (no failures, no errors)
+> =
 
--- 
+> I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it
+> though.)
+> =
+
+> the attached patch applies to jusst.de multiproto rev 7213
+> the simpledvbtune application is for tuning tests: it does only open =
+
+> the frontend and tunes. no data reading/section parsing.
+> compile with:
+> gcc -I/YOUR_MP_PATH/linux/include simpledvbtune.c -o simpletune
+> and tune to (if you have Astra 19.2 as first satellite)
+> ZDF DVB-S transponder
+> ./simpledvbtune -f 11954 =
+
+> Astra demo DVB-S2 transponder
+> ./simpledvbtune -f 11915 -d 2
+
+I patched stb988*.c to see if it immproved my reception, but so far it =
+
+looks pretty much the same: transponder on 11093 is always perfect and =
+
+all others are unreliable (meaning: going from no lock to perfect image =
+
+between times, and if I get no lock tuning to the good transponder on =
+
+11093 MHz and tuning back to where it did not work will give me a lock =
+
+in general), so... I was lost.
+I also tried to substract 4 Mhz to the tuning frequency even up to 10 =
+
+MHz but with the same symptoms.
+BUT the good news is : ADDING 4MHz gives good results: perfect picture =
+
+on every transponders!
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
