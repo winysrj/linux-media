@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp02.msg.oleane.net ([62.161.4.2])
+Received: from mx.zycomm.uk.net ([80.247.17.101] helo=foxbat.zycomm.uk.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JnzQH-0005Ub-5t
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 19:03:22 +0200
-Received: from PCTL ([194.250.18.140]) (authenticated)
-	by smtp02.msg.oleane.net (MTA) with ESMTP id m3LH3HQk032509
-	for <linux-dvb@linuxtv.org>; Mon, 21 Apr 2008 19:03:17 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 21 Apr 2008 19:03:16 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAAijN3xCp8g0Kp9uKDTg5IowEAAAAA@tv-numeric.com>
+	(envelope-from <cpwp@w3z.co.uk>) id 1JnXVU-0001oi-K6
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 13:14:53 +0200
+From: Charles Price <cpwp@w3z.co.uk>
+To: linux-dvb@linuxtv.org
+Date: Sun, 20 Apr 2008 12:14:47 +0100
 MIME-Version: 1.0
-Subject: [linux-dvb] Terratec Cinergy T USB XE Rev 2, any update ?
+Content-Disposition: inline
+Message-Id: <200804201214.48003.cpwp@w3z.co.uk>
+Subject: [linux-dvb] Nova-HD-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,45 +23,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi,
 
-As part of my collection of DVB-T devices, I have got a
-Terratec Cinergy T USB XE Rev 2.
+I'm attempting to get my Hauppauge Nova-HD-S2 working on my Linux machine.
 
-This one is known as not yet supported on Linux. The Rev 1
-which used the AF9005 is supported but not the Rev 2 which
-uses the AF9015.
+When I follow the installation instructions for the HVR4000 (no multifrontend, 
+no multiproto)I encounter the following error message when the system tries 
+to load the videodev module:
 
-The article at http://www.linuxtv.org/wiki/index.php/Afatech_AF9015
-is a bit worrying: "At present there are three different Linux drivers
-available for the AF901x. That may strike one as being strange or
-showing signs of a state of dis-coordination, but in actuality,
-each driver has its own reason for coming into existence. In addition,
-taken collectively, the development of three different drivers highlights
-the relative complexity of the chip, as well as the flexibility in device
-design that its employment permits."
+WARNING: Error inserting v4l1_compat 
+(/lib/modules/2.6.25-gentoo/kernel/drivers/media/video/v4l1-compat.ko): 
+Invalid argument
+FATAL: Error inserting videodev 
+(/lib/modules/2.6.25-gentoo/kernel/drivers/media/video/videodev.ko): Invalid 
+module format
 
-In addition to that, the Terratec support site provides a Linux driver at
-ftp://ftp.terratec.net/Receiver/Cinergy_T_USB_XE/Update/Cinergy_T_USB_XE_MKII_Drv_Linux.zip
-The ReadMe.txt claims "Device VID/PID : 0CCD/0068 or 0CCD/0069 (no IR)"
-and 0CCD:0069 is the Cinergy T USB XE Rev 2.
+The commands I used to build the modules are:
 
-However, this driver does not compile. The driver is supposed to work
-on Fedora Core 6 and I have Fedora 8 (kernel 2.6.24) but this does not
-explain everything. Most compile errors are intrinsic to the code and
-do not depend on the kernel. Given some horrible errors (like assigning
-a pointer to a structure with the -integer- size of the structure),
-I doubt that this driver has ever worked. How can a commercial company
-put such a crap online ?
+hg clone -r 127f67dea087 http://linuxtv.org/hg/v4l-dvb
+wget http://dev.kewl.org/hauppauge/v4l-dvb-hg-sfe-latest.diff
+patch -d v4l-dvb -p1 < v4l-dvb-hg-sfe-latest.diff
+cd v4l-dvb && make && make install && reboot
 
-Is there any news with the AF9015 and more specifically the Cinergy
-T USB XE Rev 2 ?
+My system is x86, with 2.6.25-gentoo kernel, gcc-4.2.3 and glibc-2.7-r1 
+although I've also tried kernel 2.6.24-gentoo-r2.
 
-Does anyone get it working ?
+Any suggestions as to what I might try next? A vanilla kernel maybe?
 
-Thanks in advance,
--Thierry
+Thanks,
 
+Charlie
 
 _______________________________________________
 linux-dvb mailing list
