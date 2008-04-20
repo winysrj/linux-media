@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JkSFg-00030C-FT
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 01:01:54 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from wx-out-0506.google.com ([66.249.82.239])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bqproductions@gmail.com>) id 1JnbaS-00030w-Iu
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 17:36:18 +0200
+Received: by wx-out-0506.google.com with SMTP id s11so1037845wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 08:36:11 -0700 (PDT)
+Message-ID: <3064975c0804200836g22e3f5fcg80f386e598ac5142@mail.gmail.com>
+Date: Sun, 20 Apr 2008 10:36:10 -0500
+From: "Bob Quincy" <bqproductions@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Fri, 11 Apr 2008 23:36:12 +0200
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>
-	<200804102240.13933@orion.escape-edv.de>
-	<47FFD432.8020609@t-online.de>
-In-Reply-To: <47FFD432.8020609@t-online.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804112336.13026@orion.escape-edv.de>
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
-	transponder fails
-Reply-To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] kworld 340u
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,87 +18,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1819571728=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hartmut Hackmann wrote:
-> Hi,
-> 
-> Oliver Endriss schrieb:
-> > Hi,
-> > 
-> > Manu Abraham wrote:
-> >> Oliver Endriss wrote:
-> >> ...
-> >>> Ok, some calculations according your formula
-> >>>
-> >>>>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
-> >>> 45 MSPS:
-> >>> BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
-> >>>
-> >>> -> cutoff 36 MHz (maximum value supported)
-> >>>
-> >>> 27 MSPS:
-> >>> BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
-> >>>
-> >>> -> cutoff 31 MHz
-> >>>
-> >>> 22 MSPS:
-> >>> BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
-> >>>
-> >>> -> cutoff 26 MHz
-> >>>
-> >>> Are these calculations correct, or did I miss something here?
-> >>
-> >> It looks fine, just round it off to the next integer. ie always round it
-> >> up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
-> >> well, since at the last step, you will not need an offset, since it
-> >> would be the last step in the spectrum.
-> >> ...
-> >>> Afaics a simple pre-calculated lookup table with 32 entries should do
-> >>> the job. At least for the cut-off frequency.
-> >> That's possible, since you need only 32 precomputed entries, rather than
-> >> continuous values. That would be much better too, without any runtime
-> >> overheads. Just the table needs to be done nice.
-> > 
-> > Now I found some time to come back to this issue,
-> > 
-> > I prepared a small patch to set the cutoff according to Manu's formula.
-> > The calculation is simple enough for integer arithmetic, so it is not
-> > worth to prepare a lookup-table.
-> > 
-> > @ldvb:
-> > Please test and report whether it works for you.
-> > 
-> > CU
-> > Oliver
-> > 
-> I intended to do the same.
+--===============1819571728==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_14530_1565471.1208705770552"
 
-If I had been aware of that, I would have done something else. ;-)
-My time is rather limited these days...
+------=_Part_14530_1565471.1208705770552
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Since I have a patch for tda10086 which needs public testing as well, i
-> would like to propose this:
-> I do a static check and integrate the patch in my repository together
-> with my patch and ask for public testing.
-> Hope this will not overstress the few testers we have ;-)
+I have a kworld 340u ATSC USB tuner.
 
-Ok. Since I don't have the hardware I ran the code with common symbol
-rates. The results looked ok.
+These are the major (or only) chips on the board
 
-CU
-Oliver
+tda18271 (tuner)
+lgdt3304 (vsb/qam?)
+em2870 (usb video bridge)
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+And I see there are modules for these in the v4l source.
+
+I modified the em28xx-cards source to recognize the card as an unknown.
+
+If i specifiy the 950 card, it seems to pick up the lgt3304 and the em2870
+chip.
+
+However, I can't seem to get it recognize the tuner. I changed to the 950
+definition (at least I think) to include the TDA_8290
+
+It still seems like its loading the old tuner modules.
+
+Any one get this card working?
+
+Any clues on places to modify?
+
+------=_Part_14530_1565471.1208705770552
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I have a kworld 340u ATSC USB tuner.<br><br>These are the major (or only) chips on the board<br><br>tda18271 (tuner)<br>lgdt3304 (vsb/qam?)<br>em2870 (usb video bridge)<br><br>And I see there are modules for these in the v4l source. <br>
+<br>I modified the em28xx-cards source to recognize the card as an unknown.<br><br>If i specifiy the 950 card, it seems to pick up the lgt3304 and the em2870 chip. <br><br>However, I can&#39;t seem to get it recognize the tuner. I changed to the 950 definition (at least I think) to include the TDA_8290 <br>
+<br>It still seems like its loading the old tuner modules.<br><br>Any one get this card working? <br><br>Any clues on places to modify?<br><br><br><br><br>
+
+------=_Part_14530_1565471.1208705770552--
+
+
+--===============1819571728==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1819571728==--
