@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.29])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1Ji6fa-0000PR-VQ
-	for linux-dvb@linuxtv.org; Sat, 05 Apr 2008 13:34:54 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so94155ywh.41
-	for <linux-dvb@linuxtv.org>; Sat, 05 Apr 2008 04:34:45 -0700 (PDT)
-Message-ID: <8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
-Date: Sat, 5 Apr 2008 13:34:45 +0200
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1JngCl-0001oY-Hc
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 22:32:14 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Sun, 20 Apr 2008 22:31:32 +0200
+References: <200804190101.14457.dkuhlen@gmx.net>
+	<200804201054.35570.dkuhlen@gmx.net>
+	<854d46170804200605i711bda4ci2c2e1b78a3e1c47b@mail.gmail.com>
+In-Reply-To: <854d46170804200605i711bda4ci2c2e1b78a3e1c47b@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <47A98F3D.9070306@raceme.org> <1202327817.20362.28.camel@youkaida>
-	<1202330097.4825.3.camel@anden.nu> <47AB1FC0.8000707@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<C34A2B56-5B39-4BE4-BACD-4E653F61FB03@firshman.co.uk>
-	<8ad9209c0803121334s1485b65ap7fe7d5e4df552535@mail.gmail.com>
-	<8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+Message-Id: <200804202231.32999.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+	TT-Connect-S2-3600 final version (RC-keymap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,154 +21,165 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1483120155=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Mar 12, 2008 at 10:38 PM, Patrik Hansson <patrik@wintergatan.com> w=
-rote:
->
-> On Wed, Mar 12, 2008 at 9:34 PM, Patrik Hansson <patrik@wintergatan.com> =
-wrote:
->  >
->  > On Wed, Mar 5, 2008 at 12:03 AM, Ben Firshman <ben@firshman.co.uk> wro=
-te:
->  >  > I am quite disappointed to report that one of my tuners has just di=
-ed
->  >  >  this evening. No error messages to speak of.
->  >  >
->  >  >  Ben
->  >  >
->  >  >
->  >  >
->  >  >  On 26 Feb 2008, at 19:18, Philip Pemberton wrote:
->  >  >
->  >  >  > Patrik Hansson wrote:
->  >  >  >> Just wanted to say that I=B4m experiencing the same.
->  >  >  >> Using latest rev (the one with patches merged) + unknown remote=
- key
->  >  >  >> patch.
->  >  >  >> Ubuntu 7.10
->  >  >  >>
->  >  >  >> Also having a lot of "prebuffer timeout 10 times" i the middle =
-of
->  >  >  >> shows.
->  >  >  >
->  >  >  > I think I might have a workaround... On Mythbuntu or one of the =
-many
->  >  >  > Ubuntu
->  >  >  > variants, this seems to work:
->  >  >  >
->  >  >  > 1)  Run:
->  >  >  >       lsmod |grep usbcore
->  >  >  >
->  >  >  > 2)  If step 1 produced any output that started with 'usbcore', t=
-hen
->  >  >  > usbcore is
->  >  >  > loaded as a module. Perform step 3a. Otherwise, step 3b.
->  >  >  >
->  >  >  > 3a) Create a text file called /etc/modprobe.d/local-dvb (the nam=
-e is
->  >  >  > fairly
->  >  >  > irrelevant). Insert one line of text into it:
->  >  >  >       options usbcore autosuspend=3D-1
->  >  >  >     Now go to step 4.
->  >  >  >
->  >  >  > 3b) Your kernel has usbcore built in. That means you have to mod=
-ify
->  >  >  > the kernel
->  >  >  > command line...
->  >  >  >     Edit /boot/grub/menu.lst (you'll need to sudo to do this).
->  >  >  > Search for
->  >  >  > this line:
->  >  >  > # defoptions=3Dquiet splash
->  >  >  >     Amend it to read:
->  >  >  > # defoptions=3Dquiet splash usbcore.autosuspend=3D-1
->  >  >  >     It's meant to be commented out, so leave the hash at the
->  >  >  > beginning of the
->  >  >  > line alone... Save and exit, then run ...
->  >  >  > sudo update grub
->  >  >  >     Ubuntu will regenerate grub.conf, using the new kernel comma=
-nd
->  >  >  > line. Off
->  >  >  > to step 4 you go!
->  >  >  >
->  >  >  >     If you're using a non-Debian distro (e.g. Fedora), do the sa=
-me
->  >  >  > thing but
->  >  >  > edit the 'kernel' line instead. It might read:
->  >  >  > kernel          /boot/vmlinuz-2.6.24-8-generic root=3DLABEL=3D/ =
-ro quiet
->  >  >  > splash
->  >  >  >     Change it to:
->  >  >  > kernel          /boot/vmlinuz-2.6.24-8-generic root=3DLABEL=3D/ =
-ro quiet
->  >  >  > splash
->  >  >  > usbcore.autosuspend=3D-1
->  >  >  >
->  >  >  > 4)  Reboot your PC.
->  >  >  >
->  >  >  > This is a bit long-winded, but saves a kernel recompile, and a t=
-on
->  >  >  > of messing
->  >  >  > around recompiling kernels when Ubuntu do another release.
->  >  >  >
->  >  >  > I'm working on what I consider to be a better fix, which involves
->  >  >  > using the
->  >  >  > kernel's Quirks function to disable USB suspend just for the DiB=
-com
->  >  >  > controllers. That is, the kernel won't try and suspend them at a=
-ll...
->  >  >  >
->  >  >  > Thanks,
->  >  >  > --
->  >  >  > Phil.                         |  (\_/)  This is Bunny. Copy and
->  >  >  > paste Bunny
->  >  >  > lists@philpem.me.uk           | (=3D'.'=3D) into your signature =
-to help
->  >  >  > him gain
->  >  >  > http://www.philpem.me.uk/     | (")_(") world domination.
->  >  >  >
->  >  >
->  >  >
->  >  > > _______________________________________________
->  >  >  > linux-dvb mailing list
->  >  >  > linux-dvb@linuxtv.org
->  >  >  > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->  >  >
->  >  >
->  >  >  _______________________________________________
->  >  >  linux-dvb mailing list
->  >  >  linux-dvb@linuxtv.org
->  >  >  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->  >  >
->  >
->  >  I just want check something i just discovered.
->  >  Under /sys/module/dvb_core/parameters/ i have something called
->  >  dvb_powerdown_on_sleep
->  >  This i set to "1" for me.
->  >  I also have one called  dvb_shutdown_timeout and that is set to 0
->  >
->  >  Exactly what is it that options usbcore autosuspend=3D-1 controls ?
->  >
->  >  I would have expected that at least one of those should be -1
->  >
->
->  .....and now i see were i made my mistake (usbcore vs dvb_core) and
->  made a fool out of myself.
->  please disregard my last email.
->
+--===============1483120155==
+Content-Type: multipart/signed;
+  boundary="nextPart3317429.D4DCas3coV";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
-Just wanted to report that since stopped the active EIT scanning in
-mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with
-2.6.22-14 without any special module options or anything like that.
-Before i never had both tuners working for more that 24 hours so that
-seems to be the workaround for the moment.
-The card still collects EIT data when watching tv so EPG still works.
+--nextPart3317429.D4DCas3coV
+Content-Type: multipart/mixed;
+  boundary="Boundary-01=_kg6CIEISuiwAiqU"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+--Boundary-01=_kg6CIEISuiwAiqU
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Sunday 20 April 2008, Faruk A wrote:
+> >  > The second patch you posted "patch_multiproto_dvbs2_frequency.diff"
+> >  > doesn't seem to work for me, it does compile fine but the problem is
+> >  > loading the the driver.
+> >  >
+> >  > insmod stb0899.ko verbose=3D5
+> >  >
+> >  > insmod: error inserting 'stb0899.ko': -1 Unknown symbol in module
+> >  >
+> >  > Apr 19 21:22:40 archer usbcore: deregistering interface driver pctv4=
+52e
+> >  > Apr 19 21:22:40 archer dvb-usb: Technotrend TT Connect S2-3600
+> >  > successfully deinitialized and disconnected.
+> >  > Apr 19 21:22:40 archer usbcore: deregistering interface driver
+> >  > dvb-usb-tt-connect-s2-3600-01.fw
+> >  > Apr 19 21:22:45 archer stb0899: Unknown symbol __divdi3
+> >  hmm, there might be an issue with the 64-bit arithmetic. what platform=
+ are your running?
+> >  I'll try to convert that back to 32-bit only.
+>=20
+> I'm using 32-bit Archlinux kernel 2.6.24.4 and my testing computer spec i=
+s:
+> Dell Optiplex GX620
+> Pentium D 2.80GHz
+> 2GB RAM, 160GB SATA2.
+>=20
+> thanks for "patch_add_tt_s2_3600_rc_keymap.diff" I have tested it with
+> vdr remote plugin and all keys are working.
+
+I was told that there's a bug in the rc keymap size which is fixed by the a=
+ttached patch
+
+=20
+> If you are going to release another version or future update please
+> add support for TT connect s2 3650 CI, its same as 3600 but with CI.
+> +#define USB_PID_TECHNOTREND_CONNECT_S2_3650_CI             0x300a
+attached as patch
+
+Dominik
+
+--Boundary-01=_kg6CIEISuiwAiqU
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="patch_add_tt_s2_3650_ci.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="patch_add_tt_s2_3650_ci.diff"
+
+diff -r b25ed8c6c0e8 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+=2D-- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sun Apr 20 22:23:21 2=
+008 +0200
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sun Apr 20 22:28:21 200=
+8 +0200
+@@ -144,6 +144,7 @@
+ #define USB_PID_PCTV_450E				0x0222
+ #define USB_PID_PCTV_452E				0x021f
+ #define USB_PID_TECHNOTREND_CONNECT_S2_3600             0x3007
++#define USB_PID_TECHNOTREND_CONNECT_S2_3650_CI          0x300a
+ #define USB_PID_NEBULA_DIGITV				0x0201
+ #define USB_PID_DVICO_BLUEBIRD_LGDT			0xd820
+ #define USB_PID_DVICO_BLUEBIRD_LG064F_COLD		0xd500
+diff -r b25ed8c6c0e8 linux/drivers/media/dvb/dvb-usb/pctv452e.c
+=2D-- a/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun Apr 20 22:23:21 2008=
+ +0200
++++ b/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun Apr 20 22:28:21 2008 +=
+0200
+@@ -967,6 +967,7 @@ static struct usb_device_id pctv452e_usb
+ static struct usb_device_id pctv452e_usb_table[] =3D {
+ 	{USB_DEVICE(USB_VID_PINNACLE, USB_PID_PCTV_452E)},
+ 	{USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_S2_3600)},
++	{USB_DEVICE(USB_VID_TECHNOTREND, USB_PID_TECHNOTREND_CONNECT_S2_3650_CI)},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(usb, pctv452e_usb_table);
+@@ -1077,6 +1078,10 @@ static struct dvb_usb_device_properties=20
+ 		  .cold_ids =3D { NULL, NULL }, // this is a warm only device
+ 		  .warm_ids =3D { &pctv452e_usb_table[1], NULL }
+ 		},
++		{ .name =3D "Technotrend TT Connect S2-3650-CI",
++		  .cold_ids =3D { NULL, NULL }, // this is a warm only device
++		  .warm_ids =3D { &pctv452e_usb_table[2], NULL }
++		},
+ 		{ 0 },
+ 	}
+ };
+
+--Boundary-01=_kg6CIEISuiwAiqU
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="patch_fix_tts2_keymap.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="patch_fix_tts2_keymap.diff"
+
+diff -r 6ebc788b30f2 linux/drivers/media/dvb/dvb-usb/pctv452e.c
+=2D-- a/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun Apr 20 22:28:55 2008=
+ +0200
++++ b/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun Apr 20 22:29:13 2008 +=
+0200
+@@ -1038,7 +1038,7 @@ static struct dvb_usb_device_properties=20
+ 	.power_ctrl       =3D pctv452e_power_ctrl,
+=20
+ 	.rc_key_map       =3D tt_connect_s2_3600_rc_key,
+=2D	.rc_key_map_size  =3D ARRAY_SIZE(pctv452e_rc_keys),
++	.rc_key_map_size  =3D ARRAY_SIZE(tt_connect_s2_3600_rc_key),
+ 	.rc_query         =3D pctv452e_rc_query,
+ 	.rc_interval      =3D 100,
+=20
+
+--Boundary-01=_kg6CIEISuiwAiqU--
+
+--nextPart3317429.D4DCas3coV
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQBIC6gk6OXrfqftMKIRAmgYAKCuy+bRhAheaE4LELaSFPVGodfMkACaAnUO
+M7ZuPhMPwCPIqEDqtdzcsjQ=
+=NPFK
+-----END PGP SIGNATURE-----
+
+--nextPart3317429.D4DCas3coV--
+
+
+--===============1483120155==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1483120155==--
