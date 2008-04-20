@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [66.180.172.116] (helo=vps1.tull.net)
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1Jj5r9-0000Gt-Hb
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 06:54:56 +0200
-Date: Tue, 8 Apr 2008 14:54:24 +1000
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
-To: Melissa Carley <chelta@gmail.com>
-Message-ID: <20080408045424.GA13098@tull.net>
-References: <18b099ea0804071918n6fe3d5d4n4c76b6e7e2e8f220@mail.gmail.com>
+	(envelope-from <dkuhlen@gmx.net>) id 1JnVTJ-0003qr-8O
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 11:04:30 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Sun, 20 Apr 2008 11:03:55 +0200
+References: <200804190101.14457.dkuhlen@gmx.net>
+	<1208607419l.6132l.0l@manu-laptop>
+In-Reply-To: <1208607419l.6132l.0l@manu-laptop>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <18b099ea0804071918n6fe3d5d4n4c76b6e7e2e8f220@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DigitalNow TinyTwin USB Tuner
+Message-Id: <200804201103.55265.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Re : Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+	TT-Connect-S2-3600 final version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,54 +20,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1072161204=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-G'day Melissa,
+--===============1072161204==
+Content-Type: multipart/signed;
+  boundary="nextPart3637058.sHDUshAPCd";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 08, 2008 at 11:48:26AM +0930, Melissa Carley wrote:
-> My system is Gentoo, running 2.6.24 kernel. I have downloaded the
-> drivers I believe to be accurate
-> (http://linuxtv.org/hg/~anttip/af9015/) via hg clone, and have done a
-> make & make install on them from my system.
+--nextPart3637058.sHDUshAPCd
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I'm afraid this driver doesn't yet work for this device.
+Hi,
+On Saturday 19 April 2008, manu wrote:
+> On 04/18/2008 07:01:14 PM, Dominik Kuhlen wrote:
+> > Hi,
+> >=20
+> > Here is my current version after quite a while of testing and tuning:
+> > I stripped the stb0899 tuning/searching algo to speed up tuning a bit
+> > now I have very fast and reliable locks (no failures, no errors)
+> >=20
+> > I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it
+> > though.)
+> >=20
+>=20
+> 	Hi,
+> I will try it right away! BTW should I substract the 4MHz you talked=20
+> about in another email when using this patch or is it already fixed by=20
+> this (I did not try yet).
+This should be fixed. The offset I liked you to test was to check whether m=
+y investigations went in the right direction ;)
+=46or DVB-S transponders I can use a frequency offset in the range from -7M=
+Hz to +7MHz=20
+ and still get reliable locks. The actual frequency is reported by DVBFE_GE=
+T_PARAM ioctl=20
+which could be used to update the frequency list automagically.
 
-> They do not appear in the kernel (I'm not sure if they are meant to?)
-> and I cannot find them in /lib/modules/<kernelversion> at all.
+Dominik
 
-You would normally do 'make install' as root to copy the modules
-from your build directory to below /lib/modules/<kernelversion>
-but there's not much point doing that at this time, because the
-driver doesn't work with the TinyTwin device yet.
+--nextPart3637058.sHDUshAPCd
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-You can also insmod from the build directory, i.e.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
 
-insmod ./v4l/dvb-core.ko
-insmod ./v4l/dvb-pll.ko
-insmod ./v4l/dvb-usb.ko
-insmod ./v4l/dvb-af901x.ko
+iD8DBQBICwb76OXrfqftMKIRAhd2AJ466ssxOgMYLGnR1HJ1Zqgm9f9DxACaAt38
+W0D06DyL8zPMxpNw3FQe0XY=
+=OeT3
+-----END PGP SIGNATURE-----
 
-> Again, this might seem dumb - but has any one had any luck with
-> getting this working, and if so can you advise me on a type of
-> step-by-step procedure?
+--nextPart3637058.sHDUshAPCd--
 
-You're doing the correct thing.
 
-> Bus 002 Device 003: ID 13d3:3226 IMC Networks (I think this is meant
-> to be the USB stick?)
-
-Yes, this is the one.
-
-Nick.
--- 
-PGP Key ID = 0x418487E7                      http://www.nick-andrew.net/
-PGP Key fingerprint = B3ED 6894 8E49 1770 C24A  67E3 6266 6EB9 4184 87E7
+--===============1072161204==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1072161204==--
