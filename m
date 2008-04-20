@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1JkyrS-00041J-QW
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 11:51:00 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so1392202fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 02:50:53 -0700 (PDT)
-Message-ID: <4801D77A.1070106@googlemail.com>
-Date: Sun, 13 Apr 2008 10:50:50 +0100
-From: Andrea <mariofutire@googlemail.com>
+Received: from bld-mail11.adl2.internode.on.net ([203.16.214.75]
+	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <short_rz@internode.on.net>) id 1JnQad-00042k-Sm
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 05:51:49 +0200
+Message-ID: <480ABF78.1000300@internode.on.net>
+Date: Sun, 20 Apr 2008 13:28:48 +0930
+From: Andrew Jeffery <short_rz@internode.on.net>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-	<47E813C7.6070208@googlemail.com>
-	<200804120235.52939@orion.escape-edv.de>
-	<4801D2B1.9050502@googlemail.com>
-In-Reply-To: <4801D2B1.9050502@googlemail.com>
-Content-Type: multipart/mixed; boundary="------------020903090502090405010705"
-Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
+References: <480977B6.5070304@internode.on.net> <20080419102156.GA8217@ts4.de>
+	<480A9DA0.5060603@internode.on.net>
+In-Reply-To: <480A9DA0.5060603@internode.on.net>
+Cc: Thomas Schuering <schuering@ts4.de>
+Subject: Re: [linux-dvb] FusionHDTV Dual Digital 4 Segfault
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,195 +20,118 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020903090502090405010705
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Andrea wrote:
-> Ok.
-> 
-> I've changed the second patch to
-> 1) allocate the new buffer before releasing the old one
-> 2) use spin_[un]lock_irq
-> 
-> 3) On top of that, I have rearranged the code of DMX_SET_BUFFER_SIZE for 
-> the demux so that it does the same as the dvr (i.e. allocate the new 
-> buffer before releasing the old one). I think it is a good idea that 2 
-> very similar functions are implemented in the same way. (if you don't 
-> agree, or if you think a 3rd separate patch for this point is a better 
-> idea, let me know.)
-> 
-> PS: Both patches 1/3 and 2/3 are against a clean v4l-dvb tree. I do not 
-> know how to generate incremental patch for 2/3.
-> 
-> Let me know what you think about that.
-> 
-> Andrea
 
-I've fixed the patch to pass the "make checkpatch" check.
 
-Andrea
+Andrew Jeffery wrote:
+|
+|
+| Thomas Schuering wrote:
+| | On Sat, Apr 19, 2008 at 02:10:22PM +0930, Andrew Jeffery wrote:
+| |> -----BEGIN PGP SIGNED MESSAGE-----
+| |> Hash: SHA1
+| |>
+| |> Hi all,
+| |>
+| |> Bought myself a Dual Digital 4 the other day and I'm trying to get
+it up
+| |> and running - bumped into a segfault though :(
+| |
+| | Hi Andrew,
+| |
+| | I suppose you tried the standard-branch of v4l, didn't you?
+| | That one also caused the same problems on my side.
+| |
+| | Try this one instead:
+| | hg clone http://linuxtv.org/hg/~pascoe/xc-test/
+|
+| Yeah I was using the standard branch and tried the xc-test branch after
+| I emailed :) It started working with Chris' branch but now I'm having
+| troubles with the USB device on the card. This is what I'm getting in
+dmesg:
+|
+| ...
+| usb usb8: configuration #1 chosen from 1 choice
+| hub 8-0:1.0: USB hub found
+| hub 8-0:1.0: 4 ports detected
+| usb 8-1: new high speed USB device using ehci_hcd and address 2
+| usb 8-1: device descriptor read/64, error -71
+| usb 8-1: device descriptor read/64, error -71
+| usb 8-1: new high speed USB device using ehci_hcd and address 3
+| usb 8-1: device descriptor read/64, error -71
+| usb 8-1: device descriptor read/64, error -71
+| usb 8-1: new high speed USB device using ehci_hcd and address 4
+| EXT3 FS on sda3, internal journal
+| DVB: registering new adapter (saa7133[0])
+| DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+| usb 8-1: device not accepting address 4, error -71
+| tda1004x: setting up plls for 48MHz sampling clock
+| usb 8-1: new high speed USB device using ehci_hcd and address 5
+| usb 8-1: device not accepting address 5, error -71
+| usb 8-2: new high speed USB device using ehci_hcd and address 6
+| usb 8-2: configuration #1 chosen from 1 choice
+| ...
+|
+| If I modprobe the drivers (tuner-xc2028, zl10353 and dvb-usb-cxusb) in
+| nothing happens, dmesg just says that a new interface has been loaded -
+| no hardware initialisation messages or anything.
 
---------------020903090502090405010705
-Content-Type: text/plain;
- name="patch.2"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch.2"
+That's actually wrong, here one of the tuners accepted address 6 and I
+could load the frontend for it. Not sure why but it seems that
+occasionally one of the tuners will work, other times neither of them,
+and as I said before I did have both of them working at one stage - it
+seems pretty random :(
 
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dmxdev.c
---- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sun Apr 13 10:44:54 2008 +0100
-@@ -259,6 +259,39 @@ static ssize_t dvb_dvr_read(struct file 
- 	return ret;
- }
- 
-+static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-+				      unsigned long size)
-+{
-+	struct dvb_ringbuffer *buf = &dmxdev->dvr_buffer;
-+	void *newmem;
-+	void *oldmem;
-+
-+	dprintk("function : %s\n", __func__);
-+
-+	if (buf->size == size)
-+		return 0;
-+	if (!size)
-+		return -EINVAL;
-+
-+	newmem = vmalloc(size);
-+	if (!newmem)
-+		return -ENOMEM;
-+
-+	oldmem = buf->data;
-+
-+	spin_lock_irq(&dmxdev->lock);
-+	buf->data = newmem;
-+	buf->size = size;
-+
-+	/* reset and not flush in case the buffer shrinks */
-+	dvb_ringbuffer_reset(buf);
-+	spin_unlock_irq(&dmxdev->lock);
-+
-+	vfree(oldmem);
-+
-+	return 0;
-+}
-+
- static inline void dvb_dmxdev_filter_state_set(struct dmxdev_filter
- 					       *dmxdevfilter, int state)
- {
-@@ -271,28 +304,32 @@ static int dvb_dmxdev_set_buffer_size(st
- 				      unsigned long size)
- {
- 	struct dvb_ringbuffer *buf = &dmxdevfilter->buffer;
--	void *mem;
-+	void *newmem;
-+	void *oldmem;
- 
- 	if (buf->size == size)
- 		return 0;
-+	if (!size)
-+		return -EINVAL;
- 	if (dmxdevfilter->state >= DMXDEV_STATE_GO)
- 		return -EBUSY;
-+
-+	newmem = vmalloc(size);
-+	if (!newmem)
-+		return -ENOMEM;
-+
-+	oldmem = buf->data;
-+
- 	spin_lock_irq(&dmxdevfilter->dev->lock);
--	mem = buf->data;
--	buf->data = NULL;
-+	buf->data = newmem;
- 	buf->size = size;
--	dvb_ringbuffer_flush(buf);
-+
-+	/* reset and not flush, in case the new buffer is smaller */
-+	dvb_ringbuffer_reset(buf);
- 	spin_unlock_irq(&dmxdevfilter->dev->lock);
--	vfree(mem);
--
--	if (buf->size) {
--		mem = vmalloc(dmxdevfilter->buffer.size);
--		if (!mem)
--			return -ENOMEM;
--		spin_lock_irq(&dmxdevfilter->dev->lock);
--		buf->data = mem;
--		spin_unlock_irq(&dmxdevfilter->dev->lock);
--	}
-+
-+	vfree(oldmem);
-+
- 	return 0;
- }
- 
-@@ -1009,6 +1046,7 @@ static int dvb_dvr_do_ioctl(struct inode
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
-+	unsigned long arg = (unsigned long)parg;
- 	int ret;
- 
- 	if (mutex_lock_interruptible(&dmxdev->mutex))
-@@ -1016,8 +1054,7 @@ static int dvb_dvr_do_ioctl(struct inode
- 
- 	switch (cmd) {
- 	case DMX_SET_BUFFER_SIZE:
--		// FIXME: implement
--		ret = 0;
-+		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
- 		break;
- 
- 	default:
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c
---- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.c	Sun Apr 13 10:44:54 2008 +0100
-@@ -90,6 +90,11 @@ void dvb_ringbuffer_flush(struct dvb_rin
- 	rbuf->error = 0;
- }
- 
-+void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
-+{
-+	rbuf->pread = rbuf->pwrite = 0;
-+	rbuf->error = 0;
-+}
- 
- 
- void dvb_ringbuffer_flush_spinlock_wakeup(struct dvb_ringbuffer *rbuf)
-diff -r 54cdcd915a6b linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h
---- a/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Fri Apr 11 08:29:44 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_ringbuffer.h	Sun Apr 13 10:44:54 2008 +0100
-@@ -84,6 +84,12 @@ extern ssize_t dvb_ringbuffer_free(struc
- /* return the number of bytes waiting in the buffer */
- extern ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf);
- 
-+/*
-+** Reset the read and write pointers to zero and flush the buffer
-+** This counts as a read and write operation
-+*/
-+
-+extern void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf);
- 
- /* read routines & macros */
- /* ---------------------- */
+I had a look at the FAQ at http://www.linux-usb.org/ and found that my
+problem's described there as well. I tried the relevant solutions (bios
+update, rmmod/modprobe uhci-hcd) but none of them have worked.
 
---------------020903090502090405010705
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+It doesn't look very
+| promising and it happens every boot since I got it working with Chris'
+| drivers... not sure if it's correlated :( I've read the errors are
+| something to do with the device getting suspended so I set noapic and
+| acpi=off but that didn't help either :/ I'll chuck the card in a windows
+| box and see what happens, see if that can kickstart it or something.
+| Anything else I should try?
+|
+| Andrew
+| |
+| | That helped removing the segfault.
+| |
+| |
+| | Hope this helps.
+| |
+| | Regards, Thomas
+|
+
+Andrew
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020903090502090405010705--
+
+- --
+"Encouraging innovation by restricting the spread & use of information
+seems highly counterintuitive to me." - Slashdot comment
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFICr94/5R+ugbygqQRAgO8AJ97PUX+VS/AfeeUdDKNsZAFqxIUCwCeIDUr
+paNfJUUgk64J0KC5xA4DuaA=
+=h0KX
+-----END PGP SIGNATURE-----
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
