@@ -1,13 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <47FF6971.70601@linuxtv.org>
-Date: Fri, 11 Apr 2008 09:36:49 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from fk-out-0910.google.com ([209.85.128.190])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bokola@gmail.com>) id 1JnfWx-0006AW-SP
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 21:48:58 +0200
+Received: by fk-out-0910.google.com with SMTP id z22so2084920fkz.1
+	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 12:48:51 -0700 (PDT)
+Message-ID: <854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
+Date: Sun, 20 Apr 2008 21:48:50 +0200
+From: "Faruk A" <fa@elwak.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200804201739.35206.dkuhlen@gmx.net>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <47FF216F.6040207@anevia.com> <47FF67FA.80902@linuxtv.org>
-In-Reply-To: <47FF67FA.80902@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MPEG2TS and HVR-1300
+Content-Disposition: inline
+References: <200804190101.14457.dkuhlen@gmx.net>
+	<200804201054.35570.dkuhlen@gmx.net>
+	<854d46170804200605i711bda4ci2c2e1b78a3e1c47b@mail.gmail.com>
+	<200804201739.35206.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+	TT-Connect-S2-3600 final version (RC-keymap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,32 +31,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Frederic CAND wrote:
->> Hi all,
->>
->> we have here at our office an Hauppauge HVR 1300. It's working under 
->> Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is 
->> working fine though.
->>
->>  From what I read, it looks like the Conexant CX23416 chipset should 
->> supports Transport Stream but we've not been able to use it. Are we 
->> missing something ?
-> 
-> Last I heard transport mode was disabled in the firmware sometime ago by 
-> Conexant, in favor of some other feature being enabled.
-> 
-> If you can find really early firmware for the PVR150 then you might try 
-> that. (Circa 3-4 years ago).
-> 
+>  Could you please try to change line 1547 in stb0899_algo.c to:
+>
+>  offsetfreq = ((((offsetfreq / 1024) * 1000) / (1<<7)) * (s32)(internal->master_clk/1000000)) / (s32)(1<<13);
+>
+>  this should use only 32bit ops and not over/underflow for the expected ranges ;)
+>
+>
+>   Dominik
 
-Please note:  if you do find the older firmware, you will have to patch cx88-blackbird.c to allow firmware size 262144.
+It works, with this new changes i had no problem loading the drivers.
 
-If this works for you, please post your results.
+One more thing i did some testing with vdr and dvbs2 it looks like it
+locks in exactly after 1 minute
+but no video or audio vdr just displays no signal. I don't know if is
+the vdrs fault or the drivers
+anyway i have attached a small log. (no attachment rejected by
+moderator, I've sent copy of this mail to Dominik with attachment.
+Tried pastebin too didn't help)
 
-Regards,
+The dvb-s2 channel is ASTRA HD+ on ASTRA 19E
+vdr version is 1.6.0 with Reinhard Nissl's DVB-S2 + H.264 patch
 
-Mike
+Faruk
 
 _______________________________________________
 linux-dvb mailing list
