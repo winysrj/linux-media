@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1Jhmah-000200-Na
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 16:08:30 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so88464fkz.1
-	for <linux-dvb@linuxtv.org>; Fri, 04 Apr 2008 07:08:24 -0700 (PDT)
-Message-ID: <854d46170804040708w5eb7fdd8i14e9ab0217a7a892@mail.gmail.com>
-Date: Fri, 4 Apr 2008 16:08:23 +0200
-From: "Faruk A" <fa@elwak.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
+Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <r.schedel@yahoo.de>) id 1JneyV-0003AL-4U
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 21:13:26 +0200
+Message-ID: <480B95A8.5050607@yahoo.de>
+Date: Sun, 20 Apr 2008 21:12:40 +0200
+From: Robert Schedel <r.schedel@yahoo.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <854d46170804040633g2bc6a9feu306f89a33d728fe3@mail.gmail.com>
-	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAiw09Uvdzk++ugUSBDsN3QEAAAAA@tv-numeric.com>
-Subject: Re: [linux-dvb] RE : RE : Ofcom announce HD freeview standard in UK
+To: linux-dvb@linuxtv.org
+References: <47F9E95D.6070705@yahoo.de> <48066F62.8000709@yahoo.de>
+	<48076C7A.7070901@yahoo.de>
+	<200804180234.34558@orion.escape-edv.de>
+In-Reply-To: <200804180234.34558@orion.escape-edv.de>
+Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot polling
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,51 +26,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Apr 4, 2008 at 3:54 PM, Thierry Lelegard
-<thierry.lelegard@tv-numeric.com> wrote:
-> >> > In summary, looks like HD will be DVB-T2 with MPEG4, with 3 HD channels on
->  >>  > air from "late 2009 / early 2010"
->  >>  > ...
->  >>
->  >> > Guess I will need new DVB-T2 hardware :(
->  >>
->  >>  Is there any existing DVB-T2 hardware today, either regular STB or PCI/USB board ?
->  >>
->  >>  In France, the terrestrial HD is supposed to officially start in a few weeks
->  >>  from now ("spring 2008"). But it will use DVB-T because of lack of DVB-T2 STB.
->  >
->
-> > Hi!
->  >
->  > TerraTec Cinergy T USB XXS HD, H.264, USB2.0, DVB-T, Codec for HDTV support
->  > In Sweden it's only 479 SEK (50 Euro)
->  >
->  > Hauppauge! WinTV-NOVA-TD-HD, Dual-DVB-T, USB2.0, HD-ready (999 SEK = 105 Euro)
->  >
->  > Hauppauge! WinTV-NOVA-T-500-HD, Dual-DVB-T, PCI, EPG, Radio, HD-ready
->  > (949 SEK = 100 Euro)
->
->  They certainly come with HD-capable software.
->  But do they really support DVB-T2 modulation ?
->
->  Since most current tuners for PC are simple tuners, there is no hardware
->  difference for SD vs. HD. It is only a matter of software codec.
->
->  DVB-T2, on the other hand, is a different *modulation* technique which
->  must be implemented in hardware.
->
->
->
->
->  _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Oliver Endriss wrote:
+> Robert Schedel wrote:
+>> Robert Schedel wrote:
+>>
+>>> Is the 250ms timeout an approved limit? Decreasing it would push the
+>>> load further down. Probably it still has to cover slow CAMs as well as a
+>>> stressed PCI bus. Unfortunately, without CAM/CI I cannot make any
+>>> statements myself.
+>> Just got another idea to improve the code: Function 
+>> "saa7146_wait_for_debi_done_sleep" could be reworked to use what is 
+>> known as "truncated binary exponential backoff" algorithm. IOW, on each 
+>> sleep duplicate the period from 1ms until a fixed maximum, e.g. 32ms. 
+>> This way polling ends fast for those users with fast bus/CAM, and those 
+>> requiring 200ms due to slow bus/CAM should not worry about e.g. 216ms 
+>> response time.
+>>
+>> My first tests look promising (load goes down to 0). However, is not the 
+>> simple BEB algorithm already patented?
+> 
+> Load should go down to 0 if the sleep call does not busy-wait.
+> 
+> Please test whether the attached code fixes the problem.
+> Btw, I will not claim a patent for that. :D
 
-Sorry i have no info regarding that, I was think of buying TerraTec
-Cinergy T USB XXS HD, H.264 next month
-if what u said is true i should wait then.
+OK, I just took the time to make a more reliable test series (because 
+load measurements varied). All nonessential system processes and modules 
+were terminated before the test. Basically, only the login shell and the 
+budget_av module were left. 1 minute uptime was used for measurements.
+
+Kernel: Linux 2.6.25
+HW: Athlon 64 X2 3800+, Satelco EasyWatch DVB-C (as before)
+
+1. Original module budget_av is loaded:
+Load: ~0,6-0,8
+
+2. Module + Patch "saa7146_sleep.diff" (1ms/10ms polling intervals in 
+debi_done function):
+Load: ~0,6-0,8 (same as in 1., no difference visible)
+
+3. Module + Patch "incr-empty-ca-slot-poll-2.6.24.4.patch" (5s polling 
+timer on slot state EMPTY):
+Load: Decays to 0,02, but after about 105s always a spike to 0,10, then 
+again decays to 0,02, and so on
+
+4. Module + Patch "incr-empty-ca-slot-poll" + "saa7146_sleep.diff":
+Same as 3.
+
+5. Module + Patch "incr-empty-ca-slot-poll" + "binary exponential backoff":
+Same as 3.
+
+6. Module budget_av is unloaded:
+Load constantly stays at 0, no spikes
+
+Bottomline for me:
+- Increasing the poll timer from 100ms, e.g. to 5s, makes sense. 
+Changing the polling intervals in the debi_done function, however, makes 
+no difference (unlike my previous assumption which was caused by the 
+ugly variations).
+- There seems to be a spike in the CPU load, each ~105s, but only when 
+budget_av is loaded. I cannot explain it (maybe some frontend background 
+functions), but it is no issue for me.
+
+Regards,
+Robert
+
 
 _______________________________________________
 linux-dvb mailing list
