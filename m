@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5-g19.free.fr ([212.27.42.35])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.merle@free.fr>) id 1JokoE-0002kH-GP
-	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 21:39:15 +0200
-Message-ID: <480F9062.6000700@free.fr>
-Date: Wed, 23 Apr 2008 21:39:14 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jnj2T-0003Rx-9h
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 01:33:43 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Date: Mon, 21 Apr 2008 01:32:16 +0200
+References: <4803E9A2.30804@t-online.de>
+In-Reply-To: <4803E9A2.30804@t-online.de>
 MIME-Version: 1.0
-To: Tomi Orava <tomimo@ncircle.nullnet.fi>
-References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>	<20071018181040.GA6960@dose.home.local>	<20071018182940.GA7317@dose.home.local>	<20071018201418.GA16574@dose.home.local>	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>
-	<472A0CC2.8040509@free.fr>
-In-Reply-To: <472A0CC2.8040509@free.fr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
- Cinergy T2 driver
+Content-Disposition: inline
+Message-Id: <200804210132.17281@orion.escape-edv.de>
+Cc: LInux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] tda10086: Testers wanted
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,27 +21,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VGhpZXJyeSBNZXJsZSBhIMOpY3JpdCA6Cj4gVGVzdGVkIHRoZSBhdHRhY2hlZCBwYXRjaCBvbiBt
-eSBOU0xVMiAoMjY2TUh6IEFSTSBhcmNoaXRlY3R1cmUsIDMyTWIKPiBSQU0pLCB3aXRoIGEgZGVi
-aWFuLWFybSAyLjYuMjIgKHNpZCkgaW5zdGFsbGVkLgo+IFRoZSBkdmIgc3RyZWFtIGlzIE9LIGFu
-ZCB0aGUgZHJpdmVyIGxvb2tzIHNpbXBsZXIgKGxlc3MgY29kZSBhbmQKPiBtb2R1bGFyaXplZCku
-Cj4gMiBtaW5vciBub3RlczoKPiAtIHlvdSBzaG91bGQgbm90IHB1dCDCsiBmb3IgY2luZXJneVQy
-IGJ1dCAnMicgaW4gdGhlIGZpbGUgaGVhZGVycy4gSXQKPiBsb29rcyBsaWtlIHRoYXQgb24gbXkg
-c3lzdGVtOiAiQ2luZXJneSBUw6/Cv8K9IiAoVVRGOCBvciBzb21ldGhpbmcgbGlrZSB0aGF0KS4K
-PiAtIHlvdXIgcGF0Y2ggaXMgbWlzc2luZyBhIG5ld2xpbmUgYXQgdGhlIGVuZC4gVGhpcyBjYXVz
-ZXMgYW4gZXJyb3Igd2hlbgo+IGFwcGxpZWQ6Cj4gInBhdGNoIHVuZXhwZWN0ZWRseSBlbmRzIGlu
-IG1pZGRsZSBvZiBsaW5lCj4gcGF0Y2g6ICoqKiogbWFsZm9ybWVkIHBhdGNoIGF0IGxpbmUgMTAx
-NzogICIKPiAKPiBUaGFua3MgZm9yIHRoaXMgZW5oYW5jZW1lbnQuCj4gQ2hlZXJzLAo+IFRoaWVy
-cnkKCkhpIFRvbWksCndoYXQgaXMgdGhlIHN0YXR1cyBvZiB0aGlzIGRyaXZlciBlbmhhbmNlbWVu
-dD8KSXMgdGhlcmUgYSBibG9ja2luZyBpc3N1ZSB0byBpbnRlZ3JhdGUgaXQgaW4gdGhlIHY0bC1k
-dmIgdHJlZT8KSWYgSSBjYW4gaGVscCB5b3UgdG8gc29sdmUgYW55IGlzc3VlLCBwbGVhc2UgdGVs
-bCBtZS4KVGhhbmtzClRoaWVycnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+Hartmut Hackmann wrote:
+> Hi, folks
+> 
+> In my personal repository at
+> http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+> there are 2 changes that affect all DVB-S cards with tda10086
+> - The reference frequency (crystal) of the tda10086 now is an option
+>    of the tda10086_config struct. This is necessary i.e. for cards with the
+>    SD1878 tuner.
+>    I adapted the driver for these boards:
+>     - TT Budget-S-1401
+>     - Pinnacle 400e / Technotrend USB
+>     - Lifeview Flydvb Trio
+>     - Medion MD8800
+>     - Lifeview Flydvbs LR300
+>     - Philips Snake
+>     - MD7134 (Bridge 2 - works now)
+> 
+> - The bandwidth of the tda826x baseband filter is now set according to the
+>    expected symbol rate. The boards with this tuner now should work with
+>    transponders providing a higher symbol rate than usual.
+>    This patch was provided by Oliver Endriss.
+> 
+> I tried to make the changes backward compatibe but since i can't test these
+> cards, i need your feedback.
+
+Sorry, I have no hardware to test your patches.
+
+> Oliver: there was no signature in your patch. But of corse i mentioned you
+> in the log. I hope that's ok for you.
+
+I don't care, but beware that the lawyers @LKML might send you to jail.
+:D
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
