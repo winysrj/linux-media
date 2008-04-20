@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.240])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <greg.d.thomas@gmail.com>) id 1JkewG-0008Jg-FL
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 14:34:39 +0200
-Received: by an-out-0708.google.com with SMTP id d18so256879and.125
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 05:34:25 -0700 (PDT)
-Message-ID: <e28a31000804120534v1b1bbcd7ld01b650e1511e5f1@mail.gmail.com>
-Date: Sat, 12 Apr 2008 13:34:25 +0100
-From: "Greg Thomas" <Greg@TheThomasHome.co.uk>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <47FBF156.5090703@philpem.me.uk>
+	(envelope-from <bokola@gmail.com>) id 1JnZEd-00020E-IZ
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 15:05:36 +0200
+Received: by fg-out-1718.google.com with SMTP id 22so1175323fge.25
+	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 06:05:32 -0700 (PDT)
+Message-ID: <854d46170804200605i711bda4ci2c2e1b78a3e1c47b@mail.gmail.com>
+Date: Sun, 20 Apr 2008 15:05:31 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Dominik Kuhlen" <dkuhlen@gmx.net>
+In-Reply-To: <200804201054.35570.dkuhlen@gmx.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>
-	<Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
-	<e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
-	<47FBF156.5090703@philpem.me.uk>
-Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
+References: <200804190101.14457.dkuhlen@gmx.net>
+	<200804191154.20445.dkuhlen@gmx.net>
+	<854d46170804191245m6015dbdpe8b244aa1c884153@mail.gmail.com>
+	<200804201054.35570.dkuhlen@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+	TT-Connect-S2-3600 final version (RC-keymap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,22 +32,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 08/04/2008, Philip Pemberton <lists@philpem.me.uk> wrote:
-> Greg Thomas wrote:
->  > After trying the latest drivers, I had a go under Windows; exactly the
->  > same set of channels. I just guess the Nova-TD isn't that sensitive. I
->  > may just have to look at boosting my signal, somehow :(
->
->  What I did was put a 6dB attenuator between my aerial and the Nova-TD. This
->  weakens the signal to the point that all the muxes are in the Nova's capture
->  range. It locks on, and you get a near perfect signal on all the muxes.
+>  > The second patch you posted "patch_multiproto_dvbs2_frequency.diff"
+>  > doesn't seem to work for me, it does compile fine but the problem is
+>  > loading the the driver.
+>  >
+>  > insmod stb0899.ko verbose=5
+>  >
+>  > insmod: error inserting 'stb0899.ko': -1 Unknown symbol in module
+>  >
+>  > Apr 19 21:22:40 archer usbcore: deregistering interface driver pctv452e
+>  > Apr 19 21:22:40 archer dvb-usb: Technotrend TT Connect S2-3600
+>  > successfully deinitialized and disconnected.
+>  > Apr 19 21:22:40 archer usbcore: deregistering interface driver
+>  > dvb-usb-tt-connect-s2-3600-01.fw
+>  > Apr 19 21:22:45 archer stb0899: Unknown symbol __divdi3
+>  hmm, there might be an issue with the 64-bit arithmetic. what platform are your running?
+>  I'll try to convert that back to 32-bit only.
 
-Well, you explanation sounded good enough for me to nip into town this
-weekend and buy an attenuator. Sure enough, I can now pick up all the
-channels with no problems. I'll probably add a not to the Wiki along
-these lines.
+I'm using 32-bit Archlinux kernel 2.6.24.4 and my testing computer spec is:
+Dell Optiplex GX620
+Pentium D 2.80GHz
+2GB RAM, 160GB SATA2.
 
-Greg
+thanks for "patch_add_tt_s2_3600_rc_keymap.diff" I have tested it with
+vdr remote plugin and all keys are working.
+
+If you are going to release another version or future update please
+add support for TT connect s2 3650 CI, its same as 3600 but with CI.
++#define USB_PID_TECHNOTREND_CONNECT_S2_3650_CI             0x300a
+
+Faruk
 
 _______________________________________________
 linux-dvb mailing list
