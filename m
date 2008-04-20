@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.228])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1JqA97-0002B7-Fg
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 18:54:38 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so3012863rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 27 Apr 2008 09:54:32 -0700 (PDT)
-Message-ID: <617be8890804270954nc3d060ev6836849841f65d06@mail.gmail.com>
-Date: Sun, 27 Apr 2008 18:54:32 +0200
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: "Matthias Schwarzott" <zzam@gentoo.org>
-In-Reply-To: <200804271659.41562.zzam@gentoo.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1Jnfx0-00009e-FR
+	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 22:15:51 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Sun, 20 Apr 2008 22:15:14 +0200
+References: <200804190101.14457.dkuhlen@gmx.net>
+	<200804201739.35206.dkuhlen@gmx.net>
+	<854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
+In-Reply-To: <854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
 MIME-Version: 1.0
-References: <617be8890804140209p3b79df8cm3f94de8f82b1faa5@mail.gmail.com>
-	<200804270540.29590.zzam@gentoo.org>
-	<617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
-	<200804271659.41562.zzam@gentoo.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] a700 support (was: [patch 5/5] mt312: add
-	attach-time setting to invert lnb-voltage (Matthias Schwarzott))
+Message-Id: <200804202215.14234.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
+	TT-Connect-S2-3600 final version (RC-keymap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,109 +21,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0732858915=="
+Content-Type: multipart/mixed; boundary="===============1040186692=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0732858915==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_2500_10693215.1209315272741"
-
-------=_Part_2500_10693215.1209315272741
-Content-Type: text/plain; charset=ISO-8859-1
+--===============1040186692==
+Content-Type: multipart/signed;
+  boundary="nextPart6478662.utXirOr74R";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
+
+--nextPart6478662.utXirOr74R
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-Thanks! I'll try it later and let you know the results.
-
-Regards,
-  Eduard
-
-
-
-2008/4/27 Matthias Schwarzott <zzam@gentoo.org>:
-
-> On Sonntag, 27. April 2008, Eduard Huguet wrote:
-> > Thank you very much, Matthias. I was going to try the patch right now,
-> > however I'm finding that it doesn't apply clean to the current HG tree.
-> > This is what I'm getting:
+On Sunday 20 April 2008, Faruk A wrote:
+> >  Could you please try to change line 1547 in stb0899_algo.c to:
 > >
-> > patching file linux/drivers/media/dvb/frontends/Kconfig
-> > Hunk #1 FAILED at 368.
-> > 1 out of 1 hunk FAILED -- saving rejects to file
-> > linux/drivers/media/dvb/frontends/Kconfig.rej
-> > patching file linux/drivers/media/dvb/frontends/Makefile
-> > Hunk #1 succeeded at 23 (offset -2 lines).
-> > patching file linux/drivers/media/dvb/frontends/zl10036.c
-> > patching file linux/drivers/media/dvb/frontends/zl10036.h
-> > patching file linux/drivers/media/video/saa7134/Kconfig
-> > patching file linux/drivers/media/video/saa7134/saa7134-cards.c
-> > Hunk #3 succeeded at 5716 (offset 42 lines).
-> > patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
+> >  offsetfreq =3D ((((offsetfreq / 1024) * 1000) / (1<<7)) * (s32)(intern=
+al->master_clk/1000000)) / (s32)(1<<13);
 > >
-> > I've tried to manually patch Kconfig by adding the rejected lines, but I
-> > suppose there must something I'm doing wrong: apparently it compiles
-> fine,
-> > but saa7134-dvb is not loaded and the frontend is not being created for
-> the
-> > card (although the card is detected and the video0 device for analog is
-> > there).
+> >  this should use only 32bit ops and not over/underflow for the expected=
+ ranges ;)
 > >
-> This reject is caused by the massive movement of the hybrid tuner drivers
-> to
-> another directory.
-> I solved the reject, and re-uploaded the patch.
-> Here it does still work.
->
-> Regards
-> Matthias
->
+> >
+> >   Dominik
+>=20
+> It works, with this new changes i had no problem loading the drivers.
+>=20
+> One more thing i did some testing with vdr and dvbs2 it looks like it
+> locks in exactly after 1 minute
+> but no video or audio vdr just displays no signal. I don't know if is
+> the vdrs fault or the drivers
+> anyway i have attached a small log. (no attachment rejected by
+> moderator, I've sent copy of this mail to Dominik with attachment.
+> Tried pastebin too didn't help)
+Hmm, i have received your log file (its 3MB, you could try to bzip2 it befo=
+re attaching.
+usually log files compress well)
+The log starts at 19:51:19 with opening the device.
+but it looks like delivery system is set to DVB-S not DVB-S2
+frequency and symbolrate would match the astra-hd channel (1314MHz and 2750=
+0kSym/s).
+then at 19:52:20 the frontend parameter were changed to 1479MHz and 24500kS=
+ym/s
+not sure what triggered the retuning.=20
+after 5 seconds the FE locks, which is surprising since the symbolrate is n=
+ot correct.
 
-------=_Part_2500_10693215.1209315272741
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>=20
+> The dvb-s2 channel is ASTRA HD+ on ASTRA 19E
+> vdr version is 1.6.0 with Reinhard Nissl's DVB-S2 + H.264 patch
+hmm, I'm not familiar with vdr but afaik this should be ok.
 
-Thanks! I&#39;ll try it later and let you know the results.<br><br>Regards, <br>&nbsp; Eduard<br><br><br><br><div class="gmail_quote">2008/4/27 Matthias Schwarzott &lt;<a href="mailto:zzam@gentoo.org">zzam@gentoo.org</a>&gt;:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">On Sonntag, 27. April 2008, Eduard Huguet wrote:<br>
-&gt; Thank you very much, Matthias. I was going to try the patch right now,<br>
-&gt; however I&#39;m finding that it doesn&#39;t apply clean to the current HG tree.<br>
-&gt; This is what I&#39;m getting:<br>
-&gt;<br>
-&gt; patching file linux/drivers/media/dvb/frontends/Kconfig<br>
-&gt; Hunk #1 FAILED at 368.<br>
-&gt; 1 out of 1 hunk FAILED -- saving rejects to file<br>
-&gt; linux/drivers/media/dvb/frontends/Kconfig.rej<br>
-&gt; patching file linux/drivers/media/dvb/frontends/Makefile<br>
-&gt; Hunk #1 succeeded at 23 (offset -2 lines).<br>
-&gt; patching file linux/drivers/media/dvb/frontends/zl10036.c<br>
-&gt; patching file linux/drivers/media/dvb/frontends/zl10036.h<br>
-&gt; patching file linux/drivers/media/video/saa7134/Kconfig<br>
-&gt; patching file linux/drivers/media/video/saa7134/saa7134-cards.c<br>
-&gt; Hunk #3 succeeded at 5716 (offset 42 lines).<br>
-&gt; patching file linux/drivers/media/video/saa7134/saa7134-dvb.c<br>
-&gt;<br>
-&gt; I&#39;ve tried to manually patch Kconfig by adding the rejected lines, but I<br>
-&gt; suppose there must something I&#39;m doing wrong: apparently it compiles fine,<br>
-&gt; but saa7134-dvb is not loaded and the frontend is not being created for the<br>
-&gt; card (although the card is detected and the video0 device for analog is<br>
-&gt; there).<br>
-&gt;<br>
-</div>This reject is caused by the massive movement of the hybrid tuner drivers to<br>
-another directory.<br>
-I solved the reject, and re-uploaded the patch.<br>
-Here it does still work.<br>
-<br>
-Regards<br>
-<font color="#888888">Matthias<br>
-</font></blockquote></div><br>
+Dominik
 
-------=_Part_2500_10693215.1209315272741--
+--nextPart6478662.utXirOr74R
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+
+iD8DBQBIC6RS6OXrfqftMKIRAp3kAJ9EEIWYjds+koLEO5expcGi6SdC0wCeMSYA
+3V8jbnYmNpaZLODQxP3BTaY=
+=byCH
+-----END PGP SIGNATURE-----
+
+--nextPart6478662.utXirOr74R--
 
 
---===============0732858915==
+--===============1040186692==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -137,4 +106,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0732858915==--
+--===============1040186692==--
