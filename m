@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.231])
+Received: from mail-in-17.arcor-online.net ([151.189.21.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <makosoft@googlemail.com>) id 1JhPEG-0007j7-Gb
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 15:11:45 +0200
-Received: by wr-out-0506.google.com with SMTP id c30so2291377wra.14
-	for <linux-dvb@linuxtv.org>; Thu, 03 Apr 2008 06:11:28 -0700 (PDT)
-Message-ID: <c8b4dbe10804030611p6481043bgc6ed3cc0803fcadf@mail.gmail.com>
-Date: Thu, 3 Apr 2008 14:11:27 +0100
-From: "Aidan Thornton" <makosoft@googlemail.com>
-To: "Another Sillyname" <anothersname@googlemail.com>
-In-Reply-To: <a413d4880804021704g369cef0ak9b0998197ae847a2@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <a413d4880803301640u20b77b9cya5a812efec8ee25c@mail.gmail.com>
-	<c8b4dbe10803311302n6edc8d0dtb1f816099e020946@mail.gmail.com>
-	<d9def9db0803311559p3b4fe2a7gfb20477a2ac47144@mail.gmail.com>
-	<c8b4dbe10804011406i6923397fw84de9393335dfee9@mail.gmail.com>
-	<a413d4880804011641v1d20ebabo376d2b41b179b022@mail.gmail.com>
-	<c8b4dbe10804020942r6930fd6fu144b1b445534fda8@mail.gmail.com>
-	<a413d4880804021704g369cef0ak9b0998197ae847a2@mail.gmail.com>
+	(envelope-from <hermann-pitton@arcor.de>) id 1Jnvzi-0002lh-4l
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 15:23:44 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: james@nigmatech.com
+In-Reply-To: <1208777431.2538.1.camel@localhost.localdomain>
+References: <1208777431.2538.1.camel@localhost.localdomain>
+Date: Mon, 21 Apr 2008 15:23:35 +0200
+Message-Id: <1208784215.3294.28.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Lifeview DVB-T from v4l-dvb and Pinnacle Hybrid USb
-	from v4l-dvb-kernel......help
+Subject: Re: [linux-dvb] issues compiling tip.tar.bz2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,29 +25,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 4/3/08, Another Sillyname <anothersname@googlemail.com> wrote:
-> Hi Aidan
->
-> I've played around with this for a few hours now and we have moved
-> forward but not quite working yet.....
->
-> The card is getting loaded properly (when I use the appropriate
-> card=17 option) however loading the em2880-dvb module then borks.....
->
-> I've attached the edited dmesg file.....any ideas?
->
-> Thanks
->
-> J
-
 Hi,
 
-Sorry about that - I forgot to copy over a couple of extra GPIO writes
-needed to switch the device to DVB-T mode. (I knew some devices needed
-them, I'd just forgotten about it and didn't think to check). Try
-again now.
+Am Montag, den 21.04.2008, 06:30 -0500 schrieb James Middendorff:
+> Hello all,
+> I am having issues compiling the tip.tar.bz2 file on linuxtv.org
+> http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+> 
+> the error I get is,
+> creating symbolic links...
+> Kernel build directory is /lib/modules/2.6.18-chw-13/build
+> make -C /lib/modules/2.6.18-chw-13/build
+> SUBDIRS=/home/james/v4l-dvb-862ffcf962f0/v4l  modules
+> make[2]: Entering directory `/usr/src/linux-headers-2.6.18-chw-13'
+>   CC [M]  /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: error: unknown
+> field 'dev_attrs' specified in initializer
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:498: warning:
+> initialization from incompatible pointer type
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: error: unknown
+> field 'dev_release' specified in initializer
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: missing
+> braces around initializer
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning: (near
+> initialization for 'video_class.subsys')
+> /home/james/v4l-dvb-862ffcf962f0/v4l/videodev.c:499: warning:
+> initialization from incompatible pointer type
+> make[3]: *** [/home/james/v4l-dvb-862ffcf962f0/v4l/videodev.o] Error 1
+> make[2]: *** [_module_/home/james/v4l-dvb-862ffcf962f0/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-chw-13'
+> make[1]: *** [default] Error 2
+> 
+> 
 
-Aidan
+sysfs compat for 2.6.18 and below is broken.
+
+In theory 2.6.19 should be OK, but didn't test.
+2.6.20 was good enough until now.
+
+Cheers,
+Hermann
+
+
 
 _______________________________________________
 linux-dvb mailing list
