@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3A5jqcT002090
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 01:45:52 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3A5jdOZ027378
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 01:45:39 -0400
-From: Michael Bergmann <mbergmann-sh@gmx.de>
-To: video4linux-list@redhat.com
-Date: Thu, 10 Apr 2008 07:45:30 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3L2NWYG014018
+	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 22:23:32 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3L2NA6T008253
+	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 22:23:10 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1200948wfc.6
+	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 19:23:09 -0700 (PDT)
+Message-ID: <1dea8a6d0804201923o1e939935lb6a1b5ddd0f542a6@mail.gmail.com>
+Date: Mon, 21 Apr 2008 10:23:09 +0800
+From: "Ben Caldwell" <benny.caldwell@gmail.com>
+To: stuart <stuart.partridge@gmail.com>
+In-Reply-To: <3a4a99ca0804201807r65151edm464b7943caa7767e@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+References: <3a4a99ca0804201807r65151edm464b7943caa7767e@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200804100745.30831.mbergmann-sh@gmx.de>
-Subject: Installation guide for LeadTec WinFast tv2000 XP without FM
+Cc: video4linux-list@redhat.com
+Subject: Re: Connecting my working DVICO dual digi 4 to MythTV
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,21 +30,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi List,
+On Mon, Apr 21, 2008 at 9:07 AM, stuart <stuart.partridge@gmail.com> wrote:
 
-my WinFast tv2000 XP rev. 11 refuses to work, even if recognized by the 
-Kernel. I guess it must have to do something with the receiver chip. Under 
-Windows, it uses a phillips device. With Linux, I tried to install it via 
-bttv. It is recognized as card 34 with tuner 5, but if I scan the channels, I 
-always get a "no station". The card seems to lack a fm tuner, too.
+> In the capture card config screen in MythTV, I've been using 'DVB DTV
+> capture card (v3.x)' and I'm getting the 'Zarlink', but no more joy from
+> that point on.
+> In 'Input connections' I get a lot of 'none'. I've tried all the other
+> card
+> types, and putting direct refs into the /dev/dvb/adapter0 + 1 folders, but
+> I'm getting nothing.
+>
 
-Could somebody telll me if this is a special case of my model? Do I need to 
-install some firmware first?
+Hi Stuart,
 
-Thanks for any hint!
+This card should actually be configured as two cards in mythtv, so make sure
+you have added a second card in mythtvsetup.
+One other thing to watch is that your card device might have been created
+with root access only, so you might have more luck just running the setup as
+root.
 
-Michael
+It sounds like the driver for your card is working ok now, but if you are
+still having problems with setup you'll probably get more help from a
+dedicated mythtv list.
 
+Good luck!
+
+- Ben
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
