@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JoNi9-0006GZ-HY
-	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 20:59:27 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Tue, 22 Apr 2008 20:54:58 +0200
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-	<4801D77A.1070106@googlemail.com> <4803B5BB.5050208@googlemail.com>
-In-Reply-To: <4803B5BB.5050208@googlemail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804222054.59221@orion.escape-edv.de>
-Cc: Andrea <mariofutire@googlemail.com>
-Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
-Reply-To: linux-dvb@linuxtv.org
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sonofzev@iinet.net.au>) id 1Jo09V-0000mM-Ao
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 19:50:06 +0200
+From: allan k <sonofzev@iinet.net.au>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1208794528.9790.10.camel@media1>
+References: <1208794528.9790.10.camel@media1>
+Date: Tue, 22 Apr 2008 03:49:58 +1000
+Message-Id: <1208800198.11291.0.camel@media1>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] help with dvico usb remote on gentoo
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,47 +24,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrea wrote:
-> Andrea wrote:
-> > Andrea wrote:
-> >> Ok.
-> >>
-> >> I've changed the second patch to
-> >> 1) allocate the new buffer before releasing the old one
-> >> 2) use spin_[un]lock_irq
-> >>
-> >> 3) On top of that, I have rearranged the code of DMX_SET_BUFFER_SIZE 
-> >> for the demux so that it does the same as the dvr (i.e. allocate the 
-> >> new buffer before releasing the old one). I think it is a good idea 
-> >> that 2 very similar functions are implemented in the same way. (if you 
-> >> don't agree, or if you think a 3rd separate patch for this point is a 
-> >> better idea, let me know.)
-> >>
-> >> PS: Both patches 1/3 and 2/3 are against a clean v4l-dvb tree. I do 
-> >> not know how to generate incremental patch for 2/3.
-> >>
-> >> Let me know what you think about that.
-> >>
-> >> Andrea
-> > 
-> > I've fixed the patch to pass the "make checkpatch" check.
-> > 
-> > Andrea
+Scratch that... 
+
+
+I've got it all working now .. 
+On Tue, 2008-04-22 at 02:15 +1000, allan k wrote:
+> Hi All 
 > 
-> Implementation of DMX_SET_BUFFER_SIZE for dvr.
-> Synchronization of the code of DMX_SET_BUFFER_SIZE for demux and dvr.
+> While I'm waiting for help with the dvico dual express. I have been
+> trying to get the dvico usb remote working on gentoo. 
 > 
-> Signed-off-by: Andrea Odetti <mariofutire@gmail.com>
-
-Committed to HG. Thanks.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+> I've followed the couple of how-tos for gentoo and lirc and come up with
+> the same problem every time. 
+> 
+> I get stuck where it asks to load the module...... 
+> 
+> After running emerge lirc, I find there is no lirc_dvico module, as all
+> the instructions mention. as such I don't end up with an lirc device in
+> my /dev/ directory. 
+> 
+> I tried issuing the config-kernel --allow-writeable=yes but my system
+> has no such command and I can't find which package it belongs to. 
+> 
+> I'm pretty sure I'm missing something simple, so any advice will be
+> appreciated. 
+> 
+> cheers
+> 
+> Allan 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
