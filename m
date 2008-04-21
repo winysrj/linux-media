@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.184])
+Received: from mail-in-13.arcor-online.net ([151.189.21.53])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hansson.patrik@gmail.com>) id 1JjGdW-0003PN-Ha
-	for linux-dvb@linuxtv.org; Tue, 08 Apr 2008 18:25:31 +0200
-Received: by gv-out-0910.google.com with SMTP id n40so409770gve.16
-	for <linux-dvb@linuxtv.org>; Tue, 08 Apr 2008 09:25:25 -0700 (PDT)
-Message-ID: <8ad9209c0804080925y4554bf0bnfcd445f7f9c115ad@mail.gmail.com>
-Date: Tue, 8 Apr 2008 18:25:24 +0200
-From: "Patrik Hansson" <patrik@wintergatan.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <b000da060804080723k3eb9056bt8f9e6d37e089616@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <47A98F3D.9070306@raceme.org> <47AB1FC0.8000707@raceme.org>
-	<1202403104.5780.42.camel@eddie.sth.aptilo.com>
-	<8ad9209c0802100743q6942ce28pf8e44f2220ff2753@mail.gmail.com>
-	<47C4661C.4030408@philpem.me.uk>
-	<C34A2B56-5B39-4BE4-BACD-4E653F61FB03@firshman.co.uk>
-	<8ad9209c0803121334s1485b65ap7fe7d5e4df552535@mail.gmail.com>
-	<8ad9209c0803121338w6b93c555y73bf82abee55a63c@mail.gmail.com>
-	<8ad9209c0804050434i3b898edfucf0294403d87f5ca@mail.gmail.com>
-	<b000da060804080723k3eb9056bt8f9e6d37e089616@mail.gmail.com>
-Subject: Re: [linux-dvb] Nova-T 500 issues - losing one tuner
+	(envelope-from <hermann-pitton@arcor.de>) id 1Jnjvr-00073R-7S
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 02:30:58 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200804210132.17281@orion.escape-edv.de>
+References: <4803E9A2.30804@t-online.de>
+	<200804210132.17281@orion.escape-edv.de>
+Date: Mon, 21 Apr 2008 02:30:21 +0200
+Message-Id: <1208737821.5682.58.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Subject: Re: [linux-dvb] tda10086: Testers wanted
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,46 +20,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/4/8 daniel =E5kerud <daniel.akerud@gmail.com>:
-> On Sat, Apr 5, 2008 at 1:34 PM, Patrik Hansson <patrik@wintergatan.com>
-> wrote:
->
-> > Just wanted to report that since stopped the active EIT scanning in
-> > mythtv-setup my NOVA-T 500 PCI have been stable for 4 days now with
-> > 2.6.22-14 without any special module options or anything like that.
-> > Before i never had both tuners working for more that 24 hours so that
-> > seems to be the workaround for the moment.
-> > The card still collects EIT data when watching tv so EPG still works.
-> >
-> >
-> >
-> >
-> >
->
-> I second that. I disabled Active EIT (mythtv-setup) and also added:
-> options usbcore autosuspend=3D-1
->
-> options dvb_usb disable_rc_polling=3D1
->  to the module options. My system has been rock solid since (~2 weeks) an=
-d I
-> used to have at least a couple of problems per week before.
-> /D
->
->
-> _______________________________________________
->  linux-dvb mailing list
->  linux-dvb@linuxtv.org
->  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
 
-Did you also try without adding the module options ?
-Just to confirm if they were needed.
+Am Montag, den 21.04.2008, 01:32 +0200 schrieb Oliver Endriss:
+> Hartmut Hackmann wrote:
+> > Hi, folks
+> > 
+> > In my personal repository at
+> > http://linuxtv.org/hg/~hhackmann/v4l-dvb/
+> > there are 2 changes that affect all DVB-S cards with tda10086
+> > - The reference frequency (crystal) of the tda10086 now is an option
+> >    of the tda10086_config struct. This is necessary i.e. for cards with the
+> >    SD1878 tuner.
+> >    I adapted the driver for these boards:
+> >     - TT Budget-S-1401
+> >     - Pinnacle 400e / Technotrend USB
+> >     - Lifeview Flydvb Trio
+> >     - Medion MD8800
+> >     - Lifeview Flydvbs LR300
+> >     - Philips Snake
+> >     - MD7134 (Bridge 2 - works now)
+> > 
+> > - The bandwidth of the tda826x baseband filter is now set according to the
+> >    expected symbol rate. The boards with this tuner now should work with
+> >    transponders providing a higher symbol rate than usual.
+> >    This patch was provided by Oliver Endriss.
+> > 
+> > I tried to make the changes backward compatibe but since i can't test these
+> > cards, i need your feedback.
+> 
+> Sorry, I have no hardware to test your patches.
+> 
+> > Oliver: there was no signature in your patch. But of corse i mentioned you
+> > in the log. I hope that's ok for you.
+> 
+> I don't care, but beware that the lawyers @LKML might send you to jail.
+> :D
+> 
+> CU
+> Oliver
+> 
+
+Hi,
+
+they won't, since we will take all away from them they seem to have :)
+
+Seriously, Oliver, I have tested your patch previously and the highest
+symbol rate is even only 28000 at the Hotbird crowd, so for me no
+difference.
+
+Hartmut, didn't care for the clock, _very_ unlikely a problem,
+but if you prefer to have it tested explicitly, I come back with some
+report.
+
+Cheers,
+Hermann
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
