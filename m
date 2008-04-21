@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout08.t-online.de ([194.25.134.20])
+Received: from mail-in-16.arcor-online.net ([151.189.21.56])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1Jk4wO-0000dF-Cc
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 00:08:23 +0200
-Message-ID: <47FE8FD1.3050004@t-online.de>
-Date: Fri, 11 Apr 2008 00:08:17 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: timf <timf@iinet.net.au>
-References: <47FE3ECC.8020209@iinet.net.au>
-In-Reply-To: <47FE3ECC.8020209@iinet.net.au>
+	(envelope-from <hermann-pitton@arcor.de>) id 1Jnvvs-0002EO-7Q
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 15:19:45 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Amitay Isaacs <amitay@gmail.com>
+In-Reply-To: <75a6c8000804210142h46304ce0w126f465bef458a0f@mail.gmail.com>
+References: <919241.88594.qm@web55605.mail.re4.yahoo.com>
+	<75a6c8000804210142h46304ce0w126f465bef458a0f@mail.gmail.com>
+Date: Mon, 21 Apr 2008 15:19:22 +0200
+Message-Id: <1208783962.3294.23.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
+Subject: Re: [linux-dvb] HVR1200 / HVR1700 / TDA10048 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,85 +26,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-HI, Tim
+Hi,
 
-timf schrieb:
-> Hi Hartmut,
-> OK, found some more spare time, but very, very frustrated!
+Am Montag, den 21.04.2008, 18:42 +1000 schrieb Amitay Isaacs:
+> Hi Trevor,
 > 
-> 1) Tried ubuntu 7.04, 7.10, 8.04
->     Tried with just modules that exist in kernel (no v4l-dvb)
->    Tried v4l-dvb from June 2007 and tried current v4l-dvb
->    Tried with/without Hartmut patch - changeset 7376    49ba58715fe0
->    Tried with .gpio_config   = TDA10046_GP11_I, or .gpio_config   = 
-> TDA10046_GP01_I,
->    Tried using configs in saa7134-dvb.c matching tiger, tiger_s, 
-> pinnacle 310i, twinhan 3056
+> I have the skeleton driver code ready. The driver calls
+> tda10048_attach() and I am 
+> getting tda10048_readreg error (ret == -5). I need to find the
+> demodulator I2C address
+> for TDA10048 on DTV1000S board. 
 > 
->     # Australia / Perth (Roleystone transmitter)
->     # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->     # SBS
->     T 704500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
->     # ABC
->     T 725500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->     # Seven
->     T 746500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
->     # Nine
->     T 767500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->     # Ten
->     T 788500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+> Is there any way to find out the demod_address?
 > 
-> 2) I have these saa7134 cards:
->     - pinnacle 310i
->     - kworld 210
-> 
->     This cx88 card:
->     - dvico DVB-T Pro hybrid (analog tv not work)
-> 
-> -   problem only occurs with kworld 210 in linux (works fine in WinXP)
-> 
-> 3) In WinXP, all channels, both analog tv and dvb-t found
-> 
-> 4) In linux, if start dvb-t first, never scans SBS - dmesg1
-> 
-> 5) In linux, if start analog tv first, stop, then start dvb-t, scan 
-> finds SBS - dmesg2
->
-a) The pinnacle 310i finds everything?
-    It has the same chipset, but an almost perfectly handled tuner chip...
-    This means that your initial config file is ok...
-b) Does this mean that in case 4, all other channels are found?
-c) Case 5: This finds everything?
-d) What happens if you use the scan data of the pinnacle card?
-    Does it tune SBS? Does it just take more time to stabilize?
-    This can be understood.
-e) Just to be sure: did you clarify the open point with .antenna_switch
-    (i think so)
-f) the kernel logs are as expected.
-<snip>
+> Amitay.
+
+tuner as in the logs 0xc0/0x60 and digital demod 0x10 >> 1 or 0x08.
+You can try to verify it with the saa7134 i2c_scan=1 option.
+
+It seems not to have an analog demodulator, so you would use tuner type
+4, TUNER_ABSENT for the entry in saa7134-cards.c. You can also add it to
+auto detection there as a saa7130 device and also add the card in
+saa7134.h, but you seem to have this all already.
+
+Cheers,
+Hermann
+
+> On Mon, Apr 21, 2008 at 3:54 PM, Trevor Boon <trevor_boon@yahoo.com>
+> wrote:
+>         Hi Amitay,
+>         
+>         Although, this is just speculation, the pcb label is
+>         lr6655 which, afaik, is a Lifeview model code?
+>         
+>         I've had a look at the driver inf file (lr6655.inf)
+>         and can only see three files being used:
+>         
+>         3xHybrid.sys
+>         NXPMV32.dll
+>         (34CoInstaller.dll) is remarked out in the lr6655.inf
+>         
+>         I can also see 'Proteus' reference board being listed
+>         in the driver .inf file. Does this help?
+>         
 
 
-> 6) Herman mentioned something called a "mode-switch" in the archives, 
-> but not any description.
-
-I guess he meant the switching between analog, radio and dvb-t. This is the
-GPIO handling and card depending.
-
-> I tried to find some data sheets for tda8275 tda8290 but only found the 
-> publicity pdf file from Phillips,
-> so at least I can see they go together, so I presume this "mode-switch" 
-> is coded into those modules.
-> But those modules work for all other cards, so now I'm lost again.
-> 
-> What else should I try?
-> 
-If my assumptions above are wrong, there is one other chance:
-Recently i saw another card that does the (unusual) mode switching
-like card 87. So to be sure, you might try to force this card type (be
-aware of the antenna inputs, if in doubt, try both.
-
-Best regards
-   Hartmut
 
 _______________________________________________
 linux-dvb mailing list
