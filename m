@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48])
+Received: from rv-out-0506.google.com ([209.85.198.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JqtVR-0003Mn-L9
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 19:20:47 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <48171207.8080602@anevia.com>
-References: <4816E5DA.7010204@anevia.com>
-	<1209467866.3247.45.camel@pc10.localdom.local>
-	<48171207.8080602@anevia.com>
-Date: Tue, 29 Apr 2008 19:19:28 +0200
-Message-Id: <1209489568.3456.17.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <mrechberger@gmail.com>) id 1Jnlen-0002ma-Kf
+	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 04:21:27 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1064137rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 19:21:18 -0700 (PDT)
+Message-ID: <d9def9db0804201921g1ef5832fwa4bed4b7eba92048@mail.gmail.com>
+Date: Mon, 21 Apr 2008 04:21:18 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Bob Quincy" <bqproductions@gmail.com>
+In-Reply-To: <3064975c0804200836g22e3f5fcg80f386e598ac5142@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <3064975c0804200836g22e3f5fcg80f386e598ac5142@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
+Subject: Re: [linux-dvb] kworld 340u
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,62 +22,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIERpZW5zdGFnLCBkZW4gMjkuMDQuMjAwOCwgMTQ6MTggKzAyMDAgc2NocmllYiBGcmVkZXJp
-YyBDQU5EOgo+IGhlcm1hbm4gcGl0dG9uIGEgw6ljcml0IDoKPiA+IEhpIEZyZWRlcmljLAo+ID4g
-Cj4gPiBBbSBEaWVuc3RhZywgZGVuIDI5LjA0LjIwMDgsIDExOjA5ICswMjAwIHNjaHJpZWIgRnJl
-ZGVyaWMgQ0FORDoKPiA+PiBEZWFyIGFsbCwKPiA+Pgo+ID4+IEkgcmVjZW50bHkgaGFkIHRvIGNo
-YW5nZSB2NGwgZHJpdmVycyB0byBzdXBwb3J0IG15IFdpblRWIEhWUiAxMzAwLgo+ID4+IEkgaGF2
-ZSBpc3N1ZXMgbWFraW5nIG15IEhWUiB3b3JrIGJ1dCB0aGF0J3Mgbm90IHRoZSBwb2ludCBoZXJl
-Lgo+ID4+IE15IHByb2JsZW0gaXMgdGhhdCBzaW5jZSBJIHVwZGF0ZWQga2VybmVsICsgZHJpdmVy
-cywgSSBjYW4ndCBtYW5hZ2UgdG8gCj4gPj4gbWFrZSBzb3VuZCB3b3JrIHdoZW4gSSdtIHVzaW5n
-IHRoZSB0dW5lciBpbnB1dC4gU291bmQgamFjayBpbnB1dCB3b3JrcyAKPiA+PiB3aGVuIEknbSB1
-c2luZyBTVmlkZW8gb3IgQ29tcG9zaXRlIFZpZGVvLCBidXQgbm90IHdoZW4gSSdtIHVzaW5nIHR1
-bmVyLgo+ID4+Cj4gPj4gSGVyZSBhcmUgdGhlIG9wdGlvbnMgSSdtIHVzaW5nCj4gPj4gdHVuZXIg
-OiBwb3J0Mj0wCj4gPj4gc2FhNzEzNDogb3NzPTEgZGlzYWJsZV9pcj0xCj4gPj4gc2FhNzEzNC1v
-c3M6IHJhdGU9NDgwMDAKPiA+IAo+ID4gdGhlIHJhdGU9NDgwMDAgaXMgb25seSB2YWxpZCBmb3Ig
-ZXh0ZXJuYWwgYW5hbG9nIGlucHV0IGFuZCBkaXNhYmxlcwo+ID4gc291bmQgZnJvbSB0dW5lci4g
-SGF2ZSBhIGxvb2sgYXQgdGhlIHNhYTcxMzQtb3NzIG1peGVyIHVuZGVyIHN1Y2gKPiA+IGNvbmRp
-dGlvbnMuCj4gPiAKPiA+IFlvdSBtdXN0IHVzZSBkZWZhdWx0IHJhdGUgb2YgMzIwMDAgZm9yIGRt
-YSBzb3VuZCBmcm9tIHR1bmVyLgo+ID4gCj4gPiBUaGUgc2FhNzEzNC1vc3MgaXMgYWxzbyBzb29u
-IGRlcHJlY2F0ZWQgYW5kIHJlcGxhY2VkIGJ5IHNhYTcxMzQtYWxzYS4KPiA+IAo+ID4gSWYgeW91
-IGFyZSBjb25zaWRlcmluZyB1c2luZyByZWNlbnQgdjRsLWR2YiBtZXJjdXJpYWwgc3R1ZmYsIHdo
-aWNoCj4gPiBzaG91bGQgYmUgYmVzdCBmb3IgdGhlIEhWUjEzMDAgYW5kIHJlcG9ydGluZyBidWdz
-IG9uIHNhYTcxMzQtZW1wcmVzcywKPiA+IHlvdSBtaWdodCBzdGlsbCBoYXZlIHlvdXIgb2xkIHNh
-YTcxMzQtb3NzIG1vZHVsZSBhcm91bmQgYW5kIHNvbWUgb3RoZXJzCj4gPiBsaWtlIHRoZSBvbGQg
-dmlkZW9fYnVmIG5vdyBsb2FkZWQsIHNpbmNlIG5vdCBkZWxldGVkIG9uIHVwZ3JhZGUuCj4gPiAK
-PiA+IEFmdGVyIG1ha2Ugcm1tb2QgYW5kIHJtaW5zdGFsbCB3aXRoIGN1cnJlbnQgdjRsLWR2YiB5
-b3Ugc2hvdWxkIGRlbGV0ZQo+ID4gc3VjaCByZW1haW5pbmcgbW9kdWxlcyBvbiBvbGRlciBrZXJu
-ZWxzIHRvbyBiZWZvcmUgbWFrZSBpbnN0YWxsLgo+ID4gCj4gPiBDaGVlcnMsCj4gPiBIZXJtYW5u
-Cj4gCj4gaHVtIEkgdXNlZCB0byBzZXQgcmF0ZSB0byA0ODAwMCB3aXRoIG15IG9sZCAyMDA1IGp1
-bHkgc25hcHNob3QgYW5kIGl0IAo+IHdhcyB3b3JraW5nIGV2ZW4gd2l0aCB0dW5lciAuLi4gYnV0
-IG9rIEknbGwgdHJ5IDMyMDAwCj4gaSd2ZSB0cmllZCBhbHNhIGFuZCBJIGhhZCB0aGUgc2FtZSBy
-ZXN1bHRzLCB0aGF0IGlzIG5vIHNvdW5kIHdpdGggdHVuZXIgCj4gYnV0IGxpbmUgaW4gc291bmQg
-d2l0aCBjb21wb3NpdGUgYW5kIHN2aWRlbwo+IGRvIEkgbmVlZCBzb21lIHNwZWNpYWwgc3R1ZmZz
-IGNvbXBpbGVkIGluIG15IGtlcm5lbCBleGNlcHQgZnJvbSBjb25maWdfc25kID8KPiBhYm91dCBv
-bGQgbW9kdWxlcyBzdGlsbCBsb2FkZWQgdGhpcyBjYW4ndCBiZSBzaW5jZSBJIGJ1aWxkIG15IHN5
-c3RlbSAKPiBmcm9tIHNjcmF0Y2ggZWFjaCB0aW1lIGkgdHJ5IGEgbmV3IGtlcm5lbCAvIGRyaXZl
-ciBpbnRvIGFuIGV4dDIgZmlsZSwgCj4gd2hpY2ggSSBwdXQgb24gYSAzMk1CIGZsYXNoIGRpc2sg
-YW5kIGJvb3Qgb24gaXQgLi4uIHNvIEknbSBzdXJlIEknbSBub3QgCj4gdXNpbmcgbXkgb2xkIHY0
-bCBzbmFwc2hvdCwgYnV0IHRoZSAyLjYuMjIuMTkgdjRsIGRyaXZlcnMKPiAKPiBJJ2xsIGxldCB5
-b3Uga25vdyBpZiBJIGNhbiBtYWtlIGl0IHdvcmsKCkFoLCB5b3UgYXJlIGluIEZyYW5jZSEKClRy
-eSAibW9kaW5mbyBzYWE3MTM0Ii4gRHVlIHRvIHVucmVzb2x2YWJsZSBhdXRvIGRldGVjdGlvbiBp
-c3N1ZXMgYmV0d2VlbgpkaWZmZXJlbnQgU0VDQU0gc3RhbmRhcmRzIHRoZXJlIHdhcyBhIHNlY2Ft
-PSBlaXRoZXIgREssIEwgb3IgTGMgb3B0aW9uCmludHJvZHVjZWQuCgpBbnl0aGluZyBlbHNlIHRo
-ZW4gMzIwMDBIeiBzYW1wbGluZyByYXRlIGZvciBUViBpcyB3cm9uZyBjdXJyZW50bHkgYW5kCnlv
-dSBnZXQgdGhhdCBpbnB1dCBkaXNhYmxlZCBvbiBzYWE3MTM0LW9zcyBtaXhlci4gWWVzLCBpdCB3
-YXMgb25jZQpwb3NzaWJsZSwgYnV0IG5vdCBpbnRlbmRlZCwgdG8gdXNlIDQ4MDAwIGFsc28gZm9y
-IFRWL1ZpZGVvIG9uIHNhYTcxMzQKY2hpcHMsIGJ1dCBnYXZlIHZlcnkgcG9vciBhbmQgY3JhY2ts
-aW5nIHNvdW5kIGFuZCBpcyB3cm9uZy4KClRoZSBjdXJyZW50IHNhYTcxMzQtYWxzYSBpcyBzaW1w
-bGVyIHRvIHVzZSBhbmQgYWxzbyB1c2VzIGFuIGV4cG9ydGVkCm11dGUgc3ltYm9sIGZyb20gc2Fh
-NzEzNC10dmF1ZGlvLiBEZWZhdWx0IGRpc3RyaWJ1dGlvbiBzZXR0aW5ncyBhcmUKc3VmZmljaWVu
-dC4gT24gcmVjZW50IFVidXR1IHJlbGVhc2VzIHNlZW0gdG8gYmUgcHJvYmxlbXMgd2l0aCBhbiBv
-dXQgb2YKdHJlZSBhbHNhIHRoZXJlLgoKQ2hlZXJzLApIZXJtYW5uCgoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QK
-bGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hi,
+
+On 4/20/08, Bob Quincy <bqproductions@gmail.com> wrote:
+> I have a kworld 340u ATSC USB tuner.
+>
+> These are the major (or only) chips on the board
+>
+> tda18271 (tuner)
+> lgdt3304 (vsb/qam?)
+> em2870 (usb video bridge)
+>
+I haven't got that combination yet, although there's support for the
+lgdt3304. I'll see what I can get next week.
+
+Markus
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
