@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3E83WsP021508
-	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 04:03:32 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3E81sD5030864
-	for <video4linux-list@redhat.com>; Mon, 14 Apr 2008 04:01:55 -0400
-Received: from [131.234.87.115] by mail.uni-paderborn.de with esmtpsa
-	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32) (Exim 4.62 cyclopia)
-	id 1JlJdQ-0005ey-CD
-	for video4linux-list@redhat.com; Mon, 14 Apr 2008 10:01:53 +0200
-Message-ID: <48030F6F.1040007@hni.uni-paderborn.de>
-Date: Mon, 14 Apr 2008 10:01:51 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: OmniVision OV9655 camera chip via soc-camera interface
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MGbCOP032574
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 12:37:12 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3MGamX0030338
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 12:36:59 -0400
+Date: Tue, 22 Apr 2008 18:36:30 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: zied frikha <frikha.zied@gmail.com>
+Message-ID: <20080422163629.GA943@daniel.bse>
+References: <20080422160012.2C52C6195D0@hormel.redhat.com>
+	<74a5bce60804220919r2c80588dy59d4ba61e2b25f9f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <74a5bce60804220919r2c80588dy59d4ba61e2b25f9f@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: video4linux-list Digest, Vol 50, Issue 22
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +28,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Tue, Apr 22, 2008 at 06:19:06PM +0200, zied frikha wrote:
+> I NEED A GUI FOR THE SI470X RADIO THAT RUN UNDER LINUX (MANDRIVA 2008)
+> :(
+> PLEEEEEEEEEEEEEEEEEEEASE
 
-I'm writing a driver for the OmniVision OV9655 camera chip connected to 
-a PXA270 processor. I based my work on the soc_camera interface, but I 
-need some additional gpios for reset and power_enable. What is the best 
-way to pass this information to the driver?
+Please don't shout.
 
-Thanks
-    Stefan
+Please use a better Subject line.
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+Please don't quote a full 1000 line digest.
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+Please don't start new threads by replying to unrelated discussions.
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+http://linuxtv.org/v4lwiki/index.php/Radio_Listening_Applications
 
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+  Daniel
 
 --
 video4linux-list mailing list
