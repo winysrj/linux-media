@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3M09GO8025929
-	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 20:09:16 -0400
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3M08ljT020953
-	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 20:08:48 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Brandon Philips <brandon@ifup.org>
-In-Reply-To: <20080421223751.GD9073@plankton.ifup.org>
-References: <20080421081639.GE26724@vidsoft.de>
-	<20080421223751.GD9073@plankton.ifup.org>
-Content-Type: text/plain
-Date: Tue, 22 Apr 2008 02:08:32 +0200
-Message-Id: <1208822912.10519.24.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: 2.6.25 regression: vivi - scheduling while atomic
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3M2N3xW017612
+	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 22:23:03 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3M2MWnb028811
+	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 22:22:32 -0400
+Received: by rn-out-0910.google.com with SMTP id e11so700180rng.7
+	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 19:22:32 -0700 (PDT)
+Date: Mon, 21 Apr 2008 19:22:21 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080422022221.GE7392@plankton.ifup.org>
+References: <op.t3hn72busxcvug@mrubli-nb.am.logitech.com>
+	<20080213231244.GA15895@plankton.ifup.org>
+	<20080415004416.GA11071@plankton.ifup.org>
+	<20080415001932.52039d0f@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080415001932.52039d0f@gaivota>
+Cc: linux1@rubli.info, Martin Rubli <v4l2-lists@rubli.info>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Support for write-only controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,75 +33,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On 00:19 Tue 15 Apr 2008, Mauro Carvalho Chehab wrote:
+> Brandon, Could you please add this on one of your trees, together with those
+> pending V4L2 API patches for UVC? I want to merge those changes together with the
+> in-kernel driver that firstly requires such changes.
 
-Am Montag, den 21.04.2008, 15:37 -0700 schrieb Brandon Philips:
-> On 10:16 Mon 21 Apr 2008, Gregor Jasny wrote:
-> > Call Trace:
-> >  [<ffffffff803efc9b>] schedule+0xe5/0x5c7
-> >  [<ffffffff80251c90>] __rmqueue_smallest+0x88/0x107
-> >  [<ffffffff8023e84b>] getnstimeofday+0x2f/0x83
-> >  [<ffffffff8023cf8a>] ktime_get_ts+0x17/0x48
-> >  [<ffffffff803f0424>] schedule_timeout+0x1e/0xad
-> >  [<ffffffff80220498>] enqueue_task+0x13/0x1e
-> >  [<ffffffff803efab8>] wait_for_common+0xf6/0x16b
-> >  [<ffffffff802230a0>] default_wake_function+0x0/0xe
-> >  [<ffffffff8023a270>] kthread_create+0xa3/0x108
-> >  [<ffffffff880d2471>] :vivi:vivi_thread+0x0/0x779
-> >  [<ffffffff802634cb>] remap_vmalloc_range+0xa1/0xe6
-> >  [<ffffffff80231242>] lock_timer_base+0x26/0x4c
-> >  [<ffffffff8023138e>] __mod_timer+0xb6/0xc5
-> >  [<ffffffff880d23fc>] :vivi:vivi_start_thread+0x54/0xc9
-> >  [<ffffffff88053603>] :videobuf_core:videobuf_streamon+0x6c/0xaa
-> >  [<ffffffff8809dba3>] :videodev:__video_do_ioctl+0x1327/0x2ad9
-> >  [<ffffffff80222d76>] __wake_up+0x38/0x4f
-> >  [<ffffffff80242f1f>] futex_wake+0xdb/0xfa
-> >  [<ffffffff8809f6ab>] :videodev:video_ioctl2+0x17c/0x210
-> >  [<ffffffff8025bb36>] handle_mm_fault+0x6b1/0x6cb
-> >  [<ffffffff8027b47d>] vfs_ioctl+0x55/0x6b
-> >  [<ffffffff8027b6e6>] do_vfs_ioctl+0x253/0x264
-> >  [<ffffffff8027b733>] sys_ioctl+0x3c/0x5d
-> >  [<ffffffff8020afcb>] system_call_after_swapgs+0x7b/0x80
-> >
-> > This happenes on a vanilla 2.6.25 with loaded nvidia graphics module.
-> > System architecture is x86_64. If it matters I'll try to reproduce this
-> > error on a non tainted kernel.
-> 
-> No need to reproduce on a non-tainted Kernel.  This is a known issue
-> with patches merged into the v4l-dvb tree several weeks ago but it seems
-> to not have made it into 2.6.25 :(
-> 
->  http://linuxtv.org/hg/v4l-dvb/rev/06eb92ed0b18
->  http://linuxtv.org/hg/v4l-dvb/rev/c50180f4ddfc
-> 
-> I can rebase the patches for 2.6.25 but they are too big to go into the
-> stable 2.6.25 tree...
-> 
-> Thanks for the report,
-> 
-> 	Brandon
-> 
+I have a tree with the change sets.  Please don't pull from the tip
+though: hg pull -r 4ca1ed646f89 http://ifup.org/hg/v4l-uvc
 
-hmm, because of that 100 lines only rule including offsets?
+The tip of that tree has UVC and all of the Kconfig/Makefile bits too.
 
-The current v4l-dvb on 2.6.24 has 233 modules.
+The patch set for the tree: http://ifup.org/hg/uvc-v4l-patches
 
-It is usual that changes, if needed, are going over lots of them.
-
-How far one can come with _such_ rules, given that one single line
-changed counts up to seven with the offsets?
-
-How can one even comment on that brain damage?
+If Laurent wants to add his sign off to that last patch (based on r204)
+we can commit that too :D
 
 Cheers,
-Hermann
 
-
-
-
-
-
-
+	Brandon
 
 --
 video4linux-list mailing list
