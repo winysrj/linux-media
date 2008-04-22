@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out3.libero.it ([212.52.84.43])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sioux_it@libero.it>) id 1JjgDf-0002Je-Jd
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 21:44:36 +0200
-Received: from outrelay08.libero.it (192.168.32.103) by smtp-out3.libero.it
-	(7.3.120) id 4628C87A09FD21CD for linux-dvb@linuxtv.org;
-	Wed, 9 Apr 2008 21:43:55 +0200
-Message-ID: <47FD1C72.8050208@libero.it>
-Date: Wed, 09 Apr 2008 21:43:46 +0200
-From: sioux <sioux_it@libero.it>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JoNi9-0006GZ-HY
+	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 20:59:27 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Tue, 22 Apr 2008 20:54:58 +0200
+References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
+	<4801D77A.1070106@googlemail.com> <4803B5BB.5050208@googlemail.com>
+In-Reply-To: <4803B5BB.5050208@googlemail.com>
 MIME-Version: 1.0
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
-	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
-	<47FBD252.3090701@t-online.de>
-In-Reply-To: <47FBD252.3090701@t-online.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
+Content-Disposition: inline
+Message-Id: <200804222054.59221@orion.escape-edv.de>
+Cc: Andrea <mariofutire@googlemail.com>
+Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,93 +28,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Andrea wrote:
+> Andrea wrote:
+> > Andrea wrote:
+> >> Ok.
+> >>
+> >> I've changed the second patch to
+> >> 1) allocate the new buffer before releasing the old one
+> >> 2) use spin_[un]lock_irq
+> >>
+> >> 3) On top of that, I have rearranged the code of DMX_SET_BUFFER_SIZE 
+> >> for the demux so that it does the same as the dvr (i.e. allocate the 
+> >> new buffer before releasing the old one). I think it is a good idea 
+> >> that 2 very similar functions are implemented in the same way. (if you 
+> >> don't agree, or if you think a 3rd separate patch for this point is a 
+> >> better idea, let me know.)
+> >>
+> >> PS: Both patches 1/3 and 2/3 are against a clean v4l-dvb tree. I do 
+> >> not know how to generate incremental patch for 2/3.
+> >>
+> >> Let me know what you think about that.
+> >>
+> >> Andrea
+> > 
+> > I've fixed the patch to pass the "make checkpatch" check.
+> > 
+> > Andrea
+> 
+> Implementation of DMX_SET_BUFFER_SIZE for dvr.
+> Synchronization of the code of DMX_SET_BUFFER_SIZE for demux and dvr.
+> 
+> Signed-off-by: Andrea Odetti <mariofutire@gmail.com>
 
+Committed to HG. Thanks.
 
-Hartmut Hackmann ha scritto:
-> Hi,
->
-> sioux schrieb:
->> Hi all!
->>
->> here similar problem with 7134_alsa module:
->>
->> saa7134_alsa: disagrees about version of symbol snd_ctl_add
->> saa7134_alsa: Unknown symbol snd_ctl_add
->> saa7134_alsa: disagrees about version of symbol snd_pcm_new
->> saa7134_alsa: Unknown symbol snd_pcm_new
->> saa7134_alsa: disagrees about version of symbol snd_card_register
->> saa7134_alsa: Unknown symbol snd_card_register
->> saa7134_alsa: disagrees about version of symbol snd_card_free
->> saa7134_alsa: Unknown symbol snd_card_free
->> saa7134_alsa: disagrees about version of symbol snd_pcm_stop
->> saa7134_alsa: Unknown symbol snd_pcm_stop
->> saa7134_alsa: disagrees about version of symbol snd_ctl_new1
->> saa7134_alsa: Unknown symbol snd_ctl_new1
->> saa7134_alsa: disagrees about version of symbol snd_card_new
->> saa7134_alsa: Unknown symbol snd_card_new
->> saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
->> saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl
->> saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops
->> saa7134_alsa: Unknown symbol snd_pcm_set_ops
->> saa7134_alsa: disagrees about version of symbol 
->> snd_pcm_hw_constraint_integer
->> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer
->> saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed
->> saa7134_alsa: Unknown symbol snd_pcm_period_elapsed
->> saa7134_alsa: disagrees about version of symbol 
->> snd_pcm_hw_constraint_step
->> saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step
->>
->> This is my alsa version:
->> cat /proc/asound/version
->> advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16 
->> 14:57:44 2007 UTC)
->>
->> This is my kernel version:
->> uname -a
->> Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 
->> 09:57:10 UTC 2008 i686 GNU/Linux
->>
->> This is my saa7134 version and card:
->>
->> saa7130/34: v4l2 driver version 0.2.14 loaded
->> saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32, 
->> mmio: 0xed000000
->> saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056 
->> PCI [card=131,autodetected]
->> saa7133[0]: board init: gpio is 40000
->> tuner' 0-0042: chip found @ 0x84 (saa7133[0])
->>
->>
->> Make rmmod do not solve the problem!
->>
-> <snip> _______________________________________________________________
->
-> A "make rmmod" does *not* always work: If a device is in use, the 
-> kernel will
-> refuse to remove the module. You should find an appropriate error 
-> message.
-> You can have i.e. this situation:
-> If you load the modules a boot time and you run kde, the mixer desktop 
-> applet
-> will open the mixer of the saa7134-alsa device.
-> So you will not be able to unload and thus update the driver before 
-> you closed
-> the kmix applet.
-> There are many other possibilities.
->
-> Hartmut
->
-sudo killall mixer_applet2
-sudo rmmod saa7134 saa7134_alsa saa7134_dvb
+CU
+Oliver
 
-and than sudo make rmmod
-
-does not solve the problem!
-
-sioux
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
