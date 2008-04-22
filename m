@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from holly.castlecore.com ([89.21.8.102])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@philpem.me.uk>) id 1JjMHE-0003CO-9y
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 00:26:59 +0200
-Message-ID: <47FBF156.5090703@philpem.me.uk>
-Date: Tue, 08 Apr 2008 23:27:34 +0100
-From: Philip Pemberton <lists@philpem.me.uk>
-MIME-Version: 1.0
-To: Greg Thomas <Greg@TheThomasHome.co.uk>, linux-dvb <linux-dvb@linuxtv.org>
-References: <e28a31000804060623u141fc8e2hd6405809ce6fe477@mail.gmail.com>	<Pine.LNX.4.64.0804061551510.23914@pub4.ifh.de>
-	<e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
-In-Reply-To: <e28a31000804060840y126b7afdp67ef934724d6dda7@mail.gmail.com>
-Subject: Re: [linux-dvb] WinTV-NOVA-TD & low power muxes
+	(envelope-from <stoth@linuxtv.org>) id 1Jo80V-0004xV-Js
+	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 04:13:22 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZP004HOFH6VW51@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 21 Apr 2008 22:12:43 -0400 (EDT)
+Date: Mon, 21 Apr 2008 22:12:42 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <1208817758.10519.13.camel@pc10.localdom.local>
+To: Trevor Boon <trevor_boon@yahoo.com>
+Message-id: <480D499A.2040806@linuxtv.org>
+MIME-version: 1.0
+References: <685282.37355.qm@web55614.mail.re4.yahoo.com>
+	<1208817758.10519.13.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR1200 / HVR1700 / TDA10048 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,41 +32,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Greg Thomas wrote:
-> After trying the latest drivers, I had a go under Windows; exactly the
-> same set of channels. I just guess the Nova-TD isn't that sensitive. I
-> may just have to look at boosting my signal, somehow :(
+hermann pitton wrote:
+> Hi, Trevor and Amitay,
+> 
+> Am Dienstag, den 22.04.2008, 07:38 +1000 schrieb Trevor Boon:
+>> Hi Amitay,
+>>
+>> I specified the i2c_scan=1 option in my
+>> /etc/modprobe.d/saa7134 file and the following
+>> addresses were returned..
+>>
+>> saa7130[0]: i2c scan: found device @ 0xa0  [eeprom]
+>> saa7130[0]: i2c scan: found device @ 0xc0  [tuner
+>> (analog)]
+>>
+>> Regards,
+>> Trevor.
+>>
+> 
+> the 0x10 >> 1 for the digital demod is in the eeprom, if it follows
+> usual rules, at least the tuner is correct there.
+> 
+> Likely there are more possibilities, why the tda10048 does not appear,
+> powered off for example to safe energy, but since you also had a crash
+> previously, try a cold boot at first, means wait some time without any
+> power connected, depending on capacitors of the mobo, but 30 seconds
+> without any power should be always safe, and then just let it auto
+> detect card=0 without a tuner again and let i2c_scan=1 enabled one more
+> time.
+> 
+> If still the same, you are likely above that basic testing step and can
+> scratch heads on what doing next.
 
-Disclaimer: this is the problem as I understand it, and anything I say should 
-be treated as an unproven theory until proved otherwise...
+If this doesn't work then you may need to drive a GPIO to being the part 
+out of reset.
 
-The Nova-TD seems to have an odd problem. Specifically, it seems to have some 
-form of wideband low-gain amplifier/buffer on each aerial input (nothing like 
-the high-gain narrowband LNA amplifier on the Nova-T-500). This takes into 
-account the strongest muxes, not the mux you're currently tuned to (the T500 
-seems to do the latter -- which is more sensible).
-
-What this means is that if you've got one mux that's significantly weaker than 
-the others -- e.g. the one that carries FilmFour vs. the PSB mux that carries 
-BBC ONE -- you'll see a reasonable signal on BBC, but a poor signal (if you 
-get a lock at all) on FilmFour.
-
-What I did was put a 6dB attenuator between my aerial and the Nova-TD. This 
-weakens the signal to the point that all the muxes are in the Nova's capture 
-range. It locks on, and you get a near perfect signal on all the muxes.
-
-Of course, it might just be that the input can't handle being overloaded, or 
-was designed for the two shabby WiFi-style antennae that were bundles with the 
-Nova-TD (which are truly useless). Those things probably wouldn't even work if 
-you were within a mile of the transmitter...
-
-My signal's coming from Emley Moor, ~16 miles distance via a mid-high gain 
-wideband aerial.
-
--- 
-Phil.                         |  (\_/)  This is Bunny. Copy and paste Bunny
-lists@philpem.me.uk           | (='.'=) into your signature to help him gain
-http://www.philpem.me.uk/     | (")_(") world domination.
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
