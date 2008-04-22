@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m33GeUIh016161
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 12:40:31 -0400
-Received: from rv-out-0910.google.com (rv-out-0910.google.com [209.85.198.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m33GeGbi001081
-	for <video4linux-list@redhat.com>; Thu, 3 Apr 2008 12:40:16 -0400
-Received: by rv-out-0910.google.com with SMTP id k15so1823535rvb.51
-	for <video4linux-list@redhat.com>; Thu, 03 Apr 2008 09:40:15 -0700 (PDT)
-Message-ID: <a728f9f90804030940t78ee99ccgc252196918ca89fd@mail.gmail.com>
-Date: Thu, 3 Apr 2008 12:40:15 -0400
-From: "Alex Deucher" <alexdeucher@gmail.com>
-To: "Mark Paulus" <mark.paulus@verizonbusiness.com>
-In-Reply-To: <47F4ED11.3080906@verizonbusiness.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MH3Oie018675
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 13:03:24 -0400
+Received: from web27912.mail.ukl.yahoo.com (web27912.mail.ukl.yahoo.com
+	[217.146.182.62])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3MH38V3019920
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 13:03:08 -0400
+Date: Tue, 22 Apr 2008 18:03:02 +0100 (BST)
+From: "Edward J. Sheldrake" <ejs1920@yahoo.co.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080422132139.1e8e5f4a@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <47F4ED11.3080906@verizonbusiness.com>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: ATI Theatre Pro 650 support?
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Message-ID: <542613.5449.qm@web27912.mail.ukl.yahoo.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,21 +27,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Apr 3, 2008 at 10:43 AM, Mark Paulus
-<mark.paulus@verizonbusiness.com> wrote:
-> Hi,
->
->  I just acquired an ATI Theatre Pro 650, and was wondering
->  what is the status of this card in V4L2 land?  I am using
->  a stock debian 2.6.18 kernel, and noticed that it comes
->  up as an unidentified device.
->  Is there development planned for this, or is something holding
->  it up (Do we need more/other specs from ATI)?  Or do I need
->  to be content using this card in M$ Winblows?
+--- Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-The chip isn't supported yet and AMD has not released the specs at this point.
+> Hi Edward,
+> 
+> Thanks for your report.
+> 
+> There were lots of changes on em28xx driver those days, although I
+> agree that
+> the only one that would affect just audio is the one you've pointed.
+> If you
+> just revert this changeset, does the audio work again?
+> 
+Hi Mauro
 
-Alex
+I updated to changeset 7673 and reversed 7651, and got a fully working
+driver. These are the firmware loading messages from the working
+driver:
+
+(insert stick)
+xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type:
+xc2028 firmware, ver 2.7
+xc2028 1-0061: Loading firmware for type=BASE MTS (5), id
+0000000000000000.
+xc2028 1-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+
+(start mplayer - missing from first pastebin)
+xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
+0000000000000000.
+xc2028 1-0061: Loading firmware for type=MTS (4), id 0000000000000010.
+
+--
+
+Edward Sheldrake
+
+
+      __________________________________________________________
+Sent from Yahoo! Mail.
+A Smarter Email http://uk.docs.yahoo.com/nowyoucan.html
 
 --
 video4linux-list mailing list
