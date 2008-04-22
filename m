@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MLlGE3031687
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 17:47:16 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MLki6h017123
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 17:46:55 -0400
-Date: Tue, 22 Apr 2008 18:46:19 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MH034A016301
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 13:00:03 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MGxKOu016668
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 12:59:20 -0400
+Received: by nf-out-0910.google.com with SMTP id g13so822309nfb.21
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 09:59:19 -0700 (PDT)
 To: Brandon Philips <brandon@ifup.org>
-Message-ID: <20080422184619.7186db90@gaivota>
-In-Reply-To: <20080422193342.GN7392@plankton.ifup.org>
-References: <480D5AF9.4030808@linuxtv.org>
-	<20080422034449.GC24855@plankton.ifup.org>
-	<20080422122201.0a70b151@gaivota>
-	<20080422193342.GN7392@plankton.ifup.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: Hauppauge HVR1400 DVB-T support / XC3028L
+From: Frej Drejhammar <frej.drejhammar@gmail.com>
+In-Reply-To: <20080421233441.GB24855@plankton.ifup.org> (Brandon Philips's
+	message of "Mon, 21 Apr 2008 16:34:41 -0700")
+References: <patchbomb.1206312199@liva.fdsoft.se>
+	<20080421233441.GB24855@plankton.ifup.org>
+Date: Tue, 22 Apr 2008 18:59:13 +0200
+Message-ID: <kskxdu8pq.fsf@liva.fdsoft.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com, Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 0 of 6] cx88: Enable additional cx2388x features.
+	Version 3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,60 +31,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 22 Apr 2008 12:33:42 -0700
-Brandon Philips <brandon@ifup.org> wrote:
+>> +	  <row>
+>> +            <entry><constant>V4L2_CID_COLOR_KILLER</constant></entry>
+>> +            <entry>boolean</entry>
+>> +            <entry>Enables color killer functionality.</entry>
+>> +          </row>
+>
+> Could we please get an explanation of what a color killer is for other
+> driver writers?
 
-> On 12:22 Tue 22 Apr 2008, Mauro Carvalho Chehab wrote:
-> > On Mon, 21 Apr 2008 20:44:49 -0700
-> > Brandon Philips <brandon@ifup.org> wrote:
-> > > On 23:26 Mon 21 Apr 2008, Steven Toth wrote:
-> > > >  I've passed some patches to Mauro that add support for the Hauppauge
-> > > >  HVR1400 Expresscard in DVB-T mode. (cx23885 bridge, dib7000p
-> > > >  demodulator and the xceive xc3028L silicon tuner)
-> > > >
-> > > >  If you're interested in testing then wait for the patches to appear
-> > > >  in the http://linuxtv.org/hg/v4l-dvb tree.
-> > > >
-> > > >  You'll need to download firmware from
-> > > >  http://steventoth.net/linux/hvr1400
-> > > >
-> > > >  Post any questions or issues here.
-> > > 
-> > > Could you post the patches to the lists for review?  CC'ing both
-> > > linux-dvb@linuxtv.org and video4linux-list@redhat.com is appropriate.
-> > > 
-> > > It is really difficult staying on top of V4L with private trees and
-> > > private mails going around  :(
-> > 
-> > The better way for you to track about committed patches is what's described on
-> > item 5: "Knowing about newer patches committed at master hg repository", of
-> > http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches.
-> > 
-> > Basically, if you subscribe to linuxtv-commits ML[1], you'll receive an email for
-> > every newly committed changeset.
-> 
-> I think the list is broken.  The archives haven't received anything
-> since Feb.  2008... http://www.linuxtv.org/pipermail/linuxtv-commits/
+Sorry. From the current documentation I did not understand that
+standard functionality (AUTO_WHITE_BALANCE, DO_WHITE_BALANCE, GAIN)
+required a detailed description. A concise description of a color
+killer is as follows:
 
-The archive is disabled. The list should contain just the patches that are
-already stored at the tree. Archiving the emails will just spend some space for
-a duplicated info. So, I think Johannes disabled it to save some space.
+The color killer disables color decoding if a color-burst is not
+present in the input signal. This avoids interference showing up as
+false color in purely black-and-white broadcasts (one where the
+broadcaster does not generate a color-burst).
 
-> I also signed up but haven't receive emails from anything you merged a
-> few hours ago.
+Regards,
 
-This is weird. I've checked: you're subscribed. Did you subscribe only today?
-Maybe there weren't any new commits after your subscription.
-
-> I am just concerned about the v4l-dvb-maintainers list being too private
-> and private trees not getting enough review before going into mainline.
-> linuxtv-commits may help.
-
-I think it is a good idea that the pull requests would be also c/c to V4L
-and/or DVB ML.
-
-Cheers,
-Mauro
+--Frej
 
 --
 video4linux-list mailing list
