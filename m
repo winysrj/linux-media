@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from mailout01.t-online.de ([194.25.134.80])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1JlPOQ-0002Mq-Uu
-	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 16:10:50 +0200
-Message-ID: <480365DC.3030901@iinet.net.au>
-Date: Mon, 14 Apr 2008 22:10:36 +0800
-From: timf <timf@iinet.net.au>
+	(envelope-from <hartmut.hackmann@t-online.de>) id 1JoPR7-0007cy-TR
+	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 22:50:02 +0200
+Message-ID: <480E4F61.10208@t-online.de>
+Date: Tue, 22 Apr 2008 22:49:37 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-References: <47FE3ECC.8020209@iinet.net.au>	<47FE8FD1.3050004@t-online.de>	<1207870241.17744.8.camel@pc08.localdom.local>	<47FFA5C5.7000704@iinet.net.au>	<47FFE2CC.3090405@t-online.de>	<4801A18D.3090401@iinet.net.au>	<4801BD4D.7090708@iinet.net.au>
-	<48022CB7.1040006@iinet.net.au> <48023E17.1070103@iinet.net.au>
-	<4802576F.1070106@t-online.de> <48025E28.8020704@iinet.net.au>
-	<48026BBB.5030201@t-online.de> <48027653.1000001@iinet.net.au>
-	<48027E03.5010704@t-online.de> <48028513.5010208@iinet.net.au>
-	<48028EF9.6030209@t-online.de>
-In-Reply-To: <48028EF9.6030209@t-online.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
+To: linux-dvb@linuxtv.org
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>		<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>		<4803C2FA.1010408@hot.ee>
+	<48065CB6.50709@elfarto.com>		<1208422406.12385.295.camel@rommel.snap.tv>		<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>		<4807AFE2.40400@t-online.de>
+	<4807B386.1050109@elfarto.com>		<4807C1A6.8000909@t-online.de>	<1208862469.7807.7.camel@rommel.snap.tv>
+	<480E0575.1010908@gmail.com>
+In-Reply-To: <480E0575.1010908@gmail.com>
+Subject: Re: [linux-dvb] TT-Budget C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,113 +21,73 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hartmut Hackmann wrote:
-> Hi
-> <snip>
-Just to be sure:
-> - you are aware that you can't use analog and dvb simultanously?
-> - you are aware that after stopping a dvb application it takes about a
->   second before the dvb driver releases the card and the analog tuner 
-> can be used?
-> - did you mix up the antenna inputs?
->
-> Hartmut
->
+hi,
 
-OK, start completely new again.
+e9hack schrieb:
+> Sigmund Augdal schrieb:
+>> tor, 17.04.2008 kl. 23.31 +0200, skrev Hartmut Hackmann:
+>> <snip>
+>>> Do you have a datasheet of the tda10023? From the first glance, i have =
+the
+>>> impression that it was only used with a conventional tuner yet. With the
+>>> silicon tuner, the chip needs to be programmed to use a different IF. We
+>>> beed to find out how this is done.
+>> I don't have any datasheet. I tried playing around with some of the
+>> values in the init-tab, and they do affect the signal levels (signal and
+>> snr) reported, but I haven't managed to find something that does give a
+>> lock. There is also a if_freq variable in the current driver sources
+>> that does not seem to be passed to the chip directly but is used in some
+>> computations. In the current driver this value is selected based on
+>> channel bandwidth (being only used for dvb-t this far). I've tried with
+>> several values for this (8MHz, 0MHz, 4MHz and the currently used 5MHz
+>> for 8MHz bandwidth channels).
+>>
+>> Birr: Do you have any info on this, as you seem to be the last developer
+>> working on that demod?
+> =
 
-This is exactly as it was when I asked for your help:
-need to start analog-tv before can use dvb-t
+> I don't own the datasheet of the TDA10023. I think you must read the conf=
+iguration of the =
 
-timf@ubuntu:~$ hg clone http://linuxtv.org/hg/v4l-dvb
-timf@ubuntu:~$ cd v4l-dvb
-timf@ubuntu:~$ make
-timf@ubuntu:~$ sudo make install
+> TDA10023 from windows. This can be done with this program =
 
--> shutdown
--> power-cycle (1 hour no power)
+> (http://linuxtv.org/downloads/saa7146dump-0.2.zip). If it is necessary to=
+ monitor the =
 
-timf@ubuntu:~$ sudo -s -H
-root@ubuntu:/home/timf# tzap -r "TEN HD"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 788500000 Hz
-video pid 0x0202, audio pid 0x0000
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 000117e6 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0000 | ber 00011902 | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 00012076 | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 000120d6 | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 00011abe | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0000 | ber 00011938 | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 0001198a | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 01 | signal ffff | snr 0000 | ber 00011e5c | unc ffffffff |
-status 1f | signal ffff | snr 0000 | ber 00011a14 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0000 | ber 00011962 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0000 | ber 00011cf4 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 0000 | ber 00011906 | unc ffffffff | 
-FE_HAS_LOCK
-status 00 | signal ffff | snr 0000 | ber 0001fffe | unc 00000000 |
-status 1f | signal ffff | snr 0000 | ber 000118f2 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal ffff | snr 3030 | ber 00013348 | unc ffffffff | 
-FE_HAS_LOCK
+> initialization of the tuner chip, you must use an i2c-monitor. I develope=
+d a cheap monitor =
 
--> start tvtime -> viewing SBS -> stop tvtime
+> (http://www.vdr-portal.de/board/thread.php?postid=3D639818#post639818). T=
+he costs of the =
 
-root@ubuntu:/home/timf# tzap -r "TEN HD"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 788500000 Hz
-video pid 0x0202, audio pid 0x0000
-status 00 | signal 9b9b | snr 6060 | ber 0001fffe | unc 00000000 |
-status 1f | signal 9b9b | snr fdfd | ber 00000248 | unc ffffffff | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 00000294 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 000002f6 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 000002a0 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 00000264 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 0000024a | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 0000027a | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 0000020c | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9a9a | snr fefe | ber 00000218 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9b9b | snr fefe | ber 000001c6 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9b9b | snr fefe | ber 00000188 | unc 00000000 | 
-FE_HAS_LOCK
+> parts are less then 10=A4. To build such a monitor, you should know what =
+a soldering-iron is.
+> =
 
+> -Hartmut Birr
+> =
 
-Regards,
-Tim
+Looks like we need to make changes in both, tda827x and tda10023. Currently=
+ the 10023
+is programmed for 36.13MHz IF frequency. This is *not* possible with the 82=
+7x.
+So we need to implement a configuration option for the tda10023 to select t=
+he IF center
+frequency (haven't had the time to have a close look yet) and we need to im=
+plement a way
+to let the tda827x driver choose the right parameter set.
+I would be more interested in the configuration of the tda10023. With the t=
+da827x, i know
+what to do.
+
+Hartmut
+
 
 _______________________________________________
 linux-dvb mailing list
