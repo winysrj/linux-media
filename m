@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38MRxl9010237
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:27:59 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m38MRjPT022901
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:27:45 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: mkrufky@linuxtv.org
-Date: Wed, 9 Apr 2008 00:27:18 +0200
-References: <47FBDD42.2030608@linuxtv.org>
-In-Reply-To: <47FBDD42.2030608@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MEaJAs023533
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 10:36:19 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MEa4Bc018520
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 10:36:05 -0400
+Date: Tue, 22 Apr 2008 11:35:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Message-ID: <20080422113539.0b3002f9@gaivota>
+In-Reply-To: <20080422062938.0e491c0c.akpm@linux-foundation.org>
+References: <20080421081639.GE26724@vidsoft.de>
+	<20080421223751.GD9073@plankton.ifup.org>
+	<1208822912.10519.24.camel@pc10.localdom.local>
+	<20080422062938.0e491c0c.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200804090027.19735@orion.escape-edv.de>
-Cc: video4linux-list@redhat.com, mchehab@infradead.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	stable@kernel.org
+Subject: Re: 2.6.25 regression: vivi - scheduling while atomic
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,33 +31,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-mkrufky@linuxtv.org wrote:
-> ...
-> ...all of this noise was made, and now not a single person is willing to 
-> test the proposed solution?
-> 
-> I don't think that there will be many more 2.6.24.y releases.  I have an 
-> ivtv patch queued for 2.6.24.5, and this tda10086 patch is sitting in my 
-> outbox, waiting for test results.
-> 
-> I suspect that 2.6.25 will be released in a few days, after which, 
-> 2.6.24.y -stable release turnaround gets slower and slower, and most 
-> likely will end by the time 2.6.26 is released.
-> 
-> If you want this fixed, then the fix needs testing .... NOW.
+> > > > This happenes on a vanilla 2.6.25 with loaded nvidia graphics module.
+> > > > System architecture is x86_64. If it matters I'll try to reproduce this
+> > > > error on a non tainted kernel.
+> > > 
+> > > No need to reproduce on a non-tainted Kernel.  This is a known issue
+> > > with patches merged into the v4l-dvb tree several weeks ago but it seems
+> > > to not have made it into 2.6.25 :(
+> > > 
+> > >  http://linuxtv.org/hg/v4l-dvb/rev/06eb92ed0b18
+> > >  http://linuxtv.org/hg/v4l-dvb/rev/c50180f4ddfc
+> > > 
+> > > I can rebase the patches for 2.6.25 but they are too big to go into the
+> > > stable 2.6.25 tree...
 
-Always the same story. :-(
+Unfortunately, the tests for the patches fixing several videobuf issues
+finished later on -rc9, when Linus were releasing 2.6.25. 
 
-We need a test center, or preferably a community of testers who are
-willing to do regression tests with the drivers...
+I should send the videobuf patches to Linus tree, together with other patches,
+probably today. After that, I think we should backport the fixes for 2.6.25,
+and test it again, with vanilla 2.6.25.
 
-CU
-Oliver
+The issue here is that videobuf suffered several changes on this development
+cycle. Probably, only a few of those patches are needed to fix the issue. So,
+we need to handle this with care, to avoid the risk of damaging other drivers that
+relies on videobuf.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
