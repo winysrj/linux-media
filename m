@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SN2ZZj023089
-	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 19:02:35 -0400
-Received: from bay0-omc1-s21.bay0.hotmail.com (bay0-omc1-s21.bay0.hotmail.com
-	[65.54.246.93])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SN2G4h008244
-	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 19:02:16 -0400
-Message-ID: <BAY109-W55EF752D25B0EAF1361C40CBDE0@phx.gbl>
-From: =?iso-8859-1?Q?Vicent_Jord=E0?= <vjorda@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Mon, 28 Apr 2008 23:02:10 +0000
-In-Reply-To: <20080428114741.040ccfd6@gaivota>
-References: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
-	<20080428114741.040ccfd6@gaivota>
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: RE: Trying to set up a NPG Real DVB-T PCI Card
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MJIE05012825
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 15:18:14 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MJHWpC027350
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 15:17:33 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <20080422062938.0e491c0c.akpm@linux-foundation.org>
+References: <20080421081639.GE26724@vidsoft.de>
+	<20080421223751.GD9073@plankton.ifup.org>
+	<1208822912.10519.24.camel@pc10.localdom.local>
+	<20080422062938.0e491c0c.akpm@linux-foundation.org>
+Content-Type: text/plain
+Date: Tue, 22 Apr 2008 21:17:04 +0200
+Message-Id: <1208891824.3311.44.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org, stable@kernel.org
+Subject: Re: 2.6.25 regression: vivi - scheduling while atomic
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,254 +33,132 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
-Well, as I have WinXP installed in the same machine I have run regspy.exe and then I have started TotalMedia (the program which shows TV, DSCaler doesn't work). 
-
-This is the output:
-
-=================================================================================
-
-CX2388x Card - Register Dump:
-AUD_INIT:                        00000004   (00000000 00000000 00000000 00000100)                 
-AUD_INIT_LD:                     00000004   (00000000 00000000 00000000 00000100)                 
-AUD_SOFT_RESET:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_I2SINPUTCNTL:                00000004   (00000000 00000000 00000000 00000100)                 
-AUD_BAUDRATE:                    00000000   (00000000 00000000 00000000 00000000)                 
-AUD_I2SOUTPUTCNTL:               00000000   (00000000 00000000 00000000 00000000)                 
-AAGC_HYST:                       0000001a   (00000000 00000000 00000000 00011010)                 
-AAGC_GAIN:                       00000001   (00000000 00000000 00000000 00000001)                 
-AAGC_DEF:                        00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR1_0_SEL:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR1_0_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR1_1_SEL:                  00000001   (00000000 00000000 00000000 00000001)                 
-AUD_IIR1_1_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR1_2_SEL:                  0000001f   (00000000 00000000 00000000 00011111)                 
-AUD_IIR1_2_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR1_3_SEL:                  00000020   (00000000 00000000 00000000 00100000)                 
-AUD_IIR1_3_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR1_4_SEL:                  00000025   (00000000 00000000 00000000 00100101)                 
-AUD_IIR1_4_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR1_5_SEL:                  00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR1_5_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR2_0_SEL:                  00000002   (00000000 00000000 00000000 00000010)                 
-AUD_IIR2_0_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR2_1_SEL:                  00000003   (00000000 00000000 00000000 00000011)                 
-AUD_IIR2_1_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR2_2_SEL:                  00000004   (00000000 00000000 00000000 00000100)                 
-AUD_IIR2_2_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR2_3_SEL:                  00000005   (00000000 00000000 00000000 00000101)                 
-AUD_IIR2_3_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR3_0_SEL:                  00000021   (00000000 00000000 00000000 00100001)                 
-AUD_IIR3_0_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR3_1_SEL:                  00000023   (00000000 00000000 00000000 00100011)                 
-AUD_IIR3_1_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR3_2_SEL:                  00000016   (00000000 00000000 00000000 00010110)                 
-AUD_IIR3_2_SHIFT:                00000002   (00000000 00000000 00000000 00000010)                 
-AUD_IIR4_0_SEL:                  0000001d   (00000000 00000000 00000000 00011101)                 
-AUD_IIR4_0_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_IIR4_1_SEL:                  00000019   (00000000 00000000 00000000 00011001)                 
-AUD_IIR4_1_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR4_2_SEL:                  00000008   (00000000 00000000 00000000 00001000)                 
-AUD_IIR4_2_SHIFT:                00000007   (00000000 00000000 00000000 00000111)                 
-AUD_IIR4_0_CA0:                  0003e57e   (00000000 00000011 11100101 01111110)                 
-AUD_IIR4_0_CA1:                  00005e11   (00000000 00000000 01011110 00010001)                 
-AUD_IIR4_0_CA2:                  0003a7cf   (00000000 00000011 10100111 11001111)                 
-AUD_IIR4_0_CB0:                  00002368   (00000000 00000000 00100011 01101000)                 
-AUD_IIR4_0_CB1:                  0003bf1b   (00000000 00000011 10111111 00011011)                 
-AUD_IIR4_1_CA0:                  00006349   (00000000 00000000 01100011 01001001)                 
-AUD_IIR4_1_CA1:                  00006f27   (00000000 00000000 01101111 00100111)                 
-AUD_IIR4_1_CA2:                  0000e7a3   (00000000 00000000 11100111 10100011)                 
-AUD_IIR4_1_CB0:                  00005653   (00000000 00000000 01010110 01010011)                 
-AUD_IIR4_1_CB1:                  0000cf97   (00000000 00000000 11001111 10010111)                 
-AUD_IIR4_2_CA0:                  00006349   (00000000 00000000 01100011 01001001)                 
-AUD_IIR4_2_CA1:                  00006f27   (00000000 00000000 01101111 00100111)                 
-AUD_IIR4_2_CA2:                  0000e7a3   (00000000 00000000 11100111 10100011)                 
-AUD_IIR4_2_CB0:                  00005653   (00000000 00000000 01010110 01010011)                 
-AUD_IIR4_2_CB1:                  0000cf97   (00000000 00000000 11001111 10010111)                 
-AUD_HP_MD_IIR4_1:                00000001   (00000000 00000000 00000000 00000001)                 
-AUD_HP_PROG_IIR4_1:              0000001a   (00000000 00000000 00000000 00011010)                 
-AUD_FM_MODE_ENABLE:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_POLY0_DDS_CONSTANT:          000a62b4   (00000000 00001010 01100010 10110100)                 
-AUD_DN0_FREQ:                    0000312b   (00000000 00000000 00110001 00101011)                 
-AUD_DN1_FREQ:                    00003318   (00000000 00000000 00110011 00011000)                 
-AUD_DN1_FREQ_SHIFT:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DN1_AFC:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DN1_SRC_SEL:                 00000017   (00000000 00000000 00000000 00010111)                 
-AUD_DN1_SHFT:                    00000007   (00000000 00000000 00000000 00000111)                 
-AUD_DN2_FREQ:                    00003551   (00000000 00000000 00110101 01010001)                 
-AUD_DN2_FREQ_SHIFT:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DN2_AFC:                     00000002   (00000000 00000000 00000000 00000010)                 
-AUD_DN2_SRC_SEL:                 00000001   (00000000 00000000 00000000 00000001)                 
-AUD_DN2_SHFT:                    00000000   (00000000 00000000 00000000 00000000)                 
-AUD_CRDC0_SRC_SEL:               000002cd   (00000000 00000000 00000010 11001101)                 
-AUD_CRDC0_SHIFT:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_CORDIC_SHIFT_0:              00000007   (00000000 00000000 00000000 00000111)                 
-AUD_CRDC1_SRC_SEL:               0000038f   (00000000 00000000 00000011 10001111)                 
-AUD_CRDC1_SHIFT:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_CORDIC_SHIFT_1:              00000007   (00000000 00000000 00000000 00000111)                 
-AUD_DCOC_0_SRC:                  0000001a   (00000000 00000000 00000000 00011010)                 
-AUD_DCOC0_SHIFT:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DCOC_0_SHIFT_IN0:            0000000a   (00000000 00000000 00000000 00001010)                 
-AUD_DCOC_0_SHIFT_IN1:            00000008   (00000000 00000000 00000000 00001000)                 
-AUD_DCOC_1_SRC:                  0000001b   (00000000 00000000 00000000 00011011)                 
-AUD_DCOC1_SHIFT:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DCOC_1_SHIFT_IN0:            0000000a   (00000000 00000000 00000000 00001010)                 
-AUD_DCOC_1_SHIFT_IN1:            00000008   (00000000 00000000 00000000 00001000)                 
-AUD_DCOC_2_SRC:                  0000001b   (00000000 00000000 00000000 00011011)                 
-AUD_DCOC2_SHIFT:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DCOC_2_SHIFT_IN0:            0000000a   (00000000 00000000 00000000 00001010)                 
-AUD_DCOC_2_SHIFT_IN1:            00000008   (00000000 00000000 00000000 00001000)                 
-AUD_DCOC_PASS_IN:                00000003   (00000000 00000000 00000000 00000011)                 
-AUD_PDET_SRC:                    00000014   (00000000 00000000 00000000 00010100)                 
-AUD_PDET_SHIFT:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PILOT_BQD_1_K0:              0000755b   (00000000 00000000 01110101 01011011)                 
-AUD_PILOT_BQD_1_K1:              00551340   (00000000 01010101 00010011 01000000)                 
-AUD_PILOT_BQD_1_K2:              006d30be   (00000000 01101101 00110000 10111110)                 
-AUD_PILOT_BQD_1_K3:              ffd394af   (11111111 11010011 10010100 10101111)                 
-AUD_PILOT_BQD_1_K4:              00400000   (00000000 01000000 00000000 00000000)                 
-AUD_PILOT_BQD_2_K0:              00040000   (00000000 00000100 00000000 00000000)                 
-AUD_PILOT_BQD_2_K1:              002a4841   (00000000 00101010 01001000 01000001)                 
-AUD_PILOT_BQD_2_K2:              00400000   (00000000 01000000 00000000 00000000)                 
-AUD_PILOT_BQD_2_K3:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PILOT_BQD_2_K4:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_THR_FR:                      00000000   (00000000 00000000 00000000 00000000)                 
-AUD_X_PROG:                      00000008   (00000000 00000000 00000000 00001000)                 
-AUD_Y_PROG:                      02000000   (00000010 00000000 00000000 00000000)                 
-AUD_HARMONIC_MULT:               00000001   (00000000 00000000 00000000 00000001)                 
-AUD_C1_UP_THR:                   00007000   (00000000 00000000 01110000 00000000)                 
-AUD_C1_LO_THR:                   00005400   (00000000 00000000 01010100 00000000)                 
-AUD_C2_UP_THR:                   00005400   (00000000 00000000 01010100 00000000)                 
-AUD_C2_LO_THR:                   00003000   (00000000 00000000 00110000 00000000)                 
-AUD_PLL_EN:                      00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PLL_SRC:                     00000017   (00000000 00000000 00000000 00010111)                 
-AUD_PLL_SHIFT:                   00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PLL_IF_SEL:                  00000017   (00000000 00000000 00000000 00010111)                 
-AUD_PLL_IF_SHIFT:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_BIQUAD_PLL_K0:               00008a68   (00000000 00000000 10001010 01101000)                 
-AUD_BIQUAD_PLL_K1:               00100000   (00000000 00010000 00000000 00000000)                 
-AUD_BIQUAD_PLL_K2:               00092305   (00000000 00001001 00100011 00000101)                 
-AUD_BIQUAD_PLL_K3:               00080000   (00000000 00001000 00000000 00000000)                 
-AUD_BIQUAD_PLL_K4:               00fcb368   (00000000 11111100 10110011 01101000)                 
-AUD_DEEMPH0_SRC_SEL:             00000011   (00000000 00000000 00000000 00010001)                 
-AUD_DEEMPH0_SHIFT:               00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DEEMPH0_G0:                  00000380   (00000000 00000000 00000011 10000000)                 
-AUD_DEEMPH0_A0:                  0000777a   (00000000 00000000 01110111 01111010)                 
-AUD_DEEMPH0_B0:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DEEMPH0_A1:                  0003f062   (00000000 00000011 11110000 01100010)                 
-AUD_DEEMPH0_B1:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DEEMPH1_SRC_SEL:             00000013   (00000000 00000000 00000000 00010011)                 
-AUD_DEEMPH1_SHIFT:               00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DEEMPH1_G0:                  00000380   (00000000 00000000 00000011 10000000)                 
-AUD_DEEMPH1_A0:                  0000777a   (00000000 00000000 01110111 01111010)                 
-AUD_DEEMPH1_B0:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DEEMPH1_A1:                  0003f062   (00000000 00000011 11110000 01100010)                 
-AUD_DEEMPH1_B1:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_OUT0_SEL:                    0000003f   (00000000 00000000 00000000 00111111)                 
-AUD_OUT0_SHIFT:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_OUT1_SEL:                    0000003f   (00000000 00000000 00000000 00111111)                 
-AUD_OUT1_SHIFT:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_RDSI_SEL:                    00000017   (00000000 00000000 00000000 00010111)                 
-AUD_RDSI_SHIFT:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_RDSQ_SEL:                    00000017   (00000000 00000000 00000000 00010111)                 
-AUD_RDSQ_SHIFT:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_IN_GAIN:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_WBE_GAIN:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_SE_GAIN:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_RMS_WBE:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_RMS_SE:                  00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DBX_SE_BYPASS:               00000000   (00000000 00000000 00000000 00000000)                 
-AUD_FAWDETCTL:                   00000678   (00000000 00000000 00000110 01111000)                 
-AUD_FAWDETWINCTL:                000012d6   (00000000 00000000 00010010 11010110)                 
-AUD_DEEMPHGAIN_R:                000011e1   (00000000 00000000 00010001 11100001)                 
-AUD_DEEMPHNUMER1_R:              0002a7bc   (00000000 00000010 10100111 10111100)                 
-AUD_DEEMPHNUMER2_R:              0003023c   (00000000 00000011 00000010 00111100)                 
-AUD_DEEMPHDENOM1_R:              0000f3d0   (00000000 00000000 11110011 11010000)                 
-AUD_DEEMPHDENOM2_R:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_ERRLOGPERIOD_R:              00000064   (00000000 00000000 00000000 01100100)                 
-AUD_ERRINTRPTTHSHLD1_R:          00000fff   (00000000 00000000 00001111 11111111)                 
-AUD_ERRINTRPTTHSHLD2_R:          0000001f   (00000000 00000000 00000000 00011111)                 
-AUD_ERRINTRPTTHSHLD3_R:          0000000f   (00000000 00000000 00000000 00001111)                 
-AUD_NICAM_STATUS1:               00001a99   (00000000 00000000 00011010 10011001)  (was: 00004e3f)
-AUD_NICAM_STATUS2:               00000009   (00000000 00000000 00000000 00001001)                 
-AUD_ERRLOG1:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_ERRLOG2:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_ERRLOG3:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DAC_BYPASS_L:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DAC_BYPASS_R:                00000000   (00000000 00000000 00000000 00000000)                 
-AUD_DAC_BYPASS_CTL:              00000000   (00000000 00000000 00000000 00000000)                 
-AUD_CTL:                         0000120c   (00000000 00000000 00010010 00001100)                 
-AUD_STATUS:                      00000cf2   (00000000 00000000 00001100 11110010)  (was: 0000f972)
-AUD_VOL_CTL:                     00000014   (00000000 00000000 00000000 00010100)                 
-AUD_BAL_CTL:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_START_TIMER:                 00000000   (00000000 00000000 00000000 00000000)                 
-AUD_MODE_CHG_TIMER:              00000040   (00000000 00000000 00000000 01000000)                 
-AUD_POLYPH80SCALEFAC:            00000001   (00000000 00000000 00000000 00000001)                 
-AUD_DMD_RA_DDS:                  002a4f2f   (00000000 00101010 01001111 00101111)                 
-AUD_I2S_RA_DDS:                  00400000   (00000000 01000000 00000000 00000000)                 
-AUD_RATE_THRES_DMD:              00000400   (00000000 00000000 00000100 00000000)                 
-AUD_RATE_THRES_I2S:              00000005   (00000000 00000000 00000000 00000101)                 
-AUD_RATE_ADJ1:                   00000100   (00000000 00000000 00000001 00000000)                 
-AUD_RATE_ADJ2:                   00000200   (00000000 00000000 00000010 00000000)                 
-AUD_RATE_ADJ3:                   00000300   (00000000 00000000 00000011 00000000)                 
-AUD_RATE_ADJ4:                   00000400   (00000000 00000000 00000100 00000000)                 
-AUD_RATE_ADJ5:                   00000500   (00000000 00000000 00000101 00000000)                 
-AUD_APB_IN_RATE_ADJ:             00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PHASE_FIX_CTL:               00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PLL_PRESCALE:                00000002   (00000000 00000000 00000000 00000010)                 
-AUD_PLL_DDS:                     00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PLL_INT:                     0000001e   (00000000 00000000 00000000 00011110)                 
-AUD_PLL_FRAC:                    0000e542   (00000000 00000000 11100101 01000010)                 
-AUD_PLL_JTAG:                    00000000   (00000000 00000000 00000000 00000000)                 
-AUD_PLL_SPMP:                    00000004   (00000000 00000000 00000000 00000100)                 
-AUD_AFE_12DB_EN:                 00000001   (00000000 00000000 00000000 00000001)                 
-AUD_PDF_DDS_CNST_BYTE2:          06         (00000110)                                            
-AUD_PDF_DDS_CNST_BYTE1:          82         (10000010)                                            
-AUD_PDF_DDS_CNST_BYTE0:          12         (00010010)                                            
-AUD_QAM_MODE:                    05         (00000101)                                            
-AUD_PHACC_FREQ_8MSB:             34         (00110100)                                            
-AUD_PHACC_FREQ_8LSB:             4c         (01001100)                                            
-MO_GP0_IO:                       000004fb   (00000000 00000000 00000100 11111011)                 
-MO_GP1_IO:                       000000ff   (00000000 00000000 00000000 11111111)                 
-MO_GP2_IO:                       00000001   (00000000 00000000 00000000 00000001)                 
-MO_GP3_IO:                       00000000   (00000000 00000000 00000000 00000000)                 
-
-=================================================================================
-
-----------------------------------------
-> Date: Mon, 28 Apr 2008 11:47:41 -0300
-> From: mchehab@infradead.org
-> To: vjorda@hotmail.com
-> CC: video4linux-list@redhat.com
-> Subject: Re: Trying to set up a NPG Real DVB-T PCI Card
+Am Dienstag, den 22.04.2008, 06:29 -0700 schrieb Andrew Morton:
+> > On Tue, 22 Apr 2008 02:08:32 +0200 hermann pitton <hermann-pitton@arcor.de> wrote:
+> > Hi,
+> > 
+> > Am Montag, den 21.04.2008, 15:37 -0700 schrieb Brandon Philips:
+> > > On 10:16 Mon 21 Apr 2008, Gregor Jasny wrote:
+> > > > Call Trace:
+> > > >  [<ffffffff803efc9b>] schedule+0xe5/0x5c7
+> > > >  [<ffffffff80251c90>] __rmqueue_smallest+0x88/0x107
+> > > >  [<ffffffff8023e84b>] getnstimeofday+0x2f/0x83
+> > > >  [<ffffffff8023cf8a>] ktime_get_ts+0x17/0x48
+> > > >  [<ffffffff803f0424>] schedule_timeout+0x1e/0xad
+> > > >  [<ffffffff80220498>] enqueue_task+0x13/0x1e
+> > > >  [<ffffffff803efab8>] wait_for_common+0xf6/0x16b
+> > > >  [<ffffffff802230a0>] default_wake_function+0x0/0xe
+> > > >  [<ffffffff8023a270>] kthread_create+0xa3/0x108
+> > > >  [<ffffffff880d2471>] :vivi:vivi_thread+0x0/0x779
+> > > >  [<ffffffff802634cb>] remap_vmalloc_range+0xa1/0xe6
+> > > >  [<ffffffff80231242>] lock_timer_base+0x26/0x4c
+> > > >  [<ffffffff8023138e>] __mod_timer+0xb6/0xc5
+> > > >  [<ffffffff880d23fc>] :vivi:vivi_start_thread+0x54/0xc9
+> > > >  [<ffffffff88053603>] :videobuf_core:videobuf_streamon+0x6c/0xaa
+> > > >  [<ffffffff8809dba3>] :videodev:__video_do_ioctl+0x1327/0x2ad9
+> > > >  [<ffffffff80222d76>] __wake_up+0x38/0x4f
+> > > >  [<ffffffff80242f1f>] futex_wake+0xdb/0xfa
+> > > >  [<ffffffff8809f6ab>] :videodev:video_ioctl2+0x17c/0x210
+> > > >  [<ffffffff8025bb36>] handle_mm_fault+0x6b1/0x6cb
+> > > >  [<ffffffff8027b47d>] vfs_ioctl+0x55/0x6b
+> > > >  [<ffffffff8027b6e6>] do_vfs_ioctl+0x253/0x264
+> > > >  [<ffffffff8027b733>] sys_ioctl+0x3c/0x5d
+> > > >  [<ffffffff8020afcb>] system_call_after_swapgs+0x7b/0x80
+> > > >
+> > > > This happenes on a vanilla 2.6.25 with loaded nvidia graphics module.
+> > > > System architecture is x86_64. If it matters I'll try to reproduce this
+> > > > error on a non tainted kernel.
+> > > 
+> > > No need to reproduce on a non-tainted Kernel.  This is a known issue
+> > > with patches merged into the v4l-dvb tree several weeks ago but it seems
+> > > to not have made it into 2.6.25 :(
+> > > 
+> > >  http://linuxtv.org/hg/v4l-dvb/rev/06eb92ed0b18
+> > >  http://linuxtv.org/hg/v4l-dvb/rev/c50180f4ddfc
+> > > 
+> > > I can rebase the patches for 2.6.25 but they are too big to go into the
+> > > stable 2.6.25 tree...
+> > > 
+> > > Thanks for the report,
+> > > 
+> > > 	Brandon
+> > > 
+> > 
+> > hmm, because of that 100 lines only rule including offsets?
+> > 
+> > The current v4l-dvb on 2.6.24 has 233 modules.
+> > 
+> > It is usual that changes, if needed, are going over lots of them.
+> > 
+> > How far one can come with _such_ rules, given that one single line
+> > changed counts up to seven with the offsets?
+> > 
+> > How can one even comment on that brain damage?
+> > 
 > 
-> On Mon, 28 Apr 2008 14:40:24 +0000
-> Vicent Jordà  wrote:
+> There is no "100 line rule" for -stable patches, if that is what you were
+> referring to.
 > 
->> 
->> Hi,
->> 
->> I'm trying to set up a NPG Real DVB-T PCI Card.
->> 
->> [ 1587.165812] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
->> [ 1587.183960] xc2028 0-0061: Incorrect readback of firmware version.
->> ==============================================================================
->> 
->> What can I do to workaroud this problem?
-> 
-> Are you sure you're using the correct firmware?
-> 
-> This kind of error could happen on a few cases:
-> 	1) Firmware is not version 2.7;
-> 	2) tuner-callback is sending a wrong reset. Xc3028 needs to receive a reset, gia a GPIO pin, for firmware to load. If you don't send a reset, firmware won't load;
-> 	3) On some devices, you need to slow down firmware sending.
-> 
-> If your firmware is correct, I guess your problem is (2). The better is to use regspy.exe (provided together with DCALER) and see what gpio changes during firmware load.
-> 
-> Cheers,
-> Mauro
+> Please just send the patches to stable@kernel.org, along with a full
+> description of why they are needed in 2.6.25.x.  If those fine folk see a
+> problem with merging the patches then they will explain that problem and
+> discussion will ensue.  It will not involve the term "100 line rule"!
 
-_________________________________________________________________
-MSN Video. 
-http://video.msn.com/?mkt=es-es
+Yes, the people are fine and it is always worth to show them possible
+fixes.
+
+However, recently I was close to give up on forwarding a fix to
+2.6.24.4. It didn't get the usual immediate attention of our guys
+forwarding such, likely also because it was about some exotic details on
+22kHz tone generation on new or rare cards and difficult to test on all
+affected drivers and cards and had a 9 months history.
+
+Also there was a report on bugzilla, that a patch, which was for testing
+on the lists, fixed one of the newer cards, but we still had no reports
+yet what happened with the older. No testers available. It went into the
+2.6.24 release and only recently we got the reports for the older cards,
+broken by us ...
+
+Considering to send the fix myself to stable I did read
+Documentation/stable_kernel_rules and started ranting at home :)
+
+For the price that we'll have support for lots of new card types now and
+in the future, we have a bug on 2.6.24 and we hang on a 100 line rule to
+fix it?
+
+It helped immediately, but better would be to improve that text.
+The 100 line rule is there, see below. It might cause that people not
+even try to submit.
+
+Also that one needs to run checkpatch.pl against such will cause a lot
+of unrelated fixes in the offsets on the old code we have around.
+
+Thanks,
+Hermann
+
+
+Everything you ever wanted to know about Linux 2.6 -stable releases.
+
+Rules on what kind of patches are accepted, and which ones are not, into the
+"-stable" tree:
+
+ - It must be obviously correct and tested.
+ - It cannot be bigger than 100 lines, with context.
+ - It must fix only one thing.
+ - It must fix a real bug that bothers people (not a, "This could be a
+   problem..." type thing).
+ - It must fix a problem that causes a build error (but not for things
+   marked CONFIG_BROKEN), an oops, a hang, data corruption, a real
+   security issue, or some "oh, that's not good" issue.  In short, something
+   critical.
+ - No "theoretical race condition" issues, unless an explanation of how the
+   race can be exploited is also provided.
+ - It cannot contain any "trivial" fixes in it (spelling changes,
+   whitespace cleanups, etc).
+ - It must follow the Documentation/SubmittingPatches rules.
+ - It or an equivalent fix must already exist in Linus' tree.  Quote the
+   respective commit ID in Linus' tree in your patch submission to -stable.
+
 
 --
 video4linux-list mailing list
