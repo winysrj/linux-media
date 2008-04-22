@@ -1,38 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39N3X1q014529
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 19:03:33 -0400
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39N3GsH032087
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 19:03:17 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andrew Junev <a-j@a-j.ru>
-In-Reply-To: <1271819320.20080409101744@a-j.ru>
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
-	<1206067079.3362.10.camel@pc08.localdom.local>
-	<200803210742.57119@orion.escape-edv.de>
-	<1206912674.3520.58.camel@pc08.localdom.local>
-	<1063704330.20080331082850@a-j.ru>
-	<1206999694.7762.41.camel@pc08.localdom.local>
-	<1112443057.20080402224744@a-j.ru>
-	<1207179525.14887.13.camel@pc08.localdom.local>
-	<1207265002.3364.12.camel@pc08.localdom.local>
-	<20080403221833.34d3c4d6@gaivota>
-	<1207275545.3365.26.camel@pc08.localdom.local>
-	<1076827621.20080406215420@a-j.ru>
-	<1207522685.6334.29.camel@pc08.localdom.local>
-	<1135983778.20080408193408@a-j.ru>
-	<1207702576.5135.42.camel@pc08.localdom.local>
-	<1271819320.20080409101744@a-j.ru>
-Content-Type: text/plain
-Date: Thu, 10 Apr 2008 01:03:10 +0200
-Message-Id: <1207782190.5554.47.camel@pc08.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MLcGrI026800
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 17:38:16 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MLc0QN011952
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 17:38:00 -0400
+Date: Tue, 22 Apr 2008 18:37:40 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Edward J. Sheldrake" <ejs1920@yahoo.co.uk>
+Message-ID: <20080422183740.5aac8772@gaivota>
+In-Reply-To: <542613.5449.qm@web27912.mail.ukl.yahoo.com>
+References: <20080422132139.1e8e5f4a@gaivota>
+	<542613.5449.qm@web27912.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Content-Type: multipart/mixed; boundary="MP_/==AAp+=n.soE5vSnXoKYrYj"
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -44,80 +27,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Mittwoch, den 09.04.2008, 10:17 +0400 schrieb Andrew Junev:
-> > Hi Andrew,
-> 
-> > Am Dienstag, den 08.04.2008, 19:34 +0400 schrieb Andrew Junev:
-> >> Hello Hermann,
-> >> 
-> >> Monday, April 7, 2008, 2:58:05 AM, you wrote:
-> >> 
-> >> > you always drop the lists.
-> >> 
-> >> Not always. :) I do it just sometimes, when I feel my message doesn't
-> >> contain useful information for everybody on the list.
-> >> But we can move back to the lists, if you think it's more appropriate.
-> >> 
-> >> > I come back to you, if nobody else who is more fluently in just add a
-> >> > patch and compile a vanilla kernel does not move in. 
-> >> 
-> >> Well, I believe I can do it, if noone else does. It shouldn't be that
-> >> hard.
-> >> 
-> >> > I of course know for sure the fix is correct, but the stable team wants
-> >> > a report from a user on 2.6.24 and support for my stuff is new and it is
-> >> > nonsense to bring it down to 2.6.24 to demonstrate it working for
-> >> > someone on 2.6.24 ...
-> >> 
-> >> I wonder how the unpatched driver made its way to 2.6.24 stable...
-> >> Or maybe it's just me who gets affected by this problem that much.
-> >> 
-> >> > B.T.W, why you don't use at least the v4l-dvb master stuff to come over
-> >> > it. Needs no patching :)
-> >> 
-> >> If I ever need to move to 2.6.24 and it gets no patch included by
-> >> then, I'll surely do so! :)
-> >> At the moment I'm perfectly fine with 2.6.23...
-> >> 
-> 
-> > however it will go out for now, seems in the end you will have something
-> > to test ;)
-> 
-> 
-> I have no problems with that! :)
-> 
-> Ok, can you point me to a guide on how to do this? Otherwise I'm
-> affraid I'll waste lots of time just by trying something that I should
-> not...
-> 
-> I'm ready to test it sometime this week.
-> 
+--MP_/==AAp+=n.soE5vSnXoKYrYj
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi Andrew,
+Edward,
 
-Mike has forwarded the patch to the stable kernel team. (Thanks!)
+> I updated to changeset 7673 and reversed 7651, and got a fully working
+> driver. These are the firmware loading messages from the working
+> driver:
+> 
+> (insert stick)
+> xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type:
+> xc2028 firmware, ver 2.7
+> xc2028 1-0061: Loading firmware for type=BASE MTS (5), id
+> 0000000000000000.
+> xc2028 1-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+> 
+> (start mplayer - missing from first pastebin)
+> xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
+> 0000000000000000.
+> xc2028 1-0061: Loading firmware for type=MTS (4), id 0000000000000010.
 
-Likely it will be fixed in 2.6.24.5 then.
 
-To build a vanilla kernel is still a very easy task, but there are
-distribution specific helper scripts and customs.
+I'm enclosing two hacks. please, re-apply 7651, and try first hack1.patch.
+Then, revert it and apply hack2.patch.
 
-The real problem, that could appear, is that dependencies on other
-utilities are not resolved on your current distribution version anymore
-and you run into some circular dependencies, not easy to resolve and
-then you must know what you are doing exactly or upgrade.
+Please tell me if both hacks work or not, and send me the dmesgs for each case
+(after loading mplayer).
 
-If a 2.6.24 is available for your current stuff, just install it and see
-the missing. If you then install the kernel source for it, we can apply
-the patch also there and build a new kernel.
 
 Cheers,
-Hermann
+Mauro
 
+--MP_/==AAp+=n.soE5vSnXoKYrYj
+Content-Type: text/x-patch; name=hack1.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=hack1.patch
 
+diff -r dd15a1f1040e linux/drivers/media/video/tuner-xc2028.c
+--- a/linux/drivers/media/video/tuner-xc2028.c	Tue Apr 22 12:38:26 2008 -0300
++++ b/linux/drivers/media/video/tuner-xc2028.c	Tue Apr 22 18:34:04 2008 -0300
+@@ -616,6 +616,8 @@
+ 	unsigned char	   *p;
+ 
+ 	tuner_dbg("%s called\n", __func__);
++
++	int_freq = 6000;
+ 
+ 	if (!int_freq) {
+ 		pos = seek_firmware(fe, type, id);
 
+--MP_/==AAp+=n.soE5vSnXoKYrYj
+Content-Type: text/x-patch; name=hack2.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=hack2.patch
+
+diff -r dd15a1f1040e linux/drivers/media/video/tuner-xc2028-types.h
+--- a/linux/drivers/media/video/tuner-xc2028-types.h	Tue Apr 22 12:38:26 2008 -0300
++++ b/linux/drivers/media/video/tuner-xc2028-types.h	Tue Apr 22 18:34:55 2008 -0300
+@@ -99,7 +99,7 @@
+ 			 LG60|ATI638|OREN538|OREN36|TOYOTA388|TOYOTA794|     \
+ 			 DIBCOM52|ZARLINK456|CHINA|F6MHZ|SCODE)
+ #else
+-#define SCODE_TYPES SCODE
++#define SCODE_TYPES (SCODE | MTS)
+ #endif
+ 
+ 
+
+--MP_/==AAp+=n.soE5vSnXoKYrYj
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--MP_/==AAp+=n.soE5vSnXoKYrYj--
