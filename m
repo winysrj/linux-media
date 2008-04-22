@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3KB5QLq014939
-	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 07:05:26 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3KB5EbG018412
-	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 07:05:14 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so1271587fga.7
-	for <video4linux-list@redhat.com>; Sun, 20 Apr 2008 04:05:13 -0700 (PDT)
-Message-ID: <68440fc20804200405n2c10485dg56b18e77622b00cd@mail.gmail.com>
-Date: Sun, 20 Apr 2008 13:05:13 +0200
-From: "Mike Brack" <itsec.listuser@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MJYb7V027919
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 15:34:38 -0400
+Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.180])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MJXoiH011892
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 15:33:50 -0400
+Received: by el-out-1112.google.com with SMTP id n30so804116elf.21
+	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 12:33:49 -0700 (PDT)
+Date: Tue, 22 Apr 2008 12:33:42 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080422193342.GN7392@plankton.ifup.org>
+References: <480D5AF9.4030808@linuxtv.org>
+	<20080422034449.GC24855@plankton.ifup.org>
+	<20080422122201.0a70b151@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Subject: ADS Tech Instant Video PCI. set-up failed on Ubuntu
+In-Reply-To: <20080422122201.0a70b151@gaivota>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: Hauppauge HVR1400 DVB-T support / XC3028L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,73 +32,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
+On 12:22 Tue 22 Apr 2008, Mauro Carvalho Chehab wrote:
+> On Mon, 21 Apr 2008 20:44:49 -0700
+> Brandon Philips <brandon@ifup.org> wrote:
+> > On 23:26 Mon 21 Apr 2008, Steven Toth wrote:
+> > >  I've passed some patches to Mauro that add support for the Hauppauge
+> > >  HVR1400 Expresscard in DVB-T mode. (cx23885 bridge, dib7000p
+> > >  demodulator and the xceive xc3028L silicon tuner)
+> > >
+> > >  If you're interested in testing then wait for the patches to appear
+> > >  in the http://linuxtv.org/hg/v4l-dvb tree.
+> > >
+> > >  You'll need to download firmware from
+> > >  http://steventoth.net/linux/hvr1400
+> > >
+> > >  Post any questions or issues here.
+> > 
+> > Could you post the patches to the lists for review?  CC'ing both
+> > linux-dvb@linuxtv.org and video4linux-list@redhat.com is appropriate.
+> > 
+> > It is really difficult staying on top of V4L with private trees and
+> > private mails going around  :(
+> 
+> The better way for you to track about committed patches is what's described on
+> item 5: "Knowing about newer patches committed at master hg repository", of
+> http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches.
+> 
+> Basically, if you subscribe to linuxtv-commits ML[1], you'll receive an email for
+> every newly committed changeset.
 
-Since days I try to install my TV card:
-description: Multimedia video controller
-product: CX23880/1/2/3 PCI Video and Audio Decoder
-vendor: Conexant
+I think the list is broken.  The archives haven't received anything
+since Feb.  2008... http://www.linuxtv.org/pipermail/linuxtv-commits/
 
-By loading the driver I use the following card:
-card=57 -> ADS Tech Instant Video PCI
+I also signed up but haven't receive emails from anything you merged a
+few hours ago.
 
-dmesg shows:
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88[0]: subsystem: 12ab:4700, board: ADS Tech Instant Video PCI
-[card=57,insmod option]
-cx88[0]: TV tuner type 4, Radio tuner type -1
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-cx88[0]/2: cx2388x 8802 Driver Manager
- ACPI: PCI Interrupt 0000:03:07.0[A] -> GSI 20 (level, low) -> IRQ 20
-cx88[0]: subsystem: 12ab:4700, board: ADS Tech Instant Video PCI
-[card=57,insmod option]
-cx88[0]: TV tuner type 4, Radio tuner type -1
-cx88[0]/0: found at 0000:03:07.0, rev: 5, irq: 20, latency: 64, mmio:
-0xfb000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
+> I think it is better to have a separate list for this, to avoid increasing the
+> traffic at the main lists, since we have a large number of commits, especially
+> during the merge window.
+>
+> For example, it is expected a 50 patch series with
+> improvements to pvrusb2. Just flooding those emails to the main lists seems
+> overkill to most users. Better to keep this in track on a separate ML.
 
-kdetv shows:
- kdetv
-kbuildsycoca running...
-ALSA lib control.c:909:(snd_ctl_open_noupdate) Invalid CTL
-Creating vbi proxy client, rev.
-$Id: proxy-client.c,v 1.16 2007/11/27 18:31:06 mschimek Exp $
-proxy_msg: connect: error 2, No such file or directory
-kdetv: WARNING: VBIDecoder: vbi_capture_proxy_new error: Connection via
-socket failed, server not running.
-Try to open V4L2 0.20 VBI device, libzvbi interface rev.
-  $Id: io-v4l2.c,v 1.36 2007/11/27 17:55:46 mschimek Exp $
-Opened /dev/vbi0
-libzvbi:io-v4l2k:vbi_capture_v4l2k_new: Try to open V4L2 2.6 VBI device,
-libzvbi interface rev.
-  $Id: io-v4l2k.c,v 1.48 2007/11/27 17:55:41 mschimek Exp $.
-libzvbi:io-v4l2k:vbi_capture_v4l2k_new: Opened /dev/vbi0.
-libzvbi:io-v4l2k:vbi_capture_v4l2k_new: /dev/vbi0 (ADS Tech Instant Video
-PCI) is a v4l2 vbi device,
-driver cx8800, version 0x00000006.
-libzvbi:io-v4l2k:vbi_capture_v4l2k_new: Using streaming interface.
-libzvbi:io-v4l2k:v4l2_get_videostd: Current scanning system is 525.
-libzvbi:io-v4l2k:v4l2_update_services: Querying current vbi parameters...
-libzvbi:io-v4l2k:v4l2_update_services: ...success.
-libzvbi:print_vfmt: VBI capture parameters supported:
-libzvbi:print_vfmt: VBI capture parameters granted:
-...
-...libzvbi:io-v4l2k:vbi_capture_v4l2k_new: Successfully opened /dev/vbi0
-(ADS Tech Instant Video PCI).
-libzvbi:io-v4l2k:v4l2_stream: Failed to enable streaming, errno 22.
-kdetv: WARNING: VbiDecoder: VBI capture error: Invalid argument
-...
-...
+Ok, we need some list that is open to everyone and gets a majority of
+the patches.  If linuxtv-commits gets fixed up that might work.
 
-uname -r
-2.6.24.3 (Ubuntu)
+> This is just my 2 cents. I'm open to discuss improvements on this
+> process.
 
-How can I get this card running?
-Any help is very much appreciated.
---
-Kind regards,
-Mike
+I am just concerned about the v4l-dvb-maintainers list being too private
+and private trees not getting enough review before going into mainline.
+linuxtv-commits may help.
+
+Thanks,
+
+	Brandon
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
