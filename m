@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34FBH06032090
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 11:11:17 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34FB6JQ027930
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 11:11:06 -0400
-Received: by py-out-1112.google.com with SMTP id a29so96392pyi.0
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 08:11:06 -0700 (PDT)
-Message-ID: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
-Date: Fri, 4 Apr 2008 23:11:06 +0800
-From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: question for soc-camera driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3M3RGiL008456
+	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 23:27:17 -0400
+Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3M3QsCb005445
+	for <video4linux-list@redhat.com>; Mon, 21 Apr 2008 23:26:55 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZP002DTIWPK850@mta3.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 21 Apr 2008 23:26:49 -0400 (EDT)
+Date: Mon, 21 Apr 2008 23:26:49 -0400
+From: Steven Toth <stoth@linuxtv.org>
+To: linux-dvb <linux-dvb@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Message-id: <480D5AF9.4030808@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+Cc: 
+Subject: Hauppauge HVR1400 DVB-T support / XC3028L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,13 +32,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Now soc-camera driver can work on my pxa270.I wrote a program to test
-the driver.Only the first frame is right,but others is wrong.The
-program that I wrote come from Video for Linux Two API
-Specification,and work well on other v4l2-driver.
+Hi,
 
-thanks
-fengxin
+I've passed some patches to Mauro that add support for the Hauppauge 
+HVR1400 Expresscard in DVB-T mode. (cx23885 bridge, dib7000p demodulator 
+and the xceive xc3028L silicon tuner)
+
+If you're interested in testing then wait for the patches to appear in 
+the http://linuxtv.org/hg/v4l-dvb tree.
+
+You'll need to download firmware from http://steventoth.net/linux/hvr1400
+
+Post any questions or issues here.
+
+Thanks,
+
+Steve
 
 --
 video4linux-list mailing list
