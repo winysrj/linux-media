@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JjMIW-0003cC-90
-	for linux-dvb@linuxtv.org; Wed, 09 Apr 2008 00:28:19 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Wed, 9 Apr 2008 00:22:40 +0200
-References: <200803292240.25719.janne-dvb@grunau.be>
-	<200804080213.26671.linuxdreas@launchnet.com>
-	<37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
-In-Reply-To: <37219a840804080818x729fd503ka3ba048c46169bcb@mail.gmail.com>
+Received: from nf-out-0910.google.com ([64.233.182.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mariofutire@googlemail.com>) id 1JoPBD-0006Sa-DO
+	for linux-dvb@linuxtv.org; Tue, 22 Apr 2008 22:33:33 +0200
+Received: by nf-out-0910.google.com with SMTP id d21so832212nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 22 Apr 2008 13:33:21 -0700 (PDT)
+Message-ID: <480E4B50.6040008@googlemail.com>
+Date: Tue, 22 Apr 2008 21:32:16 +0100
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804090022.40805@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Add driver specific module option to choose
-	dvb adapter numbers, second try
-Reply-To: linux-dvb@linuxtv.org
+To: linux-dvb@linuxtv.org
+References: <47E4513E.4050003@googlemail.com>
+In-Reply-To: <47E4513E.4050003@googlemail.com>
+Content-Type: multipart/mixed; boundary="------------020506000709050008010105"
+Subject: [linux-dvb] [PATCH] a few fixes in dvb-apps.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,49 +21,129 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> On Tue, Apr 8, 2008 at 5:13 AM, Andreas <linuxdreas@launchnet.com> wrote:
-> > Am Dienstag, 08. April 2008 01:30:04 schrieb Janne Grunau:
-> >  > ping.
-> >
-> >  pong
-> >
-> >
-> >  > Any interest in this change? Anything speaking against merging this
-> >  > except the potential duplication of udev functinality?
-> >
-> >  Janne, I have no clue at all how a udev rule can be written that reflects
-> >  the structure of adapter[n]/frontend[n]. And if Google is any indicator,
-> >  this is either not possible or it is a lost art. Speaking as a user of
-> >  mythtv & subsequently the linux dvb drivers, I would like to see this patch
-> >  integrated rather sooner than later.
-> >
-> >  Thanks for creating the patch!
+This is a multi-part message in MIME format.
+--------------020506000709050008010105
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Since the other patches about DMX_SET_BUFFER_SIZE have been accepted,
+I think this one is ready as well.
+
+I attach again the diff file for review.
+
+Point 1 and 2 are more cosmetic, 3 is a change in behavior.
+
+Andrea wrote:
+> I've collected in this patch a few small fixes for dvb-apps
 > 
-> I would really like to see this patch get merged.
+> 1) in libdvbapi a new enum to support DMX_OUT_TSDEMUX_TAP
 > 
-> If nobody has an issue with this, I plan to push this into a mercurial
-> tree at the end of the week and request that it be merged into the
-> master branch.
+> 2) in libdvbapi a change in a comment where it is stated that the dvr 
+> can be opened more that once in readonly. It can only be opened once.
+> 
+> 3) tzap: removed the ioctl call to DMX_SET_BUFFER_SIZE on the dvr. This 
+> calls shrinks the size of the buffer, from about 2MB (#define DVR_BUFFER_SIZE (10*188*1024) in 
+> dmxdev.h) to 1MB. I think the writer of the code wanted a bigger buffer, so it is 
+> pointless to reduce it.
+> 
+> Let me know if I should post 3 separate patches.
+> 
+> I plan to send an other patch to change gnutv to be more robust with 
+> slow writes and to support
+> DMX_SET_BUFFER_SIZE.
 
-Correct me if I'm wrong, but afaik the option should be named
-'adapter_no', not 'adapter_nr'.
 
-CU
-Oliver
+--------------020506000709050008010105
+Content-Type: text/x-patch;
+ name="dvb-apps.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dvb-apps.diff"
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.c
+--- a/lib/libdvbapi/dvbdemux.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -128,6 +128,10 @@ int dvbdemux_set_pes_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -201,6 +205,10 @@ int dvbdemux_set_pid_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.h
+--- a/lib/libdvbapi/dvbdemux.h	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.h	Sat Mar 22 00:07:29 2008 +0000
+@@ -55,6 +55,7 @@ extern "C"
+ #define DVBDEMUX_OUTPUT_DECODER 0
+ #define DVBDEMUX_OUTPUT_DEMUX 1
+ #define DVBDEMUX_OUTPUT_DVR 2
++#define DVBDEMUX_OUTPUT_TS_DEMUX 3
+ 
+ /**
+  * PES types.
+@@ -65,6 +66,7 @@ extern "C"
+ #define DVBDEMUX_PESTYPE_SUBTITLE 3
+ #define DVBDEMUX_PESTYPE_PCR 4
+ 
++
+ /**
+  * Open a demux device. Can be called multiple times. These let you setup a
+  * single filter per FD. It can can also be read() from if you use a section
+@@ -78,8 +80,8 @@ extern int dvbdemux_open_demux(int adapt
+ extern int dvbdemux_open_demux(int adapter, int demuxdevice, int nonblocking);
+ 
+ /**
+- * Open a DVR device. May be opened for writing once, or multiple times in readonly
+- * mode. It is used to either write() transport stream data to be demuxed
++ * Open a DVR device. May be opened for writing or reading once.
++ * It is used to either write() transport stream data to be demuxed
+  * (if input == DVBDEMUX_INPUT_DVR), or to read() a stream of demuxed data
+  * (if output == DVBDEMUX_OUTPUT_DVR).
+  *
+diff -r 3cde3460d120 util/szap/tzap.c
+--- a/util/szap/tzap.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/util/szap/tzap.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -676,11 +676,6 @@ int main(int argc, char **argv)
+ 	                PERROR("failed opening '%s'", DVR_DEV);
+ 	                return -1;
+ 	        }
+-		if (ioctl(dvr_fd, DMX_SET_BUFFER_SIZE, 1024 * 1024)<0)
+-		{
+-			PERROR("DMX_SET_BUFFER_SIZE failed");
+-			return -1;
+-		}
+ 		if (silent<2)
+ 			print_frontend_stats (frontend_fd, human_readable);
+ 
+
+
+--------------020506000709050008010105
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------020506000709050008010105--
