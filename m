@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mordac.selfhost.de ([82.98.82.6])
+Received: from [213.161.191.158] (helo=patton.snap.tv)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bumkunjo@gmx.de>) id 1JnXHN-0000I0-Ov
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 13:00:18 +0200
-From: bumkunjo@gmx.de
-To: linux-dvb@linuxtv.org
-Date: Sun, 20 Apr 2008 12:59:56 +0200
-References: <37824.1208252766@iinet.net.au> <48048592.70408@shikadi.net>
-	<1208359404.21157.4.camel@media1>
-In-Reply-To: <1208359404.21157.4.camel@media1>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200804201259.56890.bumkunjo@gmx.de>
-Subject: Re: [linux-dvb]
-	=?iso-8859-1?q?dvico_Fusion_HDTV_DVB-T_dual_express_-?=
-	=?iso-8859-1?q?_willing_to=09help=09test_e=2Et=2Ec=2E=2E=2E?=
+	(envelope-from <sigmund@snap.tv>) id 1Joc2C-0004gu-EP
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 12:17:06 +0200
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <480E4F61.10208@t-online.de>
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
+	<200804130349.15215@orion.escape-edv.de>	<4801DED3.4020804@elfarto.com>
+	<4803C2FA.1010408@hot.ee> <48065CB6.50709@elfarto.com>
+	<1208422406.12385.295.camel@rommel.snap.tv>
+	<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>
+	<4807AFE2.40400@t-online.de> <4807B386.1050109@elfarto.com>
+	<4807C1A6.8000909@t-online.de>	<1208862469.7807.7.camel@rommel.snap.tv>
+	<480E0575.1010908@gmail.com>  <480E4F61.10208@t-online.de>
+Date: Wed, 23 Apr 2008 12:16:59 +0200
+Message-Id: <1208945819.7807.16.camel@rommel.snap.tv>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT-Budget C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,59 +26,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Have you or someone else made any progress with this card yet?
-If there's basic support by a driver I would  buy it too and help to support 
-improving the driver but I'm confused by the wiki information and your posts.
-
-> This is the relevant output from lspci -v
->
->
-> 03:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev
-> 02)
-> 	Subsystem: DViCO Corporation Unknown device db78
-> 	Flags: bus master, fast devsel, latency 0, IRQ 21
-> 	Memory at fd600000 (64-bit, non-prefetchable) [size=2M]
-> 	Capabilities: [40] Express Endpoint, MSI 00
-> 	Capabilities: [80] Power Management version 2
-> 	Capabilities: [90] Vital Product Data <?>
-> 	Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0
-> Enable-
-> 	Capabilities: [100] Advanced Error Reporting <?>
-> 	Capabilities: [200] Virtual Channel <?>
-> 	Kernel driver in use: cx23885
-> 	Kernel modules: cx23885
->
-> I'm not realy sure what I would need to do from here (I don't really
-> have any skills in C programming)....
->
-> 8-04-15 at 20:38 +1000, Adam Nielsen wrote:
-> > > I have mistakenly bought a Fusion HDTV DVB-T dual express (cx23885) as
-> > > a result of misreading some other posts and sites. I was under the
-> > > impression that it would work either from the current kernel source or
-> > > using Chris Pascoe's modules.  Unfortunately I didn't realise that the
-> > > American and Euro/Australian version were different.
-> >
-> > What are the PCI IDs for the card?  I'm not sure what criteria the
-> > driver uses to detect DVB vs ATSC, but I would guess you could tweak the
-> > PCI IDs to make the driver detect your card as one of the others that
-> > supports DVB and has the same cx23885 chipset.
-> >
-> > Cheers,
-> > Adam.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+dGlyLCAyMi4wNC4yMDA4IGtsLiAyMi40OSArMDIwMCwgc2tyZXYgSGFydG11dCBIYWNrbWFubjoK
+PiBoaSwKPiAKPiBlOWhhY2sgc2NocmllYjoKPiA+IFNpZ211bmQgQXVnZGFsIHNjaHJpZWI6Cj4g
+Pj4gdG9yLCAxNy4wNC4yMDA4IGtsLiAyMy4zMSArMDIwMCwgc2tyZXYgSGFydG11dCBIYWNrbWFu
+bjoKPiA+PiA8c25pcD4KPiA+Pj4gRG8geW91IGhhdmUgYSBkYXRhc2hlZXQgb2YgdGhlIHRkYTEw
+MDIzPyBGcm9tIHRoZSBmaXJzdCBnbGFuY2UsIGkgaGF2ZSB0aGUKPiA+Pj4gaW1wcmVzc2lvbiB0
+aGF0IGl0IHdhcyBvbmx5IHVzZWQgd2l0aCBhIGNvbnZlbnRpb25hbCB0dW5lciB5ZXQuIFdpdGgg
+dGhlCj4gPj4+IHNpbGljb24gdHVuZXIsIHRoZSBjaGlwIG5lZWRzIHRvIGJlIHByb2dyYW1tZWQg
+dG8gdXNlIGEgZGlmZmVyZW50IElGLiBXZQo+ID4+PiBiZWVkIHRvIGZpbmQgb3V0IGhvdyB0aGlz
+IGlzIGRvbmUuCj4gPj4gSSBkb24ndCBoYXZlIGFueSBkYXRhc2hlZXQuIEkgdHJpZWQgcGxheWlu
+ZyBhcm91bmQgd2l0aCBzb21lIG9mIHRoZQo+ID4+IHZhbHVlcyBpbiB0aGUgaW5pdC10YWIsIGFu
+ZCB0aGV5IGRvIGFmZmVjdCB0aGUgc2lnbmFsIGxldmVscyAoc2lnbmFsIGFuZAo+ID4+IHNucikg
+cmVwb3J0ZWQsIGJ1dCBJIGhhdmVuJ3QgbWFuYWdlZCB0byBmaW5kIHNvbWV0aGluZyB0aGF0IGRv
+ZXMgZ2l2ZSBhCj4gPj4gbG9jay4gVGhlcmUgaXMgYWxzbyBhIGlmX2ZyZXEgdmFyaWFibGUgaW4g
+dGhlIGN1cnJlbnQgZHJpdmVyIHNvdXJjZXMKPiA+PiB0aGF0IGRvZXMgbm90IHNlZW0gdG8gYmUg
+cGFzc2VkIHRvIHRoZSBjaGlwIGRpcmVjdGx5IGJ1dCBpcyB1c2VkIGluIHNvbWUKPiA+PiBjb21w
+dXRhdGlvbnMuIEluIHRoZSBjdXJyZW50IGRyaXZlciB0aGlzIHZhbHVlIGlzIHNlbGVjdGVkIGJh
+c2VkIG9uCj4gPj4gY2hhbm5lbCBiYW5kd2lkdGggKGJlaW5nIG9ubHkgdXNlZCBmb3IgZHZiLXQg
+dGhpcyBmYXIpLiBJJ3ZlIHRyaWVkIHdpdGgKPiA+PiBzZXZlcmFsIHZhbHVlcyBmb3IgdGhpcyAo
+OE1IeiwgME1IeiwgNE1IeiBhbmQgdGhlIGN1cnJlbnRseSB1c2VkIDVNSHoKPiA+PiBmb3IgOE1I
+eiBiYW5kd2lkdGggY2hhbm5lbHMpLgo+ID4+Cj4gPj4gQmlycjogRG8geW91IGhhdmUgYW55IGlu
+Zm8gb24gdGhpcywgYXMgeW91IHNlZW0gdG8gYmUgdGhlIGxhc3QgZGV2ZWxvcGVyCj4gPj4gd29y
+a2luZyBvbiB0aGF0IGRlbW9kPwo+ID4gCj4gPiBJIGRvbid0IG93biB0aGUgZGF0YXNoZWV0IG9m
+IHRoZSBUREExMDAyMy4gSSB0aGluayB5b3UgbXVzdCByZWFkIHRoZSBjb25maWd1cmF0aW9uIG9m
+IHRoZSAKPiA+IFREQTEwMDIzIGZyb20gd2luZG93cy4gVGhpcyBjYW4gYmUgZG9uZSB3aXRoIHRo
+aXMgcHJvZ3JhbSAKPiA+IChodHRwOi8vbGludXh0di5vcmcvZG93bmxvYWRzL3NhYTcxNDZkdW1w
+LTAuMi56aXApLiBJZiBpdCBpcyBuZWNlc3NhcnkgdG8gbW9uaXRvciB0aGUgCj4gPiBpbml0aWFs
+aXphdGlvbiBvZiB0aGUgdHVuZXIgY2hpcCwgeW91IG11c3QgdXNlIGFuIGkyYy1tb25pdG9yLiBJ
+IGRldmVsb3BlZCBhIGNoZWFwIG1vbml0b3IgCj4gPiAoaHR0cDovL3d3dy52ZHItcG9ydGFsLmRl
+L2JvYXJkL3RocmVhZC5waHA/cG9zdGlkPTYzOTgxOCNwb3N0NjM5ODE4KS4gVGhlIGNvc3RzIG9m
+IHRoZSAKPiA+IHBhcnRzIGFyZSBsZXNzIHRoZW4gMTDigqwuIFRvIGJ1aWxkIHN1Y2ggYSBtb25p
+dG9yLCB5b3Ugc2hvdWxkIGtub3cgd2hhdCBhIHNvbGRlcmluZy1pcm9uIGlzLgo+ID4gCj4gPiAt
+SGFydG11dCBCaXJyCj4gPiAKPiBMb29rcyBsaWtlIHdlIG5lZWQgdG8gbWFrZSBjaGFuZ2VzIGlu
+IGJvdGgsIHRkYTgyN3ggYW5kIHRkYTEwMDIzLiBDdXJyZW50bHkgdGhlIDEwMDIzCj4gaXMgcHJv
+Z3JhbW1lZCBmb3IgMzYuMTNNSHogSUYgZnJlcXVlbmN5LiBUaGlzIGlzICpub3QqIHBvc3NpYmxl
+IHdpdGggdGhlIDgyN3guCj4gU28gd2UgbmVlZCB0byBpbXBsZW1lbnQgYSBjb25maWd1cmF0aW9u
+IG9wdGlvbiBmb3IgdGhlIHRkYTEwMDIzIHRvIHNlbGVjdCB0aGUgSUYgY2VudGVyCj4gZnJlcXVl
+bmN5IChoYXZlbid0IGhhZCB0aGUgdGltZSB0byBoYXZlIGEgY2xvc2UgbG9vayB5ZXQpIGFuZCB3
+ZSBuZWVkIHRvIGltcGxlbWVudCBhIHdheQo+IHRvIGxldCB0aGUgdGRhODI3eCBkcml2ZXIgY2hv
+b3NlIHRoZSByaWdodCBwYXJhbWV0ZXIgc2V0Lgo+IEkgd291bGQgYmUgbW9yZSBpbnRlcmVzdGVk
+IGluIHRoZSBjb25maWd1cmF0aW9uIG9mIHRoZSB0ZGExMDAyMy4gV2l0aCB0aGUgdGRhODI3eCwg
+aSBrbm93Cj4gd2hhdCB0byBkby4KVGhlIGluaXQtdGFiIHBhcnQgb2YgdGRhMTAwMjMuYyBzZWVt
+cyB0byBpbmRpY2F0ZSB3aGljaCBwb3Npc2lvbnMgYXJlCndoaWNoIHJlZ2lzdGVycyBpbiB0aGUg
+Y2hpcC4gVGhlcmUgYXJlIGluIHBhcnRpY3VsYXIgdHdvIHRoYXQgYXJlIGNhbGxlZApERUxUQUZf
+TVNCIGFuZCBERUxUQUZfTFNCLCB3aGljaCBpcyBjdXJyZW50bHkgc2V0IHRvIDB4RkZGMC4gSSBn
+dWVzcwp0aGlzIHdvdWxkIGJlIGEga2V5IHRoaW5nIHRvIGNoYW5nZSwgYnV0IHdoYXQgbmVlZHMg
+dG8gYmUgY2hhbmdlZCBpbiB0aGUKdHVuZXIgZHJpdmVyPyBJJ3ZlIGFsc28gbm90aWNlZCB0aGF0
+IHdoZW4gdGhlIHRkYTEwMDQ2IGlzIHVzZWQgd2l0aAp0ZGE4Mjd4IGl0IGNoYW5nZXMgc29tZSBv
+dGhlciBwYXJhbWV0ZXJzIGluIHRoZSBkZW1vZCAoYWdjIHRocmVzaG9sZCwKZ2FpbiBhbmQgcG9s
+YXJpdGllcykuIERvIHdlIG5lZWQgdG8gY2hhbmdlIHRoZXNlIGluIHRkYTEwMDIzIGFsc28/IE9y
+CmNvdWxkIHdlIGNoYW5nZSB0ZGE4Mjd4IHRvIG91dHB1dCB3aGF0IHRoZSB0ZGExMDAyMyBuZWVk
+cz8KCkJlc3QgcmVnYXJkcwoKU2lnbXVuZCBBdWdkYWwKPiAKPiBIYXJ0bXV0Cj4gCj4gCj4gX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51eC1kdmIg
+bWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2
+Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4gCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlz
+dApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21h
+aWxtYW4vbGlzdGluZm8vbGludXgtZHZi
