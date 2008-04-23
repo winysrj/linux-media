@@ -1,26 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3AJePQU016505
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 15:40:25 -0400
-Received: from pasmtpA.tele.dk (pasmtpa.tele.dk [80.160.77.114])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3AJeBOm014336
-	for <video4linux-list@redhat.com>; Thu, 10 Apr 2008 15:40:12 -0400
-Received: from rhea.solnet (0x57352a0d.vgnxx8.adsl-dhcp.tele.dk [87.53.42.13])
-	by pasmtpA.tele.dk (Postfix) with ESMTP id 520C18009A4
-	for <video4linux-list@redhat.com>;
-	Thu, 10 Apr 2008 21:40:11 +0200 (CEST)
-Date: Thu, 10 Apr 2008 21:40:09 +0200
-From: "Jesper K. Pedersen" <linux@famped.dk>
-Cc: video4linux-list@redhat.com
-Message-ID: <20080410214009.1f21b436@io.solnet>
-In-Reply-To: <d9def9db0804101159h936b84ehb0a50d7c3cae66f7@mail.gmail.com>
-References: <20080410201151.5647224c@io.solnet>
-	<d9def9db0804101159h936b84ehb0a50d7c3cae66f7@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: Re: BlueTinum BT-TTU305 V2.0 - USB DVD converter box with TV Tuner
- (not working but now "almost" recognized)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NKtVgP017258
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 16:55:31 -0400
+Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NKtJHM020458
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 16:55:20 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZS004TQQ3X9HM0@mta1.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Wed, 23 Apr 2008 16:55:11 -0400 (EDT)
+Date: Wed, 23 Apr 2008 16:55:09 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080423200134.GJ6703@plankton.ifup.org>
+To: Brandon Philips <brandon@ifup.org>
+Message-id: <480FA22D.7010507@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>
+	<20080422040728.GD24855@plankton.ifup.org>
+	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>
+	<20080423200134.GJ6703@plankton.ifup.org>
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,32 +36,95 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 10 Apr 2008 20:59:37 +0200
-"Markus Rechberger" <mrechberger@gmail.com> wrote:
-
-> Hi Jesper,
+Brandon Philips wrote:
+> On 23:13 Tue 22 Apr 2008, Jon Lowe wrote:
+>>  I read that page, but I don't have a clue what to do with it.? I'm a
+>>  Linux newbie.? Is there some other logfile that might capture the
+>>  problem?? If you give me a detail explanation of what you need me to
+>>  do, I will do it.
 > 
-> On 4/10/08, Jesper K. Pedersen <linux@famped.dk> wrote:
-> > Here is the result using the latest V4L downloaded from the
-> > mercurial latest release using my BlueTinum USB dvd converter/tv
-> > tuner
-> >
+> Since it is hard locking and I am completely unfamiliar with HVR-1500
+> and PCI hot plugging a netconsole is the best thing I can offer...
 > 
-> I'm currently putting together a list of not completly supported
-> devices, you might sign up at the mailinglist on mcentral.de at the
-> em28xx Mailinglist. I'll post some more information about it when I
-> got the detailed information for this device.
+> 1) You will need a second computer connected to your laptop via a LAN.
 > 
-> http://mcentral.de/mailman/listinfo/em28xx
+> 2) Find out the IP address of the computer that is not your laptop.
 > 
+>  $ /sbin/ifconfig 
+> 
+> eth0      Link encap:Ethernet  HWaddr 
+>           inet addr:192.168.1.150  Bcast:192.168.1.255 Mask:255.255.255.0
+> .....
+> 
+> So, in this case the IP address is 192.168.1.150
+> 
+> 3) Start netcat in a terminal on this system.
+> 
+>   $ netcat -u -l -p 666
+> 
+> 4) Now, on your laptop run the following commands as root in a terminal.
+> NOTE: replace 192.168.1.150 with the IP address you found in step 2.
+> 
+>   $ dmesg -n 8
+>   $ modprobe netconsole netconsole=@/,@192.168.1.150/
+> 
+> 5) netconsole: network logging started should appear in the terminal
+> where you ran netcat.
+> 
+> 6) Try to reproduce the hard lock on your laptop and include the output
+> from netcat.
+> 
+> Let me know if this works.
+> 
+> Also, please continue to CC the v4l list.
+> 
+> Cheers,
+> 
+> 	Brandon
+> 
+>> -----Original Message----- From: Brandon Philips <brandon@ifup.org>
+>> To: Jon Lowe <jonlowe@aol.com> Cc: video4linux-list@redhat.com Sent:
+>> Mon, 21 Apr 2008 11:07 pm Subject: Re: [BUG] HVR-1500 Hot swap causes
+>> lockup
+>>
+>> On 09:59 Sat 19 Apr 2008, Jon Lowe wrote:
+>>> Hope this is the right place to do this.
+>>>
+>>> Hauppauge HVR-1500 Expresscard, Ubuntu 8.04, latest V4L drivers.
+>>>
+>>> Removing (hotswap) this card from a ASUS F3SV laptop running Ubuntu
+>>> 8.04 causes a hard lock up of the computer.? Unresponsive to any
+>>> input. Requires complete shutdown of the computer and restart.?
+>>> Easily repeatable.? Same card is hot swappable under Windows Vista.? 
+>>>
+>>> This is critical because Expresscards are notoriously easy to
+>>> dislodge in notebooks.?
+>> Could you please setup a netconsole and try and get some debugging
+>> output?
 
-Just signed up there.
+Brandon / Jon,
 
-Let me know if you need any further details - ill be glad to rip my
-device apart and check what wire's and chips are installed ;)
+Some background info, not that it helps much...
 
-Best regards
-Jesper K. Pedersen
+We had a ton of issues under windows bringing the device into existence, 
+largely because of the PCIe chipset implementations and various timing 
+issues. None of these issues resulted in a complete system hang so your 
+symptoms are a mystery. Typically the windows issues were that 
+occasionally windows would not detect the device on insertion, removing 
+and inserting again would always case windows to re-detect properly.
+
+I have to be honest and say that I've never tried hotplug PCIe on linux, 
+I just don't have capable hardware.
+
+Speaking as the cx23885 Linux dev I would ask one thing, remove the 
+cx23885.ko driver from your system and cold boot the system before your 
+next set of tests. The hang sounds like a PCIe chipset issue on the 
+motherboard, but if you can prove the hang only happens when the 
+cx23885.ko driver is installed I'd be happy to work with you on the problem.
+
+Good luck, let me know how it goes, regards.
+
+Steve
 
 --
 video4linux-list mailing list
