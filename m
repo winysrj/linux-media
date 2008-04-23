@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3P246gr031063
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 22:04:06 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3P23tEn001586
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 22:03:55 -0400
-Date: Thu, 24 Apr 2008 23:02:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Aidan Thornton" <makosoft@googlemail.com>
-Message-ID: <20080424230248.27674778@gaivota>
-In-Reply-To: <c8b4dbe10804241448x793faf1al7db73de8e0530cf0@mail.gmail.com>
-References: <916086.24458.qm@web27912.mail.ukl.yahoo.com>
-	<Pine.LNX.4.64.0804240658580.3725@bombadil.infradead.org>
-	<c8b4dbe10804241448x793faf1al7db73de8e0530cf0@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NNiVEw004830
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 19:44:31 -0400
+Received: from rv-out-0506.google.com (rv-out-0708.google.com [209.85.198.251])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NNhwl4024509
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 19:44:10 -0400
+Received: by rv-out-0506.google.com with SMTP id b17so1610499rvf.51
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 16:43:52 -0700 (PDT)
+Date: Wed, 23 Apr 2008 16:43:22 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080423234322.GB20819@plankton.ifup.org>
+References: <200804230137.12502.laurent.pinchart@skynet.be>
+	<20080423142705.62b6e444@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080423142705.62b6e444@gaivota>
+Cc: video4linux-list@redhat.com, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] USB Video Class driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,63 +30,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 24 Apr 2008 22:48:28 +0100
-"Aidan Thornton" <makosoft@googlemail.com> wrote:
-
-> Hi,
+On 14:27 Wed 23 Apr 2008, Mauro Carvalho Chehab wrote:
+> > + * ...  It implements the
+> > + * mmap capture method only ...
 > 
-> On Thu, Apr 24, 2008 at 12:01 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > On Thu, 24 Apr 2008, Edward J. Sheldrake wrote:
-> >
-> >
-> > >
-> > > > Please, try again, with with the enclosed patch. Let's see if stereo
-> > > > will work
-> > > > on your board.
-> > > >
-> > > > This should load the IF=6.24 firmware, non-MTS mode.
-> > > >
-> > >
-> >
-> >
-> > > This did not work, all I could hear was silence, with clicking at 1
-> > > second intervals. The clicking stopped after opening and closing
-> > > mplayer a few times, but that's another issue.
-> > >
-> > > I've got a pdf and a small text file of product info (which I can't
-> > > find any URLs for), which both say mono audio for analogue, also in
-> > > Windows, Mono audio is the only available option, so I think stereo is
-> > > not supported.
-> > >
-> > > Dmesg output attached, it's not loading mts firmware this time.
-> > >
-> >
-> >  Thanks for your help, Edward. I've applied the patch that seems to be the
-> > correct one. It will select the MTS firmware, so, only MONO will be
-> > available. The proper SCODE table will be loaded.
-> >
-> >  Btw, it would be nice if you could also test DVB mode. It should be working
-> > properly for HVR-900.
-> >
-> >  Cheers,
-> >  Mauro.
+> You should consider moving to videobuf on a later version. videobuf also
+> implements read() method, and will likely implement also USERPTR and maybe
+> OVERLAY on future versions.
+
+Lets shoot for doing this after 2.6.26 if Laurent signs-off.  Until then
+lets not get into this argument again :D
+
+> > +static int uvc_v4l2_do_ioctl(struct inode *inode, struct file *file,
+> > +		     unsigned int cmd, void *arg)
+> > +{
+> > +	struct video_device *vdev = video_devdata(file);
+> > +	struct uvc_video_device *video = video_get_drvdata(vdev);
+> > +	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
+> > +	int ret = 0;
+> > +
+> > +	if (uvc_trace_param & UVC_TRACE_IOCTL)
+> > +		v4l_printk_ioctl(cmd);
 > 
-> Unfortunately, I think the B3C0 revision uses the drx379x demodulator,
-> and AFAIK that's not supported yet - it probably has more in common
-> with the Pinnacle 330e than the original revision. (I have the
-> original A1C0  HVR-900, which I suspect is based on a reference
-> design.)
+> The better is to remove the do_ioctl, in favor of video_ioctl2. Also, this will
+> provide a much better debug than what's provided by v4l_printk_ioctl().
 
-I've just applied a patch we've received some time ago with drx379x demod. I'm not
-sure what's the proper config for Hauppauge.
+We discussed this months ago and everyone agreed that video_ioctl2 is
+nice but it is not a requirement to be in the tree.
 
-The drx379x doesn't seem ready for kernel submission. However, since we've
-already merged what we have, we can apply this to v4l/dvb and work on it to fix
-maybe for 2.6.27.
+> Driver looks sane. Just a few comments.
+
+Thanks for finding the other issues in your review Mauro; you picked up
+on some good details that should be fixed up before the merge.
 
 Cheers,
-Mauro
+
+	Brandon
 
 --
 video4linux-list mailing list
