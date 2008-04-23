@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from smtp04.msg.oleane.net ([62.161.4.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Jq7Lt-000106-51
-	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 15:55:37 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZZ007VPLBPJXX0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 27 Apr 2008 09:55:02 -0400 (EDT)
-Date: Sun, 27 Apr 2008 09:55:01 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <67bbdc0804261257x2ea440d7radaa1c5ecb5ad56f@mail.gmail.com>
-To: Tomasz Belina <tomasz.belina@gmail.com>
-Message-id: <481485B5.1080207@linuxtv.org>
-MIME-version: 1.0
-References: <67bbdc0804261257x2ea440d7radaa1c5ecb5ad56f@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Support for HPC2000 tuner
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1JoZjW-0001FP-A6
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 09:49:39 +0200
+Received: from PCTL ([194.250.18.140]) (authenticated)
+	by smtp04.msg.oleane.net (MTA) with ESMTP id m3N7nY34031656
+	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 09:49:34 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 23 Apr 2008 09:49:32 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAXUecTuyghkSp+E+0SVbs1QEAAAAA@tv-numeric.com>
+MIME-Version: 1.0
+In-Reply-To: <480DD592.7040209@scram.de>
+Subject: [linux-dvb] RE :  Terratec Cinergy T USB XE Rev 2, any update ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,27 +26,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tomasz Belina wrote:
-> Hello,
-> 
-> Recently I've bought HPC2000 DVB-T tuner. It is  Conexant CX23880 based 
-> device. I've tried to make it work under linux but without success. I 
-> tried to used different card ids for cx88xx kernel module. Only for 
-> card=46 (DViCO FusionHDTV DVB-T Hybrid) there was no error during insmod 
-> cx88-dvb but unfortunatelly w_scan tool couldn't find any tv program.  
-> Is support for this device planned in linux kernel ? Any chance to make 
-> it work using latest linuxtv drivers ?
+>> Main problem is that there is no tuner driver for Freescale MC44S803 
+>> silicon tuner. Looks like there is code for MC44S803 on the net 
+>> available (for example Terratec driver). Porting it to Linux should not 
+>> be too big task.
+>
+>The Terratec driver *is* a linux driver, just for an older kernel version.
+>I just did a very quick and dirty forward port of the driver (by replacing
+>the included dvb-core and dvb-usb files with the ones of the current dvb
+>hg tree) and the result compiled OK on 2.6.24. Even better, it even works :)
 
-You need to find out which components are on the card, and pictures, and 
-put that information into the wiki at linuxtv.org.
+Which "Terratec driver" are you refering to ?
 
-Based on that we'll be able to help.
+Is this a Terratec-provided driver ?
 
-Please keep all correspondence inside this mailinglist.
+As I mentioned in my original post, the one at
+ftp://ftp.terratec.net/Receiver/Cinergy_T_USB_XE/Update/Cinergy_T_USB_XE_MKII_Drv_Linux.zip
+does not compile _at_all_ and this is not (or not only) a matter of kernel
+version. There are many semantic errors that no C compiler would accept
+(except maybe the K&R from the 70's). I started to fix the errors but when
+I realized how bad it was, my trust in this code dropped and I gave up.
 
-Regards,
+-Thierry
 
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
