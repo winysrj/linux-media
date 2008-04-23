@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1JkIw7-0000PQ-J5
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 15:05:00 +0200
-Message-ID: <41239.203.200.233.130.1207920114.squirrel@203.200.233.138>
-In-Reply-To: <41036.203.200.233.130.1207919890.squirrel@203.200.233.138>
-References: <200804081441.49529.christophpfister@gmail.com>
-	<60949.203.200.233.130.1207662815.squirrel@203.200.233.138>
-	<42688.203.200.233.130.1207715070.squirrel@203.200.233.138>
-	<1207728466.12385.213.camel@rommel.snap.tv>
-	<15e616860804090759m76c05539q8945d30208f8daeb@mail.gmail.com>
-	<41036.203.200.233.130.1207919890.squirrel@203.200.233.138>
-Date: Fri, 11 Apr 2008 18:51:54 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-To: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
+	(envelope-from <henrik.list@gmail.com>) id 1JobC2-0000Xx-52
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 11:23:11 +0200
+Received: by yw-out-2324.google.com with SMTP id 9so118815ywe.41
+	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 02:23:03 -0700 (PDT)
+Message-ID: <af2e95fa0804230223l4800884ch145fdcd22f5013a7@mail.gmail.com>
+Date: Wed, 23 Apr 2008 11:23:03 +0200
+From: "Henrik Beckman" <henrik.list@gmail.com>
+To: "Luca Ingianni" <luca.i@gmx.net>, linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <200804230732.40813.luca.i@gmx.net>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] frontend driver was not found for device 109e/0878
- subsystem 1822/0001
+References: <200804181939.39153.luca.i@gmx.net>
+	<200804230732.40813.luca.i@gmx.net>
+Subject: Re: [linux-dvb] Hauppauge Nova-TD trouble: still or again?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,133 +21,117 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0658319768=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
- Hi All
- is there any answer to the above subject?
-I am trying to use two cards at the same time, but could not succeed.
-Can any body help in this regard
+--===============0658319768==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_17944_3774165.1208942583554"
 
- Bye
->
->
->> Another solution is, assuming the NIT is in the transport stream, is to
->> do:
->>
->> gst-launch -m filesrc location=blah.ts ! mpegtsparse ! fakesink | grep
->> nit
->>
->> It will give you something like:
->>
->> Got Message from element "mpegtsparse0" (element): nit,
->> network-id=(guint)1, version-number=(guint)0,
->> current-next-indicator=(guint)1, actual-network=(boolean)true,
->> network-name=(string)"GC\ SPAIN\ 1", descriptors=(GValueArray)(NULL),
->> transports=(structure){ transport-21, transport-stream-id=(guint)21,
->> original-network-id=(guint)1, delivery=(structure)satellite,
->> orbital=(float)30.5, east-or-west=(string)west,
->> modulation=(string)QAM16, frequency=(guint)11615000,
->> polarization=(string)horizontal, symbol-rate=(guint)27500,
->> inner-fec=(string)3/4;, descriptors=(GValueArray)(NULL); };
->>
->> Zaheer
->>
->>
->>
->> On Wed, Apr 9, 2008 at 9:07 AM, Sigmund Augdal <sigmund@snap.tv> wrote:
->>> ons, 09.04.2008 kl. 09.54 +0530, skrev Gurumurti Laxman Maharana:
->>>
->>> > Hi All
->>>  > I want to know weather is it possible to extract satellite
->>> information from
->>>  > streams captured by DVB-S card?
->>>  > Can any body help in this regard?
->>>
->>>  Use dvbsnoop.
->>>
->>>  dvbsnoop -s ts -tssubdecode -if capture.ts 16|less
->>>
->>>  Regards
->>>
->>>  Sigmund
->>>
->>>
->>> > bye
->>>  >
->>>  >
->>>  > > Hi
->>>  > > I want to weather is it possoble to extract satellite information
->>> from
->>>  > > streams capture by DVB card?
->>>  > > bye
->>>  > >> From a kaffeine user ...
->>>  > >>
->>>  > >> Christoph
->>>  > >>
->>>  > >>
->>>  > >> ----------  Weitergeleitete Nachricht  ----------
->>>  > >>
->>>  > >> Betreff: [kaffeine-user] Satellites at 80E and 90E
->>>  > >> Datum: Sonntag 06 April 2008
->>>  > >> Von: Roman Kashcheev <kashcheevr@rambler.ru>
->>>  > >> An: kaffeine-user@lists.sf.net
->>>  > >>
->>>  > >> Hello!
->>>  > >> There are files for dvb-s folder of kaffeine - Siberian
->>> satellites, most
->>>  > >> popular in eastern Russia.
->>>  > >> Thanks for good program - Kaffeine. I use it to look satellite tv
->>> since
->>>  > >> spring 2006.
->>>  > >> Forgive me for my bad english.
->>>  > >>
->>>  > >> Best regards,
->>>  > >> Roman Kashcheev
->>>  > >> Bodajbo city, Irkutsk region, Russia
->>>  > >>
->>>  > >> -------------------------------------------------------
->>>  > >> _______________________________________________
->>>  > >> linux-dvb mailing list
->>>  > >> linux-dvb@linuxtv.org
->>>  > >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>  > >
->>>  > >
->>>  > > --
->>>  > > gurumurti@nkindia.com
->>>  > >
->>>  > >
->>>  > > _______________________________________________
->>>  > > linux-dvb mailing list
->>>  > > linux-dvb@linuxtv.org
->>>  > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>  > >
->>>  >
->>>  >
->>>
->>>
->>>  _______________________________________________
->>>  linux-dvb mailing list
->>>  linux-dvb@linuxtv.org
->>>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>
->
->
-> --
-> G. L. Maharana
->
->
+------=_Part_17944_3774165.1208942583554
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Working ok for me on Gutsy, Abit 630i motherboard.
+About the kernel, the bug is fixed in 2.6.24-14 for ubuntu, are you running
+an Ubuntu kernel or your own ?
+
+/Henrik
 
 
--- 
-Gurumurti (m) 09324221887
 
+On Wed, Apr 23, 2008 at 7:32 AM, Luca Ingianni <luca.i@gmx.net> wrote:
+
+> Replying to my own post now.
+> I've tried using the svn version of the dvb drivers, but am still having
+> the
+> same problems.
+> Is there any use in me trying kernel 2.6.25, or has nothing relevant
+> changed
+> in there anyway?
+> As I understand it, according to the list archives, the problem ought to
+> be
+> fixed already, right?
+>
+> Again, I'll be glad to assist in debugging, but I can't do it all on my
+> own.
+>
+> TIA
+> Luca
+>
+>
+> Am Freitag 18 April 2008 19:39:38 schrieb Luca Ingianni:
+> > For the last few days, I've been searching high and low for a way to get
+> my
+> > Nova-TD to work reliably. I've since found out about the problem with
+> the
+> > SB600 southbridge (after buying the Nova :(   ), but from what I
+> gathered
+> > it should have been fixed in kernel 2.6.24-14 . The problem is, I'm
+> running
+> > 2.6.24-16 (Ubuntu Hardy flavour) and still get the USB disconnects when
+> > using both tuners at once.
+> > As soon as I close kaffeine, it reconnects immediately and is generally
+> > ready to use again.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_17944_3774165.1208942583554
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<br>Working ok for me on Gutsy, Abit 630i motherboard.<br>About the kernel, the bug is fixed in 2.6.24-14 for ubuntu, are you running an Ubuntu kernel or your own ?<br><br>/Henrik<br><br><br><br><div class="gmail_quote">On Wed, Apr 23, 2008 at 7:32 AM, Luca Ingianni &lt;<a href="mailto:luca.i@gmx.net" target="_blank">luca.i@gmx.net</a>&gt; wrote:<br>
+
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Replying to my own post now.<br>
+I&#39;ve tried using the svn version of the dvb drivers, but am still having the<br>
+same problems.<br>
+Is there any use in me trying kernel 2.6.25, or has nothing relevant changed<br>
+in there anyway?<br>
+As I understand it, according to the list archives, the problem ought to be<br>
+fixed already, right?<br>
+<br>
+Again, I&#39;ll be glad to assist in debugging, but I can&#39;t do it all on my own.<br>
+<br>
+TIA<br>
+Luca<br>
+<br>
+<br>
+Am Freitag 18 April 2008 19:39:38 schrieb Luca Ingianni:<br>
+<div>&gt; For the last few days, I&#39;ve been searching high and low for a way to get my<br>
+&gt; Nova-TD to work reliably. I&#39;ve since found out about the problem with the<br>
+&gt; SB600 southbridge (after buying the Nova :( &nbsp; ), but from what I gathered<br>
+&gt; it should have been fixed in kernel 2.6.24-14 . The problem is, I&#39;m running<br>
+&gt; 2.6.24-16 (Ubuntu Hardy flavour) and still get the USB disconnects when<br>
+&gt; using both tuners at once.<br>
+&gt; As soon as I close kaffeine, it reconnects immediately and is generally<br>
+&gt; ready to use again.<br>
+<br>
+</div><div><div></div><div>_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org" target="_blank">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div></div></blockquote></div><br>
+
+------=_Part_17944_3774165.1208942583554--
+
+
+--===============0658319768==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0658319768==--
