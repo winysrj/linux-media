@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from karen.lavabit.com ([72.249.41.33])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Jr0Dh-0004Sy-Oe
-	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 02:30:50 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K0400CS841RCGJ3@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 29 Apr 2008 20:29:54 -0400 (EDT)
-Date: Tue, 29 Apr 2008 20:29:51 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <4817ACDA.1010105@web.de>
-To: Torben Viets <viets@web.de>
-Message-id: <4817BD7F.9000902@linuxtv.org>
-MIME-version: 1.0
-References: <4815B2A9.4060209@web.de> <4815F0AF.4010709@linuxtv.org>
-	<4815FA2B.5030502@web.de> <4815FF67.6050004@linuxtv.org>
-	<4816050D.2040408@web.de> <48161163.9000602@linuxtv.org>
-	<4816186B.3030703@web.de> <48161B2D.6090602@linuxtv.org>
-	<48176236.1020306@web.de> <481763AA.4030702@linuxtv.org>
-	<481767E4.8030608@web.de> <48176969.6070306@linuxtv.org>
-	<4817935E.8090801@web.de> <4817ACDA.1010105@web.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
+	(envelope-from <robkate@nerdshack.com>) id 1Jojz3-0000EG-Bc
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 20:46:28 +0200
+Received: from b.earth.lavabit.com (b.earth.lavabit.com [192.168.111.11])
+	by karen.lavabit.com (Postfix) with ESMTP id AADEEC86A2
+	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 13:46:11 -0500 (CDT)
+Received: from 192.168.0.4 (host86-169-176-16.range86-169.btcentralplus.com
+	[86.169.176.16]) by nerdshack.com with ESMTP id K1LMKJ2JIQPA
+	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 13:45:27 -0500
+Message-ID: <480F83F6.6000409@nerdshack.com>
+Date: Wed, 23 Apr 2008 19:46:14 +0100
+From: Rob & Kate <RobKate@nerdshack.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Avermedia M103 TV Card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,28 +22,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-> Hey, I've update, now the dvb works with 2.6.25 ant the v4l-dvb hg, I 
-> was sure that I already tried this combinations...
+I'm still trying to get my avermedia M103 TV card working.
 
-Good, because it's working for various other peopple too.
+I have a Philips-Freevents LX3000 PC, on which I=92m running PCLInuxOS, =
 
-> 
-> Now, only the analog input have to work (this was the main reason I 
-> bought this card), is it really so hard, because I
-> saw that the HVR-1600 and the HVR-1800 is supported.
+kernel 2.6.22.17.tex3 , this has an Avermedia m103 card installed (it=92s =
+
+a mini PCI card). The chips used in the card are the same as those used =
+
+in the E506,
+U5
+Philips
+SAA7135HL/203
+CE9498 04
+TSG05422
+
+U4
+Zarlink
+MT352 CG
+0537A WS
+
+U2
+XCEIVE
+XC3018ACQ (cache)
+0536ATW
+K42996 2
+
+and very similar to those used in the A16D, however following the =
+
+instructions on mcentral.de I seem unable to get TV in XAWTV, TVTime or =
+
+Kaffine.
+
+The following site has managed to get this card working with the =
+
+experimental code
+
+http://plone.lucidsolutions.co.nz/dvb/t/compiling-mcentral-experimental-v4l=
+-dvb-drivers =
 
 
-lol, after all this traffic, bad news for you because analog doesn't 
-work - it never has.
 
-- Steve
+Can you please offer some advice, a couple of things that I think may be =
+
+the problem are
+
+o Do I need to remove the card before I install the experimental code? =
+
+until now I haven=92t because its under the fan, but will if needs must.
+
+o Do I need to disable the installed V4L modules in the kernel, and then =
+
+re-compile the kernel? This seems very scary, but someone on the gentoo =
+
+pages did it this way, so I=92ll give it ago if necessary
+
+o How do I get the xc3028 to work, there seems to be 3 different =
+
+approaches, either download the windows firmware and convert, download =
+
+the picnnicale firmware =
+
+(http://mcentral.de/firmware/firmware_pinnacle.tgz), or download the =
+
+xc3028 firmware (http://mcentral.de/firmware/firmware_v5.tgz) .
+
+
+Thanks in advance for any help, this is much appreciated, & will =
+
+hopefully mean I can stop using Vista.
+
+Regards
+
+Rob
+
 
 _______________________________________________
 linux-dvb mailing list
