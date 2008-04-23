@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55614.mail.re4.yahoo.com ([206.190.58.238])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <trevor_boon@yahoo.com>) id 1Jo3jM-0000cQ-QL
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 23:40:07 +0200
-Date: Tue, 22 Apr 2008 07:38:36 +1000 (EST)
-From: Trevor Boon <trevor_boon@yahoo.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <mailman.73.1208797403.823.linux-dvb@linuxtv.org>
+	(envelope-from <luca.i@gmx.net>) id 1JoeF2-0003LX-IP
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 14:38:29 +0200
+From: Luca Ingianni <luca.i@gmx.net>
+To: "Henrik Beckman" <henrik.list@gmail.com>
+Date: Wed, 23 Apr 2008 14:37:58 +0200
+References: <200804181939.39153.luca.i@gmx.net>
+	<200804230732.40813.luca.i@gmx.net>
+	<af2e95fa0804230223l4800884ch145fdcd22f5013a7@mail.gmail.com>
+In-Reply-To: <af2e95fa0804230223l4800884ch145fdcd22f5013a7@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <685282.37355.qm@web55614.mail.re4.yahoo.com>
-Subject: Re: [linux-dvb] HVR1200 / HVR1700 / TDA10048 support
+Content-Disposition: inline
+Message-Id: <200804231437.58967.luca.i@gmx.net>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Hauppauge Nova-TD trouble: still or again?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,24 +28,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Amitay,
+Am Mittwoch 23 April 2008 11:23:03 schrieb Henrik Beckman:
+> Working ok for me on Gutsy, Abit 630i motherboard.
+> About the kernel, the bug is fixed in 2.6.24-14 for ubuntu, are you running
+> an Ubuntu kernel or your own ?
 
-I specified the i2c_scan=1 option in my
-/etc/modprobe.d/saa7134 file and the following
-addresses were returned..
+THanks for your reply Hendrik.
 
-saa7130[0]: i2c scan: found device @ 0xa0  [eeprom]
-saa7130[0]: i2c scan: found device @ 0xc0  [tuner
-(analog)]
+I'm running the stock Ubuntu hardy kernel
+luca@godzilla:~$ uname -a
+Linux godzilla 2.6.24-16-generic #1 SMP Thu Apr 10 12:47:45 UTC 2008 x86_64 
+GNU/Linux
+and according to the Ubuntu bugtracker it should have been fixed for 2.6.24-14 
+in ubuntu, as you say. I've also checked, the fix *is* in the sources, so 
+everything *should* be right.
 
-Regards,
-Trevor.
+Right at this moment I'm compiling from Ubuntu sources using a stock 
+Ubuntu .config, just to make sure the fix actually made it into the kernel 
+binary.
+I'll report back after I've tried the new kernel, but if this doesn't help I'm 
+kind of stumped.
 
-
-      Get the name you always wanted with the new y7mail email address.
-www.yahoo7.com.au/y7mail
-
-
+Have fun,
+Luca
 
 _______________________________________________
 linux-dvb mailing list
