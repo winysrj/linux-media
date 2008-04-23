@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from [125.16.143.82] (helo=is01ms02.ittiam.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1JkEdg-0002dY-Nf
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 10:29:46 +0200
-Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
-	[88.170.236.224])
-	by vds19s01.yellis.net (Postfix) with ESMTP id 8DB462FA95D
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 10:29:41 +0200 (CEST)
-Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
-	by goliath.anevia.com (Postfix) with ESMTP id 089771300032
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 10:29:36 +0200 (CEST)
-Message-ID: <47FF216F.6040207@anevia.com>
-Date: Fri, 11 Apr 2008 10:29:35 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	(envelope-from <rajendra.turakani@ittiam.com>) id 1Job8Q-0008N2-8c
+	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 11:19:27 +0200
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] MPEG2TS and HVR-1300
+Date: Wed, 23 Apr 2008 14:48:53 +0530
+Message-ID: <904DEC693BE1AB429622C6F5ABA7E0B804307C47@is01ex02.ittiam.com>
+References: <904DEC693BE1AB429622C6F5ABA7E0B804307B76@is01ex02.ittiam.com>
+	<Pine.LNX.4.64.0804230932130.9074@pub6.ifh.de>
+From: "Rajendra C. Turakani" <rajendra.turakani@ittiam.com>
+To: "Patrick Boettcher" <patrick.boettcher@desy.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Query on USB based DVB-T modules.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,21 +26,88 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+Hi Patrick,
 
-we have here at our office an Hauppauge HVR 1300. It's working under 
-Linux 2.6.24 but we've not been able to make MPEG2/TS work. MPEG2/PS is 
-working fine though.
+I misquoted DiB7070 as DiB7770. I am sorry for that..
 
- From what I read, it looks like the Conexant CX23416 chipset should 
-supports Transport Stream but we've not been able to use it. Are we 
-missing something ?
+Regards,
+Turakani
 
-Kind regards.
--- 
-CAND Frederic
-Product Manager
-ANEVIA
+-----Original Message-----
+From: Rajendra C. Turakani 
+Sent: Wednesday, April 23, 2008 2:28 PM
+To: 'Patrick Boettcher'
+Cc: linux-dvb@linuxtv.org
+Subject: RE: [linux-dvb] Query on USB based DVB-T modules.
+
+Hi Patrick,
+
+Thanks for the answers...
+
+I had a few more things to ask. I noticed that the new chipset from
+DiBCOM is DiB7770.
+
+a. Are there any USB dongles (DVB-T) with DiB7770 chipset ? I am not
+sure if the latest from Pinnacle (Pinnacle PCTV nano stick) has DiB7770.
+b. How do we add support to these devices in the kernel ?
+
+Question on DMB ..
+
+1. Is there no support for DMB based USB dongles ?
+
+Looking forward for your answers..
+
+Regards,
+Turakani
+
+-----Original Message-----
+From: Patrick Boettcher [mailto:patrick.boettcher@desy.de] 
+Sent: Wednesday, April 23, 2008 1:05 PM
+To: Rajendra C. Turakani
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Query on USB based DVB-T modules.
+
+Hi Rajendra,
+
+On Wed, 23 Apr 2008, Rajendra C. Turakani wrote:
+> 1.       Is 'Leadtek Winfast DTV Dongle' based on as DiB3000M chipset
+?
+> Is the driver source code available ?
+
+Yes. I think the device used inside this Dongle is 3000P. The driver is 
+identical between the two revision.
+
+> 2.       How can one get detailed datasheet of DiB3000M ?
+
+Ask DiBcom support. But if you want to develop software, it is not the 
+right start, because the data sheet is mainly to help people integrate
+the 
+hardware.
+
+When you use the driver from LinuxTV make sure that you follow the GPL 
+rules when adapting it.
+
+> 3.       What is the chipset that is used in 'Hauppauge WinTV Nova-T
+> (USB)' ?
+
+There are several devices with that name:
+
+USB2: DiB3000P
+TD: DiB7000P or DiB7070P
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+
+**********************************************************************
+This email and any files transmitted with it are confidential and
+intended solely for the use of the individual or entity to whom they
+are addressed. If you have received this email in error please notify
+helpdesk@ittiam.com.
+**********************************************************************
+
 
 _______________________________________________
 linux-dvb mailing list
