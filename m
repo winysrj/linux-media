@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HM8gP4007672
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 18:08:42 -0400
-Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3HM8VhM004826
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 18:08:32 -0400
-Received: from www.outflux.net (serenity-end.outflux.net [10.2.0.2])
-	by mylar.outflux.net (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m3HM8FhX028231
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 15:08:20 -0700
-Date: Thu, 17 Apr 2008 15:08:15 -0700
-From: Kees Cook <kees@outflux.net>
-To: video4linux-list@redhat.com
-Message-ID: <20080417220815.GQ18929@outflux.net>
-References: <20080417012346.GG18929@outflux.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3NDZwEq027358
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 09:35:58 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.240])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3NDZVkS026435
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 09:35:32 -0400
+Received: by an-out-0708.google.com with SMTP id c31so786195ana.124
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 06:35:31 -0700 (PDT)
+Message-ID: <440801370804230635t1d734144ta3a4ca5acd6b77f6@mail.gmail.com>
+Date: Wed, 23 Apr 2008 15:35:28 +0200
+From: "Francisco Javier Cabello Torres" <fjcabello@visual-tools.com>
+To: video4linux-list@redhat.com, "Gerd Knorr" <kraxel@bytesex.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-In-Reply-To: <20080417012346.GG18929@outflux.net>
-Subject: Re: [PATCH 0/2] V4L: add "function" sysfs attribute to v4l devices
+Cc: 
+Subject: saa7130 driver error
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,74 +28,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Apr 16, 2008 at 06:23:46PM -0700, Kees Cook wrote:
-> [2] some recent discussion on the new hotplug list, but I can't find an
->     archive link since it moved to vger...
+Dear all,
 
-Since I can't link to it, I'll just include the udev patches here too.
-:)
+I am developping a conventional video application over a saa7130 board.
+I am using kernel 2.6.24.4 and I use saa7134 driver which is included.
 
----
-Update of path_id and example symlink-creation update for udev to take
-advantage of the new "function" string exported from video4linux
-devices.
+I am able to open the device and get images using mmap way.
+Sometimes saa7134 decoder is not able to complete a buffer and an
+internal timeout rises. The function called is  saa7134_buffer_timeout
+(saa7134-core.c).
 
-Signed-off-by: Kees Cook <kees@outflux.net>
----
- debian/rules.d/60-symlinks.rules |    9 +++++++++
- extras/path_id/path_id           |   14 ++++++++++++++
- 2 files changed, 23 insertions(+)
+When this happens VIDIOC_DQBUF ioctl returns -1 and errno=3DEIO.
+In this case application shoudl enqueue the buffer calling VIDIOC_QBUF.
+The problem is that after calling VIDIOC_DQBUF ioctl, v4l2_buffer structure
+is not
+properly filled. Buffer index isn't set and when I try to enqueue the buffe=
+r
+the driver
+always gives me an error.
 
---- udev-113/debian/rules.d/60-symlinks.rules~	2008-04-16 17:02:58.000000000 -0700
-+++ udev-113/debian/rules.d/60-symlinks.rules	2008-04-16 17:04:32.000000000 -0700
-@@ -14,3 +14,12 @@
- # Create /dev/pilot symlink for Palm Pilots
- KERNEL=="ttyUSB*", ATTRS{product}=="Palm Handheld*|Handspring *|palmOne Handheld", \
- 					SYMLINK+="pilot"
-+
-+# Create video4linux PCI path symlinks
-+ACTION!="add", GOTO="video4linux_path_end"
-+SUBSYSTEM!="video4linux", GOTO="video4linux_path_end"
-+
-+IMPORT{program}="path_id %p"
-+ENV{ID_PATH}=="?*", KERNEL=="video*", SYMLINK+="v4l/by-path/$env{ID_PATH}"
-+
-+LABEL="video4linux_path_end"
---- udev-113/extras/path_id/path_id~	2007-06-23 08:44:48.000000000 -0700
-+++ udev-113/extras/path_id/path_id	2008-04-16 17:10:23.000000000 -0700
-@@ -462,6 +462,10 @@
- 	full_sysfs_device_path="`pwd -P`"
- 	cd "$OPWD"
- 
-+	if [ "$TYPE" = "video4linux" ] ; then
-+		d="video"
-+	fi
-+
- 	D=$full_sysfs_device_path
- 	while [ ! -z "$D" ] ; do
- 		case "$D" in
-@@ -566,6 +570,16 @@
- 		handle_device
- 		echo "ID_PATH=$d"
- 		;;
-+	video4linux)
-+		handle_device
-+		if [ "$d" ]; then
-+			# Only report v4l devices that have a "function" defined
-+			func=$(cat $SYSFS$DEVPATH/function 2>/dev/null ||true)
-+			if [ "$func" ]; then
-+				echo "ID_PATH=$d-$func"
-+			fi
-+		fi
-+		;;
- 	*)
- 		RESULT=1
- 		;;
+I have checked videbuf-core.c and as I expected,  videobuf_qbuf function
+expects
+buffer number in order to dequeue it.
 
+The problem is each time this happens one buffer is lost. If you are using
+eight buffers,
+after eight errors the capture will stop.
 
--- 
-Kees Cook                                            @outflux.net
+Anyone has any clue?
 
+Thanks in advance
+
+Paco
+
+--=20
+Francisco Javier Cabello Torres
+Investigaci=F3n y Desarrollo
+Research and Development
+-----
+V I S U A L T O O L S
+C/Isla Graciosa, 1.
+28034 Madrid, Spain.
+Telephone: + 34 91 729 48 44
+Fax: +34 91 358 52 36
+Clave p=FAblica:
+http://keyserv.nic-se.se:11371/pks/lookup?op=3Dget&search=3D0x568AE122BBBE5=
+820
+--------------------------------------
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
