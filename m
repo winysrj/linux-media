@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from wf-out-1314.google.com ([209.85.200.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1JlAQG-00073Z-0e
-	for linux-dvb@linuxtv.org; Mon, 14 Apr 2008 00:11:44 +0200
-Message-ID: <48028513.5010208@iinet.net.au>
-Date: Mon, 14 Apr 2008 06:11:31 +0800
-From: timf <timf@iinet.net.au>
+	(envelope-from <microvon@gmail.com>) id 1JonKx-0000cn-Gx
+	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 00:21:13 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so2474052wfa.17
+	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 15:21:07 -0700 (PDT)
+Message-ID: <eff910420804231521g202e0fdbi970e0970298781ce@mail.gmail.com>
+Date: Wed, 23 Apr 2008 18:21:07 -0400
+From: "Michael Granda" <microvon@bu.edu>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <480FA292.60603@linuxtv.org>
 MIME-Version: 1.0
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-References: <47FE3ECC.8020209@iinet.net.au>	<47FE8FD1.3050004@t-online.de>	<1207870241.17744.8.camel@pc08.localdom.local>	<47FFA5C5.7000704@iinet.net.au>	<47FFE2CC.3090405@t-online.de>	<4801A18D.3090401@iinet.net.au>	<4801BD4D.7090708@iinet.net.au>
-	<48022CB7.1040006@iinet.net.au> <48023E17.1070103@iinet.net.au>
-	<4802576F.1070106@t-online.de> <48025E28.8020704@iinet.net.au>
-	<48026BBB.5030201@t-online.de> <48027653.1000001@iinet.net.au>
-	<48027E03.5010704@t-online.de>
-In-Reply-To: <48027E03.5010704@t-online.de>
+References: <eff910420804231320x495a6d88h55af7f1c14d38a00@mail.gmail.com>
+	<eff910420804231323l7b956fe4g94791bf9944fe9f1@mail.gmail.com>
+	<480FA292.60603@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
+Subject: Re: [linux-dvb] HP Analog TV Tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,270 +23,213 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1468052732=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hartmut Hackmann wrote:
-> Hi,
->
-> timf schrieb:
->> Hartmut Hackmann wrote:
->>> Hi, Tim
->>> <snip>
->>>>>
->>>>> I think i know now how your card needs to be configured.
->>>>> Something that seems not to be really clear for you is the 
->>>>> configuration
->>>>> of the so-called AGC (automatic gain control) of the tuner. This
->>>>> needs to be switched according to the function the tuner is used for:
->>>>> analog TV -> FM Radio -> DVB-T.
->>>>> This is done with the 4052 analog mux and requires 2 control bits 
->>>>> -> the GPIOs.
->>>>> GPIO 21 is used to switch between analog TV and FM radio.
->>>>> Typically GPIO21=0 -> analog TV, GPIO21=1 -> FM Radio.
->>>>> In your case, GPIO22 is used to switch between DVB-T and analog 
->>>>> while most cards
->>>>> use GPIO1 of the tda10046 for this.
->>>>>
->>>>> You should need to make chages only in saa7134-dvb, dvb_init()
->>>>> - remove the old
->>>>>     case SAA7134_BOARD_KWORLD_DVBT_210: (plus code)
->>>>> -and add it to
->>>>>     case SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS:
->>>>>
->>>>> That should do it (though we should add a .antenna switch to the 
->>>>> configuration).
->>>>>
->>>>> Best regards
->>>>>   Hartmut
->>>>>
->>>> Hi Hartmut,
->>>>
->>>>
->
-> <snip>
->
->> Hi Hartmut,
->>
->>
->> 1) With    .gpio_config   = TDA10046_GP11_I,
->>
->> root@ubuntu:/home/timf# tzap -r "TEN HD"
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> tuning to 788500000 Hz
->> video pid 0x0202, audio pid 0x0000
->> status 00 | signal 9d9d | snr 3333 | ber 0001fffe | unc 0000004d |
->> status 1f | signal 9d9d | snr fdfd | ber 000001b8 | unc ffffffff | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fdfd | ber 000001de | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fefe | ber 0000017c | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fefe | ber 00000182 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fefe | ber 000001a4 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9b9b | snr fefe | ber 00000202 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9b9b | snr fefe | ber 0000021c | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9b9b | snr fefe | ber 00000226 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fefe | ber 00000234 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9b9b | snr fefe | ber 00000290 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9b9b | snr fefe | ber 00000240 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 9c9c | snr fefe | ber 000001fa | unc 00000000 | 
->> FE_HAS_LOCK
->>
->> Analog-tv also scans fine.
->>
->
-> Things should look like this.
->
->> 2) With
->> //    .gpio_config   = TDA10046_GP11_I,
->>    .gpio_config   = TDA10046_GP00_I,
->>
->> timf@ubuntu:~$ sudo -s -H
->> [sudo] password for timf:
->> root@ubuntu:/home/timf# tzap -r "TEN HD"
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> tuning to 788500000 Hz
->> video pid 0x0202, audio pid 0x0000
->> status 00 | signal 0000 | snr 9494 | ber 0001fffe | unc 00000000 |
->> status 1f | signal 0000 | snr ecec | ber 00019622 | unc ffffffff | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr f8f8 | ber 00014eac | unc ffffffff | 
->> FE_HAS_LOCK
->> status 00 | signal 0000 | snr 5e5e | ber 0001fffe | unc 00000000 |
->> status 1f | signal 0000 | snr fcfc | ber 00002bcc | unc ffffffff | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fdfd | ber 000018a2 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fdfd | ber 00000e74 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fdfd | ber 00000912 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fefe | ber 000006b6 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fefe | ber 0000068e | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fdfd | ber 000005c2 | unc 00000000 | 
->> FE_HAS_LOCK
->> status 1f | signal 0000 | snr fefe | ber 00000584 | unc 00000000 | 
->> FE_HAS_LOCK
->>
->> However, analog-tv fails to scan anything -> "no signal"
->>
-> This is wrong. Although the channel decoder locks, the signal at its
-> input is very low.
->
-> But this means: The analog -> dvb switch is the GPIO of the channel 
-> decoder
-> *not* GPIO22
->
-> so we can fix: we need  .gpio_config   = TDA10046_GP11_I
->
->> 3) antenna_switch
->>
->> static int philips_tda827x_tuner_init(struct dvb_frontend *fe)
->> {
->>    struct saa7134_dev *dev = fe->dvb->priv;
->>    struct tda1004x_state *state = fe->demodulator_priv;
->>
->>    switch (state->config->antenna_switch) {
->>    case 0: break;
->>    case 1:    dprintk("setting GPIO21 to 0 (TV antenna?)\n");
->>        saa7134_set_gpio(dev, 21, 0);
->>        break;
->>    case 2: dprintk("setting GPIO21 to 1 (Radio antenna?)\n");
->>        saa7134_set_gpio(dev, 21, 1);
->>        break;
->>    }
->>    return 0;
->> }
->>
->> static int philips_tda827x_tuner_sleep(struct dvb_frontend *fe)
->> {
->>    struct saa7134_dev *dev = fe->dvb->priv;
->>    struct tda1004x_state *state = fe->demodulator_priv;
->>
->>    switch (state->config->antenna_switch) {
->>    case 0: break;
->>    case 1: dprintk("setting GPIO21 to 1 (Radio antenna?)\n");
->>        saa7134_set_gpio(dev, 21, 1);
->>        break;
->>    case 2:    dprintk("setting GPIO21 to 0 (TV antenna?)\n");
->>        saa7134_set_gpio(dev, 21, 0);
->>        break;
->>    }
->>    return 0;
->> }
->>
->> If I put .antenna_switch = 1 or 2, in my struct, dvb-t fails to scan.
->> I can't put antenna_switch in my struct, can I, as I am using gpio22?
->> So I took it out, and in saa7134-cards.c, changed .radio to this:
->>
-> I don't believe that this is right.
-> It is just a static signal and can't be anything else.
->
->>    [SAA7134_BOARD_KWORLD_DVBT_210] = {
->>        .name           = "KWorld DVB-T 210",
->>        .audio_clock    = 0x00187de7,
->>        .tuner_type     = TUNER_PHILIPS_TDA8290,
->>        .radio_type     = UNSET,
->>        .tuner_addr    = ADDR_UNSET,
->>        .radio_addr    = ADDR_UNSET,
->>        .mpeg           = SAA7134_MPEG_DVB,
->>        .gpiomask    = 0 << 21,
->>        .inputs = {{
->>            .name   = name_tv,
->>            .vmux   = 1,
->>            .amux   = TV,
->>            .tv     = 1,
->>        },{
->>            .name   = name_comp1,
->>            .vmux   = 3,
->>            .amux   = LINE1,
->>        },{
->>            .name   = name_svideo,
->>            .vmux   = 8,
->>            .amux   = LINE1,
->>        }},
->>        .radio = {
->>            .name   = name_radio,
->>            .amux   = TV,
->>            .gpio    = 0x00000000,
->
-> This is wrong. It has to be .gpio = 0x0200000, as it was in the original
-> source code.
->
->>        },
->>    },
->> I still can't tune to a radio cahnnel.
->> I'm not sure how to switch to radio, I'm not even sure which gpio 
->> it's on.
->> I assume it's on gpio21, but I've tried various configs - none work.
->>
->> Regards,
->> Tim
->>
-> Tim, seriously: For me it looks like you messed up the entire code. I 
-> would
-> recommend you roll back completely and start over again.
->
->
-> Hartmut
->
-OK, this is using v4l-dvb as downloaded via mercurial 9 April2008.
-No modifications.
+--===============1468052732==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_25509_2471970.1208989267074"
 
-root@ubuntu:/home/timf# tzap -r "TEN HD"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 788500000 Hz
-video pid 0x0202, audio pid 0x0000
-status 00 | signal 9e9e | snr 5d5d | ber 0001fffe | unc 00000000 |
-status 1f | signal 9d9d | snr fdfd | ber 0000010c | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 00000104 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 00000106 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 00000116 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 0000010e | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 000000f6 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 0000012c | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 00000108 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9c9c | snr fefe | ber 0000011e | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9c9c | snr fefe | ber 00000114 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9d9d | snr fefe | ber 000000f4 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9c9c | snr fefe | ber 0000010e | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9c9c | snr fefe | ber 0000013a | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 9c9c | snr fefe | ber 00000232 | unc 00000000 | 
-FE_HAS_LOCK
+------=_Part_25509_2471970.1208989267074
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Analog-tv - "no signal" - no channels scanned
+The card shows up on the USB bus. Here is the output of lsusb -v for the
+card:
 
-Regards,
-Tim
+Bus 005 Device 003: ID 1164:0601 YUAN High-Tech Development Co., Ltd
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x1164 YUAN High-Tech Development Co., Ltd
+  idProduct          0x0601
+  bcdDevice            8.00
+  iManufacturer           1 Conexant
+  iProduct                2 Analog TV
+  iSerial                 0
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           60
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower                0mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           6
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x88  EP 8 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x86  EP 6 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0001
+  Self Powered
+
+
+On Wed, Apr 23, 2008 at 4:56 PM, Steven Toth <stoth@linuxtv.org> wrote:
+
+> Michael Granda wrote:
+>
+> > My HP Pavillion dv5000 laptop came with an "HP Analog TV Tuner." I've
+> > been searching endlessly for any support for it, or the supposed OEM
+> > supplier model, the Yuan EC680. The tuner is an XCeive 2028, and I've
+> > noticed that it interfaces with the computer as a USB device, despite being
+> > an ExpressCard device. I've also given the development tuner-xc2028 module a
+> > try, and still no luck. Does anyone have any idea how to get this working in
+> > Linux?
+> >
+>
+> You stand a reasonably good change that the HVR1500 driver will just work
+> with the current repo.
+>
+> Show us the lspci -vn output to be sure.
+>
+> Regards,
+>
+> Steve
+>
+
+
+
+-- 
+Mike Granda
+Boston University 2010
+microvon@bu.edu
+(480)-296-1718
+
+------=_Part_25509_2471970.1208989267074
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+The card shows up on the USB bus. Here is the output of lsusb -v for the card:<br><br>Bus 005 Device 003: ID 1164:0601 YUAN High-Tech Development Co., Ltd <br>Device Descriptor:<br>&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18<br>&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1<br>
+&nbsp; bcdUSB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.00<br>&nbsp; bDeviceClass&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 (Defined at Interface level)<br>&nbsp; bDeviceSubClass&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>&nbsp; bDeviceProtocol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>&nbsp; bMaxPacketSize0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 64<br>&nbsp; idVendor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x1164 YUAN High-Tech Development Co., Ltd<br>
+&nbsp; idProduct&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x0601 <br>&nbsp; bcdDevice&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8.00<br>&nbsp; iManufacturer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 Conexant<br>&nbsp; iProduct&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 Analog TV<br>&nbsp; iSerial&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>&nbsp; bNumConfigurations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1<br>&nbsp; Configuration Descriptor:<br>
+&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9<br>&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp; wTotalLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 60<br>&nbsp;&nbsp;&nbsp; bNumInterfaces&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1<br>&nbsp;&nbsp;&nbsp; bConfigurationValue&nbsp;&nbsp;&nbsp;&nbsp; 1<br>&nbsp;&nbsp;&nbsp; iConfiguration&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0xc0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Self Powered<br>&nbsp;&nbsp;&nbsp; MaxPower&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0mA<br>&nbsp;&nbsp;&nbsp; Interface Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 9<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterfaceNumber&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bAlternateSetting&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bNumEndpoints&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterfaceClass&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 255 Vendor Specific Class<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterfaceSubClass&nbsp;&nbsp;&nbsp; 255 Vendor Specific Subclass<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterfaceProtocol&nbsp;&nbsp;&nbsp; 255 Vendor Specific Protocol<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; iInterface&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x81&nbsp; EP 1 IN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x84&nbsp; EP 4 IN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x88&nbsp; EP 8 IN<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x01&nbsp; EP 1 OUT<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x02&nbsp; EP 2 OUT<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Endpoint Descriptor:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bEndpointAddress&nbsp;&nbsp;&nbsp;&nbsp; 0x86&nbsp; EP 6 IN<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bmAttributes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Transfer Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Bulk<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Synch Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; None<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Usage Type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Data<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; wMaxPacketSize&nbsp;&nbsp;&nbsp;&nbsp; 0x0200&nbsp; 1x 512 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bInterval&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<br>
+Device Qualifier (for other device speed):<br>&nbsp; bLength&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10<br>&nbsp; bDescriptorType&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6<br>&nbsp; bcdUSB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.00<br>&nbsp; bDeviceClass&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 (Defined at Interface level)<br>&nbsp; bDeviceSubClass&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>
+&nbsp; bDeviceProtocol&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 <br>&nbsp; bMaxPacketSize0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 64<br>&nbsp; bNumConfigurations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1<br>Device Status:&nbsp;&nbsp;&nbsp;&nbsp; 0x0001<br>&nbsp; Self Powered<br><br><br><div class="gmail_quote">On Wed, Apr 23, 2008 at 4:56 PM, Steven Toth &lt;<a href="mailto:stoth@linuxtv.org">stoth@linuxtv.org</a>&gt; wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">Michael Granda wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
+My HP Pavillion dv5000 laptop came with an &quot;HP Analog TV Tuner.&quot; I&#39;ve been searching endlessly for any support for it, or the supposed OEM supplier model, the Yuan EC680. The tuner is an XCeive 2028, and I&#39;ve noticed that it interfaces with the computer as a USB device, despite being an ExpressCard device. I&#39;ve also given the development tuner-xc2028 module a try, and still no luck. Does anyone have any idea how to get this working in Linux?<br>
+
+</blockquote>
+<br></div>
+You stand a reasonably good change that the HVR1500 driver will just work with the current repo.<br>
+<br>
+Show us the lspci -vn output to be sure.<br>
+<br>
+Regards,<br>
+<br>
+Steve<br>
+</blockquote></div><br><br clear="all"><br>-- <br>Mike Granda<br>Boston University 2010<br><a href="mailto:microvon@bu.edu">microvon@bu.edu</a><br>(480)-296-1718
+
+------=_Part_25509_2471970.1208989267074--
+
+
+--===============1468052732==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1468052732==--
