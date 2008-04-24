@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38FSAiT000557
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:28:10 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38FRvrR021477
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:27:57 -0400
-Received: by py-out-1112.google.com with SMTP id a29so2196168pyi.0
-	for <video4linux-list@redhat.com>; Tue, 08 Apr 2008 08:27:57 -0700 (PDT)
-Date: Tue, 8 Apr 2008 07:58:26 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080408145826.GA17398@plankton.public.utexas.edu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Cc: v4l <video4linux-list@redhat.com>
-Subject: changeset: 7516:e59033a1b38f summary: videobuf-vmalloc: fix
-	STREAMOFF/STREAMON
+Date: Thu, 24 Apr 2008 13:19:31 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alan Cox <alan@redhat.com>
+Message-ID: <20080424131931.4b7e513b@gaivota>
+In-Reply-To: <20080424160043.GA12202@devserv.devel.redhat.com>
+References: <20080420122736.20d60eff@the-village.bc.nu>
+	<200804201806.33464.hverkuil@xs4all.nl>
+	<480B6AD8.9090404@linuxtv.org> <20080423143454.0d50b209@gaivota>
+	<53208a5f0804231226n3cf04ea5ja3cebb5584886183@mail.gmail.com>
+	<20080424124708.3169448a@gaivota>
+	<20080424160043.GA12202@devserv.devel.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, Michael Krufky <mkrufky@linuxtv.org>,
+	Frank Bennett <biercenator@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] Fix VIDIOCGAP corruption in ivtv
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +28,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: http://linuxtv.org/hg/~mchehab/em28xx-vb
+On Thu, 24 Apr 2008 12:00:43 -0400
+Alan Cox <alan@redhat.com> wrote:
 
-> diff --git a/linux/drivers/media/video/videobuf-vmalloc.c b/linux/drivers/media/video/videobuf-vmalloc.c
-> --- a/linux/drivers/media/video/videobuf-vmalloc.c
-> +++ b/linux/drivers/media/video/videobuf-vmalloc.c
-> @@ -78,6 +79,18 @@ videobuf_vm_close(struct vm_area_struct 
->  
->  			if (q->bufs[i]->map != map)
->  				continue;
-> +
-> +			mem = q->bufs[i]->priv;
-> +			if (mem) {
-> +				/* This callback is called only if kernel has
-> +				   allocated memory and this memory is mmapped.
-> +				   In this case, memory should be freed,
-> +				   in order to do memory unmap.
-> +				 */
-> +				MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
-> +				vfree(mem->vmalloc);
-> +				mem->vmalloc = NULL;
-> +			}
+> On Thu, Apr 24, 2008 at 12:47:08PM -0300, Mauro Carvalho Chehab wrote:
+> > Maybe we can just add his name in parenthesis. Would this patch description be
+> > ok for you, Andrew and Alan?
+> 
+> I have no idea if Mr Macks did the work or minds his name being used so I 
+> can form no view on the change. Obviously please remove my sign off if you
+> make the change
 
-Will this work?  The code only holds the vb_lock but the drivers protect
-the vmalloc area with a spinlock.  I don't think we can free this
-without the spinlock too or the driver will be copying to a free'd area.
-
-It seems we need a reference count on the buffers to do this right.
+So, I'll keep the patch as-is.
 
 Cheers,
-
-	Brandon
+Mauro
 
 --
 video4linux-list mailing list
