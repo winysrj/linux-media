@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3GMdr1n012385
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 18:39:53 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3GMdfcD024900
-	for <video4linux-list@redhat.com>; Wed, 16 Apr 2008 18:39:41 -0400
-Date: Wed, 16 Apr 2008 19:39:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20080416193924.7a0f26b9@gaivota>
-In-Reply-To: <200804170041.43718.laurent.pinchart@skynet.be>
-References: <op.t3hn72busxcvug@mrubli-nb.am.logitech.com>
-	<20080415004416.GA11071@plankton.ifup.org>
-	<20080415001932.52039d0f@gaivota>
-	<200804170041.43718.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OL5qOB000829
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:05:52 -0400
+Received: from imo-m25.mx.aol.com (imo-m25.mx.aol.com [64.12.137.6])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OL5bSN009236
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:05:37 -0400
+References: <20080424182147.GA28661@kroah.com>	<4810D4EA.409@linuxtv.org>	<20080424120254.39ec53e8@appleyard>	<8CA74584F6427A7-9C8-1BE5@mblk-d14.sysops.aol.com>
+	<20080424124901.093de915@appleyard>
+To: kristen.c.accardi@intel.com
+Date: Thu, 24 Apr 2008 17:04:41 -0400
+In-Reply-To: <20080424124901.093de915@appleyard>
+MIME-Version: 1.0
+From: Jon Lowe <jonlowe@aol.com>
+Message-Id: <8CA7465F2E7994F-9C8-231B@mblk-d14.sysops.aol.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux1@rubli.info, Martin Rubli <v4l2-lists@rubli.info>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Support for write-only controls
+Cc: greg@kroah.com, video4linux-list@redhat.com, mkrufky@linuxtv.org
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +28,183 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 17 Apr 2008 00:41:43 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+This is my original bug report:
+"?Hope this is the right place to do this.
 
-> Hi Mauro,
+Hauppauge HVR-1500 Expresscard, Ubuntu 8.04, latest V4L drivers.
+
+Removing (hotswap) this card from a ASUS F3SV laptop running Ubuntu 8.04 causes 
+a hard lock up of the computer. ?Unresponsive to any input. Requires complete 
+shutdown of the computer and restart. ?Easily repeatable. Same card is hot 
+swappable under Windows Vista. 
+
+This is critical because Expresscards are notoriously easy to dislodge in 
+notebooks."
+
+I put this in the V4L list as it happens with my particular card after I installed the drviers for the card.
+
+I have an eSata Expresscard also, I guess I ought to try that and see what happens.
+
+Does any one know if the hotswap drivers are sinstalled with Ubuntu?
+
+
+Jon Lowe
+
+
+
+Jon Lowe
+
+
+-----Original Message-----
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+To: Jon Lowe <jonlowe@aol.com>
+Cc: mkrufky@linuxtv.org; greg@kroah.com; stoth@linuxtv.org; brandon@ifup.org; video4linux-list@redhat.com
+Sent: Thu, 24 Apr 2008 2:49 pm
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+
+
+
+On Thu, 24 Apr 2008 15:27:03 -0400
+Jon Lowe <jonlowe@aol.com> wrote:
+
+> Hi,
+> I started this mess.? Is there anything I can/should do wth my ASUS laptop to 
+test the Expresscard slot as you are trying to do?? It works under Vista.? I 
+will need instructions on how to install either the pciehp or aciphp driver.? I 
+assume that these don't auto install under Ubuntu 8.04?
 > 
-> On Tuesday 15 April 2008, Mauro Carvalho Chehab wrote:
-> > On Mon, 14 Apr 2008 17:44:16 -0700
-> >
-> > Brandon Philips <brandon@ifup.org> wrote:
-> > > Ping.  I never saw patches come across for this.
-> >
-> > Brandon, Could you please add this on one of your trees, together with
-> > those pending V4L2 API patches for UVC? I want to merge those changes
-> > together with the in-kernel driver that firstly requires such changes.
-> >
-> > Btw, Laurent, are you ready for uvc inclusion? The window for the next
-> > kernel is about to open.
+> Also, my original problem was removing the card, and my laptop crashing.
 > 
-> The driver is constantly evolving, but I don't see any showstopper.
 > 
-> How exactly should we proceed ? Should I submit a patch based on git 2.6.25 ? 
+> Jon Lowe
 
-The better is to generate against -hg, but against 2.6.25 should also be fine.
+Hi Jon - if you want to use the Ubuntu kernel - you'll need to file a
+bug with Ubuntu.  If you are willing to test with a kernel.org kernel,
+then I can help you.  Perhaps you can resend your problem description
+if it is different than Mike's, as I'm not really able to make out 
+what is going on from the discussion below.
 
-> What about future patches ?
+Kristen
 
-You may submit to me as they are tested. I prefer if you use hg. Otherwise,
-please submit via email.
-
-> Do you have any opinion regarding keeping or closing the linux-uvc-devel 
-> mailing list ?
-
-It is up to you. There are some drivers already with specific lists, like ivtv
-and pvrusb2. If you prefer, you may also use the std V4L ML.
-
-Cheers,
-Mauro
+> 
+> 
+> -----Original Message-----
+> From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> To: mkrufky@linuxtv.org
+> Cc: greg@kroah.com; jonlowe@aol.com; stoth@linuxtv.org; brandon@ifup.org; 
+video4linux-list@redhat.com
+> Sent: Thu, 24 Apr 2008 2:02 pm
+> Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+> 
+> 
+> 
+> On Thu, 24 Apr 2008 14:43:54 -0400
+> mkrufky@linuxtv.org wrote:
+> 
+> > Greg KH wrote:
+> > > On Thu, Apr 24, 2008 at 02:10:47PM -0400, mkrufky@linuxtv.org wrote:
+> > >   
+> > >> Greg KH wrote:
+> > >>     
+> > >>> On Thu, Apr 24, 2008 at 10:40:24AM -0400, Michael Krufky wrote:
+> > >>>   
+> > >>>       
+> > >>>> On Thu, Apr 24, 2008 at 10:32 AM, Jon Lowe <jonlowe@aol.com> wrote:
+> > >>>>     
+> > >>>>         
+> > >>>>> While not exactly the same, this bug MAY be related to my hot swap
+> > >>>>>           
+> > >> poblem:
+> > >>     
+> > >> https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/12519
+> > >>     
+> > >>>>>       
+> > >>>>>           
+> > >>>> No relation.  Also, we're in 2.6.26 development, most 2.6.15 bugs are
+> > >>>> entirely irrelevant.
+> > >>>>
+> > >>>> The problem is PCIe hotplugging  -- it doesn't work in Linux, at
+> > >>>> least, not with Expresscards.  This issue is not specific to the
+> > >>>> HVR1500 -- you'll see it on other similar Expresscards as well.
+> > >>>>     
+> > >>>>         
+> > >>> Huh?  We had expresscard hotplugging working in Linux before any other
+> > >>> operating system ever did.  It works for me just fine here on many
+> > >>> machines, and does so for many thousands of users.
+> > >>>
+> > >>>   
+> > >>>       
+> > >>>> I can only get the HVR1500 / HVR1500Q / HVR1400 to come up properly if
+> > >>>> it is installed in the system when I boot up the PC.  Inserting it
+> > >>>> after boot does absolutely nothing, and removing it after you booted
+> > >>>> the system with it installed will leave the system unstable.
+> > >>>>     
+> > >>>>         
+> > >>> Have you actually loaded the pci hotplug controller driver that is
+> > >>> needed to get hotplugging of express cards to work properly?  :)
+> > >>>   
+> > >>>       
+> > >> This is what I see upon insertion of an HVR1500 with pciehp loaded:
+> > >>
+> > >> [  122.798217] pciehp: HPC vendor_id 8086 device_id 2a01 ss_vid 0 ss_did
+> > 0
+> > >> [  122.798457] Evaluate _OSC Set fails. Status = 0x0005
+> > >> [  122.798492] Evaluate _OSC Set fails. Status = 0x0005
+> > >> [  122.798514] pciehp: Cannot get control of hotplug hardware for pci
+> > 0000:00:01.0
+> > >> [  122.798662] pciehp: HPC vendor_id 8086 device_id 283f ss_vid 0 ss_did
+> > 0
+> > >> [  122.798705] Evaluate _OSC Set fails. Status = 0x0005
+> > >> [  122.798735] Evaluate _OSC Set fails. Status = 0x0005
+> > >> [  122.798758] pciehp: Cannot get control of hotplug hardware for pci
+> > 0000:00:1c.0
+> > >>     
+> > >
+> > > This really looks like your BIOS does not support PCI Hotplug of your
+> > > express cards.
+> > >
+> > > But I'm adding Kristen to the CC: as she is the PCI Hotplug maintainer
+> > > of the kernel, and she knows this way better than I do.
+> > >
+> > > Also, have you tried the acpiphp driver?  That might be the one your
+> > > hardware needs instead.
+> > >
+> > > thanks,
+> > >
+> > > greg k-h
+> > >   
+> > acpiphp gives me the following:
+> > 
+> > [  264.251609] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+> > [  264.282563] acpiphp_glue: can't get bus number, assuming 0
+> > [  264.282729] decode_hpp: Could not get hotplug parameters. Use defaults
+> > [  264.282783] acpiphp: Slot [1] registered
+> > [  265.125349] cx23885 driver version 0.0.1 loaded
+> > 
+> > I loaded the cx23885 driver, but it did not pick up on the hardware, nor 
+> > do I see the expresscard listed in lspci.
+> > 
+> > The BIOS on my laptop definitely does support hotplug of my 
+> > expresscards.  It works in Windows Vista (yuck)
+> > 
+> > To get a better idea about my Dell Latitude D830 laptop configuration, 
+> > I've included full dmesg dump (please see attached)
+> > 
+> > Thank you for looking into this.
+> > 
+> > Regards,
+> > 
+> > Mike
+> > 
+> 
+> Hi - it does look like your laptop might only supports acpi based hotplug, 
+> since it looks like the pciehp driver is failing to switch into native pcie 
+> mode due to lack of firmware support.  please send your acpi DSDT table
+> so I can confirm that native pcie is not supported - and then we can
+> debug why acpiphp isn't working for you.
+> 
+> Kristen
+> 
 
 --
 video4linux-list mailing list
