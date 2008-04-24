@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m37BHsnm006413
-	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:17:54 -0400
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m37BHiwd006006
-	for <video4linux-list@redhat.com>; Mon, 7 Apr 2008 07:17:44 -0400
-Received: by rn-out-0910.google.com with SMTP id i50so10334381rne.11
-	for <video4linux-list@redhat.com>; Mon, 07 Apr 2008 04:17:39 -0700 (PDT)
-Message-ID: <998e4a820804070417w7cf71869h5f36c2ec18c8584c@mail.gmail.com>
-Date: Mon, 7 Apr 2008 19:17:37 +0800
-From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0804042027140.7761@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Disposition: inline
-References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
-	<Pine.LNX.4.64.0804042027140.7761@axis700.grange>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: question for soc-camera driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OLTTGU017028
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:29:29 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OLTICT027067
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:29:18 -0400
+Date: Thu, 24 Apr 2008 18:29:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080424182902.7cb8ef98@gaivota>
+In-Reply-To: <20080424152813.40aab7c4@gaivota>
+References: <20080424152813.40aab7c4@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Linux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [RFC] Move hybrid tuners to common/tuners
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,53 +28,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi
-My camera is mt9v022.It is Master parallel,Monochrome and 8bit data
-bus width.I do not send output to X server and to framebuffer.
-If i request 4 buffers,I can get the first frame.But the sencond frame
-and the third frame is black.Others is wrong.
-If i request 5 buffers,I can get the first frame.But the sencond
-frame, the third frame and the forth frame is black.Others is
-wrong,and so on.
+On Thu, 24 Apr 2008 15:28:13 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-2008/4/5 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> Hi
->
->
->
->  On Fri, 4 Apr 2008, ¨i§¬§¨§ß wrote:
->
->  > Now soc-camera driver can work on my pxa270.I wrote a program to test
->  > the driver.Only the first frame is right,but others is wrong.The
->  > program that I wrote come from Video for Linux Two API
->  > Specification,and work well on other v4l2-driver.
->
->  With what camera are you using the driver? Is it one of mt9m001 / mt9v022
->  or another one? In what mode is it connected to the CPU? Master parallel?
->  Monochrome or colour? How many bits data bus width? Why are you writing
->  your own programme and not using an existing one like xawtv, mplayer or
->  gstreamer? It would be much easier to diagnose our problem if you took
->  mplayer and provided the exact command line and output.
->
->  How wrong are the frames? If they are shifted, you might have a problem
->  with buffer size calculation somewhere. If you get distorted images, you
->  might be getting FIFO overflows. Are you sending output over some library,
->  to the X server, or directly to the framebuffer?
->
->  See, you need to provide much more information so we could help you.
->
->  Thanks
->  Guennadi
->  ---
->  Guennadi Liakhovetski
->
+> During 2.6.24 and 2.6.25 cycle, it were noticed several issues on building
+> tuner drivers, after the hybrid patches. Mostly, this happened due to the fact
+> that now, those tuners are shared between DVB and V4L.
+> 
+> The proper solution were to move those tuners into common/tuners.
+> 
+> I finally found some time for a patch for it.
+> 
+> Since this kind of patch requires build testing with the in-kernel tree, I've
+> preferred to develop this one directly at -git. It is at [1]:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=b251551263a57d8ca518a21008f20dff29964cb9
 
+Michael Krufky asked me to rename tda18271-tables.c to tda18271-maps.c. Due to
+that, the MD5 sum changed.
+Also, I've added some newer patches. One of them is reorganizing DVB frontends.
+The other moves some other tuners that are also capable of working with both
+analog and digital terrestrial.
 
+Those are the current changesets:
 
--- 
-ÖÂ
-Àñ
-·ëöÎ
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=a97e59842748536bd8e0f159591daa0deb3f01ae
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=47838c0da0a581aa8b4223f044988de56d45f715
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=3dcb518cc91ecc49551240fde5d975e733909cc7
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
