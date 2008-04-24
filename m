@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.184])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1Jl0M4-0004nx-Ae
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 13:26:43 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so1239692fkz.1
-	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 04:26:36 -0700 (PDT)
-Message-ID: <ea4209750804130426i6b7c759bg7b984ba6fe7fa112@mail.gmail.com>
-Date: Sun, 13 Apr 2008 13:26:36 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0804130117o5a0a9a4co32557383322e9a49@mail.gmail.com>
-MIME-Version: 1.0
-References: <20080413022332.yrtb5tk3ic8ckcgw@webmail.openforyou.com>
-	<4801BD74.1050804@iki.fi>
-	<d9def9db0804130117o5a0a9a4co32557383322e9a49@mail.gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with ASUS My Cinema U3000 Mini
+	(envelope-from <stoth@linuxtv.org>) id 1JopGf-00082j-GV
+	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 02:24:54 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0JZS0076YZSEMQJ0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 23 Apr 2008 20:24:16 -0400 (EDT)
+Date: Wed, 23 Apr 2008 20:24:14 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <eff910420804231521g202e0fdbi970e0970298781ce@mail.gmail.com>
+To: Michael Granda <microvon@bu.edu>
+Message-id: <480FD32E.5060105@linuxtv.org>
+MIME-version: 1.0
+References: <eff910420804231320x495a6d88h55af7f1c14d38a00@mail.gmail.com>
+	<eff910420804231323l7b956fe4g94791bf9944fe9f1@mail.gmail.com>
+	<480FA292.60603@linuxtv.org>
+	<eff910420804231521g202e0fdbi970e0970298781ce@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HP Analog TV Tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,115 +28,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1139340964=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1139340964==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_819_13567759.1208085996456"
-
-------=_Part_819_13567759.1208085996456
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Yes, at least one person reported to work perfectly the Yuan Card. It's
-using the same frontend attach as the ASUS one, so perhaps there's a problem
-with that. I think that the ASUS is already tested also. Just for
-information, which distribution are you using?
-
-Albert
-
-2008/4/13 Markus Rechberger <mrechberger@gmail.com>:
-
-> On 4/13/08, Antti Palosaari <crope@iki.fi> wrote:
-> > adriancapel@openforyou.com wrote:
-> > > The device is properly recognized but I can not tune channels.
-> > >
-> > > scandvb shows me the following error: "WARNING: filter timeout pid
-> 0x0011"
-> >
-> > I have similar device but branded Yuan EC372S and it does exactly same.
-> > This is DiBcom device.
-> >
-> > > I am using kernel 2.6.24.4 and the latest version of v4l-dvb.
-> > >
-> > > For installation of v4l-db follow indications:
-> > >
-> > > http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini
-> > >
-> > >
-> > >
-> > > Possible bug?
-> >
-> > I think so.
-> >
->
-> I have seen an asus driver package for this device, does it require a
-> special firmware? I'm sure they tested it before putting it online..
->
-> Markus
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-------=_Part_819_13567759.1208085996456
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Yes, at least one person reported to work perfectly the Yuan Card. It&#39;s using the same frontend attach as the ASUS one, so perhaps there&#39;s a problem with that. I think that the ASUS is already tested also. Just for information, which distribution are you using? <br>
-<br>Albert<br><br><div class="gmail_quote">2008/4/13 Markus Rechberger &lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div><div></div><div class="Wj3C7c">On 4/13/08, Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt; wrote:<br>
-&gt; <a href="mailto:adriancapel@openforyou.com">adriancapel@openforyou.com</a> wrote:<br>
-&gt; &gt; The device is properly recognized but I can not tune channels.<br>
-&gt; &gt;<br>
-&gt; &gt; scandvb shows me the following error: &quot;WARNING: filter timeout pid 0x0011&quot;<br>
-&gt;<br>
-&gt; I have similar device but branded Yuan EC372S and it does exactly same.<br>
-&gt; This is DiBcom device.<br>
-&gt;<br>
-&gt; &gt; I am using kernel <a href="http://2.6.24.4" target="_blank">2.6.24.4</a> and the latest version of v4l-dvb.<br>
-&gt; &gt;<br>
-&gt; &gt; For installation of v4l-db follow indications:<br>
-&gt; &gt;<br>
-&gt; &gt; <a href="http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini" target="_blank">http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini</a><br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt; &gt; Possible bug?<br>
-&gt;<br>
-&gt; I think so.<br>
-&gt;<br>
-<br>
-</div></div>I have seen an asus driver package for this device, does it require a<br>
-special firmware? I&#39;m sure they tested it before putting it online..<br>
-<font color="#888888"><br>
-Markus<br>
-</font><div><div></div><div class="Wj3C7c"><br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</div></div></blockquote></div><br>
-
-------=_Part_819_13567759.1208085996456--
+Michael Granda wrote:
+> The card shows up on the USB bus. Here is the output of lsusb -v for the 
+> card:
+> 
 
 
---===============1139340964==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+...
+
+> 
+> 
+> On Wed, Apr 23, 2008 at 4:56 PM, Steven Toth <stoth@linuxtv.org 
+> <mailto:stoth@linuxtv.org>> wrote:
+> 
+>     Michael Granda wrote:
+> 
+>         My HP Pavillion dv5000 laptop came with an "HP Analog TV Tuner."
+>         I've been searching endlessly for any support for it, or the
+>         supposed OEM supplier model, the Yuan EC680. The tuner is an
+>         XCeive 2028, and I've noticed that it interfaces with the
+>         computer as a USB device, despite being an ExpressCard device.
+>         I've also given the development tuner-xc2028 module a try, and
+>         still no luck. Does anyone have any idea how to get this working
+>         in Linux?
+> 
+> 
+>     You stand a reasonably good change that the HVR1500 driver will just
+>     work with the current repo.
+> 
+>     Show us the lspci -vn output to be sure.
+
+Nope, bad luck, we don't have a driver for that.
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1139340964==--
