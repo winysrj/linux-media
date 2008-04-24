@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39Lvc7l009079
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:57:38 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39LvALZ029765
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:57:10 -0400
-Date: Wed, 9 Apr 2008 18:55:26 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Message-ID: <20080409185526.0feffa8a@areia>
-In-Reply-To: <alpine.LFD.1.00.0804091559470.27560@localhost.localdomain>
-References: <alpine.LFD.1.00.0804091559470.27560@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video for linux list <video4linux-list@redhat.com>
-Subject: Re: [newbie alert] setting up hauppauge hvr 950 to watch OTA analog?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OHrbY0017544
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 13:53:37 -0400
+Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OHqwcv016650
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 13:53:07 -0400
+Message-ID: <4810C8DA.9030601@linuxtv.org>
+From: mkrufky@linuxtv.org
+To: greg@kroah.com
+Date: Thu, 24 Apr 2008 13:52:26 -0400
+MIME-Version: 1.0
+in-reply-to: <20080424170142.GA20017@kroah.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Cc: video4linux-list@redhat.com
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,39 +26,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 9 Apr 2008 16:03:32 -0400 (EDT)
-"Robert P. J. Day" <rpjday@crashcourse.ca> wrote:
+Greg KH wrote:
+> On Thu, Apr 24, 2008 at 10:40:24AM -0400, Michael Krufky wrote:
+>   
+>> On Thu, Apr 24, 2008 at 10:32 AM, Jon Lowe <jonlowe@aol.com> wrote:
+>>     
+>>> While not exactly the same, this bug MAY be related to my hot swap
+poblem:
+>>>
+https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/12519
+>>>       
+>> No relation.  Also, we're in 2.6.26 development, most 2.6.15 bugs are
+>> entirely irrelevant.
+>>
+>> The problem is PCIe hotplugging  -- it doesn't work in Linux, at
+>> least, not with Expresscards.  This issue is not specific to the
+>> HVR1500 -- you'll see it on other similar Expresscards as well.
+>>     
+>
+> Huh?  We had expresscard hotplugging working in Linux before any other
+> operating system ever did.  It works for me just fine here on many
+> machines, and does so for many thousands of users.
+>
+>   
+>> I can only get the HVR1500 / HVR1500Q / HVR1400 to come up properly if
+>> it is installed in the system when I boot up the PC.  Inserting it
+>> after boot does absolutely nothing, and removing it after you booted
+>> the system with it installed will leave the system unstable.
+>>     
+>
+> Have you actually loaded the pci hotplug controller driver that is
+> needed to get hotplugging of express cards to work properly?  :)
+Now I am very glad that I cc'd you.
 
-> 
->   as my first foray into video, i'd like to set up my new hauppauge
-> wintv-hvr 950 tv tuner to watch OTA analog TV on my fedora 8 system.
-> i've poked around but haven't found a working recipe for this.  and
-> i'd rather not go the full mythtv route since i want to start simple
-> and build from there.
-> 
->   at the moment, i have a fully-updated f8 system and, on the
-> recommendation of a friend, have installed xawtv as the viewing app.
-> so ... where from here?  i can certainly build a new kernel based on
-> the latest git repository but, as i read it, that won't give me the
-> module i want.
-> 
->   in any event, what's next?  and other recommendations for a viewing
-> client?  i'm not trying to get overly fancy, i just want to get this
-> first step done, then i can take it from there.  thanks.
+I'll google a bit to find the name of the "pci hotplug controller 
+driver" module, then give this a try.
 
-There are a few newer revisions of HVR-950. Maybe you'll need to add its PCI ID
-to em28xx-cards.c. If this is not the case, you just need to get the latest
-version of v4l/dvb tree, at:
-	http://linuxtv.org/hg/v4l-dvb
+Hopefully the solution is this simple.
 
-And generate a firmware file. The tool for generating the firmware is available
-at:
-	linux/Documentation/video4linux/extract_xc3028.pl
+Thanks Greg!
 
-The proceadure is written at the beginning of the perl script.
 
-Cheers,
-Mauro
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
