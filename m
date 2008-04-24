@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162])
+Received: from mail.pyx.ch ([212.55.210.221] helo=dmz.pyx.ch)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Sebastian@Schnapsleichen.de>) id 1Jp7fa-0003Uf-3k
-	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 22:03:56 +0200
-Received: from nop.local
-	(dslb-084-057-237-208.pools.arcor-ip.net [84.57.237.208])
-	by post.webmailer.de (mrclete mo25) (RZmta 16.27)
-	with ESMTP id 2007f4k3OGu2jE for <linux-dvb@linuxtv.org>;
-	Thu, 24 Apr 2008 22:03:46 +0200 (MEST)
-	(envelope-from: <Sebastian@Schnapsleichen.de>)
-From: Sebastian Frei <Sebastian@Schnapsleichen.de>
+	(envelope-from <joe@pyx.ch>) id 1JpAOW-0006GS-Ck
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 00:58:25 +0200
+Received: from [192.168.5.194] (77-57-215-40.dclient.hispeed.ch [77.57.215.40])
+	(authenticated bits=0)
+	by dmz.pyx.ch (PYX) with ESMTP id m3OMvoih016903
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Fri, 25 Apr 2008 00:57:50 +0200
+From: Joe Ammann <joe@pyx.ch>
 To: linux-dvb@linuxtv.org
-Date: Thu, 24 Apr 2008 22:04:38 +0200
-References: <20080424194530.GB4097@gmail.com>
-In-Reply-To: <20080424194530.GB4097@gmail.com>
+Date: Fri, 25 Apr 2008 00:56:54 +0200
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804242204.38833.Sebastian@Schnapsleichen.de>
-Subject: Re: [linux-dvb] PATCH: HVR-4000 support for multiproto_plus (tested
-	on 2.6.25)
+Message-Id: <200804250056.55050.joe@pyx.ch>
+Subject: [linux-dvb] Problems with Hauppauge HVR 900 (B3C0) hybrid USB
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,30 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Donnerstag, 24. April 2008 21:45:30 schrieb Gregoire Favre:
-> Hello,
->
-> I finally got a working patch to use my card with news tools :-)
->
+Hi everybody
 
-Hello,
+I'm trying to get this device (USB 2040:6502) going. I understand that this 
+version will probably not give me DVB (only an older release would be 
+supported). But at the moment, I can't get anything to work, not even 
+analogue or the remote control.
 
-I have the same card and I really appreciate your work.
-Thank you!
+Currently, I'm trying on Fedora 8 with a vanilla 2.6.24.5 kernel and the 
+drivers from http://linuxtv.org/hg/v4l-dvb. I also tried with the FC8 stock 
+kernel, 2.6.25, the drivers from mcentral.de, and even the userspace drivers 
+from Markus Rechberger, following various howto's and instructions.
 
-S.
+For most combinations, I can achieve the following:
+- analogue device is recognized and configured (according to
+  dmesg, firmware is loaded, /dev/video0 appears)
+- can't tune anything (with kdetv, device and cable are probably ok, because
+  it works in Windows)
+- IR remote is not recognized (nothing shows up in /proc/bus/input/devices)
 
+With the userspace drivers from mcentral.de on 2.6.25, I got analogue and DVB 
+recognized and devices installed, but again couldn't tune anything (with 
+kdetv and klear).
 
-> I don't see the point on updating the wiki when I am already low on
-> time... please don't email me question or request about this card, when
-> I got some time, I do a little, but only when I got time...
->
-> I hope it works for other also and that it could be included before
-> every thing change again...
->
-> I am not sure why, but I don't seems to be able to send email to
-> linux-dvb@linuxtv.org : if this don't get to it, feel free (or not) to
-> forward it :-)
+Before I try to investigate deeper, I thought I'd ask again if my expectations 
+are right ?!? I *should* be able to get analogue and IR remote working, 
+shouldn't I?
+
+I'd be thankful for any hints, pointing me to the most promising 
+combination :-) , and willing to post logs and stuff.
+
+CU, Joe
 
 _______________________________________________
 linux-dvb mailing list
