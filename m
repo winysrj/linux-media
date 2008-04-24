@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MBMm7j030505
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 07:22:48 -0400
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3MBMcA9010687
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 07:22:38 -0400
-Received: by wr-out-0506.google.com with SMTP id c57so1115986wra.9
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 04:22:38 -0700 (PDT)
-Message-ID: <d9def9db0804220422jfa83927p9ea572077a41e0ca@mail.gmail.com>
-Date: Tue, 22 Apr 2008 13:22:37 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: Mat <heavensdoor78@gmail.com>
-In-Reply-To: <480DBCCD.7040402@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Thu, 24 Apr 2008 12:00:43 -0400
+From: Alan Cox <alan@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080424160043.GA12202@devserv.devel.redhat.com>
+References: <20080420122736.20d60eff@the-village.bc.nu>
+	<200804201806.33464.hverkuil@xs4all.nl>
+	<480B6AD8.9090404@linuxtv.org> <20080423143454.0d50b209@gaivota>
+	<53208a5f0804231226n3cf04ea5ja3cebb5584886183@mail.gmail.com>
+	<20080424124708.3169448a@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-References: <480DBCCD.7040402@gmail.com>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Empia em28xx based USB video device... (2)
+In-Reply-To: <20080424124708.3169448a@gaivota>
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, Michael Krufky <mkrufky@linuxtv.org>,
+	Frank Bennett <biercenator@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] Fix VIDIOCGAP corruption in ivtv
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,47 +27,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 4/22/08, Mat <heavensdoor78@gmail.com> wrote:
->
-> Hi all.
-> How do I test if the current driver support a specific kind of field type?
->
-> The device I'm working with seems to work only in interlaced mode.
-> V4L2_FIELD_NONE is ignored.
->
->  From v4l-info:
->
-> video capture
->     VIDIOC_ENUM_FMT(0,VIDEO_CAPTURE)
->         index                   : 0
->         type                    : VIDEO_CAPTURE
->         flags                   : 0
->         description             : "Packed YUY2"
->         pixelformat             : 0x56595559 [YUYV]
->     VIDIOC_G_FMT(VIDEO_CAPTURE)
->         type                    : VIDEO_CAPTURE
->         fmt.pix.width           : 720
->         fmt.pix.height          : 576
->         fmt.pix.pixelformat     : 0x56595559 [YUYV]
->         fmt.pix.field           : INTERLACED
->         fmt.pix.bytesperline    : 1440
->         fmt.pix.sizeimage       : 829440
->         fmt.pix.colorspace      : SMPTE170M
->         fmt.pix.priv            : 0
->
-> Is it a module driver limit or an hardware limit?
-> In Windows it seems ok... I don't think VLC ( I use it for testing on
-> Win ) de-interlace automatically.
->
-> Ideas?
-> I have to de-interlace myself the frames I suppose...
->
+On Thu, Apr 24, 2008 at 12:47:08PM -0300, Mauro Carvalho Chehab wrote:
+> Maybe we can just add his name in parenthesis. Would this patch description be
+> ok for you, Andrew and Alan?
 
-The driver delivers full frames already since many TV applications
-don't support deinterlacing of halfframes at all. That way is
-hardcoded at the moment.
-
-Markus
+I have no idea if Mr Macks did the work or minds his name being used so I 
+can form no view on the change. Obviously please remove my sign off if you
+make the change
 
 --
 video4linux-list mailing list
