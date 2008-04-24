@@ -1,30 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3H5tQ2H023647
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 01:55:26 -0400
-Received: from mxout10.netvision.net.il (mxout10.netvision.net.il
-	[194.90.6.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3H5tADq022432
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 01:55:13 -0400
-Received: from mail.linux-boards.com ([62.90.235.247])
-	by mxout10.netvision.net.il
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0JZG00JV7GJU0590@mxout10.netvision.net.il> for
-	video4linux-list@redhat.com; Thu, 17 Apr 2008 08:57:31 +0300 (IDT)
-Date: Thu, 17 Apr 2008 08:55:03 +0300
-From: Mike Rapoport <mike@compulab.co.il>
-In-reply-to: <Pine.LNX.4.64.0804091626140.5671@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Message-id: <4806E637.9030906@compulab.co.il>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <47F21593.7080507@compulab.co.il>
-	<Pine.LNX.4.64.0804031708470.18539@axis700.grange>
-	<47F872DE.60004@compulab.co.il>
-	<Pine.LNX.4.64.0804091626140.5671@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa_camera: Add support for YUV modes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OGUQR0021961
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 12:30:26 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OGUBqd013278
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 12:30:11 -0400
+Date: Thu, 24 Apr 2008 13:29:53 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Steven Whitehouse <steve@chygwyn.com>
+Message-ID: <20080424132953.418c5556@gaivota>
+In-Reply-To: <20080424143825.GA31993@fogou.chygwyn.com>
+References: <1209046379.9435.5.camel@ThePenguin>
+	<20080424113125.7fd2de52@gaivota>
+	<1209047735.9435.8.camel@ThePenguin>
+	<20080424141513.GA31623@fogou.chygwyn.com>
+	<20080424114424.52471e2c@gaivota>
+	<20080424143825.GA31993@fogou.chygwyn.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Johan Hedlund <johan.hedlund@enea.com>
+Subject: Re: V4L2_PIX_FMT_SBGGR16 not in kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,56 +32,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, 24 Apr 2008 15:38:25 +0100
+Steven Whitehouse <steve@chygwyn.com> wrote:
 
-
-Guennadi Liakhovetski wrote:
-> On Sun, 6 Apr 2008, Mike Rapoport wrote:
+> Btw, the V4L spec claims that it exists already:
+> http://v4l2spec.bytesex.org/spec/r3796.htm
 > 
->>>> +			DCSR(pcdev->dma_chans[i]) = DCSR_RUN;
->>>> +#ifdef DEBUG
->>>> +			if (CISR & CISR_IFO_0) {
->>>> +				dev_warn(pcdev->dev, "FIFO overrun\n");
->>>> +				for (i = 0; i < channels; i++)
->>>> +					DDADR(pcdev->dma_chans[i]) =
->>>> +						pcdev->active->dmas[i].sg_dma;
->>>> +
->>>> +				CICR0 &= ~CICR0_ENB;
->>>> +				CIFR |= CIFR_RESET_F;
->>>> +				for (i = 0; i < channels; i++)
->>>> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
->>>> +				CICR0 |= CICR0_ENB;
->>>> +			} else {
->>>> +				for (i = 0; i < channels; i++)
->>>> +					DCSR(pcdev->dma_chans[0]) = DCSR_RUN;
->>>> +			}
->>> These three loops don't look right. At least because they use the same 
->>> index i. And you're iterating over channels inside a loop over channels, 
->>> and you have dma_chans[0] instead of [i]. Please fix.
->> Here I'm not quite sure what exactly should be done as I never got overruns.
->> For now I move this code out of the loop and in case of overrun re-enable
->> all three DMAs. BTW, the 'else' here is completely redundant, so I just removed it.
+> Guennadi Liakhovetski submitted a driver which uses this too so
+> thats why I'd thought it was already included. I hadn't looked
+> to see what stage his driver was at recently.
+
+It isn't already at mainstream, but it will be soon. I'm finishing to prepare
+its submission.
+
+> I do have a (not yet submitted driver) which uses it, and the hold up
+> has been basically that the various subsystems that I was using were
+> in a state of flux. I hope that when the current merge window is
+> complete I'll be able to take another look at it, and get it ready.
 > 
-> Mike, you probably saw the recent thread on this list, where the overrun 
-> problem did come up: http://marc.info/?t=120732439600006&r=1&w=2 and my 
-> last post in this thread with a patch. Could you, please, test it with 
-> your YCbCr setup? Would be great, if you could test it with the 
-> application, that fengxin quoted in his mail 
-> http://marc.info/?l=linux-video&m=120762092820785&w=2, see if you too get 
-> overruns with it, and see if my patch fixes them.
+> I hadn't bothered to follow up on the patch since my driver wasn't
+> ready yet, but nonetheless I didn't receive any feedback at the time
+> to suggest that it was a prerequsite.
 
-Sorry for the delay, and as far as I can see you've already have a fix. :)
-If you'd like I can test it with YUV setup. I'll apreciate if you can send me
-the entire updated pxa_camera.c, to save time on merge conflicts.
+It makes no sense to change the API for something that is not used ;)
 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski
-> 
+> There are a lot of sensors though that use this format. Pretty much
+> all the Omnivision sensors and the Micron sensors all have 10 bit
+> interfaces, even though some manufacturers only choose to use the
+> upper 8 bits, so it will be something that it of general use to
+> lots of people,
 
--- 
-Sincerely yours,
-Mike.
+Good.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
