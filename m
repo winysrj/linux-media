@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OLTTGU017028
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:29:29 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OLTICT027067
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 17:29:18 -0400
-Date: Thu, 24 Apr 2008 18:29:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080424182902.7cb8ef98@gaivota>
-In-Reply-To: <20080424152813.40aab7c4@gaivota>
-References: <20080424152813.40aab7c4@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m3OJ7OIx004992
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 15:07:24 -0400
+Received: from imo-d20.mx.aol.com (imo-d20.mx.aol.com [205.188.139.136])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m3OJ77eL010512
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 15:07:08 -0400
+References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>	
+	<20080422040728.GD24855@plankton.ifup.org>	
+	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>	
+	<20080423200134.GJ6703@plankton.ifup.org>	
+	<480FA22D.7010507@linuxtv.org>	
+	<8CA7429B5FF15EF-9C8-FC@mblk-d14.sysops.aol.com>	
+	<8CA742F34634D33-9C8-48F@mblk-d14.sysops.aol.com>
+	<37219a840804240740n67e99cu8dd03062a4acd125@mail.gmail.com>
+To: mkrufky@linuxtv.org
+Date: Thu, 24 Apr 2008 15:05:57 -0400
+In-Reply-To: <37219a840804240740n67e99cu8dd03062a4acd125@mail.gmail.com>
+MIME-Version: 1.0
+From: Jon Lowe <jonlowe@aol.com>
+Message-Id: <8CA74555C979C97-9C8-1A5B@mblk-d14.sysops.aol.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Linux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [RFC] Move hybrid tuners to common/tuners
+Cc: greg@kroah.com, video4linux-list@redhat.com
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,36 +34,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 24 Apr 2008 15:28:13 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+Ok, sounds like I should stand down until I hear otherwise.
 
-> During 2.6.24 and 2.6.25 cycle, it were noticed several issues on building
-> tuner drivers, after the hybrid patches. Mostly, this happened due to the fact
-> that now, those tuners are shared between DVB and V4L.
-> 
-> The proper solution were to move those tuners into common/tuners.
-> 
-> I finally found some time for a patch for it.
-> 
-> Since this kind of patch requires build testing with the in-kernel tree, I've
-> preferred to develop this one directly at -git. It is at [1]:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=b251551263a57d8ca518a21008f20dff29964cb9
 
-Michael Krufky asked me to rename tda18271-tables.c to tda18271-maps.c. Due to
-that, the MD5 sum changed.
-Also, I've added some newer patches. One of them is reorganizing DVB frontends.
-The other moves some other tuners that are also capable of working with both
-analog and digital terrestrial.
+Jon Lowe
 
-Those are the current changesets:
 
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=a97e59842748536bd8e0f159591daa0deb3f01ae
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=47838c0da0a581aa8b4223f044988de56d45f715
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=3dcb518cc91ecc49551240fde5d975e733909cc7
+-----Original Message-----
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Jon Lowe <jonlowe@aol.com>
+Cc: stoth@linuxtv.org; brandon@ifup.org; video4linux-list@redhat.com; Greg K-H <greg@kroah.com>
+Sent: Thu, 24 Apr 2008 9:40 am
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 
-Cheers,
-Mauro
+
+
+On Thu, Apr 24, 2008 at 10:32 AM, Jon Lowe <jonlowe@aol.com> wrote:
+> While not exactly the same, this bug MAY be related to my hot swap poblem:
+>  https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/12519
+
+No relation.  Also, we're in 2.6.26 development, most 2.6.15 bugs are
+entirely irrelevant.
+
+The problem is PCIe hotplugging  -- it doesn't work in Linux, at
+least, not with Expresscards.  This issue is not specific to the
+HVR1500 -- you'll see it on other similar Expresscards as well.
+
+I can only get the HVR1500 / HVR1500Q / HVR1400 to come up properly if
+it is installed in the system when I boot up the PC.  Inserting it
+after boot does absolutely nothing, and removing it after you booted
+the system with it installed will leave the system unstable.
+
+I added cc to Greg KH -- maybe he can point us in a better direction about this.
+
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
