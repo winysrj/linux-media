@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QC0iel006102
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 08:00:44 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OISe5B011257
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 14:28:40 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QC0X3Y007506
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 08:00:33 -0400
-Date: Sat, 26 Apr 2008 08:59:18 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OISTrg012786
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 14:28:29 -0400
+Date: Thu, 24 Apr 2008 15:28:13 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: mkrufky@linuxtv.org
-Message-ID: <20080426085918.09e8bdc0@gaivota>
-In-Reply-To: <4811F391.1070207@linuxtv.org>
-References: <20080425114526.434311ea@gaivota>
-	<4811F391.1070207@linuxtv.org>
+To: Linux DVB <linux-dvb@linuxtv.org>, Linux and Kernel Video
+	<video4linux-list@redhat.com>
+Message-ID: <20080424152813.40aab7c4@gaivota>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, gert.vervoort@hccnet.nl
-Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+Cc: 
+Subject: [RFC] Move hybrid tuners to common/tuners
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,139 +26,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 25 Apr 2008 11:06:57 -0400
-mkrufky@linuxtv.org wrote:
+During 2.6.24 and 2.6.25 cycle, it were noticed several issues on building
+tuner drivers, after the hybrid patches. Mostly, this happened due to the fact
+that now, those tuners are shared between DVB and V4L.
 
-> Mauro Carvalho Chehab wrote:
-> > On Fri, 25 Apr 2008 10:40:14 -0400
-> > "Michael Krufky" <mkrufky@linuxtv.org> wrote:
-> >
-> >   
-> >> On Fri, Apr 25, 2008 at 9:56 AM, Mauro Carvalho Chehab
-> >> <mchehab@infradead.org> wrote:
-> >>     
-> >>> On Thu, 24 Apr 2008 05:55:28 +0200
-> >>>  hermann pitton <hermann-pitton@arcor.de> wrote:
-> >>>
-> >>>  > > > >>>> I am testing a kernel upgrade from 2.6.24.to 2.6.25, and the
-> drivers
-> >>>  > > > >>>> for   the Hauppauge WinTV appear to have suffered some
-> regression
-> >>>  > > > >>>> between the two kernel versions.
-> >>>
-> >>>
-> >>>       
-> >>>> do you see the auto detection issue?
-> >>>>         
-> >>>  >
-> >>>  > Either tell it is just nothing, what I very seriously doubt, or
-> please
-> >>>  > comment.
-> >>>  >
-> >>>  > I don't like to end up on LKML again getting told that written rules
-> >>>  > don't exist ;)
-> >>>
-> >>>  Sorry for now answer earlier. Too busy here, due to the merge window.
-> >>>
-> >>>  This seems to be an old bug. On several cases, tuner_type information
-> came from
-> >>>  some sort of autodetection schema, but the proper setup is not sent to
-> tuner.
-> >>>
-> >>>  Please test the enclosed patch. It warrants that TUNER_SET_TYPE_ADDR is
-> called
-> >>>  at saa7134_board_init2() for all those boards:
-> >>>
-> >>>  SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331
-> >>>  SAA7134_BOARD_ASUS_EUROPA2_HYBRID
-> >>>  SAA7134_BOARD_ASUSTeK_P7131_DUAL
-> >>>  SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA
-> >>>  SAA7134_BOARD_AVERMEDIA_SUPER_007
-> >>>  SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM
-> >>>  SAA7134_BOARD_BMK_MPEX_NOTUNER
-> >>>  SAA7134_BOARD_BMK_MPEX_TUNER
-> >>>  SAA7134_BOARD_CINERGY_HT_PCI
-> >>>  SAA7134_BOARD_CINERGY_HT_PCMCIA
-> >>>  SAA7134_BOARD_CREATIX_CTX953
-> >>>  SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
-> >>>  SAA7134_BOARD_FLYDVB_TRIO
-> >>>  SAA7134_BOARD_HAUPPAUGE_HVR1110
-> >>>  SAA7134_BOARD_KWORLD_ATSC110
-> >>>  SAA7134_BOARD_KWORLD_DVBT_210
-> >>>  SAA7134_BOARD_MD7134
-> >>>  SAA7134_BOARD_MEDION_MD8800_QUADRO
-> >>>  SAA7134_BOARD_PHILIPS_EUROPA
-> >>>  SAA7134_BOARD_PHILIPS_TIGER
-> >>>  SAA7134_BOARD_PHILIPS_TIGER_S
-> >>>  SAA7134_BOARD_PINNACLE_PCTV_310i
-> >>>  SAA7134_BOARD_TEVION_DVBT_220RF
-> >>>  SAA7134_BOARD_TWINHAN_DTV_DVB_3056
-> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_200
-> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_200A
-> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_300
-> >>>
-> >>>  It is important to test the above boards, to be sure that no regression
-> is
-> >>>  caused.
-> >>>
-> >>>  Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-> >>>
-> >>>  diff -r 60110897e86a linux/drivers/media/video/saa7134/saa7134-cards.c
-> >>>  --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25
-> 08:04:54 2008 -0300
-> >>>  +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25
-> 10:44:16 2008 -0300
-> >>>       
-> >> Mauro,
-> >>
-> >> I didn't review your patch yet, and it needs to be tested, however,
-> >> the bug reported in this thread deals with the same regression that
-> >> you are attempting to repair, but on the cx88 driver -- not the
-> >> saa7134 driver.
-> >>     
-> >
-> > Hmm... it seems that people merged two similar issues together, on
-> different
-> > drivers. At least, part of the reports at the thread were with saa7134
-> driver.
-> >
-> > I'll investigate if this solution will also work for cx88.
-> 
-> Mauro,
-> 
-> "...people merged two similar issues together, on different drivers..."  
-> It was you -- did you forget?
-> 
-> cx88: http://linuxtv.org/hg/v4l-dvb/rev/2eb392c86745
-> 
-> saa7134: http://linuxtv.org/hg/v4l-dvb/rev/e7668fc3666c
-> 
-> I'm surprised that you don't remember this -- you pushed this to Linus 
-> late in the 2.6.25-rcX, after I had strongly advised against this -- I 
-> warned you that this may create regressions, needed thorough testing, 
-> and was too risky a change to push into the middle of 2.6.25-rc
-> 
-> I hate to say, "I told you so" .... but.............
-> 
-> ;-)
-> 
-> Lets get your fixes tested ASAP so we can fix 2.6.25-stable.
+The proper solution were to move those tuners into common/tuners.
 
-The fix weren't caused by the changesets you've pointed, but are much older. If
-you try to revert both changesets and load tuner before cx88/saa7134, or
-compile tuner statically, you'll notice exact the same issue.
+I finally found some time for a patch for it.
 
-The issue is that set_type_addr were called at the wrong place.
+Since this kind of patch requires build testing with the in-kernel tree, I've
+preferred to develop this one directly at -git. It is at [1]:
 
-Anyway, I've just committed a patch that should fix this for cx88. I'll soon
-use the same logic to fix also saa7134.
+http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commit;h=b251551263a57d8ca518a21008f20dff29964cb9
 
-I've also added a patch for tuner-core, to improve debug (of course, this
-doesn't need to go to -stable). This helps to see the bug, if tuner debug is
-enabled.
+This patch also do some rearrangements at Kconfig items and move saa7146 to
+media/video (where all other hybrid designs are).
+
+After this patch, a good cleanup would be to rename the Kconfig items, since
+the namespace is very messy nowadays. Also, I didn't touch on some tuners that
+are currently used only by DVB-only drivers. Probably, it would be a good idea
+to move the other tuners capable of working on both analog and digital modes
+(like mt2060) also to common/tuners, to use the same convention for
+all tuners.
+
+Please check and test. If ok, it would be good to merge it during 2.6.26 window.
 
 Cheers,
 Mauro
+
+[1] as a plus, -git works very well with "move" patches. I've started working
+on this before merging a few patches that changed tea5767 and tea5761. Just
+poping the move patch from stgit stack, applying the newer ones and pushing
+again solved all conflicts. With Mercurial, I would probably need to re-do the
+move for the affected drivers.
 
 --
 video4linux-list mailing list
