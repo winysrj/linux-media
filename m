@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3RG54ik032187
-	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 12:05:04 -0400
-Received: from web63109.mail.re1.yahoo.com (web63109.mail.re1.yahoo.com
-	[69.147.97.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3RG4qf9014767
-	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 12:04:53 -0400
-Date: Sun, 27 Apr 2008 09:04:46 -0700 (PDT)
-From: Xefur Ragnarok <x3fur@yahoo.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3O2a1qK005705
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:36:01 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3O2ZooP021560
+	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:35:50 -0400
+Date: Wed, 23 Apr 2008 22:35:49 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Brandon Philips <brandon@ifup.org>
+In-Reply-To: <20080423234322.GB20819@plankton.ifup.org>
+Message-ID: <Pine.LNX.4.64.0804232231250.31358@bombadil.infradead.org>
+References: <200804230137.12502.laurent.pinchart@skynet.be>
+	<20080423142705.62b6e444@gaivota>
+	<20080423234322.GB20819@plankton.ifup.org>
 MIME-Version: 1.0
-Message-ID: <173975.40126.qm@web63109.mail.re1.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: WinTV PVR PCI
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] USB Video Class driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,65 +28,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, 
+On Wed, 23 Apr 2008, Brandon Philips wrote:
 
-I have recently acquired a WinTV PVR PCI card. What is interesting about this card is that none of the drivers worked in either windows or linux. I believe the reason to be the following:
+> On 14:27 Wed 23 Apr 2008, Mauro Carvalho Chehab wrote:
+>>> + * ...  It implements the
+>>> + * mmap capture method only ...
+>>
+>> You should consider moving to videobuf on a later version. videobuf also
+>> implements read() method, and will likely implement also USERPTR and maybe
+>> OVERLAY on future versions.
+>
+> Lets shoot for doing this after 2.6.26 if Laurent signs-off.  Until then
+> lets not get into this argument again :D
 
-excerpt from lspci:
-01:02.0 Multimedia video controller: Unknown device 009e:036e (rev 11)
-01:02.1 Multimedia controller: Unknown device 009e:0878 (rev 11)
+Hmm... I didn't notice the lack of Laurent SOB :)
 
-I'm positive that this is the card. However its' PCI Subsystem ID is unrecognised.
+As I said, this is a comment about possible improvements for later 
+versions. Seems ok to me to use uvc-queue for 2.6.26.
 
-It has the BT878 Chipset, I'm not sure about the tuner but I know it is NTSC. I've tried manually following the directions on the bttv howto to no avail. All of those instructions assume that you have a pci subsystem id of a card that should have been already detected.
+>>> +static int uvc_v4l2_do_ioctl(struct inode *inode, struct file *file,
+>>> +		     unsigned int cmd, void *arg)
+>>> +{
+>>> +	struct video_device *vdev = video_devdata(file);
+>>> +	struct uvc_video_device *video = video_get_drvdata(vdev);
+>>> +	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
+>>> +	int ret = 0;
+>>> +
+>>> +	if (uvc_trace_param & UVC_TRACE_IOCTL)
+>>> +		v4l_printk_ioctl(cmd);
+>>
+>> The better is to remove the do_ioctl, in favor of video_ioctl2. Also, this will
+>> provide a much better debug than what's provided by v4l_printk_ioctl().
+>
+> We discussed this months ago and everyone agreed that video_ioctl2 is
+> nice but it is not a requirement to be in the tree.
 
-Other Info:
+No, it is not a requirement for merging uvc. This is a suggestion for 
+future improvements.
 
-mediacenter:/home/tim/Desktop/bttv-0.9.15 # lspci
-00:00.0 Host bridge: Intel Corporation 82865G/PE/P DRAM Controller/Host-Hub Interface (rev 02)
-00:01.0 PCI bridge: Intel Corporation 82865G/PE/P PCI to AGP Controller (rev 02)
-00:03.0 PCI bridge: Intel Corporation 82865G/PE/P PCI to CSA Bridge (rev 02)
-00:1d.0 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI Controller #1 (rev 02)
-00:1d.1 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI Controller #2 (rev 02)
-00:1d.2 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI Controller #3 (rev 02)
-00:1d.3 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB UHCI Controller #4 (rev 02)
-00:1d.7 USB Controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) USB2 EHCI Controller (rev 02)
-00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev c2)
-00:1f.0 ISA bridge: Intel Corporation 82801EB/ER (ICH5/ICH5R) LPC Interface Bridge (rev 02)
-00:1f.1 IDE interface: Intel Corporation 82801EB/ER (ICH5/ICH5R) IDE Controller (rev 02)
-00:1f.2 IDE interface: Intel Corporation 82801EB (ICH5) SATA Controller (rev 02)
-00:1f.3 SMBus: Intel Corporation 82801EB/ER (ICH5/ICH5R) SMBus Controller (rev 02)
-00:1f.5 Multimedia audio controller: Intel Corporation 82801EB/ER (ICH5/ICH5R) AC'97 Audio Controller (rev 02)
-01:01.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev 10)
-01:02.0 Multimedia video controller: Unknown device 009e:036e (rev 11)
-01:02.1 Multimedia controller: Unknown device 009e:0878 (rev 11)
-02:01.0 Ethernet controller: Intel Corporation 82547EI Gigabit Ethernet Controller
-03:00.0 VGA compatible controller: ATI Technologies Inc RV350 AR [Radeon 9600]
-03:00.1 Display controller: ATI Technologies Inc RV350 AR [Radeon 9600] (Secondary)
+>> Driver looks sane. Just a few comments.
+>
+> Thanks for finding the other issues in your review Mauro; you picked up
+> on some good details that should be fixed up before the merge.
 
+Anytime.
 
-mediacenter:/home/tim/Desktop/bttv-0.9.15 # lsmod |grep bt
-bttv                  168980  0
-i2c_algo_bit            9988  1 bttv
-tveeprom               18960  1 bttv
-i2c_core               27520  3 bttv,i2c_algo_bit,tveeprom
-video_buf              27652  1 bttv
-ir_common              38148  1 bttv
-compat_ioctl32          5376  1 bttv
-btcx_risc               8840  1 bttv
-videodev               30464  1 bttv
-v4l2_common            20608  2 bttv,videodev
-v4l1_compat            16388  2 bttv,videodev
-firmware_class         13568  2 bttv,microcode
+Cheers,
+Mauro
 
-
-Any help would be appreciated
-Timothy
-
-
-       
----------------------------------
-Be a better friend, newshound, and know-it-all with Yahoo! Mobile.  Try it now.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
