@@ -1,23 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QEOgSG016511
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 10:24:42 -0400
-Received: from smtp40.hccnet.nl (smtp40.hccnet.nl [62.251.0.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QENe92023466
-	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 10:23:40 -0400
-Message-ID: <48133AE3.7070706@hccnet.nl>
-Date: Sat, 26 Apr 2008 16:23:31 +0200
-From: Gert Vervoort <gert.vervoort@hccnet.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OEehQv023721
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:40:43 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.250])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OEeTw8009083
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:40:29 -0400
+Received: by an-out-0708.google.com with SMTP id c31so930999ana.124
+	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 07:40:26 -0700 (PDT)
+Message-ID: <37219a840804240740n67e99cu8dd03062a4acd125@mail.gmail.com>
+Date: Thu, 24 Apr 2008 10:40:24 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Jon Lowe" <jonlowe@aol.com>
+In-Reply-To: <8CA742F34634D33-9C8-48F@mblk-d14.sysops.aol.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <480A5CC3.6030408@pickworth.me.uk>	<480B26FC.50204@hccnet.nl>	<480B3673.3040707@pickworth.me.uk>	<1208696771.3349.49.camel@pc10.localdom.local>	<480B6CD8.7040702@hccnet.nl>	<1208726202.5682.44.camel@pc10.localdom.local>	<1209009328.3402.9.camel@pc10.localdom.local>	<20080425105618.08c5c471@gaivota>	<37219a840804250740k6b1bb64er633cff7a4e377798@mail.gmail.com>	<20080425120307.69a71e17@gaivota>	<48120D15.3010109@hccnet.nl>
-	<20080426090725.4a0fdcd4@gaivota>
-In-Reply-To: <20080426090725.4a0fdcd4@gaivota>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: DVB ML <linux-dvb@linuxtv.org>, video4linux-list@redhat.com,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
+Content-Disposition: inline
+References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>
+	<20080422040728.GD24855@plankton.ifup.org>
+	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>
+	<20080423200134.GJ6703@plankton.ifup.org>
+	<480FA22D.7010507@linuxtv.org>
+	<8CA7429B5FF15EF-9C8-FC@mblk-d14.sysops.aol.com>
+	<8CA742F34634D33-9C8-48F@mblk-d14.sysops.aol.com>
+Cc: Greg K-H <greg@kroah.com>, video4linux-list@redhat.com
+Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,44 +36,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> Hi Gert,
->
-> On Fri, 25 Apr 2008 18:55:49 +0200
-> Gert Vervoort <gert.vervoort@hccnet.nl> wrote:
->
->   
->> This does not make a difference for me:
->>     
->
-> Please, update from v4l-dvb and test again.
->   
-Yes, now correctly sets the tuner type:
+On Thu, Apr 24, 2008 at 10:32 AM, Jon Lowe <jonlowe@aol.com> wrote:
+> While not exactly the same, this bug MAY be related to my hot swap poblem:
+>  https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.15/+bug/12519
 
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:00:0a.0[A] -> GSI 18 (level, low) -> IRQ 18
-cx88[0]: subsystem: 107d:6611, board: Leadtek Winfast 2000XP Expert 
-[card=5,autodetected]
-cx88[0]: TV tuner type 44, Radio tuner type -1
-tuner' 4-0043: chip found @ 0x86 (cx88[0])
-tda9887 4-0043: creating new instance
-tda9887 4-0043: tda988[5/6/7] found
-All bytes are equal. It is not a TEA5767
-tuner' 4-0060: chip found @ 0xc0 (cx88[0])
-cx88[0]: Leadtek Winfast 2000XP Expert config: tuner=38, eeprom[0]=0x01
-tuner-simple 4-0060: creating new instance
-tuner-simple 4-0060: type set to 38 (Philips PAL/SECAM multi (FM1216ME MK3))
-input: cx88 IR (Leadtek Winfast 2000XP as /class/input/input6
-cx88[0]/0: found at 0000:00:0a.0, rev: 5, irq: 18, latency: 32, mmio: 
-0xe2000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88[0]/0: registered device radio0
+No relation.  Also, we're in 2.6.26 development, most 2.6.15 bugs are
+entirely irrelevant.
 
+The problem is PCIe hotplugging  -- it doesn't work in Linux, at
+least, not with Expresscards.  This issue is not specific to the
+HVR1500 -- you'll see it on other similar Expresscards as well.
 
+I can only get the HVR1500 / HVR1500Q / HVR1400 to come up properly if
+it is installed in the system when I boot up the PC.  Inserting it
+after boot does absolutely nothing, and removing it after you booted
+the system with it installed will leave the system unstable.
 
-   Gert
+I added cc to Greg KH -- maybe he can point us in a better direction about this.
 
+Regards,
+
+Mike
 
 --
 video4linux-list mailing list
