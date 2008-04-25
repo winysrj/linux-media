@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38MbWKF014257
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:37:32 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3PBAKpx000954
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 07:10:20 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38MbLq7029613
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:37:21 -0400
-Date: Tue, 8 Apr 2008 19:36:58 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3PBA7t6016442
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 07:10:07 -0400
+Date: Fri, 25 Apr 2008 08:08:56 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Oliver Endriss <o.endriss@gmx.de>
-Message-ID: <20080408193658.4fcb598b@gaivota>
-In-Reply-To: <200804090027.19735@orion.escape-edv.de>
-References: <47FBDD42.2030608@linuxtv.org>
-	<200804090027.19735@orion.escape-edv.de>
+To: Igor Kuznetsov <igk72@yandex.ru>
+Message-ID: <20080425080856.635581a0@gaivota>
+In-Reply-To: <387481209112780@webmail35.yandex.ru>
+References: <20071231091423.GA3344@kmv.ru>
+	<387481209112780@webmail35.yandex.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Cc: video4linux-list@redhat.com
+Subject: Re: Add Beholder TV H6 support - hybrid card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,36 +28,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 9 Apr 2008 00:27:18 +0200
-Oliver Endriss <o.endriss@gmx.de> wrote:
+Hi Igor,
 
-> mkrufky@linuxtv.org wrote:
-> > ...
-> > ...all of this noise was made, and now not a single person is willing to 
-> > test the proposed solution?
-> > 
-> > I don't think that there will be many more 2.6.24.y releases.  I have an 
-> > ivtv patch queued for 2.6.24.5, and this tda10086 patch is sitting in my 
-> > outbox, waiting for test results.
-> > 
-> > I suspect that 2.6.25 will be released in a few days, after which, 
-> > 2.6.24.y -stable release turnaround gets slower and slower, and most 
-> > likely will end by the time 2.6.26 is released.
-> > 
-> > If you want this fixed, then the fix needs testing .... NOW.
+On Fri, 25 Apr 2008 12:39:40 +0400
+Igor Kuznetsov <igk72@yandex.ru> wrote:
+
+> Beholder TV H6 - hybrid card
 > 
-> Always the same story. :-(
 > 
-> We need a test center, or preferably a community of testers who are
-> willing to do regression tests with the drivers...
+> Add support - analog tv, radio, remote control
+> 
+> --
+> Igor Kuznetsov "IgK"
+> Web: www.igk.ru
+> Email: igk@igk.ru, igk72@yandex.ru
+> ICQ: 6651879
 
-Agreed.
+Thanks for the patch.
 
-Michael,
+Sorry, but your patch failed to apply against the devel tree:
 
-About this specific patch, I don't see any reason why not forwarding it to
-2.6.24. There were some reports already about this fixing some broken LNA.
+$ patch -p1 -i /tmp/v4l2-beholder-2.6.24-hg.patch
+patching file linux/Documentation/video4linux/CARDLIST.saa7134
+Hunk #1 FAILED at 116.
+1 out of 1 hunk FAILED -- saving rejects to file linux/Documentation/video4linux/CARDLIST.saa7134.rej
+patching file linux/drivers/media/common/ir-keymaps.c
+Hunk #1 FAILED at 1893.
+1 out of 1 hunk FAILED -- saving rejects to file linux/drivers/media/common/ir-keymaps.c.rej
+patching file linux/drivers/media/video/ir-kbd-i2c.c
+Reversed (or previously applied) patch detected!  Assume -R? [n]
+Apply anyway? [n]
+Skipping patch.
+2 out of 2 hunks ignored -- saving rejects to file linux/drivers/media/video/ir-kbd-i2c.c.rej
+patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+Hunk #1 succeeded at 4290 with fuzz 2 (offset 701 lines).
+Hunk #2 succeeded at 5410 with fuzz 2 (offset 767 lines).
+Hunk #3 FAILED at 5728.
+Hunk #4 FAILED at 5777.
+Hunk #5 FAILED at 5799.
+3 out of 5 hunks FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-cards.c.rej
+patching file linux/drivers/media/video/saa7134/saa7134-i2c.c
+Reversed (or previously applied) patch detected!  Assume -R? [n]
+Apply anyway? [n]
+Skipping patch.
+2 out of 2 hunks ignored -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-i2c.c.rej
+patching file linux/drivers/media/video/saa7134/saa7134-input.c
+Hunk #1 succeeded at 57 with fuzz 2 (offset 13 lines).
+Hunk #2 succeeded at 160 (offset 20 lines).
+Hunk #3 FAILED at 335.
+Hunk #4 succeeded at 591 with fuzz 2 (offset 91 lines).
+1 out of 4 hunks FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-input.c.rej
+patching file linux/drivers/media/video/saa7134/saa7134.h
+Hunk #1 FAILED at 247.
+1 out of 1 hunk FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134.h.rej
+patching file linux/include/media/ir-common.h
+patch: **** malformed patch at line 836: diff -r 59987f33c150 linux/drivers/media/video/saa7134/saa7134-i2c.c
 
+Could you please re-generate it?
+
+Ah, there were some recent Beholder driver additions, with the support of the
+manufacturer. Maybe you could try first if your board is already supported on
+the latest version.
 
 Cheers,
 Mauro
