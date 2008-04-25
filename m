@@ -1,27 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39LbjwY028664
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:37:45 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3PElMpl027744
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 10:47:22 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39LbJ9a018356
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 17:37:20 -0400
-Date: Wed, 9 Apr 2008 18:35:36 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3PEkjRK013348
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 10:46:46 -0400
+Date: Fri, 25 Apr 2008 11:45:26 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Maykel Moya <moya-lists@infomed.sld.cu>
-Message-ID: <20080409183536.3dd3fea4@areia>
-In-Reply-To: <1205649437.2771.13.camel@gloria.red.sld.cu>
-References: <1205282139.17131.28.camel@gloria.red.sld.cu>
-	<20080312180944.3a7e8447@gaivota>
-	<1205359734.47d85476111af@webmail.sld.cu>
-	<20080313102628.7507d02b@gaivota>
-	<1205468182.3027.3.camel@gloria.red.sld.cu>
-	<20080314105458.2dd2a284@gaivota>
-	<1205649437.2771.13.camel@gloria.red.sld.cu>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+Message-ID: <20080425114526.434311ea@gaivota>
+In-Reply-To: <37219a840804250740k6b1bb64er633cff7a4e377798@mail.gmail.com>
+References: <480A5CC3.6030408@pickworth.me.uk> <480B26FC.50204@hccnet.nl>
+	<480B3673.3040707@pickworth.me.uk>
+	<1208696771.3349.49.camel@pc10.localdom.local>
+	<480B6CD8.7040702@hccnet.nl>
+	<1208726202.5682.44.camel@pc10.localdom.local>
+	<1209009328.3402.9.camel@pc10.localdom.local>
+	<20080425105618.08c5c471@gaivota>
+	<37219a840804250740k6b1bb64er633cff7a4e377798@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Problems setting up a TM5600 based device
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, DVB ML <linux-dvb@linuxtv.org>,
+	Gert Vervoort <gert.vervoort@hccnet.nl>
+Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,53 +35,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 16 Mar 2008 02:37:17 -0400
-Maykel Moya <moya-lists@infomed.sld.cu> wrote:
+On Fri, 25 Apr 2008 10:40:14 -0400
+"Michael Krufky" <mkrufky@linuxtv.org> wrote:
 
+> On Fri, Apr 25, 2008 at 9:56 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> > On Thu, 24 Apr 2008 05:55:28 +0200
+> >  hermann pitton <hermann-pitton@arcor.de> wrote:
+> >
+> >  > > > >>>> I am testing a kernel upgrade from 2.6.24.to 2.6.25, and the drivers
+> >  > > > >>>> for   the Hauppauge WinTV appear to have suffered some regression
+> >  > > > >>>> between the two kernel versions.
+> >
+> >
+> > > do you see the auto detection issue?
+> >  >
+> >  > Either tell it is just nothing, what I very seriously doubt, or please
+> >  > comment.
+> >  >
+> >  > I don't like to end up on LKML again getting told that written rules
+> >  > don't exist ;)
+> >
+> >  Sorry for now answer earlier. Too busy here, due to the merge window.
+> >
+> >  This seems to be an old bug. On several cases, tuner_type information came from
+> >  some sort of autodetection schema, but the proper setup is not sent to tuner.
+> >
+> >  Please test the enclosed patch. It warrants that TUNER_SET_TYPE_ADDR is called
+> >  at saa7134_board_init2() for all those boards:
+> >
+> >  SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331
+> >  SAA7134_BOARD_ASUS_EUROPA2_HYBRID
+> >  SAA7134_BOARD_ASUSTeK_P7131_DUAL
+> >  SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA
+> >  SAA7134_BOARD_AVERMEDIA_SUPER_007
+> >  SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM
+> >  SAA7134_BOARD_BMK_MPEX_NOTUNER
+> >  SAA7134_BOARD_BMK_MPEX_TUNER
+> >  SAA7134_BOARD_CINERGY_HT_PCI
+> >  SAA7134_BOARD_CINERGY_HT_PCMCIA
+> >  SAA7134_BOARD_CREATIX_CTX953
+> >  SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
+> >  SAA7134_BOARD_FLYDVB_TRIO
+> >  SAA7134_BOARD_HAUPPAUGE_HVR1110
+> >  SAA7134_BOARD_KWORLD_ATSC110
+> >  SAA7134_BOARD_KWORLD_DVBT_210
+> >  SAA7134_BOARD_MD7134
+> >  SAA7134_BOARD_MEDION_MD8800_QUADRO
+> >  SAA7134_BOARD_PHILIPS_EUROPA
+> >  SAA7134_BOARD_PHILIPS_TIGER
+> >  SAA7134_BOARD_PHILIPS_TIGER_S
+> >  SAA7134_BOARD_PINNACLE_PCTV_310i
+> >  SAA7134_BOARD_TEVION_DVBT_220RF
+> >  SAA7134_BOARD_TWINHAN_DTV_DVB_3056
+> >  SAA7134_BOARD_VIDEOMATE_DVBT_200
+> >  SAA7134_BOARD_VIDEOMATE_DVBT_200A
+> >  SAA7134_BOARD_VIDEOMATE_DVBT_300
+> >
+> >  It is important to test the above boards, to be sure that no regression is
+> >  caused.
+> >
+> >  Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> >
+> >  diff -r 60110897e86a linux/drivers/media/video/saa7134/saa7134-cards.c
+> >  --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 08:04:54 2008 -0300
+> >  +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 10:44:16 2008 -0300
 > 
-> El vie, 14-03-2008 a las 10:54 -0300, Mauro Carvalho Chehab escribió:
+> Mauro,
 > 
-> > > This firmware did load correctly but the computer locked up when
-> > > accessing the device. I tried with tvtime and xawtv.
-> > 
-> > Those apps don't work well with tm6000, since they want to force the driver to
-> > work on non-supported resolutions.
-> > 
-> > Try mplayer:
-> > 
-> > mplayer -tv driver=v4l2 tv://
-> 
-> I did run mplayer. First time it didn't launch the video output window
-> and I had to interrupt it manually with Ctrl + C. After that I did run
-> it again, this time it launched the video window and freezes the
-> machine.
+> I didn't review your patch yet, and it needs to be tested, however,
+> the bug reported in this thread deals with the same regression that
+> you are attempting to repair, but on the cx88 driver -- not the
+> saa7134 driver.
 
-Sorry for not answering earlier. I was flooded with work here. I've updated
-tm6010 tree. Yet, there are still several issues to be solved. Basically,
-videobuf-vmalloc has several bugs fixed. I didn't touch on tm6000 part yet.
+Hmm... it seems that people merged two similar issues together, on different
+drivers. At least, part of the reports at the thread were with saa7134 driver.
 
-I expect to write some new code there soon.
-
-> qv4l2 don't compile
-
-You need all those qt development libs in order to compile it.
-
-> CC decode_tm6000.o
-> In file included from decode_tm6000.c:19:
-> ../lib/v4l2_driver.h:26: error: expected specifier-qualifier-list before
-> ‘size_t’
-> decode_tm6000.c: In function ‘recebe_buffer’:
-> decode_tm6000.c:133: error: ‘struct v4l2_t_buf’ has no member named
-> ‘length’
-> decode_tm6000.c:135: error: ‘struct v4l2_t_buf’ has no member named
-> ‘length’
-> decode_tm6000.c:136: error: ‘struct v4l2_t_buf’ has no member named
-> ‘length’
-> make[1]: *** [decode_tm6000.o] Error 1
-> make[1]: se sale del directorio
-> `/home/moya/src/tm6010-upstream/v4l2-apps/util'
-
-Weird. However, I didn't work on this decoding code for quite some time.
+I'll investigate if this solution will also work for cx88.
 
 Cheers,
 Mauro
