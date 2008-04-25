@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.182])
+Received: from f93.mail.ru ([194.67.57.163])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <emaildericky@gmail.com>) id 1JqqFZ-000860-Hx
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 15:52:11 +0200
-Received: by wa-out-1112.google.com with SMTP id m28so13130wag.13
-	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 06:52:01 -0700 (PDT)
-Message-ID: <3271f22e0804290652v428302b3scef465444613e623@mail.gmail.com>
-Date: Tue, 29 Apr 2008 15:52:01 +0200
-From: "Ricardo Carrillo Cruz" <emaildericky@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>, linux-dvb@linuxtv.org
-In-Reply-To: <4817267F.5050407@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <d350e5180804290541q6455c0b3s63aafbbc17e424e2@mail.gmail.com>
-	<48171AA0.2060203@linuxtv.org>
-	<3271f22e0804290608y6a1cc9c8q48eab0516d9f0371@mail.gmail.com>
-	<4817267F.5050407@linuxtv.org>
-Subject: Re: [linux-dvb] hauppauge HVR 900H
+	(envelope-from <goga777@bk.ru>) id 1JpHNa-0002kI-VE
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 08:25:57 +0200
+Received: from mail by f93.mail.ru with local id 1JpHMv-0002kL-00
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 10:25:13 +0400
+From: Igor <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Fri, 25 Apr 2008 10:25:13 +0400
+In-Reply-To: <20080424194530.GB4097@gmail.com>
+References: <20080424194530.GB4097@gmail.com>
+Message-Id: <E1JpHMv-0002kL-00.goga777-bk-ru@f93.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?UEFUQ0g6IEhWUi00MDAwIHN1cHBvcnQgZm9yIG11?=
+	=?koi8-r?b?bHRpcHJvdG9fcGx1cyAodGVzdGVkIG9uIDIuNi4yNSk=?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,45 +23,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Doh, thanks for the pointer :S .
-So as I was 'intending' to find out the maintainer, can anyone confirm
-if is Mauro the tm6000 driver maintainer now?
-
-Regards
-
-2008/4/29, Steven Toth <stoth@linuxtv.org>:
-> Ricardo Carrillo Cruz wrote:
->
-> > Hey, hi Steven and Andy
-> >
-> > I posted some days ago regarding this one, it uses tm6000 , I followed
-> > the instructions on the wiki but the driver is outdated in regards to
-> > the last v4l tree.
-> > Per the wiki page the maintainer is Michael Ludwig, now I'm confused.
-> > Is Mauro the actual maintainer? Can you Mauro give a quick update on the
-> driver?
-> >
->
->  Ricardo,
->
->  I *thought* Mauro was the maintainer, I know he's doing a lot of work on
-> the tm6000 tree, but I guess I could be wrong. Perhaps he's passing patches
-> to Michael.
->
->  You forgot to CC anyone else into the email. :)
->
->  Regards,
->
->  Steve
->
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+RGVhciBHcmVnb2lyZQoKdGhhbmtzIGZvciB5b3VyIHBhdGNoLiBJIGhhdmUgb25lIHByb2JsZW0g
+d2l0aCBtaXNzaW5nCm11bHRpcHJvdG9fcGx1cy92NGwvbW9kdWxlcy5vcmRlcgoKSWdvcgoKCmdv
+Z2E6L3Vzci9zcmMvbXVsdGlwcm90b19wbHVzIyBjYXQgSFZSLTQwMDAtbXVsdGlwcm90b19wbHVz
+LTIwMDgtMDQtMjUuZGlmZiB8IHBhdGNoIC1wMSAtLWRyeS1ydW4KcGF0Y2hpbmcgZmlsZSBsaW51
+eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvY3gyNDExNi5jCnBhdGNoaW5nIGZpbGUgbGlu
+dXgvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2N4MjQxMTYuaApwYXRjaGluZyBmaWxlIGxp
+bnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9LY29uZmlnCnBhdGNoaW5nIGZpbGUgbGlu
+dXgvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL01ha2VmaWxlCnBhdGNoaW5nIGZpbGUgbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwpwYXRjaGluZyBmaWxlIGxp
+bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCnBhdGNoaW5nIGZpbGUgbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaApwYXRjaGluZyBmaWxlIGxpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWkyYy5jCnBhdGNoaW5nIGZpbGUgbGludXgvZHJp
+dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwpwYXRjaGluZyBmaWxlIGxpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9LY29uZmlnCnBhdGNoaW5nIGZpbGUgbGludXgvZHJpdmVy
+cy9tZWRpYS92aWRlby9pci1rYmQtaTJjLmMKcGF0Y2hpbmcgZmlsZSBsaW51eC9pbmNsdWRlL2xp
+bnV4L2NvbXBpbGVyLmgKcGF0Y2hpbmcgZmlsZSBsaW51eC9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9u
+dGVuZC5oCnBhdGNoaW5nIGZpbGUgdjRsLy5jb25maWcub2xkCm1pc3NpbmcgaGVhZGVyIGZvciB1
+bmlmaWVkIGRpZmYgYXQgbGluZSAyNzg2IG9mIHBhdGNoCmNhbid0IGZpbmQgZmlsZSB0byBwYXRj
+aCBhdCBpbnB1dCBsaW5lIDI3ODYKUGVyaGFwcyB5b3UgdXNlZCB0aGUgd3JvbmcgLXAgb3IgLS1z
+dHJpcCBvcHRpb24/ClRoZSB0ZXh0IGxlYWRpbmcgdXAgdG8gdGhpcyB3YXM6Ci0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tCnxkaWZmIC1ydWJCTiBtdWx0aXByb3RvX3BsdXMtY2xlYW4vdjRsL21v
+ZHVsZXMub3JkZXIgbXVsdGlwcm90b19wbHVzL3Y0bC9tb2R1bGVzLm9yZGVyCnwtLSBtdWx0aXBy
+b3RvX3BsdXMtY2xlYW4vdjRsL21vZHVsZXMub3JkZXIgICAgIDIwMDgtMDQtMjAgMTE6NTc6NDMu
+MDAwMDAwMDAwICswMjAwCnwrKysgbXVsdGlwcm90b19wbHVzL3Y0bC9tb2R1bGVzLm9yZGVyICAy
+MDA4LTA0LTI0IDIwOjQ0OjMwLjAwMDAwMDAwMCArMDIwMAotLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLQpGaWxlIHRvIHBhdGNoOiAKCgoKCj4gCj4gSSBmaW5hbGx5IGdvdCBhIHdvcmtpbmcgcGF0
+Y2ggdG8gdXNlIG15IGNhcmQgd2l0aCBuZXdzIHRvb2xzIDotKQo+IAo+IEkgZG9uJ3Qgc2VlIHRo
+ZSBwb2ludCBvbiB1cGRhdGluZyB0aGUgd2lraSB3aGVuIEkgYW0gYWxyZWFkeSBsb3cgb24KPiB0
+aW1lLi4uIHBsZWFzZSBkb24ndCBlbWFpbCBtZSBxdWVzdGlvbiBvciByZXF1ZXN0IGFib3V0IHRo
+aXMgY2FyZCwgd2hlbgo+IEkgZ290IHNvbWUgdGltZSwgSSBkbyBhIGxpdHRsZSwgYnV0IG9ubHkg
+d2hlbiBJIGdvdCB0aW1lLi4uCj4gCj4gSSBob3BlIGl0IHdvcmtzIGZvciBvdGhlciBhbHNvIGFu
+ZCB0aGF0IGl0IGNvdWxkIGJlIGluY2x1ZGVkIGJlZm9yZQo+IGV2ZXJ5IHRoaW5nIGNoYW5nZSBh
+Z2Fpbi4uLgo+IAo+IEkgYW0gbm90IHN1cmUgd2h5LCBidXQgSSBkb24ndCBzZWVtcyB0byBiZSBh
+YmxlIHRvIHNlbmQgZW1haWwgdG8KPiBsaW51eC1kdmJAbGludXh0di5vcmcgOiBpZiB0aGlzIGRv
+bid0IGdldCB0byBpdCwgZmVlbCBmcmVlIChvciBub3QpIHRvCj4gZm9yd2FyZCBpdCA6LSkKPiAt
+LSAKPiBHculnb2lyZSBGQVZSRSAgaHR0cDovL2dyZWdvaXJlLmZhdnJlLmdvb2dsZXBhZ2VzLmNv
+bSAgaHR0cDovL3d3dy5nbnVwZy5vcmcKPiAgICAgICAgICAgICAgICBodHRwOi8vcGljYXNhd2Vi
+Lmdvb2dsZS5jb20vR3JlZ29pcmUuRmF2cmUKPiAKPiBBVFRBQ0hNRU5UOiBhcHBsaWNhdGlvbi9v
+Y3RldC1zdHJlYW0gKEhWUi00MDAwLW11bHRpcHJvdG9fcGx1cy0yMDA4LTA0LTI1LmRpZmYuYnoy
+KQo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51
+eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
