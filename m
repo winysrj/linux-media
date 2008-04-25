@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43])
+Received: from el-out-1112.google.com ([209.85.162.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JqnrM-0006m0-O2
-	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 13:19:02 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <4816E5DA.7010204@anevia.com>
-References: <4816E5DA.7010204@anevia.com>
-Date: Tue, 29 Apr 2008 13:17:45 +0200
-Message-Id: <1209467866.3247.45.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
+	(envelope-from <jarrillero@gmail.com>) id 1JpOQz-000870-ET
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 15:57:54 +0200
+Received: by el-out-1112.google.com with SMTP id y26so1484094ele.11
+	for <linux-dvb@linuxtv.org>; Fri, 25 Apr 2008 06:57:48 -0700 (PDT)
+Message-ID: <d150a3810804250657s1ff735a6vbd2dfbc8abda29bd@mail.gmail.com>
+Date: Fri, 25 Apr 2008 15:57:47 +0200
+From: "=?ISO-8859-1?Q?David_D=EDaz_G=F3mez?=" <jarrillero@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] Compilation problem with Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,89 +18,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0715269809=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Frederic,
+--===============0715269809==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_3974_27729160.1209131867727"
 
-Am Dienstag, den 29.04.2008, 11:09 +0200 schrieb Frederic CAND:
-> Dear all,
-> 
-> I recently had to change v4l drivers to support my WinTV HVR 1300.
-> I have issues making my HVR work but that's not the point here.
-> My problem is that since I updated kernel + drivers, I can't manage to 
-> make sound work when I'm using the tuner input. Sound jack input works 
-> when I'm using SVideo or Composite Video, but not when I'm using tuner.
-> 
-> Here are the options I'm using
-> tuner : port2=0
-> saa7134: oss=1 disable_ir=1
-> saa7134-oss: rate=48000
+------=_Part_3974_27729160.1209131867727
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-the rate=48000 is only valid for external analog input and disables
-sound from tuner. Have a look at the saa7134-oss mixer under such
-conditions.
+Hi,
 
-You must use default rate of 32000 for dma sound from tuner.
+I'm a newbie in linux, recently i have updated to Ubuntu 8.04 and when i try
+to install v4l-dvb the script send me an error.
 
-The saa7134-oss is also soon deprecated and replaced by saa7134-alsa.
+/home/david/Escritorio/v4l-dvb/v4l/videocodec.c: In function
+'videocodec_init':
+/home/david/Escritorio/v4l-dvb/v4l/videocodec.c:381: error: implicit
+declaration of function 'proc_create'
+/home/david/Escritorio/v4l-dvb/v4l/videocodec.c:381: warning: assignment
+makes pointer from integer without a cast
+make[3]: *** [/home/david/Escritorio/v4l-dvb/v4l/videocodec.o] Error 1
+make[2]: *** [_module_/home/david/Escritorio/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-16-generic'
+make[1]: *** [default] Error 2
+make[1]: se sale del directorio `/home/david/Escritorio/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-If you are considering using recent v4l-dvb mercurial stuff, which
-should be best for the HVR1300 and reporting bugs on saa7134-empress,
-you might still have your old saa7134-oss module around and some others
-like the old video_buf now loaded, since not deleted on upgrade.
+I know little about programming in c., could be the problem some option of
+the compiler?.
 
-After make rmmod and rminstall with current v4l-dvb you should delete
-such remaining modules on older kernels too before make install.
+gcc version is 4.2.3
 
-Cheers,
-Hermann
+Thanks in advance.
 
-> # lsmod
-> Module                  Size  Used by
-> r8169                  17360  0
-> e100                   23556  0
-> cx8802                 10372  0
-> firmware_class          4032  0
-> cx2341x                 8516  0
-> cx8800                 19256  0
-> cx88xx                 49636  2 cx8802,cx8800
-> i2c_algo_bit            3908  1 cx88xx
-> tveeprom               11472  1 cx88xx
-> btcx_risc               2376  3 cx8802,cx8800,cx88xx
-> saa7134_oss             9416  0
-> saa7134_empress         4292  0
-> saa6752hs               7180  0
-> saa7134                95820  2 saa7134_oss,saa7134_empress
-> video_buf              13444  6 
-> cx8802,cx8800,cx88xx,saa7134_oss,saa7134_empress,saa7134
-> compat_ioctl32           512  2 cx8800,saa7134
-> ir_kbd_i2c              3856  1 saa7134
-> ir_common              22788  3 cx88xx,saa7134,ir_kbd_i2c
-> videodev               22464  4 cx8800,cx88xx,saa7134_empress,saa7134
-> v4l1_compat            12100  2 saa7134,videodev
-> tuner                  48424  0
-> v4l2_common            11392  7 
-> cx2341x,cx8800,cx88xx,saa7134_empress,saa7134,videodev,tuner
-> hwmon_vid               1856  0
-> via686a                 8328  0
-> i2c_isa                 1408  1 via686a
-> i2c_core               12560  9 
-> cx88xx,i2c_algo_bit,tveeprom,saa6752hs,saa7134,ir_kbd_i2c,tuner,via686a,i2c_isa
-> ipt_REJECT              2048  3
-> iptable_filter           960  1
-> ip_tables               7176  1 iptable_filter
-> 
-> 
-> With this I have sound only when selecting SVideo or Composite input, 
-> but not when in tuner mode. Anyone has a clue ?
-> 
+------=_Part_3974_27729160.1209131867727
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hi,<br><br>I&#39;m a newbie in linux, recently i have updated to Ubuntu 8.04 and when i try to install v4l-dvb the script send me an error. <br><br>/home/david/Escritorio/v4l-dvb/v4l/videocodec.c: In function &#39;videocodec_init&#39;:<br>
+/home/david/Escritorio/v4l-dvb/v4l/videocodec.c:381: error: implicit declaration of function &#39;proc_create&#39;<br>/home/david/Escritorio/v4l-dvb/v4l/videocodec.c:381: warning: assignment makes pointer from integer without a cast<br>
+make[3]: *** [/home/david/Escritorio/v4l-dvb/v4l/videocodec.o] Error 1<br>make[2]: *** [_module_/home/david/Escritorio/v4l-dvb/v4l] Error 2<br>make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-16-generic&#39;<br>make[1]: *** [default] Error 2<br>
+make[1]: se sale del directorio `/home/david/Escritorio/v4l-dvb/v4l&#39;<br>make: *** [all] Error 2<br><br>I know little about programming in c., could be the problem some option of the compiler?. <br><br>gcc version is 4.2.3<br>
+<br>Thanks in advance. <br><br>
+
+------=_Part_3974_27729160.1209131867727--
+
+
+--===============0715269809==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0715269809==--
