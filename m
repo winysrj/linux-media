@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.233])
+Received: from rv-out-0506.google.com ([209.85.198.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.pena.perez@gmail.com>) id 1JoqEx-0002dR-A5
-	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 03:27:12 +0200
-Received: by wr-out-0506.google.com with SMTP id c30so1953426wra.14
-	for <linux-dvb@linuxtv.org>; Wed, 23 Apr 2008 18:27:06 -0700 (PDT)
-Message-ID: <28a25ce0804231827h4272c0a9w7c815babe48b435e@mail.gmail.com>
-Date: Thu, 24 Apr 2008 03:27:05 +0200
-From: "=?ISO-8859-1?Q?Rom=E1n?=" <roman.pena.perez@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <28a25ce0712131712s24ff079awb5ab42e7ffffbea9@mail.gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1JpGce-0006k8-K3
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 07:37:27 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so2294184rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 24 Apr 2008 22:37:18 -0700 (PDT)
+Message-ID: <d9def9db0804242237g3dc00e43w4047127ae2be3c72@mail.gmail.com>
+Date: Fri, 25 Apr 2008 07:37:18 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Joe Ammann" <joe@pyx.ch>
+In-Reply-To: <200804250056.55050.joe@pyx.ch>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <28a25ce0711261002t5e671187ub61aca7796c61d3f@mail.gmail.com>
-	<28a25ce0711281206p744c8ff8n7ab1065edecf2f4a@mail.gmail.com>
-	<28a25ce0712010901n3eacedd7q7864e299798be19b@mail.gmail.com>
-	<20071202091122.0b9c121a@aapo-desktop>
-	<28a25ce0712020514l5feb56at2dc11261eef16e05@mail.gmail.com>
-	<20071202223807.76b9b215@aapo-desktop>
-	<28a25ce0712041445p42a07fe9p5cda5e833a2eb56f@mail.gmail.com>
-	<28a25ce0712121400w2f5d0712s7ac5ccb677796784@mail.gmail.com>
-	<476163E0.4050706@iki.fi>
-	<28a25ce0712131712s24ff079awb5ab42e7ffffbea9@mail.gmail.com>
-Cc: Aapo Tahkola <aet@rasterburn.org>, Antti Palosaari <crope@iki.fi>
-Subject: Re: [linux-dvb] m920x device: Genius TVGo DVB-T02Q
+References: <200804250056.55050.joe@pyx.ch>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with Hauppauge HVR 900 (B3C0) hybrid USB
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,45 +22,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi,
 
-I'm back after some months away. And I have good news. Finally, the
-hack to m920x to add support for the t02q v2.0 has worked. It still
-lacks a lot of things -e.g. remote controller support-, but I can tune
-channels and read the video flawlessly (except for my very bad signal
-reception :-).
+On 4/25/08, Joe Ammann <joe@pyx.ch> wrote:
+> Hi everybody
+>
+> I'm trying to get this device (USB 2040:6502) going. I understand that this
+> version will probably not give me DVB (only an older release would be
+> supported). But at the moment, I can't get anything to work, not even
+> analogue or the remote control.
+>
+> Currently, I'm trying on Fedora 8 with a vanilla 2.6.24.5 kernel and the
+> drivers from http://linuxtv.org/hg/v4l-dvb. I also tried with the FC8 stock
+> kernel, 2.6.25, the drivers from mcentral.de, and even the userspace drivers
+> from Markus Rechberger, following various howto's and instructions.
+>
+> For most combinations, I can achieve the following:
+> - analogue device is recognized and configured (according to
+>   dmesg, firmware is loaded, /dev/video0 appears)
+> - can't tune anything (with kdetv, device and cable are probably ok, because
+>   it works in Windows)
+> - IR remote is not recognized (nothing shows up in /proc/bus/input/devices)
+>
+> With the userspace drivers from mcentral.de on 2.6.25, I got analogue and
+> DVB
+> recognized and devices installed, but again couldn't tune anything (with
+> kdetv and klear).
+>
+> Before I try to investigate deeper, I thought I'd ask again if my
+> expectations
+> are right ?!? I *should* be able to get analogue and IR remote working,
+> shouldn't I?
+>
+> I'd be thankful for any hints, pointing me to the most promising
+> combination :-) , and willing to post logs and stuff.
+>
 
-Right now I won't attach the patch to this message because of the lack
-of time. I'll try to post it tomorrow, so people can start testing and
-criticizing.
+could you post the dmesg output?
 
-If you are curious, the success depended on a new firmware I
-"borrowed" from the last windows drivers, downloaded from the Genius'
-homepage. It makes the stick work in bulk transfer mode.
-
-On a side note, I want to say there are some people with Genius/KYE
-TVGo T02PRO and/or T02Q-MCE devices that ask for support. Indeed, they
-made me return to this development a couple of weeks ago, so I thank
-them a lot. But I want to point out those are different devices, with
-different chips inside (for two reasons: [a] for the record, so new
-users don't get confused, and [b] to spread the word in case someone
-knows how to help them and is kind enough to do it d^_~b; the T02PRO
-frontend chip, for instance, is currently unsupported as far as I
-know, so there's little chance newbies can add code for their
-devices.)
-
-Best regards,
-
--- =
-
-
- Rom=E1n
+Markus
 
 _______________________________________________
 linux-dvb mailing list
