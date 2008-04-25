@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1JiaSg-0006ov-IN
-	for linux-dvb@linuxtv.org; Sun, 06 Apr 2008 21:23:31 +0200
-Message-ID: <47F92310.4040500@gmx.net>
-Date: Sun, 06 Apr 2008 21:22:56 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
+Received: from wa-out-1112.google.com ([209.85.146.178])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <emaildericky@gmail.com>) id 1JpW9e-0005o5-Lt
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 00:12:36 +0200
+Received: by wa-out-1112.google.com with SMTP id m28so5817660wag.13
+	for <linux-dvb@linuxtv.org>; Fri, 25 Apr 2008 15:12:25 -0700 (PDT)
+Message-ID: <3271f22e0804251512s411a3a0bgaf4548422cc6e22f@mail.gmail.com>
+Date: Sat, 26 Apr 2008 00:12:25 +0200
+From: "Ricardo Carrillo Cruz" <emaildericky@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Technotrend common interfaces think my CAM is invalid
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] TM6000 compilation error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,45 +25,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-A while ago I compiled and installed a new v4l-dvb. After that, my 
-common interface never worked correctly again. Not long after installing 
-the v4l-dvb, the PSU in my computer broke down, most likely coincidence. 
-After replacing the PSU the computer worked again. I've got both a TT 
-S-1500 and T-1500 with CI.
+Hi guys
 
-But the common interface still fails. So I:
+I've purchased a WinTV HVR 900H, apparently it uses a TM6000 chipset.
+I've followed the steps described at
+http://www.linuxtv.org/v4lwiki/index.php/Trident_TM6000#TM6000_based_Devices
+but I'm getting these errors:
 
-*Installed the newest v4l-dvb today
-*Tried 2 other CI cables
-*Tried swapping the CI daughterboards (one 1.0a and one 1.1)
-*Tried another computer with different mainboard and (much) older 
-v4l-dvb (Ubuntu 6.10)
-*Blew the dust off my TT S2-3200 (never used before), connected the CI 
-to it and installed multiproto few weeks ago
-*Decided my old PSU must have blasted both CI daughterboards, ordered 
-new ones and installed that with v4l-dvb downloaded today
-*Re-installed the linuximage package (Ubuntu 7.10) (but not sure if all 
-v4l-dvb from hg is removed with that)
+dormammu@dormammu-laptop:~/v4l-dvb$ make
+make -C /home/dormammu/v4l-dvb/v4l
+make[1]: Entering directory `/home/dormammu/v4l-dvb/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.22-14-386/build
+make -C /lib/modules/2.6.22-14-386/build
+SUBDIRS=/home/dormammu/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.22-14-386'
+  CC [M]  /home/dormammu/v4l-dvb/v4l/tm6000.o
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_poll_remote':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:293: warning: passing argument 1
+of 'schedule_delayed_work' from incompatible pointer type
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_start_stream':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:297: warning: unused variable 'errCode'
+/home/dormammu/v4l-dvb/v4l/tm6000.c:297: warning: unused variable 'i'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_zl10353_i2c_xfer':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:421: warning: unused variable 'k'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_xc3028_i2c_xfer':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:504: warning: unused variable 'k'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_zl10353_pll':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:644: warning: unused variable 'i'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'zl10353_read_status':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's8'
+/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's7'
+/home/dormammu/v4l-dvb/v4l/tm6000.c:1272: warning: unused variable 's6'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_read_signal_strength':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:1304: warning: unused variable 'state'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'tm6000_read_snr':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:1313: warning: unused variable 'state'
+/home/dormammu/v4l-dvb/v4l/tm6000.c: In function 'probe':
+/home/dormammu/v4l-dvb/v4l/tm6000.c:2005: error: too few arguments to
+function 'dvb_register_adapter'
+/home/dormammu/v4l-dvb/v4l/tm6000.c:2059: warning: label 'err' defined
+but not used
+make[3]: *** [/home/dormammu/v4l-dvb/v4l/tm6000.o] Error 1
+make[2]: *** [_module_/home/dormammu/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-14-386'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/dormammu/v4l-dvb/v4l'
+make: *** [all] Error 2
+dormammu@dormammu-laptop:~/v4l-dvb$
 
-Maybe I've tried more but I don't remember right now. Anyway, nothing of 
-this helped. My official CanalDigitaal/TV Vlaanderen Mediaguard module 
-and Xcam give me "dvb_ca adapter 0: Invalid PC card inserted :(". Only 
-my Matrix Reborn initializes, but does not work correctly (corruption 
-and/or decodes only audio PID and not video and/or just acts weird). 
-Offical Conax 4.00e is not working so well anymore either (does not 
-always initialize correctly), but atm I've got no subscription card to test.
+Any ideas?
 
-In a standalone Vantage receiver, all modules work well. So they can't 
-be invalid. I just watched Mythbusters with the offical Mediaguard 
-module. And they used to work on the TT, I only remember from the past 
-that the offical Mediaguard gave some corruption (it's compatiblity is 
-not great) but it did run. According to some linuxtv wiki this CAM 
-should now work fine.
-
-I'll go look for some Knoppix and see if my CAMs initialize correctly 
-with that. This is really strange. If anyone's got a clue..
-
-P.
+Regards
 
 _______________________________________________
 linux-dvb mailing list
