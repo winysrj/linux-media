@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.9])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1JkhI9-0003PN-Qh
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 17:05:22 +0200
-Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
-	by mail-out.m-online.net (Postfix) with ESMTP id BA4B221D736
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:55 +0200 (CEST)
-Received: from localhost (unknown [192.168.1.157])
-	by mail.m-online.net (Postfix) with ESMTP id 7AFD790075
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:47 +0200 (CEST)
-Received: from mail.mnet-online.de ([192.168.3.149])
-	by localhost (scanner1.m-online.net [192.168.1.157]) (amavisd-new,
-	port 10024) with ESMTP id g9YpXnNk-BS1 for <linux-dvb@linuxtv.org>;
-	Sat, 12 Apr 2008 17:04:46 +0200 (CEST)
-Received: from gauss.x.fun (ppp-88-217-104-133.dynamic.mnet-online.de
-	[88.217.104.133]) by mail.nefkom.net (Postfix) with ESMTP
-	for <linux-dvb@linuxtv.org>; Sat, 12 Apr 2008 17:04:46 +0200 (CEST)
-Message-Id: <20080412150444.987445669@gentoo.org>
-Date: Sat, 12 Apr 2008 17:04:45 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
+Received: from [66.180.172.116] (helo=vps1.tull.net)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1JpFyS-0002c3-CV
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 06:55:53 +0200
+Date: Fri, 25 Apr 2008 14:55:20 +1000
+From: Nick Andrew <nick-linuxtv@nick-andrew.net>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20080425045520.GA17371@tull.net>
+References: <1209093378.6367.22.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1209093378.6367.22.camel@palomino.walls.org>
+Cc: linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
+Subject: Re: [linux-dvb] [PATCH] mxl500x: Add module parameter
+	to	enable/disable debug messages
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +21,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-mt312: Cleanup driver and add support for zl10313.
+On Thu, Apr 24, 2008 at 11:16:18PM -0400, Andy Walls wrote:
+> +#define dprintk(level, fmt, arg...)                                       \
+> +	do {                                                              \
+> +		if (debug >= level)                                       \
+> +			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
+> +	} while (0)
 
-These patches add support for the Zarlink zl10313 demod to mt312 driver.
-This chip is used at least on Avermedia A700 DVB-S and
-Compro VideoMate S300/S350 DVB-S cards.
+I think this code will be far more useful in kernel/printk.c rather
+than every device driver and subsystem rolling their own (as seems to 
+happen at this time).
 
-Regards
-Matthias
+Also see dev_dbg() and dev_printk() in include/linux/device.h.
+What those macros are missing is what you have here - messages
+printed or ignored depending on the value of a module variable
+and/or parameter.
 
--- 
+Nick.
 
 _______________________________________________
 linux-dvb mailing list
