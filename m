@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3O25FPY026786
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:05:15 -0400
-Received: from imo-d22.mx.aol.com (imo-d22.mx.aol.com [205.188.144.208])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3O251DE005159
-	for <video4linux-list@redhat.com>; Wed, 23 Apr 2008 22:05:01 -0400
-References: <8CA703CA994FDB6-D6C-ADB@webmail-me16.sysops.aol.com>
-	<20080422040728.GD24855@plankton.ifup.org>
-	<8CA7307126F01E0-1644-3A1B@webmail-de04.sysops.aol.com>
-	<20080423200134.GJ6703@plankton.ifup.org>
-To: brandon@ifup.org
-Date: Wed, 23 Apr 2008 22:04:51 -0400
-In-Reply-To: <20080423200134.GJ6703@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3PH2lJF029724
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 13:02:47 -0400
+Received: from smtp40.hccnet.nl (smtp40.hccnet.nl [62.251.0.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3PH2Z1Z004542
+	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 13:02:36 -0400
+Message-ID: <48120EA0.4020704@hccnet.nl>
+Date: Fri, 25 Apr 2008 19:02:24 +0200
+From: Gert Vervoort <gert.vervoort@hccnet.nl>
 MIME-Version: 1.0
-From: Jon Lowe <jonlowe@aol.com>
-Message-Id: <8CA73C6B75D70B8-8B4-4600@WEBMAIL-DC01.sysops.aol.com>
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <480A5CC3.6030408@pickworth.me.uk>	<480B26FC.50204@hccnet.nl>	<480B3673.3040707@pickworth.me.uk>	<1208696771.3349.49.camel@pc10.localdom.local>	<480B6CD8.7040702@hccnet.nl>	<1208726202.5682.44.camel@pc10.localdom.local>	<1209009328.3402.9.camel@pc10.localdom.local>	<20080425105618.08c5c471@gaivota>	<37219a840804250740k6b1bb64er633cff7a4e377798@mail.gmail.com>	<20080425120307.69a71e17@gaivota>
+	<48120D15.3010109@hccnet.nl>
+In-Reply-To: <48120D15.3010109@hccnet.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,108 +28,157 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Gert Vervoort wrote:
+> Mauro Carvalho Chehab wrote:
+>> On Fri, 25 Apr 2008 10:40:14 -0400
+>> "Michael Krufky" <mkrufky@linuxtv.org> wrote:
+>>
+>>  
+>>> On Fri, Apr 25, 2008 at 9:56 AM, Mauro Carvalho Chehab
+>>> <mchehab@infradead.org> wrote:
+>>>    
+>>>> On Thu, 24 Apr 2008 05:55:28 +0200
+>>>>  hermann pitton <hermann-pitton@arcor.de> wrote:
+>>>>
+>>>>  > > > >>>> I am testing a kernel upgrade from 2.6.24.to 2.6.25, 
+>>>> and the drivers
+>>>>  > > > >>>> for   the Hauppauge WinTV appear to have suffered some 
+>>>> regression
+>>>>  > > > >>>> between the two kernel versions.
+>>>>
+>>>>
+>>>>      
+>>>>> do you see the auto detection issue?
+>>>>>         
+>>>>  >
+>>>>  > Either tell it is just nothing, what I very seriously doubt, or 
+>>>> please
+>>>>  > comment.
+>>>>  >
+>>>>  > I don't like to end up on LKML again getting told that written 
+>>>> rules
+>>>>  > don't exist ;)
+>>>>
+>>>>  Sorry for now answer earlier. Too busy here, due to the merge window.
+>>>>
+>>>>  This seems to be an old bug. On several cases, tuner_type 
+>>>> information came from
+>>>>  some sort of autodetection schema, but the proper setup is not 
+>>>> sent to tuner.
+>>>>
+>>>>  Please test the enclosed patch. It warrants that 
+>>>> TUNER_SET_TYPE_ADDR is called
+>>>>  at saa7134_board_init2() for all those boards:
+>>>>
+>>>>  SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331
+>>>>  SAA7134_BOARD_ASUS_EUROPA2_HYBRID
+>>>>  SAA7134_BOARD_ASUSTeK_P7131_DUAL
+>>>>  SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA
+>>>>  SAA7134_BOARD_AVERMEDIA_SUPER_007
+>>>>  SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM
+>>>>  SAA7134_BOARD_BMK_MPEX_NOTUNER
+>>>>  SAA7134_BOARD_BMK_MPEX_TUNER
+>>>>  SAA7134_BOARD_CINERGY_HT_PCI
+>>>>  SAA7134_BOARD_CINERGY_HT_PCMCIA
+>>>>  SAA7134_BOARD_CREATIX_CTX953
+>>>>  SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
+>>>>  SAA7134_BOARD_FLYDVB_TRIO
+>>>>  SAA7134_BOARD_HAUPPAUGE_HVR1110
+>>>>  SAA7134_BOARD_KWORLD_ATSC110
+>>>>  SAA7134_BOARD_KWORLD_DVBT_210
+>>>>  SAA7134_BOARD_MD7134
+>>>>  SAA7134_BOARD_MEDION_MD8800_QUADRO
+>>>>  SAA7134_BOARD_PHILIPS_EUROPA
+>>>>  SAA7134_BOARD_PHILIPS_TIGER
+>>>>  SAA7134_BOARD_PHILIPS_TIGER_S
+>>>>  SAA7134_BOARD_PINNACLE_PCTV_310i
+>>>>  SAA7134_BOARD_TEVION_DVBT_220RF
+>>>>  SAA7134_BOARD_TWINHAN_DTV_DVB_3056
+>>>>  SAA7134_BOARD_VIDEOMATE_DVBT_200
+>>>>  SAA7134_BOARD_VIDEOMATE_DVBT_200A
+>>>>  SAA7134_BOARD_VIDEOMATE_DVBT_300
+>>>>
+>>>>  It is important to test the above boards, to be sure that no 
+>>>> regression is
+>>>>  caused.
+>>>>
+>>>>  Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+>>>>
+>>>>  diff -r 60110897e86a 
+>>>> linux/drivers/media/video/saa7134/saa7134-cards.c
+>>>>  --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 
+>>>> 08:04:54 2008 -0300
+>>>>  +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 
+>>>> 10:44:16 2008 -0300
+>>>>       
+>>> Mauro,
+>>>
+>>> I didn't review your patch yet, and it needs to be tested, however,
+>>> the bug reported in this thread deals with the same regression that
+>>> you are attempting to repair, but on the cx88 driver -- not the
+>>> saa7134 driver.
+>>>
+>>> Both drivers need to be tested to make sure that this regression has 
+>>> been fixed.
+>>>     
+>>
+>> Ok, this is a cx88 version. Of course, needs testing.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+>>
+>> diff -r 5c9a4decb57b linux/drivers/media/video/cx88/cx88-cards.c
+>> --- a/linux/drivers/media/video/cx88/cx88-cards.c    Fri Apr 25 
+>> 11:02:29 2008 -0300
+>> +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Fri Apr 25 
+>> 12:01:48 2008 -0300
+>> @@ -2495,26 +2495,27 @@
+>>  
+>>   
+> This does not make a difference for me:
+>
+> tuner' 1-0043: chip found @ 0x86 (cx88[0])
+> tda9887 1-0043: tda988[5/6/7] found
+> All bytes are equal. It is not a TEA5767
+> tuner' 1-0060: chip found @ 0xc0 (cx88[0])
+> tuner-simple 1-0060: type set to 44 (Philips 4 in 1 (ATI TV Wonder 
+> Pro/Conexant))
+> cx88[0]: Leadtek Winfast 2000XP Expert config: tuner=38, eeprom[0]=0x01
+> input: cx88 IR (Leadtek Winfast 2000XP as /class/input/input6
+> cx88[0]/0: found at 0000:00:0a.0, rev: 5, irq: 18, latency: 32, mmio: 
+> 0xe2000000
+> cx88[0]/0: registered device video0 [v4l2]
+> cx88[0]/0: registered device vbi0
+> cx88[0]/0: registered device radio0
+>
+>
+> The wrong tuner type has already been set, before the eeprom with the 
+> correct tuner type is read.
+>
+The following quick and dirty patch fixes the problem for me:
 
- Hmmm.? I can probably get another computer, but it doesn't have Linux on it.? Could I use a live CD to do it?
-
-
+--- cx88-cards.c.orig   2008-04-17 04:49:44.000000000 +0200
++++ cx88-cards.c        2008-04-25 18:57:16.000000000 +0200
+@@ -2197,12 +2197,13 @@
+        cx88_card_setup_pre_i2c(core);
+        cx88_i2c_init(core, pci);
  
-
-
-Jon Lowe
-
++       cx88_card_setup(core);
++
+        /* load tuner module, if needed */
+        if (TUNER_ABSENT != core->board.tuner_type)
+                request_module("tuner");
  
-
-
+        cx88_call_i2c_clients (core, TUNER_SET_STANDBY, NULL);
+-       cx88_card_setup(core);
+        cx88_ir_init(core, pci);
  
+        return core;
 
------Original Message-----
-From: Brandon Philips <brandon@ifup.org>
-To: Jon Lowe <jonlowe@aol.com>
-Cc: v4l <video4linux-list@redhat.com>
-Sent: Wed, 23 Apr 2008 3:01 pm
-Subject: Re: [BUG] HVR-1500 Hot swap causes lockup
+It makes sure that cx88_card_setup(), which reads the eeprom, is run 
+before the tuner modules is loaded.
 
+   Gert
 
-
-
-
-
-
-
-
-
-On 23:13 Tue 22 Apr 2008, Jon Lowe wrote:
->  I read that page, but I don't have a clue what to do with it.? I'm a
->  Linux newbie.? Is there some other logfile that might capture the
->  problem?? If you give me a detail explanation of what you need me to
->  do, I will do it.
-
-Since it is hard locking and I am completely unfamiliar with HVR-1500
-and PCI hot plugging a netconsole is the best thing I can offer...
-
-1) You will need a second computer connected to your laptop via a LAN.
-
-2) Find out the IP address of the computer that is not your laptop.
-
- $ /sbin/ifconfig 
-
-eth0      Link encap:Ethernet  HWaddr 
-          inet addr:192.168.1.150  Bcast:192.168.1.255 Mask:255.255.255.0
-.....
-
-So, in this case the IP address is 192.168.1.150
-
-3) Start netcat in a terminal on this system.
-
-  $ netcat -u -l -p 666
-
-4) Now, on your laptop run the following commands as root in a terminal.
-NOTE: replace 192.168.1.150 with the IP address you found in step 2.
-
-  $ dmesg -n 8
-  $ modprobe netconsole netconsole=@/,@192.168.1.150/
-
-5) netconsole: network logging started should appear in the terminal
-where you ran netcat.
-
-6) Try to reproduce the hard lock on your laptop and include the output
-from netcat.
-
-Let me know if this works.
-
-Also, please continue to CC the v4l list.
-
-Cheers,
-
-    Brandon
-
-> -----Original Message----- From: Brandon Philips <brandon@ifup.org>
-> To: Jon Lowe <jonlowe@aol.com> Cc: video4linux-list@redhat.com Sent:
-> Mon, 21 Apr 2008 11:07 pm Subject: Re: [BUG] HVR-1500 Hot swap causes
-> lockup
-> 
-> On 09:59 Sat 19 Apr 2008, Jon Lowe wrote:
-> > Hope this is the right place to do this.
-> >
-> > Hauppauge HVR-1500 Expresscard, Ubuntu 8.04, latest V4L drivers.
-> >
-> > Removing (hotswap) this card from a ASUS F3SV laptop running Ubuntu
-> > 8.04 causes a hard lock up of the computer.? Unresponsive to any
-> > input. Requires complete shutdown of the computer and restart.?
-> > Easily repeatable.? Same card is hot swappable under Windows Vista.? 
-> >
-> > This is critical because Expresscards are notoriously easy to
-> > dislodge in notebooks.?
-> 
-> Could you please setup a netconsole and try and get some debugging
-> output?
-> 
-> For details on setting up a netconsole see the documentation:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/networking/netconsole.txt;hb=HEAD
-
-
-
- 
 
 --
 video4linux-list mailing list
