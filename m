@@ -1,23 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1JnfWx-0006AW-SP
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 21:48:58 +0200
-Received: by fk-out-0910.google.com with SMTP id z22so2084920fkz.1
-	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 12:48:51 -0700 (PDT)
-Message-ID: <854d46170804201248k70b14c99k5aba1fa8079b4649@mail.gmail.com>
-Date: Sun, 20 Apr 2008 21:48:50 +0200
-From: "Faruk A" <fa@elwak.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <200804201739.35206.dkuhlen@gmx.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <200804190101.14457.dkuhlen@gmx.net>
-	<200804201054.35570.dkuhlen@gmx.net>
-	<854d46170804200605i711bda4ci2c2e1b78a3e1c47b@mail.gmail.com>
-	<200804201739.35206.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e) and
-	TT-Connect-S2-3600 final version (RC-keymap)
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+cdbc83983d2090c8071f+1706+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JpLYk-0000s2-K1
+	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 12:53:42 +0200
+Date: Fri, 25 Apr 2008 07:52:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Richard MQ" <osl2008@googlemail.com>
+Message-ID: <20080425075230.643b1e0b@gaivota>
+In-Reply-To: <c09aacb50804250142h49fd47edia96ca3ae830c2354@mail.gmail.com>
+References: <47A5D8AF.2090800@googlemail.com> <47E51CBD.1000906@googlemail.com>
+	<20080322115925.69cc5b38@gaivota> <47E79DE5.1050404@googlemail.com>
+	<47E7D4B0.30706@googlemail.com> <20080326134500.34a245be@gaivota>
+	<47EAA833.7050507@googlemail.com> <20080326171546.37b819ad@gaivota>
+	<47EABCF3.7070605@googlemail.com> <20080326183336.0cbd04a4@gaivota>
+	<c09aacb50804250142h49fd47edia96ca3ae830c2354@mail.gmail.com>
+Mime-Version: 1.0
+Cc: lucarasp <lucarasp@inwind.it>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Any chance of help with v4l-dvb-experimental /
+ Avermedia A16D please?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,29 +32,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->  Could you please try to change line 1547 in stb0899_algo.c to:
->
->  offsetfreq = ((((offsetfreq / 1024) * 1000) / (1<<7)) * (s32)(internal->master_clk/1000000)) / (s32)(1<<13);
->
->  this should use only 32bit ops and not over/underflow for the expected ranges ;)
->
->
->   Dominik
+On Fri, 25 Apr 2008 09:42:53 +0100
+"Richard MQ" <osl2008@googlemail.com> wrote:
 
-It works, with this new changes i had no problem loading the drivers.
+> Sorry Mauro,
+> 
+> Just found this in my spam box, nearly missed it. Not sure why it was
+> mis-identified by Googlemail?
 
-One more thing i did some testing with vdr and dvbs2 it looks like it
-locks in exactly after 1 minute
-but no video or audio vdr just displays no signal. I don't know if is
-the vdrs fault or the drivers
-anyway i have attached a small log. (no attachment rejected by
-moderator, I've sent copy of this mail to Dominik with attachment.
-Tried pastebin too didn't help)
+Weird.
+> 
+> Will test the patch as soon as I can, maybe over the weekend though I have
+> to go away..
+You can just update from v4l-dvb. The patches were already applied and should work fine.
 
-The dvb-s2 channel is ASTRA HD+ on ASTRA 19E
-vdr version is 1.6.0 with Reinhard Nissl's DVB-S2 + H.264 patch
 
-Faruk
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
