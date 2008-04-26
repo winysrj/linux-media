@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3PH2lJF029724
-	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 13:02:47 -0400
-Received: from smtp40.hccnet.nl (smtp40.hccnet.nl [62.251.0.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3PH2Z1Z004542
-	for <video4linux-list@redhat.com>; Fri, 25 Apr 2008 13:02:36 -0400
-Message-ID: <48120EA0.4020704@hccnet.nl>
-Date: Fri, 25 Apr 2008 19:02:24 +0200
-From: Gert Vervoort <gert.vervoort@hccnet.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <480A5CC3.6030408@pickworth.me.uk>	<480B26FC.50204@hccnet.nl>	<480B3673.3040707@pickworth.me.uk>	<1208696771.3349.49.camel@pc10.localdom.local>	<480B6CD8.7040702@hccnet.nl>	<1208726202.5682.44.camel@pc10.localdom.local>	<1209009328.3402.9.camel@pc10.localdom.local>	<20080425105618.08c5c471@gaivota>	<37219a840804250740k6b1bb64er633cff7a4e377798@mail.gmail.com>	<20080425120307.69a71e17@gaivota>
-	<48120D15.3010109@hccnet.nl>
-In-Reply-To: <48120D15.3010109@hccnet.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QMBc0e019115
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 18:11:38 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QMBPPX017132
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 18:11:26 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <20080426110659.39fa836f@gaivota>
+References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
+	<20080426085918.09e8bdc0@gaivota> <481326E4.2070909@pickworth.me.uk>
+	<20080426110659.39fa836f@gaivota>
+Content-Type: text/plain
+Date: Sun, 27 Apr 2008 00:10:21 +0200
+Message-Id: <1209247821.15689.12.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Cc: mkrufky@linuxtv.org, video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	gert.vervoort@hccnet.nl
 Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -28,156 +32,267 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Gert Vervoort wrote:
-> Mauro Carvalho Chehab wrote:
->> On Fri, 25 Apr 2008 10:40:14 -0400
->> "Michael Krufky" <mkrufky@linuxtv.org> wrote:
->>
->>  
->>> On Fri, Apr 25, 2008 at 9:56 AM, Mauro Carvalho Chehab
->>> <mchehab@infradead.org> wrote:
->>>    
->>>> On Thu, 24 Apr 2008 05:55:28 +0200
->>>>  hermann pitton <hermann-pitton@arcor.de> wrote:
->>>>
->>>>  > > > >>>> I am testing a kernel upgrade from 2.6.24.to 2.6.25, 
->>>> and the drivers
->>>>  > > > >>>> for   the Hauppauge WinTV appear to have suffered some 
->>>> regression
->>>>  > > > >>>> between the two kernel versions.
->>>>
->>>>
->>>>      
->>>>> do you see the auto detection issue?
->>>>>         
->>>>  >
->>>>  > Either tell it is just nothing, what I very seriously doubt, or 
->>>> please
->>>>  > comment.
->>>>  >
->>>>  > I don't like to end up on LKML again getting told that written 
->>>> rules
->>>>  > don't exist ;)
->>>>
->>>>  Sorry for now answer earlier. Too busy here, due to the merge window.
->>>>
->>>>  This seems to be an old bug. On several cases, tuner_type 
->>>> information came from
->>>>  some sort of autodetection schema, but the proper setup is not 
->>>> sent to tuner.
->>>>
->>>>  Please test the enclosed patch. It warrants that 
->>>> TUNER_SET_TYPE_ADDR is called
->>>>  at saa7134_board_init2() for all those boards:
->>>>
->>>>  SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331
->>>>  SAA7134_BOARD_ASUS_EUROPA2_HYBRID
->>>>  SAA7134_BOARD_ASUSTeK_P7131_DUAL
->>>>  SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA
->>>>  SAA7134_BOARD_AVERMEDIA_SUPER_007
->>>>  SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM
->>>>  SAA7134_BOARD_BMK_MPEX_NOTUNER
->>>>  SAA7134_BOARD_BMK_MPEX_TUNER
->>>>  SAA7134_BOARD_CINERGY_HT_PCI
->>>>  SAA7134_BOARD_CINERGY_HT_PCMCIA
->>>>  SAA7134_BOARD_CREATIX_CTX953
->>>>  SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
->>>>  SAA7134_BOARD_FLYDVB_TRIO
->>>>  SAA7134_BOARD_HAUPPAUGE_HVR1110
->>>>  SAA7134_BOARD_KWORLD_ATSC110
->>>>  SAA7134_BOARD_KWORLD_DVBT_210
->>>>  SAA7134_BOARD_MD7134
->>>>  SAA7134_BOARD_MEDION_MD8800_QUADRO
->>>>  SAA7134_BOARD_PHILIPS_EUROPA
->>>>  SAA7134_BOARD_PHILIPS_TIGER
->>>>  SAA7134_BOARD_PHILIPS_TIGER_S
->>>>  SAA7134_BOARD_PINNACLE_PCTV_310i
->>>>  SAA7134_BOARD_TEVION_DVBT_220RF
->>>>  SAA7134_BOARD_TWINHAN_DTV_DVB_3056
->>>>  SAA7134_BOARD_VIDEOMATE_DVBT_200
->>>>  SAA7134_BOARD_VIDEOMATE_DVBT_200A
->>>>  SAA7134_BOARD_VIDEOMATE_DVBT_300
->>>>
->>>>  It is important to test the above boards, to be sure that no 
->>>> regression is
->>>>  caused.
->>>>
->>>>  Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
->>>>
->>>>  diff -r 60110897e86a 
->>>> linux/drivers/media/video/saa7134/saa7134-cards.c
->>>>  --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 
->>>> 08:04:54 2008 -0300
->>>>  +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25 
->>>> 10:44:16 2008 -0300
->>>>       
->>> Mauro,
->>>
->>> I didn't review your patch yet, and it needs to be tested, however,
->>> the bug reported in this thread deals with the same regression that
->>> you are attempting to repair, but on the cx88 driver -- not the
->>> saa7134 driver.
->>>
->>> Both drivers need to be tested to make sure that this regression has 
->>> been fixed.
->>>     
->>
->> Ok, this is a cx88 version. Of course, needs testing.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
->>
->> diff -r 5c9a4decb57b linux/drivers/media/video/cx88/cx88-cards.c
->> --- a/linux/drivers/media/video/cx88/cx88-cards.c    Fri Apr 25 
->> 11:02:29 2008 -0300
->> +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Fri Apr 25 
->> 12:01:48 2008 -0300
->> @@ -2495,26 +2495,27 @@
->>  
->>   
-> This does not make a difference for me:
->
-> tuner' 1-0043: chip found @ 0x86 (cx88[0])
-> tda9887 1-0043: tda988[5/6/7] found
-> All bytes are equal. It is not a TEA5767
-> tuner' 1-0060: chip found @ 0xc0 (cx88[0])
-> tuner-simple 1-0060: type set to 44 (Philips 4 in 1 (ATI TV Wonder 
-> Pro/Conexant))
-> cx88[0]: Leadtek Winfast 2000XP Expert config: tuner=38, eeprom[0]=0x01
-> input: cx88 IR (Leadtek Winfast 2000XP as /class/input/input6
-> cx88[0]/0: found at 0000:00:0a.0, rev: 5, irq: 18, latency: 32, mmio: 
-> 0xe2000000
-> cx88[0]/0: registered device video0 [v4l2]
-> cx88[0]/0: registered device vbi0
-> cx88[0]/0: registered device radio0
->
->
-> The wrong tuner type has already been set, before the eeprom with the 
-> correct tuner type is read.
->
-The following quick and dirty patch fixes the problem for me:
 
---- cx88-cards.c.orig   2008-04-17 04:49:44.000000000 +0200
-+++ cx88-cards.c        2008-04-25 18:57:16.000000000 +0200
-@@ -2197,12 +2197,13 @@
-        cx88_card_setup_pre_i2c(core);
-        cx88_i2c_init(core, pci);
- 
-+       cx88_card_setup(core);
-+
-        /* load tuner module, if needed */
-        if (TUNER_ABSENT != core->board.tuner_type)
-                request_module("tuner");
- 
-        cx88_call_i2c_clients (core, TUNER_SET_STANDBY, NULL);
--       cx88_card_setup(core);
-        cx88_ir_init(core, pci);
- 
-        return core;
+Am Samstag, den 26.04.2008, 11:06 -0300 schrieb Mauro Carvalho Chehab:
+> On Sat, 26 Apr 2008 13:58:12 +0100
+> Ian Pickworth <ian@pickworth.me.uk> wrote:
+> 
+> > Mauro Carvalho Chehab wrote:
+> > > 
+> > > The issue is that set_type_addr were called at the wrong place.
+> > > 
+> > > Anyway, I've just committed a patch that should fix this for cx88. I'll soon
+> > > use the same logic to fix also saa7134.
+> > > 
+> > > I've also added a patch for tuner-core, to improve debug (of course, this
+> > > doesn't need to go to -stable). This helps to see the bug, if tuner debug is
+> > > enabled.
+> > > 
+> > > Cheers,
+> > > Mauro
+> > Hi Mauro,
+> > I have pulled the latest Mercurial source (at about 13:30 BST), compiled 
+> > and installed. I also removed the "tuner=38" workaround from my 
+> > modprobe.conf file. On reboot the WinTV cx88 card was detected correctly 
+> >   - thus curing the original problem in the standard 2.6.25 drivers. 
+> > Also, tvtime works OK with created devices - tuning to all 5 channels OK.
+> > The dmesg trace is below.
+> 
+> Thanks for your tests. Please try also to load first tuner, and then cx88.
+> > 
+> > About how long would it take for a fix like this to reach the kernel 
+> > tree - any chance for 2.6.25?
+> I'll wait for one or two days for more people to test. Then, I'll send to
+> mainstream, together with saa7134 fix for the same issue.
+> 
+> After mainstream merge, we'll send for 2.6.25. I think this should also be sent
+> to 2.6.24, since the same bug is present on older versions, if tuner is loaded
+> before cx88 or saa7134.
+> 
+> Btw, I've just added the corresponding saa7134 patch.
+> 
+> Hermann,
+> 
+> Could you test it please?
+> 
+> Cheers,
+> Mauro
 
-It makes sure that cx88_card_setup(), which reads the eeprom, is run 
-before the tuner modules is loaded.
 
-   Gert
+Hi,
+
+Mauro, just came back.
+
+Cool stuff!
+
+Works immediately for all tuners again. Analog TV, radio and DVB-T on
+that machine is tested.
+
+Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+
+Maybe Hartmut can help too, but I will test also on the triple stuff and
+the FMD1216ME/I MK3 hybrid tomorrow.
+
+Thanks and cheers,
+Hermann
+
+
+tuner-simple 5-0060: destroying instance
+Linux video capture interface: v2.00
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: setting pci latency timer to 64
+saa7133[0]: found at 0000:01:07.0, rev: 208, irq: 19, latency: 64, mmio: 0xe8000000
+saa7133[0]: subsystem: 1043:4857, board: Philips Tiger reference design [card=81,insmod option]
+saa7133[0]: board init: gpio is 0
+saa7133[0]/core: hwinit1
+tuner' 2-004b: tda829x detected
+tuner' 2-004b: Setting mode_mask to 0x0e
+tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+tuner' 2-004b: tuner 0x4b: Tuner type absent
+saa7133[0]: i2c eeprom 00: 43 10 57 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 01 20 00 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 cb ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 15 00 ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 2-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x0e, config=0x00
+tuner' 2-004b: defining GPIO callback
+tda829x 2-004b: setting tuner address to 61
+tda829x 2-004b: type set to tda8290+75a
+tuner' 2-004b: type set to tda8290+75a
+tuner' 2-004b: tv freq set to 400.00
+tuner' 2-004b: saa7133[0] tuner' I2C addr 0x96 with type 54 used for 0x0e
+saa7133[0]/core: hwinit2
+tuner' 2-004b: switching to v4l2
+tuner' 2-004b: tv freq set to 400.00
+tuner' 2-004b: tv freq set to 400.00
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+tuner' 2-004b: Cmd TUNER_SET_STANDBY accepted for analog TV
+saa7133[1]: setting pci latency timer to 64
+saa7133[1]: found at 0000:01:08.0, rev: 208, irq: 18, latency: 64, mmio: 0xe8001000
+saa7133[1]: subsystem: 1043:4862, board: ASUSTeK P7131 Dual [card=78,autodetected]
+saa7133[1]: board init: gpio is 0
+saa7133[1]/core: hwinit1
+input: saa7134 IR (ASUSTeK P7131 Dual) as /class/input/input6
+tuner' 3-004b: tda829x detected
+tuner' 3-004b: Setting mode_mask to 0x0e
+tuner' 3-004b: chip found @ 0x96 (saa7133[1])
+tuner' 3-004b: tuner 0x4b: Tuner type absent
+saa7133[1]: i2c eeprom 00: 43 10 62 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[1]: i2c eeprom 10: 00 01 20 00 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 d6 ff ff ff ff
+saa7133[1]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 15 00 ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[1]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 3-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x0e, config=0x00
+tuner' 3-004b: defining GPIO callback
+tda829x 3-004b: setting tuner address to 61
+tda829x 3-004b: type set to tda8290+75a
+tuner' 3-004b: type set to tda8290+75a
+tuner' 3-004b: tv freq set to 400.00
+tuner' 3-004b: saa7133[1] tuner' I2C addr 0x96 with type 54 used for 0x0e
+saa7133[1]/core: hwinit2
+tuner' 3-004b: switching to v4l2
+tuner' 3-004b: tv freq set to 400.00
+tuner' 3-004b: tv freq set to 400.00
+saa7133[1]: registered device video1 [v4l2]
+saa7133[1]: registered device vbi1
+saa7133[1]: registered device radio1
+tuner' 3-004b: Cmd TUNER_SET_STANDBY accepted for analog TV
+saa7133[2]: setting pci latency timer to 64
+saa7133[2]: found at 0000:01:09.0, rev: 209, irq: 17, latency: 64, mmio: 0xe8002000
+saa7133[2]: subsystem: 16be:0010, board: Medion/Creatix CTX953 Hybrid [card=134,autodetected]
+saa7133[2]: board init: gpio is 0
+saa7133[2]/core: hwinit1
+tuner' 4-004b: tda829x detected
+tuner' 4-004b: Setting mode_mask to 0x0e
+tuner' 4-004b: chip found @ 0x96 (saa7133[2])
+tuner' 4-004b: tuner 0x4b: Tuner type absent
+saa7133[2]: i2c eeprom 00: be 16 10 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[2]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
+saa7133[2]: i2c eeprom 20: 01 40 01 02 02 03 01 00 06 ff 00 2c 02 51 96 2b
+saa7133[2]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
+saa7133[2]: i2c eeprom 40: ff 21 00 c0 96 10 03 22 15 00 fd 79 44 9f c2 8f
+saa7133[2]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[2]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 4-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x0e, config=0x00
+tuner' 4-004b: defining GPIO callback
+tda829x 4-004b: setting tuner address to 60
+tda829x 4-004b: type set to tda8290+75a
+tuner' 4-004b: type set to tda8290+75a
+tuner' 4-004b: tv freq set to 400.00
+tuner' 4-004b: saa7133[2] tuner' I2C addr 0x96 with type 54 used for 0x0e
+saa7133[2]/core: hwinit2
+tuner' 4-004b: switching to v4l2
+tuner' 4-004b: tv freq set to 400.00
+tuner' 4-004b: tv freq set to 400.00
+saa7133[2]: registered device video2 [v4l2]
+saa7133[2]: registered device vbi2
+tuner' 4-004b: Cmd TUNER_SET_STANDBY accepted for analog TV
+saa7134[3]: setting pci latency timer to 64
+saa7134[3]: found at 0000:01:0a.0, rev: 1, irq: 16, latency: 64, mmio: 0xe8003000
+saa7134[3]: subsystem: 16be:0003, board: Medion 7134 [card=12,autodetected]
+saa7134[3]: board init: gpio is 0
+saa7134[3]/core: hwinit1
+All bytes are equal. It is not a TEA5767
+tuner' 5-0060: Setting mode_mask to 0x0e
+tuner' 5-0060: chip found @ 0xc0 (saa7134[3])
+tuner' 5-0060: tuner 0x60: Tuner type absent
+saa7134[3]: i2c eeprom 00: be 16 03 00 08 20 1c 55 43 43 a9 1c 55 43 43 a9
+saa7134[3]: i2c eeprom 10: ff ff ff ff 15 00 0e 01 03 c0 08 00 00 00 00 00
+saa7134[3]: i2c eeprom 20: 00 00 00 da ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7134[3] Tuner type is 5
+tuner' 5-0060: Calling set_type_addr for type=5, addr=0xff, mode=0x0e, config=0x00
+tuner' 5-0060: defining GPIO callback
+tuner-simple 5-0060: creating new instance
+tuner-simple 5-0060: type set to 5 (Philips PAL_BG (FI1216 and compatibles))
+tuner-simple 5-0060: tuner 0 atv rf input will be autoselected
+tuner-simple 5-0060: tuner 0 dtv rf input will be autoselected
+tuner' 5-0060: type set to Philips PAL_BG (FI1
+tuner' 5-0060: tv freq set to 400.00
+tuner-simple 5-0060: using tuner params #0 (pal)
+tuner-simple 5-0060: freq = 400.00 (6400), range = 1, config = 0x8e, cb = 0x90
+tuner-simple 5-0060: Freq= 400.00 MHz, V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
+tuner-simple 5-0060: tv 0x1b 0x6f 0x8e 0x90
+tuner' 5-0060: saa7134[3] tuner' I2C addr 0xc0 with type 5 used for 0x0e
+saa7134[3]/core: hwinit2
+tuner' 5-0060: switching to v4l2
+tuner' 5-0060: tv freq set to 400.00
+tuner-simple 5-0060: using tuner params #0 (pal)
+tuner-simple 5-0060: freq = 400.00 (6400), range = 1, config = 0x8e, cb = 0x90
+tuner-simple 5-0060: Freq= 400.00 MHz, V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
+tuner-simple 5-0060: tv 0x1b 0x6f 0x8e 0x90
+tuner' 5-0060: tv freq set to 400.00
+tuner-simple 5-0060: using tuner params #0 (pal)
+tuner-simple 5-0060: freq = 400.00 (6400), range = 1, config = 0x8e, cb = 0x90
+tuner-simple 5-0060: Freq= 400.00 MHz, V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
+tuner-simple 5-0060: tv 0x1b 0x6f 0x8e 0x90
+saa7134[3]: registered device video3 [v4l2]
+saa7134[3]: registered device vbi3
+saa7134[3]: registered device radio2
+tuner' 5-0060: Cmd TUNER_SET_STANDBY accepted for analog TV
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+saa7133[0]/core: setting GPIO21 to static 1
+DVB: registering new adapter (saa7133[1])
+DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+saa7133[1]/core: setting GPIO21 to static 0
+DVB: registering new adapter (saa7133[2])
+DVB: registering frontend 2 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 26 -- ok
+saa7134[3]/dvb: frontend initialization failed
+
+
+
 
 
 --
