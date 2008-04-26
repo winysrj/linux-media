@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bld-mail02.adl2.internode.on.net ([203.16.214.66]
-	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <short_rz@internode.on.net>) id 1JnR4J-00079y-7U
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 06:22:26 +0200
-Message-ID: <480AC68E.1030903@internode.on.net>
-Date: Sun, 20 Apr 2008 13:59:02 +0930
-From: Andrew Jeffery <short_rz@internode.on.net>
+Received: from ctb-mesg5.saix.net ([196.25.240.75])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jd.louw@mweb.co.za>) id 1JpnRc-0000TE-Qy
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 18:40:17 +0200
+Received: from Core2Duo (dsl-244-50-140.telkomadsl.co.za [41.244.50.140])
+	by ctb-mesg5.saix.net (Postfix) with ESMTP id 0528021FC
+	for <linux-dvb@linuxtv.org>; Sat, 26 Apr 2008 18:39:36 +0200 (SAST)
+Message-ID: <003501c8a7bc$1b324a30$0500000a@Core2Duo>
+From: "Jan Louw" <jd.louw@mweb.co.za>
+To: <linux-dvb@linuxtv.org>
+References: <20080412150444.987445669@gentoo.org>
+	<200804121737.28314.zzam@gentoo.org>
+Date: Sat, 26 Apr 2008 18:39:32 +0200
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <480977B6.5070304@internode.on.net>
-	<20080419102156.GA8217@ts4.de>	<480A9DA0.5060603@internode.on.net>
-	<480ABF78.1000300@internode.on.net>
-In-Reply-To: <480ABF78.1000300@internode.on.net>
-Cc: Thomas Schuering <schuering@ts4.de>
-Subject: Re: [linux-dvb] FusionHDTV Dual Digital 4 Segfault
+Subject: Re: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,125 +27,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Matthias,
 
-Just for the record (and so I can stop replying to myself while being
-completely OT) - if I put the tuner in a windows box and use both of the
-tuners (i.e. do picture-in-picture or view/record simultaneously etc)
-then pop it back in the linux box everything works. The linux usb stack
-must be doing something funny with the card :/ (gentoo 2.6.23-r8 kernel)
+It still works. I combined your zl10313 modulator patch  with my earlier 
+zl10039 frontend patch. The additional modifications necesary are in (see 
+previous patch):
 
-Andrew
+~/schwarzottv4l/v4l-dvb $ hg status
+M linux/drivers/media/dvb/frontends/Kconfig
+M linux/drivers/media/dvb/frontends/Makefile
+M linux/drivers/media/video/saa7134/Kconfig
+M linux/drivers/media/video/saa7134/saa7134-cards.c
+M linux/drivers/media/video/saa7134/saa7134-dvb.c
+M linux/drivers/media/video/saa7134/saa7134.h
+A linux/drivers/media/dvb/frontends/zl10039.c
+A linux/drivers/media/dvb/frontends/zl10039.h
+A linux/drivers/media/dvb/frontends/zl10039_priv.h
 
-Andrew Jeffery wrote:
-|
-|
-| Andrew Jeffery wrote:
-| |
-| |
-| | Thomas Schuering wrote:
-| | | On Sat, Apr 19, 2008 at 02:10:22PM +0930, Andrew Jeffery wrote:
-| | |> -----BEGIN PGP SIGNED MESSAGE-----
-| | |> Hash: SHA1
-| | |>
-| | |> Hi all,
-| | |>
-| | |> Bought myself a Dual Digital 4 the other day and I'm trying to get
-| it up
-| | |> and running - bumped into a segfault though :(
-| | |
-| | | Hi Andrew,
-| | |
-| | | I suppose you tried the standard-branch of v4l, didn't you?
-| | | That one also caused the same problems on my side.
-| | |
-| | | Try this one instead:
-| | | hg clone http://linuxtv.org/hg/~pascoe/xc-test/
-| |
-| | Yeah I was using the standard branch and tried the xc-test branch after
-| | I emailed :) It started working with Chris' branch but now I'm having
-| | troubles with the USB device on the card. This is what I'm getting in
-| dmesg:
-| |
-| | ...
-| | usb usb8: configuration #1 chosen from 1 choice
-| | hub 8-0:1.0: USB hub found
-| | hub 8-0:1.0: 4 ports detected
-| | usb 8-1: new high speed USB device using ehci_hcd and address 2
-| | usb 8-1: device descriptor read/64, error -71
-| | usb 8-1: device descriptor read/64, error -71
-| | usb 8-1: new high speed USB device using ehci_hcd and address 3
-| | usb 8-1: device descriptor read/64, error -71
-| | usb 8-1: device descriptor read/64, error -71
-| | usb 8-1: new high speed USB device using ehci_hcd and address 4
-| | EXT3 FS on sda3, internal journal
-| | DVB: registering new adapter (saa7133[0])
-| | DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-| | usb 8-1: device not accepting address 4, error -71
-| | tda1004x: setting up plls for 48MHz sampling clock
-| | usb 8-1: new high speed USB device using ehci_hcd and address 5
-| | usb 8-1: device not accepting address 5, error -71
-| | usb 8-2: new high speed USB device using ehci_hcd and address 6
-| | usb 8-2: configuration #1 chosen from 1 choice
-| | ...
-| |
-| | If I modprobe the drivers (tuner-xc2028, zl10353 and dvb-usb-cxusb) in
-| | nothing happens, dmesg just says that a new interface has been loaded -
-| | no hardware initialisation messages or anything.
-|
-| That's actually wrong, here one of the tuners accepted address 6 and I
-| could load the frontend for it. Not sure why but it seems that
-| occasionally one of the tuners will work, other times neither of them,
-| and as I said before I did have both of them working at one stage - it
-| seems pretty random :(
-|
-| I had a look at the FAQ at http://www.linux-usb.org/ and found that my
-| problem's described there as well. I tried the relevant solutions (bios
-| update, rmmod/modprobe uhci-hcd) but none of them have worked.
-|
-| It doesn't look very
-| | promising and it happens every boot since I got it working with Chris'
-| | drivers... not sure if it's correlated :( I've read the errors are
-| | something to do with the device getting suspended so I set noapic and
-| | acpi=off but that didn't help either :/ I'll chuck the card in a windows
-| | box and see what happens, see if that can kickstart it or something.
-| | Anything else I should try?
-| |
-| | Andrew
-| | |
-| | | That helped removing the segfault.
-| | |
-| | |
-| | | Hope this helps.
-| | |
-| | | Regards, Thomas
-| |
-|
-| Andrew
-|
-| _______________________________________________
-| linux-dvb mailing list
-| linux-dvb@linuxtv.org
-| http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-|
+To keep it simple I omitted the previous remote control code.
 
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Regards
+JD
 
-- --
-"Encouraging innovation by restricting the spread & use of information
-seems highly counterintuitive to me." - Slashdot comment
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+----- Original Message ----- 
+From: "Matthias Schwarzott" <zzam@gentoo.org>
+To: "Jan D. Louw" <myvonkpos@mweb.co.za>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Saturday, April 12, 2008 5:37 PM
+Subject: Re: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
 
-iD8DBQFICsaO/5R+ugbygqQRAlU7AJ0ftWPB0b9KKfU9oLogBhZ8hOrXkACbB+0n
-cYGY3on3l4Yj2YiY0IXeYvU=
-=3msu
------END PGP SIGNATURE-----
+
+> On Samstag, 12. April 2008, Matthias Schwarzott wrote:
+>> mt312: Cleanup driver and add support for zl10313.
+>>
+>> These patches add support for the Zarlink zl10313 demod to mt312 driver.
+>> This chip is used at least on Avermedia A700 DVB-S and
+>> Compro VideoMate S300/S350 DVB-S cards.
+>>
+> Hi Jan!
+> 
+> Could you please try to use this driver with your Compro card.
+> 
+> Regards
+> Matthias
+> 
+> -- 
+> Matthias Schwarzott (zzam)
 
 _______________________________________________
 linux-dvb mailing list
