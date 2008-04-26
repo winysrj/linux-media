@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IJn0ov030369
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 15:49:00 -0400
-Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3IJmX47017686
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 15:48:34 -0400
-Date: Fri, 18 Apr 2008 12:48:22 -0700
-From: Kees Cook <kees@outflux.net>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20080418194822.GN18865@outflux.net>
-References: <20080417012354.GH18929@outflux.net>
-	<200804182133.21863.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200804182133.21863.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Kay Sievers <kay.sievers@vrfy.org>
-Subject: Re: [PATCH 1/2] V4L: add "function" sysfs attribute to v4l devices
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QNLE4I001601
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 19:21:14 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QNKwSm013613
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 19:21:03 -0400
+Date: Sat, 26 Apr 2008 20:19:40 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080426201940.1507fb82@gaivota>
+In-Reply-To: <1209247821.15689.12.camel@pc10.localdom.local>
+References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
+	<20080426085918.09e8bdc0@gaivota>
+	<481326E4.2070909@pickworth.me.uk>
+	<20080426110659.39fa836f@gaivota>
+	<1209247821.15689.12.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, gert.vervoort@hccnet.nl,
+	linux-dvb@linuxtv.org
+Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,48 +32,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Laurent,
-
-On Fri, Apr 18, 2008 at 09:33:21PM +0200, Laurent Pinchart wrote:
-> On Thursday 17 April 2008, Kees Cook wrote:
-> > +static const char *v4l2_function_type_names[] = {
-> > +	[V4L2_FN_VIDEO_CAP]		= "vid-cap",
-> > +	[V4L2_FN_VIDEO_OUT]		= "vid-out",
-> > +	[V4L2_FN_MPEG_CAP]		= "mpeg-cap",
-> > +	[V4L2_FN_MPEG_OUT]		= "mpeg-out",
-> > +	[V4L2_FN_YUV_CAP]		= "yuv-cap",
-> > +	[V4L2_FN_YUV_OUT]		= "yuv-out",
+On Sun, 27 Apr 2008 00:10:21 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
+> Cool stuff!
 > 
-> I don't like those. Video capture devices can encode pixels in a variety of 
-> formats. MPEG and YUV are only two special cases. You will find devices 
-> encoding in RGB, Bayer, MJPEG, ... as well as some proprietary formats.
-
-If these devices have a variable encoding method, perhaps just use
-"vid-cap" as the general rule.  (In the case that the output formats are
-selectable from a given device node at runtime.)
-
-> If I understand your problem correctly, you want to differentiate between 
-> multiple v4l devices created by a single driver for a single hardware device. 
-> Using the above functions might work for ivtv but rules out devices that 
-> output multiple streams in the same format.
+> Works immediately for all tuners again. Analog TV, radio and DVB-T on
+> that machine is tested.
 > 
-> Wouldn't it be better to fix the ivtv driver to use a single device node for 
-> both compressed and uncompressed streams ?
+> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
 
-I'm not very familiar with the v4l code base, so I don't have a good
-answer about if it's right or not.  The core problem does tend to boil
-down to dealing with drivers that create multiple device nodes for the
-same physical hardware (ivtv is not alone in this regard).
+Thanks. I'll add it to the patch.
 
-I don't know what the semantics are for device mode vs device node in
-v4l, but it seems that since there are multiple nodes being created for
-a given piece of hardware, something needs to be exported to sysfs to
-distinguish them.
+> Maybe Hartmut can help too, but I will test also on the triple stuff and
+> the FMD1216ME/I MK3 hybrid tomorrow.
 
--Kees
+Thanks.
 
--- 
-Kees Cook                                            @outflux.net
+It would be helpful if tda9887 conf could also be validated. I didn't touch at
+the logic, but I saw some weird things:
+
+For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
+	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
+
+And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
+
+However, there's an autodetection code that changes from EUROPA to SNAKE,
+without cleaning tda9887_conf:
+
+        case SAA7134_BOARD_PHILIPS_EUROPA:
+                if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
+                        /* Reconfigure board as Snake reference design */
+                        dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
+                        dev->tuner_type = saa7134_boards[dev->board].tuner_type;
+                        printk(KERN_INFO "%s: Reconfigured board as %s\n",
+                                dev->name, saa7134_boards[dev->board].name);
+                        break;
+
+I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
+code should be doing, instead:
+
+	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
+
+If the right thing to do is to initialize SNAKE with the same tda9887
+parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
+entry.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
