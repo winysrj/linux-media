@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from mx1.rz.ruhr-uni-bochum.de ([134.147.32.86])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JkqxM-0005dg-A8
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 03:24:35 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+	(envelope-from <pepe_ml@gmx.net>) id 1Jpqyo-0007au-Cf
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 22:26:43 +0200
+Date: Sat, 26 Apr 2008 22:26:38 +0200
+From: Steffen Schulz <pepe_ml@gmx.net>
 To: linux-dvb@linuxtv.org
-Date: Sun, 13 Apr 2008 03:23:03 +0200
-References: <47F92310.4040500@gmx.net>
-	<3cc3561f0804081328h526ad2d9j2d8c8dca2fac38ea@mail.gmail.com>
-	<48014ED3.6010305@gmx.net>
-In-Reply-To: <48014ED3.6010305@gmx.net>
+Message-ID: <20080426202638.GA27566@cbg.dyndns.org>
+References: <20080426141433.GA14917@cbg.dyndns.org>
+	<d9def9db0804261236l527b7deew67d1c9df4ea66460@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804130323.03990@orion.escape-edv.de>
-Cc: Morgan =?iso-8859-1?q?T=F8rvolt?= <morgan.torvolt@gmail.com>
-Subject: Re: [linux-dvb] Technotrend common interfaces think my CAM is
-	invalid
-Reply-To: linux-dvb@linuxtv.org
+In-Reply-To: <d9def9db0804261236l527b7deew67d1c9df4ea66460@mail.gmail.com>
+Subject: Re: [linux-dvb] crash with terratec cinergy hybrid XS [0ccd:0042]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,173 +20,124 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-P. van Gaans wrote:
-> On 04/08/2008 10:28 PM, Morgan T=F8rvolt wrote:
-> >> Knoppix didn't want to start (couldn't read the CD, not sure why, maybe
-> >>  too old), but I found a Ubuntu 7.04 live/install CD. Started with tha=
-t,
-> >>  no difference. I did find something else: I've got three different
-> >>  lenghts CI cables. One approx. 60cm, a few others approx. 40cm and so=
-me
-> >>  approx. 4cm. With 60cm, both the offical Mediaguard CAM and Xcam won't
-> >>  initialize. With 40cm, the Xcam still won't and the Mediaguard will i=
-nit
-> >>  about 50% of the time. With 4cm, both Xcam and Mediaguard will always
-> >>  init. But it still doesn't work properly, even with the 4cm cable I
-> >>  couldn't get a picture with the Mediaguard, and I had a picture for
-> >>  about half a minute with the Xcam after which Kaffeine would freeze.
-> > =
+On 080426 at 21:40, Markus Rechberger wrote:
+> you might try
+> 
+> hg clone http://mcentral.de/hg/~mrec/em28xx-new
+> 
+> this is a full inkernel driver.
 
-> > Not surprising. Many of the CAMs are really picky about timing and sign=
-alling.
-> > The Conax 4.00 cam works every time for me. What I suggest is that you
-> > try the patch I have linked to from
-> > http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S-1500#CAM_=
-tests
-> > Which is this:
-> > http://www.linuxtv.org/pipermail/linux-dvb/2007-July/019116.html
-> > =
 
-> > There is some manual labour to get this patch working, but once done,
-> > all the CAMs I have initializes perfectly. I have no idea if the
-> > cable-length affects the process less after the patching, but it sure
-> > helps on initializing the CAMs I have.
-> > =
+To resolve dependencies, I manually compiled and copied the drivers
+in the subdirectories, too. The driver seems to load okay, but I'm
+unable to scan channels:
 
-> >>  I'm not sure if it's a driver problem, all I know is that this started
-> >>  right after installing a new v4l-dvb a few weeks ago. The problem see=
-ms
-> >>  to have no cause:
-> >>
-> >>  Not the DVB-card, as the S2-3200 had the same problem.
-> >>  Not the CI cable, tried many different cables and I don't believe they
-> >>  are all broken the same way.
-> >>  Not the CI-daughterboard, I even bought new ones with no result.
-> >>  Not the current v4l-dvb loaded, because a Ubuntu 7.04 live CD (kernel
-> >>  2.6.20 iirc) has the same result now.
-> >>  Not the computer, because the setup didn't work in another computer e=
-ither.
-> >>  Not the CAM, all CAMs work fine in a Vantage standalone.
-> >>
-> >>  And note I have used this setup, S-1500+CI+long cable+Xcam for months
-> >>  without any problems.
-> > =
+| root@# scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet > .tzap/channels.conf 
+| 
+| scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet
+| using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+| initial transponder 538000000 0 2 9 1 1 3 0
+| initial transponder 586000000 0 2 9 1 1 3 0
+| initial transponder 722000000 0 2 9 1 1 3 0
+| initial transponder 746000000 0 2 9 1 1 3 0
+| initial transponder 690000000 0 2 9 1 1 3 0
+| initial transponder 506000000 0 2 9 1 1 2 0
+| initial transponder 674000000 0 2 9 1 1 3 0
+| initial transponder 778000000 0 2 9 1 1 2 0
+| >>> tune to: 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+| WARNING: >>> tuning failed!!!
+| >>> tune to: 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
+| WARNING: >>> tuning failed!!!
 
-> > You said you changed your powersupply. To a more powerful one? Some
-> > PSUs does give away troublesome noise, especially when heavily loaded.
-> > Also, some powerful PSUs have much of the power on wrong voltages, or
-> > spread across different cables, so that you might actually be pushing
-> > the PSU to it's limits on one circuit, while swapping some power
-> > cables would solve the whole issue.
-> > =
+channels.conf is empty. dmesg:
 
-> > BTW, the CI daughterboard is very simple, like in _very_ simple. It is
-> > very unlikely that this will break. If something is broken with CI, it
-> > would probably be the cable or the tuner-card.
-> > =
+| Linux video capture interface: v2.00
+| em28xx v4l2 driver version 0.0.1 loaded
+| em28xx new video device (0ccd:0042): interface 0, class 255
+| em28xx: device is attached to a USB 2.0 bus
+| em28xx #0: Alternate settings: 8
+| em28xx #0: Alternate setting 0, max size= 0
+| em28xx #0: Alternate setting 1, max size= 0
+| em28xx #0: Alternate setting 2, max size= 1448
+| em28xx #0: Alternate setting 3, max size= 2048
+| em28xx #0: Alternate setting 4, max size= 2304
+| em28xx #0: Alternate setting 5, max size= 2580
+| em28xx #0: Alternate setting 6, max size= 2892
+| em28xx #0: Alternate setting 7, max size= 3072
+| input: em2880/em2870 remote control as /devices/virtual/input/input20
+| em28xx-input.c: remote control handler attached
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 ff
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 ff
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 fb
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7b
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 79
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 79
+| manual gpio
+| ------ on off command -----
+| writing gpio: 04 04
+| manual gpio
+| trying to set disabled gpio? (00)
+| unable to attach tuner
+| em28xx #0: V4L2 VBI device registered as /dev/vbi0
+| em28xx #0: V4L2 device registered as /dev/video0
+| em28xx #0: Found Terratec Hybrid XS
+| em28xx audio device (0ccd:0042): interface 1, class 1
+| em28xx audio device (0ccd:0042): interface 2, class 1
+| usbcore: registered new interface driver em28xx
+| em2880-dvb.c: DVB Init
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7b
+| ts1 on
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7a
+| tuner on
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7a
+| demod reset
+| manual gpio
+| ------ resetting ---------
+| writing gpio: 04 04
+| writing gpio: 04 0c
+| DVB: registering new adapter (em2880 DVB-T)
+| DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+| Em28xx: Initialized (Em2880 DVB Extension) extension
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7a
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7a
+| manual gpio
+| ------ on off command -----
+| writing gpio: 08 7a
 
-> > -Morgan-
-> > =
 
-> =
-
-> Yeah, more power! Another computer (AMD Geode NX1750 and a laptop =
-
-> harddrive, the 480W Antec is very very bored) gives the same result. My =
-
-> regular computer was turned off when I tested that. The patch made no =
-
-> difference whatsoever. The Xcam is actually not picky at all, it is well =
-
->   known for working in pretty much any receiver - and it does. For =
-
-> example, KNC1 CI's are quite picky but the Xcam has no problems with =
-
-> that. Even the Matrix Reborn won't run in a KNC1, yet the Xcam does.
-> =
-
-> I installed the card on Windows to test a bit. I also noted the CI works =
-
-> better on Linux when I fold the CI cable in tinfoil. Here's an overview =
-
-> of some tests:
-> =
-
-> *Windows, unshielded 40cm cable:
-> Xcam sometimes takes a while to init, but works on all tested channels =
-
-> after that (including RTL4 and RTL5).
-> Matrix Reborn: similar result.
-> =
-
-> *Linux, v4l-dvb from hg april 12, 40cm cable in tinfoil:
-> Xcam does init and works. But RTL4, RTL5 =
-
-> (http://nl.kingofsat.net/pack-canaldigitaal.php) give only sound. The =
-
-> videoPID is correct and I did a rescan. Audio is gone if I remove the =
-
-> CAM, so it is encrypted.
-> Matrix similar result, no picture on RTL4 and RTL5 here either, but =
-
-> apart from that it seems to work.
-> =
-
-> *Linux, v4l-dvb from hg april 12, unshielded 40cm cable:
-> Xcam does not init anymore. Not at all. Just "Invalid PC card inserted :(=
-".
-> Matrix Reborn does init, but init fails sometimes as well. When it does =
-
-> init, I can watch most channels.. But not RTL4 or RTL5 (only sound).
-> SCM Conax 4.00e: init sometimes, but can't even get into the menu. Don't =
-
-> have a Conax subscription card right now.
-> =
-
-> RTL4 and RTL5 do work on Windows or a standalone receiver with CI. I =
-
-> also tried to disable all the power in the house and did a test with =
-
-> UPS, but the Xcam still would not init with the unshielded cable. So no =
-
-> electrical devices in the house went bad. The UPS or display are not the =
-
-> source either, tried unplugging them. And a S-1500, T-1500 and S2-3200 =
-
-> are all doing the same thing. I've also got a Aston 1.05 and official =
-
-> Mediaguard CAM to test if required.
-
-Interesting that the CAM works on windows and failes on linux,
-and shielding makes a difference.
-
-Maybe we should try to play with a different debi timing.
-
-In budget-ci.c the CAM timing is controlled by 2 lines:
-
-#define DEBICICTL               0x00420000	-> 1 wait state
-#define DEBICICAM               0x02420000	-> 9 wait states
-
-You might try the following:
-1) Change DEBICICTL to the same value as DEBICICAM (0x02420000)
-   Any improvement?
-2) If it does not help, try value 0x03c20000 (15 wait states) for both
-   constants. Does it help?
-
-CU
-Oliver
-
--- =
-
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+-- 
+       #
+ (o_  #                                                +49/1781384223
+ //\-x                                        gpg --recv-key A04D7875
+ V_/_    Use the source, Tux!             mailto: pepe@cbg.dyndns.org
 
 _______________________________________________
 linux-dvb mailing list
