@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout07.t-online.de ([194.25.134.83])
+Received: from rv-out-0506.google.com ([209.85.198.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JiyC3-0003Ba-6v
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 22:43:56 +0200
-Message-ID: <47FA875F.1060404@t-online.de>
-Date: Mon, 07 Apr 2008 22:43:11 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	(envelope-from <mrechberger@gmail.com>) id 1JprMU-0001CL-AZ
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 22:51:11 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so2790929rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 26 Apr 2008 13:51:06 -0700 (PDT)
+Message-ID: <d9def9db0804261351l7cb47ad7s457f67db5b423cb2@mail.gmail.com>
+Date: Sat, 26 Apr 2008 22:51:05 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Steffen Schulz" <pepe_ml@gmx.net>
+In-Reply-To: <20080426202638.GA27566@cbg.dyndns.org>
 MIME-Version: 1.0
-To: Christoph Honermann <Christoph.Honermann@web.de>
-References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
-	<47FA70C3.5040808@web.de>
-In-Reply-To: <47FA70C3.5040808@web.de>
+Content-Disposition: inline
+References: <20080426141433.GA14917@cbg.dyndns.org>
+	<d9def9db0804261236l527b7deew67d1c9df4ea66460@mail.gmail.com>
+	<20080426202638.GA27566@cbg.dyndns.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
+Subject: Re: [linux-dvb] crash with terratec cinergy hybrid XS [0ccd:0042]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,98 +30,137 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-HI,
+On 4/26/08, Steffen Schulz <pepe_ml@gmx.net> wrote:
+> On 080426 at 21:40, Markus Rechberger wrote:
+> > you might try
+> >
+> > hg clone http://mcentral.de/hg/~mrec/em28xx-new
+> >
+> > this is a full inkernel driver.
+>
+>
+> To resolve dependencies, I manually compiled and copied the drivers
+> in the subdirectories, too. The driver seems to load okay, but I'm
+> unable to scan channels:
+>
+> | root@# scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet >
+> .tzap/channels.conf
+> |
+> | scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Ruhrgebiet
+> | using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> | initial transponder 538000000 0 2 9 1 1 3 0
+> | initial transponder 586000000 0 2 9 1 1 3 0
+> | initial transponder 722000000 0 2 9 1 1 3 0
+> | initial transponder 746000000 0 2 9 1 1 3 0
+> | initial transponder 690000000 0 2 9 1 1 3 0
+> | initial transponder 506000000 0 2 9 1 1 2 0
+> | initial transponder 674000000 0 2 9 1 1 3 0
+> | initial transponder 778000000 0 2 9 1 1 2 0
+> | >>> tune to:
+> 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+> | WARNING: >>> tuning failed!!!
+> | >>> tune to:
+> 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+> (tuning failed)
+> | WARNING: >>> tuning failed!!!
+>
+> channels.conf is empty. dmesg:
+>
+> | Linux video capture interface: v2.00
+> | em28xx v4l2 driver version 0.0.1 loaded
+> | em28xx new video device (0ccd:0042): interface 0, class 255
+> | em28xx: device is attached to a USB 2.0 bus
+> | em28xx #0: Alternate settings: 8
+> | em28xx #0: Alternate setting 0, max size= 0
+> | em28xx #0: Alternate setting 1, max size= 0
+> | em28xx #0: Alternate setting 2, max size= 1448
+> | em28xx #0: Alternate setting 3, max size= 2048
+> | em28xx #0: Alternate setting 4, max size= 2304
+> | em28xx #0: Alternate setting 5, max size= 2580
+> | em28xx #0: Alternate setting 6, max size= 2892
+> | em28xx #0: Alternate setting 7, max size= 3072
+> | input: em2880/em2870 remote control as /devices/virtual/input/input20
+> | em28xx-input.c: remote control handler attached
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 ff
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 ff
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 fb
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7b
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 79
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 79
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 04 04
+> | manual gpio
+> | trying to set disabled gpio? (00)
+> | unable to attach tuner
 
-Christoph Honermann schrieb:
-> Hi, Hartmund
-> 
-> 
-> Hartmut Hackmann schrieb:
->> Hi, Christoph
->>
->> Christoph Honermann schrieb:
->>   
->>> Hi, Hartmund
->>>
->>> I have tested the following archives with my MD8800 und the DVB-S Card.
->>>
->>> v4l-dvb-912856e2a0ce.tar.bz2 --> The DVB-S Input 1 works.
->>> The module of the following archives are loaded with the option
->>> "use_frontend=1,1" at the Shell or automatically:
->>>     /etc/modprobe.d/saa7134-dvb   with the following line
->>>    "options saa7134-dvb use_frontend=1,1"
->>> v4l-dvb-1e295a94038e.tar.bz2;
->>>
->>>     FATAL: Error inserting saa7134_dvb
->>>     (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
->>>     Unknown symbol in module, or unknown parameter (see dmesg)
->>>
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol videobuf_queue_sg_init
->>>     saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
->>>     saa7134_dvb: Unknown symbol saa7134_set_gpio
->>>     saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client
->>>     saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister
->>>     saa7134_dvb: Unknown symbol saa7134_ts_unregister
->>>
->>>
->>> v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 -->
->>>
->>>     FATAL: Error inserting saa7134_dvb
->>>     (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
->>>     Unknown symbol in module, or unknown parameter (see dmesg)
->>>
->>>     dmesg | grep saa7134
->>>     saa7134_dvb: Unknown symbol saa7134_tuner_callback
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol videobuf_queue_sg_init
->>>     saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
->>>     saa7134_dvb: Unknown symbol saa7134_set_gpio
->>>
->>> The Hardware ist working with Windows XP with both Input channels.
->>>
->>>     
->> This occurs when you mix modules of different driver versions. You need to
->> replace all modules of the v4l-dvb subsystem.
->> So after you compiled and installed with
->>   make; make install
->> you need to unload all modules of the subsystem either with
->>   make rmmod
->> or reboot.
->> Afterwards, you can unload and reload a single module as you tried to do.
->>
->> Hartmut
->>
->>   
-> the second DVB-S Channel is working.
-> But there is one thing that makes Problems.
-> I have the effect that the devices /dev/dvb/adapter0/dvr0 and 
-> /dev/dvb/adapter1/dvr0 are missed from kaffeine. Therefore it wont work 
-> (no TV-picture, no sound, no channel scanning).
-> If i look with Nautilus (file manager) therefore the whole Section 
-> /dev/dvb is switching off.
-> Can that be an effect of the module?
-> The Problem is sometimes not there but i don't find the reason (changing 
-> the Modules, reboots, ..). If I solve the Problem, should I test the 
-> kombination between DVB-S and DVB-T?
-> 
-> Best regards
-> Christoph
-> 
-> 
-The device files in /dev/dvb are created by the dvb subsystem after successful
-initialization. So if module loading fails as you describe above, you won't have
-the devices.
-Your problem still is the mismatching module versions.
-Could it be that you have the saa7134.ko module twice in the /lib/modules tree?
-You need to use the new versions of the modules. *Don't* try to mix them.
+cd xc3028
+make
+insmod xc3028-tuner.ko
 
-Best Regards
-   Hartmut
+and replug your device.
 
+Markus
+> | em28xx #0: V4L2 VBI device registered as /dev/vbi0
+> | em28xx #0: V4L2 device registered as /dev/video0
+> | em28xx #0: Found Terratec Hybrid XS
+> | em28xx audio device (0ccd:0042): interface 1, class 1
+> | em28xx audio device (0ccd:0042): interface 2, class 1
+> | usbcore: registered new interface driver em28xx
+> | em2880-dvb.c: DVB Init
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7b
+> | ts1 on
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7a
+> | tuner on
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7a
+> | demod reset
+> | manual gpio
+> | ------ resetting ---------
+> | writing gpio: 04 04
+> | writing gpio: 04 0c
+> | DVB: registering new adapter (em2880 DVB-T)
+> | DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+> | Em28xx: Initialized (Em2880 DVB Extension) extension
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7a
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7a
+> | manual gpio
+> | ------ on off command -----
+> | writing gpio: 08 7a
+>
+>
+> --
+>        #
+>  (o_  #                                                +49/1781384223
+>  //\-x                                        gpg --recv-key A04D7875
+>  V_/_    Use the source, Tux!             mailto: pepe@cbg.dyndns.org
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
