@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38MBbkQ002339
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:11:37 -0400
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38MBO8p012444
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 18:11:24 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QC0iel006102
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 08:00:44 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QC0X3Y007506
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 08:00:33 -0400
+Date: Sat, 26 Apr 2008 08:59:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: mkrufky@linuxtv.org
-In-Reply-To: <47FBDD42.2030608@linuxtv.org>
-References: <47FBDD42.2030608@linuxtv.org>
-Content-Type: text/plain
-Date: Wed, 09 Apr 2008 00:10:59 +0200
-Message-Id: <1207692659.5135.7.camel@pc08.localdom.local>
+Message-ID: <20080426085918.09e8bdc0@gaivota>
+In-Reply-To: <4811F391.1070207@linuxtv.org>
+References: <20080425114526.434311ea@gaivota>
+	<4811F391.1070207@linuxtv.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mchehab@infradead.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, gert.vervoort@hccnet.nl
+Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,115 +28,139 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, 25 Apr 2008 11:06:57 -0400
+mkrufky@linuxtv.org wrote:
 
-Am Dienstag, den 08.04.2008, 17:01 -0400 schrieb mkrufky@linuxtv.org:
-> hermann pitton wrote:
-> > Hi,
+> Mauro Carvalho Chehab wrote:
+> > On Fri, 25 Apr 2008 10:40:14 -0400
+> > "Michael Krufky" <mkrufky@linuxtv.org> wrote:
 > >
-> > Am Freitag, den 04.04.2008, 19:59 +0200 schrieb Oliver Endriss:
 > >   
-> >> Michael Krufky wrote:
+> >> On Fri, Apr 25, 2008 at 9:56 AM, Mauro Carvalho Chehab
+> >> <mchehab@infradead.org> wrote:
 > >>     
-> >>> On Fri, Apr 4, 2008 at 8:56 AM, Michael Krufky <mkrufky@linuxtv.org>
-> wrote:
+> >>> On Thu, 24 Apr 2008 05:55:28 +0200
+> >>>  hermann pitton <hermann-pitton@arcor.de> wrote:
+> >>>
+> >>>  > > > >>>> I am testing a kernel upgrade from 2.6.24.to 2.6.25, and the
+> drivers
+> >>>  > > > >>>> for   the Hauppauge WinTV appear to have suffered some
+> regression
+> >>>  > > > >>>> between the two kernel versions.
+> >>>
+> >>>
 > >>>       
-> >>>>  Guys,
-> >>>>
-> >>>>  Please test this patch against 2.6.24.4 -stable.
-> >>>>
-> >>>>  I don't have this hardware, or any way to test this myself, so I will
-> wait on your feedback before sending this to the -stable team.  (Please try
-> to test it and get back to me quickly -- I'd like to send this over before
-> the 2.6.24.5 review cycle begins)
+> >>>> do you see the auto detection issue?
 > >>>>         
-> >>> I also uploaded the patch to linuxtv.org, in case of mailer
-> whitespace-mangling:
+> >>>  >
+> >>>  > Either tell it is just nothing, what I very seriously doubt, or
+> please
+> >>>  > comment.
+> >>>  >
+> >>>  > I don't like to end up on LKML again getting told that written rules
+> >>>  > don't exist ;)
 > >>>
+> >>>  Sorry for now answer earlier. Too busy here, due to the merge window.
 > >>>
-> http://linuxtv.org/~mkrufky/stable/2.6.24.y/0002-DVB-tda10086-make-the-22kHz
-> -tone-for-DISEQC-a-conf.patch
+> >>>  This seems to be an old bug. On several cases, tuner_type information
+> came from
+> >>>  some sort of autodetection schema, but the proper setup is not sent to
+> tuner.
 > >>>
-> >>> Please test.
+> >>>  Please test the enclosed patch. It warrants that TUNER_SET_TYPE_ADDR is
+> called
+> >>>  at saa7134_board_init2() for all those boards:
+> >>>
+> >>>  SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331
+> >>>  SAA7134_BOARD_ASUS_EUROPA2_HYBRID
+> >>>  SAA7134_BOARD_ASUSTeK_P7131_DUAL
+> >>>  SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA
+> >>>  SAA7134_BOARD_AVERMEDIA_SUPER_007
+> >>>  SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM
+> >>>  SAA7134_BOARD_BMK_MPEX_NOTUNER
+> >>>  SAA7134_BOARD_BMK_MPEX_TUNER
+> >>>  SAA7134_BOARD_CINERGY_HT_PCI
+> >>>  SAA7134_BOARD_CINERGY_HT_PCMCIA
+> >>>  SAA7134_BOARD_CREATIX_CTX953
+> >>>  SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS
+> >>>  SAA7134_BOARD_FLYDVB_TRIO
+> >>>  SAA7134_BOARD_HAUPPAUGE_HVR1110
+> >>>  SAA7134_BOARD_KWORLD_ATSC110
+> >>>  SAA7134_BOARD_KWORLD_DVBT_210
+> >>>  SAA7134_BOARD_MD7134
+> >>>  SAA7134_BOARD_MEDION_MD8800_QUADRO
+> >>>  SAA7134_BOARD_PHILIPS_EUROPA
+> >>>  SAA7134_BOARD_PHILIPS_TIGER
+> >>>  SAA7134_BOARD_PHILIPS_TIGER_S
+> >>>  SAA7134_BOARD_PINNACLE_PCTV_310i
+> >>>  SAA7134_BOARD_TEVION_DVBT_220RF
+> >>>  SAA7134_BOARD_TWINHAN_DTV_DVB_3056
+> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_200
+> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_200A
+> >>>  SAA7134_BOARD_VIDEOMATE_DVBT_300
+> >>>
+> >>>  It is important to test the above boards, to be sure that no regression
+> is
+> >>>  caused.
+> >>>
+> >>>  Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> >>>
+> >>>  diff -r 60110897e86a linux/drivers/media/video/saa7134/saa7134-cards.c
+> >>>  --- a/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25
+> 08:04:54 2008 -0300
+> >>>  +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Fri Apr 25
+> 10:44:16 2008 -0300
 > >>>       
-> >> The following devices are affected by the patch:
+> >> Mauro,
 > >>
-> >> driver: budget
-> >> - Technontrend DVB-S 1401, pci subsystem id: 13c2:1018
-> >>
-> >> driver ttusb2:
-> >> - USB_PID_PCTV_400E
-> >> - USB_PID_PCTV_450E
-> >>
-> >> driver: saa7134
-> >> - SAA7134_BOARD_FLYDVB_TRIO
-> >> - SAA7134_BOARD_MEDION_MD8800_QUADRO
-> >> - SAA7134_BOARD_FLYDVBS_LR300
-> >> - SAA7134_BOARD_PHILIPS_SNAKE
-> >> - SAA7134_BOARD_MD7134_BRIDGE_2
-> >>
-> >> Sorry, cannot do any tests, I do not own any of these devices.
-> >>
-> >> CU
-> >> Oliver
-> >>
+> >> I didn't review your patch yet, and it needs to be tested, however,
+> >> the bug reported in this thread deals with the same regression that
+> >> you are attempting to repair, but on the cx88 driver -- not the
+> >> saa7134 driver.
 > >>     
 > >
-> > good, we are likely not dead by external bureaucracy then, but explicit
-> > tests on 2.6.24 are needed.
+> > Hmm... it seems that people merged two similar issues together, on
+> different
+> > drivers. At least, part of the reports at the thread were with saa7134
+> driver.
 > >
-> > For saa7134 only the FLYBVBS_LR300 and the FLYDVB_TRIO are on 2.6.24.
-> >
-> > Here are two slightly different versions of the MEDION_MD8800_QUADRO,
-> > one in an orange MSI nforce3 amd64 and one in a normal PCI slot, means
-> > only the first 16be:0007 subdevice is functional, but I can use the
-> > second LNB connector for loop through to an external receiver.
-> >
-> > Also one of the new Medion/Creatix triple CTX948 low profile PCI cards,
-> > a version sold in Austria, which is auto detected as 16be:0005 and
-> > covered by the MD8800 config. We might add it to the name string.
-> >
-> > I would have to down port all our new stuff, including isl6405 support,
-> > to 2.6.24 and likely that is not the sort of test intended.
-> >
-> > BTW, the patch in question is in 2.6.25, but none of the new DVB-S
-> > support.
-> >
-> > Andrew, since you are waiting for the fix on 2.6.24, can you test the
-> > patch on 2.6.24.4 and report?
+> > I'll investigate if this solution will also work for cx88.
 > 
-> ...all of this noise was made, and now not a single person is willing to 
-> test the proposed solution?
+> Mauro,
 > 
-> I don't think that there will be many more 2.6.24.y releases.  I have an 
-> ivtv patch queued for 2.6.24.5, and this tda10086 patch is sitting in my 
-> outbox, waiting for test results.
+> "...people merged two similar issues together, on different drivers..."  
+> It was you -- did you forget?
 > 
-> I suspect that 2.6.25 will be released in a few days, after which, 
-> 2.6.24.y -stable release turnaround gets slower and slower, and most 
-> likely will end by the time 2.6.26 is released.
+> cx88: http://linuxtv.org/hg/v4l-dvb/rev/2eb392c86745
 > 
-> If you want this fixed, then the fix needs testing .... NOW.
+> saa7134: http://linuxtv.org/hg/v4l-dvb/rev/e7668fc3666c
 > 
+> I'm surprised that you don't remember this -- you pushed this to Linus 
+> late in the 2.6.25-rcX, after I had strongly advised against this -- I 
+> warned you that this may create regressions, needed thorough testing, 
+> and was too risky a change to push into the middle of 2.6.25-rc
 > 
-> Regards,
+> I hate to say, "I told you so" .... but.............
 > 
-> Mike
+> ;-)
+> 
+> Lets get your fixes tested ASAP so we can fix 2.6.25-stable.
 
-Mike, we know Hartmut's fix is correct and do use it on v4l-dvb master.
+The fix weren't caused by the changesets you've pointed, but are much older. If
+you try to revert both changesets and load tuner before cx88/saa7134, or
+compile tuner statically, you'll notice exact the same issue.
 
-I have nothing supported on 2.6.24, if you seriously want me to down
-port the new cards to 2.6.24.4, I do that, but scratch my head.
+The issue is that set_type_addr were called at the wrong place.
 
-Andrew Junew with a TT S-1401 is willing to help, but fairly new to
-linux. I try to talk him through a 2.6.24.4 vanilla build, test, then
-apply the patch, test again and report.
+Anyway, I've just committed a patch that should fix this for cx88. I'll soon
+use the same logic to fix also saa7134.
+
+I've also added a patch for tuner-core, to improve debug (of course, this
+doesn't need to go to -stable). This helps to see the bug, if tuner debug is
+enabled.
 
 Cheers,
-Hermann
-
-
-
+Mauro
 
 --
 video4linux-list mailing list
