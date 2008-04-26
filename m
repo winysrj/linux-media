@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 78.218.95.91.static.ter-s.siw.siwnet.net ([91.95.218.78]
-	helo=gw) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <magnus@alefors.se>) id 1JmvhR-0005Tl-Pf
-	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 20:52:42 +0200
-Received: from [192.168.0.10] (aria.alefors.se [192.168.0.10])
-	by gw (Postfix) with ESMTP id 138E7158A4
-	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 20:52:34 +0200 (CEST)
-Message-ID: <4808EDF2.3060002@alefors.se>
-Date: Fri, 18 Apr 2008 20:52:34 +0200
-From: =?UTF-8?B?TWFnbnVzIEjDtnJsaW4=?= <magnus@alefors.se>
+Received: from mail.ax.ru ([80.247.32.138] helo=rfn.ru)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <huge@ax.ru>) id 1JphEp-00014o-U9
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 12:02:42 +0200
+Received: from [194.46.227.1] (HELO hugex2.itwise.net)
+	by rfn.ru (CommuniGate Pro SMTP 4.2.8)
+	with ESMTP id 81397574 for linux-dvb@linuxtv.org;
+	Sat, 26 Apr 2008 14:01:55 +0400
+Message-ID: <4812EF9D.2030000@ax.ru>
+Date: Sat, 26 Apr 2008 10:02:21 +0100
+From: Pavel Smirnov <huge@ax.ru>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] No frontend on VP-2040
+Subject: [linux-dvb] hvr4000-dvb firmware loading issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,33 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi. I just bought six Azurewave AD-CP400's (VP-2040) since I thought 
-they should work after reading this list (for years). The fact that they 
-suddenly dropped in price made me a little worried though. It has 
-happend (many times) before that I have bought a new unsupported 
-revision of a previously supported DVB card. And this time it seems to 
-have happened again. If you want I can give you one of them, Manu. Or 
-what can I do to help?
-/Magnus H
+Experiencing issue with Hauppauge HVR4000 not loading firmware even 
+though it was doing this on another system using same firmware file and 
+same version of HVR source :(
 
-dmesg:
-[   37.707361] found a UNKNOWN PCI UNKNOWN device on (01:05.0),
-[   37.707363]     Mantis Rev 1 [1822:0043], irq: 21, latency: 64
-[   37.707365]     memory: 0xdfeff000, mmio: 0xf8928000
+Background:
+    HVR4000 card
+Kernel:
+    2.6.24.5 vanilla
+Source from:
+    hvr4000-dvb
 
-ls /dev/dvb/adapter0:
-ca0  demux0  dvr0  net0
+modprobe cx88_dvb
+loads ok, expected messages appear in the syslog
 
-lspci -vvn:
-01:05.0 0480: 1822:4e35 (rev 01)
-         Subsystem: 1822:0043
-         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B-
-         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium 
- >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-         Latency: 64 (2000ns min, 63750ns max)
-         Interrupt: pin A routed to IRQ 21
-         Region 0: Memory at dfeff000 (32-bit, prefetchable) [size=4K]
+md5sum /lib/firmware/dvb-fe-cx24116.fw
+2f0d3966e8ef44ac971cfa98d536aaaf  /lib/firmware/dvb-fe-cx24116.fw
+
+when doing dvbscan I'm getting this:
+
+==> /var/log/messages <==
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_initfe()
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_set_tone(1)
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_cmd_execute()
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_firmware_ondemand()
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116: read reg 0x20, value 0x00
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_cmd_execute: 0x00 == 0x22
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116: cx24116_writereg: write 
+reg 0x00, value 0x22
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116_cmd_execute: 0x01 == 0x00
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116: cx24116_writereg: write 
+reg 0x01, value 0x00
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116: cx24116_writereg: write 
+reg 0x1f, value 0x01
+Apr 26 10:35:59 boxer kernel: cx24116: cx24116: read reg 0x1f, value 0x01
+Apr 26 10:36:00 boxer last message repeated 63 times
+Apr 26 10:36:00 boxer kernel: cx24116_cmd_execute() Firmware not responding
+
+
 
 
 _______________________________________________
