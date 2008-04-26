@@ -1,29 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34EJ7NF010987
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 10:19:07 -0400
-Received: from mxout-03.mxes.net (mxout-03.mxes.net [216.86.168.178])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34EIrBP022837
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 10:18:53 -0400
-Received: from home.eagach.dyndns.org (unknown [81.98.241.27])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp.mxes.net (Postfix) with ESMTP id 5BEBC23E4A4
-	for <video4linux-list@redhat.com>; Fri,  4 Apr 2008 10:18:50 -0400 (EDT)
-Date: Fri, 4 Apr 2008 15:18:48 +0100
-From: Laurence Darby <ldarby@tuffmail.com>
-To: video4linux-list@redhat.com
-Message-Id: <20080404151848.322a7f98.ldarby@tuffmail.com>
-In-Reply-To: <20080121195314.2753a46d.ldarby@tuffmail.com>
-References: <20071231160243.004506e3.ldarby@tuffmail.com>
-	<20080101094547.02f99c3a@gaivota>
-	<20080101180954.fe6ddfcf.ldarby@tuffmail.com>
-	<20080102000844.10f09d7c@gaivota>
-	<20080121195314.2753a46d.ldarby@tuffmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3QEvwIt025904
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 10:57:58 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3QEvcL6016929
+	for <video4linux-list@redhat.com>; Sat, 26 Apr 2008 10:57:39 -0400
+Received: from tschai.lan (cm-84.208.69.186.getinternet.no [84.208.69.186])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id m3QEvcM4023451
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>;
+	Sat, 26 Apr 2008 16:57:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Date: Sat, 26 Apr 2008 16:57:37 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: lirc project needs your help! - no longer
+Content-Disposition: inline
+Message-Id: <200804261657.37708.hverkuil@xs4all.nl>
+Subject: Is PAL-N supported by an NTSC tuner?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,45 +33,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi all,
 
-Laurence Darby wrote:
+I am trying to figure out which analog TV standards are supported by a 
+card with an NTSC tuner. Most cards come in two variants: one with an 
+NTSC tuner and one with a PAL/SECAM tuner. However, it is not as clear 
+to me which of the more obscure PAL standards require an NTSC tuner.
 
-> Mauro Carvalho Chehab wrote:
-> 
-> > > Do you, or someone else, have the hardware to test if bit 0x800 is
-> > > all that's needed?  Is so, there are many more masks defined in
-> > > lirc_gpio.c, I guess they'll all need to be checked against the
-> > > ones in bttv-input.c and check none are missing before lirc_gpio
-> > > can be officially deprecated
-> > 
-> > Unfortunately, I don't have. We may assume that lirc_gpio is
-> > correct, and write an experimental patch, asking people to test.
-> > Could you prepare such patch?
-> 
-> 
-> Well, I did so, but haven't had any response yet:
-> http://www.nabble.com/Support-for-winfast-2000-xp---Preparing-to-drop-lirc_gpio-td14586233.html
-> (patch also attached)
-> 
-> Does anyone else here have the Winfast 2000 XP card to test it?  Even
-> if you don't use lirc, please consider helping.  What you'd need to do
-> is on linux 2.6.22, check lirc with the input method doesn't work,
-> (ie. repeat what aputerguy does in
-> http://www.nabble.com/Re%3A-LIRC-GPIO-Unnecessary-now--p13608717.html )
-> 
+I know that an NTSC tuner is required for PAL-M and PAL-Nc, but what 
+about PAL-N?
 
-Just in case anyone cares, my patch did get tested and didn't work:
-http://sourceforge.net/tracker/index.php?func=detail&aid=1886920&group_id=5444&atid=305444
+PAL-60 and NTSC 4.43 are never broadcast, so these play no role when it 
+comes to tuner support.
 
-but anyway this problem was actually fixed several months before I
-attempted to fix it:
+Regards,
 
-http://lists.atrpms.net/pipermail/atrpms-users/2007-November/008201.html
-
-
-Laurence
-
-PS. unsubscribing from this list, please CC me if you reply thanks.
+	Hans
 
 --
 video4linux-list mailing list
