@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <knowledgejunkie@gmail.com>) id 1JgVVS-00052R-Uf
-	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 03:41:57 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so209986ywh.41
-	for <linux-dvb@linuxtv.org>; Mon, 31 Mar 2008 18:41:42 -0700 (PDT)
-Message-ID: <5387cd30803311841y66c8ba9hcc2c0e5cfb7f32e1@mail.gmail.com>
-Date: Tue, 1 Apr 2008 02:41:41 +0100
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1206896137.3520.18.camel@pc08.localdom.local>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <47EEE49F.4060202@andrei.myip.org>
-	<5387cd30803300852t60a18c7chb0aedf4037c95da4@mail.gmail.com>
-	<1206896137.3520.18.camel@pc08.localdom.local>
-Subject: Re: [linux-dvb] Hauppauge WinTV Nova-S Plus
+	(envelope-from <awalls@radix.net>) id 1JpZlS-0003M6-Kk
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 04:03:48 +0200
+From: Andy Walls <awalls@radix.net>
+To: Nick Andrew <nick-linuxtv@nick-andrew.net>
+In-Reply-To: <20080425045520.GA17371@tull.net>
+References: <1209093378.6367.22.camel@palomino.walls.org>
+	<20080425045520.GA17371@tull.net>
+Date: Fri, 25 Apr 2008 21:59:42 -0400
+Message-Id: <1209175182.3207.53.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
+Subject: Re: [linux-dvb] [PATCH] mxl500x: Add module
+	parameter	to	enable/disable debug messages
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,38 +27,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 30/03/2008, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Hi Nick,
->
->  Am Sonntag, den 30.03.2008, 15:52 +0000 schrieb Nick Morrott:
->
-> > On 30/03/2008, Florin Andrei <florin@andrei.myip.org> wrote:
->  > > Is anybody using Hauppauge WinTV Nova-S Plus with good results on a
->  > >  fairly recent distribution?
->  > >  The wiki says the card is supported, but I've seen reports online saying
->  > >  that it doesn't work very well on Linux.
->  >
->  > It works absolutely fine for me on a Fedora 7 box using both MythTV
->  > and Kaffeine. Is that distro recent enough?
->  >
->
->
-> can you provide the exact kernel with "uname -a" ?
+On Fri, 2008-04-25 at 14:55 +1000, Nick Andrew wrote:
+> On Thu, Apr 24, 2008 at 11:16:18PM -0400, Andy Walls wrote:
+> > +#define dprintk(level, fmt, arg...)                                       \
+> > +	do {                                                              \
+> > +		if (debug >= level)                                       \
+> > +			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
+> > +	} while (0)
+> 
+> I think this code will be far more useful in kernel/printk.c rather
+> than every device driver and subsystem rolling their own (as seems to 
+> happen at this time).
 
-Linux smithers.home 2.6.22.9-91.fc7 #1 SMP Thu Sep 27 23:10:59 EDT
-2007 i686 i686 i386 GNU/Linux
+Probably.  But I certainly don't have the credentials to move that idea
+very far forward. :)
 
-No problems using my card pointed at Astra 28.2E.
+> Also see dev_dbg() and dev_printk() in include/linux/device.h.
 
--- 
-Nick Morrott
+I looked at those, since Documentation/Codingstyle mentioned them.  They
+reduce right back down to almost the same "printk()" statement used in
+the macro above.
 
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
+If it's any real heartburn for anyone, the printk() in the macro quoted
+above could be changed to dev_dbg() with a change of arguments.  I'd
+need to scrounge up a "struct dev *" every time the module needs to
+print out a debug message though.  It's not very pretty (without another
+macro!) to dig that out of state->fe->dvb->device all the time, and it
+would be more perturbation than necessary just to squelch the spew into
+the kernel ring buffer and logs.
 
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+
+> What those macros are missing is what you have here 
+
+To give credit where credit is due, that macro is a work derived from
+the macro in linux/drivers/media/dvb/frontends/xc5000.c, (C) Xceive and
+Steven Toth.
+
+> - messages
+> printed or ignored depending on the value of a module variable
+> and/or parameter.
+
+Yes, dev_dbg() and friends are missing that.  My imagination fails me at
+the moment, as how to write a generically useful set of functions, with
+that characteristic, that a large subset of the drivers could use.
+
+
+> Nick.
+
+Thanks for the comments.
+
+Regards,
+Andy
+
 
 _______________________________________________
 linux-dvb mailing list
