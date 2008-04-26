@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from an-out-0708.google.com ([209.85.132.247])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1JhHqR-0004O7-3f
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 07:18:39 +0200
-Message-ID: <1D3AE29367104EEB927390EDBF0EB688@mce>
-From: "David Porter" <dvb-t@iinet.com.au>
-To: <linux-dvb@linuxtv.org>
-Date: Thu, 3 Apr 2008 15:18:34 +1000
+	(envelope-from <tomasz.belina@gmail.com>) id 1JpqWq-00053F-9e
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 21:57:49 +0200
+Received: by an-out-0708.google.com with SMTP id d18so3546675and.125
+	for <linux-dvb@linuxtv.org>; Sat, 26 Apr 2008 12:57:36 -0700 (PDT)
+Message-ID: <67bbdc0804261257x2ea440d7radaa1c5ecb5ad56f@mail.gmail.com>
+Date: Sat, 26 Apr 2008 21:57:36 +0200
+From: "Tomasz Belina" <tomasz.belina@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: [linux-dvb] Support for Dual Tuner DVB-T PCI and PCIe Cards
+Subject: [linux-dvb] Support for HPC2000 tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,39 +18,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0966105261=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+--===============0966105261==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1710_31025961.1209239856193"
 
-I have been using the Hauppauge Nova-T 500 Dual Tuner DVB-T cards in 
-MythBuntu builds.
-This product is now end of life.
-It is being replaced by the Hauppauge HVR-2200 dual tuner DVB-T PCIe card. 
-This is currently available but there are no Linux drivers for it.
+------=_Part_1710_31025961.1209239856193
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The DVICO Dual Digital 4 PCI DVB-T card worked well in Linux until it was 
-replaced a few weeks ago with a "revision2" version that has a different 
-tuner and decoder and is currently unsupported. I believe Chris pascoe who 
-wrote the original driver is looking into it.
+Hello,
 
-There is a possibility that when the Nova-T 500 runs out ( 2 - 3 months ), 
-no Dual Tuner DVB-T cards will be supported under Linux.
+Recently I've bought HPC2000 DVB-T tuner. It is  Conexant CX23880 based
+device. I've tried to make it work under linux but without success. I tried
+to used different card ids for cx88xx kernel module. Only for card=46 (DViCO
+FusionHDTV DVB-T Hybrid) there was no error during insmod cx88-dvb but
+unfortunatelly w_scan tool couldn't find any tv program.  Is support for
+this device planned in linux kernel ? Any chance to make it work using
+latest linuxtv drivers ?
 
-It seems that some ATSC PCIe cards have Linux driver support but there is 
-currently nothing for DVB-T.
+Tom
 
-I would be grateful for information about the likelyhood of support for 
-Hauppauge HVR2200 or any other dual tuner DVB-T cards that anyone may know 
-about, or be working on.
+------=_Part_1710_31025961.1209239856193
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards
-David 
+Hello,<br><br>Recently I&#39;ve bought HPC2000 DVB-T tuner. It is&nbsp; Conexant CX23880 based device. I&#39;ve tried to make it work under linux but without success. I tried to used different card ids for cx88xx kernel module. Only for card=46 (DViCO FusionHDTV DVB-T Hybrid) there was no error during insmod cx88-dvb but unfortunatelly w_scan tool couldn&#39;t find any tv program.&nbsp; Is support for this device planned in linux kernel ? Any chance to make it work using latest linuxtv drivers ?<br>
+<br>Tom<br>
+
+------=_Part_1710_31025961.1209239856193--
+
+
+--===============0966105261==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0966105261==--
