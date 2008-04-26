@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [66.180.172.116] (helo=vps1.tull.net)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1JpFyS-0002c3-CV
-	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 06:55:53 +0200
-Date: Fri, 25 Apr 2008 14:55:20 +1000
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
-To: Andy Walls <awalls@radix.net>
-Message-ID: <20080425045520.GA17371@tull.net>
+Received: from [203.200.233.138] (helo=nkindia.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gurumurti@nkindia.com>) id 1JpikH-00069R-BV
+	for linux-dvb@linuxtv.org; Sat, 26 Apr 2008 13:39:10 +0200
+Message-ID: <52990.203.200.233.130.1209210772.squirrel@203.200.233.138>
+In-Reply-To: <1209175182.3207.53.camel@palomino.walls.org>
 References: <1209093378.6367.22.camel@palomino.walls.org>
+	<20080425045520.GA17371@tull.net>
+	<1209175182.3207.53.camel@palomino.walls.org>
+Date: Sat, 26 Apr 2008 17:22:52 +0530 (IST)
+From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
+To: "Andy Walls" <awalls@radix.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1209093378.6367.22.camel@palomino.walls.org>
 Cc: linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
-Subject: Re: [linux-dvb] [PATCH] mxl500x: Add module parameter
-	to	enable/disable debug messages
+Subject: Re: [linux-dvb] [PATCH] mxl500x: Add module
+ parameter	to	enable/disable debug messages
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,23 +28,77 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Apr 24, 2008 at 11:16:18PM -0400, Andy Walls wrote:
-> +#define dprintk(level, fmt, arg...)                                       \
-> +	do {                                                              \
-> +		if (debug >= level)                                       \
-> +			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
-> +	} while (0)
 
-I think this code will be far more useful in kernel/printk.c rather
-than every device driver and subsystem rolling their own (as seems to 
-happen at this time).
+Hi all
+I would like to implemet CI in dvbstream program. How should i go about.
+Can any body in this regard.
+Thanks withs regards
 
-Also see dev_dbg() and dev_printk() in include/linux/device.h.
-What those macros are missing is what you have here - messages
-printed or ignored depending on the value of a module variable
-and/or parameter.
 
-Nick.
+> On Fri, 2008-04-25 at 14:55 +1000, Nick Andrew wrote:
+>> On Thu, Apr 24, 2008 at 11:16:18PM -0400, Andy Walls wrote:
+>> > +#define dprintk(level, fmt, arg...)
+>>     \
+>> > +	do {                                                              \
+>> > +		if (debug >= level)                                       \
+>> > +			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
+>> > +	} while (0)
+>>
+>> I think this code will be far more useful in kernel/printk.c rather
+>> than every device driver and subsystem rolling their own (as seems to
+>> happen at this time).
+>
+> Probably.  But I certainly don't have the credentials to move that idea
+> very far forward. :)
+>
+>> Also see dev_dbg() and dev_printk() in include/linux/device.h.
+>
+> I looked at those, since Documentation/Codingstyle mentioned them.  They
+> reduce right back down to almost the same "printk()" statement used in
+> the macro above.
+>
+> If it's any real heartburn for anyone, the printk() in the macro quoted
+> above could be changed to dev_dbg() with a change of arguments.  I'd
+> need to scrounge up a "struct dev *" every time the module needs to
+> print out a debug message though.  It's not very pretty (without another
+> macro!) to dig that out of state->fe->dvb->device all the time, and it
+> would be more perturbation than necessary just to squelch the spew into
+> the kernel ring buffer and logs.
+>
+>
+>> What those macros are missing is what you have here
+>
+> To give credit where credit is due, that macro is a work derived from
+> the macro in linux/drivers/media/dvb/frontends/xc5000.c, (C) Xceive and
+> Steven Toth.
+>
+>> - messages
+>> printed or ignored depending on the value of a module variable
+>> and/or parameter.
+>
+> Yes, dev_dbg() and friends are missing that.  My imagination fails me at
+> the moment, as how to write a generically useful set of functions, with
+> that characteristic, that a large subset of the drivers could use.
+>
+>
+>> Nick.
+>
+> Thanks for the comments.
+>
+> Regards,
+> Andy
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+
+-- 
+gurumurti@nkindia.com (m) 09324221887
+
 
 _______________________________________________
 linux-dvb mailing list
