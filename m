@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.177])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <IxAYMzFpK2ojlw@sofortsurf.de>) id 1Jge2T-0006LS-3q
-	for linux-dvb@linuxtv.org; Tue, 01 Apr 2008 12:48:30 +0200
-Date: Tue, 1 Apr 2008 12:44:42 +0200
-From: "L." <IxAYMzFpK2ojlw@sofortsurf.de>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-ID: <20080401104442.GA18478@localhost>
+	(envelope-from <zzam@gentoo.org>) id 1Jpxvq-0003p1-Bj
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 05:52:06 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: "Jan Louw" <myvonkpos@mweb.co.za>
+Date: Sun, 27 Apr 2008 05:51:30 +0200
+References: <20080412150444.987445669@gentoo.org>
+	<200804121737.28314.zzam@gentoo.org>
+	<000a01c8a7b7$5cc2c060$0500000a@Core2Duo>
+In-Reply-To: <000a01c8a7b7$5cc2c060$0500000a@Core2Duo>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Please correct wiki: KNC1 DVB-C Plus not fully supported
+Message-Id: <200804270551.30966.zzam@gentoo.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [patch 0/5] mt312: Add support for zl10313 demod
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,58 +28,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Samstag, 26. April 2008, Jan Louw wrote:
+> Hi Matthias,
+>
+> It still works. I combined your zl10313 modulator patch  with my earlier
+> zl10039 frontend patch. The additional modifications necesary are in (see
+> previous patch):
+>
+> ~/schwarzottv4l/v4l-dvb $ hg status
+> M linux/drivers/media/dvb/frontends/Kconfig
+> M linux/drivers/media/dvb/frontends/Makefile
+> M linux/drivers/media/video/saa7134/Kconfig
+> M linux/drivers/media/video/saa7134/saa7134-cards.c
+> M linux/drivers/media/video/saa7134/saa7134-dvb.c
+> M linux/drivers/media/video/saa7134/saa7134.h
+> A linux/drivers/media/dvb/frontends/zl10039.c
+> A linux/drivers/media/dvb/frontends/zl10039.h
+> A linux/drivers/media/dvb/frontends/zl10039_priv.h
+>
+> To keep it simple I omitted the previous remote control code.
+>
 
-the information about the KNC1 DVB-C Plus card (a card with analog video
-input) in the linuxtv.org dvb wiki is wrong. It says it works under
-linux, which is not correct. The analog input (Composite and S-Video) is
-currently unsupported under Linux (at least for the recent MK3 version).
-(See bug reports [3,4]).
+As you see here my zl10036 driver seems to work to some point:
+http://thread.gmane.org/gmane.linux.drivers.dvb/41015/focus=41303
 
-The lack of support for the analog input by the driver is crucial, since
-nobody would buy such a card without explicitly needing this analog
-input; the model without analog input is much less expensive. So saying
-the card works can lead to someone buying a card not fully supported by
-Linux (unfortunately this has happened to me).
+Could you please mail your current driver for zl10039.
+Maybe it is worth merging both.
 
-Please correct this information in the wiki! This wiki is not editable
-by public. The following pages are affected:
-
-http://linuxtv.org/wiki/index.php/KNC1_TV-Station_DVB-C_Plus
-http://linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
-http://linuxtv.org/wiki/index.php/KNC1
-
-I can say that the analog input on my MK3 version did not work with any 
-kernel version or patch I tested since its first Linux support in 2007-02
-[1] (however the input works under windows). I do not know if the analog
-input of the older version of the card did work or still does. 
-
-It should be noted that the MK3 version of the KNC1 DVB-C with tda10023
-is only supported from kernel 2.6.22 on (and a little earlier with a
-patch), but the older version of the card with tda10021 was supported
-much earlier, already (at least) in kernel 2.6.12.
-
-KNC1 DVB-C Plus (older)     = PCI subsystem ID 1894:0021      
-KNC1 DVB-C Plus MK3 (newer) = PCI subsystem ID 1894:0023 
-
-If someone owns a KNC One DVB Plus card, please can you say if your
-analog input (Composite or S-Video) ever worked under Linux, or if
-it stopped working with a specific kernel version? Thank you.
-
-L.
-
-References
-
-1. 2007-02: First patch available supporting the MK3 versions of KNC1 DVB
-cards (and identical Terratec/Satelco): tda1002x.008.diff for hg/v4l-dvb
-http://www.vdr-portal.de/board/thread.php?threadid=60227&page=8
-http://www.linuxtv.org/pipermail/linux-dvb/2007-February/015886.html
-
-2. http://www.vdr-wiki.de/wiki/index.php/DVB-C_Budget-PCI-Karten
-
-3. http://www.linuxtv.org/pipermail/linux-dvb/2008-March/025032.html
-
-4. http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022183.html
+Regards
+Matthias
 
 _______________________________________________
 linux-dvb mailing list
