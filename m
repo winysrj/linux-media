@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.239])
+Received: from [195.24.76.81] (helo=mail.e-service.lu)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Jnlen-0002ma-Kf
-	for linux-dvb@linuxtv.org; Mon, 21 Apr 2008 04:21:27 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1064137rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 19:21:18 -0700 (PDT)
-Message-ID: <d9def9db0804201921g1ef5832fwa4bed4b7eba92048@mail.gmail.com>
-Date: Mon, 21 Apr 2008 04:21:18 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Bob Quincy" <bqproductions@gmail.com>
-In-Reply-To: <3064975c0804200836g22e3f5fcg80f386e598ac5142@mail.gmail.com>
+	(envelope-from <roodemol@cjbous.net>) id 1JqEP4-0004w4-Mi
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 23:27:22 +0200
+Received: from bombadil.lan (ip-88-207-225-253.dyn.luxdsl.pt.lu
+	[88.207.225.253])
+	by mail.e-service.lu (Postfix) with ESMTP id 742191CB0179
+	for <linux-dvb@linuxtv.org>; Sun, 27 Apr 2008 23:27:19 +0200 (CEST)
+From: RISCH Gilles <roodemol@cjbous.net>
+To: linux-dvb@linuxtv.org
+Date: Sun, 27 Apr 2008 23:27:20 +0200
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <3064975c0804200836g22e3f5fcg80f386e598ac5142@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] kworld 340u
+Message-Id: <200804272327.20455.roodemol@cjbous.net>
+Subject: [linux-dvb] Hauppauge WinTV-HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +27,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hello,
 
-On 4/20/08, Bob Quincy <bqproductions@gmail.com> wrote:
-> I have a kworld 340u ATSC USB tuner.
->
-> These are the major (or only) chips on the board
->
-> tda18271 (tuner)
-> lgdt3304 (vsb/qam?)
-> em2870 (usb video bridge)
->
-I haven't got that combination yet, although there's support for the
-lgdt3304. I'll see what I can get next week.
+the Hauppauge WinTV-HVR-1200 is now listened as a supported card in the wiki. 
+What I'm missing are some instructions how to get the card working. Does a 
+such document already exist?
 
-Markus
+Regards
+
+Gilles
 
 _______________________________________________
 linux-dvb mailing list
