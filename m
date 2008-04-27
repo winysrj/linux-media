@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JkTjy-0002A5-U5
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 02:37:12 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from smtprelay09.ispgateway.de ([80.67.29.23])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <kiu@gmx.net>) id 1JqFCH-0008Fz-PC
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 00:18:14 +0200
+Received: from [62.216.212.3] (helo=blacksheep.qnet)
+	by smtprelay09.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <kiu@gmx.net>) id 1JqFCE-00042w-1t
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 00:18:10 +0200
+Message-ID: <20080428001809.3vbl9fotckwwswss@blacksheep.qnet>
+Date: Mon, 28 Apr 2008 00:18:09 +0200
+From: kiu <kiu@gmx.net>
 To: linux-dvb@linuxtv.org
-Date: Sat, 12 Apr 2008 02:35:52 +0200
-References: <mailman.1.1206183601.26852.linux-dvb@linuxtv.org>
-	<47E813C7.6070208@googlemail.com>
-In-Reply-To: <47E813C7.6070208@googlemail.com>
+References: <20080427212607.csw7xwh9wcsw04cw@blacksheep.qnet>
+In-Reply-To: <20080427212607.csw7xwh9wcsw04cw@blacksheep.qnet>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200804120235.52939@orion.escape-edv.de>
-Cc: Andrea <mariofutire@googlemail.com>
-Subject: Re: [linux-dvb] [PATCH] 2/3: implement DMX_SET_BUFFER_SIZE for dvr
-Reply-To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Regression! Re: TerraTec Cinergy C -
+	tuning	fails/freezes
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,65 +30,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrea wrote:
-> linux-dvb-request@linuxtv.org wrote:
-huh?
+I could fix it by using exactly the mantis driver version which is  
+mentioned in
+http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C with my  
+2.6.24-16-generic kernel.
 
->  > What about this fragment:
->  > 	...
->  > 	if (!size)
->  > 		return -EINVAL;
->  >
->  > 	mem = vmalloc(size);
->  > 	if (!mem)
->  > 		return -ENOMEM;
->  >
->  > 	mem2 = buf->data;
->  >
->  >       spin_lock_irqsave(&dmxdev->lock);
->  >       buf->pread = buf->pwrite = 0;
->  > 	buf->data = mem;
->  > 	buf->size = size;
->  > 	spin_unlock_irqrestore(&dmxdev->lock);
->  >
->  > 	vfree(mem2);
->  > 	return 0;
-> 
-> Maybe I can think of one reason while the current code is not implemented this way:
-> 
-> In your version the new buffer is allocated before the old one is released.
+w_scan works out of the box using version  
+http://jusst.de/hg/mantis/archive/af18967ffcc9.tar.bz2
 
-Yes, this is intentional. See below.
+If you need some help in regression tests, drop me a mail.
 
-> In the current implementation the old buffer is released and afterwards the new one allocated.
-> 
-> One could argue that the new implementation has a maximum memory requirement higher than the old one.
-> It's not much but I am not too familiar with kernel development, so I don't know how important that 
-> could be.
-> 
-> What do you think?
+Quoting kiu <kiu@gmx.net>:
 
-- With your code the demux becomes unusable if the memory allocation
-  failes for some reason. This should be avoided. It is better have a
-  working demux with a smaller buffer than to have an defunct demux.
+> Hi List,
+>
+> i have a TerraTec Cinergy C DVB-C PCI Card in my mythbuntu 8.04 pc.
+>
+> After compiling the mantis driver (http://jusst.de/hg/mantis) the card
+> is recognized by the kernel. perfect!
+>
+> If i now run
+>
+> w_scan -fc -x -vvvv
+>
+> it searches for QAM64 and QAM256 and finds some signals there. After
+> it is finished, it tries to tune in the channels and freezes with this
+> message (same happens with (dvb)scan):
+>
+> tune to:
+> tuning status == 0x1f
+> add_filter:1388: add filter pid 0x0000 start_filter:1334: start filter
+> pid 0x0000 table_id 0x00
+>
+> Any hints for debugging/fixing it my issues ?
+>
+> Btw, i also encountered a segfault once. If it happens again i will   
+> post it...
+>
+> TIA!
+> --
+> kiu
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-- If there is not enough memory for both buffers, your machine has a problem
-  anyway, and you should not increase buffer size.
 
-> About the spin_lock_irqsave: currently it is not used anywhere in the code for the demux in dmxdev.c.
-> I am always a bit scared when I introduce something new, maybe I am missing the current logic.
-
-I'm sorry, spin_lock_irqsave/spin_unlock_irqrestore was a typo.
-We have to use spin_[un]lock_irq because buffer writing _might_ occur
-in interrupt context. So the '_irq' is very important!
-
-CU
-Oliver
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+kiu
 
 _______________________________________________
 linux-dvb mailing list
