@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1JnXHt-0000Zi-7w
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 13:00:49 +0200
-Received: by fg-out-1718.google.com with SMTP id 22so1146663fge.25
-	for <linux-dvb@linuxtv.org>; Sun, 20 Apr 2008 04:00:43 -0700 (PDT)
-Date: Sun, 20 Apr 2008 13:00:38 +0200
-To: Craig Whitmore <lennon@orcon.net.nz>
-Message-ID: <20080420110038.GD2971@gmail.com>
-References: <20080420095713.GA2971@gmail.com>
-	<1208686754.31360.0.camel@localhost>
-	<20080420104224.GC2971@gmail.com>
-	<1208688576.31360.3.camel@localhost>
+	(envelope-from <zzam@gentoo.org>) id 1Jq8MT-0004XG-HV
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 17:00:17 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+Date: Sun, 27 Apr 2008 16:59:41 +0200
+References: <617be8890804140209p3b79df8cm3f94de8f82b1faa5@mail.gmail.com>
+	<200804270540.29590.zzam@gentoo.org>
+	<617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
+In-Reply-To: <617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1208688576.31360.3.camel@localhost>
-From: Gregoire Favre <gregoire.favre@gmail.com>
+Message-Id: <200804271659.41562.zzam@gentoo.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and multiproto_plus ?
+Subject: Re: [linux-dvb] a700 support (was: [patch 5/5] mt312: add
+	attach-time setting to invert lnb-voltage (Matthias Schwarzott))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,28 +23,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Apr 20, 2008 at 10:49:36PM +1200, Craig Whitmore wrote:
+On Sonntag, 27. April 2008, Eduard Huguet wrote:
+> Thank you very much, Matthias. I was going to try the patch right now,
+> however I'm finding that it doesn't apply clean to the current HG tree.
+> This is what I'm getting:
+>
+> patching file linux/drivers/media/dvb/frontends/Kconfig
+> Hunk #1 FAILED at 368.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> linux/drivers/media/dvb/frontends/Kconfig.rej
+> patching file linux/drivers/media/dvb/frontends/Makefile
+> Hunk #1 succeeded at 23 (offset -2 lines).
+> patching file linux/drivers/media/dvb/frontends/zl10036.c
+> patching file linux/drivers/media/dvb/frontends/zl10036.h
+> patching file linux/drivers/media/video/saa7134/Kconfig
+> patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+> Hunk #3 succeeded at 5716 (offset 42 lines).
+> patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
+>
+> I've tried to manually patch Kconfig by adding the rejected lines, but I
+> suppose there must something I'm doing wrong: apparently it compiles fine,
+> but saa7134-dvb is not loaded and the frontend is not being created for the
+> card (although the card is detected and the video0 device for analog is
+> there).
+>
+This reject is caused by the massive movement of the hybrid tuner drivers to 
+another directory.
+I solved the reject, and re-uploaded the patch.
+Here it does still work.
 
-> what does multiproto plus give you that multiproto doesn't?
-
-Sorry,
-
-I don't really have time to discuss that this month...
-
-One starting point is that it compils against 2.6.25 for example...
-
-Please start a new thread if you want to discuss other subject ;-)
--- =
-
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
+Regards
+Matthias
 
 _______________________________________________
 linux-dvb mailing list
