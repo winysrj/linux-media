@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from smtpgw01.world4you.com ([80.243.163.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JpEV9-0004p5-F6
-	for linux-dvb@linuxtv.org; Fri, 25 Apr 2008 05:21:34 +0200
-From: Andy Walls <awalls@radix.net>
+	(envelope-from <treitmayr@devbase.at>) id 1JqEDv-0003Ry-Lf
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 23:15:53 +0200
+Received: from [85.127.158.184] (helo=[192.168.1.76])
+	by smtpgw01.world4you.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67) (envelope-from <treitmayr@devbase.at>)
+	id 1JqEDr-00074N-42
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 23:15:47 +0200
+From: Thomas Reitmayr <treitmayr@devbase.at>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="=-ObdbzQuxwaR+kuM7Ldb5"
-Date: Thu, 24 Apr 2008 23:16:18 -0400
-Message-Id: <1209093378.6367.22.camel@palomino.walls.org>
+Date: Sun, 27 Apr 2008 23:15:46 +0200
+Message-Id: <1209330946.6897.2.camel@localhost>
 Mime-Version: 1.0
-Cc: ivtv-devel@ivtvdriver.org
-Subject: [linux-dvb] [PATCH] mxl500x: Add module parameter to enable/disable
-	debug	messages
+Subject: Re: [linux-dvb] NSLU2 dma_free_coherent issue with DIB0700
+	driver	(and probably others)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,299 +22,140 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi Lee,
+I was browsing the mailing-list archive and found your email about the
+issue with DIB0700-based devices on an NSLU2. I myself use a Terratec
+Cinergy DT XS Diversity which I think had the same issue as you
+described it. I found that the cause was the rather big DMA buffer of
+39480 bytes as specified in dib0700_devices.c.
+Looking at the kernel's arch/arm/mach-ixp4xx/common-pci.c there is a top
+limit of 4096 bytes for a DMA buffer set by the function call 
+   dmabounce_register_dev(dev, 2048, 4096);
 
---=-ObdbzQuxwaR+kuM7Ldb5
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+My recipe (for SlugOS) below changes the big buffer to a smaller one and
+also increases the number of buffers (not sure if the latter is really
+needed). Now the module is working just fine, even recording on both
+adapters gives a CPU usage of just ~25%. So the smaller buffer size does
+not seem to hurt at all. Not sure why it is needed in the first place.
 
-All,
-
-The attached patch replaces the unconditional printk() messages with
-printk() messages that are enabled by a "debug" module parameter.
-
-When using the beta cx18 driver with the HVR-1600, the debug messages
-produced by the mxl500x module are excessive, especially when MythTV
-goes to fetch EPG data from the ATSC broadcasts. 
-
-I didn't particularly like having to "#ifdef DEBUG" the debug macros,
-but that's what Documentation/CodingStyle recommended.
-
-Could you please review and comment?
-
-Thanks,
-Andy Walls
+Bye,
+-Thomas
 
 
+PS: My recipe "v4l-dvb_0776e4801991.bb"
+
+========= CUT ==========
+
+DESCRIPTION = "v4l-dvb modules"
+#SECTION = ""
+PRIORITY = "optional"
+HOMEPAGE = "http://linuxtv.org/"
+LICENSE = "GPL"
+DEPENDS = "virtual/kernel"
+PR = "r0"
+
+SRC_URI = "http://linuxtv.org/hg/v4l-dvb/archive/${PV}.tar.bz2"
+
+S = "${WORKDIR}/${PN}-${PV}"
+
+inherit module
+
+MAKE_TARGETS = "DIR=${STAGING_KERNEL_DIR}"
+
+do_configure() {
+	# fix make target
+	cd "${S}"
+	sed -i 's%^install:%install modules_install:%' Makefile
+	
+	# reduce buffer size (ixp4xx can handle only <= 4096
+	# (see arch/arm/mach-ixp4xx/common-pci.c)
+	cd "${S}/linux/drivers/media/dvb/dvb-usb"
+	sed -i 's%buffersize = 39480%buffersize = 4096%' dib0700_devices.c
+	sed -i 's%\.count = 4,%.count = 7,%' dib0700_devices.c
+	
+	# do not strip here
+	cd "${S}/v4l/scripts"
+	sed -i 's%@strip %@#strip %' make_makefile.pl
+}
+
+fakeroot do_install() {
+	oe_runmake DESTDIR="${D}" install
+}
+
+FILES_${PN} = "/lib/modules"
+
+========= CUT ==========
 
 
---=-ObdbzQuxwaR+kuM7Ldb5
-Content-Disposition: attachment; filename=mxl500x-module-debug-param.patch
-Content-Type: text/x-patch; name=mxl500x-module-debug-param.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        ---- Original Message ----
+        From: Lee Essen lee.essen at nowonline.co.uk 
+        Date: Thu Apr 3 12:48:05 CEST 2008
+        
+        Hi,
+        
+        Apologies if this is directed in the wrong place, as I suspect
+        this is more of a kernel/USB issue than a DVB driver issue, but
+        it does have an impact on people wanting to use this device with
+        an NSLU2 (and I suspect it will also be a problem with many
+        other devices.)
+        
+        I have been experimenting using a variety of DVB-T USB devices
+        with an NSLU2 with my ultimate aim being to build in a dual
+        DVB-T device into the case and use it in very much the same way
+        as the HDHomeRun device.
+        
+        Using a DTT200U based device everything worked perfectly.
+        
+        Then I started playing with a DIB0700 based device (actually an
+        Elgato Eye-TV Diversity) and the system would just hang whenever
+        I started using dvbstream, I got slightly different behaviour if
+        I tried to tune it to an invalid frequency and eventually
+        managed to get to a state when I could interrupt it before it
+        completely locked up.
+        
+        It seems that the driver was flagging an issue in the ARM
+        architecture around not calling dma_free_coherent() with IRQ's
+        disabled, apparently a warning was recently added to the ARM
+        kernel so it logs a message and a stack trace each time ... this
+        seemed to be happening so frequently it effectively locked the
+        system up.
+        
+        I did a little digging, but I'm not a kernel expert at all, and
+        it seems that the ehci_hcd module is actually where the call is
+        originating rather than the DVB driver itself, so I suspect that
+        this will actually effect a significant number of the drivers
+        when used on an ARM platform.
+        
+        For the purposes of testing I removed the warning (from
+        arch/arm/mm/ consistent line 363) and everything is fine, the
+        driver operates perfectly and I can stream video nicely. BUT -
+        clearly there is some kind of issue here that needs to be
+        resolved.
+        
+        More information is available at the link below, and also I have
+        read comments suggesting that the issue has been discussed on
+        the arm-kernel mailing list but that no resolution has yet been
+        found.
+        
+        http://forum.soft32.com/linux/ehci_hcd-map_single-unable-map-unsafe-buffer-standard-NSLU2-ftopict461241.html
+        
+        For reference I'm using 2.6.24 and have tried the most recent
+        drivers from linuxtv.org as well as a variety of others -- all
+        seem to have the same problem (which is expected if the problem
+        is actually in the USB system.)
+        
+        Hope this is useful,
+        
+        Lee.
 
-# HG changeset patch
-# User Andy Walls <awalls@radix.net>
-# Date 1209092528 14400
-# Node ID 979f9052fc7e4df5841244aad0bc0868bfe6c155
-# Parent  e6eb3d828145a6df892bf2bc567167f1ee7df528
-[PATCH] mxl500x: Add module parameter to enable/disable debug messages
-
-From: Andy Walls <awalls@radix.net>
-
-Replace the unconditional printk() messages with printk() messages that are
-enabled/disabled by a "debug" module parameter.
-
-When using the beta cx18 driver with the HVR-1600, the debug messages
-produced by the mxl500x module are excessive, especially when an application
-like MythTV goes to fetch EPG data from the over the air broadcasts.
-
-The debug macros in the patch were derived from:
-
-linux/drivers/i2c/algos/i2c-algo-bit.c      (C) 1995-2000 Simon G. Vogl
-linux/drivers/media/dvb/frontends/bcm3510.c (C) 2001-2005 B2C2 inc.
-linux/drivers/media/dvb/frontends/xc5000.c  (C) 2007 Xceive Corp & Steve Toth
-
-Signed-off-by: Andy Walls <awalls@radix.net>
-
-diff -r e6eb3d828145 -r 979f9052fc7e linux/drivers/media/dvb/frontends/mxl500x.c
---- a/linux/drivers/media/dvb/frontends/mxl500x.c	Thu Apr 17 12:19:34 2008 -0400
-+++ b/linux/drivers/media/dvb/frontends/mxl500x.c	Thu Apr 24 23:02:08 2008 -0400
-@@ -29,6 +29,32 @@
- 
- #include "mxl500x.h"
- #include "mxl500x_reg.h"
-+
-+#ifdef DEBUG
-+static int debug;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "Set debug level [0-2] (default: 0/off");
-+
-+#define dprintk(level, fmt, arg...)                                       \
-+	do {                                                              \
-+		if (debug >= level)                                       \
-+			printk(KERN_DEBUG "%s: " fmt, "mxl500x", ## arg); \
-+	} while (0)
-+
-+#define dbufout(level, buf, n)                           \
-+	do {                                             \
-+		if (debug >= level) {                    \
-+			int i;                           \
-+			printk(" [");                    \
-+			for (i = 0; i < n; i++)          \
-+				printk(" %02x", buf[i]); \
-+			printk(" ]\n");                  \
-+		}                                        \
-+	} while (0)
-+#else
-+#define dprintk(level, fmt, arg...)   do {} while (0)
-+#define dbufout(level, buf, n)        do {} while (0)
-+#endif
- 
- struct mxl500x_reg {
- 	u8 reg;
-@@ -184,31 +210,27 @@ static int mxl500x_write(struct mxl500x_
- 		.buf	= buf,
- 		.len	= 2,
- 	};
--	int j;
- 
- 	if (MXL_LATCH == latch)
- 		msg.len = 3;
- 
- 	if (fe->ops.i2c_gate_ctrl) {
--		printk("%s: Enable gate\n", __func__);
-+		dprintk(1, "%s: Enable gate\n", __func__);
- 		if (fe->ops.i2c_gate_ctrl(fe, 1))
- 			goto exit;
- 	}
--	printk("tuner access: >> [");
--	for (j = 0; j < msg.len; j++)
--		printk(" %02x", buf[j]);
--
--	printk(" ]\n");
-+	dprintk(2, "tuner access: >>");
-+	dbufout(2, buf, msg.len);
- 	i2c_transfer(state->i2c, &msg, 1);
- 	if (fe->ops.i2c_gate_ctrl) {
--		printk("%s: disable gate\n", __func__);
-+		dprintk(1, "%s: disable gate\n", __func__);
- 		if (fe->ops.i2c_gate_ctrl(fe, 0))
- 			goto exit;
- 	}
- 
- 	return 0;
- exit:
--	printk("%s: I/O Error\n", __func__);
-+	dprintk(1, "%s: I/O Error\n", __func__);
- 	return -EREMOTEIO;
- }
- 
-@@ -220,7 +242,6 @@ static int mxl500x_write_regs(struct mxl
- 	u8 buf[max_regs*2+1];
- 	int i;
- 	int reg_nr;
--	int j;
- 
- 	struct dvb_frontend *fe = state->frontend;
- 	const struct mxl500x_config *config = state->config;
-@@ -233,11 +254,11 @@ static int mxl500x_write_regs(struct mxl
- 	};
- 
- 	if (fe->ops.i2c_gate_ctrl) {
--		printk("%s: Enable gate\n", __func__);
-+		dprintk(1, "%s: Enable gate\n", __func__);
- 		if (fe->ops.i2c_gate_ctrl(fe, 1))
- 			goto exit;
- 	}
--	printk("%s: Registers to Write=%d\n", __func__, count);
-+	dprintk(1, "%s: Registers to Write=%d\n", __func__, count);
- 	/* Look at the regs, copy those regs from the field map to the xfer buffer */
- 	reg_nr = 0;
- 	for (i = 0; i < count; i++) {
-@@ -253,11 +274,8 @@ static int mxl500x_write_regs(struct mxl
- 				msg.len++;
- 			}
- 
--			printk("tuner access: >> [");
--			for (j = 0; j < msg.len; j++)
--				printk(" %02x", buf[j]);
--
--			printk(" ]\n");
-+			dprintk(2, "tuner access: >>");
-+			dbufout(2, buf, msg.len);
- 
- 			i2c_transfer(state->i2c, &msg, 1);
- 			msleep(1);
-@@ -265,14 +283,14 @@ static int mxl500x_write_regs(struct mxl
- 		}
- 	}
- 	if (fe->ops.i2c_gate_ctrl) {
--		printk("%s: Disable gate\n", __func__);
-+		dprintk(1, "%s: Disable gate\n", __func__);
- 		if (fe->ops.i2c_gate_ctrl(fe, 0))
- 			goto exit;
- 	}
- 
- 	return 0;
- exit:
--	printk("%s: I/O Error\n", __func__);
-+	dprintk(1, "%s: I/O Error\n", __func__);
- 	return -EREMOTEIO;
- }
- 
-@@ -688,7 +706,7 @@ static int mxl500x_set_params(struct dvb
- 	memcpy(state->reg_field, reg_init, sizeof (reg_init));
- 
- 	/* Step 1: Synthesizer RESET (Single AGC Mode) */
--	printk("%s: Synthesizer RESET and latch\n", __func__);
-+	dprintk(1, "%s: Synthesizer RESET and latch\n", __func__);
- 	if (mxl500x_write(state, 0x09, 0xb1, MXL_LATCH))  /* master reg, synth reset */
- 		goto exit;
- 
-@@ -719,7 +737,8 @@ static int mxl500x_set_params(struct dvb
- 			MXL500x_SET_MAP(MXL500x_LPF1, LPF1_BB_DLPF_BANDSEL, 3);
- 			break;
- 		default:
--			printk("%s: Invalid Bandwidth mode specified %d\n", __func__, p->u.ofdm.bandwidth);
-+			dprintk(1, "%s: Invalid Bandwidth mode specified %d\n",
-+				__func__, p->u.ofdm.bandwidth);
- 			return -EINVAL;
- 		}
- 	} else {
-@@ -839,13 +858,13 @@ static int mxl500x_set_params(struct dvb
- 
- 	//11, 12, 13, 22, 43, 44, 53, 56, 59, 73, 76, 77, 91, 134, 135, 137, 147, 156, 166, 167, 168
- 	// TODO! write registers (Init regs)
--	printk("%s: Writing Init Regs\n", __func__);
-+	dprintk(1, "%s: Writing Init Regs\n", __func__);
- 	if (mxl500x_write_regs(state, mxl500x_init_regs, sizeof(mxl500x_init_regs)))
- 		goto exit;
- 
- 	/* Step 3: ZIF Mode */
- 	// Synthesizer reset
--	printk("%s: Synthesizer RESET and latch\n", __func__);
-+	dprintk(1, "%s: Synthesizer RESET and latch\n", __func__);
- 	if (mxl500x_write(state, 0x09, 0xb1, MXL_LATCH))  /* master reg, synth reset, latch */
- 		goto exit;
- 
-@@ -1157,13 +1176,13 @@ static int mxl500x_set_params(struct dvb
- 	MXL500x_SET_MAP(MXL500x_MISC_TUNE2, MISC_TUNE2_SEQ_EXTPOWERUP, 1);
- 	MXL500x_SET_MAP(MXL500x_IFSYN4, IFSYN4_IF_DIVVAL, 8);
- 	// Synthesizer LOAD Start
--//	printk("%s: Synthesizer Load START\n", __func__);
-+//	dprintk(1, "%s: Synthesizer Load START\n", __func__);
- //	if (mxl500x_write(state, 0x09, 0xf2, MXL_NO_LATCH)) /* master reg, load start, don't latch */
- //		goto exit;
- 	// write all changed regs (change regs)
- 	// 14, 15, 16, 17, 22, 43, 68, 69, 70, 73, 92, 93, 106, 107, 108, 109, 110, 111, 112, 136, 138, 149
- 	mxl500x_set_reg(state, 0x09, 0xf3);
--	printk("%s: Setup changed registers\n", __func__);
-+	dprintk(1, "%s: Setup changed registers\n", __func__);
- 	if (mxl500x_write_regs(state, mxl500x_zif_regs, sizeof(mxl500x_zif_regs)))
- 		goto exit;
- 
-@@ -1171,21 +1190,21 @@ static int mxl500x_set_params(struct dvb
- 	MXL500x_SET_MAP(MXL500x_MISC_TUNE1, MISC_TUNE1_SEQ_FSM_PULSE, 1);
- 	MXL500x_SET_MAP(MXL500x_IFSYN4, IFSYN4_IF_DIVVAL, if_div);
- 	// Synthesizer LOAD Start
--//	printk("%s: Synthesizer Load START\n", __func__);
-+//	dprintk(1, "%s: Synthesizer Load START\n", __func__);
- //	if (mxl500x_write(state, 0x09, 0xf2, MXL_NO_LATCH)) /* master reg, load start, don't latch */
- //		goto exit;
- 	// write regs
- 	// 43, 136
--	printk("%s: Tuner go\n", __func__);
-+	dprintk(1, "%s: Tuner go\n", __func__);
- 	if (mxl500x_write_regs(state, mxl500x_go_regs, sizeof(mxl500x_go_regs)))
- 		goto exit;
- 
--	printk("%s: Done\n", __func__);
-+	dprintk(1, "%s: Done\n", __func__);
- 
- 	return 0;
- 
- exit:
--	printk("%s: I/O error\n", __func__);
-+	dprintk(1, "%s: I/O error\n", __func__);
- 	return -EIO;
- }
- 
-@@ -1208,7 +1227,7 @@ struct dvb_frontend *mxl500x_attach(stru
- {
- 	struct mxl500x_state *state;
- 
--	printk("%s: Attaching ...\n", __func__);
-+	dprintk(1, "%s: Attaching ...\n", __func__);
- 	if ((state = kzalloc(sizeof (struct mxl500x_state), GFP_KERNEL)) == NULL) {
- 		fe = NULL;
- 		goto exit;
-@@ -1220,11 +1239,11 @@ struct dvb_frontend *mxl500x_attach(stru
- 	memcpy(&fe->ops.tuner_ops, &mxl500x_ops, sizeof (struct dvb_tuner_ops));
- 	fe->tuner_priv	= state;
- 
--	printk("%s: MXL500x tuner succesfully attached\n", __func__);
-+	dprintk(1, "%s: MXL500x tuner succesfully attached\n", __func__);
- 	return fe;
- 
- exit:
--	printk("%s: Error attaching tuner\n", __func__);
-+	dprintk(1, "%s: Error attaching tuner\n", __func__);
- 	return NULL;
- }
- EXPORT_SYMBOL(mxl500x_attach);
-
---=-ObdbzQuxwaR+kuM7Ldb5
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=-ObdbzQuxwaR+kuM7Ldb5--
