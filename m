@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m38FYGef006322
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:34:16 -0400
-Received: from mail-out.m-online.net (mail-out.m-online.net [212.18.0.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m38FY21v030761
-	for <video4linux-list@redhat.com>; Tue, 8 Apr 2008 11:34:03 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-dvb@linuxtv.org
-Date: Tue, 8 Apr 2008 17:33:54 +0200
-References: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
-In-Reply-To: <617be8890804080606y23bc62b7j7495a37c039bd3d6@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3RLIMVU030490
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 17:18:22 -0400
+Received: from mailout06.t-online.de (mailout06.t-online.de [194.25.134.19])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3RLIAsH003757
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 17:18:10 -0400
+Message-ID: <4814ED8B.90503@t-online.de>
+Date: Sun, 27 Apr 2008 23:18:03 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_iB5+HvPsmFN33xx"
-Message-Id: <200804081733.54539.zzam@gentoo.org>
-Cc: video4linux-list@redhat.com, Eduard Huguet <eduardhc@gmail.com>
-Subject: Re: [linux-dvb] Any progress on the AverMedia A700 (DVB-S Pro)?
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <20080425114526.434311ea@gaivota>
+	<4811F391.1070207@linuxtv.org>	<20080426085918.09e8bdc0@gaivota>
+	<481326E4.2070909@pickworth.me.uk>	<20080426110659.39fa836f@gaivota>	<1209247821.15689.12.camel@pc10.localdom.local>	<20080426201940.1507fb82@gaivota>
+	<1209327322.2661.26.camel@pc10.localdom.local>
+In-Reply-To: <1209327322.2661.26.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb@linuxtv.org, video4linux-list@redhat.com, mkrufky@linuxtv.org,
+	gert.vervoort@hccnet.nl, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,171 +31,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---Boundary-00=_iB5+HvPsmFN33xx
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi, Hermann, Mauro
 
-On Dienstag, 8. April 2008, Eduard Huguet wrote:
+hermann pitton schrieb:
 > Hi,
->     Things are very quiet lately regarding this card. Is there any
-> possibility that the card gets supported in any near future? I know
-> Matthias  Schwarzot had been working on it, but there's no messages from
-> him lately on the list.
+> 
+> Am Samstag, den 26.04.2008, 20:19 -0300 schrieb Mauro Carvalho Chehab:
+>> On Sun, 27 Apr 2008 00:10:21 +0200
+>> hermann pitton <hermann-pitton@arcor.de> wrote:
+>>> Cool stuff!
+>>>
+>>> Works immediately for all tuners again. Analog TV, radio and DVB-T on
+>>> that machine is tested.
+>>>
+>>> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+>> Thanks. I'll add it to the patch.
+>>
+>>> Maybe Hartmut can help too, but I will test also on the triple stuff and
+>>> the FMD1216ME/I MK3 hybrid tomorrow.
+>> Thanks.
+>>
+>> It would be helpful if tda9887 conf could also be validated. I didn't touch at
+>> the logic, but I saw some weird things:
+>>
+>> For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
+>> 	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
+>>
+>> And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
+>>
+>> However, there's an autodetection code that changes from EUROPA to SNAKE,
+>> without cleaning tda9887_conf:
+>>
+>>         case SAA7134_BOARD_PHILIPS_EUROPA:
+>>                 if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
+>>                         /* Reconfigure board as Snake reference design */
+>>                         dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
+>>                         dev->tuner_type = saa7134_boards[dev->board].tuner_type;
+>>                         printk(KERN_INFO "%s: Reconfigured board as %s\n",
+>>                                 dev->name, saa7134_boards[dev->board].name);
+>>                         break;
+>>
+>> I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
+>> code should be doing, instead:
+>>
+>> 	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
+>>
+>> If the right thing to do is to initialize SNAKE with the same tda9887
+>> parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
+>> entry.
+>>
+>> Cheers,
+>> Mauro
+> 
+> Hartmut has the board and knows better, but it looks like it only has
+> DVB-S and external analog video inputs. There is TUNER_ABSENT set, no
+> analog tuner, no tda9887 and also no DVB-T, but it unfortunately shares
+> the subsystem with the Philips Europa.
+> 
+Hermann is right, SNAKE has no analog tuner. These boards indeed share the same PCI ID,
+This code fragment reads the tuner ID from the eeprom to find out which board is there.
+
+> I notice some unwanted behavior when testing md7134 FMD1216ME hybrid
+> boards.
 >
-> Best regards,
->   Eduard
+Aha! I modified my board that it no longer runs with the current driver. But i observed
+something similar
 
-I did not made any progress since last time we corresponded.
+> Unchanged is that the tda9887 is not up for analog after boot.
+> Previously one did reload "tuner" just once and was done.
+> 
+<snip>
+Don't have the time today, but lets roll back history: Not absolutely sure but if
+i remember correcly, the initialization sequence can be critical with hybrid tuners /
+NIM modules. The tda9887 may only be visible on I2C after a certain bit in the MOPLL
+is set (in byte4?)
 
-But: I think we agree that the patch that only adds composite and s-video 
-support works.
-So we could request pulling it into v4l-dvb repository.
-
-Regards
-Matthias
-
--- 
-Matthias Schwarzott (zzam)
-
---Boundary-00=_iB5+HvPsmFN33xx
-Content-Type: text/x-diff; charset="iso-8859-15";
-	name="avertv_A700_analog_part.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="avertv_A700_analog_part.diff"
-
-saa7134: add analog support for Avermedia A700 cards
-
-Add support for composite and s-video inputs on
-Avermedia DVB-S Pro and DVB-S Hybrid+FM cards
-(both labled A700) to the saa7134 driver.
-
-XC2028 support for Hybrid+FM is still missing.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-
-Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
-@@ -4210,7 +4210,47 @@ struct saa7134_board saa7134_boards[] = 
- 			.name = name_radio,
- 			.amux = TV,
- 		}
--	}
-+	},
-+	[SAA7134_BOARD_AVERMEDIA_A700_PRO] = {
-+		/* Matthias Schwarzott <zzam@gentoo.org> */
-+		.name           = "Avermedia DVB-S Pro A700",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_ABSENT,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		/* no DVB support for now */
-+		/* .mpeg           = SAA7134_MPEG_DVB, */
-+		.inputs         = {{
-+			.name = name_comp,
-+			.vmux = 1,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+			.amux = LINE1,
-+		}},
-+	},
-+	[SAA7134_BOARD_AVERMEDIA_A700_HYBRID] = {
-+		/* Matthias Schwarzott <zzam@gentoo.org> */
-+		.name           = "Avermedia DVB-S Hybrid+FM A700",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_ABSENT, /* TUNER_XC2028 */
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		/* no DVB support for now */
-+		/* .mpeg           = SAA7134_MPEG_DVB, */
-+		.inputs         = {{
-+			.name = name_comp,
-+			.vmux = 1,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+			.amux = LINE1,
-+		}},
-+	},
- };
- 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -4443,6 +4483,18 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.driver_data  = SAA7134_BOARD_MD2819,
- 	},{
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xa7a1,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_A700_PRO,
-+	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xa7a2,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_A700_HYBRID,
-+	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
- 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
- 		.subdevice    = 0x2115,
-@@ -5567,6 +5619,15 @@ int saa7134_board_init1(struct saa7134_d
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8c040007, 0x8c040007);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0c0007cd, 0x0c0007cd);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A700_PRO:
-+	case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
-+		/* write windows gpio values */
-+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
-+		printk("%s: %s: hybrid analog/dvb card\n"
-+		       "%s: Sorry, only the analog inputs are supported for now.\n",
-+			dev->name,card(dev).name, dev->name);
-+		break;
- 	}
- 	return 0;
- }
-Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134.h
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h
-@@ -268,6 +268,8 @@ struct saa7134_format {
- #define SAA7134_BOARD_AVERMEDIA_A16D       137
- #define SAA7134_BOARD_AVERMEDIA_M115       138
- #define SAA7134_BOARD_VIDEOMATE_T750       139
-+#define SAA7134_BOARD_AVERMEDIA_A700_PRO    140
-+#define SAA7134_BOARD_AVERMEDIA_A700_HYBRID 141
- 
- 
- #define SAA7134_MAXBOARDS 8
-Index: v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134
-===================================================================
---- v4l-dvb.orig/linux/Documentation/video4linux/CARDLIST.saa7134
-+++ v4l-dvb/linux/Documentation/video4linux/CARDLIST.saa7134
-@@ -138,3 +138,5 @@
- 137 -> AVerMedia Hybrid TV/Radio (A16D)         [1461:f936]
- 138 -> Avermedia M115                           [1461:a836]
- 139 -> Compro VideoMate T750                    [185b:c900]
-+140 -> Avermedia DVB-S Pro A700                 [1461:a7a1]
-+141 -> Avermedia DVB-S Hybrid+FM A700           [1461:a7a2]
-
---Boundary-00=_iB5+HvPsmFN33xx
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---Boundary-00=_iB5+HvPsmFN33xx--
