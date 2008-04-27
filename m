@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.170])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.n.vinogradov@gmail.com>) id 1JqJrt-0002pG-F3
-	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 05:17:30 +0200
-Received: by wf-out-1314.google.com with SMTP id 28so4112885wfa.17
-	for <linux-dvb@linuxtv.org>; Sun, 27 Apr 2008 20:17:23 -0700 (PDT)
-Message-ID: <a88999c70804272017y544e9f49h131451de927e0f96@mail.gmail.com>
-Date: Mon, 28 Apr 2008 10:17:23 +0700
-From: "Alexey Vinogradov" <a.n.vinogradov@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <mariofutire@googlemail.com>) id 1Jq2AL-00073r-Pa
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 10:23:23 +0200
+Received: by nf-out-0910.google.com with SMTP id d21so1567277nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 27 Apr 2008 01:23:17 -0700 (PDT)
+Message-ID: <481437F2.6040006@googlemail.com>
+Date: Sun, 27 Apr 2008 09:23:14 +0100
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Can't compile saa7134_alsa on generic ubuntu kernel
-	(Hardy)
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------080508040506090104020305"
+Subject: [linux-dvb] [PATCH] preserve behavior of tzap (+ others)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,93 +19,133 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello.
+This is a multi-part message in MIME format.
+--------------080508040506090104020305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I've downloaded the sources of v4l-dvb and built them (I have A16D
-tuner which is not supported in "main" kernel). However, saa7134-alsa
-wasn't built. "make xconfig" also had this module unchecked (and
-unavailable to check).
+Hi,
 
-I've found that this is because of "ubuntu" way of building system:
-the generic kernel config file doesn't has ALSA subsystem checked.
-Actually you have to install two modules: linux-image and
-linux-ubuntu-modules. First contains "minimal" kernel with just
-essential options - and .config file corresponding to it.
-linux-ubuntu-modules contains everything else - including all ALSA
-staff, etc.
+After the recent implementation of DMX_SET_BUFFER_SIZE for the dvr, tzap has changed:
+It used to resize the dvr's buffer to 1 MB, but the ioctl was ignored, so the buffer was always of 
+the default size
 
-The comment in media/saa7134/BOM said:
+#define DVR_BUFFER_SIZE (10*188*1024)
 
-#
-# All of the saa7134 sources were copied directly from the 2.6.24 kernel.
-#
-# The ALSA depedent modules must be built in LUM since ALSA is
-# disabled in the kernel. Not all of the saa7134 modules are depedent on
-# ALSA, but it just seemed simpler to grab the whole pile.
-#
-# Note that the compilation of the saa7134 sources is also dependent on
-# the kernel headers packages containing some internal header files
-# from the drivers/media directories.
-#
-# Tim Gardner Apr 3, 2008.
+in dmxdev.h
+I think the author of the code meant to *increase* the buffer (which, reading the documentation 
+seems to be 8K: http://www.linuxtv.org/docs/dvbapi/DVB_Demux_Device.html).
+The documentation does not apply to the dvr, but to the demux.
 
-So, my problem is that I can't build v4l-dvb saa7134-alsa module
-because ALSA is disabled in kernel.
+In thins patch:
 
-If I enable the alsa in kernel config, it said this during stage 2 of
-building modules:
+1) tzap: removed the ioctl call to DMX_SET_BUFFER_SIZE on the dvr. This calls shrinks the size of 
+the buffer, from about 2MB (#define DVR_BUFFER_SIZE (10*188*1024) in dmxdev.h) to 1MB.
 
-WARNING: "snd_pcm_lib_ioctl"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_format_big_endian"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_format_signed"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_format_width"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_period_elapsed"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_stop"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_format_physical_width"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_hw_constraint_step"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_hw_constraint_integer"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_card_register"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_set_ops"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_pcm_new"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_ctl_add"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_ctl_new1"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_card_new"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
-WARNING: "snd_card_free"
-[/home/alexey/v4l-dvb-3366cefd1b57/v4l/saa7134-alsa.ko] undefined!
+2) in libdvbapi a change in a comment where it is stated that the dvr can be opened more that once 
+in readonly. It can only be opened once.
 
-The module after such warning IS compiled - but cause segmentation
-fault, and is unusable because of it.
+3) in libdvbapi a new enum to support DMX_OUT_TSDEMUX_TAP
 
-I believe that I need to mess some way the v4l-dvb with sources of
-linux-ubuntu-modules - to point some way that the ALSA is exists, and
-it is not in the kernel. but in the ubuntu-modules.
+On top of that I would like to update the documentation of DMX_SET_BUFFER_SIZE, but I could not find 
+the source.
 
-Am I right?
+Regards
 
-How to do it?
+Andrea
+
+
+--------------080508040506090104020305
+Content-Type: text/x-patch;
+ name="dvb-apps.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dvb-apps.diff"
+
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.c
+--- a/lib/libdvbapi/dvbdemux.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -128,6 +128,10 @@ int dvbdemux_set_pes_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -201,6 +205,10 @@ int dvbdemux_set_pid_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.h
+--- a/lib/libdvbapi/dvbdemux.h	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.h	Sat Mar 22 00:07:29 2008 +0000
+@@ -55,6 +55,7 @@ extern "C"
+ #define DVBDEMUX_OUTPUT_DECODER 0
+ #define DVBDEMUX_OUTPUT_DEMUX 1
+ #define DVBDEMUX_OUTPUT_DVR 2
++#define DVBDEMUX_OUTPUT_TS_DEMUX 3
+ 
+ /**
+  * PES types.
+@@ -65,6 +66,7 @@ extern "C"
+ #define DVBDEMUX_PESTYPE_SUBTITLE 3
+ #define DVBDEMUX_PESTYPE_PCR 4
+ 
++
+ /**
+  * Open a demux device. Can be called multiple times. These let you setup a
+  * single filter per FD. It can can also be read() from if you use a section
+@@ -78,8 +80,8 @@ extern int dvbdemux_open_demux(int adapt
+ extern int dvbdemux_open_demux(int adapter, int demuxdevice, int nonblocking);
+ 
+ /**
+- * Open a DVR device. May be opened for writing once, or multiple times in readonly
+- * mode. It is used to either write() transport stream data to be demuxed
++ * Open a DVR device. May be opened for writing or reading once.
++ * It is used to either write() transport stream data to be demuxed
+  * (if input == DVBDEMUX_INPUT_DVR), or to read() a stream of demuxed data
+  * (if output == DVBDEMUX_OUTPUT_DVR).
+  *
+diff -r 3cde3460d120 util/szap/tzap.c
+--- a/util/szap/tzap.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/util/szap/tzap.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -676,11 +676,6 @@ int main(int argc, char **argv)
+ 	                PERROR("failed opening '%s'", DVR_DEV);
+ 	                return -1;
+ 	        }
+-		if (ioctl(dvr_fd, DMX_SET_BUFFER_SIZE, 1024 * 1024)<0)
+-		{
+-			PERROR("DMX_SET_BUFFER_SIZE failed");
+-			return -1;
+-		}
+ 		if (silent<2)
+ 			print_frontend_stats (frontend_fd, human_readable);
+ 
+
+
+--------------080508040506090104020305
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------080508040506090104020305--
