@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3MH3Oie018675
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 13:03:24 -0400
-Received: from web27912.mail.ukl.yahoo.com (web27912.mail.ukl.yahoo.com
-	[217.146.182.62])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3MH38V3019920
-	for <video4linux-list@redhat.com>; Tue, 22 Apr 2008 13:03:08 -0400
-Date: Tue, 22 Apr 2008 18:03:02 +0100 (BST)
-From: "Edward J. Sheldrake" <ejs1920@yahoo.co.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080422132139.1e8e5f4a@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3RJSljr028930
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 15:28:47 -0400
+Received: from smtprelay09.ispgateway.de (smtprelay09.ispgateway.de
+	[80.67.29.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3RJSZAB019866
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 15:28:36 -0400
+Received: from [62.216.212.3] (helo=blacksheep.qnet)
+	by smtprelay09.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <kiu@gmx.net>) id 1JqCY6-0000a7-RO
+	for video4linux-list@redhat.com; Sun, 27 Apr 2008 21:28:34 +0200
+Message-ID: <20080427212833.l5p8sq8ggc0kcks8@blacksheep.qnet>
+Date: Sun, 27 Apr 2008 21:28:33 +0200
+From: kiu <kiu@gmx.net>
+To: video4linux-list@redhat.com
+References: <20080427205841.4pehkhp5sgoccco8@blacksheep.qnet>
+	<20080427210450.5u7wgb4xdwkws8cs@blacksheep.qnet>
+In-Reply-To: <20080427210450.5u7wgb4xdwkws8cs@blacksheep.qnet>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Message-ID: <542613.5449.qm@web27912.mail.ukl.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: em28xx/xc3028: changeset 7651 breaks analog audio?
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Subject: Re: TerraTec Cinergy C - tuning fails
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,44 +36,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---- Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+Hi List,
 
-> Hi Edward,
-> 
-> Thanks for your report.
-> 
-> There were lots of changes on em28xx driver those days, although I
-> agree that
-> the only one that would affect just audio is the one you've pointed.
-> If you
-> just revert this changeset, does the audio work again?
-> 
-Hi Mauro
+ignore my requests, sorry, picked the wrong mailinglist. Posted it on  
+the dvb list again.
 
-I updated to changeset 7673 and reversed 7651, and got a fully working
-driver. These are the firmware loading messages from the working
-driver:
+Sorry for the confusion...
 
-(insert stick)
-xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type:
-xc2028 firmware, ver 2.7
-xc2028 1-0061: Loading firmware for type=BASE MTS (5), id
-0000000000000000.
-xc2028 1-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+Quoting kiu <kiu@gmx.net>:
 
-(start mplayer - missing from first pastebin)
-xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-xc2028 1-0061: Loading firmware for type=MTS (4), id 0000000000000010.
+> Quoting kiu <kiu@gmx.net>:
+>
+>> If i now run (dvb)scan it searches for QAM64 and QAM256 and finds
+>
+> sorry, i meant: w_scan -fc -x -vvvv
+>
+>> signals there. After scanning it tries to tune the channels, but
+>> freezes with this message:
+>>
+>> tune to:
+>>>>> tuning status == 0x1f
+>> add_filter:1388: add filter pid 0x0000
+>> start_filter:1334: start filter pid 0x0000 table_id 0x00
 
---
-
-Edward Sheldrake
-
-
-      __________________________________________________________
-Sent from Yahoo! Mail.
-A Smarter Email http://uk.docs.yahoo.com/nowyoucan.html
+-- 
+kiu
 
 --
 video4linux-list mailing list
