@@ -1,18 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m34KfSF3032261
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 16:41:28 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m34KfCL8001115
-	for <video4linux-list@redhat.com>; Fri, 4 Apr 2008 16:41:12 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so180458fga.7
-	for <video4linux-list@redhat.com>; Fri, 04 Apr 2008 13:41:12 -0700 (PDT)
-From: "Jakub 'Livio' Rusinek" <jakub.rusinek@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3RJ5MIA023158
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 15:05:22 -0400
+Received: from smtprelay05.ispgateway.de (smtprelay05.ispgateway.de
+	[80.67.18.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3RJ4pgx008292
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 15:04:52 -0400
+Received: from [62.216.212.3] (helo=blacksheep.qnet)
+	by smtprelay05.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <kiu@gmx.net>) id 1JqCB9-0003h8-0C
+	for video4linux-list@redhat.com; Sun, 27 Apr 2008 21:04:51 +0200
+Message-ID: <20080427210450.5u7wgb4xdwkws8cs@blacksheep.qnet>
+Date: Sun, 27 Apr 2008 21:04:50 +0200
+From: kiu <kiu@gmx.net>
 To: video4linux-list@redhat.com
-Date: Fri, 04 Apr 2008 22:44:23 +0200
-Message-Id: <1207341863.4814.3.camel@fedora>
-Mime-Version: 1.0
-Subject: Prolink Pixelview PlayTV Pro
+References: <20080427205841.4pehkhp5sgoccco8@blacksheep.qnet>
+In-Reply-To: <20080427205841.4pehkhp5sgoccco8@blacksheep.qnet>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Subject: Re: TerraTec Cinergy C - tuning fails
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,57 +31,28 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0819122030=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Quoting kiu <kiu@gmx.net>:
 
---===============0819122030==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-4Essm74yTVIZp/jgEpob"
+> If i now run (dvb)scan it searches for QAM64 and QAM256 and finds
 
+sorry, i meant: w_scan -fc -x -vvvv
 
---=-4Essm74yTVIZp/jgEpob
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> signals there. After scanning it tries to tune the channels, but
+> freezes with this message:
+>
+> tune to:
+>>>> tuning status == 0x1f
+> add_filter:1388: add filter pid 0x0000
+> start_filter:1334: start filter pid 0x0000 table_id 0x00
 
-Hi,
-
-I've added "output of my experience" into V4L's wiki.
-
-Here you go:
-http://linuxtv.org/v4lwiki/index.php/Prolink_Pixelview_PlayTV_Pro
-
---=20
-Jakub 'Livio' Rusinek
-http://liviopl.jogger.pl/
-
---=-4Essm74yTVIZp/jgEpob
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: To jest =?UTF-8?Q?cz=C4=99=C5=9B=C4=87?=
-	=?UTF-8?Q?_wiadomo=C5=9Bci?= podpisana cyfrowo
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkf2kycACgkQcLqbpHzJqIWIEgCgpr++qvPSg/WGF9qPC5AczSO1
-AJkAn0wPGTh74p/RJxawWRau/oYGU2TE
-=pyO1
------END PGP SIGNATURE-----
-
---=-4Essm74yTVIZp/jgEpob--
-
-
---===============0819122030==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+kiu
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0819122030==--
