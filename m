@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JhQZP-0006MZ-7U
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 16:37:39 +0200
-To: linux-dvb@linuxtv.org
+	(envelope-from <mkrufky@linuxtv.org>) id 1JqFg4-0001X2-V5
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 00:49:01 +0200
+Message-ID: <481502D6.5010704@linuxtv.org>
+Date: Sun, 27 Apr 2008 18:48:54 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Date: Thu, 3 Apr 2008 16:36:50 +0200
-From: Nicolas Will <nico@youplala.net>
-In-Reply-To: <874a271ecbbd66baae17d5acf725ef16@localhost>
-References: <874a271ecbbd66baae17d5acf725ef16@localhost>
-Message-ID: <9e0b4664d86aa1f391e9808292c3bde2@localhost>
-Subject: Re: [linux-dvb]
-	=?utf-8?q?Nova-T_500_disconnects_-_solved=3F_-_YES!?=
+To: RISCH Gilles <roodemol@cjbous.net>
+References: <200804272327.20455.roodemol@cjbous.net>
+In-Reply-To: <200804272327.20455.roodemol@cjbous.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,33 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-
-
-On Thu, 3 Apr 2008 10:47:25 +0200, Nicolas Will <nico@youplala.net> wrote:
+RISCH Gilles wrote:
+> Hello,
 > 
-> Guys,
-> 
-> I have tried the ehci patch manually on the Ubuntu 2.6.24-13 source, and
-> indeed it fixed the disconnects.
-> 
-> The fix is now in the 2.6.24-14 binaries, and works just as well.
-> 
-> My Ubuntu Hardy has now resumed normal activities and Gutsy stability
-> levels, so far.
-> 
-> I can only recommend that users of other distros should check for kernel
-> updates, bug their developers to include the fix, or do it themselves.
+> the Hauppauge WinTV-HVR-1200 is now listened as a supported card in the wiki. 
+> What I'm missing are some instructions how to get the card working. Does a 
+> such document already exist?
 
-the fix is apparently also included in the 2.6.24.4-64.fc8 Fedora Core 8
-kernel update.
+This card is supported in the master v4l-dvb repository, hosted on linuxtv.org:
 
-This information comes from 
+http://linuxtv.org/hg/v4l-dvb
 
-https://bugzilla.redhat.com/show_bug.cgi?id=440008
+For a howto:
 
-Nico
+http://linuxtv.org/repo
 
+Good Luck.
+
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
