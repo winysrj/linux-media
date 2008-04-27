@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <r.schedel@yahoo.de>) id 1JneyV-0003AL-4U
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 21:13:26 +0200
-Message-ID: <480B95A8.5050607@yahoo.de>
-Date: Sun, 20 Apr 2008 21:12:40 +0200
-From: Robert Schedel <r.schedel@yahoo.de>
+Received: from rv-out-0506.google.com ([209.85.198.228])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <eduardhc@gmail.com>) id 1JqA97-0002B7-Fg
+	for linux-dvb@linuxtv.org; Sun, 27 Apr 2008 18:54:38 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so3012863rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 27 Apr 2008 09:54:32 -0700 (PDT)
+Message-ID: <617be8890804270954nc3d060ev6836849841f65d06@mail.gmail.com>
+Date: Sun, 27 Apr 2008 18:54:32 +0200
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Matthias Schwarzott" <zzam@gentoo.org>
+In-Reply-To: <200804271659.41562.zzam@gentoo.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <47F9E95D.6070705@yahoo.de> <48066F62.8000709@yahoo.de>
-	<48076C7A.7070901@yahoo.de>
-	<200804180234.34558@orion.escape-edv.de>
-In-Reply-To: <200804180234.34558@orion.escape-edv.de>
-Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot polling
+References: <617be8890804140209p3b79df8cm3f94de8f82b1faa5@mail.gmail.com>
+	<200804270540.29590.zzam@gentoo.org>
+	<617be8890804270442t5318e322g8904e6e698c70a15@mail.gmail.com>
+	<200804271659.41562.zzam@gentoo.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] a700 support (was: [patch 5/5] mt312: add
+	attach-time setting to invert lnb-voltage (Matthias Schwarzott))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,79 +25,116 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0732858915=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Oliver Endriss wrote:
-> Robert Schedel wrote:
->> Robert Schedel wrote:
->>
->>> Is the 250ms timeout an approved limit? Decreasing it would push the
->>> load further down. Probably it still has to cover slow CAMs as well as a
->>> stressed PCI bus. Unfortunately, without CAM/CI I cannot make any
->>> statements myself.
->> Just got another idea to improve the code: Function 
->> "saa7146_wait_for_debi_done_sleep" could be reworked to use what is 
->> known as "truncated binary exponential backoff" algorithm. IOW, on each 
->> sleep duplicate the period from 1ms until a fixed maximum, e.g. 32ms. 
->> This way polling ends fast for those users with fast bus/CAM, and those 
->> requiring 200ms due to slow bus/CAM should not worry about e.g. 216ms 
->> response time.
->>
->> My first tests look promising (load goes down to 0). However, is not the 
->> simple BEB algorithm already patented?
-> 
-> Load should go down to 0 if the sleep call does not busy-wait.
-> 
-> Please test whether the attached code fixes the problem.
-> Btw, I will not claim a patent for that. :D
+--===============0732858915==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_2500_10693215.1209315272741"
 
-OK, I just took the time to make a more reliable test series (because 
-load measurements varied). All nonessential system processes and modules 
-were terminated before the test. Basically, only the login shell and the 
-budget_av module were left. 1 minute uptime was used for measurements.
+------=_Part_2500_10693215.1209315272741
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Kernel: Linux 2.6.25
-HW: Athlon 64 X2 3800+, Satelco EasyWatch DVB-C (as before)
-
-1. Original module budget_av is loaded:
-Load: ~0,6-0,8
-
-2. Module + Patch "saa7146_sleep.diff" (1ms/10ms polling intervals in 
-debi_done function):
-Load: ~0,6-0,8 (same as in 1., no difference visible)
-
-3. Module + Patch "incr-empty-ca-slot-poll-2.6.24.4.patch" (5s polling 
-timer on slot state EMPTY):
-Load: Decays to 0,02, but after about 105s always a spike to 0,10, then 
-again decays to 0,02, and so on
-
-4. Module + Patch "incr-empty-ca-slot-poll" + "saa7146_sleep.diff":
-Same as 3.
-
-5. Module + Patch "incr-empty-ca-slot-poll" + "binary exponential backoff":
-Same as 3.
-
-6. Module budget_av is unloaded:
-Load constantly stays at 0, no spikes
-
-Bottomline for me:
-- Increasing the poll timer from 100ms, e.g. to 5s, makes sense. 
-Changing the polling intervals in the debi_done function, however, makes 
-no difference (unlike my previous assumption which was caused by the 
-ugly variations).
-- There seems to be a spike in the CPU load, each ~105s, but only when 
-budget_av is loaded. I cannot explain it (maybe some frontend background 
-functions), but it is no issue for me.
+Thanks! I'll try it later and let you know the results.
 
 Regards,
-Robert
+  Eduard
 
+
+
+2008/4/27 Matthias Schwarzott <zzam@gentoo.org>:
+
+> On Sonntag, 27. April 2008, Eduard Huguet wrote:
+> > Thank you very much, Matthias. I was going to try the patch right now,
+> > however I'm finding that it doesn't apply clean to the current HG tree.
+> > This is what I'm getting:
+> >
+> > patching file linux/drivers/media/dvb/frontends/Kconfig
+> > Hunk #1 FAILED at 368.
+> > 1 out of 1 hunk FAILED -- saving rejects to file
+> > linux/drivers/media/dvb/frontends/Kconfig.rej
+> > patching file linux/drivers/media/dvb/frontends/Makefile
+> > Hunk #1 succeeded at 23 (offset -2 lines).
+> > patching file linux/drivers/media/dvb/frontends/zl10036.c
+> > patching file linux/drivers/media/dvb/frontends/zl10036.h
+> > patching file linux/drivers/media/video/saa7134/Kconfig
+> > patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+> > Hunk #3 succeeded at 5716 (offset 42 lines).
+> > patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
+> >
+> > I've tried to manually patch Kconfig by adding the rejected lines, but I
+> > suppose there must something I'm doing wrong: apparently it compiles
+> fine,
+> > but saa7134-dvb is not loaded and the frontend is not being created for
+> the
+> > card (although the card is detected and the video0 device for analog is
+> > there).
+> >
+> This reject is caused by the massive movement of the hybrid tuner drivers
+> to
+> another directory.
+> I solved the reject, and re-uploaded the patch.
+> Here it does still work.
+>
+> Regards
+> Matthias
+>
+
+------=_Part_2500_10693215.1209315272741
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Thanks! I&#39;ll try it later and let you know the results.<br><br>Regards, <br>&nbsp; Eduard<br><br><br><br><div class="gmail_quote">2008/4/27 Matthias Schwarzott &lt;<a href="mailto:zzam@gentoo.org">zzam@gentoo.org</a>&gt;:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">On Sonntag, 27. April 2008, Eduard Huguet wrote:<br>
+&gt; Thank you very much, Matthias. I was going to try the patch right now,<br>
+&gt; however I&#39;m finding that it doesn&#39;t apply clean to the current HG tree.<br>
+&gt; This is what I&#39;m getting:<br>
+&gt;<br>
+&gt; patching file linux/drivers/media/dvb/frontends/Kconfig<br>
+&gt; Hunk #1 FAILED at 368.<br>
+&gt; 1 out of 1 hunk FAILED -- saving rejects to file<br>
+&gt; linux/drivers/media/dvb/frontends/Kconfig.rej<br>
+&gt; patching file linux/drivers/media/dvb/frontends/Makefile<br>
+&gt; Hunk #1 succeeded at 23 (offset -2 lines).<br>
+&gt; patching file linux/drivers/media/dvb/frontends/zl10036.c<br>
+&gt; patching file linux/drivers/media/dvb/frontends/zl10036.h<br>
+&gt; patching file linux/drivers/media/video/saa7134/Kconfig<br>
+&gt; patching file linux/drivers/media/video/saa7134/saa7134-cards.c<br>
+&gt; Hunk #3 succeeded at 5716 (offset 42 lines).<br>
+&gt; patching file linux/drivers/media/video/saa7134/saa7134-dvb.c<br>
+&gt;<br>
+&gt; I&#39;ve tried to manually patch Kconfig by adding the rejected lines, but I<br>
+&gt; suppose there must something I&#39;m doing wrong: apparently it compiles fine,<br>
+&gt; but saa7134-dvb is not loaded and the frontend is not being created for the<br>
+&gt; card (although the card is detected and the video0 device for analog is<br>
+&gt; there).<br>
+&gt;<br>
+</div>This reject is caused by the massive movement of the hybrid tuner drivers to<br>
+another directory.<br>
+I solved the reject, and re-uploaded the patch.<br>
+Here it does still work.<br>
+<br>
+Regards<br>
+<font color="#888888">Matthias<br>
+</font></blockquote></div><br>
+
+------=_Part_2500_10693215.1209315272741--
+
+
+--===============0732858915==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0732858915==--
