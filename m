@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UEDIPR022855
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 10:13:18 -0400
-Received: from portal.bppiac.hu (portal.bppiac.hu [213.253.216.130])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UEChtK027836
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 10:12:44 -0400
-Message-ID: <48187E5A.6040008@bppiac.hu>
-Date: Wed, 30 Apr 2008 16:12:42 +0200
-From: Farkas Levente <lfarkas@bppiac.hu>
-MIME-Version: 1.0
-To: Farkas Levente <lfarkas@bppiac.hu>, video4linux-list@redhat.com
-References: <48185C99.807@bppiac.hu> <20080430135414.GA1198@daniel.bse>
-In-Reply-To: <20080430135414.GA1198@daniel.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: [Fwd: [gst-devel] RFC: multi channel frame grabber card support]
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SEG2cp020048
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:16:02 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SEFopu026411
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:15:50 -0400
+Date: Mon, 28 Apr 2008 11:14:31 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080428111431.6c12081f@gaivota>
+In-Reply-To: <1209327322.2661.26.camel@pc10.localdom.local>
+References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
+	<20080426085918.09e8bdc0@gaivota>
+	<481326E4.2070909@pickworth.me.uk>
+	<20080426110659.39fa836f@gaivota>
+	<1209247821.15689.12.camel@pc10.localdom.local>
+	<20080426201940.1507fb82@gaivota>
+	<1209327322.2661.26.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, gert.vervoort@hccnet.nl,
+	linux-dvb@linuxtv.org
+Subject: Re: Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +34,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel Glöckner wrote:
-> On Wed, Apr 30, 2008 at 01:48:41PM +0200, Farkas Levente wrote:
->> we'd like to build in this case n pipeline for the n input channel. one
->> of the simple example IVC-100 card which has one bt878 chip and 4
->> composite input and one 4 channel multiplexer.
-> 
-> Are you familiar with the capabilities of the bt878?
-> If not, here is the datasheet:
-> http://conexant.com/servlets/DownloadServlet/DSH-200115-001.pdf?docid=116&revid=1
+On Sun, 27 Apr 2008 22:15:22 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-yes.
-
-> You can only capture from one channel at a time.
-> So you will get only 6.25 full size PAL frames per second on each
-> channel if you use all four channels AND THE CHANNELS ARE SYNCHRONIZED.
-> This synchronization can only be done with some cameras.
-> If you can't synchronize your framerate will drop even more.
-> I don't know if there are additional resynchronization delays if the
-> bt878 doesn't detect vertical sync when it is expected.
+> Hi,
 > 
-> The card's driver would have to change all parameters on IRQ.
-> Can we guarantee that the interrupt is handled in Linux before the next
-> frame starts?
-> The "white crush" adaptive algorithm of the chip will result in bad
-> pictures if the inputs have completely different white levels. It should
-> be disabled.
+> Am Samstag, den 26.04.2008, 20:19 -0300 schrieb Mauro Carvalho Chehab:
+> > On Sun, 27 Apr 2008 00:10:21 +0200
+> > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > > Cool stuff!
+> > > 
+> > > Works immediately for all tuners again. Analog TV, radio and DVB-T on
+> > > that machine is tested.
+> > > 
+> > > Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+> > 
+> > Thanks. I'll add it to the patch.
+> > 
+> > > Maybe Hartmut can help too, but I will test also on the triple stuff and
+> > > the FMD1216ME/I MK3 hybrid tomorrow.
+> > 
+> > Thanks.
+> > 
+> > It would be helpful if tda9887 conf could also be validated. I didn't touch at
+> > the logic, but I saw some weird things:
+> > 
+> > For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
+> > 	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
+> > 
+> > And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
+> > 
+> > However, there's an autodetection code that changes from EUROPA to SNAKE,
+> > without cleaning tda9887_conf:
+> > 
+> >         case SAA7134_BOARD_PHILIPS_EUROPA:
+> >                 if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
+> >                         /* Reconfigure board as Snake reference design */
+> >                         dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
+> >                         dev->tuner_type = saa7134_boards[dev->board].tuner_type;
+> >                         printk(KERN_INFO "%s: Reconfigured board as %s\n",
+> >                                 dev->name, saa7134_boards[dev->board].name);
+> >                         break;
+> > 
+> > I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
+> > code should be doing, instead:
+> > 
+> > 	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
+> > 
+> > If the right thing to do is to initialize SNAKE with the same tda9887
+> > parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
+> > entry.
+> > 
+> > Cheers,
+> > Mauro
 > 
-> If this is to be done, I propose that struct v4l2_buffer should be
-> extended to point to the parameters that should be used for the picture.
+> Hartmut has the board and knows better, but it looks like it only has
+> DVB-S and external analog video inputs. There is TUNER_ABSENT set, no
+> analog tuner, no tda9887 and also no DVB-T, but it unfortunately shares
+> the subsystem with the Philips Europa.
+
+In this case, it would be better to do:
+	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
+
+for SNAKE. This won't produce any effect, but will avoid the overhead of
+sending tda9887 config commands for a device that doesn't have it.
+
+Later, maybe we can just move the above to the setup tuner subroutine.
+
+> I notice some unwanted behavior when testing md7134 FMD1216ME hybrid
+> boards.
 > 
-> How these parameters should be stored is another question..
+> Unchanged is that the tda9887 is not up for analog after boot.
+> Previously one did reload "tuner" just once and was done.
 
-the bt878 was just one example. but this is one of the basic (and 
-cheapest) card. of course there are other card which has more "power" 
-but the problem remain the same in all case.
-- should we have to create such a kernel driver for _one_ card which has 
-_more_ logical/user space device or as the current case _one_ user space 
-device?
-- if we've _one_ user space device with multiple (4, 8, 16, 24) input 
-channel then we should have to create one gstreamer source element with 
-multiple pads or one element with one pad, but we can create more such 
-elements and they are somehow use the same hardware device?
+We need to fix this. The previous "hacks" like this now stops working.
 
--- 
-   Levente                               "Si vis pacem para bellum!"
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
