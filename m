@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout02.t-online.de ([194.25.134.17])
+Received: from mail201c25.carrierzone.com ([64.29.147.77])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hartmut.hackmann@t-online.de>) id 1JkQXe-0003dA-HP
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 23:12:15 +0200
-Message-ID: <47FFD432.8020609@t-online.de>
-Date: Fri, 11 Apr 2008 23:12:18 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	(envelope-from <linuxdreas@launchnet.com>) id 1JqJgX-0001mW-LN
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 05:05:46 +0200
+From: Andreas <linuxdreas@launchnet.com>
+To: Andy Walls <awalls@radix.net>
+Date: Sun, 27 Apr 2008 20:05:34 -0700
+References: <200804271649.09000.linuxdreas@launchnet.com>
+	<1209343501.3208.17.camel@palomino.walls.org>
+In-Reply-To: <1209343501.3208.17.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <Pine.LNX.4.62.0803141625320.8859@ns.bog.msu.ru>	<200803220711.07186@orion.escape-edv.de>	<47E53E1B.5050302@gmail.com>
-	<200804102240.13933@orion.escape-edv.de>
-In-Reply-To: <200804102240.13933@orion.escape-edv.de>
-Subject: Re: [linux-dvb] TDA10086 fails? DiSEqC bad? TT S-1401 Horizontal
- transponder fails
+Content-Disposition: inline
+Message-Id: <200804272005.35347.linuxdreas@launchnet.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 driver not in main repo?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,74 +21,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Oliver Endriss schrieb:
-> Hi,
-> 
-> Manu Abraham wrote:
->> Oliver Endriss wrote:
->> ...
->>> Ok, some calculations according your formula
->>>
->>>>>>> BW = (1 + RO) * SR/2 + 5) * 1.3
->>> 45 MSPS:
->>> BW = ((1 + 0.35) * 45/2 + 5) * 1.3 = 46
->>>
->>> -> cutoff 36 MHz (maximum value supported)
->>>
->>> 27 MSPS:
->>> BW = ((1 + 0.35) * 27/2 + 5) * 1.3 = 30,2
->>>
->>> -> cutoff 31 MHz
->>>
->>> 22 MSPS:
->>> BW = ((1 + 0.35) * 22/2 + 5) * 1.3 = 25,8
->>>
->>> -> cutoff 26 MHz
->>>
->>> Are these calculations correct, or did I miss something here?
->>
->> It looks fine, just round it off to the next integer. ie always round it
->> up, rather than rounding it down. For the cutoff at 36MHz, it is fine as
->> well, since at the last step, you will not need an offset, since it
->> would be the last step in the spectrum.
->> ...
->>> Afaics a simple pre-calculated lookup table with 32 entries should do
->>> the job. At least for the cut-off frequency.
->> That's possible, since you need only 32 precomputed entries, rather than
->> continuous values. That would be much better too, without any runtime
->> overheads. Just the table needs to be done nice.
-> 
-> Now I found some time to come back to this issue,
-> 
-> I prepared a small patch to set the cutoff according to Manu's formula.
-> The calculation is simple enough for integer arithmetic, so it is not
-> worth to prepare a lookup-table.
-> 
-> @ldvb:
-> Please test and report whether it works for you.
-> 
-> CU
-> Oliver
-> 
-I intended to do the same.
-Since I have a patch for tda10086 which needs public testing as well, i
-would like to propose this:
-I do a static check and integrate the patch in my repository together
-with my patch and ask for public testing.
-Hope this will not overstress the few testers we have ;-)
-
-Best regards
-   Hartmut
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gU29ubnRhZywgMjcuIEFwcmlsIDIwMDggMTc6NDU6MDEgc2NocmllYiBBbmR5IFdhbGxzOgo+
+IE9uIFN1biwgMjAwOC0wNC0yNyBhdCAxNjo0OSAtMDcwMCwgQW5kcmVhcyB3cm90ZToKPiA+IEhp
+IGFsbCwKPiA+IEkgbm90aWNlZCB0b2RheSB0aGF0IHRoZSBjeDE4IGRyaXZlciAoZm9yIEhhdXBw
+YXVnZSdzIEhWUi0xNjAwKSBpcyBub3QKPiA+IGluIHRoZSBtYWluIHY0bGR2YiByZXBvc2l0b3J5
+Lgo+Cj4gQW5kcmVhcywKPgo+IEhhbnMganVzdCBhc2tlZCBNYXVybyB0byBwdWxsIGl0LiAgU2Vl
+Ogo+Cj4gaHR0cDovL2l2dHZkcml2ZXIub3JnL3BpcGVybWFpbC9pdnR2LWRldmVsLzIwMDgtQXBy
+aWwvMDA1NTA5Lmh0bWwKPgo+ID4gIEkgd2FzIGhvcGluZyB0byB0YWtlIGFkdmFudGFnZSBvZiB0
+aGUgbmV3Cj4gPiBtb2R1bGUgcGFyYW1ldGVyICJhZGFwdGVyX25yIiBmb3IgbXkgb3RoZXIgZHZi
+IGNhcmQgKHVzaW5nIHRoZQo+ID4gc2FhNzEzNF9kdmIgZHJpdmVyKSB0byBhY2hpZXZlIGEgY29u
+c2lzdGVudCBkZXZpY2UgbnVtYmVyaW5nIGFjcm9zcwo+ID4gcmVzdGFydHMuIEluc3RlYWQsIEkg
+aGFkIHRvIGNoZWNrIG91dCBIYW5zIFZlcmt1aWwncyByZXBvIHdpdGggdGhlCj4gPiBjeDE4LCBi
+dXQgd2l0aG91dCB0aGUgbmV3IG1vZHVsZSBwYXJhbWV0ZXIuCj4KPiBUaGUgbGF0ZXN0IG9mIEhh
+bnMnIGN4MTggcmVwbyBkb2VzIGhhdmUgdGhlIHBhcmFtZXRlciBpbiBxdWVzdGlvbi4gIEZyb20K
+PiBteSBoZyBjbG9uZWQgY29weToKPgo+ICQgZ3JlcCAtbiBhZGFwdGVyX25yIGN4MTgvbGludXgv
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDE4LyoKPiBjeDE4L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gxOC9jeDE4LWR2Yi5jOjI5OkRWQl9ERUZJTkVfTU9EX09QVF9BREFQCj5URVJfTlIoYWRh
+cHRlcl9ucik7IGN4MTgvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtZHZiLmM6
+MTQ0OiAgIAo+ICAgICAgICAgICAgICAgICAgVEhJU19NT0RVTEUsICZjeC0+ZGV2LT5kZXYsIGFk
+YXB0ZXJfbnIpOwoKeWVwLCB5b3UncmUgcmlnaHQuIEkgZ290IHRoZSBtb2R1bGUgdmVyc2lvbnMg
+bWl4ZWQgdXAuIE5vdywgYWZ0ZXIgYSByZXN0YXJ0LCAKSSBjYW4gaW5kZWVkIHNldCB0aGUgYWRh
+cHRlcl9uciBmb3IgYm90aCBjYXJkcy4gSSdtIGEgaGFwcHkgY2FtcGVyIG5vdyA6KQoKPiBCZXlv
+bmQgIi9zYmluL21vZGluZm8gY3gxOCIgSSBjYW4ndCB0ZXN0IGlmIGl0IHdvcmtzLiAgQnV0IGlm
+IHlvdSBuZWVkCj4gaXQsIGl0J3MgdGhlcmUuCgpJIG5vdGljZWQgdGhhdCB5b3UganVtcGVkIGlu
+IGFuZCBoZWxwZWQgd2l0aCB0aGUgZGV2ZWxvcG1lbnQgb2YgdGhlIGN4MTggYW5kIAppdnR2IGRy
+aXZlci4gVGhhbmsgeW91IHZlcnkgbXVjaCEKCi0tIApHcnXDnwpBbmRyZWFzCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBs
+aXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4v
+bWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
