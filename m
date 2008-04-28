@@ -1,21 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3HLaBXS022989
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 17:36:11 -0400
-Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3HLZwAN017482
-	for <video4linux-list@redhat.com>; Thu, 17 Apr 2008 17:35:59 -0400
-Date: Thu, 17 Apr 2008 23:35:51 +0200 (CEST)
-From: Marton Balint <cus@fazekas.hu>
-To: video4linux-list@redhat.com
-In-Reply-To: <patchbomb.1206497254@bluegene.athome>
-Message-ID: <Pine.LNX.4.64.0804171323470.1117@cinke.fazekas.hu>
-References: <patchbomb.1206497254@bluegene.athome>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0 of 3] cx88: fix oops on rmmod and implement stereo
- detection
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3S136pS007689
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 21:03:06 -0400
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3S12orM007390
+	for <video4linux-list@redhat.com>; Sun, 27 Apr 2008 21:02:50 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <4814ED8B.90503@t-online.de>
+References: <20080425114526.434311ea@gaivota> <4811F391.1070207@linuxtv.org>
+	<20080426085918.09e8bdc0@gaivota> <481326E4.2070909@pickworth.me.uk>
+	<20080426110659.39fa836f@gaivota>
+	<1209247821.15689.12.camel@pc10.localdom.local>
+	<20080426201940.1507fb82@gaivota>
+	<1209327322.2661.26.camel@pc10.localdom.local>
+	<4814ED8B.90503@t-online.de>
+Content-Type: text/plain
+Date: Mon, 28 Apr 2008 03:01:40 +0200
+Message-Id: <1209344500.2580.25.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb@linuxtv.org, video4linux-list@redhat.com, mkrufky@linuxtv.org,
+	gert.vervoort@hccnet.nl, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] Hauppauge WinTV regreession from 2.6.24 to 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,69 +35,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
 
-Mauro, have you come to a decision about patch 2 and patch 3?
+Am Sonntag, den 27.04.2008, 23:18 +0200 schrieb Hartmut Hackmann:
+> Hi, Hermann, Mauro
+> 
+> hermann pitton schrieb:
+> > Hi,
+> > 
+> > Am Samstag, den 26.04.2008, 20:19 -0300 schrieb Mauro Carvalho Chehab:
+> >> On Sun, 27 Apr 2008 00:10:21 +0200
+> >> hermann pitton <hermann-pitton@arcor.de> wrote:
+> >>> Cool stuff!
+> >>>
+> >>> Works immediately for all tuners again. Analog TV, radio and DVB-T on
+> >>> that machine is tested.
+> >>>
+> >>> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+> >> Thanks. I'll add it to the patch.
+> >>
+> >>> Maybe Hartmut can help too, but I will test also on the triple stuff and
+> >>> the FMD1216ME/I MK3 hybrid tomorrow.
+> >> Thanks.
+> >>
+> >> It would be helpful if tda9887 conf could also be validated. I didn't touch at
+> >> the logic, but I saw some weird things:
+> >>
+> >> For example, SAA7134_BOARD_PHILIPS_EUROPA defines this:
+> >> 	.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE
+> >>
+> >> And SAA7134_BOARD_PHILIPS_SNAKE keep the default values.
+> >>
+> >> However, there's an autodetection code that changes from EUROPA to SNAKE,
+> >> without cleaning tda9887_conf:
+> >>
+> >>         case SAA7134_BOARD_PHILIPS_EUROPA:
+> >>                 if (dev->autodetected && (dev->eedata[0x41] == 0x1c)) {
+> >>                         /* Reconfigure board as Snake reference design */
+> >>                         dev->board = SAA7134_BOARD_PHILIPS_SNAKE;
+> >>                         dev->tuner_type = saa7134_boards[dev->board].tuner_type;
+> >>                         printk(KERN_INFO "%s: Reconfigured board as %s\n",
+> >>                                 dev->name, saa7134_boards[dev->board].name);
+> >>                         break;
+> >>
+> >> I'm not sure if .tda9887_conf is missing at SNAKE board entry, or if the above
+> >> code should be doing, instead:
+> >>
+> >> 	dev->tda9887_conf = saa7134_boards[dev->board].tda9887_conf;
+> >>
+> >> If the right thing to do is to initialize SNAKE with the same tda9887
+> >> parameters as EUROPE, the better would be to add the .tda9887_conf to SNAKE
+> >> entry.
+> >>
+> >> Cheers,
+> >> Mauro
+> > 
+> > Hartmut has the board and knows better, but it looks like it only has
+> > DVB-S and external analog video inputs. There is TUNER_ABSENT set, no
+> > analog tuner, no tda9887 and also no DVB-T, but it unfortunately shares
+> > the subsystem with the Philips Europa.
+> > 
+> Hermann is right, SNAKE has no analog tuner. These boards indeed share the same PCI ID,
+> This code fragment reads the tuner ID from the eeprom to find out which board is there.
+> 
+> > I notice some unwanted behavior when testing md7134 FMD1216ME hybrid
+> > boards.
+> >
+> Aha! I modified my board that it no longer runs with the current driver. But i observed
+> something similar
+> 
+> > Unchanged is that the tda9887 is not up for analog after boot.
+> > Previously one did reload "tuner" just once and was done.
+> > 
+> <snip>
+> Don't have the time today, but lets roll back history: Not absolutely sure but if
+> i remember correcly, the initialization sequence can be critical with hybrid tuners /
+> NIM modules. The tda9887 may only be visible on I2C after a certain bit in the MOPLL
+> is set (in byte4?)
+> 
+> Best regards
+>    Hartmut
 
-Unfotunately I can't test other sound systems than BG, so it is
-still unknown if the detection also works on other systems, or not. I 
-only confirmed one thing with the help of an old video casette 
-recorder: mono DK sound is not misdetected as stereo.
+Hi Hartmut,
 
-Another question is the audio thread. Like I explained in my original 
-post, it does more harm than good, because it occaisonally sets the audio 
-to mono after starting a TV application. Altough my patches are not 
-dependant on the removal of the thread, I think it should be removed.
-What would be the correct way to do that? Delete the relevant lines, or 
-just #ifdef them out?
+I remember this exactly, getting older anyway, but you had no chance
+coming in with that on a quickly changing target, finally all of us shot
+down as a crowd of lamers, a cheap target for kernel masterminds,
+claiming we don't had anything in the right place ...
 
-Regards,
-  Marton Balint
+Let them pay for it now :)
+
+Cheers,
+Hermann
 
 
-> Here are the updated versions of my cx88 patches (I only sent the old versions
-> to the linux-dvb list, and they did not draw too much attention there) maybe
-> better luck here...
-> 
-> The first is a simple fix for a possible Oops on the removal of cx88xx module
-> caused by the IR worker. This patch is independent from the other two.
-> 
-> The second and the third patches are enhachments of the cx88 audio code, I
-> tried to implement the detection of stereo TV channels for A2 mode. I had no
-> idea how to detect it, and falling back to EN_A2_AUTO_STEREO instead of
-> EN_A2_FORCE_MONO1 did not help either. (The card changed the audio mode
-> periodically on both mono and stereo channels) Forcing STEREO mode also did not
-> help, because it resulted a loud static noise on mono tv channels.
-> 
-> Testing proved that AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers change
-> randomly if and only if the second audio channel is missing, so if these
-> registers are constant (Usually 0x0000 and 0x01), we can assume that the tv
-> channel has two audio channels, so we can use STEREO mode. This method seems a
-> bit ugly, but nicam detection works the same way, so to avoid further
-> msleep()-ing, the A2 stereo detection code is in the nicam detection function.
-> 
-> By the way, the audio thread in the cx88 code is totally useless, in fact, it
-> occaisonally sets the audio to MONO after starting a TV application, so i think
-> it should be removed. My patch does NOT fix cx88_get_stereo, and even if it
-> would, the audio thread would not work as expected, because
-> core->audiomode_current is not set in cx88_set_tvaudio, and AUTO stereo modes
-> (EN_BTSC_AUTO_STEREO, EN_NICAM_AUTO_STEREO) would also cause problems, the
-> autodetected audio mode should be set to core->audiomode_current to make it
-> work.
-> 
-> Who is now the cx88 maintainer? I should send him a copy of the patches...
-> 
-> 
-> Regards,
-> 
->  Marton Balint
-> 
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+
 
 --
 video4linux-list mailing list
