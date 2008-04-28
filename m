@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TLf5Zs028125
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 17:41:05 -0400
-Received: from pat.laterooms.com (fon.laterooms.com [194.24.251.1])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TLerUK011528
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 17:40:54 -0400
-Received: from pat.laterooms.com (localhost.localdomain [127.0.0.1])
-	by pat.laterooms.com (Postfix) with ESMTP id 9843FC2EF
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 22:40:52 +0100 (BST)
-Received: from eddie.acentral.co.uk
-	(80-192-159-113.cable.ubr04.pres.blueyonder.co.uk [80.192.159.113])
-	by pat.laterooms.com (Postfix) with ESMTP id 7B08DC2CA
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 22:40:52 +0100 (BST)
-Received: from eddie.acentral.co.uk (eddie.acentral.co.uk [127.0.0.1])
-	by eddie.acentral.co.uk (Postfix) with ESMTP id 0701475DBC
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 22:40:50 +0100 (BST)
-Received: from [10.0.0.23] (unknown [10.0.0.23])
-	by eddie.acentral.co.uk (Postfix) with ESMTP id E145675C97
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 22:40:49 +0100 (BST)
-From: Gavin Hamill <gdh@acentral.co.uk>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Tue, 29 Apr 2008 22:40:52 +0100
-Message-Id: <1209505252.6270.11.camel@gdh-home>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SEoM3V021644
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:50:23 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SEn4pY025148
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:49:04 -0400
+Date: Mon, 28 Apr 2008 11:47:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vicent =?UTF-8?B?Sm9yZMOg?= <vjorda@hotmail.com>
+Message-ID: <20080428114741.040ccfd6@gaivota>
+In-Reply-To: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
+References: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Ident for Bt848 card
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Trying to set up a NPG Real DVB-T PCI Card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,43 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, the old Bt848 card (no tuner, no audio - just composite + s-video)
-I'm using isn't picked up by kernel 2.6.24 properly causing a 30 second
-delay at bootup to find audio chips and EEPROMS that aren't there.
+On Mon, 28 Apr 2008 14:40:24 +0000
+Vicent Jordà <vjorda@hotmail.com> wrote:
 
-I've been trying to put together a patch against hg to fix it, but am a
-little confused.
+> 
+> Hi,
+> 
+> I'm trying to set up a NPG Real DVB-T PCI Card.
+> 
+> [ 1587.165812] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+> [ 1587.183960] xc2028 0-0061: Incorrect readback of firmware version.
+> ==============================================================================
+> 
+> What can I do to workaroud this problem?
 
-The card is definitely a BTTV_BOARD_GRANDTEC since the structure is
-correct and this comment [1] is right on the money:
+Are you sure you're using the correct firmware?
 
-                /* This is the ultimate cheapo capture card
-                * just a BT848A on a small PCB!
-                * Steve Hosgood <steve@equiinet.com> */
+This kind of error could happen on a few cases:
+	1) Firmware is not version 2.7;
+	2) tuner-callback is sending a wrong reset. Xc3028 needs to receive a reset, gia a GPIO pin, for firmware to load. If you don't send a reset, firmware won't load;
+	3) On some devices, you need to slow down firmware sending.
 
-However there seems to be a confusion because the PCI ID of my card is
-109e:0350 (which is not defined anywhere in hg) yet BTTV_BOARD_GRANDTEC
-is defined as 
-
- { 0x41424344, BTTV_BOARD_GRANDTEC, "GrandTec Multi Capture" },
-
-This appears to be bogus, and that PCI ID should instead be pointing at
-BTTV_BOARD_GRANDTEC_MULTI (which does indeed define 4 composite inputs
-correct for a 'multi' card). The _MULTI one is currently not associated
-with any PCI ID.
-
-I believe the correct definitions should therefore be:
-
- { 0x109e0350, BTTV_BOARD_GRANDTEC, "GrandTec Grand Video Capture" },
- { 0x41424344, BTTV_BOARD_GRANDTEC_MULTI, "GrandTec Multi Capture" },
-
-Could someone take a quick look over this and tell me if I've made some
-awful assumption?
+If your firmware is correct, I guess your problem is (2). The better is to use regspy.exe (provided together with DCALER) and see what gpio changes during firmware load.
 
 Cheers,
-Gavin.
-
-[1] Line 1346 bttv-cards.c
+Mauro
 
 --
 video4linux-list mailing list
