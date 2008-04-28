@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DFUrFo018591
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 11:30:53 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3DFUeKO032056
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 11:30:40 -0400
-Date: Sun, 13 Apr 2008 12:28:44 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Video <video4linux-list@redhat.com>, Linux DVB <linux-dvb@linuxtv.org>
-Message-ID: <20080413122844.53c5002b@areia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: [ANNOUNCE] Videobuf improvements to allow its usage with USB drivers
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SIVYlf014318
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 14:31:34 -0400
+Received: from smtp2a.orange.fr (smtp2a.orange.fr [80.12.242.139])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SIU60V008722
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 14:30:27 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2a14.orange.fr (SMTP Server) with ESMTP id 9C44B70000AC
+	for <video4linux-list@redhat.com>;
+	Mon, 28 Apr 2008 20:30:00 +0200 (CEST)
+Received: from ishwara.mahashakti.org
+	(ADijon-258-1-135-43.w90-26.abo.wanadoo.fr [90.26.142.43])
+	by mwinf2a14.orange.fr (SMTP Server) with ESMTP id 33B2570000A7
+	for <video4linux-list@redhat.com>;
+	Mon, 28 Apr 2008 20:30:00 +0200 (CEST)
+Date: Mon, 28 Apr 2008 20:29:59 +0200
+From: mahakali <mahakali@orange.fr>
+To: video4linux-list@redhat.com
+Message-ID: <20080428182959.GA21773@orange.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: Card Asus P7131 hybrid > no signal
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,162 +33,176 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+ Hello !
 
-Videobuf Improvements for USB Devices
-=====================================
+I installed last week an Asus TV-Card P7131 Hybrid , I followed the
+installation procedure described on an Ubuntu website.
 
-Videobuf history
-================
+On boot I get following messages :
 
-If you are familiar with V4L and kernel development, you probably know that one
-of the hardest part of the driver is to control the video stream that arrives
-from the device, and need to be sent to an userspace application.
+saa7133[0]: i2c eeprom 00: 43 10 76 48 54 20 1c 00 43 43 a9 1c 55 d2 b2
+92
+saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff
+ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 d5 ff ff ff
+ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ff
+saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 55 50 ff ff ff ff ff
+ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ff
+saa7133[0]: i2c scan: found device @ 0x10  [???]
+saa7133[0]: i2c scan: found device @ 0x96  [???]
+saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+tuner 1-004b: chip found @ 0x96 (saa7133[0])
+tda8290 1-004b: setting tuner address to 61
+tuner 1-004b: type set to tda8290+75a
+tda8290 1-004b: setting tuner address to 61
+tuner 1-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+ACPI: PCI Interrupt 0000:00:1f.5[B] -> GSI 17 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+w83627hf: Found W83627THF chip at 0x290
+w83627hf w83627hf.656: Reading VID from GPIO5
+i2c /dev entries driver
+tda1004x: found firmware revision 20 -- ok
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfeaff000 irq 19 registered as card -1
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda1, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda7, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda8, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda9, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+skge eth0: enabling interface
+skge eth0: Link is up at 100 Mbps, full duplex, flow control both
+ip_tables: (C) 2000-2006 Netfilter Core Team
+nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
+ip6_tables: (C) 2000-2006 Netfilter Core Team
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0200000 [Radio]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+nvidia: module license 'NVIDIA' taints kernel.
+NVRM: loading NVIDIA UNIX x86 Kernel Module  173.08  Tue Apr  1 23:46:53
+PST 2008
+NVRM: not using NVAGP, an AGPGART backend is loaded!
+hdc: drive_cmd: status=0x51 { DriveReady SeekComplete Error }
+hdc: drive_cmd: error=0x04 { AbortedCommand }
+ide: failed opcode was: 0xef
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+eth0: no IPv6 routers present
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7134 ALSA driver for DMA sound unloaded
+Linux video capture interface: v2.00
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:02:0b.0, rev: 209, irq: 19, latency: 64, mmio:
+0xfeaff000
+saa7133[0]: subsystem: 1043:4876, board: ASUSTeK P7131 Hybrid
+[card=112,insmod option]
+saa7133[0]: board init: gpio is 0
+saa7133[0]: gpio: mode=0x0000000 in=0x0000000 out=0x0000000 [pre-init]
+input: saa7134 IR (ASUSTeK P7131 Hybri as /class/input/input6
+tuner 1-004b: chip found @ 0x96 (saa7133[0])
+tda8290 1-004b: setting tuner address to 61
+tuner 1-004b: type set to tda8290+75a
+tda8290 1-004b: setting tuner address to 61
+tuner 1-004b: type set to tda8290+75a
+saa7133[0]:i2ceeprom 00: 43 10 76 48 54 20 1c 00 43 43 a9 1c 55 d2 b292
+saa7133[0]:i2ceeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ffff
+saa7133[0]:i2ceeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 d5 ff ff ffff
+saa7133[0]:i2ceeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ffff
+saa7133[0]:i2ceeprom 40: ff 21 00 c2 96 10 03 32 55 50 ff ff ff ff ffff
+saa7133[0]:i2ceeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ffff
+saa7133[0]:i2ceeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ffff
+saa7133[0]:i2ceeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ffff
+saa7133[0]: i2c scan: found device @ 0x10  [???]
+saa7133[0]: i2c scan: found device @ 0x96  [???]
+saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 20 -- ok
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0200000 [Radio]
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfeaff000 irq 19 registered as card -1
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]/alsa: saa7133[0] at 0xfeaff000 irq 19 registered as card -1
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
+saa7133[0]: gpio: mode=0x0200000 in=0x0000000 out=0x0000000 [Television]
 
-To address this task, a kernel module, called videobuf, is widely used for
-quite a long time at the PCI devices. 
+I think, it is O.K or ???
 
-However, previously, this driver were restricted to DMA devices. Specifically,
-it used to work only with PCI devices whose steams are provided via DMA, and
-for chipsets that supports scatter/gather mode. 
 
-On scatter/gatter DMA mode, the data I/O is splitted into several small buffers.
-This worked fine for bttv, saa7134 and cx88 devices, whose PCI bridge is
-capable of handling such transfers.
+I use tvtime, I launch it but I get following message : No signal ....
+I try to find some channels, but i can find no one.
+If I use tvtime-scanner, he finds some channels, puts theme in a channel
+list, but I have no image, cannot watch TV ....
 
-However, due to their specific hardware restrictions, videobuf couldn't be used
-by USB devices. Due to that, each V4L USB driver had to implement their own
-buffering schema.
+I tried following command :
 
-I've started some time ago a project to make videobuf more generic. In order to
-to that, videobuf were splitted into two files:
+>>> tune to:
+>>> 570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+>>> 570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
+>>> (tuning failed)
 
-	- videobuf-core - with core features, not specific to DMA or PCI;
-	- videobuf-dma-sg - for PCI DMA scatter/gather devices.
 
-After that, I've created another videobuf instance, called videobuf-vmalloc.
 
-This one uses memory alloced with vmalloc_user(). This is the same approach used
-by other USB drivers. The first test for the newer core driver were to port the
-virtual video driver (vivi) to work with it.
+So my question is .... How can I make this card work ???
 
-The videobuf split revealed several bad locks inside the driver.
 
-Several developers helped to solve those issues, including: Brandon Philips,
-Nick Piggin, Jonathan Corbet, Trent Piepho,  Adrian Bunk and Andrew Morton.
+Thanks for your patience and help
 
-Also, Guennadi Liakhovetski removed PCI specific details, on videobuf-dma-sg.
-Now, the same driver can also be used by other architectures that don't provide
-PCI interfaces, like ARM.
 
-videobuf for USB devices
-========================
-
-The last round for the code improvement just happened this week: the conversion
-of em28xx to use videobuf.
-
-This round happened thanks to the help of Aidan Thornton, that got a proposed
-patch I send him, and help me to fix and address several issues on this complex
-task.
-
-So, the first USB driver that is working perfectly is available for testing at:
-	http://linuxtv.org/hg/~mchehab/em28xx-vb
-
-This driver were tested with several widely used userspace apps: tvtime,
-mplayer, xawtv and mythtv. It were also tested with the testing tool 
-v4l2-apps/test/code_example, available inside the tree.
-
-I'll port the changesets soon to the master development trees.
-
-The new approach has several advantages over the old one:
-	- buffering code inside em28xx-video is now clean and easy to
-understand;
-
-	- the same buffering code can be easily ported to other USB drivers;
-
-	- by using the same videobuf code, all drivers will have the same
-behaviour. This will help userspace apps to be more independent of specific
-devices;
-
-	- the performance of the newer code is much more optimized than the
-previous code;
-	
-	- redundant streaming handling code is now inside V4L core;
-
-	- It is now easy to add overlay and userptr support for those drivers;
-
-	- It is now easy to use videobuf-dvb for USB devices also.
-
-Things yet to be done
-=====================
-
-1) videobuf operating memory modes:
-
-The old videobuf and the newvideobuf-dma-sg supports all streaming modes
-present at V4L1 and V4L2 API:
-	VIDIOCMBUF;
-	reading /dev/video?;
-	kernel mmapped memory;
-	userspace mmapped memory;
-	overlay mode, to send video input streams directly into video adapter memory.
-
-The new videobuf-vmalloc shares the same core stuff. However, it currently
-doesn't implement userspace mmapped memory or overlay mode. The other three
-modes are already supported. 
-
-It doesn't seem to be hard to add the missing modes. Probably, the only
-function that will need more code is videobuf_iolock(). I've already started to
-code a patch to add userspace mmap. This may be useful to allow some userspace
-apps that relies on this method to work.
-
-2) videobuf-dvb
-
-This driver allows using the same videobuf handling also for DVB devices. This
-driver works fine with videobuf-dma-sg. Theoretically, it should work fine also
-with USB drivers.
-
-3) tm6000
-
-This is the first driver I've made to use videobuf. Unfortunately, the driver
-is loosing URB frames. I suspect that it is a hardware problem. I expect to
-finish this driver soon, since there are several new TV devices using this
-chipset.
-
-4) porting other usb drivers to use videobuf
-
-This will help to cleanup their source code, and fix some API non-compliance.
-
-5) videobuf for non scatter/gather DMA
-
-There are a few devices in the market that supports only contiguous DMA
-transfer. This is the case, for example of Marvel cafe chips, used on OLPC.
-
-For those devices, it would be interesting to create a new videobuf module, and
-migrate them to this solution.
-
-I'd like to thank all of you that helped with this development, and to the
-improvement of the Linux kernel support for video input devices.
-
-APPENDIX: Performance tests of the both versions of em28xx driver
-=================================================================
-
-This is the performance tests I did, running code_example to get 1,000 frames
-@29.995 Hz (about 35 seconds of stream), tested on a i386 machine, running at
-1,5GHz:
-
-	The old driver:
-
-$ time -f "%E: %Us User time, %Ss Kernel time, %P CPU used" ./capture_example
-0:34.21: 8.22s User time, 25.16s Kernel time, 97% CPU used
-
-	The videobuf-based driver:
-
-$ time -f "%E: %Us User time, %Ss Kernel time, %P CPU used" ./capture_example
-0:35.36: 0.01s User time, 0.05s Kernel time, 0% CPU used
-
-	Conclusion:
-
-The time consumption to receive the stream where reduced from about 33.38
-seconds to 0.05 seconds. 
+mahakali 
 
 --
 video4linux-list mailing list
