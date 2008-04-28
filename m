@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail0.scram.de ([78.47.204.202] helo=mail.scram.de)
+Received: from schoebelonline.de ([85.214.26.217])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jochen@scram.de>) id 1Jod4T-0005Ah-0x
-	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 13:23:32 +0200
-Message-ID: <480F1BFF.7000907@scram.de>
-Date: Wed, 23 Apr 2008 13:22:39 +0200
-From: Jochen Friedrich <jochen@scram.de>
+	(envelope-from <hagen@schoebel-online.net>) id 1JqMJU-00061m-23
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 07:54:09 +0200
+Message-ID: <48156679.3030000@schoebel-online.net>
+Date: Mon, 28 Apr 2008 07:54:01 +0200
+From: =?ISO-8859-1?Q?Hagen_Sch=F6bel?= <hagen@schoebel-online.net>
 MIME-Version: 1.0
-To: Thierry Lelegard <thierry.lelegard@tv-numeric.com>
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAXUecTuyghkSp+E+0SVbs1QEAAAAA@tv-numeric.com>
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAXUecTuyghkSp+E+0SVbs1QEAAAAA@tv-numeric.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] RE :  Terratec Cinergy T USB XE Rev 2, any update ?
+To: linux-dvb@linuxtv.org
+References: <2f8cbffc0804271318gf146080yfc988718556ad405@mail.gmail.com>
+	<E1JqLG0-000Jpq-00.goga777-bk-ru@f132.mail.ru>
+In-Reply-To: <E1JqLG0-000Jpq-00.goga777-bk-ru@f132.mail.ru>
+Cc: Ian Bonham <ian.bonham@gmail.com>
+Subject: Re: [linux-dvb] HVR4000 & Heron
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,74 +26,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Thierry,
 
-> Which "Terratec driver" are you refering to ?
-> 
-> Is this a Terratec-provided driver ?
-> 
-> As I mentioned in my original post, the one at
-> ftp://ftp.terratec.net/Receiver/Cinergy_T_USB_XE/Update/Cinergy_T_USB_XE_MKII_Drv_Linux.zip
-> does not compile _at_all_ and this is not (or not only) a matter of kernel
-> version. There are many semantic errors that no C compiler would accept
-> (except maybe the K&R from the 70's). I started to fix the errors but when
-> I realized how bad it was, my trust in this code dropped and I gave up.
+Before you try the 'new' modules you have to remove the 'original' 
+Ubuntu-Version of cx88*. These modules can found in 
+/lib/modules/2.6.24-16-generic/ubuntu/media/cx88 (don't now why not in 
+normal tree) and come with paket linux-ubuntu-modules-2.6.24-16-generic.
 
-I compiled this with gcc 4.2.3. This is what i did:
+Hagen
 
-cd /tmp
-wget ftp://ftp.terratec.net/Receiver/Cinergy_T_USB_XE/Update/Cinergy_T_USB_XE_MKII_Drv_Linux.zip
-unzip Cinergy_T_USB_XE_MKII_Drv_Linux.zip
-mv Cinergy\ T\ USB\ XE\ MKII/Fedora\ Core\ Release\ 6 dvb_cinergy
-hg clone http://linuxtv.org/hg/~anttip/af9015
-cd dvb_cinergy/
-cp /tmp/af9015/linux/drivers/media/dvb/dvb-core/*.c .
-cp /tmp/af9015/linux/drivers/media/dvb/dvb-core/*.h .
-cp /tmp/af9015/linux/drivers/media/dvb/dvb-usb/*.c .
-cp /tmp/af9015/linux/drivers/media/dvb/dvb-usb/*.h .
-cp /tmp/af9015/linux/include/linux/dvb/dmx.h .
-patch -p1 < /tmp/cinergy.patch
-make
+>> Hi All.
+>>
+>> Ok, so just installed the shiny, spangly new Ubuntu 8.04LTS (Hardy Heron) on
+>> my machine with the HVR4000 in, and now, no TV! It's gone on with kernel
+>> 2.6.24-16 on a P4 HyperThread, and everything worked just fine under Gutsy.
+>> I've pulled down the v4l-dvb tree (current and revision 127f67dea087 as
+>> suggested in Wiki) and tried patching with dev.kewl.org's MFE and SFE
+>> current patches (7285) and the latest.
+>>
+>> Everything 'seems' to compile Ok, and installs fine. When I reboot however I
+>> get a huge chunk of borked stuff and no card. (Dmesg output at end of
+>> message)
+>>
+>> Could anyone please give me any pointers on how (or if) they have their
+>> HVR4000 running under Ubuntu 8.04LTS ?
+>>
+>> Would really appriciate it.
+>> Thanks in advance,
+>>
+>> Ian
+>>
+>> DMESG Output:
+>> cx88xx: disagrees about version of symbol videobuf_waiton
+>> [   37.790909] cx88xx: Unknown symbol videobuf_waiton
+>>
+>>     
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
 
-This is the patch (minor header adjusting):
-
-diff -ruN a/dmxdev.h b/dmxdev.h
---- a/dmxdev.h	2008-04-23 12:52:39.000000000 +0200
-+++ b/dmxdev.h	2008-04-22 14:00:26.000000000 +0200
-@@ -35,7 +35,7 @@
- #include <linux/mutex.h>
- #endif
- 
--#include <linux/dvb/dmx.h>
-+#include "dmx.h"
- 
- #include "dvbdev.h"
- #include "demux.h"
-diff -ruN a/dvb_frontend.c b/dvb_frontend.c
---- a/dvb_frontend.c	2008-04-23 12:52:36.000000000 +0200
-+++ b/dvb_frontend.c	2008-04-22 14:01:22.000000000 +0200
-@@ -25,6 +25,7 @@
-  * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
-  */
- 
-+#include <linux/version.h>
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-diff -ruN a/dvb_frontend.h b/dvb_frontend.h
---- a/dvb_frontend.h	2008-04-23 12:52:39.000000000 +0200
-+++ b/dvb_frontend.h	2008-04-22 13:55:02.000000000 +0200
-@@ -28,6 +28,7 @@
- #ifndef _DVB_FRONTEND_H_
- #define _DVB_FRONTEND_H_
- 
-+#include <linux/version.h>
- #include <linux/types.h>
- #include <linux/sched.h>
- #include <linux/ioctl.h>
-
-Thanks,
-Jochen
 
 _______________________________________________
 linux-dvb mailing list
