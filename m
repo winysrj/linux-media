@@ -1,27 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TNnqMb028701
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:52 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TNndEH012905
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:39 -0400
-Received: by yw-out-2324.google.com with SMTP id 2so135779ywt.81
-	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 16:49:24 -0700 (PDT)
-Message-ID: <37219a840804291649q36638464ye2d57cf8184580a4@mail.gmail.com>
-Date: Tue, 29 Apr 2008 19:49:24 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <20080429185009.716c3284@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080429185009.716c3284@gaivota>
-Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB updates and fixes
-	for 2.6.26
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SMJS7j004067
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 18:19:28 -0400
+Received: from cabrera.red.sld.cu (cabrera.red.sld.cu [201.220.222.139])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SMJEaW013593
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 18:19:16 -0400
+From: Maykel Moya <moya-lists@infomed.sld.cu>
+To: video4linux-list <video4linux-list@redhat.com>
+Content-Type: multipart/mixed; boundary="=-35J2FteTU1WzPs7ybUY7"
+Date: Mon, 28 Apr 2008 18:20:26 -0400
+Message-Id: <1209421227.17970.46.camel@localhost>
+Mime-Version: 1.0
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] tm6000: make tree buildable
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,58 +24,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Apr 29, 2008 at 5:50 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Linus,
->
->  Please pull from:
->         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
->
->  For the following:
->
->    - Fixes on mtm001, mtv022, pvrusb2, ivtv, cx88 and saa7134;
->    - new board additions on saa7134 and ivtv;
->    - load tuners only when needed;
->    - reorganization of tuner drivers that are shared between DVB and V4L;
->    - Addition of a new driver for Conexant CX23418 MPEG encoder chip (cx18).
 
-[snip]
+--=-35J2FteTU1WzPs7ybUY7
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
->  Mauro Carvalho Chehab (9):
->       Rename common tuner Kconfig names to use the same
->
->  Michael Krufky (4):
->       V4L/DVB (7789): tuner: remove static dependencies on analog tuner sub-modules
+The tip of tm6010 as of 20080428 (rev: baa8870a) fails to build from
+source. Find attached a patch to make it buildable.
+
+Signed-off-by: Maykel Moya <moya@infomed.sld.cu>
 
 
-Linus has already merged the changes (thank you, Linus) ... However,
-there is a bug.
+--=-35J2FteTU1WzPs7ybUY7
+Content-Disposition: attachment; filename=make-tree-buildable
+Content-Type: text/plain; name=make-tree-buildable; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-My "remove static dependencies on analog tuner sub-modules" patch was
-applied after Mauro's "Rename common tuner Kconfig names to use the
-same" patch.
+FIX: Make tree actually build
 
-My patch has conditional behavior, based on CONFIG_DVB_CORE_ATTACH,
-which was renamed to CONFIG_MEDIA_ATTACH in Mauro's patch.
+diff -r c945d3faba4f linux/drivers/media/video/tm6000/tm6000-dvb.c
+--- a/linux/drivers/media/video/tm6000/tm6000-dvb.c	Mon Apr 28 01:50:24 2008 -0400
++++ b/linux/drivers/media/video/tm6000/tm6000-dvb.c	Mon Apr 28 10:09:01 2008 -0400
+@@ -212,6 +212,8 @@
+ 	return (!dvb->frontend) ? -1 : 0;
+ }
+ 
++DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
++
+ int tm6000_dvb_register(struct tm6000_core *dev)
+ {
+ 	int ret = -1;
+@@ -229,7 +231,7 @@
+ 	}
+ 
+ 	ret = dvb_register_adapter(&dvb->adapter, "Trident TVMaster 6000 DVB-T",
+-							  THIS_MODULE, &dev->udev->dev);
++							  THIS_MODULE, &dev->udev->dev, adapter_nr);
+ 	dvb->adapter.priv = dev;
+ 
+ 	if (dvb->frontend) {
 
-To fix this, we need to do:
-
-sed -i s/"CONFIG_DVB_CORE_ATTACH"/"CONFIG_MEDIA_ATTACH"/1
-drivers/media/video/tuner-core.c
-
-The issue will cause invalid module use counts upon unloading analog
-tuner modules, if CONFIG_MEDIA_ATTACH is enabled.
-
-I would be happy to fix this myself, but Mauro's patch has not yet
-been backported into the linuxtv.org repository.
-
-Mauro, can you do the above fix and send it in to Linus?
-
-Thanks,
-
-Mike Krufky
+--=-35J2FteTU1WzPs7ybUY7
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--=-35J2FteTU1WzPs7ybUY7--
