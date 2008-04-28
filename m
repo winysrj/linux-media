@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JhMuK-000461-MA
-	for linux-dvb@linuxtv.org; Thu, 03 Apr 2008 12:43:01 +0200
-Date: Thu, 3 Apr 2008 12:42:17 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <874a271ecbbd66baae17d5acf725ef16@localhost>
-Message-ID: <Pine.LNX.4.64.0804031239270.32323@pub6.ifh.de>
-References: <754a11be0803311238p3fbd4a01p2b336609476261e6@mail.gmail.com>
-	<874a271ecbbd66baae17d5acf725ef16@localhost>
-MIME-Version: 1.0
+	(envelope-from <awalls@radix.net>) id 1JqbcW-0008JI-Qf
+	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 00:14:51 +0200
+From: Andy Walls <awalls@radix.net>
+To: Andreas <linuxdreas@launchnet.com>
+In-Reply-To: <200804272005.35347.linuxdreas@launchnet.com>
+References: <200804271649.09000.linuxdreas@launchnet.com>
+	<1209343501.3208.17.camel@palomino.walls.org>
+	<200804272005.35347.linuxdreas@launchnet.com>
+Date: Mon, 28 Apr 2008 18:13:49 -0400
+Message-Id: <1209420829.3205.11.camel@palomino.walls.org>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?utf-8?q?Nova-T_500_disconnects_-_solved=3F_-_YES!?=
+Subject: Re: [linux-dvb] cx18 driver not in main repo?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +27,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Sun, 2008-04-27 at 20:05 -0700, Andreas wrote:
 
-I was following the discussion silently, because I wanted to see the 
-information which lead me to the solution. Indeed I was wondering, that 
-there was no change recently in the dib0700-module - so it must have been 
-something else, but what.
+> I noticed that you jumped in and helped with the development of the cx18 and 
+> ivtv driver. Thank you very much!
 
-Glad to see there is now a solution - I never could have found this one.
+You're welcome.
 
-Sorry for not replying earlier, but I really had nothing to say.
+I'm mostly trying to lighten Hans' load on cx18 and get better TV
+picture for myself, since I live in a "deep fringe" reception area.
+Hans still shapes the development direction and final form of changes
+for cx18.
 
-Patrick.
+Also still look to Hans for the ivtv driver.  Unless I have a major
+problem with my PVR-150, I don't anticipate contributing much to ivtv.
 
-
-On Thu, 3 Apr 2008, Nicolas Will wrote:
-
->
-> Guys,
->
-> I have tried the ehci patch manually on the Ubuntu 2.6.24-13 source, and
-> indeed it fixed the disconnects.
->
-> The fix is now in the 2.6.24-14 binaries, and works just as well.
->
-> My Ubuntu Hardy has now resumed normal activities and Gutsy stability
-> levels, so far.
->
-> I can only recommend that users of other distros should check for kernel
-> updates, bug their developers to include the fix, or do it themselves.
->
-> Nico
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Regards,
+Andy
 
 
 _______________________________________________
