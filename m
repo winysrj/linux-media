@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+6c80ffccc20ef1e70e25+1693+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1Jkiu3-0000QU-0S
-	for linux-dvb@linuxtv.org; Sat, 12 Apr 2008 18:48:35 +0200
-Date: Sat, 12 Apr 2008 13:45:33 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: sioux <sioux_it@libero.it>
-Message-ID: <20080412134533.0ebdf74d@areia>
-In-Reply-To: <4800CBA8.4020504@libero.it>
-References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
-	<47FA70C3.5040808@web.de> <47FA8D34.6010900@libero.it>
-	<47FBD252.3090701@t-online.de> <47FD1C72.8050208@libero.it>
-	<47FD2748.7080203@t-online.de> <20080409184737.2d05f16d@areia>
-	<4800CBA8.4020504@libero.it>
-Mime-Version: 1.0
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
+Received: from fmmailgate02.web.de ([217.72.192.227])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <viets@web.de>) id 1JqRP3-0000Z8-5S
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 13:20:14 +0200
+Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
+	by fmmailgate02.web.de (Postfix) with ESMTP id EDCB1DA816A3
+	for <linux-dvb@linuxtv.org>; Mon, 28 Apr 2008 13:19:39 +0200 (CEST)
+Received: from [212.12.32.70] (helo=[10.10.2.101])
+	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.109 #226) id 1JqROV-0004oT-00
+	for linux-dvb@linuxtv.org; Mon, 28 Apr 2008 13:19:39 +0200
+Message-ID: <4815B2A9.4060209@web.de>
+Date: Mon, 28 Apr 2008 13:19:05 +0200
+From: Torben Viets <viets@web.de>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Hauppauge HVR-1700 Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,27 +29,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 12 Apr 2008 16:48:08 +0200
-sioux <sioux_it@libero.it> wrote:
+Hello,
 
-> Still not working.
-> 
-> sioux@sioux-desktop:/usr/src/v4l-dvb$ sudo make clean
+I have a Hauppauge HVR-1700 PCI Express, I have read all posts about
+this card here, but I didn't get it working, how does it work?
 
-Try "make distclean".
+Kernel: linux-2.6.25-git10
 
-This will remove some cached information that might be wrong, due to a
-dependency change.
+Firmware-Files:
+ls -al /lib/firmware/2.6.25-git10/
+total 416
+drwxr-xr-x 2 root root     91 Apr 27 16:27 .
+drwxr-xr-x 3 root root     25 Apr 27 16:26 ..
+-rw-r--r-- 1 root root  24878 Apr 27 16:27 dvb-fe-tda10048-1.0.fw
+-r--r--r-- 1 root root  16382 Apr 27 16:27 v4l-cx23885-avcore-01.fw
+-r--r--r-- 1 root root 376836 Apr 27 16:26 v4l-cx23885-enc.fw
 
-> make[2]: Entering directory `/usr/src/linux-headers-2.6.22-14-rt'
+The modules I use are from the actual v4l-dvb hg, if I type make load,
+the only thing I get is a /dev/video0, but I have no picture with xawtv...
 
-Hmm... you're using a -rt patched kernel? I'm not sure if the realtime patches
-are compatible with V4L/DVB. Maybe, you'll need to compile against one
-mainstream version.
+The DVB doesn't work at all, I have no /dev/dvb*, here is my dmesg:
+
+cx23885 driver version 0.0.1 loaded
+ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 24 (level, low) -> IRQ 24
+CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge WinTV-HVR1700
+[card=8,autodetected]
+cx23885[0]: i2c bus 0 registered
+cx23885[0]: i2c bus 1 registered
+cx23885[0]: i2c bus 2 registered
+tveeprom 0-0050: Huh, no eeprom present (err=-5)?
+tveeprom 0-0050: Encountered bad packet header [00].
+Corrupt or not a Hauppauge
+eeprom.
+cx23885[0]: warning: unknown hauppauge model #0
+cx23885[0]: hauppauge eeprom: model=0
+cx23885[0]: cx23885 based dvb card
+tda10048_readreg: readreg error (ret == -5)
+cx23885[0]: frontend initialization failed
+cx23885_dvb_register() dvb_register failed err = -1
+cx23885_dev_setup() Failed to register dvb on VID_C
+cx23885_dev_checkrevision() New hardware revision found 0x0
+cx23885_dev_checkrevision() Hardware revision unknown 0x0
+cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 24, latency: 0, mmio:
+0xfe800000
+
+Thank you and greetings
+Torben Viets
 
 
-Cheers,
-Mauro
 
 _______________________________________________
 linux-dvb mailing list
