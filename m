@@ -1,25 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3FI93a7032448
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 14:09:03 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3FI8qZX032105
-	for <video4linux-list@redhat.com>; Tue, 15 Apr 2008 14:08:52 -0400
-Date: Tue, 15 Apr 2008 15:08:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080415150841.2041984e@gaivota>
-In-Reply-To: <20080415135933.1a85fd2e@gaivota>
-References: <200804061448.42888.toralf.foerster@gmx.de>
-	<20080415135933.1a85fd2e@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3SEeirb011694
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:40:44 -0400
+Received: from bay0-omc1-s40.bay0.hotmail.com (bay0-omc1-s40.bay0.hotmail.com
+	[65.54.246.112])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3SEeUnd017295
+	for <video4linux-list@redhat.com>; Mon, 28 Apr 2008 10:40:30 -0400
+Message-ID: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
+From: =?Windows-1252?Q?Vicent_Jord=E0?= <vjorda@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Mon, 28 Apr 2008 14:40:24 +0000
+Content-Type: text/plain; charset="Windows-1252"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: Rafael Wysocki <rjw@sisk.pl>,
-	Toralf =?UTF-8?B?RsO2cnN0ZXI=?= <toralf.foerster@gmx.de>,
-	video4linux-list@redhat.com
-Subject: Re: build issue #469 for v2.6.25-rc8-166-g6fdf5e6 in pms.c :
- undefined reference to `video_usercopy'
+Subject: Trying to set up a NPG Real DVB-T PCI Card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,230 +25,119 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 15 Apr 2008 13:59:33 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-> Hi Toralf,
-> 
-> On Sun, 6 Apr 2008 14:48:40 +0200
-> Toralf FÃ¶rster <toralf.foerster@gmx.de> wrote:
-> 
-> > drivers/built-in.o: In function `pms_ioctl':
-> > pms.c:(.text+0x44947): undefined reference to `video_usercopy'
-> > drivers/built-in.o: In function `pms_do_ioctl':
-> > pms.c:(.text+0x44974): undefined reference to `video_devdata'
-> > drivers/built-in.o: In function `pms_read':
-> > pms.c:(.text+0x45025): undefined reference to `video_devdata'
-> > drivers/built-in.o: In function `cleanup_pms_module':
-> > pms.c:(.exit.text+0x5fe): undefined reference to `video_unregister_device'
-> > drivers/built-in.o: In function `init_pms_cards':
-> > pms.c:(.init.text+0x610d): undefined reference to `video_register_device'
-> > drivers/built-in.o:(.rodata+0x2ec8): undefined reference to `v4l_compat_ioctl32'
-> > drivers/built-in.o:(.rodata+0x2ed0): undefined reference to `video_exclusive_open'
-> > drivers/built-in.o:(.rodata+0x2ed8): undefined reference to `video_exclusive_release'
-> > make: *** [.tmp_vmlinux1] Error 1
-> 
-> Please try the enclosed patch. It should fix the issue.
+Hi,
 
-Sorry, the previous patch were incomplete, since there a few drivers that test
-for those boolean symbols.
+I'm trying to set up a NPG Real DVB-T PCI Card.
 
-Cheers,
-Mauro.
+I've loaded the v4l drivers and it seems to load correctly.
 
----
+=====================================================
+Apr 28 13:43:51 rud kernel: [   61.822127] cx88[0]: subsystem: 14f1:8852, board: Geniatech X8000-MT DVBT [card=63,autodetected]
+Apr 28 13:43:51 rud kernel: [   61.822132] cx88[0]: TV tuner type 71, Radio tuner type 0
+Apr 28 13:43:51 rud kernel: [   62.141235] tuner' 0-0061: chip found @ 0xc2 (cx88[0])
+Apr 28 13:43:51 rud kernel: [   62.177668] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+Apr 28 13:43:51 rud kernel: [   62.177674] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+Apr 28 13:43:51 rud kernel: [   62.177697] cx88[0]/0: found at 0000:00:08.0, rev: 5, irq: 20, latency: 32, mmio: 0xdc000000
+Apr 28 13:43:51 rud kernel: [   62.177806] cx88[0]/0: registered device video0 [v4l2]
+Apr 28 13:43:51 rud kernel: [   62.177851] cx88[0]/0: registered device vbi0
+Apr 28 13:43:51 rud kernel: [   62.177942] cx88[0]/0: registered device radio0
+Apr 28 13:43:51 rud kernel: [   62.217543] xc2028 0-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Apr 28 13:43:51 rud kernel: [   62.217851] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:51 rud kernel: [   62.416199] xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
+Apr 28 13:43:51 rud kernel: [   62.416206] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:51 rud kernel: [   63.586138] xc2028 0-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+Apr 28 13:43:51 rud kernel: [   63.602221] xc2028 0-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+Apr 28 13:43:51 rud kernel: [   63.687790] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:51 rud kernel: [   63.886136] xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
+Apr 28 13:43:51 rud kernel: [   63.886142] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:51 rud kernel: [   65.052053] xc2028 0-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+Apr 28 13:43:51 rud kernel: [   65.068115] xc2028 0-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+Apr 28 13:43:51 rud kernel: [   65.129754] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:51 rud kernel: [   65.249972] cx88[0]/2: cx2388x 8802 Driver Manager
+Apr 28 13:43:51 rud kernel: [   65.250000] ACPI: PCI Interrupt 0000:00:08.2[A] -> GSI 18 (level, low) -> IRQ 20
+Apr 28 13:43:51 rud kernel: [   65.250011] cx88[0]/2: found at 0000:00:08.2, rev: 5, irq: 20, latency: 32, mmio: 0xde000000
+Apr 28 13:43:51 rud kernel: [   65.251049] ACPI: PCI Interrupt 0000:00:07.0[A] -> GSI 19 (level, low) -> IRQ 21
+Apr 28 13:43:51 rud kernel: [   65.416289] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+Apr 28 13:43:51 rud kernel: [   65.416298] cx88/2: registering cx8802 driver, type: dvb access: shared
+Apr 28 13:43:51 rud kernel: [   65.416304] cx88[0]/2: subsystem: 14f1:8852, board: Geniatech X8000-MT DVBT [card=63]
+Apr 28 13:43:51 rud kernel: [   65.416309] cx88[0]/2: cx2388x based DVB/ATSC card
+Apr 28 13:43:51 rud kernel: [   65.521832] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+Apr 28 13:43:51 rud kernel: [   65.521840] cx88[0]/2: xc3028 attached
+Apr 28 13:43:51 rud kernel: [   65.522538] DVB: registering new adapter (cx88[0])
+Apr 28 13:43:51 rud kernel: [   65.522543] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+Apr 28 13:43:51 rud kernel: [   67.345027] lp0: using parport0 (interrupt-driven).
+Apr 28 13:43:51 rud kernel: [   67.460431] Adding 2562328k swap on /dev/sda7.  Priority:-1 extents:1 across:2562328k
+Apr 28 13:43:51 rud kernel: [   68.046049] EXT3 FS on sda6, internal journal
+Apr 28 13:43:51 rud kernel: [   70.437815] ip_tables: (C) 2000-2006 Netfilter Core Team
+Apr 28 13:43:51 rud kernel: [   72.972373] No dock devices found.
+Apr 28 13:43:52 rud kernel: [   75.398690] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:52 rud kernel: [   75.597047] xc2028 0-0061: Loading firmware for type=BASE FM (401), id 0000000000000000.
+Apr 28 13:43:52 rud kernel: [   75.597055] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:53 rud kernel: [   76.755517] xc2028 0-0061: Loading firmware for type=FM (400), id 0000000000000000.
+Apr 28 13:43:54 rud kernel: [   76.825247] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:54 rud kernel: [   77.023592] xc2028 0-0061: Loading firmware for type=BASE FM (401), id 0000000000000000.
+Apr 28 13:43:54 rud kernel: [   77.023598] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:55 rud kernel: [   78.185507] xc2028 0-0061: Loading firmware for type=FM (400), id 0000000000000000.
+Apr 28 13:43:55 rud kernel: [   78.231269] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:43:58 rud kernel: [   81.554905] eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
+Apr 28 13:43:58 rud kernel: [   81.626484] wlan0: changing radio power level to 18 dBm (23)
+Apr 28 13:44:01 rud kernel: [   84.551782] ppdev: user-space parallel port driver
+Apr 28 13:44:01 rud kernel: [   85.142864] audit(1209383041.971:2): type=1503 operation="inode_permission" requested_mask="a::" denied_mask="a::" name="/dev/tty" pid=5530 profile="/usr/sbin/cupsd" namespace="default"
+Apr 28 13:44:02 rud kernel: [   85.291620] apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16ac)
+Apr 28 13:44:02 rud kernel: [   85.291629] apm: overridden by ACPI.
+Apr 28 13:44:02 rud kernel: [   85.545130] RPC: Registered udp transport module.
+Apr 28 13:44:02 rud kernel: [   85.545139] RPC: Registered tcp transport module.
+Apr 28 13:44:02 rud kernel: [   85.615108] Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+Apr 28 13:44:02 rud kernel: [   85.754526] NFSD: Using /var/lib/nfs/v4recovery as the NFSv4 state recovery directory
+Apr 28 13:44:02 rud kernel: [   85.763190] NFSD: starting 90-second grace period
+Apr 28 13:51:25 rud kernel: [  527.312442] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:25 rud kernel: [  527.510799] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Apr 28 13:51:25 rud kernel: [  527.510807] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:26 rud kernel: [  528.707901] MTS (4), id 00000000000000f7:
+Apr 28 13:51:26 rud kernel: [  528.707916] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+Apr 28 13:51:26 rud kernel: [  528.781628] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:26 rud kernel: [  528.979980] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Apr 28 13:51:26 rud kernel: [  528.979988] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:27 rud kernel: [  530.162012] MTS (4), id 00000000000000f7:
+Apr 28 13:51:27 rud kernel: [  530.162028] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+Apr 28 13:51:28 rud kernel: [  530.483974] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:28 rud kernel: [  530.682332] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Apr 28 13:51:28 rud kernel: [  530.682339] cx88[0]: Calling XC2028/3028 callback
+Apr 28 13:51:29 rud kernel: [  531.887588] MTS (4), id 00000000000000f7:
+==========================================================================
 
-Fix build that occurs when CONFIG_VIDEO_PMS=y and VIDEO_V4L2_COMMON=m
+But when I try to scan for channels this error appears in dmesg:
 
-This patch removes zoran checks for VIDEO_V4L2, since this API is always present, when
-V4L is selected.
+===========================================================================
+[ 1581.454350] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+[ 1581.454358] cx88[0]: Calling XC2028/3028 callback
+[ 1583.451836] MTS (4), id 00000000000000f7:
+[ 1583.451853] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+[ 1583.499889] xc2028 0-0061: Incorrect readback of firmware version.
+[ 1583.915649] cx88[0]: Calling XC2028/3028 callback
+[ 1584.114007] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+[ 1584.114015] cx88[0]: Calling XC2028/3028 callback
+[ 1585.668643] MTS (4), id 00000000000000f7:
+[ 1585.668659] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+[ 1585.687679] xc2028 0-0061: Incorrect readback of firmware version.
+[ 1585.741662] cx88[0]: Calling XC2028/3028 callback
+[ 1585.940019] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+[ 1585.940027] cx88[0]: Calling XC2028/3028 callback
+[ 1587.165797] MTS (4), id 00000000000000f7:
+[ 1587.165812] xc2028 0-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+[ 1587.183960] xc2028 0-0061: Incorrect readback of firmware version.
+==============================================================================
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+What can I do to workaroud this problem?
 
-diff -r 34e5c8ed9fcb linux/drivers/media/Kconfig
---- a/linux/drivers/media/Kconfig	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/Kconfig	Tue Apr 15 14:38:08 2008 -0300
-@@ -30,7 +30,7 @@ config VIDEO_V4L2_COMMON
- 	depends on (I2C || I2C=n) && VIDEO_DEV
- 	default (I2C || I2C=n) && VIDEO_DEV
- 
--config VIDEO_V4L1
-+config VIDEO_ALLOW_V4L1
- 	bool "Enable Video For Linux API 1 (DEPRECATED)"
- 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
- 	default VIDEO_DEV && VIDEO_V4L2_COMMON
-@@ -59,9 +59,14 @@ config VIDEO_V4L1_COMPAT
- 	  If you are unsure as to whether this is required, answer Y.
- 
- config VIDEO_V4L2
--	bool
-+	tristate
- 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
- 	default VIDEO_DEV && VIDEO_V4L2_COMMON
-+
-+config VIDEO_V4L1
-+	tristate
-+	depends on VIDEO_DEV && VIDEO_V4L2_COMMON && VIDEO_ALLOW_V4L1
-+	default VIDEO_DEV && VIDEO_V4L2_COMMON && VIDEO_ALLOW_V4L1
- 
- source "drivers/media/video/Kconfig"
- 
-diff -r 34e5c8ed9fcb linux/drivers/media/video/msp3400-driver.c
---- a/linux/drivers/media/video/msp3400-driver.c	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/video/msp3400-driver.c	Tue Apr 15 14:38:08 2008 -0300
-@@ -410,7 +410,7 @@ int msp_sleep(struct msp_state *state, i
- }
- 
- /* ------------------------------------------------------------------------ */
--#ifdef CONFIG_VIDEO_V4L1
-+#ifdef CONFIG_VIDEO_ALLOW_V4L1
- static int msp_mode_v4l2_to_v4l1(int rxsubchans, int audmode)
- {
- 	if (rxsubchans == V4L2_TUNER_SUB_MONO)
-@@ -558,7 +558,7 @@ static int msp_command(struct i2c_client
- 	/* --- v4l ioctls --- */
- 	/* take care: bttv does userspace copying, we'll get a
- 	   kernel pointer here... */
--#ifdef CONFIG_VIDEO_V4L1
-+#ifdef CONFIG_VIDEO_ALLOW_V4L1
- 	case VIDIOCGAUDIO:
- 	{
- 		struct video_audio *va = arg;
-diff -r 34e5c8ed9fcb linux/drivers/media/video/tuner-core.c
---- a/linux/drivers/media/video/tuner-core.c	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/video/tuner-core.c	Tue Apr 15 14:38:08 2008 -0300
-@@ -802,7 +802,7 @@ static int tuner_command(struct i2c_clie
- 		if (analog_ops->standby)
- 			analog_ops->standby(&t->fe);
- 		break;
--#ifdef CONFIG_VIDEO_V4L1
-+#ifdef CONFIG_VIDEO_ALLOW_V4L1
- 	case VIDIOCSAUDIO:
- 		if (check_mode(t, "VIDIOCSAUDIO") == EINVAL)
- 			return 0;
-diff -r 34e5c8ed9fcb linux/drivers/media/video/zoran.h
---- a/linux/drivers/media/video/zoran.h	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/video/zoran.h	Tue Apr 15 14:38:08 2008 -0300
-@@ -243,10 +243,8 @@ struct zoran_format {
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
- 	int palette;
- #endif
--#ifdef CONFIG_VIDEO_V4L2
- 	__u32 fourcc;
- 	int colorspace;
--#endif
- 	int depth;
- 	__u32 flags;
- 	__u32 vfespfr;
-@@ -271,8 +269,6 @@ struct zoran_v4l_settings {
- 	const struct zoran_format *format;	/* capture format */
- };
- 
--/* whoops, this one is undeclared if !v4l2 */
--#ifndef CONFIG_VIDEO_V4L2
- struct v4l2_jpegcompression {
- 	int quality;
- 	int APPn;
-@@ -283,7 +279,6 @@ struct v4l2_jpegcompression {
- 	__u32 jpeg_markers;
- 	__u8 reserved[116];
- };
--#endif
- 
- /* jpg-capture/-playback settings */
- struct zoran_jpg_settings {
-diff -r 34e5c8ed9fcb linux/drivers/media/video/zoran_driver.c
---- a/linux/drivers/media/video/zoran_driver.c	Tue Apr 15 12:12:36 2008 -0300
-+++ b/linux/drivers/media/video/zoran_driver.c	Tue Apr 15 14:38:08 2008 -0300
-@@ -88,7 +88,6 @@
- #include "zoran_device.h"
- #include "zoran_card.h"
- 
--#ifdef CONFIG_VIDEO_V4L2
- 	/* we declare some card type definitions here, they mean
- 	 * the same as the v4l1 ZORAN_VID_TYPE above, except it's v4l2 */
- #define ZORAN_V4L2_VID_FLAGS ( \
-@@ -97,19 +96,15 @@
- 				V4L2_CAP_VIDEO_OUTPUT |\
- 				V4L2_CAP_VIDEO_OVERLAY \
- 			      )
--#endif
- 
- #include <asm/byteorder.h>
- 
--#if defined(CONFIG_VIDEO_V4L2) && defined(CONFIG_VIDEO_V4L1_COMPAT)
-+#if defined(CONFIG_VIDEO_V4L1_COMPAT)
- #define ZFMT(pal, fcc, cs) \
- 	.palette = (pal), .fourcc = (fcc), .colorspace = (cs)
--#elif defined(CONFIG_VIDEO_V4L2)
-+#else
- #define ZFMT(pal, fcc, cs) \
- 	.fourcc = (fcc), .colorspace = (cs)
--#else
--#define ZFMT(pal, fcc, cs) \
--	.palette = (pal)
- #endif
- 
- const struct zoran_format zoran_formats[] = {
-@@ -219,7 +214,6 @@ module_param(lock_norm, int, 0644);
- module_param(lock_norm, int, 0644);
- MODULE_PARM_DESC(lock_norm, "Prevent norm changes (1 = ignore, >1 = fail)");
- 
--#ifdef CONFIG_VIDEO_V4L2
- 	/* small helper function for calculating buffersizes for v4l2
- 	 * we calculate the nearest higher power-of-two, which
- 	 * will be the recommended buffersize */
-@@ -242,7 +236,6 @@ zoran_v4l2_calc_bufsize (struct zoran_jp
- 		return 8192;
- 	return result;
- }
--#endif
- 
- /* forward references */
- static void v4l_fbuffer_free(struct file *file);
-@@ -1776,7 +1769,6 @@ setup_overlay (struct file *file,
- 	return wait_grab_pending(zr);
- }
- 
--#ifdef CONFIG_VIDEO_V4L2
- 	/* get the status of a buffer in the clients buffer queue */
- static int
- zoran_v4l2_buffer_status (struct file        *file,
-@@ -1882,7 +1874,6 @@ zoran_v4l2_buffer_status (struct file   
- 
- 	return 0;
- }
--#endif
- 
- static int
- zoran_set_norm (struct zoran *zr,
-@@ -2691,8 +2682,6 @@ zoran_do_ioctl (struct inode *inode,
- 	}
- 		break;
- 
--#ifdef CONFIG_VIDEO_V4L2
--
- 		/* The new video4linux2 capture interface - much nicer than video4linux1, since
- 		 * it allows for integrating the JPEG capturing calls inside standard v4l2
- 		 */
-@@ -4264,7 +4253,6 @@ zoran_do_ioctl (struct inode *inode,
- 		return 0;
- 	}
- 		break;
--#endif
- 
- 	default:
- 		dprintk(1, KERN_DEBUG "%s: UNKNOWN ioctl cmd: 0x%x\n",
-@@ -4724,9 +4712,7 @@ struct video_device zoran_template __dev
- struct video_device zoran_template __devinitdata = {
- 	.name = ZORAN_NAME,
- 	.type = ZORAN_VID_TYPE,
--#ifdef CONFIG_VIDEO_V4L2
- 	.type2 = ZORAN_V4L2_VID_FLAGS,
--#endif
- 	.fops = &zoran_fops,
- 	.release = &zoran_vdev_release,
- 	.minor = -1
+Thanks,
+Vicent
+
+
+_________________________________________________________________
+Tecnología, moda, motor, viajes,…suscríbete a nuestros boletines para estar siempre a la última
+Guapos y guapas, clips musicales y estrenos de cine. 
 
 --
 video4linux-list mailing list
