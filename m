@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3I63ZhG020947
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 02:03:35 -0400
-Received: from cnc.isely.net (cnc.isely.net [64.81.146.143])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3I63NuP020756
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 02:03:24 -0400
-Date: Fri, 18 Apr 2008 01:03:17 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Adrian Bunk <bunk@kernel.org>
-In-Reply-To: <20080414184153.GZ6695@cs181133002.pp.htv.fi>
-Message-ID: <Pine.LNX.4.64.0804180100180.31065@cnc.isely.net>
-References: <20080414184153.GZ6695@cs181133002.pp.htv.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TLu7hp005111
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 17:56:07 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TLtsBr012687
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 17:55:54 -0400
+From: Andy Walls <awalls@radix.net>
+To: Gavin Hamill <gdh@acentral.co.uk>
+In-Reply-To: <1209505252.6270.11.camel@gdh-home>
+References: <1209505252.6270.11.camel@gdh-home>
+Content-Type: text/plain
+Date: Tue, 29 Apr 2008 17:55:51 -0400
+Message-Id: <1209506151.5699.7.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Video4Linux list <video4linux-list@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [2.6 patch] video/pvrusb2/pvrusb2-hdw.c cleanups
-Reply-To: Mike Isely <isely@pobox.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Ident for Bt848 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,31 +27,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 14 Apr 2008, Adrian Bunk wrote:
-
-> This patch contains the following cleanups:
-> - make the following needlessly global function static:
->   - pvr2_hdw_set_cur_freq()
-> - #if 0 the following unused global functions:
->   - pvr2_hdw_get_state_name()
->   - pvr2_hdw_get_debug_info_unlocked()
->   - pvr2_hdw_get_debug_info_locked()
+On Tue, 2008-04-29 at 22:40 +0100, Gavin Hamill wrote:
+> Hi, the old Bt848 card (no tuner, no audio - just composite + s-video)
+> I'm using isn't picked up by kernel 2.6.24 properly causing a 30 second
+> delay at bootup to find audio chips and EEPROMS that aren't there.
 > 
-> Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> I've been trying to put together a patch against hg to fix it, but am a
+> little confused.
 > 
-> ---
+> The card is definitely a BTTV_BOARD_GRANDTEC since the structure is
+> correct and this comment [1] is right on the money:
+> 
+>                 /* This is the ultimate cheapo capture card
+>                 * just a BT848A on a small PCB!
+>                 * Steve Hosgood <steve@equiinet.com> */
+> 
+> However there seems to be a confusion because the PCI ID of my card is
+> 109e:0350 (which is not defined anywhere in hg) yet BTTV_BOARD_GRANDTEC
+> is defined as 
+> 
 
-FYI, I've merged this change into my local repository, and expect to 
-push it back up for 2.6.26 as part of a pent-up pile of pvrusb2 changes.
+109e is BrookTree's vendor id and 0350 is the id for the BT848.  Many
+different BT848 based cards could have this vendor id:device id
+combination.
 
-  -Mike
+What does "lspci -nv" give as the subsystem ID for this card?  You may
+find it matches up with with one of the entries in in bttv-cards.c.
 
 
--- 
+>  { 0x41424344, BTTV_BOARD_GRANDTEC, "GrandTec Multi Capture" },
+> 
+> This appears to be bogus, and that PCI ID should instead be pointing at
+> BTTV_BOARD_GRANDTEC_MULTI (which does indeed define 4 composite inputs
+> correct for a 'multi' card). The _MULTI one is currently not associated
+> with any PCI ID.
+> 
+> I believe the correct definitions should therefore be:
+> 
+>  { 0x109e0350, BTTV_BOARD_GRANDTEC, "GrandTec Grand Video Capture" },
+>  { 0x41424344, BTTV_BOARD_GRANDTEC_MULTI, "GrandTec Multi Capture" },
+> 
+> Could someone take a quick look over this and tell me if I've made some
+> awful assumption?
 
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+A PCI Device ID is not a Subsystem ID.
+
+Regards,
+Andy
+
+> Cheers,
+> Gavin.
+> 
+> [1] Line 1346 bttv-cards.c
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
