@@ -1,30 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Jmm8A-0004S0-QG
-	for linux-dvb@linuxtv.org; Fri, 18 Apr 2008 10:39:39 +0200
-Received: from mail-in-06-z2.arcor-online.net (mail-in-06-z2.arcor-online.net
-	[151.189.8.18])
-	by mail-in-13.arcor-online.net (Postfix) with ESMTP id CD0761E50C6
-	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:25 +0200 (CEST)
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
-	[151.189.21.42])
-	by mail-in-06-z2.arcor-online.net (Postfix) with ESMTP id BBEAB5C2CA
-	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:25 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-02.arcor-online.net (Postfix) with ESMTP id ED58736E865
-	for <linux-dvb@linuxtv.org>; Fri, 18 Apr 2008 04:44:24 +0200 (CEST)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <200804180321.07891@orion.escape-edv.de>
-References: <47F9E95D.6070705@yahoo.de>
-	<200804120100.14568@orion.escape-edv.de> <48066F62.8000709@yahoo.de>
-	<200804180321.07891@orion.escape-edv.de>
-Date: Fri, 18 Apr 2008 04:44:23 +0200
-Message-Id: <1208486663.3287.29.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] High CPU load in "top" due to budget_av slot	polling
+Message-ID: <481767E4.8030608@web.de>
+Date: Tue, 29 Apr 2008 20:24:36 +0200
+From: Torben Viets <viets@web.de>
+MIME-Version: 1.0
+To: Steven Toth <stoth@linuxtv.org>
+References: <4815B2A9.4060209@web.de> <4815F0AF.4010709@linuxtv.org>
+	<4815FA2B.5030502@web.de> <4815FF67.6050004@linuxtv.org>
+	<4816050D.2040408@web.de> <48161163.9000602@linuxtv.org>
+	<4816186B.3030703@web.de> <48161B2D.6090602@linuxtv.org>
+	<48176236.1020306@web.de> <481763AA.4030702@linuxtv.org>
+In-Reply-To: <481763AA.4030702@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,176 +25,232 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Steven Toth wrote:
+> Torben Viets wrote:
+>> Hello,
+>>
+>> I've got it: http://pastebin.com/f50f33096
+>>
+>> the trick was to compile the kernel (now linux-2.6.25-git13) with:
+>>
+>> CONFIG_I2C_DEBUG_CORE=y
+>> CONFIG_I2C_DEBUG_ALGO=y
+>> CONFIG_I2C_DEBUG_BUS=y
+>> CONFIG_I2C_DEBUG_CHIP=y
+>>
+>> I hope you've got an idea, i updated my bios (afters this my RAM 
+>> doesn't work anymore), installed a new Ubuntu Linux hardy (8.04)...
+>>
+>> One last question when will the firmware be loaded and why there is 
+>> no hotplug tool in ubuntu, or is it in the kernel?
+>>
+>> greetings
+>> Torben
+>>
+>>
+>> Steven Toth wrote:
+>>> Torben Viets wrote:
+>>>> Steven Toth wrote:
+>>>>> Torben Viets wrote:
+>>>>>> Steven Toth wrote:
+>>>>>>> Torben Viets wrote:
+>>>>>>>> Hello,
+>>>>>>>>
+>>>>>>>> thanks for the quick reply.
+>>>>>>>>
+>>>>>>>> Steven Toth wrote:
+>>>>>>>>> Torben Viets wrote:
+>>>>>>>>>> Hello,
+>>>>>>>>>>
+>>>>>>>>>> I have a Hauppauge HVR-1700 PCI Express, I have read all 
+>>>>>>>>>> posts about
+>>>>>>>>>> this card here, but I didn't get it working, how does it work?
+>>>>>>>>>
+>>>>>>>>> It's working fine for me on a stock 7.10 ubuntu install.
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> Kernel: linux-2.6.25-git10
+>>>>>>>>>>
+>>>>>>>>>> Firmware-Files:
+>>>>>>>>>> ls -al /lib/firmware/2.6.25-git10/
+>>>>>>>>>> total 416
+>>>>>>>>>> drwxr-xr-x 2 root root     91 Apr 27 16:27 .
+>>>>>>>>>> drwxr-xr-x 3 root root     25 Apr 27 16:26 ..
+>>>>>>>>>> -rw-r--r-- 1 root root  24878 Apr 27 16:27 
+>>>>>>>>>> dvb-fe-tda10048-1.0.fw
+>>>>>>>>>> -r--r--r-- 1 root root  16382 Apr 27 16:27 
+>>>>>>>>>> v4l-cx23885-avcore-01.fw
+>>>>>>>>>> -r--r--r-- 1 root root 376836 Apr 27 16:26 v4l-cx23885-enc.fw
+>>>>>>>>>>
+>>>>>>>>>> The modules I use are from the actual v4l-dvb hg, if I type 
+>>>>>>>>>> make load,
+>>>>>>>>>> the only thing I get is a /dev/video0, but I have no picture 
+>>>>>>>>>> with xawtv...
+>>>>>>>>>
+>>>>>>>>> /dev/video doesn't work, it's not supported.
+>>>>>>>>>
+>>>>>>>> Are there any plans to support it?
+>>>>>>>
+>>>>>>>
+>>>>>>> No immediate plans.
+>>>>>>>
+>>>>>>>
+>>>>>>>>> You should aim to use the dvb-apps tools (tzap, scan) and 
+>>>>>>>>> mplayer as example tools, or MythTV as an app.
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>> The DVB doesn't work at all, I have no /dev/dvb*, here is my 
+>>>>>>>>>> dmesg:
+>>>>>>>>>>
+>>>>>>>>>> cx23885 driver version 0.0.1 loaded
+>>>>>>>>>> ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 24 (level, low) -> 
+>>>>>>>>>> IRQ 24
+>>>>>>>>>> CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge 
+>>>>>>>>>> WinTV-HVR1700
+>>>>>>>>>> [card=8,autodetected]
+>>>>>>>>>> cx23885[0]: i2c bus 0 registered
+>>>>>>>>>> cx23885[0]: i2c bus 1 registered
+>>>>>>>>>> cx23885[0]: i2c bus 2 registered
+>>>>>>>>>> tveeprom 0-0050: Huh, no eeprom present (err=-5)?
+>>>>>>>>>> tveeprom 0-0050: Encountered bad packet header [00].
+>>>>>>>>>> Corrupt or not a Hauppauge
+>>>>>>>>>> eeprom.
+>>>>>>>>>> cx23885[0]: warning: unknown hauppauge model #0
+>>>>>>>>>> cx23885[0]: hauppauge eeprom: model=0
+>>>>>>>>>> cx23885[0]: cx23885 based dvb card
+>>>>>>>>>> tda10048_readreg: readreg error (ret == -5)
+>>>>>>>>>> cx23885[0]: frontend initialization failed
+>>>>>>>>>> cx23885_dvb_register() dvb_register failed err = -1
+>>>>>>>>>> cx23885_dev_setup() Failed to register dvb on VID_C
+>>>>>>>>>> cx23885_dev_checkrevision() New hardware revision found 0x0
+>>>>>>>>>> cx23885_dev_checkrevision() Hardware revision unknown 0x0
+>>>>>>>>>> cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 24, 
+>>>>>>>>>> latency: 0, mmio:
+>>>>>>>>>> 0xfe800000
+>>>>>>>>>
+>>>>>>>>> This looks bad, it looks like i2c is broken badly, so that the 
+>>>>>>>>> eeprom isn't detected and the demodulator isn't found during 
+>>>>>>>>> attach. This is the reason why your missing /dev/dvb/adapterX/
+>>>>>>>>>
+>>>>>>>>> No idea why. Try loading the cx23885 with debug=5 and report 
+>>>>>>>>> any log messages here - on this mailing list.
+>>>>>>>> here ist the debug=5 output
+>>>>>>>>
+>>>>>>>> cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe 
+>>>>>>>> bridge type 885
+>>>>>>>> cx23885[0]/0: cx23885_init_tsport(portno=2)
+>>>>>>>> CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge 
+>>>>>>>> WinTV-HVR1700 [card=8,autodetected]
+>>>>>>>> cx23885[0]/0: cx23885_pci_quirks()
+>>>>>>>> cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr = 
+>>>>>>>> 0x0
+>>>>>>>> cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 
+>>>>>>>> 0x0
+>>>>>>>> cx23885[0]/0: cx23885_reset()
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel 
+>>>>>>>> [VID A]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107b0 <- 
+>>>>>>>> 0x00000040
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107c0 <- 
+>>>>>>>> 0x00000b80
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107d0 <- 
+>>>>>>>> 0x000016c0
+>>>>>>>> cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel 
+>>>>>>>> [TS1 B]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010400 <- 
+>>>>>>>> 0x00005000
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010410 <- 
+>>>>>>>> 0x000052f0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010420 <- 
+>>>>>>>> 0x000055e0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010430 <- 
+>>>>>>>> 0x000058d0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010440 <- 
+>>>>>>>> 0x00005bc0
+>>>>>>>> cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel 
+>>>>>>>> [TS2 C]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108d0 <- 
+>>>>>>>> 0x00006000
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108e0 <- 
+>>>>>>>> 0x000062f0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108f0 <- 
+>>>>>>>> 0x000065e0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010900 <- 
+>>>>>>>> 0x000068d0
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010910 <- 
+>>>>>>>> 0x00006bc0
+>>>>>>>> cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]
+>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]
+>>>>>>>> cx23885[0]: i2c bus 0 registered
+>>>>>>>> cx23885[0]: i2c bus 1 registered
+>>>>>>>> cx23885[0]: i2c bus 2 registered
+>>>>>>>
+>>>>>>> Everything looks fine up to this point, then i2c looks bad.
+>>>>>>>
+>>>>>>> Can you try again with modprobe cx23885 i2c_scan=1 and post the 
+>>>>>>> output again? (Output will be large - feel free to use 
+>>>>>>> pastebin.com and post the URL here).
+>>>>>>
+>>>>>> hmm, output doesn't change with it. here is a lsmod plus a 
+>>>>>> complete dmesg, is some module missing?
+>>>>>>
+>>>>>> http://pastebin.com/f4f9b58ed
+>>>>>>
+>>>>>
+>>>>> The module option isn't active.
+>>>>>
+>>>>> Unload the cx23885 module (and any dependencies) then try modprobe 
+>>>>> i2c_scan=1
+>>>>>
+>>>>> When the module option is set correctly, you'll see a lot of extra 
+>>>>> debug messages.
+>>>>>
+>>>>> - Steve
+>>>>>
+>>>>>
+>>>>
+>>>> hmm, I've unload all modules that sounds interesting, but there is 
+>>>> no more output: http://pastebin.com/f157a3978
+>>>
+>>> Hmm. No idea. i2c_scan is working for me and various other people. 
+>>> Something is wrong with your environment and I don't know what.
+>>>
+>>> The only time I've seen i2c_scan output not work, is when i2c_scan 
+>>> is not passed as a module parameter.
+>>>
+>>> Unload all modules, then use lsmod to ensure cx23885.ko is not loaded.
+>>> Then, modprobe cx23885 debug=5 i2c_scan=1
+>>>
+>>> If that doesn't show i2c device scanning traffic then I'm stumped.
+>>>
+>>> - Steve
+>>>
+>>
+>
+> Thanks for the feedback. This is odd, it looks like either I2C isn;t 
+> working at all, or it's working partially for device 0x44. I think I'm 
+> tempted to believe it's not working at all.
+>
+> The firmware gets loaded by the cx25840 module (if required), the 
+> module is requested on the fly. But, that doesn't explain the missing 
+> eeprom errors.
+>
+> Does this board work under windows?
+>
+> - Steve
+>
+hmm, never tested under windows, i' windows free ;) but i will install 
+Windows now and will try wether it works....
 
-Am Freitag, den 18.04.2008, 03:21 +0200 schrieb Oliver Endriss:
-> Robert Schedel wrote:
-> > Oliver Endriss wrote:
-> > > Robert Schedel wrote:
-> > >> Hello,
-> > >>
-> > >> on 2.6.24 I run into a small issue with the budget_av driver:
-> > >>
-> > >> Hardware: Athlon 64X2 3800+, Satelco Easywatch DVB-C (1894:002c), no CI/CAM
-> > >> Software: Linux kernel 2.6.24 (gentoo-r4) SMP x86_64, budget_av module
-> > >>
-> > >> Error description:
-> > >> After the budget_av driver module is loaded (even without any DVB 
-> > >> application), the CPU load average in 'top' rises to ~1, but in top no 
-> > >> active tasks are found. After unloading the driver, the load decreases 
-> > >> again to ~0.
-> > >>
-> > >> Displaying the blocked tasks during high load with Alt-SysRq-W shows 
-> > >> that the kdvb-ca kernel thread seems to be accounted as blocked when it 
-> > >> polls for the CI slot status:
-> > >> ---------------------------------------------------
-> > >> [...]
-> > >> ---------------------------------------------------
-> > >>
-> > >> Enabling debug traces shows that polling for the PSR in function 
-> > >> 'saa7146_wait_for_debi_done_sleep' constantly times out after 250x1ms 
-> > >> sleeps:
-> > >>
-> > >>  > saa7146: saa7146_wait_for_debi_done_sleep(): saa7146 (0): 
-> > >> saa7146_wait_for_debi_done_sleep timed out while waiting for transfer 
-> > >> completion
-> > >>
-> > >> Increasing the 250ms did not avoid the timeout. And as I understood from 
-> > >> previous list mails, this timeout is normal when no CI/CAM is connected 
-> > >> to the DEBI. However, for me the high frequency polling does not make 
-> > >> sense if someone does not plan to plug in a CI/CAM.
-> > >>
-> > >> When commenting out two lines in 'dvb_ca_en50221_thread_update_delay' to 
-> > >> increase the polling timer for slotstate NONE from 100ms (!) to 60s, the 
-> > >> CPU load went down to 0. So this is some kind of workaround for me.
-> > > 
-> > > Afaics the polling interval could be increased to something like 5s or
-> > > 10s if (and only if) the slot is empty. Could you provide a patch?
-> > 
-> > Attached a patch for 2.6.24.4. Opinions?
-> 
-> Basically it should work but it has to be tested with CI/CAM, too.
-> Furthermore it is not sufficient to test with budget-av because many
-> other drivers will be affected.
-> 
-> So I would prefer a patch which does not touch behaviour for other card
-> drivers (if possible).
-> 
-> Please note for 'final' patches:
-> Always run 'checkpatch.pl' and fix the errors.
-> Sorry for that. :-(
-> 
-> > Unfortunately, a 5s poll interval for empty slots still results in a
-> > load average of about 0,06 (~ 250ms/5s).
-> > 
-> > Increasing to 10s would decrease the load and be fine for people without
-> > CAM, but increase the delay for those users inserting CAMs during
-> > runtime. 5s sounds like a reasonable tradeoff.
-> > 
-> > Is the 250ms timeout an approved limit? Decreasing it would push the
-> > load further down. Probably it still has to cover slow CAMs as well as a
-> > stressed PCI bus. Unfortunately, without CAM/CI I cannot make any
-> > statements myself.
-> > 
-> > >> Finally, my questions:
-> > >> 1. Did I understand this right, that the behaviour above is expected 
-> > >> when no CI is connected?
-> > > 
-> > > Yes, but afaics the polling interval is way too short.
-> > > 
-> > >> 2. Are all budget_av cards unable to check CAM slot state via interrupt 
-> > >>   for HW reasons (as budget_ci does)?
-> > > 
-> > > I don't have any budget-av hardware, so I don't know.
-> > > But I think that Andrew(?) had a good reason to implement it this way.
-> > > (In contrast the budget-ci driver was always interrupt-driven.)
-> > > 
-> > > If someone finds out that a given card can operate in interrupt mode,
-> > > it should be changed for this card. Patches are welcome. ;-)
-> > 
-> > My impression is, due to the different GPIO layout there is no way to
-> > get a CAM change IRQ. But it seems difficult to get information about
-> > the HW architecture of cards at all.
-> 
-> For most cards we have no hw info. :-(
-> 
-> > Regarding DEBI_E: Just found a av7110 code comment which also reflects
-> > what my recent tests showed:
-> >           /* Note: Don't try to handle the DEBI error irq (MASK_18), in
-> >            * intel mode the timeout is asserted all the time...
-> >            */
-> > 
-> > So really only DEBI_S would be left, see below.
-> 
-> Did you check whether DEBI_S and/or DEBI_E are ever asserted with your
-> setup? If not, an interrupt would never occur anyway...
-> 
-> > >> 3. Would it be possible to substitute the current PSR DEBI_S polling 
-> > >> with an interrupt based solution via IER/ISR? (driver av7110 alreadys 
-> > >> seems to do this for its DEBI DMA)? Or was this not considered worthy, 
-> > >> due to the expected short waiting period and the tricky IER handling? 
-> > >> The code does not state further thoughts about this.
-> > > 
-> > > The av7110 driver uses interrupt mode for buffer transfers in dma mode.
-> > > It does not make much sense to use interrupt mode for single-word
-> > > transfers, because the single-word transfers are very fast.
-> > > But I understand that the timeout causes a problem in this case.
-> > 
-> > OK, interrupts of course decrease performance in the "sunny day" cases
-> > (=communication with inserted card in slot state READY). Having both
-> > approaches (interrupt when slotstate empty, later polling) would combine
-> > all benefits but also be somewhat crazy.
-> > 
-> > >> 4. Are the high timeout periods in debi_done (50ms/250ms) in relation to 
-> > >> the 100ms poll timer intended? (I found the recent patch to this code in 
-> > >> the mailing list end of last year)
-> > > 
-> > > That patch was applied to reduce the load on the pci bus in busy-wait
-> > > mode. Basically it did not change anything for cam polling. (In fact I
-> > > was not aware that the CAM was polled every 100ms. Imho this should be
-> > > fixed.)
-> > 
-> > Only wondered whether the 250ms might have been smaller in former driver
-> > versions.
-> 
-> Iirc it should be even worse with older drivers.
-> 
-> Basically the 250ms timeout is just a last resort to escape from the
-> loop, if the debi transfer hangs for some reason. We might try to reduce
-> the timeout but I don't know how far we can go. (Touching 'magic' values
-> might be dangeous.)
-> 
-> CU
-> Oliver
-> 
-
-Hi,
-
-what are magic values?
-
-Simply something retrieved under NDA with even that hardware not in
-established/stable conditions yet, most likely.
-
-If the commercial research facilities are not established for that,
-because too expensive, it likely goes out to some university or major
-research project around the globe, which recently collected some
-external money for something related, to stay alive, and then please
-could solve that minor issue on the run for free.
-
-We had lots of high quality contributions in the past, seemingly coming
-out of nothing ...
-
-If it really counts, Open Source is a must and everybody knows it.
-
-Cheers,
-Hermann
-
-
-
-
-
-
- 
-
+Torben
 
 _______________________________________________
 linux-dvb mailing list
