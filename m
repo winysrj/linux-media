@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.libero.it ([212.52.84.42])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sioux_it@libero.it>) id 1JiyaW-0005Yg-MD
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 23:09:14 +0200
-Received: from MailRelay10.libero.it (192.168.32.119) by smtp-out2.libero.it
-	(7.3.120) id 4688F31B1B092C50 for linux-dvb@linuxtv.org;
-	Mon, 7 Apr 2008 23:08:38 +0200
-Message-ID: <47FA8D34.6010900@libero.it>
-Date: Mon, 07 Apr 2008 23:08:04 +0200
-From: sioux <sioux_it@libero.it>
+Message-ID: <4817ACDA.1010105@web.de>
+Date: Wed, 30 Apr 2008 01:18:50 +0200
+From: Torben Viets <viets@web.de>
 MIME-Version: 1.0
-To: Christoph Honermann <Christoph.Honermann@web.de>
-References: <1206652564.6924.22.camel@ubuntu> <47EC1668.5000608@t-online.de>
-	<47FA70C3.5040808@web.de>
-In-Reply-To: <47FA70C3.5040808@web.de>
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134: fixed pointer in tuner callback
+To: Steven Toth <stoth@linuxtv.org>
+References: <4815B2A9.4060209@web.de>
+	<4815F0AF.4010709@linuxtv.org>	<4815FA2B.5030502@web.de>
+	<4815FF67.6050004@linuxtv.org>	<4816050D.2040408@web.de>
+	<48161163.9000602@linuxtv.org>	<4816186B.3030703@web.de>
+	<48161B2D.6090602@linuxtv.org>	<48176236.1020306@web.de>
+	<481763AA.4030702@linuxtv.org>	<481767E4.8030608@web.de>
+	<48176969.6070306@linuxtv.org> <4817935E.8090801@web.de>
+In-Reply-To: <4817935E.8090801@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,337 +21,293 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0914689873=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0914689873==
-Content-Type: multipart/alternative;
- boundary="------------030505010900090908040902"
-
-This is a multi-part message in MIME format.
---------------030505010900090908040902
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi all!
-
-here similar problem with 7134_alsa module:
-
-saa7134_alsa: disagrees about version of symbol snd_ctl_add
-saa7134_alsa: Unknown symbol snd_ctl_add
-saa7134_alsa: disagrees about version of symbol snd_pcm_new
-saa7134_alsa: Unknown symbol snd_pcm_new
-saa7134_alsa: disagrees about version of symbol snd_card_register
-saa7134_alsa: Unknown symbol snd_card_register
-saa7134_alsa: disagrees about version of symbol snd_card_free
-saa7134_alsa: Unknown symbol snd_card_free
-saa7134_alsa: disagrees about version of symbol snd_pcm_stop
-saa7134_alsa: Unknown symbol snd_pcm_stop
-saa7134_alsa: disagrees about version of symbol snd_ctl_new1
-saa7134_alsa: Unknown symbol snd_ctl_new1
-saa7134_alsa: disagrees about version of symbol snd_card_new
-saa7134_alsa: Unknown symbol snd_card_new
-saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl
-saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl
-saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops
-saa7134_alsa: Unknown symbol snd_pcm_set_ops
-saa7134_alsa: disagrees about version of symbol 
-snd_pcm_hw_constraint_integer
-saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer
-saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed
-saa7134_alsa: Unknown symbol snd_pcm_period_elapsed
-saa7134_alsa: disagrees about version of symbol snd_pcm_hw_constraint_step
-saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step
-
-This is my alsa version:
-cat /proc/asound/version
-advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16 
-14:57:44 2007 UTC)
-
-This is my kernel version:
-uname -a
-Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 09:57:10 
-UTC 2008 i686 GNU/Linux
-
-This is my saa7134 version and card:
-
-saa7130/34: v4l2 driver version 0.2.14 loaded
-saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32, mmio: 
-0xed000000
-saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056 PCI 
-[card=131,autodetected]
-saa7133[0]: board init: gpio is 40000
-tuner' 0-0042: chip found @ 0x84 (saa7133[0])
-
-
-Make rmmod do not solve the problem!
-
-_______________________________________________________________
-
-Christoph Honermann ha scritto:
-> Hi, Hartmund
->
->
-> Hartmut Hackmann schrieb:
->> Hi, Christoph
+Torben Viets wrote:
+> Steven Toth wrote:
+>   
+>> Torben Viets wrote:
+>>     
+>>> Steven Toth wrote:
+>>>       
+>>>> Torben Viets wrote:
+>>>>         
+>>>>> Hello,
+>>>>>
+>>>>> I've got it: http://pastebin.com/f50f33096
+>>>>>
+>>>>> the trick was to compile the kernel (now linux-2.6.25-git13) with:
+>>>>>
+>>>>> CONFIG_I2C_DEBUG_CORE=y
+>>>>> CONFIG_I2C_DEBUG_ALGO=y
+>>>>> CONFIG_I2C_DEBUG_BUS=y
+>>>>> CONFIG_I2C_DEBUG_CHIP=y
+>>>>>
+>>>>> I hope you've got an idea, i updated my bios (afters this my RAM 
+>>>>> doesn't work anymore), installed a new Ubuntu Linux hardy (8.04)...
+>>>>>
+>>>>> One last question when will the firmware be loaded and why there is 
+>>>>> no hotplug tool in ubuntu, or is it in the kernel?
+>>>>>
+>>>>> greetings
+>>>>> Torben
+>>>>>
+>>>>>
+>>>>> Steven Toth wrote:
+>>>>>           
+>>>>>> Torben Viets wrote:
+>>>>>>             
+>>>>>>> Steven Toth wrote:
+>>>>>>>               
+>>>>>>>> Torben Viets wrote:
+>>>>>>>>                 
+>>>>>>>>> Steven Toth wrote:
+>>>>>>>>>                   
+>>>>>>>>>> Torben Viets wrote:
+>>>>>>>>>>                     
+>>>>>>>>>>> Hello,
+>>>>>>>>>>>
+>>>>>>>>>>> thanks for the quick reply.
+>>>>>>>>>>>
+>>>>>>>>>>> Steven Toth wrote:
+>>>>>>>>>>>                       
+>>>>>>>>>>>> Torben Viets wrote:
+>>>>>>>>>>>>                         
+>>>>>>>>>>>>> Hello,
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> I have a Hauppauge HVR-1700 PCI Express, I have read all 
+>>>>>>>>>>>>> posts about
+>>>>>>>>>>>>> this card here, but I didn't get it working, how does it work?
+>>>>>>>>>>>>>                           
+>>>>>>>>>>>> It's working fine for me on a stock 7.10 ubuntu install.
+>>>>>>>>>>>>
+>>>>>>>>>>>>                         
+>>>>>>>>>>>>> Kernel: linux-2.6.25-git10
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> Firmware-Files:
+>>>>>>>>>>>>> ls -al /lib/firmware/2.6.25-git10/
+>>>>>>>>>>>>> total 416
+>>>>>>>>>>>>> drwxr-xr-x 2 root root     91 Apr 27 16:27 .
+>>>>>>>>>>>>> drwxr-xr-x 3 root root     25 Apr 27 16:26 ..
+>>>>>>>>>>>>> -rw-r--r-- 1 root root  24878 Apr 27 16:27 
+>>>>>>>>>>>>> dvb-fe-tda10048-1.0.fw
+>>>>>>>>>>>>> -r--r--r-- 1 root root  16382 Apr 27 16:27 
+>>>>>>>>>>>>> v4l-cx23885-avcore-01.fw
+>>>>>>>>>>>>> -r--r--r-- 1 root root 376836 Apr 27 16:26 v4l-cx23885-enc.fw
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> The modules I use are from the actual v4l-dvb hg, if I type 
+>>>>>>>>>>>>> make load,
+>>>>>>>>>>>>> the only thing I get is a /dev/video0, but I have no 
+>>>>>>>>>>>>> picture with xawtv...
+>>>>>>>>>>>>>                           
+>>>>>>>>>>>> /dev/video doesn't work, it's not supported.
+>>>>>>>>>>>>
+>>>>>>>>>>>>                         
+>>>>>>>>>>> Are there any plans to support it?
+>>>>>>>>>>>                       
+>>>>>>>>>> No immediate plans.
+>>>>>>>>>>
+>>>>>>>>>>
+>>>>>>>>>>                     
+>>>>>>>>>>>> You should aim to use the dvb-apps tools (tzap, scan) and 
+>>>>>>>>>>>> mplayer as example tools, or MythTV as an app.
+>>>>>>>>>>>>
+>>>>>>>>>>>>
+>>>>>>>>>>>>                         
+>>>>>>>>>>>>> The DVB doesn't work at all, I have no /dev/dvb*, here is 
+>>>>>>>>>>>>> my dmesg:
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> cx23885 driver version 0.0.1 loaded
+>>>>>>>>>>>>> ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 24 (level, low) 
+>>>>>>>>>>>>> -> IRQ 24
+>>>>>>>>>>>>> CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge 
+>>>>>>>>>>>>> WinTV-HVR1700
+>>>>>>>>>>>>> [card=8,autodetected]
+>>>>>>>>>>>>> cx23885[0]: i2c bus 0 registered
+>>>>>>>>>>>>> cx23885[0]: i2c bus 1 registered
+>>>>>>>>>>>>> cx23885[0]: i2c bus 2 registered
+>>>>>>>>>>>>> tveeprom 0-0050: Huh, no eeprom present (err=-5)?
+>>>>>>>>>>>>> tveeprom 0-0050: Encountered bad packet header [00].
+>>>>>>>>>>>>> Corrupt or not a Hauppauge
+>>>>>>>>>>>>> eeprom.
+>>>>>>>>>>>>> cx23885[0]: warning: unknown hauppauge model #0
+>>>>>>>>>>>>> cx23885[0]: hauppauge eeprom: model=0
+>>>>>>>>>>>>> cx23885[0]: cx23885 based dvb card
+>>>>>>>>>>>>> tda10048_readreg: readreg error (ret == -5)
+>>>>>>>>>>>>> cx23885[0]: frontend initialization failed
+>>>>>>>>>>>>> cx23885_dvb_register() dvb_register failed err = -1
+>>>>>>>>>>>>> cx23885_dev_setup() Failed to register dvb on VID_C
+>>>>>>>>>>>>> cx23885_dev_checkrevision() New hardware revision found 0x0
+>>>>>>>>>>>>> cx23885_dev_checkrevision() Hardware revision unknown 0x0
+>>>>>>>>>>>>> cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 24, 
+>>>>>>>>>>>>> latency: 0, mmio:
+>>>>>>>>>>>>> 0xfe800000
+>>>>>>>>>>>>>                           
+>>>>>>>>>>>> This looks bad, it looks like i2c is broken badly, so that 
+>>>>>>>>>>>> the eeprom isn't detected and the demodulator isn't found 
+>>>>>>>>>>>> during attach. This is the reason why your missing 
+>>>>>>>>>>>> /dev/dvb/adapterX/
+>>>>>>>>>>>>
+>>>>>>>>>>>> No idea why. Try loading the cx23885 with debug=5 and report 
+>>>>>>>>>>>> any log messages here - on this mailing list.
+>>>>>>>>>>>>                         
+>>>>>>>>>>> here ist the debug=5 output
+>>>>>>>>>>>
+>>>>>>>>>>> cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe 
+>>>>>>>>>>> bridge type 885
+>>>>>>>>>>> cx23885[0]/0: cx23885_init_tsport(portno=2)
+>>>>>>>>>>> CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge 
+>>>>>>>>>>> WinTV-HVR1700 [card=8,autodetected]
+>>>>>>>>>>> cx23885[0]/0: cx23885_pci_quirks()
+>>>>>>>>>>> cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr 
+>>>>>>>>>>> = 0x0
+>>>>>>>>>>> cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr 
+>>>>>>>>>>> = 0x0
+>>>>>>>>>>> cx23885[0]/0: cx23885_reset()
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring 
+>>>>>>>>>>> channel [VID A]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107b0 <- 
+>>>>>>>>>>> 0x00000040
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107c0 <- 
+>>>>>>>>>>> 0x00000b80
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000107d0 <- 
+>>>>>>>>>>> 0x000016c0
+>>>>>>>>>>> cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring 
+>>>>>>>>>>> channel [TS1 B]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010400 <- 
+>>>>>>>>>>> 0x00005000
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010410 <- 
+>>>>>>>>>>> 0x000052f0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010420 <- 
+>>>>>>>>>>> 0x000055e0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010430 <- 
+>>>>>>>>>>> 0x000058d0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010440 <- 
+>>>>>>>>>>> 0x00005bc0
+>>>>>>>>>>> cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Configuring 
+>>>>>>>>>>> channel [TS2 C]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108d0 <- 
+>>>>>>>>>>> 0x00006000
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108e0 <- 
+>>>>>>>>>>> 0x000062f0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x000108f0 <- 
+>>>>>>>>>>> 0x000065e0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010900 <- 
+>>>>>>>>>>> 0x000068d0
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010910 <- 
+>>>>>>>>>>> 0x00006bc0
+>>>>>>>>>>> cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]
+>>>>>>>>>>> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]
+>>>>>>>>>>> cx23885[0]: i2c bus 0 registered
+>>>>>>>>>>> cx23885[0]: i2c bus 1 registered
+>>>>>>>>>>> cx23885[0]: i2c bus 2 registered
+>>>>>>>>>>>                       
+>>>>>>>>>> Everything looks fine up to this point, then i2c looks bad.
+>>>>>>>>>>
+>>>>>>>>>> Can you try again with modprobe cx23885 i2c_scan=1 and post 
+>>>>>>>>>> the output again? (Output will be large - feel free to use 
+>>>>>>>>>> pastebin.com and post the URL here).
+>>>>>>>>>>                     
+>>>>>>>>> hmm, output doesn't change with it. here is a lsmod plus a 
+>>>>>>>>> complete dmesg, is some module missing?
+>>>>>>>>>
+>>>>>>>>> http://pastebin.com/f4f9b58ed
+>>>>>>>>>
+>>>>>>>>>                   
+>>>>>>>> The module option isn't active.
+>>>>>>>>
+>>>>>>>> Unload the cx23885 module (and any dependencies) then try 
+>>>>>>>> modprobe i2c_scan=1
+>>>>>>>>
+>>>>>>>> When the module option is set correctly, you'll see a lot of 
+>>>>>>>> extra debug messages.
+>>>>>>>>
+>>>>>>>> - Steve
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>                 
+>>>>>>> hmm, I've unload all modules that sounds interesting, but there 
+>>>>>>> is no more output: http://pastebin.com/f157a3978
+>>>>>>>               
+>>>>>> Hmm. No idea. i2c_scan is working for me and various other people. 
+>>>>>> Something is wrong with your environment and I don't know what.
+>>>>>>
+>>>>>> The only time I've seen i2c_scan output not work, is when i2c_scan 
+>>>>>> is not passed as a module parameter.
+>>>>>>
+>>>>>> Unload all modules, then use lsmod to ensure cx23885.ko is not 
+>>>>>> loaded.
+>>>>>> Then, modprobe cx23885 debug=5 i2c_scan=1
+>>>>>>
+>>>>>> If that doesn't show i2c device scanning traffic then I'm stumped.
+>>>>>>
+>>>>>> - Steve
+>>>>>>
+>>>>>>             
+>>>> Thanks for the feedback. This is odd, it looks like either I2C isn;t 
+>>>> working at all, or it's working partially for device 0x44. I think 
+>>>> I'm tempted to believe it's not working at all.
+>>>>
+>>>> The firmware gets loaded by the cx25840 module (if required), the 
+>>>> module is requested on the fly. But, that doesn't explain the 
+>>>> missing eeprom errors.
+>>>>
+>>>> Does this board work under windows?
+>>>>
+>>>> - Steve
+>>>>
+>>>>         
+>>> hmm, never tested under windows, i' windows free ;) but i will 
+>>> install Windows now and will try wether it works....
+>>>       
+>> Try a -stable linux kernel first, linux-2.6.25-git10 might be broken.
 >>
->> Christoph Honermann schrieb:
->>   
->>> Hi, Hartmund
->>>
->>> I have tested the following archives with my MD8800 und the DVB-S Card.
->>>
->>> v4l-dvb-912856e2a0ce.tar.bz2 --> The DVB-S Input 1 works.
->>> The module of the following archives are loaded with the option
->>> "use_frontend=1,1" at the Shell or automatically:
->>>     /etc/modprobe.d/saa7134-dvb   with the following line
->>>    "options saa7134-dvb use_frontend=1,1"
->>> v4l-dvb-1e295a94038e.tar.bz2;
->>>
->>>     FATAL: Error inserting saa7134_dvb
->>>     (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
->>>     Unknown symbol in module, or unknown parameter (see dmesg)
->>>
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol videobuf_queue_sg_init
->>>     saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
->>>     saa7134_dvb: Unknown symbol saa7134_set_gpio
->>>     saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client
->>>     saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister
->>>     saa7134_dvb: Unknown symbol saa7134_ts_unregister
->>>
->>>
->>> v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 -->
->>>
->>>     FATAL: Error inserting saa7134_dvb
->>>     (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
->>>     Unknown symbol in module, or unknown parameter (see dmesg)
->>>
->>>     dmesg | grep saa7134
->>>     saa7134_dvb: Unknown symbol saa7134_tuner_callback
->>>     saa7134_dvb: disagrees about version of symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol saa7134_ts_register
->>>     saa7134_dvb: Unknown symbol videobuf_queue_sg_init
->>>     saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
->>>     saa7134_dvb: Unknown symbol saa7134_set_gpio
->>>
->>> The Hardware ist working with Windows XP with both Input channels.
->>>
->>>     
->> This occurs when you mix modules of different driver versions. You need to
->> replace all modules of the v4l-dvb subsystem.
->> So after you compiled and installed with
->>   make; make install
->> you need to unload all modules of the subsystem either with
->>   make rmmod
->> or reboot.
->> Afterwards, you can unload and reload a single module as you tried to do.
+>> - Steve
 >>
->> Hartmut
 >>
->>   
-> the second DVB-S Channel is working.
-> But there is one thing that makes Problems.
-> I have the effect that the devices /dev/dvb/adapter0/dvr0 and 
-> /dev/dvb/adapter1/dvr0 are missed from kaffeine. Therefore it wont 
-> work (no TV-picture, no sound, no channel scanning).
-> If i look with Nautilus (file manager) therefore the whole Section 
-> /dev/dvb is switching off.
-> Can that be an effect of the module?
-> The Problem is sometimes not there but i don't find the reason 
-> (changing the Modules, reboots, ..). If I solve the Problem, should I 
-> test the kombination between DVB-S and DVB-T?
+>>     
+> too late, i've installed Windows, and the card works, not as much as i 
+> expected, but i guess this is because i haven't the experience with 
+> windows. Additionally i've written down the wintv output about the card, 
+> don't know wether this interest.
 >
-> Best regards
-> Christoph
+> http://pastebin.com/f7aefdd0d
 >
-> ------------------------------------------------------------------------
+>  tried the ubuntu kernel linux-2.6.24-16-rt, this doesn't detect, and it 
+> doens't work with the v4l hg, now i'm building a 2.6.25 and if this 
+> doesn't detect the card, i will try it with the v4l hg
+>
+> greetings
+> Torben
 >
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
+Hey, I've update, now the dvb works with 2.6.25 ant the v4l-dvb hg, I 
+was sure that I already tried this combinations...
 
---------------030505010900090908040902
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Now, only the analog input have to work (this was the main reason I 
+bought this card), is it really so hard, because I
+ saw that the HVR-1600 and the HVR-1800 is supported.
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Hi all!<br>
-<br>
-here similar problem with 7134_alsa module:<br>
-<br>
-saa7134_alsa: disagrees about version of symbol snd_ctl_add<br>
-saa7134_alsa: Unknown symbol snd_ctl_add<br>
-saa7134_alsa: disagrees about version of symbol snd_pcm_new<br>
-saa7134_alsa: Unknown symbol snd_pcm_new<br>
-saa7134_alsa: disagrees about version of symbol snd_card_register<br>
-saa7134_alsa: Unknown symbol snd_card_register<br>
-saa7134_alsa: disagrees about version of symbol snd_card_free<br>
-saa7134_alsa: Unknown symbol snd_card_free<br>
-saa7134_alsa: disagrees about version of symbol snd_pcm_stop<br>
-saa7134_alsa: Unknown symbol snd_pcm_stop<br>
-saa7134_alsa: disagrees about version of symbol snd_ctl_new1<br>
-saa7134_alsa: Unknown symbol snd_ctl_new1<br>
-saa7134_alsa: disagrees about version of symbol snd_card_new<br>
-saa7134_alsa: Unknown symbol snd_card_new<br>
-saa7134_alsa: disagrees about version of symbol snd_pcm_lib_ioctl<br>
-saa7134_alsa: Unknown symbol snd_pcm_lib_ioctl<br>
-saa7134_alsa: disagrees about version of symbol snd_pcm_set_ops<br>
-saa7134_alsa: Unknown symbol snd_pcm_set_ops<br>
-saa7134_alsa: disagrees about version of symbol
-snd_pcm_hw_constraint_integer<br>
-saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_integer<br>
-saa7134_alsa: disagrees about version of symbol snd_pcm_period_elapsed<br>
-saa7134_alsa: Unknown symbol snd_pcm_period_elapsed<br>
-saa7134_alsa: disagrees about version of symbol
-snd_pcm_hw_constraint_step<br>
-saa7134_alsa: Unknown symbol snd_pcm_hw_constraint_step<br>
-<br>
-This is my alsa version:<br>
-cat /proc/asound/version<br>
-advanced Linux Sound Architecture Driver Version 1.0.15 (Tue Oct 16
-14:57:44 2007 UTC)<br>
-<br>
-This is my kernel version:<br>
-uname -a<br>
-Linux sioux-desktop 2.6.22-14-rt #1 SMP PREEMPT RT Tue Feb 12 09:57:10
-UTC 2008 i686 GNU/Linux<br>
-<br>
-This is my saa7134 version and card:<br>
-<br>
-saa7130/34: v4l2 driver version 0.2.14 loaded<br>
-saa7133[0]: found at 0000:02:09.0, rev: 209, irq: 19, latency: 32,
-mmio: 0xed000000<br>
-saa7133[0]: subsystem: 1822:0022, board: Twinhan Hybrid DTV-DVB 3056
-PCI [card=131,autodetected]<br>
-saa7133[0]: board init: gpio is 40000<br>
-tuner' 0-0042: chip found @ 0x84 (saa7133[0])<br>
-<br>
-<br>
-Make rmmod do not solve the problem!<br>
-<br>
-_______________________________________________________________<br>
-<br>
-Christoph Honermann ha scritto:
-<blockquote cite="mid:47FA70C3.5040808@web.de" type="cite">
-  <meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
-  <title></title>
-Hi, Hartmund<br>
-  <br>
-  <br>
-Hartmut Hackmann schrieb:
-  <blockquote cite="mid:47EC1668.5000608@t-online.de" type="cite">
-    <pre wrap="">Hi, Christoph
-
-Christoph Honermann schrieb:
-  </pre>
-    <blockquote type="cite">
-      <pre wrap="">Hi, Hartmund
-
-I have tested the following archives with my MD8800 und the DVB-S Card.
-
-v4l-dvb-912856e2a0ce.tar.bz2 --&gt; The DVB-S Input 1 works.
-The module of the following archives are loaded with the option
-"use_frontend=1,1" at the Shell or automatically:
-    /etc/modprobe.d/saa7134-dvb   with the following line
-   "options saa7134-dvb use_frontend=1,1"
-v4l-dvb-1e295a94038e.tar.bz2;
-
-    FATAL: Error inserting saa7134_dvb
-    (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
-    Unknown symbol in module, or unknown parameter (see dmesg)
-
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_register
-    saa7134_dvb: Unknown symbol saa7134_ts_register
-    saa7134_dvb: Unknown symbol videobuf_queue_sg_init
-    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
-    saa7134_dvb: Unknown symbol saa7134_set_gpio
-    saa7134_dvb: disagrees about version of symbol saa7134_i2c_call_client
-    saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_unregister
-    saa7134_dvb: Unknown symbol saa7134_ts_unregister
-
-
-v4l-dvb-f98d28c21389.tar.bz2  and v4l-dvb-a06ac2bdeb3c.tar.bz2 --&gt;
-
-    FATAL: Error inserting saa7134_dvb
-    (/lib/modules/2.6.22-14-generic/kernel/drivers/media/video/saa7134/saa7134-dvb.ko):
-    Unknown symbol in module, or unknown parameter (see dmesg)
-
-    dmesg | grep saa7134
-    saa7134_dvb: Unknown symbol saa7134_tuner_callback
-    saa7134_dvb: disagrees about version of symbol saa7134_ts_register
-    saa7134_dvb: Unknown symbol saa7134_ts_register
-    saa7134_dvb: Unknown symbol videobuf_queue_sg_init
-    saa7134_dvb: disagrees about version of symbol saa7134_set_gpio
-    saa7134_dvb: Unknown symbol saa7134_set_gpio
-
-The Hardware ist working with Windows XP with both Input channels.
-
-    </pre>
-    </blockquote>
-    <pre wrap=""><!---->This occurs when you mix modules of different driver versions. You need to
-replace all modules of the v4l-dvb subsystem.
-So after you compiled and installed with
-  make; make install
-you need to unload all modules of the subsystem either with
-  make rmmod
-or reboot.
-Afterwards, you can unload and reload a single module as you tried to do.
-
-Hartmut
-
-  </pre>
-  </blockquote>
-the second DVB-S Channel is working.<br>
-But there is one thing that makes Problems.<br>
-I have the effect that the devices /dev/dvb/adapter0/dvr0 and
-/dev/dvb/adapter1/dvr0 are missed from kaffeine. Therefore it wont
-work (no TV-picture, no sound, no channel scanning).<br>
-If i look with Nautilus (file manager) therefore the whole Section
-/dev/dvb is switching off.<br>
-Can that be an effect of the module?<br>
-The Problem is sometimes not there but i don't find the reason
-(changing the Modules, reboots, ..). If I solve the Problem, should I
-test the kombination between DVB-S and DVB-T?<br>
-  <br>
-Best regards<br>
-Christoph<br>
-  <br>
-  <pre wrap="">
-<hr size="4" width="90%">
-_______________________________________________
-linux-dvb mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
-</blockquote>
-</body>
-</html>
-
---------------030505010900090908040902--
-
-
---===============0914689873==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+greetings and many thanks
+Torben
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0914689873==--
