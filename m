@@ -1,31 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m39KiFsT028690
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 16:44:15 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3T8tMAh018126
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 04:55:22 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m39Ki2rj019502
-	for <video4linux-list@redhat.com>; Wed, 9 Apr 2008 16:44:02 -0400
-Date: Wed, 9 Apr 2008 17:42:16 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3T8svvr031532
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 04:54:57 -0400
+Date: Tue, 29 Apr 2008 04:54:57 -0400 (EDT)
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Aidan Thornton" <makosoft@googlemail.com>
-Message-ID: <20080409174216.3844d0ee@areia>
-In-Reply-To: <c8b4dbe10804090626l6b2b10d9p1c22e02dfe2850fe@mail.gmail.com>
-References: <patchbomb.1206699511@localhost>
-	<ab74ebf10c01d6a8a54a.1206699517@localhost>
-	<20080405131236.7c083554@gaivota>
-	<20080406080011.GA3596@plankton.ifup.org>
-	<20080407183226.703217fc@gaivota>
-	<20080408152238.GA8438@plankton.public.utexas.edu>
-	<20080408154046.36766131@gaivota>
-	<c8b4dbe10804081306xb1e8f91q64d1e6d18d3d2531@mail.gmail.com>
-	<20080408175038.2966691d@gaivota>
-	<c8b4dbe10804090626l6b2b10d9p1c22e02dfe2850fe@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>, Brandon Philips <bphilips@suse.de>
-Subject: Re: [PATCH 6 of 9] videobuf-vmalloc.c: Fix hack of postponing mmap
- on remap failure
+To: =?iso-8859-1?Q?Vicent_Jord=E0?= <vjorda@hotmail.com>
+In-Reply-To: <BAY109-W55EF752D25B0EAF1361C40CBDE0@phx.gbl>
+Message-ID: <Pine.LNX.4.64.0804290444440.22785@bombadil.infradead.org>
+References: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
+	<20080428114741.040ccfd6@gaivota>
+	<BAY109-W55EF752D25B0EAF1361C40CBDE0@phx.gbl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com
+Subject: RE: Trying to set up a NPG Real DVB-T PCI Card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,101 +28,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 9 Apr 2008 14:26:46 +0100
-"Aidan Thornton" <makosoft@googlemail.com> wrote:
+This is what we need:
 
-> On Tue, Apr 8, 2008 at 9:50 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > > >  With 6/9 or with this patch, the allocation will happen when you try to use an
-> >  > >  mmap command. This can happen on streamon, reqbufs, dqbuf, qbuf or reqbuf.
-> >  > >
-> >  > >  Sorry, but I think I missed your point.
-> >  >
-> >  > I think I agree with Brandon. Allocating the buffers in reqbufs is
-> >  > what the existing em28xx driver does. It saves a bit of complexity in
-> >  > that you just have to allocate the buffers from one place and it seems
-> >  > to be what the v4l2 API expects. (Apps have to call reqbufs first, but
-> >  > the API doesn't put any real restrictions on what order they
-> >  > mmap/munmap or queue/dequeue the buffers afterwards, and the API also
-> >  > forbids apps from calling reqbufs with the existing buffers mapped or
-> >  > streaming turned on which makes life easier). It's what I was going to
-> >  > suggest, actually.
-> >
-> >  I'm still missed. I don't see what's the difference on what patch 6/9 were
-> >  expecting to do and the proposed patch, in terms of adding a restriction of not
-> >  accepting other mmap commands, without getting a REQBUFS.
-> >
-> >  The current way that videobuf works is the one that userspace apps expect. If
-> >  we change videobuf behavior, for a given userspace API command, we risk to
-> >  break some userspace app.
-> 
-> Either way, mmap isn't allowed without a REQBUFS first, and videobuf
-> enforces this. The question is, what orderings of mmap/munmap and
-> streamon/streamoff are allowed once you've called REQBUFS - if I'm
-> reading the docs correctly, you're allowed to interleave mmap/munmap
-> and streamon/streamoff in whatever order you like, don't have to mmap
-> buffers before queuing them, etc. In practice, apps don't, but the
-> possible combinations at least need to be handled cleanly.
+> MO_GP0_IO:                       000004fb   (00000000 00000000 00000100 11111011)
+> MO_GP1_IO:                       000000ff   (00000000 00000000 00000000 11111111)
+> MO_GP2_IO:                       00000001   (00000000 00000000 00000000 00000001)
+> MO_GP3_IO:                       00000000   (00000000 00000000 00000000 00000000)
 
-One patch that worked is this one:
-	http://linuxtv.org/hg/~mchehab/tm6010/rev/e1a2b9e33bd2
+Those GPIO registers controls external devices. you'll need to start 
+regedit before your video app. There's a mode at regspy that tracks 
+changes on register. After starting, you'll have those values changed.
 
-I tried first to use spinlock before vfree(), but kernel complained. I suspect
-that vfree() can sleep.
+The firmware load happens when you change from PAL to NTSC. You may try to 
+do this on your software and see what register will change.
 
-So, what the above patch does is to streamoff() before unmapping. This seems to
-be correct to my eyes, since there's no sense of keeping streamon() if the
-buffers are unmapped.
+For example, let's say that GPIO2 has xc3028 reset pin at bit 1. You'll 
+notice something like this, during reset:
 
-I didn't pushed it on em28xx yet, since I'm trying to fix another bug there.
-
-> In what way do you expect userspace apps to break?
-> 
-> >
-> >  > >  A fix could be to disable IRQ during that interval of time, and/or protecting
-> >  > >  with a spinlock.
-> >  >
-> >  > What you're doing in the attached patch won't trigger the issue, since
-> >  > you're calling VIDIOC_STREAMOFF before munmap and that dequeues all
-> >  > buffers. Try removing the calls to stop_capturing and start_capturing
-> >  > around uninit_device / init_device. I haven't tried it, but you should
-> >  > be prepared to get a kernel panic.
-> >
-> >  The tests I did covers the issue of unmapping/remapping. As we've already
-> >  discussed, something else should be added to allow unmapping without streamoff.
-> >
-> >  The same kind of issue seems to apply also to videobuf-dma-sg. In fact, it is
-> >  even worse with dma: since buffers will be filled without CPU, just disabling
-> >  IRQ, or running a spinlock doesn't solve. You'll need to stop DMA before unmapping.
-> 
-> Actually, videobuf-dma-sg works in a quite interesting way - it
-> actually treats mmap'ed IO essentially the same as userptr IO, just
-> with some additional code to allocate the user pages.
-
-I've started to write a patch to add the same functionality. Didn't finished
-yet. I'm not sure if it would be important to provide userspace mmapped IO. I
-suspect that most apps are using read() or kernel mmap() interfaces.
-
-> Shutting off DMA on munmap wouldn't help, since the buffer could be a userptr one in
-> some anonymous mapping entirely unrelated to the device.  I'm not sure
-> whether or not this is an issue; I'd have to check the small print on
-> the code that pins the pages in RAM, and I can't find it.
-
-I suspect that the issue exists with DMA, although there's a sync routine
-there, that may help to avoid such issues. But I think that the same strategy of
-doing a streamoff before unmap should be used for kernel mmapped memory.
-
-> (There's also some code to allocate bounce buffers in the mmap case if
-> it doesn't have a userland address for the buffer yet. I'm not
-> convinced this actually works.)
-
-It should work. you can test it with "capture_example -u". Unfortunately, I
-can't test here right now, since the desktop I use here for testing PCI devices
-is burned. I'll need to save some money to buy another motherboard or to
-replace the machine.
+> MO_GP2_IO:                       00000001   (00000000 00000000 00000000 00000001)
+> MO_GP2_IO:                       00000003   (00000000 00000000 00000000 00000011)
+> MO_GP2_IO:                       00000001   (00000000 00000000 00000000 00000001)
 
 Cheers,
-Mauro
+Mauro.
 
 --
 video4linux-list mailing list
