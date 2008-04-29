@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m315947I030097
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 01:09:04 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3158FDY029384
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 01:08:52 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so1840176fga.7
-	for <video4linux-list@redhat.com>; Mon, 31 Mar 2008 22:08:52 -0700 (PDT)
-Message-ID: <47F1C35F.6090109@claranet.fr>
-Date: Tue, 01 Apr 2008 07:08:47 +0200
-From: Eric Thomas <ethomas@claranet.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TNnqMb028701
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:52 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TNndEH012905
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:39 -0400
+Received: by yw-out-2324.google.com with SMTP id 2so135779ywt.81
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 16:49:24 -0700 (PDT)
+Message-ID: <37219a840804291649q36638464ye2d57cf8184580a4@mail.gmail.com>
+Date: Tue, 29 Apr 2008 19:49:24 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20080429185009.716c3284@gaivota>
 MIME-Version: 1.0
-To: video4linux <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: conflicting syntax used DVB_FE_CUSTOMISE / DVB_FE_CUSTOMIZE
+Content-Disposition: inline
+References: <20080429185009.716c3284@gaivota>
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB updates and fixes
+	for 2.6.26
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,17 +33,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Tue, Apr 29, 2008 at 5:50 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Linus,
+>
+>  Please pull from:
+>         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+>
+>  For the following:
+>
+>    - Fixes on mtm001, mtv022, pvrusb2, ivtv, cx88 and saa7134;
+>    - new board additions on saa7134 and ivtv;
+>    - load tuners only when needed;
+>    - reorganization of tuner drivers that are shared between DVB and V4L;
+>    - Addition of a new driver for Conexant CX23418 MPEG encoder chip (cx18).
 
-from drivers/media/video/cx23885/Kconfig
+[snip]
 
-   select DVB_PLL if !DVB_FE_CUSTOMISE
-   select TUNER_XC2028 if !DVB_FE_CUSTOMIZE
+>  Mauro Carvalho Chehab (9):
+>       Rename common tuner Kconfig names to use the same
+>
+>  Michael Krufky (4):
+>       V4L/DVB (7789): tuner: remove static dependencies on analog tuner sub-modules
 
-Considering that cx23885 support has joinded rc kernels, I guess it's
-only an obvious typo ?
 
-Eric
+Linus has already merged the changes (thank you, Linus) ... However,
+there is a bug.
+
+My "remove static dependencies on analog tuner sub-modules" patch was
+applied after Mauro's "Rename common tuner Kconfig names to use the
+same" patch.
+
+My patch has conditional behavior, based on CONFIG_DVB_CORE_ATTACH,
+which was renamed to CONFIG_MEDIA_ATTACH in Mauro's patch.
+
+To fix this, we need to do:
+
+sed -i s/"CONFIG_DVB_CORE_ATTACH"/"CONFIG_MEDIA_ATTACH"/1
+drivers/media/video/tuner-core.c
+
+The issue will cause invalid module use counts upon unloading analog
+tuner modules, if CONFIG_MEDIA_ATTACH is enabled.
+
+I would be happy to fix this myself, but Mauro's patch has not yet
+been backported into the linuxtv.org repository.
+
+Mauro, can you do the above fix and send it in to Linus?
+
+Thanks,
+
+Mike Krufky
 
 --
 video4linux-list mailing list
