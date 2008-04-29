@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.voila.fr ([193.252.22.174])
+Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abdouniang@voila.fr>) id 1JhlMK-0001ZA-0K
-	for linux-dvb@linuxtv.org; Fri, 04 Apr 2008 14:49:32 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf4013.voila.fr (SMTP Server) with ESMTP id 6339570000A0
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 14:48:58 +0200 (CEST)
-Received: from wwinf4620 (wwinf4620 [10.232.13.44])
-	by mwinf4013.voila.fr (SMTP Server) with ESMTP id 60A6B700008B
-	for <linux-dvb@linuxtv.org>; Fri,  4 Apr 2008 14:48:58 +0200 (CEST)
-From: Abdou NIANG <abdouniang@voila.fr>
-To: linux-dvb@linuxtv.org
-Message-ID: <26772022.3060661207313338389.JavaMail.www@wwinf4620>
+	(envelope-from <frederic.cand@anevia.com>) id 1Jqlrz-0004zW-4S
+	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 11:11:27 +0200
+Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
+	[88.170.236.224])
+	by vds19s01.yellis.net (Postfix) with ESMTP id D473D2FA954
+	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 11:11:29 +0200 (CEST)
+Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
+	by goliath.anevia.com (Postfix) with ESMTP id 87BCA1300236
+	for <linux-dvb@linuxtv.org>; Tue, 29 Apr 2008 11:11:23 +0200 (CEST)
+Message-ID: <4816E639.2040106@anevia.com>
+Date: Tue, 29 Apr 2008 11:11:21 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-Date: Fri,  4 Apr 2008 14:48:58 +0200 (CEST)
-Subject: Re: [linux-dvb] Can't record transport stream -
-	Error:	cx8802_start_dma() Failed. Unsupported value in .mpeg
-	(0x00000001) -- [FIXED]
-Reply-To: abdouniang@voila.fr
+To: linux-dvb@linuxtv.org
+References: <4816E5DA.7010204@anevia.com>
+In-Reply-To: <4816E5DA.7010204@anevia.com>
+Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,33 +25,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgTmljbwoKVGhhbmtzIGZvciB5b3VyIGFkdmljZSBpdCB3b3Jrcy4KCkkga25vdyB0aGlzIG9w
-dGlvbiBvZiBkdmJzdHJlYW0gYnV0IHdoZW4gaSB0ZXN0IHRoZSBjb21tYW5kICJkdmJzdHJlYW0g
-ODE5MiAtbyA+IHRlc3QudHMiIHdpdGggYW4gb2xkIGtlcm5lbCBFeGFtcGxlOiBNYW5kcml2YSAy
-MDA2IG9yIDIwMDcgd2l0aCBrZXJuZWwgMi42LjEyIGl0IHdvcmtzIGkgZG9uJ3QgaGF2ZSB0byBw
-cmVjaXNlIHRoZSBmcmVxdWVuY3kgZm9yIG15IG91dHB1dCBmaWxlIHdoZW4gdGhlIGZyZXF1ZW5j
-eSBpcyBhbHJlYWR5IHR1bmVkIGZvciBleGFtcGxlIHdpdGgga2FmZmVpbmUuCgoKCj4gTWVzc2Fn
-ZSBkdSAwMy8wNC8wOCDDoCAxMGgwNAo+IERlIDogIk5pY28gU2FiYmkiIDxOaWNvbGEuU2FiYmlA
-cG9zdGUuaXQ+Cj4gQSA6IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IENvcGllIMOgIDogCj4gT2Jq
-ZXQgOiBSZTogW2xpbnV4LWR2Yl0gQ2FuJ3QgcmVjb3JkIHRyYW5zcG9ydCBzdHJlYW0gLSBFcnJv
-cjoJY3g4ODAyX3N0YXJ0X2RtYSgpIEZhaWxlZC4gVW5zdXBwb3J0ZWQgdmFsdWUgaW4gLm1wZWcg
-KDB4MDAwMDAwMDEpCj4gCj4gT24gV2VkbmVzZGF5IDAyIEFwcmlsIDIwMDggMjI6MjM6MzEgQWJk
-b3UgTklBTkcgd3JvdGU6Cj4gCj4gPiBCdXQgd2hlbiBpIHRyeSB0byByZWNvcmQgYW4gZW50aXJl
-IFRyYW5zcG9ydCBTdHJlYW0gd2l0aCBkdmJzdHJlYW0KPiA+IGxpa2UgdGhpczoKPiA+Cj4gPiAk
-IGR2YnN0cmVhbSA4MTkyIC1vID4gdGVzdC50cwo+ID4KPiA+IE15IG91dHB1dCBmaWxlICJ0ZXN0
-LnRzIiBpcyBhbHdheXMgZW1wdHkuIFdoZW4gaSB0cnkgdG8gc2VlCj4gPiBrZXJuZWwncyBtZXNz
-YWdlcyBpJ3ZlOgo+IAo+IAo+IGR2YnN0cmVhbSAgLWYgRlJFUSAtYncgQlcgICAtbyA4MTkyID4g
-dGVzdC50cwo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCj4gbGludXgtZHZiIG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0
-dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+
-IAo+IAoKCkVsIEhhZGppIEFiZG91IE5JQU5HCjUgUnVlIFNhaW50IEphY3F1ZXMKNTcyNDAgTklM
-VkFOR0UKMDMuODIuNTMuNjkuODUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9y
-ZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
-dmI=
+Frederic CAND a =E9crit :
+> Dear all,
+> =
+
+> I recently had to change v4l drivers to support my WinTV HVR 1300.
+> I have issues making my HVR work but that's not the point here.
+> My problem is that since I updated kernel + drivers, I can't manage to =
+
+> make sound work when I'm using the tuner input. Sound jack input works =
+
+> when I'm using SVideo or Composite Video, but not when I'm using tuner.
+> =
+
+> Here are the options I'm using
+> tuner : port2=3D0
+> saa7134: oss=3D1 disable_ir=3D1
+> saa7134-oss: rate=3D48000
+> =
+
+> # lsmod
+> Module                  Size  Used by
+> r8169                  17360  0
+> e100                   23556  0
+> cx8802                 10372  0
+> firmware_class          4032  0
+> cx2341x                 8516  0
+> cx8800                 19256  0
+> cx88xx                 49636  2 cx8802,cx8800
+> i2c_algo_bit            3908  1 cx88xx
+> tveeprom               11472  1 cx88xx
+> btcx_risc               2376  3 cx8802,cx8800,cx88xx
+> saa7134_oss             9416  0
+> saa7134_empress         4292  0
+> saa6752hs               7180  0
+> saa7134                95820  2 saa7134_oss,saa7134_empress
+> video_buf              13444  6 =
+
+> cx8802,cx8800,cx88xx,saa7134_oss,saa7134_empress,saa7134
+> compat_ioctl32           512  2 cx8800,saa7134
+> ir_kbd_i2c              3856  1 saa7134
+> ir_common              22788  3 cx88xx,saa7134,ir_kbd_i2c
+> videodev               22464  4 cx8800,cx88xx,saa7134_empress,saa7134
+> v4l1_compat            12100  2 saa7134,videodev
+> tuner                  48424  0
+> v4l2_common            11392  7 =
+
+> cx2341x,cx8800,cx88xx,saa7134_empress,saa7134,videodev,tuner
+> hwmon_vid               1856  0
+> via686a                 8328  0
+> i2c_isa                 1408  1 via686a
+> i2c_core               12560  9 =
+
+> cx88xx,i2c_algo_bit,tveeprom,saa6752hs,saa7134,ir_kbd_i2c,tuner,via686a,i=
+2c_isa
+> ipt_REJECT              2048  3
+> iptable_filter           960  1
+> ip_tables               7176  1 iptable_filter
+> =
+
+> =
+
+> With this I have sound only when selecting SVideo or Composite input, =
+
+> but not when in tuner mode. Anyone has a clue ?
+> =
+
+
+I'm using kernel 2.6.22.19, btw
+
+-- =
+
+CAND Frederic
+Product Manager
+ANEVIA
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
