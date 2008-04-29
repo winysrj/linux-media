@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3IKJSua022068
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:28 -0400
-Received: from imo-m21.mx.aol.com (imo-m21.mx.aol.com [64.12.137.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3IKJESP009087
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:14 -0400
-Received: from JonLowe@aol.com
-	by imo-m21.mx.aol.com (mail_out_v38_r9.3.) id e.d1b.22f576fe (37534)
-	for <video4linux-list@redhat.com>; Fri, 18 Apr 2008 16:19:05 -0400 (EDT)
-References: <8CA6F8825F2FE35-FC8-9F4@FWM-D12.sysops.aol.com>
-	<37219a840804181210s2f98c017t59b296ee65be720a@mail.gmail.com>
-To: video4linux-list@redhat.com
-Content-Transfer-Encoding: 7bit
-Date: Fri, 18 Apr 2008 16:19:05 -0400
-In-Reply-To: <37219a840804181210s2f98c017t59b296ee65be720a@mail.gmail.com>
-MIME-Version: 1.0
-From: Jon Lowe <jonlowe@aol.com>
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Message-Id: <8CA6FA8957326D1-B38-882@webmail-dd21.sysops.aol.com>
-Subject: Re: HVR-1500 issues
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3TNnBcQ028387
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:49:11 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3TNmXdu012504
+	for <video4linux-list@redhat.com>; Tue, 29 Apr 2008 19:48:33 -0400
+From: Andy Walls <awalls@radix.net>
+To: Marc Randolph <mrandtx@yahoo.com>
+In-Reply-To: <88771.83842.qm@web83107.mail.mud.yahoo.com>
+References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Date: Tue, 29 Apr 2008 19:47:48 -0400
+Message-Id: <1209512868.5699.32.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: MCE TV Philips 7135 Cardbus don't work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,79 +27,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-ME TV
-https://launchpad.net/me-tv/
+On Tue, 2008-04-29 at 16:20 -0700, Marc Randolph wrote:
+> --- Emilio Lazo Zaia <emiliolazozaia@gmail.com> wrote:
+> 
+> > Hello,
+> > 
+> > I have purchased a "MCE TV Philips 7135 Cardbus" and I'm to set it up.
+> > When I plug it, the module saa7134 is being loaded and dmesg says:
+> > 
+> > ï»¿pccard: CardBus card inserted into slot 0
+> > Linux video capture interface: v2.00
+> > saa7130/34: v4l2 driver version 0.2.14 loaded
+> > PCI: Enabling device 0000:06:00.0 (0000 -> 0002)
+> > ACPI: PCI Interrupt 0000:06:00.0[A] -> GSI 17 (level, low) -> IRQ 17
+> > saa7133[0]: found at 0000:06:00.0, rev: 209, irq: 17, latency: 0, mmio:
+> > 0x54000000
+> > PCI: Setting latency timer of device 0000:06:00.0 to 64
+> > saa7133[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
+> > [card=0,autodetected]
+> > saa7133[0]: board init: gpio is e2c0c0
+> > saa7133[0]: Huh, no eeprom present (err=-5)?
+> > saa7133[0]: registered device video0 [v4l2]
+> > saa7133[0]: registered device vbi0
+> 
+> Howdy Emilio,
+> 
+> Google gives a ton of hits on that very unique error message.  I assume you
+> already did this:
+> 
+> "try to pass newi2c=1 or newi2c=0 to the ivtv module. Add it to
+> /etc/modprobe.conf (or /etc/modules.d/ivtv if you are an gentoo user).
+> 
+> options ivtv newi2c=1
+> 
+> If setting this works please report it to the ivtv-devel mailing list."
+> 
+> Copied from
+> http://ivtvdriver.org/index.php/Troubleshooting#Error:_Huh.2C_no_eeprom_present_.28err.3D-121.29.3F
+> 
 
-Which wiki area in particular.  I've been all over and not found much 
-on this card.
+Marc,
 
-Thanks!!
+Good reasoning, but as it happens, this error message is not quite
+unique.  The ivtv/tveeprom modules will additionally gripe about "not a
+Hauppauge EEPROM".  The ivtv/tveeprom modules will usually return -121
+corresponding to -EREMOTEIO.
 
+Emilio,
 
-Jon
+This card is handled by the saa7134, module, not the ivtv module, so
+newi2c doesn't apply.
 
+"Huh, no eeprom present" in this case is being emitted by the saa7134
+module itself and not the tveeprom module that ivtv uses.
 
-Jon Lowe
+"err=-5" is -EIO, referring to an I2C bus error with the i2c bus of the
+saa7133.
 
+With the saa7134 module "/sbin/modinfo" has two interesting options:
+i2c_scan and i2c_debug which you may wish to try.
 
------Original Message-----
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Jon Lowe <jonlowe@aol.com>
-Cc: video4linux-list@redhat.com
-Sent: Fri, 18 Apr 2008 2:10 pm
-Subject: Re: HVR-1500 issues
+Regards,
+Andy
 
-
-
-
-
-
-
-
-
-
-On Fri, Apr 18, 2008 at 12:26 PM, Jon Lowe <jonlowe@aol.com> wrote:
-> I'm running Ubuntu 8.04 with the 2.6.24-16 generic kernel on a 
-laptop, and
-> want to use a Hauppauge HVR-1500 Expresscard. I've followed the 
-procedure on
-> the V4LWiki to build the drivers.  However, it builds them to the 
-2.6.24-15
-> kernel instead of the -16 kernel.  How do I force it to build to the
-> currently used kernel?  I've confirmed that it is still using the old 
-driver
-> in the -16 kernel.  If I start with the -15 kernel, it sees the card.
-
-make distclean
-
-
->  Now if I run ubuntu with the -15 kernel, it sees the card.  ME TV is 
-the
-> only app that seems to want to scan for channels.  Kaffeine sees the 
-card,
-> but won't scan.  ME TV scans, but then complains that channels.conf 
-has an
-> invalid entry.  Has anyone actually gotten an HVR-1500 to work under 
-Ubuntu?
-> if so, can you give step by step, as I am a newbie?
-
-ME TV?  i never heard of that -- I'll have to give it a try.
-
-When I test my boards, I use 'scan' (from dvb-apps, aka dvb-utils
-package) to scan for channels, then I use azap to tune (always pass -r
-and leave it open) , and view the stream using mplayer
-/dev/dvb/adapterX/dvr0.
-
-There is a lot more that I can say about this, but you'll have a
-better time reading all about it in the wiki.
-
-Good Luck,
-
-Mike
-
-
-
-
+> Good luck,
+> 
+>    Marc
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
