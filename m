@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
+Received: from mout2.freenet.de ([195.4.92.92])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1Jm9TX-0003PA-AE
-	for linux-dvb@linuxtv.org; Wed, 16 Apr 2008 17:23:11 +0200
-From: allan k <sonofzev@iinet.net.au>
-To: Adam Nielsen <a.nielsen@shikadi.net>
-In-Reply-To: <48048592.70408@shikadi.net>
-References: <37824.1208252766@iinet.net.au>  <48048592.70408@shikadi.net>
-Date: Thu, 17 Apr 2008 01:23:24 +1000
-Message-Id: <1208359404.21157.4.camel@media1>
-Mime-Version: 1.0
+	(envelope-from <ruediger.dohmhardt@freenet.de>) id 1JqwII-00009x-PX
+	for linux-dvb@linuxtv.org; Tue, 29 Apr 2008 22:19:19 +0200
+Message-ID: <481782B8.1010408@freenet.de>
+Date: Tue, 29 Apr 2008 22:19:04 +0200
+From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+MIME-Version: 1.0
+To: Magnus Larsson <magnus@vista.se>
+References: <481763B8.5010205@vista.se>
+In-Reply-To: <481763B8.5010205@vista.se>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvico Fusion HDTV DVB-T dual express - willing
-	to	help	test e.t.c...
+Subject: Re: [linux-dvb] Twinhan mantis 2033 driver?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +25,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is the relevant output from lspci -v 
+Magnus Larsson schrieb:
+> Hi!
+>
+> This is question from a somewhat confused newbie on this list:
+>
+> I bought a AzureWave DVB-C card (with CI slot) but have not been able to 
+> make it work so far. I have mainly played with the package from 
+> http://jusst.de/manu/mantis-v4l-dvb.tar.bz2. I run Ubuntu Gutsy, kernel 
+>   
+Assuming, your Azure card is identical to my AD-CP300,
+then I can tell you it works perfect for me with a 2.6.22.19 kernel.
+ 
+I use it with vdr-1.4.7, xineliboutput-1.0.0rc2 and lirc.
+
+Unfortunately, the CI interface with the code from
+   
+    http://jusst.de/hg/mantis
+
+does not work for me, yet.
+
+Ciao Ruediger D.
 
 
-03:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev
-02)
-	Subsystem: DViCO Corporation Unknown device db78
-	Flags: bus master, fast devsel, latency 0, IRQ 21
-	Memory at fd600000 (64-bit, non-prefetchable) [size=2M]
-	Capabilities: [40] Express Endpoint, MSI 00
-	Capabilities: [80] Power Management version 2
-	Capabilities: [90] Vital Product Data <?>
-	Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0
-Enable-
-	Capabilities: [100] Advanced Error Reporting <?>
-	Capabilities: [200] Virtual Channel <?>
-	Kernel driver in use: cx23885
-	Kernel modules: cx23885
-
-I'm not realy sure what I would need to do from here (I don't really
-have any skills in C programming).... 
-
-
-
-
-8-04-15 at 20:38 +1000, Adam Nielsen wrote:
-> > I have mistakenly bought a Fusion HDTV DVB-T dual express (cx23885) as a 
-> > result of misreading some other posts and sites. I was under the 
-> > impression that it would work either from the current kernel source or 
-> > using Chris Pascoe's modules.  Unfortunately I didn't realise that the 
-> > American and Euro/Australian version were different.
-> 
-> What are the PCI IDs for the card?  I'm not sure what criteria the 
-> driver uses to detect DVB vs ATSC, but I would guess you could tweak the 
-> PCI IDs to make the driver detect your card as one of the others that 
-> supports DVB and has the same cx23885 chipset.
-> 
-> Cheers,
-> Adam.
 
 _______________________________________________
 linux-dvb mailing list
