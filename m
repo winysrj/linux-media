@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.29])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <knowledgejunkie@gmail.com>) id 1Jiem6-0003AH-Cy
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 01:59:51 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so185989ywh.41
-	for <linux-dvb@linuxtv.org>; Sun, 06 Apr 2008 16:59:45 -0700 (PDT)
-Message-ID: <5387cd30804061659j50a6fdbl80302a0d3b55e027@mail.gmail.com>
-Date: Mon, 7 Apr 2008 00:59:45 +0100
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1JqyVZ-0000S2-93
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 00:41:12 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <52791.31746.qm@web26103.mail.ukl.yahoo.com>
+Date: Wed, 30 Apr 2008 00:40:13 +0200
+References: <2d842fa80804282201h5665c596q4048d1f58fdaab5f@mail.gmail.com>
+	<1209499089.3456.34.camel@pc10.localdom.local>
+	<2d842fa80804291436t4464065bycb5b8d3b6b8dc19f@mail.gmail.com>
+In-Reply-To: <2d842fa80804291436t4464065bycb5b8d3b6b8dc19f@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <52791.31746.qm@web26103.mail.ukl.yahoo.com>
-Subject: Re: [linux-dvb] Which DVB-T USB tuner on linux ?
+Message-Id: <200804300040.13985@orion.escape-edv.de>
+Subject: Re: [linux-dvb] saa7146_vv.ko and dvb-ttpci.ko undefined with
+	kernel 2.6.23.17
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +29,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 05/04/2008, linuxcbon <linuxcbon@yahoo.fr> wrote:
-> Hi all,
->
->  I am planning to buy a DVB-T USB tuner but I am a little lost :-(.
->  I am interested in following products :
->  ARTEC T14BR
->  AVERMEDIA AVERTV DVB-T VOLAR X
->  PINNACLE PCTV DVB-T STICK
+Stone wrote:
+> Thanks for the confirmation.  Would you happen to know which file to edit so
+> that I can add such missing dependencies (ie; videobuf-dma-sg)?  It seems
+> like it should be a one line fix.  I would build "all" but my machine is so
+> slow, it really drags on.  There must be an easier way.
 
-No specific information on those cards, but please refer to
+You don't have to compile everything. Just select dpc7146 under
+'Video capture adapters', and it will compile again.
 
-http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices
+The dependencies will be fixed asap.
 
-for some useful information on cards known to work.
-
-Nick
+CU
+Oliver
 
 -- 
-Nick Morrott
-
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
-
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
