@@ -1,20 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m36MJrPW023292
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:19:53 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m36MJchL024251
-	for <video4linux-list@redhat.com>; Sun, 6 Apr 2008 18:19:38 -0400
-Date: Sun, 6 Apr 2008 19:19:11 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20080406191911.68aed9c6@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UBn1pw000751
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 07:49:01 -0400
+Received: from portal.bppiac.hu (portal.bppiac.hu [213.253.216.130])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UBmk0Q017373
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 07:48:47 -0400
+Message-ID: <48185C99.807@bppiac.hu>
+Date: Wed, 30 Apr 2008 13:48:41 +0200
+From: Farkas Levente <lfarkas@bppiac.hu>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: [GIT PATCHES] V4L/DVB new USB ID's for 2.6.25-rc8
+Subject: [Fwd: [gst-devel] RFC: multi channel frame grabber card support]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +24,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
+hi,
+a few weeks ago i send this mail to gstreamer-devel but it seems nobody 
+reply to it. i'd like to know the v4l people's opinion's about it. or 
+may be we've to modify the v4l or v4l2 interface in the bellow case to 
+give us more device?
+i'd like to know your opinion.
+thanks in advance.
+yours.
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git pci_id_updates
+-------- Original Message --------
+Subject: [gst-devel] RFC: multi channel frame grabber card support
+Date: Fri, 11 Apr 2008 14:51:23 +0200
+From: Farkas Levente <lfarkas@bppiac.hu>
+To: Gstreamer <gstreamer-devel@lists.sourceforge.net>
 
-For the following:
+hi,
+as i wrote earlier we'd like to add support for multi channel frame
+grabber cards in gstreamer. what's the problem:
+currently there are the only hardware video input supported by gstreamer
+is the v4l or v4l2 compatible video sources. there are good for common
+hardware like ip camera, tv card (with tunner) or other hardware like
+s-video input etc. but there are many kind of card which has more
+(4,8,16,24) input channel (usually analog input). there card can give
+raw or encoded video sources. but these usually has one physical devices
+ie. one /dev/videoX devices (in this case we've got n composite input).
+we'd like to build in this case n pipeline for the n input channel. one
+of the simple example IVC-100 card which has one bt878 chip and 4
+composite input and one 4 channel multiplexer.
+http://www.iei.com.tw/en/product_IPC.asp?model=IVC-100G
+in this case we can use v4l and choose one of the channel but we'd like
+to build 4 pipeline and set different parameters on the different
+pipeline's source properties (like frame rate, resolution etc). what's
+more we'd like to modify the source element properties during it's
+running eg. i'd like to modify the 2nd channel frame rate while wouldn't
+like to stop the other 4 pipeline!!! and it's an important feature.
+what we can do?
+- we can create a new source element with 4 output pads,
+- or create a new source element with one output pad, but we'd like to
+create 4 such source element which can parallel use the same device's
+different input channel.
+the first would be the easier, but in this case we can't modify one of
+the input channel's parameter without stop the other pipelines:-( or can
+i do it somehow? and in this case all of the pipeline has to be run in
+the same process.
+in the second case we can start and stop the pipeline independently
+what's more use them in different process, but we probably have to
+create some kind of master/controller process which control the access
+of the source elements to the device.
+what do you think about it?
+what do you suggest about it?
+what's your comments?
+thanks in advance.
+yours.
 
-   - pvrusb2: add new usb pid for 73xx and 75xxx models
+-- 
+    Levente                               "Si vis pacem para bellum!"
 
-Those boards are about to be released by their vendor (Hauppauge). The already 
-committed changes for pvrusb2 were meant to address those new devices. However, 
-the vendor changed the usb sub ID's at the last moment. Those two patches adds 
-the newer ID's to allow kernel to properly detect the devices.
+-------------------------------------------------------------------------
+This SF.net email is sponsored by the 2008 JavaOne(SM) Conference
+Don't miss this year's exciting event. There's still time to save $100.
+Use priority code J8TL2D2.
+http://ad.doubleclick.net/clk;198757673;13503038;p?http://java.sun.com/javaone
+_______________________________________________
+gstreamer-devel mailing list
+gstreamer-devel@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/gstreamer-devel
 
-Cheers,
-Mauro.
-
----
-
- drivers/media/video/pvrusb2/pvrusb2-devattr.c |   35 +++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
-
-Michael Krufky (2):
-      V4L/DVB (7496): pvrusb2: add new usb pid for 75xxx models
-      V4L/DVB (7497): pvrusb2: add new usb pid for 73xxx models
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+-- 
+   Levente                               "Si vis pacem para bellum!"
 
 --
 video4linux-list mailing list
