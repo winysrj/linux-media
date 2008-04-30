@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ax.ru ([80.247.32.138] helo=rfn.ru)
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <huge@ax.ru>) id 1Jp4Cc-0003K6-SH
-	for linux-dvb@linuxtv.org; Thu, 24 Apr 2008 18:21:43 +0200
-Received: from [194.46.227.1] (HELO hugex2.itwise.net)
-	by rfn.ru (CommuniGate Pro SMTP 4.2.8)
-	with ESMTP id 81134342 for linux-dvb@linuxtv.org;
-	Thu, 24 Apr 2008 20:21:01 +0400
-Message-ID: <4810A576.4050105@ax.ru>
-Date: Thu, 24 Apr 2008 16:21:26 +0100
-From: Pavel Smirnov <huge@ax.ru>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Compilation against 2.6.25 kernel
+	(envelope-from <stoth@linuxtv.org>) id 1JrHSr-0000n8-Du
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 20:55:38 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K0500BA3J7QXK81@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 30 Apr 2008 14:55:02 -0400 (EDT)
+Date: Wed, 30 Apr 2008 14:55:01 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
+To: Eric Cronin <ecronin@gizmolabs.org>
+Message-id: <4818C085.6080000@linuxtv.org>
+MIME-version: 1.0
+References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,57 +31,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Not sure I was sane to do this, but tried to get hvr4000-dvb working on 
-2.6.25 kernel.
-Reckon problem is not unique to this branch hence my post:
+Eric Cronin wrote:
+> Hello,
+> 
+> I have an HP Pavilion OEM'd HVR-1800 that I'm giving a shot at getting 
+> working (PVR-500 and HDHR are my production analog/digital inputs).
+> 
+> I'm running Mythbuntu 8.04 and have tried both with the bundled version 
+> of v4l-dvb modules and a hg copy from April 29, and both have the same 
+> problem:
+> 
+> The card is detected fine and /dev/dvb/* created.  When I run 'scan 
+> us-Cable-Standard-center-frequencies-QAM256' it detects nothing, even on 
+> frequencies which I know are QAM256 from the HDHR which is 12" of coax 
+> away from the HVR-1800.  Here is an example from the HDHR scan:
+> 
+
+<snip>
+
+> [67185.229777] msp3400' 3-0044: MSP5431H-^8 found @ 0x88 (cx23885[0])
+> [67185.229782] msp3400' 3-0044: MSP5431H-^8 supports radio, mode is 
+> autodetect and autoselect
+
+This looks odd, but it should effect your digital scanning. MSP5431 
+attached itself to the place when the cx25840 driver should be 
+attaching. This is break analog support for you.
+
+I'll have to look into this.
+
+- Steve
 
 
-[huga@boxer hvr4000-build]# make
-make -C /huga/hvr4000-build/v4l
-make[1]: Entering directory `/huga/hvr4000-build/v4l'
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.25/build
-make -C /lib/modules/2.6.25/build SUBDIRS=/huga/hvr4000-build/v4l  modules
-make[2]: Entering directory `/usr/src/redhat/BUILD/kernel-2.6.25'
-  CC [M]  /huga/hvr4000-build/v4l/cx25840-core.o
-/huga/hvr4000-build/v4l/cx25840-core.c:69: error: conflicting type 
-qualifiers for 'addr_data'
-/huga/hvr4000-build/v4l/../linux/include/media/v4l2-i2c-drv-legacy.h:41: 
-error: previous declaration of 'addr_data' was here
-make[3]: *** [/huga/hvr4000-build/v4l/cx25840-core.o] Error 1
-make[2]: *** [_module_/huga/hvr4000-build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/redhat/BUILD/kernel-2.6.25'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/huga/hvr4000-build/v4l'
-make: *** [all] Error 2
-[huga@boxer hvr4000-build]# make
-make -C /huga/hvr4000-build/v4l
-make[1]: Entering directory `/huga/hvr4000-build/v4l'
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.25/build
-make -C /lib/modules/2.6.25/build SUBDIRS=/huga/hvr4000-build/v4l  modules
-make[2]: Entering directory `/usr/src/redhat/BUILD/kernel-2.6.25'
-  CC [M]  /huga/hvr4000-build/v4l/cx25840-core.o
-/huga/hvr4000-build/v4l/cx25840-core.c:69: error: conflicting type 
-qualifiers for 'addr_data'
-/huga/hvr4000-build/v4l/../linux/include/media/v4l2-i2c-drv-legacy.h:41: 
-error: previous declaration of 'addr_data' was here
-make[3]: *** [/huga/hvr4000-build/v4l/cx25840-core.o] Error 1
-make[2]: *** [_module_/huga/hvr4000-build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/redhat/BUILD/kernel-2.6.25'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/huga/hvr4000-build/v4l'
-make: *** [all] Error 2
-[huga@boxer hvr4000-build]# uname -r
-2.6.25
-
-
-Any comments or suggestions - I'll be jumping my brain circuits in 
-excitement...
-
-Cheers,
-
-Pav
 
 _______________________________________________
 linux-dvb mailing list
