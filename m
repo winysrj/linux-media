@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m31KBiEH011554
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 16:11:44 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3ULBETR005538
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 17:11:14 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m31KBRDH003634
-	for <video4linux-list@redhat.com>; Tue, 1 Apr 2008 16:11:28 -0400
-Date: Tue, 1 Apr 2008 17:10:51 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3ULB1Ov004122
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 17:11:01 -0400
+Date: Wed, 30 Apr 2008 18:10:46 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Marcin Slusarz <marcin.slusarz@gmail.com>
-Message-ID: <20080401171051.724a9f75@gaivota>
-In-Reply-To: <20080330162006.GA6048@joi>
-References: <20080330162006.GA6048@joi>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080430181046.1c50fd48@gaivota>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Morton <akpm@google.com>, video4linux-list@redhat.com,
-	linux-kernel@vger.kernel.org, "Rafael J.
-	Wysocki" <rjw@sisk.pl>, Bongani Hlope <bonganilinux@mweb.co.za>
-Subject: Re: 2.6.25-rc regression: bttv: oops on radio access (bisected)
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES] V4L/DVB fixes for 2.6.26
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,48 +26,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Marcin
+Linus,
 
-On Sun, 30 Mar 2008 18:20:49 +0200
-Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
 
-> Hi
-> 2.6.25-rc7 kernel oopses on exec of "radio -c /dev/radio0".
-> I bisected it down to:
-> 
-> 402aa76aa5e57801b4db5ccf8c7beea9f580bb1b is first bad commit
-> commit 402aa76aa5e57801b4db5ccf8c7beea9f580bb1b
-> Author: Douglas Schilling Landgraf <dougsland@gmail.com>
-> Date:   Thu Dec 27 22:20:58 2007 -0300
-> 
->     V4L/DVB (6911): Converted bttv to use video_ioctl2
-> 
->     Signed-off-by: Douglas Schilling Landgraf <dougsland@gmail.com>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-> 
+For the following fixes:
 
-There are three patches that are meant to fix the bugs with radio. On the tests
-I did here, they worked, but the Bongani still points that the fixes didn't
-solve for him.
+   - Several fixes on error handling:
+	- don't do symbol_put() if symbol_request() failed;
+	- saa7134 and cx88: detach frontend, if tuner or Diseqc attach fails;
+	- tuner: Failures at tuner_attach were producing OOPS;
+   - Kbuild fixes:
+	- cx23885 and soc_camera: fix kbuild dependencies.
+   - Other fixes:
+	- tea5767: return -EINVAL, instead of EINVAL;
 
-On the tests I did here, the three patches seemed to work [1]. Maybe you could
-test with those patches and post us some results.
-
-There are three patches meant to fix several issues caused by the conversion: 
-
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=bdd38d9b5c6365ea004df6d8a183dd1344b4801f
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=055a6282cabd311cf010a5a83f0494558504f7d0
-http://git.kernel.org/?p=linux/kernel/git/mchehab/v4l-dvb.git;a=commitdiff;h=6e07ff78274752fe812a1e8bddb6013a278e62e8
-
-Could you test please and give us some feedback?
-
-[1] Yet, I've discovered recently that the hardware I use for testing PCI
-devices is broken. Probably, my motherboard chipset is damaged, since I'm
-getting intermittent bugs on several parts of the machine - even with stable
-kernels - so my tests with bttv aren't conclusive.
+The tea5767, saa7134 and cx88 bugs are very old. The error scenario introduced
+by the lack of the compilation of the tuners (a lack of a obj-y += tuners/)
+arised those issues and ultimately caused their fixes.
 
 Cheers,
-Mauro
+Mauro.
+
+---
+
+ drivers/media/common/tuners/tea5767.c     |    6 +-
+ drivers/media/video/Kconfig               |    4 +-
+ drivers/media/video/cx23885/Kconfig       |    2 +
+ drivers/media/video/cx88/cx88-dvb.c       |  251 +++++++++++++++-------------
+ drivers/media/video/em28xx/em28xx-dvb.c   |    1 -
+ drivers/media/video/saa7134/saa7134-dvb.c |  140 ++++++++++++-----
+ drivers/media/video/tuner-core.c          |   34 ++--
+ 7 files changed, 257 insertions(+), 181 deletions(-)
+
+Andrew Morton (1):
+      V4L/DVB (7800): tuner_symbol_probe(): don't do symbol_put() if symbol_request() failed
+
+Guennadi Liakhovetski (1):
+      V4L/DVB (7810): soc_camera: mt9v022 and mt9m001 depend on I2C
+
+Mauro Carvalho Chehab (6):
+      V4L/DVB (7801): saa7134: detach frontend, if tuner or Diseqc attach fails
+      V4L/DVB (7802): tuner: Failures at tuner_attach were producing OOPS
+      V4L/DVB (7804): tea5767: Fix error logic
+      V4L/DVB (7805): saa7134: dvb_unregister_frontend() shouldn't be called, if not registered yet
+      V4L/DVB (7806): saa7134: dvb_unregister_frontend() shouldn't be called, if not registered yet
+      V4L/DVB (7807): cx88: Fix error handling, when dvb_attach() fails
+
+Michael Krufky (1):
+      V4L/DVB (7808): cx23885: fix kbuild dependencies
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
