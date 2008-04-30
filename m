@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <andrboot@gmail.com>) id 1JkxNg-0003SU-EA
-	for linux-dvb@linuxtv.org; Sun, 13 Apr 2008 10:16:09 +0200
-Received: by wf-out-1314.google.com with SMTP id 28so1144930wfa.17
-	for <linux-dvb@linuxtv.org>; Sun, 13 Apr 2008 01:16:03 -0700 (PDT)
-Message-ID: <ad89709e0804130116y47b81c6fk76b0e5c0cb881128@mail.gmail.com>
-Date: Sun, 13 Apr 2008 18:16:02 +1000
-From: "Andrew B" <andrboot@gmail.com>
+	(envelope-from <christophpfister@gmail.com>) id 1JrEf3-00009s-K1
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 17:56:08 +0200
+Received: by fg-out-1718.google.com with SMTP id 13so251964fge.25
+	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 08:55:58 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
+Date: Wed, 30 Apr 2008 17:55:55 +0200
 MIME-Version: 1.0
-Subject: [linux-dvb] card needs a proper identification within the driver
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_LaJGIXKoWtSDCKW"
+Message-Id: <200804301755.55440.christophpfister@gmail.com>
+Subject: [linux-dvb] Fwd: List for modernized Unity Media DVB-C
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,51 +20,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1829592229=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1829592229==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_15458_13467831.1208074562773"
 
-------=_Part_15458_13467831.1208074562773
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+--Boundary-00=_LaJGIXKoWtSDCKW
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-Hi;
+=46rom a kaffeine user ...
 
-I have a Leadtek WinFast DTV2000H, i compiled manually the v4l drivers,
-which didn't work and was avised from the IRC channel to post some
-information here..
-
-Here is my "dmesg" output http://pb.udderweb.com/257
-lspci:http://pb.udderweb.com/258
-and my lspci -vvn http://pb.udderweb.com/259
-
-Any help would be appreciated..
+Christoph
 
 
-Andrew
+=2D---------  Weitergeleitete Nachricht  ----------
 
-------=_Part_15458_13467831.1208074562773
-Content-Type: text/html; charset=ISO-8859-1
+Betreff: [kaffeine-user] List for modernized Unity Media DVB-C
+Datum: Dienstag 29 April 2008
+Von: Oliver Schwaneberg <oliver.schwaneberg@smail.inf.fh-bonn-rhein-sieg.de>
+An: kaffeine-user@lists.sourceforge.net
+
+Hi,
+
+this file enables support for the modernized DVB-C network of Unity
+Media in Germany.
+
+Regards,
+Olli
+
+=2D------------------------------------------------------
+
+--Boundary-00=_LaJGIXKoWtSDCKW
+Content-Type: text/plain;
+  charset="utf-8";
+  name="de-unity_media"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Disposition: attachment; filename=de-unity_media
 
-Hi;<br><br>I have a Leadtek WinFast DTV2000H, i compiled manually the
-v4l drivers, which didn&#39;t work and was avised from the IRC channel to
-post some information here..<br><br>Here is my &quot;dmesg&quot; output <a href="http://pb.udderweb.com/257" target="_blank">http://pb.udderweb.com/257</a><br>
-lspci:<a href="http://pb.udderweb.com/258" target="_blank">http://pb.udderweb.com/258</a><br>and my lspci -vvn <a href="http://pb.udderweb.com/259" target="_blank">http://pb.udderweb.com/259</a><br><br>Any help would be appreciated.. <br>
-<font color="#888888"><br><br>Andrew</font>
+# Unity Media (iesy Hessen, ish Nordrhein-Westfalen)
+# freq sr fec mod
+C 113000000 6900000 NONE QAM256
+#C 113000000 6900000 NONE QAM64
+#C 121000000 6900000 NONE QAM64
+C 121000000 6900000 NONE QAM256
+C 338000000 6900000 NONE QAM64
+C 346000000 6900000 NONE QAM256
+C 354000000 6900000 NONE QAM64
+C 362000000 6900000 NONE QAM64
+C 370000000 6900000 NONE QAM64
+C 378000000 6900000 NONE QAM64
+C 386000000 6900000 NONE QAM64
+C 394000000 6900000 NONE QAM64
+C 402000000 6900000 NONE QAM256
+C 410000000 6900000 NONE QAM64
+C 426000000 6900000 NONE QAM64
+C 434000000 6900000 NONE QAM256
+C 442000000 6900000 NONE QAM256
+C 450000000 6900000 NONE QAM64
+C 458000000 6900000 NONE QAM64
+C 466000000 6900000 NONE QAM64
+C 522000000 6900000 NONE QAM256
+C 530000000 6900000 NONE QAM256
+C 538000000 6900000 NONE QAM256
+C 546000000 6900000 NONE QAM256
+C 554000000 6900000 NONE QAM256
 
-------=_Part_15458_13467831.1208074562773--
 
 
---===============1829592229==
+--Boundary-00=_LaJGIXKoWtSDCKW
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -72,4 +100,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1829592229==--
+--Boundary-00=_LaJGIXKoWtSDCKW--
