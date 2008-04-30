@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1JmaSC-0000uh-39
-	for linux-dvb@linuxtv.org; Thu, 17 Apr 2008 22:11:32 +0200
-Message-ID: <4807AEEC.5040104@kolumbus.fi>
-Date: Thu, 17 Apr 2008 23:11:24 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: bas@kompasmedia.nl
-References: <da94aba5e3e1f0c3c823a33d94b32f9b@localhost>
-In-Reply-To: <da94aba5e3e1f0c3c823a33d94b32f9b@localhost>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis 2033: tuning still fails
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+d046754b6c5b6d5ca51d+1711+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1JrJvq-0007Ow-W2
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 23:33:43 +0200
+Date: Wed, 30 Apr 2008 18:33:27 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080430183327.4896c2b0@gaivota>
+In-Reply-To: <1209507723.3456.90.camel@pc10.localdom.local>
+References: <2d842fa80804282201h5665c596q4048d1f58fdaab5f@mail.gmail.com>
+	<1209499089.3456.34.camel@pc10.localdom.local>
+	<2d842fa80804291436t4464065bycb5b8d3b6b8dc19f@mail.gmail.com>
+	<1209507723.3456.90.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] saa7146_vv.ko and dvb-ttpci.ko undefined with
+ kernel 2.6.23.17
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +30,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Wed, 30 Apr 2008 00:22:03 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
+> 
+> Am Dienstag, den 29.04.2008, 23:36 +0200 schrieb Stone:
+> > Thanks for the confirmation.  Would you happen to know which file to
+> > edit so that I can add such missing dependencies (ie;
+> > videobuf-dma-sg)?  It seems like it should be a one line fix.  I would
+> > build "all" but my machine is so slow, it really drags on.  There must
+> > be an easier way.
+> > 
+> 
+> [snip]
+> >         If you enable for example saa7134 support under video you should get the
+> >         missing videobuf* modules too until the build dependencies are working
+> >         for saa7146 again?
+> 
+> Either try that or go a little back before saa7146 is moved
+> to /media/video from /media/common.
+> 
+> It might be also already fixed or will be soon.
+> The build system is quickly moving due to get some tuner bugs away
+> before the 2.6.26 merge window is closed.
 
-Hi,
+Sorry for the noise. We usually have some "turbulence" during the merge window,
+since we are focused on make things happen at mainstream.
 
-You could first try to use nonencrypted channels only by removing the CA,
-to verify that it works without the CA.
+We've decided to keep saa7146 back on his original location. The patches were
+already backported from the development tree used for those moves (-git).
 
-Twinhan 2033 works for me wit jusst.de sources, although I haven't
-tested the latest revision.
+So, all modules should be building fine again. If not, please report to me.
 
-There exists remote control code also for 2033 although it hasn't been
-applied into jusst.de.
-
-Regards,
-Marko Ristola
-
-Bas v.d. Wiel wrote:
-> Hello all,
-> Slowly my Twinhan card is coming to life. Sadly though, tuning fails on all
-> frequencies. I saw a post on this subject from a few weeks ago. Changing
-> the tuner from tda10021 to tda10023 helped a lot in that case, but I have
-> absolutely no idea how to do this. I looked over a lot of source code to
-> see if I could find where the tuner chip gets determined, but to no avail.
-> My C skills aren't good enough I fear.. The output of dmesg shows this:
->
-> ACPI: PCI interrupt for device 0000:01:09.0 disabled
-> ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [APC2] -> GSI 17 (level, low)
-> -> IRQ 20
-> irq: 20, latency: 32
->  memory: 0xfdeff000, mmio: 0xde8c4000
-> found a VP-2033 PCI DVB-C device on (01:09.0),
->     Mantis Rev 1 [1822:0008], irq: 20, latency: 32
->     memory: 0xfdeff000, mmio: 0xde8c4000
->     MAC Address=[00:08:ca:1b:e8:b8]
-> mantis_alloc_buffers (0): DMA=0x1d700000 cpu=0xdd700000 size=65536
-> mantis_alloc_buffers (0): RISC=0x1cd56000 cpu=0xdcd56000 size=1000
-> DVB: registering new adapter (Mantis dvb adapter)
-> mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-> TDA10021: i2c-addr = 0x0c, id = 0x7d
-> mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10021) @
-> 0x0c
-> mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach
-> success
-> DVB: registering frontend 0 (Philips TDA10021 DVB-C)...
-> CA: Registering Mantis Adapter(0) Slot(0)
->
-> Any help would be greatly appreciated!
->
-> Bas
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
-
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
