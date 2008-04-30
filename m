@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JoZWU-00083Q-AU
-	for linux-dvb@linuxtv.org; Wed, 23 Apr 2008 09:36:15 +0200
-Date: Wed, 23 Apr 2008 09:35:27 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: "Rajendra C. Turakani" <rajendra.turakani@ittiam.com>
-In-Reply-To: <904DEC693BE1AB429622C6F5ABA7E0B804307B76@is01ex02.ittiam.com>
-Message-ID: <Pine.LNX.4.64.0804230932130.9074@pub6.ifh.de>
-References: <904DEC693BE1AB429622C6F5ABA7E0B804307B76@is01ex02.ittiam.com>
+	(envelope-from <frederic.cand@anevia.com>) id 1JrBCT-0004hu-0w
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 14:14:18 +0200
+Message-ID: <48186290.2070603@anevia.com>
+Date: Wed, 30 Apr 2008 14:14:08 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <4816E5DA.7010204@anevia.com>	
+	<1209467866.3247.45.camel@pc10.localdom.local>	
+	<48171207.8080602@anevia.com>
+	<1209489568.3456.17.camel@pc10.localdom.local>
+In-Reply-To: <1209489568.3456.17.camel@pc10.localdom.local>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Query on USB based DVB-T modules.
+Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,45 +22,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Rajendra,
-
-On Wed, 23 Apr 2008, Rajendra C. Turakani wrote:
-> 1.       Is 'Leadtek Winfast DTV Dongle' based on as DiB3000M chipset ?
-> Is the driver source code available ?
-
-Yes. I think the device used inside this Dongle is 3000P. The driver is 
-identical between the two revision.
-
-> 2.       How can one get detailed datasheet of DiB3000M ?
-
-Ask DiBcom support. But if you want to develop software, it is not the 
-right start, because the data sheet is mainly to help people integrate the 
-hardware.
-
-When you use the driver from LinuxTV make sure that you follow the GPL 
-rules when adapting it.
-
-> 3.       What is the chipset that is used in 'Hauppauge WinTV Nova-T
-> (USB)' ?
-
-There are several devices with that name:
-
-USB2: DiB3000P
-TD: DiB7000P or DiB7070P
-
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+aGVybWFubiBwaXR0b24gYSDDqWNyaXQgOgo+IEFtIERpZW5zdGFnLCBkZW4gMjkuMDQuMjAwOCwg
+MTQ6MTggKzAyMDAgc2NocmllYiBGcmVkZXJpYyBDQU5EOgo+PiBoZXJtYW5uIHBpdHRvbiBhIMOp
+Y3JpdCA6Cj4+PiBIaSBGcmVkZXJpYywKPj4+Cj4+PiBBbSBEaWVuc3RhZywgZGVuIDI5LjA0LjIw
+MDgsIDExOjA5ICswMjAwIHNjaHJpZWIgRnJlZGVyaWMgQ0FORDoKPj4+PiBEZWFyIGFsbCwKPj4+
+Pgo+Pj4+IEkgcmVjZW50bHkgaGFkIHRvIGNoYW5nZSB2NGwgZHJpdmVycyB0byBzdXBwb3J0IG15
+IFdpblRWIEhWUiAxMzAwLgo+Pj4+IEkgaGF2ZSBpc3N1ZXMgbWFraW5nIG15IEhWUiB3b3JrIGJ1
+dCB0aGF0J3Mgbm90IHRoZSBwb2ludCBoZXJlLgo+Pj4+IE15IHByb2JsZW0gaXMgdGhhdCBzaW5j
+ZSBJIHVwZGF0ZWQga2VybmVsICsgZHJpdmVycywgSSBjYW4ndCBtYW5hZ2UgdG8gCj4+Pj4gbWFr
+ZSBzb3VuZCB3b3JrIHdoZW4gSSdtIHVzaW5nIHRoZSB0dW5lciBpbnB1dC4gU291bmQgamFjayBp
+bnB1dCB3b3JrcyAKPj4+PiB3aGVuIEknbSB1c2luZyBTVmlkZW8gb3IgQ29tcG9zaXRlIFZpZGVv
+LCBidXQgbm90IHdoZW4gSSdtIHVzaW5nIHR1bmVyLgo+Pj4+Cj4+Pj4gSGVyZSBhcmUgdGhlIG9w
+dGlvbnMgSSdtIHVzaW5nCj4+Pj4gdHVuZXIgOiBwb3J0Mj0wCj4+Pj4gc2FhNzEzNDogb3NzPTEg
+ZGlzYWJsZV9pcj0xCj4+Pj4gc2FhNzEzNC1vc3M6IHJhdGU9NDgwMDAKPj4+IHRoZSByYXRlPTQ4
+MDAwIGlzIG9ubHkgdmFsaWQgZm9yIGV4dGVybmFsIGFuYWxvZyBpbnB1dCBhbmQgZGlzYWJsZXMK
+Pj4+IHNvdW5kIGZyb20gdHVuZXIuIEhhdmUgYSBsb29rIGF0IHRoZSBzYWE3MTM0LW9zcyBtaXhl
+ciB1bmRlciBzdWNoCj4+PiBjb25kaXRpb25zLgo+Pj4KPj4+IFlvdSBtdXN0IHVzZSBkZWZhdWx0
+IHJhdGUgb2YgMzIwMDAgZm9yIGRtYSBzb3VuZCBmcm9tIHR1bmVyLgo+Pj4KPj4+IFRoZSBzYWE3
+MTM0LW9zcyBpcyBhbHNvIHNvb24gZGVwcmVjYXRlZCBhbmQgcmVwbGFjZWQgYnkgc2FhNzEzNC1h
+bHNhLgo+Pj4KPj4+IElmIHlvdSBhcmUgY29uc2lkZXJpbmcgdXNpbmcgcmVjZW50IHY0bC1kdmIg
+bWVyY3VyaWFsIHN0dWZmLCB3aGljaAo+Pj4gc2hvdWxkIGJlIGJlc3QgZm9yIHRoZSBIVlIxMzAw
+IGFuZCByZXBvcnRpbmcgYnVncyBvbiBzYWE3MTM0LWVtcHJlc3MsCj4+PiB5b3UgbWlnaHQgc3Rp
+bGwgaGF2ZSB5b3VyIG9sZCBzYWE3MTM0LW9zcyBtb2R1bGUgYXJvdW5kIGFuZCBzb21lIG90aGVy
+cwo+Pj4gbGlrZSB0aGUgb2xkIHZpZGVvX2J1ZiBub3cgbG9hZGVkLCBzaW5jZSBub3QgZGVsZXRl
+ZCBvbiB1cGdyYWRlLgo+Pj4KPj4+IEFmdGVyIG1ha2Ugcm1tb2QgYW5kIHJtaW5zdGFsbCB3aXRo
+IGN1cnJlbnQgdjRsLWR2YiB5b3Ugc2hvdWxkIGRlbGV0ZQo+Pj4gc3VjaCByZW1haW5pbmcgbW9k
+dWxlcyBvbiBvbGRlciBrZXJuZWxzIHRvbyBiZWZvcmUgbWFrZSBpbnN0YWxsLgo+Pj4KPj4+IENo
+ZWVycywKPj4+IEhlcm1hbm4KPj4gaHVtIEkgdXNlZCB0byBzZXQgcmF0ZSB0byA0ODAwMCB3aXRo
+IG15IG9sZCAyMDA1IGp1bHkgc25hcHNob3QgYW5kIGl0IAo+PiB3YXMgd29ya2luZyBldmVuIHdp
+dGggdHVuZXIgLi4uIGJ1dCBvayBJJ2xsIHRyeSAzMjAwMAo+PiBpJ3ZlIHRyaWVkIGFsc2EgYW5k
+IEkgaGFkIHRoZSBzYW1lIHJlc3VsdHMsIHRoYXQgaXMgbm8gc291bmQgd2l0aCB0dW5lciAKPj4g
+YnV0IGxpbmUgaW4gc291bmQgd2l0aCBjb21wb3NpdGUgYW5kIHN2aWRlbwo+PiBkbyBJIG5lZWQg
+c29tZSBzcGVjaWFsIHN0dWZmcyBjb21waWxlZCBpbiBteSBrZXJuZWwgZXhjZXB0IGZyb20gY29u
+ZmlnX3NuZCA/Cj4+IGFib3V0IG9sZCBtb2R1bGVzIHN0aWxsIGxvYWRlZCB0aGlzIGNhbid0IGJl
+IHNpbmNlIEkgYnVpbGQgbXkgc3lzdGVtIAo+PiBmcm9tIHNjcmF0Y2ggZWFjaCB0aW1lIGkgdHJ5
+IGEgbmV3IGtlcm5lbCAvIGRyaXZlciBpbnRvIGFuIGV4dDIgZmlsZSwgCj4+IHdoaWNoIEkgcHV0
+IG9uIGEgMzJNQiBmbGFzaCBkaXNrIGFuZCBib290IG9uIGl0IC4uLiBzbyBJJ20gc3VyZSBJJ20g
+bm90IAo+PiB1c2luZyBteSBvbGQgdjRsIHNuYXBzaG90LCBidXQgdGhlIDIuNi4yMi4xOSB2NGwg
+ZHJpdmVycwo+Pgo+PiBJJ2xsIGxldCB5b3Uga25vdyBpZiBJIGNhbiBtYWtlIGl0IHdvcmsKPiAK
+PiBBaCwgeW91IGFyZSBpbiBGcmFuY2UhCnllYWghCgo+IAo+IFRyeSAibW9kaW5mbyBzYWE3MTM0
+Ii4gRHVlIHRvIHVucmVzb2x2YWJsZSBhdXRvIGRldGVjdGlvbiBpc3N1ZXMgYmV0d2Vlbgo+IGRp
+ZmZlcmVudCBTRUNBTSBzdGFuZGFyZHMgdGhlcmUgd2FzIGEgc2VjYW09IGVpdGhlciBESywgTCBv
+ciBMYyBvcHRpb24KPiBpbnRyb2R1Y2VkLgpodWh1Li4uIGJ1dCBteSBzeXN0ZW0gaGFzIHRvIHdv
+cmsgd29ybGR3aWRlIC4uLiBzbyBhIG1vZHVsZSBvcHRpb24gaXMgCm5vdCBhIGdvb2QgaWRlYSwg
+YmVjYXVzZSBpdCBkb2VzIG5vdCBvbmx5IGRlcGVuZHMgb24gdGhlIGNvdW50cnksIGJ1dCAKYWxz
+byBpZiBteSBjdXN0b21lciBpcyB1c2luZyBhIHNpZ25hbCBtb2R1bGF0b3Igb3Igbm90LCAuLi4g
+YW5kIEkgaGF2ZSAKdHdvIGNhcmRzIGluIG15IHN5c3RlbSwgYW5kIEkgd2FudCB0byBiZSBhYmxl
+IHRvIHNlbGVjdCBhIGNlcnRhaW4gU0VDQU0gCm1vZGUgd2l0aCB0aGUgZmlyc3Qgb25lLCBhbmQg
+YW5vdGhlciBtb2RlIHdpdGggdGhlIHNlY29uZCBjYXJkCkFjdHVhbGx5IEknbSBzZWxlY3Rpbmcg
+c2VjYW0gTCwgREsgb3IgQkcgd2l0aCBhbiBpb2N0bCBjYXVzZSBteSBjYXJkIGNhbiAKaGFuZGxl
+IHRoZW0gKHRlc3RlZCBhbmQgd29ya2luZyB3aXRoIG9sZGVyIGRyaXZlcnMva2VybmVscykKCgo+
+IAo+IEFueXRoaW5nIGVsc2UgdGhlbiAzMjAwMEh6IHNhbXBsaW5nIHJhdGUgZm9yIFRWIGlzIHdy
+b25nIGN1cnJlbnRseSBhbmQKPiB5b3UgZ2V0IHRoYXQgaW5wdXQgZGlzYWJsZWQgb24gc2FhNzEz
+NC1vc3MgbWl4ZXIuIFllcywgaXQgd2FzIG9uY2UKPiBwb3NzaWJsZSwgYnV0IG5vdCBpbnRlbmRl
+ZCwgdG8gdXNlIDQ4MDAwIGFsc28gZm9yIFRWL1ZpZGVvIG9uIHNhYTcxMzQKPiBjaGlwcywgYnV0
+IGdhdmUgdmVyeSBwb29yIGFuZCBjcmFja2xpbmcgc291bmQgYW5kIGlzIHdyb25nLgo+IAo+IFRo
+ZSBjdXJyZW50IHNhYTcxMzQtYWxzYSBpcyBzaW1wbGVyIHRvIHVzZSBhbmQgYWxzbyB1c2VzIGFu
+IGV4cG9ydGVkCj4gbXV0ZSBzeW1ib2wgZnJvbSBzYWE3MTM0LXR2YXVkaW8uIERlZmF1bHQgZGlz
+dHJpYnV0aW9uIHNldHRpbmdzIGFyZQo+IHN1ZmZpY2llbnQuIE9uIHJlY2VudCBVYnV0dSByZWxl
+YXNlcyBzZWVtIHRvIGJlIHByb2JsZW1zIHdpdGggYW4gb3V0IG9mCj4gdHJlZSBhbHNhIHRoZXJl
+LgoKT2sgSSdsbCBzZWUgd2l0aCB0aGlzIHJhdGUgdGhpbmcgYW5kIGxldCB5b3Uga25vdwoKPiAK
+PiBDaGVlcnMsCj4gSGVybWFubgo+IAo+IAo+IApHcmVldGluZ3MuCgotLSAKQ0FORCBGcmVkZXJp
+YwpQcm9kdWN0IE1hbmFnZXIKQU5FVklBCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
+Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
+eC1kdmI=
