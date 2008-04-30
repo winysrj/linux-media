@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from webmail.woosh.co.nz ([202.74.207.2] helo=mail2.woosh.co.nz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1JkOub-0004If-NB
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 21:27:55 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JkOuU-00021l-6r
-	for linux-dvb@linuxtv.org; Fri, 11 Apr 2008 19:27:42 +0000
-Received: from 91.68.208.8 ([91.68.208.8])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 19:27:42 +0000
-Received: from frederic by 91.68.208.8 with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 11 Apr 2008 19:27:42 +0000
-To: linux-dvb@linuxtv.org
-From: Frederic MASSOT <frederic@juliana-multimedia.com>
-Date: Fri, 11 Apr 2008 21:25:30 +0200
-Message-ID: <ftoe35$pdu$1@ger.gmane.org>
-Mime-Version: 1.0
-Subject: [linux-dvb] No TV after an dist-upgrade
+	(envelope-from <wayneandholly@woosh.co.nz>) id 1Jr9R7-0007Wb-AB
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 12:21:19 +0200
+Received: from speedy (203-211-106-230.ue.woosh.co.nz [203.211.106.230]) by
+	woosh.co.nz
+	(Rockliffe SMTPRA 6.1.22) with ESMTP id <B0116164480@mail2.woosh.co.nz>
+	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 22:20:35 +1200
+From: "Wayne and Holly" <wayneandholly@woosh.co.nz>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 30 Apr 2008 22:22:05 +1200
+Message-ID: <000001c8aaac$0a0efb70$fd01a8c0@speedy>
+MIME-Version: 1.0
+Subject: [linux-dvb] Geniatech DVB-S Digistar
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,148 +20,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hi there, I was hoping someone could help me with some trouble I am
+having with the subject TV card.  
+The card seems to be  automagically detected fine and kind of works with
+MythTV (it gets good lock and all of the channels are present) but when
+watching live TV on the frontend it struggles.  I will get perfect
+playback for the first couple of seconds before it begins to skip and
+pixelate such that it is completely unwatchable.  It has the appearance
+of the CPU not being fast enough, or perhaps insufficient RAM but I'm
+sure that is not the case (specs at end of email).  If I record using
+the card without watching live TV it copes far better (only a handfull
+of small skips during a half hour recording) which again suggests the
+system isn't powerful enough.
+I also have a Twinhan 1020a installed and it works with no problems
+whatsoever (no skips at all), is there any chance that having the two
+cards installed could be part of the problem?
 
-There is still one week, I was watching TV (DVB-T) on my PC with
-Kaffeine without problems. My PC uses a Debian Etch, last weekend I do
-an update to Etch (final), then Lenny, since everything works except the
-TV. Strange !?
-
-I use a DVB-T card ASUSTeK P7131 Dual, and I use a custom Linux kernel
-2.6.24 with DVB support. I kept the same kernel (2.6.24) before and
-after the upgrade.
-
-- The card is well recognized by the kernel, dmesg output:
-
-saa7133[0]: found at 0000:05:03.0, rev: 209, irq: 16, latency: 64, mmio:
-0xff7ff000
-saa7133[0]: subsystem: 1043:4876, board: ASUSTeK P7131 Hybrid
-[card=3D112,autodetected]
-saa7133[0]: board init: gpio is 0
-input: saa7134 IR (ASUSTeK P7131 Hybri as /class/input/input4
-saa7133[0]: i2c eeprom 00: 43 10 76 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 d5 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 55 50 ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-tuner 1-004b: chip found @ 0x96 (saa7133[0])
-tda8290 1-004b: setting tuner address to 61
-tuner 1-004b: type set to tda8290+75a
-tda8290 1-004b: setting tuner address to 61
-tuner 1-004b: type set to tda8290+75a
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[0]: registered device radio0
-DVB: registering new adapter (saa7133[0])
-DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: timeout waiting for DSP ready
-tda1004x: found firmware revision 0 -- invalid
-tda1004x: trying to boot from eeprom
-tda1004x: timeout waiting for DSP ready
-tda1004x: found firmware revision 0 -- invalid
-tda1004x: waiting for firmware upload...
-tda1004x: found firmware revision 29 -- ok
-saa7134 ALSA driver for DMA sound loaded
-saa7133[0]/alsa: saa7133[0] at 0xff7ff000 irq 16 registered as card -1
+Below are the lspci and dmesg outputs relevant to the Geniatech:
 
 
-- Devices :
-$ ls -l /dev/dvb/adapter0/
-crw-rw---- 1 root video 212, 4 avr 11 19:55 demux0
-crw-rw---- 1 root video 212, 5 avr 11 19:55 dvr0
-crw-rw---- 1 root video 212, 3 avr 11 19:55 frontend0
-crw-rw---- 1 root video 212, 7 avr 11 19:55 net0
+>From lspci -vnn
 
+01:06.0 Multimedia video controller [0400]: Conexant CX23880/1/2/3 PCI
+Video and Audio Decoder [14f1:8800] (rev 05)
+        Subsystem: Conexant Unknown device [14f1:0084]
+        Flags: bus master, medium devsel, latency 20, IRQ 18
+        Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [44] Vital Product Data
+        Capabilities: [4c] Power Management version 2
 
-- I use the file fr-Vannes, when I scan, I have these messages :
+01:06.2 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video
+and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
+        Subsystem: Conexant Unknown device [14f1:0084]
+        Flags: bus master, medium devsel, latency 64, IRQ 18
+        Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [4c] Power Management version 2
 
-$ sudo scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/fr-Vannes
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/fr-Vannes
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 674167000 0 2 9 3 1 0 0
-initial transponder 698167000 0 2 9 3 1 0 0
-initial transponder 762167000 0 2 9 3 1 0 0
-initial transponder 778167000 0 2 9 3 1 0 0
-initial transponder 818167000 0 2 9 3 1 0 0
->>> tune to:
-674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0502
-WARNING: filter timeout pid 0x0504
-WARNING: filter timeout pid 0x050a
-WARNING: filter timeout pid 0x0500
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0503
-WARNING: filter timeout pid 0x0506
-WARNING: filter timeout pid 0x0505
-WARNING: filter timeout pid 0x0010
->>> tune to:
-698167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:
-762167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:
-778167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:
-818167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-dumping lists (7 services)
-[0201]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:513
-[0207]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:519
-[02ff]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:767
-[0206]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:518
-[0205]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:517
-[0204]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:516
-[0203]:674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRA=
-NSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:515
-Done.
+dmesg
 
+[   23.416140] cx2388x v4l2 driver version 0.0.6 loaded
+[   23.416597] CORE cx88[0]: subsystem: 14f1:0084, board: Geniatech
+DVB-S [card=52,autodetected]
+[   23.416560] ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC3] -> GSI
+18 (level, low) -> IRQ 18
+[   23.565010] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 18,
+latency: 20, mmio: 0xfa000000
+[   23.565063] cx88[0]/0: registered device video0 [v4l2]
+[   23.565082] cx88[0]/0: registered device vbi0
+[   24.076749] cx2388x cx88-mpeg Driver Manager version 0.0.6 loaded
+[   24.904094] cx88[0]/2: cx2388x 8802 Driver Manager
+[   24.904119] ACPI: PCI Interrupt 0000:01:06.2[A] -> Link [APC3] -> GSI
+18 (level, low) -> IRQ 18
+[   24.904125] PCI: Setting latency timer of device 0000:01:06.2 to 64
+[   24.904131] cx88[0]/2: found at 0000:01:06.2, rev: 5, irq: 18,
+latency: 64, mmio: 0xf9000000
+[   25.729842] cx2388x dvb driver version 0.0.6 loaded
+[   25.729847] cx8802_register_driver() ->registering driver type=dvb
+access=shared
+[   25.729851] CORE cx88[0]: subsystem: 14f1:0084, board: Geniatech
+DVB-S [card=52]
+[   25.729854] cx88[0]/2: cx2388x based dvb card
+[   25.921210] DVB: registering new adapter (cx88[0]).
+[   25.921216] DVB: registering frontend 1 (Conexant CX24123/CX24109)...
 
+System specs are:
 
-I have no error messages in the log, it's one week that I seek, I do not
-understand what is no longer working.
+Biostar TF7050-M2 motherboard
+AMD BE-2350 CPU
+4GB DDR2 800 RAM
+320GB Seagate SATAII HDD (160GB partition)
+Abit Airpace PCIe Wifi (using ndiswrapper)
+Matsushita CW-8123-C Slot DVD (from Apple G4)
+PicoPSU-120-WI-25 DC-DC supply
+IguanaIR USB transceiver
+Twinhan 1020a DVB-S pci card
+Geniatech DVB-S Digistar pci card
+Nvidia proprietry driver using TV-out (not HDMI) on 576i
+Mythbuntu 7.10 (64bit kernel 2.6.22-14-generic)
+Fully updated (not upgraded though)
+Latest LinuxTV drivers
 
+Anyone have any ideas?  All and any help greatly appreciated.
 
-Regards.
--- =
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-|              FR=C9D=C9RIC MASSOT               |
-|     http://www.juliana-multimedia.com      |
-|   mailto:frederic@juliana-multimedia.com   |
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3DDebian=3DGNU/Linux=3D=3D=3D
+Cheers
+Wayne
 
 
 _______________________________________________
