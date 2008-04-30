@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout3-sn1.fre.skanova.net ([81.228.11.120])
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Jifoc-0006Sf-0m
-	for linux-dvb@linuxtv.org; Mon, 07 Apr 2008 03:06:31 +0200
-Message-ID: <47F97374.80902@iki.fi>
-Date: Mon, 07 Apr 2008 04:05:56 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <mkrufky@gmail.com>) id 1JrH8g-0007eX-MD
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 20:34:47 +0200
+Received: by yw-out-2324.google.com with SMTP id 9so370285ywe.41
+	for <linux-dvb@linuxtv.org>; Wed, 30 Apr 2008 11:34:37 -0700 (PDT)
+Message-ID: <37219a840804301134q68a86301y2373329d2fef5a2f@mail.gmail.com>
+Date: Wed, 30 Apr 2008 14:34:36 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Eric Cronin" <ecronin@gizmolabs.org>
+In-Reply-To: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
 MIME-Version: 1.0
-To: linuxcbon <linuxcbon@yahoo.fr>
-References: <778001.81401.qm@web26115.mail.ukl.yahoo.com>
-In-Reply-To: <778001.81401.qm@web26115.mail.ukl.yahoo.com>
+Content-Disposition: inline
+References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] RE : Re:  Which DVB-T USB tuner  on linux ?
+Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,143 +22,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-linuxcbon wrote:
-> Thanks for your answer Antti,
-> =
-
-> ARTEC T14BR =
-
-> Chip DiB0700
-> Is the firmware downloaded automaticaly by the kernel ?
-
-It is loaded automatically as it is done always. There is no drivers =
-
-that needs firmware loaded manually. Everyone driver will load firmware =
-
-automatically.
-But if you mean that if firmware is coming from kernel - answer is =
-
-almost 100% no. Firmware is almost always needed to install manually =
-
-from somewhere on the net or from via package manager depending on your =
-
-distribution. Installing firmware is not big issue and it is needed only =
-
-once. Installing drivers from source is more work...
-
-> Does the remote work with it too ?
-
-No idea :)
-
-> AVERMEDIA AVERTV DVB-T VOLAR X
-> Chip DiB0700
-> Seems the same as above, I dont know for the remote.
-> =
-
-> PINNACLE PCTV DVB-T STICK
-> There are different models (eMPIA, DiB7070PB, Pinnacle...)
-> I leave it, I dont want to take the risk to buy the wrong product.
-> =
-
-> There is also the PINNACLE PCTV DVB-T STICK ULTIMATE
-> Chip empiatech  ? It seems good.
-
-Maybe good, but will need also compiling drivers from source.
-
-> Which chip has best reception ?
-
-Thats not easy to say because it depends so many things.
-
-> BR, linuxcbon
-
-I haven't looked kernel sources but I have feeling that Artec T14BR =
-
-could be in the recent kernel. So my opinion as that take Artec and =
-
-probably you don't need to compile drivers from source.
-
-/antti
-
-> =
-
-> --- Antti Palosaari <crope@iki.fi> a =E9crit :
-> =
-
->> linuxcbon wrote:
->>> Hi all,
->>>
->>> I am planning to buy a DVB-T USB tuner but I am a little lost :-(.
->>> I am interested in following products :
->>> ARTEC T14BR
->> works
->>
->>> AVERMEDIA AVERTV DVB-T VOLAR X
->> no idea
->>
->>> PINNACLE PCTV DVB-T STICK
->> there is many PCTV versions, most are working. You should look if it is =
-
->> e71, e72, e73 etc. I think mentioned ones are working.
->>
->>> I dont know if they work OK on linux.
->> Some of those works with recent kernels, others needs compiling drivers =
-
->> from v4l-dvb-master or -devel trees.
->>
->>> Which tuner would you recomment for linux ?
->>>
->>> Thanks and BR, linuxcbon
->> regards
->> Antti
->> -- =
-
->> http://palosaari.fi/
-> =
-
-> =
-
-> =
-
-> =
-
-> =
-
-> =
-
->      =
-
-> _________________________________________________________________________=
-____
-> =
-
-> Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.ya=
-hoo.fr
-> =
-
-> =
-
->       ___________________________________________________________________=
-__________ =
-
-> Envoyez avec Yahoo! Mail. Une boite mail plus intelligente http://mail.ya=
-hoo.fr
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+2008/4/30 Eric Cronin <ecronin@gizmolabs.org>:
+>  I have an HP Pavilion OEM'd HVR-1800 that I'm giving a shot at getting
+> working (PVR-500 and HDHR are my production analog/digital inputs).
+>
+>  I'm running Mythbuntu 8.04 and have tried both with the bundled version of
+> v4l-dvb modules and a hg copy from April 29, and both have the same problem:
+>
+>  The card is detected fine and /dev/dvb/* created.  When I run 'scan
+> us-Cable-Standard-center-frequencies-QAM256' it detects nothing, even on
+> frequencies which I know are QAM256 from the HDHR which is 12" of coax away
+> from the HVR-1800.  Here is an example from the HDHR scan:
+>
+>  SCANNING: 759000000 (us-cable:118, us-irc:118)
+>  LOCK: qam256 (ss=90 snq=52 seq=100)
+>  PROGRAM: 1: 6.1 WPVI-HD
+>  PROGRAM: 2: 10.1 WCAU-DT
+>  PROGRAM: 3: 6.2 WPVI-SD
+>  PROGRAM: 4: 6.3 WPVI-WX
+>  PROGRAM: 5: 10.2 WX-PLUS
+>
+>  and from 'scan -v test-chan118' which has just 759000000 in it:
+>
+>  scanning test-chan118
+>  using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>  >>> tune to: 759000000:QAM_256
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  WARNING: >>> tuning failed!!!
+>  >>> tune to: 759000000:QAM_256 (tuning failed)
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  >>> tuning status == 0x00
+>  WARNING: >>> tuning failed!!!
+>  ERROR: initial tuning failed
+>  dumping lists (0 services)
+>  Done.
+>
+>  I have checked the physical connections best I can.  Connecting the
+> HVR-1800's coax to the PVR-500 sees the analog side of things fine, and the
+> correct jack on the HVR-1800 is being used.
+>
+>  I'm not sure where to go from here debugging things, any suggestions or
+> more data I can provide?  The modprobe-produced info from dmesg is at the
+> end of this message.
 
 
--- =
+Eric,
 
-http://palosaari.fi/
+When you use the scan command to scan for QAM channels, you must
+specify -a2, to signify that you are scanning digital cable.
+
+Try that -- does that work?
+
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
