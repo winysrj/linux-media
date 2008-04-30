@@ -1,17 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bld-mail02.adl2.internode.on.net ([203.16.214.66]
-	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <short_rz@internode.on.net>) id 1JnOKv-0004p1-4d
-	for linux-dvb@linuxtv.org; Sun, 20 Apr 2008 03:27:24 +0200
-Message-ID: <480A9DA0.5060603@internode.on.net>
-Date: Sun, 20 Apr 2008 11:04:24 +0930
-From: Andrew Jeffery <short_rz@internode.on.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <480977B6.5070304@internode.on.net> <20080419102156.GA8217@ts4.de>
-In-Reply-To: <20080419102156.GA8217@ts4.de>
-Cc: Thomas Schuering <schuering@ts4.de>
-Subject: Re: [linux-dvb] FusionHDTV Dual Digital 4 Segfault
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1Jr0Dh-0004Sy-Oe
+	for linux-dvb@linuxtv.org; Wed, 30 Apr 2008 02:30:50 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K0400CS841RCGJ3@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 29 Apr 2008 20:29:54 -0400 (EDT)
+Date: Tue, 29 Apr 2008 20:29:51 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <4817ACDA.1010105@web.de>
+To: Torben Viets <viets@web.de>
+Message-id: <4817BD7F.9000902@linuxtv.org>
+MIME-version: 1.0
+References: <4815B2A9.4060209@web.de> <4815F0AF.4010709@linuxtv.org>
+	<4815FA2B.5030502@web.de> <4815FF67.6050004@linuxtv.org>
+	<4816050D.2040408@web.de> <48161163.9000602@linuxtv.org>
+	<4816186B.3030703@web.de> <48161B2D.6090602@linuxtv.org>
+	<48176236.1020306@web.de> <481763AA.4030702@linuxtv.org>
+	<481767E4.8030608@web.de> <48176969.6070306@linuxtv.org>
+	<4817935E.8090801@web.de> <4817ACDA.1010105@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,85 +37,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+
+> Hey, I've update, now the dvb works with 2.6.25 ant the v4l-dvb hg, I 
+> was sure that I already tried this combinations...
+
+Good, because it's working for various other peopple too.
+
+> 
+> Now, only the analog input have to work (this was the main reason I 
+> bought this card), is it really so hard, because I
+> saw that the HVR-1600 and the HVR-1800 is supported.
 
 
+lol, after all this traffic, bad news for you because analog doesn't 
+work - it never has.
 
-Thomas Schuering wrote:
-| On Sat, Apr 19, 2008 at 02:10:22PM +0930, Andrew Jeffery wrote:
-|> -----BEGIN PGP SIGNED MESSAGE-----
-|> Hash: SHA1
-|>
-|> Hi all,
-|>
-|> Bought myself a Dual Digital 4 the other day and I'm trying to get it up
-|> and running - bumped into a segfault though :(
-|
-| Hi Andrew,
-|
-| I suppose you tried the standard-branch of v4l, didn't you?
-| That one also caused the same problems on my side.
-|
-| Try this one instead:
-| hg clone http://linuxtv.org/hg/~pascoe/xc-test/
-
-Yeah I was using the standard branch and tried the xc-test branch after
-I emailed :) It started working with Chris' branch but now I'm having
-troubles with the USB device on the card. This is what I'm getting in dmesg:
-
-...
-usb usb8: configuration #1 chosen from 1 choice
-hub 8-0:1.0: USB hub found
-hub 8-0:1.0: 4 ports detected
-usb 8-1: new high speed USB device using ehci_hcd and address 2
-usb 8-1: device descriptor read/64, error -71
-usb 8-1: device descriptor read/64, error -71
-usb 8-1: new high speed USB device using ehci_hcd and address 3
-usb 8-1: device descriptor read/64, error -71
-usb 8-1: device descriptor read/64, error -71
-usb 8-1: new high speed USB device using ehci_hcd and address 4
-EXT3 FS on sda3, internal journal
-DVB: registering new adapter (saa7133[0])
-DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-usb 8-1: device not accepting address 4, error -71
-tda1004x: setting up plls for 48MHz sampling clock
-usb 8-1: new high speed USB device using ehci_hcd and address 5
-usb 8-1: device not accepting address 5, error -71
-usb 8-2: new high speed USB device using ehci_hcd and address 6
-usb 8-2: configuration #1 chosen from 1 choice
-...
-
-If I modprobe the drivers (tuner-xc2028, zl10353 and dvb-usb-cxusb) in
-nothing happens, dmesg just says that a new interface has been loaded -
-no hardware initialisation messages or anything. It doesn't look very
-promising and it happens every boot since I got it working with Chris'
-drivers... not sure if it's correlated :( I've read the errors are
-something to do with the device getting suspended so I set noapic and
-acpi=off but that didn't help either :/ I'll chuck the card in a windows
-box and see what happens, see if that can kickstart it or something.
-Anything else I should try?
-
-Andrew
-|
-| That helped removing the segfault.
-|
-|
-| Hope this helps.
-|
-| Regards, Thomas
-
-- --
-"Encouraging innovation by restricting the spread & use of information
-seems highly counterintuitive to me." - Slashdot comment
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFICp2g/5R+ugbygqQRAlPyAJ9ipjJzwx/hmCrhzl+xnnFew6WUFwCeK/wz
-qqxc55s+RJj9zRdXT6vsrmU=
-=Hd3l
------END PGP SIGNATURE-----
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
