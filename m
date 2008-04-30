@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DFiGsa022347
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 11:44:16 -0400
-Received: from web901.biz.mail.mud.yahoo.com (web901.biz.mail.mud.yahoo.com
-	[216.252.100.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DFi0lL005239
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 11:44:01 -0400
-Date: Sun, 13 Apr 2008 17:43:55 +0200 (CEST)
-From: Markus Rechberger <mrechberger@empiatech.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Video <video4linux-list@redhat.com>, Linux DVB <linux-dvb@linuxtv.org>
-In-Reply-To: <20080413122844.53c5002b@areia>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UFxYUt024883
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 11:59:34 -0400
+Received: from smtp2b.orange.fr (smtp2b.orange.fr [80.12.242.145])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UFwvh7012371
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 11:58:58 -0400
+Date: Wed, 30 Apr 2008 17:58:51 +0200
+From: mahakali <mahakali@orange.fr>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080430155851.GA5818@orange.fr>
+References: <20080428182959.GA21773@orange.fr>
+	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>
+	<20080429192149.GB10635@orange.fr>
+	<1209507302.3456.83.camel@pc10.localdom.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Message-ID: <454886.97234.qm@web901.biz.mail.mud.yahoo.com>
-Cc: 
-Subject: RE: [ANNOUNCE] Videobuf improvements to allow its usage with USB
-	drivers
+In-Reply-To: <1209507302.3456.83.camel@pc10.localdom.local>
+Cc: video4linux-list@redhat.com
+Subject: Re: Card Asus P7131 hybrid > no signal
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,218 +31,159 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Apr 30, 2008 at 12:15:02AM +0200, hermann pitton wrote :
 
---- Mauro Carvalho Chehab <mchehab@infradead.org>
-schrieb:
-
+> > 
+> >   
+> > The problem is: No picture .... I thinkk, if you
+> > have no signal, it is pretty normal.
+> > 
+> > What are the options you pass to the saa7134 module ?
+> > I mean card=<number> tuner=<number>
+> > I have card=112 tuner=61 (auto detect).
+> > In one Saa7134-hardware how-to the autor gives
+> > following values : card=78 tuner=54.
+> > 
+> > Any help would be great.
+> > 
+> > mahakali
+> > 
+> > 
 > 
-> Videobuf Improvements for USB Devices
-> =====================================
+> Hello,
 > 
-> Videobuf history
-> ================
+> if you have card=112 tuner=61 auto detected something goes very wrong.
 > 
-> If you are familiar with V4L and kernel development,
-> you probably know that one
-> of the hardest part of the driver is to control the
-> video stream that arrives
-> from the device, and need to be sent to an userspace
-> application.
+> On any recent "official" code the card should be auto detected as
+> card=112, tuner=54, which is the tda8290 analog IF demodulator within
+> the saa7131e and behind its i2c gate is a tda8275ac1 at address 0x61
+> which is correct in your logs.
 > 
-> To address this task, a kernel module, called
-> videobuf, is widely used for
-> quite a long time at the PCI devices. 
-> 
-> However, previously, this driver were restricted to
-> DMA devices. Specifically,
-> it used to work only with PCI devices whose steams
-> are provided via DMA, and
-> for chipsets that supports scatter/gather mode. 
-> 
-> On scatter/gatter DMA mode, the data I/O is splitted
-> into several small buffers.
-> This worked fine for bttv, saa7134 and cx88 devices,
-> whose PCI bridge is
-> capable of handling such transfers.
-> 
-> However, due to their specific hardware
-> restrictions, videobuf couldn't be used
-> by USB devices. Due to that, each V4L USB driver had
-> to implement their own
-> buffering schema.
-> 
-> I've started some time ago a project to make
-> videobuf more generic. In order to
-> to that, videobuf were splitted into two files:
-> 
-> 	- videobuf-core - with core features, not specific
-> to DMA or PCI;
-> 	- videobuf-dma-sg - for PCI DMA scatter/gather
-> devices.
-> 
-> After that, I've created another videobuf instance,
-> called videobuf-vmalloc.
-> 
-> This one uses memory alloced with vmalloc_user().
-> This is the same approach used
-> by other USB drivers. The first test for the newer
-> core driver were to port the
-> virtual video driver (vivi) to work with it.
-> 
-> The videobuf split revealed several bad locks inside
-> the driver.
-> 
-> Several developers helped to solve those issues,
-> including: Brandon Philips,
-> Nick Piggin, Jonathan Corbet, Trent Piepho,  Adrian
-> Bunk and Andrew Morton.
-> 
-> Also, Guennadi Liakhovetski removed PCI specific
-> details, on videobuf-dma-sg.
-> Now, the same driver can also be used by other
-> architectures that don't provide
-> PCI interfaces, like ARM.
-> 
-> videobuf for USB devices
-> ========================
-> 
-> The last round for the code improvement just
-> happened this week: the conversion
-> of em28xx to use videobuf.
-> 
-> This round happened thanks to the help of Aidan
-> Thornton, that got a proposed
-> patch I send him, and help me to fix and address
-> several issues on this complex
-> task.
-> 
-> So, the first USB driver that is working perfectly
-> is available for testing at:
-> 	http://linuxtv.org/hg/~mchehab/em28xx-vb
-> 
-> This driver were tested with several widely used
-> userspace apps: tvtime,
-> mplayer, xawtv and mythtv. It were also tested with
-> the testing tool 
-> v4l2-apps/test/code_example, available inside the
-> tree.
-> 
-> I'll port the changesets soon to the master
-> development trees.
-> 
-> The new approach has several advantages over the old
-> one:
-> 	- buffering code inside em28xx-video is now clean
-> and easy to
-> understand;
-> 
-> 	- the same buffering code can be easily ported to
-> other USB drivers;
-> 
-> 	- by using the same videobuf code, all drivers will
-> have the same
-> behaviour. This will help userspace apps to be more
-> independent of specific
-> devices;
-> 
-> 	- the performance of the newer code is much more
-> optimized than the
-> previous code;
-> 	
-> 	- redundant streaming handling code is now inside
-> V4L core;
-> 
-> 	- It is now easy to add overlay and userptr support
-> for those drivers;
-> 
-> 	- It is now easy to use videobuf-dvb for USB
-> devices also.
-> 
-> Things yet to be done
-> =====================
-> 
-> 1) videobuf operating memory modes:
-> 
-> The old videobuf and the newvideobuf-dma-sg supports
-> all streaming modes
-> present at V4L1 and V4L2 API:
-> 	VIDIOCMBUF;
-> 	reading /dev/video?;
-> 	kernel mmapped memory;
-> 	userspace mmapped memory;
-> 	overlay mode, to send video input streams directly
-> into video adapter memory.
-> 
-> The new videobuf-vmalloc shares the same core stuff.
-> However, it currently
-> doesn't implement userspace mmapped memory or
-> overlay mode. The other three
-> modes are already supported. 
-> 
-> It doesn't seem to be hard to add the missing modes.
-> Probably, the only
-> function that will need more code is
-> videobuf_iolock(). I've already started to
-> code a patch to add userspace mmap. This may be
-> useful to allow some userspace
-> apps that relies on this method to work.
-> 
-> 2) videobuf-dvb
-> 
-> This driver allows using the same videobuf handling
-> also for DVB devices. This
-> driver works fine with videobuf-dma-sg.
-> Theoretically, it should work fine also
-> with USB drivers.
-> 
-> 3) tm6000
-> 
-> This is the first driver I've made to use videobuf.
-> Unfortunately, the driver
-> is loosing URB frames. I suspect that it is a
-> hardware problem. I expect to
-> finish this driver soon, since there are several new
-> TV devices using this
-> chipset.
-> 
-> 4) porting other usb drivers to use videobuf
-> 
-> This will help to cleanup their source code, and fix
-> some API non-compliance.
-> 
-> 5) videobuf for non scatter/gather DMA
-> 
-> There are a few devices in the market that supports
-> only contiguous DMA
-> transfer. This is the case, for example of Marvel
-> cafe chips, used on OLPC.
-> 
-> For those devices, it would be interesting to create
-> a new videobuf module, and
-> migrate them to this solution.
-> 
-> I'd like to thank all of you that helped with this
-> development, and to the
-> improvement of the Linux kernel support for video
-> input devices.
-> 
-> APPENDIX: Performance tests of the both versions of
-> em28xx driver
+> Hopefully you are only confusing tuner address 61 with tuner type,
+> auto detection should be OK then.
 >
-=================================================================
-> 
-> This is the performance tests I did, running
-> code_example to get 1,000 frames
-> @29.995 Hz (about 35 seconds of stream), tested on a
-> i386 machine, running at
-> 1,5GHz:
-> 
-> 
+module saa7134 is now loading with following parameters :
 
-This sounds interesting, where can someone find this
-code_example?
+card=112 tuner=54 i2c_scan=1 secam=L
+ 
+> Analog TV is on the upper antenna connector (cable TV) and you need a
+> saa7134 insmod option "secam=L" in France. ("modinfo saa7134")
+> On La Corse may still be some "secam=Lc" broadcast, not sure about that.
+I don't have any upper or lower connector , only right and link.
+°right connector is described as RF-FM and link as CAT-TV
+> DVB-T (numerique) is on the lower antenna connector where also is
+> radio/FM.
+> 
+> We have many reports that there often is an positive offset of about
+> 166000Hz needed in France, which you don't seem to use on your digital
+> tuning attempt. If this is needed and missing, the tda10046 will fail.
+> You might try to add it.
+> 
+> Download dvb-apps from linuxtv.org mercurial and check if there is an
+> updated initial scan file for your region in scan/dvb-t.
 
-Markus
+Nothing new.
+> example with offset:
+> 
+> # Paris - France - various DVB-T transmitters
+> # contributed by Alexis de Lattre < >
+> # Paris - Tour Eiffel      : 21 24 27 29 32 35
+> # Paris Est - Chennevières : 35 51 54 57 60 63
+> # Paris Nord - Sannois     : 35 51 54 57 60 63
+> # Paris Sud - Villebon     : 35 51 56 57 60 63
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 474166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 498166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 538166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+> T 714166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 786166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> T 810166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+>
+ Itried it now with fr_Auxerre + offset
+#### Auxerre - Molesmes ####
+#R1
+T 570166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+#R2
+T 794166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+#R3
+T 770166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+#R4
+T 546166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+#R5
+T 586166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+#R6
+T 562166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+
+but scanning fails ..... 
+ 
+> You can also try to "scan" on a known frequency and bandwidth and set
+> the rest to AUTO AUTO ... or get "wscan" or try with "kaffeine".
+ I tried it with kaffeine = no result
+ I tried it with me-tv :
+
+me-tv        
+Me TV-Message: 30.04.2008 17:37:26 - Me TV Version: 0.5.17
+Me TV-Message: 30.04.2008 17:37:27 - Chargement du fichier glade
+'/usr/share/me-tv/glade/me-tv.glade' en cours
+Me TV-Message: 30.04.2008 17:37:52 - Création du GEP dans
+'/home/claude/.me-tv/epg.xml'
+Me TV-Message: 30.04.2008 17:37:52 - GEP chargé
+initial transponder 570166000 0 9 9 3 1 4 0
+initial transponder 794166000 0 9 9 3 1 4 0
+initial transponder 770166000 0 9 9 3 1 4 0
+initial transponder 546166000 0 9 9 3 1 4 0
+initial transponder 586166000 0 9 9 3 1 4 0
+initial transponder 562166000 0 9 9 3 1 4 0
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+WARNING: >>> tuning failed!!!
+>>> tune to:  (tuning failed)
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+
+> You might also try to increase the tuning timeout.
+> 
+> Good Luck,
+> 
+> Hermann
+
+Any idea ??
+
+Thanks
+
+mahakali
+
+PS :
+I was asking myself , perhaps is something wrong with the connection, I
+had to  put together cable and plug, so perhaps a bad electrical
+transmission (??) but as I already said tvtime is dectecting some
+channels but no image
 
 --
 video4linux-list mailing list
