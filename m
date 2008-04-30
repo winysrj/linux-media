@@ -1,34 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UHFwLC024423
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 13:15:58 -0400
-Received: from pat.laterooms.com (fon.laterooms.com [194.24.251.1])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UHFU9s009192
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 13:15:30 -0400
-Received: from pat.laterooms.com (localhost.localdomain [127.0.0.1])
-	by pat.laterooms.com (Postfix) with ESMTP id F3D6DC28B
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 18:15:28 +0100 (BST)
-Received: from eddie.acentral.co.uk
-	(80-192-159-113.cable.ubr04.pres.blueyonder.co.uk [80.192.159.113])
-	by pat.laterooms.com (Postfix) with ESMTP id D60C2C25F
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 18:15:28 +0100 (BST)
-Received: from eddie.acentral.co.uk (eddie.acentral.co.uk [127.0.0.1])
-	by eddie.acentral.co.uk (Postfix) with ESMTP id F07F075DB8
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 18:15:26 +0100 (BST)
-Received: from [10.0.0.23] (unknown [10.0.0.23])
-	by eddie.acentral.co.uk (Postfix) with ESMTP id D948775D07
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 18:15:26 +0100 (BST)
-From: Gavin Hamill <gdh@acentral.co.uk>
-To: video4linux-list@redhat.com
-In-Reply-To: <1209506151.5699.7.camel@palomino.walls.org>
-References: <1209505252.6270.11.camel@gdh-home>
-	<1209506151.5699.7.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Wed, 30 Apr 2008 18:15:28 +0100
-Message-Id: <1209575728.6125.5.camel@gdh-home>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UCaJRd001148
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 08:36:19 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UCZaEn014832
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 08:36:09 -0400
+Received: by yw-out-2324.google.com with SMTP id 2so235386ywt.81
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 05:36:09 -0700 (PDT)
+Message-ID: <37219a840804300536y720facfeg91872b207c617989@mail.gmail.com>
+Date: Wed, 30 Apr 2008 08:36:09 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Ingo Molnar" <mingo@elte.hu>
+In-Reply-To: <20080430112138.GA11844@elte.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Re: Ident for Bt848 card
+Content-Disposition: inline
+References: <20080430110115.GA5633@elte.hu> <s5hiqxzwqak.wl%tiwai@suse.de>
+	<20080430111516.GA9954@elte.hu> <20080430111803.GA11628@elte.hu>
+	<20080430112138.GA11844@elte.hu>
+Cc: video4linux-list@redhat.com, Takashi Iwai <tiwai@suse.de>,
+	Mike Galbraith <efault@gmx.de>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [v4l-dvb-maintainer] [patch, -git] media/video/sound build fix,
+	TEA5761/TEA5767
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,38 +36,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-04-29 at 17:55 -0400, Andy Walls wrote:
-> 
-> 109e is BrookTree's vendor id and 0350 is the id for the BT848.  Many
-> different BT848 based cards could have this vendor id:device id
-> combination.
+On Wed, Apr 30, 2008 at 7:21 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>  Subject: dvb: fix3
+>  From: Ingo Molnar <mingo@elte.hu>
+>  Date: Mon Apr 28 23:22:13 CEST 2008
+>
+>  Signed-off-by: Ingo Molnar <mingo@elte.hu>
+>  ---
+>   drivers/media/video/cx23885/Kconfig |    2 ++
+>   1 file changed, 2 insertions(+)
+>
+>  Index: linux/drivers/media/video/cx23885/Kconfig
+>  ===================================================================
+>  --- linux.orig/drivers/media/video/cx23885/Kconfig
+>  +++ linux/drivers/media/video/cx23885/Kconfig
+>  @@ -9,6 +9,8 @@ config VIDEO_CX23885
+>         select VIDEO_IR
+>         select VIDEOBUF_DVB
+>         select VIDEO_CX25840
+>  +       select VIDEO_CX2341X
+>  +       select DVB_DIB7000P
+>         select MEDIA_TUNER_MT2131 if !DVB_FE_CUSTOMISE
+>         select DVB_S5H1409 if !DVB_FE_CUSTOMISE
+>         select DVB_LGDT330X if !DVB_FE_CUSTOMISE
 
-I see. So at the moment although mine is detected as:
 
-bttv0: Bt848 (rev 18) at 0000:03:03.0, irq: 22, latency: 64, mmio:
-0xee000000
-bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
-bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+Ingo,
 
-.. setting this PCI ID to be a very cut down card would possibly kill
-support for the tuner/audio on other cheapo cards out there which are
-only working by way of probing by the driver?
+It should actually be as follows:
 
-> What does "lspci -nv" give as the subsystem ID for this card?  You may
-> find it matches up with with one of the entries in in bttv-cards.c.
 
-It doesn't:
 
-03:03.0 0400: 109e:0350 (rev 12)
-	Flags: bus master, medium devsel, latency 64, IRQ 22
-	Memory at ee000000 (32-bit, prefetchable) [size=4K]
+[PATCH] cx23885: fix kbuild dependencies
 
-Almost every other device from lspci -vn has a Subsystem, but not this
-one. Sounds like I'm out of luck, then. Ah well :/
+Thanks to Ingo Molnar for finding this.
 
-Cheers,
-Gavin.
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
 
+--- linux.orig/drivers/media/video/cx23885/Kconfig
++++ linux/drivers/media/video/cx23885/Kconfig
+@@ -9,6 +9,8 @@ config VIDEO_CX23885
+ 	select VIDEO_IR
+ 	select VIDEOBUF_DVB
+ 	select VIDEO_CX25840
++	select VIDEO_CX2341X
++	select DVB_DIB7000P if !DVB_FE_CUSTOMISE
+ 	select MEDIA_TUNER_MT2131 if !DVB_FE_CUSTOMISE
+ 	select DVB_S5H1409 if !DVB_FE_CUSTOMISE
+ 	select DVB_LGDT330X if !DVB_FE_CUSTOMISE
 
 --
 video4linux-list mailing list
