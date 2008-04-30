@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3OEa4Qq019567
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:36:04 -0400
-Received: from mx-1.enea.se (mx-1.enea.se [192.36.1.70])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3OEZfML004083
-	for <video4linux-list@redhat.com>; Thu, 24 Apr 2008 10:35:51 -0400
-From: Johan Hedlund <johan.hedlund@enea.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080424113125.7fd2de52@gaivota>
-References: <1209046379.9435.5.camel@ThePenguin>
-	<20080424113125.7fd2de52@gaivota>
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Date: Thu, 24 Apr 2008 16:35:35 +0200
-Message-Id: <1209047735.9435.8.camel@ThePenguin>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UJ4PB2003944
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 15:04:25 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UJ4EYC019142
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 15:04:14 -0400
+Date: Wed, 30 Apr 2008 16:03:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Message-ID: <20080430160354.29dfe255@gaivota>
+In-Reply-To: <Pine.LNX.4.64.0804300953140.480@pub4.ifh.de>
+References: <20080429185009.716c3284@gaivota>
+	<Pine.LNX.4.64.0804300953140.480@pub4.ifh.de>
 Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
-Subject: Re: V4L2_PIX_FMT_SBGGR16 not in kernel
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES] V4L/DVB updates and fixes
+ for 2.6.26
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +31,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am developing my own capture drivers for our own developed hardware
-based on a driver that does not exist in mainline. This driver used a
-uyuv format, but since we want to use the raw bayer format with 10-bit
-color resolution I need to change the format.
+Hi Patrick
 
-/Johan
+On Wed, 30 Apr 2008 10:02:43 +0200 (CEST)
+Patrick Boettcher <patrick.boettcher@desy.de> wrote:
 
-
-
-On tor, 2008-04-24 at 11:31 -0300, Mauro Carvalho Chehab wrote:
-> On Thu, 24 Apr 2008 16:12:59 +0200
-> Johan Hedlund <johan.hedlund@enea.com> wrote:
+> Hi Mauro,
 > 
-> > Hello
-> > 
-> > I am working on a application that will use V4L2 on a linux-2.6-22
-> > kernel. I am interested in using the format V4L2_PIX_FMT_SBGGR16 'BA82'
-> > for my captured images. But it seems like I only can find it the in the
-> > V4L2 specification and not in the mainline kernel. Is this format not a
-> > standard format that should be in the mainline kernel? Can I just add
-> > the definition to my code and use it or will it break something else?
+> sorry to say that now and not earlier, but:
 > 
-> If it isn't at mainline kernel, there's no in-kernel drivers supporting it. It
-> is better to use a format that is already supported by the drivers.
+> On Tue, 29 Apr 2008, Mauro Carvalho Chehab wrote:
+> > .../{dvb/frontends => common/tuners}/mt2266.c      |    0
+> > .../{dvb/frontends => common/tuners}/mt2266.h      |    4 +-
 > 
-> Cheers,
-> Mauro
+> The mt2266 is a zero-IF (baseband) tuner. I think there is no analog 
+> decoder for this kind of tuners.
+
+Ah, ok. I'm not 100% sure, but I think some chips, like cx88 could theoretically
+support a baseband tuner. But you're right: there's no known board using mt2266. 
+
+> Maybe the move was not necessary, but maybe all tuners should go to 
+> common.
+
+Good point. 
+
+It seems easier to maintain if we should move all terrestrial/cable [1]
+(analog and/or digital) tuners into common/tuners. 
+
+Cheers,
+Mauro
+
+
+[1] I don't see any technical sense of moving satellite tuners, except for
+having just one place for all tuners, or if there are some tendency of hybrid
+satellite/terrestrial tuners.
 
 --
 video4linux-list mailing list
