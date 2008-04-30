@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3DKtfkT019213
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 16:55:41 -0400
-Received: from web906.biz.mail.mud.yahoo.com (web906.biz.mail.mud.yahoo.com
-	[216.252.100.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m3DKtNjn023862
-	for <video4linux-list@redhat.com>; Sun, 13 Apr 2008 16:55:24 -0400
-Date: Sun, 13 Apr 2008 22:55:18 +0200 (CEST)
-From: Markus Rechberger <mrechberger@empiatech.com>
-To: "H. Willstrand" <h.willstrand@gmail.com>
-In-Reply-To: <175f5a0f0804131349id288b3jca581ba5efd3ba17@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m3UEDIPR022855
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 10:13:18 -0400
+Received: from portal.bppiac.hu (portal.bppiac.hu [213.253.216.130])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m3UEChtK027836
+	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 10:12:44 -0400
+Message-ID: <48187E5A.6040008@bppiac.hu>
+Date: Wed, 30 Apr 2008 16:12:42 +0200
+From: Farkas Levente <lfarkas@bppiac.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+To: Farkas Levente <lfarkas@bppiac.hu>, video4linux-list@redhat.com
+References: <48185C99.807@bppiac.hu> <20080430135414.GA1198@daniel.bse>
+In-Reply-To: <20080430135414.GA1198@daniel.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Message-ID: <274651.68105.qm@web906.biz.mail.mud.yahoo.com>
-Cc: Video <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [ANNOUNCE] Videobuf improvements to allow its usage with USB
-	drivers
+Cc: 
+Subject: Re: [Fwd: [gst-devel] RFC: multi channel frame grabber card support]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,116 +27,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
---- "H. Willstrand" <h.willstrand@gmail.com> schrieb:
-
-> On Sun, Apr 13, 2008 at 10:34 PM, Markus Rechberger
-> <mrechberger@empiatech.com> wrote:
-> >
-> >  --- Mauro Carvalho Chehab <mchehab@infradead.org>
-> >  schrieb:
-> >
-> >
-> >
-> > > On Sun, 13 Apr 2008 18:17:54 +0200 (CEST)
-> >  > Markus Rechberger <mrechberger@empiatech.com>
-> wrote:
-> >  >
-> >  > > >        Conclusion:
-> >  > >
-> >  > > > The time consumption to receive the stream
-> where
-> >  > reduced from about 33.38 seconds to 0.05
-> seconds
-> >  > >
-> >  > > the question is moreover what made
-> capture_example
-> >  > go
-> >  > > up to 100% CPU in the first try and to 0% in
-> the
-> >  > > second one.
-> >  > > I'm not sure about the old implementation in
-> the
-> >  > > original driver, although I'm just curious
-> about
-> >  > the
-> >  > > details here. xawtv usually uses very little
-> >  > cputime
-> >  > > at all.
-> >  > > If I use
-> >  > > "$ time mplayer tv:// -tv driver=v4l2" it
-> shows up
-> >  >
-> >  > >
-> >  > > real 0m40.972s
-> >  > > user 0m0.230s
-> >  > > sys  0m0.050s
-> >  > >
-> >  > > your benchmark is a bit unclear.
-> >  >
-> >  > The advantage of using capture_example for
-> benchmark
-> >  > tests is that it is a very
-> >  > simple mmap loop, without multi-thread, and
-> just
-> >  > discarding the return. With
-> >  > this, you're timing just the minimal
-> requirements
-> >  > for receiving frames.
-> >  >
-> >  > A TV application will also need to use the
-> video
-> >  > adapter to present images, and
-> >  > may do some other tasks, like running DSP
-> algorithms
-> >  > for de-interlacing. It may
-> >  > also discard frames, if there's not enough CPU
-> to
-> >  > work will all of them. So,
-> >  > you will never know how much of those times are
-> due
-> >  > to V4L kernelspace part.
-> >  >
-> >  > On the tests I did here with TV applications,
-> the
-> >  > amount of performance,
-> >  > reported by "top" also indicated that the
-> previous
-> >  > approach were worse.
-> >  >
-> >  > For example, on the same centino machine @1.5
-> GHZ,
-> >  > mplayer with "-tv driver=v4l2"
-> >  > were ranging from 30% to 75% of CPU. With
-> videobuf,
-> >  > the CPU consumption were
-> >  > close to 23%, without much variation.
-> >  >
-> >
-> >  my eeePC shows up 0-5% CPU usage with mplayer
-> >  fullscreen without videobuf, seems more like
-> >  something's broken in your testapplication or
-> >  somewhere else?
-> >
+Daniel Glöckner wrote:
+> On Wed, Apr 30, 2008 at 01:48:41PM +0200, Farkas Levente wrote:
+>> we'd like to build in this case n pipeline for the n input channel. one
+>> of the simple example IVC-100 card which has one bt878 chip and 4
+>> composite input and one 4 channel multiplexer.
 > 
-> Using the em28xx?
-> My is about 40-70% CPU...
+> Are you familiar with the capabilities of the bt878?
+> If not, here is the datasheet:
+> http://conexant.com/servlets/DownloadServlet/DSH-200115-001.pdf?docid=116&revid=1
+
+yes.
+
+> You can only capture from one channel at a time.
+> So you will get only 6.25 full size PAL frames per second on each
+> channel if you use all four channels AND THE CHANNELS ARE SYNCHRONIZED.
+> This synchronization can only be done with some cameras.
+> If you can't synchronize your framerate will drop even more.
+> I don't know if there are additional resynchronization delays if the
+> bt878 doesn't detect vertical sync when it is expected.
 > 
+> The card's driver would have to change all parameters on IRQ.
+> Can we guarantee that the interrupt is handled in Linux before the next
+> frame starts?
+> The "white crush" adaptive algorithm of the chip will result in bad
+> pictures if the inputs have completely different white levels. It should
+> be disabled.
+> 
+> If this is to be done, I propose that struct v4l2_buffer should be
+> extended to point to the parameters that should be used for the picture.
+> 
+> How these parameters should be stored is another question..
 
-with mplayer yes.
-I can provide a login to that eeePC to verify it by
-yourself even.
+the bt878 was just one example. but this is one of the basic (and 
+cheapest) card. of course there are other card which has more "power" 
+but the problem remain the same in all case.
+- should we have to create such a kernel driver for _one_ card which has 
+_more_ logical/user space device or as the current case _one_ user space 
+device?
+- if we've _one_ user space device with multiple (4, 8, 16, 24) input 
+channel then we should have to create one gstreamer source element with 
+multiple pads or one element with one pad, but we can create more such 
+elements and they are somehow use the same hardware device?
 
-The eeePC comes with a 2.6.21.4 kernel, the em28xx
-module is from mcentral.de (and only that module),
-although I don't think that matters.
-
-tvtime needs more cputime because it does
-deinterlacing ~5-20% 
-
-Again on the eeePC.
-
-Markus
+-- 
+   Levente                               "Si vis pacem para bellum!"
 
 --
 video4linux-list mailing list
