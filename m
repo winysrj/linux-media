@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
+Received: from rv-out-0506.google.com ([209.85.198.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <krzysztof.burghardt@gmail.com>) id 1JvW8F-0006lN-Qf
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 13:23:53 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so1883405fka.1
-	for <linux-dvb@linuxtv.org>; Mon, 12 May 2008 04:23:48 -0700 (PDT)
-Message-ID: <80bd11420805120423x3e715fcneb2ced033aeaada7@mail.gmail.com>
-Date: Mon, 12 May 2008 13:23:47 +0200
-From: "Krzysztof Burghardt" <krzysztof@burghardt.pl>
-To: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-In-Reply-To: <63380.123.201.45.12.1210590505.squirrel@203.200.233.138>
+	(envelope-from <mrechberger@gmail.com>) id 1JrevB-0007kI-De
+	for linux-dvb@linuxtv.org; Thu, 01 May 2008 21:58:28 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so701052rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 01 May 2008 12:58:19 -0700 (PDT)
+Message-ID: <d9def9db0805011258v664fdcbegcff266581670b4a6@mail.gmail.com>
+Date: Thu, 1 May 2008 21:58:19 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Juan Antonio Garcia" <juanantonio_garcia_01@yahoo.es>
+In-Reply-To: <905882.45101.qm@web23108.mail.ird.yahoo.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <63380.123.201.45.12.1210590505.squirrel@203.200.233.138>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [Fwd: EPG format]
+References: <905882.45101.qm@web23108.mail.ird.yahoo.com>
+Cc: Jakob Steidl <j.steidl@liwest.at>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB driver for Pinnacle PCTV200e and PCTV60e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,26 +28,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/5/12 Gurumurti Laxman Maharana <gurumurti@nkindia.com>:
->  I am looking for information EPG format. Can any body guide me in this
->  regard. How EPGs are formated and streamed along with the programs.
->  Thanks with regards.
+Hi,
 
-Electronic Programme Guide is an application, so you can implement it
-on your own.
 
-If you want to read about Service Information (SI) in DVB (data you
-see in EPG comes from SI) start with  ETSI EN 300 468[1] and Event
-Information Table (EIT) section. All DVB specifications are available
-from dvb.org[2].
+On 5/1/08, Juan Antonio Garcia <juanantonio_garcia_01@yahoo.es> wrote:
+>
+> Hi,
+>
+> I updated the driver for being supported in kernel 2.6.24 (Ubuntu 8.04).
+>
+> I am distributing the update thought the Ubuntu forums, but it would be
+> better to distribute it to more users. So Linux has more HW supported.
+>
+> What it should be done so it is included in the v4l tree?
+>
 
-[1] I'm not sure if they like deep links, but just put spec name to
-Google to get URL to PDF
-[2] http://www.dvb.org/technology/standards/
+I forwarded the mail to the linux-dvb ML.
 
--- 
-Krzysztof Burghardt <krzysztof@burghardt.pl>
-http://www.burghardt.pl/
+> Now the driver supports 2 devices:
+>
+> - Pinnacle PCTV 200e
+> - Pinnacle PCTV 60e
+>
+> The driver wiki is:
+>
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_200e
+>
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
