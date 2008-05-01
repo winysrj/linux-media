@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.187])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1JzccM-0005m8-2q
-	for linux-dvb@linuxtv.org; Fri, 23 May 2008 21:07:55 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so827627tib.13
-	for <linux-dvb@linuxtv.org>; Fri, 23 May 2008 12:07:47 -0700 (PDT)
-Message-ID: <412bdbff0805231207g38c3cfeet7e20edda43561160@mail.gmail.com>
-Date: Fri, 23 May 2008 15:07:45 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <mkrufky@linuxtv.org>) id 1JrPPj-0003GV-5J
+	for linux-dvb@linuxtv.org; Thu, 01 May 2008 05:24:56 +0200
+Message-ID: <481937FD.7000908@linuxtv.org>
+Date: Wed, 30 Apr 2008 23:24:45 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Warning regarding Ubuntu 8.04, mplayer,
-	and some dvb drivers
+To: Eric Cronin <ecronin@gizmolabs.org>
+References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
+	<37219a840804301134q68a86301y2373329d2fef5a2f@mail.gmail.com>
+	<37219a840804301136r71b240afi16dcf75b5442fe1b@mail.gmail.com>
+	<B3017A65-6616-4FBF-BF82-30B3F69B6CAA@gizmolabs.org>
+	<48190CDB.3080307@linuxtv.org>
+	<BBCA0FD2-7BB0-44C4-9DF9-DF65DADEECFA@gizmolabs.org>
+In-Reply-To: <BBCA0FD2-7BB0-44C4-9DF9-DF65DADEECFA@gizmolabs.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,45 +30,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Just an FYI in case people run into mplayer problems with Ubuntu 8.04
-(I don't know what other drivers this affects, but I would assume just
-about all of them)
+Eric Cronin wrote:
+>
+> On Apr 30, 2008, at 8:20 PM, Michael Krufky wrote:
+>> Eric Cronin wrote:
+>>>
+>>> On Apr 30, 2008, at 2:36 PM, Michael Krufky wrote:
+>>>
+>>>>>
+>>>>> Eric,
+>>>>>
+>>>>> When you use the scan command to scan for QAM channels, you must
+>>>>> specify -a2, to signify that you are scanning digital cable.
+>>>>>
+>>>>> Try that -- does that work?
+>>>>
+>>>>
+>>>> My bad -- I meant, "-A 2"  (capitol A, space, 2)
+>>
+>> scan -A 2 -vvv dvb-apps/util/scan/atsc/us-Cable-Standard-whatever >
+>> channels.conf
+>>
+>> Is THAT what you're doing to scan ?
+>>
+>>
+>> It looks like what you were doing was scan a tuned frequency for pids.
+>> If you want to do THAT, then you must actually be tuned to the given
+>> frequency.  you need to azap SOME_CHANNEL -r, and keep that running
+>> before attempting to run 'scan -c' ...  I think you should try the scan
+>> command that I mentioned above.
+>>
+>> HTH,
+>>
+>> Mike
+>>
+>
+>
+> I was only using one -v, but the scan file isn't the problem.  It is
+> just the single line out of
+> /usr/share/doc/dvb-utils/examples/scan/atsc/us-Cable-Standard-center-frequencies-QAM256
+> corresponding to a known good frequency.  Otherwise it scans from 0-70
+> which are all NTSC and gets annoying on repeated attempts...
+>
+> Adding two more -v's doesn't change anything, status is always 0x00
+> and nothing gets written to STDOUT (channels.conf)
+>
+> ~$ scan -A 2 -vvv
 
-I upgraded to Ubuntu 8.04 this week to test the V4L HVR-950 driver and
-ran into a problem where mplayer would work the first time but then
-subsequent attempts to connect to /dev/dvb/adapter0/dvr0 would always
-be return EBUSY.  After spending the morning littering the driver with
-debug code trying to locate what I thought was a bug in the
-referencing counting, it occurred to me to just run fuser against the
-device file.
+The -v is just for verbosity.
 
-root@devin-desktop:~# fuser -v /dev/dvb/adapter0/dvr0
-                    USER        PID ACCESS COMMAND
-/dev/dvb/adapter0/dvr0:
-                    root       6455 f.... mplayer
-                    root       6459 f.... dbus-launch
-                    root       6460 f.... dbus-daemon
+My question should have been, "did you give it a chance to scan through
+the entire scan file?
 
-Looks like they integrated mplayer with dbus, but they don't close the
-file handles on fork() so dbus inherits the file indefinitely (since
-it doesn't close when mplayer closes).
+-Mike
 
-I then put "ubuntu dbus" into my search and it turns up I'm about a
-week behind Markus Rechberger because he appears to have already found
-the issue:
 
-http://www.mail-archive.com/em28xx@mcentral.de/msg01097.html
-
-And he has already submitted a fix to Ubuntu:
-
-https://bugs.launchpad.net/ubuntu/+source/dbus/+bug/230877
-
-Just a heads up in case anybody runs into the same problem with other devices...
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
