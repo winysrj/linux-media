@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CEmnC5001443
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:48:49 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CEmcEt010385
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:48:38 -0400
-Message-ID: <482858AD.1050504@linuxtv.org>
-From: mkrufky@linuxtv.org
-To: stoth@linuxtv.org
-Date: Mon, 12 May 2008 10:48:13 -0400
-MIME-Version: 1.0
-in-reply-to: <48285754.8010608@linuxtv.org>
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: Stoth@hauppauge.com, video4linux-list@redhat.com
-Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE
-	in page.h
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m41CbfZm029507
+	for <video4linux-list@redhat.com>; Thu, 1 May 2008 08:37:41 -0400
+Received: from pat.laterooms.com (fon.laterooms.com [194.24.251.1])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m41CbTUD017616
+	for <video4linux-list@redhat.com>; Thu, 1 May 2008 08:37:30 -0400
+From: Gavin Hamill <gdh@acentral.co.uk>
+To: Andy Walls <awalls@radix.net>
+In-Reply-To: <1209604349.3219.36.camel@palomino.walls.org>
+References: <1209505252.6270.11.camel@gdh-home>
+	<1209506151.5699.7.camel@palomino.walls.org>
+	<1209575728.6125.5.camel@gdh-home>
+	<1209604349.3219.36.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Thu, 01 May 2008 13:37:27 +0100
+Message-Id: <1209645447.6051.1.camel@gdh-home>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Ident for Bt848 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +30,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Steven Toth wrote:
-> Steven Toth wrote:
->>>         if (cx->dev)
->>>                 cx18_iounmap(cx);
->>
->> This doesn't feel right.
->
-> Hans / Andy,
->
-> Any comments?
+On Wed, 2008-04-30 at 21:12 -0400, Andy Walls wrote:
 
-For the record, I've tested again with today's tip ( d87638488880 ) -- 
-same exact behavior.
+> # modprobe -r bttv
+> # modprobe bttv card=57
 
-When I load the modules for the first time, everything is fine.
+Ah cool - that seems to have done the trick - no delay at all on
+modprobe now - a pity the cheapass way the card was manufactured
+prevented a fix that could benefit other people. Oh well. <shrug>
 
-If I unload the cx18 module, I am unable to load it again, the same 
-error is displayed as I posted in my original message.
+Cheers,
+Gavin.
 
-Regards,
-
-Mike
 
 --
 video4linux-list mailing list
