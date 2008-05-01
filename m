@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from ug-out-1314.google.com ([66.249.92.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alkondratenko@gmail.com>) id 1JsyUA-0002wQ-Uz
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 13:03:59 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so959284nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 05 May 2008 04:03:55 -0700 (PDT)
-From: Aliaksey Kandratsenka <alkondratenko@gmail.com>
-To: jd.louw@mweb.co.za, zzam@gentoo.org
-Date: Mon, 05 May 2008 14:04:10 +0300
-Message-Id: <1209985450.3659.1.camel@alk.gsn>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Compro S350
+	(envelope-from <mariofutire@googlemail.com>) id 1Jrgp0-0007bi-JB
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 00:00:14 +0200
+Received: by ug-out-1314.google.com with SMTP id o29so115614ugd.20
+	for <linux-dvb@linuxtv.org>; Thu, 01 May 2008 15:00:06 -0700 (PDT)
+Message-ID: <481A3D61.7040508@googlemail.com>
+Date: Thu, 01 May 2008 23:00:01 +0100
+From: Andrea <mariofutire@googlemail.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------080501070209070501040809"
+Subject: [linux-dvb] [PATCH] Synchronize dvb-apps with v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,45 +19,128 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkuCgpJJ3ZlIHJlY2VudGx5IG9idGFpbmVkIENvbXBybyBTMzUwLiBJdCdzIG15IGZpcnN0IERW
-QiBjYXJkIHNvIGRvbid0CmxhdWdoIGF0IGJlIHRvbyBsb3VkbHkgaWYgSSdtIGRvaW5nIHNvbWV0
-aGluZyB2ZXJ5IHdyb25nLgoKSSd2ZSB0cmllZCBvcmlnaW5hbCBkcml2ZXIgd2l0aG91dCBzdWNj
-ZXNzLiBJIGhhZCB0byBjaGFuZ2UgUENJIElEIG9mCmNhcmQgdG8gNzEzMyAoZnJvbSA3MTMwKS4g
-RHJpdmVyIGxvYWRzIE9LLCBidXQgdHVuaW5nIHRvIGtub3duIGZyZXF1ZW5jeQpkb2VzIG5vdCB3
-b3JrLiBUdXJuaW5nIGxvZ2dpbmcgb24gZm9yIHpsMTAwMzkgYW5kIHpsMTAzMTMgZG9lcyBub3QK
-cmV2ZWFsIGFueSB1bnVzdWFsIGVycm9ycyAoMTAwMzkgc2hvd3MgZXhwZWN0ZWQgZXJyb3IgZHVy
-aW5nIGNoaXAKcmVzZXQpLgoKYWxrOi91c3Ivc3JjL2xpbnV4LTIuNi4yNS4xY3BybyMgc3phcCAt
-YyAvdmlkZW8vY2hhbm5lbHMuY29uZiAtbiA5CnJlYWRpbmcgY2hhbm5lbHMgZnJvbSBmaWxlICcv
-dmlkZW8vY2hhbm5lbHMuY29uZicKemFwcGluZyB0byA5ICfQmNC90YTQvtC60LDQvdCw0Ls7SFRC
-Kyc6CnNhdCAwLCBmcmVxdWVuY3kgPSAxMjMyMiBNSHogViwgc3ltYm9scmF0ZSAyNzUwMDAwMCwg
-dnBpZCA9IDB4MDE0OCwgYXBpZAo9IDB4MDE5ZQp1c2luZyAnL2Rldi9kdmIvYWRhcHRlcjAvZnJv
-bnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKc3RhdHVzIDAwIHwgc2lnbmFs
-IDAxMDUgfCBzbnIgZmZmZSB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IApzdGF0dXMg
-MDAgfCBzaWduYWwgMDEwNCB8IHNuciBmZmZkIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAw
-IHwgCnN0YXR1cyAwMCB8IHNpZ25hbCAwMTA0IHwgc25yIGZmZmUgfCBiZXIgMDAwMDAwMDAgfCB1
-bmMgMDAwMDAwMDAgfCAKc3RhdHVzIDAwIHwgc2lnbmFsIDAxMDQgfCBzbnIgZmZmZSB8IGJlciAw
-MDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IApzdGF0dXMgMDAgfCBzaWduYWwgMDEwNCB8IHNuciBm
-ZmZlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgCnN0YXR1cyAwMCB8IHNpZ25hbCAw
-MTAzIHwgc25yIGZmZmUgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCAKCkkgY2FuIGNv
-bmZpcm0gdGhhdCBjYXJkIHVzZXMgQ0U2MzEzIGNoaXAgKGkndmUgZm91bmQgaXQgb24gYm9hcmQp
-LiBJCndhc24ndCBhYmxlIHRvIGZpbmQgQ0U1MDN7Ny85fSBjaGlwIG9uIGJvYXJkLCBidXQgYWxs
-IHJlZ2lzdGVyIHZhbHVlcwpzZWVtIHBsYXVzaWJsZS4KCkkndmUgYWxzbyB0cmllZCByZWNlbnRs
-eSBjb21taXRlZCBtdDMxMiBiYXNlZCBjb2RlLCBieSBzaW1wbHkgcmVwbGFjaW5nCmNhbGwgdG8g
-emwxMDMxM19hdHRhY2ggdG8gdnAzMTBfbXQzMTJfYXR0YWNoIGFuZCB0cnlpbmcgYm90aCB2YWx1
-ZXMgb2YKdm9sdGFnZV9pbnZlcnRlZCBjb25maWcgb3B0aW9uIHdpdGggc2ltaWxhciByZXN1bHRz
-LgoKSSdkIGxpa2UgdG8gaGVscCB3aXRoIHRoaXMgZHJpdmVyLCBidXQgSSB3YXNuJ3QgYWJsZSB0
-byBmaW5kIG5vcm1hbApDRTYzMTMgKGFrYSB6bDEwMzEzKSBzcGVjcy4gQWxsIGRhdGFzaGVldCBJ
-IGZvdW5kIChvbmUgZnJvbSBpbnRlbCwgb3RoZXIKZnJvbSBaYXJsaW5rKSBkbyBub3QgaGF2ZSBy
-ZWdpc3RlcnMgZGVzY3JpcHRpb24uCgpJdCdzIGFsc28gcG9zc2libGUgdGhhdCBwcm9ibGVtIGxp
-ZXMgZWxzZXdoZXJlLiBNYXliZSBzb21lIEdQSU8gcGlucwpuZWVkIHRvIGJlIHR3ZWFrZWQuIFRo
-ZXJlJ3MgZGVkaWNhdGVkIGNvbXBybyBjaGlwIG9uIHRoaXMgY2FyZCBhbmQgSQpoYXZlIG5vIGlk
-ZWEgd2hhdCBpdCBtYXkgZG8uCgoKLS0gCkFsaWFrc2V5IEthbmRyYXRzZW5rYSA8YWxrb25kcmF0
-ZW5rb0BnbWFpbC5jb20+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
-cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+This is a multi-part message in MIME format.
+--------------080501070209070501040809
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+This patch (posted for the 3rd times) keeps dvb-apps in line with recent (and not so recent) changes 
+in v4l-dvb:
+
+1) for 2 years it has not been possible to open the dvr more than once for read only.
+After this change http://linuxtv.org/hg/v4l-dvb/rev/64edfcc88eeb the dvr can only be opened once.
+The patch fixes a comment to the function dvbdemux_open_dvr
+
+2) this changeset http://linuxtv.org/hg/v4l-dvb/rev/65699e8bc6f7 added the option 
+DMX_OUT_TSDEMUX_TAP to send the TS to the demux.
+The patch enhances dvbdemux.h to use the DMX_OUT_TSDEMUX_TAP
+
+3) a recent changest http://linuxtv.org/hg/v4l-dvb/rev/8389fb4e774c implemented DMX_SET_BUFFER for 
+the dvr.
+tzap used to set the dvr buffer size to 1MB (this ioctl call used to be ignored) while the default 
+size is actually double (~2MB). I think the aim of the code was to make the buffer bigger and not to 
+shrink it. That buffer in my opinion should stay as it is.
+
+I've posted this patch 3 times already with 0 (i.e. ZERO) replies.
+Is there anybody taking care of dvb-apps?
+
+Regards
+
+Andrea
+
+--------------080501070209070501040809
+Content-Type: text/x-patch;
+ name="dvb-apps.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dvb-apps.diff"
+
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.c
+--- a/lib/libdvbapi/dvbdemux.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -128,6 +128,10 @@ int dvbdemux_set_pes_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -201,6 +205,10 @@ int dvbdemux_set_pid_filter(int fd, int 
+ 		filter.output = DMX_OUT_TS_TAP;
+ 		break;
+ 
++	case DVBDEMUX_OUTPUT_TS_DEMUX:
++		filter.output = DMX_OUT_TSDEMUX_TAP;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.h
+--- a/lib/libdvbapi/dvbdemux.h	Tue Mar 11 12:40:20 2008 +0100
++++ b/lib/libdvbapi/dvbdemux.h	Sat Mar 22 00:07:29 2008 +0000
+@@ -55,6 +55,7 @@ extern "C"
+ #define DVBDEMUX_OUTPUT_DECODER 0
+ #define DVBDEMUX_OUTPUT_DEMUX 1
+ #define DVBDEMUX_OUTPUT_DVR 2
++#define DVBDEMUX_OUTPUT_TS_DEMUX 3
+ 
+ /**
+  * PES types.
+@@ -65,6 +66,7 @@ extern "C"
+ #define DVBDEMUX_PESTYPE_SUBTITLE 3
+ #define DVBDEMUX_PESTYPE_PCR 4
+ 
++
+ /**
+  * Open a demux device. Can be called multiple times. These let you setup a
+  * single filter per FD. It can can also be read() from if you use a section
+@@ -78,8 +80,8 @@ extern int dvbdemux_open_demux(int adapt
+ extern int dvbdemux_open_demux(int adapter, int demuxdevice, int nonblocking);
+ 
+ /**
+- * Open a DVR device. May be opened for writing once, or multiple times in readonly
+- * mode. It is used to either write() transport stream data to be demuxed
++ * Open a DVR device. May be opened for writing or reading once.
++ * It is used to either write() transport stream data to be demuxed
+  * (if input == DVBDEMUX_INPUT_DVR), or to read() a stream of demuxed data
+  * (if output == DVBDEMUX_OUTPUT_DVR).
+  *
+diff -r 3cde3460d120 util/szap/tzap.c
+--- a/util/szap/tzap.c	Tue Mar 11 12:40:20 2008 +0100
++++ b/util/szap/tzap.c	Sat Mar 22 00:07:29 2008 +0000
+@@ -676,11 +676,6 @@ int main(int argc, char **argv)
+ 	                PERROR("failed opening '%s'", DVR_DEV);
+ 	                return -1;
+ 	        }
+-		if (ioctl(dvr_fd, DMX_SET_BUFFER_SIZE, 1024 * 1024)<0)
+-		{
+-			PERROR("DMX_SET_BUFFER_SIZE failed");
+-			return -1;
+-		}
+ 		if (silent<2)
+ 			print_frontend_stats (frontend_fd, human_readable);
+ 
+
+
+--------------080501070209070501040809
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------080501070209070501040809--
