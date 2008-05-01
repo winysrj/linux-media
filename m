@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
+Received: from smtprelay02.ispgateway.de ([80.67.18.14])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1Jzb8d-00087Q-Qe
-	for linux-dvb@linuxtv.org; Fri, 23 May 2008 19:33:08 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so501762fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 23 May 2008 10:33:03 -0700 (PDT)
-Message-ID: <854d46170805231033i2604153bwfa488975d984433a@mail.gmail.com>
-Date: Fri, 23 May 2008 19:33:03 +0200
-From: "Faruk A" <fa@elwak.com>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20080523205819.6eafe5fa@bk.ru>
+	(envelope-from <kiu@gmx.net>) id 1JrWcb-0003MP-OH
+	for linux-dvb@linuxtv.org; Thu, 01 May 2008 13:06:42 +0200
+Message-ID: <20080501130637.7yz4ivq4u80g0k0k@blacksheep.qnet>
+Date: Thu, 01 May 2008 13:06:37 +0200
+From: kiu <kiu@gmx.net>
+To: linux-dvb@linuxtv.org
+References: <mailman.0.1209634192.28257.linux-dvb@linuxtv.org>
+	<20080501095107.11680@gmx.net>
+In-Reply-To: <20080501095107.11680@gmx.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <4836DBC1.5000608@gmail.com> <4836E28B.5000405@linuxtv.org>
-	<4836E4E3.70405@gmail.com>
-	<854d46170805230936n4b48ae3dy50fb86780eded5d4@mail.gmail.com>
-	<20080523205819.6eafe5fa@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [multiproto patch] add support for using multiproto
-	drivers with old api
+Cc: nickpetrik@gmx.net
+Subject: Re: [linux-dvb] Terratec Cinergy C PCI - channel scan stops
+	after	trasnponder is found
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,15 +28,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> what about dvb-s2 channels on your kaffeine ? how can you watch their ?
->
-> Goga
+Hi,
 
-Hi!
+Quoting Nick Petrik <nickpetrik@gmx.net>:
 
-Right now I'm only interested in DVB-S and my CI is not supported yet.
+> I am using a Terretec Cinergy C PCI DVB card together with the   
+> latest MANTIS driver.
 
-Faruk
+Dont use the latest mantis version.
+
+See: http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C#Drivers
+
+-- 
+kiu
 
 _______________________________________________
 linux-dvb mailing list
