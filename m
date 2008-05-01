@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55111.mail.re4.yahoo.com ([206.190.58.160])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <mat2ag@yahoo.com>) id 1Jujqg-0004BB-9R
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 09:50:31 +0200
-Date: Sat, 10 May 2008 00:49:39 -0700 (PDT)
-From: alireza ghahremanian <mat2ag@yahoo.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <nickpetrik@gmx.net>) id 1JrVS0-00085p-PL
+	for linux-dvb@linuxtv.org; Thu, 01 May 2008 11:51:41 +0200
+Date: Thu, 01 May 2008 11:51:07 +0200
+From: "Nick Petrik" <nickpetrik@gmx.net>
+In-Reply-To: <mailman.0.1209634192.28257.linux-dvb@linuxtv.org>
+Message-ID: <20080501095107.11680@gmx.net>
 MIME-Version: 1.0
-Message-ID: <954146.41179.qm@web55111.mail.re4.yahoo.com>
-Subject: [linux-dvb] Symbol rate
+References: <mailman.0.1209634192.28257.linux-dvb@linuxtv.org>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Terratec Cinergy C PCI - channel scan stops after
+	trasnponder is found
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,19 +19,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-What is the maximum symbol rate which can a dvd card accept, does the dvbs-2 card accept more symbol rate, how much?
+Hi all,
+
+I am using a Terretec Cinergy C PCI DVB card together with the latest MANTI=
+S driver.
+
+Driver loads without any issues and Card is detected correctly.
+However when I start scanning for channels using w_scan or Kaffeine
+the scanning process stops after it finds a transponder:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+Using DVB device 0:0 "Philips TDA10023 DVB-C"
+tuning DVB-C to 738000000
+inv:2 sr:6875000 fecH:0 mod:3
+. LOCKED.
+Transponders: 2/4
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+Am I missing anything? Your help is very much appreciated. Thanks Nick
 
 
 
-      ____________________________________________________________________________________
-Be a better friend, newshound, and 
-know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ
+-- =
+
+Der GMX SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen! =
+
+Ideal f=FCr Modem und ISDN: http://www.gmx.net/de/go/smartsurfer
 
 _______________________________________________
 linux-dvb mailing list
