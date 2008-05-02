@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5.freeserve.com ([193.252.22.151])
+Received: from py-out-1112.google.com ([64.233.166.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
-	id 1JzBi8-0001KT-EC
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 16:24:08 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3419.me.freeserve.com (SMTP Server) with ESMTP id BAC041C00084
-	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 16:23:23 +0200 (CEST)
-Received: from rachael (unknown [91.108.77.127])
-	by mwinf3419.me.freeserve.com (SMTP Server) with ESMTP id 4932E1C00081
-	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 16:23:21 +0200 (CEST)
-From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Thu, 22 May 2008 15:23:24 +0100
-References: <71798b430805220712h54a5b1a2u788e56e978f683a3@mail.gmail.com>
-In-Reply-To: <71798b430805220712h54a5b1a2u788e56e978f683a3@mail.gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1Js0iw-0004xG-41
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 21:15:15 +0200
+Received: by py-out-1112.google.com with SMTP id a29so41641pyi.0
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 12:15:09 -0700 (PDT)
+Message-ID: <d9def9db0805021215n3f5cbc06r24340d7dd551a541@mail.gmail.com>
+Date: Fri, 2 May 2008 15:15:09 -0400
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "luc legrand" <legrandluc@gmail.com>
+In-Reply-To: <9f2475180805021151r5ae14022w90603f5c3c66c8d9@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200805221523.24712.linuxtv@mfraz74.orangehome.co.uk>
-Subject: Re: [linux-dvb] uk-RidgeHill - scan file
+References: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
+	<d9def9db0805020754tbe8fcd1k1c2bbe2024c17d9a@mail.gmail.com>
+	<9f2475180805021058s2292cfe8pac958286b7cfb36a@mail.gmail.com>
+	<d9def9db0805021124sf25e63fme8e4319169bc83de@mail.gmail.com>
+	<9f2475180805021151r5ae14022w90603f5c3c66c8d9@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Avermedia M115 MiniPCI hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,20 +26,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gVGh1cnNkYXkgMjIgTWF5IDIwMDggMTU6MTI6MjAgQW5kcmV3IEhlcnJvbiB3cm90ZToKPiBI
-aSwKPgo+IERvZXMgYW55b25lIGhhdmUgYSB3b3JraW5nIHR1bmluZyBmaWxlIGZvciB0aGlzIFVL
-IHRyYW5zbWl0dGVyIHRoYXQgSSBjYW4KPiB1c2Ugd2l0aCBzY2FuPwo+Cj4gQWxsIHRoZSBiZXN0
-Cj4KPiBBbmRyZXcKCklzIHRoZSBvbmUgYXZhaWxhYmxlIG9uIGxpbnV4dHYub3JnIGFueSBnb29k
-PwoKaHR0cDovL2xpbnV4dHYub3JnL2hnL2R2Yi1hcHBzL2ZpbGUvMzFhNmRkNDM3YjlhL3V0aWwv
-c2Nhbi9kdmItdC91ay1SaWRnZUhpbGwKCgotLSAKfFwgwqAvfCBhcmsgRnJhc2VyIMKgL1JlZ2lz
-dGVyZWQgTGludXggVXNlciAjNDY2NDA3CnwgXC8gfCBTb21lcnNldCDCoCAvVXNpbmcgS21haWwg
-b24gS3VidW50dSBHdXRzeSBHaWJib24KfCDCoCDCoHxfX19fX19fX19fXy9Zb3Uga25vdyB3aGF0
-IHRoZSBzaWcgbWVhbnMhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
-cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+On Fri, May 2, 2008 at 2:51 PM, luc legrand <legrandluc@gmail.com> wrote:
+> last time I tried with v4l-dvb-experimental from mcentral.de in order
+>  to compile I did :
+>  make LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
+>  -include include/linux/autoconf.h"
+>
+>
+>  and here is what dmesg tells me :
+>
+>
+> # dmesg | grep saa
+>  saa7130/34: v4l2 driver version 0.2.14 loaded
+>  saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
+>  mmio: 0xd2005000
+>  saa7133[0]: subsystem: 1461:a836, board: Avermedia M115 [card=119,autodetected]
+>
+> saa7133[0]: board init: gpio is a400000
+>  saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
+>  saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
+>  saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
+>  saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
+>  saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>
+> tuner 1-0061: chip found @ 0xc2 (saa7133[0])
+>  saa7133[0]: registered device video0 [v4l2]
+>  saa7133[0]: registered device vbi0
+>  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+>  saa7134_dvb: Unknown symbol videobuf_dvb_register
+>
+>  # dmesg | grep dvb
+>  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+>  tuner callback
+>  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+>  tuner callback
+>  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/xc3028-tuner.c: attach request!
+>  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: xc3028
+>  tuner successfully loaded
+>  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_init
+>  videobuf_dvb: Unknown symbol dvb_dmxdev_init
+>  videobuf_dvb: disagrees about version of symbol videobuf_read_stop
+>  videobuf_dvb: Unknown symbol videobuf_read_stop
+>  videobuf_dvb: disagrees about version of symbol videobuf_waiton
+>  videobuf_dvb: Unknown symbol videobuf_waiton
+>  videobuf_dvb: disagrees about version of symbol dvb_dmx_release
+>  videobuf_dvb: Unknown symbol dvb_dmx_release
+>  videobuf_dvb: disagrees about version of symbol videobuf_read_start
+>  videobuf_dvb: Unknown symbol videobuf_read_start
+>  videobuf_dvb: disagrees about version of symbol dvb_net_init
+>  videobuf_dvb: Unknown symbol dvb_net_init
+>  videobuf_dvb: disagrees about version of symbol dvb_dmx_swfilter
+>  videobuf_dvb: Unknown symbol dvb_dmx_swfilter
+>  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_release
+>  videobuf_dvb: Unknown symbol dvb_dmxdev_release
+>  videobuf_dvb: disagrees about version of symbol dvb_frontend_detach
+>  videobuf_dvb: Unknown symbol dvb_frontend_detach
+>  videobuf_dvb: disagrees about version of symbol dvb_net_release
+>  videobuf_dvb: Unknown symbol dvb_net_release
+>  videobuf_dvb: disagrees about version of symbol dvb_unregister_frontend
+>  videobuf_dvb: Unknown symbol dvb_unregister_frontend
+>  videobuf_dvb: disagrees about version of symbol dvb_register_frontend
+>  videobuf_dvb: Unknown symbol dvb_register_frontend
+>  videobuf_dvb: disagrees about version of symbol dvb_dmx_init
+>  videobuf_dvb: Unknown symbol dvb_dmx_init
+>  videobuf_dvb: Unknown symbol videobuf_to_dma
+>  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+>  saa7134_dvb: Unknown symbol videobuf_dvb_register
+>
+
+try
+
+rm -rf /lib/modules/`uname -r`/kernel/drivers/media
+
+and reinstall that package.
+
+Markus
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
