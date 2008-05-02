@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45KYwNf002024
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 16:34:58 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m45KYjST019828
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 16:34:45 -0400
-Date: Mon, 5 May 2008 16:34:23 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sam Ravnborg <sam@ravnborg.org>
-In-Reply-To: <20080502150645.GA23481@uranus.ravnborg.org>
-Message-ID: <Pine.LNX.4.64.0805051625090.3218@bombadil.infradead.org>
-References: <20080430110115.GA5633@elte.hu> <s5hiqxzwqak.wl%tiwai@suse.de>
-	<20080430.041703.89847530.davem@davemloft.net>
-	<20080430112959.GA32556@uranus.ravnborg.org>
-	<20080430121854.GC30735@elte.hu>
-	<20080502150645.GA23481@uranus.ravnborg.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m429VF8R002800
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:31:15 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m429UwMp004898
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:30:58 -0400
+Received: from [131.234.87.115] by mail.uni-paderborn.de with esmtpsa
+	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32) (Exim 4.62 cyclopia)
+	id 1JrrbU-0006uN-Au
+	for video4linux-list@redhat.com; Fri, 02 May 2008 11:30:57 +0200
+Message-ID: <481ADF4F.9030208@hni.uni-paderborn.de>
+Date: Fri, 02 May 2008 11:30:55 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com, Andrew Morton <akpm@linux-foundation.org>,
-	Takashi Iwai <tiwai@suse.de>, efault@gmx.de,
-	linux-kernel@vger.kernel.org, linux-dvb-maintainer@linuxtv.org,
-	Ingo Molnar <mingo@elte.hu>, David Miller <davem@davemloft.net>
-Subject: Re: [patch, -git] media/video/sound build fix, TEA5761/TEA5767
+CC: video4linux-list@redhat.com
+References: <48030F6F.1040007@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
+	<480477BD.5090900@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0804151228370.5159@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: Re: OmniVision OV9655 camera chip via soc-camera interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,39 +33,115 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Which is exactly what my "require SYMBOL2 would give us.
-> A webcam would not depends on USB, but would "require USB".
-> If the decide to include the webcam she will optionally be prompted
-> so she can decide if it is OK to include USB support too
+Sorry for the late answers, but first I want to get my ov9655 driver 
+work prober.
 
-This would be a nice feature. In fact, some SELECT's were wrongly added 
-in the past, at V4L/DVB Kconfig's as people understood that this would be 
-the behaviour of SELECT.
+Guennadi Liakhovetski schrieb:
+> On Tue, 15 Apr 2008, Stefan Herbrechtsmeier wrote:
+>
+>  
+>> Guennadi Liakhovetski schrieb:
+>>    
+>>> Look in pxa_camera.c, e.g., in pxa_camera_activate. There are 
+>>> function calls
+>>> like
+>>>
+>>> pxa_camera_activate(struct pxa_camera_dev *pcdev)
+>>> {
+>>>     struct pxacamera_platform_data *pdata = pcdev->pdata;
+>>>
+>>> ...
+>>>
+>>>     pdata->power(pcdev->dev, 1);
+>>>
+>>> ...
+>>>
+>>>     pdata->reset(pcdev->dev, 1);
+>>>
+>>> in it, which should do exactly what you need. And they are supposed 
+>>> to be
+>>> implemented in the platform, so, you have all the required GPIO 
+>>> information
+>>> you need there. That is exactly the reason they are defined that way -
+>>> because they were thought to be platform-dependent. Let me know if 
+>>> there's
+>>> still anything missing. It is still a work in progress, so, we are 
+>>> flexible
+>>> and can add any (reasonable) APIs we find useful.
+>>>         
+>> Thanks, that exact what I search, but maybe this functions should be 
+>> in the
+>> soc_camera_link. I think this functions belong to the camera chip and 
+>> not to
+>> the capture interface. This allows more than one camera chip on one 
+>> capture
+>> interface with separate enable and reset.
+>>     
+>
+> Well, in principle, yes, I think this is a good idea. But:
+>
+> 1. ATM these functions are called from the camera-host (pxa-camera) 
+> driver. And until now it knew nothing about soc_camera_link. Which is 
+> also good.
+>
+>    a) If we want to keep calls to these functions in the camera-host 
+> driver, we'll either have to let it also handle soc_camera_link, or 
+> introduce some parameter to these functions to tell the platform which 
+> camera shall be resetted / powered on or off.
+>
+>    b) Alternatively, we could call these functions from soc_camera_ops 
+> init() and release() methods. Actually, I think, this would be the 
+> best option.
+>   
+This means moving the init() and reset() functions into the 
+soc_camera_link. Is this right?
+> 2. Do you have a real-life example with several cameras on one 
+> interface? ATM pxa_camera is explicitely limited to handle only one 
+> camera on its quick capture interface. You would have to lift that 
+> restriction too.
+>   
+Not at the moment.
 
-IMO, I think it is preferred that "SELECT" could act as you've described: 
-Check if all dependencies for the selected symbol are satisfied. If not, 
-auto-selects or prompt to the users.
+I have some addition suggestion for the soc_camera interface:
 
-The auto-select feature, without prompting could be very helpful to allow 
-testing kconfig items, since, instead of running all randomconfig's, 
-subsystem maintainers can use scripts that will do something like 
-allnoconfig, and then select just the symbols requested by each driver 
-(*).
+1. Renaming SOCAM_HSYNC_* to SOCAM_HREF_*
+I think the current used Signal is HREF and not HSYNC.
+- HREF is active during valid pixels
+- HSYNC is a impulse at the start of each line before valid pixels and 
+need some pixel skipping.
 
+2. Add a new SOCAM_HSYNC_* to the soc_camera interface
 
-(*) Something like:
- 	make select="DRIVER_FOO"
- 		and
- 	make select="DRIVER_FOO_MODULE"
+3. Add x_skip_left to soc_camera_device
+The pxa_camera has to skip some pixel at the begin of each line if a 
+HSYNC signal is used.
+(y_skip_top and x_skip_left can change with each format adjustment!)
 
-could just do this: marks NO to everything and Y (or M) to the symbol, and 
-just the required dependencies for that symbol to compile.
+4. Remove camera_init() call before camera_probe()
+I think the driver should first detect the hardware before it do 
+something with it.
+The first hardware initialization should be done in the probe function.
+
+Regards,
+   Stefan
 
 -- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+Dipl.-Ing. Stefan Herbrechtsmeier
+
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
+
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
+
+mailto : hbmeier@hni.upb.de
+
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+
 
 --
 video4linux-list mailing list
