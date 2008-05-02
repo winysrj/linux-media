@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4SDqbsf013584
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 09:52:37 -0400
-Received: from mail.linsys.ca (205-200-74-130.static.mts.net [205.200.74.130])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4SDqFKv010079
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 09:52:17 -0400
-Received: from localhost.localdomain by linsys.ca (MDaemon PRO v9.6.5)
-	with ESMTP id md50000256157.msg
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 08:39:13 -0500
-Message-ID: <483D603A.7080907@linsys.ca>
-Date: Wed, 28 May 2008 08:38:02 -0500
-From: Dinesh Bhat <dbhat@linsys.ca>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42CUvGT029452
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:30:57 -0400
+Received: from MTA001E.interbusiness.it (MTA001E.interbusiness.it [88.44.62.1])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42CUjAh000996
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:30:45 -0400
+Message-ID: <481B096C.6000901@gmail.com>
+Date: Fri, 02 May 2008 14:30:36 +0200
+From: Mat <heavensdoor78@gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <483C7696.9060004@linsys.ca> <483C7F2F.5010007@linuxtv.org>
-In-Reply-To: <483C7F2F.5010007@linuxtv.org>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Video-4l-list <video4linux-list@redhat.com>
-Subject: Re: DVB ASI related question
+Subject: Empia em28xx module compilation...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,38 +24,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Steven,
 
-Yes all of our drivers are open source though not available in the 
-mainstream kernel releases. That's what we intend to do.
+Mmm... I'm trying to compile the em28xx module (kernel version 2.6.25).
+With a standard kernel conf... all ok.
+With a stripped kernel conf... the compilation of v4l-dvb skips that module.
+What kernel options are required for that module (other than EVDEV)?
+What's the minumum kernel version for that module?
+(perhaps I have to use a 2.6.20 ...)
+Is there a way to compile only the em28xx module (and required ones)?
 
-Thanks,
-
-Dinesh
-
-Steven Toth wrote:
-> Dinesh Bhat wrote:
->> Hello,
->>
->> Please suggest if this is not a question relevant to this list.
->>
->> I do not see support DVB over ASI on linuxtv.org. We are DVB/SDI over 
->> ASI manufacturers and was wondering how much need is there in the 
->> market for video 4 linux drivers for DVB ASI. Currently we have 
->> regular PCI based drivers for Linux 2.6 and are thinking of porting 
->> our drivers to V4L if there is need. I could not obtain enough 
->> information while searching on the Internet.
->>
->> Any advice is appreciated.
->
-> Hi Dinesh,
->
-> That's interesting. Are your existing drivers open source GPL drivers?
->
-> Kind regards,
->
-> Steve Toth
-
+Thanks in advance for help.
+-Mat-
 
 --
 video4linux-list mailing list
