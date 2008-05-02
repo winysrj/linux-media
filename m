@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VDQLoG032378
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 09:26:21 -0400
-Received: from omta0107.mta.everyone.net (imta-38.everyone.net
-	[216.200.145.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VDQB9x029143
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 09:26:11 -0400
-From: "John Ortega" <jortega@listpropertiesnow.com>
-To: "stef" <stef.dev@free.fr>,
-	"Linux and Kernel Video" <video4linux-list@redhat.com>
-Date: Sat, 31 May 2008 09:26:08 -0400
-Message-ID: <EEEHJJMABEBDCNKAINKCAEDNCHAA.jortega@listpropertiesnow.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m429phun013442
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:51:43 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m429oxPU017402
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:51:00 -0400
+Message-ID: <481AE400.8090709@hni.uni-paderborn.de>
+Date: Fri, 02 May 2008 11:50:56 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <200805311455.15669.stef.dev@free.fr>
-Cc: 
-Subject: RE: Trouble making PCTV 310c working
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <4811F4EE.9060409@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804281604400.7897@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0804281604400.7897@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: pxa_camera with one buffer don't work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,77 +28,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-With my pctv usb I couldn't get the scan to work...
-I had to look at the channels and manually put them in xml file.
+Guennadi Liakhovetski schrieb:
+> On Fri, 25 Apr 2008, Stefan Herbrechtsmeier wrote:
+>
+>   
+>> Hi,
+>>
+>> is it normal, that the pxa_camera driver don`t work with one buffer?. The
+>> DQBUF blocks if only one buffer is in the query.
+>>     
+>
+> Well, in v4l2-apps/test/capture_example.c we see:
+>
+> 	if (req.count < 2) {
+> 		fprintf (stderr, "Insufficient buffer memory on %s\n",
+> 			 dev_name);
+> 		exit (EXIT_FAILURE);
+> 	}
+>
+> so, they seem to refuse to run with fewer than 2 buffers. But if I remove 
+> this restriction and enforce 1 buffer, it works. 2.5 times slower, but 
+> works. 
+If I do the same thing, I get a select timeout.
+> Can there be a problem with your application? What kernel sources 
+> are you using? Try using the latest v4l-dvb/devel git.
+>   
+At the moment I use the kernel 2.6.24 and the V4L kernel modules from 
+mercurial.
+After I have port my robot platform to the current kernel, I will test 
+it again.
+What do you mean by latest v4l-dvb/devel git:
+    git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git?
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com
-[mailto:video4linux-list-bounces@redhat.com]On Behalf Of stef
-Sent: Saturday, May 31, 2008 8:55 AM
-To: Linux and Kernel Video
-Subject: Trouble making PCTV 310c working
+Regards
+    Stefan
 
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
 
-	Hello,
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
 
-	I have Pinnacle PCTV 310c hybrid card:
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
 
-02:00.0 0400: 14f1:8800 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 60000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [44] Vital Product Data <?>
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx8800
-	Kernel modules: cx8800
+mailto : hbmeier@hni.upb.de
 
-02:00.1 0480: 14f1:8801 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 61000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88_audio
-	Kernel modules: cx88-alsa
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
 
-02:00.2 0480: 14f1:8802 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 62000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88-mpeg driver manager
-	Kernel modules: cx8802
-
-	With latest mercurial, I can capture video with good quality from
-Composite1,
-but I don't get sound. I checked that the alsa device exists and is unmuted.
-I'm capturing with:
-mplayer tv:// -tv
-driver=v4l2:norm=PAL-BG:input=1:device=/dev/video1:alsa:adevice=hw.2:volume=
-60
--vo xv -ao alsa
-	where I double checked that hw.2 is really the Conexant CX8801 Playback.
-
-	Another problem I have is that after scanning french tv channels (with
-tvtime-scanner), the detected channels are garbled when I try to watch them
-with tvtime. It looks like that SECAM isn't taken into account, and that the
-signal is decoded as if it was another norm.
-
-	Looking at the sources I noted a comment about some GPIO work needed for
-the
-DVB subsystem. I have a windows partition on the same machine where the card
-is working fine, and I installed DScaler's regspy. So I may provide any data
-needed.
-
-	Last, I believe there should also be an entry for the  cx8802 in the card
-description.
-
-Regards,
-	Stef
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
