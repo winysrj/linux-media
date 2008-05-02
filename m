@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from [195.156.147.13] (helo=kirsi1.rokki.sonera.fi)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1K1XD5-0006op-1i
-	for linux-dvb@linuxtv.org; Thu, 29 May 2008 03:45:46 +0200
-Message-ID: <483E0AC0.2000707@linuxtv.org>
-Date: Wed, 28 May 2008 21:45:36 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <lwgt@iki.fi>) id 1Jrv7Z-00023A-3D
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 15:16:17 +0200
+Received: from [127.0.0.1] (84.249.53.62) by kirsi1.rokki.sonera.fi (8.0.013.9)
+	id 481AE2A700029B9D for linux-dvb@linuxtv.org;
+	Fri, 2 May 2008 16:16:12 +0300
+Message-ID: <481B1416.6030407@iki.fi>
+Date: Fri, 02 May 2008 16:16:06 +0300
+From: Lauri Tischler <lwgt@iki.fi>
 MIME-Version: 1.0
-To: dean <dean@sensoray.com>
-References: <483D6BD6.1090002@sensoray.com>
-In-Reply-To: <483D6BD6.1090002@sensoray.com>
-Cc: Greg KH <greg@kroah.com>, Charlie Liu <charlie@sensoray.com>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] GPL Cypress FX2 firmware loader in
-	dvb-usb-firmware.c
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] About HVR-4000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,22 +25,10 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-dean wrote:
-> Hi,
-> 
-> How is the Cypress FX2 firmware formatted for the command 
-> usb_cypress_load_firmware?  If a device previously used the fxload 
-> program to load the USB chip, how would you convert that hex file 
-> firmware to one acceptable by usb_cypress_load_firmware (in 
-> dvb-usb-firmware.c)?
-
-dean,
-
-The function that you refer to expects Intel BinHex format.
-
-Regards,
-
-Mike
+I've tryed to follow the thread about hvr-4000,
+it is not clear to if it is possible to use all tuners
+simultaneously, or mainly dvb-t and dvb-[s|s2] at the
+same time.
 
 _______________________________________________
 linux-dvb mailing list
