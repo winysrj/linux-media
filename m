@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.237])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marco.difresco@gmail.com>) id 1JwhLM-0001Zf-62
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 19:34:18 +0200
-Received: by wx-out-0506.google.com with SMTP id h27so369540wxd.17
-	for <linux-dvb@linuxtv.org>; Thu, 15 May 2008 10:34:11 -0700 (PDT)
-From: Marco Di Fresco <marco.difresco@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Date: Thu, 15 May 2008 19:33:47 +0200
-Message-Id: <1210872827.11661.0.camel@PC-MARCO>
-Mime-Version: 1.0
-Subject: [linux-dvb] Problems to get channels with Hauppauge Nova-TD Stick
+	(envelope-from <mkrufky@linuxtv.org>) id 1JruSm-0005yS-Td
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 14:34:16 +0200
+Message-ID: <481B0A34.6070800@linuxtv.org>
+Date: Fri, 02 May 2008 08:33:56 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: RISCH Gilles <roodemol@cjbous.net>
+References: <200804272327.20455.roodemol@cjbous.net>
+	<200805020038.34997.roodemol@cjbous.net>
+	<481A6495.60508@linuxtv.org>
+	<200805021311.18036.roodemol@cjbous.net>
+In-Reply-To: <200805021311.18036.roodemol@cjbous.net>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Hauppauge WinTV-HVR-1200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,317 +22,130 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1307032082=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============1307032082==
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-WA1cfMTj/HaaPOYAn/Vu"
-
-
---=-WA1cfMTj/HaaPOYAn/Vu
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-Hi all,
-I have bought a Hauppauge Nova-TD Stick few days ago, but I am having
-problems to get the channels.
-
-According to 'dmesg', the card is recognized (even with the kernel
-bundled modules, but to be sure I downloaded the latest modules with
-'hg'):
-
-[  137.485145] dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV
-Diversity' in cold state, will try to load a firmware
-[  137.551403] dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.10.fw'
-[  137.948233] dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV
-Diversity' in warm state.
-[  137.948285] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[  138.186907] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[  138.409176] dvb-usb: schedule remote query interval to 150 msecs.
-[  138.409359] dvb-usb: Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity
-successfully initialized and connected.
-
-
-
-I first tried to scan for the channels with a scan file found in
-'=EF=BB=BF/usr/share/doc/dvb-utils/examples/scan/dvb-t/', but without succe=
-ss.
-
-$ scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/it-Venezia
-> ./.tzap/channels.conf
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/it-Venezia
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 706000000 0 2 1 3 1 0 0
-initial transponder 602000000 0 2 1 3 1 0 0
-initial transponder 490000000 0 2 1 3 1 0 0
-initial transponder 818000000 0 2 1 3 1 0 0
-initial transponder 826000000 0 2 1 3 1 0 0
-initial transponder 770000000 0 2 1 3 1 0 0
-initial transponder 594000000 0 2 1 3 1 0 0
->>> tune to:
-706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
-602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
-490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
-818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:
-826000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-826000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
-770000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-770000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
-594000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
-594000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
-N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
-dumping lists (0 services)
-Done.
-
-
-
-So far I give it the benefit of doubts since I do not really live
-in =EF=BB=BFVenice, but in another city in the same region (Vicenza in
-specific). So I tried to do the scan with 'w_scan':
-
-$ w_scan -f t -i 0 -F -t 3 -o 4 -R 1 -T 1 -O 1 -E 1 -X -v>
-~/.tzap/channels.conf
-w_scan version 20080105
-Info: using DVB adapter auto detection.
-   Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
--_-_-_-_ Getting frontend capabilities-_-_-_-_
-frontend DiBcom 7000PC supports
-INVERSION_AUTO
-QAM_AUTO
-TRANSMISSION_MODE_AUTO
-GUARD_INTERVAL_AUTO
-HIERARCHY_AUTO
-FEC_AUTO
--_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-177500:
-184500:
-191500:
-198500:
-205500:
-212500:
-219500:
-226500:
-474000:
-482000: signal ok (I999B8C999D999M999T999G999Y999)
-490000:
-498000:
-506000:
-514000: signal ok (I999B8C999D999M999T999G999Y999)
-522000:
-530000:
-538000:
-546000:
-554000:
-562000:
-570000:
-578000:
-586000: signal ok (I999B8C999D999M999T999G999Y999)
-594000:
-602000:
-610000:
-618000:
-626000:
-634000:
-642000:
-650000:
-658000:
-666000: signal ok (I999B8C999D999M999T999G999Y999)
-674000:
-682000:
-690000:
-698000:
-706000:
-714000:
-722000:
-730000:
-738000:
-746000:
-754000:
-762000:
-770000:
-778000:
-786000:
-794000:
-802000:
-810000:
-818000:
-826000:
-834000:
-842000:
-850000:
-858000:
-tune to:
->>> tuning status =3D=3D 0x0f
->>> tuning status =3D=3D 0x1f
-PAT
-PMT 0x0bba for service 0x0bb9
-PMT 0x03ea for service 0x03e9
-PMT 0x07d2 for service 0x07d1
-SDT (actual TS)
-     LA10(TELEBASSANO)
-     TVSET-TELENORD(TELEBASSANO)
-     RETE VENETA(TELEBASSANO)
-NIT (actual TS)
-Network Name 'Network Name'
-tune to:
->>> tuning status =3D=3D 0x0a
->>> tuning status =3D=3D 0x1a
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-tune to:
->>> tuning status =3D=3D 0x0a
->>> tuning status =3D=3D 0x1a
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-tune to:
->>> tuning status =3D=3D 0x0b
->>> tuning status =3D=3D 0x1b
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-dumping lists (3 services)
-Done.
-
-As you can see, it found only three channels and for the rest it reports
-'=EF=BB=BFInfo: filter timeout pid'. Now, the =EF=BB=BFHauppauge Nova-TD St=
-ick should
-support digital aerial signal, but not only it does not find
-any =EF=BB=BFdigital aerial channel, it does not even find any national ana=
-logue
-channel (like "Rai Uno, "Rai Due", etc. - the three found are local
-channels, and they are not even the all available).
-
-I tried to do a 'dvbsnoop' scan; since the output is too long, I have
-uploaded it to a site of mine:
-http://marcodifresco.interfree.it/marco/misc/dvbsnoop-result.txt
-
-I tried to search for channels with Kaffeine, but it finds the same
-three channels (and actually two times each channel).
+RISCH Gilles wrote:
+> On Friday 02 May 2008 02:47:17 you wrote:
+>   
+>>>> RISCH Gilles wrote:
+>>>>         
+>>>>> Hello,
+>>>>>           
+>>> On Monday 28 April 2008 17:48:46 Steven Toth wrote:
+>>>       
+>>>>> the Hauppauge WinTV-HVR-1200 is now listened as a supported card in the
+>>>>> wiki. What I'm missing are some instructions how to get the card
+>>>>> working. Does a such document already exist?
+>>>>>           
+>>>> No, but feel free to update the wiki so other benefit from your work.
+>>>>
+>>>> 1. Build and install the modules, as per the wiki instructions.
+>>>> 2. Reboot and your done, as per the wiki instructions.
+>>>> 3. Scan for channels or use an existing channels.conf, as per the wiki
+>>>> instructions.
+>>>> 4. Update the HVR1200 wiki page.
+>>>>
+>>>> Regards,
+>>>>
+>>>> Steve
+>>>>         
+>> RISCH Gilles wrote:
+>>     
+>>> Hello,
+>>>
+>>> my card is running, I've added some lines to the wiki:
+>>> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1200
+>>>
+>>> can someone review / try it out
+>>>
+>>> Regards
+>>>       
+>> Please do not top-quote.  Replies should appear below the quoted text.
+>>
+>> Your wiki entry says,
+>>
+>> "
+>>   5. add this line to /etc/modules.d/dvb:
+>>   options cx23885 card=7
+>> "
+>>
+>> Why?  Does the cx23885 driver not autodetect your board?
+>>
+>> The HVR1200 has a subsystem ID that should allow the driver to autodetect
+>> your board.  If your board is not autodetected, it means one of two things:
+>>
+>> 1) The subsystem id of your card is missing, and we can simply add that for
+>> you to avoid the need for module option.
+>>
+>> 2) For one reason or another, the device may be reading the eeprom
+>> incorrectly, causing the subid not to show properly.  This is unlikely, but
+>> I have seen it happen in certain motherboards using cx23885 based products.
+>>
+>> Please test without the module option -- your board should be properly
+>> autodetected.  If this is not the case, please send in your full dmesg
+>> output.
+>>
+>> Regards,
+>>
+>> Mike Krufky
+>>     
+>
+> Hello,
+>
+> It does not work whitout the entry in /etc/modules.d/dvb and I don't know if 
+> it is due to point 1 or 2, but I estimate that it is point 1 due to the 
+> warning in dmesg:
+>
+> [   44.041711] cx23885 driver version 0.0.1 loaded
+> [   44.042028] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16
+> [   44.042030] ACPI: PCI Interrupt 0000:03:00.0[A] -> Link [APC6] -> GSI 16 
+> (level, low) -> IRQ 16
+> [   44.042043] CORE cx23885[0]: subsystem: 0070:71d3, board: Hauppauge 
+> WinTV-HVR1200 [card=7,insmod option]
+> [   44.190051] cx23885[0]: i2c bus 0 registered
+> [   44.190066] cx23885[0]: i2c bus 1 registered
+> [   44.190077] cx23885[0]: i2c bus 2 registered
+> [   44.215621] tveeprom 2-0050: Hauppauge model 71949, rev H2E9, serial# 
+> 2812545
+> [   44.215623] tveeprom 2-0050: MAC address is 00-0D-FE-2A-EA-81
+> [   44.215625] tveeprom 2-0050: tuner model is Philips 18271_8295 (idx 149, 
+> type 54)
+> [   44.215627] tveeprom 2-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') 
+> PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
+> [   44.215628] tveeprom 2-0050: audio processor is CX23885 (idx 39)
+> [   44.215630] tveeprom 2-0050: decoder processor is CX23885 (idx 33)
+> [   44.215631] tveeprom 2-0050: has no radio, has no IR receiver, has no IR 
+> transmitter
+> [   44.215633] cx23885[0]: warning: unknown hauppauge model #71949
+> [   44.215634] cx23885[0]: hauppauge eeprom: model=71949
+> [   44.218910] cx23885[0]: cx23885 based dvb card
+> [   44.269356] tda829x 3-0042: type set to tda8295
+> [   44.315028] tda18271 3-0060: creating new instance
+> [   44.348447] TDA18271HD/C1 detected @ 3-0060
+> [   44.480440] phy0: Selected rate control algorithm 'simple'
+> [   44.543974] usbcore: registered new interface driver rt73usb
+> [   44.925226] NET: Registered protocol family 17
+> [   45.394593] DVB: registering new adapter (cx23885[0])
+> [   45.394597] DVB: registering frontend 0 (NXP TDA10048HN DVB-T)...
+> [   45.394795] cx23885_dev_checkrevision() Hardware revision = 0xb0
+> [   45.394801] cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 16, latency: 
+> 0, mmio: 0xfd800000
+>
+> The card was preinstalled in a HP Pavilion 9050 and under Windows it's shown 
+> as Hauppauge WinTV-HVR-1200.
+>
+> Regards, Gilles
 
 
-I have read on a forum (I cannot find the link now) that if only few
-signals are found it is because the signal has too much strength and it
-is necessary to use a 6db attenuator; I have found it today, but it did
-not solved the problem (actually I am doing further tests since it is a
-0-20db attenuator with a wheel to regolate the attenuation).
+Thanks -- I'll update the PCI subids list today.
 
-I have done all the tests with both the small antennas provided with the
-stick and with the roof antenna. I know that the =EF=BB=BFroof antenna is
-working because I was using it with a regular television and with
-an =EF=BB=BFAverMedia AverTV USB 2.0 Plus under Windows (too bad I migrated=
- to
-Linux after only a couple of month from the purchase and it was not
-supported).
-
-I am using Kubuntu 8.04 64 bits with kernel 2.6.25.3 (I just upgraded it
-today, until yesterday I was using 2.6.24.7, with the same results). I
-have an Intel Core 2 Duo E6700 on a ECS PN2 SLI2+ Extreme nForce 680i
-SLI, EVGA 768-P2-N831-AR GeForce 8800 GTX, 2 GB (4x512MB) DDR2 800 of
-RAM.
-
-Now, usually I do not make pressure for help (especially to whom is
-doing a good job for free), but I have bought the stick Monday and here
-in Italy we have only 7 days to bring the stuff back for a refund (if we
-are not satisfied - if it is actually broken we have 1 year warranty by
-law), so I have only tomorrow (Friday) evening available for further
-testing; if I have to bring it back, I have to do it Saturday morning
-since on the afternoon and on Sunday the store is closed --- as I
-mentioned I have already wasted money on an AverMedia AverTV USB 2.0
-Plus that I used for only a couple of month under Windows (since I have
-then I migrated to Linux...) and I have no intentions to add a 79,90
-Euro device to the pile of junk in the attic. :-(
-
-Thank in advance. :-)
-
---=20
-Marco Di Fresco
-http://marcodifresco.wordpress.com
-
---=-WA1cfMTj/HaaPOYAn/Vu
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iQIVAwUASCxz++E1e7n2TLKCAQJDog//Tx08boIZvUqBJ4NLh1d9qocTnh/7io2H
-vpGqgc4J/W7CQmPTxiWyLMJ87cOrdsJO/fliY21ase0wLm1UTOXLSO0Hvh8DAfSr
-6NjscICNwj9EFi59RhYrRFddEyd+T01OC+VVIvMbuvtAf60lUCEgggF6Hr1JigC+
-UEyHCzD1tykVL1sXUCNn94zSl4drsKR4Ke7TsuoDTuappxFuhtMr6QkJ2KGuxPJh
-a29/PDY/NXeJ0+wjdkOM7jOU7smpa8ce5z64N1seYdVXixBGIEU5FW3uofpRPnap
-Phs7DedcpDSWEUuuQBaFtesf4zQMiax92RJeTDi2HDFTE/D31IgX078lt1GNo5Le
-7tj3bC3tYJTGnLt37nwR25gdSDmQy378asiyhH1EBkYbke8hZqJReEg3aBlfk/Pz
-S59euES0AyYBNkDPzVl6hcPj2BeJjg7YpDum2IozB2BjMKv2nB1WVQFGRW2B1Zqg
-Hw7sCpIgyarezV70maSDPHrF6ijwF+8jaa8uDXdPkmHpm25HvbNSseNOPiCRx742
-FLknwpItlkZmEhrE+9c2QpVfESZqOfU+xsbP7ILyDPEyBEWGQjRaQMXffzroCUUD
-aGHlSI6Myhi7ZOpg/42nwu/dTSWDmfXYmoJjTJbbm9VpX6loRI3NJFtOzZCBIia7
-6rs+z9wKIv8=
-=tfDs
------END PGP SIGNATURE-----
-
---=-WA1cfMTj/HaaPOYAn/Vu--
-
-
-
---===============1307032082==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1307032082==--
