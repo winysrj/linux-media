@@ -1,21 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JvY76-0007ee-Nc
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 15:30:54 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Mon, 12 May 2008 15:29:20 +0200
-References: <482560EB.2000306@gmail.com>
-	<200805101727.55810@orion.escape-edv.de>
-	<4825C3C4.8000702@linuxtv.org>
-In-Reply-To: <4825C3C4.8000702@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805121529.20537@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
-	stv0297
-Reply-To: linux-dvb@linuxtv.org
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1JrwfZ-0002nA-4u
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 16:55:30 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K080038TXFG2250@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 02 May 2008 10:54:55 -0400 (EDT)
+Date: Fri, 02 May 2008 10:54:52 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <481B26E2.1050600@web.de>
+To: Torben Viets <viets@web.de>
+Message-id: <481B2B3C.5070403@linuxtv.org>
+MIME-version: 1.0
+References: <4815B2A9.4060209@web.de> <4815F0AF.4010709@linuxtv.org>
+	<4815FA2B.5030502@web.de> <4815FF67.6050004@linuxtv.org>
+	<4816050D.2040408@web.de> <48161163.9000602@linuxtv.org>
+	<4816186B.3030703@web.de> <48161B2D.6090602@linuxtv.org>
+	<48176236.1020306@web.de> <481763AA.4030702@linuxtv.org>
+	<481767E4.8030608@web.de> <48176969.6070306@linuxtv.org>
+	<4817935E.8090801@web.de> <4817ACDA.1010105@web.de>
+	<4817BD7F.9000902@linuxtv.org> <481B26E2.1050600@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,75 +38,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> Oliver Endriss wrote:
-> > Oliver Endriss wrote:
-> >> e9hack wrote:
-> >>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
-> >>> makes the UNC value of the femon plugin useless.
-> >> Why? It does not make sense to accumulate the errors forever, i.e.
-> >> nobody wants to know what happened last year...
-> >>
-> >> Afaics it is ok to reset the counter after reading it.
-> >> All drivers should behave this way.
-> >>
-> >> If the femon plugin requires something else it might store the values
-> >> and process them as desired.
-> >>
-> >> Afaics the femon command line tool has no problems with that.
-> > 
-> > Argh, I just checked the API 1.0.0. spec:
-> > | FE READ UNCORRECTED BLOCKS
-> > | This ioctl call returns the number of uncorrected blocks detected by the device
-> > | driver during its lifetime. For meaningful measurements, the increment
-> > | in block count during a speci c time interval should be calculated. For this
-> > | command, read-only access to the device is suf cient.
-> > | Note that the counter will wrap to zero after its maximum count has been
-> > | reached
-> > 
-> > So it seens you are right and the drivers should accumulate the errors
-> > forever. Any opinions?
-> > 
+Torben Viets wrote:
+> Steven Toth wrote:
+>>
+>>> Hey, I've update, now the dvb works with 2.6.25 ant the v4l-dvb hg, I 
+>>> was sure that I already tried this combinations...
+>>
+>> Good, because it's working for various other peopple too.
+>>
+>>>
+>>> Now, only the analog input have to work (this was the main reason I 
+>>> bought this card), is it really so hard, because I
+>>> saw that the HVR-1600 and the HVR-1800 is supported.
+>>
+>>
+>> lol, after all this traffic, bad news for you because analog doesn't 
+>> work - it never has.
+>>
+>> - Steve
+>>
 > 
-> There are some devices that automatically reset the unc counter registers
-> as they are read, and other devices that wrap to zero after its maximum
-> count has been reached, unless the driver explicitly clears it. *(see below)
-> 
-> There are other devices that dont give unc info directly, but instead
-> report an average unc per time interval.
+> yes, but better I've got DVB-T , than nothing, but the main reason was 
+> the analog Mpeg encoder and I thought HVR-1700 and HVR-1800 have the 
+> same chipset (cx23817). That's why I'm thought it should work. If I make 
+> a modprobe cx23885 card=2 (this is the Cardid for HVR-1800), I've got 
+> video0 and video1, but I 'don't know whether it doesn't work or don't 
+> know which program I've to use. But after your comments I think it is 
+> useless.
 
-Anyway, the driver should do its best to follow the API spec.
-If the hardware returns an error rate the driver might convert it to an
-(estimated) absolute value.
+Hi,
 
-> I think it's possible that at the time the 1.0.0 spec was written, most
-> devices were known to exhibit the behavior as described in the blurb
-> quoted from the API 1.0.0 spec, above.
-> 
-> I don't think that all of the drivers comply to this, exactly as described,
-> and it might be difficult to correct this across the board :-(  In many
-> cases, we might not know for sure how absolute the value is, read from these
-> registers on a given device.
->
-> I am not sure what we should do, but here is an argument that supports the
-> API 1.0.0 spec:
-> 
-> *There are some demods whose firmware uses these counters to determine lock
-> state.  If we explicitly clear the counter registers during a channel scan,
-> we can potentially confuse the firmware into detecting false locks, and not
-> detecting real locks.
+Sorry, I'm not too worried about supporting the HVR1700 analog video 
+anytime soon. It's just not a priority on my list.
 
-Imho we should try to follow the API spec as close as possible.
-If we cannot implement an ioctl due to lack of information, there is
-little we can do...
+Still, you have great DVB-T support :)
 
-CU
-Oliver
+- Steve
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
