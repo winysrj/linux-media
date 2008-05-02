@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QEwfl0017466
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 10:58:41 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QEwOCv002460
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 10:58:25 -0400
-Received: by ug-out-1314.google.com with SMTP id s2so455124uge.6
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 07:58:24 -0700 (PDT)
-Date: Mon, 26 May 2008 16:58:30 +0200
-From: Domenico Andreoli <cavokz@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080526145830.GA22459@ska.dandreoli.com>
-References: <20080525020028.GA22425@ska.dandreoli.com>
-	<20080526073959.5a624288@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080526073959.5a624288@gaivota>
-Cc: Linux Driver Developers <devel@driverdev.osuosl.org>,
-	video4linux-list@redhat.com
-Subject: Re: TW6800 based video capture boards
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m420slhN026147
+	for <video4linux-list@redhat.com>; Thu, 1 May 2008 20:54:47 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m420sFp4000743
+	for <video4linux-list@redhat.com>; Thu, 1 May 2008 20:54:15 -0400
+From: Andy Walls <awalls@radix.net>
+To: G Maus <mausmang@yahoo.com>
+In-Reply-To: <470634.2977.qm@web55009.mail.re4.yahoo.com>
+References: <470634.2977.qm@web55009.mail.re4.yahoo.com>
+Content-Type: text/plain
+Date: Thu, 01 May 2008 20:50:16 -0400
+Message-Id: <1209689416.3262.42.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, ivtv-users@ivtvdriver.org
+Subject: Re: cx18 HVR-1800
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,81 +27,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, May 26, 2008 at 07:39:59AM -0300, Mauro Carvalho Chehab wrote:
-> On Sun, 25 May 2008 04:00:28 +0200 Domenico Andreoli <cavokz@gmail.com> wrote:
-> 
-> >   I have some shining boards based on Techwell TW6802 and a "working"
-> > V4L2 driver provided by the producer. Ah.. I have also the specs of
-> > those TW6802 chips. Everything has been purchased by my employer.
-> > 
-> > Now I am eager to publish everything but I can't right now. My employer
-> > would not understand and I would be in a difficult position. He already
-> > knows that those drivers are based on GPL software and then _are_ GPL
-> > at all the effects but he still needs to completely understand how it
-> > works. Those guys are always happy to use Linux for free but at the
-> > time of giving anything back...
-> > 
-> > To make the long story short, I want to rewrite them. So, how do
-> > you judge my (legal) position? Yes, you are not a lawyer but I would
-> > appreciate any related advice anyway ;)
-> 
-> I think this will depend if you have a signed NDA or not, and what are their
-> terms. Better to consult a lawyer ;)
+On Thu, 2008-05-01 at 17:19 -0700, G Maus wrote:
+> I noticed that http://linuxtv.org/hg/~gliakhovetski/v4l-dvb was merged
+> into v4l-dvb a couple of days ago.  I assume this means that this
+> project is no longer in development and is now in the 'regular'
+> sources?
 
-No NDA has been signed by me but I still do not know all the details
-of the agreement.
+Yup.  It's getting there.
 
-In the meanwhile I am cleaning the "patch" trying to reduce noise and
-hoping to not break anything. This also helps me to dig into their changes.
 
-> > Since I am a kernel newbie I am expecting to receive lots of "leave
-> > V4L2 to expert coders..." but I will try anyway. You are warned :)
-> 
-> Just do your work and submit us the code. We'll analyze it and point for
-> issues, if needed ;) If you have any doubts about V4L2, I can help you.
+In this message:
 
-The given driver is not a patch but a zip of the modified bt8xx directory
-taken from 2.6.18. Their changes do not integrate with existing bttv
-driver, which has been cannibalized as if one would use V4L only with
-their cards. You want a different kernel version, you unzip the driver
-in the new tree, easy.
+http://ivtvdriver.org/pipermail/ivtv-users/2008-May/008122.html
 
-These TW6800 chips must somewhat resemble Bt848/878, the given driver
-is based on bttv. Anyway they differ in many points, some are trivial
-changes while other are more substantial. My impression is that the
-design of TW6800 shares some points with the one of Bt848 but it is
-fundamentally a different beast.
+Sander Sweers recommends using:
 
-If support to TW6800 has to be provided in the bttv driver, it seem the
-most logical choice at the first glance, the bttv's framework needs to
-be changed accordingly.
+http://linuxtv.org/hg/v4l-dvb/
 
-For instance, in bttv-gpio.c those few helper function work with
-registers at a different location, everything else is left as the
-original bttv driver. So supposing to provide and additional set of
-functions specific to TW6800 they should be called instead of the
-original generic bttv Bt848 ones ony for TW6800 cards at runtime. A
-new bttv_ops entry, if anything like this exists.
 
-I have also some thoughts for bttv-risc.c. What is it? It is used
-to generate any RISC op-codes to be downloaded on the board? It seem
-responsible for DMA operations.
+You can also try:
 
-There is the biggest chunk of changes in bttv-driver.c but I still have
-to dig into it.
+http://linuxtv.org/hg/~hverkuil/v4l-dvb/
 
-Finally, the bttv driver needs a restyle for V4L2, right? So it would
-be a shame to use it to fork the TW6800 support, wouldn't it? Which
-are the plans here?
+as Hans' repository is where the bleeding edge cx18 stuff should be.
 
-I have a strong interest in this area, I am available to test any patch.
+
+> Since the project was merged, I am no longer able to setup my
+> HVR-1800.  After compiling the drivers I 'modprobe cx18' which creates
+> video0, video24 and video34. I have no adapters under /dev/dvb. dmesg
+> tells me that "DVB & VBI are not yet supported".
+
+Yeah, the mxl500x frontend module isn't quite ready to be merged into
+the kernel yet, so you'll notice some "#ifdef HAVE_MXL500X" blocks in
+the cx18-dvb.c file commenting things out.
+
+There is ongoing work to get the mxl500x module merged into the kernel
+as well.
+
+
+>   I also have no audio in the mpeg stream on Video0.
+
+I've noticed a bug that happens on the first analog capture after the
+modprobe: sound with lost frames (resulting in choppy/fast playback) or
+no sound initially with late onset of sound (resulting in fast/choppy
+playback).
+
+Stop the capture and restart the capture.  Things are fine for me after
+that.
+
+In my limited testing, the bug seems to be caused by the load and
+re-load of firmware on modprobe.  Steve did this to overcome some
+silicon bug he knew of.  This firmware reload does make captures go
+smoother in my experience - except for the first one of course.
+
+
+> Have the installation instructions changed with this move to v4l-dvb?
+> Should I be looking elsewhere for the driver? I've Googled and come up
+> empty.
+
+Sander modified the wiki page already:
+
+http://www.ivtvdriver.org/index.php/Cx18
+  
 
 Regards,
-Domenico
-
------[ Domenico Andreoli, aka cavok
- --[ http://www.dandreoli.com/gpgkey.asc
-   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
+Andy
 
 --
 video4linux-list mailing list
