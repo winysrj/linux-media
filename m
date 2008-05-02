@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4AD9Cks016876
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 09:09:12 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4AD91XF020228
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 09:09:01 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so1865873rvb.51
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 06:09:01 -0700 (PDT)
-Message-ID: <e686f5060805100609y3e6813b4mcbf5daf21ad03a93@mail.gmail.com>
-Date: Sat, 10 May 2008 09:09:00 -0400
-From: "Brandon Jenkins" <bcjenkins@gmail.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1210384088.3292.109.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42BI9x6023949
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:18:09 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42BHtnt030184
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:17:55 -0400
+Message-ID: <481AF860.9060603@hni.uni-paderborn.de>
+Date: Fri, 02 May 2008 13:17:52 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <e686f5060805091255m70e5d959i1ee3169232aadda2@mail.gmail.com>
-	<1210378476.3292.52.camel@palomino.walls.org>
-	<e686f5060805091810h5ce89e7dide1c1138d2ad30b7@mail.gmail.com>
-	<1210384088.3292.109.camel@palomino.walls.org>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Steven Toth <stoth@hauppauge.com>
-Subject: Re: Is anyone else running a CX18 in 64bit OS?
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <4811F4EE.9060409@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804281604400.7897@axis700.grange>
+	<481AE400.8090709@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0805021156400.4920@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0805021156400.4920@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: pxa_camera with one buffer don't work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,119 +30,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, May 9, 2008 at 9:48 PM, Andy Walls <awalls@radix.net> wrote:
-> On Fri, 2008-05-09 at 21:10 -0400, Brandon Jenkins wrote:
->> On Fri, May 9, 2008 at 8:14 PM, Andy Walls <awalls@radix.net> wrote:
->> > On Fri, 2008-05-09 at 15:55 -0400, Brandon Jenkins wrote:
->> >
->> > Brandon,
->> >
->> > Yes I'm running the cx18 driver with an HVR-1600 on a 64 bit OS.
->> >
->> >> I have noticed an appreciable difference in video capture quality.
->> >
->> > The first analog capture after a modprobe of the cx18 is usually
->> > terrible and unwatchable due to apparently lost frames or no initial
->> > audio followed by audio and lost frames.  The work around is to stop the
->> > analog capture and restart.
->> >
->> > Would you characterize the analog capture quality problems as being only
->> > on weak channels or strong channels as well?
->> >
->> >>  The
->> >> timeline for the change is exactly the same time that development
->> >> ceased on the IVTV version of CX18 and moved to V4L.
->> >
->> > I'm not clear on exactly what versions you mean.  Do you have hg
->> > repository names and change ID's?
->> >
->> >
->> >>  I see heavy
->> >> pixelation in analog capture and the dvb tuner module returns far
->> >> fewer channels on a scan than before. I would like to troubleshoot,
->> >> please let me know what is needed.
->> >
->> >
->> > Since you have the two particular source trees at hand, could you do a
->> > recursive diff so we can see the changes?  That hopefully will narrow
->> > the search for potential causes.
->> >
->> > Regards,
->> > Andy
->> >
->> >> I am attaching dmesg/channel.conf/channel scan output for v4l drivers
->> >> comparing the results from a cx18 and a cx23885 card. (hvr-1600 and
->> >> hvr-1800) If I switch back to the older ivtv and mxl500s dvb tuner all
->> >> works fine.
->> >>
->> >> Thanks in advance
->> >>
->> >> Brandon
->> >
->> >
->> >
->> Andy,
->>
->> Thanks for the response.
->>
->> I am running the following command in rc.local to start a capture and
->> then kill it.
->>
->> cat /dev/video3 > /dev/null & sleep 8 && kill $!
->>
->> Is that sufficient for an initial capture?
+Guennadi Liakhovetski schrieb:
+> On Fri, 2 May 2008, Stefan Herbrechtsmeier wrote:
 >
-> Without testing it, I'm going to say, I imagine it would be from the
-> look of it.
+>   
+>> Guennadi Liakhovetski schrieb:
+>>     
+>>> On Fri, 25 Apr 2008, Stefan Herbrechtsmeier wrote:
+>>>
+>>>   
+>>>       
+>>>> Hi,
+>>>>
+>>>> is it normal, that the pxa_camera driver don`t work with one buffer?. The
+>>>> DQBUF blocks if only one buffer is in the query.
+>>>>     
+>>>>         
+>>> Well, in v4l2-apps/test/capture_example.c we see:
+>>>
+>>> 	if (req.count < 2) {
+>>> 		fprintf (stderr, "Insufficient buffer memory on %s\n",
+>>> 			 dev_name);
+>>> 		exit (EXIT_FAILURE);
+>>> 	}
+>>>
+>>> so, they seem to refuse to run with fewer than 2 buffers. But if I remove
+>>> this restriction and enforce 1 buffer, it works. 2.5 times slower, but
+>>> works. 
+>>>       
+>> If I do the same thing, I get a select timeout.
+>>     
 >
+> With the same capture_example.c?
+>   
+I used a modified capture_example.c (with the modification you point me 
+some emails ago). If I change the
+req.count to 1 and remove the restriction I get the select timeout.
+>   
+>>> Can there be a problem with your application? What kernel sources are you
+>>> using? Try using the latest v4l-dvb/devel git.
+>>>   
+>>>       
+>> At the moment I use the kernel 2.6.24 and the V4L kernel modules from
+>> mercurial.
+>>     
 >
->> I am recording via svideo from a DirecTV signal. All signal levels are
->> consistent.
+> How new are the modules?
+>   
+I have update the modules some hours ago.
+>   
+>> After I have port my robot platform to the current kernel, I will test it
+>> again.
+>> What do you mean by latest v4l-dvb/devel git:
+>>    git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git?
+>>     
 >
-> OK.  I looked at the cx28885 channels.conf, after I sent the questions,
-> and noticed you didn't have terrestrial over the air source.  I saw you
-> have the same local channels on QAM that I get over 8-VSB: WETA-HD,
-> WUSA-HD, 9-Radar, CW50, etc.
+> Yes, its "devel" branch.
 >
->> The driver base which works for me is cx18-8788bde67f6c it is the
->> older cx18-ivtv branch
->
-> This is precisely the version (with a small change for auto chroma
-> subcarrier locking) that I use when I need to leave my machine with a
-> reliable cx18 driver with digital capability for use with MythTV.
-> ("General Hospital" *must* be recorded properly daily!)
->
->
->> The version I am having issues with was built from a v4l-dvb pull this morning.
->>
->> I did not mention this in my email but it was in the log files; I am
->> scanning QAM for DVB. With the mxl500x.ko frontend everything works
->> well. With mxl5005s.ko in the new v4l-dvb scanning is broken.
->
-> OK.  Steve just introduced that mxl5005s driver from a separate code
-> base.  I've copied him on this e-mail to let him know of the problem.
->
-> I'll have to do the pull and test scanning my 8VSB stations.
->
-> -Andy
->
->> rdiff -r cx18-8788bde67f6c v4l-dvb output attached.
->>
->> Brandon
->
->
-Andy,
+>   
+Thanks
+    Stefan
 
-I can also switch over to my roof antenna and scan. I'll do that
-today. Are you doing any analog capture and are you seeing any
-pixelation/blocking? I have a 46MB/60sec sample capture that
-demonstrates it if interested.
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
 
-The pixelation/blocking is not present in the older cx18-8788bde67f6c build.
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
 
-Regards,
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
 
-Brandon
+mailto : hbmeier@hni.upb.de
+
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+
 
 --
 video4linux-list mailing list
