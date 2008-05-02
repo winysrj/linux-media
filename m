@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from fk-out-0910.google.com ([209.85.128.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JvGOl-0001EB-94
-	for linux-dvb@linuxtv.org; Sun, 11 May 2008 20:35:56 +0200
-From: Andy Walls <awalls@radix.net>
-To: Manu Abraham <abraham.manu@gmail.com>
-In-Reply-To: <48268EB9.6060000@gmail.com>
-References: <482560EB.2000306@gmail.com>
-	<200805101717.23199@orion.escape-edv.de>
-	<200805101727.55810@orion.escape-edv.de>
-	<1210456421.7632.29.camel@palomino.walls.org>
-	<48261EB5.2090604@gmail.com>
-	<1210463068.7632.102.camel@palomino.walls.org>
-	<48268EB9.6060000@gmail.com>
-Date: Sun, 11 May 2008 14:35:16 -0400
-Message-Id: <1210530916.3198.72.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends
-	tda10021	and	stv0297
+	(envelope-from <legrandluc@gmail.com>) id 1JrvGY-0003W1-Pr
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 15:25:38 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so1293292fka.1
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 06:25:29 -0700 (PDT)
+Message-ID: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
+Date: Fri, 2 May 2008 15:25:28 +0200
+From: "luc legrand" <legrandluc@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Avermedia M115 MiniPCI hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,216 +25,136 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-05-11 at 10:14 +0400, Manu Abraham wrote:
-> Andy Walls wrote:
-> > On Sun, 2008-05-11 at 02:16 +0400, Manu Abraham wrote:
-> >> Andy Walls wrote:
-> >>> On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
-> >>>> Oliver Endriss wrote:
-> >>>>> e9hack wrote:
-> >>>>>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
-> >>>>>> makes the UNC value of the femon plugin useless.
-> >>>>> Why? It does not make sense to accumulate the errors forever, i.e.
-> >>>>> nobody wants to know what happened last year...
-> >>>>>
-> >>>>> Afaics it is ok to reset the counter after reading it.
-> >>>>> All drivers should behave this way.
-> >>>>>
-> >>>>> If the femon plugin requires something else it might store the values
-> >>>>> and process them as desired.
-> >>>>>
-> >>>>> Afaics the femon command line tool has no problems with that.
-> >>>> Argh, I just checked the API 1.0.0. spec:
-> >>>> | FE READ UNCORRECTED BLOCKS
-> >>>> | This ioctl call returns the number of uncorrected blocks detected by the device
-> >>>> | driver during its lifetime. For meaningful measurements, the increment
-> >>>> | in block count during a speci c time interval should be calculated. For this
-> >>>> | command, read-only access to the device is suf cient.
-> >>>> | Note that the counter will wrap to zero after its maximum count has been
-> >>>> | reached
-> >>>>
-> >>>> So it seens you are right and the drivers should accumulate the errors
-> >>>> forever. Any opinions?
+Hi !
 
-> >> UNC: Uncorrected symbols over a lifetime, well this is not practically
-> >> possible and will wrap around. This is not related to time, but it is
-> >> just a measure of the symbols that wasn't been able by the FEC engine to
-> >> correct.
-> > 
-> > Right.  But maybe a Symbol Error (or Erasure) Rate provides more useful
-> > information than just a count, no?
-> 
-> 
-> Let me make it more clear. All the parameters defined are quite
-> standard, and used consistently for all demodulators.
-> eg: Es/No ==> SNR or CNR
-> 
-> For the channel as it is, there is no UNC used there. No channel is
-> considered noise free at any rate for a given bandwidth. To avoid this
-> situation, encoding/decoding is used.
-> 
-> For the channel as it is, the errors are mentioned in relation to time,
-> ie BER
-> 
-> After it passes through this channel, then BER is useless, because the
-> constraints of the channel do not apply any more. The encoding/decoding
-> concept follows the methodology that a certain number of errors can be
-> corrected when some information is sent alongwith in the same channel
-> alongwith the same data in a cyclic fashion.
-> 
-> The decoder in this case is able to correct a certain number of symbols
-> and in certain cases there will uncorrectable symbols. There is not much
-> of a use knowing at what exact instance these were uncorrectable, as
-> these are just dealing with block errors.
-> 
-> > 
-> > An error rate computed over a "short" interval can be used to detect a
-> > period of communications interruption within software to alert the user
-> > or to take corrective action.
-> > 
-> > Absolute counts aren't useful for assessing the current "health" of the
-> > system.
-> 
-> 
-> When you want to state how many blocks the FEC engine corrected (there
-> are different FEC engines that we use currently RS32, TurboCodes, LDPC),
-> you have only the uncorrectable symbols to state and unfortunately these
-> are not really time bound.
+I have an Avermedia M115 MiniPCI hybrid that worked very well (I only
+use DVB-T with kaffeine) using v4l-dvb-experimentral of Markus
+Rechberger until kernel 2.6.24.
+Some info about this TV tuner here :
+http://www.avermedia.com/cgi-bin/products_odm_M115.asp
+http://bttv-gallery.de/
 
-Assuming the channel conditions are consistent with the assumptions
-(e.g. AWGN) made in the design of the system.
+Since kernel 2.6.24 I don't find how to make it work so I decide to
+give a try to the v4l-dvb tree on linuxtv.org.
+I followed the installation instructions here (case 2) :
+http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+The compilation seems to go without errors
 
-Unfortunately for me, since I am far (65 miles?) from the broadcasting
-stations, I receive many digital stations at a marginal SNR (Es/No *
-Rs/W) for the FEC to work effectively.  Weather conditions (wind, rain,
-cold fronts) between my antenna and the station cause transient channel
-fades.  The Es/No can intermittently fall below the threshold for the
-BER for which the FEC was designed, thus I do get time dependent
-uncorrectable symbol indications.  The rate of change of uncorrectable
-symbols being declared over a window of time, can tell me when I'm in a
-channel fade (rate > 0) or not (rate == 0).
+Then I followed the instructions here for the firmware (section how to
+obtain the firmware) :
+http://www.linuxtv.org/wiki/index.php/Xceive_XC3018
 
-> > 
-> >> Generally a meaningless term, in many cases except a few.
-> > 
-> > I agree.
-> > 
-> >> Absolute errors are used very scantily, but have been used to see how
-> >> good/bad the whole system is.
-> > 
-> > Except for in safety critical systems (fire suppression system,
-> > automobile brakes, etc.), how can a "good/bad" determination based on an
-> > error count be separated from a time interval over which that error
-> > count occurred?
-> 
-> 
-> It defines whether the FEC engine worked as expected. eg: Just looking
-> at a UNC counter counting up with a high BER shows a bad channel.
-> looking at a UNC counter going up with a low BER shows a bad error
-> correction scheme. looking at a very low BER and a high number of
-> uncorrectables imply a bad FEC engine/scheme.
-> 
-> Error correction works by looking at the last n symbols received, not
-> symbol errors per unit time.
-> 
-> 
-> >>  BER cannot define this, as it is defined
-> >> before the FEC. Sometimes what's defined in the BER, the FEC engine
-> >> might be able to correct and hence.
-> > 
-> > Right BER doesn't define performance of a system, just a constraint
-> > under which the system is expected to work.
-> 
-> BER (BER) and Es/No (SNR) together defines the quality of a channel.
->
-> 
-> > So we can call what I suggested Uncorrected Symbol Rate, or Symbol Error
-> > Rate, or Message Error Rate if the FEC covers more than 1 symbol -
-> > whatever makes the most sense.
-> 
-> Error correction is never a part of the channel. In all cases as the
-> receiver, we are interested in the channel only, but for a safeguard
-> sometimes we look at what the Error correction engine did, whether the
-> scheme as a whole worked well. For the channel, the broadcaster knows
-> that he doesn't have to look at UNC in the long run, but while setting
-> up his system as a whole UNC is very much useful, as to find whether his
-> scheme worked as expected.
-> 
-> For the noisy channel, there is no error correction. The channel doesn't
-> know what error correction you use. Always Rate is measured against time
-> Similar to an Energy meter in your home doesn't know what you use the
-> energy for, but it knows how much you consumed and at what power factor.
-> 
-> > My opinion is that reporting of rate is more useful than absolute
-> > counts.
-> 
-> It is rate that which is used (BER) for the channel,
->  Absolute count from
-> the FEC engine is used to find whether the FEC scheme alongwith the
-> engine worked as expected.
+But kaffeine doesn't recognize the tv tuner.
 
-And if the channel experiences fades in addition to the typically
-assumed AWGN characteristic, then the FEC can work well almost all of
-the time, but still experience periods of time, during fades, that it
-does not work.
+Here is dmesg | grep saa :
 
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
+mmio: 0xd2005000
+saa7133[0]: subsystem: 1461:a836, board: Avermedia M115 [card=138,autodetected]
+saa7133[0]: board init: gpio is a400000
+saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
+saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 1-0061: chip found @ 0xc2 (saa7133[0])
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
 
->  Error correction schemes are used
-> selectively, depending upon different conditions. Sometimes it is tested
-> empirically, by the broadcaster. In this case UNC is very much helpful.
-> UNC per unit time doesn't make sense in that regard.
+here is dmesg | grep DVB :
 
-OK, for selecting an FEC scheme when testing over a real or simulated
-channel.  You still must take a certain amount of time before you
-declare a good FEC scheme: the time or message count to declare the UNC
-have stopped or are not going to occur (hence you're still dealing with
-a rate measurement even if the message count you need to make the
-declaration is 1).
+DVB: Unable to find symbol xc2028_attach()
 
+here is lspci -v :
 
->  UNC can be
-> considered more like a log sheet, that some events occured.
+09:04.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
+Video Broadcast Decoder (rev d1)
+        Subsystem: Avermedia Technologies Inc Device a836
+        Flags: bus master, medium devsel, latency 64, IRQ 16
+        Memory at d2005000 (32-bit, non-prefetchable) [size=2K]
+        Capabilities: [40] Power Management version 2
+        Kernel driver in use: saa7134
+        Kernel modules: saa7134
 
-And getting back to Oliver's original call for opinions: what good is
-that log sheet, especially after a long time?
+I try to use it under kdetv or tvtime without success and here is what
+dmesg tells me :
 
-Assuming a good FEC system was selected for the system, the rate of
-change of UNC at some short time after tuning to a channel tells you
-whether you've got good reception (rate == 0) or not (rate > 0).
+tuner' 1-0061: Tuner has no way to set tv freq
 
-Similar periodic UNC rate measurements can tell you whether or not
-you're in a fade and have lost reception or regained reception.  But
-those measurements don't require you to keep the entire log sheet, just
-a short window into the immediate past.
+Here is what I see when I look in
+linux/drivers/media/video/saa7134/saa7134-cards.c of v4l-dvb at
+linuxtv.org :
 
-I can't think of a reason to keep the UNC log indefinitely.
+     4206 	[SAA7134_BOARD_AVERMEDIA_M115] = {
+     4207 		.name           = "Avermedia M115",
+     4208 		.audio_clock    = 0x187de7,
+     4209 		.tuner_type     = TUNER_XC2028,
+     4210 		.radio_type     = UNSET,
+     4211 		.tuner_addr	= ADDR_UNSET,
+     4212 		.radio_addr	= ADDR_UNSET,
+     4213 		.inputs         = {{
+     4214 			.name = name_tv,
+     4215 			.vmux = 1,
+     4216 			.amux = TV,
+     4217 			.tv   = 1,
+     4218 		}, {
+     4219 			.name = name_comp1,
+     4220 			.vmux = 3,
+     4221 			.amux = LINE1,
+     4222 		}, {
+     4223 			.name = name_svideo,
+     4224 			.vmux = 8,
+     4225 			.amux = LINE2,
+     4226 		} },
+     4227 	},
 
-In other words:
-> >>>> | FE READ UNCORRECTED BLOCKS
-> >>>> | This ioctl call returns the number of uncorrected blocks detected by the device
-> >>>> | driver during its lifetime. For meaningful measurements, the increment
-> >>>> | in block count during a speci c time interval should be calculated.
+And here is what I see when I look in
+linux/drivers/media/video/saa7134/saa7134-cards.c of
+v4l-dvb-experimental at mcentral.de
 
-I agree with that: specifically for the case of declaring good reception
-after changing channels or watching for intermittent fades.
+     1709 	[SAA7134_BOARD_AVERMEDIA_M115] = {
+     1710 		.name		= "Avermedia M115",
+     1711 		.audio_clock	= 0x187de7,
+     1712 		.tuner_type	= TUNER_XCEIVE_XC3028,
+     1713 		.radio_type	= UNSET,
+     1714 		.tuner_addr	= 0x61,
+     1715 		.radio_addr	= ADDR_UNSET,
+     1716 		.mpeg           = SAA7134_MPEG_DVB,
+     1717 		.inputs		= {{
+     1718 			.name = name_tv,
+     1719 			.vmux = 1,
+     1720 			.amux = TV,
+     1721 			.tv   = 1,
+     1722 		},{
+     1723 			.name = name_comp1,
+     1724 			.vmux = 3,
+     1725 			.amux = LINE1,
+     1726 		},{
+     1727 			.name = name_svideo,
+     1728 			.vmux = 8,
+     1729 			.amux = LINE2,
+     1730 		}},
+     1731 	},
 
->  For this
-> >>>> | command, read-only access to the device is suf cient.
+Are the differences ok ? I mean especially for the tuner type.
+Do I made an error during the instalation ?
+If no, what can I do in order to help you add the support for this card ?
 
-I don't agree with that.  Unless the device or driver can maintain an
-extremely large accumulations of UNC blocks, an application trying to
-make a rate measurement will need to set the counter to a known value if
-the driver doesn't provide a rate measurement.
+Thank you
 
-
-
-> 
-> Regards,
-> Manu
-
-Regards,
-Andy
-
+Luc
 
 _______________________________________________
 linux-dvb mailing list
