@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from el-out-1112.google.com ([209.85.162.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1JukEl-0005ZJ-Bq
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:15:24 +0200
-Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
-	[192.168.9.180])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	A6015180013C
-	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 08:14:24 +0000 (GMT)
+	(envelope-from <mrechberger@gmail.com>) id 1Jrwf9-0002nB-CS
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 16:55:06 +0200
+Received: by el-out-1112.google.com with SMTP id y26so617610ele.11
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 07:54:57 -0700 (PDT)
+Message-ID: <d9def9db0805020754tbe8fcd1k1c2bbe2024c17d9a@mail.gmail.com>
+Date: Fri, 2 May 2008 16:54:55 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "luc legrand" <legrandluc@gmail.com>
+In-Reply-To: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
 MIME-Version: 1.0
-From: stev391@email.com
-To: sonofzev@iinet.net.au, linux-dvb@linuxtv.org
-Date: Sat, 10 May 2008 18:14:24 +1000
-Message-Id: <20080510081424.8288B1CE7C0@ws1-6.us4.outblaze.com>
-Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will it
-	be
+Content-Disposition: inline
+References: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Avermedia M115 MiniPCI hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,178 +22,148 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0719818765=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+On 5/2/08, luc legrand <legrandluc@gmail.com> wrote:
+> Hi !
+>
+> I have an Avermedia M115 MiniPCI hybrid that worked very well (I only
+> use DVB-T with kaffeine) using v4l-dvb-experimentral of Markus
+> Rechberger until kernel 2.6.24.
+> Some info about this TV tuner here :
+> http://www.avermedia.com/cgi-bin/products_odm_M115.asp
+> http://bttv-gallery.de/
+>
+> Since kernel 2.6.24 I don't find how to make it work so I decide to
+> give a try to the v4l-dvb tree on linuxtv.org.
+> I followed the installation instructions here (case 2) :
+> http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+> The compilation seems to go without errors
+>
+> Then I followed the instructions here for the firmware (section how to
+> obtain the firmware) :
+> http://www.linuxtv.org/wiki/index.php/Xceive_XC3018
+>
+> But kaffeine doesn't recognize the tv tuner.
+>
+> Here is dmesg | grep saa :
+>
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
+> mmio: 0xd2005000
+> saa7133[0]: subsystem: 1461:a836, board: Avermedia M115
+> [card=138,autodetected]
+> saa7133[0]: board init: gpio is a400000
+> saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner' 1-0061: chip found @ 0xc2 (saa7133[0])
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+>
+> here is dmesg | grep DVB :
+>
+> DVB: Unable to find symbol xc2028_attach()
+>
+> here is lspci -v :
+>
+> 09:04.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
+> Video Broadcast Decoder (rev d1)
+>         Subsystem: Avermedia Technologies Inc Device a836
+>         Flags: bus master, medium devsel, latency 64, IRQ 16
+>         Memory at d2005000 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+>
+> I try to use it under kdetv or tvtime without success and here is what
+> dmesg tells me :
+>
+> tuner' 1-0061: Tuner has no way to set tv freq
+>
+> Here is what I see when I look in
+> linux/drivers/media/video/saa7134/saa7134-cards.c of v4l-dvb at
+> linuxtv.org :
+>
+>      4206 	[SAA7134_BOARD_AVERMEDIA_M115] = {
+>      4207 		.name           = "Avermedia M115",
+>      4208 		.audio_clock    = 0x187de7,
+>      4209 		.tuner_type     = TUNER_XC2028,
+>      4210 		.radio_type     = UNSET,
+>      4211 		.tuner_addr	= ADDR_UNSET,
+>      4212 		.radio_addr	= ADDR_UNSET,
+>      4213 		.inputs         = {{
+>      4214 			.name = name_tv,
+>      4215 			.vmux = 1,
+>      4216 			.amux = TV,
+>      4217 			.tv   = 1,
+>      4218 		}, {
+>      4219 			.name = name_comp1,
+>      4220 			.vmux = 3,
+>      4221 			.amux = LINE1,
+>      4222 		}, {
+>      4223 			.name = name_svideo,
+>      4224 			.vmux = 8,
+>      4225 			.amux = LINE2,
+>      4226 		} },
+>      4227 	},
+>
+> And here is what I see when I look in
+> linux/drivers/media/video/saa7134/saa7134-cards.c of
+> v4l-dvb-experimental at mcentral.de
+>
+>      1709 	[SAA7134_BOARD_AVERMEDIA_M115] = {
+>      1710 		.name		= "Avermedia M115",
+>      1711 		.audio_clock	= 0x187de7,
+>      1712 		.tuner_type	= TUNER_XCEIVE_XC3028,
+>      1713 		.radio_type	= UNSET,
+>      1714 		.tuner_addr	= 0x61,
+>      1715 		.radio_addr	= ADDR_UNSET,
+>      1716 		.mpeg           = SAA7134_MPEG_DVB,
+>      1717 		.inputs		= {{
+>      1718 			.name = name_tv,
+>      1719 			.vmux = 1,
+>      1720 			.amux = TV,
+>      1721 			.tv   = 1,
+>      1722 		},{
+>      1723 			.name = name_comp1,
+>      1724 			.vmux = 3,
+>      1725 			.amux = LINE1,
+>      1726 		},{
+>      1727 			.name = name_svideo,
+>      1728 			.vmux = 8,
+>      1729 			.amux = LINE2,
+>      1730 		}},
+>      1731 	},
+>
+> Are the differences ok ? I mean especially for the tuner type.
+> Do I made an error during the instalation ?
+> If no, what can I do in order to help you add the support for this card ?
+>
 
---===============0719818765==
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_121040726411225"
+I updated the build script of v4l-dvb-experimental with the patch that
+was submitted to the ML.
 
-This is a multi-part message in MIME format.
-
---_----------=_121040726411225
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
-
- Allan,
-
-It was tested with in two different machines against the cx23885 version
-of the card.  However the next day I built another machine with this card
-and I ran into errors in my dmesg stating that the firmware version
-doesn't match.  I haven't had enough time to find out why this has
-happened, but I think the tuner is not being reset properly.
-
-What are your results of running this patch?
-
-Regards,
-
-Stephen
-
-  ----- Original Message -----
-  From: "sonofzev@iinet.net.au"
-  To: linux-dvb@linuxtv.org, stev391@email.com
-  Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When
-  will it be
-  Date: Thu, 08 May 2008 18:02:00 +0800
-
-
-  Hi Stephen,
-
-  Has this been tested with the newer cx23885 version of the card or
-  only the older cx88 version.
-  I have had no success with my cx23885 version.
-
-  cheers
-
-  Allan
-
-
-  On Tue May 6 11:39 , stev391@email.com sent:
-
-    G'day,
-
-    I was just wondering when Chris Pascoe's code for the DViCO
-    Fusion HDTV Dual Express will be merged into the v4l-dvb tree, as
-    there have been some minor updates that increase the stability of
-    the card that are not in his tree.
-
-    Attached is a patch for merging the relevant sections back into
-    the v4l-dvb tree (and including updating Kconfig).  This has been
-    successfully tested on two different PCs with this card (working
-    with gxine and mythtv, in Melbourne, Australia).
-
-    Regards,
-    Stephen.
-
-    -- See Exclusive Video: 10th Annual Young Hollywood Awards
-
---=20
-See Exclusive Video: 10th Annual Young Hollywood Awards
-http://www.hollywoodlife.net/younghollywoodawards2008/
-
-
---_----------=_121040726411225
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
-
-
-<div>
-Allan,<br><br>It was tested with in two different machines against the cx23=
-885 version of the card.&nbsp; However the next day I built another machine=
- with this card and I ran into errors in my dmesg stating that the firmware=
- version doesn't match.&nbsp; I haven't had enough time to find out why thi=
-s has happened, but I think the tuner is not being reset properly. <br><br>=
-What are your results of running this patch?<br><br>Regards,<br><br>Stephen=
-<br>
-<br>
-<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
-5px; padding-left: 5px;">----- Original Message -----<br>
-From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au><br>
-To: linux-dvb@linuxtv.org, stev391@email.com<br>
-Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will i=
-t be<br>
-Date: Thu, 08 May 2008 18:02:00 +0800<br>
-<br>
-
-
-<br>
-Hi Stephen, <br>
-<br>
-Has this been tested with the newer cx23885 version of the card or only the=
- older cx88 version. <br>
-I have had no success with my cx23885 version. <br>
-<br>
-cheers<br>
-<br>
-Allan<br>
- <br>
-<br>
-<span style=3D"font-weight: bold;">On Tue May  6 11:39 , stev391@email.com =
-sent:<br>
-<br>
-</span></sonofzev@iinet.net.au><blockquote style=3D"border-left: 2px solid =
-rgb(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left: 5px;=
- padding-right: 0px;">
-<div>
-
-G'day,<br>
-<br>
-I was just wondering when Chris Pascoe's code for the DViCO Fusion HDTV Dua=
-l Express will be merged into the v4l-dvb tree, as there have been some min=
-or updates that increase the stability of the card that are not in his tree=
-.<br>
-<br>
-Attached is a patch for merging the relevant sections back into the v4l-dvb=
- tree (and including updating Kconfig).&nbsp; This has been successfully te=
-sted on two different PCs with this card (working with gxine and mythtv, in=
- Melbourne, Australia).<br>
-<br>
-Regards,<br>
-Stephen.<br>
-
-<div>
-
-</div>
-
-
-</div>
-<br>
-
-
---=20
-<div> See Exclusive Video: <a href=3D"http://www.hollywoodlife.net/younghol=
-lywoodawards2008/" target=3D"_blank"> <span style=3D"font-weight: bold;"> 1=
-0th Annual Young Hollywood Awards</span></a><br>
-</div>
-</blockquote><br>
-</blockquote>
-</div>
-<BR>
-
---=20
-<div> See Exclusive Video: <a href=3D "http://www.hollywoodlife.net/youngho=
-llywoodawards2008/" target=3D"_blank"> <b> 10th Annual Young Hollywood Awar=
-ds</b></a><br></div>
-
---_----------=_121040726411225--
-
-
-
---===============0719818765==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Markus
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0719818765==--
