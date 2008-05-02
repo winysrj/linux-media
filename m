@@ -1,26 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail04.syd.optusnet.com.au ([211.29.132.185])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pjama@optusnet.com.au>) id 1Jsvg1-0007Dl-DX
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 10:04:03 +0200
-Received: from zerver.home.pjama.net
-	(c122-104-130-106.kelvn2.qld.optusnet.com.au [122.104.130.106])
-	by mail04.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	m4583rZH029590
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Mon, 5 May 2008 18:03:54 +1000
-Received: from [192.168.200.201] (emma.home.pjama.net [192.168.200.201])
-	by zerver.home.pjama.net (8.13.8+Sun/8.13.8) with ESMTP id
-	m4583lSA002000
-	for <linux-dvb@linuxtv.org>; Mon, 5 May 2008 18:03:48 +1000 (EST)
-Message-ID: <481EBF63.2050601@optusnet.com.au>
-Date: Mon, 05 May 2008 18:03:47 +1000
-From: pjama <pjama@optusnet.com.au>
-MIME-Version: 1.0
+	(envelope-from <legrandluc@gmail.com>) id 1Js0Lq-0002uG-Ru
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 20:51:24 +0200
+Received: by fg-out-1718.google.com with SMTP id 13so1000280fge.25
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 11:51:19 -0700 (PDT)
+Message-ID: <9f2475180805021151r5ae14022w90603f5c3c66c8d9@mail.gmail.com>
+Date: Fri, 2 May 2008 20:51:19 +0200
+From: "luc legrand" <legrandluc@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <481E7399.1040909@optusnet.com.au> <481E91D8.7010404@wentink.de>
-In-Reply-To: <481E91D8.7010404@wentink.de>
-Subject: Re: [linux-dvb] probs with af901x on mythbuntu
+In-Reply-To: <d9def9db0805021124sf25e63fme8e4319169bc83de@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
+	<d9def9db0805020754tbe8fcd1k1c2bbe2024c17d9a@mail.gmail.com>
+	<9f2475180805021058s2292cfe8pac958286b7cfb36a@mail.gmail.com>
+	<d9def9db0805021124sf25e63fme8e4319169bc83de@mail.gmail.com>
+Subject: Re: [linux-dvb] Avermedia M115 MiniPCI hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,58 +30,91 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+last time I tried with v4l-dvb-experimental from mcentral.de in order
+to compile I did :
+make LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
+-include include/linux/autoconf.h"
 
+and here is what dmesg tells me :
 
-Bastiaan Wentink wrote:
-> Hi :)
-> 
-> have you stopped mythtvbackend?
-> Command is afaik /etc/init.d/mythtvbackend stop.
-> I had the same thing with mythbuntu
-> 
+# dmesg | grep saa
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
+mmio: 0xd2005000
+saa7133[0]: subsystem: 1461:a836, board: Avermedia M115 [card=119,autodetected]
+saa7133[0]: board init: gpio is a400000
+saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
+saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner 1-0061: chip found @ 0xc2 (saa7133[0])
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+saa7134_dvb: Unknown symbol videobuf_dvb_register
 
-Hi Bastiann,
-Thanks for the reply. You are exactly right. Mythbuntu has locked the cardfor it's own selfish use. "sudo /etc/init.d/mythtv-backend stop" will kill it.
+# dmesg | grep dvb
+/home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+tuner callback
+/home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+tuner callback
+/home/ouam/.TunerTV/v4l-dvb-experimental/v4l/xc3028-tuner.c: attach request!
+/home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: xc3028
+tuner successfully loaded
+videobuf_dvb: disagrees about version of symbol dvb_dmxdev_init
+videobuf_dvb: Unknown symbol dvb_dmxdev_init
+videobuf_dvb: disagrees about version of symbol videobuf_read_stop
+videobuf_dvb: Unknown symbol videobuf_read_stop
+videobuf_dvb: disagrees about version of symbol videobuf_waiton
+videobuf_dvb: Unknown symbol videobuf_waiton
+videobuf_dvb: disagrees about version of symbol dvb_dmx_release
+videobuf_dvb: Unknown symbol dvb_dmx_release
+videobuf_dvb: disagrees about version of symbol videobuf_read_start
+videobuf_dvb: Unknown symbol videobuf_read_start
+videobuf_dvb: disagrees about version of symbol dvb_net_init
+videobuf_dvb: Unknown symbol dvb_net_init
+videobuf_dvb: disagrees about version of symbol dvb_dmx_swfilter
+videobuf_dvb: Unknown symbol dvb_dmx_swfilter
+videobuf_dvb: disagrees about version of symbol dvb_dmxdev_release
+videobuf_dvb: Unknown symbol dvb_dmxdev_release
+videobuf_dvb: disagrees about version of symbol dvb_frontend_detach
+videobuf_dvb: Unknown symbol dvb_frontend_detach
+videobuf_dvb: disagrees about version of symbol dvb_net_release
+videobuf_dvb: Unknown symbol dvb_net_release
+videobuf_dvb: disagrees about version of symbol dvb_unregister_frontend
+videobuf_dvb: Unknown symbol dvb_unregister_frontend
+videobuf_dvb: disagrees about version of symbol dvb_register_frontend
+videobuf_dvb: Unknown symbol dvb_register_frontend
+videobuf_dvb: disagrees about version of symbol dvb_dmx_init
+videobuf_dvb: Unknown symbol dvb_dmx_init
+videobuf_dvb: Unknown symbol videobuf_to_dma
+saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+saa7134_dvb: Unknown symbol videobuf_dvb_register
 
-OK next problem. I now get:
-peter@SunU20:~$ sudo scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Brisbane
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Brisbane
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 226500000 1 3 9 3 1 1 0
-initial transponder 177500000 1 2 9 3 1 2 0
-initial transponder 191625000 1 3 9 3 1 1 0
-initial transponder 219500000 1 3 9 3 1 1 0
-initial transponder 585625000 1 2 9 3 1 2 0
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
+Luc
 
-< repeated several times with a different channel but similar failed message >
-
-WARNING: >>> tuning failed!!!
->>> tune to: 585625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-peter@SunU20:~$
-
-
-Now (while donning my flame proof suit), I must confess that I hadn't thoroughly gone through the mailing list (google failed me) but since posting I've discovered a few things....
-
-1) in dmesg where it says "af9013: firmware version:4.73.0" Does this mean it found version 4.73.0 on the device or in the /lib/firmware/kernel<blah>/dvb_usb_af9015 file? I believe I installed version 4.95.0 (but being a binary file it's hard to confirm). Should they match, Can I upgrade the device or should I downgrade the dvb_usb_af9015 file?
-
-2) A post from Antti back in the beginning of April (http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025267.html) says the driver works but tuning fails because of the MXL5005 tuner. Bummer! 
-Antti, did you get the usb sniff that you were after? If not, can you recommend an application that can dump a suitable file?
-
-Cheers
-peter
-
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
+2008/5/2 Markus Rechberger <mrechberger@gmail.com>:
+> Hi,
+>
+>
+>  On 5/2/08, luc legrand <legrandluc@gmail.com> wrote:
+>
+> > Thank you Markus for your answer.
+>  > I have seen that patch but it seems that there is still a problem with
+>  > this card.
+>  > As you can see here I'm not the onlyone who encounter this problem
+>  > with this card (second post from luca porcu) :
+>  > http://fcp.surfsite.org/modules/newbb/viewtopic.php?viewmode=flat&order=ASC&topic_id=55288&forum=10&move=prev&topic_time=1208143235
+>  >
+>
+>  what error do you actually get there?
+>
+>  -Markus
+>
 
 _______________________________________________
 linux-dvb mailing list
