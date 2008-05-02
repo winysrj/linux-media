@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48AtHhQ014865
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 06:55:17 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.235])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m48AseOL015007
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 06:54:40 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so825015rvb.51
-	for <video4linux-list@redhat.com>; Thu, 08 May 2008 03:54:39 -0700 (PDT)
-Message-ID: <d9def9db0805080354j415b7af2s4e53abb00a385951@mail.gmail.com>
-Date: Thu, 8 May 2008 12:54:39 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: Mat <heavensdoor78@gmail.com>
-In-Reply-To: <4822DA0D.2040500@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42Cm2Zp006475
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:48:02 -0400
+Received: from MTA069A.interbusiness.it (MTA069A.interbusiness.it
+	[85.37.17.69])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42ClpQf010788
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:47:51 -0400
+Message-ID: <481B0D6E.6020301@gmail.com>
+Date: Fri, 02 May 2008 14:47:42 +0200
+From: Mat <heavensdoor78@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Markus Rechberger <mrechberger@empiatech.com>
+References: <9869.84818.qm@web902.biz.mail.mud.yahoo.com>
+In-Reply-To: <9869.84818.qm@web902.biz.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <4822DA0D.2040500@gmail.com>
 Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Empia em28xx - strange behavior
+Subject: Re: Empia em28xx module compilation...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,35 +28,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 5/8/08, Mat <heavensdoor78@gmail.com> wrote:
->
-> Hi all.
-> Again with an em28xx USB framegrabber (brand Digitus)...
->
-> I have my v4l2 app (based on capture_example from V4L2 specs) that
-> starts on boot.
-> I get frames like this one:
->   http://www.flickr.com/photos/17101105@N00/2471285296/
->
-> If I restart my app manually usually all goes well.
-> Like if... there's something wrong in the inizialization.
->
-> Does someone else got a similar problem?
-> Is there a good v4l2 user space library?
-> I'm trying to use libng (included in xawtv) but it doesn't seem easy to
-> use actually (IMO).
->
 
-You might try:
-$ hg clone http://mcentral.de/hg/~mrec/em28xx-new
-$ cd em28xx-new
-$ ./build.sh
+Hi Markus.
+Brand is Digitus. Model DA-70820.
+I wrote about it 1 month ago ( subject "Empia em28xx based USB video 
+device..." )
+BTW it isn't connected to the machine, I need to create the kernel for 
+another system.
 
-.. I'll try to get that em28xx ML up again today on mcentral.de it
-broke when moving everything to a debian server and I didn't get
-around to fix it up yet.
-
--Markus
+Markus Rechberger wrote:
+> what device do you have?
+>
+> Markus
 
 --
 video4linux-list mailing list
