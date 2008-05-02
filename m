@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m490EmxC008120
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:14:48 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m490EZQZ007750
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:14:35 -0400
-From: Andy Walls <awalls@radix.net>
-To: Andre Auzi <aauzi@users.sourceforge.net>
-In-Reply-To: <482370FD.7000001@users.sourceforge.net>
-References: <482370FD.7000001@users.sourceforge.net>
-Content-Type: text/plain
-Date: Thu, 08 May 2008 20:13:51 -0400
-Message-Id: <1210292031.4565.26.camel@palomino.walls.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42Cxgod012448
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:59:42 -0400
+Received: from host06.hostingexpert.com (host06.hostingexpert.com
+	[216.80.70.60])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42CxKp3016792
+	for <video4linux-list@redhat.com>; Fri, 2 May 2008 08:59:21 -0400
+Message-ID: <481B1027.1040002@linuxtv.org>
+Date: Fri, 02 May 2008 08:59:19 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Steven Toth <stoth@hauppauge.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: cx88 driver: Help needed to add radio support on Leadtek
-	WINFAST DTV 2000 H (version J)
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: cx18-0: ioremap failed,
+	perhaps increasing __VMALLOC_RESERVE in page.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,147 +27,103 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2008-05-08 at 23:30 +0200, Andre Auzi wrote:
-> Hello list,
-> 
-> I've started the task to add support of the board mentionned above.
-> 
-> So far I've got analog TV, Composite and Svideo inputs working OK with 
-> IR as well.
-> 
-> Unfortunately, my area does not have DVB-T yet, but from the scans I've 
-> made, I'm confident DVB support is on good tracks.
-> 
-> Nevertheless, I cannot achieve to have the radio input working.
-> 
-> The gpio values were captured with regspy on a working windows installation.
+I had this issue before dtv support was properly added to the cx18 driver.
 
-With the ivtv driver, I helped debug the LG TAPE-H series tuner on the
-PVR-150MCE not demodulating FM radio.  (Hans actually got the fix put
-in.)  The problem turned out to be the incorrect "bandswitch byte" being
-set in tuner-simple.c.  AFAICT, the gpio values for the CX23416 aren't
-used to set the FM radio on the PVR-150MCE.
+With digital working fine, the issue had disappeared.
 
-There is a "bandswitch byte" in the synthesizer/1st mixer chip (probably
-a tua603x chip) in the tuner that controls some gpio pins.  These gpio
-pins setup the tuner's preselector by switching in the proper bandpass
-filter for the Low VHF, FM, High-VHF, or UHF bands
+Now, using cx18 in the master branch, whose dtv side is crippled due to
+lack of the mxl driver, the error is back.
 
-For the FM1216ME_MK3 tuner (not the FMD1216ME_MK3) this bandswitch byte
-needs to be set to 0x98 for FM stereo or 0x9a for FM mono.
+The cx18 driver can be loaded on my system once.  If I unload it, then I
+get this every time I try to modprobe it again.
 
-I notice in tuner-simple.c:simple_radio_bandswitch(), that for both the
-FM1216ME_MK3 and the FMD1216ME_MK3, the bandswitch byte for FM is coded
-as 0x19.  This is a bit-reversal of 0x98.  This seems wrong according to
-the FM1216ME_MK3 tuner datasheet here:
+First, this is what it looks like the first time -- this is OK.
 
-http://dl.ivtvdriver.org/datasheets/tuners/FM1216ME_MK3.pdf
+[   45.515441] Linux video capture interface: v2.00
+[   45.840402] cx18:  Start initialization, version 1.0.0
+[   45.840478] cx18-0: Initializing card #0
+[   45.840484] cx18-0: Autodetected Hauppauge card
+[   45.840510] ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level,
+low) -> IRQ 17
+[   45.840769] cx18-0: cx23418 revision 01010000 (B)
+[   45.977540] tveeprom 1-0050: Hauppauge model 74041, rev C6B2, serial#
+899541
+[   45.977547] tveeprom 1-0050: MAC address is 00-0D-FE-0D-B9-D5
+[   45.977551] tveeprom 1-0050: tuner model is TCL M2523_5N_E (idx 112,
+type 50)
+[   45.977555] tveeprom 1-0050: TV standards NTSC(M) (eeprom 0x08)
+[   45.977559] tveeprom 1-0050: audio processor is CX23418 (idx 38)
+[   45.977562] tveeprom 1-0050: decoder processor is CX23418 (idx 31)
+[   45.977566] tveeprom 1-0050: has no radio, has IR receiver, has IR
+transmitter
+[   45.977570] cx18-0: Autodetected Hauppauge HVR-1600
+[   45.977574] cx18-0: DVB & VBI are not yet supported
+[   46.186774] tuner 2-0061: chip found @ 0xc2 (cx18 i2c driver #0-1)
+[   46.186834] cs5345 1-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
+[   46.188571] cx18-0: Disabled encoder IDX device
+[   46.188639] cx18-0: Registered device video0 for encoder MPEG (2 MB)
+[   46.188688] cx18-0: Registered device video32 for encoder YUV (2 MB)
+[   46.188737] cx18-0: Registered device video24 for encoder PCM audio
+(1 MB)
+[   46.318804] Driver 'sr' needs updating - please use bus_type methods
+[   46.333007] sr0: scsi3-mmc drive: 48x/48x writer cd/rw xa/form2 cdda tray
+[   46.333014] Uniform CD-ROM driver Revision: 3.20
+[   46.333143] sr 2:0:0:0: Attached scsi CD-ROM sr0
+[   46.461691] tuner-simple 2-0061: creating new instance
+[   46.461697] tuner-simple 2-0061: type set to 50 (TCL 2002N)
+[   46.740100] parport_pc 00:0a: reported by Plug and Play ACPI
+[   46.740140] parport0: PC-style at 0x378, irq 7 [PCSPP,TRISTATE]
+[   48.183476] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
+(141200 bytes)
+[   48.283518] cx18-0: loaded v4l-cx23418-cpu.fw firmware (174716 bytes)
+[   48.289808] cx18-0: FW version: 0.0.71.0 (Release 2006/12/29)
+[   48.850871] cx18-0: loaded v4l-cx23418-dig.fw firmware (16382 bytes)
+[   48.852862] cx18-0: Initialized card #0: Hauppauge HVR-1600
+[   48.852938] ACPI: PCI Interrupt 0000:00:14.5[B] -> GSI 17 (level,
+low) -> IRQ 16
+[   48.853583] cx18:  End initialization
 
-I can't find the FMD1216ME_MK3 datasheet with some quick google
-searches.  I cannot conclusively say the coded bandswitch byte of 0x19
-is wrong for the FMD1261ME_MK3, but I think it's worth some
-investigation/experimentation.
+...but after unloading it once:
 
-You might also want to check/fix the tuner-simple.c:tuner_stereo()
-function while you're at it.
-
-Good luck,
-Andy
+[ 2132.526778] tuner-simple 2-0061: destroying instance
+[ 2132.531551] ACPI: PCI interrupt for device 0000:02:07.0 disabled
+[ 2132.531562] cx18-0: Removed Hauppauge HVR-1600, card #0
 
 
-> 
-> Here are my additions in cx88-cards.c:
-> 
-> diff -r 0a072dd11cd8 linux/drivers/media/video/cx88/cx88-cards.c
-> --- a/linux/drivers/media/video/cx88/cx88-cards.c    Wed May 07 15:42:54 
-> 2008 -0300
-> +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Thu May 08 23:07:36 
-> 2008 +0200
-> @@ -1300,6 +1300,52 @@
->          }},
->          .mpeg           = CX88_MPEG_DVB,
->      },
-> +    [CX88_BOARD_WINFAST_DTV2000H_VERSION_J] = {
-> +        /* Radio still in testing */
-> +        .name           = "WinFast DTV2000 H (version J)",
-> +        .tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
-> +        .radio_type     = UNSET,
-> +        .tuner_addr     = ADDR_UNSET,
-> +        .radio_addr     = ADDR_UNSET,
-> +        .tda9887_conf   = TDA9887_PRESENT,
-> +        .input          = {{
-> +            .type   = CX88_VMUX_TELEVISION,
-> +            .vmux   = 0,
-> +            .gpio0  = 0x00013700,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013700,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_CABLE,
-> +            .vmux   = 0,
-> +            .gpio0  = 0x0001b700,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x0001b700,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_COMPOSITE1,
-> +            .vmux   = 1,
-> +            .gpio0  = 0x00013701,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013701,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_SVIDEO,
-> +            .vmux   = 2,
-> +            .gpio0  = 0x00013701,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013701,
-> +            .gpio3  = 0x02000000,
-> +        } },
-> +        .radio = {
-> +            .type   = CX88_RADIO,
-> +            .gpio0  = 0x00013702,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013702,
-> +            .gpio3  = 0x02000000,
-> +        },
-> +    },
->      [CX88_BOARD_GENIATECH_DVBS] = {
->          .name          = "Geniatech DVB-S",
->          .tuner_type    = TUNER_ABSENT,
-> @@ -1957,6 +2003,10 @@
->          .subdevice = 0x665e,
->          .card      = CX88_BOARD_WINFAST_DTV2000H,
->      },{
-> +        .subvendor = 0x107d,
-> +        .subdevice = 0x6f2b,
-> +        .card      = CX88_BOARD_WINFAST_DTV2000H_VERSION_J,
-> +    },{
->          .subvendor = 0x18ac,
->          .subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
->          .card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
-> 
-> 
-> Would there be someone in the list with cx88 driver knowledge who 
-> already achieved this for another board and could hint me on things to 
-> look for?
-> 
-> I kindof reached the limits of my imagination and would really 
-> appreciate a help.
-> 
-> So far my modprobe.conf reads:
-> 
-> options tda9887 debug=1
-> options cx22702 debug=1
-> options cx88xx i2c_debug=1 i2c_scan=1 audio_debug=1
-> options cx8800 video_debug=1
-> 
-> and I would join the dmesg output if I did not care to flood the list.
-> 
-> Just let me know if it could help.
-> 
-> Thanks in advance
-> Andre
+every time I try to load cx18 again, I get this:
+
+
+[ 2198.627071] Linux video capture interface: v2.00
+[ 2198.644995] cx18:  Start initialization, version 1.0.0
+[ 2198.645061] cx18-0: Initializing card #0
+[ 2198.645065] cx18-0: Autodetected Hauppauge card
+[ 2198.645092] ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level,
+low) -> IRQ 17
+[ 2198.645115] allocation failed: out of vmalloc space - use
+vmalloc=<size> to increase size.
+[ 2198.645119] cx18-0: ioremap failed, perhaps increasing
+__VMALLOC_RESERVE in page.h
+[ 2198.645124] cx18-0: or disabling CONFIG_HIGHMEM4G into the kernel
+would help
+[ 2198.645130] cx18-0: Error -12 on initialization
+[ 2198.645184] cx18: probe of 0000:02:07.0 failed with error -12
+[ 2198.645202] cx18:  End initialization
+[ 2236.317472] Linux video capture interface: v2.00
+[ 2236.344161] cx18:  Start initialization, version 1.0.0
+[ 2236.344232] cx18-0: Initializing card #0
+[ 2236.344236] cx18-0: Autodetected Hauppauge card
+[ 2236.344265] allocation failed: out of vmalloc space - use
+vmalloc=<size> to increase size.
+[ 2236.344269] cx18-0: ioremap failed, perhaps increasing
+__VMALLOC_RESERVE in page.h
+[ 2236.344273] cx18-0: or disabling CONFIG_HIGHMEM4G into the kernel
+would help
+[ 2236.344278] cx18-0: Error -12 on initialization
+[ 2236.344287] cx18: probe of 0000:02:07.0 failed with error -12
+[ 2236.344304] cx18:  End initialization
+
+
+-Mike
 
 
 --
