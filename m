@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.177])
+Received: from py-out-1112.google.com ([64.233.166.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bvidinli@gmail.com>) id 1JxJSd-0007Kv-M6
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 12:16:21 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so656380wag.13
-	for <linux-dvb@linuxtv.org>; Sat, 17 May 2008 03:16:14 -0700 (PDT)
-Message-ID: <36e8a7020805170316j7e8f4cdaw2102e00b2d6d61f4@mail.gmail.com>
-Date: Sat, 17 May 2008 13:16:14 +0300
-From: bvidinli <bvidinli@gmail.com>
-To: linux-dvb@linuxtv.org, "fahri donmez" <fahridon@gmail.com>,
-	ozbilen@gmail.com
+	(envelope-from <makosoft@googlemail.com>) id 1JrrUy-0002y7-F7
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 11:24:13 +0200
+Received: by py-out-1112.google.com with SMTP id a29so1506153pyi.0
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 02:24:07 -0700 (PDT)
+Message-ID: <c8b4dbe10805020224l75b58f98ycef9c022b00b5bc2@mail.gmail.com>
+Date: Fri, 2 May 2008 10:24:07 +0100
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Juan Antonio Garcia" <juanantonio_garcia_01@yahoo.es>
+In-Reply-To: <d9def9db0805011258v664fdcbegcff266581670b4a6@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
+References: <905882.45101.qm@web23108.mail.ird.yahoo.com>
+	<d9def9db0805011258v664fdcbegcff266581670b4a6@mail.gmail.com>
+Cc: Jakob Steidl <j.steidl@liwest.at>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB driver for Pinnacle PCTV200e and PCTV60e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,64 +23,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-9"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-i just compiled kernel version 2.6.26.rc2 on my ubuntu linux 8.04,
-many things including sound not working, but i got finally name of my
-tv/dvb card on dmesg output.
-previously i was getting UNKNOWN/GENERIC on dmesg for my tv card,
+On Thu, May 1, 2008 at 8:58 PM, Markus Rechberger <mrechberger@gmail.com> wrote:
+> Hi,
+>
+>
+>  On 5/1/08, Juan Antonio Garcia <juanantonio_garcia_01@yahoo.es> wrote:
+>  >
+>  > Hi,
+>  >
+>  > I updated the driver for being supported in kernel 2.6.24 (Ubuntu 8.04).
+>  >
+>  > I am distributing the update thought the Ubuntu forums, but it would be
+>  > better to distribute it to more users. So Linux has more HW supported.
+>  >
+>  > What it should be done so it is included in the v4l tree?
+>  >
+>
+>  I forwarded the mail to the linux-dvb ML.
+>
+>  > Now the driver supports 2 devices:
+>  >
+>  > - Pinnacle PCTV 200e
+>  > - Pinnacle PCTV 60e
+>  >
+>  > The driver wiki is:
+>  >
+>  > http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_200e
+>  >
+>
+>  Markus
 
- i use tvtime-scanner or tvtime, it does not scan, even analog channels,
- i use following to try new tuners, :
-rmmod saa7134
-modprobe saa7134 card=3D141 tuner=3D2
+Hi,
 
-i run these two lines fo rtuner 0,1,2,3 and so on... to try different
-tuner numbers... on some numbers, computers locks down.. i had to
-reset...
+This driver seems like it should be trivial to get working on
+linux-dvb, which is where you want it - the tree you've based it on
+isn't much longer for this world. (I don't think any of the code
+you're using has changed significantly between Markus' branch and the
+main one). It needs some cleanup, though. At a glance:
 
+- Don't use C++-style comments (the single-line // ones)
+- The whole "addr == pctv200e_mt2060_config.i2c_address" part looks
+iffy; I think you should remove this and use i2c_gate_ctrl instead.
+Unfortunately, I'm not sure this'll work currently, since mt2060
+doesn't appear to support it.
+- ctrl_msg_last_device/ctrl_msg_last_operation must go - they won't
+work right if you use multiple devices of this type. The code in the
+"if (ctrl_msg_last_device == 0)" section can probably go elsewhere,
+but I'm not sure where
+- Why are you incrementing the register value in pctv200e_ctrl_msg?
 
-currently i have two questions:
-1- what is correct statements/commands to be able to scan tv channels...
-2- the log says only analog inputs available now, when it will be
-possible to watch dvb channels ?
-3- what is best/good tutorials/sites that describe/help in
-dvb/tv/multimedia for ubuntu/linux, (i already looked linuxtv,
-searched google, many sites..)
+The linuxtv developers will probably be able to give you more advice.
 
+Aidan
 
-thanks.
-
-
-logs: dmesg,
-
-[   39.243703] saa7133[0]: found at 0000:00:14.0, rev: 209, irq: 12,
-latency: 32, mmio: 0xde003000
-[   39.243776] saa7133[0]: subsystem: 1461:a7a2, board: Avermedia
-DVB-S Hybrid+FM A700 [card=3D141,autodetected]
-[   39.243858] saa7133[0]: board init: gpio is b400
-[   39.243909] saa7133[0]: Avermedia DVB-S Hybrid+FM A700: hybrid
-analog/dvb card
-[   39.243915] saa7133[0]: Sorry, only the analog inputs are supported for =
-now.
-
-
--- =
-
-=DD.Bahattin Vidinli
-Elk-Elektronik M=FCh.
--------------------
-iletisim bilgileri (Tercih sirasina gore):
-skype: bvidinli (sesli gorusme icin, www.skype.com)
-msn: bvidinli@iyibirisi.com
-yahoo: bvidinli
-
-+90.532.7990607
-+90.505.5667711
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
