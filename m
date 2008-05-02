@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.232])
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1JzrRe-0000zV-Lt
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 12:57:51 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1391224rvf.41
-	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 03:57:44 -0700 (PDT)
-Message-ID: <d9def9db0805240357s46fcbb2di50a129f580906bdf@mail.gmail.com>
-Date: Sat, 24 May 2008 12:57:44 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Nico Sabbi" <Nicola.Sabbi@poste.it>
-In-Reply-To: <200805241207.33777.Nicola.Sabbi@poste.it>
+	(envelope-from <mkrufky@gmail.com>) id 1Js0XO-0003xy-Tf
+	for linux-dvb@linuxtv.org; Fri, 02 May 2008 21:03:19 +0200
+Received: by yw-out-2324.google.com with SMTP id 5so35924ywb.41
+	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 12:02:58 -0700 (PDT)
+Message-ID: <37219a840805021202w57218167x9e0949e01575125b@mail.gmail.com>
+Date: Fri, 2 May 2008 15:02:58 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Robert Penland" <penland@pacbell.net>
+In-Reply-To: <DD4A3CFD-1E9F-4629-BC0F-117AF495F3BF@pacbell.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <412bdbff0805231207g38c3cfeet7e20edda43561160@mail.gmail.com>
-	<200805241207.33777.Nicola.Sabbi@poste.it>
+References: <DD4A3CFD-1E9F-4629-BC0F-117AF495F3BF@pacbell.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Warning regarding Ubuntu 8.04, mplayer,
-	and some dvb drivers
+Subject: Re: [linux-dvb] HVR-1250 Analog mode
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,17 +28,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 5/24/08, Nico Sabbi <Nicola.Sabbi@poste.it> wrote:
-> Il Friday 23 May 2008 21:07:45 Devin Heitmueller ha scritto:
->
->> Looks like they integrated mplayer with dbus
->
-> shocking :(
->
+On Fri, May 2, 2008 at 1:17 PM, Robert Penland <penland@pacbell.net> wrote:
+> Has any progress been made on getting the analog mode of the HVR-1250
+>  working?  I looked through the recent archives, but didn't see any
+>  relevant information.
 
-it's just implemented for enabling/disabling the gnome screensaver actually.
+Analog video is not yet supported by the linux cx23885 driver for
+Conexant cx23885 PCIe bridge chipsets.
 
-Markus
+Currently, the linux cx23885 driver only supports analog video on the
+Conexant cx23887 PCIe bridge chipset.
+
+The HVR-1800 uses a cx23887, but the HVR-1250 uses a cx23885 -- only
+digital television is supported at this time.
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
