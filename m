@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server1.3continents.com ([64.34.166.88])
+Received: from webmail.woosh.co.nz ([202.74.207.2] helo=mail2.woosh.co.nz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tony@tgds.net>) id 1Jy8XY-0006Yy-NN
-	for linux-dvb@linuxtv.org; Mon, 19 May 2008 18:48:49 +0200
-Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
-	by server1.3continents.com (Postfix) with ESMTP id 337604449CD
-	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 11:48:41 -0500 (CDT)
-From: Tony Grant <tony@tgds.net>
-To: dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1211215078.6089.2.camel@amd.dragonfly.dnsalias.net>
-References: <40312.81.144.130.125.1210936580.squirrel@server27.ukservers.net>
-	<482D79B1.5080504@web.de> <482DC39C.2080100@iname.com>
-	<4831A6B4.1010201@netmindz.net>
-	<1211215078.6089.2.camel@amd.dragonfly.dnsalias.net>
-Date: Mon, 19 May 2008 18:48:41 +0200
-Message-Id: <1211215721.22007.255.camel@hush.lan>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] BBC HD on Freesat?
+	(envelope-from <wayneandholly@woosh.co.nz>) id 1JsNen-0004AX-RN
+	for linux-dvb@linuxtv.org; Sat, 03 May 2008 21:44:31 +0200
+Received: from speedy (203-211-106-230.ue.woosh.co.nz [203.211.106.230]) by
+	woosh.co.nz
+	(Rockliffe SMTPRA 6.1.22) with ESMTP id <B0116619277@mail2.woosh.co.nz>
+	for <linux-dvb@linuxtv.org>; Sun, 4 May 2008 07:43:51 +1200
+From: "Wayne and Holly" <wayneandholly@woosh.co.nz>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 4 May 2008 07:43:37 +1200
+Message-ID: <000101c8ad55$fb1d0e70$fd01a8c0@speedy>
+MIME-Version: 1.0
+In-Reply-To: <000001c8ad55$c1dd7280$fd01a8c0@speedy>
+Subject: Re: [linux-dvb] Geniatech DVB-S Digistar
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,38 +21,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I'll try again,
+Is anyone using the subject card without any problems?  I read a handful
+of articles stating that the card was supported in Linux out of the box,
+but my playback is unwatchable.  I doubt it is my system as a 2.1GHz
+dual core CPU and 4GB DDR2 should be overkill.  I was surprised to see
+"Conextant Unknown Device [14f1:0084]" for the lspci subsystem
+considering it is supported by the cx88 module but don't know if this is
+an issue.  I'm guessing I may need to change some of my settings but
+have not been able to find any documentation that gives any clues for
+where to start.
 
-Le lundi 19 mai 2008 =E0 17:37 +0100, Robert a =E9crit :
+Here is my lspci -vvn output:
 
-> > So these are basically the same old FTA channels that have always been =
+01:06.0 0400: 14f1:8800 (rev 05)
+Subsystem: 14f1:0084
+Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+Latency: 20 (5000ns min, 13750ns max), Cache Line Size: 64 bytes
+Interrupt: pin A routed to IRQ 18
+Region 0: Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+Capabilities: [44] Vital Product Data
+Capabilities: [4c] Power Management version 2
+Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+Status: D0 PME-Enable- DSel=0 DScale=0 PME-
 
-> > on 28.8 but now HD is FTA too ? Or do i need to rescan ?
-> =
-
-> Yes, they are the same FTA channels.  BBC HD has been there for some
-> time too.  Only new things are C4, E4, More4 and some +1 channels - I'm
-> not sure if they have "moved" or just had encryption turned off.
-
-They have become FTA moving from FTV and the requirement of the Sky CAM
-
-Film4 was first followed by E4 and More4 with Channel4 still
-"experimental" this weekend - i.e. hidden behind a non descriptif
-number.
-
-My hardware does not permit HD but it was there quite a while ago,
-before Film4.
+01:06.2 0480: 14f1:8802 (rev 05)
+Subsystem: 14f1:0084
+Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+Latency: 64 (1500ns min, 22000ns max), Cache Line Size: 64 bytes
+Interrupt: pin A routed to IRQ 18
+Region 0: Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+Capabilities: [4c] Power Management version 2
+Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+Status: D0 PME-Enable- DSel=0 DScale=0 PME-
 
 Cheers
-
-Tony
-
--- =
+Wayne
 
 
 
