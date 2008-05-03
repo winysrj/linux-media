@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m47LZeaQ014675
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 17:35:40 -0400
-Received: from mailout05.t-online.de (mailout05.t-online.de [194.25.134.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m47LZTKB025127
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 17:35:29 -0400
-Message-ID: <48222094.2020200@t-online.de>
-Date: Wed, 07 May 2008 23:35:16 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43DNZ1l031537
+	for <video4linux-list@redhat.com>; Sat, 3 May 2008 09:23:35 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m43DNNgk006543
+	for <video4linux-list@redhat.com>; Sat, 3 May 2008 09:23:24 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so397119tim.7
+	for <video4linux-list@redhat.com>; Sat, 03 May 2008 06:23:23 -0700 (PDT)
+Message-ID: <cad107560805030623h321f1880tf73fef25fe4a6535@mail.gmail.com>
+Date: Sat, 3 May 2008 21:23:23 +0800
+From: "Jeyner Gil Caga" <jeynergilcaga@gmail.com>
+To: ".: formica :." <formica@messinalug.org>
+In-Reply-To: <8dff1fad0805030252u342ae5f3l7891d0097fb85bb4@mail.gmail.com>
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-References: <200805071436.03569.maximlevitsky@gmail.com>
-In-Reply-To: <200805071436.03569.maximlevitsky@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+References: <8dff1fad0805030252u342ae5f3l7891d0097fb85bb4@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Video-4l-list <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [BUG] sound is unmuted by default with 2.6.26-rc1 on my FlyVideo
- 2000
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: Re: Cross Compile Xawtv for XScale
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,52 +30,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Maxim
+Hi Formica,
 
-Maxim Levitsky schrieb:
-> Hi,
-> 
-> I was very busy, thus I didn't follow kernel development lately.
-> I skipped whole 2.6.25 cycle.
-> 
-> Now I have a bit more free time, so I updated kernel to 2.6.25, and then
-> to latest -git.
-> 
-> In latest git I noticed that sound output of my TV card is unmuted by default.
-> 
-> commit 7bff4b4d3ad2b9ff42b4087f409076035af1d165, clears all GPIO lines,
-> and on my card mute is implemented with external chip which is connected via GPIO,
-> and this results in the above bug.
-> 
-> The code that clears all gpios executed last, thus it undoes the saa7134_tvaudio_setmute
-> in saa7134_video_init2.
-> 
-> moving saa7134_tvaudio_setmute after gpio clearing doesn't help, bacause this function is
-> "smart" thus it remembers last mute state and touches the hardware only if this state changes.
-> (And first time it is called from video_mux, thus explict call from saa7134_video_init2 isn't necessary I think)
-> 
-> I once had trouble with this thing, when wrote the resume code, thus I added a flag (dev->insuspend
-> that made this function set mute state always when set.
-> (This is a bit hackish, but I had to use this flag anyway in other places, so I decided that this is ok)
-> 
-> I could remove this "smart" check, but I tested and found that this function is called qute often from tvaudio thread, and thus this check probably is correct.
-> 
-> 
-> 
-> Best regards,
-> 	Maxim Levitsky
-> 
+May I know  what functionalities of XAWTV you need? Do you need to
+cross-compile everything or only  a portion of it?
 
-Hm, it clears the gpios defined in the gpiomask, not all...
-But i see the problem.
-The conflict is that on many recent hybrid cards, gpios are used to switch between
-analog and digital mode. And these need to be in a defined state even when analog
-mode never was activated. This was a bug.
-I am not sure yet but for me things look like we need the gpio initialization only
-at the first start and we can do this earlier.
+jeyner
 
-Hartmut
+On Sat, May 3, 2008 at 5:52 PM, .: formica :. <formica@messinalug.org>
+wrote:
 
+> Hi all,
+> is it possible to cross-compile Xawtv for XScale pxa270?
+> If yes, how can I do it?
+>
+> Thanks in advance
+> formica
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
