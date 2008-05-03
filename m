@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.dnainternet.fi ([87.94.96.108])
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JyHAD-0000Vp-EW
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 04:01:18 +0200
-Message-ID: <483230CA.7030204@iki.fi>
-Date: Tue, 20 May 2008 05:00:42 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <alihmh@gmail.com>) id 1JsEq3-0000Zj-75
+	for linux-dvb@linuxtv.org; Sat, 03 May 2008 12:19:32 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so144122wfd.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 May 2008 03:19:23 -0700 (PDT)
+Message-ID: <66caf1560805030319m64bef2f9k14fcc18d7e87d80@mail.gmail.com>
+Date: Sat, 3 May 2008 13:49:22 +0330
+From: "Ali H.M. Hoseini" <alihmh@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Owen Townend <owen.townend@gmail.com>
-References: <bb72339d0805191836l26aa826fl3b6dd3aafa20712@mail.gmail.com>
-In-Reply-To: <bb72339d0805191836l26aa826fl3b6dd3aafa20712@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kworld 399U Dual DVB-T USB tuner
+Subject: [linux-dvb] pinnacle pctv 400i dvb-s linux support?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,30 +18,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0679635232=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Owen Townend wrote:
-> So two questions:
->   What can I do to enable the second tuner on the dongle?
->   How can I compile the cx88 drivers along with the rest in the af9015 checkout?
+--===============0679635232==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_18951_13030487.1209809962984"
 
-> [4] http://linuxtv.org/hg/~anttip/af9015/rev/22fc34924b9e
+------=_Part_18951_13030487.1209809962984
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-You should use newer tree:
-http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
-I have feeling that both tuners should work (if I have not broken 
-something)...
+Hi,
+Does pinnacle pctv 400i dvb-s card has linux support?
 
-regards
-Antti
--- 
-http://palosaari.fi/
+I searched dvb wiki, and dvb mailing list archive on marc, but I found
+nothing.
+
+I'm planing to buy one of this cards for linux, so if anybody knows this
+card works or not on linux, answers me.
+
+Thanks.
+Jik.
+
+------=_Part_18951_13030487.1209809962984
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br>Does pinnacle pctv 400i dvb-s card has linux support?<br><br>I searched dvb wiki, and dvb mailing list archive on marc, but I found nothing.<br><br>I&#39;m planing to buy one of this cards for linux, so if anybody knows this card works or not on linux, answers me.<br>
+<br>Thanks.<br>Jik.<br>
+
+------=_Part_18951_13030487.1209809962984--
+
+
+--===============0679635232==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0679635232==--
