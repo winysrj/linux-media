@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1K0YHd-0006hk-8Q
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 10:42:22 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4839FDC8000020DE for linux-dvb@linuxtv.org;
-	Mon, 26 May 2008 10:42:17 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
+	(envelope-from <legrandluc@gmail.com>) id 1JsEOL-0006vk-CS
+	for linux-dvb@linuxtv.org; Sat, 03 May 2008 11:50:54 +0200
+Received: by fg-out-1718.google.com with SMTP id 13so1223658fge.25
+	for <linux-dvb@linuxtv.org>; Sat, 03 May 2008 02:50:50 -0700 (PDT)
+Message-ID: <9f2475180805030250w7e25d43cie6220c614a23acca@mail.gmail.com>
+Date: Sat, 3 May 2008 11:50:50 +0200
+From: "luc legrand" <legrandluc@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Mon, 26 May 2008 10:41:12 +0200
-References: <000001c8be52$89aef740$9d0ce5c0$@shacknet.nu>
-	<4839B722.8080708@blueyonder.co.uk>
-In-Reply-To: <4839B722.8080708@blueyonder.co.uk>
+In-Reply-To: <d9def9db0805021215n3f5cbc06r24340d7dd551a541@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200805261041.12271.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] DVB on 64 vs 32 bit linux.
+References: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
+	<d9def9db0805020754tbe8fcd1k1c2bbe2024c17d9a@mail.gmail.com>
+	<9f2475180805021058s2292cfe8pac958286b7cfb36a@mail.gmail.com>
+	<d9def9db0805021124sf25e63fme8e4319169bc83de@mail.gmail.com>
+	<9f2475180805021151r5ae14022w90603f5c3c66c8d9@mail.gmail.com>
+	<d9def9db0805021215n3f5cbc06r24340d7dd551a541@mail.gmail.com>
+Subject: Re: [linux-dvb] Avermedia M115 MiniPCI hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,42 +26,102 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sunday 25 May 2008 20:59:46 Sid Boyce wrote:
-> Blacky wrote:
-> > Hi All,
-> >
-> > Just curious, but I have an older system running a 32bit linux,
-> > which I=92ve installed zapdvb and done some recording
-> >
-> > with. I=92ve built a new system with mythbuntu on 64bit, and using
-> > the same card, the reception is
-> >
-> > truly terrible. Low signal, stuttering, corruption etc..
-> >
-> > Should I rebuild using myth on 32bit? Is there a difference?
-> >
-> > Thanks.
-> >
-> > Blacky.
+ok I'll give it a try.
+I have seen that you recently modify v4l-dvb-experimental tree. Should
+I compile using make or should I continue using make
+LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
+-include include/linux/autoconf.h" ?
+
+Luc
+
+
+2008/5/2 Markus Rechberger <mrechberger@gmail.com>:
 >
-> Not as far as I am aware. I have 2 64-bit systems with DVB-T cards
-> running openSUSE 11.0 Beta3plus x86_64 and results are the same as
-> when the cards were used with the older 32-bit hardware and OS's in
-> the same boxes. I swapped out the Motherboard/CPU/mem and used all
-> the other components, installed 64-bit and carried on as normal.
-> Regards
-> Sid.
-
-same here: 100% equivalence of tuning with both my cards
-(of 2 different types) although your driver _may_ have a problem
-
-
+> On Fri, May 2, 2008 at 2:51 PM, luc legrand <legrandluc@gmail.com> wrote:
+>  > last time I tried with v4l-dvb-experimental from mcentral.de in order
+>  >  to compile I did :
+>  >  make LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
+>  >  -include include/linux/autoconf.h"
+>  >
+>  >
+>  >  and here is what dmesg tells me :
+>  >
+>  >
+>  > # dmesg | grep saa
+>  >  saa7130/34: v4l2 driver version 0.2.14 loaded
+>  >  saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
+>  >  mmio: 0xd2005000
+>  >  saa7133[0]: subsystem: 1461:a836, board: Avermedia M115 [card=119,autodetected]
+>  >
+>  > saa7133[0]: board init: gpio is a400000
+>  >  saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
+>  >  saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  >  saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  >
+>  > tuner 1-0061: chip found @ 0xc2 (saa7133[0])
+>  >  saa7133[0]: registered device video0 [v4l2]
+>  >  saa7133[0]: registered device vbi0
+>  >  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+>  >  saa7134_dvb: Unknown symbol videobuf_dvb_register
+>  >
+>  >  # dmesg | grep dvb
+>  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+>  >  tuner callback
+>  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
+>  >  tuner callback
+>  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/xc3028-tuner.c: attach request!
+>  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: xc3028
+>  >  tuner successfully loaded
+>  >  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_init
+>  >  videobuf_dvb: Unknown symbol dvb_dmxdev_init
+>  >  videobuf_dvb: disagrees about version of symbol videobuf_read_stop
+>  >  videobuf_dvb: Unknown symbol videobuf_read_stop
+>  >  videobuf_dvb: disagrees about version of symbol videobuf_waiton
+>  >  videobuf_dvb: Unknown symbol videobuf_waiton
+>  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_release
+>  >  videobuf_dvb: Unknown symbol dvb_dmx_release
+>  >  videobuf_dvb: disagrees about version of symbol videobuf_read_start
+>  >  videobuf_dvb: Unknown symbol videobuf_read_start
+>  >  videobuf_dvb: disagrees about version of symbol dvb_net_init
+>  >  videobuf_dvb: Unknown symbol dvb_net_init
+>  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_swfilter
+>  >  videobuf_dvb: Unknown symbol dvb_dmx_swfilter
+>  >  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_release
+>  >  videobuf_dvb: Unknown symbol dvb_dmxdev_release
+>  >  videobuf_dvb: disagrees about version of symbol dvb_frontend_detach
+>  >  videobuf_dvb: Unknown symbol dvb_frontend_detach
+>  >  videobuf_dvb: disagrees about version of symbol dvb_net_release
+>  >  videobuf_dvb: Unknown symbol dvb_net_release
+>  >  videobuf_dvb: disagrees about version of symbol dvb_unregister_frontend
+>  >  videobuf_dvb: Unknown symbol dvb_unregister_frontend
+>  >  videobuf_dvb: disagrees about version of symbol dvb_register_frontend
+>  >  videobuf_dvb: Unknown symbol dvb_register_frontend
+>  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_init
+>  >  videobuf_dvb: Unknown symbol dvb_dmx_init
+>  >  videobuf_dvb: Unknown symbol videobuf_to_dma
+>  >  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
+>  >  saa7134_dvb: Unknown symbol videobuf_dvb_register
+>  >
+>
+>  try
+>
+>  rm -rf /lib/modules/`uname -r`/kernel/drivers/media
+>
+>  and reinstall that package.
+>
+>  Markus
+>
 
 _______________________________________________
 linux-dvb mailing list
