@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43C0ngO008193
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 08:00:49 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m43C0dx2008449
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 08:00:39 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so88108wfc.6
-	for <video4linux-list@redhat.com>; Sat, 03 May 2008 05:00:39 -0700 (PDT)
-Message-ID: <22dcca890805030500s42889ddcl7370c7745dca8bba@mail.gmail.com>
-Date: Sat, 3 May 2008 14:00:38 +0200
-From: "Youri Matthys" <yourimatthys@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <22dcca890802120002m19ff0f10x6776cdbdccc1f443@mail.gmail.com>
-MIME-Version: 1.0
-References: <22dcca890802120002m19ff0f10x6776cdbdccc1f443@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Re: [PATCH] repeating remote control keys on Compro VideoMate
-	DVB-T300
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43DcfcE002736
+	for <video4linux-list@redhat.com>; Sat, 3 May 2008 09:38:41 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m43Dc8Dc012373
+	for <video4linux-list@redhat.com>; Sat, 3 May 2008 09:38:08 -0400
+From: Andy Walls <awalls@radix.net>
+To: ivtv-devel@ivtvdriver.org
+In-Reply-To: <1209782607.27140.14.camel@palomino.walls.org>
+References: <481B1027.1040002@linuxtv.org>
+	<1209782607.27140.14.camel@palomino.walls.org>
+Content-Type: multipart/mixed; boundary="=-jNysbVFJd2P30SoL5lI9"
+Date: Sat, 03 May 2008 09:33:05 -0400
+Message-Id: <1209821585.12959.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH] 2nd try: Fix potential cx18_cards[] entry leaks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,44 +28,123 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-James,
 
-After much fiddling around and searching the net I've finally resolved the
-problem and added it to your patch. With your permission I would like to
-send your patch to the v4l devs so the code can be integrated.
+--=-jNysbVFJd2P30SoL5lI9
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Kind regards, Youri
+On Fri, 2008-05-02 at 22:43 -0400, Andy Walls wrote:
+> Hans,
+> 
+> When investigating Mike Krufky's report of module reload problems, I ran
+> across problems with the management of the cx18_cards[] array.  They're
+> corner cases and not likely to be the cause of Mike problems though.
 
 
-diff -r 27b2c6a80826 linux/drivers/media/video/saa7134/saa7134-input.c
+> The attached patch was made against the latest v4l-dvb hg repository.
 
---- a/linux/drivers/media/video/saa7134/saa7134-input.c Fri Nov 30 18:27:26
-2007 +0200 +++ b/linux/drivers/media/video/saa7134/saa7134-input.c Sun Dec
-02 23:08:43 2007 +1100
+This is a new version of the patch.  The previous version would change
+card minor number ordering upon errors, which is not what users with a
+number of cards and multiple video sources wired up would want to
+happen.
 
-@@ -76,6 +76,12 @@ static int build_key(struct saa7134_dev
-     }
-     /* rising SAA7134_GPIO_GPRESCAN reads the status */
-     saa_clearb(SAA7134_GPIO_GPMODE3,SAA7134_GPIO_GPRESCAN);
-+    /* eliminate repeating keys issue on some boards*/
-+    switch (dev->board) {
-+    case SAA7134_BOARD_VIDEOMATE_DVBT_200:
-+        saa_clearb(SAA7134_GPIO_GPMODE3,SAA7134_GPIO_GPRESCAN);
-+        break;
-+    }
-     saa_setb(SAA7134_GPIO_GPMODE3,SAA7134_GPIO_GPRESCAN);
+This new patch is almost a minimal set of changes to fix the
+cx18_cards[] leak and possible bad pointers being left in cx18_cards[]
+on error.  It does include some additional lines to obtain the
+cx18_cards_lock when accessing cx18_cards[] and not just
+cx18_cards_active.
 
-     gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
+Regards,
+Andy
 
-@@ -324,6 +330,7 @@ int saa7134_input_init1(struct saa7134_dev
-         ir_codes     = ir_codes_videomate_tv_pvr;
-         mask_keycode = 0x003F00;
-         mask_keyup   = 0x040000;
-+        polling      = 50; // ms
-         break;
-     case SAA7134_BOARD_FLYDVBS_LR300:
-     case SAA7134_BOARD_FLYDVBT_LR301:
+--=-jNysbVFJd2P30SoL5lI9
+Content-Disposition: attachment; filename=cx18-cards-leak3.patch
+Content-Type: text/x-patch; name=cx18-cards-leak3.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+# HG changeset patch
+# User Andy Walls <awalls@radix.net>
+# Date 1209820624 14400
+# Node ID 2f883fedfb85c1979d9352ffdcf97a2d901dfbeb
+# Parent  4c4fd6b8755cc9918255876ff1010bc77374a310
+Prevent cx18_cards[] leak and possible bad pointer dereference
+
+From: Andy Walls <awalls@radix.net>
+
+The code at label 'err:' in cx18_probe() would try and free the wrong
+cx18_cards[] entry on error exit, and leave a bad pointer in place.
+
+cx18_v4l2_open() could have derefernced this bad pointer or NULL pointer
+after the fix, so fixed that as well.
+
+Obtained spin lock in all places where cx18_cards[] is accessed, not just where
+cx18_cards_active is accessed.
+
+
+Signed-off-by: Andy Walls <awalls@radix.net>
+
+diff -r 4c4fd6b8755c -r 2f883fedfb85 linux/drivers/media/video/cx18/cx18-driver.c
+--- a/linux/drivers/media/video/cx18/cx18-driver.c	Fri May 02 07:51:27 2008 -0300
++++ b/linux/drivers/media/video/cx18/cx18-driver.c	Sat May 03 09:17:04 2008 -0400
+@@ -598,6 +598,7 @@ static int __devinit cx18_probe(struct p
+ 				const struct pci_device_id *pci_id)
+ {
+ 	int retval = 0;
++	int i;
+ 	int vbi_buf_size;
+ 	u32 devtype;
+ 	struct cx18 *cx;
+@@ -816,8 +817,11 @@ err:
+ 		retval = -ENODEV;
+ 	CX18_ERR("Error %d on initialization\n", retval);
+ 
+-	kfree(cx18_cards[cx18_cards_active]);
+-	cx18_cards[cx18_cards_active] = NULL;
++	spin_lock(&cx18_cards_lock);
++	i = cx->num;
++	kfree(cx18_cards[i]);
++	cx18_cards[i] = NULL;
++	spin_unlock(&cx18_cards_lock);
+ 	return retval;
+ }
+ 
+@@ -960,11 +964,14 @@ static void module_cleanup(void)
+ 
+ 	pci_unregister_driver(&cx18_pci_driver);
+ 
++	spin_lock(&cx18_cards_lock);
+ 	for (i = 0; i < cx18_cards_active; i++) {
+ 		if (cx18_cards[i] == NULL)
+ 			continue;
+ 		kfree(cx18_cards[i]);
+-	}
++		cx18_cards[i] = NULL;
++	}
++	spin_unlock(&cx18_cards_lock);
+ }
+ 
+ module_init(module_start);
+diff -r 4c4fd6b8755c -r 2f883fedfb85 linux/drivers/media/video/cx18/cx18-fileops.c
+--- a/linux/drivers/media/video/cx18/cx18-fileops.c	Fri May 02 07:51:27 2008 -0300
++++ b/linux/drivers/media/video/cx18/cx18-fileops.c	Sat May 03 09:17:04 2008 -0400
+@@ -695,6 +695,8 @@ int cx18_v4l2_open(struct inode *inode, 
+ 	/* Find which card this open was on */
+ 	spin_lock(&cx18_cards_lock);
+ 	for (x = 0; cx == NULL && x < cx18_cards_active; x++) {
++		if (cx18_cards[x] == NULL)
++			continue;
+ 		/* find out which stream this open was on */
+ 		for (y = 0; y < CX18_MAX_STREAMS; y++) {
+ 			s = &cx18_cards[x]->streams[y];
+
+--=-jNysbVFJd2P30SoL5lI9
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--=-jNysbVFJd2P30SoL5lI9--
