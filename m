@@ -1,22 +1,34 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ppp196-18.static.internode.on.net ([59.167.196.18]
-	helo=jumpgate.rods.id.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Rod@Rods.id.au>) id 1Jud60-0001cl-1I
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 02:38:03 +0200
-Received: from jumpgate.rods.id.au (localhost [127.0.0.1])
-	by jumpgate.rods.id.au (Postfix) with ESMTP id B84E15BAE21
-	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 09:58:26 +1000 (EST)
-Received: from [192.168.3.44] (shadow.rods.id.au [192.168.3.44])
-	by jumpgate.rods.id.au (Postfix) with ESMTP id A02945BAE20
-	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 09:58:26 +1000 (EST)
-Message-ID: <4824E522.5020606@Rods.id.au>
-Date: Sat, 10 May 2008 09:58:26 +1000
-From: Rod <Rod@Rods.id.au>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------030609070607050005060403"
-Subject: [linux-dvb] [Fwd: Re: Try to Make DVB-T part of Compro VideoMate
- T750 Work]
+Received: from hyatt.suomi.net ([82.128.152.22])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1JsKL8-0002l6-EJ
+	for linux-dvb@linuxtv.org; Sat, 03 May 2008 18:11:59 +0200
+Received: from tiku.suomi.net ([82.128.154.67])
+	by hyatt.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
+	Jul 15 2005)) with ESMTP id <0K0A0032KVMZTQ40@hyatt.suomi.net> for
+	linux-dvb@linuxtv.org; Sat, 03 May 2008 19:11:23 +0300 (EEST)
+Received: from spam5.suomi.net (spam5.suomi.net [212.50.131.165])
+	by mailstore.suomi.net
+	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
+	32bit)) with ESMTP id <0K0A00FJYVMZV6E0@mailstore.suomi.net> for
+	linux-dvb@linuxtv.org; Sat, 03 May 2008 19:11:23 +0300 (EEST)
+Date: Sat, 03 May 2008 19:11:09 +0300
+From: Antti Palosaari <crope@iki.fi>
+In-reply-to: <1208945819.7807.16.camel@rommel.snap.tv>
+To: Sigmund Augdal <sigmund@snap.tv>
+Message-id: <481C8E9D.9030306@iki.fi>
+MIME-version: 1.0
+References: <1160.81.96.162.238.1208023139.squirrel@webmail.elfarto.com>
+	<200804130349.15215@orion.escape-edv.de> <4801DED3.4020804@elfarto.com>
+	<4803C2FA.1010408@hot.ee> <48065CB6.50709@elfarto.com>
+	<1208422406.12385.295.camel@rommel.snap.tv>
+	<34260.217.8.27.117.1208427888.squirrel@webmail.elfarto.com>
+	<4807AFE2.40400@t-online.de> <4807B386.1050109@elfarto.com>
+	<4807C1A6.8000909@t-online.de> <1208862469.7807.7.camel@rommel.snap.tv>
+	<480E0575.1010908@gmail.com> <480E4F61.10208@t-online.de>
+	<1208945819.7807.16.camel@rommel.snap.tv>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT-Budget C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,160 +36,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------030609070607050005060403
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Sigmund Augdal wrote:
+> The init-tab part of tda10023.c seems to indicate which posisions are
+> which registers in the chip. There are in particular two that are called
+> DELTAF_MSB and DELTAF_LSB, which is currently set to 0xFFF0. I guess
+> this would be a key thing to change, but what needs to be changed in the
+> tuner driver? I've also noticed that when the tda10046 is used with
+> tda827x it changes some other parameters in the demod (agc threshold,
+> gain and polarities). Do we need to change these in tda10023 also? Or
+> could we change tda827x to output what the tda10023 needs?
 
+Probably you want to look current Anysee TDA10023-module. I have put 
+some of those registers configurable already.
+http://linuxtv.org/hg/~anttip/anysee/
 
-
---------------030609070607050005060403
-Content-Type: message/rfc822;
- name="Re: [linux-dvb] Try to Make DVB-T part of Compro VideoMate T750       Work.eml"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="Re: [linux-dvb] Try to Make DVB-T part of Compro VideoMate T";
- filename*1="750       Work.eml"
-
-Received: from 58.105.235.135.optusnet.com.au ([58.105.235.135])
-        (SquirrelMail authenticated user yendor)
-        by www.rods.id.au with HTTP;
-        Fri, 9 May 2008 12:26:08 +1000 (EST)
-Message-ID: <1040.58.105.235.135.1210299968.squirrel@www.rods.id.au>
-In-Reply-To: <200805090843.34014.b87605214@ntu.edu.tw>
-References: <200805071307.15982.b87605214@ntu.edu.tw>
-    <200805082332.45491.b87605214@ntu.edu.tw>
-    <3720.58.105.235.135.1210289475.squirrel@www.rods.id.au>
-    <200805090843.34014.b87605214@ntu.edu.tw>
-Date: Fri, 9 May 2008 12:26:08 +1000 (EST)
-Subject: Re: [linux-dvb] Try to Make DVB-T part of Compro VideoMate T750  
-     Work
-From: "Rod Smart" <Rod@Rods.id.au>
-To: "lin" <b87605214@ntu.edu.tw>
-User-Agent: SquirrelMail/1.4.13
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-X-Priority: 3 (Normal)
-Importance: Normal
-Content-Transfer-Encoding: quoted-printable
-
-
-> On 2008 May 9 Friday 07:31:15 you wrote:
->> > On 2008 May 8 Thursday 22:46:09 Rod wrote:
->> >>     Hi, is there anyone actually working on this?
->> >>
->> >>     I cannot program for the life of me (for now) si, I'd like some
->> >> assistance?
->> >>
->> >>     I can get the SAA to be seen on the I2C bus, and a scan doesn't
->> >> reveal the true addresses of the chips behind it (along with the
->> >> previously seen reports of the addresses of the devices.
->> >>
->> >>     I have manually probed and have obtained the actual I2C
->> addressing
->> >> of most of the chips (except for the XC device, BGA's are difficult=
-,
->> and
->> >> the PRO1A, well I havn't gone to the length of X-ray'ing it yet, bu=
-t
->> >> maybe I'll have to give that a go (X-ray to get the die information=
-,
->> >> then try and resolve its function from that info) or I'll just powe=
-r
->> the
->> >> device and see what it does.. wish i still had the "Pinpoint" syste=
-m
->> at
->> >> my disposal.
->> >>
->> >>     So, I'm looking for help, or a group to chat with to try and he=
-lp
->> >> this little device along ;o)
->> >> _______________________________________________
->> >> linux-dvb mailing list
->> >> linux-dvb@linuxtv.org
->> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->> >
->> > Hi, Rod:
->> >
->> > I'm just a little owner of T750, and not a electrical circuit expert=
-.
->> I
->> > just
->> > can read some code of kernel drivers. I do definitly want to give yo=
-u
->> a
->> > hand
->> > and make this cards work over v4l, but what can I do for you? I live
->> in
->> > Taiwan, if it necessary and Compro wants to tell me, I can give Comp=
-ro
->> a
->> > call
->> > and ask some questions which may keep this branch forward.
->> >
->> > 2008/05/08
->> > linleno
->>
->> Hi Linleno
->>
->> I have the I2C ports that each device sits on (except the XC device)
->> that
->> i probed from the board, I have the interconnections between the SAA a=
-nd
->> the 6353 device, and I think (couldn't find/forgot) the QT1010 is
->> connected to the 6353 Secondary I2C port for tuning control.
->>
->> The Reset line on the '6353 is tied to a RC network, with an option to
->> be
->> controlled from the SAA device, this link can be added at another time=
-.
->>
->> I'd also like to be able to control the RTC on the board so I can
->> restart
->> the computer at a certain time, the Linux drivers for controlling my
->> mobo
->> don't work, and screw the BIOS ;o(
-> HI, Rod:
->
-> So, you can determinate the demodulator on this card is CE6353 but not
-> zl10353
-> as Newbigin proposed?
->
-> Lin
->
->
-
-Hi Lin,
-
-So, you mean as te connection as SAA -> CE6353 -> QT1010?
-
-I'll pull the card again, desolder the can and try to see where those
-SDA/SCL tracks run, I have some fine test probes that I can use to probe
-those points, the company I work for sells the Ingin & ECT board test
-probes for testing of bare and loaded PCB's, so probing won't be a
-problem.
-
-I also found that Eucalyptus oil is great for removing the paint on the
-tops of some IC chips ;o)
---=20
-Qn. Whats the differance between a Snake and a Onion?
-
-Ans. No one cries when you chop up a Snake
-  (SOLS - Snake Tales)
-
---------------030609070607050005060403
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------030609070607050005060403--
