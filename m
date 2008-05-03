@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1K27OF-0004Rw-7s
-	for linux-dvb@linuxtv.org; Fri, 30 May 2008 18:23:39 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so174870fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 30 May 2008 09:23:35 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Date: Fri, 30 May 2008 18:23:32 +0200
-References: <4836F51E.7070403@iki.fi> <483AD86C.4030108@iki.fi>
-In-Reply-To: <483AD86C.4030108@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805301823.32295.christophpfister@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] update Finland initial DVB-T tuning files
+From: Igor <goga777@bk.ru>
+To: VDR Mailing List <vdr@linuxtv.org>,
+	linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Sat, 03 May 2008 23:48:52 +0400
+In-Reply-To: <E1JsMpS-0000xG-00.goga777-bk-ru@f111.mail.ru>
+References: <E1JsMpS-0000xG-00.goga777-bk-ru@f111.mail.ru>
+Message-Id: <E1JsNj2-0001KD-00.goga777-bk-ru@f76.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?W3Zkcl0gVkRSIDEuNy4wICYgbXVsdGlwcm90byAm?=
+	=?koi8-r?b?IGh2cjQwMDAgLT4gbXVsdGlwcm90b19wbHVz?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,26 +24,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Antti,
+sorry, I was wrong 
 
-[ hmm, took some time till I was able again to process my mails ]
+with the latest cumulative hvr4000-patch from Gregoire 
+HVR-4000-multiproto_plus-2008-05-02.diff.bz2
+I can tune on dvb-s2 channels on my VDR 170
 
-Am Montag 26 Mai 2008 17:34:04 schrieb Antti Palosaari:
-> hello Christoph,
-> there is new try. Earlier patch didn't remove obsolete files. This one
-> does it. Use that updated patch instead the old one.
+this patch is OK for me
 
-Applied. Thank you very much :)
+@Gregoire
+thank you very much
 
-> Files removed and the new one:
-> fi-Salla => fi-Salla_Sallatunturi
-> fi-SaloIsokyla => fi-Salo_Isokyla
-> fi-Uusikaupunki_Ruokola => fi-Uusikaupunki_Orivo
->
-> Antti
-<snip>
+Igor
 
-Christoph
+
+-----Original Message-----
+From: Igor <goga777@bk.ru>
+To: VDR Mailing List <vdr@linuxtv.org>
+Date: Sat, 03 May 2008 22:51:26 +0400
+Subject: Re: [linux-dvb][vdr] VDR 1.7.0 & multiproto & hvr4000 -> multiproto_plus
+
+> 
+> > > > Have you replaced linux/include/linux/compiler.h with the one from your
+> > > > kernel ? (in multiproto_plus dir) if that's going to be included, this
+> > > > shouldn't be in of course.
+> > > 
+> > > your patch included the compiler.h, after replacing it with the right
+> > > one the drivers are build
+> > > your patch also created a .config.old in v4l and the cx88 modules are
+> > > not build (the .config created during make does only contain inaktive
+> > > lines for cx88 modules), i modified the .config manual and started make
+> > > again
+> > 
+> > OK, here's one without compiler.h and without .config.old (by the way, I
+> > don't understand why make distclean didn't remove it...).
+> > 
+> > Good new, such way the patch is even smaller, so it would be really good
+> > to have it included finally into the repo :-)
+> > 
+> > Any objection to the inclusion ?
+> 
+> with this patch I have the error
+> 
+> May  3 22:42:15 localhost vdr: [3471] ERROR (dvbdevice.c,302): Invalid argument
+> 
+> when I try to tune on dvb-s2 channels on VDR
+> 
+> But with HVR-4000-multiproto_plus-2008-04-25.diff + "HVR-4000-multiproto_plus-2008-04-25_inversion" is OK for me
+
 
 _______________________________________________
 linux-dvb mailing list
