@@ -1,17 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Mon, 26 May 2008 18:10:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alan Cox <alan@redhat.com>
-Message-ID: <20080526181027.1ff9c758@gaivota>
-In-Reply-To: <20080526202317.GA12793@devserv.devel.redhat.com>
-References: <20080522223700.2f103a14@core> <20080526135951.7989516d@gaivota>
-	<20080526202317.GA12793@devserv.devel.redhat.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m44N310M002440
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 19:03:01 -0400
+Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
+	[151.189.21.53])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m44N2f9x018222
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 19:02:41 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <481E219C.50008@t-online.de>
+References: <20080428182959.GA21773@orange.fr>
+	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>
+	<20080429192149.GB10635@orange.fr>
+	<1209507302.3456.83.camel@pc10.localdom.local>
+	<20080430155851.GA5818@orange.fr>
+	<1209592608.31036.36.camel@pc10.localdom.local>
+	<20080430202547.1765d34c@gaivota>  <481E219C.50008@t-online.de>
+Content-Type: text/plain
+Date: Mon, 05 May 2008 01:01:24 +0200
+Message-Id: <1209942084.2555.14.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] video4linux: Push down the BKL
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Card Asus P7131 hybrid > no signal
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,62 +34,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 26 May 2008 16:23:17 -0400
-Alan Cox <alan@redhat.com> wrote:
+Hi,
 
->  The next step can be to add the obvious locks inside video_ioctl2_unlocked(). Like, for
-> > example, locking the VIDIOC_S calls, if someone is calling the corresponding
-> > VIDIOC_G or VIDIOC_TRY ones.  
+Am Sonntag, den 04.05.2008, 22:50 +0200 schrieb Hartmut Hackmann:
+> Hi, Mauro
 > 
-> Concentrate on the dats structures not the code - its one of those oft
-> quoted and very true rules - "lock data not code"
+> Mauro Carvalho Chehab schrieb:
+> >> We have definitely issues on analog, but I can't test SECAM_L.
+> >>
+> >> After ioctl2 conversion, the apps don't let the user select specific
+> >> subnorms like PAL_I, PAL_BG, PAL_DK and SECAM_L, SECAM_DK, SECAM_Lc
+> >> anymore.
+> > 
+> > Seems to be an issue at the userspace app. SAA7134_NORMS define a mask of supported
+> > norms. STD_PAL covers all the above PAL_foo. Also, SECAM covers all the above
+> > SECAM_foo.
+> > 
+> > If the userspace app sets V4L2_STD_PAL, the driver should run on autodetection
+> > mode. If, otherwise, the app sets V4L2_STD_PAL_I, the driver will accept and
+> > select PAL_I only.
+> > 
+> >> Internally the driver knows about all norms, but we have a clear
+> >> breakage of application backward compatibility and might see various
+> >> side effects. Especially, but not only for SECAM, it was important that
+> >> the users can select the exact norm themselves because of audio carrier
+> >> detection issues.
+> > 
+> It is not only Audio carrier selection:
+> SECAM-L is the only standard with positive modulation of the vision carrier.
+> The tuner needs to know this. So in the case of SECAM-L, we need the *exact*
+> standard.
+> The insmod option secam=l transfers the exact standard to the tuner.
+> 
+> By the way: I just noticed this: If saa713x does not identify the color system
+> (improperly forced), tvtime will say "no signal"
+> 
+> >> It is firstly on 2.6.25.
+> >>
+> >> If you are affected, apps like xawtv or mplayer will only report these
+> >> TV standards.
+> > 
+> > It shouldn't be hard to make enum_std to send all possible supported formats.
+> > Maybe this could be good for the apps you've mentioned.
+> > 
+> > In this case, a patch to videodev.c should replace the code after case
+> > VIDIOC_ENUMSTD to another one that would report the individual standards, plus
+> > the grouped ones.
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> Best regards
+>    Hartmut
 
-True. I'm thinking on locking the data that is being GET/SET by VIDIOC_foo ioctls.
 
-I can see a few strategies for removing KBL.
+We also can't set the tuner type per card anymore, for the benefit to
+fix the eeprom detection of tuners, that prior ability, which Gerd did
+hold above eeprom tuner detection, likely to escape from too much
+cleverness on bttv, is lost and glued to the card.
 
-The hardest and optimal scenario is to look inside all drivers, fix the locks
-(and pray for a further patch to not break them). I'm afraid that this is a long
-term strategy.
-
-There are also other strategies that will also produce non-optimal results, but
-may avoid the usage of BKL.
-
-For example, a very simple scenario would simply replace BKL by one mutex.
-This way, just one ioctl could be handled at the same time. This is something
-dumb, but will free the machine to do other tasks while an ioctl is being
-executed. I bet this would work with all (or almost all) drivers. I don't see
-any big drawback of this scenario, from the userspace POV.
-
-Smarter scenarios can be designed if you use different mutexes for different
-groups of data, at video_ioctl2 level.
-
-Of course, at video_ioctl2 level, you don't see the real data. However, you'll
-see data blocks. For example, if you're calling a VIDIOC_S_CROP, you're
-certainly changing whatever data structures you have that changes crop window.
-A concurrent call to VIDIOC_G_CROP needs to be blocked, otherwise the get will
-return a data that is being changing. IMO, such trivial dependencies can be
-safely handled at vidioc_ioctl2.
-
-We may try to group VIDIOC functions into some mutexes to avoid bad usages. For
-example, one mutex for ioctl's that touches on video buffers. This will lock on
-calls for iocls like VIDIOC_DBUF, VIDIOC_REQBUF, etc.
-
-We take some care with ioctls that would affect all groups of data,
-like VIDIOC_S_STD. This ioctl will likely change several data structures that
-affects other get operations, like changing resolution. It may also need to
-stop and/or return -EBUSY, if video buffers are mmapped.
-
-Such scenarios wouldn't avoid the need of implementing a few locks at the
-drivers, but will make driver's live simpler.
- 
-> I'll tidy these up later in the week as I get time and merge them against
-> a current linux-next tree in bits with the rework done.
-
-Seems fine to me ;)
+If we are going to run in circles, we should decide something viable
+soon.
 
 Cheers,
-Mauro
+Hermann
+ 
 
 --
 video4linux-list mailing list
