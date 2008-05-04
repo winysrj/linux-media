@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m463cd0E029485
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 23:38:39 -0400
-Received: from rs26s12.datacenter.cha.cantv.net
-	(rs26s12.datacenter.cha.cantv.net [200.44.33.17])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m463cRsH029747
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 23:38:27 -0400
-From: Emilio Lazo Zaia <emiliolazozaia@gmail.com>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <481E1AD3.2060304@t-online.de>
-References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
-	<1209512868.5699.32.camel@palomino.walls.org>
-	<1209863718.546.24.camel@localhost.localdomain>
-	<481E1AD3.2060304@t-online.de>
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 05 May 2008 23:08:19 -0430
-Message-Id: <1210045099.21581.6.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m44KpGos030249
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 16:51:16 -0400
+Received: from mailout07.t-online.de (mailout07.t-online.de [194.25.134.83])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m44Kp5Yr002355
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 16:51:05 -0400
+Message-ID: <481E219C.50008@t-online.de>
+Date: Sun, 04 May 2008 22:50:36 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20080428182959.GA21773@orange.fr>	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>	<20080429192149.GB10635@orange.fr>	<1209507302.3456.83.camel@pc10.localdom.local>	<20080430155851.GA5818@orange.fr>	<1209592608.31036.36.camel@pc10.localdom.local>
+	<20080430202547.1765d34c@gaivota>
+In-Reply-To: <20080430202547.1765d34c@gaivota>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: MCE TV Philips 7135 Cardbus don't work
+Subject: Re: Card Asus P7131 hybrid > no signal
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,41 +28,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-﻿﻿Hi Hartmut!
+Hi, Mauro
 
-This is a Cardbus adapter, so maybe I need to break in to have a
-look :-)
-If this is possible without a possible physical damage, I can try!
-
-What you say is that "no eeprom present" is not an error and can be
-ignored if the correct configuration is found the hard way?
-
-In the case of a PCI adapter, what can be deduced about the presence of
-these metal box? I saw some board with and without it.
-
-Thanks,
-Regards!
-
-El dom, 04-05-2008 a las 22:21 +0200, Hartmut Hackmann escribió:
-
-> There are many saa713x based cards without eeprom. It stores the vendor ID and
-> - in many cases - the board configuration. For you this means
-> - you need to find out the configuration the hard way
->    * identify the chips on the card
->    * find the input configuration by try and error
-> - You will always need to force the card type with a card=xxx option, there is
->    no way to automatically identify the card.
+Mauro Carvalho Chehab schrieb:
+>> We have definitely issues on analog, but I can't test SECAM_L.
+>>
+>> After ioctl2 conversion, the apps don't let the user select specific
+>> subnorms like PAL_I, PAL_BG, PAL_DK and SECAM_L, SECAM_DK, SECAM_Lc
+>> anymore.
 > 
-> So please have a close look at the card and write down all chip types. Is there
-> a metal box with the antenna connector on the card? What is its type?
+> Seems to be an issue at the userspace app. SAA7134_NORMS define a mask of supported
+> norms. STD_PAL covers all the above PAL_foo. Also, SECAM covers all the above
+> SECAM_foo.
 > 
-> Hartmut
--- 
-Emilio Lazo Zaia <emiliolazozaia@gmail.com>
+> If the userspace app sets V4L2_STD_PAL, the driver should run on autodetection
+> mode. If, otherwise, the app sets V4L2_STD_PAL_I, the driver will accept and
+> select PAL_I only.
+> 
+>> Internally the driver knows about all norms, but we have a clear
+>> breakage of application backward compatibility and might see various
+>> side effects. Especially, but not only for SECAM, it was important that
+>> the users can select the exact norm themselves because of audio carrier
+>> detection issues.
+> 
+It is not only Audio carrier selection:
+SECAM-L is the only standard with positive modulation of the vision carrier.
+The tuner needs to know this. So in the case of SECAM-L, we need the *exact*
+standard.
+The insmod option secam=l transfers the exact standard to the tuner.
 
-Escuela de Física
-Universidad Central de Venezuela
+By the way: I just noticed this: If saa713x does not identify the color system
+(improperly forced), tvtime will say "no signal"
 
+>> It is firstly on 2.6.25.
+>>
+>> If you are affected, apps like xawtv or mplayer will only report these
+>> TV standards.
+> 
+> It shouldn't be hard to make enum_std to send all possible supported formats.
+> Maybe this could be good for the apps you've mentioned.
+> 
+> In this case, a patch to videodev.c should replace the code after case
+> VIDIOC_ENUMSTD to another one that would report the individual standards, plus
+> the grouped ones.
+> 
+> Cheers,
+> Mauro
+> 
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
