@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <pansyg@gmx.at>) id 1Jt0zZ-0004Ru-HN
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 15:44:34 +0200
-From: Gernot Pansy <pansyg@gmx.at>
-To: Igor <goga777@bk.ru>
-Date: Mon, 5 May 2008 15:43:59 +0200
-References: <200805011536.57312.pansyg@gmx.at>
-	<E1Jt0WO-000Hso-00.goga777-bk-ru@f190.mail.ru>
-In-Reply-To: <E1Jt0WO-000Hso-00.goga777-bk-ru@f190.mail.ru>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805051543.59551.pansyg@gmx.at>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1JsSLm-0001ev-GR
+	for linux-dvb@linuxtv.org; Sun, 04 May 2008 02:45:12 +0200
+From: Andy Walls <awalls@radix.net>
+To: Matthias Dahl <mldvb@mortal-soul.de>
+In-Reply-To: <200805031657.00691.mldvb@mortal-soul.de>
+References: <200805020849.15170.mldvb@mortal-soul.de>
+	<1209734150.3475.48.camel@palomino.walls.org>
+	<200805031657.00691.mldvb@mortal-soul.de>
+Date: Sat, 03 May 2008 20:43:58 -0400
+Message-Id: <1209861838.9347.124.camel@palomino.walls.org>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?e1NQQU0gMDUuNH0gUmVbMl06ICBQQVRDSDogSFZS?=
-	=?koi8-r?b?LTQwMDAgc3VwcG9ydCBmb3IgbXVsdGlwcm90b19wbHVzICh0ZXN0?=
-	=?koi8-r?b?ZWRvbiAyLjYuMjUp?=
+Subject: Re: [linux-dvb] KNC1 DVB-C (MK3) w/ CI causes i2c_timeouts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,66 +27,170 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Monday 05 May 2008 15:14:24 Igor wrote:
-> > On Friday 25 April 2008 09:07:13 Igor wrote:
-> > > Hi, Gregoire
-> > >
-> > > with multiproto_plus + your hvr4000-patch I have the same problem with
-> > > szap2 from dvb-apps
-> > >
-> > > ./szap2 -c 19 -n1
-> > >
-> > > reading channels from file '19'
-> > > zapping to 1 'Pro7':
-> > > sat 0, frequency = 12722 MHz H, symbolrate 22000000, vpid = 0x00ff,
-> > > apid = 0x0103 sid = 0x27d8 Querying info .. Delivery system=DVB-S
-> > > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> > > ioctl DVBFE_GET_INFO failed: Operation not supported
-> >
-> > the patch changes the api...
->
-> which patch do yuo mean ?
+On Sat, 2008-05-03 at 16:56 +0200, Matthias Dahl wrote:
+> Hello Andy.
+> 
+> On Friday 02 May 2008 15:15:50 you wrote:
+> 
+> > Given that your software hasn't changed, and assuming the driver code is
+> > correct (for a large majority of users), then the remaining problem
+> > areas I see are the card itself, the mainboard's PCI bus, and the
+> > possibility of a marginal power supply.  (Can anyone else think of
+> > something else?)
+> 
+> Perhaps. But maybe it's a combination of a few factors: is the MK3 model w/ CI 
+> as widely used and tested as the older model w/ CI? Maybe a combination of my 
+> hardware is triggering some hw/sw flaw.
 
-the patch from gregoire. it modifies dvb/frontend.h
-
->
-> > you can try the attached patch, which not changes the api. that means
-> > szap2 is working (only DVB-S, for DVB-S2 you need to modify fe_params:
-> > DVB_FEC_AUTO is not supported and you have to define a modulation)
-> >
-> > fe_params.delsys.dvbs2.fec = DVBFE_FEC_9_10;
-> > fe_params.delsys.dvbs2.modulation = DVBFE_MOD_QPSK;
-> >
-> > with the attached patch you need to call DVB_SET_DELSYS (like in
-> > szap2)...
->
-> could you explain me - how is it possible to modify fe_params for dvb-s2
-> QPSK/8PSK reception ?
-
-in szap2? 
-
---- /root/dvb-apps/test/szap2.c 2008-05-01 00:40:50.048558456 +0200
-+++ szap.c      2008-05-01 14:25:16.409871814 +0200
-@@ -269,7 +269,8 @@
-                        break;
-                case DVBS2:
-                        fe_params.delsys.dvbs2.symbol_rate = sr;
--                       fe_params.delsys.dvbs2.fec = FEC_AUTO;
-+                       fe_params.delsys.dvbs2.fec = DVBFE_FEC_9_10;
-+                       fe_params.delsys.dvbs2.modulation = DVBFE_MOD_QPSK;
-                        printf("%s: Frequency = %d, Srate = %d\n",
-                                __func__, fe_params.frequency, 
-fe_params.delsys.dvbs2.symbol_rate);
-                        break;
+Maybe.  Given the lspci output, you may have two separate problem, that
+are now making things noticable.
 
 
-perhaps you have to set a different fec or modulation (DVBFE_MOD_8PSK);
+> The card is brand-new and was slightly modified by KNC1 for better QAM256 
+> receiption with my cable provider. The mainboard is a Asus Crosshair which is 
+> pretty much top-notch. Irionically I am no gamer and still own a highend 
+> gamer board but it's hard to get a decent piece of quality hardware 
+> nowadays. :-( 
 
-gernot
 
->
-> Igor
+> The power supply should be more than enough with its 500W. ;-)
 
+:)
+
+> > Can you check the output of
+> > # lspci -nnxxx
+> > for your Host and PCI bridges and the video card?
+> 
+> Thanks for the tipp. That brings me to another problem that I think might be 
+> related. Since I put in the new card, I am experiencing the following:
+> 
+>  - power on computer -> wait for kdm -> switching to console fails
+> 
+>    the monitor even turns off because it gets no signal. usually blindly
+>    switching back to Xorg works and the screen is back.
+> 
+>  - rebooting the system -> everything works fine from there on
+> 
+> I did some more investigating and figured that the problem only occurs when 
+> the system has just been powered on _and_ something is accessing the dvb-c 
+> card. So powering on the machine without starting the vdr works just fine. 
+> But as soon as vdr has been started, no more vt switching is possible. The 
+> problem doesn't show up after a reboot- at all. This is never ever happened 
+> with the old card. I checked the cabling and all but I wasn't able to figure 
+> out what's the cause of this. No error msgs. Nothing.
+
+Your DVB card is on PCI bus segment 2 and your graphics card is on bus
+segment 5.  I see the DVB card is on the segment behind the PCI bridge
+at 00:0e.0 since that bridge has segment 2 as its secondary bus.
+
+> For the record, unfortunately I am using a nvidia card with the 173.08 driver 
+> release. But I already did that with the old card.
+> 
+> I have attached the lspci output for both cases by the way.
+
+>From lspci_powerup_with_problem:
+
+00:00.1 RAM memory [0500]: nVidia Corporation C51 Memory Controller 0 [10de:02fa] (rev a2)
+00: de 10 fa 02 00 01 20 40 a2 00 00 05 00 00 80 00
+                         ^
+                         |
+00:0e.0 PCI bridge [0604]: nVidia Corporation MCP55 PCI bridge [10de:0370] (rev a2)
+00: de 10 70 03 07 01 b0 40 a2 01 04 06 00 00 81 00
+                         ^
+                         |
+Signaled System Errors (SERR), that's bad.
+
+Note that this is the bridge (00:0e.0) that the DVB card is behind, and that this bridge signaled a SERR on it's primary bus segment (the side closer to the CPU/Host bridge), and not that it received a SERR on it's secondary bus segment.  That means the bridge is unhappy, and it could very well be something behind it, like the DVB card.
+
+According to the PCI spec:
+
+"System Error is for reporting address parity errors, data parity errors
+ on the Special Cycle command, or any other system error where the
+ result will be catastrophic. If an agent does not want a non-maskable
+ interrupt (NMI) to be generated, a different reporting mechanism is
+ required."
+
+and a bunch of other specific conditions are mentioned as well.
+
+
+In the file lspci_after_reboot-working, only the 00:00.1 RAM Controller
+device still shows a SERR.  Since this memory controller is reporting
+SERRs, you might have a genuine memory problem somewhere or a device
+trying to access the memory might have a problem.
+
+
+I also notice these differences in the lspci before and after data:
+
+00:0e.0 PCI bridge [0604]: nVidia Corporation MCP55 PCI bridge [10de:0370] (|  00:0e.0 PCI bridge [0604]: nVidia Corporation MCP55 PCI bridge [10de:0370] (
+00: de 10 70 03 07 01 b0 40 a2 01 04 06 00 00 81 00                         |  00: de 10 70 03 07 01 b0 00 a2 01 04 06 00 00 81 00                         
+10: 00 00 00 00 00 00 00 00 00 02 02 20 f0 00 80 02                         |  10: 00 00 00 00 00 00 00 00 00 02 02 20 f0 00 80 02
+20: f0 fd f0 fd f0 ff 00 00 00 00 00 00 00 00 00 00                         |  20: f0 fd f0 fd f0 ff 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 b8 00 00 00 00 00 00 00 ff 00 04 0e                         |  30: 00 00 00 00 b8 00 00 00 00 00 00 00 ff 00 04 0a                         
+                                                  ^                                                                              ^ 
+                                                  |                                                                              |       
+The prefetchable addr limit upper 32 bits differ -+------------------------------------------------------------------------------+
+on the PCI Bridge that the DVB card is behind.
+Also no SERR is reported by this bridge any longer.
+
+
+05:00.0 VGA compatible controller [0300]: nVidia Corporation Device [10de:04|  05:00.0 VGA compatible controller [0300]: nVidia Corporation Device [10de:04
+00: de 10 00 04 07 00 10 00 a1 00 00 03 00 00 00 00                         |  00: de 10 00 04 07 00 10 00 a1 00 00 03 00 00 00 00
+10: 00 00 00 fa 0c 00 00 e0 00 00 00 00 04 00 00 f8                         |  10: 00 00 00 fa 0c 00 00 e0 00 00 00 00 04 00 00 f8
+20: 00 00 00 00 01 9c 00 00 00 00 00 00 62 14 50 09                         |  20: 00 00 00 00 01 9c 00 00 00 00 00 00 62 14 50 09
+30: 00 00 00 00 60 00 00 00 00 00 00 00 0b 01 00 00                         |  30: 00 00 fe fb 60 00 00 00 00 00 00 00 0b 01 00 00
+          ^^^^^                                                                          ^^^^^
+            |                                                                              |
+            +------------------------------------------------------------------------------+
+The Expansion ROM base address is actually set for the video card after
+reboot.  That must make a difference for using VTs.
+ 
+
+So, on power up, accessing the DVB card causes the bridge it's behind to
+gripe.  Sounds like you might have a bad card or bridge or card
+connector.  You may want to see if that bridge is happy with the old DVB
+card installed instead.
+
+You also have a memory controller that is consistently not happy.  You
+may want to check your memory.  You may also want to see if that memory
+controller is happy with the old DVB card installed instead.
+
+Regards,
+Andy
+
+> 
+> > Also could you look at the latency timer of all the PCI devices on the
+> > bus?  Values that are very high (e.g. nVidia likes to use 248) and
+> > values less than or equal to 32 (n.b. 0 is OK for some bridge devices)
+> > can cause problems.
+> 
+> Due the fact that I only have the knc one card in the machine and everything 
+> else is either on board or on PCI-E, the latency is 0 everywhere except for 
+> the knc one card, there it's 32.
+> 
+> > Tweaking PCI bus latency timers with "setpci" may resolve your problems.
+> 
+> I'll give that a shot too. I really would like to set the latency when the 
+> module is being loaded. Unfortunately there is no module parameter for that 
+> so I'll have a look through the sources and hard wire to 64 which should be 
+> plenty.
+
+
+> > I believe this is a log message from an error condition.  The EEPROM on
+> > the i2c bus on the card was not able to be read properly.
+> > (See: linux/drivers/media/dvb/ttpci/ttpci-eeprom.c)
+> 
+> That also happened with the old card so I guess that's okay.
+> 
+> BTW. I switched to kernel 2.6.25.1 and in-tree dvb but no change at least on 
+> the "boot up" problem. For the original problem, I'll have an eye on it.
+> 
+> Sometimes I really wonder why I chose to study computer science. Life could be 
+> so much easier. ;-)
+> 
+> If anyone has some more ideas or things I could try... :-)
+> 
+> Thanks a lot,
+> matthew.
 
 
 _______________________________________________
