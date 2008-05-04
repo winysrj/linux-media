@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.168])
+Received: from bay0-omc2-s36.bay0.hotmail.com ([65.54.246.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1JzwEl-0001sw-JE
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 18:04:52 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so940264wfd.17
-	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 09:04:47 -0700 (PDT)
-Message-ID: <412bdbff0805240904xf91e03eh7b7b9f3fcb363c10@mail.gmail.com>
-Date: Sat, 24 May 2008 12:04:46 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0805240357s46fcbb2di50a129f580906bdf@mail.gmail.com>
+	(envelope-from <tempeshit@live.com>) id 1Jsii2-00081t-G4
+	for linux-dvb@linuxtv.org; Sun, 04 May 2008 20:13:17 +0200
+Message-ID: <BAY119-W959858364F54303AB024BCCD40@phx.gbl>
+From: mohamd tellawi <tempeshit@live.com>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 4 May 2008 21:12:39 +0300
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0805231207g38c3cfeet7e20edda43561160@mail.gmail.com>
-	<200805241207.33777.Nicola.Sabbi@poste.it>
-	<d9def9db0805240357s46fcbb2di50a129f580906bdf@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Nico Sabbi <Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Warning regarding Ubuntu 8.04, mplayer,
-	and some dvb drivers
+Subject: [linux-dvb] steps
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +16,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0705506876=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, May 24, 2008 at 6:57 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
+--===============0705506876==
+Content-Type: multipart/alternative;
+	boundary="_d054bff9-973c-42cd-93ac-ac97b3871954_"
 
-> it's just implemented for enabling/disabling the gnome screensaver actually.
->
-> Markus
+--_d054bff9-973c-42cd-93ac-ac97b3871954_
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 
-I stumbled across your message before I got around to breaking out the
-source code to see *why* they did it.
 
-That's useful information though.
+hello guys
+ 
+what is the precedure and steps need to be taken to get a skystar2 technisat B2C2 DVB card to be configured as a network interface DVB0_0
+and what are the files needed
+please dont bother with details just want the steps listed like this 
+1-
+2-
+3-
+i dont want to run TV channels
+i want to configure a channel offcourse but only a channel and check the signal with "femon"
+with the card configured as a network interface.
+i have slackware12 on 2.6
+thanks a lot in advance
+regards
+M.Tellawi
+_________________________________________________________________
+Express yourself instantly with MSN Messenger! Download today it's FREE!
+http://messenger.msn.click-url.com/go/onm00200471ave/direct/01/
+--_d054bff9-973c-42cd-93ac-ac97b3871954_
+Content-Type: text/html; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 
-Thanks!
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt;
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class='hmmessage'>
+hello guys<BR>
+&nbsp;<BR>
+what is the precedure and steps need to be taken to get a skystar2 technisat <A href="mailto:B@C2">B2C2</A>&nbsp;DVB card to be configured as a network interface DVB0_0<BR>
+and what are the files needed<BR>
+please dont bother with details just want the steps listed like this <BR>
+1-<BR>
+2-<BR>
+3-<BR>
+i dont want to run TV channels<BR>
+i want to configure a channel offcourse but only a channel and check the signal with "femon"<BR>
+with the card configured as a network interface.<BR>
+i have slackware12 on&nbsp;2.6<BR>
+thanks a lot in advance<BR>
+regards<BR>
+M.Tellawi<BR><br /><hr />Express yourself instantly with MSN Messenger! <a href='http://clk.atdmt.com/AVE/go/onm00200471ave/direct/01/' target='_new'>MSN Messenger</a></body>
+</html>
+--_d054bff9-973c-42cd-93ac-ac97b3871954_--
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+--===============0705506876==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0705506876==--
