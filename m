@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n42.bullet.mail.ukl.yahoo.com ([87.248.110.175])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1Jw08W-0006cG-6y
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 21:26:11 +0200
-Date: Tue, 13 May 2008 13:58:33 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <200805122042.43456.ajurik@quick.cz>
-In-Reply-To: <200805122042.43456.ajurik@quick.cz> (from ajurik@quick.cz on
-	Mon May 12 14:42:43 2008)
-Message-Id: <1210701513l.6217l.1l@manu-laptop>
+Received: from mail-out.m-online.net ([212.18.0.9])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <zzam@gentoo.org>) id 1Jsxdu-0007ge-2L
+	for linux-dvb@linuxtv.org; Mon, 05 May 2008 12:09:58 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+Date: Mon, 5 May 2008 12:09:19 +0200
+References: <617be8890805050034q5ce1734dq3b10c5af3aac3ac7@mail.gmail.com>
+In-Reply-To: <617be8890805050034q5ce1734dq3b10c5af3aac3ac7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re : No lock possible at some DVB-S2 channels with TT
- S2-3200/linux
+Message-Id: <200805051209.19459.zzam@gentoo.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Finally got Avermedia A700 (DVB-S Pro) working!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +26,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 05/12/2008 02:42:43 PM, Ales Jurik wrote:
+On Montag, 5. Mai 2008, Eduard Huguet wrote:
 > Hi,
-> 
-> after Telenor switched from Thor-2 to Thor-5 (0.8W) no lock is
-> possible with 
-> multiproto(-plus) and TT S2-3200 at these transponders:
-> 
-> TV4 
-> HD;Telenor:11341:vC34M5O35S1:S0.8W:25000:512:0;641=sve:0:B00:1405:70:42:0
-> CANAL+ FILM 
-> HD;Telenor:11421:hC34M5O35S1:S0.8W:25000:513:644=eng;645=eng:0:B00:3306:70:14:0
-> Nat Geo 
-> HD;Telenor:11434:vC34M5O35S1:S0.8W:25000:512:640=eng:0:B00:3806:70:38:0
-> 
-> I'm 100% sure that this problem corresponds with switch from Thor-2 
-> to
-> Thor-5 
-> as it appeared exactly at times when switch was announced by Telenor. 
-> 
-> Regarding to official document 
-> http://www.telenorsbc.com/upload/PDFS/DVB-S2%20Transponder%20FEC%
-> 20Change_280208.pdf
-> 
-> two changes were implemented - FEC from 2/3 to 3/4 and switch off
-> Pilot.
-> 
-> On the same HW under Windows it is running ok.
-> 
-> If somebody could point me to any direction I'll glad to cooperate in 
-> debugging.
-> 
+>     Just a quick note: the Avermedia DVB-S Pro (A700) is yet working on my
+> computer, finally. I'm using your lastest patch set (from May 2), but what
+> really did the trick was using an enhanced frequency file for Astra 19.2
+> (got it from http://joshyfun.peque.org/transponders/kaffeine.html), instead
+> of the standard one provided in /usr/share/dvb/dvb-s/Astra 19.2.
+>
+>    With the standard file the driver didn't work, as usual. However, as the
+> driver seemed to be working for other people I spent some time googling for
+> problems related to DVB-S, Kaffeine, etc..., and I found that page which
+> provides an extensive reference for the satellites our there in Kaffeine
+> format. I just tried the one for Astra 19.2, and to my surprise it worked
+> perfectly :D !
+>
+>    So: the driver works, I suppose this is good news :D for you, Matthias.
+> However, as I'm a complete noob regarding DVB-S I don't know if the driver
+> SHOULD work and detect all available channels using only the default Astra
+> 19.2 file, or else really that file is incomplete and should not be used.
 
-Perhaps you can try to increase the freq by 4Mhz, that's what I did 
-here (DVB-S though) and I have a perfect picture since then.
-HTH
-Bye
-Manu
+This is good news.
+I think to trace this issue you should send both channels.conf files to 
+compare them.
 
+>
+>    Tonight I'll move the card to my MythTV computer and try the driver in
+> it. This one is running Gentoo 64, so I'll provide feedback on that arch
+> too. By now, the card is running perfectly on x86, Gentoo kernel 2.6.24 and
+> Kaffeine.
+>
+>    Just a little note: the lastest patch doesn't compile "as is": in
+> saa7134-dvb.c, the function "mt312_attach()" is called and it's not defined
+> anywhere. I figured out the correct one was "vp310_mt312_attach()" so I
+> changed it. Now the driver compiles and works fine :D.
+
+Fixed this.
+
+> You really did a great job, Matthias
+Thank you.
+
+
+Matthias
 
 
 _______________________________________________
