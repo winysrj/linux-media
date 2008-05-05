@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QD4N5N027754
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:04:23 -0400
-Received: from bar.sig21.net (bar.sig21.net [88.198.146.85])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QD4ASp031601
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:04:11 -0400
-Message-ID: <483AB549.9070603@linuxtv.org>
-Date: Mon, 26 May 2008 15:04:09 +0200
-From: Michael Hunold <hunold@linuxtv.org>
-MIME-Version: 1.0
-To: Aimar Marco <marco.aimar@gmail.com>
-References: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
-In-Reply-To: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45F7GSU031204
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 11:07:16 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m45F6xZr016843
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 11:07:00 -0400
+Date: Mon, 5 May 2008 17:06:33 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Arne Caspari <arne@unicap-imaging.org>
+Message-ID: <20080505150632.GA955@daniel.bse>
+References: <1209972947.7502.0.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1209972947.7502.0.camel@localhost>
 Cc: video4linux-list@redhat.com
-Subject: Re: saa7146 card
+Subject: Re: RAW/Bayer format FOURCCs
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,30 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Aimar,
+On Mon, May 05, 2008 at 09:35:47AM +0200, Arne Caspari wrote:
+> I am looking for the correct FOURCC to use for a RAW Bayer format: RGGB
+> 16 bit. 
+> 
+> In the v4l2 specification, there is V4L2_PIX_FMT_SBGGR8 ( 'BA81' ) for
+> BGGR 8 bit and V4L2_PIX_FMT_SBGGR16 ( 'BA82' ) for BGGR 16 bit. I do not
+> really see a pattern in the FOURCC assignment here. Does anybody know
+> what the correct FOURCC should look like? 
 
-on 20.05.2008 22:26 Aimar Marco said the following:
-> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-> 	Subsystem: Unknown device 4342:4343
+There is no pattern.
 
-A quick search on the net did not bring up any vendor that matches this
-id. What kind of card is this?
+The BA8x FourCCs were invented by Luca Risolia:
+http://marc.info/?l=linux-video&m=108062090927323
 
-> and with this card I don't have a /dev/videoX.....
+The BYRx FourCCs are used by CineForm's products when they put raw
+pictures into AVI and MOV. David Newman's post on dvinfo.net is probably
+the source for the fourcc.org entries. Looking at CineForm's NEO player
+I see up to BYR3. Some update logs on the CineForm website mention BYR4.
 
-Besides the generic saa7146 driver you need a so-called extension driver
-for your specific hardware. There is no extension driver for your
-hardware yet, so no /dev/videoX.
-
-> With another card (with chip bt878) my linux work (it created
-> /dev/video0)...any idea?
-
-As said above, there is no extension driver for your hardware.
-
-> thank you
-
-CU
-Michael.
+  Daniel
 
 --
 video4linux-list mailing list
