@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CL6HO2010105
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 17:06:17 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CL65ae017900
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 17:06:05 -0400
-Message-ID: <4828B13A.4070606@users.sourceforge.net>
-Date: Mon, 12 May 2008 23:06:02 +0200
-From: =?ISO-8859-1?Q?Andr=E9_AUZI?= <aauzi@users.sourceforge.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45D2ikP003596
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 09:02:44 -0400
+Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m45D2KR3028738
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 09:02:20 -0400
+Message-ID: <481F0558.2020106@hni.uni-paderborn.de>
+Date: Mon, 05 May 2008 15:02:16 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <Pine.LNX.4.64.0805051422170.5648@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0805051422170.5648@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: PATCH: Add remote control support for ITEMS ITV-301 PCI Stereo TV
- Tuner [2/2]
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [Q] cross-compiling from mercurial sources
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,70 +27,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi list,
+Guennadi Liakhovetski schrieb:
+> Hi, how is one supposed to cross-compile v4l drivers from the mercurial 
+> sources? After looking at v4l/Makefile I tried "make ARCH=... 
+> CROSS_COMPILE=... SRCDIR=<path-to-kernel>", but it didn't work very well - 
+> lots of redefines, and it tried to compile all drivers, which cannot work 
+> either, since, e.g., this platform (arm) doesn't have PCI.
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>   
+Hi,
 
-here's the second patch which adds the remote control support for the 
-mentioned card.
+I first used menuconfig to select the drivers and then set dot-config=1
 
-Regards,
-Andre
+Regards
+    Stefan
 
-# HG changeset patch
-# User Andre Auzi <aauzi@users.sourceforge.net>
-# Date 1210624981 -7200
-# Node ID e8de7c0a8b65064815782f2d655fbb5c4092bc94
-# Parent  73ccafbb571a2678f115635339e540a97c301e5f
-Add remote control support for ITEMS ITV-301 PCI Stereo TV Tuner
+-- 
+Dipl.-Ing. Stefan Herbrechtsmeier
 
-From: Andre Auzi <aauzi@users.sourceforge.net>
+Heinz Nixdorf Institute
+University of Paderborn 
+System and Circuit Technology 
+Fürstenallee 11
+D-33102 Paderborn (Germany)
 
+office : F0.415
+phone  : + 49 5251 - 60 6342
+fax    : + 49 5251 - 60 6351
 
+mailto : hbmeier@hni.upb.de
 
-Signed-off-by: Andre Auzi <aauzi@users.sourceforge.net>
+www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
 
-diff -r 73ccafbb571a -r e8de7c0a8b65 
-linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c Mon May 12 
-22:08:59 2008 +0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Mon May 12 
-22:43:01 2008 +0200
-@@ -5697,6 +5697,7 @@ int saa7134_board_init1(struct saa7134_d
-       case SAA7134_BOARD_BEHOLD_505FM:
-       case SAA7134_BOARD_BEHOLD_507_9FM:
-       case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
-+       case SAA7134_BOARD_ITEMS_ITV301:
-               dev->has_remote = SAA7134_REMOTE_GPIO;
-               break;
-       case SAA7134_BOARD_FLYDVBS_LR300:
-diff -r 73ccafbb571a -r e8de7c0a8b65 
-linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c Mon May 12 
-22:08:59 2008 +0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c Mon May 12 
-22:43:01 2008 +0200
-@@ -423,6 +423,18 @@ int saa7134_input_init1(struct saa7134_d
-               mask_keydown = 0xf00000;
-               polling = 50; /* ms */
-               break;
-+       case SAA7134_BOARD_ITEMS_ITV301:
-+               ir_codes     = ir_codes_manli;
-+               mask_keycode = 0x00001f00;
-+               mask_keyup   = 0x00004000;
-+               polling      = 12; /* ms : has to be fast enough to 
-sample auto
-+                                   * repeat sequences - Nyquist and 
-Shannon
-+                                   * said so (or something quite similar).
-+                                   * We must trust them.
-+                                   * Tuned to have at minimun one no 
-change
-+                                   * for each key state when auto 
-repeat is
-+                                   * active.
-+                                   */
-       }
-       if (NULL == ir_codes) {
-               printk("%s: Oops: IR config error [card=%d]\n",
 
 --
 video4linux-list mailing list
