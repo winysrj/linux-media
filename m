@@ -1,44 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4MLDUo7015848
-	for <video4linux-list@redhat.com>; Thu, 22 May 2008 17:13:30 -0400
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4MLCWu5014546
-	for <video4linux-list@redhat.com>; Thu, 22 May 2008 17:12:49 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <20080522092452.35878221@glory.loctelecom.ru>
-References: <20080414114746.3955c089@glory.loctelecom.ru>
-	<20080414172821.3966dfbf@areia>
-	<20080415125059.3e065997@glory.loctelecom.ru>
-	<20080415000611.610af5c6@gaivota>
-	<20080415135455.76d18419@glory.loctelecom.ru>
-	<20080415122524.3455e060@gaivota>
-	<20080422175422.3d7e4448@glory.loctelecom.ru>
-	<20080422130644.7bfe3b2d@gaivota>
-	<20080423124157.1a8eda0a@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
-	<20080423160505.36064bf7@glory.loctelecom.ru>
-	<20080423113739.7f314663@gaivota>
-	<20080424093259.7880795b@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
-	<20080512201114.3bd41ee5@glory.loctelecom.ru>
-	<1210719122.26311.37.camel@pc10.localdom.local>
-	<20080520152426.5540ee7f@glory.loctelecom.ru>
-	<1211331167.4235.26.camel@pc10.localdom.local>
-	<20080521131652.5a4850a5@glory.loctelecom.ru>
-	<48344B16.2010005@hccnet.nl>
-	<20080522092452.35878221@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Thu, 22 May 2008 23:11:33 +0200
-Message-Id: <1211490693.2511.17.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45NG1px029327
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 19:16:01 -0400
+Received: from elasmtp-kukur.atl.sa.earthlink.net
+	(elasmtp-kukur.atl.sa.earthlink.net [209.86.89.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m45NFmTM031717
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 19:15:49 -0400
+Received: from [209.86.224.25] (helo=mswamui-backed.atl.sa.earthlink.net)
+	by elasmtp-kukur.atl.sa.earthlink.net with esmtpa (Exim 4.67)
+	(envelope-from <aglover.v4l@mindspring.com>) id 1Jt9uJ-0006DP-DN
+	for video4linux-list@redhat.com; Mon, 05 May 2008 19:15:43 -0400
+Message-ID: <20241734.1210029343421.JavaMail.root@mswamui-backed.atl.sa.earthlink.net>
+Date: Mon, 5 May 2008 16:15:43 -0700 (GMT-07:00)
+From: Adam Glover <aglover.v4l@mindspring.com>
+To: video4linux-list@redhat.com
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Gert Vervoort <gert.vervoort@hccnet.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] I2S on for MPEG of saa7134_empress
+Subject: patch - ADS Tech Instant HDTV PCI support
+Reply-To: Adam Glover <aglover.v4l@mindspring.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -50,61 +30,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Trying this again...  If I'm spamming the list, I apologize
+but it looks like I've had trouble with my subscription...
 
-Am Donnerstag, den 22.05.2008, 09:24 +1000 schrieb Dmitri Belimov:
-> Hi Gert
-> 
-> > Dmitri Belimov wrote:
-> > > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > > <d.belimov@gmail.com>
-> > >
-> > > P.S. After this patch I have some data from /dev/video1. Mplayer
-> > > mpeg_test02.dat I can see gray screen with blinked color squares.
-> > > May be audio data?
-> > >
-> > >   
-> > If the board has the SAA6752 directly connected to the SAA7134 TS
-> > port, then on /dev/video1 there should be MPEG-2 transport stream
-> > packets (check for 188 byte packets starting with 0x47).
-> 
-> I check data. First 4 bytes in data packet is 0x80 0x80 0x80 0x80.
-> 
-> I add initialization video_out for my card and right data for 
-> SAA7134_VIDEO_PORT_CTRL*
-> 
-> in new data file i have more data but first 4 bytes is 0x89 0x89 0x89 0x89.
-> 
-> I can send you tared data files if you want.
-> Last changes not sended to mailling list.
-> 
-> > If I remember correctly for the original TS capture code of the
-> > SAA7134 driver, if the SAA6752 was not properly enabled or there was
-> > no video signal, no data was available on the /dev/video1.
-> > At that time I used an user space I2C program to configure the
-> > encoder, currently there is a module called  saa6752hs which I
-> > suppose does these settings.
-> 
-> Can you send me this programm??
-> 
-> With my best regards, Dmitry.
+please review.
 
-Is there anything known about switching the host mode if DVB and a
-encoder is on the same board with a single saa7134 PCI bridge?
+Card is build directly from philips reference design for
+saa7133hl.
 
-We have great progress on some other first class solutions with some
-hints we got.
+card works somewhat when loaded as KWORLD ATSC110 but there
+are some amux/vmux selection problems.  Here are the changes
+needed to make everything work on the card.
 
-Maybe some reference design?
-It is hard to believe, that it comes from elsewhere out of nothing.
+This works with both the PTV-380 and PTV-382 (the one with
+A/V Inputs...  you may have to figure out the cable.  If I
+can get a completely correct pinout, I'll try to post it.
+I have a cable that seems to work but I need to make sure
+it's completely correct).
 
-There is not any high preference on it, but given that such solutions
-have been available long before other competitors came up with something
-similarly functional, to have it in GNU/Linux would be a pleasure and
-also is some sort of credit/thanks to those who cared about it.
+This patch is against the hg snapshot downloaded at around
+04:00 UTC 2008-05-04.
 
-Thanks,
-Hermann
+Adam Glover
 
+--- saa7134.h.orig	2008-05-03 22:12:38.000000000 -0700
++++ saa7134.h	2008-05-03 22:15:15.000000000 -0700
+@@ -271,6 +271,7 @@
+ #define SAA7134_BOARD_AVERMEDIA_A700_PRO    140
+ #define SAA7134_BOARD_AVERMEDIA_A700_HYBRID 141
+ #define SAA7134_BOARD_BEHOLD_H6      142
++#define SAA7134_BOARD_ADS_INSTANT_HDTV_PCI  143
+ 
+ 
+ #define SAA7134_MAXBOARDS 8
+
+--- saa7134-cards.c.orig	2008-05-03 22:12:20.000000000 -0700
++++ saa7134-cards.c	2008-05-03 22:26:00.000000000 -0700
+@@ -4323,6 +4323,30 @@
+ 		/* no DVB support for now */
+ 		/* .mpeg           = SAA7134_MPEG_DVB, */
+ 	},
++	[SAA7134_BOARD_ADS_INSTANT_HDTV_PCI] = {
++		.name           = "ADS Tech Instant HDTV",
++		.audio_clock    = 0x03187de7,
++		.tuner_type     = TUNER_PHILIPS_TUV1236D,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		},{
++			.name = name_comp,
++                       .vmux = 6,
++                       .amux = LINE1,
++               },{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		}},
++	},
+ };
+ 
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -5327,6 +5351,12 @@
+ 		.subvendor    = 0x185b,
+ 		.subdevice    = 0xc900,
+ 		.driver_data  = SAA7134_BOARD_VIDEOMATE_T750,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133, /* SAA7135HL */
++		.subvendor    = 0x1421,
++		.subdevice    = 0x0380,
++		.driver_data  = SAA7134_BOARD_ADS_INSTANT_HDTV_PCI,
+ 	}, {
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+@@ -5970,6 +6000,7 @@
+ 		i2c_transfer(&dev->i2c_adap, &msg, 1);
+ 		break;
+ 	}
++	case SAA7134_BOARD_ADS_INSTANT_HDTV_PCI:
+ 	case SAA7134_BOARD_KWORLD_ATSC110:
+ 	{
+ 		/* enable tuner */
+--- saa7134-dvb.c.orig	2008-05-03 22:12:08.000000000 -0700
++++ saa7134-dvb.c	2008-05-03 22:16:35.000000000 -0700
+@@ -1155,6 +1155,7 @@
+ 			dvb_attach(dvb_pll_attach, dev->dvb.frontend, 0x61,
+ 				   NULL, DVB_PLL_TDHU2);
+ 		break;
++	case SAA7134_BOARD_ADS_INSTANT_HDTV_PCI:
+ 	case SAA7134_BOARD_KWORLD_ATSC110:
+ 		dev->dvb.frontend = dvb_attach(nxt200x_attach, &kworldatsc110,
+ 					       &dev->i2c_adap);
 
 --
 video4linux-list mailing list
