@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55606.mail.re4.yahoo.com ([206.190.58.230])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <trevor_boon@yahoo.com>) id 1Jwv71-0007vN-6c
-	for linux-dvb@linuxtv.org; Fri, 16 May 2008 10:16:24 +0200
-Date: Fri, 16 May 2008 01:15:48 -0700 (PDT)
-From: Trevor Boon <trevor_boon@yahoo.com>
-To: Linux DBV Mailling List <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Message-ID: <128554.28647.qm@web55606.mail.re4.yahoo.com>
-Subject: Re: [linux-dvb] Unknown i2c device on saa7130 card
+Received: from nf-out-0910.google.com ([64.233.182.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alkondratenko@gmail.com>) id 1JsyUA-0002wQ-Uz
+	for linux-dvb@linuxtv.org; Mon, 05 May 2008 13:03:59 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so959284nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 05 May 2008 04:03:55 -0700 (PDT)
+From: Aliaksey Kandratsenka <alkondratenko@gmail.com>
+To: jd.louw@mweb.co.za, zzam@gentoo.org
+Date: Mon, 05 May 2008 14:04:10 +0300
+Message-Id: <1209985450.3659.1.camel@alk.gsn>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Compro S350
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,21 +19,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ignore my last message.... it's the eeprom on 0x50...
-
-
-      Get the name you always wanted with the new y7mail email address.
-www.yahoo7.com.au/y7mail
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGkuCgpJJ3ZlIHJlY2VudGx5IG9idGFpbmVkIENvbXBybyBTMzUwLiBJdCdzIG15IGZpcnN0IERW
+QiBjYXJkIHNvIGRvbid0CmxhdWdoIGF0IGJlIHRvbyBsb3VkbHkgaWYgSSdtIGRvaW5nIHNvbWV0
+aGluZyB2ZXJ5IHdyb25nLgoKSSd2ZSB0cmllZCBvcmlnaW5hbCBkcml2ZXIgd2l0aG91dCBzdWNj
+ZXNzLiBJIGhhZCB0byBjaGFuZ2UgUENJIElEIG9mCmNhcmQgdG8gNzEzMyAoZnJvbSA3MTMwKS4g
+RHJpdmVyIGxvYWRzIE9LLCBidXQgdHVuaW5nIHRvIGtub3duIGZyZXF1ZW5jeQpkb2VzIG5vdCB3
+b3JrLiBUdXJuaW5nIGxvZ2dpbmcgb24gZm9yIHpsMTAwMzkgYW5kIHpsMTAzMTMgZG9lcyBub3QK
+cmV2ZWFsIGFueSB1bnVzdWFsIGVycm9ycyAoMTAwMzkgc2hvd3MgZXhwZWN0ZWQgZXJyb3IgZHVy
+aW5nIGNoaXAKcmVzZXQpLgoKYWxrOi91c3Ivc3JjL2xpbnV4LTIuNi4yNS4xY3BybyMgc3phcCAt
+YyAvdmlkZW8vY2hhbm5lbHMuY29uZiAtbiA5CnJlYWRpbmcgY2hhbm5lbHMgZnJvbSBmaWxlICcv
+dmlkZW8vY2hhbm5lbHMuY29uZicKemFwcGluZyB0byA5ICfQmNC90YTQvtC60LDQvdCw0Ls7SFRC
+Kyc6CnNhdCAwLCBmcmVxdWVuY3kgPSAxMjMyMiBNSHogViwgc3ltYm9scmF0ZSAyNzUwMDAwMCwg
+dnBpZCA9IDB4MDE0OCwgYXBpZAo9IDB4MDE5ZQp1c2luZyAnL2Rldi9kdmIvYWRhcHRlcjAvZnJv
+bnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKc3RhdHVzIDAwIHwgc2lnbmFs
+IDAxMDUgfCBzbnIgZmZmZSB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IApzdGF0dXMg
+MDAgfCBzaWduYWwgMDEwNCB8IHNuciBmZmZkIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAw
+IHwgCnN0YXR1cyAwMCB8IHNpZ25hbCAwMTA0IHwgc25yIGZmZmUgfCBiZXIgMDAwMDAwMDAgfCB1
+bmMgMDAwMDAwMDAgfCAKc3RhdHVzIDAwIHwgc2lnbmFsIDAxMDQgfCBzbnIgZmZmZSB8IGJlciAw
+MDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IApzdGF0dXMgMDAgfCBzaWduYWwgMDEwNCB8IHNuciBm
+ZmZlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgCnN0YXR1cyAwMCB8IHNpZ25hbCAw
+MTAzIHwgc25yIGZmZmUgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCAKCkkgY2FuIGNv
+bmZpcm0gdGhhdCBjYXJkIHVzZXMgQ0U2MzEzIGNoaXAgKGkndmUgZm91bmQgaXQgb24gYm9hcmQp
+LiBJCndhc24ndCBhYmxlIHRvIGZpbmQgQ0U1MDN7Ny85fSBjaGlwIG9uIGJvYXJkLCBidXQgYWxs
+IHJlZ2lzdGVyIHZhbHVlcwpzZWVtIHBsYXVzaWJsZS4KCkkndmUgYWxzbyB0cmllZCByZWNlbnRs
+eSBjb21taXRlZCBtdDMxMiBiYXNlZCBjb2RlLCBieSBzaW1wbHkgcmVwbGFjaW5nCmNhbGwgdG8g
+emwxMDMxM19hdHRhY2ggdG8gdnAzMTBfbXQzMTJfYXR0YWNoIGFuZCB0cnlpbmcgYm90aCB2YWx1
+ZXMgb2YKdm9sdGFnZV9pbnZlcnRlZCBjb25maWcgb3B0aW9uIHdpdGggc2ltaWxhciByZXN1bHRz
+LgoKSSdkIGxpa2UgdG8gaGVscCB3aXRoIHRoaXMgZHJpdmVyLCBidXQgSSB3YXNuJ3QgYWJsZSB0
+byBmaW5kIG5vcm1hbApDRTYzMTMgKGFrYSB6bDEwMzEzKSBzcGVjcy4gQWxsIGRhdGFzaGVldCBJ
+IGZvdW5kIChvbmUgZnJvbSBpbnRlbCwgb3RoZXIKZnJvbSBaYXJsaW5rKSBkbyBub3QgaGF2ZSBy
+ZWdpc3RlcnMgZGVzY3JpcHRpb24uCgpJdCdzIGFsc28gcG9zc2libGUgdGhhdCBwcm9ibGVtIGxp
+ZXMgZWxzZXdoZXJlLiBNYXliZSBzb21lIEdQSU8gcGlucwpuZWVkIHRvIGJlIHR3ZWFrZWQuIFRo
+ZXJlJ3MgZGVkaWNhdGVkIGNvbXBybyBjaGlwIG9uIHRoaXMgY2FyZCBhbmQgSQpoYXZlIG5vIGlk
+ZWEgd2hhdCBpdCBtYXkgZG8uCgoKLS0gCkFsaWFrc2V5IEthbmRyYXRzZW5rYSA8YWxrb25kcmF0
+ZW5rb0BnbWFpbC5jb20+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
+cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
