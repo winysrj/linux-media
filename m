@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4UFg6j3011003
-	for <video4linux-list@redhat.com>; Fri, 30 May 2008 11:42:06 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4UFfudk025910
-	for <video4linux-list@redhat.com>; Fri, 30 May 2008 11:41:56 -0400
-Received: by py-out-1112.google.com with SMTP id a29so2029pyi.0
-	for <video4linux-list@redhat.com>; Fri, 30 May 2008 08:41:55 -0700 (PDT)
-Message-ID: <f50b38640805300841q1a4f05c3udbf0d0f7f19cdb6e@mail.gmail.com>
-Date: Fri, 30 May 2008 11:41:54 -0400
-From: "Jason Pontious" <jpontious@gmail.com>
-To: "David Engel" <david@istwok.net>, video4linux-list@redhat.com
-In-Reply-To: <20080530145830.GA7177@opus.istwok.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45MM62w006587
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 18:22:06 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m45MLoLQ002286
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 18:21:50 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: "zied frikha" <frikha.zied@gmail.com>
+Date: Tue, 6 May 2008 00:21:43 +0200
+References: <20080428160019.AB5306186B3@hormel.redhat.com>
+	<74a5bce60804290637k21f2465ajed607224a8fe764b@mail.gmail.com>
+In-Reply-To: <74a5bce60804290637k21f2465ajed607224a8fe764b@mail.gmail.com>
 MIME-Version: 1.0
-References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
-	<20080530145830.GA7177@opus.istwok.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: 
-Subject: Re: Kworld 115-No Analog Channels
+Message-Id: <200805060021.44095.tobias.lorenz@gmx.net>
+Cc: video4linux-list@redhat.com
+Subject: Re: video4linux-list Digest, Vol 50, Issue 28
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +30,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, May 30, 2008 at 10:58 AM, David Engel <david@istwok.net> wrote:
+Hi Zied,
 
-> On Thu, May 29, 2008 at 06:57:03PM -0400, Jason Pontious wrote:
-> > After getting upgraded to the latest v4l-dvb repository I am no longer
-> able
-> > to get any analog channels from my Kworld 115. (I finally broke down and
-> > installed 2.6.25 kernel in Ubuntu).
->
-> Which drivers are you really using, 2.6.25 or latest v4l-dvb from
-> Mercurial?
->
-> > Before I was getting analog channels via the top rf input.  Now I get no
-> > channels regardless if i set atv_input tuner_simple module setting.
->  Digital
-> > channels are not affected just analog in this.  I get no errors from
-> dmesg.
-> >
-> > Any Ideas?
->
-> I ran into a similar (probably the same) problem last week.  My search
-> of the list archives revealed a known tuner detection regression in
-> 2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
-> because it was simpler to just go back to 2.6.24.x.  I don't know why
-> the fix hasn't made it into 2.6.25.x yet.
->
-> David
-> --
-> David Engel
-> david@istwok.net
+> I check to run the FM Radio under the Mandriva 2008 Linux
+> I have any problem with my Radio that use the v4l and v4l2 librarys.
+> this is the driver that I use :
+> http://www.linuxhq.com/kernel/v2.6/25-rc8/drivers/media/radio/radio-si470x.c
+> and I use the Qt Radio as GUI
+> the seeking operations run normally but I have not the RDS (no audio)
+> have you any ideas to correcting this problem please.
 
+RDS (Radio Data System) has nothing to do with audio, but can be used f.e. with the rds daemon: http://rdsd.berlios.de/
 
+The device has an USB audio endpoint, which gives you an additional alsa sound device.
+You must forward the output from this device to your sound card. That's what I use for it:
 
-I am using the current v4l-dvb from mercurial as the latest there now has a
-feature to allow you to select the rf input for analog channels which I
-would like to have.  I upgraded to 2.6.25 in Ubuntu because of the way
-Ubuntu is currenlty handling their kernel modules doesn't allow for an easy
-compile of the drivers from mercurial.
+arecord -D hw:1,0 -r96000 -c2 -f S16_LE | artsdsp aplay -B -
+
+That's because the device has 96k samples/second with 16 bits/sample and 2 channels.
+
+Bye,
+  Toby
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
