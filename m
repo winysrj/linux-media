@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.183])
+Received: from relay-pt2.poste.it ([62.241.5.253])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vivichrist@gmail.com>) id 1JzjEX-0003vv-I1
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 04:11:47 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so830648wag.13
-	for <linux-dvb@linuxtv.org>; Fri, 23 May 2008 19:11:38 -0700 (PDT)
-Message-ID: <48377956.2000307@gmail.com>
-Date: Sat, 24 May 2008 14:11:34 +1200
-From: vivian stewart <vivichrist@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1Jt2Df-0001UZ-5n
+	for linux-dvb@linuxtv.org; Mon, 05 May 2008 17:03:12 +0200
+Received: from nico2.od.loc (89.97.249.170) by relay-pt2.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 481E40370000AE8B for linux-dvb@linuxtv.org;
+	Mon, 5 May 2008 17:03:06 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-References: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>
-Subject: [linux-dvb]  [HVR1300] issue with VLC
-Reply-To: vivichrist@gmail.com
+Date: Mon, 5 May 2008 17:03:12 +0200
+References: <481F1F7E.1030406@gmail.com>
+In-Reply-To: <481F1F7E.1030406@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200805051703.12390.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] LNB: L.O is 11300
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,8 +29,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have problems with audio/video getting out of sync regardless of cache 
-side and dropframe etc. using HVR3000 and mplayer ... could be related.
+On Monday 05 May 2008 16:53:50 vivian stewart wrote:
+>   I think I may know what is wrong ... my LNB is weird well ... not
+> for this part of the world so I think I need to make a custom
+> sec.conf or something? any Ideas? I can watch tv with
+> 'dvbstream...|mplayer' and 'mplayer dvb://' works with an edited
+> channels.conf and 'scan -l 11300,11300,1 OptusD1' works on all
+> listed transponders (file) from lyngsat. but no programs seem to
+> tune to a list of actual transponders, including mythtv (finds
+> channels and epg data but can't tune in channels). am I doomed to
+> watch tv with mplayer and no remote control?
+>
+> L.O is 11300
+> card is HVR3000
+
+
+you must have changed the sources of mplayer, as the LOFs are fixed
+at
+
+#define SLOF (11700*1000UL)
+#define LOF1 (9750*1000UL)
+#define LOF2 (10600*1000UL)
+
+while with dvbstream you can specify them on the command line
+
+BTW, mplayer can accept commands from the remote control,
+although it's not the best sw to watch tv
 
 _______________________________________________
 linux-dvb mailing list
