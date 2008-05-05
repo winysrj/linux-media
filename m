@@ -1,22 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from smtp3-g19.free.fr ([212.27.42.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JtmiP-00075o-HU
-	for linux-dvb@linuxtv.org; Wed, 07 May 2008 18:42:16 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so266669fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 07 May 2008 09:40:02 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
-Date: Wed, 7 May 2008 18:39:59 +0200
-References: <481EBD4D.1070905@chaosmedia.org>
-	<200805051300.09840.christophpfister@gmail.com>
-	<481EF3C5.3060308@chaosmedia.org>
-In-Reply-To: <481EF3C5.3060308@chaosmedia.org>
+	(envelope-from <thierry.merle@free.fr>) id 1Jt6oT-0003Yi-Ke
+	for linux-dvb@linuxtv.org; Mon, 05 May 2008 21:57:31 +0200
+Message-ID: <481F66B0.4090302@free.fr>
+Date: Mon, 05 May 2008 21:57:36 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805071839.59714.christophpfister@gmail.com>
+To: Tomi Orava <tomimo@ncircle.nullnet.fi>
+References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>
+	<20071018181040.GA6960@dose.home.local>
+	<20071018182940.GA7317@dose.home.local>
+	<20071018201418.GA16574@dose.home.local>
+	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>
+	<472A0CC2.8040509@free.fr> <480F9062.6000700@free.fr>
+	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>
+	<481B4A78.8090305@free.fr>
+	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
+In-Reply-To: <30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] libdvbapi multiproto patch ?
+Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
+ Cinergy T2 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,34 +28,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Montag 05 Mai 2008 13:47:17 schrieb ChaosMedia > WebDev:
-> Christoph Pfister wrote:
-> > No. Only libdvben50221 + the ca part of libdvbapi are used.
->
-> okay thx, what's libdvben50221 compared to libdvbapi ? Are those two
-> libs only used for CAM purposes ?
-
-Yes, those are for cam stuff.
-
-> Anyways, i've checked DvbStream::tuneDvb and seen it uses the frontend
-> declarations directly.
-> Good thing if i don't have to mess with a lib in the middle..
->
-> I'll see if i can manage to use some fancy macros and keep ifdef out of
-> the main code.
->
-> thx
-> Marc
-
-Christoph
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+VG9taSBPcmF2YSBhIMOpY3JpdCA6Cj4gSGksCj4gCj4+IFdlbGwsIEkgc2VlIHNvbWUgaXNzdWVz
+IGFmdGVyIHRha2luZyBhIGNsb3NlciBsb29rIGF0IHlvdXIgZHJpdmVyOgo+PiAxLSBjaGVja3Bh
+dGNoLnBsIHJhaXNlcyBlcnJvcnM6IDkwIGVycm9ycywgNTMgd2FybmluZ3MsIDk5NSBsaW5lcyBj
+aGVja2VkCj4+IDItIHRoZXJlIGlzIGEgY29tcGlsYXRpb24gZXJyb3IgKEkgYXBwbGllZCB0aGUg
+cGF0Y2ggb24gdGhlIGxhdGVzdAo+PiB2NGwtZHZiIHRyZWUpOgo+PiBjaW5lcmd5VDItY29yZS5j
+OiBJbiBmdW5jdGlvbiAnY2luZXJneXQyX3VzYl9wcm9iZSc6Cj4+IGNpbmVyZ3lUMi1jb3JlLmM6
+MTM4OiBlcnJvcjogdG9vIGZldyBhcmd1bWVudHMgdG8gZnVuY3Rpb24KPj4gJ2R2Yl91c2JfZGV2
+aWNlX2luaXQnCj4+IDMtIHlvdSBzaG91bGQgcmVwbGFjZSB0aGUgZXhpc3RpbmcgZHJpdmVyLCBu
+b3QgcHJvcG9zaW5nIGEgZGlmZmVyZW50Cj4+IGRyaXZlci4gSSBtZWFuLCBwYXRjaCBkaXJlY3Rs
+eQo+PiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9jaW5lcmd5VDIvY2luZXJneVQyLmMuCj4gCj4g
+T2ssIHRoZXNlIGFyZSBlYXN5IHRvIGZpeC4KPiAKPj4gRnVydGhlcm1vcmUsIEkgaGF2ZSBzb21l
+IHF1ZXN0aW9uczoKPj4gLSBpcyB0aGVyZSBhIHdheSB0byB1c2UgdGhlIGR2Yi11c2ItcmVtb3Rl
+IG1vZHVsZT8gVGhpcyBpbiBvcmRlciB0byBnZXQKPj4gcmlkIG9mIGNpbmVyZ3lUMi1yZW1vdGUu
+Ywo+IAo+IE5vLCBkdWUgdG8gdGhlIGZhY3QgdGhhdCB0aGUgZHZiLXVzYi5oIGRlZmluZXMgYSBz
+dHJ1Y3Qgd2hpY2ggaXMgdG9vCj4gbGltaXRlZCBmb3IgdGhlIENpbmVyZ3kgVDIgcmVtb3RlIGNv
+bnRyb2xsZXIgaGFuZGxpbmcuIElmIHlvdSBjb21wYXJlCj4gdGhlIG9yaWdpbmFsIHN0cnVjdCBk
+dmJfdXNiX3JjX2tleSB0byB0aGUgbW9kaWZpZWQgb25lOgo+IAo+IE9yaWdpbmFsOgo+IAo+IHN0
+cnVjdCBkdmJfdXNiX3JjX2tleSB7Cj4gICAgICAgICB1OCBjdXN0b20sZGF0YTsgPC0tLS0tLS0t
+LS0tLS0tLS0tLS0tCj4gICAgICAgICB1MzIgZXZlbnQ7Cj4gfTsKPiAKPiBDaW5lcmd5IFQyIHNl
+bmQgVTMyIHJlbW90ZSBjb250cm9sbGVyOgo+IAo+IHN0cnVjdCBjaW5lcmd5dDJfcmNfa2V5IHsK
+PiAJdTMyIGN1c3RvbTsgPC0tLS0tLS0tLS0tLS0tCj4gCXUzMiBkYXRhOyAgIDwtLS0tLS0tLS0t
+LS0tLQo+IAl1MzIgZXZlbnQ7Cj4gfTsKPiAKPiBPYnZpb3VzbHkgSSBjb3VsZCBnZXQgcmlkIG9m
+IHRoZSB3aG9sZSBjaW5lcmd5VDItcmVtb3RlLmMgZmlsZQo+IGlmIHRoZSBkdmItdXNiIGRlZmlu
+ZWQgc3RydWN0IGNvdWxkIGJlIHdpZGVuZWQuCj4gCkluZGVlZCwgYnV0IGluIHRoZSBjdXJyZW50
+IHN0cnVjdHVyZSBJIGFtIG5vdCBzdXJlIHRoYXQgYWxsIHRoZSBiaXRzIG9mIHRoZSB1MzIgZGF0
+YSBpcyB1c2VmdWwuCkZvciBleGFtcGxlOgoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMs
+CTB4ZmUwMWViMDQsCUtFWV9QT1dFUiB9LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMs
+CTB4ZmQwMmViMDQsCUtFWV8xIH0sCgl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhm
+YzAzZWIwNCwJS0VZXzIgfSwKCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGZiMDRl
+YjA0LAlLRVlfMyB9LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMsCTB4ZmEwNWViMDQs
+CUtFWV80IH0sCgl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhmOTA2ZWIwNCwJS0VZ
+XzUgfSwKCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGY4MDdlYjA0LAlLRVlfNiB9
+LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMsCTB4ZjcwOGViMDQsCUtFWV83IH0sCgl7
+IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhmNjA5ZWIwNCwJS0VZXzggfSwKCXsgQ0lO
+RVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGY1MGFlYjA0LAlLRVlfOSB9LApJIHNlZSBmb3Ig
+ZXhhbXBsZSB0aGF0IGluIHRoZSB1MzIgMHhmZTAxZWIwNCwgZmlyc3QgYW5kIHNlY29uZCBieXRl
+cyBhcmUgbGlua2VkICgweGZlICsgMHgwMSA9IDB4ZmYpCkl0IHdvcmtzIHdpdGggYWxsIG90aGVy
+czogMHhmZDAyZWIwNCAtPiAweGZkICsgMHgwMiA9IDB4ZmYsIC4uLgpGdXJ0aGVybW9yZSB0aGUg
+bGFzdCAyIGJ5dGVzIGFyZSBjb25zdGFudCAoMHhlYjA0KS4KU28gdGhlIHNvbGUgc2lnbmlmaWNh
+bnQgYnl0ZSBpcyB0aGUgc2Vjb25kOiAweDAxLCAweDAyLCAuLi4KSSB3aWxsIHRyeSB0byBkbyBz
+b21ldGhpbmcgYXJvdW5kIHRoYXQuCgo+PiAtIHNvLCByZW5hbWluZyBjaW5lcmd5VDItY29yZS5j
+IHRvIGNpbmVyZ3lUMi5jIHdvdWxkIGJlIGNvcnJlY3Q/Cj4gCj4gSG1tLCBpZiBJIHJlbWVtYmVy
+IGNvcnJlY3RseSB0aGVyZSB3YXMgc29tZSBzb3J0IG9mIGNsYXNoIHdpdGggdGhlIGZpbGVuYW1l
+cwo+IGFuZCB0aGUgYWN0dWFsIGNvbXBpbGVkIGRyaXZlci4KSW4gZmFjdCBpZiB5b3UgcmVtb3Zl
+IHRoZSBvbGQgZHJpdmVyIChieSByZXNvbHZpbmcgdGhlIGlzc3VlICMzKSwgSSBzdWdnZXN0ZWQg
+dG8gbmFtZSB0aGUgY2luZXJneVQyLWNvcmUuYyBjaW5lcmd5VDIuYyBidXQgdGhlcmUgaXMgbm8g
+b2JsaWdhdGlvbi4gCj4gCj4+IC0gc3RyZWFtIGJ1ZmZlciBjb3VudCB3YXMgc2V0IHRvIDMyIGlu
+IHRoZSBvbGQgZHJpdmVyIGFuZCB5b3Ugc2V0IGl0IHRvCj4+IDUsIHdoeSB0aGlzIGNoYW5nZT8g
+SXQgd29ya3MgcGVyZmVjdGx5IHdpdGggNSBhbmQgY29uc3VtZXMgbGVzcyBtZW1vcnkKPj4gc28g
+aWYgdGhpcyBpcyB0aGUgcmVhc29uIEkgZnVsbHkgYWdyZWUhCj4gCj4gQXMgdGhlIG9sZCBleGlz
+dGluZyBkcml2ZXIgaXMgaGFuZGxpbmcgdGhlIGNvbW11bmljYXRpb24gZGlmZmVyZW50bHkKPiBh
+bHNvIHRoZSBidWZmZXIgY291bnQgdmFsdWVzIGFyZSBkaWZmZXJlbnQuIFdoZW4gSSBiZWdhbiB3
+cml0aW5nIHRoZQo+IG5ldyB2ZXJzaW9uIG9mIHRoZSBDaW5lcmd5VDIgZHJpdmVyIEkgZGlkIHNv
+bWUgdHJpYWxzIGFuZCBiYXNlZCBvbiB0aGUKPiBoZWxwZnVsIGNvbW1lbnRzICYgdGVzdCByZXN1
+bHRzIHRoZSB2YWx1ZSBvZiA1IGhhcyBiZWVuIHRoZXJlLgo+IApPSwo+PiBJIHRoaW5rIHRoZSBi
+ZXN0IHdheSBpcyB0byByZXdvcmsgeW91ciBwYXRjaCBhbmQgZml4IHRoZXNlIGlzc3VlczsgSSBj
+YW4KPj4gaGVscCB5b3UgaWYgeW91IHdhbnQuCj4+IFRoZW4gSSB3aWxsIGNvbW1pdCB0aGF0IGlu
+IGEgcGFydGljdWxhciB0cmVlIGFuZCBhc2sgZm9yIHB1c2hpbmcgaXQgdG8KPj4gdGhlIG9mZmlj
+aWFsIHRyZWUuCj4gCj4gU3VyZSwgSSdsbCBmaXggdGhlIHJlcG9ydGVkIGVycm9ycyBhbmQgZ2V0
+IGJhY2sgdG8geW91Lgo+IApUaGFua3MKPiBSZWdhcmRzLAo+IFRvbWkgT3JhdmEKPiAKQ2hlZXJz
+LApUaGllcnJ5CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
+LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
