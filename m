@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4U2g96H006135
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 22:42:09 -0400
-Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
-	[151.189.21.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4U2frto004828
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 22:41:54 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Ian.davidson@bigfoot.com
-In-Reply-To: <483F153B.9000102@blueyonder.co.uk>
-References: <483F153B.9000102@blueyonder.co.uk>
-Content-Type: text/plain
-Date: Fri, 30 May 2008 04:40:50 +0200
-Message-Id: <1212115250.4130.15.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Live Streaming Audio/Video
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45JgiH0001193
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 15:42:44 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m45JgR4V018916
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 15:42:27 -0400
+Date: Mon, 5 May 2008 21:42:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: 604hcl@telenet.be
+In-Reply-To: <W4018854147541210000621@nocme1bl6.telenet-ops.be>
+Message-ID: <Pine.LNX.4.64.0805052140500.5648@axis700.grange>
+References: <W4018854147541210000621@nocme1bl6.telenet-ops.be>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: phycore_im27 platform + mt9v022 camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,30 +26,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Mon, 5 May 2008, 604hcl@telenet.be wrote:
 
-Am Donnerstag, den 29.05.2008, 21:42 +0100 schrieb Ian Davidson:
-> Apart from the Internet Connection, what would I need to be able to 
-> stream Live Audio (or Live Video) from my computer?
+> I've been trying to capture an image from my mt9v022 camera with the 
+> video4linux example code. The code stops working in the start_capturing 
+> method. Right after the VIDIOC_STREAMON ioctl, the system freezes 
+> completely.
+> 
+> Maybe some of you have an idea of the reason for this? I have attached 
+> modified code of the example
 
-since you have no other response yet, I'm not up to date with it
-currently, but was once a little ...
+Your test programme runs through without problem here - same hardware, 
+current v4l-dvb/devel git tree.
 
-Depending on your ambitions, you might have a look at
-mpeg4ip.sourceforge.net also for related, especially x264 issues, at
-ffmpeg, ,vlc, mplayer, and for what was live.com and audiocoding.com
-once and others. 
-
-And if you want a media server solution, also at apple.com for the
-DarwinStreamingServer and embedded live video within websites.
-
-But as said, I'm not up to date ;)
-
-Cheers,
-Hermann
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
