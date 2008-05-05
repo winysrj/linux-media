@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <boexli@gmx.net>) id 1JvXRY-0003rh-Qc
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 14:47:55 +0200
-From: nick <boexli@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Mon, 12 May 2008 14:47:18 +0200
-References: <85e6aeba0805092320ja192c12hd756b5efb3725463@mail.gmail.com>
-	<48255AFC.3010508@gmail.com>
-	<85e6aeba0805100639u35b26874m2ac78d446c40dd47@mail.gmail.com>
-In-Reply-To: <85e6aeba0805100639u35b26874m2ac78d446c40dd47@mail.gmail.com>
+Received: from viefep27-int.chello.at ([62.179.121.47])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rscheidegger_lists@hispeed.ch>) id 1Jt1HE-0005kT-RR
+	for linux-dvb@linuxtv.org; Mon, 05 May 2008 16:02:49 +0200
+Message-ID: <481F1365.50808@hispeed.ch>
+Date: Mon, 05 May 2008 16:02:13 +0200
+From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805121447.18180.boexli@gmx.net>
-Subject: Re: [linux-dvb] TerraTec Cinergy C
+To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+References: <481B7D43.2050200@hispeed.ch> <481CD27A.9080300@freenet.de>
+In-Reply-To: <481CD27A.9080300@freenet.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] mantis crash...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,35 +25,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Saturday 10 May 2008 15:39:29 Tommy Alander wrote:
+Ruediger Dohmhardt wrote:
+> Roland Scheidegger schrieb:
+>> This was reported before, the current mantis driver will cause a
+>> page fault in mantis_dvb_start_feed.
+>> 
+> Dear Roland,
+> 
+> I applied your patch to the code I got from
+> 
+> http://jusst.de/hg/mantis
+> 
+> Now the mantis driver (for 2033) works fine for me.
+> 
+> Setup: 2.6.22.19 vdr-1.5.18/xineliboutput
+> 
+> Unfortunately, as soon as I insert the CAM module, the driver
+> crashes. According to the logfile, it looks that "vdr" still gets the
+> information about the CAM and tries to access it. Then the driver
+> crashes.  Maybe  someone  still has an idea how to dig into this.
+Yes, the crash is due to the same (or similar) bogus hif reads/writes as
+that fixed in the patch obviously - that code gets only used with a CAM.
+There are mmreads/mmwrites to MANTIS_GPIF_HIFADDR, MANTIS_GPIF_HIFDIN
+and MANTIS_GPIF_HIFDOUT - I'm sure all of them will blow up (they are
+all the exact same value anyway).
+But I wouldn't know how to fix this - I suspect those values are
+actually masks which you'd or with some other values for accessing
+values not directly accessible in registers. That's just speculation
+however, I don't even have a clue what "HIF" stands for (well I guess
+something with interface?). Fixing it would require a chip datasheet at
+least (or (working) example code), or reverse engeneering or whatever.
+Even if this particular hif read/write issue was fixed I'd highly doubt
+though the cam code would actually work in its current state -
+apparently it was never tested nor working. So Manu Abraham needs to fix
+it I suspect - unfortunately there were no updates for over two weeks now.
 
-Check this out
-
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
-
-Let us know if this works 
-
-
-> On Sat, May 10, 2008 at 10:21 AM, e9hack <e9hack@googlemail.com> wrote:
-> > Tommy Alander schrieb:
-> >> status 00 | signal 0000 | snr 0000 | ber 000fffff | unc 00000a63 |
-> >> status 00 | signal 0000 | snr 9999 | ber 000fffff | unc 000061a7 |
-> >>
-> >> Any pointers how to find out whats wrong?
-> >
-> > The card has no signal.
->
-> How is that possible when using the same values with the windows
-> driver works? I have not been able to get any kind of channellock with
-> linux.
->
-> /Tommy
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+Roland
 
 
 _______________________________________________
