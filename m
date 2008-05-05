@@ -1,30 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4EIcMwu008567
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 14:38:22 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4EIc8pu005994
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 14:38:09 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JwLra-00018A-0x
-	for video4linux-list@redhat.com; Wed, 14 May 2008 18:38:06 +0000
-Received: from client-87-247-116-28.inturbo.lt ([87.247.116.28])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 18:38:06 +0000
-Received: from augulis.darius by client-87-247-116-28.inturbo.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 18:38:06 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m457a76Z003708
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 03:36:07 -0400
+Received: from moutng.kundenserver.de (moutng.kundenserver.de
+	[212.227.126.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m457ZrEU009147
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 03:35:54 -0400
+From: Arne Caspari <arne@unicap-imaging.org>
 To: video4linux-list@redhat.com
-From: Darius <augulis.darius@gmail.com>
-Date: Wed, 14 May 2008 21:37:54 +0300
-Message-ID: <g0fbi6$ule$1@ger.gmane.org>
-References: <482AD0B8.5050202@gmail.com>
+Content-Type: text/plain
+Date: Mon, 05 May 2008 09:35:47 +0200
+Message-Id: <1209972947.7502.0.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-13; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <482AD0B8.5050202@gmail.com>
-Subject: Re: I2C interface problem with OmniVision OV7670
+Subject: RAW/Bayer format FOURCCs
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,30 +25,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-btw, I got confirmation from OmniVision - OV7670 does not support 
-multiple I2C commands.
+Hello, 
+
+I am looking for the correct FOURCC to use for a RAW Bayer format: RGGB
+16 bit. 
+
+In the v4l2 specification, there is V4L2_PIX_FMT_SBGGR8 ( 'BA81' ) for
+BGGR 8 bit and V4L2_PIX_FMT_SBGGR16 ( 'BA82' ) for BGGR 16 bit. I do not
+really see a pattern in the FOURCC assignment here. Does anybody know
+what the correct FOURCC should look like? 
 
 
-> Hi,
-> 
-> OV7670 does not support repeated start.
-> When sending several messages (read or write) in one transaction, 
-> repeated start is not accepted by OV7670. OV7670 thinks, that it is next 
-> clock pulse, not repeated start and second message is not acknowledged.
-> It is known bug of OV7670 or my i2c adapter driver works not correct?
-> When sending one byte, everything is ok.
-> It is interesting, how works OV7670 driver, written by Jonathan Corbet?
-> Because there are used i2c_smbus_write_byte_data() and 
-> i2c_smbus_read_byte_data() functions, which means, that in one 
-> transaction two messages are sent - register address (write) and read data.
-> For me this does not work, only register address is acknowledged by 
-> OV7670, and second message (read data) fails.
-> 
-> I want to know, is there possibility to use multi-message transactions 
-> or not?
-> 
-> BR,
-> Darius
+Thanks, 
+
+-- 
+Arne Caspari    --    unicap-imaging
+
+http://www.unicap-imaging.org
 
 --
 video4linux-list mailing list
