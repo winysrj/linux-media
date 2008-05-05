@@ -1,25 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m46KLWjI031046
-	for <video4linux-list@redhat.com>; Tue, 6 May 2008 16:21:32 -0400
-Received: from mailout10.t-online.de (mailout10.t-online.de [194.25.134.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m46KKsCZ026880
-	for <video4linux-list@redhat.com>; Tue, 6 May 2008 16:20:55 -0400
-Message-ID: <4820BD94.90005@t-online.de>
-Date: Tue, 06 May 2008 22:20:36 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-MIME-Version: 1.0
-To: Emilio Lazo Zaia <emiliolazozaia@gmail.com>
-References: <88771.83842.qm@web83107.mail.mud.yahoo.com>	
-	<1209512868.5699.32.camel@palomino.walls.org>	
-	<1209863718.546.24.camel@localhost.localdomain>	
-	<481E1AD3.2060304@t-online.de>
-	<1210045099.21581.6.camel@localhost.localdomain>
-In-Reply-To: <1210045099.21581.6.camel@localhost.localdomain>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m453KHoh013079
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 23:20:17 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m453K52l023210
+	for <video4linux-list@redhat.com>; Sun, 4 May 2008 23:20:05 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1003637nfc.21
+	for <video4linux-list@redhat.com>; Sun, 04 May 2008 20:20:04 -0700 (PDT)
+Date: Mon, 5 May 2008 13:20:07 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080505132007.315e7701@glory.loctelecom.ru>
+In-Reply-To: <Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
+	<20080415000611.610af5c6@gaivota>
+	<20080415135455.76d18419@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: MCE TV Philips 7135 Cardbus don't work
+Subject: Beholder TV/FM cards
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,55 +42,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi 
 
+Sorry my previouse report. I found what happens.
+My local mercuri didn`t update correctly.
+When I make fresh hg clone all works well.
 
-Emilio Lazo Zaia schrieb:
-> ﻿Hi Hartmut!
-> 
-> This is a Cardbus adapter, so maybe I need to break in to have a
-> look :-)
-> If this is possible without a possible physical damage, I can try!
-> 
-You need to be careful but you can bend most modules open with a
-not too sharp knife. You need to start this from the far side of the
-cardbus connector.
-I did this several times.
-
-> What you say is that "no eeprom present" is not an error and can be
-> ignored if the correct configuration is found the hard way?
->
-yes.
-
-> In the case of a PCI adapter, what can be deduced about the presence of
-> these metal box? I saw some board with and without it.
-> 
-This box is the so-called tuner. It is important to know its type.
-
-But before you open the module, you might try a "modprobe saa7134 card=55"
-and watch the kernel log. If the driver tells you it found a tda8175(a),
-we already learned a lot.
-
-
-> Thanks,
-> Regards!
-> 
-> El dom, 04-05-2008 a las 22:21 +0200, Hartmut Hackmann escribió:
-> 
->> There are many saa713x based cards without eeprom. It stores the vendor ID and
->> - in many cases - the board configuration. For you this means
->> - you need to find out the configuration the hard way
->>    * identify the chips on the card
->>    * find the input configuration by try and error
->> - You will always need to force the card type with a card=xxx option, there is
->>    no way to automatically identify the card.
->>
->> So please have a close look at the card and write down all chip types. Is there
->> a metal box with the antenna connector on the card? What is its type?
->>
->> Hartmut
-
-Good luck
-   Hartmut
+With my best regards, Dmitry.
 
 --
 video4linux-list mailing list
