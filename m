@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtprelay02.ispgateway.de ([80.67.18.14])
+Received: from mx39.mail.ru ([194.67.23.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kiu@gmx.net>) id 1JrWcb-0003MP-OH
-	for linux-dvb@linuxtv.org; Thu, 01 May 2008 13:06:42 +0200
-Message-ID: <20080501130637.7yz4ivq4u80g0k0k@blacksheep.qnet>
-Date: Thu, 01 May 2008 13:06:37 +0200
-From: kiu <kiu@gmx.net>
+	(envelope-from <goga777@bk.ru>) id 1JtRE1-0001Ts-LA
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 19:45:14 +0200
+Received: from [83.149.3.150] (port=29230 helo=localhost.localdomain)
+	by mx39.mail.ru with asmtp id 1JtRDS-0008c1-00
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 21:44:39 +0400
+Date: Tue, 6 May 2008 21:45:50 +0400
+From: Igor Nikanov <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-References: <mailman.0.1209634192.28257.linux-dvb@linuxtv.org>
-	<20080501095107.11680@gmx.net>
-In-Reply-To: <20080501095107.11680@gmx.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-Cc: nickpetrik@gmx.net
-Subject: Re: [linux-dvb] Terratec Cinergy C PCI - channel scan stops
-	after	trasnponder is found
+Message-ID: <20080506214550.3fb427fc@bk.ru>
+Mime-Version: 1.0
+Subject: [linux-dvb] cx24116 & parameter FEC=AUTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,19 +25,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hi
 
-Quoting Nick Petrik <nickpetrik@gmx.net>:
+as far as I understand the cx24116 doesn't operate with FEC=AUTO parameter.  Is it for dvb-s2 only ?
+Is it mean that for all them dvb-applications (szap2, dvbstream, scan, ...) need to exactly indicate the FEC ?
 
-> I am using a Terretec Cinergy C PCI DVB card together with the   
-> latest MANTIS driver.
+Igor
 
-Dont use the latest mantis version.
-
-See: http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C#Drivers
-
--- 
-kiu
 
 _______________________________________________
 linux-dvb mailing list
