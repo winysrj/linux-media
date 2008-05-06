@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1JyRil-0007Ay-7n
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 15:17:40 +0200
-Received: from mail.nkindia.com (localhost.localdomain [127.0.0.1])
-	by nkindia.com (8.13.7/8.13.7) with ESMTP id m4KDHF2b008334
-	for <linux-dvb@linuxtv.org>; Tue, 20 May 2008 18:47:15 +0530
+	(envelope-from <stev391@email.com>) id 1JtCAF-0005XY-GA
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 03:40:22 +0200
+Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
+	[192.168.9.180])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	5E4ED1800120
+	for <linux-dvb@linuxtv.org>; Tue,  6 May 2008 01:39:42 +0000 (GMT)
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="_----------=_1210037982250924"
 MIME-Version: 1.0
-Date: Tue, 20 May 2008 18:47:15 +0530
-From: Guru <gurumurti@nkindia.com>
+From: stev391@email.com
 To: linux-dvb@linuxtv.org
-Message-ID: <db82654a99c997aa9ba9c262466c816b@nkindia.com>
-Subject: [linux-dvb] Subtitle
+Date: Tue, 6 May 2008 11:39:42 +1000
+Message-Id: <20080506013942.45190164293@ws1-4.us4.outblaze.com>
+Subject: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will it be
+ merged into v4l-dvb tree?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,23 +24,238 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
-I am looking for inserting subtitle in TS stream. can any one suggest me a
-standard  / document / source code for implementation..
-Thanks with regards....
--- 
+This is a multi-part message in MIME format.
 
-Gurumurti Laxman Maharana
+--_----------=_1210037982250924
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_1210037982250923"
+
+This is a multi-part message in MIME format.
+
+--_----------=_1210037982250923
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+
+ G'day,
+
+I was just wondering when Chris Pascoe's code for the DViCO Fusion HDTV
+Dual Express will be merged into the v4l-dvb tree, as there have been
+some minor updates that increase the stability of the card that are not
+in his tree.
+
+Attached is a patch for merging the relevant sections back into the
+v4l-dvb tree (and including updating Kconfig).  This has been
+successfully tested on two different PCs with this card (working with
+gxine and mythtv, in Melbourne, Australia).
+
+Regards,
+Stephen.
+
+--=20
+See Exclusive Video: 10th Annual Young Hollywood Awards
+http://www.hollywoodlife.net/younghollywoodawards2008/
 
 
+--_----------=_1210037982250923
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+
+<div>
+
+G'day,<br><br>I was just wondering when Chris Pascoe's code for the DViCO F=
+usion HDTV Dual Express will be merged into the v4l-dvb tree, as there have=
+ been some minor updates that increase the stability of the card that are n=
+ot in his tree.<br><br>Attached is a patch for merging the relevant section=
+s back into the v4l-dvb tree (and including updating Kconfig).&nbsp; This h=
+as been successfully tested on two different PCs with this card (working wi=
+th gxine and mythtv, in Melbourne, Australia).<br><br>Regards,<br>Stephen.<=
+br>
+<div>
+
+</div>
+
+
+</div>
+<BR>
+
+--=20
+<div> See Exclusive Video: <a href=3D "http://www.hollywoodlife.net/youngho=
+llywoodawards2008/" target=3D"_blank"> <b> 10th Annual Young Hollywood Awar=
+ds</b></a><br></div>
+
+--_----------=_1210037982250923--
+
+
+--_----------=_1210037982250924
+Content-Disposition: attachment; filename="DViCO_FUSIONHDTV_DVB_T_DUAL_EXP.patch"
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream; name="DViCO_FUSIONHDTV_DVB_T_DUAL_EXP.patch"
+
+ZGlmZiAtTmF1ciB2NGwtZHZiL2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80
+bGludXgvQ0FSRExJU1QuY3gyMzg4NSB2NGwtZHZiX2Rldi9saW51eC9Eb2N1
+bWVudGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRMSVNULmN4MjM4ODUKLS0tIHY0
+bC1kdmIvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElT
+VC5jeDIzODg1CTIwMDgtMDUtMDYgMTA6MzQ6MjcuMDAwMDAwMDAwICsxMDAw
+CisrKyB2NGwtZHZiX2Rldi9saW51eC9Eb2N1bWVudGF0aW9uL3ZpZGVvNGxp
+bnV4L0NBUkRMSVNULmN4MjM4ODUJMjAwOC0wNS0wNiAxMDo0MzoxOS4wMDAw
+MDAwMDAgKzEwMDAKQEAgLTgsMyArOCw0IEBACiAgIDcgLT4gSGF1cHBhdWdl
+IFdpblRWLUhWUjEyMDAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFsw
+MDcwOjcxZDEsMDA3MDo3MWQzXQogICA4IC0+IEhhdXBwYXVnZSBXaW5UVi1I
+VlIxNzAwICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbMDA3MDo4MTAx
+XQogICA5IC0+IEhhdXBwYXVnZSBXaW5UVi1IVlIxNDAwICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBbMDA3MDo4MDEwXQorIDEwIC0+IERWaUNPIEZ1
+c2lvbkhEVFYgRFZCLVQgRHVhbCBFeHByZXNzICAgICAgICAgICAgICAgICBb
+MThhYzpkYjc4XQpkaWZmIC1OYXVyIHY0bC1kdmIvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYyB2NGwtZHZiX2Rl
+di9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1j
+YXJkcy5jCi0tLSB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3gyMzg4NS9jeDIzODg1LWNhcmRzLmMJMjAwOC0wNS0wNiAxMDozNDoyNy4w
+MDAwMDAwMDAgKzEwMDAKKysrIHY0bC1kdmJfZGV2L2xpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMJMjAwOC0wNS0w
+NiAxMDo0MzoxOS4wMDAwMDAwMDAgKzEwMDAKQEAgLTE0NCw2ICsxNDQsMTEg
+QEAKIAkJLm5hbWUJCT0gIkhhdXBwYXVnZSBXaW5UVi1IVlIxNDAwIiwKIAkJ
+LnBvcnRjCQk9IENYMjM4ODVfTVBFR19EVkIsCiAJfSwKKwlbQ1gyMzg4NV9C
+T0FSRF9EVklDT19GVVNJT05IRFRWX0RWQl9UX0RVQUxfRVhQXSA9IHsKKwkJ
+Lm5hbWUJCT0gIkRWaUNPIEZ1c2lvbkhEVFYgRFZCLVQgRHVhbCBFeHByZXNz
+IiwKKwkJLnBvcnRiCQk9IENYMjM4ODVfTVBFR19EVkIsCisJCS5wb3J0YwkJ
+PSBDWDIzODg1X01QRUdfRFZCLAorCX0sCiB9OwogY29uc3QgdW5zaWduZWQg
+aW50IGN4MjM4ODVfYmNvdW50ID0gQVJSQVlfU0laRShjeDIzODg1X2JvYXJk
+cyk7CiAKQEAgLTIxMSw2ICsyMTYsMTAgQEAKIAkJLnN1YnZlbmRvciA9IDB4
+MDA3MCwKIAkJLnN1YmRldmljZSA9IDB4ODAxMCwKIAkJLmNhcmQgICAgICA9
+IENYMjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjE0MDAsCisJfSx7CisJCS5z
+dWJ2ZW5kb3IgPSAweDE4YWMsCisJCS5zdWJkZXZpY2UgPSAweGRiNzgsCisJ
+CS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZf
+RFZCX1RfRFVBTF9FWFAsCiAJfSwKIH07CiBjb25zdCB1bnNpZ25lZCBpbnQg
+Y3gyMzg4NV9pZGNvdW50ID0gQVJSQVlfU0laRShjeDIzODg1X3N1Ymlkcyk7
+CkBAIC00MjgsNiArNDM3LDEzIEBACiAJCW1kZWxheSgyMCk7CiAJCWN4X3Nl
+dChHUDBfSU8sIDB4MDAwNTAwMDUpOwogCQlicmVhazsKKwljYXNlIENYMjM4
+ODVfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9EVkJfVF9EVUFMX0VYUDoKKwkJ
+LyogR1BJTy0wIHBvcnRiIHhjMzAyOCByZXNldCAqLworCQkvKiBHUElPLTEg
+cG9ydGIgemwxMDM1MyByZXNldCAqLworCQkvKiBHUElPLTIgcG9ydGMgeGMz
+MDI4IHJlc2V0ICovCisJCS8qIEdQSU8tMyBwb3J0YyB6bDEwMzUzIHJlc2V0
+ICovCisJCWN4X3dyaXRlKEdQMF9JTywgMHgwMDJmMTAwMCk7CisJCWJyZWFr
+OwogCX0KIH0KIApAQCAtNDQyLDYgKzQ1OCw5IEBACiAJY2FzZSBDWDIzODg1
+X0JPQVJEX0hBVVBQQVVHRV9IVlIxNDAwOgogCQkvKiBGSVhNRTogSW1wbGVt
+ZW50IG1lICovCiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9EVklD
+T19GVVNJT05IRFRWX0RWQl9UX0RVQUxfRVhQOgorCQlyZXF1ZXN0X21vZHVs
+ZSgiaXIta2JkLWkyYyIpOworCQlicmVhazsKIAl9CiAKIAlyZXR1cm4gMDsK
+QEAgLTQ3OCw2ICs0OTcsMTEgQEAKIAl9CiAKIAlzd2l0Y2ggKGRldi0+Ym9h
+cmQpIHsKKwljYXNlIENYMjM4ODVfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9E
+VkJfVF9EVUFMX0VYUDoKKwkJdHMyLT5nZW5fY3RybF92YWwgID0gMHhjOyAv
+KiBTZXJpYWwgYnVzICsgcHVuY3R1cmVkIGNsb2NrICovCisJCXRzMi0+dHNf
+Y2xrX2VuX3ZhbCA9IDB4MTsgLyogRW5hYmxlIFRTX0NMSyAqLworCQl0czIt
+PnNyY19zZWxfdmFsICAgPSBDWDIzODg1X1NSQ19TRUxfUEFSQUxMRUxfTVBF
+R19WSURFTzsKKwkJLyogRkFMTFRIUk9VR0ggKi8KIAljYXNlIENYMjM4ODVf
+Qk9BUkRfRFZJQ09fRlVTSU9OSERUVl81X0VYUDoKIAkJdHMxLT5nZW5fY3Ry
+bF92YWwgID0gMHhjOyAvKiBTZXJpYWwgYnVzICsgcHVuY3R1cmVkIGNsb2Nr
+ICovCiAJCXRzMS0+dHNfY2xrX2VuX3ZhbCA9IDB4MTsgLyogRW5hYmxlIFRT
+X0NMSyAqLwpkaWZmIC1OYXVyIHY0bC1kdmIvbGludXgvZHJpdmVycy9tZWRp
+YS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMgdjRsLWR2Yl9kZXYvbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMK
+LS0tIHY0bC1kdmIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1
+L2N4MjM4ODUtZHZiLmMJMjAwOC0wNS0wNiAxMDozNDoyNy4wMDAwMDAwMDAg
+KzEwMDAKKysrIHY0bC1kdmJfZGV2L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gyMzg4NS9jeDIzODg1LWR2Yi5jCTIwMDgtMDUtMDYgMTA6NDM6MTku
+MDAwMDAwMDAwICsxMDAwCkBAIC00Miw2ICs0Miw5IEBACiAjaW5jbHVkZSAi
+dHVuZXItc2ltcGxlLmgiCiAjaW5jbHVkZSAiZGliNzAwMHAuaCIKICNpbmNs
+dWRlICJkaWJ4MDAwX2NvbW1vbi5oIgorI2luY2x1ZGUgInpsMTAzNTMuaCIK
+KyNpbmNsdWRlICJ0dW5lci14YzIwMjguaCINCisjaW5jbHVkZSAidHVuZXIt
+eGMyMDI4LXR5cGVzLmgiDQogCiBzdGF0aWMgdW5zaWduZWQgaW50IGRlYnVn
+OwogCkBAIC0xNTUsNiArMTU4LDQ0IEBACiAJLnNlcmlhbF9tcGVnID0gMHg0
+MCwKIH07CiAKK3N0YXRpYyBpbnQgY3gyMzg4NV9kdmljb194YzIwMjhfY2Fs
+bGJhY2sodm9pZCAqcHRyLCBpbnQgY29tbWFuZCwgaW50IGFyZykKK3sKKwlz
+dHJ1Y3QgY3gyMzg4NV90c3BvcnQgKnBvcnQgPSBwdHI7CisJc3RydWN0IGN4
+MjM4ODVfZGV2ICpkZXYgPSBwb3J0LT5kZXY7CisJdTMyIHJlc2V0X21hc2sg
+PSAwOworCisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBYQzIwMjhfVFVO
+RVJfUkVTRVQ6CisJCWRwcmludGsoMSwgIiVzOiBYQzIwMjhfVFVORVJfUkVT
+RVQgJWQsIHBvcnQgJWRcbiIsIF9fRlVOQ1RJT05fXywKKwkJCWFyZywgcG9y
+dC0+bnIpOworCisJCWlmIChwb3J0LT5uciA9PSAxKQorCQkJcmVzZXRfbWFz
+ayA9IDB4MDEwMTsKKwkJZWxzZSBpZiAocG9ydC0+bnIgPT0gMikKKwkJCXJl
+c2V0X21hc2sgPSAweDA0MDQ7CisKKwkJY3hfY2xlYXIoR1AwX0lPLCByZXNl
+dF9tYXNrKTsKKwkJbWRlbGF5KDUpOworCQljeF9zZXQoR1AwX0lPLCByZXNl
+dF9tYXNrKTsKKwkJYnJlYWs7CisJY2FzZSBYQzIwMjhfUkVTRVRfQ0xLOgor
+CQlkcHJpbnRrKDEsICIlczogWEMyMDI4X1JFU0VUX0NMSyAlZFxuIiwgX19G
+VU5DVElPTl9fLCBhcmcpOworCQlicmVhazsKKwlkZWZhdWx0OgorCQlkcHJp
+bnRrKDEsICIlczogdW5rbm93biBjb21tYW5kICVkLCBhcmcgJWRcbiIsIF9f
+RlVOQ1RJT05fXywKKwkJICAgICAgIGNvbW1hbmQsIGFyZyk7CisJCXJldHVy
+biAtRUlOVkFMOworCX0KKworCXJldHVybiAwOworfQorCitzdGF0aWMgc3Ry
+dWN0IHpsMTAzNTNfY29uZmlnIGR2aWNvX2Z1c2lvbmhkdHZfeGMzMDI4ID0g
+eworCS5kZW1vZF9hZGRyZXNzID0gMHgwZiwKKwkuaWYyICAgICAgICAgICA9
+IDQ1NjAwLAorCS5ub190dW5lciAgICAgID0gMSwKK307CisKIHN0YXRpYyBz
+dHJ1Y3QgczVoMTQwOV9jb25maWcgaGF1cHBhdWdlX2h2cjE1MDBxX2NvbmZp
+ZyA9IHsKIAkuZGVtb2RfYWRkcmVzcyA9IDB4MzIgPj4gMSwKIAkub3V0cHV0
+X21vZGUgICA9IFM1SDE0MDlfU0VSSUFMX09VVFBVVCwKQEAgLTQ1Niw2ICs0
+OTcsMzkgQEAKIAkJCQlmZS0+b3BzLnR1bmVyX29wcy5zZXRfY29uZmlnKGZl
+LCAmY3RsKTsKIAkJfQogCQlicmVhazsKKwljYXNlIENYMjM4ODVfQk9BUkRf
+RFZJQ09fRlVTSU9OSERUVl9EVkJfVF9EVUFMX0VYUDogeworCQlpMmNfYnVz
+ID0gJmRldi0+aTJjX2J1c1twb3J0LT5uciAtIDFdOworCisJCS8qIFRha2Ug
+ZGVtb2QgYW5kIHR1bmVyIG91dCBvZiByZXNldCAqLworCQlpZiAocG9ydC0+
+bnIgPT0gMSkKKwkJCWN4X3NldChHUDBfSU8sIDB4MDMwMyk7CisJCWVsc2Ug
+aWYgKHBvcnQtPm5yID09IDIpCisJCQljeF9zZXQoR1AwX0lPLCAweDBjMGMp
+OworCQltZGVsYXkoNSk7CisJCXBvcnQtPmR2Yi5mcm9udGVuZCA9IGR2Yl9h
+dHRhY2goemwxMDM1M19hdHRhY2gsCisJCQkJCSAgICAgICAmZHZpY29fZnVz
+aW9uaGR0dl94YzMwMjgsCisJCQkJCSAgICAgICAmaTJjX2J1cy0+aTJjX2Fk
+YXApOworCQlpZiAocG9ydC0+ZHZiLmZyb250ZW5kICE9IE5VTEwpIHsKKwkJ
+CXN0cnVjdCBkdmJfZnJvbnRlbmQgICAgICAqZmU7CisJCQlzdHJ1Y3QgeGMy
+MDI4X2NvbmZpZwkgIGNmZyA9IHsKKwkJCQkuaTJjX2FkYXAgID0gJmkyY19i
+dXMtPmkyY19hZGFwLAorCQkJCS5pMmNfYWRkciAgPSAweDYxLAorCQkJCS52
+aWRlb19kZXYgPSBwb3J0LAorCQkJCS5jYWxsYmFjayAgPSBjeDIzODg1X2R2
+aWNvX3hjMjAyOF9jYWxsYmFjaywKKwkJCX07CisJCQlzdGF0aWMgc3RydWN0
+IHhjMjAyOF9jdHJsIGN0bCA9IHsKKwkJCQkuZm5hbWUgICAgICAgPSAieGMz
+MDI4LWR2aWNvLWF1LTAxLmZ3IiwKKwkJCQkubWF4X2xlbiAgICAgPSA2NCwK
+KwkJCQkuc2NvZGVfdGFibGUgPSBaQVJMSU5LNDU2LAorCQkJfTsKKworCQkJ
+ZmUgPSBkdmJfYXR0YWNoKHhjMjAyOF9hdHRhY2gsIHBvcnQtPmR2Yi5mcm9u
+dGVuZCwKKwkJCQkJJmNmZyk7CisJCQlpZiAoZmUgIT0gTlVMTCAmJiBmZS0+
+b3BzLnR1bmVyX29wcy5zZXRfY29uZmlnICE9IE5VTEwpCisJCQkJZmUtPm9w
+cy50dW5lcl9vcHMuc2V0X2NvbmZpZyhmZSwgJmN0bCk7CisJCX0KKwkJYnJl
+YWs7CisgICAgICAgIH0KIAlkZWZhdWx0OgogCQlwcmludGsoIiVzOiBUaGUg
+ZnJvbnRlbmQgb2YgeW91ciBEVkIvQVRTQyBjYXJkIGlzbid0IHN1cHBvcnRl
+ZCB5ZXRcbiIsCiAJCSAgICAgICBkZXYtPm5hbWUpOwpkaWZmIC1OYXVyIHY0
+bC1kdmIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4
+ODUuaCB2NGwtZHZiX2Rldi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
+MjM4ODUvY3gyMzg4NS5oCi0tLSB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJMjAwOC0wNC0yNiAxMDowMDo0
+Mi4wMDAwMDAwMDAgKzEwMDAKKysrIHY0bC1kdmJfZGV2L2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJMjAwOC0wNS0wNiAx
+MDo0MzoxOS4wMDAwMDAwMDAgKzEwMDAKQEAgLTY2LDYgKzY2LDcgQEAKICNk
+ZWZpbmUgQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0VfSFZSMTIwMCAgICAgICAg
+NwogI2RlZmluZSBDWDIzODg1X0JPQVJEX0hBVVBQQVVHRV9IVlIxNzAwICAg
+ICAgICA4CiAjZGVmaW5lIENYMjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjE0
+MDAgICAgICAgIDkKKyNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9EVklDT19GVVNJ
+T05IRFRWX0RWQl9UX0RVQUxfRVhQIDEwCiAKIC8qIEN1cnJlbnRseSB1bnN1
+cHBvcnRlZCBieSB0aGUgZHJpdmVyOiBQQUwvSCwgTlRTQy9LciwgU0VDQU0g
+Qi9HL0gvTEMgKi8KICNkZWZpbmUgQ1gyMzg4NV9OT1JNUyAoXApkaWZmIC1O
+YXVyIHY0bC1kdmIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1
+L0tjb25maWcgdjRsLWR2Yl9kZXYvbGludXgvZHJpdmVycy9tZWRpYS92aWRl
+by9jeDIzODg1L0tjb25maWcKLS0tIHY0bC1kdmIvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDIzODg1L0tjb25maWcJMjAwOC0wNS0wNiAxMDozNDoy
+Ny4wMDAwMDAwMDAgKzEwMDAKKysrIHY0bC1kdmJfZGV2L2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9LY29uZmlnCTIwMDgtMDUtMDYgMTA6
+NDY6MzEuMDAwMDAwMDAwICsxMDAwCkBAIC0xNCw2ICsxNCw3IEBACiAJc2Vs
+ZWN0IE1FRElBX1RVTkVSX01UMjEzMSBpZiAhRFZCX0ZFX0NVU1RPTUlTRQog
+CXNlbGVjdCBEVkJfUzVIMTQwOSBpZiAhRFZCX0ZFX0NVU1RPTUlTRQogCXNl
+bGVjdCBEVkJfTEdEVDMzMFggaWYgIURWQl9GRV9DVVNUT01JU0UKKyAJc2Vs
+ZWN0IERWQl9aTDEwMzUzIGlmICFEVkJfRkVfQ1VTVE9NSVNFCiAJc2VsZWN0
+IE1FRElBX1RVTkVSX1hDMjAyOCBpZiAhRFZCX0ZFX0NVU1RPTUlaRQogCXNl
+bGVjdCBNRURJQV9UVU5FUl9UREE4MjkwIGlmICFEVkJfRkVfQ1VTVE9NSVpF
+CiAJc2VsZWN0IE1FRElBX1RVTkVSX1REQTE4MjcxIGlmICFEVkJfRkVfQ1VT
+VE9NSVpFCgo=
+
+--_----------=_1210037982250924
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--_----------=_1210037982250924--
