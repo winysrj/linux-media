@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 108.203.233.220.exetel.com.au ([220.233.203.108]
-	helo=hack.id.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@hack.id.au>) id 1Jz0zc-0000ze-6I
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 04:57:25 +0200
-From: "Christian Hack" <christian@hack.id.au>
-To: "'Nick Andrew'" <nick-linuxtv@nick-andrew.net>
-Date: Thu, 22 May 2008 12:56:35 +1000
-Message-ID: <019c01c8bbb7$731d79e0$1c01010a@edmi.local>
+Received: from rouge.crans.org ([138.231.136.3])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <braice@braice.net>) id 1JtTD5-0004xJ-5r
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 21:52:24 +0200
+Received: from localhost (localhost.crans.org [127.0.0.1])
+	by rouge.crans.org (Postfix) with ESMTP id 376E883A0
+	for <linux-dvb@linuxtv.org>; Tue,  6 May 2008 21:52:17 +0200 (CEST)
+Received: from rouge.crans.org ([10.231.136.3])
+	by localhost (rouge.crans.org [10.231.136.3]) (amavisd-new, port 10024)
+	with LMTP id 36bawqS54T1b for <linux-dvb@linuxtv.org>;
+	Tue,  6 May 2008 21:52:16 +0200 (CEST)
+Received: from [192.168.0.10] (free.braice.net [88.162.232.248])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rouge.crans.org (Postfix) with ESMTP id 5619F8071
+	for <linux-dvb@linuxtv.org>; Tue,  6 May 2008 21:52:16 +0200 (CEST)
+Message-ID: <4820B6EB.9070204@braice.net>
+Date: Tue, 06 May 2008 21:52:11 +0200
+From: Brice DUBOST <braice@braice.net>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_019D_01C8BC0B.44C989E0"
-In-Reply-To: <20080521132619.GA27716@tull.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] LifeView TV Walker Twin DVB-T (LR540) Problem
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------000801060504040907090203"
+Subject: [linux-dvb] Patch for the scan utility from dvb-apps
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,162 +34,428 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 This is a multi-part message in MIME format.
-
-------=_NextPart_000_019D_01C8BC0B.44C989E0
-Content-Type: text/plain;
-	charset="us-ascii"
+--------------000801060504040907090203
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-> -----Original Message-----
-> From: Nick Andrew [mailto:nick-linuxtv@nick-andrew.net] 
-> Sent: Wednesday, 21 May 2008 11:26 PM
-> 
-> On Mon, May 19, 2008 at 07:00:27PM +1000, Christian Hack wrote:
-> > Hi guys,
-> > 
-> > I've got one of these that has been successfully working on 
-> my MythDora
-> > (based on Fedora 8) machine for the past few months. It 
-> didn't ever scan
-> > properly though. I was able to use my other cards to 
-> populate the channel
-> > list. Once the channels were set up, it worked perfectly.
-> > 
-> > All of sudden it seems to have stopped working.
-> 
-> What changed? If it's not a hardware problem, then something must have
-> changed. Kernel upgraded, USB cable intermittent, firmware 
-> file removed
-> or renamed, antenna blown off roof, etc...
+Hello
 
-Nothing that I'm aware of had changed. No kernel change - not even a reboot.
-Firmware file is OK. I certainly didn't even touch anything physically.
-Antenna is in the roof. I totally understand the concept that something must
-have changed though (I'm an engineer)
+I wrote a patch for the scan utility
 
-> I'm suspicious about when you say "didn't ever scan properly". Mine
-> didn't scan either. Then I connected it to a proper antenna, and it
-> scanned fine.
+This patchs allows scan to write his output in the format asked by
+mumudvb : http://mumudvb.braice.net/
 
-Well it's possible my signal isn't the best. I see something like 75%
-reported in MythTV (not that I see it much since I don't watch Live TV
-often). I'm not that keen on upgrading/replacing it just yet. It does work
-perfectly with the Two Hauppauge Nova-T PCI cards.
+The patch is joined to this mail, it is against the version 1.1.1 of
+dvb-apps.
 
-> > Using dvbtune it is unable
-> > to lock on to a signal. In MythTV I just get a garbled mess 
-> like a very bad
-> > signal. The audio is almost intelligble, video is a mess.
-> 
-> Have you tried tzap? Please post output from tzap and also the kernel
-> log messages generated using debug=1 and while tzap is running.
+Is this patch ok for you ?
 
-I can't get any extra info with debug=1. I have tried in both
-/etc/modprobe.conf and by specifying it on the command line i.e. "modprobe
-dvb_usb_m920x debug=1" etc. I am removing dvb_usb tda827x and dvb_usb_m920x
-modules before trying each time.
+By the way I have an issue : the French DVB-T network doesn't give the
+good frequencies in the SI-Tables. Is there a way to get the frequency
+from the card ?
 
-Tzap output (first go is the LR540, second is the Hauppage Nova-T) using the
-same aerial:
-
-[root@mythtv tmp]# tzap -c channels.conf -a 2 -f 0 -d 0 "Ten HD"
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-tuning to 219500000 Hz
-video pid 0x0202, audio pid 0x0000
-status 00 | signal b8b8 | snr c8c8 | ber 0001fffe | unc 00000000 | 
-status 00 | signal b8b8 | snr d5d5 | ber 0001fffe | unc 00000000 | 
-status 00 | signal b7b7 | snr d3d3 | ber 0001fffe | unc 00000000 | 
-status 00 | signal b7b7 | snr d4d4 | ber 0001fffe | unc 00000000 | 
-
-[root@mythtv tmp]# tzap -c channels.conf -a 0 -f 0 -d 0 "Ten HD"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 219500000 Hz
-video pid 0x0202, audio pid 0x0000
-status 00 | signal c8c8 | snr ffff | ber 0001fffe | unc 00000000 | 
-status 1f | signal c9c9 | snr ffff | ber 0000000e | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c9c9 | snr fefe | ber 00000014 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c9c9 | snr fefe | ber 00000010 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c9c9 | snr ffff | ber 00000012 | unc 00000000 |
-FE_HAS_LOCK
-
-/var/log/messages is attached from a "modprobe dvb_usb_m920x" onwards. Of
-the last two lines the first is the firmware load for the TDA10046 in the
-LR540. The second is the load for the TDA10045 in the Nova-T. The only lines
-that appear when tuning the LR540 are:
-
-May 22 12:55:53 mythtv kernel: tda1004x: setting up plls for 48MHz sampling
-clock
-May 22 12:55:55 mythtv kernel: tda1004x: found firmware revision 29 -- ok
-
-CH
+Regards
 
 
-------=_NextPart_000_019D_01C8BC0B.44C989E0
-Content-Type: text/plain;
-	name="var-log-messages.txt"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="var-log-messages.txt"
 
-May 22 12:41:23 mythtv kernel: dvb-usb: found a 'LifeView TV Walker Twin =
-DVB-T USB2.0' in warm state.
-May 22 12:41:23 mythtv kernel: dvb-usb: will pass the complete MPEG2 =
-transport stream to the software demuxer.
-May 22 12:41:23 mythtv kernel: DVB: registering new adapter (LifeView TV =
-Walker Twin DVB-T USB2.0)
-May 22 12:41:23 mythtv kernel: DVB: registering frontend 2 (Philips =
-TDA10046H DVB-T)...
-May 22 12:41:23 mythtv kernel: dvb-usb: will pass the complete MPEG2 =
-transport stream to the software demuxer.
-May 22 12:41:23 mythtv kernel: DVB: registering new adapter (LifeView TV =
-Walker Twin DVB-T USB2.0)
-May 22 12:41:23 mythtv kernel: DVB: registering frontend 3 (Philips =
-TDA10046H DVB-T)...
-May 22 12:41:23 mythtv kernel: input: IR-receiver inside an USB DVB =
-receiver as /class/input/input17
-May 22 12:41:23 mythtv kernel: dvb-usb: schedule remote query interval =
-to 100 msecs.
-May 22 12:41:23 mythtv kernel: dvb-usb: LifeView TV Walker Twin DVB-T =
-USB2.0 successfully initialized and connected.
-May 22 12:41:23 mythtv kernel: usbcore: registered new interface driver =
-dvb_usb_m920x
-May 22 12:41:28 mythtv kernel: usbcore: deregistering interface driver =
-dvb_usb_m920x
-May 22 12:41:28 mythtv kernel: dvb-usb: generic DVB-USB module =
-successfully deinitialized and disconnected.
-May 22 12:41:28 mythtv kernel: dvb-usb: LifeView TV Walker Twin DVB-T =
-USB2.0 successfully deinitialized and disconnected.
-May 22 12:42:29 mythtv kernel: dvb-usb: found a 'LifeView TV Walker Twin =
-DVB-T USB2.0' in warm state.
-May 22 12:42:29 mythtv kernel: dvb-usb: will pass the complete MPEG2 =
-transport stream to the software demuxer.
-May 22 12:42:29 mythtv kernel: DVB: registering new adapter (LifeView TV =
-Walker Twin DVB-T USB2.0)
-May 22 12:42:29 mythtv kernel: DVB: registering frontend 2 (Philips =
-TDA10046H DVB-T)...
-May 22 12:42:29 mythtv kernel: dvb-usb: will pass the complete MPEG2 =
-transport stream to the software demuxer.
-May 22 12:42:29 mythtv kernel: DVB: registering new adapter (LifeView TV =
-Walker Twin DVB-T USB2.0)
-May 22 12:42:29 mythtv kernel: DVB: registering frontend 3 (Philips =
-TDA10046H DVB-T)...
-May 22 12:42:29 mythtv kernel: input: IR-receiver inside an USB DVB =
-receiver as /class/input/input18
-May 22 12:42:29 mythtv kernel: dvb-usb: schedule remote query interval =
-to 100 msecs.
-May 22 12:42:29 mythtv kernel: dvb-usb: LifeView TV Walker Twin DVB-T =
-USB2.0 successfully initialized and connected.
-May 22 12:42:29 mythtv kernel: usbcore: registered new interface driver =
-dvb_usb_m920x
-May 22 12:42:39 mythtv kernel: tda1004x: setting up plls for 48MHz =
-sampling clock
-May 22 12:42:41 mythtv kernel: tda1004x: found firmware revision 29 -- =
-ok
-May 22 12:42:58 mythtv kernel: tda1004x: found firmware revision 2c -- ok
-------=_NextPart_000_019D_01C8BC0B.44C989E0
+-- 
+Brice
+
+A: Yes.
+ >Q: Are you sure?
+ >>A: Because it reverses the logical flow of conversation.
+ >>>Q: Why is top posting annoying in email?
+
+
+--------------000801060504040907090203
+Content-Type: text/x-diff;
+ name="patch-linuxtv-dvb-apps-1.1.1-scan-mumudvb.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="patch-linuxtv-dvb-apps-1.1.1-scan-mumudvb.patch"
+
+diff -uNr linuxtv-dvb-apps-1.1.1/util/scan/dump-mumudvb.c linuxtv-dvb-apps-scan-mumu/util/scan/dump-mumudvb.c
+--- linuxtv-dvb-apps-1.1.1/util/scan/dump-mumudvb.c	1970-01-01 01:00:00.000000000 +0100
++++ linuxtv-dvb-apps-scan-mumu/util/scan/dump-mumudvb.c	2008-05-04 13:24:28.464941015 +0200
+@@ -0,0 +1,206 @@
++#include <stdio.h>
++#include "dump-mumudvb.h"
++#include <linux/dvb/frontend.h>
++
++
++static const char *inv_name [] = {
++	"0",
++	"1",
++	"999"
++};
++
++static const char *fec_name [] = {
++	"0",
++	"12",
++	"23",
++	"34",
++	"45",
++	"56",
++	"67",
++	"78",
++	"89",
++	"999"
++};
++
++static const char *qam_name [] = {
++	"0",
++	"16",
++	"32",
++	"64",
++	"128",
++	"256",
++	"999"
++};
++
++
++static const char *bw_name [] = {
++	"8",
++	"7",
++	"6",
++	"999"
++};
++
++
++static const char *mode_name [] = {
++	"2",
++	"8",
++	"999"
++};
++
++static const char *guard_name [] = {
++	"32",
++	"16",
++	"8",
++	"4",
++	"999"
++};
++
++
++static const char *hierarchy_name [] = {
++	"0",
++	"1",
++	"2",
++	"4",
++	"999"
++};
++
++static const char *west_east_flag_name [] = {
++	"W",
++	"E"
++};
++
++void mumudvb_dump_dvb_parameters (FILE *f, fe_type_t type,
++		struct dvb_frontend_parameters *p,
++		char polarity, int orbital_pos, int we_flag)
++{
++
++	switch (type) {
++	case FE_QPSK:
++		fprintf (f, "#QPSK Modulation : DVB-S. Satellite : S%i.%i%s\n", orbital_pos/10,
++			 orbital_pos % 10, west_east_flag_name[we_flag]);
++		fprintf (f, "freq=%i\n", p->frequency / 1000);
++		fprintf (f, "pol=%c\n", polarity);
++		fprintf (f, "srate=%i\n", p->u.qpsk.symbol_rate / 1000);
++		break;
++
++	case FE_QAM:
++	  fprintf (f, "#QAM Modulation : Probably DVB-C ---------- Not Tested ----------- \n");
++		fprintf (f, "%i:", p->frequency / 1000000);
++		fprintf (f, "M%s:C:", qam_name[p->u.qam.modulation]);
++		fprintf (f, "%i:", p->u.qam.symbol_rate / 1000);
++		break;
++
++	case FE_OFDM:
++	  fprintf (f, "#OFDM Modulation : DVB-T\n");
++	  fprintf (f, "#QAM : %s ", qam_name[p->u.ofdm.constellation]);
++	  fprintf (f, "Inversion : %s ", inv_name[p->inversion]);
++	  fprintf (f, "Coderate HP : %s ", fec_name[p->u.ofdm.code_rate_HP]);
++	  fprintf (f, "Coderate LP : %s ", fec_name[p->u.ofdm.code_rate_LP]);
++	  fprintf (f, "Guard interval : %s ", guard_name[p->u.ofdm.guard_interval]);
++	  fprintf (f, "Transmission mode : %s ", mode_name[p->u.ofdm.transmission_mode]);
++	  fprintf (f, "Hierarchy : %s ", hierarchy_name[p->u.ofdm.hierarchy_information]);
++	  fprintf (f, "\n");
++	  if(p->frequency>=0xfffffff)
++	    fprintf (f, "#==========WARNING=============\n#The network provider probably returned the wrong frequency\n#You have to set manually the freq= option\n\n");
++	  else
++	    fprintf (f, "freq=%i\n", p->frequency );
++	  fprintf (f, "bandwith=%sMhz\n", bw_name[p->u.ofdm.bandwidth]);
++	  fprintf (f, "qam=auto\n");
++	  fprintf (f, "trans_mode=auto\n");
++	  fprintf (f, "guardinterval=auto\n");
++	  fprintf (f, "coderate=auto\n");
++		//		fprintf (f, ":T:27500:");
++		break;
++
++	case FE_ATSC:
++		fprintf (f, "%i:", p->frequency / 1000);
++		fprintf (f, "VDR does not support ATSC at this time");
++		break;
++
++	default:
++		fprintf (f, "Modulation : %d\n", type);
++		;
++	};
++
++}
++
++void mumudvb_dump_service_parameter_set (FILE *f,
++				 const char *service_name,
++				 const char *provider_name,
++				 fe_type_t type,
++				 struct dvb_frontend_parameters *p,
++				 char polarity,
++				 int video_pid,
++				 int pcr_pid,
++				 uint16_t *audio_pid,
++				 char audio_lang[][4],
++                                 int audio_num,
++				 int teletext_pid,
++				 int scrambled,
++				 int ac3_pid,
++                                 int service_id,
++				 int network_id,
++				 int transport_stream_id,
++				 int orbital_pos,
++				 int we_flag,
++				 int ca_select,
++				 int channel_num,
++				 int channel_num_mumudvb,
++				 int pmt_pid,
++				 int subtitling_pid)
++{
++        int i;
++
++	if (channel_num_mumudvb == 0)
++	  {
++	    fprintf (f, "#This is an automatically generated config file for mumudvb\n#Check if the ip adresses are good for you\n#You might also have to ad the card=n parameter with n the number of your DVB adapter\n\n");
++	    mumudvb_dump_dvb_parameters (f, type, p, polarity, orbital_pos, we_flag);
++	  }
++	if ((video_pid || audio_pid[0]) && ((ca_select > 0) || ((ca_select == 0) && (scrambled == 0)))) {
++	  fprintf (f, "\n#Channel : \"%s\" Provider : \"%s\" Number : %d\n", service_name, provider_name, channel_num);
++	  fprintf (f, "ip=239.200.200.2%02i\n",channel_num_mumudvb);
++	  fprintf (f, "port=1234\n");
++	  fprintf (f, "name=");
++	  if (audio_lang && audio_lang[0][0])
++		fprintf (f, "%.4s ", audio_lang[0]);
++	  fprintf (f, "%s\n", service_name);
++
++	  fprintf (f, "#Pids are the following : PMT ");
++	  if ((pcr_pid != video_pid) && (video_pid > 0)) fprintf (f, "Video PCR ");
++	  else if (video_pid > 0) fprintf (f, "Video ");
++	  for (i = 0; i < audio_num; i++)
++	    {
++	      if(audio_pid[i]) fprintf (f, "Audio ");
++	    }
++	  if (ac3_pid) fprintf (f, "AC3 ");
++	  if (teletext_pid) fprintf (f, "Text ");
++	  if (subtitling_pid) fprintf (f, "SUB ");
++	  fprintf (f, "\n");
++	  fprintf (f, "pids=");
++	  fprintf (f, "%i ", pmt_pid);
++	  if ((pcr_pid != video_pid) && (video_pid > 0))
++	    fprintf (f, "%i %i", video_pid, pcr_pid);
++	  else if (video_pid > 0)
++	    fprintf (f, "%i", video_pid);
++	  if(audio_pid[0])
++	    fprintf (f, " %i", audio_pid[0]);
++	  for (i = 1; i < audio_num; i++)
++	    {
++	      if(audio_pid[i])
++		fprintf (f, " %i", audio_pid[i]);
++	    }
++	  if (ac3_pid)
++	    {
++	      fprintf (f, " %i", ac3_pid);
++	    }
++	  if (scrambled == 1) scrambled = ca_select;
++	  if (teletext_pid)
++	    fprintf (f, " %d", teletext_pid);
++	  if (subtitling_pid)
++	    fprintf (f, " %d", subtitling_pid);
++	  //	    fprintf (f, ":%d:%d:%d:%d:%d:0", teletext_pid, scrambled,
++	  //		   service_id, network_id, transport_stream_id);
++	  fprintf (f, "\n");
++	}
++}
++
+diff -uNr linuxtv-dvb-apps-1.1.1/util/scan/dump-mumudvb.h linuxtv-dvb-apps-scan-mumu/util/scan/dump-mumudvb.h
+--- linuxtv-dvb-apps-1.1.1/util/scan/dump-mumudvb.h	1970-01-01 01:00:00.000000000 +0100
++++ linuxtv-dvb-apps-scan-mumu/util/scan/dump-mumudvb.h	2008-05-04 13:24:03.839096762 +0200
+@@ -0,0 +1,39 @@
++#ifndef __DUMP_MUMUDVB_H__
++#define __DUMP_MUMUDVB_H__
++
++#include <stdint.h>
++#include <linux/dvb/frontend.h>
++
++extern
++void mumudvb_dump_dvb_parameters (FILE *f, fe_type_t type,
++		struct dvb_frontend_parameters *p,
++		char polarity, int orbital_pos, int we_flag);
++
++extern
++void mumudvb_dump_service_parameter_set (FILE *f,
++				 const char *service_name,
++				 const char *provider_name,
++				 fe_type_t type,
++				 struct dvb_frontend_parameters *p,
++				 char polarity,
++				 int video_pid,
++				 int pcr_pid,
++				 uint16_t *audio_pid,
++				 char audio_lang[][4],
++                                 int audio_num,
++				 int teletext_pid,
++				 int scrambled,
++				 int ac3_pid,
++                                 int service_id,
++				 int network_id,
++				 int transport_stream_id,
++				 int orbital_pos,
++				 int we_flag,
++				 int ca_select,
++				 int channel_num,
++			         int channel_num_mumudvb,
++				 int pmt_pid,
++				 int subtitling_pid);
++
++#endif
++
+diff -uNr linuxtv-dvb-apps-1.1.1/util/scan/Makefile linuxtv-dvb-apps-scan-mumu/util/scan/Makefile
+--- linuxtv-dvb-apps-1.1.1/util/scan/Makefile	2006-05-18 01:34:53.000000000 +0200
++++ linuxtv-dvb-apps-scan-mumu/util/scan/Makefile	2008-05-04 13:30:28.291877015 +0200
+@@ -3,7 +3,7 @@
+ CFLAGS = -MD -g -Wall -O2 -I../../include
+ LFLAGS = -g -Wall
+ 
+-OBJS = diseqc.o dump-zap.o dump-vdr.o scan.o lnb.o section.o atsc_psip_section.o
++OBJS = diseqc.o dump-mumudvb.o dump-zap.o dump-vdr.o scan.o lnb.o section.o atsc_psip_section.o
+ SRCS = $(OBJS:.o=.c)
+ 
+ TARGET = scan
+diff -uNr linuxtv-dvb-apps-1.1.1/util/scan/scan.c linuxtv-dvb-apps-scan-mumu/util/scan/scan.c
+--- linuxtv-dvb-apps-1.1.1/util/scan/scan.c	2006-05-18 01:33:25.000000000 +0200
++++ linuxtv-dvb-apps-scan-mumu/util/scan/scan.c	2008-05-04 13:25:41.183405766 +0200
+@@ -41,6 +41,7 @@
+ #include "diseqc.h"
+ #include "dump-zap.h"
+ #include "dump-vdr.h"
++#include "dump-mumudvb.h"
+ #include "scan.h"
+ #include "lnb.h"
+ 
+@@ -79,7 +80,8 @@
+ enum format {
+         OUTPUT_ZAP,
+         OUTPUT_VDR,
+-	OUTPUT_PIDS
++	OUTPUT_PIDS,
++	OUTPUT_MUMUDVB
+ };
+ static enum format output_format = OUTPUT_ZAP;
+ static int output_format_set = 0;
+@@ -528,6 +530,7 @@
+ 		t->other_f[i] = f * 10;
+ 		buf += 4;
+ 	}
++
+ }
+ 
+ static void parse_service_descriptor (const unsigned char *buf, struct service *s)
+@@ -1923,6 +1926,7 @@
+ 	int n = 0, i;
+ 	char sn[20];
+         int anon_services = 0;
++        int channel_num_mumudvb = 0;
+ 
+ 	list_for_each(p1, &scanned_transponders) {
+ 		t = list_entry(p1, struct transponder, list);
+@@ -1938,6 +1942,7 @@
+ 		t = list_entry(p1, struct transponder, list);
+ 		if (t->wrong_frequency)
+ 			continue;
++		channel_num_mumudvb = 0;
+ 		list_for_each(p2, &t->services) {
+ 			s = list_entry(p2, struct service, list);
+ 
+@@ -2001,6 +2006,34 @@
+ 						    vdr_dump_channum,
+ 						    s->channel_num);
+ 				break;
++			  case OUTPUT_MUMUDVB:
++				mumudvb_dump_service_parameter_set (stdout,
++						    s->service_name,
++						    s->provider_name,
++						    t->type,
++						    &t->param,
++						    sat_polarisation(t),
++						    s->video_pid,
++						    s->pcr_pid,
++						    s->audio_pid,
++						    s->audio_lang,
++						    s->audio_num,
++						    s->teletext_pid,
++						    s->scrambled,
++						    //FIXME: s->subtitling_pid
++						    s->ac3_pid,
++						    s->service_id,
++						    t->network_id,
++						    s->transport_stream_id,
++						    t->orbital_pos,
++						    t->we_flag,
++						    ca_select,
++						    s->channel_num,
++						    channel_num_mumudvb,
++						    s->pmt_pid,
++						    s->subtitling_pid);
++				channel_num_mumudvb++;
++				break;
+ 			  case OUTPUT_ZAP:
+ 				zap_dump_service_parameter_set (stdout,
+ 						    s->service_name,
+@@ -2013,7 +2046,7 @@
+ 						    s->service_id);
+ 			  default:
+ 				break;
+-			  }
++			}
+ 		}
+ 	}
+ 	info("Done.\n");
+@@ -2065,7 +2098,7 @@
+ 	"	-n	evaluate NIT-other for full network scan (slow!)\n"
+ 	"	-5	multiply all filter timeouts by factor 5\n"
+ 	"		for non-DVB-compliant section repitition rates\n"
+-	"	-o fmt	output format: 'zap' (default), 'vdr' or 'pids' (default with -c)\n"
++	"	-o fmt	output format: 'zap' (default), 'vdr', 'mumudvb' or 'pids' (default with -c)\n"
+ 	"	-x N	Conditional Axcess, (default 1)\n"
+ 	"		N=0 gets only FTA channels\n"
+ 	"		N=xxx sets ca field in vdr output to :xxx:\n"
+@@ -2158,6 +2191,7 @@
+                         if      (strcmp(optarg, "zap") == 0) output_format = OUTPUT_ZAP;
+                         else if (strcmp(optarg, "vdr") == 0) output_format = OUTPUT_VDR;
+                         else if (strcmp(optarg, "pids") == 0) output_format = OUTPUT_PIDS;
++                        else if (strcmp(optarg, "mumudvb") == 0) output_format = OUTPUT_MUMUDVB;
+                         else {
+ 				bad_usage(argv[0], 0);
+ 				return -1;
+@@ -2280,6 +2314,7 @@
+ 	switch (output_format) {
+ 		case OUTPUT_PIDS:
+ 		case OUTPUT_VDR:
++		case OUTPUT_MUMUDVB:
+ 			vdr_dump_dvb_parameters(f, t->type, &t->param,
+ 					sat_polarisation (t), t->orbital_pos, t->we_flag);
+ 			break;
+
+
+--------------000801060504040907090203
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -190,4 +465,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_NextPart_000_019D_01C8BC0B.44C989E0--
+--------------000801060504040907090203--
