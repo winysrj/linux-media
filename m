@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server1.3continents.com ([64.34.166.88])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tony@tgds.net>) id 1JwyxU-0007gF-PD
-	for linux-dvb@linuxtv.org; Fri, 16 May 2008 14:22:49 +0200
-Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
-	by server1.3continents.com (Postfix) with ESMTP id DF1D926C019
-	for <linux-dvb@linuxtv.org>; Fri, 16 May 2008 07:22:39 -0500 (CDT)
-From: Tony Grant <tony@tgds.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <40312.81.144.130.125.1210936580.squirrel@server27.ukservers.net>
-References: <40312.81.144.130.125.1210936580.squirrel@server27.ukservers.net>
-Date: Fri, 16 May 2008 14:08:57 +0200
-Message-Id: <1210939737.2715.1.camel@hush.lan>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] BBC HD on Freesat?
+	(envelope-from <stoth@linuxtv.org>) id 1JtRsR-0005IE-4w
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 20:27:01 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K0G00CSNLVG4180@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 06 May 2008 14:26:06 -0400 (EDT)
+Date: Tue, 06 May 2008 14:26:01 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080506214550.3fb427fc@bk.ru>
+To: Igor Nikanov <goga777@bk.ru>
+Message-id: <4820A2B9.6050305@linuxtv.org>
+MIME-version: 1.0
+References: <20080506214550.3fb427fc@bk.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx24116 & parameter FEC=AUTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,35 +25,21 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Igor Nikanov wrote:
+> Hi
+> 
+> as far as I understand the cx24116 doesn't operate with FEC=AUTO parameter.  Is it for dvb-s2 only ?
+> Is it mean that for all them dvb-applications (szap2, dvbstream, scan, ...) need to exactly indicate the FEC ?
 
-Le vendredi 16 mai 2008 =E0 12:16 +0100, Stephen Rowles a =E9crit :
+Yes and yes.
 
-> Freesat broadcasts from the same fleet of satellites as Sky Digital, Astr=
-a 2A, =
-
-> Astra 2B, Asytra 2C, Astra 2D and Eurobird 1. Channels are broadcast usin=
-g DVB-S. =
-
-> The Freesat programme guide will be broadcast from the Eurobird 1 satelli=
-te =
-
-> situated at 28.5=B0 east.
-
-Looks like no problem to me...
-
-Cheers
-
-Tony
-
--- =
-
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
