@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m411Chqx022797
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 21:12:43 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m411CWj8029796
-	for <video4linux-list@redhat.com>; Wed, 30 Apr 2008 21:12:32 -0400
-From: Andy Walls <awalls@radix.net>
-To: Gavin Hamill <gdh@acentral.co.uk>
-In-Reply-To: <1209575728.6125.5.camel@gdh-home>
-References: <1209505252.6270.11.camel@gdh-home>
-	<1209506151.5699.7.camel@palomino.walls.org>
-	<1209575728.6125.5.camel@gdh-home>
-Content-Type: text/plain
-Date: Wed, 30 Apr 2008 21:12:29 -0400
-Message-Id: <1209604349.3219.36.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m463cd0E029485
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 23:38:39 -0400
+Received: from rs26s12.datacenter.cha.cantv.net
+	(rs26s12.datacenter.cha.cantv.net [200.44.33.17])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m463cRsH029747
+	for <video4linux-list@redhat.com>; Mon, 5 May 2008 23:38:27 -0400
+From: Emilio Lazo Zaia <emiliolazozaia@gmail.com>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <481E1AD3.2060304@t-online.de>
+References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
+	<1209512868.5699.32.camel@palomino.walls.org>
+	<1209863718.546.24.camel@localhost.localdomain>
+	<481E1AD3.2060304@t-online.de>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 05 May 2008 23:08:19 -0430
+Message-Id: <1210045099.21581.6.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Ident for Bt848 card
+Subject: Re: MCE TV Philips 7135 Cardbus don't work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,59 +31,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-04-30 at 18:15 +0100, Gavin Hamill wrote:
-> On Tue, 2008-04-29 at 17:55 -0400, Andy Walls wrote:
-> > 
-> > 109e is BrookTree's vendor id and 0350 is the id for the BT848.  Many
-> > different BT848 based cards could have this vendor id:device id
-> > combination.
+﻿﻿Hi Hartmut!
+
+This is a Cardbus adapter, so maybe I need to break in to have a
+look :-)
+If this is possible without a possible physical damage, I can try!
+
+What you say is that "no eeprom present" is not an error and can be
+ignored if the correct configuration is found the hard way?
+
+In the case of a PCI adapter, what can be deduced about the presence of
+these metal box? I saw some board with and without it.
+
+Thanks,
+Regards!
+
+El dom, 04-05-2008 a las 22:21 +0200, Hartmut Hackmann escribió:
+
+> There are many saa713x based cards without eeprom. It stores the vendor ID and
+> - in many cases - the board configuration. For you this means
+> - you need to find out the configuration the hard way
+>    * identify the chips on the card
+>    * find the input configuration by try and error
+> - You will always need to force the card type with a card=xxx option, there is
+>    no way to automatically identify the card.
 > 
-> I see. So at the moment although mine is detected as:
+> So please have a close look at the card and write down all chip types. Is there
+> a metal box with the antenna connector on the card? What is its type?
 > 
-> bttv0: Bt848 (rev 18) at 0000:03:03.0, irq: 22, latency: 64, mmio:
-> 0xee000000
-> bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
-> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-> 
-> .. setting this PCI ID to be a very cut down card would possibly kill
-> support for the tuner/audio on other cheapo cards out there which are
-> only working by way of probing by the driver?
-> 
-> > What does "lspci -nv" give as the subsystem ID for this card?  You may
-> > find it matches up with with one of the entries in in bttv-cards.c.
-> 
-> It doesn't:
-> 
-> 03:03.0 0400: 109e:0350 (rev 12)
-> 	Flags: bus master, medium devsel, latency 64, IRQ 22
-> 	Memory at ee000000 (32-bit, prefetchable) [size=4K]
-> 
-> Almost every other device from lspci -vn has a Subsystem, but not this
-> one. Sounds like I'm out of luck, then. Ah well :/
+> Hartmut
+-- 
+Emilio Lazo Zaia <emiliolazozaia@gmail.com>
 
-Not yet.
-
-1.  Check the bttv-cards.c file for the description that best matches
-your card based on what you can physically inspect on the card: chips
-traces, input and antenna jacks, etc.
-
-2. Look up the card # in bttv.h.  For example:
-...
-#define BTTV_BOARD_GRANDTEC                0x39  (== 57)
-...
-#define BTTV_BOARD_GRANDTEC_MULTI          0x4d  (== 77)
-
-
-3. Try modprobing with the card option, for example:
-
-# modprobe -r bttv
-# modprobe bttv card=57
-
-
-Regards,
-Andy
-
-
+Escuela de Física
+Universidad Central de Venezuela
 
 
 --
