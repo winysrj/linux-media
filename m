@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from f97.mail.ru ([194.67.57.7])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1JzeKR-0004ki-4m
-	for linux-dvb@linuxtv.org; Fri, 23 May 2008 22:57:32 +0200
-From: Nicolas Will <nico@youplala.net>
-To: kafifi <kafifi@orange.fr>
-In-Reply-To: <20080523203702.4F21C800010B@mwinf2807.orange.fr>
-References: <20080523203702.4F21C800010B@mwinf2807.orange.fr>
-Date: Fri, 23 May 2008 21:56:22 +0100
-Message-Id: <1211576182.26119.12.camel@youkaida>
+	(envelope-from <goga777@bk.ru>) id 1JtQNM-00069K-NF
+	for linux-dvb@linuxtv.org; Tue, 06 May 2008 18:50:51 +0200
+From: Igor <goga777@bk.ru>
+To: Gernot Pansy <pansyg@gmx.at>
 Mime-Version: 1.0
+Date: Tue, 06 May 2008 20:50:07 +0400
+In-Reply-To: <200805051543.59551.pansyg@gmx.at>
+References: <200805051543.59551.pansyg@gmx.at>
+Message-Id: <E1JtQMh-0008O0-00.goga777-bk-ru@f97.mail.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] NOVA-T500 : mesuring bit rate error ?
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?e1NQQU0gMDUuNH0gUmVbMl06ICBQQVRDSDogSFZS?=
+	=?koi8-r?b?LTQwMDAgc3VwcG9ydCBmb3IgbXVsdGlwcm90b19wbHVzCSh0ZXN0?=
+	=?koi8-r?b?ZWRvbiAyLjYuMjUp?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,97 +29,81 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-05-23 at 22:36 +0200, kafifi wrote:
-> Hello,
-> 
-> I recently added a NOVA-T500 to my vdrbox. Unfortunately, even if the
-> picture is really nice, I've some freezes because the DVB-T signal is weak
-> (I am in 50km of the Eiffel Tower...).
+Hi
+
+thank you - your patch is working to me. But I can't use it long because  I use the vdr 170 with multiproto api support. May be you can create the patch for szap2 with multiproto api support :)
+
+Igor
 
 
-Ah ah ! Un compatriote!
-
-
-
->  I ordered a 0.4 dB low noise
-> preamplifier (ULNA 3036 from TGN-Technology) to improve my installation. 
-
-
-Just make sure that you install it as close to the antenna as possible,
-on the mast.
-
+-----Original Message-----
+From: Gernot Pansy <pansyg@gmx.at>
+To: Igor <goga777@bk.ru>
+Date: Mon, 5 May 2008 15:43:59 +0200
+Subject: Re: {SPAM 05.4} Re[2]: [linux-dvb] PATCH: HVR-4000 support for multiproto_plus	(testedon 2.6.25)
 
 > 
-> I will need to mesure strengh and bit rate error values. Unfortunately,
-> Femon 1.6 is mesuring only the strengh value (about 60%). It seems the DVB
-> driver of Nova-T 500 always returns 0. 
-
-
-It does not, or at least it did not when using a v4l-dvb tree from
-around February. 
-
-================================================================================
-Tunning channel tvtv DIGITAL (634000000)
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 634000000 Hz
-video pid 0x0000, audio pid 0x0000
-Signal: 41%	BER 2097151	UNC 44
-Signal: 41%	BER 4240	UNC 0
-Signal: 40%	BER 5872	UNC 0
-Signal: 40%	BER 4928	UNC 0
-Signal: 41%	BER 2848	UNC 0
-Signal: 40%	BER 5344	UNC 0
-Signal: 40%	BER 8304	UNC 0
-Signal: 41%	BER 3232	UNC 0
-Signal: 41%	BER 3264	UNC 0
-Signal: 41%	BER 4288	UNC 0
-
-================================================================================
-Tunning channel Sky Text (634000000)
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 634000000 Hz
-video pid 0x0000, audio pid 0x0000
-Signal: 41%	BER 2097151	UNC 0
-Signal: 41%	BER 3072	UNC 15
-Signal: 40%	BER 2944	UNC 0
-Signal: 41%	BER 2688	UNC 0
-Signal: 40%	BER 6880	UNC 0
-Signal: 41%	BER 7280	UNC 0
-Signal: 41%	BER 3744	UNC 0
-Signal: 40%	BER 7168	UNC 0
-Signal: 39%	BER 4160	UNC 0
-Signal: 40%	BER 4304	UNC 0
-
-================================================================================
-Tunning channel Virgin Radio (634000000)
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 634000000 Hz
-video pid 0x0000, audio pid 0x076d
-Signal: 41%	BER 2097151	UNC 0
-Signal: 41%	BER 3520	UNC 0
-Signal: 41%	BER 6384	UNC 0
-Signal: 41%	BER 4128	UNC 0
-Signal: 41%	BER 6128	UNC 0
-Signal: 40%	BER 8560	UNC 0
-Signal: 41%	BER 5856	UNC 0
-Signal: 40%	BER 7968	UNC 0
-Signal: 41%	BER 7664	UNC 0
-Signal: 41%	BER 11824	UNC 0
-
-This was generated on my Nova-T-500 before I got a low-noise masthead
-amp:
-
-http://www.youplala.net/~will/htpc/signaltest/
-
-I used the following scripts to generate this:
-
-http://www.linuxtv.org/wiki/index.php/Testing_reception_quality
-
-Maybe femon has an issue, though, as those scripts do not use it.
-
-Nico
-http://www.youplala.net/linux/home-theater-pc
-
+> On Monday 05 May 2008 15:14:24 Igor wrote:
+> > > On Friday 25 April 2008 09:07:13 Igor wrote:
+> > > > Hi, Gregoire
+> > > >
+> > > > with multiproto_plus + your hvr4000-patch I have the same problem with
+> > > > szap2 from dvb-apps
+> > > >
+> > > > ./szap2 -c 19 -n1
+> > > >
+> > > > reading channels from file '19'
+> > > > zapping to 1 'Pro7':
+> > > > sat 0, frequency = 12722 MHz H, symbolrate 22000000, vpid = 0x00ff,
+> > > > apid = 0x0103 sid = 0x27d8 Querying info .. Delivery system=DVB-S
+> > > > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> > > > ioctl DVBFE_GET_INFO failed: Operation not supported
+> > >
+> > > the patch changes the api...
+> >
+> > which patch do yuo mean ?
+> 
+> the patch from gregoire. it modifies dvb/frontend.h
+> 
+> >
+> > > you can try the attached patch, which not changes the api. that means
+> > > szap2 is working (only DVB-S, for DVB-S2 you need to modify fe_params:
+> > > DVB_FEC_AUTO is not supported and you have to define a modulation)
+> > >
+> > > fe_params.delsys.dvbs2.fec = DVBFE_FEC_9_10;
+> > > fe_params.delsys.dvbs2.modulation = DVBFE_MOD_QPSK;
+> > >
+> > > with the attached patch you need to call DVB_SET_DELSYS (like in
+> > > szap2)...
+> >
+> > could you explain me - how is it possible to modify fe_params for dvb-s2
+> > QPSK/8PSK reception ?
+> 
+> in szap2? 
+> 
+> --- /root/dvb-apps/test/szap2.c 2008-05-01 00:40:50.048558456 +0200
+> +++ szap.c      2008-05-01 14:25:16.409871814 +0200
+> @@ -269,7 +269,8 @@
+>                         break;
+>                 case DVBS2:
+>                         fe_params.delsys.dvbs2.symbol_rate = sr;
+> -                       fe_params.delsys.dvbs2.fec = FEC_AUTO;
+> +                       fe_params.delsys.dvbs2.fec = DVBFE_FEC_9_10;
+> +                       fe_params.delsys.dvbs2.modulation = DVBFE_MOD_QPSK;
+>                         printf("%s: Frequency = %d, Srate = %d\n",
+>                                 __func__, fe_params.frequency, 
+> fe_params.delsys.dvbs2.symbol_rate);
+>                         break;
+> 
+> 
+> perhaps you have to set a different fec or modulation (DVBFE_MOD_8PSK);
+> 
+> gernot
+> 
+> >
+> > Igor
+> 
+> 
 
 _______________________________________________
 linux-dvb mailing list
