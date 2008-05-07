@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from v-smtp-auth-relay-4.gradwell.net ([79.135.125.43])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <chris@slavesoftware.co.uk>) id 1JzjOY-0004tC-Pm
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 04:22:08 +0200
-Message-ID: <48377BC1.2090807@slavesoftware.co.uk>
-Date: Sat, 24 May 2008 03:21:53 +0100
-From: Chris Hodgkins <chris@slavesoftware.co.uk>
-MIME-Version: 1.0
-To: Pauli Borodulin <pauli@borodulin.fi>
-References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>	<4831CC3F.803@borodulin.fi>	<48320E0B.8090501@tungstengraphics.com>	<48326CC4.7010401@borodulin.fi>
-In-Reply-To: <48326CC4.7010401@borodulin.fi>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+5c458d8712e04b812a42+1718+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1Jtq1r-0004rs-UD
+	for linux-dvb@linuxtv.org; Wed, 07 May 2008 22:14:20 +0200
+Date: Wed, 7 May 2008 17:13:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <20080507171342.3479dbc8@gaivota>
+In-Reply-To: <200805070939.29694.zzam@gentoo.org>
+References: <200804301421.04598.zzam@gentoo.org>
+	<200805070939.29694.zzam@gentoo.org>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
- Manu's jusst.de Mantis branch
+Subject: Re: [linux-dvb] [PATCH] mt312: Prefix functions only with mt312_,
+ Add zl10313 to kconfig description
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,51 +28,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 20.05.2008 08:16, Pauli Borodulin wrote:
->> On 19.05.2008 20:51, Pauli Borodulin wrote:
->  >> [...]
->>> What comes to auto-repeat... With your version of the patch it works 
->>> equally well/badly on 2033 as it did with the earlier version.
-> 
-> Roland Scheidegger wrote:
->> Just curious, what's the native repeat rate (what it prints out with
->> verbose set time between irqs) with this card?
-> 
-> Initial delay ~270ms and repeats ~220ms.
-Ah so exactly the same as for my remote. Interesting...
+Hi Mathias,
 
+On Wed, 7 May 2008 09:39:27 +0200
+Matthias Schwarzott <zzam@gentoo.org> wrote:
+
+> On Mittwoch, 30. April 2008, Matthias Schwarzott wrote:
+> > Hi list!
+> >
+> > This patch does some small cleanup to mt312.
+> > It changes kconfig description to also list the ZL10313.
+> >
+> > It does change some strange symbol names to be consistent with
+> > module name mt312 and naming of all other functions in there.
+> > * vp310_mt312_ops -> mt312_ops
+> > * vp310_mt312_attach -> mt312_attach
+> >
+> > It adds me to MODULE_AUTHOR
+> >
 > 
-> Btw I found these in dvb-usb-remote.c:
+> Mauro!
 > 
->      input_dev->rep[REP_PERIOD] = d->props.rc_interval;
->      input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
-> 
-> So there seems to be some configurable auto-repeat functionality in 
-> input layer. I guess I'll experiment with those even tho' RCs delays are 
-> a bit crappy, since it's a pretty painful to go through a long list of 
-> recordings without any auto-repeat...
-If you change these values (to anything but zero) before
-input_register_device, the input driver will just disable auto-repeat
-(or rather, you'd need to handle it yourself in the driver with the
-appropriate timer func, and I didn't feel like duplicating half the code
-of the input driver). input_register_device also says all capabilities
-must be set up before calling it, when I tried to change those values
-afterwards it didn't seem to work (though maybe I made some testing
-error, I can't see why it shouldn't work). I guess a REP_DELAY a bit
-over the initial delay (like 300ms) should work, and a REP_PERIOD of
-about 100 (which would give you about 50% chance of stopping pressing
-keys exactly) might be reasonable - though it really is annoying if you
-can't stop exactly (but it's not solvable - either live with slow repeat
-or live with that).
+> May I ask you to pull this patch?
 
-Roland
+I got your first request. 
 
+I took a few days off last week. During this short period, my Inbox exploded
+with lots of emails. I'm still handling my backlog.
 
+In the case of this patch, I'd like to have Obi's ack, due to the
+"MODULE_AUTHOR" addition, since he is the original author of the driver. 
 
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+I've already sent him an email about that. Hopefully, he'll answer soon about it.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
