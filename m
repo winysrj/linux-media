@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
-References: <20080522223700.2f103a14@core>
-	<20080526220154.GA15487@devserv.devel.redhat.com>
-	<20080527101039.1c0a3804@gaivota>
-	<20080527094144.1189826a@bike.lwn.net>
-	<20080527133100.6a9302fb@gaivota>
-	<20080527103755.1fd67ec1@bike.lwn.net>
-	<20080527155942.7693c360@gaivota>
-	<412bdbff0805271226t41fe55b0jd0b8e3c737f34734@mail.gmail.com>
-	<20080527180048.6a27dbf7@gaivota>
-	<1211932138.3197.29.camel@palomino.walls.org>
-	<412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 27 May 2008 22:37:01 -0400
-Message-Id: <1211942221.3197.154.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m47FKaku019192
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 11:20:36 -0400
+Received: from brera.quinntek.com.au (218-214-44-165.people.net.au
+	[218.214.44.165])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m47FKMTB019616
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 11:20:24 -0400
+Received: from quinntekws01 (quinntek-ws01.quinntek.com.au [10.10.156.11])
+	by brera.quinntek.com.au (8.13.4/8.12.10/SuSE Linux 0.7) with ESMTP id
+	m47FK5vr030797
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 01:20:15 +1000
+From: "Fergal Quinn" <fergalq@quinntek.com.au>
+To: <video4linux-list@redhat.com>
+Date: Thu, 8 May 2008 01:20:45 +1000
+Message-ID: <03c501c8b055$ec81fdf0$0b9c0a0a@quinntek.com.au>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Jonathan Corbet <corbet@lwn.net>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Alan Cox <alan@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] video4linux: Push down the BKL
+Subject: Dvico FusionHDTV Dual Express difficulties
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,60 +30,158 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-05-27 at 20:46 -0400, Devin Heitmueller wrote:
-> Hello Andy,
-> 
-> On Tue, May 27, 2008 at 7:48 PM, Andy Walls <awalls@radix.net> wrote:
-> > MythTV's mythbackend can open both sides of the card at the same time
-> > and the cx18 driver supports it.  On my HVR-1600, MythTV may have the
-> > digital side of the card open pulling EPG data off of the ATSC
-> > broadcasts, when I open up the MythTV frontend and start watching live
-> > TV on the analog side of the card.  MythTV also supports
-> > Picture-in-Picture using both the analog and digital parts of the
-> > HVR-1600.
-> 
-> In this case, what you see as a 'feature' in MythTV is actually a
-> problem in our case.  While the HVR-1600 can support this scenario,
-> the HVR-950 can only use one or the other (the em28xx chip uses GPIOs
-> to enable the demodulator and presumably you should never have both
-> demodulators enabled at the same time).  Because of this we need a
-> lock.  If MythTV only opened one device or the other at a time, we
-> could put the lock on the open() call, but since MythTV opens both
-> simultaneously even though it may only be using one, we would need a
-> much more granular lock.
+Hi all,
 
-I don't think a lock would be good for MythTV or any other app that
-open()s multiple nodes at once.  How can an app know that it's
-dead-locking or barring itself via the kernel driver?
+ 
 
-Maybe return an EBUSY or E-something else for these cases when Myth
-tries to open() the second device node, when there's an underlying
-factor that requires things to be mutually exclusive.  Allowing things
-like read() to allow hardware mode switching between analog and digital
-seems like it could result in really weird behaviors at the application.
+I'm having difficulty getting a Dvico FusionHDTV Dual Express card to
+function in my SuSE 10.3 system.  I've cloned and installed Chris Pascoe's
+test tree, including the firmware upgrade, ie
 
-I'll cite a precedent:
-ivtv returns EBUSY on open() when there's a conflict with it's various
-analog devices nodes that depend on the same underlying hardware: MPG,
-YUV, FM Radio, etc.
+ 
 
-I note the man page for open() doesn't list EBUSY as a valid errno.
-However, the V4L2 API Spec does list EBUSY as a valid errno for V4L2
-open().
+make clean
 
+make rminstall
 
-> Certainly I'm not blaming MythTV for this behavior, but it will make
-> the locking much more complicated in some hybrid devices.
+make release
 
-I like to blame MythTV for a lot of things. ;)
+make
 
-But in this case I can't.  The driver probably shouldn't hold a lock and
-suspend an open() indefinitely (IMO).  It should say the device is BUSY
-as that is the truth: an underlying hardware device or resource is busy.
+make install
 
+ 
+
+When I reboot (cold boot) the machine, it seems to be loading all the
+appropriate drivers (I think) and registering the hardware (An extract from
+boot.msg is at the bottom of this email).
+
+ 
+
+However, there is no message to indicate that the firmware has loaded, and
+I'm unsure whether it does load.  (This may not be a problem, of course!).
+
+ 
+
+In addition, 'lspci' yields the following:
+
+ 
+
+.
+
+.
+
+00:01.0 PCI bridge: ATI Technologies Inc RS690 PCI to PCI Bridge (Internal
+gfx)
+
+00:04.0 PCI bridge: ATI Technologies Inc Unknown device 7914
+
+.
+
+.
+
+00:14.4 PCI bridge: ATI Technologies Inc SBx00 PCI to PCI Bridge
+
+.
+
+.
+
+02:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev 02)
+
+ 
+
+which seems a bit odd - I would have expected a 'Dvico something' rather
+than 'Conexant Unknown device'.  (I've no idea what the Unknown device 7914
+is either - but may not be relevant).
+
+ 
+
+'lsusb' yields nothing either, but I assume that as there's no physical usb
+device installed, that this is correct.
+
+ 
+
+Finally, a 'dvbscan /usr/share/dvb/dvb-t/au-Sydney_North_Shore' yields the
+message 'Unable to query frontend status', which my reading of the mailing
+lists indicates a problem communicating with the tuner.
+
+ 
+
+Any and all suggestions/assistance would be most appreciated.
+
+ 
+
+For the record, I'm running a Gigabyte GA-MA69G-S3H with a SuSE 10.3 x86_64
+distribution and AMD/ATI's proprietary Catalyst 8.1 drivers.
+
+ 
 
 Regards,
-Andy
+
+ 
+
+Fergal
+
+ 
+
+ 
+
+ 
+
+Boot.msg extract:
+
+ 
+
+<6>cx23885 driver version 0.0.1 loaded
+
+<6>ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 16 (level, low) -> IRQ 16
+
+<6>CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO FusionHDTV DVB-T Dual
+Express [card=5,autodetected]
+
+<4>cx23885[0]: i2c bus 0 registered
+
+<4>cx23885[0]: i2c bus 1 registered
+
+<4>cx23885[0]: i2c bus 2 registered
+
+<6>input: i2c IR (FusionHDTV) as /class/input/input5
+
+<4>ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-1/1-006b/ir0 [cx23885[0]]
+
+<4>cx23885[0]: cx23885 based dvb card
+
+<4>fglrx: module license 'Proprietary. (C) 2002 - ATI Technologies,
+Starnberg, GERMANY' taints kernel.
+
+<6>[fglrx] Maximum main memory to use for locked dma buffers: 1404 MBytes.
+
+<6>[fglrx] ASYNCIO init succeed!
+
+<6>[fglrx] PAT is enabled successfully!
+
+<6>[fglrx] module loaded - fglrx 8.45.5 [Feb  1 2008] on minor 0
+
+<6>xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+
+<6>DVB: registering new adapter (cx23885[0])
+
+<4>DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+
+<4>cx23885[0]: cx23885 based dvb card
+
+<6>xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+
+<6>DVB: registering new adapter (cx23885[0])
+
+<4>DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
+
+<6>cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio:
+0xfd800000
+
+<7>PCI: Setting latency timer of device 0000:02:00.0 to 64
+
+ 
 
 --
 video4linux-list mailing list
