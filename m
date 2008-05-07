@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from alsikeapila.uta.fi ([153.1.1.44])
+Received: from rv-out-0506.google.com ([209.85.198.233])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pauli@borodulin.fi>) id 1JyL9U-0001M0-Rj
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 08:16:51 +0200
-Message-ID: <48326CC4.7010401@borodulin.fi>
-Date: Tue, 20 May 2008 09:16:36 +0300
-From: Pauli Borodulin <pauli@borodulin.fi>
+	(envelope-from <mrechberger@gmail.com>) id 1Jtt0L-0007Wc-7H
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 01:24:57 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so705900rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 07 May 2008 16:24:47 -0700 (PDT)
+Message-ID: <d9def9db0805071624j62836409jb7a24a3153c1df9e@mail.gmail.com>
+Date: Thu, 8 May 2008 01:24:46 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: Rod <Rod@rods.id.au>
+In-Reply-To: <48222EA3.8030907@Rods.id.au>
 MIME-Version: 1.0
-To: Roland Scheidegger <sroland@tungstengraphics.com>
-References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>
-	<4831CC3F.803@borodulin.fi> <48320E0B.8090501@tungstengraphics.com>
-In-Reply-To: <48320E0B.8090501@tungstengraphics.com>
+Content-Disposition: inline
+References: <48222EA3.8030907@Rods.id.au>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
- Manu's jusst.de Mantis branch
+Subject: Re: [linux-dvb] [Fwd: Change wording of DIFF file please]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +28,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> On 19.05.2008 20:51, Pauli Borodulin wrote:
- >> [...]
->> What comes to auto-repeat... With your version of the patch it works 
->> equally well/badly on 2033 as it did with the earlier version.
+Hey,
 
-Roland Scheidegger wrote:
-> Just curious, what's the native repeat rate (what it prints out with
-> verbose set time between irqs) with this card?
+On 5/8/08, Rod <Rod@rods.id.au> wrote:
+>     Repost as I think I fell off the list ;o(
+>
 
-Initial delay ~270ms and repeats ~220ms.
+this stuff was generated against my v4l-dvb-experimental repository it seems.
 
-Btw I found these in dvb-usb-remote.c:
++		}
++		break;
++	case TUNER_XCEIVE_XC3028:
++		dprintk(KERN_INFO "saa7134_tuner_callback TUNER_XCEIVE_XC3028
+command %d\n", command);
++		switch(command) {
++		case TUNER_RESET1:
++		case TUNER_RESET2:
++			/* this seems to be to correct bit */
++			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00000000);
++			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
++			break;
++
++		case TUNER_RESET3:
++			break;
 
-     input_dev->rep[REP_PERIOD] = d->props.rc_interval;
-     input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
+this also needs a change to work with the linuxtv repository, that way
+the patch is not compatible with the linuxtv.org repository it was
+generated against my v4l-dvb-experimental repository.
 
-So there seems to be some configurable auto-repeat functionality in 
-input layer. I guess I'll experiment with those even tho' RCs delays are 
-a bit crappy, since it's a pretty painful to go through a long list of 
-recordings without any auto-repeat...
+You already have the xceive reset line bit. Look how other xc3028
+reset callbacks are implemented into the linuxtv.org repository and
+change this according to the other callbacks.
 
- >> [...]
-
-Regards,
-Pauli Borodulin
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
