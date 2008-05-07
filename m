@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Wed, 28 May 2008 08:13:51 +0200
-References: <20080522223700.2f103a14@core>
-	<1211932138.3197.29.camel@palomino.walls.org>
-	<412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
-In-Reply-To: <412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m47AEIUZ001636
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 06:14:18 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m47AE7PA003953
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 06:14:07 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so267416rvb.51
+	for <video4linux-list@redhat.com>; Wed, 07 May 2008 03:14:07 -0700 (PDT)
+Message-ID: <e686f5060805070314r14f37642s2abf59322564d671@mail.gmail.com>
+Date: Wed, 7 May 2008 06:14:07 -0400
+From: "Brandon Jenkins" <bcjenkins@gmail.com>
+To: video4linux-list@redhat.com,
+	"User discussion about IVTV" <ivtv-users@ivtvdriver.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200805280813.51909.hverkuil@xs4all.nl>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, Alan Cox <alan@redhat.com>
-Subject: Re: [PATCH] video4linux: Push down the BKL
+Cc: 
+Subject: Request for IVTV and CX18 stream.c driver changes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,31 +29,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 28 May 2008 02:46:22 Devin Heitmueller wrote:
-> Hello Andy,
->
-> On Tue, May 27, 2008 at 7:48 PM, Andy Walls <awalls@radix.net> wrote:
-> > MythTV's mythbackend can open both sides of the card at the same
-> > time and the cx18 driver supports it.  On my HVR-1600, MythTV may
-> > have the digital side of the card open pulling EPG data off of the
-> > ATSC broadcasts, when I open up the MythTV frontend and start
-> > watching live TV on the analog side of the card.  MythTV also
-> > supports
-> > Picture-in-Picture using both the analog and digital parts of the
-> > HVR-1600.
->
-> In this case, what you see as a 'feature' in MythTV is actually a
-> problem in our case.  While the HVR-1600 can support this scenario,
+Greetings,
 
-Actually, it depends on how the card was defined. There are cards that 
-only utilize the analog part of the cx23418, cards that can do both 
-digital and analog at the same time and cards that can do either 
-digital or analog. The cx18 driver supports the first two cases but not 
-yet the last.
+Please let me know if I should post this to another list. I run Ubuntu
+in 64-bit mode to make better use of the RAM stuffed into my server.
+The application I run for recording video is SageTV, and it is a
+32-bit app.
 
-Regards,
+I have modified the source of ivtv-streams.c and cx18-streams.c to
+include .compat_ioctl = v4l_compat_ioctl32, in the cx18_v4l2_enc_fops,
+ivtv_v4l2_enc_fops and ivtv_v4l2_dec_fops initializations. Generally
+speaking the drivers are performing fine, but I have noticed a high
+amount of pixelization during motion scenes. I don't know if further
+abilities need to be added to make the driver work better or not.
 
-	Hans
+Thanks in advance,
+
+Brandon
 
 --
 video4linux-list mailing list
