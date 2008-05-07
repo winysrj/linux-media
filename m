@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out4.apple.com ([17.254.13.23])
+Received: from rouge.crans.org ([138.231.136.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <penland@pacbell.net>) id 1JrytW-0005By-ES
-	for linux-dvb@linuxtv.org; Fri, 02 May 2008 19:18:03 +0200
-Received: from relay13.apple.com (relay13.apple.com [17.128.113.29])
-	by mail-out4.apple.com (Postfix) with ESMTP id 86CA52BBACDA
-	for <linux-dvb@linuxtv.org>; Fri,  2 May 2008 10:17:28 -0700 (PDT)
-Received: from relay13.apple.com (unknown [127.0.0.1])
-	by relay13.apple.com (Symantec Mail Security) with ESMTP id 70DA72807F
-	for <linux-dvb@linuxtv.org>; Fri,  2 May 2008 10:17:28 -0700 (PDT)
-Received: from [17.224.31.143] (unknown [17.224.31.143])
-	(using TLSv1 with cipher AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by relay13.apple.com (Apple SCV relay) with ESMTP id 52A8B28042
-	for <linux-dvb@linuxtv.org>; Fri,  2 May 2008 10:17:28 -0700 (PDT)
-Mime-Version: 1.0 (Apple Message framework v753)
-Message-Id: <DD4A3CFD-1E9F-4629-BC0F-117AF495F3BF@pacbell.net>
-To: linux-dvb@linuxtv.org
-From: Robert Penland <penland@pacbell.net>
-Date: Fri, 2 May 2008 10:17:26 -0700
-Subject: [linux-dvb] HVR-1250 Analog mode
+	(envelope-from <braice@braice.net>) id 1JtmQT-0005v6-MJ
+	for linux-dvb@linuxtv.org; Wed, 07 May 2008 18:23:50 +0200
+Message-ID: <4821D715.90105@braice.net>
+Date: Wed, 07 May 2008 18:21:41 +0200
+From: Brice DUBOST <braice@braice.net>
+MIME-Version: 1.0
+To: adriancapel@openforyou.com
+References: <20080507171401.rc6b11a7l9w8g8k8@webmail.openforyou.com>
+In-Reply-To: <20080507171401.rc6b11a7l9w8g8k8@webmail.openforyou.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Support for Pinnacle PCTVSat?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,18 +19,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Has any progress been made on getting the analog mode of the HVR-1250  
-working?  I looked through the recent archives, but didn't see any  
-relevant information.
+adriancapel@openforyou.com a =E9crit :
+> Hello,
+> =
 
-Thanks,
-Rob
+> I would like to know if the tuner DVB-S Pinnacle PCTV Sat works well  =
+
+> with Linux-dvb.
+> =
+
+> I've been reviewing the wiki and I have not found much information on  =
+
+> this tuner.  It seems that lack information on this tuner.
+> =
+
+> =
+
+> An image of the card:
+> =
+
+> http://www.gs.ru/images/satinet/SS1-budget/PCTV-SAT.jpg
+> =
+
+> =
+
+> Greetings
+> =
+
+> =
+
+
+Hello
+
+I've this one
+
+04:06.0 Multimedia video controller: Brooktree Corporation Bt878 Video =
+
+Capture (rev 11)
+	Subsystem: Pinnacle Systems Inc. PCTV Sat (DBC receiver)
+	Flags: bus master, medium devsel, latency 132, IRQ 11
+	Memory at f8102000 (32-bit, prefetchable) [size=3D4K]
+	Capabilities: <access denied>
+
+I don't know if it's the same but it works with linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
