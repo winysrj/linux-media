@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4F2PTaG016713
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 22:25:29 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4F2PITi009375
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 22:25:18 -0400
-From: Andy Walls <awalls@radix.net>
-To: mkrufky@linuxtv.org
-In-Reply-To: <482858AD.1050504@linuxtv.org>
-References: <482858AD.1050504@linuxtv.org>
-Content-Type: multipart/mixed; boundary="=-TwCauAeFLpZc/GTC7JYI"
-Date: Wed, 14 May 2008 22:24:25 -0400
-Message-Id: <1210818265.3202.25.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m47Ix8l9007418
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 14:59:08 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m47IwuGu013428
+	for <video4linux-list@redhat.com>; Wed, 7 May 2008 14:58:56 -0400
+Date: Wed, 7 May 2008 15:58:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vicent =?UTF-8?B?Sm9yZMOg?= <vjorda@hotmail.com>
+Message-ID: <20080507155819.2df442b5@gaivota>
+In-Reply-To: <BAY109-W23742D6ECAA5EF9CDEF632CBDE0@phx.gbl>
+References: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
+	<20080428114741.040ccfd6@gaivota>
+	<BAY109-W23742D6ECAA5EF9CDEF632CBDE0@phx.gbl>
 Mime-Version: 1.0
-Cc: video4linux-list@redhat.com, Stoth@hauppauge.com
-Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE
-	in page.h
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Trying to set up a NPG Real DVB-T PCI Card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,116 +29,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, 28 Apr 2008 20:26:43 +0000
+Vicent Jordà <vjorda@hotmail.com> wrote:
 
---=-TwCauAeFLpZc/GTC7JYI
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Mon, 2008-05-12 at 10:48 -0400, mkrufky@linuxtv.org wrote:
-> Steven Toth wrote:
-> > Steven Toth wrote:
-> >>>         if (cx->dev)
-> >>>                 cx18_iounmap(cx);
-> >>
-> >> This doesn't feel right.
-> >
-> > Hans / Andy,
-> >
-> > Any comments?
 > 
-> For the record, I've tested again with today's tip ( d87638488880 ) -- 
-> same exact behavior.
+> Hi,
 > 
-> When I load the modules for the first time, everything is fine.
+> (2) tuner-callback is sending a wrong reset. Xc3028 needs to receive a reset, gia a GPIO pin, for firmware to load. If you don't send a reset, firmware won't load; The better is to use regspy.exe (provided together with DCALER) and see what gpio changes during firmware load.
 > 
-> If I unload the cx18 module, I am unable to load it again, the same 
-> error is displayed as I posted in my original message.
+> But regspy.exe is a Windows program. I tried to run it from wine but doesn't work.
 
-Mike,
-
-Could you apply the attached patch and run this test
-
-	(precondition: cx18.ko hasn't been loaded once yet)
-	# cat /proc/iomem /proc/meminfo > ~/memstats
-	# modprobe cx18 debug=3
-	# cat /proc/iomem /proc/meminfo >> ~/memstats
-	# modprobe -r cx18
-	# cat /proc/iomem /proc/meminfo >> ~/memstats
-	# modprobe cx18 debug=3
-	# cat /proc/iomem /proc/meminfo >> ~/memstats
-
-and provide the contents of dmesg (or /var/log/messages) and memstats?
-
-The patch will let me see if the contents of cx->enc_mem are bogus on
-iounmap() and if iounmap() is even being called.
-
-I also want to verify that "cx18 encoder" doesn't get removed
-from /proc/iomem and that "VmallocUsed" doesn't return to it's previous
-size when the module is unloaded.  That would show that the iounmap()
-fails.
-
-I'd also want to ensure there is no overlap in /proc/iomem with "cx18
-encoder" and something else.  The kernel should prevent it, but I want
-to make sure.
+True. This software helps to identify what the windows proprietary driver is
+doing at the device. I guess your device uses a different pin for XC3028 reset.
 
 
-(Hopefully the patch applies cleanly, the line numbers won't quite match
-up with the latest hg version.)
 
-Regards,
-Andy
-
-> Regards,
-> 
-> Mike
-> 
-
---=-TwCauAeFLpZc/GTC7JYI
-Content-Disposition: attachment; filename=cx18-iounmap-debug.patch
-Content-Type: text/x-patch; name=cx18-iounmap-debug.patch; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-diff -r d87638488880 linux/drivers/media/video/cx18/cx18-driver.c
---- a/linux/drivers/media/video/cx18/cx18-driver.c	Thu May 01 03:23:23 2008 -0400
-+++ b/linux/drivers/media/video/cx18/cx18-driver.c	Wed May 14 22:09:15 2008 -0400
-@@ -186,7 +192,8 @@ static void cx18_iounmap(struct cx18 *cx
- 
- 	/* Release io memory */
- 	if (cx->enc_mem != NULL) {
--		CX18_DEBUG_INFO("releasing enc_mem\n");
-+		CX18_DEBUG_INFO("releasing enc_mem at virt addr %p\n",
-+				cx->enc_mem);
- 		iounmap(cx->enc_mem);
- 		cx->enc_mem = NULL;
- 	}
-@@ -647,6 +661,8 @@ static int __devinit cx18_probe(struct p
- 		   cx->base_addr + CX18_MEM_OFFSET, CX18_MEM_SIZE);
- 	cx->enc_mem = ioremap_nocache(cx->base_addr + CX18_MEM_OFFSET,
- 				       CX18_MEM_SIZE);
-+	CX18_DEBUG_INFO("ioremaped enc_mem at virt addr %p\n", 
-+			cx->enc_mem);
- 	if (!cx->enc_mem) {
- 		CX18_ERR("ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h\n");
- 		CX18_ERR("or disabling CONFIG_HIGHMEM4G into the kernel would help\n");
-@@ -904,8 +920,7 @@ static void cx18_remove(struct pci_dev *
- 
- 	free_irq(cx->dev->irq, (void *)cx);
- 
--	if (cx->dev)
--		cx18_iounmap(cx);
-+	cx18_iounmap(cx);
- 
- 	release_mem_region(cx->base_addr, CX18_MEM_SIZE);
- 
-
---=-TwCauAeFLpZc/GTC7JYI
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-TwCauAeFLpZc/GTC7JYI--
