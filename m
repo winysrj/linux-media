@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1JuqqB-00075k-N9
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 17:18:32 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from [213.195.69.254] (helo=pcl6.ibercom.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <adriancapel@openforyou.com>) id 1JtlOD-0002Fe-UL
+	for linux-dvb@linuxtv.org; Wed, 07 May 2008 17:17:32 +0200
+Message-ID: <20080507171401.rc6b11a7l9w8g8k8@webmail.openforyou.com>
+Date: Wed, 07 May 2008 17:14:01 +0200
+From: adriancapel@openforyou.com
 To: linux-dvb@linuxtv.org
-Date: Sat, 10 May 2008 17:17:22 +0200
-References: <482560EB.2000306@gmail.com>
-In-Reply-To: <482560EB.2000306@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200805101717.23199@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
-	stv0297
-Reply-To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Support for Pinnacle PCTVSat?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,28 +23,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-e9hack wrote:
-> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
-> makes the UNC value of the femon plugin useless.
+Hello,
 
-Why? It does not make sense to accumulate the errors forever, i.e.
-nobody wants to know what happened last year...
+I would like to know if the tuner DVB-S Pinnacle PCTV Sat works well  
+with Linux-dvb.
 
-Afaics it is ok to reset the counter after reading it.
-All drivers should behave this way.
+I've been reviewing the wiki and I have not found much information on  
+this tuner.  It seems that lack information on this tuner.
 
-If the femon plugin requires something else it might store the values
-and process them as desired.
 
-Afaics the femon command line tool has no problems with that.
+An image of the card:
 
-CU
-Oliver
+http://www.gs.ru/images/satinet/SS1-budget/PCTV-SAT.jpg
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+
+Greetings
+
 
 _______________________________________________
 linux-dvb mailing list
