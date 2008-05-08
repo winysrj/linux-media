@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.dnainternet.fi ([87.94.96.108])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JyGQ0-0006gM-KP
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 03:13:33 +0200
-Message-ID: <4832259A.6050101@iki.fi>
-Date: Tue, 20 May 2008 04:12:58 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <dennis.schwan@gmail.com>) id 1Ju1aC-000811-BQ
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 10:34:37 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so460858fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 08 May 2008 01:34:28 -0700 (PDT)
+Message-ID: <4822BB11.6050100@leuchtturm-it.de>
+Date: Thu, 08 May 2008 10:34:25 +0200
+From: Dennis Schwan <dennis.schwan@leuchtturm-it.de>
 MIME-Version: 1.0
-To: pjama@optusnet.com.au
-References: <56913.192.168.200.51.1211237228.squirrel@pjama.net>	<48320E91.3010306@iki.fi>
-	<57913.192.168.200.51.1211245507.squirrel@pjama.net>
-In-Reply-To: <57913.192.168.200.51.1211245507.squirrel@pjama.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] IR for Afatech 901x
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] cx88 general errors: 0x00000100
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,27 +24,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-pjama wrote:
->> Probably there is wrong ir-table loaded to the device by the driver.
->> Ir-table in device and ir-codes from remote should match. Otherwise it
->> will not work.
-> 
-> How do I confirm this? Should there be something in dmesg?
+Hi,
 
-I can try to look correct tables from sniffs I have... but it can take 
-some time. Maybe tomorrow.
+in my dmesg i find hundreds of these messages:
 
-> This looks promising....
-> $ evtest /dev/input/event7
-> Input driver version is 1.0.0
-> Input device ID: bus 0x3 vendor 0x13d3 product 0x3226 version 0x200
-> Input device name: "IR-receiver inside an USB DVB receiver"
+[55503.826432] cx88[0]/2-mpeg: general errors: 0x00000100
+[55504.835809] cx88[0]/2-mpeg: general errors: 0x00000100
+[55505.843346] cx88[0]/2-mpeg: general errors: 0x00000100
+[55505.844585] cx88[0]/2-mpeg: general errors: 0x00000100
+[55505.850033] cx88[0]/2-mpeg: general errors: 0x00000100
+[55506.851012] cx88[0]/2-mpeg: general errors: 0x00000100
 
-Thats the correct one.
+The card does not make any problems but it fills my syslog with these 
+messages, what do they mean?
 
-
--- 
-http://palosaari.fi/
+Regards,
+Dennis
 
 _______________________________________________
 linux-dvb mailing list
