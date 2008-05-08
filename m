@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JxTo1-0001NO-27
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 23:19:08 +0200
-Message-ID: <482F4BC2.2040405@gmail.com>
-Date: Sun, 18 May 2008 01:18:58 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from mail.oca.ch ([193.238.142.68] helo=mail-server2.oca.ch)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <tille@almana.ch>) id 1Ju3n1-0005z4-3I
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 12:55:56 +0200
+Received: from [212.101.18.67] by mail-server2.oca.ch (NTMail
+	7.00.0021/NT4306.00.618a11d8) with ESMTP id dyrvzjaa for
+	linux-dvb@linuxtv.org; Thu, 8 May 2008 12:57:15 +0200
+From: tille <tille@almana.ch>
+To: linux-dvb@linuxtv.org
+Date: Thu, 8 May 2008 12:55:33 +0200
 MIME-Version: 1.0
-To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-References: <482BF672.1090402@kipdola.com> <20080515111150.392be0b9@bercot.org>
-	<200805151140.15939.rudy@grumpydevil.homelinux.org>
-In-Reply-To: <200805151140.15939.rudy@grumpydevil.homelinux.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend S2-3200 (Or Technisat Skystar HD) on
- LinuxMCE 0710 (Kubuntu Feisty)
+Content-Disposition: inline
+Message-Id: <200805081255.33507.tille@almana.ch>
+Subject: [linux-dvb] Lite-On TVT-1060
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,45 +20,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-UnVkeSBaaWpsc3RyYSB3cm90ZToKPiBPbiBUaHVyc2RheSAxNSBNYXkgMjAwOCAxMToxMSwgRGF2
-aWQgQkVSQ09UIHdyb3RlOgo+PiBIaSBKZWxsZSwKPj4KPj4gSSd2ZSBzZWVuIHlvdXIgbWFpbCB0
-aGlzIG1vcm5pbmcgOy0pCj4+Cj4+IExlIFRodSwgMTUgTWF5IDIwMDggMTA6Mzg6MTAgKzAyMDAs
-Cj4+Cj4+IEplbGxlIERlIExvZWNrZXIgPHNrZXJpdEBraXBkb2xhLmNvbT4gYSDDqWNyaXQgOgo+
-Pj4gR29vZCBtb3JuaW5nIGFsbCwKPj4+Cj4+PiBJJ20gaGF2aW5nIGRpZmZpY3VsdHkgZ2V0dGlu
-ZyBteSBEVkItUzIgY2FyZCB0byB3b3JrIG9uIExpbnV4TUNFIDA3MTAKPj4+IChLdWJ1bnR1IEZl
-aXN0eSwga2VybmVsIDIuNi4yMi0xNC1nZW5lcmljKSBJJ2xsIHN0YXJ0IHdpdGggc29tZSBsc3Bj
-aQo+Pj4gaW5mbyB0byBwcm92ZSB0aGUgY2FyZCBpcyBjb25uZWN0ZWQ6Cj4+PiBsc3BjaSAtdjoK
-Pj4+IDA0OjAxLjAgTXVsdGltZWRpYSBjb250cm9sbGVyOiBQaGlsaXBzIFNlbWljb25kdWN0b3Jz
-IFNBQTcxNDYgKHJldiAwMSkKPj4+ICAgICAgICAgU3Vic3lzdGVtOiBUZWNobm90cmVuZCBTeXN0
-ZW10ZWNobmlrIEdtYkggUzItMzIwMAo+Pj4gICAgICAgICBGbGFnczogYnVzIG1hc3RlciwgbWVk
-aXVtIGRldnNlbCwgbGF0ZW5jeSA2NCwgSVJRIDE2Cj4+PiAgICAgICAgIE1lbW9yeSBhdCBmZWJm
-ZmMwMCAoMzItYml0LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6ZT01MTJdCj4+Pgo+Pj4gSSBjYW4g
-Y29tcGlsZSB0aGUgZHJpdmVycyBqdXN0IGZpbmUsIEkgZm9sbG93ZWQgdGhlIGluc3RydWN0aW9u
-cyBmcm9tCj4+PiB0aGlzIEZyZW5jaCBwYWdlOgo+Pj4gaHR0cDovL3dpbGNvLmJlcmNvdC5vcmcv
-ZGViaWFuL3MyLTMyMDAuaHRtbAo+Pj4gPGh0dHA6Ly93aWxjby5iZXJjb3Qub3JnL2RlYmlhbi9z
-Mi0zMjAwLmh0bWw+KEkgZG9uJ3QgY29tcGxldGVseQo+Pj4gdW5kZXJzdGFuZCBGcmVuY2gsIGJ1
-dCB3ZSBhbGwgc3BlYWsgY29kZSEpCj4+Pgo+Pj4gQnV0IGFmdGVyIGxvYWRpbmcgdGhlIGRyaXZl
-cnMgSSBkb24ndCBnZXQgYSAvZGV2L2R2YiBmb2xkZXIuCj4+PiBNeSBkbWVzZyBvdXRwdXQgb25s
-eSBzaG93cyB0aGlzIG1lc3NhZ2U6Cj4+PiBzYWE3MTQ2OiByZWdpc3RlciBleHRlbnNpb24gJ2J1
-ZGdldF9jaSBkdmInLgo+PiBIYXZlIHlvdSByZWJvb3QgeW91ciBjb21wdXRlciA/IE1heSBiZSBp
-dCBjYW4gc29sdmUgeW91ciBwcm9ibGVtcy4uLgo+PiBJZiBub3QsIEknbGwgZG8gYW5vdGhlciB2
-ZXJzaW9uIHdpdGggdGhlIG11bHRpcHJvdG8gcGx1cyBkcml2ZXIgc29vbi4KPj4KPiAKPiBSZW1h
-aW5zIHRoZSBxdWVzdGlvbiwgd2hhdCBpcyB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIG11bHRpcHJv
-dG8gYW5kIG11bHRpcHJvdG8gCj4gcGx1cz8KPiAKPiBJdHMgc29tZXRoaW5nIGkgYWxzbyB3b3Vs
-ZCBsaWtlIHRvIHVuZGVyc3RhbmQuIEFub3RoZXIgcXVlc3Rpb24sIGhvdyBpZiAKPiBwcm9ncmVz
-cyBvbiBDSSB3aXRoIHRoZSBUVC0zMjAwPwoKCkNJIHdpdGggcmVnYXJkcyB0byB0aGUgU1RCMDg5
-OSArIDcxNDYgYmFzZWQgY2FyZHMgd29ya3MgcHJvcGVybHkgQUZBSUNTLgoKSW4gZmFjdCwgcmVj
-ZWl2ZWQgcXVpdGUgc29tZSBtYWlscyBsb25nIGJhY2sgaXRzZWxmIHRoYXQgQ0Egb24gdGhlc2UK
-Y2FyZHMgd29ya2VkIHByb3Blcmx5LgoKT24gc29tZSBtYWNoaW5lcyB3aXRoIGJ1Z2d5IEJJT1Mn
-ZXMsIEFQSUMgaXNzdWVzIEkyQyBhbmQgQ0EgaXNzdWVzIHdlcmUKa2luZCBvZiBwcm9taW5lbnQs
-IGJ1dCBnZW5lcmFsbHksIHNhdyBxdWl0ZSBzb21lIHN1Y2Nlc3NmdWxseSBkZWNyeXB0ZWQKRFZC
-LVMyIEhEIHN0cmVhbXMgd2l0aCBzb21lIGZldyBwZXJzb25zIGFyb3VuZC4KCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
-bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
-L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi 
+
+I am responding to your "If you own one or more devices from the following 
+list and you want to help with support development" on 
+http://linuxtv.org/wiki/index.php/DVB-T_PCIe_Cards.
+
+I am owner of a Asus G2 Laptop with a Lite-On TVT-1060 TV card and I do not at 
+all mind to support development or do some development myself.
+
+Patrick
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
