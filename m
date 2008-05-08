@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N6GoEO008875
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:16:50 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N6GDUY012815
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:16:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Fri, 23 May 2008 08:16:05 +0200
-References: <20080522223700.2f103a14@core>
-	<1211508484.3273.86.camel@palomino.walls.org>
-In-Reply-To: <1211508484.3273.86.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48Lshxb015502
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:54:43 -0400
+Received: from mailout01.t-online.de (mailout01.t-online.de [194.25.134.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m48LsVix006042
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:54:31 -0400
+Message-ID: <4823768D.4070405@t-online.de>
+Date: Thu, 08 May 2008 23:54:21 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Adam Glover <aglover.v4l@mindspring.com>
+References: <5143530.1210229476468.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
+In-Reply-To: <5143530.1210229476468.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200805230816.05229.hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] video4linux: Push down the BKL
+Cc: video4linux-list@redhat.com
+Subject: Re: odd behavior in tuner module in hg and linux stable
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,183 +27,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 23 May 2008 04:08:04 Andy Walls wrote:
-> On Thu, 2008-05-22 at 22:37 +0100, Alan Cox wrote:
-> > For most drivers the generic ioctl handler does the work and we
-> > update it and it becomes the unlocked_ioctl method. Older drivers
-> > use the usercopy method so we make it do the work. Finally there
-> > are a few special cases.
-> >
-> > Signed-off-by: Alan Cox <alan@redhat.com>
->
-> I'd like to start planning out the changes to eliminate the BKL from
-> cx18.
->
-> Could someone give me a brief education as to what elements of
-> cx18/ivtv_v4l2_do_ioctl() would be forcing the use of the BKL for
-> these drivers' ioctls?   I'm assuming it's not the
-> mutex_un/lock(&....->serialize_lock) and that the answer's not in the
-> diff.
+HI, Adam
 
-To the best of my knowledge there is no need for a BKL in ivtv or cx18. 
-It was just laziness on my part that I hadn't switched to 
-unlocked_ioctl yet. If you know of a reason why it should be kept for 
-now, then I'd like to know, otherwise the BKL can be removed altogether 
-for ivtv/cx18. I suspect you just pushed the lock down into the driver 
-and in that case you can just remove it for ivtv/cx18.
-
-Regards,
-
-	Hans
-
->
-> Thanks.
-> Andy
->
-> > diff --git a/drivers/media/video/cx18/cx18-ioctl.c
-> > b/drivers/media/video/cx18/cx18-ioctl.c index dbdcb86..faf3a31
-> > 100644
-> > --- a/drivers/media/video/cx18/cx18-ioctl.c
-> > +++ b/drivers/media/video/cx18/cx18-ioctl.c
-> > @@ -837,15 +837,16 @@ static int cx18_v4l2_do_ioctl(struct inode
-> > *inode, struct file *filp, return 0;
-> >  }
-> >
-> > -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp,
-> > unsigned int cmd, -		    unsigned long arg)
-> > +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
-> > long arg) {
-> >  	struct cx18_open_id *id = (struct cx18_open_id
-> > *)filp->private_data; struct cx18 *cx = id->cx;
-> >  	int res;
-> >
-> > +	lock_kernel();
-> >  	mutex_lock(&cx->serialize_lock);
-> > -	res = video_usercopy(inode, filp, cmd, arg, cx18_v4l2_do_ioctl);
-> > +	res = video_usercopy(filp, cmd, arg, cx18_v4l2_do_ioctl);
-> >  	mutex_unlock(&cx->serialize_lock);
-> > +	unlock_kernel();
-> >  	return res;
-> >  }
-> > diff --git a/drivers/media/video/cx18/cx18-ioctl.h
-> > b/drivers/media/video/cx18/cx18-ioctl.h index 9f4c7eb..32bede3
-> > 100644
-> > --- a/drivers/media/video/cx18/cx18-ioctl.h
-> > +++ b/drivers/media/video/cx18/cx18-ioctl.h
-> > @@ -1,4 +1,4 @@
-> > -/*
-> > + /*
-> >   *  cx18 ioctl system call
-> >   *
-> >   *  Derived from ivtv-ioctl.h
-> > @@ -24,7 +24,6 @@
-> >  u16 cx18_service2vbi(int type);
-> >  void cx18_expand_service_set(struct v4l2_sliced_vbi_format *fmt,
-> > int is_pal); u16 cx18_get_service_set(struct v4l2_sliced_vbi_format
-> > *fmt); -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp,
-> > unsigned int cmd, -		    unsigned long arg);
-> > +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
-> > long arg); int cx18_v4l2_ioctls(struct cx18 *cx, struct file *filp,
-> > unsigned cmd, void *arg);
-> > diff --git a/drivers/media/video/cx18/cx18-streams.c
-> > b/drivers/media/video/cx18/cx18-streams.c index afb141b..7348b82
-> > 100644
-> > --- a/drivers/media/video/cx18/cx18-streams.c
-> > +++ b/drivers/media/video/cx18/cx18-streams.c
-> > @@ -39,7 +39,7 @@ static struct file_operations cx18_v4l2_enc_fops
-> > = { .owner = THIS_MODULE,
-> >        .read = cx18_v4l2_read,
-> >        .open = cx18_v4l2_open,
-> > -      .ioctl = cx18_v4l2_ioctl,
-> > +      .unlocked_ioctl = cx18_v4l2_ioctl,
-> >        .release = cx18_v4l2_close,
-> >        .poll = cx18_v4l2_enc_poll,
-> >  };
-> >
-> > diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c
-> > b/drivers/media/video/ivtv/ivtv-ioctl.c index d508b5d..a481b2d
-> > 100644
-> > --- a/drivers/media/video/ivtv/ivtv-ioctl.c
-> > +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-> > @@ -1726,7 +1726,7 @@ static int ivtv_v4l2_do_ioctl(struct inode
-> > *inode, struct file *filp, return 0;
-> >  }
-> >
-> > -static int ivtv_serialized_ioctl(struct ivtv *itv, struct inode
-> > *inode, struct file *filp, +static int ivtv_serialized_ioctl(struct
-> > ivtv *itv, struct file *filp, unsigned int cmd, unsigned long arg)
-> >  {
-> >  	/* Filter dvb ioctls that cannot be handled by video_usercopy */
-> > @@ -1761,18 +1761,19 @@ static int ivtv_serialized_ioctl(struct
-> > ivtv *itv, struct inode *inode, struct f default:
-> >  		break;
-> >  	}
-> > -	return video_usercopy(inode, filp, cmd, arg, ivtv_v4l2_do_ioctl);
-> > +	return video_usercopy(filp, cmd, arg, ivtv_v4l2_do_ioctl);
-> >  }
-> >
-> > -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp,
-> > unsigned int cmd, -		    unsigned long arg)
-> > +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
-> > long arg) {
-> >  	struct ivtv_open_id *id = (struct ivtv_open_id
-> > *)filp->private_data; struct ivtv *itv = id->itv;
-> >  	int res;
-> >
-> > +	lock_kernel();
-> >  	mutex_lock(&itv->serialize_lock);
-> > -	res = ivtv_serialized_ioctl(itv, inode, filp, cmd, arg);
-> > +	res = ivtv_serialized_ioctl(itv, filp, cmd, arg);
-> >  	mutex_unlock(&itv->serialize_lock);
-> > +	unlock_kernel();
-> >  	return res;
-> >  }
-> > diff --git a/drivers/media/video/ivtv/ivtv-ioctl.h
-> > b/drivers/media/video/ivtv/ivtv-ioctl.h index a03351b..6708ea0
-> > 100644
-> > --- a/drivers/media/video/ivtv/ivtv-ioctl.h
-> > +++ b/drivers/media/video/ivtv/ivtv-ioctl.h
-> > @@ -24,8 +24,7 @@
-> >  u16 service2vbi(int type);
-> >  void expand_service_set(struct v4l2_sliced_vbi_format *fmt, int
-> > is_pal); u16 get_service_set(struct v4l2_sliced_vbi_format *fmt);
-> > -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp,
-> > unsigned int cmd, -		    unsigned long arg);
-> > +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
-> > long arg); int ivtv_v4l2_ioctls(struct ivtv *itv, struct file
-> > *filp, unsigned int cmd, void *arg); void ivtv_set_osd_alpha(struct
-> > ivtv *itv);
-> >  int ivtv_set_speed(struct ivtv *itv, int speed);
-> > diff --git a/drivers/media/video/ivtv/ivtv-streams.c
-> > b/drivers/media/video/ivtv/ivtv-streams.c index 4ab8d36..3131f68
-> > 100644
-> > --- a/drivers/media/video/ivtv/ivtv-streams.c
-> > +++ b/drivers/media/video/ivtv/ivtv-streams.c
-> > @@ -48,7 +48,7 @@ static const struct file_operations
-> > ivtv_v4l2_enc_fops = { .read = ivtv_v4l2_read,
-> >        .write = ivtv_v4l2_write,
-> >        .open = ivtv_v4l2_open,
-> > -      .ioctl = ivtv_v4l2_ioctl,
-> > +      .unlocked_ioctl = ivtv_v4l2_ioctl,
-> >        .release = ivtv_v4l2_close,
-> >        .poll = ivtv_v4l2_enc_poll,
-> >  };
-> > @@ -58,7 +58,7 @@ static const struct file_operations
-> > ivtv_v4l2_dec_fops = { .read = ivtv_v4l2_read,
-> >        .write = ivtv_v4l2_write,
-> >        .open = ivtv_v4l2_open,
-> > -      .ioctl = ivtv_v4l2_ioctl,
-> > +      .unlocked_ioctl = ivtv_v4l2_ioctl,
-> >        .release = ivtv_v4l2_close,
-> >        .poll = ivtv_v4l2_dec_poll,
-> >  };
->
+Adam Glover schrieb:
+> This has to do with the patch I submitted to add explicit
+> support for the ADS Tech Instant HDTV PCI card (PTV-380).
+> 
+> It appears that in the latest kernel stable release as well
+> as the hg snapshot I had used for the patch the tuner module
+> does not identify the tuner chip on its initial automatic
+> loadup.  I must rmmod and reinsert the tuner module before it
+> will report detecting the TDA9887 / TUV1236D tuner chips.
+> 
+> This did not happen with version 2.6.24.4 so I'm wondering
+> what changed?  As it stands, it's not fatal to have to remove
+> and reinsert the module but it's not right...
+> 
+> This seems to be change from the last couple of months that
+> has already made it into the stable kernel tree.
+> 
+> Incidentally, the dvb frontend loads and works despite the
+> tuner having not registered the chips.  I just have no control
+> over analog tuning.  I don't know if this is normal behavior
+> or not.
+> 
+> So is this some sort of bug or is there something I should
+> do with the card config when compiling the modules?
+> 
+> I'd like to see the card working (even though I have a pcHDTV
+> card coming in the mail...)
+> 
+> Adam Glover
+> 
+> (I do apologize if I did not submit that patch correctly...
+> I'm pretty sure I was wrong in not including relative paths
+> and that the patch had to be run inside the saa7134 folder...)
+> 
 > --
 > video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 > https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
+The cause of the problem migt be this changeset 7268:e7668fc3666c
+in the v4l-dvb main repository. I have a problem with it as well.
+The initialization order on hybrid cards is very critical.
+So if it turns out that my hing is right, we need to discuss and
+test this carefully.
+
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
