@@ -1,20 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx05.lb01.inode.at ([62.99.145.5] helo=mx.inode.at)
+Received: from astana.suomi.net ([82.128.152.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <philipp@kolmann.at>) id 1JvcHP-0004jX-Gu
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 19:57:44 +0200
-Date: Mon, 12 May 2008 19:57:39 +0200
-From: Philipp Kolmann <philipp@kolmann.at>
-To: Igor <goga777@bk.ru>
-Message-ID: <20080512175739.GA29838@kolmann.at>
-References: <20080510085803.GA30598@kolmann.at>
-	<E1JulAl-0001Ho-00.goga777-bk-ru@f53.mail.ru>
-	<20080512174441.GB23724@kolmann.at>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080512174441.GB23724@kolmann.at>
+	(envelope-from <crope@iki.fi>) id 1Ju8At-0003uq-Tx
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 17:36:52 +0200
+Received: from tiku.suomi.net ([82.128.154.67])
+	by astana.suomi.net (Sun Java System Messaging Server 6.2-3.04 (built
+	Jul 15 2005)) with ESMTP id <0K0K00CZP3CI5KA0@astana.suomi.net> for
+	linux-dvb@linuxtv.org; Thu, 08 May 2008 18:36:18 +0300 (EEST)
+Received: from spam5.suomi.net (spam5.suomi.net [212.50.131.165])
+	by mailstore.suomi.net
+	(Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007;
+	32bit)) with ESMTP id <0K0K00H243CIDQ80@mailstore.suomi.net> for
+	linux-dvb@linuxtv.org; Thu, 08 May 2008 18:36:18 +0300 (EEST)
+Date: Thu, 08 May 2008 18:35:20 +0300
+From: Antti Palosaari <crope@iki.fi>
+In-reply-to: <200805082312.59928.b87605214@ntu.edu.tw>
+To: lin <b87605214@ntu.edu.tw>
+Message-id: <48231DB8.4050101@iki.fi>
+MIME-version: 1.0
+References: <200805071307.15982.b87605214@ntu.edu.tw>
+	<48219F49.9090709@Rods.id.au> <200805082312.59928.b87605214@ntu.edu.tw>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis-08f27ef99d74: Compile error with 2.6.25
+Subject: Re: [linux-dvb] Try to Make DVB-T part of Compro VideoMate T750 Work
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,27 +35,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, May 12, 2008 at 07:44:41PM +0200, Philipp Kolmann wrote:
-> On Sat, May 10, 2008 at 01:15:19PM +0400, Igor wrote:
-> > could you try with the latest mantis version
-> > http://jusst.de/hg/mantis/rev/b7b8a2a81f3e
+lin wrote:
+> +static struct zl10353_config videomate_t750_zl10353_config = {
 > 
-> Manits head got fixed (regarding to the hg log). So I tried it. Still the same
-> error. Same with v4l tree.
+> + .demod_address = 0x0f,
 > 
-> Now I found a little patch which brought me over this compile error:
+> + .no_tuner = 0,
 > 
-> http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.24-rc4/2.6.24-rc4-mm1/broken-out/fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+> + .parallel_ts = 1,
+> 
+> +};
+> 
+> +
+> 
+> +static struct qt1010_config videomate_t750_qt1010_config = {
+> 
+> + .i2c_address = 0x62
+> 
+> +};
 
-With this patch applied (and one not used module disabled) I was able to
-compile latest mantis tree with Debian 2.6.25 kernel and mantis is working now
-for me.
+For QT1010 (and other silicon tuners as well) ZL10353 configuration 
+no_tuner should be 1. It can be zero when there is simple "4-byte" PLL 
+tuner connected directly to ZL10353 demodulator and demodulator programs 
+tuner.
+See following scheme for explanation:
+http://www.otit.fi/~crope/v4l-dvb/controlling_tuner.txt
 
-Thanks for fixing this issue.
-Philipp
-
+Antti
 -- 
-The more I learn about people, the more I like my dog!
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
