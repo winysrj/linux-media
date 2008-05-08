@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n21.bullet.mail.ukl.yahoo.com ([87.248.110.138])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1Jwjnx-0001rY-Lr
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 22:12:02 +0200
-Date: Thu, 15 May 2008 07:27:21 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <482BF672.1090402@kipdola.com> <20080515111150.392be0b9@bercot.org>
-	<200805151140.15939.rudy@grumpydevil.homelinux.org>
-In-Reply-To: <200805151140.15939.rudy@grumpydevil.homelinux.org> (from
-	rudy@grumpydevil.homelinux.org on Thu May 15 05:40:15 2008)
-Message-Id: <1210850841l.5925l.0l@manu-laptop>
+Received: from webmail.icp-qv1-irony-out4.iinet.net.au ([203.59.1.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sonofzev@iinet.net.au>) id 1Ju2wz-0003LV-NK
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 12:02:10 +0200
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Technotrend S2-3200 (Or Technisat Skystar HD) on
- LinuxMCE 0710 (Kubuntu Feisty)
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: linux-dvb@linuxtv.org, stev391@email.com
+Date: Thu, 08 May 2008 18:02:00 +0800
+Message-Id: <60926.1210240920@iinet.net.au>
+Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will it
+	be
+Reply-To: sonofzev@iinet.net.au
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,86 +18,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0104704932=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 05/15/2008 05:40:15 AM, Rudy Zijlstra wrote:
-> On Thursday 15 May 2008 11:11, David BERCOT wrote:
-> > Hi Jelle,
-> >
-> > I've seen your mail this morning ;-)
-> >
-> > Le Thu, 15 May 2008 10:38:10 +0200,
-> >
-> > Jelle De Loecker <skerit@kipdola.com> a =E9crit :
-> > > Good morning all,
-> > >
-> > > I'm having difficulty getting my DVB-S2 card to work on LinuxMCE
-> 0710
-> > > (Kubuntu Feisty, kernel 2.6.22-14-generic) I'll start with some
-> lspci
-> > > info to prove the card is connected:
-> > > lspci -v:
-> > > 04:01.0 Multimedia controller: Philips Semiconductors SAA7146 =
+--===============0104704932==
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="us-ascii"
 
-> (rev
-> 01)
-> > >         Subsystem: Technotrend Systemtechnik GmbH S2-3200
-> > >         Flags: bus master, medium devsel, latency 64, IRQ 16
-> > >         Memory at febffc00 (32-bit, non-prefetchable) [size=3D512]
-> > >
-> > > I can compile the drivers just fine, I followed the instructions
-> from
-> > > this French page:
-> > > http://wilco.bercot.org/debian/s2-3200.html
-> > > <http://wilco.bercot.org/debian/s2-3200.html>(I don't completely
-> > > understand French, but we all speak code!)
-> > >
-> > > But after loading the drivers I don't get a /dev/dvb folder.
-> > > My dmesg output only shows this message:
-> > > saa7146: register extension 'budget_ci dvb'.
-> >
-> > Have you reboot your computer ? May be it can solve your =
+<HTML>
+<BR>
+Hi Stephen, <BR>
+<BR>
+Has this been tested with the newer cx23885 version of the card or only the=
+ older cx88 version. <BR>
+I have had no success with my cx23885 version. <BR>
+<BR>
+cheers<BR>
+<BR>
+Allan<BR>
+ <BR>
+<BR>
+<span style=3D"font-weight: bold;">On Tue May  6 11:39 , stev391@email.com =
+sent:<BR>
+<BR>
+</span><blockquote style=3D"border-left: 2px solid rgb(245, 245, 245); marg=
+in-left: 5px; margin-right: 0px; padding-left: 5px; padding-right: 0px;">
+<div>
 
-> problems...
-> > If not, I'll do another version with the multiproto plus driver
-> soon.
-> >
-> =
+G'day,<BR>
+<BR>
+I was just wondering when Chris Pascoe's code for the DViCO Fusion HDTV Dua=
+l Express will be merged into the v4l-dvb tree, as there have been some min=
+or updates that increase the stability of the card that are not in his tree=
+.<BR>
+<BR>
+Attached is a patch for merging the relevant sections back into the v4l-dvb=
+ tree (and including updating Kconfig).&nbsp; This has been successfully te=
+sted on two different PCs with this card (working with gxine and mythtv, in=
+ Melbourne, Australia).<BR>
+<BR>
+Regards,<BR>
+Stephen.<BR>
 
-> Remains the question, what is the difference between multiproto and
-> multiproto =
+<div>
 
-> plus?
-> =
-
-> Its something i also would like to understand. Another question, how
-> if =
-
-> progress on CI with the TT-3200?
-> =
+</div>
 
 
-Here TT-3200 working with my CAm with no problem (almost every channel =
-
-is scrambled on my sat). I can even have 2channels simustaneously =
-
-recorded (Astoncrypt cam is able to decode 2 streams simultaneously).
-Software: multiproto (1- months old I think)+mythtv-0.21 (I had to =
-
-modify it: I need to ADD 4 MHz to the frequency, else I have unreliable =
-
-or no lock).
-HTH
-Bye
-Manu
+</div>
+<BR>
 
 
+--=20
+<div> See Exclusive Video: <a href=3D"http://www.hollywoodlife.net/younghol=
+lywoodawards2008/" target=3D"_blank"> <span style=3D"font-weight: bold;"> 1=
+0th Annual Young Hollywood Awards</span></a><BR>
+</div>
+</blockquote></HTML>
+<BR>=
+
+
+--===============0104704932==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0104704932==--
