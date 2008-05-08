@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1JvRpR-0007ev-I9
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 08:48:14 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1785769fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 11 May 2008 23:48:05 -0700 (PDT)
-Message-ID: <4827E81A.1080807@gmail.com>
-Date: Mon, 12 May 2008 08:47:54 +0200
+Received: from ppp196-18.static.internode.on.net ([59.167.196.18]
+	helo=jumpgate.rods.id.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <Rod@Rods.id.au>) id 1Ju7UD-0000Wt-7I
+	for linux-dvb@linuxtv.org; Thu, 08 May 2008 16:52:47 +0200
+Received: from jumpgate.rods.id.au (localhost [127.0.0.1])
+	by jumpgate.rods.id.au (Postfix) with ESMTP id 9D01D560363
+	for <linux-dvb@linuxtv.org>; Fri,  9 May 2008 00:26:39 +1000 (EST)
+Received: from [192.168.3.44] (shadow.rods.id.au [192.168.3.44])
+	by jumpgate.rods.id.au (Postfix) with ESMTP id 73971560362
+	for <linux-dvb@linuxtv.org>; Fri,  9 May 2008 00:26:39 +1000 (EST)
+Message-ID: <48230D9E.3010104@Rods.id.au>
+Date: Fri, 09 May 2008 00:26:38 +1000
+From: Rod <Rod@Rods.id.au>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <482560EB.2000306@gmail.com>		<200805101717.23199@orion.escape-edv.de>		<200805101727.55810@orion.escape-edv.de>		<1210456421.7632.29.camel@palomino.walls.org>	<48261EB5.2090604@gmail.com>	<1210463068.7632.102.camel@palomino.walls.org>	<48268EB9.6060000@gmail.com>
-	<4827851D.2000104@gmx.net>
-In-Reply-To: <4827851D.2000104@gmx.net>
-From: e9hack <e9hack@googlemail.com>
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
- stv0297
+References: <48222EA3.8030907@Rods.id.au>
+	<d9def9db0805071624j62836409jb7a24a3153c1df9e@mail.gmail.com>
+In-Reply-To: <d9def9db0805071624j62836409jb7a24a3153c1df9e@mail.gmail.com>
+Subject: Re: [linux-dvb] [Fwd: Change wording of DIFF file please]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,28 +31,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-P. van Gaans schrieb:
-> Not necessarily. Here some femon output from my Technotrend T-1500:
-> 
-> status SCVYL | signal  54% | snr  99% | ber 188 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 230 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 240 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 234 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 228 | unc 21 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 248 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 280 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  54% | snr  99% | ber 234 | unc 0 | FE_HAS_LOCK
-...
-> I see the standalones hickup as well. So a very short 
-> error will cause unc, but no higher BER.
+Markus Rechberger wrote:
+> Hey,
+>
+> On 5/8/08, Rod <Rod@rods.id.au> wrote:
+>   
+>>     Repost as I think I fell off the list ;o(
+>>
+>>     
+>
+> this stuff was generated against my v4l-dvb-experimental repository it seems.
+>
+> +		}
+> +		break;
+> +	case TUNER_XCEIVE_XC3028:
+> +		dprintk(KERN_INFO "saa7134_tuner_callback TUNER_XCEIVE_XC3028
+> command %d\n", command);
+> +		switch(command) {
+> +		case TUNER_RESET1:
+> +		case TUNER_RESET2:
+> +			/* this seems to be to correct bit */
+> +			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00000000);
+> +			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
+> +			break;
+> +
+> +		case TUNER_RESET3:
+> +			break;
+>
+> this also needs a change to work with the linuxtv repository, that way
+> the patch is not compatible with the linuxtv.org repository it was
+> generated against my v4l-dvb-experimental repository.
+>
+> You already have the xceive reset line bit. Look how other xc3028
+> reset callbacks are implemented into the linuxtv.org repository and
+> change this according to the other callbacks.
+>
+> Markus
+>   
+    Would I be able to get a little help with this please?
 
-You may not see a higher BER, because the corrupted signal doesn't hit the BER measuring 
-period. Femon asks every 1 second for new values. The UNC counting interval is this 1 
-second, but the BER measuring interval is shorter (50..200ms). For a stv0297, it is 150ms 
-for QAM256 modulation and 200ms for QAM64. The real measuring interval for the BER is a 
-fixed number of bits.
+    I know I may be asking a bit much, but I'm trying to learn this 
+stuff at the same time ;o)
 
--Hartmut
+    Does the code already work in 2.6.25? or its only in V4L repos 
+building before submission into the linux tree?
 
 _______________________________________________
 linux-dvb mailing list
