@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4A1JBbr026292
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:19:11 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4A1IwdW031772
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:18:58 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so1321235wfc.6
-	for <video4linux-list@redhat.com>; Fri, 09 May 2008 18:18:58 -0700 (PDT)
-Message-ID: <baec066f0805091818t5a1d019bo234232b9ad390b67@mail.gmail.com>
-Date: Fri, 9 May 2008 18:18:57 -0700
-From: "Alejandro Salazar" <alphazygma@gmail.com>
-To: "Luc Gallant" <lucgallant@gmail.com>
-In-Reply-To: <b92108c40805091735h55a40ae5jcdb82f721346a831@mail.gmail.com>
-MIME-Version: 1.0
-References: <baec066f0805071023r5a8057bv7c83d8fded2a215b@mail.gmail.com>
-	<b92108c40805091735h55a40ae5jcdb82f721346a831@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m490xvO4024680
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:59:57 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m490xhA9030103
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:59:44 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+In-Reply-To: <1210292031.4565.26.camel@palomino.walls.org>
+References: <482370FD.7000001@users.sourceforge.net>
+	<1210292031.4565.26.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Fri, 09 May 2008 02:58:30 +0200
+Message-Id: <1210294711.2541.6.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 Cc: video4linux-list@redhat.com
-Subject: Re: Mock driver
+Subject: Re: cx88 driver: Help needed to add radio support on Leadtek
+	WINFAST DTV 2000 H (version J)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,59 +30,167 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thanks a lot Luc,
 
-This is good enough.
+Am Donnerstag, den 08.05.2008, 20:13 -0400 schrieb Andy Walls:
+> On Thu, 2008-05-08 at 23:30 +0200, Andre Auzi wrote:
+> > Hello list,
+> > 
+> > I've started the task to add support of the board mentionned above.
+> > 
+> > So far I've got analog TV, Composite and Svideo inputs working OK with 
+> > IR as well.
+> > 
+> > Unfortunately, my area does not have DVB-T yet, but from the scans I've 
+> > made, I'm confident DVB support is on good tracks.
+> > 
+> > Nevertheless, I cannot achieve to have the radio input working.
+> > 
+> > The gpio values were captured with regspy on a working windows installation.
+> 
+> With the ivtv driver, I helped debug the LG TAPE-H series tuner on the
+> PVR-150MCE not demodulating FM radio.  (Hans actually got the fix put
+> in.)  The problem turned out to be the incorrect "bandswitch byte" being
+> set in tuner-simple.c.  AFAICT, the gpio values for the CX23416 aren't
+> used to set the FM radio on the PVR-150MCE.
+> 
+> There is a "bandswitch byte" in the synthesizer/1st mixer chip (probably
+> a tua603x chip) in the tuner that controls some gpio pins.  These gpio
+> pins setup the tuner's preselector by switching in the proper bandpass
+> filter for the Low VHF, FM, High-VHF, or UHF bands
+> 
+> For the FM1216ME_MK3 tuner (not the FMD1216ME_MK3) this bandswitch byte
+> needs to be set to 0x98 for FM stereo or 0x9a for FM mono.
+> 
+> I notice in tuner-simple.c:simple_radio_bandswitch(), that for both the
+> FM1216ME_MK3 and the FMD1216ME_MK3, the bandswitch byte for FM is coded
+> as 0x19.  This is a bit-reversal of 0x98.  This seems wrong according to
+> the FM1216ME_MK3 tuner datasheet here:
+> 
+> http://dl.ivtvdriver.org/datasheets/tuners/FM1216ME_MK3.pdf
+> 
+> I can't find the FMD1216ME_MK3 datasheet with some quick google
+> searches.  I cannot conclusively say the coded bandswitch byte of 0x19
+> is wrong for the FMD1261ME_MK3, but I think it's worth some
+> investigation/experimentation.
 
-Best regards,
-~ Alejandro.
+Hi,
+
+it is, we were only hackers!
+
+And there is no substitution for it.
+
+The radio stereo hack was specific for the FM1216ME/I H-3 (MK3) and the
+FMD1216ME/I H-3 (MK-3) never could utilize that bit reading out the
+stereo status for FM ...
+
+Cheers,
+Hermann
+ 
+> 
+> You might also want to check/fix the tuner-simple.c:tuner_stereo()
+> function while you're at it.
+> 
+> Good luck,
+> Andy
+> 
+> 
+> > 
+> > Here are my additions in cx88-cards.c:
+> > 
+> > diff -r 0a072dd11cd8 linux/drivers/media/video/cx88/cx88-cards.c
+> > --- a/linux/drivers/media/video/cx88/cx88-cards.c    Wed May 07 15:42:54 
+> > 2008 -0300
+> > +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Thu May 08 23:07:36 
+> > 2008 +0200
+> > @@ -1300,6 +1300,52 @@
+> >          }},
+> >          .mpeg           = CX88_MPEG_DVB,
+> >      },
+> > +    [CX88_BOARD_WINFAST_DTV2000H_VERSION_J] = {
+> > +        /* Radio still in testing */
+> > +        .name           = "WinFast DTV2000 H (version J)",
+> > +        .tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+> > +        .radio_type     = UNSET,
+> > +        .tuner_addr     = ADDR_UNSET,
+> > +        .radio_addr     = ADDR_UNSET,
+> > +        .tda9887_conf   = TDA9887_PRESENT,
+> > +        .input          = {{
+> > +            .type   = CX88_VMUX_TELEVISION,
+> > +            .vmux   = 0,
+> > +            .gpio0  = 0x00013700,
+> > +            .gpio1  = 0x0000a207,
+> > +            .gpio2  = 0x00013700,
+> > +            .gpio3  = 0x02000000,
+> > +        },{
+> > +            .type   = CX88_VMUX_CABLE,
+> > +            .vmux   = 0,
+> > +            .gpio0  = 0x0001b700,
+> > +            .gpio1  = 0x0000a207,
+> > +            .gpio2  = 0x0001b700,
+> > +            .gpio3  = 0x02000000,
+> > +        },{
+> > +            .type   = CX88_VMUX_COMPOSITE1,
+> > +            .vmux   = 1,
+> > +            .gpio0  = 0x00013701,
+> > +            .gpio1  = 0x0000a207,
+> > +            .gpio2  = 0x00013701,
+> > +            .gpio3  = 0x02000000,
+> > +        },{
+> > +            .type   = CX88_VMUX_SVIDEO,
+> > +            .vmux   = 2,
+> > +            .gpio0  = 0x00013701,
+> > +            .gpio1  = 0x0000a207,
+> > +            .gpio2  = 0x00013701,
+> > +            .gpio3  = 0x02000000,
+> > +        } },
+> > +        .radio = {
+> > +            .type   = CX88_RADIO,
+> > +            .gpio0  = 0x00013702,
+> > +            .gpio1  = 0x0000a207,
+> > +            .gpio2  = 0x00013702,
+> > +            .gpio3  = 0x02000000,
+> > +        },
+> > +    },
+> >      [CX88_BOARD_GENIATECH_DVBS] = {
+> >          .name          = "Geniatech DVB-S",
+> >          .tuner_type    = TUNER_ABSENT,
+> > @@ -1957,6 +2003,10 @@
+> >          .subdevice = 0x665e,
+> >          .card      = CX88_BOARD_WINFAST_DTV2000H,
+> >      },{
+> > +        .subvendor = 0x107d,
+> > +        .subdevice = 0x6f2b,
+> > +        .card      = CX88_BOARD_WINFAST_DTV2000H_VERSION_J,
+> > +    },{
+> >          .subvendor = 0x18ac,
+> >          .subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+> >          .card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+> > 
+> > 
+> > Would there be someone in the list with cx88 driver knowledge who 
+> > already achieved this for another board and could hint me on things to 
+> > look for?
+> > 
+> > I kindof reached the limits of my imagination and would really 
+> > appreciate a help.
+> > 
+> > So far my modprobe.conf reads:
+> > 
+> > options tda9887 debug=1
+> > options cx22702 debug=1
+> > options cx88xx i2c_debug=1 i2c_scan=1 audio_debug=1
+> > options cx8800 video_debug=1
+> > 
+> > and I would join the dmesg output if I did not care to flood the list.
+> > 
+> > Just let me know if it could help.
+> > 
+> > Thanks in advance
+> > Andre
+> 
+> 
 
 
-P.S. Have fun on your travels.
-
-On Fri, May 9, 2008 at 5:35 PM, Luc Gallant <lucgallant@gmail.com> wrote:
-
-> Alejandro,
->
-> I worked on the driver about 2.5 years ago, and it does work. I have done a
-> few bug fixes since then but haven't worked on it for a while. The CRC, a
-> branch of the Canadian Government, now maintains it. You can find it through
-> this webpage:
->
-> http://v4l2vd.sourceforge.net/
->
-> If you have any questions about the code specifically I'm unable to respond
-> for a few months (I'm on travels), but may be able to answer general
-> questions. Good luck, let me know.
->
-> Luc
->
-> On Wed, May 7, 2008 at 2:23 PM, Alejandro Salazar <alphazygma@gmail.com>
-> wrote:
->
->> Greetings v4l communitiy
->>
->> I'm building a system which requires using MythTv, and for testing
->> purposes
->> I want a Mock driver so I can automate tests without depending on
->> hardware.
->>
->> Doing some research I found out through the mailing lists, an old thread
->> somewhat similar to what I need,
->> http://marc.info/?l=linux-video&m=113344408417493&w=2.
->>
->> I haven't found yet through the site, if the Driver is available nowadays.
->>
->> If it is available, could you point me where to locate it please.
->>
->> If not, Luc, could you please lend me the driver you built back then.
->>
->>
->> Thanks for your help,
->> ~ Alejandro.
->>
->
->
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
