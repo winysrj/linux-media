@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CIQ0R1017005
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 14:26:00 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4CIPnFO020192
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 14:25:49 -0400
-Date: Mon, 12 May 2008 20:25:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Darius <augulis.darius@gmail.com>
-In-Reply-To: <g08tjl$uqt$1@ger.gmane.org>
-Message-ID: <Pine.LNX.4.64.0805121909130.5526@axis700.grange>
-References: <g08tjl$uqt$1@ger.gmane.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, linux-arm-kernel@lists.arm.linux.org.uk
-Subject: Re: [RFC] driver model for camera sensors
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m490EmxC008120
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:14:48 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m490EZQZ007750
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 20:14:35 -0400
+From: Andy Walls <awalls@radix.net>
+To: Andre Auzi <aauzi@users.sourceforge.net>
+In-Reply-To: <482370FD.7000001@users.sourceforge.net>
+References: <482370FD.7000001@users.sourceforge.net>
+Content-Type: text/plain
+Date: Thu, 08 May 2008 20:13:51 -0400
+Message-Id: <1210292031.4565.26.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: cx88 driver: Help needed to add radio support on Leadtek
+	WINFAST DTV 2000 H (version J)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,56 +28,148 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 12 May 2008, Darius wrote:
-
-> in 2.6.26-rc1 today we have soc-camera driver and two drivers for Micron
-> cameras in this new driver model. But there are few old drivers for OmniVision
-> cameras, and they do not work with soc-camera driver model.
-> In other side, these two new Micron drivers does not work with old interface.
-> So, we have the same sensors on different busses (soc, usb) and we need two
-> different drivers for the same sensor. I thing it's a good idea to make all
-> camera sensor drivers in unified model, that would be able to work on both
-> busses (usb, soc).
-> Now I need driver for OV7670 sensor and I want to write it correct form.
-> I think sensor driver should be universal and configurable. It should be able
-> interface with v4l2 through soc-camera or usb bus.
-> I suggest to put all sensor drivers in separate directory in kernel tree.
+On Thu, 2008-05-08 at 23:30 +0200, Andre Auzi wrote:
+> Hello list,
 > 
-> Am I rigth? Please comment my opinion.
+> I've started the task to add support of the board mentionned above.
+> 
+> So far I've got analog TV, Composite and Svideo inputs working OK with 
+> IR as well.
+> 
+> Unfortunately, my area does not have DVB-T yet, but from the scans I've 
+> made, I'm confident DVB support is on good tracks.
+> 
+> Nevertheless, I cannot achieve to have the radio input working.
+> 
+> The gpio values were captured with regspy on a working windows installation.
 
-The soc-camera subsystem implements the following interfaces:
+With the ivtv driver, I helped debug the LG TAPE-H series tuner on the
+PVR-150MCE not demodulating FM radio.  (Hans actually got the fix put
+in.)  The problem turned out to be the incorrect "bandswitch byte" being
+set in tuner-simple.c.  AFAICT, the gpio values for the CX23416 aren't
+used to set the FM radio on the PVR-150MCE.
 
-               user-space
-                    |
-               [V4L2 API]
-                    |
-             soc-camera core
-                |       |
-               /         \
-        [sensor API]  [adapter API]
-             /             \
-camera sensor driver   camera adapter driver
-           /                 \
-      [e.g. I2C]      [e.g. platform driver]
+There is a "bandswitch byte" in the synthesizer/1st mixer chip (probably
+a tua603x chip) in the tuner that controls some gpio pins.  These gpio
+pins setup the tuner's preselector by switching in the proper bandpass
+filter for the Low VHF, FM, High-VHF, or UHF bands
 
-Now, I think, you could write a camera driver, for example, for a 
-USB-camera, and implement the sensor API from above to talk to the sensor. 
-But, the interesting question what you do with the other interface - i2c 
-in this case? As far as I can see, there are several drivers in the kernel 
-ATM, that do this right: they export a (USB) i2c adapter to the kernel. 
-Some others, I think, like the ov511.c, implement i2c operations over USB 
-internally, which, certainly, cannot work with an external i2c sensor 
-driver. So, in your USB camera driver you have to implement an i2c adapter 
-driver, call i2c_new_device() for the i2c sensor chip as a part of your 
-probe, and use the sensor API to talk to the sensor itself.
+For the FM1216ME_MK3 tuner (not the FMD1216ME_MK3) this bandswitch byte
+needs to be set to 0x98 for FM stereo or 0x9a for FM mono.
 
-If the sensor API has to be extended / modified - this can be relatively 
-easily done as long as there are still not too many users in the mainline.
+I notice in tuner-simple.c:simple_radio_bandswitch(), that for both the
+FM1216ME_MK3 and the FMD1216ME_MK3, the bandswitch byte for FM is coded
+as 0x19.  This is a bit-reversal of 0x98.  This seems wrong according to
+the FM1216ME_MK3 tuner datasheet here:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+http://dl.ivtvdriver.org/datasheets/tuners/FM1216ME_MK3.pdf
+
+I can't find the FMD1216ME_MK3 datasheet with some quick google
+searches.  I cannot conclusively say the coded bandswitch byte of 0x19
+is wrong for the FMD1261ME_MK3, but I think it's worth some
+investigation/experimentation.
+
+You might also want to check/fix the tuner-simple.c:tuner_stereo()
+function while you're at it.
+
+Good luck,
+Andy
+
+
+> 
+> Here are my additions in cx88-cards.c:
+> 
+> diff -r 0a072dd11cd8 linux/drivers/media/video/cx88/cx88-cards.c
+> --- a/linux/drivers/media/video/cx88/cx88-cards.c    Wed May 07 15:42:54 
+> 2008 -0300
+> +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Thu May 08 23:07:36 
+> 2008 +0200
+> @@ -1300,6 +1300,52 @@
+>          }},
+>          .mpeg           = CX88_MPEG_DVB,
+>      },
+> +    [CX88_BOARD_WINFAST_DTV2000H_VERSION_J] = {
+> +        /* Radio still in testing */
+> +        .name           = "WinFast DTV2000 H (version J)",
+> +        .tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+> +        .radio_type     = UNSET,
+> +        .tuner_addr     = ADDR_UNSET,
+> +        .radio_addr     = ADDR_UNSET,
+> +        .tda9887_conf   = TDA9887_PRESENT,
+> +        .input          = {{
+> +            .type   = CX88_VMUX_TELEVISION,
+> +            .vmux   = 0,
+> +            .gpio0  = 0x00013700,
+> +            .gpio1  = 0x0000a207,
+> +            .gpio2  = 0x00013700,
+> +            .gpio3  = 0x02000000,
+> +        },{
+> +            .type   = CX88_VMUX_CABLE,
+> +            .vmux   = 0,
+> +            .gpio0  = 0x0001b700,
+> +            .gpio1  = 0x0000a207,
+> +            .gpio2  = 0x0001b700,
+> +            .gpio3  = 0x02000000,
+> +        },{
+> +            .type   = CX88_VMUX_COMPOSITE1,
+> +            .vmux   = 1,
+> +            .gpio0  = 0x00013701,
+> +            .gpio1  = 0x0000a207,
+> +            .gpio2  = 0x00013701,
+> +            .gpio3  = 0x02000000,
+> +        },{
+> +            .type   = CX88_VMUX_SVIDEO,
+> +            .vmux   = 2,
+> +            .gpio0  = 0x00013701,
+> +            .gpio1  = 0x0000a207,
+> +            .gpio2  = 0x00013701,
+> +            .gpio3  = 0x02000000,
+> +        } },
+> +        .radio = {
+> +            .type   = CX88_RADIO,
+> +            .gpio0  = 0x00013702,
+> +            .gpio1  = 0x0000a207,
+> +            .gpio2  = 0x00013702,
+> +            .gpio3  = 0x02000000,
+> +        },
+> +    },
+>      [CX88_BOARD_GENIATECH_DVBS] = {
+>          .name          = "Geniatech DVB-S",
+>          .tuner_type    = TUNER_ABSENT,
+> @@ -1957,6 +2003,10 @@
+>          .subdevice = 0x665e,
+>          .card      = CX88_BOARD_WINFAST_DTV2000H,
+>      },{
+> +        .subvendor = 0x107d,
+> +        .subdevice = 0x6f2b,
+> +        .card      = CX88_BOARD_WINFAST_DTV2000H_VERSION_J,
+> +    },{
+>          .subvendor = 0x18ac,
+>          .subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+>          .card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+> 
+> 
+> Would there be someone in the list with cx88 driver knowledge who 
+> already achieved this for another board and could hint me on things to 
+> look for?
+> 
+> I kindof reached the limits of my imagination and would really 
+> appreciate a help.
+> 
+> So far my modprobe.conf reads:
+> 
+> options tda9887 debug=1
+> options cx22702 debug=1
+> options cx88xx i2c_debug=1 i2c_scan=1 audio_debug=1
+> options cx8800 video_debug=1
+> 
+> and I would join the dmesg output if I did not care to flood the list.
+> 
+> Just let me know if it could help.
+> 
+> Thanks in advance
+> Andre
+
 
 --
 video4linux-list mailing list
