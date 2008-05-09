@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GEZKfb007407
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 10:35:20 -0400
-Received: from acheron.ifi.lmu.de (acheron.ifi.lmu.de [129.187.214.135])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GEZ5dp019077
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 10:35:06 -0400
-Received: from fluff.wintermute.medea (fluff.medien.ifi.lmu.de [141.84.8.80])
-	by acheron.ifi.lmu.de (Postfix) with ESMTP id BC74B44E9C
-	for <video4linux-list@redhat.com>;
-	Fri, 16 May 2008 16:34:55 +0200 (CEST)
-Date: Fri, 16 May 2008 16:35:37 +0200
-From: Richard Atterer <richard@2008.atterer.net>
-To: video4linux-list@redhat.com
-Message-ID: <20080516143537.GA7963@fluff.lan>
-References: <a5eaedfa0805160656t29d2858ao3c1c81469b87b0af@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49BXbsv006013
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 07:33:37 -0400
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49BXO7p017747
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 07:33:24 -0400
+Message-ID: <48243681.30500@users.sourceforge.net>
+Date: Fri, 09 May 2008 13:33:21 +0200
+From: Andre Auzi <aauzi@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <482370FD.7000001@users.sourceforge.net>	
+	<1210292031.4565.26.camel@palomino.walls.org>
+	<1210294711.2541.6.camel@pc10.localdom.local>
+In-Reply-To: <1210294711.2541.6.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <a5eaedfa0805160656t29d2858ao3c1c81469b87b0af@mail.gmail.com>
-Subject: Re: pixel count doubts
+Cc: video4linux-list@redhat.com
+Subject: Re: cx88 driver: Help needed to add radio support on Leadtek	WINFAST
+ DTV 2000 H (version J)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,45 +30,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, May 16, 2008 at 07:26:27PM +0530, Veda N wrote:
+hermann pitton a écrit :
+> Am Donnerstag, den 08.05.2008, 20:13 -0400 schrieb Andy Walls:
+>> On Thu, 2008-05-08 at 23:30 +0200, Andre Auzi wrote:
+>>> Hello list,
+>>>
+>>> I've started the task to add support of the board mentionned above.
+>>>
+>>> So far I've got analog TV, Composite and Svideo inputs working OK with 
+>>> IR as well.
+>>>
+>>> Unfortunately, my area does not have DVB-T yet, but from the scans I've 
+>>> made, I'm confident DVB support is on good tracks.
+>>>
+>>> Nevertheless, I cannot achieve to have the radio input working.
+>>>
+>>> The gpio values were captured with regspy on a working windows installation.
+>> With the ivtv driver, I helped debug the LG TAPE-H series tuner on the
+>> PVR-150MCE not demodulating FM radio.  (Hans actually got the fix put
+>> in.)  The problem turned out to be the incorrect "bandswitch byte" being
+>> set in tuner-simple.c.  AFAICT, the gpio values for the CX23416 aren't
+>> used to set the FM radio on the PVR-150MCE.
+>>
+>> There is a "bandswitch byte" in the synthesizer/1st mixer chip (probably
+>> a tua603x chip) in the tuner that controls some gpio pins.  These gpio
+>> pins setup the tuner's preselector by switching in the proper bandpass
+>> filter for the Low VHF, FM, High-VHF, or UHF bands
+>>
+>> For the FM1216ME_MK3 tuner (not the FMD1216ME_MK3) this bandswitch byte
+>> needs to be set to 0x98 for FM stereo or 0x9a for FM mono.
+>>
+>> I notice in tuner-simple.c:simple_radio_bandswitch(), that for both the
+>> FM1216ME_MK3 and the FMD1216ME_MK3, the bandswitch byte for FM is coded
+>> as 0x19.  This is a bit-reversal of 0x98.  This seems wrong according to
+>> the FM1216ME_MK3 tuner datasheet here:
+>>
+>> http://dl.ivtvdriver.org/datasheets/tuners/FM1216ME_MK3.pdf
+>>
+>> I can't find the FMD1216ME_MK3 datasheet with some quick google
+>> searches.  I cannot conclusively say the coded bandswitch byte of 0x19
+>> is wrong for the FMD1261ME_MK3, but I think it's worth some
+>> investigation/experimentation.
+> 
 > Hi,
-> I am trying to write a camera sensor driver.
 > 
-> The sensor documents says that -
-> For the resolution VGA, The pixel count is 640x480x3.
+> it is, we were only hackers!
 > 
-> I did not understand what is meant by x3 in pixel count.
+> And there is no substitution for it.
 > 
-> Usually it is 60x480. The number of bytes per pixel is 2.
+> The radio stereo hack was specific for the FM1216ME/I H-3 (MK3) and the
+> FMD1216ME/I H-3 (MK-3) never could utilize that bit reading out the
+> stereo status for FM ...
 > 
-> Does this mean that instead of 2 bytes per pixel. it is 3 bytes?
+> Cheers,
+> Hermann
+>  
 
-There isn't really enough information to tell, but probably yes.
+Thanks Andy, thanks Hermann,
 
-Note that it is often the case that a claimed sensor resolution of, say, 
-640x480 means that the _Bayer pattern_ resolution is 640x480 - in other 
-words, there are that many pixels, but each pixel is only for one of the 
-colours red, green or blue, and further interpolation is necessary to get a 
-640x480 RGB picture.
+this gives me another start point.
 
-So the "640x480x3" /could/ mean "3 subpixels for each image pixel", but I 
-strongly doubt it; Foveon sensors are fairly rare in webcams. ;-)
+It's all new stuff for me and it may take some time to digest the 
+information but I'll do my best.
 
-> How should i account this pixel count in my driver.
-> How much should be  bytesperline and sizeimage
-> How should i account this in my application as well.
-
-I think you will have to play around to see what the exact data format is. 
+With the hardware in hands it would be a shame if I don't come up with 
+something.
 
 Cheers,
-
-  Richard
-
--- 
-  __   _
-  |_) /|  Richard Atterer     |  GnuPG key: 888354F7
-  | \/¯|  http://atterer.net  |  08A9 7B7D 3D13 3EF2 3D25  D157 79E6 F6DC 8883 54F7
-  ¯ '` ¯
+Andre
 
 --
 video4linux-list mailing list
