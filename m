@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FD4ugO023289
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 09:04:57 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.236])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FD4k6r003169
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 09:04:46 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so468921rvb.51
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 06:04:46 -0700 (PDT)
-Message-ID: <62e5edd40805150604h6d0f23ffybf13eb6b07d87a76@mail.gmail.com>
-Date: Thu, 15 May 2008 15:04:45 +0200
-From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-Subject: In-kernel frame conversion
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49FcXDQ010009
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 11:38:33 -0400
+Received: from smtp-out3.libero.it (smtp-out3.libero.it [212.52.84.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49Fc0tk014970
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 11:38:00 -0400
+Received: from MailRelay09.libero.it (192.168.32.116) by smtp-out3.libero.it
+	(7.3.120) id 4628C87A0B991798 for video4linux-list@redhat.com;
+	Fri, 9 May 2008 17:37:54 +0200
+From: Roberto Mantovani - A&L <rmantovani@libero.it>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain
+Date: Fri, 09 May 2008 17:37:54 +0200
+Message-Id: <1210347474.15033.10.camel@mandoch.ael.it>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: How to view camera output with xine
+Reply-To: rmantovani@libero.it
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,30 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi list,
-I'm one of the developers of the m560x project. (
-http://sourceforge.net/projects/m560x-driver/ )
-aiming to provide a driver for the ALi m5602, m5603 chipsets.
+Hi,
 
-As no datasheets for these chipsets are available we are resorted to revers=
-e
-engineer the windows driver.
-This driver is unfortunately braindead, always sending Bayer-encoded frames
-at a fixed VGA resolution.
-Color recovery, resizing and format conversion is all done in software.
+I'm working on a em28xx based usb camera.
 
-Currently we do the same in order to make the camera useful as many relevan=
-t
-linux v4l2 applications fail to have user-space routines converting
-Bayer-frames.
+How can I view the camera output with xine ?
 
-Is it possible to get a driver included upstream and still have such
-kernel-space frame conversion routines or do they have to go in order to ge=
-t
-the driver in an acceptable shape?
+With mplayer I run the command : mplayer tv://
 
-Regards,
-Erik Andr=E9n
+With xine I've tried : xine v4l2:// but xine give me a message : "there
+is no input plugin available to handle v4l2://", but if I try xine
+--list-pugins there is :
+-Input:
+   ...,v4l_tv, ...
+
+I have to write a program in fltk to handle the video out of the cam.
+Do you know other methods to use the video out of the camera in a
+program ? 
+
+Best Regards,
+--
+Roberto
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
