@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m415wqoW026614
-	for <video4linux-list@redhat.com>; Thu, 1 May 2008 01:58:52 -0400
-Received: from smtp2b.orange.fr (smtp2b.orange.fr [80.12.242.145])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m415wcjj015782
-	for <video4linux-list@redhat.com>; Thu, 1 May 2008 01:58:39 -0400
-Date: Thu, 1 May 2008 07:58:31 +0200
-From: mahakali <mahakali@orange.fr>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080501055831.GA6321@orange.fr>
-References: <20080428182959.GA21773@orange.fr>
-	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>
-	<20080429192149.GB10635@orange.fr>
-	<1209507302.3456.83.camel@pc10.localdom.local>
-	<20080430155851.GA5818@orange.fr>
-	<1209592608.31036.36.camel@pc10.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49LroC8010639
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 17:53:50 -0400
+Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
+	[151.189.21.45])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49Lrbmi012441
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 17:53:37 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andre Auzi <aauzi@users.sourceforge.net>
+In-Reply-To: <48247919.8020402@users.sourceforge.net>
+References: <482370FD.7000001@users.sourceforge.net>
+	<1210296633.2541.26.camel@pc10.localdom.local>
+	<1210297053.2541.31.camel@pc10.localdom.local>
+	<48247919.8020402@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Date: Fri, 09 May 2008 23:52:32 +0200
+Message-Id: <1210369953.3080.31.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1209592608.31036.36.camel@pc10.localdom.local>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Card Asus P7131 hybrid > no signal
+Cc: video4linux-list@redhat.com
+Subject: Re: cx88 driver: Help needed to add radio support on
+	Leadtek	WINFAST DTV 2000 H (version J)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,119 +32,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Apr 30, 2008 at 11:56:48PM +0200, hermann pitton wrote :
-> Hi,
-> 
-> Am Mittwoch, den 30.04.2008, 17:58 +0200 schrieb mahakali:
-> > On Wed, Apr 30, 2008 at 12:15:02AM +0200, hermann pitton wrote :
-> 
-> > > 
-> > > Hello,
-> > > 
-> > > if you have card=112 tuner=61 auto detected something goes very wrong.
-> > > 
-> > > On any recent "official" code the card should be auto detected as
-> > > card=112, tuner=54, which is the tda8290 analog IF demodulator within
-> > > the saa7131e and behind its i2c gate is a tda8275ac1 at address 0x61
-> > > which is correct in your logs.
-> > > 
-> > > Hopefully you are only confusing tuner address 61 with tuner type,
-> > > auto detection should be OK then.
-> > >
-> > module saa7134 is now loading with following parameters :
-> > 
-> > card=112 tuner=54 i2c_scan=1 secam=L
-> >  
-> > > Analog TV is on the upper antenna connector (cable TV) and you need a
-> > > saa7134 insmod option "secam=L" in France. ("modinfo saa7134")
-> > > On La Corse may still be some "secam=Lc" broadcast, not sure about that.
-> 
-> > I don't have any upper or lower connector , only right and link.
-> > °right connector is described as RF-FM and link as CAT-TV
-> 
-> That's OK.
 
-I read somewhere you have to inverse the connectors, so for analog TV
-you plug in the CAT-TV connector (?)  
-> > > DVB-T (numerique) is on the lower antenna connector where also is
-> > > radio/FM.
-> > > 
-> > > We have many reports that there often is an positive offset of about
-> > > 166000Hz needed in France, which you don't seem to use on your digital
-> > > tuning attempt. If this is needed and missing, the tda10046 will fail.
-> > > You might try to add it.
-> > > 
-> > > Download dvb-apps from linuxtv.org mercurial and check if there is an
-> > > updated initial scan file for your region in scan/dvb-t.
+Am Freitag, den 09.05.2008, 18:17 +0200 schrieb Andre Auzi:
+> hermann pitton a Ã©crit :
+> > Am Freitag, den 09.05.2008, 03:30 +0200 schrieb hermann pitton:
+> >> Am Donnerstag, den 08.05.2008, 23:30 +0200 schrieb Andre Auzi:
 > > 
-> > Nothing new.
-
-> >  Itried it now with fr_Auxerre + offset
-> > #### Auxerre - Molesmes ####
-> > #R1
-> > T 570166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> > #R2
-> > T 794166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> > #R3
-> > T 770166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> > #R4
-> > T 546166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> > #R5
-> > T 586166000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> > #R6
-> > T 562166000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> >> Radio on the FMD1216ME/I MK3 is not perfect anyway, on other stuff it
+> >> might also only be the best hack around then, but some still claim new
+> >> hardware doesn't exist ...
 > > 
-> > but scanning fails ..... 
-> >  
-> > > You can also try to "scan" on a known frequency and bandwidth and set
-> > > the rest to AUTO AUTO ... or get "wscan" or try with "kaffeine".
-
-What do you mean by "the rest" ? Could you give an example line ??
-
- 
-> > Any idea ??
-> 
-> Not much more. Maybe some other value is wrong, which other digital
-> demods tolerate. That was that with try AUTO there, except for frequency
-> and bandwidth.
-> 
+> > One is missing here.
 > > 
-> > Thanks
+> > You might have the newer FMD1216MEX, Steve mentioned sometime
+> > previously, it might be slightly different for the radio support.
 > > 
-> > mahakali
+> > I do know exactly nothing about it.
 > > 
-> > PS :
-> > I was asking myself , perhaps is something wrong with the connection, I
-> > had to  put together cable and plug, so perhaps a bad electrical
-> > transmission (??) but as I already said tvtime is dectecting some
-> > channels but no image
+> > Cheers,
+> > Hermann
+> > 
+> > 
 > > 
 > 
-> I'm not aware of issues for DVB-T. There was trouble for such boards
-> with LNA recently on devel stuff, but as far as I know it did not make
-> it out to a kernel.
+>  From the driver's inf file I read:
 > 
-> We have definitely issues on analog, but I can't test SECAM_L.
-
-So I was fixed till now with analog, I could give digital a chance.
-Where I am living  we get TNT, so digital TV
-In the card package I got  a little black antenna, do I need other stuff
-to get it working ? And how to do it? 
-
+> [LR6F2B.AddReg]
+> HKR,"DriverData","FMD1216MEX",0x0010001, 0x01, 0x00, 0x00, 0x00
 > 
-> After ioctl2 conversion, the apps don't let the user select specific
-> subnorms like PAL_I, PAL_BG, PAL_DK and SECAM_L, SECAM_DK, SECAM_Lc
-> anymore.
+> This probably means you guessed right.
 > 
-> What one can only select is visible here.
-> http://linuxtv.org/hg/v4l-dvb/rev/aa554a86b38a
-
-Code is at this time to complex for me.
+> That's a step forward, isn't it?
 > 
->
-Thanks for all ...
+> Too bad you cannot say more.
+> 
+> I'll keep you posted.
+> 
+> Rgards,
+> Andre
 
-mahakali 
+It might explain it, but is based only on rumors.
+
+If the MEX is really different, it should have its own tuner definition
+and also not point to the FMD1216ME/I H-3 (MK3) in tveeprom anymore.
+
+The rule is to avoid plain duplication, but the slightest difference
+justifies a new tuner entry.
+
+On that saa7134 you have I had only a quick look at their website.
+
+There seems not to be a card with saa7135 device, and more important, I
+don't see anything pointing to an empress style mpeg encoder, which you
+have enabled.
+
+We need complete chip listing, if possible high resolution photos and as
+an absolute minimum dmesg with i2c_scan=1 enabled.
+
+The saa7134 chip device there seems to have a well known remote, maybe
+you can discover it at the bttv-gallery.de.
+
+We seem also to have a problem how to collect information about new
+devices currently, the v4l-wiki is by far not sufficient enough to look
+something up and Gunther at the bttv gallery might have it sick, dunno.
+
+I'm not a fan of ASCII art in saa7134-input, that should have a place on
+the wiki and/or the bttv-gallery.
+
+Without looking closer, you should _not_ have the keypress at 0x8000 in
+the gpiomask of the card in saa7134-cards.c, but only in
+saa7134-input.c. If that is not sufficient, something weird is going on.
+
+Most consumer devices in Europe, almost always SCART is used for s-video
+here, do only output composite, even on their s-video connectors. That
+might explain the black and white only. Also vmux 8 seems to be
+untested.
+
+The most astonishing you have is tda9887 port2 inactive and intercarrier
+demodulation, and that should work with a claimed FM1216ME/I H-3 (MK3)
+on SECAM_L !
+
+Almost impossible for my limited experience.
+
+We need hard facts about that tuner on the board.
+
+Have a look at tuner-types.h/c and what is needed to have the MK3s
+functional for all such different standards. To force something in the
+card's entry will override all such, and as said, I'm scratching my
+head, how you could ever have SECAM_L functional with what you choose ;)
+
+Send new patches and those interested might continue with it there.
+
+Cheers,
+Hermann
+
+
 
 --
 video4linux-list mailing list
