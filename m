@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4TGWFlU028851
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 12:32:16 -0400
-Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
-	[195.188.213.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4TGW2i5014072
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 12:32:02 -0400
-Received: from [172.23.170.140] (helo=anti-virus02-07)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1K1l2n-00013Z-UI
-	for video4linux-list@redhat.com; Thu, 29 May 2008 17:32:01 +0100
-Received: from [80.195.195.227] (helo=[80.195.195.227])
-	by asmtp-out1.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1K1l2n-0005d6-GB
-	for video4linux-list@redhat.com; Thu, 29 May 2008 17:32:01 +0100
-Message-ID: <483EDAF0.9050304@blueyonder.co.uk>
-Date: Thu, 29 May 2008 17:33:52 +0100
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
-MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m491d7gb006727
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 21:39:07 -0400
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
+	[151.189.21.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m491cXQD016040
+	for <video4linux-list@redhat.com>; Thu, 8 May 2008 21:38:53 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andre Auzi <aauzi@users.sourceforge.net>
+In-Reply-To: <1210296633.2541.26.camel@pc10.localdom.local>
+References: <482370FD.7000001@users.sourceforge.net>
+	<1210296633.2541.26.camel@pc10.localdom.local>
+Content-Type: text/plain
+Date: Fri, 09 May 2008 03:37:33 +0200
+Message-Id: <1210297053.2541.31.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Advice wanted for new system
-Reply-To: Ian.davidson@bigfoot.com
+Cc: video4linux-list@redhat.com
+Subject: Re: cx88 driver: Help needed to add radio support on Leadtek
+	WINFAST DTV 2000 H (version J)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,33 +30,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have been recording (church services) using xawtv (streamer) and 
-composite video input to create avi files.
 
-I have discovered that the maximum size that the avi can reach is about 
-2GB - and obviously, this is affected by frame size and frame rate - 
-and, of course, length of recording. 
+Am Freitag, den 09.05.2008, 03:30 +0200 schrieb hermann pitton:
+> Am Donnerstag, den 08.05.2008, 23:30 +0200 schrieb Andre Auzi:
 
-I particularly like the ability of being able to start the capture 
-process using command-line parameters.
+> 
+> Radio on the FMD1216ME/I MK3 is not perfect anyway, on other stuff it
+> might also only be the best hack around then, but some still claim new
+> hardware doesn't exist ...
 
-I have the opportunity to renew the system and would appreciate any 
-suggestions about what I might do different next time.
+One is missing here.
 
-Regards
+You might have the newer FMD1216MEX, Steve mentioned sometime
+previously, it might be slightly different for the radio support.
 
--- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
--- 
-Facts used in this message may or may not reflect an underlying
-objective reality. Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. Facts
-supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of
-actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury
-resulting from memorisation and subsequent use.
+I do know exactly nothing about it.
+
+Cheers,
+Hermann
 
 
 --
