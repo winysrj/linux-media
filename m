@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1Jukj6-00083F-DZ
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:46:45 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1149514fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 01:46:41 -0700 (PDT)
-Message-ID: <482560EB.2000306@gmail.com>
-Date: Sat, 10 May 2008 10:46:35 +0200
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------020308070600080405080201"
-From: e9hack <e9hack@googlemail.com>
-Subject: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
-	stv0297
+	(envelope-from <awalls@radix.net>) id 1Juykz-0001Bv-ET
+	for linux-dvb@linuxtv.org; Sun, 11 May 2008 01:45:41 +0200
+From: Andy Walls <awalls@radix.net>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48261EB5.2090604@gmail.com>
+References: <482560EB.2000306@gmail.com>
+	<200805101717.23199@orion.escape-edv.de>
+	<200805101727.55810@orion.escape-edv.de>
+	<1210456421.7632.29.camel@palomino.walls.org>
+	<48261EB5.2090604@gmail.com>
+Date: Sat, 10 May 2008 19:44:28 -0400
+Message-Id: <1210463068.7632.102.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends
+	tda10021	and	stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,144 +24,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020308070600080405080201
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sun, 2008-05-11 at 02:16 +0400, Manu Abraham wrote:
+> Andy Walls wrote:
+> > On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
+> >> Oliver Endriss wrote:
+> >>> e9hack wrote:
+> >>>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
+> >>>> makes the UNC value of the femon plugin useless.
+> >>> Why? It does not make sense to accumulate the errors forever, i.e.
+> >>> nobody wants to know what happened last year...
+> >>>
+> >>> Afaics it is ok to reset the counter after reading it.
+> >>> All drivers should behave this way.
+> >>>
+> >>> If the femon plugin requires something else it might store the values
+> >>> and process them as desired.
+> >>>
+> >>> Afaics the femon command line tool has no problems with that.
+> >> Argh, I just checked the API 1.0.0. spec:
+> >> | FE READ UNCORRECTED BLOCKS
+> >> | This ioctl call returns the number of uncorrected blocks detected by the device
+> >> | driver during its lifetime. For meaningful measurements, the increment
+> >> | in block count during a speci c time interval should be calculated. For this
+> >> | command, read-only access to the device is suf cient.
+> >> | Note that the counter will wrap to zero after its maximum count has been
+> >> | reached
+> >>
+> >> So it seens you are right and the drivers should accumulate the errors
+> >> forever. Any opinions?
+> > 
+> > For communications systems, whether its is two-way or one-way broadcast,
+> > most people are concerned with the error *rate* (errors per unit time)
+> > rather than absolute error counts.  Communications engineers have a good
+> > understanding of what it means to have a 10^-2 BER vs 10^-12 BER, and
+> > adjust their expectations accordingly.  Absolute counts have less
+> > meaning to engineers, and I'm not sure what a layman would make of them.
+> 
+> There is different terminology involved:
+> 
+> BER: implies a rate which is averaged over a period of time. This
+> implies the errors in the stream, not after FEC.
 
-Hi,
-
-the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
-makes the UNC value of the femon plugin useless. The attached patch will fix this issue. 
-It is simple for the stv0297. For the tda10021, the uncorrected block count must be read 
-cyclical, because the resolution of the counter is very low. This can be done within 
-tda10021_read_status. The read-status-function is called cyclical from the frontend-thread.
-
-Some other frontends have the same problem (tda10023, ves1820, ves1x93, ...).
-
--Hartmut
+Yes.  I used the term too loosely in my example.  Thank you for the
+clarification/correction.
 
 
+> UNC: Uncorrected symbols over a lifetime, well this is not practically
+> possible and will wrap around. This is not related to time, but it is
+> just a measure of the symbols that wasn't been able by the FEC engine to
+> correct.
+
+Right.  But maybe a Symbol Error (or Erasure) Rate provides more useful
+information than just a count, no?  
+
+An error rate computed over a "short" interval can be used to detect a
+period of communications interruption within software to alert the user
+or to take corrective action.
+
+Absolute counts aren't useful for assessing the current "health" of the
+system.
 
 
---------------020308070600080405080201
-Content-Type: text/x-diff;
- name="tda10021-unc-fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="tda10021-unc-fix.diff"
+> Generally a meaningless term, in many cases except a few.
 
-signed-off-by: Hartmut Birr <e9hack@gmail.com>
-- The uncorrected block counter shouldn't be reset on read. The tda10021 contains 
-  an uncorrected block counter, which has only a resoltion of 7 bits and 
-  which isn't able wrap to zero. The driver must manage the block counter by itself. 
-diff -r 4c4fd6b8755c linux/drivers/media/dvb/frontends/tda10021.c
---- a/linux/drivers/media/dvb/frontends/tda10021.c	Fri May 02 07:51:27 2008 -0300
-+++ b/linux/drivers/media/dvb/frontends/tda10021.c	Sat May 03 18:55:09 2008 +0200
-@@ -41,6 +41,8 @@ struct tda10021_state {
- 
- 	u8 pwm;
- 	u8 reg0;
-+	u8 last_lock : 1;
-+	u32 ucblocks;
- };
- 
- 
-@@ -266,6 +268,10 @@ static int tda10021_set_parameters (stru
- 
- 	tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
- 
-+	/* reset uncorrected block counter */
-+	state->last_lock = 0;
-+	state->ucblocks = 0;
-+
- 	return 0;
- }
- 
-@@ -273,6 +279,7 @@ static int tda10021_read_status(struct d
- {
- 	struct tda10021_state* state = fe->demodulator_priv;
- 	int sync;
-+	u32 ucblocks;
- 
- 	*status = 0;
- 	//0x11[0] == EQALGO -> Equalizer algorithms state
-@@ -291,6 +298,22 @@ static int tda10021_read_status(struct d
- 	if (sync & 8)
- 		*status |= FE_HAS_LOCK;
- 
-+	/* read uncorrected block counter */
-+	ucblocks = tda10021_readreg(state, 0x13) & 0x7f;
-+
-+	/* reset uncorrected block counter */
-+	_tda10021_writereg(state, 0x10, tda10021_inittab[0x10] & 0xdf);
-+	_tda10021_writereg(state, 0x10, tda10021_inittab[0x10]);
-+
-+	if (sync & 8) {
-+		if (state->last_lock)
-+			/* update ucblocks */
-+			state->ucblocks += ucblocks;
-+		state->last_lock = 1;
-+	} else {
-+		state->last_lock = 0;
-+	}
-+
- 	return 0;
- }
- 
-@@ -335,14 +358,10 @@ static int tda10021_read_ucblocks(struct
- static int tda10021_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- {
- 	struct tda10021_state* state = fe->demodulator_priv;
--
--	*ucblocks = tda10021_readreg (state, 0x13) & 0x7f;
--	if (*ucblocks == 0x7f)
--		*ucblocks = 0xffffffff;
--
--	/* reset uncorrected block counter */
--	_tda10021_writereg (state, 0x10, tda10021_inittab[0x10] & 0xdf);
--	_tda10021_writereg (state, 0x10, tda10021_inittab[0x10]);
-+	fe_status_t status;
-+
-+	tda10021_read_status(fe, &status);
-+	*ucblocks = state->ucblocks;
- 
- 	return 0;
- }
+I agree.
 
---------------020308070600080405080201
-Content-Type: text/x-diff;
- name="stv0297-unc-fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="stv0297-unc-fix.diff"
+> Absolute errors are used very scantily, but have been used to see how
+> good/bad the whole system is.
 
-signed-off-by: Hartmut Birr <e9hack@gmail.com>
-- Don't reset the uncorrected block counter on a read request.
-diff -r 4c4fd6b8755c linux/drivers/media/dvb/frontends/stv0297.c
---- a/linux/drivers/media/dvb/frontends/stv0297.c	Fri May 02 07:51:27 2008 -0300
-+++ b/linux/drivers/media/dvb/frontends/stv0297.c	Sat May 03 15:43:48 2008 +0200
-@@ -398,7 +398,6 @@ static int stv0297_read_ucblocks(struct 
- 	*ucblocks = (stv0297_readreg(state, 0xD5) << 8)
- 		| stv0297_readreg(state, 0xD4);
- 
--	stv0297_writereg_mask(state, 0xDF, 0x03, 0x02); /* clear the counters */
- 	stv0297_writereg_mask(state, 0xDF, 0x03, 0x01); /* re-enable the counters */
- 
- 	return 0;
+Except for in safety critical systems (fire suppression system,
+automobile brakes, etc.), how can a "good/bad" determination based on an
+error count be separated from a time interval over which that error
+count occurred?
 
---------------020308070600080405080201
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+>  BER cannot define this, as it is defined
+> before the FEC. Sometimes what's defined in the BER, the FEC engine
+> might be able to correct and hence.
+
+Right BER doesn't define performance of a system, just a constraint
+under which the system is expected to work.
+
+So we can call what I suggested Uncorrected Symbol Rate, or Symbol Error
+Rate, or Message Error Rate if the FEC covers more than 1 symbol -
+whatever makes the most sense.
+
+My opinion is that reporting of rate is more useful than absolute
+counts.
+
+Regards,
+Andy
+
+> 
+> Regards,
+> Manu
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020308070600080405080201--
