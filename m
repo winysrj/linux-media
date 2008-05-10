@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.renzel.net ([195.243.213.130] helo=nijmegen.renzel.net)
+Received: from emh05.mail.saunalahti.fi ([62.142.5.111])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mws@linuxtv.org>) id 1JyRrG-0007v0-3N
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 15:26:27 +0200
-Message-ID: <4832D11A.5010303@linuxtv.org>
-Date: Tue, 20 May 2008 15:24:42 +0200
-From: Marcel Siegert <mws@linuxtv.org>
+	(envelope-from <marko.ristola@kolumbus.fi>) id 1JuwD7-0002bR-7Q
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 23:02:32 +0200
+Message-ID: <48260D5C.8070203@kolumbus.fi>
+Date: Sun, 11 May 2008 00:02:20 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-To: Guru <gurumurti@nkindia.com>
-References: <db82654a99c997aa9ba9c262466c816b@nkindia.com>
-In-Reply-To: <db82654a99c997aa9ba9c262466c816b@nkindia.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Subtitle
+To: linux-dvb@linuxtv.org, Kristian Slavov <krisu@nomadiclab.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: [linux-dvb] About Kristian Slavov's Mantis remote controller patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,20 +23,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Guru schrieb:
-> Hi all,
-> I am looking for inserting subtitle in TS stream. can any one suggest me a
-> standard  / document / source code for implementation..
-> Thanks with regards....
 
-hi,
+Hi Kristian, Manu and you all at Linux DVB list with Mantis cards.
 
-what kind of subtitles are you looking for? 
 
-dvb or "normal" teletext?
+Kristian Slavov made some years ago a remote controller patch
+for the Manu's jusst.de Mantis branch.
 
-regards
-marcel
+On this link http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
+there is stated, that the Wiki writer doesn't know why
+Kristian's patch hasn't been included into jusst.de.
+
+I have been in Contact with both Manu and Kristian about two years ago.
+Kristian was willing to get his code merged into Manu's branch.
+You can ask from Kristian again, if you like.
+
+Kristian sent once an email into this list with the purpose that Manu
+could include his patch into jusst.de. I can't find the email though 
+with Google,
+maybe it was about two years ago.
+
+The reason, why Manu hasn't included Kristian Slavov's patch?
+Personally I don't know. Maybe Manu just slipped the opportunity?
+Maybe it is now a good time to include Kristian's patch.
+
+Best Regards,
+Marko Ristola
+
 
 
 _______________________________________________
