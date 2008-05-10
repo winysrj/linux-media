@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <totallymaxed@gmail.com>) id 1JzC0c-0003ne-P0
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 16:43:16 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so83606wag.13
-	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 07:43:02 -0700 (PDT)
-Message-ID: <71798b430805220743o3c0098dchda08dde0c698a4d5@mail.gmail.com>
-Date: Thu, 22 May 2008 15:43:02 +0100
-From: "Andrew Herron" <totallymaxed@gmail.com>
-To: "Mark Fraser" <linuxtv@mfraz74.orangehome.co.uk>
-In-Reply-To: <200805221523.24712.linuxtv@mfraz74.orangehome.co.uk>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jur08-0008Cm-CV
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 17:28:46 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 10 May 2008 17:27:55 +0200
+References: <482560EB.2000306@gmail.com>
+	<200805101717.23199@orion.escape-edv.de>
+In-Reply-To: <200805101717.23199@orion.escape-edv.de>
 MIME-Version: 1.0
-References: <71798b430805220712h54a5b1a2u788e56e978f683a3@mail.gmail.com>
-	<200805221523.24712.linuxtv@mfraz74.orangehome.co.uk>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] uk-RidgeHill - scan file
+Content-Disposition: inline
+Message-Id: <200805101727.55810@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
+	stv0297
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,116 +22,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1431949593=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1431949593==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_17802_29587834.1211467382352"
+Oliver Endriss wrote:
+> e9hack wrote:
+> > the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
+> > makes the UNC value of the femon plugin useless.
+> 
+> Why? It does not make sense to accumulate the errors forever, i.e.
+> nobody wants to know what happened last year...
+> 
+> Afaics it is ok to reset the counter after reading it.
+> All drivers should behave this way.
+> 
+> If the femon plugin requires something else it might store the values
+> and process them as desired.
+> 
+> Afaics the femon command line tool has no problems with that.
 
-------=_Part_17802_29587834.1211467382352
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Argh, I just checked the API 1.0.0. spec:
+| FE READ UNCORRECTED BLOCKS
+| This ioctl call returns the number of uncorrected blocks detected by the device
+| driver during its lifetime. For meaningful measurements, the increment
+| in block count during a speci c time interval should be calculated. For this
+| command, read-only access to the device is suf cient.
+| Note that the counter will wrap to zero after its maximum count has been
+| reached
 
-Mark - thanks for pointing me at that file. I'll give it a try.
+So it seens you are right and the drivers should accumulate the errors
+forever. Any opinions?
 
-Cheers
-
-Andrew
-
-On Thu, May 22, 2008 at 3:23 PM, Mark Fraser <
-linuxtv@mfraz74.orangehome.co.uk> wrote:
-
-> On Thursday 22 May 2008 15:12:20 Andrew Herron wrote:
-> > Hi,
-> >
-> > Does anyone have a working tuning file for this UK transmitter that I can
-> > use with scan?
-> >
-> > All the best
-> >
-> > Andrew
->
-> Is the one available on linuxtv.org any good?
->
->
-> http://linuxtv.org/hg/dvb-apps/file/31a6dd437b9a/util/scan/dvb-t/uk-RidgeHill
->
->
-> --
-> |\  /| ark Fraser  /Registered Linux User #466407
-> | \/ | Somerset   /Using Kmail on Kubuntu Gutsy Gibbon
-> |    |___________/You know what the sig means!
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
+CU
+Oliver
 
 -- 
-Convergent Home Technologies Ltd
-www.dianemo.co.uk
-Tel: +44 (0)1245 330101
-Fax: +44 (0)1245 263916
-
-Unit 205 Waterhouse Business Centre
-Cromar Way
-Chelmsford
-Essex CM1 2QE
-UK
-
-------=_Part_17802_29587834.1211467382352
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Mark - thanks for pointing me at that file. I&#39;ll give it a try.<br><br>Cheers<br><br>Andrew<br><br><div class="gmail_quote">On Thu, May 22, 2008 at 3:23 PM, Mark Fraser &lt;<a href="mailto:linuxtv@mfraz74.orangehome.co.uk">linuxtv@mfraz74.orangehome.co.uk</a>&gt; wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">On Thursday 22 May 2008 15:12:20 Andrew Herron wrote:<br>
-&gt; Hi,<br>
-&gt;<br>
-&gt; Does anyone have a working tuning file for this UK transmitter that I can<br>
-&gt; use with scan?<br>
-&gt;<br>
-&gt; All the best<br>
-&gt;<br>
-&gt; Andrew<br>
-<br>
-</div>Is the one available on <a href="http://linuxtv.org" target="_blank">linuxtv.org</a> any good?<br>
-<br>
-<a href="http://linuxtv.org/hg/dvb-apps/file/31a6dd437b9a/util/scan/dvb-t/uk-RidgeHill" target="_blank">http://linuxtv.org/hg/dvb-apps/file/31a6dd437b9a/util/scan/dvb-t/uk-RidgeHill</a><br>
-<br>
-<br>
---<br>
-|\ &nbsp;/| ark Fraser &nbsp;/Registered Linux User #466407<br>
-| \/ | Somerset &nbsp; /Using Kmail on Kubuntu Gutsy Gibbon<br>
-| &nbsp; &nbsp;|___________/You know what the sig means!<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></blockquote></div><br><br clear="all"><br>-- <br>Convergent Home Technologies Ltd<br>
-<a href="http://www.dianemo.co.uk">www.dianemo.co.uk</a><br>Tel: +44 (0)1245 330101<br>Fax: +44 (0)1245 263916<br><br>Unit 205 Waterhouse Business Centre<br>Cromar Way<br>Chelmsford<br>Essex CM1 2QE<br>UK
-
-------=_Part_17802_29587834.1211467382352--
-
-
---===============1431949593==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1431949593==--
