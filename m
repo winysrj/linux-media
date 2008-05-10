@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49LroC8010639
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 17:53:50 -0400
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49Lrbmi012441
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 17:53:37 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andre Auzi <aauzi@users.sourceforge.net>
-In-Reply-To: <48247919.8020402@users.sourceforge.net>
-References: <482370FD.7000001@users.sourceforge.net>
-	<1210296633.2541.26.camel@pc10.localdom.local>
-	<1210297053.2541.31.camel@pc10.localdom.local>
-	<48247919.8020402@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Date: Fri, 09 May 2008 23:52:32 +0200
-Message-Id: <1210369953.3080.31.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4A1nYHP001920
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:49:34 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4A1nMD7009563
+	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:49:22 -0400
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@gmail.com>
+In-Reply-To: <e686f5060805091810h5ce89e7dide1c1138d2ad30b7@mail.gmail.com>
+References: <e686f5060805091255m70e5d959i1ee3169232aadda2@mail.gmail.com>
+	<1210378476.3292.52.camel@palomino.walls.org>
+	<e686f5060805091810h5ce89e7dide1c1138d2ad30b7@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 09 May 2008 21:48:08 -0400
+Message-Id: <1210384088.3292.109.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: cx88 driver: Help needed to add radio support on
-	Leadtek	WINFAST DTV 2000 H (version J)
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Steven Toth <stoth@hauppauge.com>
+Subject: Re: Is anyone else running a CX18 in 64bit OS?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,100 +30,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Am Freitag, den 09.05.2008, 18:17 +0200 schrieb Andre Auzi:
-> hermann pitton a écrit :
-> > Am Freitag, den 09.05.2008, 03:30 +0200 schrieb hermann pitton:
-> >> Am Donnerstag, den 08.05.2008, 23:30 +0200 schrieb Andre Auzi:
-> > 
-> >> Radio on the FMD1216ME/I MK3 is not perfect anyway, on other stuff it
-> >> might also only be the best hack around then, but some still claim new
-> >> hardware doesn't exist ...
-> > 
-> > One is missing here.
-> > 
-> > You might have the newer FMD1216MEX, Steve mentioned sometime
-> > previously, it might be slightly different for the radio support.
-> > 
-> > I do know exactly nothing about it.
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> > 
-> > 
+On Fri, 2008-05-09 at 21:10 -0400, Brandon Jenkins wrote:
+> On Fri, May 9, 2008 at 8:14 PM, Andy Walls <awalls@radix.net> wrote:
+> > On Fri, 2008-05-09 at 15:55 -0400, Brandon Jenkins wrote:
+> >
+> > Brandon,
+> >
+> > Yes I'm running the cx18 driver with an HVR-1600 on a 64 bit OS.
+> >
+> >> I have noticed an appreciable difference in video capture quality.
+> >
+> > The first analog capture after a modprobe of the cx18 is usually
+> > terrible and unwatchable due to apparently lost frames or no initial
+> > audio followed by audio and lost frames.  The work around is to stop the
+> > analog capture and restart.
+> >
+> > Would you characterize the analog capture quality problems as being only
+> > on weak channels or strong channels as well?
+> >
+> >>  The
+> >> timeline for the change is exactly the same time that development
+> >> ceased on the IVTV version of CX18 and moved to V4L.
+> >
+> > I'm not clear on exactly what versions you mean.  Do you have hg
+> > repository names and change ID's?
+> >
+> >
+> >>  I see heavy
+> >> pixelation in analog capture and the dvb tuner module returns far
+> >> fewer channels on a scan than before. I would like to troubleshoot,
+> >> please let me know what is needed.
+> >
+> >
+> > Since you have the two particular source trees at hand, could you do a
+> > recursive diff so we can see the changes?  That hopefully will narrow
+> > the search for potential causes.
+> >
+> > Regards,
+> > Andy
+> >
+> >> I am attaching dmesg/channel.conf/channel scan output for v4l drivers
+> >> comparing the results from a cx18 and a cx23885 card. (hvr-1600 and
+> >> hvr-1800) If I switch back to the older ivtv and mxl500s dvb tuner all
+> >> works fine.
+> >>
+> >> Thanks in advance
+> >>
+> >> Brandon
+> >
+> >
+> >
+> Andy,
 > 
->  From the driver's inf file I read:
+> Thanks for the response.
 > 
-> [LR6F2B.AddReg]
-> HKR,"DriverData","FMD1216MEX",0x0010001, 0x01, 0x00, 0x00, 0x00
+> I am running the following command in rc.local to start a capture and
+> then kill it.
 > 
-> This probably means you guessed right.
+> cat /dev/video3 > /dev/null & sleep 8 && kill $!
 > 
-> That's a step forward, isn't it?
+> Is that sufficient for an initial capture?
+
+Without testing it, I'm going to say, I imagine it would be from the
+look of it.
+
+
+> I am recording via svideo from a DirecTV signal. All signal levels are
+> consistent.
+
+OK.  I looked at the cx28885 channels.conf, after I sent the questions,
+and noticed you didn't have terrestrial over the air source.  I saw you
+have the same local channels on QAM that I get over 8-VSB: WETA-HD,
+WUSA-HD, 9-Radar, CW50, etc.
+
+> The driver base which works for me is cx18-8788bde67f6c it is the
+> older cx18-ivtv branch
+
+This is precisely the version (with a small change for auto chroma
+subcarrier locking) that I use when I need to leave my machine with a
+reliable cx18 driver with digital capability for use with MythTV.
+("General Hospital" *must* be recorded properly daily!)
+
+
+> The version I am having issues with was built from a v4l-dvb pull this morning.
 > 
-> Too bad you cannot say more.
+> I did not mention this in my email but it was in the log files; I am
+> scanning QAM for DVB. With the mxl500x.ko frontend everything works
+> well. With mxl5005s.ko in the new v4l-dvb scanning is broken.
+
+OK.  Steve just introduced that mxl5005s driver from a separate code
+base.  I've copied him on this e-mail to let him know of the problem.
+
+I'll have to do the pull and test scanning my 8VSB stations.
+
+-Andy
+
+> rdiff -r cx18-8788bde67f6c v4l-dvb output attached.
 > 
-> I'll keep you posted.
-> 
-> Rgards,
-> Andre
-
-It might explain it, but is based only on rumors.
-
-If the MEX is really different, it should have its own tuner definition
-and also not point to the FMD1216ME/I H-3 (MK3) in tveeprom anymore.
-
-The rule is to avoid plain duplication, but the slightest difference
-justifies a new tuner entry.
-
-On that saa7134 you have I had only a quick look at their website.
-
-There seems not to be a card with saa7135 device, and more important, I
-don't see anything pointing to an empress style mpeg encoder, which you
-have enabled.
-
-We need complete chip listing, if possible high resolution photos and as
-an absolute minimum dmesg with i2c_scan=1 enabled.
-
-The saa7134 chip device there seems to have a well known remote, maybe
-you can discover it at the bttv-gallery.de.
-
-We seem also to have a problem how to collect information about new
-devices currently, the v4l-wiki is by far not sufficient enough to look
-something up and Gunther at the bttv gallery might have it sick, dunno.
-
-I'm not a fan of ASCII art in saa7134-input, that should have a place on
-the wiki and/or the bttv-gallery.
-
-Without looking closer, you should _not_ have the keypress at 0x8000 in
-the gpiomask of the card in saa7134-cards.c, but only in
-saa7134-input.c. If that is not sufficient, something weird is going on.
-
-Most consumer devices in Europe, almost always SCART is used for s-video
-here, do only output composite, even on their s-video connectors. That
-might explain the black and white only. Also vmux 8 seems to be
-untested.
-
-The most astonishing you have is tda9887 port2 inactive and intercarrier
-demodulation, and that should work with a claimed FM1216ME/I H-3 (MK3)
-on SECAM_L !
-
-Almost impossible for my limited experience.
-
-We need hard facts about that tuner on the board.
-
-Have a look at tuner-types.h/c and what is needed to have the MK3s
-functional for all such different standards. To force something in the
-card's entry will override all such, and as said, I'm scratching my
-head, how you could ever have SECAM_L functional with what you choose ;)
-
-Send new patches and those interested might continue with it there.
-
-Cheers,
-Hermann
-
-
+> Brandon
 
 --
 video4linux-list mailing list
