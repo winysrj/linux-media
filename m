@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5-g19.free.fr ([212.27.42.35])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.merle@free.fr>) id 1JuNR6-0004Fw-Eg
-	for linux-dvb@linuxtv.org; Fri, 09 May 2008 09:54:38 +0200
-Message-ID: <4824034D.7000700@free.fr>
-Date: Fri, 09 May 2008 09:54:53 +0200
-From: Thierry Merle <thierry.merle@free.fr>
-MIME-Version: 1.0
-To: Ingo Peukes <admin@ipnetwork.de>
-References: <481ED628.4070901@ipnetwork.de> <482374BA.7040508@ipnetwork.de>
-In-Reply-To: <482374BA.7040508@ipnetwork.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Cinergy T2 Kernel Oops on Linkstation Live V1
- (Marvel Orion ARM Architecture)
+	(envelope-from <awalls@radix.net>) id 1Jux1k-00051X-9t
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 23:54:49 +0200
+Received: from [192.168.1.2] (01-138.155.popsite.net [66.217.131.138])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m4ALsaw1022056
+	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 17:54:37 -0400 (EDT)
+From: Andy Walls <awalls@radix.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200805101727.55810@orion.escape-edv.de>
+References: <482560EB.2000306@gmail.com>
+	<200805101717.23199@orion.escape-edv.de>
+	<200805101727.55810@orion.escape-edv.de>
+Date: Sat, 10 May 2008 17:53:41 -0400
+Message-Id: <1210456421.7632.29.camel@palomino.walls.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021
+	and	stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,78 +25,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Ingo,
+On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
+> Oliver Endriss wrote:
+> > e9hack wrote:
+> > > the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
+> > > makes the UNC value of the femon plugin useless.
+> > 
+> > Why? It does not make sense to accumulate the errors forever, i.e.
+> > nobody wants to know what happened last year...
+> > 
+> > Afaics it is ok to reset the counter after reading it.
+> > All drivers should behave this way.
+> > 
+> > If the femon plugin requires something else it might store the values
+> > and process them as desired.
+> > 
+> > Afaics the femon command line tool has no problems with that.
+> 
+> Argh, I just checked the API 1.0.0. spec:
+> | FE READ UNCORRECTED BLOCKS
+> | This ioctl call returns the number of uncorrected blocks detected by the device
+> | driver during its lifetime. For meaningful measurements, the increment
+> | in block count during a speci c time interval should be calculated. For this
+> | command, read-only access to the device is suf cient.
+> | Note that the counter will wrap to zero after its maximum count has been
+> | reached
+> 
+> So it seens you are right and the drivers should accumulate the errors
+> forever. Any opinions?
 
-Ingo Peukes a =E9crit :
-> Hello everyone...
-> =
+For communications systems, whether its is two-way or one-way broadcast,
+most people are concerned with the error *rate* (errors per unit time)
+rather than absolute error counts.  Communications engineers have a good
+understanding of what it means to have a 10^-2 BER vs 10^-12 BER, and
+adjust their expectations accordingly.  Absolute counts have less
+meaning to engineers, and I'm not sure what a layman would make of them.
 
-> a few days ago I bought e Pinnacle PCTV200e to try if it works with my =
+I'd suggest whatever error counts you store have a start time and
+starting value (i.e. 0) associated with them, so when you look at the
+accumulated value at present you can determine the average error rate.
 
-> Linkstation. After getting some drivers for it from here: =
+When should the error counter and start time be reset?  On channel
+(frequency) change is a convenient and make sense to me.  When the
+counter overflows is obviously another time.  When the time reaches a
+certain number of seconds?  Maybe implement a moving average (sliding
+window) to better report the current instantaneous error rate.
 
-> http://ubuntuforums.org/showthread.php?t=3D511676&page=3D8
-> As result I just got the same kernel oops, only triggered by the dvb_usb =
 
-> module instead of the cinergyT2 one.
-> =
+Regards,
+Andy
 
-Is it the same ManufacturerID/VendorID as the cinergyT2 device or did you m=
-ake some adaptations to make your Pinnacle device to work with the cinergyT=
-2 driver?
 
-> Today I found a patch sent to this list on 01/20/2008 by Michele =
 
-> Scorcia. Although it is for kernel 2.6.20.4 and written to fix a problem =
+> CU
+> Oliver
+> 
 
-> on a mips platform the description of the problem came close to mine. So =
-
-> I applied it to the usb-urb.c from the above archive and built the module=
-s.
-> After that the oops was gone and the PCTV runs without problems.
-> The cinergy driver still triggers the oops but i think that's normal =
-
-> cause it does not use the dvb-usb module and would need a separate patch.
-> The new cinergyT2 driver from Tomi Orava works just fine so I give it a =
-
-> chance instead of fixing the old one.
-> Another reason for this is that I tried both receivers on my desktop =
-
-> with the same kernel and v4l-dvb sources as I use on the Linkstation and =
-
-> couldn't make them run both at the same time. dmesg shows no errors but
-> w_scan hangs when both drivers are loaded. Either receiver alone works
-> great but together none does.
-> This problem does not exist with the new driver.
-> =
-
-I hope Tomi will be able to finalize his patch so we will be able to replac=
-e the old one.
-The old driver is monolithic and does not follow the dvb framework evolutio=
-ns/bug corrections.
-
-> =
-
-> =
-
-> Here's the patch I use, only difference to the one from Michele Scorcia =
-
-> are the line numbers:
-> =
-
-Please post this patch in an email with [PATCH] in subject and with the Sig=
-ned-off-by: name <email> line so that maintainers get aware of the patch, a=
-nd don't miss it.
-See: http://www.linuxtv.org/v4lwiki/index.php/How_to_submit_patches
-
-Thanks
-Thierry
 
 _______________________________________________
 linux-dvb mailing list
