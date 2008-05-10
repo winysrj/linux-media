@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp3-g19.free.fr ([212.27.42.29])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.merle@free.fr>) id 1Jt6oT-0003Yi-Ke
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 21:57:31 +0200
-Message-ID: <481F66B0.4090302@free.fr>
-Date: Mon, 05 May 2008 21:57:36 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+	(envelope-from <abraham.manu@gmail.com>) id 1JuxMm-0006AO-DC
+	for linux-dvb@linuxtv.org; Sun, 11 May 2008 00:16:37 +0200
+Message-ID: <48261EB5.2090604@gmail.com>
+Date: Sun, 11 May 2008 02:16:21 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Tomi Orava <tomimo@ncircle.nullnet.fi>
-References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>
-	<20071018181040.GA6960@dose.home.local>
-	<20071018182940.GA7317@dose.home.local>
-	<20071018201418.GA16574@dose.home.local>
-	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>
-	<472A0CC2.8040509@free.fr> <480F9062.6000700@free.fr>
-	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>
-	<481B4A78.8090305@free.fr>
-	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
-In-Reply-To: <30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
+To: Andy Walls <awalls@radix.net>
+References: <482560EB.2000306@gmail.com>	<200805101717.23199@orion.escape-edv.de>	<200805101727.55810@orion.escape-edv.de>
+	<1210456421.7632.29.camel@palomino.walls.org>
+In-Reply-To: <1210456421.7632.29.camel@palomino.walls.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
- Cinergy T2 driver
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
+ stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,72 +21,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VG9taSBPcmF2YSBhIMOpY3JpdCA6Cj4gSGksCj4gCj4+IFdlbGwsIEkgc2VlIHNvbWUgaXNzdWVz
-IGFmdGVyIHRha2luZyBhIGNsb3NlciBsb29rIGF0IHlvdXIgZHJpdmVyOgo+PiAxLSBjaGVja3Bh
-dGNoLnBsIHJhaXNlcyBlcnJvcnM6IDkwIGVycm9ycywgNTMgd2FybmluZ3MsIDk5NSBsaW5lcyBj
-aGVja2VkCj4+IDItIHRoZXJlIGlzIGEgY29tcGlsYXRpb24gZXJyb3IgKEkgYXBwbGllZCB0aGUg
-cGF0Y2ggb24gdGhlIGxhdGVzdAo+PiB2NGwtZHZiIHRyZWUpOgo+PiBjaW5lcmd5VDItY29yZS5j
-OiBJbiBmdW5jdGlvbiAnY2luZXJneXQyX3VzYl9wcm9iZSc6Cj4+IGNpbmVyZ3lUMi1jb3JlLmM6
-MTM4OiBlcnJvcjogdG9vIGZldyBhcmd1bWVudHMgdG8gZnVuY3Rpb24KPj4gJ2R2Yl91c2JfZGV2
-aWNlX2luaXQnCj4+IDMtIHlvdSBzaG91bGQgcmVwbGFjZSB0aGUgZXhpc3RpbmcgZHJpdmVyLCBu
-b3QgcHJvcG9zaW5nIGEgZGlmZmVyZW50Cj4+IGRyaXZlci4gSSBtZWFuLCBwYXRjaCBkaXJlY3Rs
-eQo+PiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9jaW5lcmd5VDIvY2luZXJneVQyLmMuCj4gCj4g
-T2ssIHRoZXNlIGFyZSBlYXN5IHRvIGZpeC4KPiAKPj4gRnVydGhlcm1vcmUsIEkgaGF2ZSBzb21l
-IHF1ZXN0aW9uczoKPj4gLSBpcyB0aGVyZSBhIHdheSB0byB1c2UgdGhlIGR2Yi11c2ItcmVtb3Rl
-IG1vZHVsZT8gVGhpcyBpbiBvcmRlciB0byBnZXQKPj4gcmlkIG9mIGNpbmVyZ3lUMi1yZW1vdGUu
-Ywo+IAo+IE5vLCBkdWUgdG8gdGhlIGZhY3QgdGhhdCB0aGUgZHZiLXVzYi5oIGRlZmluZXMgYSBz
-dHJ1Y3Qgd2hpY2ggaXMgdG9vCj4gbGltaXRlZCBmb3IgdGhlIENpbmVyZ3kgVDIgcmVtb3RlIGNv
-bnRyb2xsZXIgaGFuZGxpbmcuIElmIHlvdSBjb21wYXJlCj4gdGhlIG9yaWdpbmFsIHN0cnVjdCBk
-dmJfdXNiX3JjX2tleSB0byB0aGUgbW9kaWZpZWQgb25lOgo+IAo+IE9yaWdpbmFsOgo+IAo+IHN0
-cnVjdCBkdmJfdXNiX3JjX2tleSB7Cj4gICAgICAgICB1OCBjdXN0b20sZGF0YTsgPC0tLS0tLS0t
-LS0tLS0tLS0tLS0tCj4gICAgICAgICB1MzIgZXZlbnQ7Cj4gfTsKPiAKPiBDaW5lcmd5IFQyIHNl
-bmQgVTMyIHJlbW90ZSBjb250cm9sbGVyOgo+IAo+IHN0cnVjdCBjaW5lcmd5dDJfcmNfa2V5IHsK
-PiAJdTMyIGN1c3RvbTsgPC0tLS0tLS0tLS0tLS0tCj4gCXUzMiBkYXRhOyAgIDwtLS0tLS0tLS0t
-LS0tLQo+IAl1MzIgZXZlbnQ7Cj4gfTsKPiAKPiBPYnZpb3VzbHkgSSBjb3VsZCBnZXQgcmlkIG9m
-IHRoZSB3aG9sZSBjaW5lcmd5VDItcmVtb3RlLmMgZmlsZQo+IGlmIHRoZSBkdmItdXNiIGRlZmlu
-ZWQgc3RydWN0IGNvdWxkIGJlIHdpZGVuZWQuCj4gCkluZGVlZCwgYnV0IGluIHRoZSBjdXJyZW50
-IHN0cnVjdHVyZSBJIGFtIG5vdCBzdXJlIHRoYXQgYWxsIHRoZSBiaXRzIG9mIHRoZSB1MzIgZGF0
-YSBpcyB1c2VmdWwuCkZvciBleGFtcGxlOgoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMs
-CTB4ZmUwMWViMDQsCUtFWV9QT1dFUiB9LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMs
-CTB4ZmQwMmViMDQsCUtFWV8xIH0sCgl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhm
-YzAzZWIwNCwJS0VZXzIgfSwKCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGZiMDRl
-YjA0LAlLRVlfMyB9LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMsCTB4ZmEwNWViMDQs
-CUtFWV80IH0sCgl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhmOTA2ZWIwNCwJS0VZ
-XzUgfSwKCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGY4MDdlYjA0LAlLRVlfNiB9
-LAoJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMsCTB4ZjcwOGViMDQsCUtFWV83IH0sCgl7
-IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhmNjA5ZWIwNCwJS0VZXzggfSwKCXsgQ0lO
-RVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGY1MGFlYjA0LAlLRVlfOSB9LApJIHNlZSBmb3Ig
-ZXhhbXBsZSB0aGF0IGluIHRoZSB1MzIgMHhmZTAxZWIwNCwgZmlyc3QgYW5kIHNlY29uZCBieXRl
-cyBhcmUgbGlua2VkICgweGZlICsgMHgwMSA9IDB4ZmYpCkl0IHdvcmtzIHdpdGggYWxsIG90aGVy
-czogMHhmZDAyZWIwNCAtPiAweGZkICsgMHgwMiA9IDB4ZmYsIC4uLgpGdXJ0aGVybW9yZSB0aGUg
-bGFzdCAyIGJ5dGVzIGFyZSBjb25zdGFudCAoMHhlYjA0KS4KU28gdGhlIHNvbGUgc2lnbmlmaWNh
-bnQgYnl0ZSBpcyB0aGUgc2Vjb25kOiAweDAxLCAweDAyLCAuLi4KSSB3aWxsIHRyeSB0byBkbyBz
-b21ldGhpbmcgYXJvdW5kIHRoYXQuCgo+PiAtIHNvLCByZW5hbWluZyBjaW5lcmd5VDItY29yZS5j
-IHRvIGNpbmVyZ3lUMi5jIHdvdWxkIGJlIGNvcnJlY3Q/Cj4gCj4gSG1tLCBpZiBJIHJlbWVtYmVy
-IGNvcnJlY3RseSB0aGVyZSB3YXMgc29tZSBzb3J0IG9mIGNsYXNoIHdpdGggdGhlIGZpbGVuYW1l
-cwo+IGFuZCB0aGUgYWN0dWFsIGNvbXBpbGVkIGRyaXZlci4KSW4gZmFjdCBpZiB5b3UgcmVtb3Zl
-IHRoZSBvbGQgZHJpdmVyIChieSByZXNvbHZpbmcgdGhlIGlzc3VlICMzKSwgSSBzdWdnZXN0ZWQg
-dG8gbmFtZSB0aGUgY2luZXJneVQyLWNvcmUuYyBjaW5lcmd5VDIuYyBidXQgdGhlcmUgaXMgbm8g
-b2JsaWdhdGlvbi4gCj4gCj4+IC0gc3RyZWFtIGJ1ZmZlciBjb3VudCB3YXMgc2V0IHRvIDMyIGlu
-IHRoZSBvbGQgZHJpdmVyIGFuZCB5b3Ugc2V0IGl0IHRvCj4+IDUsIHdoeSB0aGlzIGNoYW5nZT8g
-SXQgd29ya3MgcGVyZmVjdGx5IHdpdGggNSBhbmQgY29uc3VtZXMgbGVzcyBtZW1vcnkKPj4gc28g
-aWYgdGhpcyBpcyB0aGUgcmVhc29uIEkgZnVsbHkgYWdyZWUhCj4gCj4gQXMgdGhlIG9sZCBleGlz
-dGluZyBkcml2ZXIgaXMgaGFuZGxpbmcgdGhlIGNvbW11bmljYXRpb24gZGlmZmVyZW50bHkKPiBh
-bHNvIHRoZSBidWZmZXIgY291bnQgdmFsdWVzIGFyZSBkaWZmZXJlbnQuIFdoZW4gSSBiZWdhbiB3
-cml0aW5nIHRoZQo+IG5ldyB2ZXJzaW9uIG9mIHRoZSBDaW5lcmd5VDIgZHJpdmVyIEkgZGlkIHNv
-bWUgdHJpYWxzIGFuZCBiYXNlZCBvbiB0aGUKPiBoZWxwZnVsIGNvbW1lbnRzICYgdGVzdCByZXN1
-bHRzIHRoZSB2YWx1ZSBvZiA1IGhhcyBiZWVuIHRoZXJlLgo+IApPSwo+PiBJIHRoaW5rIHRoZSBi
-ZXN0IHdheSBpcyB0byByZXdvcmsgeW91ciBwYXRjaCBhbmQgZml4IHRoZXNlIGlzc3VlczsgSSBj
-YW4KPj4gaGVscCB5b3UgaWYgeW91IHdhbnQuCj4+IFRoZW4gSSB3aWxsIGNvbW1pdCB0aGF0IGlu
-IGEgcGFydGljdWxhciB0cmVlIGFuZCBhc2sgZm9yIHB1c2hpbmcgaXQgdG8KPj4gdGhlIG9mZmlj
-aWFsIHRyZWUuCj4gCj4gU3VyZSwgSSdsbCBmaXggdGhlIHJlcG9ydGVkIGVycm9ycyBhbmQgZ2V0
-IGJhY2sgdG8geW91Lgo+IApUaGFua3MKPiBSZWdhcmRzLAo+IFRvbWkgT3JhdmEKPiAKQ2hlZXJz
-LApUaGllcnJ5CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Andy Walls wrote:
+> On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
+>> Oliver Endriss wrote:
+>>> e9hack wrote:
+>>>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
+>>>> makes the UNC value of the femon plugin useless.
+>>> Why? It does not make sense to accumulate the errors forever, i.e.
+>>> nobody wants to know what happened last year...
+>>>
+>>> Afaics it is ok to reset the counter after reading it.
+>>> All drivers should behave this way.
+>>>
+>>> If the femon plugin requires something else it might store the values
+>>> and process them as desired.
+>>>
+>>> Afaics the femon command line tool has no problems with that.
+>> Argh, I just checked the API 1.0.0. spec:
+>> | FE READ UNCORRECTED BLOCKS
+>> | This ioctl call returns the number of uncorrected blocks detected by the device
+>> | driver during its lifetime. For meaningful measurements, the increment
+>> | in block count during a speci c time interval should be calculated. For this
+>> | command, read-only access to the device is suf cient.
+>> | Note that the counter will wrap to zero after its maximum count has been
+>> | reached
+>>
+>> So it seens you are right and the drivers should accumulate the errors
+>> forever. Any opinions?
+> 
+> For communications systems, whether its is two-way or one-way broadcast,
+> most people are concerned with the error *rate* (errors per unit time)
+> rather than absolute error counts.  Communications engineers have a good
+> understanding of what it means to have a 10^-2 BER vs 10^-12 BER, and
+> adjust their expectations accordingly.  Absolute counts have less
+> meaning to engineers, and I'm not sure what a layman would make of them.
+
+There is different terminology involved:
+
+BER: implies a rate which is averaged over a period of time. This
+implies the errors in the stream, not after FEC.
+
+UNC: Uncorrected symbols over a lifetime, well this is not practically
+possible and will wrap around. This is not related to time, but it is
+just a measure of the symbols that wasn't been able by the FEC engine to
+correct. Generally a meaningless term, in many cases except a few.
+
+Absolute errors are used very scantily, but have been used to see how
+good/bad the whole system is. BER cannot define this, as it is defined
+before the FEC. Sometimes what's defined in the BER, the FEC engine
+might be able to correct and hence.
+
+Regards,
+Manu
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
