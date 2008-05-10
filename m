@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1Jvu4B-0006M6-3g
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 14:57:17 +0200
-Message-ID: <47967.203.200.233.131.1210684391.squirrel@203.200.233.138>
-In-Reply-To: <80bd11420805120423x3e715fcneb2ced033aeaada7@mail.gmail.com>
-References: <63380.123.201.45.12.1210590505.squirrel@203.200.233.138>
-	<80bd11420805120423x3e715fcneb2ced033aeaada7@mail.gmail.com>
-Date: Tue, 13 May 2008 18:43:11 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
-To: "Krzysztof Burghardt" <krzysztof@burghardt.pl>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Jus87-0005Ql-O3
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 18:41:31 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 10 May 2008 18:39:58 +0200
+References: <482560EB.2000306@gmail.com>
+	<200805101727.55810@orion.escape-edv.de>
+	<4825C724.1020001@gmail.com>
+In-Reply-To: <4825C724.1020001@gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] inserting user PIDs in TS
+Content-Disposition: inline
+Message-Id: <200805101839.58280@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
+	stv0297
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +29,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all
-I would like to know that can we insert user defined PIDs into the TS
-stream. how should i go about? What standard should i follow? How should I
-format the the packets ( segment - section etc...).
-can any body help in this regard.
-Thanks with regards.
-guru
+e9hack wrote:
+> Oliver Endriss schrieb:
+> > Argh, I just checked the API 1.0.0. spec:
+> > | FE READ UNCORRECTED BLOCKS
+> > | This ioctl call returns the number of uncorrected blocks detected by the device
+> > | driver during its lifetime. For meaningful measurements, the increment
+> > | in block count during a speci c time interval should be calculated. For this
+> > | command, read-only access to the device is suf cient.
+> > | Note that the counter will wrap to zero after its maximum count has been
+> > | reached
+> > 
+> 
+> First you read a very old spec, now you read an old spec. This description is no longer a 
+> part of the spec. In the current spec 
+> (http://linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf), many necessary 
+> descriptions are missing.
 
+No, the API V4 proposal does not apply to current drivers.
+The current API is V3.
 
-> 2008/5/12 Gurumurti Laxman Maharana <gurumurti@nkindia.com>:
->>  I am looking for information EPG format. Can any body guide me in this
->>  regard. How EPGs are formated and streamed along with the programs.
->>  Thanks with regards.
->
-> Electronic Programme Guide is an application, so you can implement it
-> on your own.
->
-> If you want to read about Service Information (SI) in DVB (data you
-> see in EPG comes from SI) start with  ETSI EN 300 468[1] and Event
-> Information Table (EIT) section. All DVB specifications are available
-> from dvb.org[2].
->
-> [1] I'm not sure if they like deep links, but just put spec name to
-> Google to get URL to PDF
-> [2] http://www.dvb.org/technology/standards/
->
-> --
-> Krzysztof Burghardt <krzysztof@burghardt.pl>
-> http://www.burghardt.pl/
->
-
+Oliver
 
 -- 
-guru
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
