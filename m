@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.dnainternet.fi ([87.94.96.108])
+Received: from mx03.lb01.inode.at ([62.99.145.3] helo=mx.inode.at)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JymhD-0003ek-EZ
-	for linux-dvb@linuxtv.org; Wed, 21 May 2008 13:41:28 +0200
-Message-ID: <48340A29.6030505@iki.fi>
-Date: Wed, 21 May 2008 14:40:25 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <philipp@kolmann.at>) id 1JukuB-0000YA-33
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:11 +0200
+Received: from [62.178.45.207] (port=15368 helo=p2k.at)
+	by smartmx-03.inode.at with esmtpsa (TLS-1.0:RSA_AES_256_CBC_SHA:32)
+	(Exim 4.50) id 1Juku3-0006bk-TN
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:03 +0200
+Received: from philipp by p2k.at with local (Exim 4.63)
+	(envelope-from <philipp@kolmann.at>) id 1Juku3-00089m-51
+	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:03 +0200
+Date: Sat, 10 May 2008 10:58:03 +0200
+From: Philipp Kolmann <philipp@kolmann.at>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080510085803.GA30598@kolmann.at>
 MIME-Version: 1.0
-To: pjama@optusnet.com.au
-References: <56913.192.168.200.51.1211237228.squirrel@pjama.net>	<48320E91.3010306@iki.fi>	<57913.192.168.200.51.1211245507.squirrel@pjama.net>	<4832259A.6050101@iki.fi>
-	<483232A9.6010609@iki.fi>
-	<27514.203.9.185.254.1211343247.squirrel@pjama.net>
-In-Reply-To: <27514.203.9.185.254.1211343247.squirrel@pjama.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] IR for Afatech 901x
+Content-Disposition: inline
+Subject: [linux-dvb] Mantis-08f27ef99d74: Compile error with 2.6.25
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,35 +30,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-pjama wrote:
->> Load driver with debug=2 (rmmod dvb-usb-af9015; modprobe dvb-usb-af9015
->> debug=2) and tail -f /var/log/messages to see if there is now some bytes
->> coming from remote.
-> 
-> As mentioned in an earlier response to this post, the above trashes the
-> device /dev/input/event7. Is there any way I can boot with debug set?
+Hi,
 
-1) unplug your device
-2) make sure new drivers are installed
-3) reboot your machine
-4) modprobe dvb-usb-af9015 debug=2
-5) tail -f /var/log/messages
-6) plug stick (now it should start pushing lines to /var/log/messages 
-(or /var/log/debug) ?)
+I have a Terratec Cinergy C which worked with the mantis driver and 2.6.24
+fine. Now I have updated to 2.6.25 and can't compile the mantis driver
+anymore:
 
-Remote buttons should now recognized in debug dumps.
+[...]
+  CC [M]  /home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx23885-dvb.o
+  CC [M]  /home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.o
+/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.c:71: error: conflicting type qualifiers for 'addr_data'
+/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/../linux/include/media/v4l2-i2c-drv-legacy.h:41: error: previous declaration of 'addr_data' was here
+make[3]: *** [/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.o] Error 1
+make[2]: *** [_module_/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.25-1-686'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l'
+make: *** [all] Error 2
 
-> Doing evtest on /dev/input/event7 then pushing remote buttons give me
-> nothing. I have confirmed remote/receiver works by booting into windows
-> and using vendor supplied app.
+Any ideas how to solve this.
 
-It does not work because driver does not have mappings to your remote 
-controller buttons yet. You should find correct mappings from debug dump 
-described above.
+Thanks
+Philipp
 
-Antti
+PS: Anyone know, if and when mantis will be merged with v4l-dvb tree?
+
 -- 
-http://palosaari.fi/
+The more I learn about people, the more I like my dog!
 
 _______________________________________________
 linux-dvb mailing list
