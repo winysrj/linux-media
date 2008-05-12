@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout3.frontal.correo)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1K0bY4-0003eK-S6
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 14:11:35 +0200
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Andy Walls <awalls@radix.net>
-Date: Mon, 26 May 2008 14:10:50 +0200
-References: <200805241817.07810.jareguero@telefonica.net>
-	<1211682783.3200.36.camel@palomino.walls.org>
-	<1211766048.20092.7.camel@palomino.walls.org>
-In-Reply-To: <1211766048.20092.7.camel@palomino.walls.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <boexli@gmx.net>) id 1JvZpv-0002Ei-7p
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 17:21:11 +0200
+From: nick <boexli@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Mon, 12 May 2008 17:20:37 +0200
+References: <198698.40491.qm@web55111.mail.re4.yahoo.com>
+In-Reply-To: <198698.40491.qm@web55111.mail.re4.yahoo.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200805261410.50862.jareguero@telefonica.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix tuner_warn() induced kernel Ooops in
-	simple_tuner_attach()
+Message-Id: <200805121720.37639.boexli@gmx.net>
+Subject: [linux-dvb] Terratec Cinergy PCI C  HDTV
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,43 +19,20 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-RWwgTHVuZXMgMjYgTWF5byAyMDA4LCBBbmR5IFdhbGxzIGVzY3JpYmnDszoKPiBPbiBTYXQsIDIw
-MDgtMDUtMjQgYXQgMjI6MzMgLTA0MDAsIEFuZHkgV2FsbHMgd3JvdGU6Cj4gPiBPbiBTYXQsIDIw
-MDgtMDUtMjQgYXQgMTg6MTcgKzAyMDAsIEpvc2UgQWxiZXJ0byBSZWd1ZXJvIHdyb3RlOgo+ID4g
-PiBXb3JrIHdlbGwgd2l0aCBrZXJuZWwgMi42LjI1Cj4gPiA+Cj4gPiA+IEpvc2UgQWxiZXJ0bwo+
-ID4KPiA+IEl0IGxvb2tzIGxpa2Ugc29tZXRoaW5nIGFib3V0IHRoZSAidHVuZXJfd2FybigpIiBt
-YWNybyBpcyBjYXVzaW5nCj4gPiByZWZlcmVuY2VzIHRvIGJlIG1hZGUgdG8gdmVyeSBsb3cgbWVt
-b3J5IGFkZHJlc3Nlcy4gIFRoYXQgaXMgcHJvYmFibHkKPiA+IG5vdCByaWdodC4KPiA+Cj4gPiBT
-byBsZXQncyBsb29rIGZ1cnRoZXI6IGhlcmUgaXMgdGhlIHNhbWUgc2VjdGlvbiBvZgo+ID4gdHVu
-ZXItc2ltcGxlLmM6c2ltcGxlX3R1bmVyX2F0dGFjaCgpIGFmdGVyIHByZXByb2Nlc3NpbmcsIGJ1
-dCBiZWZvcmUKPiA+IGNvbnZlcnNpb24gdG8gYXNzZW1ibHk6Cj4gPgo+ID4gICAgIGlmIChmZS0+
-b3BzLmkyY19nYXRlX2N0cmwpCj4gPiAgICAgIGZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMSk7
-Cj4gPgo+ID4gICAgIGlmICgxICE9IGkyY190cmFuc2ZlcihpMmNfYWRhcCwgJm1zZywgMSkpCj4g
-PiAgICAgIGRvIHsgZG8geyBwcmludGsoIjw0PiIgIiVzICVkLSUwNHg6ICIgInVuYWJsZSB0byBw
-cm9iZSAlcywKPiA+IHByb2NlZWRpbmcgYW55d2F5LiIsIHByaXYtPmkyY19wcm9wcy5uYW1lLCBw
-cml2LT5pMmNfcHJvcHMuYWRhcCA/Cj4gPiBpMmNfYWRhcHRlcl9pZChwcml2LT5pMmNfcHJvcHMu
-YWRhcCkgOiAtMSwgcHJpdi0+aTJjX3Byb3BzLmFkZHIsCj4gPiB0dW5lcnNbdHlwZV0ubmFtZSk7
-IH0gd2hpbGUgKDApOyB9IHdoaWxlICgwKTsKPiA+Cj4gPgo+ID4gICAgIGlmIChmZS0+b3BzLmky
-Y19nYXRlX2N0cmwpCj4gPiAgICAgIGZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMCk7Cj4gPgo+
-ID4KPiA+IEhtbW0uIExvdHMgb2YgZGVyZWZlcmVuY2VzIG9mIHNvbWV0aGluZyBjYWxsZWQgInBy
-aXYiLiAgTG9va2luZyBhdCB0aGUKPiA+IHRvcCBvZiB0dW5lci1zaW1wbGUuYzpzaW1wbGVfdHVu
-ZXJfYXR0YWNoKCkgd2UgZmluZDoKPiA+Cj4gPiAxMDMyICAgICAgICAgc3RydWN0IHR1bmVyX3Np
-bXBsZV9wcml2ICpwcml2ID0gTlVMTDsKPiA+IDEwMzMgICAgICAgICBpbnQgaW5zdGFuY2U7Cj4g
-Pgo+ID4gV2l0aCBubyBvdGhlciBvcGVyYXRpb25zIG9uICJwcml2IiBiZWZvcmUgdGhlICJ0dW5l
-cl93YXJuKCkiCj4gPiBpbnZvY2F0aW9uLgo+ID4KPiA+IFNvIHR1bmVyLXNpbXBsZS5jOnNpbXBs
-ZV90dW5lcl9hdHRhY2goKSBoYXMgYSBoYXJkIGNvZGVkIE5VTEwgcG9pbnRlcgo+ID4gZGVyZWZl
-cmVuY2UgYnVyaWVkIGluIGEgbWFjcm8gdGhhdCBvbmx5IHNvbWV0aW1lcyBnZXRzIGV4ZWN1dGVk
-Lgo+Cj4gUGF0Y2ggYXR0YWNoZWQuICBJdCBjb21waWxlcy4gIEkgYXNzdW1lIGl0IHdvcmtzLgo+
-Cj4gSSBkaWQgYSBzZWFyY2ggdGhyb3VnaCB0aGUgcmVzdCBvZiB0dW5lci1zaW1wbGUuYyBhbmQg
-ZGlkIG5vdCBzZWUgYW55Cj4gb3RoZXIgaW5zdGFuY2VzIG9mIHR1bmVyX3dhcm4oKSBiZWluZyBj
-YWxsZWQgd2l0aG91dCAicHJpdiIgYmVpbmcKPiBkZWZpbmVkLgo+Cj4gUmVnYXJkcywKPiBBbmR5
-CgpUaGFua3MuIEl0ICB3b3Jrcy4KCkpvc2UgQWxiZXJ0bwoKCgoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hi - Has anybody successfully managed to watch HDTV using the Terratec Cinergy 
+PCI C card?  If is switch to a HD channel using Kaffeine nothing happens and 
+after a couple of minutes the program freezes and does not reponse anymore. 
+Any ideas what I might have done wrong? Thanks Nick
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
