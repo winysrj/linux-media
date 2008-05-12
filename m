@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [203.200.233.138] (helo=nkindia.com)
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gurumurti@nkindia.com>) id 1Jvu4D-0006Ok-FN
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 14:57:18 +0200
-Received: from nkindia.com (localhost.localdomain [127.0.0.1])
-	by nkindia.com (8.13.7/8.13.7) with ESMTP id m4DDEKOD021992
-	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 18:44:20 +0530
-Message-ID: <48030.203.200.233.131.1210684460.squirrel@203.200.233.138>
-Date: Tue, 13 May 2008 18:44:20 +0530 (IST)
-From: "Gurumurti Laxman Maharana" <gurumurti@nkindia.com>
+	(envelope-from <ajurik@quick.cz>) id 1Jvczd-0000ef-M8
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 20:43:26 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out2.iol.cz (Postfix) with ESMTP id 79C9D942B5
+	for <linux-dvb@linuxtv.org>; Mon, 12 May 2008 20:42:45 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
+Date: Mon, 12 May 2008 20:42:43 +0200
 MIME-Version: 1.0
-Subject: [linux-dvb] [Fwd: inserting user PIDs in TS]
+Content-Disposition: inline
+Message-Id: <200805122042.43456.ajurik@quick.cz>
+Subject: [linux-dvb] No lock possible at some DVB-S2 channels with TT
+	S2-3200/linux
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,49 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
+after Telenor switched from Thor-2 to Thor-5 (0.8W) no lock is possible with 
+multiproto(-plus) and TT S2-3200 at these transponders:
 
+TV4 HD;Telenor:11341:vC34M5O35S1:S0.8W:25000:512:0;641=sve:0:B00:1405:70:42:0
+CANAL+ FILM 
+HD;Telenor:11421:hC34M5O35S1:S0.8W:25000:513:644=eng;645=eng:0:B00:3306:70:14:0
+Nat Geo 
+HD;Telenor:11434:vC34M5O35S1:S0.8W:25000:512:640=eng:0:B00:3806:70:38:0
 
-Hi all
-I would like to know that can we insert user defined PIDs into the TS
-stream. how should i go about? What standard should i follow? How should I
-format the the packets ( segment - section etc...).
-can any body help in this regard.
-Thanks with regards.
-guru
+I'm 100% sure that this problem corresponds with switch from Thor-2 to Thor-5 
+as it appeared exactly at times when switch was announced by Telenor. 
 
+Regarding to official document 
+http://www.telenorsbc.com/upload/PDFS/DVB-S2%20Transponder%20FEC%20Change_280208.pdf 
+two changes were implemented - FEC from 2/3 to 3/4 and switch off Pilot.
 
-> 2008/5/12 Gurumurti Laxman Maharana <gurumurti@nkindia.com>:
->>  I am looking for information EPG format. Can any body guide me in this
->>  regard. How EPGs are formated and streamed along with the programs.
->>  Thanks with regards.
->
-> Electronic Programme Guide is an application, so you can implement it
-> on your own.
->
-> If you want to read about Service Information (SI) in DVB (data you
-> see in EPG comes from SI) start with  ETSI EN 300 468[1] and Event
-> Information Table (EIT) section. All DVB specifications are available
-> from dvb.org[2].
->
-> [1] I'm not sure if they like deep links, but just put spec name to
-> Google to get URL to PDF
-> [2] http://www.dvb.org/technology/standards/
->
-> --
-> Krzysztof Burghardt <krzysztof@burghardt.pl>
-> http://www.burghardt.pl/
->
+On the same HW under Windows it is running ok.
 
+If somebody could point me to any direction I'll glad to cooperate in 
+debugging.
 
--- 
-guru
+Regards,
 
-
-
--- 
-GURUMURTI
-
+Ales
 
 _______________________________________________
 linux-dvb mailing list
