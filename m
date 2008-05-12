@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JvgkH-00072V-VB
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 00:43:53 +0200
-Received: from [192.168.1.2] (02-065.155.popsite.net [66.217.132.65])
-	(authenticated bits=0)
-	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m4CMhWr7024515
-	for <linux-dvb@linuxtv.org>; Mon, 12 May 2008 18:43:33 -0400 (EDT)
-From: Andy Walls <awalls@radix.net>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JvbRq-0000z1-Oh
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 19:04:27 +0200
+Message-ID: <48287878.9090401@gmx.net>
+Date: Mon, 12 May 2008 19:03:52 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
+References: <482560EB.2000306@gmail.com>	<200805121516.48002@orion.escape-edv.de>
+	<48284A6B.2020602@gmx.net> <200805121802.34413@orion.escape-edv.de>
 In-Reply-To: <200805121802.34413@orion.escape-edv.de>
-References: <482560EB.2000306@gmail.com>
-	<200805121516.48002@orion.escape-edv.de> <48284A6B.2020602@gmx.net>
-	<200805121802.34413@orion.escape-edv.de>
-Date: Mon, 12 May 2008 18:42:48 -0400
-Message-Id: <1210632168.3194.5.camel@palomino.walls.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends
-	tda10021	and	stv0297
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
+ stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,30 +26,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2008-05-12 at 18:02 +0200, Oliver Endriss wrote:
+On 05/12/2008 06:02 PM, Oliver Endriss wrote:
 > P. van Gaans wrote:
-> > On 05/12/2008 03:16 PM, Oliver Endriss wrote:
-> > > @all:
-> > > 1. If nobody objects I will commit the patches.
-> > > 2. Please check and fix the other frontend drivers to follow the spec.
-> > 
-> > Will the behaviour of femon change, and if so, in what way?
+>> On 05/12/2008 03:16 PM, Oliver Endriss wrote:
+>>> @all:
+>>> 1. If nobody objects I will commit the patches.
+>>> 2. Please check and fix the other frontend drivers to follow the spec.
+>> Will the behaviour of femon change, and if so, in what way?
 > 
 > For a correct driver unc would not return to 0 (unless the counter
 > wrapped).
+> 
+>> I use it now  
+>> to see at what points in time I've had hickups by writing femon's output 
+>> to a file and grep -nv "unc 0". This way I can see for example I've had 
+>> errors at 16:35 and 17:48. If this will still work after the patch, I'm 
+>> fine with it. If it won't work, will there be an alternative?
+> 
+> - Monitor the log for changes of the unc value.
+> - femon could be modified to display the delta value, or we might add an
+>   option (-U) to choose between absolute and delta unc display.
+> 
+> I am open to suggestions.
+> 
+> CU
+> Oliver
+> 
 
-And that is the critical part to support multiple opens on the device
-and still return meaningful values.
+I don't know much about programming but I guess femon could be changed. 
+I doubt I'll be able to do it but otherwise maybe someone else will. 
+Looking for changes in the unc value will be more work when 
+investigating a 12-hour femon log, so adding an option sounds like a 
+good idea.
 
-If a 0 could happen under any other condition, the meaning of a 0 being
-read would be ambiguous.  An application couldn't tell the difference
-between:
-
-a) an error occurred and the counter rolled over or
-b) no error occurred and another caller simply cleared the count.
-
--Andy
-
+P.
 
 _______________________________________________
 linux-dvb mailing list
