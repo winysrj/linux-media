@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D77m3U026804
-	for <video4linux-list@redhat.com>; Tue, 13 May 2008 03:07:48 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D77b3K004314
-	for <video4linux-list@redhat.com>; Tue, 13 May 2008 03:07:38 -0400
-Received: by ti-out-0910.google.com with SMTP id 24so1070514tim.7
-	for <video4linux-list@redhat.com>; Tue, 13 May 2008 00:07:36 -0700 (PDT)
-Message-ID: <998e4a820805130007tf1ea6fdvc4aa799e75840cc5@mail.gmail.com>
-Date: Tue, 13 May 2008 15:07:33 +0800
-From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
-To: "Mike Rapoport" <mike@compulab.co.il>
-In-Reply-To: <48292AC1.3020505@compulab.co.il>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CF7Q3X021145
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 11:07:26 -0400
+Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CF6gPW022518
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 11:06:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Date: Mon, 12 May 2008 17:05:58 +0200
+References: <481B1027.1040002@linuxtv.org>
+	<1209782607.27140.14.camel@palomino.walls.org>
+In-Reply-To: <1209782607.27140.14.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=GB2312
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <998e4a820805121959q77b3197cj692b813da6c68a7@mail.gmail.com>
-	<48292AC1.3020505@compulab.co.il>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: writting norflash will affect capture on pxa270?
+Message-Id: <200805121705.58552.hverkuil@xs4all.nl>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>, ivtv-devel@ivtvdriver.org
+Subject: Re: [PATCH] Fix potential cx18_cards[] entry leaks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,19 +31,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/5/13 Mike Rapoport <mike@compulab.co.il>:
->  NOR flash writes are *slow*, so this indeed can be an issue.
+On Saturday 03 May 2008 04:43:27 Andy Walls wrote:
+> Hans,
+>
+> When investigating Mike Krufky's report of module reload problems, I
+> ran across problems with the management of the cx18_cards[] array. 
+> They're corner cases and not likely to be the cause of Mike problems
+> though.
+>
+> Upon error conditions in cx18_probe(), the code at the 'err:' label
+> could leak cx18_cards[] entries.  Not a big problem since there are
+> 32 of them, but they could have caused a NULL pointer de-reference in
+> cx18_v4l2_open().
+>
+> The attached patch fixes these and reworks the management of the
+> cx18_cards[] entries.  The cx18_active_cards variable is replaced
+> with cx18_highest_cards_index (because that's essentially what
+> cx18_active_cards_was doing +1), and cleanup of entries happens a
+> little more pedantically (obtaining the lock, and removing each entry
+> on a pci remove, instead of waiting until module unload).
+>
+> The attached patch was made against the latest v4l-dvb hg repository.
+>
+> Comments welcome.
+>
+> Regards,
+> Andy
 
-But I write a big file to nandflash.FIFO overrun do not occur.
+Hi Andy,
 
-thanks
-fengxin
+Thanks for looking into this. I've copied the open() fix into the cx18 
+and ivtv drivers, but not the additional changes: in my opinion they do 
+not actually add anything useful. The potential NULL pointer 
+dereference is however an important fix and definitely should go into 
+2.6.26.
 
+Regards,
 
--- 
-ÖÂ
-Àñ
-·ëöÎ
+	Hans
 
 --
 video4linux-list mailing list
