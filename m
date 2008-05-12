@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ppp196-18.static.internode.on.net ([59.167.196.18]
-	helo=jumpgate.rods.id.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Rod@Rods.id.au>) id 1Ju7UD-0000Wt-7I
-	for linux-dvb@linuxtv.org; Thu, 08 May 2008 16:52:47 +0200
-Received: from jumpgate.rods.id.au (localhost [127.0.0.1])
-	by jumpgate.rods.id.au (Postfix) with ESMTP id 9D01D560363
-	for <linux-dvb@linuxtv.org>; Fri,  9 May 2008 00:26:39 +1000 (EST)
-Received: from [192.168.3.44] (shadow.rods.id.au [192.168.3.44])
-	by jumpgate.rods.id.au (Postfix) with ESMTP id 73971560362
-	for <linux-dvb@linuxtv.org>; Fri,  9 May 2008 00:26:39 +1000 (EST)
-Message-ID: <48230D9E.3010104@Rods.id.au>
-Date: Fri, 09 May 2008 00:26:38 +1000
-From: Rod <Rod@Rods.id.au>
+Received: from mx05.lb01.inode.at ([62.99.145.5] helo=mx.inode.at)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <philipp@kolmann.at>) id 1Jvc4r-0003bb-IX
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 19:44:46 +0200
+Date: Mon, 12 May 2008 19:44:41 +0200
+From: Philipp Kolmann <philipp@kolmann.at>
+To: Igor <goga777@bk.ru>
+Message-ID: <20080512174441.GB23724@kolmann.at>
+References: <20080510085803.GA30598@kolmann.at>
+	<E1JulAl-0001Ho-00.goga777-bk-ru@f53.mail.ru>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48222EA3.8030907@Rods.id.au>
-	<d9def9db0805071624j62836409jb7a24a3153c1df9e@mail.gmail.com>
-In-Reply-To: <d9def9db0805071624j62836409jb7a24a3153c1df9e@mail.gmail.com>
-Subject: Re: [linux-dvb] [Fwd: Change wording of DIFF file please]
+Content-Disposition: inline
+In-Reply-To: <E1JulAl-0001Ho-00.goga777-bk-ru@f53.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Mantis-08f27ef99d74: Compile error with 2.6.25
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,50 +27,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> Hey,
->
-> On 5/8/08, Rod <Rod@rods.id.au> wrote:
->   
->>     Repost as I think I fell off the list ;o(
->>
->>     
->
-> this stuff was generated against my v4l-dvb-experimental repository it seems.
->
-> +		}
-> +		break;
-> +	case TUNER_XCEIVE_XC3028:
-> +		dprintk(KERN_INFO "saa7134_tuner_callback TUNER_XCEIVE_XC3028
-> command %d\n", command);
-> +		switch(command) {
-> +		case TUNER_RESET1:
-> +		case TUNER_RESET2:
-> +			/* this seems to be to correct bit */
-> +			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00000000);
-> +			saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-> +			break;
-> +
-> +		case TUNER_RESET3:
-> +			break;
->
-> this also needs a change to work with the linuxtv repository, that way
-> the patch is not compatible with the linuxtv.org repository it was
-> generated against my v4l-dvb-experimental repository.
->
-> You already have the xceive reset line bit. Look how other xc3028
-> reset callbacks are implemented into the linuxtv.org repository and
-> change this according to the other callbacks.
->
-> Markus
->   
-    Would I be able to get a little help with this please?
+On Sat, May 10, 2008 at 01:15:19PM +0400, Igor wrote:
+> could you try with the latest mantis version
+> http://jusst.de/hg/mantis/rev/b7b8a2a81f3e
 
-    I know I may be asking a bit much, but I'm trying to learn this 
-stuff at the same time ;o)
+Manits head got fixed (regarding to the hg log). So I tried it. Still the same
+error. Same with v4l tree.
 
-    Does the code already work in 2.6.25? or its only in V4L repos 
-building before submission into the linux tree?
+Now I found a little patch which brought me over this compile error:
+
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.24-rc4/2.6.24-rc4-mm1/broken-out/fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+
+From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/media/video/tvaudio.c:147: error: conflicting type qualifiers for 'addr_data'
+include/media/v4l2-i2c-drv-legacy.h:37: error: previous declaration of 'addr_data' was here
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/media/v4l2-i2c-drv-legacy.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data include/media/v4l2-i2c-drv-legacy.h
+--- a/include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data
++++ a/include/media/v4l2-i2c-drv-legacy.h
+@@ -34,7 +34,7 @@ struct v4l2_i2c_driver_data {
+ };
+ 
+ static struct v4l2_i2c_driver_data v4l2_i2c_data;
+-static struct i2c_client_address_data addr_data;
++static const struct i2c_client_address_data addr_data;
+ static struct i2c_driver v4l2_i2c_driver_legacy;
+ static char v4l2_i2c_drv_name_legacy[32];
+
+
+Now I'm a step further.
+
+Thanks
+Philipp
+-- 
+The more I learn about people, the more I like my dog!
 
 _______________________________________________
 linux-dvb mailing list
