@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <20080503230321.himip9ragookkcs4@192.168.1.1>
-Date: Sat, 03 May 2008 23:03:21 +0200
-From: kiu <kiu@gmx.net>
-To: linux-dvb@linuxtv.org
-References: <20080427212607.csw7xwh9wcsw04cw@blacksheep.qnet>
-	<20080428001809.3vbl9fotckwwswss@blacksheep.qnet>
-In-Reply-To: <20080428001809.3vbl9fotckwwswss@blacksheep.qnet>
+Received: from znsun1.ifh.de ([141.34.1.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <patrick.boettcher@desy.de>) id 1JvVlR-0004Gg-M3
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 13:00:22 +0200
+Date: Mon, 12 May 2008 12:59:35 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Rogan Dawes <lists@dawes.za.net>
+In-Reply-To: <48281E7A.8010006@dawes.za.net>
+Message-ID: <Pine.LNX.4.64.0805121254410.11078@pub3.ifh.de>
+References: <48281E7A.8010006@dawes.za.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Cc: Manu Abraham <manu@linuxtv.org>
-Subject: Re: [linux-dvb] Regression! Re: TerraTec Cinergy C -
-	tuning	fails/freezes
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-T South Africa
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,65 +25,104 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I did some testings with different mantis versions and found the  
-changeset which introduced the freeze-while-tuning-bug:
+Hi Rogan,
 
-b7b8a2a81f3e    Failed tuning
-...
-f5b1f9d491bf    Failed tuning
-08f27ef99d74    OK
-822c8b267e86    Compile error *1
-8fb2812f8342    Compile error *1
-f348cfa56c7a    OK
+your dvbtraffic output raises a question: What happens when you run it for 
+several seconds ?
 
-Changeset "f5b1f9d491bf" (Implement HIF Mem Read/Write operations) broke it.
+Are the PIDs always the same? Especially the one with the higher bitrate?
 
-*1 mantis-*/v4l/mantis_dvb.c:193: error: implicit declaration of  
-function 'mantis_ca_init'
+I'm asking because if that is the case, it could be that this is a DVB-H 
+transmission.
 
-Quoting kiu <kiu@gmx.net>:
+I have some tools (which I did not commit yet) which "scan", in a very 
+basic way, for DVB-H services, maybe this could help you.
 
-> I could fix it by using exactly the mantis driver version which is
-> mentioned in
-> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C with my
-> 2.6.24-16-generic kernel.
+Before that you can try to use dvbsnoop on PID 0x00 and 0x10 to see 
+whether it signals a INT-section.
+
+I could also be a pure radio transmission, but in that case scan should 
+detect those channels.
+
+Patrick.
+
+
+On Mon, 12 May 2008, Rogan Dawes wrote:
+
+> Hi folks,
 >
-> w_scan works out of the box using version
-> http://jusst.de/hg/mantis/archive/af18967ffcc9.tar.bz2
+> I am trying to get my FlyDVB Trio card working with the trial broadcasts
+> that are currently underway in South Africa (Johannesburg).
 >
-> If you need some help in regression tests, drop me a mail.
+> I have got the drivers loaded fine, and used "w_scan" as described on
+> the wiki to generate an initial tuning file (attached). From there I
+> used "scan" to construct a channels.conf file (also attached).
 >
-> Quoting kiu <kiu@gmx.net>:
+> However, my problem arises is that there do not seem to be any audio or
+> video PIDs identified. It is possible that the broadcast is encrypted,
+> since I see many station names operated by MultiChoice (normally DVB-S
+> with CA).
 >
->> Hi List,
->>
->> i have a TerraTec Cinergy C DVB-C PCI Card in my mythbuntu 8.04 pc.
->>
->> After compiling the mantis driver (http://jusst.de/hg/mantis) the card
->> is recognized by the kernel. perfect!
->>
->> If i now run
->>
->> w_scan -fc -x -vvvv
->>
->> it searches for QAM64 and QAM256 and finds some signals there. After
->> it is finished, it tries to tune in the channels and freezes with this
->> message (same happens with (dvb)scan):
->>
->> tune to:
->> tuning status == 0x1f
->> add_filter:1388: add filter pid 0x0000 start_filter:1334: start filter
->> pid 0x0000 table_id 0x00
->>
->> Any hints for debugging/fixing it my issues ?
->>
->> Btw, i also encountered a segfault once. If it happens again i will
->> post it...
->>
->> TIA!
-
--- 
-kiu
+> I did try using dvbtraffic to see which PIDs were generating the most
+> data, but entering that as the video PID for an arbitrary station was
+> unsuccessful. Any ideas what I can try further? Unfortunately, our
+> "Department of Communications" has not been very communicative about
+> these trials, so I don't have any more information about how these
+> stations are being transmitted.
+>
+> A snippet of dvbtraffic while "tzap RT" was running follows:
+>
+> -PID--FREQ-----BANDWIDTH-BANDWIDTH-
+> 0000     4 p/s     0 kb/s     7 kbit
+> 0010     1 p/s     0 kb/s     2 kbit
+> 0011    13 p/s     2 kb/s    20 kbit
+> 0015     1 p/s     0 kb/s     2 kbit
+> 0065     3 p/s     0 kb/s     5 kbit
+> 0066     0 p/s     0 kb/s     1 kbit
+> 006f     2 p/s     0 kb/s     4 kbit
+> 0078   106 p/s    19 kb/s   159 kbit
+> 0079     2 p/s     0 kb/s     4 kbit
+> 0083     2 p/s     0 kb/s     4 kbit
+> 008d     2 p/s     0 kb/s     4 kbit
+> 0097     5 p/s     0 kb/s     8 kbit
+> 0098     2 p/s     0 kb/s     4 kbit
+> 00a0   291 p/s    53 kb/s   438 kbit
+> 00a1     2 p/s     0 kb/s     4 kbit
+> 00aa   345 p/s    63 kb/s   519 kbit
+> 00ab     2 p/s     0 kb/s     4 kbit
+> 00b4   381 p/s    69 kb/s   573 kbit
+> 00b5     2 p/s     0 kb/s     4 kbit
+> 00ba     2 p/s     0 kb/s     4 kbit
+> 00bc   246 p/s    45 kb/s   371 kbit
+> 00bd     2 p/s     0 kb/s     4 kbit
+> 00be   400 p/s    73 kb/s   601 kbit
+> 00bf     2 p/s     0 kb/s     4 kbit
+> 00c8   382 p/s    70 kb/s   574 kbit
+> 00c9     2 p/s     0 kb/s     4 kbit
+> 00d2    59 p/s    10 kb/s    89 kbit
+> 00d3     2 p/s     0 kb/s     4 kbit
+> 00dc   435 p/s    79 kb/s   655 kbit
+> 00dd     2 p/s     0 kb/s     4 kbit
+> 0104   341 p/s    62 kb/s   513 kbit
+> 0105     2 p/s     0 kb/s     4 kbit
+> 0118   137 p/s    25 kb/s   206 kbit
+> 0119     2 p/s     0 kb/s     4 kbit
+> 012d     2 p/s     0 kb/s     4 kbit
+> 0141     2 p/s     0 kb/s     4 kbit
+> 014b     2 p/s     0 kb/s     4 kbit
+> 1fff    93 p/s    17 kb/s   140 kbit
+> 2000  3311 p/s   607 kb/s  4980 kbit
+>
+> To my mind, these all seem *way* too low to be meaningful, right?
+>
+> Is there anything else I can try?
+>
+> Thanks
+>
+> Rogan
+> P.S. Cc: appreciated, but I do read the list via GMANE as well occasionally.
+>
+>
 
 _______________________________________________
 linux-dvb mailing list
