@@ -1,29 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4TFfVXS020049
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 11:41:31 -0400
-Received: from mxweblb04fl.versatel.de (mxweblb04fl.versatel.de
-	[89.246.255.245])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4TFfIl4005171
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 11:41:19 -0400
-Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
-	by mxweblb04fl.versatel.de (8.13.1/8.13.1) with ESMTP id m4TFfCc5000656
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 17:41:12 +0200
-Received: from cinnamon-sage.de (i577A0A09.versanet.de [87.122.10.9])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id
-	m4TFfCNL029323
-	for <video4linux-list@redhat.com>; Thu, 29 May 2008 17:41:12 +0200
-Received: from 192.168.23.2:57678 by cinnamon-sage.de for
-	<video4linux-list@redhat.com> ; 29.05.2008 17:41:06
-Message-ID: <483ECEB2.7080005@cinnamon-sage.de>
-Date: Thu, 29 May 2008 17:41:38 +0200
-From: Lars Hanisch <dvb@cinnamon-sage.de>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: How to enumerate video devices?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CEgknL028306
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:42:46 -0400
+Received: from mta4.srv.hcvlny.cv.net (mta4.srv.hcvlny.cv.net [167.206.4.199])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CEgYBx006366
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:42:34 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K0R00H7UFIS51X0@mta4.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 12 May 2008 10:42:29 -0400 (EDT)
+Date: Mon, 12 May 2008 10:42:28 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <481B31CC.6090606@linuxtv.org>
+To: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <48285754.8010608@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <481B1027.1040002@linuxtv.org>
+	<1209736068.3475.66.camel@palomino.walls.org>
+	<481B31CC.6090606@linuxtv.org>
+Cc: Steven Toth <stoth@hauppauge.com>, Michael Krufky <mkrufky@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE in
+ page.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,21 +37,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Steven Toth wrote:
+>>         if (cx->dev)
+>>                 cx18_iounmap(cx);
+> 
+> This doesn't feel right.
 
-  What is the best method to enumerate video devices, so that a program 
-can display a list of present hardware in/outputs? Just iterating over 
-/dev/video0 to /dev/videoSomeHighNumber seems a bit 'unprofessional'.
+Hans / Andy,
 
-  (BTW I'm also looking for the right way of enumerating framebuffer 
-devices...)
+Any comments?
 
-  I didn't find anything in the api-spec nor at google (perhaps I had 
-the wrong searchphrases?).
-
-  Please enlighten me. ;-)
-
-Lars.
+- Steve
 
 --
 video4linux-list mailing list
