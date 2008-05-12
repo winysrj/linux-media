@@ -1,29 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4C8AJAl032566
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 04:10:19 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4C8A5E3024898
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 04:10:07 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1JvT6g-0002kp-Q5
-	for video4linux-list@redhat.com; Mon, 12 May 2008 08:10:02 +0000
-Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 08:10:02 +0000
-Received: from augulis.darius by 82-135-208-232.static.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 08:10:02 +0000
-To: video4linux-list@redhat.com
-From: Darius <augulis.darius@gmail.com>
-Date: Mon, 12 May 2008 10:58:18 +0300
-Message-ID: <g08tjl$uqt$1@ger.gmane.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CAAwFP021507
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 06:10:58 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CAAkOh019392
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 06:10:46 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1045726nfc.21
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 03:10:46 -0700 (PDT)
+Date: Mon, 12 May 2008 20:11:14 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080512201114.3bd41ee5@glory.loctelecom.ru>
+In-Reply-To: <Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
+	<20080415000611.610af5c6@gaivota>
+	<20080415135455.76d18419@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-13; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: linux-arm-kernel@lists.arm.linux.org.uk
-Subject: [RFC] driver model for camera sensors
+Cc: video4linux-list@redhat.com
+Subject: Beholder card M6 with MPEG2 coder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,26 +42,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hi 
 
-in 2.6.26-rc1 today we have soc-camera driver and two drivers for Micron 
-cameras in this new driver model. But there are few old drivers for 
-OmniVision cameras, and they do not work with soc-camera driver model.
-In other side, these two new Micron drivers does not work with old 
-interface.
-So, we have the same sensors on different busses (soc, usb) and we need 
-two different drivers for the same sensor. I thing it's a good idea to 
-make all camera sensor drivers in unified model, that would be able to 
-work on both busses (usb, soc).
-Now I need driver for OV7670 sensor and I want to write it correct form.
-I think sensor driver should be universal and configurable. It should be 
-able interface with v4l2 through soc-camera or usb bus.
-I suggest to put all sensor drivers in separate directory in kernel tree.
+Now I start support MPEG2 coder in Beholder M6 card.
+I have few questions:
+1. Befor start MPEG2 stream need configure the saa7134 chip. How to I can make it correctly?
+2. Where I can read more about it??
 
-Am I rigth? Please comment my opinion.
-
-BR,
-Darius
+With my best regards, Dmitry.
 
 --
 video4linux-list mailing list
