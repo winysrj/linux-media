@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.234])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1JxQII-0000mr-Mb
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 19:34:10 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so763207rvf.41
-	for <linux-dvb@linuxtv.org>; Sat, 17 May 2008 10:34:02 -0700 (PDT)
-Message-ID: <617be8890805171034t539f9c67qe339f7b4f79d8e62@mail.gmail.com>
-Date: Sat, 17 May 2008 19:34:01 +0200
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: linux-dvb@linuxtv.org
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1JvYNh-0001Bw-MU
+	for linux-dvb@linuxtv.org; Mon, 12 May 2008 15:48:01 +0200
+Message-ID: <48284A6B.2020602@gmx.net>
+Date: Mon, 12 May 2008 15:47:23 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
+To: linux-dvb@linuxtv.org
+References: <482560EB.2000306@gmail.com>
+	<48274A27.9050206@gmail.com>	<1210541523.3197.34.camel@palomino.walls.org>
+	<200805121516.48002@orion.escape-edv.de>
+In-Reply-To: <200805121516.48002@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
+ stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,162 +21,131 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0982244903=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0982244903==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_10113_24726349.1211045642032"
+On 05/12/2008 03:16 PM, Oliver Endriss wrote:
+> Andy Walls wrote:
+>> On Sun, 2008-05-11 at 23:33 +0400, Manu Abraham wrote:
+>>
+>>> I am talking about standard DVB demods:
+>>> Every demodulator provides a standard interface, whether you know it or not.
+>>>
+>>> BER, Bit Error Rate (symbols per unit time)
+>>> Strength, usually a RMS value (Absolute)
+>>> SNR, Signal To Noise Ratio (Relative)
+>>> UNC, Uncorrectable symbols (Absolute)
+>>>
+>>> These parameters have meanings for the users, not just Linux users but
+>>> general users on the whole. Most DVB stuff is quite standardized, most
+>>> of which you can find in ETSI specifications and or old DVB.org whitepapers.
+>>>
+>>> All the resultant parameters that which an API provides, should be that
+>>> which is a standard definition, rather than defining something which is
+>>> bogus. You take anything standardized, you won't find any other
+>>> difference from the above, almost all demodulators follow the
+>>> specifications involved therein.
+>> Manu,
+>>
+>> I will agree with you then, drivers shouldn't compute a UNC block rate.
+>>
+>>
+>> Oliver,
+>>
+>> However, the original spec that was quoted, implied that *applications*
+>> would/could do just that: compute a rate from UNC block counts:
+> 
+> Applications may do whatever they wish with the UNC counter:
+> - provide the raw error count
+> - present the number of UNC blocks over a sliding window (last minute,
+>   last hour, whatever)
+> - calculate an UNC rate [1]
+> 
+> [1] Imho not very useful. UNC should remain constant or increment very
+>     slowly. Otherwise the ts stream will be unusable.
+> 
+>>> Argh, I just checked the API 1.0.0. spec:
+>>> | FE READ UNCORRECTED BLOCKS
+>>> | This ioctl call returns the number of uncorrected blocks detected by the device
+>>> | driver during its lifetime. For meaningful measurements, the increment
+>>> | in block count during a speci c time interval should be calculated. For this
+>>> | command, read-only access to the device is suf cient.
+>>> | Note that the counter will wrap to zero after its maximum count has been
+>>> | reached
+>> Putting aside whether such UNC block rates are useful or not, the
+>> specification as quoted facilitates the following use case:
+>>
+>> Multiple applications, can compute UNC block rates over different,
+>> possibly overlapping intervals of different lengths, with the
+>> applications required to handle rollover gracefully.
+> 
+> This a a very important point: The frontend may be opened by multiple
+> readers, so a driver _must_ _not_ reset the UNC counter after reading.
+> I guess that's why UNC was defined this way.
+> 
+> Btw, this is a common concept: SNMP (Simple Network Management Protocol)
+> counters behave the same way.
+> 
+>> The specification as is, appears to be the easiest way to support this
+>> use case, and it works provided the hardware automatically performs
+>> rollover of the UNC block counter.
+>>
+>> If this is a use case that needs to be supported, then to handle the
+>> case of hardware that doesn't automatically roll the UNC counter over to
+>> zero, the last sentence of the specification might be changed to
+>> something like this:
+>>
+>> "Note that the counter will wrap to zero after its maximum count has
+>> been reached.  For devices where the hardware does not automatically
+>> roll over to zero, when the ioctl would return the maximum supported
+>> value, the driver will reset the hardware counter to zero."
+>>
+>>
+>> This isn't perfect as some UNC counts will be lost after the counter
+>> saturates, but aside from this exceptional circumstance, the use case
+>> would be correctly supported.
+> 
+> The driver should do its best to implement the API spec. It might:
+> - return the value of a counter provided by the hardware if it matches
+>   the API spec
+> - implement a counter in software (see proposed patch for an example)
+> - return -ENOSYS if it cannot support the UNC counter [2]
+> 
+> Btw, the spec refers to an error code ENOSIGNAL, which does not exist.
+> :-(
+> 
+> [2] Unfortunately some drivers return a bogus value if they cannot
+>     provide UNC. This is a bug and should be fixed!
+>     Returning 0 is wrong. I'll fix the stv0299.
+> 
+> It is unlikely that the 32 bit UNC error count wraps. If it does, the
+> 'UNC rate' is very high, and it does not matter whether a few errors
+> are lost...
+> 
+> Anyway the application should handle the wrapping of the UNC counter
+> properly.
+> 
+> 
+> @all:
+> 1. If nobody objects I will commit the patches.
+> 2. Please check and fix the other frontend drivers to follow the spec.
+> 
+> CU
+> Oliver
+> 
 
-------=_Part_10113_24726349.1211045642032
-Content-Type: text/plain; charset=ISO-8859-9
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Will the behaviour of femon change, and if so, in what way? I use it now 
+to see at what points in time I've had hickups by writing femon's output 
+to a file and grep -nv "unc 0". This way I can see for example I've had 
+errors at 16:35 and 17:48. If this will still work after the patch, I'm 
+fine with it. If it won't work, will there be an alternative?
 
-SGksCiAgICBZb3Ugc2hvdWxkIG1heWJlIHRyeSB0aGUgcGF0Y2hlcyB0aGF0IE1hdHRoaWFzIFNj
-aHdhcnpvdHQgbWFkZSBmb3IKbm9uLWh5YnJpZCB2YXJpYW50IG9mIHRoZSBBNzAwIGNhcmQgKHRo
-ZSBvbmUgSSB1c2UpLiBUaGV5IGltcGxlbWVudCB0aGUgYWRkCkRWQi1TIHN1cHBvcnQgZm9yIHRo
-YXQgY2FyZCwgYW5kIGl0J3MgcnVubmluZyBmaW5lIG5vdyBmb3IgbWUuICBkb24ndCBrbm93Cmlm
-IHRoZXNlIHBhdGNoZXMgbWlnaHQgYmUgYWxzbyB2YWxpZCBmb3IgdGhlIEh5YnJpZCB2ZXJzaW9u
-LCBidXQgaXQncwpwcm9iYWJseSB3b3J0aCB0aGUgdHJ5LgoKICAgIFlvdSBjYW4gZmluZCB0aGUg
-cGF0Y2hlcyBpbiB0aGUgQXZlcm1lZGlhIEE3MDAgd2lraSBwYWdlIG9mIExpbnV4VFYsCmhlcmU6
-CgpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0FWZXJNZWRpYV9BVmVyVFZf
-RFZCLVNfUHJvXyUyOEE3MDAlMjk8aHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBo
-cC9BVmVyTWVkaWFfQVZlclRWX0RWQi1TX1Byb18lMjUyOEE3MDAlMjUyOT4KCiAgICBUYWtlIHRo
-ZSBsYXN0ZXN0IGZ1bGwgZGlmZiBmaWxlICBmcm9tIFpaYW0ncyByZXBvc2l0b3J5IGFuZCBhcHBs
-eSBpdApvdmVyIHRoZSBjdXJyZW50IEhHIHRyZWUuIElmIHlvdSBhcmUgdW5zdXJlIGFib3V0IGhv
-dyB0byBwcm9jZWVkLCBteW91CnNob3VsZCBmaXJzdCB0YWtlIGEgbG9vayBhdCB0aGUgaG93dG8g
-cGFnZSByZWdhcmRpbmcgTGludXhUViBkcml2ZXJzCmluc3RhbGw6CgpodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL3dpa2kvaW5kZXgucGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZpY2VfZHJpdmVycwoK
-R29vZCBsdWNrIDpECiAgRWR1YXJkIEh1Z3VldAoKCgoKCi0tLS0tLS0tLS0gTWlzc2F0Z2UgcmVl
-bnZpYXQgLS0tLS0tLS0tLQo+IEZyb206IGJ2aWRpbmxpIDxidmlkaW5saUBnbWFpbC5jb20+Cj4g
-VG86IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgImZhaHJpIGRvbm1leiIgPGZhaHJpZG9uQGdtYWls
-LmNvbT4sCj4gb3piaWxlbkBnbWFpbC5jb20KPiBEYXRlOiBTYXQsIDE3IE1heSAyMDA4IDEzOjE2
-OjE0ICswMzAwCj4gU3ViamVjdDogW2xpbnV4LWR2Yl0gbWVyaGFiYTogQWJvdXQgQXZlcm1lZGlh
-IERWQi1TIEh5YnJpZCtGTSBBNzAwCj4gaSBqdXN0IGNvbXBpbGVkIGtlcm5lbCB2ZXJzaW9uIDIu
-Ni4yNi5yYzIgb24gbXkgdWJ1bnR1IGxpbnV4IDguMDQsCj4gbWFueSB0aGluZ3MgaW5jbHVkaW5n
-IHNvdW5kIG5vdCB3b3JraW5nLCBidXQgaSBnb3QgZmluYWxseSBuYW1lIG9mIG15Cj4gdHYvZHZi
-IGNhcmQgb24gZG1lc2cgb3V0cHV0Lgo+IHByZXZpb3VzbHkgaSB3YXMgZ2V0dGluZyBVTktOT1dO
-L0dFTkVSSUMgb24gZG1lc2cgZm9yIG15IHR2IGNhcmQsCj4KPiAgaSB1c2UgdHZ0aW1lLXNjYW5u
-ZXIgb3IgdHZ0aW1lLCBpdCBkb2VzIG5vdCBzY2FuLCBldmVuIGFuYWxvZyBjaGFubmVscywKPiAg
-aSB1c2UgZm9sbG93aW5nIHRvIHRyeSBuZXcgdHVuZXJzLCA6Cj4gcm1tb2Qgc2FhNzEzNAo+IG1v
-ZHByb2JlIHNhYTcxMzQgY2FyZD0xNDEgdHVuZXI9Mgo+Cj4gaSBydW4gdGhlc2UgdHdvIGxpbmVz
-IGZvIHJ0dW5lciAwLDEsMiwzIGFuZCBzbyBvbi4uLiB0byB0cnkgZGlmZmVyZW50Cj4gdHVuZXIg
-bnVtYmVycy4uLiBvbiBzb21lIG51bWJlcnMsIGNvbXB1dGVycyBsb2NrcyBkb3duLi4gaSBoYWQg
-dG8KPiByZXNldC4uLgo+Cj4KPiBjdXJyZW50bHkgaSBoYXZlIHR3byBxdWVzdGlvbnM6Cj4gMS0g
-d2hhdCBpcyBjb3JyZWN0IHN0YXRlbWVudHMvY29tbWFuZHMgdG8gYmUgYWJsZSB0byBzY2FuIHR2
-IGNoYW5uZWxzLi4uCj4gMi0gdGhlIGxvZyBzYXlzIG9ubHkgYW5hbG9nIGlucHV0cyBhdmFpbGFi
-bGUgbm93LCB3aGVuIGl0IHdpbGwgYmUKPiBwb3NzaWJsZSB0byB3YXRjaCBkdmIgY2hhbm5lbHMg
-Pwo+IDMtIHdoYXQgaXMgYmVzdC9nb29kIHR1dG9yaWFscy9zaXRlcyB0aGF0IGRlc2NyaWJlL2hl
-bHAgaW4KPiBkdmIvdHYvbXVsdGltZWRpYSBmb3IgdWJ1bnR1L2xpbnV4LCAoaSBhbHJlYWR5IGxv
-b2tlZCBsaW51eHR2LAo+IHNlYXJjaGVkIGdvb2dsZSwgbWFueSBzaXRlcy4uKQo+Cj4KPiB0aGFu
-a3MuCj4KPgo+IGxvZ3M6IGRtZXNnLAo+Cj4gWyAgIDM5LjI0MzcwM10gc2FhNzEzM1swXTogZm91
-bmQgYXQgMDAwMDowMDoxNC4wLCByZXY6IDIwOSwgaXJxOiAxMiwKPiBsYXRlbmN5OiAzMiwgbW1p
-bzogMHhkZTAwMzAwMAo+IFsgICAzOS4yNDM3NzZdIHNhYTcxMzNbMF06IHN1YnN5c3RlbTogMTQ2
-MTphN2EyLCBib2FyZDogQXZlcm1lZGlhCj4gRFZCLVMgSHlicmlkK0ZNIEE3MDAgW2NhcmQ9MTQx
-LGF1dG9kZXRlY3RlZF0KPiBbICAgMzkuMjQzODU4XSBzYWE3MTMzWzBdOiBib2FyZCBpbml0OiBn
-cGlvIGlzIGI0MDAKPiBbICAgMzkuMjQzOTA5XSBzYWE3MTMzWzBdOiBBdmVybWVkaWEgRFZCLVMg
-SHlicmlkK0ZNIEE3MDA6IGh5YnJpZAo+IGFuYWxvZy9kdmIgY2FyZAo+IFsgICAzOS4yNDM5MTVd
-IHNhYTcxMzNbMF06IFNvcnJ5LCBvbmx5IHRoZSBhbmFsb2cgaW5wdXRzIGFyZSBzdXBwb3J0ZWQg
-Zm9yCj4gbm93Lgo+Cj4KPiAtLQo+IN0uQmFoYXR0aW4gVmlkaW5saQo+IEVsay1FbGVrdHJvbmlr
-IE38aC4KPiAtLS0tLS0tLS0tLS0tLS0tLS0tCj4gaWxldGlzaW0gYmlsZ2lsZXJpIChUZXJjaWgg
-c2lyYXNpbmEgZ29yZSk6Cj4gc2t5cGU6IGJ2aWRpbmxpIChzZXNsaSBnb3J1c21lIGljaW4sIHd3
-dy5za3lwZS5jb20pCj4gbXNuOiBidmlkaW5saUBpeWliaXJpc2kuY29tCj4geWFob286IGJ2aWRp
-bmxpCj4KPiArOTAuNTMyLjc5OTA2MDcKPiArOTAuNTA1LjU2Njc3MTEKPgo=
-------=_Part_10113_24726349.1211045642032
-Content-Type: text/html; charset=ISO-8859-9
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-PGRpdj48ZGl2PkhpLCA8YnI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IFlvdSBzaG91bGQgbWF5YmUgdHJ5
-IHRoZSBwYXRjaGVzIHRoYXQgTWF0dGhpYXMgU2Nod2Fyem90dCBtYWRlIGZvciBub24taHlicmlk
-IHZhcmlhbnQgb2YgdGhlIEE3MDAgY2FyZCAodGhlIG9uZSBJIHVzZSkuIFRoZXkgaW1wbGVtZW50
-IHRoZSBhZGQgRFZCLVMgc3VwcG9ydCBmb3IgdGhhdCBjYXJkLCBhbmQgaXQmIzM5O3MgcnVubmlu
-ZyBmaW5lIG5vdyBmb3IgbWUuJm5ic3A7IGRvbiYjMzk7dCBrbm93IGlmIHRoZXNlIHBhdGNoZXMg
-IG1pZ2h0IGJlIGFsc28gdmFsaWQgZm9yIHRoZSBIeWJyaWQgdmVyc2lvbiwgYnV0IGl0JiMzOTtz
-IHByb2JhYmx5IHdvcnRoIHRoZSB0cnkuPGJyPgoKPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBZb3Ug
-Y2FuIGZpbmQgdGhlIHBhdGNoZXMgaW4gdGhlIEF2ZXJtZWRpYSBBNzAwIHdpa2kgcGFnZSBvZiBM
-aW51eFRWLCBoZXJlOiA8YnI+PGJyPjxhIGhyZWY9Imh0dHA6Ly93d3cubGludXh0di5vcmcvd2lr
-aS9pbmRleC5waHAvQVZlck1lZGlhX0FWZXJUVl9EVkItU19Qcm9fJTI1MjhBNzAwJTI1MjkiIHRh
-cmdldD0iX2JsYW5rIiBvbmNsaWNrPSJyZXR1cm4gdG9wLmpzLk9wZW5FeHRMaW5rKHdpbmRvdyxl
-dmVudCx0aGlzKSI+aHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBocC9BVmVyTWVk
-aWFfQVZlclRWX0RWQi1TX1Byb18lMjhBNzAwJTI5PC9hPjxicj4KCjxicj4mbmJzcDsmbmJzcDsm
-bmJzcDsgVGFrZSB0aGUgbGFzdGVzdCBmdWxsIGRpZmYgZmlsZSZuYnNwOyBmcm9tIFpaYW0mIzM5
-O3MgcmVwb3NpdG9yeSBhbmQgYXBwbHkgaXQgb3ZlciB0aGUgY3VycmVudCBIRyB0cmVlLiBJZiB5
-b3UgYXJlIHVuc3VyZSBhYm91dCBob3cgdG8gcHJvY2VlZCwgbXlvdSBzaG91bGQgZmlyc3QgdGFr
-ZSBhIGxvb2sgYXQgdGhlIGhvd3RvIHBhZ2UgcmVnYXJkaW5nIExpbnV4VFYgZHJpdmVycyBpbnN0
-YWxsOjxicj4KCjxicj48YSBocmVmPSJodHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgu
-cGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZpY2VfZHJpdmVycyIgdGFyZ2V0PSJfYmxhbmsiIG9u
-Y2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5odHRw
-Oi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZp
-Y2VfZHJpdmVyczwvYT48YnI+Cjxicj5Hb29kIGx1Y2sgOkQ8YnI+Jm5ic3A7IEVkdWFyZCBIdWd1
-ZXQ8YnI+PGJyPjxicj48YnI+PGJyPjwvZGl2Pgo8YnI+PGJsb2NrcXVvdGUgY2xhc3M9ImdtYWls
-X3F1b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6IDFweCBzb2xpZCByZ2IoMjA0LCAyMDQsIDIwNCk7
-IG1hcmdpbjogMHB0IDBwdCAwcHQgMC44ZXg7IHBhZGRpbmctbGVmdDogMWV4OyI+LS0tLS0tLS0t
-LSBNaXNzYXRnZSByZWVudmlhdCAtLS0tLS0tLS0tPGJyPkZyb206Jm5ic3A7YnZpZGlubGkgJmx0
-OzxhIGhyZWY9Im1haWx0bzpidmlkaW5saUBnbWFpbC5jb20iIHRhcmdldD0iX2JsYW5rIiBvbmNs
-aWNrPSJyZXR1cm4gdG9wLmpzLk9wZW5FeHRMaW5rKHdpbmRvdyxldmVudCx0aGlzKSI+YnZpZGlu
-bGlAZ21haWwuY29tPC9hPiZndDs8YnI+CgpUbzombmJzcDs8YSBocmVmPSJtYWlsdG86bGludXgt
-ZHZiQGxpbnV4dHYub3JnIiB0YXJnZXQ9Il9ibGFuayIgb25jbGljaz0icmV0dXJuIHRvcC5qcy5P
-cGVuRXh0TGluayh3aW5kb3csZXZlbnQsdGhpcykiPmxpbnV4LWR2YkBsaW51eHR2Lm9yZzwvYT4s
-ICZxdW90O2ZhaHJpIGRvbm1leiZxdW90OyAmbHQ7PGEgaHJlZj0ibWFpbHRvOmZhaHJpZG9uQGdt
-YWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4dExp
-bmsod2luZG93LGV2ZW50LHRoaXMpIj5mYWhyaWRvbkBnbWFpbC5jb208L2E+Jmd0OywgIDxhIGhy
-ZWY9Im1haWx0bzpvemJpbGVuQGdtYWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJl
-dHVybiB0b3AuanMuT3BlbkV4dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5vemJpbGVuQGdtYWls
-LmNvbTwvYT48YnI+CgpEYXRlOiZuYnNwO1NhdCwgMTcgTWF5IDIwMDggMTM6MTY6MTQgKzAzMDA8
-YnI+U3ViamVjdDombmJzcDtbbGludXgtZHZiXSBtZXJoYWJhOiBBYm91dCBBdmVybWVkaWEgRFZC
-LVMgSHlicmlkK0ZNIEE3MDA8YnI+aSBqdXN0IGNvbXBpbGVkIGtlcm5lbCB2ZXJzaW9uIDIuNi4y
-Ni5yYzIgb24gbXkgdWJ1bnR1IGxpbnV4IDguMDQsPGJyPgptYW55IHRoaW5ncyBpbmNsdWRpbmcg
-c291bmQgbm90IHdvcmtpbmcsIGJ1dCBpIGdvdCBmaW5hbGx5IG5hbWUgb2YgbXk8YnI+CnR2L2R2
-YiBjYXJkIG9uIGRtZXNnIG91dHB1dC48YnI+CnByZXZpb3VzbHkgaSB3YXMgZ2V0dGluZyBVTktO
-T1dOL0dFTkVSSUMgb24gZG1lc2cgZm9yIG15IHR2IGNhcmQsPGJyPgo8YnI+CiZuYnNwO2kgdXNl
-IHR2dGltZS1zY2FubmVyIG9yIHR2dGltZSwgaXQgZG9lcyBub3Qgc2NhbiwgZXZlbiBhbmFsb2cg
-Y2hhbm5lbHMsPGJyPgombmJzcDtpIHVzZSBmb2xsb3dpbmcgdG8gdHJ5IG5ldyB0dW5lcnMsIDo8
-YnI+CnJtbW9kIHNhYTcxMzQ8YnI+Cm1vZHByb2JlIHNhYTcxMzQgY2FyZD0xNDEgdHVuZXI9Mjxi
-cj4KPGJyPgppIHJ1biB0aGVzZSB0d28gbGluZXMgZm8gcnR1bmVyIDAsMSwyLDMgYW5kIHNvIG9u
-Li4uIHRvIHRyeSBkaWZmZXJlbnQ8YnI+CnR1bmVyIG51bWJlcnMuLi4gb24gc29tZSBudW1iZXJz
-LCBjb21wdXRlcnMgbG9ja3MgZG93bi4uIGkgaGFkIHRvPGJyPgpyZXNldC4uLjxicj4KPGJyPgo8
-YnI+CmN1cnJlbnRseSBpIGhhdmUgdHdvIHF1ZXN0aW9uczo8YnI+CjEtIHdoYXQgaXMgY29ycmVj
-dCBzdGF0ZW1lbnRzL2NvbW1hbmRzIHRvIGJlIGFibGUgdG8gc2NhbiB0diBjaGFubmVscy4uLjxi
-cj4KMi0gdGhlIGxvZyBzYXlzIG9ubHkgYW5hbG9nIGlucHV0cyBhdmFpbGFibGUgbm93LCB3aGVu
-IGl0IHdpbGwgYmU8YnI+CnBvc3NpYmxlIHRvIHdhdGNoIGR2YiBjaGFubmVscyA/PGJyPgozLSB3
-aGF0IGlzIGJlc3QvZ29vZCB0dXRvcmlhbHMvc2l0ZXMgdGhhdCBkZXNjcmliZS9oZWxwIGluPGJy
-PgpkdmIvdHYvbXVsdGltZWRpYSBmb3IgdWJ1bnR1L2xpbnV4LCAoaSBhbHJlYWR5IGxvb2tlZCBs
-aW51eHR2LDxicj4Kc2VhcmNoZWQgZ29vZ2xlLCBtYW55IHNpdGVzLi4pPGJyPgo8YnI+Cjxicj4K
-dGhhbmtzLjxicj4KPGJyPgo8YnI+CmxvZ3M6IGRtZXNnLDxicj4KPGJyPgpbICZuYnNwOyAzOS4y
-NDM3MDNdIHNhYTcxMzNbMF06IGZvdW5kIGF0IDAwMDA6MDA6MTQuMCwgcmV2OiAyMDksIGlycTog
-MTIsPGJyPgpsYXRlbmN5OiAzMiwgbW1pbzogMHhkZTAwMzAwMDxicj4KWyAmbmJzcDsgMzkuMjQz
-Nzc2XSBzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDE0NjE6YTdhMiwgYm9hcmQ6IEF2ZXJtZWRpYTxi
-cj4KRFZCLVMgSHlicmlkK0ZNIEE3MDAgW2NhcmQ9MTQxLGF1dG9kZXRlY3RlZF08YnI+ClsgJm5i
-c3A7IDM5LjI0Mzg1OF0gc2FhNzEzM1swXTogYm9hcmQgaW5pdDogZ3BpbyBpcyBiNDAwPGJyPgpb
-ICZuYnNwOyAzOS4yNDM5MDldIHNhYTcxMzNbMF06IEF2ZXJtZWRpYSBEVkItUyBIeWJyaWQrRk0g
-QTcwMDogaHlicmlkPGJyPgphbmFsb2cvZHZiIGNhcmQ8YnI+ClsgJm5ic3A7IDM5LjI0MzkxNV0g
-c2FhNzEzM1swXTogU29ycnksIG9ubHkgdGhlIGFuYWxvZyBpbnB1dHMgYXJlIHN1cHBvcnRlZCBm
-b3Igbm93Ljxicj4KPGJyPgo8YnI+Ci0tPGJyPgrdLkJhaGF0dGluIFZpZGlubGk8YnI+CkVsay1F
-bGVrdHJvbmlrIE38aC48YnI+Ci0tLS0tLS0tLS0tLS0tLS0tLS08YnI+CmlsZXRpc2ltIGJpbGdp
-bGVyaSAoVGVyY2loIHNpcmFzaW5hIGdvcmUpOjxicj4Kc2t5cGU6IGJ2aWRpbmxpIChzZXNsaSBn
-b3J1c21lIGljaW4sIDxhIGhyZWY9Imh0dHA6Ly93d3cuc2t5cGUuY29tIiB0YXJnZXQ9Il9ibGFu
-ayIgb25jbGljaz0icmV0dXJuIHRvcC5qcy5PcGVuRXh0TGluayh3aW5kb3csZXZlbnQsdGhpcyki
-Pnd3dy5za3lwZS5jb208L2E+KTxicj4KbXNuOiA8YSBocmVmPSJtYWlsdG86YnZpZGlubGlAaXlp
-YmlyaXNpLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4
-dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5idmlkaW5saUBpeWliaXJpc2kuY29tPC9hPjxicj4K
-eWFob286IGJ2aWRpbmxpPGJyPgo8YnI+Cis5MC41MzIuNzk5MDYwNzxicj4KKzkwLjUwNS41NjY3
-NzExPGJyPgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPgo=
-------=_Part_10113_24726349.1211045642032--
-
-
---===============0982244903==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+P.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0982244903==--
