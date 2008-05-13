@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tommy.alander@gmail.com>) id 1JuiRT-00005j-Ud
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 08:20:27 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1114449fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 09 May 2008 23:20:20 -0700 (PDT)
-Message-ID: <85e6aeba0805092320ja192c12hd756b5efb3725463@mail.gmail.com>
-Date: Sat, 10 May 2008 08:20:18 +0200
-From: "Tommy Alander" <tommy.alander@gmail.com>
-To: linux-dvb@linuxtv.org
+Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp3.aruba.it)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1Jw1At-000433-1O
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 22:32:42 +0200
+Message-ID: <4829FAC4.2000707@avalpa.com>
+Date: Tue, 13 May 2008 22:32:04 +0200
+From: Andrea Venturi <a.venturi@avalpa.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] TerraTec Cinergy C
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] RE : inserting user PIDs in TS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,33 +22,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Thierry Lelegard wrote:
 
-I am having some problem getting this card working. I'm using the
-http://jusst.de/hg/mantis/archive/08f27ef99d74.tar.bz2 driver.
-Everything seem to work ok but I'm not able to tune to any channels.
+>
+>
+>> I would like to know that can we insert user defined PIDs into the TS
+>> stream. how should i go about? What standard should i follow? How
+should I
+>> format the the packets ( segment - section etc...).
+>> can any body help in this regard.
+>
+> Yes, in theory, you can.
+>
+> Keep in mind, however, that multiplexing is a quite difficult job
+> (this is what multiplexers are made for).
 
-The windows drivers works and are able to find channels.
+hi,
 
-Using a channel I know works. Gives this:
-# czap T2
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.czap/channels.conf'
- 42 T2:394000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:410:420:28009
- 42 T2: f 394000000, s 6875000, i 2, fec 0, qam 3, v 0x19a, a 0x1a4
-status 00 | signal 0000 | snr 0000 | ber 000fffff | unc 00000a63 |
-status 00 | signal 0000 | snr 9999 | ber 000fffff | unc 000061a7 |
-status 00 | signal 0000 | snr 8e8e | ber 000006c0 | unc 000063a1 |
-status 00 | signal 0000 | snr aaaa | ber 000fffff | unc 00000a4e |
-status 00 | signal 0000 | snr 7474 | ber 000006c0 | unc 000063a5 |
-status 00 | signal 0000 | snr 8585 | ber 000006c0 | unc 00006395 |
-status 00 | signal 0000 | snr 8f8f | ber 000fffff | unc 0000215f |
-status 00 | signal 0000 | snr 8f8f | ber 000006c0 | unc 000063a4 |
-status 00 | signal 0000 | snr adad | ber 000006c0 | unc 0000639c |
+if i can suggest a starting point, there's already a free software
+project for transport stream manipulation; it's called JustDVb-It, the
+GPL licensed package we made in our previous company Cineca since 2004:
 
-Any pointers how to find out whats wrong?
+ http://www.cineca.tv/labs/mhplab/JustDVb-It%202.0.html
 
-/Tommy
+it's a set of simple tools (following unix filosophy) you can put
+together in some customized ways to accomplish complex tasks.
+
+for example, it can filter PID on a TS, swap some PIDs with others,
+transform python described PSI tables in sections then in TS packets,
+and create DSMCC carousels too..
+
+there's a live CD to demo it with a DVB ASI port in a sample
+configuration (for italian MHP based interactive television)
+
+the current version can't restamp PCR, as it's quite a complex task, but
+this feature is something that we are releasing RSN in our new-born
+start-up Avalpa (http://www.avalpa.com). stay tuned!
+
+HTH
+
+bye
+
+andrea venturi
+
+
 
 _______________________________________________
 linux-dvb mailing list
