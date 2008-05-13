@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp03.msg.oleane.net ([62.161.4.3])
+Received: from an-out-0708.google.com ([209.85.132.241])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1Jtedz-0004nM-4V
-	for linux-dvb@linuxtv.org; Wed, 07 May 2008 10:04:55 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: "'Brice DUBOST'" <braice@braice.net>, <linux-dvb@linuxtv.org>
-Date: Wed, 7 May 2008 10:04:47 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAAB0B3nNnu0eZW4llRIXYCAEAAAAA@tv-numeric.com>
+	(envelope-from <tomasz.belina@gmail.com>) id 1Jw0uG-0001vQ-6W
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 22:15:29 +0200
+Received: by an-out-0708.google.com with SMTP id c31so844719anc.125
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 13:15:22 -0700 (PDT)
+Message-ID: <67bbdc0805131315n14bea69fn1f2b1c8412bc350a@mail.gmail.com>
+Date: Tue, 13 May 2008 22:15:22 +0200
+From: "Tomasz Belina" <tomasz.belina@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-In-Reply-To: <4820B6EB.9070204@braice.net>
-Subject: [linux-dvb] RE :  Patch for the scan utility from dvb-apps
+Content-Disposition: inline
+Subject: [linux-dvb]  HPC2000 once again
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,27 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> By the way I have an issue : the French DVB-T network doesn't give the
-> good frequencies in the SI-Tables. Is there a way to get the frequency
-> from the card ?
+Hi,
 
-An ioctl FE_GET_FRONTEND on the frontend device returns a struct
-dvb_frontend_parameters which contains all the tuning and modulation
-parameters, including the frequency. You need to tune on the frequency
-first, of course.
+I didn't find the way to force  my HPC2000 DVB-T card to work under
+linux. I added some informations about this card in unsupported card
+list section in project wiki. Is there anyone here who can help me to
+make this card work under linux ? I'm professional developer with good
+C and Linux knowladge (unfortunately without driver writing experience
+) and I think I can be usefull but I need some information what to do
+and where to start.
 
-In the French DVB-T network, all terrestrial_delivery_descriptors in the
-NIT are generic. All frequencies are 0xFFFFFFFF and all modulation
-parameters are those of the average MFN transmitters in the country.
-They are incorrect for all SFN transmitters and some specific transmitters
-(including the local services "L8" multiplex).
-
-Otherwise, the most recent (March 31) list of the French DVB-T frequencies
-by transmitter is available at:
-http://www.csa.fr/pdf/frequences_tnt_planifiees_alpha.pdf
-
--Thierry 
-
+Tom
 
 _______________________________________________
 linux-dvb mailing list
