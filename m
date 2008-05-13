@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4NFtQGD010051
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 11:55:26 -0400
-Received: from lxorguk.ukuu.org.uk (earthlight.etchedpixels.co.uk
-	[81.2.110.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4NFtF0h004625
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 11:55:15 -0400
-Date: Fri, 23 May 2008 16:39:56 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: corbet@lwn.net (Jonathan Corbet)
-Message-ID: <20080523163956.6e93746c@core>
-In-Reply-To: <9027.1211551014@vena.lwn.net>
-References: <20080522223700.2f103a14@core>
-	<9027.1211551014@vena.lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [PATCH] video4linux: Push down the BKL
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D5ipho028850
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 01:44:51 -0400
+Received: from mxout10.netvision.net.il (mxout10.netvision.net.il
+	[194.90.6.38])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D5idfI027349
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 01:44:40 -0400
+Received: from mail.linux-boards.com ([62.90.235.247])
+	by mxout10.netvision.net.il
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K0S00CIVLEZ6G70@mxout10.netvision.net.il> for
+	video4linux-list@redhat.com; Tue, 13 May 2008 08:47:23 +0300 (IDT)
+Date: Tue, 13 May 2008 08:44:33 +0300
+From: Mike Rapoport <mike@compulab.co.il>
+In-reply-to: <998e4a820805121959q77b3197cj692b813da6c68a7@mail.gmail.com>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+Message-id: <48292AC1.3020505@compulab.co.il>
+MIME-version: 1.0
+Content-type: text/plain; charset=GB2312
+Content-transfer-encoding: 8BIT
+References: <998e4a820805121959q77b3197cj692b813da6c68a7@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: writting norflash will affect capture on pxa270?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,24 +33,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> On the other hand, the next level of BKL pushdown would be painful as
-> all hell, given the massive number of callbacks in the V4L2 API.  So I'm
-> thinking it might be justified to create a video_ioctl2_locked() for
-> V4L2 drivers which are not yet known to be safe in the absence of the
-> BKL.  The amount of extra code would be quite small, and it would let
-> safe drivers operate BKL-free.
 
-The problem is that currently they are almost all unsafe - I did a quick
-survey as part of the changes. Pushing it down to the video2_ioctl is a
-starting point, but the v4l layer is going to need a lot of love and its
-own gradual migration.
 
-Right now we've gone from BKL buried in fs to BKL at top of v4l layer
-which is indeed only a starting point. I'd assumed the same as you are
-think a new video_ioctl2 and switching drivers one by one (I was assuming
-adding video2_ioctl_unlocked())
+·ëöÎ wrote:
+> My platform is pxa270.
+> When pxa270 is capturring, I write a file to JFFS2 norflash.Then FIFO
+> will overrun.But if I write a file to YAFFS nandflash,FIFO will not
+> overrun.
 
-Alan
+NOR flash writes are *slow*, so this indeed can be an issue.
+
+> 
+
+-- 
+Sincerely yours,
+Mike.
 
 --
 video4linux-list mailing list
