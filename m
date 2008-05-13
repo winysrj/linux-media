@@ -1,26 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4MJJYGP004367
-	for <video4linux-list@redhat.com>; Thu, 22 May 2008 15:19:34 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4MJJMin001878
-	for <video4linux-list@redhat.com>; Thu, 22 May 2008 15:19:22 -0400
-Date: Thu, 22 May 2008 21:19:35 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Darius <augulis.darius@gmail.com>
-In-Reply-To: <g13s6k$a2c$1@ger.gmane.org>
-Message-ID: <Pine.LNX.4.64.0805222105360.8800@axis700.grange>
-References: <g09j17$3m9$1@ger.gmane.org>
-	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>
-	<g0bjtj$b0d$1@ger.gmane.org>
-	<Pine.LNX.4.64.0805132212530.4988@axis700.grange>
-	<g0hhpt$jfp$1@ger.gmane.org>
-	<Pine.LNX.4.64.0805152121210.14292@axis700.grange>
-	<g13s6k$a2c$1@ger.gmane.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: question about SoC Camera driver (Micron)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D9LLDw027308
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 05:21:21 -0400
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D9LDAs013829
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 05:21:13 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id
+	m4D9KobQ005892
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 12:21:06 +0300
+Received: from kaali.localdomain (kaali.localdomain [192.168.239.7])
+	by maxwell.research.nokia.com (Postfix) with ESMTP id 214844674E
+	for <video4linux-list@redhat.com>;
+	Tue, 13 May 2008 12:21:06 +0300 (EEST)
+Received: from sailus by kaali.localdomain with local (Exim 4.63)
+	(envelope-from <sakari.ailus@nokia.com>) id 1Jvqh0-0006tC-11
+	for video4linux-list@redhat.com; Tue, 13 May 2008 12:21:06 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: video4linux-list@redhat.com
+Cc: 
+Date: Tue, 13 May 2008 12:21:06 +0300
+Message-Id: <12106704662247-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <48295D60.90504@nokia.com>
+References: <48295D60.90504@nokia.com>
+Subject: [PATCH] TCM825x: Include invertation of image mirroring in
+	configuration
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,59 +36,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 22 May 2008, Darius wrote:
+Add invertation of image mirroring register bits to default
+configuration.
 
-> Guennadi Liakhovetski wrote:
-> > On Thu, 15 May 2008, Darius wrote:
-> > 
-> > > Guennadi, can you please describe more detailed struct soc_camera_device
-> > > structure? All these members xmin, ymin, etc...
-> > 
-> > The main point is, that the unit is 1 pixel. The rest is pretty much
-> > implementation specific. Just see your datasheet and select some natural
-> > values for allowed frame sizes and location. As the struct declaration says:
-> > 
-> > 	unsigned short width;		/* Current window */
-> > 	unsigned short height;		/* sizes */
-> > 	unsigned short x_min;		/* Camera capabilities */
-> > 	unsigned short y_min;
-> > 	unsigned short x_current;	/* Current window location */
-> > 	unsigned short y_current;
-> > 
-> 
-> where they are used? as I can see, in *_try_fmt_cap() and *__set_fmt_cap() you
-> are using hard coded constants.
-> in video_probe you are setting this structure, but these values are never
-> used?
+This is useful when the camera module is e.g. mounted upside down.
 
-Which of them you don't see being used? The ones I checked are used.
-
-> > The vales below are again min and max allowed values.
-> > 
-> > 	unsigned short width_min;
-> > 	unsigned short width_max;
-> > 	unsigned short height_min;
-> > 	unsigned short height_max;
-> 
-> should they be used in *_try_fmt_cap() function to inform v4l2 driver about
-> sensor posibilities?
-> now in *_try_fmt_cap() you are using hard coded constants. values from
-> soc_camera_device *icd struct are not used?
-
-Please, tell me exactly where you suspect bugs. soc_camera.c, 
-pxa_camera.c, mt9?0??.c all have *try_fmt_cap().
-
-> btw, can you tell something about frame rate setting? how to implement that?
-> for example, I want from user space adjust frame rate (4, 15, 25, 30fps...).
-> Should I pass these setting to sensor driver via *_set_fmt_cap()?
-
-This is not supported.
-
-Thanks
-Guennadi
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+ drivers/media/video/tcm825x.c |    6 ++++++
+ drivers/media/video/tcm825x.h |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/tcm825x.c b/drivers/media/video/tcm825x.c
+index e57a646..216638e 100644
+--- a/drivers/media/video/tcm825x.c
++++ b/drivers/media/video/tcm825x.c
+@@ -523,6 +523,9 @@ static int ioctl_g_ctrl(struct v4l2_int_device *s,
+ 	if (val < 0)
+ 		return val;
+ 
++	if (vc->id == V4L2_CID_HFLIP || vc->id == V4L2_CID_VFLIP)
++		val ^= sensor->platform_data->is_upside_down();
++
+ 	vc->value = val;
+ 	return 0;
+ }
+@@ -556,6 +559,9 @@ static int ioctl_s_ctrl(struct v4l2_int_device *s,
+ 	if (lvc == NULL)
+ 		return -EINVAL;
+ 
++	if (vc->id == V4L2_CID_HFLIP || vc->id == V4L2_CID_VFLIP)
++		val ^= sensor->platform_data->is_upside_down();
++
+ 	val = val << lvc->start_bit;
+ 	if (tcm825x_write_reg_mask(client, lvc->reg, val))
+ 		return -EIO;
+diff --git a/drivers/media/video/tcm825x.h b/drivers/media/video/tcm825x.h
+index 966765b..770ebac 100644
+--- a/drivers/media/video/tcm825x.h
++++ b/drivers/media/video/tcm825x.h
+@@ -182,6 +182,7 @@ struct tcm825x_platform_data {
+ 	int (*needs_reset)(struct v4l2_int_device *s, void *buf,
+ 			   struct v4l2_pix_format *fmt);
+ 	int (*ifparm)(struct v4l2_ifparm *p);
++	int (*is_upside_down)(void);
+ };
+ 
+ /* Array of image sizes supported by TCM825X.  These must be ordered from
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
