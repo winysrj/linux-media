@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.156.147.13] (helo=kirsi1.rokki.sonera.fi)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lwgt@iki.fi>) id 1K0vn2-0005A9-0f
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 11:48:20 +0200
-Received: from [127.0.0.1] (84.249.53.62) by kirsi1.rokki.sonera.fi (8.5.014)
-	id 483BB449000249E1 for linux-dvb@linuxtv.org;
-	Tue, 27 May 2008 12:48:16 +0300
-Message-ID: <483BD8DC.6090707@iki.fi>
-Date: Tue, 27 May 2008 12:48:12 +0300
-From: Lauri Tischler <lwgt@iki.fi>
+Received: from n42.bullet.mail.ukl.yahoo.com ([87.248.110.175])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1Jw08W-0006cG-6y
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 21:26:11 +0200
+Date: Tue, 13 May 2008 13:58:33 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <200805122042.43456.ajurik@quick.cz>
+In-Reply-To: <200805122042.43456.ajurik@quick.cz> (from ajurik@quick.cz on
+	Mon May 12 14:42:43 2008)
+Message-Id: <1210701513l.6217l.1l@manu-laptop>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <20080329024154.GA23883@localhost>	<47EDCE27.4050101@optusnet.com.au>
-	<47EE1056.9050804@iki.fi>	<47EE3C5E.8080001@optusnet.com.au>	<20080402023911.GA27360@tull.net>
-	<47F4087D.2050202@optusnet.com.au>
-In-Reply-To: <47F4087D.2050202@optusnet.com.au>
-Subject: Re: [linux-dvb] Afatech 9015
+Content-Disposition: inline
+Subject: [linux-dvb] Re : No lock possible at some DVB-S2 channels with TT
+ S2-3200/linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,43 +27,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-ausgnome wrote:
+On 05/12/2008 02:42:43 PM, Ales Jurik wrote:
+> Hi,
+> 
+> after Telenor switched from Thor-2 to Thor-5 (0.8W) no lock is
+> possible with 
+> multiproto(-plus) and TT S2-3200 at these transponders:
+> 
+> TV4 
+> HD;Telenor:11341:vC34M5O35S1:S0.8W:25000:512:0;641=sve:0:B00:1405:70:42:0
+> CANAL+ FILM 
+> HD;Telenor:11421:hC34M5O35S1:S0.8W:25000:513:644=eng;645=eng:0:B00:3306:70:14:0
+> Nat Geo 
+> HD;Telenor:11434:vC34M5O35S1:S0.8W:25000:512:640=eng:0:B00:3806:70:38:0
+> 
+> I'm 100% sure that this problem corresponds with switch from Thor-2 
+> to
+> Thor-5 
+> as it appeared exactly at times when switch was announced by Telenor. 
+> 
+> Regarding to official document 
+> http://www.telenorsbc.com/upload/PDFS/DVB-S2%20Transponder%20FEC%
+> 20Change_280208.pdf
+> 
+> two changes were implemented - FEC from 2/3 to 3/4 and switch off
+> Pilot.
+> 
+> On the same HW under Windows it is running ok.
+> 
+> If somebody could point me to any direction I'll glad to cooperate in 
+> debugging.
+> 
 
-> lsusb -v
-> Bus 001 Device 005: ID 15a4:9016 
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0
->   bDeviceProtocol         0
->   bMaxPacketSize0        64
->   idVendor           0x15a4
->   idProduct          0x9016
->   bcdDevice            2.00
->   iManufacturer           1 Afatech
->   iProduct                2 DVB-T 2
->   iSerial                 3 010101010600001
+Perhaps you can try to increase the freq by 4Mhz, that's what I did 
+here (DVB-S though) and I have a perfect picture since then.
+HTH
+Bye
+Manu
 
-My Fuj:tech DTV PRO has same ID 15a4:9016 but
-odd manufacturer MSI
 
-Bus 006 Device 007: ID 15a4:9016
-Device Descriptor:
-   bLength                18
-   bDescriptorType         1
-   bcdUSB               2.00
-   bDeviceClass            0 (Defined at Interface level)
-   bDeviceSubClass         0
-   bDeviceProtocol         0
-   bMaxPacketSize0        64
-   idVendor           0x15a4
-   idProduct          0x9016
-   bcdDevice            2.00
-   iManufacturer           1 MSI
-   iProduct                2 MSI K-VOX
-   iSerial                 3 010101010600001
 
 _______________________________________________
 linux-dvb mailing list
