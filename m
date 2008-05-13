@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49FcXDQ010009
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 11:38:33 -0400
-Received: from smtp-out3.libero.it (smtp-out3.libero.it [212.52.84.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49Fc0tk014970
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 11:38:00 -0400
-Received: from MailRelay09.libero.it (192.168.32.116) by smtp-out3.libero.it
-	(7.3.120) id 4628C87A0B991798 for video4linux-list@redhat.com;
-	Fri, 9 May 2008 17:37:54 +0200
-From: Roberto Mantovani - A&L <rmantovani@libero.it>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain
-Date: Fri, 09 May 2008 17:37:54 +0200
-Message-Id: <1210347474.15033.10.camel@mandoch.ael.it>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D2FmHu014915
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 22:15:48 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.229])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D2Fb2u001791
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 22:15:37 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2841898rvb.51
+	for <video4linux-list@redhat.com>; Mon, 12 May 2008 19:15:36 -0700 (PDT)
+Message-ID: <2b65cdb10805121915p266fef1ep170994964d80bf50@mail.gmail.com>
+Date: Mon, 12 May 2008 19:15:36 -0700
+From: "Vatsal Mehta" <vatsal@vigyaan.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: How to view camera output with xine
-Reply-To: rmantovani@libero.it
+Content-Disposition: inline
+Subject: question on support for amd geode lx for newer kernels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,28 +27,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi list,
 
-I'm working on a em28xx based usb camera.
+Where can I find driver/code for V4L2 on AMD Geode LX processors for Linux
+kernel.
+The patch + code I got from AMD website is for 2.6.11.
 
-How can I view the camera output with xine ?
+Thanks,
 
-With mplayer I run the command : mplayer tv://
-
-With xine I've tried : xine v4l2:// but xine give me a message : "there
-is no input plugin available to handle v4l2://", but if I try xine
---list-pugins there is :
--Input:
-   ...,v4l_tv, ...
-
-I have to write a program in fltk to handle the video out of the cam.
-Do you know other methods to use the video out of the camera in a
-program ? 
-
-Best Regards,
---
-Roberto
-
+Vatsal Mehta
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
