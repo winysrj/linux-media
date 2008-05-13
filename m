@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.183])
+Received: from smtphost.cis.strath.ac.uk ([130.159.196.96])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marcel.szakacs@gmail.com>) id 1K0wZh-00006x-TV
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 12:38:40 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so2484491wag.13
-	for <linux-dvb@linuxtv.org>; Tue, 27 May 2008 03:38:33 -0700 (PDT)
-Message-ID: <ce0ec8cf0805270338j3617f452i815a8bba6d8d4bb9@mail.gmail.com>
-Date: Tue, 27 May 2008 12:38:31 +0200
-From: "Marcel Szakacs" <marcel.szakacs@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <ce0ec8cf0805270329h5e48edbds1807409f549ccfbe@mail.gmail.com>
+	(envelope-from <gnapier@cis.strath.ac.uk>) id 1Jvv0C-0001UO-Pi
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 15:57:45 +0200
+Received: from [130.159.178.173] (euan.eee.strath.ac.uk [130.159.178.173])
+	(authenticated bits=0)
+	by smtphost.cis.strath.ac.uk (8.13.4/8.13.4/Debian-3sarge3) with ESMTP
+	id m4DDsFLS028309
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 14:54:16 +0100
+Message-ID: <48299D88.3060608@cis.strath.ac.uk>
+Date: Tue, 13 May 2008 14:54:16 +0100
+From: Gary Napier <gnapier@cis.strath.ac.uk>
 MIME-Version: 1.0
-References: <ce0ec8cf0805270329h5e48edbds1807409f549ccfbe@mail.gmail.com>
-Subject: [linux-dvb] AVerTV Hybrid Speedy PCI-E H788R
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,52 +22,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2037317270=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2037317270==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_17247_17971840.1211884711244"
+Hi all,
 
-------=_Part_17247_17971840.1211884711244
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I have been attempting to build a linux-tv system using the Haugpage 
+HVR-3000. Now i have been aware of the problems with this card,
+with regards to the dual frontend. Using the wiki entries as a base, i 
+installed Mythbuntu, and removed it's default cx_88 module, before building
+my own using the wiki steps. I am using a Via C7 1.5GHz  system on a 
+Jetway motherboard, mini ITX, one PCI slot.
 
-Hi,
+So, in the end i can use dvb-tools to get a TV picture (found the BBC 
+channels available in the uk via DVB-T)
+Scan finds very little channels, but i do have some BBC channels to 
+test. This would indicate a reception issue i believe.
+TZAP spits out the constant hex codes i expect.
 
-I'm looking for linux driver for "AVerTV Hybrid Speedy PCI-E H788R" TV card,
-can you please help me to make running this card under any linux
-distribution ?
+The problem.
+The tv is very slow to update and impossible to watch. I would like to 
+know if this is a driver/software issue or
+a hardware issue. During TV playback the processor maxs out at 100%
 
-Thank you in advance
-Best regards
-Marcel
+1. Am i right in assuming that the output from the HVR-3000 (DVB-T) is 
+an MPEG stream, and as such needs very little CPU resources?
+2. Am i right in assuming that with the Hardware MPEG decoding ability 
+of the Via C7, very little CPU resources are needed for playback?
+3. What tools are available for me to get a measure of signal strength 
+and quality of broadcast, which i believe may be the issue (although 
+dedicated Set Top boxes seem to work fine)?
+4. Please share any other comments that may be useful to the setup.
 
-------=_Part_17247_17971840.1211884711244
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Cheers
+Gary
 
-<div class="gmail_quote">Hi,<br><br>I&#39;m looking for linux driver for &quot;AVerTV Hybrid Speedy PCI-E H788R&quot; TV card,<br>can you please help me to make running this card under any linux distribution ?<br><br>Thank you in advance<br>
-Best regards<br><font color="#888888">
-Marcel<br>
-</font></div><br>
-
-------=_Part_17247_17971840.1211884711244--
-
-
---===============2037317270==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2037317270==--
