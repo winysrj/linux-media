@@ -1,26 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.movial.fi ([62.236.91.34])
+Received: from eazy.amigager.de ([213.239.192.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dennis.noordsij@movial.fi>) id 1K2Qta-000513-7O
-	for linux-dvb@linuxtv.org; Sat, 31 May 2008 15:13:19 +0200
-Received: from localhost (mailscanner.hel.movial.fi [172.17.81.9])
-	by smtp.movial.fi (Postfix) with ESMTP id 75A3FC80D2
-	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:12:43 +0300 (EEST)
-Received: from smtp.movial.fi ([62.236.91.34])
-	by localhost (mailscanner.hel.movial.fi [172.17.81.9]) (amavisd-new,
-	port 10026) with ESMTP id XDVdL1oPcLHk for <linux-dvb@linuxtv.org>;
-	Sat, 31 May 2008 16:12:43 +0300 (EEST)
-Received: from [127.0.0.1] (hellgapp.hel.movial.fi [172.17.83.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp.movial.fi (Postfix) with ESMTP id 272B8C809D
-	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:12:43 +0300 (EEST)
-Message-ID: <48414EC8.3080008@movial.fi>
-Date: Sat, 31 May 2008 15:12:40 +0200
-From: Dennis Noordsij <dennis.noordsij@movial.fi>
-MIME-Version: 1.0
+	(envelope-from <tino@tikei.de>) id 1JvqPq-00050I-70
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 11:03:24 +0200
+Received: from dose.home.local (port-212-202-35-232.dynamic.qsc.de
+	[212.202.35.232])
+	by eazy.amigager.de (Postfix) with ESMTP id 4DFF6C8C250
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 11:03:28 +0200 (CEST)
+Received: from scorpion by dose.home.local with local (Exim 4.69)
+	(envelope-from <tino.keitel@tikei.de>) id 1JvqPm-0001Ug-AS
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 11:03:18 +0200
+Date: Tue, 13 May 2008 11:03:18 +0200
+From: Tino Keitel <tino.keitel@tikei.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] usb-dvb and endpoints question
+Message-ID: <20080513090318.GA5723@dose.home.local>
+References: <481ED628.4070901@ipnetwork.de> <482374BA.7040508@ipnetwork.de>
+	<4824034D.7000700@free.fr> <48241F25.40607@ipnetwork.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <48241F25.40607@ipnetwork.de>
+Subject: Re: [linux-dvb] Cinergy T2 Kernel Oops on Linkstation Live
+	V1	(Marvel Orion ARM Architecture)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,60 +34,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Fri, May 09, 2008 at 11:53:41 +0200, Ingo Peukes wrote:
+> Hello Thierry,
+> 
+> Thierry Merle wrote:
 
-Hi list,
+[...]
 
-I am writing a driver for the TerraTec Piranha DVB-T USB stick (actually
-the Sanio SMS-1000 chipset). From reading USB logs I have a working
-libusb prototype which can tune and receive the transport stream, and
-use the hardware PID filter.
+> > I hope Tomi will be able to finalize his patch so we will be able to replace the old one.
+> > The old driver is monolithic and does not follow the dvb framework evolutions/bug corrections.
+> Hope so too,  as I stated in my reply to the 'Tester wanted ...' thread 
+> it works good except the signal recognition is very poor compared to the 
+> old driver.
 
-Porting it to a proper linux DVB driver I have the following question:
+Hi,
 
-This device has exactly 2 bulk endpoints, as follows:
+just a "mee too". I use Tomi's driver for months and it works like a
+charm.
 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-
-All control messages go out over EP2. All responses, as well as the
-transport stream, come in over EP1.
-
-All incoming packets have a small header which allows it to be mapped
-back to the corresponding request (excepting TS data which can be read
-spontaneously, but which is still marked with an additional header).
-
-Does this mean that I can not really use the dvb-usb framework ? (since
-there is no generic_bulk_ctrl_endpoint, and since the TS stream also
-does not come on its own endpoint and even needs additional depackatizing).
-
-Since incoming data is mixed with TS packets, you can no longer just
-write a command and read the next response. TS data will be streaming in
-and every time you make some request you will probably get some TS data
-first, and only then your response. How to solve?
-
-Any pointers in the right direction? :-)
-
-Cheers,
-Dennis
-
+Regards,
+Tino
 
 _______________________________________________
 linux-dvb mailing list
