@@ -1,18 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp02.msg.oleane.net ([62.161.4.2])
+Received: from smtp4-g19.free.fr ([212.27.42.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1Jy4ht-0002Lg-2r
-	for linux-dvb@linuxtv.org; Mon, 19 May 2008 14:43:16 +0200
-Received: from PCTL ([194.250.18.140]) (authenticated)
-	by smtp02.msg.oleane.net (MTA) with ESMTP id m4JCh9Q4030204
-	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 14:43:09 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 19 May 2008 14:43:09 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAhauPQoA2x0i56RbawkCZWgEAAAAA@tv-numeric.com>
+	(envelope-from <thierry.merle@free.fr>) id 1JvyQc-0000Vz-Tw
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 19:37:03 +0200
+Message-ID: <4829D18B.6030505@free.fr>
+Date: Tue, 13 May 2008 19:36:11 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <3cc3561f0805190426m5b7dce4bxfed33ad9f5d1339@mail.gmail.com>
-Subject: [linux-dvb] RE :  RE : inserting user PIDs in TS
+To: Tomi Orava <tomimo@ncircle.nullnet.fi>
+References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>
+	<20071018181040.GA6960@dose.home.local>
+	<20071018182940.GA7317@dose.home.local>
+	<20071018201418.GA16574@dose.home.local>
+	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>
+	<472A0CC2.8040509@free.fr> <480F9062.6000700@free.fr>
+	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>
+	<481B4A78.8090305@free.fr>
+	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
+	<481F66B0.4090302@free.fr> <4821F9A9.6030304@ncircle.nullnet.fi>
+	<48236E1F.5080300@free.fr>
+	<60450.192.168.9.10.1210618180.squirrel@ncircle.nullnet.fi>
+In-Reply-To: <60450.192.168.9.10.1210618180.squirrel@ncircle.nullnet.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
+ Cinergy T2 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,55 +31,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I am not sure that I agreen on having to modify PCR even if you add
-> data to the mux. Every service has it's own PCR, If you add a new pid
-> without PCR, then you just have to increase output datarate
-> accordingly.
-
-You are right in general, but not quite in the precise values.
-
-> As long as the PCR leaves the muxing software at the same
-> time as it would do without injecting the pid,
-
-This is simply quite impossible to acheive, unless you exactly add
-a fixed number of packets between *each* original packet. If you
-leave two consecutive original packets together and insert a new
-packet between two original packets (P1 P2 P3 => P1 P2 Pnew P3),
-you introduce PCR jitter.
-
-A PCR value is precise to the bit.
-
-Inserting a packet means inserting many bits (188*8). In an existing
-PID, you will find PCR's in, say, packets Px, Py and Pz. These packets
-are not necessarily equally spaced in the TS. During your muxing
-operation, you will add, say, 1 packet between Px and Py and 2 (or zero)
-packets between Py and Pz. Thus, some PCR's become wrong.
-
-> there should be no
-> difference at the receiving end.
-
-Remember that the PCR's represent a "system clock", not a program
-clock (which is implemented by DTS and PTS). PCR's are used as system
-clock reference by the receiving STB. They must be extremely precise.
-
-Usually, the PCR's are restamped by a hardware oscillator at the output
-of the MUX and even sometimes restamped inside the modulator itself.
-
-Of course, if the TS is used in a software codec running as a PC
-application, PCR jitter is harmless since the system clock of the
-rendering engine is likely to be the PC system clock, not the PCR's.
-STB are different.
-
--Thierry
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+VG9taSBPcmF2YSBhIMOpY3JpdCA6Cj4gCj4gSGkgVGhpZXJyeSwKPiAKPiBBbmQgdGhhbmtzIGEg
+bG90IGZvciB5b3VyIHBhdGNoLiBJJ3ZlIG5vdyB1cGRhdGVkIHRoZQo+IENpbmVyZ3kgVDIgZHJp
+dmVyIHBhdGNoIHdpdGggeW91ciByZW1vdGUgY29udHJvbCBjbGVhbnVwLgo+IAo+Pj4gSG93ZXZl
+ciwgSSBkaWQgbm90IHJlcGxhY2UgdGhlIG9yaWdpbmFsIENpbmVyZ3kgVDIgZHJpdmVyCj4+PiBh
+cyBJIHRoaW5rIHRoYXQgdGhpcyBuZXcgZHJpdmVyIHNob3VsZCBiZSBsb2NhdGVkIGluIHRoZQo+
+Pj4gdmVyeSBzYW1lIGRpcmVjdG9yeSBhcyB0aGUgcmVzdCBvZiB0aGUgdXNiLWR2YiBkcml2ZXJz
+Lgo+Pj4KPj4gQWdyZWVkLCBidXQgeW91IHNob3VsZCByZW1vdmUgdGhlIG9sZCBjaW5lcmd5VDIg
+ZHJpdmVyLgo+IAo+IE9rLCB0aGUgYXR0YWNoZWQgdmVyc2lvbiBvZiB0aGUgcGF0Y2ggZG9lcyBy
+ZW1vdmUgdGhlIG9sZCBkcml2ZXIuCj4gCj4+IEZ1cnRoZXJtb3JlIHRoZXJlIGlzIGFub3RoZXIg
+aXNzdWU6IHdoZW4gSSBwbHVnIHRoZSBkZXZpY2UsIHRoZSBkZXZpY2UKPj4gdXNhZ2UgY291bnQg
+aXMgc2V0IHRvIDAuCj4+IFdoZW4gSSByZW1vdmUgdGhlIGRldmljZSB0aGUgZGV2aWNlIHVzYWdl
+IGNvdW50IGdvZXMgdG8gLTEgKGRpc3BsYXllZCBhcwo+PiA0Mjk0OTY3Mjk1KS4KPj4gVGhpcyBp
+cyBhIG1pc2JlaGF2aW9yIG9mIHRoZSBkdmIgZnJhbWV3b3JrIGJ1dCBwZXJoYXBzIHNvbWV0aGlu
+ZyBuZWVkcyB0bwo+PiBiZSBpbml0aWFsaXplZCBzb21ld2hlcmUgaW4gdGhlIGRyaXZlci4gSSB3
+aWxsIGxvb2sgYXQgaXQuLi5kdmItdXNiOgo+PiBUZXJyYVRlYy9xYW51IFVTQjIuMCBIaWdoc3Bl
+ZWQgRFZCLVQgUmVjZWl2ZXIgc3VjY2Vzc2Z1bGx5IGluaXRpYWxpemVkIGFuZAo+PiBjb25uZWN0
+ZWQuCj4+IEkgbm90aWNlZCB0aGlzIGVycm9yIHdoZW4gSSBwbHVnIHRoZSBkZXZpY2UgKEkgbG9h
+ZCBtYW51YWxseSB0aGUgZHJpdmVyCj4+IGJlZm9yZSwgc28gSSBzdXNwZWN0IGEgdGhpbmcgaW4g
+dGhlIHByb2JlIGZ1bmN0aW9uKToKPiAKPiBJbiBteSB1bmRlcnN0YW5kaW5nIHRoaXMgaXMgYSBi
+dWcgaW4gdGhlIGR2Yi11c2ItZnJhbWV3b3JrIHRoYXQgY2Fubm90Cj4gYmUgZml4ZWQgaW4gQ2lu
+ZXJneSBUMiBkcml2ZXIuIEkgY2hlY2tlZCB0aGF0IGlmIHlvdSBET04nVCBkZWZpbmUgdGhlCj4g
+bWVudWNvbmZpZyBvcHRpb246Cj4gCj4gIkxvYWQgYW5kIGF0dGFjaCBmcm9udGVuZCBhbmQgdHVu
+ZXIgZHJpdmVyIG1vZHVsZXMgYXMgbmVlZGVkIiBpZS4KPiB0aGUgQ09ORklHX01FRElBX0FUVEFD
+SAo+IAo+IFRoZSBmcmFtZXdvcmsgd2lsbCB1c2UgYSBkaWZmZXJlbnQgdmVyc2lvbiBvZiB0aGUg
+ZnVuY3Rpb24gY2FsbGVkCj4gImR2Yl9mcm9udGVuZF9kZXRhY2giIGFuZCB0aGVmb3JlIGl0IHdp
+bGwgbm90IGNhbGwgdGhlIHN5bWJvbF9wdXRfYWRkcgo+IG9uIGxpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5jIGxpbmUgMTIyMC4KPiBXaXRoIHRoaXMgb3B0aW9u
+IGRlc2VsZWN0ZWQgdGhlIG1vZHVsZSByZWZlcmVuY2UgY291bnQgc2VlbXMgdG8gc3RheQo+IGlu
+IHNhbmUgdmFsdWVzLgo+IAo+PiBJIHdpbGwgbG9vayBhdCB0aGUgbW9kdWxlIGNvdW50IHByb2Js
+ZW0gYW5kIHRoZSBpcnJlY29yZCBwcm9ibGVtLCB3ZSBhcmUKPj4gY2xvc2UgdG8gcHJvcG9zZSB0
+aGlzIGJlYXV0aWZ1bCBwYXRjaCA7KQo+IAo+IEhlaCxoZWggOikKPiAKPiBSZWdhcmRzLAo+IFRv
+bWkgT3JhdmEKPiAKPiAKPiAKSnVzdCBvbmUgdGhpbmcgbWlzc2luZywgc29ycnk6IHRoZSBTT0Ig
+bGluZSEKUGxlYXNlIHNlZSBodHRwOi8vd3d3LmxpbnV4dHYub3JnL3Y0bHdpa2kvaW5kZXgucGhw
+L0hvd190b19zdWJtaXRfcGF0Y2hlcwpBIGJpdCBwcm9jZWR1cmFsLCBidXQgdGhlc2UgcnVsZXMg
+YXJlIGFwcGxpZWQgZm9yIGV2ZXJ5IHBhdGNoIG92ZXIgdGhlIGxpbnV4IGtlcm5lbCBhbmQgbWFr
+ZXMgZWFzaWVyIHRoZSBtYWludGFpbmVyJ3MgbGlmZS4KVGhhbmtzClRoaWVycnkKCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGlu
+ZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1i
+aW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
