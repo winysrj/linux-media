@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns15.weycrest.net ([85.13.231.6] helo=www6.weycrest.com)
+Received: from viefep18-int.chello.at ([213.46.255.22]
+	helo=viefep23-int.chello.at)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ian.bonham@gmail.com>) id 1JtJWf-0001yE-Fp
-	for linux-dvb@linuxtv.org; Tue, 06 May 2008 11:31:58 +0200
-Message-ID: <48202581.6090704@gmail.com>
-Date: Tue, 06 May 2008 11:31:45 +0200
-From: Ian Bonham <ian.bonham@gmail.com>
+	(envelope-from <rscheidegger_lists@hispeed.ch>) id 1JvtNk-0003ln-T1
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 14:14:10 +0200
+Message-ID: <4829856F.4080601@hispeed.ch>
+Date: Tue, 13 May 2008 14:11:27 +0200
+From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] HVR4k & FM
+To: Antti Palosaari <crope@iki.fi>
+References: <198698.40491.qm@web55111.mail.re4.yahoo.com>	<200805121720.37639.boexli@gmx.net>
+	<48297A72.4050305@iki.fi>
+In-Reply-To: <48297A72.4050305@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy PCI C  HDTV
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,25 +27,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+On 13.05.2008 13:24, Antti Palosaari wrote:
+> nick kirjoitti:
+>> Hi - Has anybody successfully managed to watch HDTV using the Terratec Cinergy 
+>> PCI C card?  If is switch to a HD channel using Kaffeine nothing happens and 
+>> after a couple of minutes the program freezes and does not reponse anymore. 
+>> Any ideas what I might have done wrong? Thanks Nick
+> 
+> There might be bug in the driver.
+> 
+> Someone has similar problem in unbuntu-fi forum and he has hacked driver 
+> to get it working. Hacked solution is most probably wrong and could be 
+> break other functionality. Feel free to try.
+> http://forum.ubuntu-fi.org/index.php?topic=18193.0
 
-Thanks again for your assistance with getting my HVR4k running on Hardy 
-Heron, I appriciate the assistance I was given, thank you.
+No, this bug got fixed recently (and it broke the driver completely, the
+parent poster only seems to have trouble with HD channels).
 
-A quick question, and this might seem mad considering how many Radio 
-channels are available on Satellite, I wondered if anyone had 
-sucessfully got the FM tuner running on the HVR4000? I only ask as I 
-work on a local station that is only available on FM, not on Digital or 
-satellite, and I could do with being able to use the FM tuner on my card 
-to dump some shows to disk for review.
-
-I know this is the DVB mailing list, and I'm asking an analogue 
-question, but hopefully because the card is DVB you'll let me off!
-
-Thanks in advance,
-
-Ian
-
+Roland
 
 _______________________________________________
 linux-dvb mailing list
