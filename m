@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m47D432m032253
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 09:04:03 -0400
-Received: from moutng.kundenserver.de (moutng.kundenserver.de
-	[212.227.126.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m47D3mgp013462
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 09:03:49 -0400
-From: Arne Caspari <arne@unicap-imaging.org>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-In-Reply-To: <20080505150632.GA955@daniel.bse>
-References: <1209972947.7502.0.camel@localhost>
-	<20080505150632.GA955@daniel.bse>
-Content-Type: text/plain; charset=utf-8
-Date: Wed, 07 May 2008 14:50:44 +0200
-Message-Id: <1210164644.20718.2.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: RAW/Bayer format FOURCCs
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D9L027027121
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 05:21:00 -0400
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D9Kndo013516
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 05:20:50 -0400
+Received: from esebh108.NOE.Nokia.com (esebh108.ntc.nokia.com [172.21.143.145])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id
+	m4D9KVgt005315
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 12:20:43 +0300
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by maxwell.research.nokia.com (Postfix) with ESMTP id 398A14674E
+	for <video4linux-list@redhat.com>;
+	Tue, 13 May 2008 12:20:33 +0300 (EEST)
+Message-ID: <48295D60.90504@nokia.com>
+Date: Tue, 13 May 2008 12:20:32 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+MIME-Version: 1.0
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: TCM825x: invertation of image mirroring register bits
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,37 +32,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel, 
+Hi,
 
-Thank you very much for your informative post. I will look into the
-information you provided. 
+The patch I'm about to send adds invertation of image mirroring register 
+bits to the sensor configuration. This is useful if the sensor is 
+actually mounted upside down, which is the case for example in Nokia 
+N810 --- the V4L2 mirroring controls for the sensor still work properly.
 
-
- /Arne
-
-
-On Mon, 2008-05-05 at 17:06 +0200, Daniel Glöckner wrote:
-> On Mon, May 05, 2008 at 09:35:47AM +0200, Arne Caspari wrote:
-> > I am looking for the correct FOURCC to use for a RAW Bayer format: RGGB
-> > 16 bit. 
-> > 
-> > In the v4l2 specification, there is V4L2_PIX_FMT_SBGGR8 ( 'BA81' ) for
-> > BGGR 8 bit and V4L2_PIX_FMT_SBGGR16 ( 'BA82' ) for BGGR 16 bit. I do not
-> > really see a pattern in the FOURCC assignment here. Does anybody know
-> > what the correct FOURCC should look like? 
-> 
-> There is no pattern.
-> 
-> The BA8x FourCCs were invented by Luca Risolia:
-> http://marc.info/?l=linux-video&m=108062090927323
-> 
-> The BYRx FourCCs are used by CineForm's products when they put raw
-> pictures into AVI and MOV. David Newman's post on dvinfo.net is probably
-> the source for the fourcc.org entries. Looking at CineForm's NEO player
-> I see up to BYR3. Some update logs on the CineForm website mention BYR4.
-> 
->   Daniel
-
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
 
 --
 video4linux-list mailing list
