@@ -1,29 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VCu96S021684
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 08:56:09 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VCtv14015679
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 08:55:57 -0400
-Received: from smtp5-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id EA66B3F629B
-	for <video4linux-list@redhat.com>;
-	Sat, 31 May 2008 14:55:56 +0200 (CEST)
-Received: from sidero.numenor.net (lac49-1-82-245-43-74.fbx.proxad.net
-	[82.245.43.74])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id CB2673F629F
-	for <video4linux-list@redhat.com>;
-	Sat, 31 May 2008 14:55:56 +0200 (CEST)
-From: stef <stef.dev@free.fr>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Date: Sat, 31 May 2008 14:55:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4D8anM8004343
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 04:36:49 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4D8aIBQ019787
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 04:36:18 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Jvpza-0001oo-0M
+	for video4linux-list@redhat.com; Tue, 13 May 2008 08:36:14 +0000
+Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 08:36:13 +0000
+Received: from augulis.darius by 82-135-208-232.static.zebra.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 08:36:13 +0000
+To: video4linux-list@redhat.com
+From: Darius <augulis.darius@gmail.com>
+Date: Tue, 13 May 2008 11:31:15 +0300
+Message-ID: <g0bjtj$b0d$1@ger.gmane.org>
+References: <g09j17$3m9$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-13; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200805311455.15669.stef.dev@free.fr>
-Subject: Trouble making PCTV 310c working
+In-Reply-To: <Pine.LNX.4.64.0805122030310.5526@axis700.grange>
+Subject: Re: question about SoC Camera driver (Micron)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,58 +37,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-	Hello,
+Guennadi Liakhovetski wrote:
+> On Mon, 12 May 2008, Darius wrote:
+> 
+>> I have question regarding both camera drivers for mt9v022 and mt9m001.
+>> How does attach these drivers to i2c adapter? In i2c_driver structure there
+>> are neither .attach_adapter nor .detach_client members. So, how does these
+>> drivers comunicate via i2c bus? Have I something missed...?
+> 
+> They are, so called, new style i2c drivers. They use .probe and .remove 
+> members, see source code for details.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski
 
-	I have Pinnacle PCTV 310c hybrid card:
+Now I see how it works. I2C devices should be created before driver 
+loading. There was my mistake, and driver does not call probe() 
+function. Maybe would be better to create I2C devices by driver itself, 
+not by the board specific config code? Now sensor driver is useless 
+itself, without board specific configuration... Would be correct to do so?
 
-02:00.0 0400: 14f1:8800 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 60000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [44] Vital Product Data <?>
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx8800
-	Kernel modules: cx8800
-
-02:00.1 0480: 14f1:8801 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 61000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88_audio
-	Kernel modules: cx88-alsa
-
-02:00.2 0480: 14f1:8802 (rev 05)
-	Subsystem: 12ab:1788
-	Flags: bus master, medium devsel, latency 64, IRQ 11
-	Memory at 62000000 (32-bit, non-prefetchable) [size=16M]
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88-mpeg driver manager
-	Kernel modules: cx8802
-
-	With latest mercurial, I can capture video with good quality from Composite1, 
-but I don't get sound. I checked that the alsa device exists and is unmuted. 
-I'm capturing with:
-mplayer tv:// -tv 
-driver=v4l2:norm=PAL-BG:input=1:device=/dev/video1:alsa:adevice=hw.2:volume=60
--vo xv -ao alsa
-	where I double checked that hw.2 is really the Conexant CX8801 Playback.
-
-	Another problem I have is that after scanning french tv channels (with 
-tvtime-scanner), the detected channels are garbled when I try to watch them 
-with tvtime. It looks like that SECAM isn't taken into account, and that the 
-signal is decoded as if it was another norm.
-
-	Looking at the sources I noted a comment about some GPIO work needed for the 
-DVB subsystem. I have a windows partition on the same machine where the card 
-is working fine, and I installed DScaler's regspy. So I may provide any data 
-needed.
-
-	Last, I believe there should also be an entry for the  cx8802 in the card 
-description. 
-
-Regards,
-	Stef
+Thanks,
+Darius.
 
 --
 video4linux-list mailing list
