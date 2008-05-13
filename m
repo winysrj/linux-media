@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mailhost.tue.nl ([131.155.3.8])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tommy.alander@gmail.com>) id 1JupIS-0001yg-7q
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 15:39:36 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1223199fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 10 May 2008 06:39:29 -0700 (PDT)
-Message-ID: <85e6aeba0805100639u35b26874m2ac78d446c40dd47@mail.gmail.com>
-Date: Sat, 10 May 2008 15:39:29 +0200
-From: "Tommy Alander" <tommy.alander@gmail.com>
-To: linux-dvb@linuxtv.org, e9hack <e9hack@googlemail.com>
-In-Reply-To: <48255AFC.3010508@gmail.com>
+	(envelope-from <bas@kompasmedia.nl>) id 1JvqUl-0005fy-CK
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 11:08:29 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by mailhost.tue.nl (Postfix) with ESMTP id 8CFEF6D678
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 11:07:46 +0200 (CEST)
+Received: from mailhost.tue.nl ([131.155.3.8])
+	by localhost (kweetal.tue.nl [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id qBUVq6NqZpGO for <linux-dvb@linuxtv.org>;
+	Tue, 13 May 2008 11:07:46 +0200 (CEST)
+Received: from [131.155.160.131] (tr-wlan-160131.buro.tue.nl [131.155.160.131])
+	by mailhost.tue.nl (Postfix) with ESMTP id 5AFEE6D669
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 11:07:46 +0200 (CEST)
+Message-ID: <48295A62.50708@kompasmedia.nl>
+Date: Tue, 13 May 2008 11:07:46 +0200
+From: "Bas v.d. Wiel" <bas@kompasmedia.nl>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <85e6aeba0805092320ja192c12hd756b5efb3725463@mail.gmail.com>
-	<48255AFC.3010508@gmail.com>
-Subject: Re: [linux-dvb] TerraTec Cinergy C
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] TechnoTrend 2300 DVB-C, does it work?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,20 +32,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, May 10, 2008 at 10:21 AM, e9hack <e9hack@googlemail.com> wrote:
-> Tommy Alander schrieb:
->> status 00 | signal 0000 | snr 0000 | ber 000fffff | unc 00000a63 |
->> status 00 | signal 0000 | snr 9999 | ber 000fffff | unc 000061a7 |
->>
->> Any pointers how to find out whats wrong?
->
-> The card has no signal.
+Hello list,
+Because of my troubles with a TwinHan Mantis 2033 based board, I'm 
+looking to buy something else that actually does work. I was advised 
+that a Technotrend 2300 DVB-C + CI-module will work with Linux. This'll 
+be the second time I'll be spending over 150 euro's on video hardware so 
+I'd like to be sure: does this combination work with Linux, and MythTV 
+in particular, to view encrypted channels?
 
-How is that possible when using the same values with the windows
-driver works? I have not been able to get any kind of channellock with
-linux.
-
-/Tommy
+Bas
 
 _______________________________________________
 linux-dvb mailing list
