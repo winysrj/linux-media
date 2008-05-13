@@ -1,19 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from walker.ipnetwork.de ([83.246.120.22])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1JsyQh-0002PG-Jn
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 13:00:25 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so367796fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 05 May 2008 04:00:16 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 5 May 2008 13:00:09 +0200
-References: <481EBD4D.1070905@chaosmedia.org>
-In-Reply-To: <481EBD4D.1070905@chaosmedia.org>
+	(envelope-from <admin@ipnetwork.de>) id 1JvvkO-0004uG-Fc
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 16:45:19 +0200
+Received: from [10.0.1.199] (intra.tal.de [81.92.5.72]) (authenticated bits=0)
+	by walker.ipnetwork.de (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m4DEf4l8013879
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 16:41:16 +0200
+Message-ID: <4829A87C.8080205@ipnetwork.de>
+Date: Tue, 13 May 2008 16:41:00 +0200
+From: Ingo Peukes <admin@ipnetwork.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805051300.09840.christophpfister@gmail.com>
-Subject: Re: [linux-dvb] libdvbapi multiproto patch ?
+To: linux-dvb@linuxtv.org
+References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>
+	<20071018181040.GA6960@dose.home.local>
+	<20071018182940.GA7317@dose.home.local>
+	<20071018201418.GA16574@dose.home.local>
+	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>
+	<472A0CC2.8040509@free.fr> <480F9062.6000700@free.fr>
+	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>
+	<481B4A78.8090305@free.fr>
+	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
+	<481F66B0.4090302@free.fr> <482366CA.7050204@ipnetwork.de>
+	<38941.192.168.9.10.1210617136.squirrel@ncircle.nullnet.fi>
+In-Reply-To: <38941.192.168.9.10.1210617136.squirrel@ncircle.nullnet.fi>
+Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
+ Cinergy T2 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +40,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Montag 05 Mai 2008 09:54:53 schrieb ChaosMedia > WebDev:
+Tomi Orava wrote:
 > Hi,
->
-> i'm going to try to bring multiproto support to kaffeine for i'd really
-> like to use my technotrend s2-3200 (dvb-s2) with it.
->
-> As far as i can tell kaffeine uses libdvbapi which is part of linuxtv
-> dvb-apps repo.
+> 
+> 
+>> Well, as I said it compiles and works with the above kernel and v4l-dvb
+>> but w_scan finds no channels with this module most of the time. In 5
+>> runs it found 4 channels on one multiplex.
+>> I doubt it's the antenna although it's the stock one but if I use the
+>> cinergyT2 on my desktop pc with the original module of kernel 2.6.25.1
+>> w_scan finds all available channels all the time with the same antenna
+>> in the same place. I will try a better antenna tomorrow to see if I can
+>> use it somewhat productive in mythtv...
+> 
+> Does the "regular" scandvb work any better for you compared
+> to the older driver ?
+No, not realy. It find's and tunes only half of the channels available at my location.
 
-No. Only libdvben50221 + the ca part of libdvbapi are used.
+> BTW. Where's the source for this w_scan so that I could try it as well ?
+You find it here, at the bottom of the page: http://wirbel.htpc-forum.de/w_scan/index2.html
+If I supply the parameter -t 3 to w_scan scan which sets the tuning timeout to 'slow' the card
+finds almost all channels all the time...
 
-> So i'd like to know if there's already been any patch made to bring
-> multiproto to libdvbapi ?
->
-> I don't know much about multiproto or v4l-dvb api, or dvb rfc, but i'll
-> probably focus on both the wiki info
-> http://www.linuxtv.org/wiki/index.php/Multiproto and a good app example
-> using macros referenced also in the wiki which is getstream
-> http://silicon-verl.de/home/flo/projects/streaming/
->
-> any comments, further docs, references or examples, are welcome.
->
-> thx
->
-> Marc
+> 
+> Regards,
+> Tomi Orava
+Got a better Antenna today, will try it later.
 
-Christoph
+Greetings,
+Ingo Peukes
 
 _______________________________________________
 linux-dvb mailing list
