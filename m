@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G9TN7Y026790
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 05:29:23 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4DKKJo7025711
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 16:20:19 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4G9TBN9023270
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 05:29:12 -0400
-Date: Fri, 16 May 2008 11:29:10 +0200 (CEST)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4DKJo3s022771
+	for <video4linux-list@redhat.com>; Tue, 13 May 2008 16:19:50 -0400
+Date: Tue, 13 May 2008 22:19:46 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-In-Reply-To: <482D4BC7.7020409@hni.uni-paderborn.de>
-Message-ID: <Pine.LNX.4.64.0805161117520.3714@axis700.grange>
-References: <365592.144287319-sendEmail@carolinen>
-	<Pine.LNX.4.64.0805061520250.5880@axis700.grange>
-	<482D4BC7.7020409@hni.uni-paderborn.de>
+To: Darius <augulis.darius@gmail.com>
+In-Reply-To: <g0bjtj$b0d$1@ger.gmane.org>
+Message-ID: <Pine.LNX.4.64.0805132212530.4988@axis700.grange>
+References: <g09j17$3m9$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>
+	<g0bjtj$b0d$1@ger.gmane.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add x_skip_left to soc_camera_device
+Cc: video4linux-list@redhat.com
+Subject: Re: question about SoC Camera driver (Micron)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,39 +28,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Stefan,
+On Tue, 13 May 2008, Darius wrote:
 
-On Fri, 16 May 2008, Stefan Herbrechtsmeier wrote:
+> Now I see how it works. I2C devices should be created before driver loading.
+> There was my mistake, and driver does not call probe() function. Maybe would
+> be better to create I2C devices by driver itself, not by the board specific
+> config code? Now sensor driver is useless itself, without board specific
+> configuration... Would be correct to do so?
 
-> Sorry for the late answer, but I have to rework my driver.
-> 
-> Guennadi Liakhovetski schrieb:
-> > I think, this is all we need for now - small and nice. Actually, it would
-> > make even more sense to submit this when your new camera driver is ready,
-> > but if you prefer, I'll accept it now. Just, please, resubmit it without the
-> > above two hunks, and, maybe, add a sentence to the patch comment, saying
-> > "will be used in xxx driver."
-> >   
-> Because of problems with the HSYNC support for different resolutions, I
-> skipped it.
-> I remove the HSYNC specific code (configuration of HSYNC or HREF) and
-> only used HREF as signal. This makes this Patch obsolete for now.
-> 
-> Should I skip it or resubmit it for further use?
-
-I think, reviewing and testing of patches is easier, if they either 1) fix 
-bugs that can either be reproduced with currently supported 
-configurations, or can be proven by studying the code; or 2) implement 
-improvements, that can be verified with currently supported 
-configurations; or 3) implement new features, that can be tested with 
-currently or newly supported configurations. As you see, new features 
-(x_skip_left support is a new feature), that cannot be tested are not in 
-the above list:-)
-
-So, I think, it would be easier for you and for reviewers, if you submit 
-your new driver together with any necessary supporting modifications to 
-the existing code, when you are reasonably happy with your results. 
-Agree?
+No. This is not how the driver model works. PCI drivers do not register 
+PCI devices. The PCI host controller scans the PCI bus and adds devices 
+into the system, to be later matched against PCI drivers. Similar for USB 
+devices, etc. The problem with i2c you cannot reliably scan the bus. 
+Therefore the information about devices present on the system has to come 
+from elsewhere: when it is an i2c device embedded into a USB web-camera, 
+its driver "knows", there's an i2c device and registers it. On embedded 
+systems the platform knows what i2c devices are onboard, and registers 
+them using i2c_register_board_info(), on powerpc (and sparc?) you can 
+register i2c devices in your device tree, etc.
 
 Thanks
 Guennadi
