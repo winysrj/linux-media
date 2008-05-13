@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.dnainternet.fi ([87.94.96.112])
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1K2BFc-0008LA-8t
-	for linux-dvb@linuxtv.org; Fri, 30 May 2008 22:31:01 +0200
-Received: from localhost.localdomain (dyn3-82-128-187-102.psoas.suomi.net
-	[82.128.187.102])
-	by smtp2.dnainternet.fi (Postfix) with ESMTP id 82D3DCD3C
-	for <linux-dvb@linuxtv.org>; Fri, 30 May 2008 23:30:25 +0300 (EEST)
-Message-ID: <484063E1.9010109@iki.fi>
-Date: Fri, 30 May 2008 23:30:25 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <1212079844.26238.22.camel@rommel.snap.tv>	<483EED5A.7080200@iki.fi>	<48400833.60909@gmail.com>	<48401099.7040908@iki.fi>	<484014AC.3090603@gmail.com>
-	<48401C63.1010601@iki.fi>
-In-Reply-To: <48401C63.1010601@iki.fi>
-Subject: Re: [linux-dvb] Oops in tda10023
+	(envelope-from <sonofzev@iinet.net.au>) id 1JvsbB-0000Ym-DB
+	for linux-dvb@linuxtv.org; Tue, 13 May 2008 13:23:15 +0200
+From: allan k <sonofzev@iinet.net.au>
+To: stev391@email.com
+In-Reply-To: <1210666767.9385.13.camel@media1>
+References: <20080510081424.8288B1CE7C0@ws1-6.us4.outblaze.com>
+	<1210666767.9385.13.camel@media1>
+Date: Tue, 13 May 2008 21:22:59 +1000
+Message-Id: <1210677779.8338.4.camel@media1>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When	will	it
+	be
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,34 +27,109 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
-> e9hack wrote:
->> Antti Palosaari schrieb:
->>>> I think the oops occurs, because tda10023_writereg() fails in tda10023_attach(). If 
->>>> tda10023_writereg fails, an error message is printed. In this case, 
->>>> state->frontend.dvb->num is accessed, but it isn't initialized yet.
->>> hmm, I see the problem now. Originally state was initialized before 
->>> tda10023_writereg() was called but after I did some changes this is not 
->>> done anymore. And when writereg() fails in attach some reason it oops.
->> It wasn't introduced with your modifications. The frontend.dvb part is initialized after 
->> the attach call. tda10023_writereg() must check, if state->frontend.dvb is initialized or 
->> not.
+Hi Steve 
+
+After reboot, I initially had some audio problems, but found this was
+from overdoing my configuration files for modules.conf in Gentoo. 
+
+After removing a couple of duplicates and then restarting my hardware
+decoder, everything works fine. 
+
+I now have 3 working tuners from 2 cards. 
+
+cheers
+
+Allan 
+
+
+On Tue, 2008-05-13 at 18:19 +1000, allan k wrote: 
+> Hi Steve 
+> I had the wrong card number selected. I have changed to card=5 and the
+> tuner is now working correctly. 
 > 
-> yeah, you are correct. I looked through all frontend drivers and only 
-> TDA10021 and TDA10023 was using dvb->num in writereg. Anyhow, TDA10021 
-> is not affected because it does not write in attach.
-
-TDA10023 uses writereg to wakeup from standby for reading chip id. I 
-wonder if this is necessary at all. I will test that later.
-
-Anyhow, I see there is two ways to fix that (only Oops from TDA10023, 
-not issue why it actually fails):
-1) remove state->frontend.dvb->num from tda10023_writereg()
-2) remove wakeup if in standby from tda10023_attach()
-
-Antti
--- 
-http://palosaari.fi/
+> I haven't restarted the machine, but will do so later and confirm
+> whether I am getting the same problem as you saw on one of your boxes. 
+> 
+> cheers
+> 
+> Allan
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> On Sat, 2008-05-10 at 18:14 +1000, stev391@email.com wrote:
+> > Allan,
+> > 
+> > It was tested with in two different machines against the cx23885
+> > version of the card.  However the next day I built another machine
+> > with this card and I ran into errors in my dmesg stating that the
+> > firmware version doesn't match.  I haven't had enough time to find out
+> > why this has happened, but I think the tuner is not being reset
+> > properly. 
+> > 
+> > What are your results of running this patch?
+> > 
+> > Regards,
+> > 
+> > Stephen
+> > 
+> >         ----- Original Message -----
+> >         From: "sonofzev@iinet.net.au" 
+> >         To: linux-dvb@linuxtv.org, stev391@email.com
+> >         Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express
+> >         - When will it be
+> >         Date: Thu, 08 May 2008 18:02:00 +0800
+> >         
+> >         
+> >         Hi Stephen, 
+> >         
+> >         Has this been tested with the newer cx23885 version of the
+> >         card or only the older cx88 version. 
+> >         I have had no success with my cx23885 version. 
+> >         
+> >         cheers
+> >         
+> >         Allan
+> >         
+> >         
+> >         On Tue May 6 11:39 , stev391@email.com sent:
+> >         
+> >                 G'day,
+> >                 
+> >                 I was just wondering when Chris Pascoe's code for the
+> >                 DViCO Fusion HDTV Dual Express will be merged into the
+> >                 v4l-dvb tree, as there have been some minor updates
+> >                 that increase the stability of the card that are not
+> >                 in his tree.
+> >                 
+> >                 Attached is a patch for merging the relevant sections
+> >                 back into the v4l-dvb tree (and including updating
+> >                 Kconfig).  This has been successfully tested on two
+> >                 different PCs with this card (working with gxine and
+> >                 mythtv, in Melbourne, Australia).
+> >                 
+> >                 Regards,
+> >                 Stephen.
+> >                 
+> >                 
+> >                 -- 
+> >                 See Exclusive Video: 10th Annual Young Hollywood
+> >                 Awards
+> >                 
+> >         
+> > 
+> > -- 
+> > See Exclusive Video: 10th Annual Young Hollywood Awards
+> > 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
