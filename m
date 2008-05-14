@@ -1,26 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G8IpLj025086
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 04:18:51 -0400
-Received: from out5.laposte.net (out6.laposte.net [193.251.214.123])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4G8IXFi019080
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 04:18:33 -0400
-Received: from meplus.info (localhost [127.0.0.1])
-	by mwinf8406.laposte.net (SMTP Server) with ESMTP id 6030D7000089
-	for <video4linux-list@redhat.com>;
-	Fri, 16 May 2008 10:18:27 +0200 (CEST)
-Received: from [192.168.0.3] (48.74-224-89.dsl.completel.net [89.224.74.48])
-	by mwinf8406.laposte.net (SMTP Server) with ESMTP id 490727000086
-	for <video4linux-list@redhat.com>;
-	Fri, 16 May 2008 10:18:27 +0200 (CEST)
-Message-ID: <482D4579.8090203@laposte.net>
-Date: Fri, 16 May 2008 10:27:37 +0200
-From: "pw.marcus" <pw.marcus@laposte.net>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4EIcMwu008567
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 14:38:22 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4EIc8pu005994
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 14:38:09 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JwLra-00018A-0x
+	for video4linux-list@redhat.com; Wed, 14 May 2008 18:38:06 +0000
+Received: from client-87-247-116-28.inturbo.lt ([87.247.116.28])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 18:38:06 +0000
+Received: from augulis.darius by client-87-247-116-28.inturbo.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 18:38:06 +0000
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Darius <augulis.darius@gmail.com>
+Date: Wed, 14 May 2008 21:37:54 +0300
+Message-ID: <g0fbi6$ule$1@ger.gmane.org>
+References: <482AD0B8.5050202@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-13; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: My Cinema-P7131 Hybrid (spider cable)
+In-Reply-To: <482AD0B8.5050202@gmail.com>
+Subject: Re: I2C interface problem with OmniVision OV7670
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,21 +36,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+btw, I got confirmation from OmniVision - OV7670 does not support 
+multiple I2C commands.
 
-I would like to know if the spider cable (S-video, coaxial video, RCA 
-audio L-R) works with this card, or is possible, because, I can watch 
-DVB-T on the computer, but when  I plug this cable from the card to a TV 
-(peritel), I don't get anything on the TV.
 
-My system:
--------------------
-intel dual core processor
-Intel motherboard (i945 built-in graphic card)
-Debian unstable 64 bits
-kernel 2.6.25-3 (with the  original v4l driver of the kernel)
-
-Thanks for help, cheers
+> Hi,
+> 
+> OV7670 does not support repeated start.
+> When sending several messages (read or write) in one transaction, 
+> repeated start is not accepted by OV7670. OV7670 thinks, that it is next 
+> clock pulse, not repeated start and second message is not acknowledged.
+> It is known bug of OV7670 or my i2c adapter driver works not correct?
+> When sending one byte, everything is ok.
+> It is interesting, how works OV7670 driver, written by Jonathan Corbet?
+> Because there are used i2c_smbus_write_byte_data() and 
+> i2c_smbus_read_byte_data() functions, which means, that in one 
+> transaction two messages are sent - register address (write) and read data.
+> For me this does not work, only register address is acknowledged by 
+> OV7670, and second message (read data) fails.
+> 
+> I want to know, is there possibility to use multi-message transactions 
+> or not?
+> 
+> BR,
+> Darius
 
 --
 video4linux-list mailing list
