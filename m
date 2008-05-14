@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f190.mail.ru ([194.67.57.190])
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1Jt0Ww-0002mA-2T
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 15:14:58 +0200
-From: Igor <goga777@bk.ru>
-To: Gernot Pansy <pansyg@gmx.at>
+	(envelope-from <sonofzev@iinet.net.au>) id 1Jw4ab-0002cK-B8
+	for linux-dvb@linuxtv.org; Wed, 14 May 2008 02:11:27 +0200
+From: allan k <sonofzev@iinet.net.au>
+To: stev391@email.com
+In-Reply-To: <20080513235526.5A85ABE4079@ws1-9.us4.outblaze.com>
+References: <20080513235526.5A85ABE4079@ws1-9.us4.outblaze.com>
+Date: Wed, 14 May 2008 10:11:15 +1000
+Message-Id: <1210723875.9616.1.camel@media1>
 Mime-Version: 1.0
-Date: Mon, 05 May 2008 17:14:24 +0400
-References: <200805011536.57312.pansyg@gmx.at>
-In-Reply-To: <200805011536.57312.pansyg@gmx.at>
-Message-Id: <E1Jt0WO-000Hso-00.goga777-bk-ru@f190.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?UEFUQ0g6IEhWUi00MDAwIHN1cHBvcnQgZm9yIG11?=
-	=?koi8-r?b?bHRpcHJvdG9fcGx1cwkodGVzdGVkb24gMi42LjI1KQ==?=
-Reply-To: Igor <goga777@bk.ru>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will	it
+	be
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,38 +26,159 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> On Friday 25 April 2008 09:07:13 Igor wrote:
-> > Hi, Gregoire
-> >
-> > with multiproto_plus + your hvr4000-patch I have the same problem with
-> > szap2 from dvb-apps
-> >
-> > ./szap2 -c 19 -n1
-> >
-> > reading channels from file '19'
-> > zapping to 1 'Pro7':
-> > sat 0, frequency = 12722 MHz H, symbolrate 22000000, vpid = 0x00ff, apid =
-> > 0x0103 sid = 0x27d8 Querying info .. Delivery system=DVB-S
-> > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> > ioctl DVBFE_GET_INFO failed: Operation not supported
+Don't worry about it. 
+
+I have a remote (Fusion MCE, that I bought for a pack of smokes as my
+Fusion USB remote is on my frontend only box in the bedroom). 
+
+It is more of a nice to have, as the express remote is better laid out,
+and better looking than the Fusion MCE). 
+
+cheers
+
+Allan
+On Wed, 2008-05-14 at 09:55 +1000, stev391@email.com wrote:
+> Allan,
 > 
-> the patch changes the api...
-
-which patch do yuo mean ?
-
-
-> you can try the attached patch, which not changes the api. that means szap2 is 
-> working (only DVB-S, for DVB-S2 you need to modify fe_params: DVB_FEC_AUTO is 
-> not supported and you have to define a modulation) 
+> lirc support for the remote is not one of priorities as I'm using an
+> iMon VFD display that includes a remote control that has patches
+> available against the lirc CVS.
 > 
-> fe_params.delsys.dvbs2.fec = DVBFE_FEC_9_10;
-> fe_params.delsys.dvbs2.modulation = DVBFE_MOD_QPSK;
+> However I can glance at it if I have time and see if I can implement
+> an appropriate solution.
 > 
-> with the attached patch you need to call DVB_SET_DELSYS (like in szap2)...          
-
-could you explain me - how is it possible to modify fe_params for dvb-s2 QPSK/8PSK reception ?
-
-Igor
+> Stephen
+> 
+>         ----- Original Message -----
+>         From: "allan k" 
+>         To: stev391@email.com
+>         Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express
+>         - When will it be
+>         Date: Wed, 14 May 2008 09:37:44 +1000
+>         
+>         
+>         Also, just wondering if anyone was planning to look at
+>         building lirc
+>         based remote support for the packaged remote (not ir-tty as I
+>         don't want
+>         to remap the shortcut keys)
+>         On Tue, 2008-05-13 at 18:57 +1000, stev391@email.com wrote:
+>         > Allan,
+>         >
+>         > If you have used the v4l-dvb hg drivers and my patch the
+>         card should
+>         > auto detect, however if you want to force it, the number
+>         should be 10.
+>         >
+>         > If you are using Chris Pascoe's xc-test branch then 5 is the
+>         correct
+>         > card number, but again it should auto detect.
+>         >
+>         > Please advise which driver source you have been using.
+>         >
+>         > Regards Stephen.
+>         >
+>         > ----- Original Message -----
+>         > From: "allan k" To: stev391@email.com
+>         > Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual
+>         Express
+>         > - When will it be
+>         > Date: Tue, 13 May 2008 18:19:27 +1000
+>         >
+>         >
+>         > Hi Steve
+>         > I had the wrong card number selected. I have changed to
+>         card=5
+>         > and the
+>         > tuner is now working correctly.
+>         >
+>         > I haven't restarted the machine, but will do so later and
+>         > confirm
+>         > whether I am getting the same problem as you saw on one of
+>         > your boxes.
+>         >
+>         > cheers
+>         >
+>         > Allan
+>         >
+>         >
+>         >
+>         >
+>         >
+>         >
+>         >
+>         >
+>         > On Sat, 2008-05-10 at 18:14 +1000, stev391@email.com wrote:
+>         > > Allan,
+>         > >
+>         > > It was tested with in two different machines against the
+>         > cx23885
+>         > > version of the card. However the next day I built another
+>         > machine
+>         > > with this card and I ran into errors in my dmesg stating
+>         > that the
+>         > > firmware version doesn't match. I haven't had enough time
+>         to
+>         > find out
+>         > > why this has happened, but I think the tuner is not being
+>         > reset
+>         > > properly. What are your results of running this patch?
+>         > >
+>         > > Regards,
+>         > >
+>         > > Stephen
+>         > >
+>         > > ----- Original Message -----
+>         > > From: "sonofzev@iinet.net.au" To: > 
+>         > linux-dvb@linuxtv.org, stev391@email.com
+>         > > Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual
+>         > Express
+>         > > - When will it be
+>         > > Date: Thu, 08 May 2008 18:02:00 +0800
+>         > >
+>         > >
+>         > > Hi Stephen, Has this been tested with the > 
+>         > newer cx23885 version of the
+>         > > card or only the older cx88 version. I have had 
+>         > > no success with my cx23885 version. cheers
+>         > >
+>         > > Allan
+>         > >
+>         > >
+>         > > On Tue May 6 11:39 , stev391@email.com sent:
+>         > >
+>         > > G'day,
+>         > >
+>         > > I was just wondering when Chris Pascoe's code for the
+>         > > DViCO Fusion HDTV Dual Express will be merged into the
+>         > > v4l-dvb tree, as there have been some minor updates
+>         > > that increase the stability of the card that are not
+>         > > in his tree.
+>         > >
+>         > > Attached is a patch for merging the relevant sections
+>         > > back into the v4l-dvb tree (and including updating
+>         > > Kconfig). This has been successfully tested on two
+>         > > different PCs with this card (working with gxine and
+>         > > mythtv, in Melbourne, Australia).
+>         > >
+>         > > Regards,
+>         > > Stephen.
+>         > >
+>         > >
+>         > > -- See Exclusive Video: 10th > Annual Young Hollywood
+>         > > Awards
+>         > >
+>         > >
+>         > >
+>         > > -- See Exclusive Video: 10th Annual Young Hollywood Awards
+>         > >
+>         >
+>         > -- See Exclusive Video: 10th Annual Young Hollywood Awards
+>         >
+> 
+> -- 
+> See Exclusive Video: 10th Annual Young Hollywood Awards
+> 
 
 _______________________________________________
 linux-dvb mailing list
