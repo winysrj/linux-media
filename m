@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4EBoP15001090
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 07:50:25 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4EBnxa6027231
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 07:49:59 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1JwFUb-0004wR-F5
-	for video4linux-list@redhat.com; Wed, 14 May 2008 11:49:57 +0000
-Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 11:49:57 +0000
-Received: from augulis.darius by 82-135-208-232.static.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 11:49:57 +0000
-To: video4linux-list@redhat.com
-From: Darius <augulis.darius@gmail.com>
-Date: Wed, 14 May 2008 14:44:56 +0300
-Message-ID: <482AD0B8.5050202@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4EHvTIh012539
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 13:57:29 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4EHv1Nm009964
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 13:57:18 -0400
+Date: Wed, 14 May 2008 14:55:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Adrian Bunk <bunk@kernel.org>
+Message-ID: <20080514145554.10e3385c@gaivota>
+In-Reply-To: <20080514165434.GC22115@cs181133002.pp.htv.fi>
+References: <20080514114910.4bcfd220@gaivota>
+	<20080514165434.GC22115@cs181133002.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-13; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: I2C interface problem with OmniVision OV7670
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	linux-dvb-maintainer@linuxtv.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PATCHES] V4L/DVB fixes for 2.6.26
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,26 +31,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Wed, 14 May 2008 19:54:34 +0300
+Adrian Bunk <bunk@kernel.org> wrote:
 
-OV7670 does not support repeated start.
-When sending several messages (read or write) in one transaction, 
-repeated start is not accepted by OV7670. OV7670 thinks, that it is next 
-clock pulse, not repeated start and second message is not acknowledged.
-It is known bug of OV7670 or my i2c adapter driver works not correct?
-When sending one byte, everything is ok.
-It is interesting, how works OV7670 driver, written by Jonathan Corbet?
-Because there are used i2c_smbus_write_byte_data() and 
-i2c_smbus_read_byte_data() functions, which means, that in one 
-transaction two messages are sent - register address (write) and read data.
-For me this does not work, only register address is acknowledged by 
-OV7670, and second message (read data) fails.
+> On Wed, May 14, 2008 at 11:49:10AM -0300, Mauro Carvalho Chehab wrote:
+> >...
+> > PS.: There are yet a number of other Kconfig potential breakages at V4L/DVB. I'm 
+> > currently working on fixing those issues. Basically, what users do is to select 
+> > I2C, DVB and V4L as module. This works fine, but more complex scenarios where
+> > you mix 'M' and 'Y' inside the subsystem generally cause compilation breakage.
+> > Those scenarios are more theorical, since there's not much practical sense on
+> > having a DVB driver foo as module, and V4L driver bar as in-kernel. However,
+> > the better is to not allow compilation of the scenarios that don't work.
+> > 
+> > The main trouble at drivers/media Kbuild is that several rules there assumed that
+> > "select" would check the "depends on" dependencies of the selected drivers.
+> > However, this feature doesn't exist at the current Kbuild implementation. Even
+> > if implemented, I suspect that this will generate circular dependency errors on
+> > some cases.
+> >...
+> 
+> The basic problem is that drivers/media/ does the most fancy kconfig 
+> stuff in the kernel since it tries to both have very fine grained 
+> dependencies and offer a usable kconfig UI to the user, which results
+> in very complicated dependencies.
 
-I want to know, is there possibility to use multi-message transactions 
-or not?
+True.
 
-BR,
-Darius
+> We are not getting this solved by any changes in the kconfig 
+> implementation.
+> 
+> Thinking about reasonable ways to reduce the problem space:
+> 
+> Where could we reduce the complexity without big disadvantages?
+> 
+> Could we e.g. let VIDEO_DEV select I2C which would remove all the 
+> fiddling with I2C dependencies (which is a bigger part of recent
+> problems)?
+
+This seems to be reasonable. However, there are quite a few devices that don't
+need I2C (for example, some legacy ISA radio modules - also, some webcam
+drivers don't use i2c layer to communicate with their i2c sensor - so - they
+don't need I2C. The same also applies to some DVB drivers).
+
+So, I'm not sure if this would be a good idea, since it will force I2C even for
+devices that don't need. This is bad, for example, on embedded devices like
+set-top-boxes and maybe on cellular phones with non-i2c webcams.
+
+> I can make a patch for it after this pull went into Linus' tree if it is 
+> considered an acceptable option.
+
+It would be nice if you could help on fixing those issues.
+
+One dependency that will probably solve is to add "depends on VIDEO_MEDIA &&
+I2C" to all devices that are hybrid (bttv, saa7134, cx88, pvrusb, em28xx).
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
