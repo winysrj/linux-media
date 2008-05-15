@@ -1,24 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m486psHp010075
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 02:51:55 -0400
-Received: from elasmtp-mealy.atl.sa.earthlink.net
-	(elasmtp-mealy.atl.sa.earthlink.net [209.86.89.69])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m486pWul005098
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 02:51:32 -0400
-Received: from [209.86.224.51] (helo=mswamui-thinleaf.atl.sa.earthlink.net)
-	by elasmtp-mealy.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <aglover.v4l@mindspring.com>) id 1JtzyG-0001PC-HU
-	for video4linux-list@redhat.com; Thu, 08 May 2008 02:51:16 -0400
-Message-ID: <5143530.1210229476468.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
-Date: Wed, 7 May 2008 23:51:16 -0700 (GMT-07:00)
-From: Adam Glover <aglover.v4l@mindspring.com>
-To: video4linux-list@redhat.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: odd behavior in tuner module in hg and linux stable
-Reply-To: Adam Glover <aglover.v4l@mindspring.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FChhDr006051
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:43:43 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4FChNu5019127
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:43:30 -0400
+Date: Thu, 15 May 2008 14:43:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	<998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,38 +37,81 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This has to do with the patch I submitted to add explicit
-support for the ADS Tech Instant HDTV PCI card (PTV-380).
+On Thu, 15 May 2008, ·ëöÎ wrote:
 
-It appears that in the latest kernel stable release as well
-as the hg snapshot I had used for the patch the tuner module
-does not identify the tuner chip on its initial automatic
-loadup.  I must rmmod and reinsert the tuner module before it
-will report detecting the TDA9887 / TUV1236D tuner chips.
+> sorry,i trouble you.
+> 
+> 2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > What is your <struct pxacamera_platform_data>.mclk_10khz set to? What
+> > kernel version are you using? I do not know what you do in your FPGA, are
+> > you sure it doesn't modify your camera bus timing (pixel clock, VSYNC,
+> > HSYNC, master clock)?
+> 
+> mclk_10khz=1000,and I try 800,500. kernel is linux-2.6.24. I sure it
+> doesn't modify your camera bus timing.Usually FIFO overrun occur.
 
-This did not happen with version 2.6.24.4 so I'm wondering
-what changed?  As it stands, it's not fatal to have to remove
-and reinsert the module but it's not right...
+Does the number of dropped frames decrease with lower frequencies?
 
-This seems to be change from the last couple of months that
-has already made it into the stable kernel tree.
+2.6.24? Then you must have patched it heavily... Might be worth trying 
+2.6.26-rc2 or similar - aöö soc-camera patches are already there.
 
-Incidentally, the dvb frontend loads and works despite the
-tuner having not registered the chips.  I just have no control
-over analog tuning.  I don't know if this is normal behavior
-or not.
+> > Do you mean camera FIFO overruns occur, but fraims do not get dropped? The
+> > reason, why with NOR you have more problems might be, that you produce
+> > extra load on the memory bus? I don't remember id you already told us,
+> > what type of LCD you have on your system and what other bus masters you
+> > have? What's your frame format? 640x480x8bit?
+> 
+> My frame format is 752x480x8bit.Now I only capure frame.And I do not
+> display. the following is my capture thread:
+> static int dhpa_capture_thread(void)
+> {
+> 	struct v4l2_buffer buf;
+> 	int frame_cnt;
+> 	static time_t init, end;
+> 	
+> 	while(1)
+> 	{
+> 		/*read frame*/
+> 		memset(&buf, 0, sizeof(buf));
+> 		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> 		buf.memory = V4L2_MEMORY_MMAP;	
+> 
+> 		/*get the captured buffer*/
+> 		if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
+> 		{
+> 			printf( "VIDIOC_DQBUF failed\n ");
+> 			return -1;
+> 		}
+> 
+> 		if(-1 == ioctl(fd, VIDIOC_QBUF, &buf))
+> 		{
+> 			printf("VIDIOC_QBUF failed\n");
+> 			return -1;
+> 		}
+> 	}
+> }
+> Now if I write a file to jffs2 norflash,FIFO overrun will
+> occur.Certainly frame is dropped.I only hope you give me some
+> advice.why do overrun occur when writting norflash.Because I feel
+> capture frame only use DMA now,I think that write norflash will not
+> affect DMA.
 
-So is this some sort of bug or is there something I should
-do with the card config when compiling the modules?
+DMA uses the same memory bus as NOR flash. Also, if the NOR driver blocks 
+interrupts, it will delay processing of DMA interrupts, but that is 
+unlikely to cause you problems, provided you use enough (4 should be good) 
+video buffers.
 
-I'd like to see the card working (even though I have a pcHDTV
-card coming in the mail...)
+More importantly, what do you do while waiting for jffs2 write to finish? 
+I assume, you write to the filesystem from another thread, right? And the 
+writer thread just blocks on write(). What does your grabber thread do at 
+this time? Can it continue processing video buffers and queuing new ones 
+or it waits for the writer thread?
 
-Adam Glover
-
-(I do apologize if I did not submit that patch correctly...
-I'm pretty sure I was wrong in not including relative paths
-and that the patch had to be run inside the saa7134 folder...)
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
