@@ -1,22 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42ITZLZ005010
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 14:29:35 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42ITMxq009741
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 14:29:22 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so156955rvb.51
-	for <video4linux-list@redhat.com>; Fri, 02 May 2008 11:29:22 -0700 (PDT)
-Message-ID: <d9def9db0805021129k67530f0amdc46256d3e8424d1@mail.gmail.com>
-Date: Fri, 2 May 2008 20:29:22 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FGvtCs026182
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 12:57:55 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FGvjI1024300
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 12:57:45 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so576103rvb.51
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 09:57:44 -0700 (PDT)
+Message-ID: <d9def9db0805150957y2551bb19taf751b275decf79e@mail.gmail.com>
+Date: Thu, 15 May 2008 18:57:43 +0200
 From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Diogo Salazar" <diogosalazar@globo.com>, video4linux-list@redhat.com
+To: "Dean Anderson" <dean@sensoray.com>
+In-Reply-To: <482C5812.9090903@sensoray.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: 
-Subject: Re: New device support go7007 [was in em28xx]
+References: <20080514205927.GA13134@kroah.com>
+	<d9def9db0805141817n4182deedp780791b0a51fb7be@mail.gmail.com>
+	<20080515024141.GB21941@kroah.com>
+	<Pine.LNX.4.58.0805142006130.23876@shell4.speakeasy.net>
+	<482C5812.9090903@sensoray.com>
+Cc: video4linux-list@redhat.com, Greg KH <greg@kroah.com>,
+	linux-usb@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
+	mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [v4l-dvb-maintainer] [PATCH] USB: add Sensoray 2255 v4l driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +37,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-
-On 5/2/08, Diogo Salazar <diogosalazar@globo.com> wrote:
-> Hi, sorry to mail you directly. I think I already sent you an email (1 year
-> ago) about a video capture device...
-> This time I have a Pinnacle DVC 170. I know that em28xx supports the DVC
-> 90 / 100, but it doesnt support the DVC 170.
-> I'd like to get it supported so...if you can guide me to make this
-> supported,
-> I'd be very happy to open my device to look for the components, to try and
-> do usb sniffing...
-> Actually, I already opened it and identified a GO7007SB, an ADV7180 and a
-> CY7C68013A...
+On 5/15/08, Dean Anderson <dean@sensoray.com> wrote:
+>>
+>> Virtually all apps (V4L1 & 2) can handle YUV and RGB colorspaces.
+>> Certainly all the major ones do and all the major libraries as well.
+>>
+>> The problem is when the device only supports some vendor specific or
+>> otherwise very uncommon format.  In that case not doing the conversion in
+>> the kernel means the device won't work with any existing software without
+>> patches.  In this case, while it's not "the right way", drivers often end
+>> up including an in kernel conversion for pragmatic reasons.
+>>
+>> This was a problem with the bayer format, but now userspace support for
+>> that format is more common.
+>>
+>
+> I agree the conversions don't belong in a driver. For the record, the
+> following are done in the 2255 hardware: V4L2_PIX_FMT_GREY and
+> V4L2_PIX_FMT_YUV422P.
+>
+> Since planar YUV formats such as V4L2_PIX_FMT_YUV422P are still not that
+> well supported, is it possible to keep at least one packed YUV
+> format(V4L2_PIX_FMT_YUYV) in the driver?  If not, let me know.  I will
+> strongly suggest that the hardware Engineers add YUY2 or YUYV on board
+> in the DSP firmware.  Thanks, Dean
 >
 
-this is a different device, there's a vendor specific driver available
-for it I think.
-You might have a look at:
-http://gentoo-wiki.com/HARDWARE_go7007
-
-I'l get my go7007 device next week so I can have a look at it again.
-
-> Please help me to get it working...
->
-
-i'm not sure if it's supported.. that go7007 driver might need some
-changes in order to support your device.
+Maybe it's better to fix up the corresponding application? If someone
+wants to get those devices work he already either has to upgrade his
+system or compile it manually at the moment.
+With libswscale it's just a few lines of code to convert the formats
+with a decent performance.
+Seems like the demand of conversions is also growing for the future.
 
 Markus
 
