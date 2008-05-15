@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42BUA5U029857
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:30:10 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42BTuq0002970
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:29:56 -0400
-Message-ID: <481AFB30.5070508@hni.uni-paderborn.de>
-Date: Fri, 02 May 2008 13:29:52 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <48030F6F.1040007@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
-	<480477BD.5090900@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>
-	<481ADED1.8050201@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021143250.4920@axis700.grange>
-	<481AF6CA.9030505@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021314510.4920@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0805021314510.4920@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: OmniVision OV9655 camera chip via soc-camera interface
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FNsfxH028205
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 19:54:41 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FNsImt016483
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 19:54:18 -0400
+From: Andy Walls <awalls@radix.net>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <482C3324.1020804@linuxtv.org>
+References: <482858AD.1050504@linuxtv.org>
+	<1210818265.3202.25.camel@palomino.walls.org>
+	<482C3324.1020804@linuxtv.org>
+Content-Type: text/plain
+Date: Thu, 15 May 2008 19:53:14 -0400
+Message-Id: <1210895594.3202.5.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Stoth@hauppauge.com
+Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE
+	in page.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,56 +30,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> On Fri, 2 May 2008, Stefan Herbrechtsmeier wrote:
->
->   
->> Guennadi Liakhovetski schrieb:
->>     
->>>> 3. Add x_skip_left to soc_camera_device
->>>> The pxa_camera has to skip some pixel at the begin of each line if a HSYNC
->>>> signal is used.
->>>> (y_skip_top and x_skip_left can change with each format adjustment!)
->>>>     
->>>>         
->>> How and why shall they change?
->>>   
->>>       
->> They shall change to support both signal types and to make the names and
->> function clear. The OmniVision chips
->> support both types and you can configure the VSYNC pin. At the moment I used
->> SOCAM_HSYNC_*
->> but configure the chip to use HREF to work without pixel skipping.
->>     
->
-> Sorry, I mean why y_skip_top and x_skip_left shall change?
->
->   
-At the time I used VSYNC (without x_skip_left) I have different number 
-of empty pixels
-at the begin of each line for different resolutions. But I haven't 
-really evaluate this.
+On Thu, 2008-05-15 at 08:57 -0400, Michael Krufky wrote:
+> Andy Walls wrote:
+> > On Mon, 2008-05-12 at 10:48 -0400, mkrufky@linuxtv.org wrote:
+> >   
+> >> Steven Toth wrote:
+> >>     
+> >>> Steven Toth wrote:
+> >>>       
+> >>>>>         if (cx->dev)
+> >>>>>                 cx18_iounmap(cx);
+> >>>>>           
+> >>>> This doesn't feel right.
+> >>>>         
+> >>> Hans / Andy,
+> >>>
+> >>> Any comments?
+> >>>       
+> >> For the record, I've tested again with today's tip ( d87638488880 ) -- 
+> >> same exact behavior.
+> >>
+> >> When I load the modules for the first time, everything is fine.
+> >>
+> >> If I unload the cx18 module, I am unable to load it again, the same 
+> >> error is displayed as I posted in my original message.
+> >>     
+> >
+> > Mike,
+> >
+> > Could you apply the attached patch and run this test
+> >
+> > 	(precondition: cx18.ko hasn't been loaded once yet)
+> > 	# cat /proc/iomem /proc/meminfo > ~/memstats
+> > 	# modprobe cx18 debug=3
+> > 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+> > 	# modprobe -r cx18
+> > 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+> > 	# modprobe cx18 debug=3
+> > 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+> >
+> > and provide the contents of dmesg (or /var/log/messages) and memstats?
+> >
+> > The patch will let me see if the contents of cx->enc_mem are bogus on
+> > iounmap() and if iounmap() is even being called.
+> >
+> > I also want to verify that "cx18 encoder" doesn't get removed
+> > from /proc/iomem and that "VmallocUsed" doesn't return to it's previous
+> > size when the module is unloaded.  That would show that the iounmap()
+> > fails.
+> >
+> > I'd also want to ensure there is no overlap in /proc/iomem with "cx18
+> > encoder" and something else.  The kernel should prevent it, but I want
+> > to make sure.
+> >
+> >
+> > (Hopefully the patch applies cleanly, the line numbers won't quite match
+> > up with the latest hg version.)
+> >
+> > Regards,
+> > Andy
+> >
+> >   
+> >> Regards,
+> >>
+> >> Mike
+> >>
+> >>     
 
-Regards
-    Stefan
+> 
+> 
+> Andy,
+> 
+> I'm out of town right now, and things will be hectic when I get 
+> back....  I most likely won't get to this until the middle of the week, 
+> perhaps even next weekend.
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+That's OK my next week is booked with travel to a few places as well.
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+FYI, some amplifying information on the problem.  Your original dmesg
+log showed an error that comes from
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+mm/vmalloc.c:__get_vm_area_node()
 
-mailto : hbmeier@hni.upb.de
+that can only be reached by two "goto out;" statements.
 
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+I'll be reading The last half of Chapter 7 of
+_Understanding_the_Linux_Kernel_ while away next week to try and grok
+what's going on, since the Chapter still looks applicable to the newer
+kernel code.
 
+-Andy
+
+> -Mike
+> 
 
 --
 video4linux-list mailing list
