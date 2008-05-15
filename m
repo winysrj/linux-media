@@ -1,22 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G8soEF010690
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 04:54:50 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4G8sZWa005975
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 04:54:36 -0400
-Message-ID: <482D4BC7.7020409@hni.uni-paderborn.de>
-Date: Fri, 16 May 2008 10:54:31 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FCNstS025361
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:23:54 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FCNam1006555
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:23:43 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so237010tim.7
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 05:23:34 -0700 (PDT)
+Message-ID: <998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+Date: Thu, 15 May 2008 20:23:34 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0805151105290.14292@axis700.grange>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <365592.144287319-sendEmail@carolinen>
-	<Pine.LNX.4.64.0805061520250.5880@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0805061520250.5880@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add x_skip_left to soc_camera_device
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
+	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,42 +39,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sorry for the late answer, but I have to rework my driver.
+sorry,i trouble you.
 
-Guennadi Liakhovetski schrieb:
-> I think, this is all we need for now - small and nice. Actually, it would 
-> make even more sense to submit this when your new camera driver is ready, 
-> but if you prefer, I'll accept it now. Just, please, resubmit it without 
-> the above two hunks, and, maybe, add a sentence to the patch comment, 
-> saying "will be used in xxx driver."
->   
-Because of problems with the HSYNC support for different resolutions, I 
-skipped it.
-I remove the HSYNC specific code (configuration of HSYNC or HREF) and
-only used HREF as signal. This makes this Patch obsolete for now.
+2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> What is your <struct pxacamera_platform_data>.mclk_10khz set to? What
+> kernel version are you using? I do not know what you do in your FPGA, are
+> you sure it doesn't modify your camera bus timing (pixel clock, VSYNC,
+> HSYNC, master clock)?
 
-Should I skip it or resubmit it for further use?
+mclk_10khz=1000,and I try 800,500. kernel is linux-2.6.24. I sure it
+doesn't modify your camera bus timing.Usually FIFO overrun occur.
 
-Thanks
-    Stefan
+> Do you mean camera FIFO overruns occur, but fraims do not get dropped? The
+> reason, why with NOR you have more problems might be, that you produce
+> extra load on the memory bus? I don't remember id you already told us,
+> what type of LCD you have on your system and what other bus masters you
+> have? What's your frame format? 640x480x8bit?
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+My frame format is 752x480x8bit.Now I only capure frame.And I do not
+display. the following is my capture thread:
+static int dhpa_capture_thread(void)
+{
+	struct v4l2_buffer buf;
+	int frame_cnt;
+	static time_t init, end;
+	
+	while(1)
+	{
+		/*read frame*/
+		memset(&buf, 0, sizeof(buf));
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;	
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+		/*get the captured buffer*/
+		if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
+		{
+			printf( "VIDIOC_DQBUF failed\n ");
+			return -1;
+		}
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+		if(-1 == ioctl(fd, VIDIOC_QBUF, &buf))
+		{
+			printf("VIDIOC_QBUF failed\n");
+			return -1;
+		}
+	}
+}
+Now if I write a file to jffs2 norflash,FIFO overrun will
+occur.Certainly frame is dropped.I only hope you give me some
+advice.why do overrun occur when writting norflash.Because I feel
+capture frame only use DMA now,I think that write norflash will not
+affect DMA.
 
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+thanks
+fengxin
 
 --
 video4linux-list mailing list
