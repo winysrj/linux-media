@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wmproxy1-g27.free.fr ([212.27.42.91])
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <seb.besnard@free.fr>) id 1Jwaok-0003bl-C9
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 12:36:15 +0200
-Received: from imp8-g19.priv.proxad.net (imp8-g19.priv.proxad.net
-	[172.20.243.50])
-	by wmproxy1-g27.free.fr (Postfix) with ESMTP id E6C2B20C84
-	for <linux-dvb@linuxtv.org>; Thu, 15 May 2008 12:32:59 +0200 (CEST)
-Message-ID: <1210847567.482c114f7ce7c@imp.free.fr>
-Date: Thu, 15 May 2008 12:32:47 +0200
-From: seb.besnard@free.fr
+	(envelope-from <sonofzev@iinet.net.au>) id 1JwUFg-00081W-60
+	for linux-dvb@linuxtv.org; Thu, 15 May 2008 05:35:33 +0200
+From: allan k <sonofzev@iinet.net.au>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] PCTV Pinnacle dual hybrid pro pci express
+Date: Thu, 15 May 2008 13:35:34 +1000
+Message-Id: <1210822534.13804.2.camel@media1>
+Mime-Version: 1.0
+Subject: [linux-dvb] low volume from tv tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,30 +16,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi All 
 
+Now that I have both my tuners working, I have one niggling issue. The
+volume output seems to be very low. 
 
-Hi,
+I am using spdif output so this isn't an ALSA volume setting issue,
+rather the output from avi movies from Mplayer is significantly higher
+than from the tv tuner. 
 
-I'm french, sorry for my bad english  :-)
+Is there a way to increase the volume at the tuner level. Both my tv
+cards are dvico (Fusion Lite and FUsion Express)?
 
-I own the PCTV Pinnacle dual hybrid pro pci express and, I'd like to use it=
- with
-mythbuntu 8.04. (Last update).
+cheers
 
-But, I read that there are no linux driver available actually for this card:
-http://www.linuxtv.org/wiki/index.php/DVB-T_PCIe_Cards
+Allan 
 
-What can Y do to help the support development ?
-
-Best regards.
-
-S=E9bastien
 
 
 _______________________________________________
