@@ -1,21 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m479gp02016233
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 05:42:51 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m479gfRE017428
-	for <video4linux-list@redhat.com>; Wed, 7 May 2008 05:42:41 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so102491ywb.81
-	for <video4linux-list@redhat.com>; Wed, 07 May 2008 02:42:33 -0700 (PDT)
-Message-ID: <b7b14cbb0805070242s34f6aaf5r39f6226bcdd8af5f@mail.gmail.com>
-Date: Wed, 7 May 2008 11:42:33 +0200
-From: "Clinton Taylor" <clintonlee.taylor@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FFJnFh010018
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 11:19:49 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FFJaPS008027
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 11:19:37 -0400
+Received: from smtp8-g19.free.fr (localhost [127.0.0.1])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 3130417F5B1
+	for <video4linux-list@redhat.com>;
+	Thu, 15 May 2008 17:19:36 +0200 (CEST)
+Received: from jef.local (lns-bzn-32-82-254-26-141.adsl.proxad.net
+	[82.254.26.141])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 0D8CF17F55C
+	for <video4linux-list@redhat.com>;
+	Thu, 15 May 2008 17:19:35 +0200 (CEST)
+Received: from jef by jef.moine.bzh with local (masqmail 0.2.21) id
+	1Jwfji-0SI-00 for <video4linux-list@redhat.com>; Thu, 15 May 2008
+	17:51:18 +0200
 To: video4linux-list@redhat.com
+From: Jean-Francois Moine <moinejf@free.fr>
+References: <62e5edd40805150604h6d0f23ffybf13eb6b07d87a76@mail.gmail.com>
+Message-ID: <TTY-Grin-jef-482C5BF6.4DDD7B2D@jef>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Content-Disposition: inline
-Subject: KWorld VS-USB2800D ...
+Date: Thu, 15 May 2008 17:51:18 +0200
+Subject: Re: In-kernel frame conversion
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,133 +37,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings ...
+On Thu, 15 May 2008 15:04:45 +0200, "Erik_Andrén" 
+<erik.andren@gmail.com> wrote:
+>Hi list,
 
- Been lurking on the list for about two weeks and hoping that maybe
-somebody can help me ...
+Hi Erik,
 
- I have a KWorld USB Capture device marked VS-USB2800D.  I'm hoping to
-use it along with a few other capture devices to test ZoneMinder and
-do a few other video capture things ...
+>I'm one of the developers of the m560x project. (
+>http://sourceforge.net/projects/m560x-driver/ )
+>aiming to provide a driver for the ALi m5602, m5603 chipsets.
+	[snip]
+>This driver is unfortunately braindead, always sending Bayer-encoded frames
+>at a fixed VGA resolution.
+>Color recovery, resizing and format conversion is all done in software.
+>
+>Currently we do the same in order to make the camera useful as many relevant
+>linux v4l2 applications fail to have user-space routines converting
+>Bayer-frames.
+>
+>Is it possible to get a driver included upstream and still have such
+>kernel-space frame conversion routines or do they have to go in order to get
+>the driver in an acceptable shape?
 
- I'm running Fedora 8 64bit with Kernel 2.6.24.5-85.fc8 ...
+I am working on a driver, gspca v2, which does frame conversion in
+user-space. It is based on gspca v1 which handles over 270 USB
+webcams. It is composed of:
+- a main driver with the USB exchanges and the v4l2 interface,
+- kernel modules for the different webcam types (actually 20) and
+- a helper process which does frame conversion (JPEG and Bayer to
+  YUV420, YUYV and RGB24/32).
 
- When I plug in the device I get ...
+I planned to put it under mercurial as soon as most of the webcams
+will be tested (and the code will be purified ;)). Feel free to get
+a tarball from my site (see below) and to tell me if you may enter
+into this scheme.
 
-May  7 11:10:06 zeus kernel: usb 1-7: new high speed USB device using
-ehci_hcd and address 7
-May  7 11:10:06 zeus kernel: usb 1-7: configuration #1 chosen from 1 choice
-May  7 11:10:06 zeus kernel: em28xx v4l2 driver version 0.0.1 loaded
-May  7 11:10:06 zeus kernel: em28xx new video device (eb1a:2820):
-interface 0, class 255
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate settings: 8
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 0, max size= 0
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 1, max size= 1024
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 2, max size= 1448
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 3, max size= 2048
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 4, max size= 2304
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 5, max size= 2580
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 6, max size= 2892
-May  7 11:10:06 zeus kernel: em28xx #0: Alternate setting 7, max size= 3072
-May  7 11:10:06 zeus kernel: saa7115 6-0025: saa7113 found
-(1f7113d0e100000) @ 0x4a (em28xx #0)
-May  7 11:10:07 zeus kernel: registered VBI
-May  7 11:10:07 zeus kernel: em28xx #0: V4L2 device registered as
-/dev/video2 and /dev/vbi0
-May  7 11:10:07 zeus kernel: em28xx #0: Found MSI VOX USB 2.0
-May  7 11:10:07 zeus kernel: usbcore: registered new interface driver em28xx
+Cheers.
 
- If you see two lines from the bottom, it lists the device as a MSI
-VOX USB 2.0 ... I would think this device is a KWorld USB2800, but I'm
-able to capture with default settings, but not full frame ...  It
-seems that I can only capture 640 of 768 and 480 of 576, which means
-part of the image is missing ... If anybody was samples to explain
-better, I sure I can send them some ...
-
-If I modprobe -r em28xx and force as KWorld USB2800 with modprobe
-em28xx i2c_scan=1 card=8 ...
-
-May  7 11:20:57 zeus kernel: em28xx v4l2 driver version 0.0.1 loaded
-May  7 11:20:57 zeus kernel: em28xx new video device (eb1a:2820):
-interface 0, class 255
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate settings: 8
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 0, max size= 0
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 1, max size= 1024
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 2, max size= 1448
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 3, max size= 2048
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 4, max size= 2304
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 5, max size= 2580
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 6, max size= 2892
-May  7 11:20:57 zeus kernel: em28xx #0: Alternate setting 7, max size= 3072
-May  7 11:21:03 zeus kernel: registered VBI
-May  7 11:21:03 zeus kernel: em28xx #0: V4L2 device registered as
-/dev/video2 and /dev/vbi0
-May  7 11:21:03 zeus kernel: em28xx #0: Found Kworld USB2800
-May  7 11:21:03 zeus kernel: usbcore: registered new interface driver em28xx
-
-But then the captures are all current with just black and white fuzzy lines ...
-
-Is there a bug with the kernel driver or is this a short coming of the
-capture device?
-
-What are suggested good USB video capture devices with S-Video/
-Composite and build-in audio, not pass-through ... Maybe something
-like" HAUPPAUGE WinTV-PVR USB 2.0 External Video Capture Card", but
-cheaper ...
-
-Thanks
-Mailed
-LeeT
-
-P.S. Not sure if the following with help any, if not, sorry for the
-extra noise ...
-
- v4l-info /dev/video2
-...
-### video4linux device info [/dev/video2] ###
-general info
-    VIDIOCGCAP
-        name                    : "MSI VOX USB 2.0"
-        type                    : 0x3 [CAPTURE,TUNER]
-        channels                : 3
-        audios                  : 0
-        maxwidth                : 640
-        maxheight               : 480
-        minwidth                : 48
-        minheight               : 32
-...
-
-
-v4l-info /dev/video2
-...
-### video4linux device info [/dev/video2] ###
-general info
-    VIDIOCGCAP
-        name                    : "Kworld USB2800"
-        type                    : 0x3 [CAPTURE,TUNER]
-        channels                : 3
-        audios                  : 0
-        maxwidth                : 360
-        maxheight               : 576
-        minwidth                : 48
-        minheight               : 32
-...
-
-sudo v4l-info /dev/video0
-...
-### video4linux device info [/dev/video0] ###
-general info
-    VIDIOCGCAP
-        name                    : "DC10plus[0]"
-        type                    : 0x30e9
-[CAPTURE,OVERLAY,CLIPPING,FRAMERAM,SCALES,MJPEG_DECODER,MJPEG_ENCODER]
-        channels                : 3
-        audios                  : 0
-        maxwidth                : 768
-        maxheight               : 576
-        minwidth                : 32
-        minheight               : 24
-...
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
 --
 video4linux-list mailing list
