@@ -1,20 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m46DjkVD024621
-	for <video4linux-list@redhat.com>; Tue, 6 May 2008 09:45:46 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m46DjYWr006016
-	for <video4linux-list@redhat.com>; Tue, 6 May 2008 09:45:35 -0400
-Date: Tue, 6 May 2008 15:45:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "hbmeier@hni.uni-paderborn.de" <hbmeier@hni.uni-paderborn.de>
-In-Reply-To: <365592.144287319-sendEmail@carolinen>
-Message-ID: <Pine.LNX.4.64.0805061520250.5880@axis700.grange>
-References: <365592.144287319-sendEmail@carolinen>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4F1HuC4022090
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 21:17:56 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.237])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4F1Hkwt007767
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 21:17:46 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so192999rvb.51
+	for <video4linux-list@redhat.com>; Wed, 14 May 2008 18:17:42 -0700 (PDT)
+Message-ID: <d9def9db0805141817n4182deedp780791b0a51fb7be@mail.gmail.com>
+Date: Thu, 15 May 2008 03:17:42 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Greg KH" <greg@kroah.com>
+In-Reply-To: <20080514205927.GA13134@kroah.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add x_skip_left to soc_camera_device
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080514205927.GA13134@kroah.com>
+Cc: linux-kernel@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org,
+	linux-usb@vger.kernel.org, video4linux-list@redhat.com,
+	mchehab@infradead.org
+Subject: Re: [v4l-dvb-maintainer] [PATCH] USB: add Sensoray 2255 v4l driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,111 +32,226 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Stefan,
+Hi Dean, Greg,
 
-The patch looks good in general, thanks, but
+On 5/14/08, Greg KH <greg@kroah.com> wrote:
+> From: Dean Anderson <dean@sensoray.com>
+>
+> +static int norm_maxw(struct video_device *vdev)
+> +{
+> +	return (vdev->current_norm != V4L2_STD_PAL_B) ?
+> +	    LINE_SZ_4CIFS_NTSC : LINE_SZ_4CIFS_PAL;
+> +}
+> +
+> +static int norm_maxh(struct video_device *vdev)
+> +{
+> +	return (vdev->current_norm != V4L2_STD_PAL_B) ?
+> +	    (NUM_LINES_1CIFS_NTSC * 2) : (NUM_LINES_1CIFS_PAL * 2);
+> +}
+> +
+> +static int norm_minw(struct video_device *vdev)
+> +{
+> +	return (vdev->current_norm != V4L2_STD_PAL_B) ?
+> +	    LINE_SZ_1CIFS_NTSC : LINE_SZ_1CIFS_PAL;
+> +}
+> +
+> +static int norm_minh(struct video_device *vdev)
+> +{
+> +	return (vdev->current_norm != V4L2_STD_PAL_B) ?
+> +	    (NUM_LINES_1CIFS_NTSC) : (NUM_LINES_1CIFS_PAL);
+> +}
+> +
+> +/*
+> + * convert from YUV(YCrCb) to RGB
+> + * 65536 R = 76533(Y-16) + 104936 * (Cr-128)
+> + * 65536 G = 76533(Y-16) - 53451(Cr-128) - 25703(Cb -128)
+> + * 65536 B = 76533(Y-16) + 132677(Cb-128)
+> + */
+> +static void YCrCb2RGB(int Y, int Cr, int Cb, unsigned char *pR,
+> +		      unsigned char *pG, unsigned char *pB)
+> +{
+> +	int R, G, B;
+> +
+> +	Y = Y - 16;
+> +	Cr = Cr - 128;
+> +	Cb = Cb - 128;
+> +
+> +	R = (76533 * Y + 104936 * Cr) >> 16;
+> +	G = ((76533 * Y) - (53451 * Cr) - (25703 * Cb)) >> 16;
+> +	B = ((76533 * Y) + (132677 * Cb)) >> 16;
+> +	/* even with proper conversion, some values still need clipping. */
+> +	if (R > 255)
+> +		R = 255;
+> +	if (G > 255)
+> +		G = 255;
+> +	if (B > 255)
+> +		B = 255;
+> +	if (R < 0)
+> +		R = 0;
+> +	if (G < 0)
+> +		G = 0;
+> +	if (B < 0)
+> +		B = 0;
+> +	*pR = R;
+> +	*pG = G;
+> +	*pB = B;
+> +	return;
+> +}
+> +
+> +/* converts 2255 planar format to yuyv */
+> +static void planar422p_to_yuy2(const unsigned char *in, unsigned char *out,
+> +			       int width, int height)
+> +{
+> +	unsigned char *pY;
+> +	unsigned char *pCb;
+> +	unsigned char *pCr;
+> +	unsigned long size = height * width;
+> +	unsigned int i;
+> +	pY = (unsigned char *)in;
+> +	pCr = (unsigned char *)in + height * width;
+> +	pCb = (unsigned char *)in + height * width + (height * width / 2);
+> +	for (i = 0; i < size * 2; i += 4) {
+> +		out[i] = *pY++;
+> +		out[i + 1] = *pCr++;
+> +		out[i + 2] = *pY++;
+> +		out[i + 3] = *pCb++;
+> +	}
+> +	return;
+> +}
+> +
+> +/*
+> + * basic 422 planar to RGB24 or BGR24 software conversion.
+> + * This is best done with MMX. Update to kernel function
+> + * when image conversion functions added to kernel.
+> + */
+> +static void planar422p_to_rgb24(const unsigned char *in,
+> +				unsigned char *out, int width,
+> +				int height, int rev_order)
+> +{
+> +	unsigned char *pY;
+> +	unsigned char *pYEND;
+> +	unsigned char *pCb;
+> +	unsigned char *pCr;
+> +	unsigned char Cr, Cb, Y, r, g, b;
+> +	unsigned long k = 0;
+> +	pY = (unsigned char *)in;
+> +	pCb = (unsigned char *)in + (height * width);
+> +	pCr = (unsigned char *)in + (height * width) + (height * width / 2);
+> +	pYEND = pCb;
+> +	while (pY < pYEND) {
+> +		Y = *pY++;
+> +		Cr = *pCr;
+> +		Cb = *pCb;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		out[k++] = !rev_order ? b : r;
+> +		out[k++] = g;
+> +		out[k++] = !rev_order ? r : b;
+> +		if (pY >= pYEND)
+> +			break;
+> +		Y = *pY++;
+> +		Cr = *pCr++;
+> +		Cb = *pCb++;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		out[k++] = !rev_order ? b : r;
+> +		out[k++] = g;
+> +		out[k++] = !rev_order ? r : b;
+> +	}
+> +	return;
+> +}
+> +
+> +static void planar422p_to_rgb32(const unsigned char *in, unsigned char
+> *out,
+> +				int width, int height, int rev_order)
+> +{
+> +	unsigned char *pY;
+> +	unsigned char *pYEND;
+> +	unsigned char *pCb;
+> +	unsigned char *pCr;
+> +	unsigned char Cr, Cb, Y, r, g, b;
+> +	unsigned long k = 0;
+> +	pY = (unsigned char *)in;
+> +	pCb = (unsigned char *)in + (height * width);
+> +	pCr = (unsigned char *)in + (height * width) + (height * width / 2);
+> +	pYEND = pCb;
+> +	while (pY < pYEND) {
+> +		Y = *pY++;
+> +		Cr = *pCr;
+> +		Cb = *pCb;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		out[k++] = rev_order ? b : r;
+> +		out[k++] = g;
+> +		out[k++] = rev_order ? r : b;
+> +		out[k++] = 0;
+> +		if (pY >= pYEND)
+> +			break;
+> +		Y = *pY++;
+> +		Cr = *pCr++;
+> +		Cb = *pCb++;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		out[k++] = rev_order ? b : r;
+> +		out[k++] = g;
+> +		out[k++] = rev_order ? r : b;
+> +		out[k++] = 0;
+> +	}
+> +
+> +	return;
+> +}
+> +
+> +static void planar422p_to_rgb565(unsigned char const *in, unsigned char
+> *out,
+> +				 int width, int height, int rev_order)
+> +{
+> +	unsigned char *pY;
+> +	unsigned char *pYEND;
+> +	unsigned char *pCb;
+> +	unsigned char *pCr;
+> +	unsigned char Cr, Cb, Y, r, g, b;
+> +	unsigned long k = 0;
+> +	unsigned short rgbbytes;
+> +	pY = (unsigned char *)in;
+> +	pCb = (unsigned char *)in + (height * width);
+> +	pCr = (unsigned char *)in + (height * width) + (height * width / 2);
+> +	pYEND = pCb;
+> +	while (pY < pYEND) {
+> +		Y = *pY++;
+> +		Cr = *pCr;
+> +		Cb = *pCb;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		r = r >> 3;
+> +		g = g >> 2;
+> +		b = b >> 3;
+> +		if (rev_order)
+> +			rgbbytes = b + (g << 5) + (r << (5 + 6));
+> +		else
+> +			rgbbytes = r + (g << 5) + (b << (5 + 6));
+> +		out[k++] = rgbbytes & 0xff;
+> +		out[k++] = (rgbbytes >> 8) & 0xff;
+> +		Y = *pY++;
+> +		Cr = *pCr++;
+> +		Cb = *pCb++;
+> +		YCrCb2RGB(Y, Cr, Cb, &r, &g, &b);
+> +		r = r >> 3;
+> +		g = g >> 2;
+> +		b = b >> 3;
+> +		if (rev_order)
+> +			rgbbytes = b + (g << 5) + (r << (5 + 6));
+> +		else
+> +			rgbbytes = r + (g << 5) + (b << (5 + 6));
+> +		out[k++] = rgbbytes & 0xff;
+> +		out[k++] = (rgbbytes >> 8) & 0xff;
+> +	}
+> +	return;
+> +}
+> +
 
-On Tue, 6 May 2008, hbmeier@hni.uni-paderborn.de wrote:
 
-> Add x_skip_left to soc_camera_device and use it as "Beginning-of-Line
-> Pixel Clock Wait Count" in pxa_camera driver
-> 
-> Signed-off-by: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-> ---
-> diff -r ead7cbcb4e49 linux/drivers/media/video/mt9m001.c
-> --- a/linux/drivers/media/video/mt9m001.c	Tue May 06 07:50:51 2008 -0300
-> +++ b/linux/drivers/media/video/mt9m001.c	Tue May 06 13:56:27 2008 +0200
-> @@ -649,18 +649,19 @@ static int mt9m001_probe(struct i2c_clie
->  
->  	/* Second stage probe - when a capture adapter is there */
->  	icd = &mt9m001->icd;
-> -	icd->ops	= &mt9m001_ops;
-> -	icd->control	= &client->dev;
-> -	icd->x_min	= 20;
-> -	icd->y_min	= 12;
-> -	icd->x_current	= 20;
-> -	icd->y_current	= 12;
-> -	icd->width_min	= 48;
-> -	icd->width_max	= 1280;
-> -	icd->height_min	= 32;
-> -	icd->height_max	= 1024;
-> -	icd->y_skip_top	= 1;
-> -	icd->iface	= icl->bus_id;
-> +	icd->ops = &mt9m001_ops;
-> +	icd->control = &client->dev;
-> +	icd->x_min = 20;
-> +	icd->y_min = 12;
-> +	icd->x_current = 20;
-> +	icd->y_current = 12;
-> +	icd->width_min = 48;
-> +	icd->width_max = 1280;
-> +	icd->height_min = 32;
-> +	icd->height_max = 1024;
-> +	icd->x_skip_left = 0;
-> +	icd->y_skip_top = 1;
-> +	icd->iface = icl->bus_id;
+Why do you do those conversions in kernelspace?
+ffmpeg/libswscale has optimized code for colourspace conversions.
+I know a few drivers do that in kernelspace but it's way more flexible
+in userspace and depending on the optimization requires less CPU
+power.
 
-hmmm... I did tell you
-
-> > Use your esthetic feeling:-) But if it doesn't coincide with mine, I'll 
-> > reject the patch:-))
-
-and, I am sorry, it is really pretty far from mine, so...:-) But the main 
-reason why I don't quite like it is, that you _needlessly_ modify 12 
-lines. It is good to keep patches as small as possible, to simplify review 
-and to reduce the chances for a mistake. You see, I can think of several 
-ways to add this line to these two files (mt9m001 and mt9v022), e.g., just 
-add it with one space at the end,
-
-	icd->width_max	= 1280;
-	icd->height_min	= 32;
-	icd->height_max	= 1024;
-	icd->y_skip_top	= 1;
-+	icd->x_skip_left = 0;
-
-Yes, alignment will be broken, but only on one line. Or add one more TAB. 
-But I don't think your solution is the best. Actually, I think, we 
-shouldn't add this line to these two files at all. icd is embedded in 
-mt9m001 / mt9v022 structs, and they are allocated per kzalloc, so, already 
-nullified. I would just leave these two files as they are.
-
-> diff -r ead7cbcb4e49 linux/drivers/media/video/pxa_camera.c
-> --- a/linux/drivers/media/video/pxa_camera.c	Tue May 06 07:50:51 2008 -0300
-> +++ b/linux/drivers/media/video/pxa_camera.c	Tue May 06 13:51:28 2008 +0200
-> @@ -883,7 +883,7 @@ static int pxa_camera_set_bus_param(stru
->  	}
->  
->  	CICR1 = cicr1;
-> -	CICR2 = 0;
-> +	CICR2 = CICR2_BLW_VAL(min((unsigned short)255, icd->x_skip_left));
->  	CICR3 = CICR3_LPF_VAL(icd->height - 1) |
->  		CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
->  	CICR4 = mclk_get_divisor(pcdev) | cicr4;
-> diff -r ead7cbcb4e49 linux/include/media/soc_camera.h
-> --- a/linux/include/media/soc_camera.h	Tue May 06 07:50:51 2008 -0300
-> +++ b/linux/include/media/soc_camera.h	Tue May 06 13:51:28 2008 +0200
-> @@ -29,6 +29,7 @@ struct soc_camera_device {
->  	unsigned short width_max;
->  	unsigned short height_min;
->  	unsigned short height_max;
-> +	unsigned short x_skip_left;	/* Pixel to skip at the left */
->  	unsigned short y_skip_top;	/* Lines to skip at the top */
->  	unsigned short gain;
->  	unsigned short exposure;
-
-I think, this is all we need for now - small and nice. Actually, it would 
-make even more sense to submit this when your new camera driver is ready, 
-but if you prefer, I'll accept it now. Just, please, resubmit it without 
-the above two hunks, and, maybe, add a sentence to the patch comment, 
-saying "will be used in xxx driver."
-
-Sorry, and I promise, I'll accept the patch in proposed form, as long as 
-it still applies and works at the time you submit it:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+Markus
 
 --
 video4linux-list mailing list
