@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43JdWmA011833
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 15:39:32 -0400
-Received: from mylar.outflux.net (mylar.outflux.net [69.93.193.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m43JdMsC003019
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 15:39:22 -0400
-Date: Sat, 3 May 2008 12:39:03 -0700
-From: Kees Cook <kees@outflux.net>
-To: Brandon Philips <brandon@ifup.org>
-Message-ID: <20080503193903.GM12850@outflux.net>
-References: <20080417012354.GH18929@outflux.net>
-	<200804212310.47130.laurent.pinchart@skynet.be>
-	<20080421214717.GJ18865@outflux.net>
-	<200804250055.45118.laurent.pinchart@skynet.be>
-	<20080428072655.GB782@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FJddR6020313
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 15:39:39 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4FJdQWp022751
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 15:39:27 -0400
+Date: Thu, 15 May 2008 21:39:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Darius <augulis.darius@gmail.com>
+In-Reply-To: <g0hhpt$jfp$1@ger.gmane.org>
+Message-ID: <Pine.LNX.4.64.0805152121210.14292@axis700.grange>
+References: <g09j17$3m9$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>
+	<g0bjtj$b0d$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805132212530.4988@axis700.grange>
+	<g0hhpt$jfp$1@ger.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080428072655.GB782@plankton.ifup.org>
-Cc: video4linux-list@redhat.com, Kay Sievers <kay.sievers@vrfy.org>
-Subject: Re: [PATCH] v4l: Introduce "stream" attribute for persistent
-	video4linux device nodes
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: question about SoC Camera driver (Micron)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,23 +30,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Brandon,
+On Thu, 15 May 2008, Darius wrote:
 
-On Mon, Apr 28, 2008 at 12:26:55AM -0700, Brandon Philips wrote:
-> Kees: I don't have a device that creates multiple device nodes.  Please
-> test with ivtv.  :D
+> Guennadi, can you please describe more detailed struct soc_camera_device
+> structure? All these members xmin, ymin, etc...
 
-Unfortunately, this doesn't work with ivtv -- each device has a streamid
-of 0.  (video0, video24, video32 all on the same PCI path reported
-stream 0)
+The main point is, that the unit is 1 pixel. The rest is pretty much 
+implementation specific. Just see your datasheet and select some natural 
+values for allowed frame sizes and location. As the struct declaration 
+says:
 
-Note that I backported this to 2.6.24 to test, so perhaps I did
-something wrong.  I will double-check...
+	unsigned short width;		/* Current window */
+	unsigned short height;		/* sizes */
+	unsigned short x_min;		/* Camera capabilities */
+	unsigned short y_min;
+	unsigned short x_current;	/* Current window location */
+	unsigned short y_current;
 
--Kees
+The vales below are again min and max allowed values.
 
--- 
-Kees Cook                                            @outflux.net
+	unsigned short width_min;
+	unsigned short width_max;
+	unsigned short height_min;
+	unsigned short height_max;
+
+This is just to skip a few lines at the top, in case they are always 
+corrupted, as was the case with Micron cameras. Soon there should be ab 
+extra x_skip_left parameter.
+
+	unsigned short y_skip_top;	/* Lines to skip at the top */
+
+These are current gain and exposure values again. I selected them scaled 
+to some more or less natural for humans ranges. See arrays of struct 
+v4l2_queryctrl in mt9m001.c and mt9v022.c for examples
+
+	unsigned short gain;
+	unsigned short exposure;
+
+> Also soc_camera_data_format structure has member depht. Should this member fit
+> sensor bus bit count or pixel format depht in videodev2.h?
+> Because most pixel formats are 16 bit and camera sensor interface in most
+> cases is 8 bit.
+
+This is pixel format bit-depth, as provided by the sensor.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
