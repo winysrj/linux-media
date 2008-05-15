@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JurJA-0000wc-D5
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 17:48:27 +0200
-Received: from [74.73.53.120] (helo=[192.168.1.101])
-	by host06.hostingexpert.com with esmtpa (Exim 4.68)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JurJ6-0000oL-HC
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:48:20 -0500
-Message-ID: <4825C3C4.8000702@linuxtv.org>
-Date: Sat, 10 May 2008 11:48:20 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from gateway12.websitewelcome.com ([69.93.154.13])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1JwmSk-0002lA-W9
+	for linux-dvb@linuxtv.org; Fri, 16 May 2008 01:02:16 +0200
+Received: from [77.109.107.153] (port=55522 helo=[192.168.1.3])
+	by gator143.hostgator.com with esmtpa (Exim 4.68)
+	(envelope-from <skerit@kipdola.com>) id 1JwmSc-00086H-PV
+	for linux-dvb@linuxtv.org; Thu, 15 May 2008 18:02:06 -0500
+Message-ID: <482CC0F0.30005@kipdola.com>
+Date: Fri, 16 May 2008 01:02:08 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <482560EB.2000306@gmail.com>	<200805101717.23199@orion.escape-edv.de>
-	<200805101727.55810@orion.escape-edv.de>
-In-Reply-To: <200805101727.55810@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
- stv0297
+Subject: [linux-dvb] Technotrend S2-3200 Scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,60 +26,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Oliver Endriss wrote:
-> Oliver Endriss wrote:
->> e9hack wrote:
->>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
->>> makes the UNC value of the femon plugin useless.
->> Why? It does not make sense to accumulate the errors forever, i.e.
->> nobody wants to know what happened last year...
->>
->> Afaics it is ok to reset the counter after reading it.
->> All drivers should behave this way.
->>
->> If the femon plugin requires something else it might store the values
->> and process them as desired.
->>
->> Afaics the femon command line tool has no problems with that.
-> 
-> Argh, I just checked the API 1.0.0. spec:
-> | FE READ UNCORRECTED BLOCKS
-> | This ioctl call returns the number of uncorrected blocks detected by the device
-> | driver during its lifetime. For meaningful measurements, the increment
-> | in block count during a speci c time interval should be calculated. For this
-> | command, read-only access to the device is suf cient.
-> | Note that the counter will wrap to zero after its maximum count has been
-> | reached
-> 
-> So it seens you are right and the drivers should accumulate the errors
-> forever. Any opinions?
-> 
+Hi again,
 
-There are some devices that automatically reset the unc counter registers
-as they are read, and other devices that wrap to zero after its maximum
-count has been reached, unless the driver explicitly clears it. *(see below)
+It's been a busy day. So I temporarily removed LinuxMCE to install the 
+newer Mythbuntu 8.04 - the drivers finally recognize the S2-3200!
 
-There are other devices that dont give unc info directly, but instead
-report an average unc per time interval.
+But now I'm stuck again, and it seems to me this is a problem which has 
+been faced, and fixed, before - I just can't fix it now because 
+apparently so much has changed that all the patches don't work on the 
+new source files anymore: any hacked "scan" or "szap" program won't compile.
 
-I think it's possible that at the time the 1.0.0 spec was written, most
-devices were known to exhibit the behavior as described in the blurb
-quoted from the API 1.0.0 spec, above.
+(Keep in mind I'm using a switch between my S2-3200 card and my 4 LNBs - 
+will this cause any problems?)
 
-I don't think that all of the drivers comply to this, exactly as described,
-and it might be difficult to correct this across the board :-(  In many
-cases, we might not know for sure how absolute the value is, read from these
-registers on a given device.
+This is the problem you've no doubt seen before.
 
-I am not sure what we should do, but here is an argument that supports the
-API 1.0.0 spec:
+$ sudo scan /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E 
+ >channels.conf
 
-*There are some demods whose firmware uses these counters to determine lock
-state.  If we explicitly clear the counter registers during a channel scan,
-we can potentially confuse the firmware into detecting false locks, and not
-detecting real locks.
-
--Mike
+scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12551500 V 22000000 5
+ >>> tune to: 12551:v:0:22000
+__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid 
+argument
+ >>> tune to: 12551:v:0:22000
+__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid 
+argument
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
 
 
 _______________________________________________
