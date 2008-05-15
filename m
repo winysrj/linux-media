@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from edna.telenet-ops.be ([195.130.132.58])
+Received: from wx-out-0506.google.com ([66.249.82.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bernardenmartine@pandora.be>) id 1K10oi-0003vj-NT
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 17:10:28 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by edna.telenet-ops.be (Postfix) with SMTP id 6A529E40A5
-	for <linux-dvb@linuxtv.org>; Tue, 27 May 2008 17:10:17 +0200 (CEST)
-Received: from [192.168.1.105] (d54C56A71.access.telenet.be [84.197.106.113])
-	by edna.telenet-ops.be (Postfix) with ESMTP id 4A4BDE409B
-	for <linux-dvb@linuxtv.org>; Tue, 27 May 2008 17:10:17 +0200 (CEST)
-Message-ID: <483C2458.4080004@pandora.be>
-Date: Tue, 27 May 2008 17:10:16 +0200
-From: B&M <bernardenmartine@pandora.be>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem initialising Terratec Cinergy HT USB XE
+	(envelope-from <marco.difresco@gmail.com>) id 1JwhLM-0001Zf-62
+	for linux-dvb@linuxtv.org; Thu, 15 May 2008 19:34:18 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so369540wxd.17
+	for <linux-dvb@linuxtv.org>; Thu, 15 May 2008 10:34:11 -0700 (PDT)
+From: Marco Di Fresco <marco.difresco@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Date: Thu, 15 May 2008 19:33:47 +0200
+Message-Id: <1210872827.11661.0.camel@PC-MARCO>
+Mime-Version: 1.0
+Subject: [linux-dvb] Problems to get channels with Hauppauge Nova-TD Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,145 +18,317 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1307032082=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
 
-I found some mails on this mailing list about guys who managed to put 
-the Terratec Cinergy HT USB XE to work. So, I tought I'd give it a try, 
-but it didn't really went as expected.
-There seems to be a problem at registration of frontend causing a crash.
-Any idea what this could be?
-
-Do you know how I can debug this? I suppose I should deactivate the 
-automatic detection of my USB and launch the driver load manually with 
-gdb, but I'm not yet comfortable on how to do this.
-
-I'm running a brand new install of fedora 9 (2.6.25.3-18.fc9.x86_64)
-
-Below (part of) the output of dmesg:
-dib0700: loaded with support for 7 different device-types
-dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to 
-load a firmware
-ahci 0000:00:12.0: AHCI 0001.0100 32 slots 4 ports 3 Gbps 0xf impl SATA mode
-ahci 0000:00:12.0: flags: ncq sntf ilck pm led clo pio slum part
-scsi2 : ahci
-scsi3 : ahci
-scsi4 : ahci
-scsi5 : ahci
-ata3: SATA max UDMA/133 abar m1024@0xfe8ff800 port 0xfe8ff900 irq 22
-ata4: SATA max UDMA/133 abar m1024@0xfe8ff800 port 0xfe8ff980 irq 22
-ata5: SATA max UDMA/133 abar m1024@0xfe8ff800 port 0xfe8ffa00 irq 22
-ata6: SATA max UDMA/133 abar m1024@0xfe8ff800 port 0xfe8ffa80 irq 22
-ata3: SATA link down (SStatus 0 SControl 300)
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-dib0700: firmware started successfully.
-ata4: SATA link down (SStatus 0 SControl 300)
-ata5: SATA link down (SStatus 0 SControl 300)
-dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Terratec Cinergy HT USB XE)
-ata6: SATA link down (SStatus 0 SControl 300)
-piix4_smbus 0000:00:14.0: Found 0000:00:14.0 device
-ACPI: PCI Interrupt 0000:00:14.2[A] -> GSI 16 (level, low) -> IRQ 16
-ALSA sound/pci/hda/hda_intel.c:1810: chipset global capabilities = 0x4401
-ALSA sound/pci/hda/hda_intel.c:749: codec_mask = 0x1
-hda_codec: Unknown model for ALC883, trying auto-probe from BIOS...
-ALSA sound/pci/hda/hda_codec.c:2857: autoconfig: line_outs=4 
-(0x14/0x15/0x16/0x17/0x0)
-ALSA sound/pci/hda/hda_codec.c:2861:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
-ALSA sound/pci/hda/hda_codec.c:2865:    hp_outs=1 (0x1b/0x0/0x0/0x0/0x0)
-ALSA sound/pci/hda/hda_codec.c:2866:    mono: mono_out=0x0
-ALSA sound/pci/hda/hda_codec.c:2874:    inputs: mic=0x18, fmic=0x19, 
-line=0x1a, fline=0x0, cd=0x0, aux=0x0
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Headphone 
-Playback Volume, skipped
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Speaker Playback 
-Volume, skipped
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Mono Playback 
-Volume, skipped
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Line-Out Playback 
-Volume, skipped
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Speaker Playback 
-Switch, skipped
-ALSA sound/pci/hda/hda_codec.c:1073: Cannot find slave Mono Playback 
-Switch, skipped
-r8169 Gigabit Ethernet driver 2.2LK-NAPI loaded
-ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 19 (level, low) -> IRQ 19
-PCI: Setting latency timer of device 0000:02:00.0 to 64
-r8169 0000:02:00.0: no MSI. Back to INTx.
-eth0: RTL8168b/8111b at 0xffffc200004fe000, 00:19:db:c0:16:4f, XID 
-38000000 IRQ 19
-DVB: registering frontend 0 (DiBcom 7000PC)...
-general protection fault: 0000 [1] SMP
-CPU 1
-Modules linked in: tuner_xc2028 snd_hda_intel snd_seq_dummy snd_seq_oss 
-dvb_usb_dib0700(+) dib7000p snd_seq_midi_event dib7000m snd_seq dvb_usb 
-snd_seq_device snd_pcm_oss snd_mixer_oss snd_pcm dvb_core dib3000mc 
-dibx000_common i2c_piix4 snd_timer snd_page_alloc floppy snd_hwdep 
-k8temp r8169 snd button hwmon ahci soundcore shpchp dib0070 i2c_core 
-pcspkr sr_mod sg cdrom dm_snapshot dm_zero dm_mirror dm_mod pata_acpi 
-ata_generic pata_atiixp libata sd_mod scsi_mod ext3 jbd mbcache uhci_hcd 
-ohci_hcd ehci_hcd [last unloaded: scsi_wait_scan]
-Pid: 660, comm: modprobe Not tainted 2.6.25.3-18.fc9.x86_64 #1
-RIP: 0010:[<ffffffff882917f1>]  [<ffffffff882917f1>] 
-:tuner_xc2028:xc2028_attach+0x19d/0x1f0
-RSP: 0018:ffff810036da5aa8  EFLAGS: 00010206
-RAX: 0020000000a08c00 RBX: ffffffff882936b0 RCX: 0000000000000080
-RDX: 00000000ffffffff RSI: ffffffff88291970 RDI: ffff810032cf1270
-RBP: ffff810036da5ad8 R08: ffffffff88198869 R09: ffff810036da5ad0
-R10: 0000000000000002 R11: ffff810036da56a8 R12: ffffffff88208be0
-R13: 0000000000000000 R14: ffff810032cf1000 R15: 0000000000000000
-FS:  00007fc93594e6f0(0000) GS:ffff810037802680(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000003bde0a6550 CR3: 00000000331ab000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process modprobe (pid: 660, threadinfo ffff810036da4000, task 
-ffff810036da2000)
-Stack:  0000000000000001 0000000000000000 ffff810036cc8d50 ffff810036cc8618
- ffff810036cc8d50 0000000000000001 ffff810036da5af8 ffffffff882008e7
- ffff810036cc8618 ffff810036cc8d50 ffff810036da5b18 ffffffff881d4f27
-Call Trace:
- [<ffffffff882008e7>] :dvb_usb_dib0700:stk7700ph_tuner_attach+0x6b/0x99
- [<ffffffff881d4f27>] :dvb_usb:dvb_usb_adapter_frontend_init+0xdc/0xff
- [<ffffffff881d4979>] :dvb_usb:dvb_usb_device_init+0x4b4/0x597
- [<ffffffff8820065c>] :dvb_usb_dib0700:dib0700_probe+0x44/0x6f
- [<ffffffff811c5e98>] usb_probe_interface+0xe5/0x133
- [<ffffffff811aba99>] driver_probe_device+0xc0/0x16e
- [<ffffffff811abbda>] __driver_attach+0x93/0xd3
- [<ffffffff811abb47>] ? __driver_attach+0x0/0xd3
- [<ffffffff811ab2b6>] bus_for_each_dev+0x4f/0x89
- [<ffffffff811ab8e4>] driver_attach+0x1c/0x1e
- [<ffffffff811aab2d>] bus_add_driver+0xb7/0x200
- [<ffffffff811abda3>] driver_register+0x5e/0xde
- [<ffffffff811c60ec>] usb_register_driver+0x80/0xe4
- [<ffffffff8820d037>] :dvb_usb_dib0700:dib0700_module_init+0x37/0x53
- [<ffffffff81057747>] sys_init_module+0x193f/0x1a87
- [<ffffffff810a4db8>] ? do_sync_read+0xe7/0x12d
- [<ffffffff8103e30e>] ? msleep+0x0/0x1e
- [<ffffffff810a57fd>] ? vfs_read+0xab/0x154
- [<ffffffff8100bedb>] system_call_after_swapgs+0x7b/0x80
+--===============1307032082==
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-WA1cfMTj/HaaPOYAn/Vu"
 
 
-Code: 31 c0 e8 16 6f 00 f9 49 8d be 70 01 00 00 48 c7 c6 70 18 29 88 b9 
-40 00 00 00 f3 a5 83 ca ff 48 8b 43 18 8a 4b 10 48 85 c0 74 06 <8b> 90 
-b8 02 00 00 48 8b 73 28 31 c0 0f b6 c9 49 c7 c0 08 27 29
-RIP  [<ffffffff882917f1>] :tuner_xc2028:xc2028_attach+0x19d/0x1f0
- RSP <ffff810036da5aa8>
----[ end trace de2b9667e3d5dcad ]---
+--=-WA1cfMTj/HaaPOYAn/Vu
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,
+I have bought a Hauppauge Nova-TD Stick few days ago, but I am having
+problems to get the channels.
+
+According to 'dmesg', the card is recognized (even with the kernel
+bundled modules, but to be sure I downloaded the latest modules with
+'hg'):
+
+[  137.485145] dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV
+Diversity' in cold state, will try to load a firmware
+[  137.551403] dvb-usb: downloading firmware from file
+'dvb-usb-dib0700-1.10.fw'
+[  137.948233] dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV
+Diversity' in warm state.
+[  137.948285] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[  138.186907] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[  138.409176] dvb-usb: schedule remote query interval to 150 msecs.
+[  138.409359] dvb-usb: Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity
+successfully initialized and connected.
 
 
-Thanks for your help !
 
-Bernard
+I first tried to scan for the channels with a scan file found in
+'=EF=BB=BF/usr/share/doc/dvb-utils/examples/scan/dvb-t/', but without succe=
+ss.
+
+$ scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/it-Venezia
+> ./.tzap/channels.conf
+scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/it-Venezia
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 706000000 0 2 1 3 1 0 0
+initial transponder 602000000 0 2 1 3 1 0 0
+initial transponder 490000000 0 2 1 3 1 0 0
+initial transponder 818000000 0 2 1 3 1 0 0
+initial transponder 826000000 0 2 1 3 1 0 0
+initial transponder 770000000 0 2 1 3 1 0 0
+initial transponder 594000000 0 2 1 3 1 0 0
+>>> tune to:
+706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to:
+602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to:
+490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to:
+818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+>>> tune to:
+826000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+826000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to:
+770000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+770000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to:
+594000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to:
+594000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSIO=
+N_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+dumping lists (0 services)
+Done.
+
+
+
+So far I give it the benefit of doubts since I do not really live
+in =EF=BB=BFVenice, but in another city in the same region (Vicenza in
+specific). So I tried to do the scan with 'w_scan':
+
+$ w_scan -f t -i 0 -F -t 3 -o 4 -R 1 -T 1 -O 1 -E 1 -X -v>
+~/.tzap/channels.conf
+w_scan version 20080105
+Info: using DVB adapter auto detection.
+   Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
+-_-_-_-_ Getting frontend capabilities-_-_-_-_
+frontend DiBcom 7000PC supports
+INVERSION_AUTO
+QAM_AUTO
+TRANSMISSION_MODE_AUTO
+GUARD_INTERVAL_AUTO
+HIERARCHY_AUTO
+FEC_AUTO
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+177500:
+184500:
+191500:
+198500:
+205500:
+212500:
+219500:
+226500:
+474000:
+482000: signal ok (I999B8C999D999M999T999G999Y999)
+490000:
+498000:
+506000:
+514000: signal ok (I999B8C999D999M999T999G999Y999)
+522000:
+530000:
+538000:
+546000:
+554000:
+562000:
+570000:
+578000:
+586000: signal ok (I999B8C999D999M999T999G999Y999)
+594000:
+602000:
+610000:
+618000:
+626000:
+634000:
+642000:
+650000:
+658000:
+666000: signal ok (I999B8C999D999M999T999G999Y999)
+674000:
+682000:
+690000:
+698000:
+706000:
+714000:
+722000:
+730000:
+738000:
+746000:
+754000:
+762000:
+770000:
+778000:
+786000:
+794000:
+802000:
+810000:
+818000:
+826000:
+834000:
+842000:
+850000:
+858000:
+tune to:
+>>> tuning status =3D=3D 0x0f
+>>> tuning status =3D=3D 0x1f
+PAT
+PMT 0x0bba for service 0x0bb9
+PMT 0x03ea for service 0x03e9
+PMT 0x07d2 for service 0x07d1
+SDT (actual TS)
+     LA10(TELEBASSANO)
+     TVSET-TELENORD(TELEBASSANO)
+     RETE VENETA(TELEBASSANO)
+NIT (actual TS)
+Network Name 'Network Name'
+tune to:
+>>> tuning status =3D=3D 0x0a
+>>> tuning status =3D=3D 0x1a
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+tune to:
+>>> tuning status =3D=3D 0x0a
+>>> tuning status =3D=3D 0x1a
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+tune to:
+>>> tuning status =3D=3D 0x0b
+>>> tuning status =3D=3D 0x1b
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+dumping lists (3 services)
+Done.
+
+As you can see, it found only three channels and for the rest it reports
+'=EF=BB=BFInfo: filter timeout pid'. Now, the =EF=BB=BFHauppauge Nova-TD St=
+ick should
+support digital aerial signal, but not only it does not find
+any =EF=BB=BFdigital aerial channel, it does not even find any national ana=
+logue
+channel (like "Rai Uno, "Rai Due", etc. - the three found are local
+channels, and they are not even the all available).
+
+I tried to do a 'dvbsnoop' scan; since the output is too long, I have
+uploaded it to a site of mine:
+http://marcodifresco.interfree.it/marco/misc/dvbsnoop-result.txt
+
+I tried to search for channels with Kaffeine, but it finds the same
+three channels (and actually two times each channel).
+
+
+I have read on a forum (I cannot find the link now) that if only few
+signals are found it is because the signal has too much strength and it
+is necessary to use a 6db attenuator; I have found it today, but it did
+not solved the problem (actually I am doing further tests since it is a
+0-20db attenuator with a wheel to regolate the attenuation).
+
+I have done all the tests with both the small antennas provided with the
+stick and with the roof antenna. I know that the =EF=BB=BFroof antenna is
+working because I was using it with a regular television and with
+an =EF=BB=BFAverMedia AverTV USB 2.0 Plus under Windows (too bad I migrated=
+ to
+Linux after only a couple of month from the purchase and it was not
+supported).
+
+I am using Kubuntu 8.04 64 bits with kernel 2.6.25.3 (I just upgraded it
+today, until yesterday I was using 2.6.24.7, with the same results). I
+have an Intel Core 2 Duo E6700 on a ECS PN2 SLI2+ Extreme nForce 680i
+SLI, EVGA 768-P2-N831-AR GeForce 8800 GTX, 2 GB (4x512MB) DDR2 800 of
+RAM.
+
+Now, usually I do not make pressure for help (especially to whom is
+doing a good job for free), but I have bought the stick Monday and here
+in Italy we have only 7 days to bring the stuff back for a refund (if we
+are not satisfied - if it is actually broken we have 1 year warranty by
+law), so I have only tomorrow (Friday) evening available for further
+testing; if I have to bring it back, I have to do it Saturday morning
+since on the afternoon and on Sunday the store is closed --- as I
+mentioned I have already wasted money on an AverMedia AverTV USB 2.0
+Plus that I used for only a couple of month under Windows (since I have
+then I migrated to Linux...) and I have no intentions to add a 79,90
+Euro device to the pile of junk in the attic. :-(
+
+Thank in advance. :-)
+
+--=20
+Marco Di Fresco
+http://marcodifresco.wordpress.com
+
+--=-WA1cfMTj/HaaPOYAn/Vu
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iQIVAwUASCxz++E1e7n2TLKCAQJDog//Tx08boIZvUqBJ4NLh1d9qocTnh/7io2H
+vpGqgc4J/W7CQmPTxiWyLMJ87cOrdsJO/fliY21ase0wLm1UTOXLSO0Hvh8DAfSr
+6NjscICNwj9EFi59RhYrRFddEyd+T01OC+VVIvMbuvtAf60lUCEgggF6Hr1JigC+
+UEyHCzD1tykVL1sXUCNn94zSl4drsKR4Ke7TsuoDTuappxFuhtMr6QkJ2KGuxPJh
+a29/PDY/NXeJ0+wjdkOM7jOU7smpa8ce5z64N1seYdVXixBGIEU5FW3uofpRPnap
+Phs7DedcpDSWEUuuQBaFtesf4zQMiax92RJeTDi2HDFTE/D31IgX078lt1GNo5Le
+7tj3bC3tYJTGnLt37nwR25gdSDmQy378asiyhH1EBkYbke8hZqJReEg3aBlfk/Pz
+S59euES0AyYBNkDPzVl6hcPj2BeJjg7YpDum2IozB2BjMKv2nB1WVQFGRW2B1Zqg
+Hw7sCpIgyarezV70maSDPHrF6ijwF+8jaa8uDXdPkmHpm25HvbNSseNOPiCRx742
+FLknwpItlkZmEhrE+9c2QpVfESZqOfU+xsbP7ILyDPEyBEWGQjRaQMXffzroCUUD
+aGHlSI6Myhi7ZOpg/42nwu/dTSWDmfXYmoJjTJbbm9VpX6loRI3NJFtOzZCBIia7
+6rs+z9wKIv8=
+=tfDs
+-----END PGP SIGNATURE-----
+
+--=-WA1cfMTj/HaaPOYAn/Vu--
+
+
+
+--===============1307032082==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1307032082==--
