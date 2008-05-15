@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <acros@gmx.de>) id 1K0iLz-0002nw-HN
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 21:27:32 +0200
-Message-ID: <483B0F00.4040305@gmx.de>
-Date: Mon, 26 May 2008 21:26:56 +0200
-From: Acros <acros@gmx.de>
+Received: from mailhost.tue.nl ([131.155.3.8])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bas@kompasmedia.nl>) id 1JwXrY-0001Os-2l
+	for linux-dvb@linuxtv.org; Thu, 15 May 2008 09:26:53 +0200
+Message-ID: <482BE59D.60008@kompasmedia.nl>
+Date: Thu, 15 May 2008 09:26:21 +0200
+From: "Bas v.d. Wiel" <bas@kompasmedia.nl>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Hauppauge HVR1110 Firmware Not Loading
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <48295A62.50708@kompasmedia.nl> <4829FA37.8030007@freenet.de>	
+	<482AAD8A.80309@kompasmedia.nl> <482B44D1.1000906@freenet.de>
+	<1210809373.2514.10.camel@pc10.localdom.local>
+In-Reply-To: <1210809373.2514.10.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechnoTrend 2300 DVB-C, does it work?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,33 +27,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello!
+hermann pitton wrote:
+> yes, that was reported by countless people, but I'm not there.
+>
+>   
+I can confirm this. Almost every channel is encrypted apart from a few 
+apparently random exceptions. I can watch NL 1 and Comedy Central FTA 
+even though they're completely unrelated and Comedy Central is even part 
+of an optional package if I recall correctly.. strange. Many radio 
+channels are freely available though.
+> This was only one of the reasons to ask Manu to stop advertising the new
+> expensive stuff that hard in Europe. The same goes for free S2. It is
+> nothing more than some blown up "muppets" show you get for now, at least
+> in Germany.
+>
+> The work is fine, but people need to know how far they can get with it
+> on their place for now.
+>
+> Results about pointing to it are known ... ;)
+>
+> Cheers,
+> Hermann
+>   
+Last night I made a couple of new attempts, recompiling the very latest 
+mantis driver on my Debian box. The card gets detected properly, as 
+usual, but now I notice something new. I get an error message: DVB: 
+invalid PC card inserted :(
 
-I'm having a problem with my Hauppauge HVR1110-Card (a PCI-Card with 
-tda10046 Frontend).
-I already posted this in the IRC-Channel but got no answer.
-I am trying to use the DVB-T-Part of the Card, sometimes it works fine, 
-but most the time there is some problem with firmware uploading.
-I've turned on debugging in the tda1004x module, and it seems that 
-during the firmware upload tda10046_init() is executed a second time and 
-messing up something.
-Here is a syslog when it's not working, at line 2500 tda10046_init() is 
-executed during firmware upload: http://ubuntuusers.de/paste/226485/
-The few times it is working, this is not occuring, tda10046_init() is 
-only executed once and the firmware upload finishes without errors.
-When its not working, also removing and re-inserting of the 
-kernel-module doesn't help, i have to reboot the computer.
+I assume that has to do with the Alphacrypt I have installed in my 
+Mantis board? I have yet to pull it out and test again but so far, with 
+the Alphacrypt inserted, there's still no result whatsoever. After some 
+loud protest from my girlfriend I had to give up, reboot into Windows 
+and let her watch her favorite detective.. So frustrating!
 
-I am running Ubuntu 8.04 and have no other OS installed where the 
-working firmware might be coming from.
+Thanks for everyone's help so far though.
 
-I have no clue where this is coming from, maybe something with 
-hotplugging? (is hotplug used for firmware upload?)
-It is really annoying to reboot the system three or four times to get 
-the TV thing working (the sole purpose of this pc is watching tv/movies)
-
-regards
-Moritz
+Bas
 
 _______________________________________________
 linux-dvb mailing list
