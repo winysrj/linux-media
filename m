@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48LUqbu003318
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:30:52 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m48LUejP025748
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:30:40 -0400
-Received: from smtp5-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id 769DA3F62B8
-	for <video4linux-list@redhat.com>;
-	Thu,  8 May 2008 23:30:39 +0200 (CEST)
-Received: from mediacenter.localdomain (lns-bzn-20-82-64-17-49.adsl.proxad.net
-	[82.64.17.49])
-	by smtp5-g19.free.fr (Postfix) with ESMTP id 045AA3F62AF
-	for <video4linux-list@redhat.com>;
-	Thu,  8 May 2008 23:30:38 +0200 (CEST)
-Message-ID: <482370FD.7000001@users.sourceforge.net>
-Date: Thu, 08 May 2008 23:30:37 +0200
-From: Andre Auzi <aauzi@users.sourceforge.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FCvXqc015785
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:57:33 -0400
+Received: from host06.hostingexpert.com (host06.hostingexpert.com
+	[216.80.70.60])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FCvMWG029193
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:57:22 -0400
+Message-ID: <482C3324.1020804@linuxtv.org>
+Date: Thu, 15 May 2008 08:57:08 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
+To: Andy Walls <awalls@radix.net>
+References: <482858AD.1050504@linuxtv.org>
+	<1210818265.3202.25.camel@palomino.walls.org>
+In-Reply-To: <1210818265.3202.25.camel@palomino.walls.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: cx88 driver: Help needed to add radio support on Leadtek WINFAST
- DTV 2000 H (version J)
+Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, Stoth@hauppauge.com
+Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE
+ in page.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,115 +30,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello list,
-
-I've started the task to add support of the board mentionned above.
-
-So far I've got analog TV, Composite and Svideo inputs working OK with 
-IR as well.
-
-Unfortunately, my area does not have DVB-T yet, but from the scans I've 
-made, I'm confident DVB support is on good tracks.
-
-Nevertheless, I cannot achieve to have the radio input working.
-
-The gpio values were captured with regspy on a working windows installation.
-
-Here are my additions in cx88-cards.c:
-
-diff -r 0a072dd11cd8 linux/drivers/media/video/cx88/cx88-cards.c
---- a/linux/drivers/media/video/cx88/cx88-cards.c    Wed May 07 15:42:54 
-2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-cards.c    Thu May 08 23:07:36 
-2008 +0200
-@@ -1300,6 +1300,52 @@
-         }},
-         .mpeg           = CX88_MPEG_DVB,
-     },
-+    [CX88_BOARD_WINFAST_DTV2000H_VERSION_J] = {
-+        /* Radio still in testing */
-+        .name           = "WinFast DTV2000 H (version J)",
-+        .tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
-+        .radio_type     = UNSET,
-+        .tuner_addr     = ADDR_UNSET,
-+        .radio_addr     = ADDR_UNSET,
-+        .tda9887_conf   = TDA9887_PRESENT,
-+        .input          = {{
-+            .type   = CX88_VMUX_TELEVISION,
-+            .vmux   = 0,
-+            .gpio0  = 0x00013700,
-+            .gpio1  = 0x0000a207,
-+            .gpio2  = 0x00013700,
-+            .gpio3  = 0x02000000,
-+        },{
-+            .type   = CX88_VMUX_CABLE,
-+            .vmux   = 0,
-+            .gpio0  = 0x0001b700,
-+            .gpio1  = 0x0000a207,
-+            .gpio2  = 0x0001b700,
-+            .gpio3  = 0x02000000,
-+        },{
-+            .type   = CX88_VMUX_COMPOSITE1,
-+            .vmux   = 1,
-+            .gpio0  = 0x00013701,
-+            .gpio1  = 0x0000a207,
-+            .gpio2  = 0x00013701,
-+            .gpio3  = 0x02000000,
-+        },{
-+            .type   = CX88_VMUX_SVIDEO,
-+            .vmux   = 2,
-+            .gpio0  = 0x00013701,
-+            .gpio1  = 0x0000a207,
-+            .gpio2  = 0x00013701,
-+            .gpio3  = 0x02000000,
-+        } },
-+        .radio = {
-+            .type   = CX88_RADIO,
-+            .gpio0  = 0x00013702,
-+            .gpio1  = 0x0000a207,
-+            .gpio2  = 0x00013702,
-+            .gpio3  = 0x02000000,
-+        },
-+    },
-     [CX88_BOARD_GENIATECH_DVBS] = {
-         .name          = "Geniatech DVB-S",
-         .tuner_type    = TUNER_ABSENT,
-@@ -1957,6 +2003,10 @@
-         .subdevice = 0x665e,
-         .card      = CX88_BOARD_WINFAST_DTV2000H,
-     },{
-+        .subvendor = 0x107d,
-+        .subdevice = 0x6f2b,
-+        .card      = CX88_BOARD_WINFAST_DTV2000H_VERSION_J,
-+    },{
-         .subvendor = 0x18ac,
-         .subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
-         .card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
-
-
-Would there be someone in the list with cx88 driver knowledge who 
-already achieved this for another board and could hint me on things to 
-look for?
-
-I kindof reached the limits of my imagination and would really 
-appreciate a help.
-
-So far my modprobe.conf reads:
-
-options tda9887 debug=1
-options cx22702 debug=1
-options cx88xx i2c_debug=1 i2c_scan=1 audio_debug=1
-options cx8800 video_debug=1
-
-and I would join the dmesg output if I did not care to flood the list.
-
-Just let me know if it could help.
-
-Thanks in advance
-Andre
+Andy Walls wrote:
+> On Mon, 2008-05-12 at 10:48 -0400, mkrufky@linuxtv.org wrote:
+>   
+>> Steven Toth wrote:
+>>     
+>>> Steven Toth wrote:
+>>>       
+>>>>>         if (cx->dev)
+>>>>>                 cx18_iounmap(cx);
+>>>>>           
+>>>> This doesn't feel right.
+>>>>         
+>>> Hans / Andy,
+>>>
+>>> Any comments?
+>>>       
+>> For the record, I've tested again with today's tip ( d87638488880 ) -- 
+>> same exact behavior.
+>>
+>> When I load the modules for the first time, everything is fine.
+>>
+>> If I unload the cx18 module, I am unable to load it again, the same 
+>> error is displayed as I posted in my original message.
+>>     
+>
+> Mike,
+>
+> Could you apply the attached patch and run this test
+>
+> 	(precondition: cx18.ko hasn't been loaded once yet)
+> 	# cat /proc/iomem /proc/meminfo > ~/memstats
+> 	# modprobe cx18 debug=3
+> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+> 	# modprobe -r cx18
+> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+> 	# modprobe cx18 debug=3
+> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
+>
+> and provide the contents of dmesg (or /var/log/messages) and memstats?
+>
+> The patch will let me see if the contents of cx->enc_mem are bogus on
+> iounmap() and if iounmap() is even being called.
+>
+> I also want to verify that "cx18 encoder" doesn't get removed
+> from /proc/iomem and that "VmallocUsed" doesn't return to it's previous
+> size when the module is unloaded.  That would show that the iounmap()
+> fails.
+>
+> I'd also want to ensure there is no overlap in /proc/iomem with "cx18
+> encoder" and something else.  The kernel should prevent it, but I want
+> to make sure.
+>
+>
+> (Hopefully the patch applies cleanly, the line numbers won't quite match
+> up with the latest hg version.)
+>
+> Regards,
+> Andy
+>
+>   
+>> Regards,
+>>
+>> Mike
+>>
+>>     
+>> ------------------------------------------------------------------------
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 
 
+
+
+
+
+Andy,
+
+I'm out of town right now, and things will be hectic when I get 
+back....  I most likely won't get to this until the middle of the week, 
+perhaps even next weekend.
+
+-Mike
 
 --
 video4linux-list mailing list
