@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m491VlRt004749
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 21:31:47 -0400
-Received: from mail-in-07.arcor-online.net (mail-in-07.arcor-online.net
-	[151.189.21.47])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m491VY8W012867
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 21:31:34 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andre Auzi <aauzi@users.sourceforge.net>
-In-Reply-To: <482370FD.7000001@users.sourceforge.net>
-References: <482370FD.7000001@users.sourceforge.net>
-Content-Type: text/plain
-Date: Fri, 09 May 2008 03:30:33 +0200
-Message-Id: <1210296633.2541.26.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FKpgEO001800
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 16:51:42 -0400
+Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FKpSjs013295
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 16:51:29 -0400
+Message-ID: <482CA266.6040003@free.fr>
+Date: Thu, 15 May 2008 22:51:50 +0200
+From: Thierry Merle <thierry.merle@free.fr>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+References: <62e5edd40805150604h6d0f23ffybf13eb6b07d87a76@mail.gmail.com>
+	<TTY-Grin-jef-482C5BF6.4DDD7B2D@jef>
+In-Reply-To: <TTY-Grin-jef-482C5BF6.4DDD7B2D@jef>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: cx88 driver: Help needed to add radio support on Leadtek
-	WINFAST DTV 2000 H (version J)
+Subject: Re: In-kernel frame conversion
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,145 +28,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hello Jean-Francois and Erik,
 
-Am Donnerstag, den 08.05.2008, 23:30 +0200 schrieb Andre Auzi:
-> Hello list,
+Jean-Francois Moine a écrit :
+> On Thu, 15 May 2008 15:04:45 +0200, "Erik_Andrén" 
+> <erik.andren@gmail.com> wrote:
+>> Hi list,
 > 
-> I've started the task to add support of the board mentionned above.
+> Hi Erik,
 > 
-> So far I've got analog TV, Composite and Svideo inputs working OK with 
-> IR as well.
+>> I'm one of the developers of the m560x project. (
+>> http://sourceforge.net/projects/m560x-driver/ )
+>> aiming to provide a driver for the ALi m5602, m5603 chipsets.
+> 	[snip]
+>> This driver is unfortunately braindead, always sending Bayer-encoded frames
+>> at a fixed VGA resolution.
+>> Color recovery, resizing and format conversion is all done in software.
+>>
+>> Currently we do the same in order to make the camera useful as many relevant
+>> linux v4l2 applications fail to have user-space routines converting
+>> Bayer-frames.
+>>
+>> Is it possible to get a driver included upstream and still have such
+>> kernel-space frame conversion routines or do they have to go in order to get
+>> the driver in an acceptable shape?
 > 
-> Unfortunately, my area does not have DVB-T yet, but from the scans I've 
-> made, I'm confident DVB support is on good tracks.
+> I am working on a driver, gspca v2, which does frame conversion in
+> user-space. It is based on gspca v1 which handles over 270 USB
+> webcams. It is composed of:
+> - a main driver with the USB exchanges and the v4l2 interface,
+> - kernel modules for the different webcam types (actually 20) and
+> - a helper process which does frame conversion (JPEG and Bayer to
+>   YUV420, YUYV and RGB24/32).
 > 
-> Nevertheless, I cannot achieve to have the radio input working.
+> I planned to put it under mercurial as soon as most of the webcams
+> will be tested (and the code will be purified ;)). Feel free to get
+> a tarball from my site (see below) and to tell me if you may enter
+> into this scheme.
 > 
-> The gpio values were captured with regspy on a working windows installation.
-> 
-> Here are my additions in cx88-cards.c:
-> 
-> diff -r 0a072dd11cd8 linux/drivers/media/video/cx88/cx88-cards.c
-> --- a/linux/drivers/media/video/cx88/cx88-cards.c    Wed May 07 15:42:54 
-> 2008 -0300
-> +++ b/linux/drivers/media/video/cx88/cx88-cards.c    Thu May 08 23:07:36 
-> 2008 +0200
-> @@ -1300,6 +1300,52 @@
->          }},
->          .mpeg           = CX88_MPEG_DVB,
->      },
-> +    [CX88_BOARD_WINFAST_DTV2000H_VERSION_J] = {
-> +        /* Radio still in testing */
-> +        .name           = "WinFast DTV2000 H (version J)",
-> +        .tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
-> +        .radio_type     = UNSET,
-> +        .tuner_addr     = ADDR_UNSET,
-> +        .radio_addr     = ADDR_UNSET,
-> +        .tda9887_conf   = TDA9887_PRESENT,
-> +        .input          = {{
-> +            .type   = CX88_VMUX_TELEVISION,
-> +            .vmux   = 0,
-> +            .gpio0  = 0x00013700,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013700,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_CABLE,
-> +            .vmux   = 0,
-> +            .gpio0  = 0x0001b700,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x0001b700,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_COMPOSITE1,
-> +            .vmux   = 1,
-> +            .gpio0  = 0x00013701,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013701,
-> +            .gpio3  = 0x02000000,
-> +        },{
-> +            .type   = CX88_VMUX_SVIDEO,
-> +            .vmux   = 2,
-> +            .gpio0  = 0x00013701,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013701,
-> +            .gpio3  = 0x02000000,
-> +        } },
-> +        .radio = {
-> +            .type   = CX88_RADIO,
-> +            .gpio0  = 0x00013702,
-> +            .gpio1  = 0x0000a207,
-> +            .gpio2  = 0x00013702,
-> +            .gpio3  = 0x02000000,
-> +        },
-> +    },
->      [CX88_BOARD_GENIATECH_DVBS] = {
->          .name          = "Geniatech DVB-S",
->          .tuner_type    = TUNER_ABSENT,
-> @@ -1957,6 +2003,10 @@
->          .subdevice = 0x665e,
->          .card      = CX88_BOARD_WINFAST_DTV2000H,
->      },{
-> +        .subvendor = 0x107d,
-> +        .subdevice = 0x6f2b,
-> +        .card      = CX88_BOARD_WINFAST_DTV2000H_VERSION_J,
-> +    },{
->          .subvendor = 0x18ac,
->          .subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
->          .card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
-> 
-> 
-> Would there be someone in the list with cx88 driver knowledge who 
-> already achieved this for another board and could hint me on things to 
-> look for?
-> 
-> I kindof reached the limits of my imagination and would really 
-> appreciate a help.
-> 
-> So far my modprobe.conf reads:
-> 
-> options tda9887 debug=1
-> options cx22702 debug=1
-> options cx88xx i2c_debug=1 i2c_scan=1 audio_debug=1
-> options cx8800 video_debug=1
-> 
-> and I would join the dmesg output if I did not care to flood the list.
-> 
-> Just let me know if it could help.
-> 
-> Thanks in advance
-> Andre
-> 
-> 
+We have started something that looks like your framework.
+Look at http://www.linuxtv.org/v4lwiki/index.php/V4L2UserspaceLibrary
+I have a cruel lack of time to continue but the helper daemon is here with some ideas you can pick.
+We can discuss on the v4l2-library ML about that: http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l2-library
+An hg repository is here: http://linuxtv.org/hg/~tmerle/v4l2_extension
 
-Hi Andre,
-
-guess we could need someone to tell about SECAM_L NICAM stereo on
-latest, you might have had a reason to send your current saa7134 patch
-for 2.6.24 only, eventually?
-
-For the radio, see my previous posts to Andy.
-
-Radio on the FMD1216ME/I MK3 is not perfect anyway, on other stuff it
-might also only be the best hack around then, but some still claim new
-hardware doesn't exist ...
-
-Your Items saa7134 patch is not unnoticed, but I would have a lot of
-questions and maybe Hartmut, Nickolay and everybody still interested
-too.
-
-Try to send it again, read about new cards on the v4l-wiki and about
-patches on a recent v4l-dvb mercurial, we don't invent the rules ...
-
-As a hint, you might have much better chances for somebody to start
-looking at it, if you split the card and remote addition in two separate
-patches.
-
-Cheers,
-Hermann
-
-
-
+> Cheers.
+> 
+Regards,
+Thierry
 
 --
 video4linux-list mailing list
