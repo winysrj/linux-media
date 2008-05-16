@@ -1,19 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4KIEnai006049
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 14:14:49 -0400
-Received: from QMTA04.emeryville.ca.mail.comcast.net
-	(qmta04.emeryville.ca.mail.comcast.net [76.96.30.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4KIEHfH023467
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 14:14:18 -0400
-Message-ID: <483314EF.5050009@personnelware.com>
-Date: Tue, 20 May 2008 13:14:07 -0500
-From: Carl Karsten <carl@personnelware.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G7QSS3024371
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 03:26:28 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4G7QHME023832
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 03:26:18 -0400
+Date: Fri, 16 May 2008 09:26:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?GB2312?B?t+v2zg==?= <fengxin215@gmail.com>
+In-Reply-To: <998e4a820805152006j65975708n71a4b2bb566e81da@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0805160924550.3714@axis700.grange>
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	<998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+	<Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+	<998e4a820805152006j65975708n71a4b2bb566e81da@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: xawtv "no fontset found"
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,36 +37,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ubuntu hardy - guessing I need to install some font package?
+On Fri, 16 May 2008, ·ëöÎ wrote:
 
-$ sudo modprobe vivi
+> Do you mean DMA use the same memory bus as Nor flash,
 
-carl@dell29:~$ xawtv -c /dev/video0
-This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.24-16-generic)
-xinerama 0: 1280x1024+0+0
-xinerama 1: 1600x1200+1280+0
-X Error of failed request:  XF86DGANoDirectVideoMode
-   Major opcode of failed request:  136 (XFree86-DGA)
-   Minor opcode of failed request:  1 (XF86DGAGetVideoLL)
-   Serial number of failed request:  13
-   Current serial number in output stream:  13
-v4l-conf had some trouble, trying to continue anyway
-Warning: Missing charsets in String to FontSet conversion
-Warning: Cannot convert string 
-"-*-lucidatypewriter-bold-r-normal-*-14-*-*-*-m-*-iso8859-*, 
--*-courier-bold-r-normal-*-14-*-*-*-m-*-iso8859-*, 
--gnu-unifont-bold-r-normal--16-*-*-*-c-*-*-*, 
--efont-biwidth-bold-r-normal--16-*-*-*-*-*-*-*, 
--*-*-bold-r-normal-*-16-*-*-*-m-*-*-*, 
--*-*-bold-r-normal-*-16-*-*-*-c-*-*-*, 
--*-*-*-*-*-*-16-*-*-*-*-*-*-*,*" to type FontSet
-Warning: Missing charsets in String to FontSet conversion
-Warning: Unable to load any usable fontset
-Warning: Missing charsets in String to FontSet conversion
-Warning: Unable to load any usable fontset
-Error: Aborting: no fontset found
+Of course.
 
-Carl K
+> so when I write a
+> file to Norflash,overrun will occur?
+
+Not necessarily, but the probability increases.
+
+> Now I find that I write a file to
+> yaffs Nandflash or /tmp/,overrun will occur too.do Nandflash use the
+> same memory bus as DMA?
+
+Of course.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
