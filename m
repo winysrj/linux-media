@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RLCJH9032188
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:12:19 -0400
-Received: from mail.linsys.ca (205-200-74-130.static.mts.net [205.200.74.130])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4RLC7UH012011
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:12:07 -0400
-Received: from localhost.localdomain by linsys.ca (MDaemon PRO v9.6.5)
-	with ESMTP id md50000256000.msg
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 16:02:17 -0500
-Message-ID: <483C7696.9060004@linsys.ca>
-Date: Tue, 27 May 2008 16:01:10 -0500
-From: Dinesh Bhat <dbhat@linsys.ca>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GGxCo6010111
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 12:59:12 -0400
+Received: from out5.laposte.net (out6.laposte.net [193.251.214.123])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GGx1iP029605
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 12:59:01 -0400
+Received: from meplus.info (localhost [127.0.0.1])
+	by mwinf8414.laposte.net (SMTP Server) with ESMTP id 82B1EE00008C
+	for <video4linux-list@redhat.com>;
+	Fri, 16 May 2008 18:58:55 +0200 (CEST)
+Message-ID: <482DBF75.60009@laposte.net>
+Date: Fri, 16 May 2008 19:08:05 +0200
+From: "pw.marcus" <pw.marcus@laposte.net>
 MIME-Version: 1.0
-To: Video-4l-list <video4linux-list@redhat.com>
+To: hermann pitton <hermann-pitton@arcor.de>, video4linux-list@redhat.com
+References: <482D4579.8090203@laposte.net>
+	<1210937808.3138.7.camel@pc10.localdom.local>
+In-Reply-To: <1210937808.3138.7.camel@pc10.localdom.local>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: DVB ASI related question
+Cc: 
+Subject: Re: My Cinema-P7131 Hybrid (spider cable)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +32,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hermann thank you for your answer, ok, I see, I should have thought 
+about it before ! so much the worst !
 
-Please suggest if this is not a question relevant to this list.
+One second question :
 
-I do not see support DVB over ASI on linuxtv.org. We are DVB/SDI over 
-ASI manufacturers and was wondering how much need is there in the market 
-for video 4 linux drivers for DVB ASI. Currently we have regular PCI 
-based drivers for Linux 2.6 and are thinking of porting our drivers to 
-V4L if there is need. I could not obtain enough information while 
-searching on the Internet.
+How are configured the 2 main outputs of the card ?
 
-Any advice is appreciated.
+Upside output for DVB-T & radio ?
+Downside output for analog TV ?
 
-Kind Regards,
+Is it right ?
 
-Dinesh
+Cheers
 
 --
 video4linux-list mailing list
