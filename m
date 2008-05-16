@@ -1,28 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m44N310M002440
-	for <video4linux-list@redhat.com>; Sun, 4 May 2008 19:03:01 -0400
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m44N2f9x018222
-	for <video4linux-list@redhat.com>; Sun, 4 May 2008 19:02:41 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <481E219C.50008@t-online.de>
-References: <20080428182959.GA21773@orange.fr>
-	<alpine.DEB.1.00.0804282103010.22981@sandbox.cz>
-	<20080429192149.GB10635@orange.fr>
-	<1209507302.3456.83.camel@pc10.localdom.local>
-	<20080430155851.GA5818@orange.fr>
-	<1209592608.31036.36.camel@pc10.localdom.local>
-	<20080430202547.1765d34c@gaivota>  <481E219C.50008@t-online.de>
-Content-Type: text/plain
-Date: Mon, 05 May 2008 01:01:24 +0200
-Message-Id: <1209942084.2555.14.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G36Hdw029263
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 23:06:17 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4G361fH003781
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 23:06:01 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so360161tim.7
+	for <video4linux-list@redhat.com>; Thu, 15 May 2008 20:06:00 -0700 (PDT)
+Message-ID: <998e4a820805152006j65975708n71a4b2bb566e81da@mail.gmail.com>
+Date: Fri, 16 May 2008 11:06:00 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Card Asus P7131 hybrid > no signal
+Content-Disposition: inline
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	<998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+	<Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,71 +39,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> > Do you mean camera FIFO overruns occur, but fraims do not get dropped? The
+>> > reason, why with NOR you have more problems might be, that you produce
+>> > extra load on the memory bus? I don't remember id you already told us,
+>> > what type of LCD you have on your system and what other bus masters you
+>> > have? What's your frame format? 640x480x8bit?
+>>
+>> My frame format is 752x480x8bit.Now I only capure frame.And I do not
+>> display. the following is my capture thread:
+>> static int dhpa_capture_thread(void)
+>> {
+>>       struct v4l2_buffer buf;
+>>       int frame_cnt;
+>>       static time_t init, end;
+>>
+>>       while(1)
+>>       {
+>>               /*read frame*/
+>>               memset(&buf, 0, sizeof(buf));
+>>               buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>>               buf.memory = V4L2_MEMORY_MMAP;
+>>
+>>               /*get the captured buffer*/
+>>               if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
+>>               {
+>>                       printf( "VIDIOC_DQBUF failed\n ");
+>>                       return -1;
+>>               }
+>>
+>>               if(-1 == ioctl(fd, VIDIOC_QBUF, &buf))
+>>               {
+>>                       printf("VIDIOC_QBUF failed\n");
+>>                       return -1;
+>>               }
+>>       }
+>> }
+>> Now if I write a file to jffs2 norflash,FIFO overrun will
+>> occur.Certainly frame is dropped.I only hope you give me some
+>> advice.why do overrun occur when writting norflash.Because I feel
+>> capture frame only use DMA now,I think that write norflash will not
+>> affect DMA.
 
-Am Sonntag, den 04.05.2008, 22:50 +0200 schrieb Hartmut Hackmann:
-> Hi, Mauro
-> 
-> Mauro Carvalho Chehab schrieb:
-> >> We have definitely issues on analog, but I can't test SECAM_L.
-> >>
-> >> After ioctl2 conversion, the apps don't let the user select specific
-> >> subnorms like PAL_I, PAL_BG, PAL_DK and SECAM_L, SECAM_DK, SECAM_Lc
-> >> anymore.
-> > 
-> > Seems to be an issue at the userspace app. SAA7134_NORMS define a mask of supported
-> > norms. STD_PAL covers all the above PAL_foo. Also, SECAM covers all the above
-> > SECAM_foo.
-> > 
-> > If the userspace app sets V4L2_STD_PAL, the driver should run on autodetection
-> > mode. If, otherwise, the app sets V4L2_STD_PAL_I, the driver will accept and
-> > select PAL_I only.
-> > 
-> >> Internally the driver knows about all norms, but we have a clear
-> >> breakage of application backward compatibility and might see various
-> >> side effects. Especially, but not only for SECAM, it was important that
-> >> the users can select the exact norm themselves because of audio carrier
-> >> detection issues.
-> > 
-> It is not only Audio carrier selection:
-> SECAM-L is the only standard with positive modulation of the vision carrier.
-> The tuner needs to know this. So in the case of SECAM-L, we need the *exact*
-> standard.
-> The insmod option secam=l transfers the exact standard to the tuner.
-> 
-> By the way: I just noticed this: If saa713x does not identify the color system
-> (improperly forced), tvtime will say "no signal"
-> 
-> >> It is firstly on 2.6.25.
-> >>
-> >> If you are affected, apps like xawtv or mplayer will only report these
-> >> TV standards.
-> > 
-> > It shouldn't be hard to make enum_std to send all possible supported formats.
-> > Maybe this could be good for the apps you've mentioned.
-> > 
-> > In this case, a patch to videodev.c should replace the code after case
-> > VIDIOC_ENUMSTD to another one that would report the individual standards, plus
-> > the grouped ones.
-> > 
-> > Cheers,
-> > Mauro
-> > 
-> Best regards
->    Hartmut
+> DMA uses the same memory bus as NOR flash. Also, if the NOR driver blocks
+> interrupts, it will delay processing of DMA interrupts, but that is
+> unlikely to cause you problems, provided you use enough (4 should be good)
+> video buffers.
 
+Do you mean DMA use the same memory bus as Nor flash,so when I write a
+file to Norflash,overrun will occur?Now I find that I write a file to
+yaffs Nandflash or /tmp/,overrun will occur too.do Nandflash use the
+same memory bus as DMA? Now I use 4 viedo buffers.
 
-We also can't set the tuner type per card anymore, for the benefit to
-fix the eeprom detection of tuners, that prior ability, which Gerd did
-hold above eeprom tuner detection, likely to escape from too much
-cleverness on bttv, is lost and glued to the card.
+> More importantly, what do you do while waiting for jffs2 write to finish?
+> I assume, you write to the filesystem from another thread, right? And the
+> writer thread just blocks on write(). What does your grabber thread do at
+> this time? Can it continue processing video buffers and queuing new ones
+> or it waits for the writer thread?
 
-If we are going to run in circles, we should decide something viable
-soon.
+Yes,I write a file from another thread.And my graber thread contiune
+processing video buffers and queuning new ones.
 
-Cheers,
-Hermann
- 
+Thanks
+fengxin
 
 --
 video4linux-list mailing list
