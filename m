@@ -1,29 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4G1qb7u002341
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 21:52:37 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4G1qPWH001872
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 21:52:25 -0400
-Date: Thu, 15 May 2008 22:50:32 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Adrian Bunk <bunk@kernel.org>
-Message-ID: <20080515225032.5a9235d7@gaivota>
-In-Reply-To: <20080515160245.GA1936@cs181133002.pp.htv.fi>
-References: <20080514114910.4bcfd220@gaivota>
-	<20080514165434.GC22115@cs181133002.pp.htv.fi>
-	<20080514145554.10e3385c@gaivota>
-	<20080514193822.GA21795@cs181133002.pp.htv.fi>
-	<20080514170405.330c0d0a@gaivota>
-	<20080515160245.GA1936@cs181133002.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GAdEuj009226
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 06:39:15 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GAWJLA024496
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 06:39:04 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so425020tim.7
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 03:32:19 -0700 (PDT)
+Message-ID: <998e4a820805160332x727bf6adkcedac4934dea2414@mail.gmail.com>
+Date: Fri, 16 May 2008 18:32:18 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	linux-dvb-maintainer@linuxtv.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-Subject: Re: [GIT PATCHES] V4L/DVB fixes for 2.6.26
+Content-Disposition: inline
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
+	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	<998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+	<Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,75 +39,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 15 May 2008 19:02:46 +0300
-Adrian Bunk <bunk@kernel.org> wrote:
+2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> 2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> What is your <struct pxacamera_platform_data>.mclk_10khz set to? What
+> kernel version are you using? I do not know what you do in your FPGA, are
+> you sure it doesn't modify your camera bus timing (pixel clock, VSYNC,
+> HSYNC, master clock)?
 
-> On Wed, May 14, 2008 at 05:04:05PM -0300, Mauro Carvalho Chehab wrote:
-> >...
-> > > but otherwise that 
-> > > would be a straightforward solution to solve these problems.
-> > 
-> > This will solve several troubles. Still, I think that there are still some
-> > other missing dependencies (like INPUT, on drivers that select IR).
-> 
-> We could select INPUT from drivers/media/
+mclk_10khz=1000,and I try 800,500. And the number of dropped frames do
+not decrease with lower frequencies. kernel I used is linux-2.6.24.
+And I sure FPGA doesn't modify my camera bus timing.
 
-Several drivers don't need INPUT (webcams, radio, etc). This is needed only by
-the TV reception devices (analog and digital). 
+> Do you mean camera FIFO overruns occur, but fraims do not get dropped? The
+> reason, why with NOR you have more problems might be, that you produce
+> extra load on the memory bus? I don't remember id you already told us,
+> What's your frame format? 640x480x8bit?
 
-Yet, I can't imagine any production kernel without INPUT. What happens if INPUT
-is disabled? No keyboard, no tablet and no mouse at all?
+If camera FIFO overruns occur,frames will be dropped.Now my frame
+format is 752x480x8bit.
 
-> And FW_LOADER should really select HOTPLUG - there's no good reason for 
-> FW_LOADER to be a user-visible option with dependencies.
+> what type of LCD you have on your system and what other bus masters you
+> have?
 
-It seems safe to select HOTPLUG instead of depending on it.
+I only use a thread to capure frame and do not display it.I have no
+other bus master.the following is my capture thread:
+static int dhpa_capture_thread(void)
+{
+      struct v4l2_buffer buf;
+      int frame_cnt;
+      static time_t init, end;
 
-> But these two are problems that are only relevant for randconfig users 
+      while(1)
+      {
+              /*read frame*/
+              memset(&buf, 0, sizeof(buf));
+              buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+              buf.memory = V4L2_MEMORY_MMAP;
 
-True. Hotplug may eventually be relevant for embedded users. However,
-"depends on HOTPLUG" is already present to all points where FW_LOADER is
-needed (I added such patch at my previous pull request). So, the way it is
-seems OK. I don't see much reason to change it.
+              /*get the captured buffer*/
+              if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
+              {
+                      printf( "VIDIOC_DQBUF failed\n ");
+                      return -1;
+              }
 
-> while the I2C troubles hit real users, so I want to attack the I2C 
-> issues first.
+              if(-1 == ioctl(fd, VIDIOC_QBUF, &buf))
+              {
+                      printf("VIDIOC_QBUF failed\n");
+                      return -1;
+              }
+      }
+}
 
-Very true. Also, it is not obvious to the final user that he would need to
-select I2C to have a video input driver.
+> More importantly, what do you do while waiting for jffs2 write to finish?
 
-> > > Any problem I miss or should I bake a patch?
-> > 
-> > I can't see any trouble on this approach. Feel free to work on it.
-> 
-> First issue when working on it:
-> 
-> The dependencies between VIDEO_IR and VIDEO_IR_I2C look wrong
-> (consider VIDEO_IR=y and I2C=m).
-> 
-> It's not a problem since currently all users of VIDEO_IR also depend
-> on I2C.
+I do nothing while waiting for jffs2 write to finish.but I do not stop
+grabber thread.
 
-True. I got a compilation error with saa7134 that seems to be caused by this
-trouble.
-> 
-> Should I fix the dependency or can I let VIDEO_IR select I2C and remove 
-> VIDEO_IR_I2C?
+> I assume, you write to the filesystem from another thread, right? And the
+> writer thread just blocks on write(). What does your grabber thread do at
+> this time? Can it continue processing video buffers and queuing new ones
+> or it waits for the writer thread?
 
-The better would be to fix the dependency. The proper way seems to remove the
-select from VIDEO_IR, and add an explicit select to VIDEO_IR_I2C where needed.
+yes, I use another thread to write a file.when I write a file to
+Norflash,overrun will occur until writting is over.My grabber thread
+waits for the writer thread at this time.
 
-I would add an entry to allow the user to select this explicitly, for power
-users, and select it implicitly. Something like:
-
-select VIDEO_IR_I2C  if VIDEO_HELPER_CHIPS_AUTO
-
-at the drivers under media/video that selects IR. This need to be mandatory for
-a few drivers like saa7134, where some exported symbols at kbd-ir-i2c are used
-there.
-
-Cheers,
-Mauro
+Thanks
+fengxin
 
 --
 video4linux-list mailing list
