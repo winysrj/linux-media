@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4NJhHh5001106
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 15:43:17 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.249])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4NJgsG1006670
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 15:42:54 -0400
-Received: by an-out-0708.google.com with SMTP id d31so212106and.124
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 12:42:54 -0700 (PDT)
-Message-ID: <4fd977fd0805231242u4b256706ladc2ee0dbaa72cc0@mail.gmail.com>
-Date: Fri, 23 May 2008 21:42:54 +0200
-From: "Vladimir Komendantsky" <komendantsky@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GDuvHZ008685
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 09:56:57 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GDuSSv023746
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 09:56:29 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so824073fke.3
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 06:56:28 -0700 (PDT)
+Message-ID: <a5eaedfa0805160656t29d2858ao3c1c81469b87b0af@mail.gmail.com>
+Date: Fri, 16 May 2008 19:26:27 +0530
+From: "Veda N" <veda74@gmail.com>
 To: video4linux-list@redhat.com
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: how to obtain firmware for a tuner Xceive xc3028 ?
+Subject: pixel count doubts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,24 +28,24 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 Hi,
+I am trying to write a camera sensor driver.
 
-Could you let me know please how to obtain xc3028-v25.fw for a tuner
-71 (Xceive xc2028/xc3028) ?
+The sensor documents says that -
+For the resolution VGA, The pixel count is 640x480x3.
 
-Can the script extract_xc3028.pl in linux/Documentation/video4linux/
-be used to obtain the firmware file xc3028-v25.fw ? Earlier mailing
-list archives [v4l-dvb] suggest that this script was once used for that
-purpose.
+I did not understand what is meant by x3 in pixel count.
 
-E.g., http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023864.html
+Usually it is 60x480. The number of bytes per pixel is 2.
 
-However, at the moment it produces the firmware v27 rather
-than v25. My firmware seems to be contained in cx88vid.sys that is on
-the windows driver CD of my Conexant-based card. That's another
-difference with the extraction script which requires hcw85bda.sys.
+Does this mean that instead of 2 bytes per pixel. it is 3 bytes?
 
---
-Vladimir
+
+How should i account this pixel count in my driver.
+How much should be  bytesperline and sizeimage
+How should i account this in my application as well.
+
+Regards,
+vedan
 
 --
 video4linux-list mailing list
