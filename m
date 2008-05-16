@@ -1,29 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VG2XOa015186
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 12:02:33 -0400
-Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
-	[75.180.132.123])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VG1WTl006959
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 12:01:42 -0400
-Received: from opus ([76.184.165.27]) by cdptpa-omta02.mail.rr.com with ESMTP
-	id <20080531160127.IPYI23887.cdptpa-omta02.mail.rr.com@opus>
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 16:01:27 +0000
-Received: from david by opus with local (Exim 4.69)
-	(envelope-from <david@opus.istwok.net>) id 1K2TWJ-00034o-3L
-	for video4linux-list@redhat.com; Sat, 31 May 2008 11:01:27 -0500
-Resent-Message-ID: <20080531160127.GA11803@opus.istwok.net>
-Date: Fri, 30 May 2008 09:58:30 -0500
-From: David Engel <david@istwok.net>
-To: Jason Pontious <jpontious@gmail.com>
-Message-ID: <20080530145830.GA7177@opus.istwok.net>
-References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GJgJ9l024780
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 15:42:19 -0400
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
+	[151.189.21.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GJg4DY013892
+	for <video4linux-list@redhat.com>; Fri, 16 May 2008 15:42:05 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "pw.marcus" <pw.marcus@laposte.net>
+In-Reply-To: <482DBF75.60009@laposte.net>
+References: <482D4579.8090203@laposte.net>
+	<1210937808.3138.7.camel@pc10.localdom.local>
+	<482DBF75.60009@laposte.net>
+Content-Type: text/plain
+Date: Fri, 16 May 2008 21:41:44 +0200
+Message-Id: <1210966904.4735.35.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Kworld 115-No Analog Channels
+Subject: Re: My Cinema-P7131 Hybrid (spider cable)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,30 +30,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, May 29, 2008 at 06:57:03PM -0400, Jason Pontious wrote:
-> After getting upgraded to the latest v4l-dvb repository I am no longer able
-> to get any analog channels from my Kworld 115. (I finally broke down and
-> installed 2.6.25 kernel in Ubuntu).
 
-Which drivers are you really using, 2.6.25 or latest v4l-dvb from
-Mercurial?
-
-> Before I was getting analog channels via the top rf input.  Now I get no
-> channels regardless if i set atv_input tuner_simple module setting.  Digital
-> channels are not affected just analog in this.  I get no errors from dmesg.
+Am Freitag, den 16.05.2008, 19:08 +0200 schrieb pw.marcus:
+> Hermann thank you for your answer, ok, I see, I should have thought 
+> about it before ! so much the worst !
 > 
-> Any Ideas?
+> One second question :
+> 
+> How are configured the 2 main outputs of the card ?
+> 
+> Upside output for DVB-T & radio ?
+> Downside output for analog TV ?
+> 
+> Is it right ?
+> 
+> Cheers
+> 
 
-I ran into a similar (probably the same) problem last week.  My search
-of the list archives revealed a known tuner detection regression in
-2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
-because it was simpler to just go back to 2.6.24.x.  I don't know why
-the fix hasn't made it into 2.6.25.x yet.
+Yes, this is right.
 
-David
--- 
-David Engel
-david@istwok.net
+You can force card=81 if you want to have DVB-T and analog TV on the
+lower connector and only radio on the upper, but the remote is not
+enabled on that card then.
+
+Take care, you might get trouble on analog TV SECAM_L NICAM stereo
+detection from 2.6.25 onwards. Mauro disabled valid PAL and SECAM sub
+standards, which were introduced to be user selectable for the reason
+that audio carrier autodetection is not always successfully, especially
+not for SECAM_L NICAM on the second carrier, but also for others.
+
+Until 2.6.24 one could force "secam=L" by an saa7134 insmod option (try
+"modinfo saa7134") or select it from the application. On saa7135 and
+saa7131e also forcing it with "audio_ddep=0x10" for Secam_L/L' was
+possible. This all looks pretty much broken currently, but I can't test
+on that known critical stuff and Hartmut, who spent two weekends with a
+signal generator to come to viable solutions for all after years, might
+be pleased as well ;)
+
+Cheers,
+Hermann
+
+
+
+
 
 --
 video4linux-list mailing list
