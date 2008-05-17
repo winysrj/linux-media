@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1K1Gtg-0007ic-Aq
-	for linux-dvb@linuxtv.org; Wed, 28 May 2008 10:20:37 +0200
-Message-ID: <483D15B4.6010504@anevia.com>
-Date: Wed, 28 May 2008 10:20:04 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1JxTff-0000f4-Lj
+	for linux-dvb@linuxtv.org; Sat, 17 May 2008 23:10:28 +0200
+Message-ID: <482F49BB.4060300@gmail.com>
+Date: Sun, 18 May 2008 01:10:19 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: vivichrist@gmail.com
-References: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>	<48377956.2000307@gmail.com>
-	<483A7E56.2080103@anevia.com>
-In-Reply-To: <483A7E56.2080103@anevia.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [HVR1300] issue with VLC
+To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+References: <482EB3E5.7090607@freenet.de>
+In-Reply-To: <482EB3E5.7090607@freenet.de>
+Cc: "linux-dvb: linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Mantis 2033 still not working with CAM inserted
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,38 +19,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Frederic CAND a =E9crit :
-> vivian stewart a =E9crit :
->> I have problems with audio/video getting out of sync regardless of cache =
+Ruediger Dohmhardt wrote:
+> Dear Manu,
+> 
+> the code from
+> 
+> http://jusst.de/hg/mantis (10.5.08)
+> 
+> now works fine for the 2033 without the CAM (here Alphacrypt Light)
+> inserted.
+> 
+> When I insert the CAM, audio and video stop. I need to remove the CAM
+> and  I must  reload the module with
+> 
+>    modprobe -r mantis
+> 
+> followed by
+> 
+>    modprobe mantis
+> 
+> Could you please look into the attached /var/log/messages file.
+> Maybe it could provide a hint, what's still wrong.
+> 
+> The verbose level is set to 3 (options mantis verbose=3)
 
->> side and dropframe etc. using HVR3000 and mplayer ... could be related.
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
-> =
 
-> has the HVR 3000 a hardware MPEG2 encoder too ?
-> if so, are you using mplayer to read the MPEG video stream or the RAW =
+Applied some changes, couldn't test the changes while being away, but
+only build tests. Please do test again, also feel free to play with the
+individual changesets as to check for various stage tests.
 
-> video stream ?
-> =
+Regards,
+Manu
 
-hey all, forget about my issue, it was my computer which was in fault ...
-
--- =
-
-CAND Frederic
-Product Manager
-ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
