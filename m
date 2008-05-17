@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45LAcaD027028
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 17:10:38 -0400
-Received: from omta0105.mta.everyone.net (imta-38.everyone.net
-	[216.200.145.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m45LAMf8009977
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 17:10:22 -0400
-Received: from dm24.mta.everyone.net (sj1-slb03-gw2 [172.16.1.96])
-	by omta0105.mta.everyone.net (Postfix) with ESMTP id A502093E264
-	for <video4linux-list@redhat.com>; Mon,  5 May 2008 14:10:21 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4HB08Qw004152
+	for <video4linux-list@redhat.com>; Sat, 17 May 2008 07:00:08 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4HAxwhp020970
+	for <video4linux-list@redhat.com>; Sat, 17 May 2008 06:59:58 -0400
+Date: Sat, 17 May 2008 06:58:47 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Adrian Bunk <bunk@kernel.org>
+In-Reply-To: <20080516112531.GB8029@cs181133002.pp.htv.fi>
+Message-ID: <Pine.LNX.4.64.0805170624490.11757@bombadil.infradead.org>
+References: <20080514114910.4bcfd220@gaivota>
+	<20080514165434.GC22115@cs181133002.pp.htv.fi>
+	<20080514145554.10e3385c@gaivota>
+	<20080514193822.GA21795@cs181133002.pp.htv.fi>
+	<20080514170405.330c0d0a@gaivota>
+	<20080515160245.GA1936@cs181133002.pp.htv.fi>
+	<20080515225032.5a9235d7@gaivota>
+	<20080516112531.GB8029@cs181133002.pp.htv.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Message-Id: <20080505141021.A537F83A@resin13.mta.everyone.net>
-Date: Mon, 5 May 2008 14:10:21 -0700
-From: <jortega@listpropertiesnow.com>
-To: <video4linux-list@redhat.com>
-Subject: i2c_kbd_irc Pinnacle PCTV USB 2
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	linux-dvb-maintainer@linuxtv.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PATCHES] V4L/DVB fixes for 2.6.26
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +36,120 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Fri, 16 May 2008, Adrian Bunk wrote:
 
-Sorry about the last message don't know why this thing keeps rejecting me.
+> I wanted to simply turn the existing dependencies on INPUT to select's
+> (and add a dependency on S390 to the "Multimedia devices" menu).
 
-Anyway here's the mail again:
+I suspect you're maning depends on !S390. This is not needed, since 
+Multimedia devices is already dependent on HAS_IOMEM.
 
-I've got a Pinnacle PCTV USB2 in Europe. It works fine in Windows and on Ubuntu Gutsy.
+>> Yet, I can't imagine any production kernel without INPUT. What happens if INPUT
+>> is disabled? No keyboard, no tablet and no mouse at all?
+>
+> CONFIG_INPUT is always y unless you enable CONFIG_EMBEDDED.
+>
+> But on some kinds of embedded systems kernels without INPUT are actually
+> not uncommon - and they don't have any keyboard or mouse.
 
-The only problem that I have and have been having is that the freakin remote doesn't want to cooperate.
+There are several embedded V4L/DVB devices: Cellular phones, Set Top 
+Boxes, surveillance systems, etc. I'm not sure if forcing the need for 
+INPUT would be nice. Also, from time to time, people ask for a feature of 
+allowing to disable the IR.
 
-I have tried a million different ideas (lirc,mythtv,tvtime,mce_usb2,bttv, etc...)
+Maybe the better would be to allow the user to explicitly select/unselect 
+IR (for advanced users, and if INPUT). If IR is disabled, we may disable 
+the corresponding <board>-input.c compilation. It doesn't seem hard to do 
+this way, but it will require more time to bake a patch.
 
-Here's what I've tried lately:
+> I'm not only thinking about today, that's an ongoing problem that could
+> be fixed this way.
+>
+> Plus the fact that the dependencies on HOTPLUG don't help you when the
+> option gets select'ed.
 
-modprobe irc_kbd_i2c
+Yes, but the committed patch is adding "depends on HOTPLUG" to all devices 
+that selects FW_LOADER.
 
-good this is what the dmesg gives me:
+If you want, feel free to change this to select, although I can't see any 
+real gain.
 
-[ 6737.645843] input: i2c IR (EM28XX Pinn as /class/input/input6
-[ 6737.645871] ir-kbd-i2c: i2c IR (EM28XX Pinn detected at i2c-0/0-0047/ir0 [em28xx #0]
-[ 6737.646416] i2c IR (EM28XX Pinn: unknown key: key=0x00 raw=0x00 down=1
+> Do you have a list of open issues (preferably with .config's)?
 
+The open issue I see is to check the "depends on" for all symbols that are 
+selected.
 
-Seems to be on event 6, here's a cat of /proc/bus/input/devices
+>>> Should I fix the dependency or can I let VIDEO_IR select I2C and remove
+>>> VIDEO_IR_I2C?
 
-I: Bus=0018 Vendor=0000 Product=0000 Version=0000
-N: Name="i2c IR (EM28XX Pinn"
-P: Phys=i2c-0/0-0047/ir0
-S: Sysfs=/class/input/input6
-U: Uniq=
-H: Handlers=kbd event6
-B: EV=100003
-B: KEY=c0014 902040 0 0 0 4 8000 1a8 80000803 9e1680 0 40 12800ffc
+I would remove the select inside VIDEO_IR, adding a separate select for 
+VIDEO_IR_I2C. There's a problem on saa7134-input: It uses some symbols 
+defined on ir-kbd-i2c:
 
-Nice, that seems to have loaded.
+$ grep EXPORT ir-kbd-i2c.c
+EXPORT_SYMBOL_GPL(get_key_pinnacle_grey);
+EXPORT_SYMBOL_GPL(get_key_pinnacle_color);
 
-Now, I should be able to cat /dev/input/event6 and get something, but I get nothing.
+This breaks saa7134 compilation, if IR-I2C is not selected (or if it is a 
+module, and saa7134 is 'Y).
 
-I've also tried irrecord with no luck.
+The proper fix here is to move those symbols to ir-keymaps.c, where the 
+shared IR tables should be.
 
-Any ideas?
+Except for this, it is safe to allow the user to not compile VIDEO_IR_I2C, 
+even for devices that has i2c IR's. If the module is not compiled, 
+request_module() will fail, but everything else will work properly.
 
-Thanks,
-John Ortega
+>> I would add an entry to allow the user to select this explicitly, for power
+>> users, and select it implicitly. Something like:
+>>
+>> select VIDEO_IR_I2C  if VIDEO_HELPER_CHIPS_AUTO
+>>
+>> at the drivers under media/video that selects IR. This need to be mandatory for
+>> a few drivers like saa7134, where some exported symbols at kbd-ir-i2c are used
+>> there.
+>
+> Are there any real use cases for this justifying adding yet another
+> twist to the kconfig stuff?
+>
+> I want to make it simpler, not more complicated, and your last sentence
+> just describes another new pitfall.
+>
+> I get the point that it makes sense that it's possible to build only the
+> one tuner you actually have instead of a dozen automatically select'ed,
+> but you must somewhere draw a "this twist is not worth the maintainance
+> overhead" line.
+>
+> The overall picture is that we cannot add a kconfig option and an
+> #ifdef around each line of code in the kernel only because someone might
+> want to disable it.
+>
+> We simply cannot maintain that in the long term
+> (drivers/media/ is already at the edge).
 
+True.
+
+>
+> And as soon as you enter the 10kB object code size area there are enough
+> lower hanging fruits for saving space that do not involve increased
+> complexity in kconfig.
+
+Yes, but in is, in fact, 10K * lots of modules.
+
+The point is that the I2C modules behave very well if they aren't 
+compiled.
+
+I can, for example, compile bttv with just tuner-simple, and nothing else. 
+This will work with all bttv functionalities for two devices I have here. 
+A third analog-only device will require TVAUDIO, otherwise, the audio chip 
+won't be loaded, and audio decoder won't happen. So, the device will work 
+only with video.
+
+I don't see much troubles with most of those I2C helper modules, since the 
+vast majority depends only on I2C (only a few also depends on FW_LOADER).
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
