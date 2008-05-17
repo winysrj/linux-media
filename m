@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n32.bullet.mail.ukl.yahoo.com ([87.248.110.149])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1Jwjnx-0001rT-7A
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 22:12:01 +0200
-Date: Thu, 15 May 2008 16:11:10 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <482C34D7.8020608@kipdola.com> (from skerit@kipdola.com on Thu
-	May 15 09:04:23 2008)
-Message-Id: <1210882270l.5853l.0l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Technotrend S2-3200 (Or Technisat Skystar HD) on
- LinuxMCE 0710 (Kubuntu Feisty)
+Received: from mail-in-01.arcor-online.net ([151.189.21.41])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1JxCo9-0006ac-Qh
+	for linux-dvb@linuxtv.org; Sat, 17 May 2008 05:10:07 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Tim Hewett <tghewett2@onetel.com>
+In-Reply-To: <EB92D838-BD10-459D-89FA-AB538B791D45@onetel.com>
+References: <EB92D838-BD10-459D-89FA-AB538B791D45@onetel.com>
+Date: Sat, 17 May 2008 05:09:00 +0200
+Message-Id: <1210993740.2517.11.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] BBC HD on Freesat?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,22 +25,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 05/15/2008 09:04:23 AM, Jelle De Loecker wrote:
-> This is my first mailing-list experience, but I'm liking it more then
-> a 
-> regular forum! :-P
-> >> I have rebooted the computer multiple times.
-> >> I also unloaded the modules and reloaded them without rebooting.
-> >> I even added the modules to the blacklist, rebooted, loaded the
-> >> modules manually - they still won't go.
-> >>     
+Hi,
 
-So to make it clear: you compiled and installed the drivers from the 
-multiproto tree of Manu Abraham (not me, another Manu ;-)
-Then how do you test it? I use mythtv but for that you need to patch it 
-(I use mythtv-0.21 branch).
-Bye
-Manu
+Am Samstag, den 17.05.2008, 00:40 +0100 schrieb Tim Hewett:
+> Try this using VLC:
+> 
+> vlc dvb:// :dvb-adapter=<YOUR_CARD_NO> :dvb-frequency=10847000 :dvb- 
+> srate=22000000 :programs=6940
+> 
+> You might have to select the program manually but this should setup  
+> the tuner ok for you. It is on a DVB-S transponder, not DVB-S2, so any  
+> budget hardware should be fine.
+> 
+> I overclock my 2GHz AMD64 X2 to 2.4GHz to watch it smoothly, also try  
+> selecting "Bob" as the de-interlacing option to avoid the jagged edges  
+> when the camera pans.
+> 
+> I've not managed to get VLC to play ITV HD yet as it is a non-standard  
+> broadcast, but it is displayed using DVBViewer under Windows if you  
+> adjust some of the settings for the channel (force it to H.264, mainly).
+> 
+> The only "special" thing about Freesat is the EPG and interactive  
+> services. All the channels (except ITV HD) can be viewed using any FTA  
+> receiver. Some have found ways to get some FTA HD receivers to display  
+> ITV HD, see some of the threads at Digital Spy.
+> 
+> HTH,
+> 
+> Tim.
+
+hmm, what is interesting on BBC HD currently, that you can't get
+anywhere else as well? EPG sucks on all DVB-S stuff.
+
+But which content is new there?
+
+I assume nothing for now. I doubt anything is worth to move the dish for
+it.
+
+Cheers,
+Hermann
+
+> 
+> > Hi all, I'm interested in watching BBC HD broadcasts from the new  
+> > freesat service. However there seems to be conflicting reports about  
+> > what hardware this is possible with.  In particular there is comment  
+> > here from the freesat people that seems to imply that they will use  
+> > some sort access restrictions: http://uk.news.yahoo.com/techdigest/20080423/ttc-opinion-freesat-confusion-and-secrec-e870a33.html 
+> >  "would like to clarify that the Hauppauge free-to-air USB2  
+> > satellite tuner is not a freesat licensed product and as such will  
+> > not receive freesat services. freesat licensed products can be  
+> > identified by the freesat logo and are subject to a stringent test  
+> > and conformance regime." So... 1) does anyone know if the freesat  
+> > broadcasts are encrypted or real free to air? 2) Is anyone  
+> > successfully watching freesat including the BBC HD broadcasts under  
+> > linux? 3) And if so what hardware are you using? (I'm particularly  
+> > interested in USB attached hardware as I have no room in my media  
+> > centre case for a tuner card :D, but maybe I will have to buy a new  
+> > case!) Cheers, Steve.
+> 
+
 
 
 _______________________________________________
