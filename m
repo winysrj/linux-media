@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
+Received: from wa-out-1112.google.com ([209.85.146.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mariofutire@googlemail.com>) id 1Jrgp0-0007bi-JB
-	for linux-dvb@linuxtv.org; Fri, 02 May 2008 00:00:14 +0200
-Received: by ug-out-1314.google.com with SMTP id o29so115614ugd.20
-	for <linux-dvb@linuxtv.org>; Thu, 01 May 2008 15:00:06 -0700 (PDT)
-Message-ID: <481A3D61.7040508@googlemail.com>
-Date: Thu, 01 May 2008 23:00:01 +0100
-From: Andrea <mariofutire@googlemail.com>
+	(envelope-from <bvidinli@gmail.com>) id 1JxTsH-00020F-Ir
+	for linux-dvb@linuxtv.org; Sat, 17 May 2008 23:23:31 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so922872wag.13
+	for <linux-dvb@linuxtv.org>; Sat, 17 May 2008 14:23:25 -0700 (PDT)
+Message-ID: <36e8a7020805171423q42051749y5f6c82da88b695cd@mail.gmail.com>
+Date: Sun, 18 May 2008 00:23:24 +0300
+From: bvidinli <bvidinli@gmail.com>
+To: "Eduard Huguet" <eduardhc@gmail.com>, linux-dvb@linuxtv.org
+In-Reply-To: <617be8890805171034t539f9c67qe339f7b4f79d8e62@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------080501070209070501040809"
-Subject: [linux-dvb] [PATCH] Synchronize dvb-apps with v4l-dvb
+Content-Disposition: inline
+References: <617be8890805171034t539f9c67qe339f7b4f79d8e62@mail.gmail.com>
+Subject: Re: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,128 +21,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-9"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------080501070209070501040809
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
 Hi,
+thank you for your answer,
 
-This patch (posted for the 3rd times) keeps dvb-apps in line with recent (and not so recent) changes 
-in v4l-dvb:
+may i ask,
 
-1) for 2 years it has not been possible to open the dvr more than once for read only.
-After this change http://linuxtv.org/hg/v4l-dvb/rev/64edfcc88eeb the dvr can only be opened once.
-The patch fixes a comment to the function dvbdemux_open_dvr
+what is meant by "analog  input", it is mentioned on logs that:" only
+analog inputs supported yet.." like that..
+is that mean: s-video, composit ?
 
-2) this changeset http://linuxtv.org/hg/v4l-dvb/rev/65699e8bc6f7 added the option 
-DMX_OUT_TSDEMUX_TAP to send the TS to the demux.
-The patch enhances dvbdemux.h to use the DMX_OUT_TSDEMUX_TAP
+(i installed mythtv on ubuntu kernel 2.6.26.rc2 , it shows in input
+connections only svideo and composit... )
 
-3) a recent changest http://linuxtv.org/hg/v4l-dvb/rev/8389fb4e774c implemented DMX_SET_BUFFER for 
-the dvr.
-tzap used to set the dvr buffer size to 1MB (this ioctl call used to be ignored) while the default 
-size is actually double (~2MB). I think the aim of the code was to make the buffer bigger and not to 
-shrink it. That buffer in my opinion should stay as it is.
+i want to scan air-tv channels, and dvb-s channels...
+aren't these supported yet ?
 
-I've posted this patch 3 times already with 0 (i.e. ZERO) replies.
-Is there anybody taking care of dvb-apps?
+i will check your suggestions... and try...
 
-Regards
-
-Andrea
-
---------------080501070209070501040809
-Content-Type: text/x-patch;
- name="dvb-apps.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dvb-apps.diff"
-
-diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.c
---- a/lib/libdvbapi/dvbdemux.c	Tue Mar 11 12:40:20 2008 +0100
-+++ b/lib/libdvbapi/dvbdemux.c	Sat Mar 22 00:07:29 2008 +0000
-@@ -128,6 +128,10 @@ int dvbdemux_set_pes_filter(int fd, int 
- 		filter.output = DMX_OUT_TS_TAP;
- 		break;
- 
-+	case DVBDEMUX_OUTPUT_TS_DEMUX:
-+		filter.output = DMX_OUT_TSDEMUX_TAP;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -201,6 +205,10 @@ int dvbdemux_set_pid_filter(int fd, int 
- 		filter.output = DMX_OUT_TS_TAP;
- 		break;
- 
-+	case DVBDEMUX_OUTPUT_TS_DEMUX:
-+		filter.output = DMX_OUT_TSDEMUX_TAP;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff -r 3cde3460d120 lib/libdvbapi/dvbdemux.h
---- a/lib/libdvbapi/dvbdemux.h	Tue Mar 11 12:40:20 2008 +0100
-+++ b/lib/libdvbapi/dvbdemux.h	Sat Mar 22 00:07:29 2008 +0000
-@@ -55,6 +55,7 @@ extern "C"
- #define DVBDEMUX_OUTPUT_DECODER 0
- #define DVBDEMUX_OUTPUT_DEMUX 1
- #define DVBDEMUX_OUTPUT_DVR 2
-+#define DVBDEMUX_OUTPUT_TS_DEMUX 3
- 
- /**
-  * PES types.
-@@ -65,6 +66,7 @@ extern "C"
- #define DVBDEMUX_PESTYPE_SUBTITLE 3
- #define DVBDEMUX_PESTYPE_PCR 4
- 
-+
- /**
-  * Open a demux device. Can be called multiple times. These let you setup a
-  * single filter per FD. It can can also be read() from if you use a section
-@@ -78,8 +80,8 @@ extern int dvbdemux_open_demux(int adapt
- extern int dvbdemux_open_demux(int adapter, int demuxdevice, int nonblocking);
- 
- /**
-- * Open a DVR device. May be opened for writing once, or multiple times in readonly
-- * mode. It is used to either write() transport stream data to be demuxed
-+ * Open a DVR device. May be opened for writing or reading once.
-+ * It is used to either write() transport stream data to be demuxed
-  * (if input == DVBDEMUX_INPUT_DVR), or to read() a stream of demuxed data
-  * (if output == DVBDEMUX_OUTPUT_DVR).
-  *
-diff -r 3cde3460d120 util/szap/tzap.c
---- a/util/szap/tzap.c	Tue Mar 11 12:40:20 2008 +0100
-+++ b/util/szap/tzap.c	Sat Mar 22 00:07:29 2008 +0000
-@@ -676,11 +676,6 @@ int main(int argc, char **argv)
- 	                PERROR("failed opening '%s'", DVR_DEV);
- 	                return -1;
- 	        }
--		if (ioctl(dvr_fd, DMX_SET_BUFFER_SIZE, 1024 * 1024)<0)
--		{
--			PERROR("DMX_SET_BUFFER_SIZE failed");
--			return -1;
--		}
- 		if (silent<2)
- 			print_frontend_stats (frontend_fd, human_readable);
- 
+thanks again
 
 
---------------080501070209070501040809
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+2008/5/17 Eduard Huguet <eduardhc@gmail.com>:
+> Hi,
+>     You should maybe try the patches that Matthias Schwarzott made for
+> non-hybrid variant of the A700 card (the one I use). They implement the a=
+dd
+> DVB-S support for that card, and it's running fine now for me.  don't know
+> if these patches might be also valid for the Hybrid version, but it's
+> probably worth the try.
+>
+>     You can find the patches in the Avermedia A700 wiki page of LinuxTV,
+> here:
+>
+> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_%28A700%=
+29
+>
+>     Take the lastest full diff file  from ZZam's repository and apply it
+> over the current HG tree. If you are unsure about how to proceed, myou
+> should first take a look at the howto page regarding LinuxTV drivers
+> install:
+>
+> http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+>
+> Good luck :D
+>   Eduard Huguet
+>
+>
+>
+>
+>
+>> ---------- Missatge reenviat ----------
+>> From: bvidinli <bvidinli@gmail.com>
+>> To: linux-dvb@linuxtv.org, "fahri donmez" <fahridon@gmail.com>,
+>> ozbilen@gmail.com
+>> Date: Sat, 17 May 2008 13:16:14 +0300
+>> Subject: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
+>> i just compiled kernel version 2.6.26.rc2 on my ubuntu linux 8.04,
+>> many things including sound not working, but i got finally name of my
+>> tv/dvb card on dmesg output.
+>> previously i was getting UNKNOWN/GENERIC on dmesg for my tv card,
+>>
+>>  i use tvtime-scanner or tvtime, it does not scan, even analog channels,
+>>  i use following to try new tuners, :
+>> rmmod saa7134
+>> modprobe saa7134 card=3D141 tuner=3D2
+>>
+>> i run these two lines fo rtuner 0,1,2,3 and so on... to try different
+>> tuner numbers... on some numbers, computers locks down.. i had to
+>> reset...
+>>
+>>
+>> currently i have two questions:
+>> 1- what is correct statements/commands to be able to scan tv channels...
+>> 2- the log says only analog inputs available now, when it will be
+>> possible to watch dvb channels ?
+>> 3- what is best/good tutorials/sites that describe/help in
+>> dvb/tv/multimedia for ubuntu/linux, (i already looked linuxtv,
+>> searched google, many sites..)
+>>
+>>
+>> thanks.
+>>
+>>
+>> logs: dmesg,
+>>
+>> [   39.243703] saa7133[0]: found at 0000:00:14.0, rev: 209, irq: 12,
+>> latency: 32, mmio: 0xde003000
+>> [   39.243776] saa7133[0]: subsystem: 1461:a7a2, board: Avermedia
+>> DVB-S Hybrid+FM A700 [card=3D141,autodetected]
+>> [   39.243858] saa7133[0]: board init: gpio is b400
+>> [   39.243909] saa7133[0]: Avermedia DVB-S Hybrid+FM A700: hybrid
+>> analog/dvb card
+>> [   39.243915] saa7133[0]: Sorry, only the analog inputs are supported f=
+or
+>> now.
+>>
+>>
+>> --
+>> =DD.Bahattin Vidinli
+>> Elk-Elektronik M=FCh.
+>> -------------------
+>> iletisim bilgileri (Tercih sirasina gore):
+>> skype: bvidinli (sesli gorusme icin, www.skype.com)
+>> msn: bvidinli@iyibirisi.com
+>> yahoo: bvidinli
+>>
+>> +90.532.7990607
+>> +90.505.5667711
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+
+
+-- =
+
+=DD.Bahattin Vidinli
+Elk-Elektronik M=FCh.
+-------------------
+iletisim bilgileri (Tercih sirasina gore):
+skype: bvidinli (sesli gorusme icin, www.skype.com)
+msn: bvidinli@iyibirisi.com
+yahoo: bvidinli
+
++90.532.7990607
++90.505.5667711
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------080501070209070501040809--
