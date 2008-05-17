@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.s.hodgson@gmail.com>) id 1JyLSl-0002Ss-VU
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 08:36:45 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so1238845tib.13
-	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 23:36:36 -0700 (PDT)
-Message-ID: <d65b37b10805192336y2b9a899etf0e15019bfe54a5b@mail.gmail.com>
-Date: Tue, 20 May 2008 16:36:36 +1000
-From: "Andrew Hodgson" <a.s.hodgson@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <abraham.manu@gmail.com>) id 1JxTo1-0001NO-27
+	for linux-dvb@linuxtv.org; Sat, 17 May 2008 23:19:08 +0200
+Message-ID: <482F4BC2.2040405@gmail.com>
+Date: Sun, 18 May 2008 01:18:58 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] asus my media U3000 mini & ubuntu 7.10
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+References: <482BF672.1090402@kipdola.com> <20080515111150.392be0b9@bercot.org>
+	<200805151140.15939.rudy@grumpydevil.homelinux.org>
+In-Reply-To: <200805151140.15939.rudy@grumpydevil.homelinux.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technotrend S2-3200 (Or Technisat Skystar HD) on
+ LinuxMCE 0710 (Kubuntu Feisty)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,116 +21,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1650754407=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1650754407==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1022_18747696.1211265396321"
-
-------=_Part_1022_18747696.1211265396321
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I know I must be doing something stupid but I just cant work out what. Any
-help would be greatfully appreciated
-
-I recently bought a asus my media U3000 mini as the docs said it was
-supported.
-
-I plugged it into my ubuntu 7.10 box running  2.6.22-14-generic.
-
-It was not recognized.
-
-I read on the net that the support was fairly new so I downloaded, built and
-installed the latest v4l-dvb.
-
-I then rebooted and it was recognized
----------
-[ 1260.114059] usb 4-2: new high speed USB device using ehci_hcd and address
-3
-[ 1260.246814] usb 4-2: configuration #1 chosen from 1 choice
-[ 1260.247200] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' in
-cold state, will try to load a firmware
-[ 1260.337936] dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.10.fw'
-[ 1260.536244] dib0700: firmware started successfully.
-[ 1261.036644] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' in
-warm state.
-[ 1261.036699] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-[ 1261.036926] DVB: registering new adapter (ASUS My Cinema U3000 Mini DVBT
-Tuner)
-[ 1261.249263] DVB: registering frontend 5 (DiBcom 7000PC)...
-[ 1261.401772] MT2266: successfully identified
-[ 1261.558527] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner successfully
-initialized and connected.
---------
-
-I tested tuning and it worked perfectly (I was very happy at that stage)
-
---------
-ash-fs# tzap -a 5 nine
-using '/dev/dvb/adapter5/frontend0' and '/dev/dvb/adapter5/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 191625000 Hz
-video pid 0x0207, audio pid 0x02d0
-status 1f | signal b176 | snr 0000 | ber 001fffff | unc 00000006 |
-FE_HAS_LOCK
-status 1f | signal b0b0 | snr 0000 | ber 00004950 | unc 00000006 |
-FE_HAS_LOCK
-status 1f | signal b04d | snr 0000 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
--------
-
-However, when I tried to record (open /dev/dvb/adapter5/dvr0 I get
-
-ERROR: failed opening '/dev/dvb/adapter5/dvr0' (Cannot allocate memory)
-and dmesg has
-
-[ 1472.071782] allocation failed: out of vmalloc space - use vmalloc=<size>
-to increase size.
-
-As you can see from the above I already have 5 dvb tuners working perfectly
-(mostly pci). I bought this new one to setup a DVR box for a friend.
-
-Is the problem because I am trying to have 6 dvb-t tuners ?
-
-Thanks in advance
-
-Andrew
-
-------=_Part_1022_18747696.1211265396321
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I know I must be doing something stupid but I just cant work out what. Any help would be greatfully appreciated<br><br>I recently bought a asus my media U3000 mini as the docs said it was supported.<br><br>I plugged it into my ubuntu 7.10 box running&nbsp; 2.6.22-14-generic.<br>
-<br>It was not recognized.<br><br>I read on the net that the support was fairly new so I downloaded, built and installed the latest v4l-dvb.<br><br>I then rebooted and it was recognized<br>---------<br>[ 1260.114059] usb 4-2: new high speed USB device using ehci_hcd and address 3<br>
-[ 1260.246814] usb 4-2: configuration #1 chosen from 1 choice<br>[ 1260.247200] dvb-usb: found a &#39;ASUS My Cinema U3000 Mini DVBT Tuner&#39; in cold state, will try to load a firmware<br>[ 1260.337936] dvb-usb: downloading firmware from file &#39;dvb-usb-dib0700-1.10.fw&#39;<br>
-[ 1260.536244] dib0700: firmware started successfully.<br>[ 1261.036644] dvb-usb: found a &#39;ASUS My Cinema U3000 Mini DVBT Tuner&#39; in warm state.<br>[ 1261.036699] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>
-[ 1261.036926] DVB: registering new adapter (ASUS My Cinema U3000 Mini DVBT Tuner)<br>[ 1261.249263] DVB: registering frontend 5 (DiBcom 7000PC)...<br>[ 1261.401772] MT2266: successfully identified<br>[ 1261.558527] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner successfully initialized and connected.<br>
---------<br><br>I tested tuning and it worked perfectly (I was very happy at that stage)<br><br>--------<br>ash-fs# tzap -a 5 nine<br>using &#39;/dev/dvb/adapter5/frontend0&#39; and &#39;/dev/dvb/adapter5/demux0&#39;<br>reading channels from file &#39;/root/.tzap/channels.conf&#39;<br>
-tuning to 191625000 Hz<br>video pid 0x0207, audio pid 0x02d0<br>status 1f | signal b176 | snr 0000 | ber 001fffff | unc 00000006 | FE_HAS_LOCK<br>status 1f | signal b0b0 | snr 0000 | ber 00004950 | unc 00000006 | FE_HAS_LOCK<br>
-status 1f | signal b04d | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK<br>-------<br><br>However, when I tried to record (open /dev/dvb/adapter5/dvr0 I get <br><br>ERROR: failed opening &#39;/dev/dvb/adapter5/dvr0&#39; (Cannot allocate memory)<br>
-and dmesg has<br><br>[ 1472.071782] allocation failed: out of vmalloc space - use vmalloc=&lt;size&gt; to increase size.<br><br>As you can see from the above I already have 5 dvb tuners working perfectly (mostly pci). I bought this new one to setup a DVR box for a friend.<br>
-<br>Is the problem because I am trying to have 6 dvb-t tuners ?<br><br>Thanks in advance<br><br>Andrew<br><br><br><br><br><br>
-
-------=_Part_1022_18747696.1211265396321--
-
-
---===============1650754407==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1650754407==--
+UnVkeSBaaWpsc3RyYSB3cm90ZToKPiBPbiBUaHVyc2RheSAxNSBNYXkgMjAwOCAxMToxMSwgRGF2
+aWQgQkVSQ09UIHdyb3RlOgo+PiBIaSBKZWxsZSwKPj4KPj4gSSd2ZSBzZWVuIHlvdXIgbWFpbCB0
+aGlzIG1vcm5pbmcgOy0pCj4+Cj4+IExlIFRodSwgMTUgTWF5IDIwMDggMTA6Mzg6MTAgKzAyMDAs
+Cj4+Cj4+IEplbGxlIERlIExvZWNrZXIgPHNrZXJpdEBraXBkb2xhLmNvbT4gYSDDqWNyaXQgOgo+
+Pj4gR29vZCBtb3JuaW5nIGFsbCwKPj4+Cj4+PiBJJ20gaGF2aW5nIGRpZmZpY3VsdHkgZ2V0dGlu
+ZyBteSBEVkItUzIgY2FyZCB0byB3b3JrIG9uIExpbnV4TUNFIDA3MTAKPj4+IChLdWJ1bnR1IEZl
+aXN0eSwga2VybmVsIDIuNi4yMi0xNC1nZW5lcmljKSBJJ2xsIHN0YXJ0IHdpdGggc29tZSBsc3Bj
+aQo+Pj4gaW5mbyB0byBwcm92ZSB0aGUgY2FyZCBpcyBjb25uZWN0ZWQ6Cj4+PiBsc3BjaSAtdjoK
+Pj4+IDA0OjAxLjAgTXVsdGltZWRpYSBjb250cm9sbGVyOiBQaGlsaXBzIFNlbWljb25kdWN0b3Jz
+IFNBQTcxNDYgKHJldiAwMSkKPj4+ICAgICAgICAgU3Vic3lzdGVtOiBUZWNobm90cmVuZCBTeXN0
+ZW10ZWNobmlrIEdtYkggUzItMzIwMAo+Pj4gICAgICAgICBGbGFnczogYnVzIG1hc3RlciwgbWVk
+aXVtIGRldnNlbCwgbGF0ZW5jeSA2NCwgSVJRIDE2Cj4+PiAgICAgICAgIE1lbW9yeSBhdCBmZWJm
+ZmMwMCAoMzItYml0LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6ZT01MTJdCj4+Pgo+Pj4gSSBjYW4g
+Y29tcGlsZSB0aGUgZHJpdmVycyBqdXN0IGZpbmUsIEkgZm9sbG93ZWQgdGhlIGluc3RydWN0aW9u
+cyBmcm9tCj4+PiB0aGlzIEZyZW5jaCBwYWdlOgo+Pj4gaHR0cDovL3dpbGNvLmJlcmNvdC5vcmcv
+ZGViaWFuL3MyLTMyMDAuaHRtbAo+Pj4gPGh0dHA6Ly93aWxjby5iZXJjb3Qub3JnL2RlYmlhbi9z
+Mi0zMjAwLmh0bWw+KEkgZG9uJ3QgY29tcGxldGVseQo+Pj4gdW5kZXJzdGFuZCBGcmVuY2gsIGJ1
+dCB3ZSBhbGwgc3BlYWsgY29kZSEpCj4+Pgo+Pj4gQnV0IGFmdGVyIGxvYWRpbmcgdGhlIGRyaXZl
+cnMgSSBkb24ndCBnZXQgYSAvZGV2L2R2YiBmb2xkZXIuCj4+PiBNeSBkbWVzZyBvdXRwdXQgb25s
+eSBzaG93cyB0aGlzIG1lc3NhZ2U6Cj4+PiBzYWE3MTQ2OiByZWdpc3RlciBleHRlbnNpb24gJ2J1
+ZGdldF9jaSBkdmInLgo+PiBIYXZlIHlvdSByZWJvb3QgeW91ciBjb21wdXRlciA/IE1heSBiZSBp
+dCBjYW4gc29sdmUgeW91ciBwcm9ibGVtcy4uLgo+PiBJZiBub3QsIEknbGwgZG8gYW5vdGhlciB2
+ZXJzaW9uIHdpdGggdGhlIG11bHRpcHJvdG8gcGx1cyBkcml2ZXIgc29vbi4KPj4KPiAKPiBSZW1h
+aW5zIHRoZSBxdWVzdGlvbiwgd2hhdCBpcyB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIG11bHRpcHJv
+dG8gYW5kIG11bHRpcHJvdG8gCj4gcGx1cz8KPiAKPiBJdHMgc29tZXRoaW5nIGkgYWxzbyB3b3Vs
+ZCBsaWtlIHRvIHVuZGVyc3RhbmQuIEFub3RoZXIgcXVlc3Rpb24sIGhvdyBpZiAKPiBwcm9ncmVz
+cyBvbiBDSSB3aXRoIHRoZSBUVC0zMjAwPwoKCkNJIHdpdGggcmVnYXJkcyB0byB0aGUgU1RCMDg5
+OSArIDcxNDYgYmFzZWQgY2FyZHMgd29ya3MgcHJvcGVybHkgQUZBSUNTLgoKSW4gZmFjdCwgcmVj
+ZWl2ZWQgcXVpdGUgc29tZSBtYWlscyBsb25nIGJhY2sgaXRzZWxmIHRoYXQgQ0Egb24gdGhlc2UK
+Y2FyZHMgd29ya2VkIHByb3Blcmx5LgoKT24gc29tZSBtYWNoaW5lcyB3aXRoIGJ1Z2d5IEJJT1Mn
+ZXMsIEFQSUMgaXNzdWVzIEkyQyBhbmQgQ0EgaXNzdWVzIHdlcmUKa2luZCBvZiBwcm9taW5lbnQs
+IGJ1dCBnZW5lcmFsbHksIHNhdyBxdWl0ZSBzb21lIHN1Y2Nlc3NmdWxseSBkZWNyeXB0ZWQKRFZC
+LVMyIEhEIHN0cmVhbXMgd2l0aCBzb21lIGZldyBwZXJzb25zIGFyb3VuZC4KCgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
+bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
+L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
