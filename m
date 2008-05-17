@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from rv-out-0506.google.com ([209.85.198.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1Jw4tY-0004QV-Be
-	for linux-dvb@linuxtv.org; Wed, 14 May 2008 02:31:02 +0200
-Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
-	[192.168.9.180])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	BCCE21800D56
-	for <linux-dvb@linuxtv.org>; Wed, 14 May 2008 00:30:25 +0000 (GMT)
+	(envelope-from <eduardhc@gmail.com>) id 1JxQII-0000mr-Mb
+	for linux-dvb@linuxtv.org; Sat, 17 May 2008 19:34:10 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so763207rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 17 May 2008 10:34:02 -0700 (PDT)
+Message-ID: <617be8890805171034t539f9c67qe339f7b4f79d8e62@mail.gmail.com>
+Date: Sat, 17 May 2008 19:34:01 +0200
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-From: stev391@email.com
-To: "allan k" <sonofzev@iinet.net.au>
-Date: Wed, 14 May 2008 10:30:25 +1000
-Message-Id: <20080514003025.B1E00164293@ws1-4.us4.outblaze.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express - When will it
-	be
+Subject: Re: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,154 +18,155 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0954029989=="
+Content-Type: multipart/mixed; boundary="===============0982244903=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+--===============0982244903==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_10113_24726349.1211045642032"
 
---===============0954029989==
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_1210725025299800"
-
-This is a multi-part message in MIME format.
-
---_----------=_1210725025299800
+------=_Part_10113_24726349.1211045642032
+Content-Type: text/plain; charset=ISO-8859-9
+Content-Transfer-Encoding: base64
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
 
-Allan,
-
-The "Pass Through" port is not what you are thinking it is (Unless
-kingray have changed there naming conventions, let me know what model and
-I can tell you exactly).  The Pass through port is usually for the DC
-power (or Low frequency AC) to pass through the device and into a further
-amplifier along the coax to the antenna.  You can try turning down your
-mast head amplifier, this will effect other tuners connected as well OR
-you can goto Jaycar or Altronics and buy some attenuators.
-
-Regards,
-
-Stephen.
-
-
-  Cool.
-
-  I'll try your sources out later and provide feedback. (I have the
-  same
-  issue as I run a Fusion Lite on the system as well).
-
-  With regards to attenuation, there is a "pass through" port on my
-  Kingray antenna amplifier. From your feedback it looks like that if I
-  use the pass through port, I may get a better picture.
-
-  cheers
-
-  Allan
-  On Wed, 2008-05-14 at 09:52 +1000, stev391@email.com wrote:
-  > Allan,
-  >
-  > I have had similar issues to what you have described, with usually
-  > good reception channels having degraded quality. One solution
-  > that I have used is to place an attenuator in line to
-  > reduce the signal. This card has a good sensitivity for low
-  reception
-  > levels however the dynamic range of the card is not good enough to
-  > handle what the older more common TV cards require for reception
-  > levels.
-  >
-  > I have had no issue with Chris Pascoe's drivers, the only problem
-  is
-  > that his branch is now get dated and some of my other dvb gear does
-  > not work reliably under his branch. This is why I'm trying to
-  > generate a patch that works against the v4l-dvb tree.
-  >
-  > Also can you tell me what programs you are using to watch TV with?
-  > With gxine I have no problem with my patch however when I run
-  mythtv
-  > occassionally it crashes my tuner. I have yet to accurately
-  determine
-  > why this is happening, and what I need to do to ensure that a
-  > userspace program doesn't crash my hardware.
-  >
-  > Regards,
-  > Stephen.
-
---=20
-See Exclusive Video: 10th Annual Young Hollywood Awards
-http://www.hollywoodlife.net/younghollywoodawards2008/
-
-
---_----------=_1210725025299800
+SGksCiAgICBZb3Ugc2hvdWxkIG1heWJlIHRyeSB0aGUgcGF0Y2hlcyB0aGF0IE1hdHRoaWFzIFNj
+aHdhcnpvdHQgbWFkZSBmb3IKbm9uLWh5YnJpZCB2YXJpYW50IG9mIHRoZSBBNzAwIGNhcmQgKHRo
+ZSBvbmUgSSB1c2UpLiBUaGV5IGltcGxlbWVudCB0aGUgYWRkCkRWQi1TIHN1cHBvcnQgZm9yIHRo
+YXQgY2FyZCwgYW5kIGl0J3MgcnVubmluZyBmaW5lIG5vdyBmb3IgbWUuICBkb24ndCBrbm93Cmlm
+IHRoZXNlIHBhdGNoZXMgbWlnaHQgYmUgYWxzbyB2YWxpZCBmb3IgdGhlIEh5YnJpZCB2ZXJzaW9u
+LCBidXQgaXQncwpwcm9iYWJseSB3b3J0aCB0aGUgdHJ5LgoKICAgIFlvdSBjYW4gZmluZCB0aGUg
+cGF0Y2hlcyBpbiB0aGUgQXZlcm1lZGlhIEE3MDAgd2lraSBwYWdlIG9mIExpbnV4VFYsCmhlcmU6
+CgpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0FWZXJNZWRpYV9BVmVyVFZf
+RFZCLVNfUHJvXyUyOEE3MDAlMjk8aHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBo
+cC9BVmVyTWVkaWFfQVZlclRWX0RWQi1TX1Byb18lMjUyOEE3MDAlMjUyOT4KCiAgICBUYWtlIHRo
+ZSBsYXN0ZXN0IGZ1bGwgZGlmZiBmaWxlICBmcm9tIFpaYW0ncyByZXBvc2l0b3J5IGFuZCBhcHBs
+eSBpdApvdmVyIHRoZSBjdXJyZW50IEhHIHRyZWUuIElmIHlvdSBhcmUgdW5zdXJlIGFib3V0IGhv
+dyB0byBwcm9jZWVkLCBteW91CnNob3VsZCBmaXJzdCB0YWtlIGEgbG9vayBhdCB0aGUgaG93dG8g
+cGFnZSByZWdhcmRpbmcgTGludXhUViBkcml2ZXJzCmluc3RhbGw6CgpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL3dpa2kvaW5kZXgucGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZpY2VfZHJpdmVycwoK
+R29vZCBsdWNrIDpECiAgRWR1YXJkIEh1Z3VldAoKCgoKCi0tLS0tLS0tLS0gTWlzc2F0Z2UgcmVl
+bnZpYXQgLS0tLS0tLS0tLQo+IEZyb206IGJ2aWRpbmxpIDxidmlkaW5saUBnbWFpbC5jb20+Cj4g
+VG86IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgImZhaHJpIGRvbm1leiIgPGZhaHJpZG9uQGdtYWls
+LmNvbT4sCj4gb3piaWxlbkBnbWFpbC5jb20KPiBEYXRlOiBTYXQsIDE3IE1heSAyMDA4IDEzOjE2
+OjE0ICswMzAwCj4gU3ViamVjdDogW2xpbnV4LWR2Yl0gbWVyaGFiYTogQWJvdXQgQXZlcm1lZGlh
+IERWQi1TIEh5YnJpZCtGTSBBNzAwCj4gaSBqdXN0IGNvbXBpbGVkIGtlcm5lbCB2ZXJzaW9uIDIu
+Ni4yNi5yYzIgb24gbXkgdWJ1bnR1IGxpbnV4IDguMDQsCj4gbWFueSB0aGluZ3MgaW5jbHVkaW5n
+IHNvdW5kIG5vdCB3b3JraW5nLCBidXQgaSBnb3QgZmluYWxseSBuYW1lIG9mIG15Cj4gdHYvZHZi
+IGNhcmQgb24gZG1lc2cgb3V0cHV0Lgo+IHByZXZpb3VzbHkgaSB3YXMgZ2V0dGluZyBVTktOT1dO
+L0dFTkVSSUMgb24gZG1lc2cgZm9yIG15IHR2IGNhcmQsCj4KPiAgaSB1c2UgdHZ0aW1lLXNjYW5u
+ZXIgb3IgdHZ0aW1lLCBpdCBkb2VzIG5vdCBzY2FuLCBldmVuIGFuYWxvZyBjaGFubmVscywKPiAg
+aSB1c2UgZm9sbG93aW5nIHRvIHRyeSBuZXcgdHVuZXJzLCA6Cj4gcm1tb2Qgc2FhNzEzNAo+IG1v
+ZHByb2JlIHNhYTcxMzQgY2FyZD0xNDEgdHVuZXI9Mgo+Cj4gaSBydW4gdGhlc2UgdHdvIGxpbmVz
+IGZvIHJ0dW5lciAwLDEsMiwzIGFuZCBzbyBvbi4uLiB0byB0cnkgZGlmZmVyZW50Cj4gdHVuZXIg
+bnVtYmVycy4uLiBvbiBzb21lIG51bWJlcnMsIGNvbXB1dGVycyBsb2NrcyBkb3duLi4gaSBoYWQg
+dG8KPiByZXNldC4uLgo+Cj4KPiBjdXJyZW50bHkgaSBoYXZlIHR3byBxdWVzdGlvbnM6Cj4gMS0g
+d2hhdCBpcyBjb3JyZWN0IHN0YXRlbWVudHMvY29tbWFuZHMgdG8gYmUgYWJsZSB0byBzY2FuIHR2
+IGNoYW5uZWxzLi4uCj4gMi0gdGhlIGxvZyBzYXlzIG9ubHkgYW5hbG9nIGlucHV0cyBhdmFpbGFi
+bGUgbm93LCB3aGVuIGl0IHdpbGwgYmUKPiBwb3NzaWJsZSB0byB3YXRjaCBkdmIgY2hhbm5lbHMg
+Pwo+IDMtIHdoYXQgaXMgYmVzdC9nb29kIHR1dG9yaWFscy9zaXRlcyB0aGF0IGRlc2NyaWJlL2hl
+bHAgaW4KPiBkdmIvdHYvbXVsdGltZWRpYSBmb3IgdWJ1bnR1L2xpbnV4LCAoaSBhbHJlYWR5IGxv
+b2tlZCBsaW51eHR2LAo+IHNlYXJjaGVkIGdvb2dsZSwgbWFueSBzaXRlcy4uKQo+Cj4KPiB0aGFu
+a3MuCj4KPgo+IGxvZ3M6IGRtZXNnLAo+Cj4gWyAgIDM5LjI0MzcwM10gc2FhNzEzM1swXTogZm91
+bmQgYXQgMDAwMDowMDoxNC4wLCByZXY6IDIwOSwgaXJxOiAxMiwKPiBsYXRlbmN5OiAzMiwgbW1p
+bzogMHhkZTAwMzAwMAo+IFsgICAzOS4yNDM3NzZdIHNhYTcxMzNbMF06IHN1YnN5c3RlbTogMTQ2
+MTphN2EyLCBib2FyZDogQXZlcm1lZGlhCj4gRFZCLVMgSHlicmlkK0ZNIEE3MDAgW2NhcmQ9MTQx
+LGF1dG9kZXRlY3RlZF0KPiBbICAgMzkuMjQzODU4XSBzYWE3MTMzWzBdOiBib2FyZCBpbml0OiBn
+cGlvIGlzIGI0MDAKPiBbICAgMzkuMjQzOTA5XSBzYWE3MTMzWzBdOiBBdmVybWVkaWEgRFZCLVMg
+SHlicmlkK0ZNIEE3MDA6IGh5YnJpZAo+IGFuYWxvZy9kdmIgY2FyZAo+IFsgICAzOS4yNDM5MTVd
+IHNhYTcxMzNbMF06IFNvcnJ5LCBvbmx5IHRoZSBhbmFsb2cgaW5wdXRzIGFyZSBzdXBwb3J0ZWQg
+Zm9yCj4gbm93Lgo+Cj4KPiAtLQo+IN0uQmFoYXR0aW4gVmlkaW5saQo+IEVsay1FbGVrdHJvbmlr
+IE38aC4KPiAtLS0tLS0tLS0tLS0tLS0tLS0tCj4gaWxldGlzaW0gYmlsZ2lsZXJpIChUZXJjaWgg
+c2lyYXNpbmEgZ29yZSk6Cj4gc2t5cGU6IGJ2aWRpbmxpIChzZXNsaSBnb3J1c21lIGljaW4sIHd3
+dy5za3lwZS5jb20pCj4gbXNuOiBidmlkaW5saUBpeWliaXJpc2kuY29tCj4geWFob286IGJ2aWRp
+bmxpCj4KPiArOTAuNTMyLjc5OTA2MDcKPiArOTAuNTA1LjU2Njc3MTEKPgo=
+------=_Part_10113_24726349.1211045642032
+Content-Type: text/html; charset=ISO-8859-9
+Content-Transfer-Encoding: base64
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
 
-Allan,<br><br>The "Pass Through" port is not what you are thinking it is (U=
-nless kingray have changed there naming conventions, let me know what model=
- and I can tell you exactly).&nbsp; The Pass through port is usually for th=
-e DC power (or Low frequency AC) to pass through the device and into a furt=
-her amplifier along the coax to the antenna.&nbsp; You can try turning down=
- your mast head amplifier, this will effect other tuners connected as well =
-OR you can goto Jaycar or Altronics and buy some attenuators.<br><br>Regard=
-s,<br><br>Stephen.<br>
-<div>
-<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
-5px; padding-left: 5px;"><sonofzev@iinet.net.au><br>
-Cool.<br>
-<br>
-I'll try your sources out later and provide feedback. (I have the same<br>
-issue as I run a Fusion Lite on the system as well).<br>
-<br>
-With regards to attenuation, there is a "pass through" port on my<br>
-Kingray antenna amplifier. From your feedback it looks like that if I<br>
-use the pass through port, I may get a better picture.<br>
-<br>
-cheers<br>
-<br>
-Allan<br>
-On Wed, 2008-05-14 at 09:52 +1000, stev391@email.com wrote:<br>
-&gt; Allan,<br>
-&gt;<br>
-&gt; I have had similar issues to what you have described, with usually<br>
-&gt; good reception channels having degraded quality.  One solution <br>
-&gt; that I have used is to place an attenuator in line to<br>
-&gt; reduce the signal. This card has a good sensitivity for low reception<=
-br>
-&gt; levels however the dynamic range of the card is not good enough to<br>
-&gt; handle what the older more common TV cards require for reception<br>
-&gt; levels.<br>
-&gt;<br>
-&gt; I have had no issue with Chris Pascoe's drivers, the only problem is<b=
-r>
-&gt; that his branch is now get dated and some of my other dvb gear does<br>
-&gt; not work reliably under his branch.  This is why I'm trying to<br>
-&gt; generate a patch that works against the v4l-dvb tree.<br>
-&gt;<br>
-&gt; Also can you tell me what programs you are using to watch TV with?<br>
-&gt; With gxine I have no problem with my patch however when I run mythtv<b=
-r>
-&gt; occassionally it crashes my tuner. I have yet to accurately determine<=
-br>
-&gt; why this is happening, and what I need to do to ensure that a<br>
-&gt; userspace program doesn't crash my hardware.<br>
-&gt;<br>
-&gt; Regards,<br>
-&gt; Stephen.<br></sonofzev@iinet.net.au></blockquote></div><br><BR>
+PGRpdj48ZGl2PkhpLCA8YnI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IFlvdSBzaG91bGQgbWF5YmUgdHJ5
+IHRoZSBwYXRjaGVzIHRoYXQgTWF0dGhpYXMgU2Nod2Fyem90dCBtYWRlIGZvciBub24taHlicmlk
+IHZhcmlhbnQgb2YgdGhlIEE3MDAgY2FyZCAodGhlIG9uZSBJIHVzZSkuIFRoZXkgaW1wbGVtZW50
+IHRoZSBhZGQgRFZCLVMgc3VwcG9ydCBmb3IgdGhhdCBjYXJkLCBhbmQgaXQmIzM5O3MgcnVubmlu
+ZyBmaW5lIG5vdyBmb3IgbWUuJm5ic3A7IGRvbiYjMzk7dCBrbm93IGlmIHRoZXNlIHBhdGNoZXMg
+IG1pZ2h0IGJlIGFsc28gdmFsaWQgZm9yIHRoZSBIeWJyaWQgdmVyc2lvbiwgYnV0IGl0JiMzOTtz
+IHByb2JhYmx5IHdvcnRoIHRoZSB0cnkuPGJyPgoKPGJyPiZuYnNwOyZuYnNwOyZuYnNwOyBZb3Ug
+Y2FuIGZpbmQgdGhlIHBhdGNoZXMgaW4gdGhlIEF2ZXJtZWRpYSBBNzAwIHdpa2kgcGFnZSBvZiBM
+aW51eFRWLCBoZXJlOiA8YnI+PGJyPjxhIGhyZWY9Imh0dHA6Ly93d3cubGludXh0di5vcmcvd2lr
+aS9pbmRleC5waHAvQVZlck1lZGlhX0FWZXJUVl9EVkItU19Qcm9fJTI1MjhBNzAwJTI1MjkiIHRh
+cmdldD0iX2JsYW5rIiBvbmNsaWNrPSJyZXR1cm4gdG9wLmpzLk9wZW5FeHRMaW5rKHdpbmRvdyxl
+dmVudCx0aGlzKSI+aHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBocC9BVmVyTWVk
+aWFfQVZlclRWX0RWQi1TX1Byb18lMjhBNzAwJTI5PC9hPjxicj4KCjxicj4mbmJzcDsmbmJzcDsm
+bmJzcDsgVGFrZSB0aGUgbGFzdGVzdCBmdWxsIGRpZmYgZmlsZSZuYnNwOyBmcm9tIFpaYW0mIzM5
+O3MgcmVwb3NpdG9yeSBhbmQgYXBwbHkgaXQgb3ZlciB0aGUgY3VycmVudCBIRyB0cmVlLiBJZiB5
+b3UgYXJlIHVuc3VyZSBhYm91dCBob3cgdG8gcHJvY2VlZCwgbXlvdSBzaG91bGQgZmlyc3QgdGFr
+ZSBhIGxvb2sgYXQgdGhlIGhvd3RvIHBhZ2UgcmVnYXJkaW5nIExpbnV4VFYgZHJpdmVycyBpbnN0
+YWxsOjxicj4KCjxicj48YSBocmVmPSJodHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgu
+cGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZpY2VfZHJpdmVycyIgdGFyZ2V0PSJfYmxhbmsiIG9u
+Y2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5odHRw
+Oi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0hvd190b19pbnN0YWxsX0RWQl9kZXZp
+Y2VfZHJpdmVyczwvYT48YnI+Cjxicj5Hb29kIGx1Y2sgOkQ8YnI+Jm5ic3A7IEVkdWFyZCBIdWd1
+ZXQ8YnI+PGJyPjxicj48YnI+PGJyPjwvZGl2Pgo8YnI+PGJsb2NrcXVvdGUgY2xhc3M9ImdtYWls
+X3F1b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6IDFweCBzb2xpZCByZ2IoMjA0LCAyMDQsIDIwNCk7
+IG1hcmdpbjogMHB0IDBwdCAwcHQgMC44ZXg7IHBhZGRpbmctbGVmdDogMWV4OyI+LS0tLS0tLS0t
+LSBNaXNzYXRnZSByZWVudmlhdCAtLS0tLS0tLS0tPGJyPkZyb206Jm5ic3A7YnZpZGlubGkgJmx0
+OzxhIGhyZWY9Im1haWx0bzpidmlkaW5saUBnbWFpbC5jb20iIHRhcmdldD0iX2JsYW5rIiBvbmNs
+aWNrPSJyZXR1cm4gdG9wLmpzLk9wZW5FeHRMaW5rKHdpbmRvdyxldmVudCx0aGlzKSI+YnZpZGlu
+bGlAZ21haWwuY29tPC9hPiZndDs8YnI+CgpUbzombmJzcDs8YSBocmVmPSJtYWlsdG86bGludXgt
+ZHZiQGxpbnV4dHYub3JnIiB0YXJnZXQ9Il9ibGFuayIgb25jbGljaz0icmV0dXJuIHRvcC5qcy5P
+cGVuRXh0TGluayh3aW5kb3csZXZlbnQsdGhpcykiPmxpbnV4LWR2YkBsaW51eHR2Lm9yZzwvYT4s
+ICZxdW90O2ZhaHJpIGRvbm1leiZxdW90OyAmbHQ7PGEgaHJlZj0ibWFpbHRvOmZhaHJpZG9uQGdt
+YWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4dExp
+bmsod2luZG93LGV2ZW50LHRoaXMpIj5mYWhyaWRvbkBnbWFpbC5jb208L2E+Jmd0OywgIDxhIGhy
+ZWY9Im1haWx0bzpvemJpbGVuQGdtYWlsLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJl
+dHVybiB0b3AuanMuT3BlbkV4dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5vemJpbGVuQGdtYWls
+LmNvbTwvYT48YnI+CgpEYXRlOiZuYnNwO1NhdCwgMTcgTWF5IDIwMDggMTM6MTY6MTQgKzAzMDA8
+YnI+U3ViamVjdDombmJzcDtbbGludXgtZHZiXSBtZXJoYWJhOiBBYm91dCBBdmVybWVkaWEgRFZC
+LVMgSHlicmlkK0ZNIEE3MDA8YnI+aSBqdXN0IGNvbXBpbGVkIGtlcm5lbCB2ZXJzaW9uIDIuNi4y
+Ni5yYzIgb24gbXkgdWJ1bnR1IGxpbnV4IDguMDQsPGJyPgptYW55IHRoaW5ncyBpbmNsdWRpbmcg
+c291bmQgbm90IHdvcmtpbmcsIGJ1dCBpIGdvdCBmaW5hbGx5IG5hbWUgb2YgbXk8YnI+CnR2L2R2
+YiBjYXJkIG9uIGRtZXNnIG91dHB1dC48YnI+CnByZXZpb3VzbHkgaSB3YXMgZ2V0dGluZyBVTktO
+T1dOL0dFTkVSSUMgb24gZG1lc2cgZm9yIG15IHR2IGNhcmQsPGJyPgo8YnI+CiZuYnNwO2kgdXNl
+IHR2dGltZS1zY2FubmVyIG9yIHR2dGltZSwgaXQgZG9lcyBub3Qgc2NhbiwgZXZlbiBhbmFsb2cg
+Y2hhbm5lbHMsPGJyPgombmJzcDtpIHVzZSBmb2xsb3dpbmcgdG8gdHJ5IG5ldyB0dW5lcnMsIDo8
+YnI+CnJtbW9kIHNhYTcxMzQ8YnI+Cm1vZHByb2JlIHNhYTcxMzQgY2FyZD0xNDEgdHVuZXI9Mjxi
+cj4KPGJyPgppIHJ1biB0aGVzZSB0d28gbGluZXMgZm8gcnR1bmVyIDAsMSwyLDMgYW5kIHNvIG9u
+Li4uIHRvIHRyeSBkaWZmZXJlbnQ8YnI+CnR1bmVyIG51bWJlcnMuLi4gb24gc29tZSBudW1iZXJz
+LCBjb21wdXRlcnMgbG9ja3MgZG93bi4uIGkgaGFkIHRvPGJyPgpyZXNldC4uLjxicj4KPGJyPgo8
+YnI+CmN1cnJlbnRseSBpIGhhdmUgdHdvIHF1ZXN0aW9uczo8YnI+CjEtIHdoYXQgaXMgY29ycmVj
+dCBzdGF0ZW1lbnRzL2NvbW1hbmRzIHRvIGJlIGFibGUgdG8gc2NhbiB0diBjaGFubmVscy4uLjxi
+cj4KMi0gdGhlIGxvZyBzYXlzIG9ubHkgYW5hbG9nIGlucHV0cyBhdmFpbGFibGUgbm93LCB3aGVu
+IGl0IHdpbGwgYmU8YnI+CnBvc3NpYmxlIHRvIHdhdGNoIGR2YiBjaGFubmVscyA/PGJyPgozLSB3
+aGF0IGlzIGJlc3QvZ29vZCB0dXRvcmlhbHMvc2l0ZXMgdGhhdCBkZXNjcmliZS9oZWxwIGluPGJy
+PgpkdmIvdHYvbXVsdGltZWRpYSBmb3IgdWJ1bnR1L2xpbnV4LCAoaSBhbHJlYWR5IGxvb2tlZCBs
+aW51eHR2LDxicj4Kc2VhcmNoZWQgZ29vZ2xlLCBtYW55IHNpdGVzLi4pPGJyPgo8YnI+Cjxicj4K
+dGhhbmtzLjxicj4KPGJyPgo8YnI+CmxvZ3M6IGRtZXNnLDxicj4KPGJyPgpbICZuYnNwOyAzOS4y
+NDM3MDNdIHNhYTcxMzNbMF06IGZvdW5kIGF0IDAwMDA6MDA6MTQuMCwgcmV2OiAyMDksIGlycTog
+MTIsPGJyPgpsYXRlbmN5OiAzMiwgbW1pbzogMHhkZTAwMzAwMDxicj4KWyAmbmJzcDsgMzkuMjQz
+Nzc2XSBzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDE0NjE6YTdhMiwgYm9hcmQ6IEF2ZXJtZWRpYTxi
+cj4KRFZCLVMgSHlicmlkK0ZNIEE3MDAgW2NhcmQ9MTQxLGF1dG9kZXRlY3RlZF08YnI+ClsgJm5i
+c3A7IDM5LjI0Mzg1OF0gc2FhNzEzM1swXTogYm9hcmQgaW5pdDogZ3BpbyBpcyBiNDAwPGJyPgpb
+ICZuYnNwOyAzOS4yNDM5MDldIHNhYTcxMzNbMF06IEF2ZXJtZWRpYSBEVkItUyBIeWJyaWQrRk0g
+QTcwMDogaHlicmlkPGJyPgphbmFsb2cvZHZiIGNhcmQ8YnI+ClsgJm5ic3A7IDM5LjI0MzkxNV0g
+c2FhNzEzM1swXTogU29ycnksIG9ubHkgdGhlIGFuYWxvZyBpbnB1dHMgYXJlIHN1cHBvcnRlZCBm
+b3Igbm93Ljxicj4KPGJyPgo8YnI+Ci0tPGJyPgrdLkJhaGF0dGluIFZpZGlubGk8YnI+CkVsay1F
+bGVrdHJvbmlrIE38aC48YnI+Ci0tLS0tLS0tLS0tLS0tLS0tLS08YnI+CmlsZXRpc2ltIGJpbGdp
+bGVyaSAoVGVyY2loIHNpcmFzaW5hIGdvcmUpOjxicj4Kc2t5cGU6IGJ2aWRpbmxpIChzZXNsaSBn
+b3J1c21lIGljaW4sIDxhIGhyZWY9Imh0dHA6Ly93d3cuc2t5cGUuY29tIiB0YXJnZXQ9Il9ibGFu
+ayIgb25jbGljaz0icmV0dXJuIHRvcC5qcy5PcGVuRXh0TGluayh3aW5kb3csZXZlbnQsdGhpcyki
+Pnd3dy5za3lwZS5jb208L2E+KTxicj4KbXNuOiA8YSBocmVmPSJtYWlsdG86YnZpZGlubGlAaXlp
+YmlyaXNpLmNvbSIgdGFyZ2V0PSJfYmxhbmsiIG9uY2xpY2s9InJldHVybiB0b3AuanMuT3BlbkV4
+dExpbmsod2luZG93LGV2ZW50LHRoaXMpIj5idmlkaW5saUBpeWliaXJpc2kuY29tPC9hPjxicj4K
+eWFob286IGJ2aWRpbmxpPGJyPgo8YnI+Cis5MC41MzIuNzk5MDYwNzxicj4KKzkwLjUwNS41NjY3
+NzExPGJyPgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPgo=
+------=_Part_10113_24726349.1211045642032--
 
---=20
-<div> See Exclusive Video: <a href=3D "http://www.hollywoodlife.net/youngho=
-llywoodawards2008/" target=3D"_blank"> <b> 10th Annual Young Hollywood Awar=
-ds</b></a><br></div>
 
---_----------=_1210725025299800--
-
-
-
---===============0954029989==
+--===============0982244903==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -180,4 +176,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0954029989==--
+--===============0982244903==--
