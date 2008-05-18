@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1JuxMm-0006AO-DC
-	for linux-dvb@linuxtv.org; Sun, 11 May 2008 00:16:37 +0200
-Message-ID: <48261EB5.2090604@gmail.com>
-Date: Sun, 11 May 2008 02:16:21 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from gateway11.websitewelcome.com ([69.56.144.11])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1JxiS5-00016w-Ou
+	for linux-dvb@linuxtv.org; Sun, 18 May 2008 14:57:27 +0200
+Message-ID: <483027AE.6020107@kipdola.com>
+Date: Sun, 18 May 2008 14:57:18 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-References: <482560EB.2000306@gmail.com>	<200805101717.23199@orion.escape-edv.de>	<200805101727.55810@orion.escape-edv.de>
-	<1210456421.7632.29.camel@palomino.walls.org>
-In-Reply-To: <1210456421.7632.29.camel@palomino.walls.org>
+To: Faruk A <fa@elwak.com>
+References: <482CC0F0.30005@kipdola.com>	<E1JwrWW-0006Ye-00.goga777-bk-ru@f139.mail.ru>	<482D1AB7.3070101@kipdola.com>
+	<20080518121250.7dc0eaac@bk.ru>	<482FF520.4070303@kipdola.com>	<854d46170805180424r1ca63161h51f6f5e43c78d45f@mail.gmail.com>	<4830158C.2030309@kipdola.com>
+	<854d46170805180507q33d8b71ct16547fce16603d66@mail.gmail.com>
+In-Reply-To: <854d46170805180507q33d8b71ct16547fce16603d66@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
- stv0297
+Subject: Re: [linux-dvb] Technotrend S2-3200 Scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,66 +21,192 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1550730261=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andy Walls wrote:
-> On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
->> Oliver Endriss wrote:
->>> e9hack wrote:
->>>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
->>>> makes the UNC value of the femon plugin useless.
->>> Why? It does not make sense to accumulate the errors forever, i.e.
->>> nobody wants to know what happened last year...
->>>
->>> Afaics it is ok to reset the counter after reading it.
->>> All drivers should behave this way.
->>>
->>> If the femon plugin requires something else it might store the values
->>> and process them as desired.
->>>
->>> Afaics the femon command line tool has no problems with that.
->> Argh, I just checked the API 1.0.0. spec:
->> | FE READ UNCORRECTED BLOCKS
->> | This ioctl call returns the number of uncorrected blocks detected by the device
->> | driver during its lifetime. For meaningful measurements, the increment
->> | in block count during a speci c time interval should be calculated. For this
->> | command, read-only access to the device is suf cient.
->> | Note that the counter will wrap to zero after its maximum count has been
->> | reached
->>
->> So it seens you are right and the drivers should accumulate the errors
->> forever. Any opinions?
-> 
-> For communications systems, whether its is two-way or one-way broadcast,
-> most people are concerned with the error *rate* (errors per unit time)
-> rather than absolute error counts.  Communications engineers have a good
-> understanding of what it means to have a 10^-2 BER vs 10^-12 BER, and
-> adjust their expectations accordingly.  Absolute counts have less
-> meaning to engineers, and I'm not sure what a layman would make of them.
+This is a multi-part message in MIME format.
+--===============1550730261==
+Content-Type: multipart/alternative;
+ boundary="------------080100010609040307020604"
 
-There is different terminology involved:
+This is a multi-part message in MIME format.
+--------------080100010609040307020604
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-BER: implies a rate which is averaged over a period of time. This
-implies the errors in the stream, not after FEC.
 
-UNC: Uncorrected symbols over a lifetime, well this is not practically
-possible and will wrap around. This is not related to time, but it is
-just a measure of the symbols that wasn't been able by the FEC engine to
-correct. Generally a meaningless term, in many cases except a few.
+Faruk A schreef:
+>
+> did you run szap with -rp ? make sure the channel you tuned to is not encrypted.
+>
+> here is another ugly way of doing it.
+> u need dvbstream and vlc
+>
+> szap -rp "BBC World"
+> dvbstream -o | vlc -
+> or with with mplayer: dvbstream -o | mplayer -
+>   
+Very strange,
 
-Absolute errors are used very scantily, but have been used to see how
-good/bad the whole system is. BER cannot define this, as it is defined
-before the FEC. Sometimes what's defined in the BER, the FEC engine
-might be able to correct and hence.
+when I run dvbstream -o, without piping it into anything, I get a lot of 
+binary feedback in the console, but I just can't open it in any program. 
+(I tuned it using szap2, with the -rp option. I only tried unencrypted 
+channels, so no problem there) dvbstream always says "streaming 0 
+streams" which is probably not so good.
 
-Regards,
-Manu
+    $ dvbstream -o | vlc -
+    dvbstream will stop after -1 seconds (71582788 minutes)
+    Output to stdout
+    Streaming 0 streams
+    VLC media player 0.8.6e Janus
+    libdvdnav: Using dvdnav version 0.1.10 from http://dvd.sf.net
+    libdvdread: Using libdvdcss version 1.2.5 for DVD access
+    libdvdread: Can't stat -
+    No such file or directory
+    libdvdnav: vm: faild to open/read the DVD
+    libdvbpsi error (PSI decoder): TS discontinuity (received 3,
+    expected 0) for PID 0
+
+
+I even tried to output it to a file, but the file stays blank
+
+    $ dvbstream -o:test.mpg
+    Open file test.mpg
+
+    MAP 0, file test.mpg: From -1 secs, To -1 secs, 0 PIDs -
+    dvbstream will stop after -1 seconds (71582788 minutes)
+    Streaming 0 streams
+
+
+And when I give mplayer a go I get this:
+
+    $ dvbstream -o | mplayer -
+    dvbstream will stop after -1 seconds (71582788 minutes)
+    Output to stdout
+    Streaming 0 streams
+    MPlayer 1.0rc2-4.2.3 (C) 2000-2007 MPlayer Team
+    CPU: Intel(R) Core(TM)2 CPU          6600  @ 2.40GHz (Family: 6,
+    Model: 15, Stepping: 6)
+    CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+    Compiled with runtime CPU detection.
+    mplayer: could not connect to socket
+    mplayer: No such file or directory
+    Failed to open LIRC support. You will not be able to use your remote
+    control.
+
+    Playing -.
+    Reading from stdin...
+    Cannot seek backward in linear streams!
+    Seek failed
+
+Sorry for extensively testing your patience! I, too, wish it would have 
+"just worked" :)
+
+Thank you,
+
+Jelle De Loecker
+
+--------------080100010609040307020604
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+Faruk A schreef:
+<blockquote
+ cite="mid:854d46170805180507q33d8b71ct16547fce16603d66@mail.gmail.com"
+ type="cite">
+  <pre wrap=""><!---->
+did you run szap with -rp ? make sure the channel you tuned to is not encrypted.
+
+here is another ugly way of doing it.
+u need dvbstream and vlc
+
+szap -rp "BBC World"
+dvbstream -o | vlc -
+or with with mplayer: dvbstream -o | mplayer -
+  </pre>
+</blockquote>
+Very strange,<br>
+<br>
+when I run dvbstream -o, without piping it into anything, I get a lot
+of binary feedback in the console, but I just can't open it in any
+program. (I tuned it using szap2, with the -rp option. I only tried
+unencrypted channels, so no problem there) dvbstream always says
+"streaming 0 streams" which is probably not so good.<br>
+<br>
+<blockquote>$ dvbstream -o | vlc -<br>
+dvbstream will stop after -1 seconds (71582788 minutes)<br>
+Output to stdout<br>
+Streaming 0 streams<br>
+VLC media player 0.8.6e Janus<br>
+libdvdnav: Using dvdnav version 0.1.10 from <a class="moz-txt-link-freetext" href="http://dvd.sf.net">http://dvd.sf.net</a><br>
+libdvdread: Using libdvdcss version 1.2.5 for DVD access<br>
+libdvdread: Can't stat -<br>
+No such file or directory<br>
+libdvdnav: vm: faild to open/read the DVD<br>
+libdvbpsi error (PSI decoder): TS discontinuity (received 3, expected
+0) for PID 0<br>
+</blockquote>
+<br>
+I even tried to output it to a file, but the file stays blank<br>
+<br>
+<blockquote>$ dvbstream -o:test.mpg<br>
+Open file test.mpg<br>
+  <br>
+MAP 0, file test.mpg: From -1 secs, To -1 secs, 0 PIDs - <br>
+dvbstream will stop after -1 seconds (71582788 minutes)<br>
+Streaming 0 streams<br>
+</blockquote>
+<br>
+And when I give mplayer a go I get this:<br>
+<blockquote>$ dvbstream -o | mplayer -<br>
+dvbstream will stop after -1 seconds (71582788 minutes)<br>
+Output to stdout<br>
+Streaming 0 streams<br>
+MPlayer 1.0rc2-4.2.3 (C) 2000-2007 MPlayer Team<br>
+CPU: Intel(R) Core(TM)2 CPU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6600&nbsp; @ 2.40GHz (Family: 6, Model:
+15, Stepping: 6)<br>
+CPUflags:&nbsp; MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1<br>
+Compiled with runtime CPU detection.<br>
+mplayer: could not connect to socket<br>
+mplayer: No such file or directory<br>
+Failed to open LIRC support. You will not be able to use your remote
+control.<br>
+  <br>
+Playing -.<br>
+Reading from stdin...<br>
+Cannot seek backward in linear streams!<br>
+Seek failed<br>
+</blockquote>
+Sorry for extensively testing your patience! I, too, wish it would have
+"just worked" :)<br>
+<br>
+Thank you,<br>
+<br>
+Jelle De Loecker<br>
+</body>
+</html>
+
+--------------080100010609040307020604--
+
+
+--===============1550730261==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1550730261==--
