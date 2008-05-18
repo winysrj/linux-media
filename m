@@ -1,17 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from psmtp04.wxs.nl ([195.121.247.13])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1JxKZa-0003H8-9y
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 13:27:40 +0200
-From: allan k <sonofzev@iinet.net.au>
-To: stev391@email.com
-In-Reply-To: <20080514055431.D014A104F0@ws1-3.us4.outblaze.com>
-References: <20080514055431.D014A104F0@ws1-3.us4.outblaze.com>
-Date: Sat, 17 May 2008 21:27:19 +1000
-Message-Id: <1211023639.8225.2.camel@media1>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express [PATCH]
+	(envelope-from <jan-conceptronic@h-i-s.nl>) id 1JxqgN-0000yB-HP
+	for linux-dvb@linuxtv.org; Sun, 18 May 2008 23:44:44 +0200
+Received: from his01.frop.org (ip545779c6.direct-adsl.nl [84.87.121.198])
+	by psmtp04.wxs.nl
+	(iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+	with ESMTP id <0K1300IK331CBQ@psmtp04.wxs.nl> for linux-dvb@linuxtv.org;
+	Sun, 18 May 2008 23:44:09 +0200 (MEST)
+Date: Sun, 18 May 2008 23:43:41 +0200
+From: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+In-reply-to: <47DC4C77.2020201@h-i-s.nl>
+To: linux-dvb@linuxtv.org
+Message-id: <4830A30D.2050804@h-i-s.nl>
+MIME-version: 1.0
+References: <1203538678.8313.12.camel@srv-roden.vogelwikke.nl>
+	<47BCAC32.9050601@h-i-s.nl> <47BCB371.2020809@h-i-s.nl>
+	<20080227075056.34a80abd@areia> <47D462DD.5080500@h-i-s.nl>
+	<20080312180321.6a6800a1@gaivota> <47DAED1E.4030002@h-i-s.nl>
+	<20080315112427.6b6c55a4@gaivota> <47DC4C77.2020201@h-i-s.nl>
+Cc: Barnaby Shearer <Barnaby@EchelonL.com>, bWare <bWare@iWare.co.uk>,
+	H Me <ugm6hr@hotmail.com>, achasper@gmail.com,
+	Stephan Zorn <szorn@gmx.at>, Thomas Munro <munro@ip9.org>,
+	Stuart Langridge <sil@kryogenix.org>, tiwag <tiwag@gmx.at>,
+	stefan@hlustik.net, tiwag <tiwag.cb@gmail.com>,
+	david@reynoldsfamily.org.uk, stealth banana <stealth.banana@gmail.com>
+Subject: [linux-dvb] Testers requested for Freecom / Conceptronic / Realtek
+ / haihua /Videomate / Vestel DVB-T cards with RTL2831U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,253 +40,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve 
+There are new drivers posted for the Freecom / Conceptronic / Realtek
+cards on:
+     http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2
 
-I'm getting a large amount of noise again, although after previous
-restarts this didn't happen. 
+		PLEASE FETCH AND TEST THIS VERSION
 
-I'm wondering if your patch is already merged into the v4l sources or if
-I need to use this one you sent. 
+The code as gotten from Realtek, and found on the old link, does not
+compile with other current v4l sources anymore. Please stiop using:
+     http://linuxtv.org/hg/~mchehab/rtl2831
 
-cheers
+This code is recently synchronised with the mail v4l line, and needs
+testing. Compared to the original code, a switch for the IR type is
+added. It can now be selected using modprobe. For example if you need
+type 2: unload the automatically loaded driver, and reloca the good codes.
 
-Allan 
-On Wed, 2008-05-14 at 15:54 +1000, stev391@email.com wrote:
-> 
-> I have updated my patch (from a week ago) and is included inline below
-> as well as an attachment. The issue that was noticed and mentioned in
-> previous posts regarding to tuners not resetting was possibly due to
-> several "__FUNCTION_" in the tuner reset code, these should be
-> "__func__", which is fixed in the attached patch.
-> 
-> This patch is against the v4l-dvb head (7897, 2e9a2e4c8435) and is
-> intended to merge Chris Pascoe's work into the current head to enable
-> support for the DViCO Fusion HDTV DVB-T Dual Express (PCIe).  This
-> enables systems with different tuners to take advantage of other
-> experimental drivers, (for example my TV Walker Twin USB tuner).
-> 
-> Regards,
-> 
-> Stephen
-> 
-> diff -Naur v4l-dvb/linux/Documentation/video4linux/CARDLIST.cx23885
-> v4l-dvb_dev/linux/Documentation/video4linux/CARDLIST.cx23885
-> --- v4l-dvb/linux/Documentation/video4linux/CARDLIST.cx23885
-> 2008-05-14 09:48:21.000000000 +1000
-> +++ v4l-dvb_dev/linux/Documentation/video4linux/CARDLIST.cx23885
-> 2008-05-14 13:39:30.000000000 +1000
-> @@ -8,3 +8,4 @@
->    7 -> Hauppauge WinTV-HVR1200
-> [0070:71d1,0070:71d3]
->   ;  8 -> Hauppauge WinTV-HVR1700
-> [0070:8101]
->    9 -> Hauppauge WinTV-HVR1400
-> [0070:8010]
-> + 10 -> DViCO FusionHDTV DVB-T Dual Express
-> [18ac:db78]
-> diff -Naur v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c
-> v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885-cards.c
-> --- v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c
-> 2008-05-14 09:48:22.000000000 +1000
-> +++ v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885-cards.c
-> 2008-05-14 13:39:30.000000000 +1000
-> @@ -144,6 +144,11 @@
->          .name        = "Hauppauge WinTV-HVR1400",
->          .portc        = CX23885_MPEG_DVB,
->      },
-> +    [CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP] = {
-> +        .name        = "DViCO FusionHDTV DVB-T Dual Express",
-> +        .portb        = CX23885_MPEG_DVB,
-> +        .portc        = CX23885_MPEG_DVB,
-> +    },
->  };
->  const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
->  
-> @@ -211,6 +216,10 @@
->          .subvendor = 0x0070,
->          .subdevice = 0x8010,
->          .card      = CX23885_BOARD_HAUPPAUGE_HVR1400,
-> +    },{
-> +        .subvendor = 0x18ac,
-> +        .subdevice = 0xdb78,
-> +        .card      = CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP,
->      },
->  };
->  const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-> @@ -428,6 +437,13 @@
->          mdelay(20);
->          cx_set(GP0_IO, 0x00050005);
->          break;
-> +    case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
-> +        /* GPIO-0 portb xc3028 reset */
-> +        /* GPIO-1 portb zl10353 reset */
-> +        /* GPIO-2 portc xc3028 reset */
-> +        /* GPIO-3 portc zl10353 reset */
-> +        cx_write(GP0_IO, 0x002f1000);
-> +        break;
->      }
->  }
->  
-> @@ -442,6 +458,9 @@
->      case CX23885_BOARD_HAUPPAUGE_HVR1400:
->          /* FIXME: Implement me */
->          break;
-> +    case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
-> +        request_module("ir-kbd-i2c");
-> +        break;
->      }
->  
->      return 0;
-> @@ -478,6 +497,11 @@
->      }
->  
->      switch (dev->board) {
-> +    case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
-> +        ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
-> +        ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-> +        ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-> +        /* FALLTHROUGH */
->      case CX23885_BOARD_DVICO_FUSIONHDTV_5_EXP:
->          ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
->          ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-> diff -Naur v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> --- v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> 2008-05-14 09:48:22.000000000 +1000
-> +++ v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885-dvb.c
-> 2008-05-14 13:39:30.000000000 +1000
-> @@ -42,6 +42,9 @@
->  #include "tuner-simple.h"
->  #include "dib7000p.h"
->  #include "dibx000_common.h"
-> +#include "zl10353.h"
-> +#include "tuner-xc2028.h"
-> +#include "tuner-xc2028-types.h"
->  
->  static unsigned int debug;
->  
-> @@ -155,6 +158,44 @@
->      .serial_mpeg = 0x40,
->  };
->  
-> +static int cx23885_dvico_xc2028_callback(void *ptr, int command, int
-> arg)
-> +{
-> +    struct cx23885_tsport *port = ptr;
-> +    struct cx23885_dev *dev = port->dev;
-> +    u32 reset_mask = 0;
-> +
-> +    switch (command) {
-> +    case XC2028_TUNER_RESET:
-> +        dprintk(1, "%s: XC2028_TUNER_RESET %d, port %d\n", __func__,
-> +            arg, port->nr);
-> +
-> +        if (port->nr == 1)
-> +            reset_mask = 0x0101;
-> +        else if (port->nr == 2)
-> +            reset_mask = 0x0404;
-> +
-> +        cx_clear(GP0_IO, reset_mask);
-> +        mdelay(5);
-> +        cx_set(GP0_IO, reset_mask);
-> +        break;
-> +    case XC2028_RESET_CLK:
-> +        dprintk(1, "%s: XC2028_RESET_CLK %d\n", __func__, arg);
-> +        break;
-> +    default:
-> +        dprintk(1, "%s: unknown command %d, arg %d\n", __func__,
-> +               command, arg);
-> +        return -EINVAL;
-> +    }
-> +
-> +    return 0;
-> +}
-> +
-> +static struct zl10353_config dvico_fusionhdtv_xc3028 = {
-> +    .demod_address = 0x0f,
-> +    .if2           = 45600,
-> +    .no_tuner      = 1,
-> +};
-> +
->  static struct s5h1409_config hauppauge_hvr1500q_config = {
->      .demod_address = 0x32 >> 1,
->      .output_mode   = S5H1409_SERIAL_OUTPUT,
-> @@ -454,6 +495,39 @@
->                  fe->ops.tuner_ops.set_config(fe, &ctl);
->          }
->          break;
-> +    case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP: {
-> +        i2c_bus = &dev->i2c_bus[port->nr - 1];
-> +
-> +        /* Take demod and tuner out of reset */
-> +        if (port->nr == 1)
-> +            cx_set(GP0_IO, 0x0303);
-> +        else if (port->nr == 2)
-> +            cx_set(GP0_IO, 0x0c0c);
-> +        mdelay(5);
-> +        port->dvb.frontend = dvb_attach(zl10353_attach,
-> +                           &dvico_fusionhdtv_xc3028,
-> +                           &i2c_bus->i2c_adap);
-> +        if (port->dvb.frontend != NULL) {
-> +            struct dvb_frontend      *fe;
-> +            struct xc2028_config      cfg = {
-> +                .i2c_adap  = &i2c_bus->i2c_adap,
-> +                .i2c_addr  = 0x61,
-> +                .video_dev = port,
-> +                .callback  = cx23885_dvico_xc2028_callback,
-> +            };
-> +            static struct xc2028_ctrl ctl = {
-> +                .fname       = "xc3028-dvico-au-01.fw",
-> +                .max_len     = 64,
-> +                .scode_table = ZARLINK456,
-> +            };
-> +
-> +            fe = dvb_attach(xc2028_attach, port->dvb.frontend,
-> +                    &cfg);
-> +            if (fe != NULL && fe->ops.tuner_ops.set_config != NULL)
-> +                fe->ops.tuner_ops.set_config(fe, &ctl);
-> +        }
-> +        break;
-> +        }
->      default:
->          printk("%s: The frontend of your DVB/ATSC card isn't
-> supported yet\n",
->                 dev->name);
-> diff -Naur v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h
-> v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885.h
-> --- v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h    2008-05-14
-> 09:48:22.000000000 +1000
-> +++ v4l-dvb_dev/linux/drivers/media/video/cx23885/cx23885.h
-> 2008-05-14 13:39:30.000000000 +1000
-> @@ -66,6 +66,7 @@
->  #define CX23885_BOARD_HAUPPAUGE_HVR1200        7
->  #define CX23885_BOARD_HAUPPAUGE_HVR1700        8
->  #define CX23885_BOARD_HAUPPAUGE_HVR1400        9
-> +#define CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP 10
->  
->  /* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM
-> B/G/H/LC */
->  #define CX23885_NORMS (\
-> diff -Naur v4l-dvb/linux/drivers/media/video/cx23885/Kconfig
-> v4l-dvb_dev/linux/drivers/media/video/cx23885/Kconfig
-> --- v4l-dvb/linux/drivers/media/video/cx23885/Kconfig    2008-05-14
-> 09:48:22.000000000 +1000
-> +++ v4l-dvb_dev/linux/drivers/media/video/cx23885/Kconfig
-> 2008-05-14 13:39:30.000000000 +1000
-> @@ -15,6 +15,7 @@
->      select MEDIA_TUNER_MT2131 if !DVB_FE_CUSTOMISE
->      select DVB_S5H1409 if !DVB_FE_CUSTOMISE
->      select DVB_LGDT330X if !DVB_FE_CUSTOMISE
-> +     select DVB_ZL10353 if !DVB_FE_CUSTOMISE
->      select MEDIA_TUNER_XC2028 if !DVB_FE_CUSTOMIZE
->      select MEDIA_TUNER_TDA8290 if !DVB_FE_CUSTOMIZE
->      select MEDIA_TUNER_TDA18271 if !DVB_FE_CUSTOMIZE
-> 
-> 
-> 
-> -- 
-> See Exclusive Video: 10th Annual Young Hollywood Awards
-> 
+sudo modprobe -r dvb_usb_rtl2831u
+sudo modprobe  dvb_usb_rtl2831u ir_protocol=2
+
+-----------------
+The following devices are supported (numbers and names do NOT correspond):
+grep rtl2831 /lib/modules/2.6.24-16-generic/modules.usbmap | sed -e
+'s/0x0000.*$//' -e 's/^.*0x0003//'
+       0x0bda   0x2831
+       0x2304   0x022b
+       0x13d3   0x3216
+       0x13d3   0x3220
+       0x13d3   0x3236
+       0x13d3   0x3238
+       0x13d3   0x3244
+       0x08dd   0x2103
+       0x185b   0x0100
+       0x1a46   0x1601
+       0x14aa   0x0160
+
+		 .name = "RTL2831U DVB-T USB2.0 DEVICE",
+		 .name = "RTL2831U DVB-T USB2.0 DEVICE",
+		 .name = "DVB-T TV-Tuner Card-R",
+		 .name = "VideoMate TV U100",
+		 .name = "Vestel DVB-T TV Card",
+		 .name = "Freecom USB 2.0 DVB-T Device",
+		 .name = "DTV-DVB UDTT 7047-USB 2.0 DVB-T Driver",
+		 .name = "DTV-DVB UDTT 7047M-USB 2.0 DVB-T Driver",
+		 .name = "DTV-DVB UDTT 7047A-USB 2.0 DVB-T Driver",
+		 .name = "DTV-DVB UDTT 704L-USB 2.0 DVB-T Driver",
+		 .name = "DTV-DVB UDTT 7047Z-USB 2.0 DVB-T Driver",
+
+-------------
+I have started a second archive for splitting off the tuner code.
+For the mxl5005s tuner, this should be straightforward, as the code
+found its way into the mainstream v4l already.
+
+However, I ran into problems with the mt2060 (which is the tuner I own).
+In the function  MT2060_LocateIF1 is making this hard.
+This function doe some sort of calibration, and there is both internal
+data from the tuner required, and input from the demodulator.
+
+I don't see yet how we can put this into the framework of the current
+struct dvb_tuner_ops from dev_frontend.h.
+
+I'd appreciate some help from somebody more proficient in splitting drivers.
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
