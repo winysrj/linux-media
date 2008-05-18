@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout4.frontal.correo)
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1K0ERq-0001hF-3N
-	for linux-dvb@linuxtv.org; Sun, 25 May 2008 13:31:35 +0200
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Andy Walls <awalls@radix.net>
-Date: Sun, 25 May 2008 13:30:56 +0200
-References: <200805241817.07810.jareguero@telefonica.net>
-	<1211682783.3200.36.camel@palomino.walls.org>
-In-Reply-To: <1211682783.3200.36.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805251330.57300.jareguero@telefonica.net>
+	(envelope-from <awalls@radix.net>) id 1JxooT-0003Pn-Hz
+	for linux-dvb@linuxtv.org; Sun, 18 May 2008 21:45:00 +0200
+From: Andy Walls <awalls@radix.net>
+To: Jelle De Loecker <skerit@kipdola.com>
+In-Reply-To: <483027AE.6020107@kipdola.com>
+References: <482CC0F0.30005@kipdola.com>
+	<E1JwrWW-0006Ye-00.goga777-bk-ru@f139.mail.ru>
+	<482D1AB7.3070101@kipdola.com> <20080518121250.7dc0eaac@bk.ru>
+	<482FF520.4070303@kipdola.com>
+	<854d46170805180424r1ca63161h51f6f5e43c78d45f@mail.gmail.com>
+	<4830158C.2030309@kipdola.com>
+	<854d46170805180507q33d8b71ct16547fce16603d66@mail.gmail.com>
+	<483027AE.6020107@kipdola.com>
+Date: Sun, 18 May 2008 15:44:59 -0400
+Message-Id: <1211139899.3380.15.camel@palomino.walls.org>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] kernel BUG with AverTV DVB-T 777 and kernel
-	2.6.23-rc3
+Subject: Re: [linux-dvb] Technotrend S2-3200 Scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,139 +26,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-RWwgRG9taW5nbyAyNSBNYXlvIDIwMDgsIEFuZHkgV2FsbHMgZXNjcmliacOzOgo+IE9uIFNhdCwg
-MjAwOC0wNS0yNCBhdCAxODoxNyArMDIwMCwgSm9zZSBBbGJlcnRvIFJlZ3Vlcm8gd3JvdGU6Cj4g
-PiBXb3JrIHdlbGwgd2l0aCBrZXJuZWwgMi42LjI1Cj4gPgo+ID4gSm9zZSBBbGJlcnRvCj4gPiBf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ID4gbGludXgt
-ZHZiIG1haWxpbmcgbGlzdAo+ID4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4gPiBodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKPgo+IEkndmUg
-ZmlndXJlZCB0aGlzIG9uZSBvdXQsIGJ1dCBkb24ndCBoYXZlIHRpbWUgdG8gbWFrZSBhIHBhdGNo
-IGp1c3QgeWV0Lgo+Cj4gU2VlIGJlbG93Ogo+ID4gQlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5l
-bCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgMDAwMDAwMDAwMDAwMDAwOAo+ID4gSVA6IFs8
-ZmZmZmZmZmZhMGIxOTUzYj5dIDp0dW5lcl9zaW1wbGU6c2ltcGxlX3R1bmVyX2F0dGFjaCsweDk5
-LzB4Mzk2Cj4KPiBOb3RlIHRoZSBtZW1vcnkgYWRkcmVzcyA4IGFjY2VzcyBpbiBzaW1wbGVfdHVu
-ZXJfYXR0YWNoKCkuCj4KPiA+IFBHRCA3ZDk4ODA2NyBQVUQgN2Q5ODkwNjcgUE1EIDAKPiA+IE9v
-cHM6IDAwMDAgWzFdIFNNUAo+ID4gQ1BVIDEKPiA+IE1vZHVsZXMgbGlua2VkIGluOiB0dW5lcl9z
-aW1wbGUgdHVuZXJfdHlwZXMgbXQzNTIgc2FhNzEzNF9kdmIoKykgbXQyMDYwCj4gPiBzbmRfdXNi
-X2F1ZGlvKCspIHZpZGVvYnVmX2R2YiBzbmRfc2VxX2R1bW15IHNuZF9oZGFfaW50ZWwgc25kX3Nl
-cV9vc3MoKykKPiA+IHNhYTcxMzQgc25kX3NlcV9taWRpX2V2ZW50IHNuZF9zZXEgc25kX3BjbV9v
-c3MgdjRsMl9jb21tb24KPiA+IHZpZGVvYnVmX2RtYV9zZyBzbmRfbWl4ZXJfb3NzIHZpZGVvYnVm
-X2NvcmUgc25kX3BjbSBpcl9rYmRfaTJjCj4gPiBkdmJfdXNiX2RpYjA3MDAoKykgc25kX3RpbWVy
-IGRpYjcwMDBwIGlyX2NvbW1vbiBkaWI3MDAwbSBudmlkaWEoUCkgcHdjCj4gPiBzbmRfdXNiX2xp
-YiBkdmJfdXNiIGR2Yl9jb3JlIGRpYjMwMDBtYyBkaWJ4MDAwX2NvbW1vbiBzbmRfcGFnZV9hbGxv
-Ywo+ID4gc3JfbW9kIHR2ZWVwcm9tIGNvbXBhdF9pb2N0bDMyIGRpYjAwNzAgaTJjX3ZpYXBybyBz
-bmRfcmF3bWlkaQo+ID4gc25kX3NlcV9kZXZpY2Ugc25kX2h3ZGVwIGkyY19jb3JlIGNkcm9tIHNn
-IHZpZGVvZGV2IHY0bDFfY29tcGF0IGJ1dHRvbgo+ID4gcHBkZXYgcGFycG9ydF9wYyBrOHRlbXAg
-aHdtb24gcGF0YV92aWEgc2hwY2hwIHNuZCBzZXJpb19yYXcgcGNzcGtyIGF0bDEKPiA+IG1paSBw
-YXJwb3J0IHNvdW5kY29yZSBmbG9wcHkgYWhjaSBhdGFfZ2VuZXJpYyBwYXRhX2FjcGkgc2F0YV92
-aWEgbGliYXRhCj4gPiBzZF9tb2Qgc2NzaV9tb2QgZXh0MyBqYmQgbWJjYWNoZSB1aGNpX2hjZCBv
-aGNpX2hjZCBlaGNpX2hjZCBbbGFzdAo+ID4gdW5sb2FkZWQ6IHNjc2lfd2FpdF9zY2FuXSBQaWQ6
-IDE1NTMsIGNvbW06IG1vZHByb2JlIFRhaW50ZWQ6IFAgICAgICAgICAKPiA+IDIuNi4yNi1yYzMg
-IzIKPiA+IFJJUDogMDAxMDpbPGZmZmZmZmZmYTBiMTk1M2I+XSAgWzxmZmZmZmZmZmEwYjE5NTNi
-Pl0KPiA+IDp0dW5lcl9zaW1wbGU6c2ltcGxlX3R1bmVyX2F0dGFjaCsweDk5LzB4Mzk2Cj4KPiBO
-b3RlIG1vZHByb2JlIG1ha2luZyBhIHN5c3RlbSBjYWxsIGNhdXNlZCB0aGUgZmF1bHQsIGFuZCB0
-aGF0IHNlZ21lbnQKPiBzZWxlY3RvciAwMTAsIHRoZSBrZXJuZWwgY29kZSBzZWdtZW50LCBtZWFu
-cyB0aGUgcHJvYmxlbSBpcyBpbiBrZXJuZWwKPiBjb2RlLgo+Cj4gPiBSU1A6IDAwMTg6ZmZmZjgx
-MDA3ZDBkN2M4OCAgRUZMQUdTOiAwMDAxMDI4Ngo+ID4gUkFYOiAwMDAwMDAwMDAwMDAwMDQzIFJC
-WDogZmZmZjgxMDA3ZDQ1YzAwMCBSQ1g6IDAwMDAwMDAwYzNlNzk2ZTkKPiA+IFJEWDogMDAwMDAw
-MDBmZmZmZmZmZiBSU0k6IDAwMDAwMDAwMDAwMDAwYzMgUkRJOiBmZmZmODEwMDdkNDVjMjA4Cj4g
-PiBSQlA6IGZmZmY4MTAwN2QwZDdjZTggUjA4OiAwMDAwMDAwMDAwMDAwMDAxIFIwOTogMDAwMDAw
-MDAwMDAwMDAwMAo+ID4gUjEwOiAwMDAwMDAwMDAwMDAwMDAwIFIxMTogZmZmZmZmZmZhMGIxYWYw
-MCBSMTI6IGZmZmY4MTAwN2Q0NWMxZDAKPiA+IFIxMzogZmZmZjgxMDA3ZTQxMTQwOCBSMTQ6IGZm
-ZmY4MTAwN2Q0NWMxNjEgUjE1OiAwMDAwMDAwMDAwMDAwMDQzCj4gPiBGUzogIDAwMDA3ZmMxNTli
-YTE2ZjAoMDAwMCkgR1M6ZmZmZjgxMDA3ZjgwMjc4MCgwMDAwKQo+ID4ga25sR1M6MDAwMDAwMDAw
-MDAwMDAwMCBDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDNi
-Cj4gPiBDUjI6IDAwMDAwMDAwMDAwMDAwMDggQ1IzOiAwMDAwMDAwMDdkOThiMDAwIENSNDogMDAw
-MDAwMDAwMDAwMDZlMAo+ID4gRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAwMDAwMDAwMDAw
-MDAwMCBEUjI6IDAwMDAwMDAwMDAwMDAwMDAKPiA+IERSMzogMDAwMDAwMDAwMDAwMDAwMCBEUjY6
-IDAwMDAwMDAwZmZmZjBmZjAgRFI3OiAwMDAwMDAwMDAwMDAwNDAwCj4gPiBQcm9jZXNzIG1vZHBy
-b2JlIChwaWQ6IDE1NTMsIHRocmVhZGluZm8gZmZmZjgxMDA3ZDBkNjAwMCwgdGFzawo+ID4gZmZm
-ZjgxMDA3ZTE0MmQyMCkgU3RhY2s6ICAwMDAwMDAwMDAwMDAwMDAwIGZmZmZmZmZmODEwNTRiZjgK
-PiA+IGZmZmYwMDAxMDAwMTAwNjEgZmZmZjgxMDA3ZDBkN2NiNyBmZmZmODEwMDdkNDVjMDAwIGZm
-ZmZmZmZmYTBiMDZlODAKPiA+IGZmZmY4MTAwN2Q0NWMxNzAgZmZmZjgxMDA3ZDQ1YzAwMCBmZmZm
-ODEwMDdkNDVjMDAwIGZmZmZmZmZmYTBiMDZlODAKPiA+IGZmZmY4MTAwN2Q0NWMxNzAgMDAwMDAw
-MDAwMDAwMDAwMCBDYWxsIFRyYWNlOgo+ID4gIFs8ZmZmZmZmZmY4MTA1NGJmOD5dID8gZ3BsX29u
-bHlfdW51c2VkX3dhcm5pbmcrMHgwLzB4MWIKPiA+ICBbPGZmZmZmZmZmYTBiMDMzZTU+XSA6c2Fh
-NzEzNF9kdmI6ZHZiX2luaXQrMHhlYzUvMHgxNWJkCj4gPiAgWzxmZmZmZmZmZjgxMDJiYTU5Pl0g
-PyB0cnlfdG9fd2FrZV91cCsweDFjYy8weDFkZAo+ID4gIFs8ZmZmZmZmZmZhMGEzYzlmOD5dIDpz
-YWE3MTM0OnNhYTcxMzRfdHNfcmVnaXN0ZXIrMHg0YS8weDkyCj4gPiAgWzxmZmZmZmZmZmEwMTM5
-MDEwPl0gOnNhYTcxMzRfZHZiOmR2Yl9yZWdpc3RlcisweDEwLzB4MTIKPiA+ICBbPGZmZmZmZmZm
-ODEwNTdiY2M+XSBzeXNfaW5pdF9tb2R1bGUrMHgxOTljLzB4MWFmOAo+ID4gIFs8ZmZmZmZmZmY4
-MTBhM2M5MD5dID8gZG9fc3luY19yZWFkKzB4ZTcvMHgxMmQKPiA+ICBbPGZmZmZmZmZmODEwMGJh
-NGE+XSA/IGRvX25vdGlmeV9yZXN1bWUrMHg4OGYvMHg4YjAKPiA+ICBbPGZmZmZmZmZmODEwM2U2
-NmU+XSA/IG1zbGVlcCsweDAvMHgxZQo+ID4gIFs8ZmZmZmZmZmY4MTAwYmY4Yj5dIHN5c3RlbV9j
-YWxsX2FmdGVyX3N3YXBncysweDdiLzB4ODAKPiA+Cj4gPgo+ID4gQ29kZTogNjAgMDEgMDAgMDAg
-NDggODUgYzAgNzQgMDcgYmUgMDEgMDAgMDAgMDAgZmYgZDAgNDggOGQgNzUgYjAgYmEgMDEKPiA+
-IDAwIDAwIDAwIDRjIDg5IGU3IGU4IDkzIDRkIDY1IGZmIGZmIGM4IDc0IDQ0IDQ0IDg5IGY4IDgz
-IGNhIGZmIDw4YT4gMGMgMjUKPiA+IDA4IDAwIDAwIDAwIDQ4IDZiIGMwIDMwIDRjIDhiIDgwIDkw
-IDI2IGIxIGEwIDQ4IDhiIDA0Cj4KPiBUaGUgYWJvdmUgY29kZSBkaXNhc3NlbWJsZXMgdG86Cj4K
-PiAgIDcwOiAgIDAwIDAwICAgICAgICAgICAgICAgICAgIGFkZCAgICAlYWwsKCVyYXgpCj4gICA3
-MjogICA0OCA4NSBjMCAgICAgICAgICAgICAgICB0ZXN0ICAgJXJheCwlcmF4Cj4gICA3NTogICA3
-NCAwNyAgICAgICAgICAgICAgICAgICBqZSAgICAgMHg3ZQo+ICAgNzc6ICAgYmUgMDEgMDAgMDAg
-MDAgICAgICAgICAgbW92ICAgICQweDEsJWVzaQo+ICAgN2M6ICAgZmYgZDAgICAgICAgICAgICAg
-ICAgICAgY2FsbHEgIColcmF4Cj4gICA3ZTogICA0OCA4ZCA3NSBiMCAgICAgICAgICAgICBsZWEg
-ICAgMHhmZmZmZmZmZmZmZmZmZmIwKCVyYnApLCVyc2kKPiAgIDgyOiAgIGJhIDAxIDAwIDAwIDAw
-ICAgICAgICAgIG1vdiAgICAkMHgxLCVlZHgKPiAgIDg3OiAgIDRjIDg5IGU3ICAgICAgICAgICAg
-ICAgIG1vdiAgICAlcjEyLCVyZGkKPiAgIDhhOiAgIGU4IDkzIDRkIDY1IGZmICAgICAgICAgIGNh
-bGxxICAweGZmZmZmZmZmZmY2NTRlMjIKPiAgIDhmOiAgIGZmIGM4ICAgICAgICAgICAgICAgICAg
-IGRlYyAgICAlZWF4Cj4gICA5MTogICA3NCA0NCAgICAgICAgICAgICAgICAgICBqZSAgICAgMHhk
-Nwo+ICAgOTM6ICAgNDQgODkgZjggICAgICAgICAgICAgICAgbW92ICAgICVyMTVkLCVlYXgKPiAg
-IDk2OiAgIDgzIGNhIGZmICAgICAgICAgICAgICAgIG9yICAgICAkMHhmZmZmZmZmZmZmZmZmZmZm
-LCVlZHgKPiAgIDk5OiAgIDhhIDBjIDI1IDA4IDAwIDAwIDAwICAgIG1vdiAgICAweDgsJWNsCj4g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXl5eCj4gICAgICAgICAgICAg
-ICAgICAgICAgICAgIFlvdXIgcHJvYmxlbSAtLSsKPiAgIGEwOiAgIDQ4IDZiIGMwIDMwICAgICAg
-ICAgICAgIGltdWwgICAkMHgzMCwlcmF4LCVyYXgKPiAgIGE0OiAgIDRjIDhiIDgwIDkwIDI2IGIx
-IGEwICAgIG1vdiAgICAweGZmZmZmZmZmYTBiMTI2OTAoJXJheCksJXI4Cj4KPgo+IFRoZSBhc3Nl
-bWJseSBjb2RlIGVtaXR0ZWQgYnkgZ2NjIGZvciB0aGlzIHNlZ21lbnQgb2YKPiB0dW5lci1zaW1w
-bGUuYzpzaW1wbGVfdHVuZXJfYXR0YWNoKCkgbG9va3MgbGlrZToKPgo+ICAgICAgICAgbW92bCAg
-ICAkMSwgJWVkeAo+ICAgICAgICAgbW92cSAgICAlcjEyLCAlcmRpCj4gICAgICAgICBjYWxsICAg
-IGkyY190cmFuc2Zlcgo+ICAgICAgICAgZGVjbCAgICAlZWF4Cj4gICAgICAgICBqZSAgICAgIC5M
-MzYyCj4gICAgICAgICAubG9jIDEgMTA1NiAwICAgICAgICAgICAgICA8LS0tLS0gU291cmNlIGxp
-bmUgMTA1Ngo+ICAgICAgICAgbW92ICAgICAlcjE1ZCwgJWVheAo+ICAgICAgICAgb3JsICAgICAk
-LTEsICVlZHgKPiAgICAgICAgIG1vdmIgICAgOCwgJWNsICAgICAgICAgICAgIDwtLS0tLSBZb3Vy
-IHByb2JsZW0KPiAgICAgICAgIGltdWxxICAgJDQ4LCAlcmF4LCAlcmF4Cj4gICAgICAgICBtb3Zx
-ICAgIHR1bmVycyglcmF4KSwgJXI4Cj4gICAgICAgICBtb3ZxICAgIDE2LCAlcmF4ICAgICAgICAg
-ICA8LS0tLS0gQW5vdGhlciBwcm9ibGVtCj4gICAgICAgICB0ZXN0cSAgICVyYXgsICVyYXgKPiAg
-ICAgICAgIGplICAgICAgLkwzNjYKPgo+Cj4gVGhlIHJlbGV2YW50IHNlY3Rpb24gb2YgdHVuZXIt
-c2ltcGxlLmM6c2ltcGxlX3R1bmVyX2F0dGFjaCgpOgo+Cj4gMTA1MiAgICAgICAgICAgICAgICAg
-aWYgKGZlLT5vcHMuaTJjX2dhdGVfY3RybCkKPiAxMDUzICAgICAgICAgICAgICAgICAgICAgICAg
-IGZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMSk7Cj4gMTA1NAo+IDEwNTUgICAgICAgICAgICAg
-ICAgIGlmICgxICE9IGkyY190cmFuc2ZlcihpMmNfYWRhcCwgJm1zZywgMSkpCj4gMTA1NiAgICAg
-ICAgICAgICAgICAgICAgICAgICB0dW5lcl93YXJuKCJ1bmFibGUgdG8gcHJvYmUgJXMsIHByb2Nl
-ZWRpbmcKPiBhbnl3YXkuIiwgMTA1NyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHR1bmVyc1t0eXBlXS5uYW1lKTsKPiAxMDU4Cj4gMTA1OSAgICAgICAgICAgICAgICAgaWYgKGZl
-LT5vcHMuaTJjX2dhdGVfY3RybCkKPiAxMDYwICAgICAgICAgICAgICAgICAgICAgICAgIGZlLT5v
-cHMuaTJjX2dhdGVfY3RybChmZSwgMCk7Cj4KPgo+IEl0IGxvb2tzIGxpa2Ugc29tZXRoaW5nIGFi
-b3V0IHRoZSAidHVuZXJfd2FybigpIiBtYWNybyBpcyBjYXVzaW5nCj4gcmVmZXJlbmNlcyB0byBi
-ZSBtYWRlIHRvIHZlcnkgbG93IG1lbW9yeSBhZGRyZXNzZXMuICBUaGF0IGlzIHByb2JhYmx5Cj4g
-bm90IHJpZ2h0Lgo+Cj4gU28gbGV0J3MgbG9vayBmdXJ0aGVyOiBoZXJlIGlzIHRoZSBzYW1lIHNl
-Y3Rpb24gb2YKPiB0dW5lci1zaW1wbGUuYzpzaW1wbGVfdHVuZXJfYXR0YWNoKCkgYWZ0ZXIgcHJl
-cHJvY2Vzc2luZywgYnV0IGJlZm9yZQo+IGNvbnZlcnNpb24gdG8gYXNzZW1ibHk6Cj4KPiAgICAg
-aWYgKGZlLT5vcHMuaTJjX2dhdGVfY3RybCkKPiAgICAgIGZlLT5vcHMuaTJjX2dhdGVfY3RybChm
-ZSwgMSk7Cj4KPiAgICAgaWYgKDEgIT0gaTJjX3RyYW5zZmVyKGkyY19hZGFwLCAmbXNnLCAxKSkK
-PiAgICAgIGRvIHsgZG8geyBwcmludGsoIjw0PiIgIiVzICVkLSUwNHg6ICIgInVuYWJsZSB0byBw
-cm9iZSAlcywKPiBwcm9jZWVkaW5nIGFueXdheS4iLCBwcml2LT5pMmNfcHJvcHMubmFtZSwgcHJp
-di0+aTJjX3Byb3BzLmFkYXAgPwo+IGkyY19hZGFwdGVyX2lkKHByaXYtPmkyY19wcm9wcy5hZGFw
-KSA6IC0xLCBwcml2LT5pMmNfcHJvcHMuYWRkciwKPiB0dW5lcnNbdHlwZV0ubmFtZSk7IH0gd2hp
-bGUgKDApOyB9IHdoaWxlICgwKTsKPgo+Cj4gICAgIGlmIChmZS0+b3BzLmkyY19nYXRlX2N0cmwp
-Cj4gICAgICBmZS0+b3BzLmkyY19nYXRlX2N0cmwoZmUsIDApOwo+Cj4KPiBIbW1tLiBMb3RzIG9m
-IGRlcmVmZXJlbmNlcyBvZiBzb21ldGhpbmcgY2FsbGVkICJwcml2Ii4gIExvb2tpbmcgYXQgdGhl
-Cj4gdG9wIG9mIHR1bmVyLXNpbXBsZS5jOnNpbXBsZV90dW5lcl9hdHRhY2goKSB3ZSBmaW5kOgo+
-Cj4gMTAzMiAgICAgICAgIHN0cnVjdCB0dW5lcl9zaW1wbGVfcHJpdiAqcHJpdiA9IE5VTEw7Cj4g
-MTAzMyAgICAgICAgIGludCBpbnN0YW5jZTsKPgo+IFdpdGggbm8gb3RoZXIgb3BlcmF0aW9ucyBv
-biAicHJpdiIgYmVmb3JlIHRoZSAidHVuZXJfd2FybigpIiBpbnZvY2F0aW9uLgo+Cj4KPiBTbyB0
-dW5lci1zaW1wbGUuYzpzaW1wbGVfdHVuZXJfYXR0YWNoKCkgaGFzIGEgaGFyZCBjb2RlZCBOVUxM
-IHBvaW50ZXIKPiBkZXJlZmVyZW5jZSBidXJpZWQgaW4gYSBtYWNybyB0aGF0IG9ubHkgc29tZXRp
-bWVzIGdldHMgZXhlY3V0ZWQuCj4gQ2hhbmdpbmcgdGhlICJ0dW5lcl93YXJuKCkiIGludm9jYXRp
-b24gdG8gc29tZXRoaW5nIHNpbXBsZSBhbmQgaW5ub2N1b3VzCj4gKGUuZy4gcGxhaW4gb2xkIHBy
-aW50aygpKSB3aWxsIHdvcmsgYXJvdW5kIHlvdXIgcHJvYmxlbSBmb3Igbm93Lgo+Cj4gUmVnYXJk
-cywKPiBBbmR5CgpUaGFua3MuIENoYW5naW5nIHR1bmVyX3dhcm4gdG8gcHJpbnRrIHdvcmtzLgoK
-Sm9zZSBBbGJlcnRvCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+On Sun, 2008-05-18 at 14:57 +0200, Jelle De Loecker wrote:
+> And when I give mplayer a go I get this:
+>         $ dvbstream -o | mplayer -
+>         dvbstream will stop after -1 seconds (71582788 minutes)
+>         Output to stdout
+>         Streaming 0 streams
+>         MPlayer 1.0rc2-4.2.3 (C) 2000-2007 MPlayer Team
+>         CPU: Intel(R) Core(TM)2 CPU          6600  @ 2.40GHz (Family:
+>         6, Model: 15, Stepping: 6)
+>         CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+>         Compiled with runtime CPU detection.
+>         mplayer: could not connect to socket
+>         mplayer: No such file or directory
+>         Failed to open LIRC support. You will not be able to use your
+>         remote control.
+>         
+>         Playing -.
+>         Reading from stdin...
+>         Cannot seek backward in linear streams!
+>         Seek failed
+> Sorry for extensively testing your patience! I, too, wish it would
+> have "just worked" :)
+
+This "just worked" for me using mplayer with a digital video broadcast
+from my HVR-1600 with the cx18 driver (I'm in ATSC country):
+
+$ scandvb -A 1 -v -a 0  /usr/share/dvb-apps/atsc/us-ATSC-center-frequencies-8VSB \
+	> channels.conf
+$ cp channels.conf ~/.mplayer/channels.conf
+$ mplayer dvb://WRC-1 -vf scale=960:540
+
+The "scandvb" command name might be a rename by Fedora/Redhat of the
+standard command name.
+
+I had to use the '-vf scale=960:540' to display the 1080i content on my
+1024 line display.  Also note that mplayer sometimes wrongly decodes a52
+audio (at least from ATSC streams) so it'll gripe every so often.
+
+For reference:
+
+$ mplayer --help | head -1
+MPlayer 1.0rc2-4.1.2 (C) 2000-2007 MPlayer Team
+
+$ uname -rvi
+2.6.23.15-80.fc7 #1 SMP Sun Feb 10 16:52:18 EST 2008 x86_64
+
+
+Regards,
+Andy
+
+> Thank you,
+> 
+> Jelle De Loecker
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
