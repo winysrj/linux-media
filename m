@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1JwviD-0002OW-3k
-	for linux-dvb@linuxtv.org; Fri, 16 May 2008 10:54:50 +0200
-Message-ID: <482D4BCE.7090007@grumpydevil.homelinux.org>
-Date: Fri, 16 May 2008 10:54:38 +0200
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Jxs5X-0004C1-AU
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 01:14:48 +0200
+Date: Mon, 19 May 2008 01:14:04 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+Message-ID: <Pine.LNX.4.64.0805190112530.15623@pub5.ifh.de>
 MIME-Version: 1.0
-To: David Frankland <david@dmf-software.co.uk>
-References: <48295A62.50708@kompasmedia.nl>	<4829FA37.8030007@freenet.de>	<482AAD8A.80309@kompasmedia.nl>	<482B44D1.1000906@freenet.de>	<1210809373.2514.10.camel@pc10.localdom.local>
-	<482D41F8.5080607@dmf-software.co.uk>
-In-Reply-To: <482D41F8.5080607@dmf-software.co.uk>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend 2300 DVB-C, does it work?
+Subject: Re: [linux-dvb] Testers requested for Freecom / Conceptronic /
+ Realtek / haihua /Videomate / Vestel DVB-T cards with RTL2831U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +24,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David Frankland wrote:
-> hermann pitton wrote:
->> Hello,
->>
->> Am Mittwoch, den 14.05.2008, 22:00 +0200 schrieb Ruediger Dohmhardt:
->>  
->>> By the way, do you have just encrypted channels in Netherland?
->>>     
->>
->> yes, that was reported by countless people, but I'm not there.
->>   
->
-> Not true. I can get around 40 channels unencrypted including 
-> Nederland1, Nederland2, Nederland3, BBC1, BBC2, Net5, SBS6, RTL5, 
-> Veronica etc. Basically, the ones you can receive for free over the air.
->
-> I have this same tuner card, and can watch these channels OK in 
-> MythTV, and I don't even have a CI + CAM (yet).
->
-> My cable company is Caiway, if that matters.
+The email got bounced by mailman. Too many recipients.
 
-This matters yes.... Both UPC and Ziggo encrypt most everything....
+Resending it
 
+---------- Forwarded message ----------
+Date: Mon, 19 May 2008 01:02:35 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Jan Hoogenraad <jan-conceptronic@h-i-s.nl>
+Subject: Re: [linux-dvb] Testers requested for Freecom / Conceptronic / Realtek
+     / haihua /Videomate / Vestel DVB-T cards with RTL2831U
 
+Hi,
+
+On Sun, 18 May 2008, Jan Hoogenraad wrote:
+>  However, I ran into problems with the mt2060 (which is the tuner I own).
+>  In the function  MT2060_LocateIF1 is making this hard.
+
+Don't bother. IIRC, the function is not working correctly for the MT2060. The 
+self-calibration does not work. The IF-offset must be set per-device during 
+production and usually is programmed into an eeprom on the cards. Simply apply 
+it to the mt2060_attach-function (see mt2060.h).
+
+>  This function doe some sort of calibration, and there is both internal
+>  data from the tuner required, and input from the demodulator.
+
+Use a callback in the config struct of either the demod or the tuner driver. It 
+is not always the right solution to put specific functionality for one or two 
+devices into a generic interface or in the dvb_tuner_ops case into the abstract 
+class.
+
+HTH,
+Patrick.
+
+--
+    Mail: patrick.boettcher@desy.de
+    WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
