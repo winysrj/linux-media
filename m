@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from viefep18-int.chello.at ([213.46.255.22]
-	helo=viefep23-int.chello.at)
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rscheidegger_lists@hispeed.ch>) id 1JyF57-0003Zx-Fx
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 01:47:57 +0200
-Received: from [192.168.1.157] (really [77.57.60.184])
-	by viefep23-int.chello.at
-	(InterMail vM.7.08.02.00 201-2186-121-20061213) with ESMTP
-	id <20080519234720.GYEG5554.viefep23-int.chello.at@[192.168.1.157]>
-	for <linux-dvb@linuxtv.org>; Tue, 20 May 2008 01:47:20 +0200
-Message-ID: <48321189.3060901@hispeed.ch>
-Date: Tue, 20 May 2008 01:47:21 +0200
-From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>
-	<4831CC3F.803@borodulin.fi>
-In-Reply-To: <4831CC3F.803@borodulin.fi>
-Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
- Manu's jusst.de Mantis branch
+	(envelope-from <goga777@bk.ru>) id 1Jxdyx-0002QU-BA
+	for linux-dvb@linuxtv.org; Sun, 18 May 2008 10:11:03 +0200
+Date: Sun, 18 May 2008 12:12:50 +0400
+From: Igor Nikanov <goga777@bk.ru>
+To: Jelle De Loecker <skerit@kipdola.com>
+Message-ID: <20080518121250.7dc0eaac@bk.ru>
+In-Reply-To: <482D1AB7.3070101@kipdola.com>
+References: <482CC0F0.30005@kipdola.com>
+	<E1JwrWW-0006Ye-00.goga777-bk-ru@f139.mail.ru>
+	<482D1AB7.3070101@kipdola.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technotrend S2-3200 Scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,32 +27,75 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 19.05.2008 20:51, Pauli Borodulin wrote:
-> Heya!
-> 
-> Roland Scheidegger wrote:
->  > [...]
->> No offense, but I like my patch much better :-) [1]. I fail to see why
->> polling has to be done - just for half-working (at best on some cards,
->> not at all if the native repeat rate is too low) "improved" auto-repeat.
-> 
-> Ah, sorry. My bad, I missed your patch. It surely looks better.
-> 
-> What comes to auto-repeat... With your version of the patch it works 
-> equally well/badly on 2033 as it did with the earlier version.
-Just curious, what's the native repeat rate (what it prints out with
-verbose set time between irqs) with this card?
+> I've tried using a version from the repository, dvb-utils 1.1.1-3
 
-> 
->> I was under the impression that using cancel_rearming_delayed_work
->> instead of cancel_delayed_work (as I did in my patch) would make it
->> unnecessary to call flush_scheduled_work (but I just followed some other
->> drivers and could be easily wrong).
-> 
-> After reading some kernel source code, I agree that 
-> cancel_rearming_delayed_work is better suited.
+with the latest multiproto you have to use testing version of szap2 from test directory of dvb-apps
+http://linuxtv.org/hg/dvb-apps/file/31a6dd437b9a/test/szap2.c
 
-Roland
+Igor
+
+
+> I also tried to compile the originals from the source tree, unpatched, 
+> http://linuxtv.org/hg/dvb-apps
+> 
+> I tried to patch "scan" with this scan source: 
+> http://jusst.de/manu/scan.tar.bz2
+> 
+> And I tried to patch szap with this file:  
+> http://abraham.manu.googlepages.com/szap.c
+> 
+> But those patched versions won't compile, except for ONE time:
+> 
+> I finally got to compile the patched "scan" (but trying to recompile 
+> afterwards failed again, very strange) but it *still* didn't scan:
+> 
+> $ sudo scan -t 1 -s 1 dvb-s/Astra-19.2E > ~/channels.conf
+> scanning dvb-s/Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12551500 V 22000000 22000000
+> ioctl DVBFE_GET_INFO failed: Operation not supported
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+> 
+> 
+> 
+> Igor schreef:
+> > which version of multiproto, szap2, scan did you use ?
+> >
+> > -----Original Message-----
+> > From: Jelle De Loecker <skerit@kipdola.com>
+> > To: linux-dvb@linuxtv.org
+> > Date: Fri, 16 May 2008 01:02:08 +0200
+> > Subject: [linux-dvb] Technotrend S2-3200 Scanning
+> >
+> >   
+> >> But now I'm stuck again, and it seems to me this is a problem which has 
+> >> been faced, and fixed, before - I just can't fix it now because 
+> >> apparently so much has changed that all the patches don't work on the 
+> >> new source files anymore: any hacked "scan" or "szap" program won't compile.
+> >>
+> >> (Keep in mind I'm using a switch between my S2-3200 card and my 4 LNBs - 
+> >> will this cause any problems?)
+> >>
+> >> This is the problem you've no doubt seen before.
+> >>
+> >> $ sudo scan /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E 
+> >>  >channels.conf
+> >>
+> >> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> >> initial transponder 12551500 V 22000000 5
+> >>  >>> tune to: 12551:v:0:22000
+> >> __tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid 
+> >> argument
+> >>  >>> tune to: 12551:v:0:22000
+> >> __tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid 
+> >> argument
+> >> ERROR: initial tuning failed
+> >> dumping lists (0 services)
+> >> Done
+> 
 
 
 _______________________________________________
