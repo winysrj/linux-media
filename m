@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.227])
+Received: from smtp02.msg.oleane.net ([62.161.4.2])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <drescherjm@gmail.com>) id 1JzEC5-0002GA-WE
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 19:03:13 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so171337rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 10:03:05 -0700 (PDT)
-Message-ID: <387ee2020805221003p3dc90120u87a9510daa3dbe54@mail.gmail.com>
-Date: Thu, 22 May 2008 13:03:05 -0400
-From: "John Drescher" <drescherjm@gmail.com>
-To: KnightCode <knightcode@gmail.com>, linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <db218b6b0805220940q7f978785v6e4958df01fd681@mail.gmail.com>
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1Jy4ht-0002Lg-2r
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 14:43:16 +0200
+Received: from PCTL ([194.250.18.140]) (authenticated)
+	by smtp02.msg.oleane.net (MTA) with ESMTP id m4JCh9Q4030204
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 14:43:09 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 19 May 2008 14:43:09 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAhauPQoA2x0i56RbawkCZWgEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <db218b6b0805211928m6aeeae7ctffa6be5b7d90e9f9@mail.gmail.com>
-	<387ee2020805211930j653a8240h8dc809b03d7a5942@mail.gmail.com>
-	<db218b6b0805220940q7f978785v6e4958df01fd681@mail.gmail.com>
-Subject: Re: [linux-dvb] Tuning Question, Comcast in Pittsburgh, PA
+In-Reply-To: <3cc3561f0805190426m5b7dce4bxfed33ad9f5d1339@mail.gmail.com>
+Subject: [linux-dvb] RE :  RE : inserting user PIDs in TS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,27 +26,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/5/22 KnightCode <knightcode@gmail.com>:
-> Ok. So what can we do about this? I imagine TiVo and Slingbox don't have
-> this problem (never used them, though) and the boxes from the cable company
-> certainly don't have a problem, both of which probably just have some kind
-> of digital signal processing that could be implemented on our CPU. If Nvidia
-> can provide proprietary, binary drivers for their hardware, the major cable
-> companies can do the same for their broadcasts. In fact, why aren't they
-> made to? I'm allowed to timeshift transmissions in any way I see fit.
->
+> I am not sure that I agreen on having to modify PCR even if you add
+> data to the mux. Every service has it's own PCR, If you add a new pid
+> without PCR, then you just have to increase output datarate
+> accordingly.
 
-Tivo has a cable card inside it that will decrypt the encrypted
-signal. I believe you have to pay $3 to $5 /month to comcast to
-connect a cablecard device. There is no cable card on linux. The only
-solution is to capture the output of a cable box. In the past this has
-been only SD but Hauppage is releasing a new product that will allow
-you to capture in HD. I believe the product exists but there are no
-linux drivers yet.
+You are right in general, but not quite in the precise values.
 
-John
+> As long as the PCR leaves the muxing software at the same
+> time as it would do without injecting the pid,
 
-John
+This is simply quite impossible to acheive, unless you exactly add
+a fixed number of packets between *each* original packet. If you
+leave two consecutive original packets together and insert a new
+packet between two original packets (P1 P2 P3 => P1 P2 Pnew P3),
+you introduce PCR jitter.
+
+A PCR value is precise to the bit.
+
+Inserting a packet means inserting many bits (188*8). In an existing
+PID, you will find PCR's in, say, packets Px, Py and Pz. These packets
+are not necessarily equally spaced in the TS. During your muxing
+operation, you will add, say, 1 packet between Px and Py and 2 (or zero)
+packets between Py and Pz. Thus, some PCR's become wrong.
+
+> there should be no
+> difference at the receiving end.
+
+Remember that the PCR's represent a "system clock", not a program
+clock (which is implemented by DTS and PTS). PCR's are used as system
+clock reference by the receiving STB. They must be extremely precise.
+
+Usually, the PCR's are restamped by a hardware oscillator at the output
+of the MUX and even sometimes restamped inside the modulator itself.
+
+Of course, if the TS is used in a software codec running as a PC
+application, PCR jitter is harmless since the system clock of the
+rendering engine is likely to be the PC system clock, not the PCR's.
+STB are different.
+
+-Thierry
+
 
 _______________________________________________
 linux-dvb mailing list
