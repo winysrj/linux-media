@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtps.ntu.edu.tw ([140.112.2.142])
+Received: from mail-in-11.arcor-online.net ([151.189.21.51])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <b87605214@ntu.edu.tw>) id 1Ju7ok-0001tC-VG
-	for linux-dvb@linuxtv.org; Thu, 08 May 2008 17:14:03 +0200
-From: lin <b87605214@ntu.edu.tw>
-To: linux-dvb@linuxtv.org
-Date: Thu, 8 May 2008 23:12:59 +0800
-References: <200805071307.15982.b87605214@ntu.edu.tw>
-	<48219F49.9090709@Rods.id.au>
-In-Reply-To: <48219F49.9090709@Rods.id.au>
-MIME-Version: 1.0
-Message-Id: <200805082312.59928.b87605214@ntu.edu.tw>
-Subject: Re: [linux-dvb] Try to Make DVB-T part of Compro VideoMate T750 Work
+	(envelope-from <hermann-pitton@arcor.de>) id 1JyDsf-0008Vt-1h
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 00:31:00 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: bvidinli <bvidinli@gmail.com>
+In-Reply-To: <36e8a7020805191405r6b0d4ce6h3a53228500b20ce1@mail.gmail.com>
+References: <36e8a7020805191405r6b0d4ce6h3a53228500b20ce1@mail.gmail.com>
+Date: Tue, 20 May 2008 00:30:03 +0200
+Message-Id: <1211236203.3241.51.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, Eduard Huguet <eduardhc@gmail.com>
+Subject: Re: [linux-dvb] Failed: Avermedia DVB-S Hybrid+FM A700 on
+	ubuntu	8.04, kernel 2.6.24-16-generic
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,233 +20,223 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1974318695=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1974318695==
-Content-Type: multipart/alternative;
-  boundary="Boundary-01=_7hxIIr6cveb8cyi"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
---Boundary-01=_7hxIIr6cveb8cyi
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Am Dienstag, den 20.05.2008, 00:05 +0300 schrieb bvidinli:
+> Unfortunately, failed,
+> below is what i did, if you have any idea, please try to help me...
+> 
+> Thanks...
+> 
+> on ubuntu 8.04 with kernel 2.6.24.16-generic, ubuntu's current kernel.:
+> i got sources and headers for this kernel..
+> (btw, i learned now that zzam = Matthias, thanks.. .)
+> 
+> i got mercurial,
+> i did: hg clone http://linuxtv.org/hg/v4l-dvb
+> then, got a700_full_20080519.diff from http://dev.gentoo.org/~zzam/dvb/
+> i did:
+> cd v4l-dvb
+> patch -p1 < a700_full_20080519.diff
+> make
+> (make was successfull, without errors.. )
+> sudo make install
+> (install was successfull.)
+> 
+> 
+> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo rmmod saa7134_alsa
+> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo make rmmod
+> make -C /home/bvidinli/v4l-dvb/v4l rmmod
+> make[1]: Entering directory `/home/bvidinli/v4l-dvb/v4l'
+> scripts/rmmod.pl unload
+> found 233 modules
+> /sbin/rmmod saa7134
+> /sbin/rmmod videodev
+> /sbin/rmmod videobuf_dma_sg
+> /sbin/rmmod ir_kbd_i2c
+> /sbin/rmmod compat_ioctl32
+> /sbin/rmmod v4l1_compat
+> /sbin/rmmod v4l2_common
+> /sbin/rmmod videobuf_core
+> /sbin/rmmod ir_common
+> make[1]: Leaving directory `/home/bvidinli/v4l-dvb/v4l'
+> 
+> 
+> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134 i2c_scan=1
+> FATAL: Error inserting saa7134
+> (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> FATAL: Error running install command for saa7134
+> bvidinli@bvidinli-desktop:~/v4l-dvb$
+> 
+> 
+> 
+> dmesg is as follows:
+> 
+> 
+> [   48.937645] saa7134: disagrees about version of symbol videobuf_streamoff
+> [   48.937663] saa7134: Unknown symbol videobuf_streamoff
+> [   48.938027] saa7134: disagrees about version of symbol videobuf_poll_stream
+> [   48.938035] saa7134: Unknown symbol videobuf_poll_stream
+> [   48.938809] saa7134: disagrees about version of symbol videobuf_dma_free
+> [   48.938817] saa7134: Unknown symbol videobuf_dma_free
+> [   48.939134] saa7134: disagrees about version of symbol videobuf_reqbufs
+> [   48.939142] saa7134: Unknown symbol videobuf_reqbufs
+> [   48.939779] saa7134: disagrees about version of symbol videobuf_waiton
+> [   48.939787] saa7134: Unknown symbol videobuf_waiton
+> [   48.940332] saa7134: disagrees about version of symbol videobuf_dqbuf
+> [   48.940340] saa7134: Unknown symbol videobuf_dqbuf
+> [   48.941669] saa7134: disagrees about version of symbol videobuf_stop
+> [   48.941677] saa7134: Unknown symbol videobuf_stop
+> [   48.942673] saa7134: Unknown symbol videobuf_queue_pci_init
+> [   48.942813] saa7134: disagrees about version of symbol videobuf_dma_unmap
+> [   48.942822] saa7134: Unknown symbol videobuf_dma_unmap
+> [   48.942972] saa7134: disagrees about version of symbol videobuf_read_stream
+> [   48.942981] saa7134: Unknown symbol videobuf_read_stream
+> [   48.943162] saa7134: disagrees about version of symbol videobuf_querybuf
+> [   48.943170] saa7134: Unknown symbol videobuf_querybuf
+> [   48.943520] saa7134: disagrees about version of symbol
+> video_unregister_device
+> [   48.943529] saa7134: Unknown symbol video_unregister_device
+> [   48.943647] saa7134: disagrees about version of symbol videobuf_qbuf
+> [   48.943655] saa7134: Unknown symbol videobuf_qbuf
+> [   48.943950] saa7134: disagrees about version of symbol video_device_alloc
+> [   48.943958] saa7134: Unknown symbol video_device_alloc
+> [   48.944075] saa7134: disagrees about version of symbol videobuf_read_one
+> [   48.944083] saa7134: Unknown symbol videobuf_read_one
+> [   48.944365] saa7134: disagrees about version of symbol video_register_device
+> [   48.944373] saa7134: Unknown symbol video_register_device
+> [   48.945156] saa7134: disagrees about version of symbol videobuf_iolock
+> [   48.945164] saa7134: Unknown symbol videobuf_iolock
+> [   48.945433] saa7134: disagrees about version of symbol videobuf_streamon
+> [   48.945442] saa7134: Unknown symbol videobuf_streamon
+> [   48.946164] saa7134: disagrees about version of symbol video_device_release
+> [   48.946172] saa7134: Unknown symbol video_device_release
+> [   48.946287] saa7134: disagrees about version of symbol videobuf_mmap_mapper
+> [   48.946295] saa7134: Unknown symbol videobuf_mmap_mapper
+> [   48.946665] saa7134: disagrees about version of symbol videobuf_cgmbuf
+> [   48.946673] saa7134: Unknown symbol videobuf_cgmbuf
+> [   48.947108] saa7134: disagrees about version of symbol videobuf_to_dma
+> [   48.947116] saa7134: Unknown symbol videobuf_to_dma
+> [   48.947228] saa7134: disagrees about version of symbol videobuf_mmap_free
+> [   48.947237] saa7134: Unknown symbol videobuf_mmap_free
+> 
+> i rebooted, the same..
+> 
+> 
+> i repeated same compile with patch avertv_A700_dvb_part.diff
+> 
+> 
+> 
+> result:
+> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134 i2c_scan=1
+> FATAL: Error inserting saa7134
+> (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> FATAL: Error running install command for saa7134
+> 
+> 
+> here is dmesg related output:
+> [ 2023.405692] Linux video capture interface: v2.00
+> [ 2023.525841] saa7134: disagrees about version of symbol videobuf_streamoff
+> [ 2023.525868] saa7134: Unknown symbol videobuf_streamoff
+> [ 2023.526215] saa7134: disagrees about version of symbol videobuf_poll_stream
+> [ 2023.526223] saa7134: Unknown symbol videobuf_poll_stream
+> [ 2023.526968] saa7134: disagrees about version of symbol videobuf_dma_free
+> [ 2023.526976] saa7134: Unknown symbol videobuf_dma_free
+> [ 2023.527249] saa7134: disagrees about version of symbol videobuf_reqbufs
+> [ 2023.527257] saa7134: Unknown symbol videobuf_reqbufs
+> [ 2023.527904] saa7134: disagrees about version of symbol videobuf_waiton
+> [ 2023.527912] saa7134: Unknown symbol videobuf_waiton
+> [ 2023.528438] saa7134: disagrees about version of symbol videobuf_dqbuf
+> [ 2023.528446] saa7134: Unknown symbol videobuf_dqbuf
+> [ 2023.529926] saa7134: disagrees about version of symbol videobuf_stop
+> [ 2023.529935] saa7134: Unknown symbol videobuf_stop
+> [ 2023.530940] saa7134: Unknown symbol videobuf_queue_pci_init
+> [ 2023.531137] saa7134: disagrees about version of symbol videobuf_dma_unmap
+> [ 2023.531146] saa7134: Unknown symbol videobuf_dma_unmap
+> [ 2023.531271] saa7134: disagrees about version of symbol videobuf_read_stream
+> [ 2023.531279] saa7134: Unknown symbol videobuf_read_stream
+> [ 2023.531485] saa7134: disagrees about version of symbol videobuf_querybuf
+> [ 2023.531494] saa7134: Unknown symbol videobuf_querybuf
+> [ 2023.531832] saa7134: disagrees about version of symbol
+> video_unregister_device
+> [ 2023.531841] saa7134: Unknown symbol video_unregister_device
+> [ 2023.531956] saa7134: disagrees about version of symbol videobuf_qbuf
+> [ 2023.531964] saa7134: Unknown symbol videobuf_qbuf
+> [ 2023.532251] saa7134: disagrees about version of symbol video_device_alloc
+> [ 2023.532260] saa7134: Unknown symbol video_device_alloc
+> [ 2023.532373] saa7134: disagrees about version of symbol videobuf_read_one
+> [ 2023.532381] saa7134: Unknown symbol videobuf_read_one
+> [ 2023.532655] saa7134: disagrees about version of symbol video_register_device
+> [ 2023.532663] saa7134: Unknown symbol video_register_device
+> [ 2023.533561] saa7134: disagrees about version of symbol videobuf_iolock
+> [ 2023.533569] saa7134: Unknown symbol videobuf_iolock
+> [ 2023.533831] saa7134: disagrees about version of symbol videobuf_streamon
+> [ 2023.533839] saa7134: Unknown symbol videobuf_streamon
+> [ 2023.534615] saa7134: disagrees about version of symbol video_device_release
+> [ 2023.534624] saa7134: Unknown symbol video_device_release
+> [ 2023.534736] saa7134: disagrees about version of symbol videobuf_mmap_mapper
+> [ 2023.534745] saa7134: Unknown symbol videobuf_mmap_mapper
+> [ 2023.535101] saa7134: disagrees about version of symbol videobuf_cgmbuf
+> [ 2023.535109] saa7134: Unknown symbol videobuf_cgmbuf
+> [ 2023.535598] saa7134: disagrees about version of symbol videobuf_to_dma
+> [ 2023.535606] saa7134: Unknown symbol videobuf_to_dma
+> [ 2023.535717] saa7134: disagrees about version of symbol videobuf_mmap_free
+> [ 2023.535725] saa7134: Unknown symbol videobuf_mmap_free
+> 
+> 
+> my linux kernel is: 2.6.24-16-generic, which is ubuntu 8.04's current kernel...
+> i have source and header files for this kernel..
+> 
+> bvidinli@bvidinli-desktop:/usr/src$ uname -a
+> Linux bvidinli-desktop 2.6.24-16-generic #1 SMP Thu Apr 10 13:23:42
+> UTC 2008 i686 GNU/Linux
+> 
+> 
+> 
+> bvidinli@bvidinli-desktop:/usr/src$ ls -l
+> total 45880
+> lrwxrwxrwx  1 root src        19 2008-05-19 22:14 linux -> linux-source-2.6.24
+> drwxr-xr-x 20 root root     4096 2008-04-22 20:54 linux-headers-2.6.24-16
+> drwxr-xr-x  6 root root     4096 2008-04-22 20:54
+> linux-headers-2.6.24-16-generic
+> drwxr-xr-x 23 root root     4096 2008-04-10 19:36 linux-source-2.6.24
+> -rw-r--r--  1 root root 46914792 2008-04-10 19:38 linux-source-2.6.24.tar.bz2
+> bvidinli@bvidinli-desktop:/usr/src$
+> 
+> Attention :
+> should these be applied on 2.6.26.rc2 or 2.6.25 ?
+> i applied to 2.6.24, which is current kernel for ubuntu 8.04...
 
-On 2008 May 7 Wednesday 20:23:37 you wrote:
->     Hi, what I2C addresses are you using for each device?
+you seem to have mixed old and new modules around.
 
-Hi, Rod:
+There have been several reports, that on recent ubuntu stuff, at least
+on heron, v4l-dvb modules are in unusual locations, so they are not
+removed/replaced.
 
-Sorry for late replying...
+Try to use "modprobe -vr ..."and modprobe -v" to find out where or read
+the lists.
 
-Following is my patch to v4l-dvb (v4l-dvb-4c4fd6b8755c)
-The patch is mainly adapted from Newbigin's patch, but the case in saa7134_board_init2 is talltolly a nonsense guessing...    lol
+With "make install" you see the correct location for the new modules.
+Delete any other duplicate stuff you find anywhere else and do "depmod
+-a"
 
-Ask a newbie question...  lol
-What's the role of I2C plays in between these chips?
+Alsa support seems also to be out of tree and produces the same, but you
+don't need it yet.
 
-linleno
----
-
-diff -ru v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-cards.c v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-cards.c
---- v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-cards.c  2008-05-02 18:51:27.000000000 +0800
-+++ v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-cards.c      2008-05-08 22:42:06.000000000 +0800
-@@ -5936,6 +5936,7 @@
-        case SAA7134_BOARD_AVERMEDIA_SUPER_007:
-        case SAA7134_BOARD_TWINHAN_DTV_DVB_3056:
-        case SAA7134_BOARD_CREATIX_CTX953:
-+       case SAA7134_BOARD_VIDEOMATE_T750:
-        {
-                /* this is a hybrid board, initialize to analog mode
-                 * and configure firmware eeprom address
-diff -ru v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-dvb.c v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-dvb.c
---- v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-dvb.c    2008-05-02 18:51:27.000000000 +0800
-+++ v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-dvb.c        2008-05-08 22:42:54.000000000 +0800
-@@ -40,6 +40,8 @@
- #include "tda1004x.h"
- #include "nxt200x.h"
- #include "tuner-xc2028.h"
-+#include "zl10353.h"
-+#include "qt1010.h"
-
- #include "tda10086.h"
- #include "tda826x.h"
-@@ -937,6 +939,17 @@
-        .demod_address    = 0x0a,
- };
-
-+static struct zl10353_config videomate_t750_zl10353_config = {
-+       .demod_address  = 0x0f,
-+       .no_tuner = 0,
-+       .parallel_ts = 1,
-+};
-+
-+static struct qt1010_config videomate_t750_qt1010_config = {
-+       .i2c_address = 0x62
-+};
-+
-+
- /* ==================================================================
-  * Core code
-  */
-@@ -1263,15 +1276,33 @@
-                        goto dettach_frontend;
-                break;
-        case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
--#if 0
--       /*FIXME: What frontend does Videomate T750 use? */
--       case SAA7134_BOARD_VIDEOMATE_T750:
--#endif
-                dev->dvb.frontend = dvb_attach(mt352_attach,
-                                               &avermedia_e506r_mt352_dev,
-                                               &dev->i2c_adap);
-                attach_xc3028 = 1;
-                break;
-+#if 1
-+       /*FIXME: What frontend does Videomate T750 use? */
-+       case SAA7134_BOARD_VIDEOMATE_T750:
-+               printk("Compro VideoMate T750 DVB setup\n");
-+               dev->dvb.frontend = dvb_attach(zl10353_attach,
-+                                               &videomate_t750_zl10353_config,
-+                                               &dev->i2c_adap);
-+               if (dev->dvb.frontend != NULL) {
-+                       printk("Attaching pll\n");
-+                       // if there is a gate function then the i2c bus breaks.....!
-+                       dev->dvb.frontend->ops.i2c_gate_ctrl = 0;
-+
-+                       if (dvb_attach(qt1010_attach,
-+                                      dev->dvb.frontend,
-+                                      &dev->i2c_adap,
-+                                      &videomate_t750_qt1010_config) == NULL)
-+                       {
-+                               wprintk("error attaching QT1010\n");
-+                       }
-+               }
-+               break;
-+#endif
-        case SAA7134_BOARD_MD7134_BRIDGE_2:
-                dev->dvb.frontend = dvb_attach(tda10086_attach,
-                                                &sd1878_4m, &dev->i2c_adap);
-
---Boundary-01=_7hxIIr6cveb8cyi
-Content-Type: text/html;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<html><head><meta name="qrichtext" content="1" /></head><body style="font-size:10pt;font-family:DejaVu Serif">
-<p>On 2008 May 7 Wednesday 20:23:37 you wrote:</p>
-<p>&gt;     Hi, what I2C addresses are you using for each device?</p>
-<p></p>
-<p>Hi, Rod:</p>
-<p></p>
-<p>Sorry for late replying...</p>
-<p></p>
-<p>Following is my patch to v4l-dvb (v4l-dvb-4c4fd6b8755c)</p>
-<p>The patch is mainly adapted from Newbigin's patch, but the case in saa7134_board_init2 is talltolly a nonsense guessing...    lol</p>
-<p></p>
-<p>Ask a newbie question...  lol</p>
-<p>What's the role of I2C plays in between these chips?</p>
-<p></p>
-<p>linleno</p>
-<p>---</p>
-<p></p>
-<p>diff -ru v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-cards.c v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-cards.c</p>
-<p>--- v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-cards.c  2008-05-02 18:51:27.000000000 +0800</p>
-<p>+++ v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-cards.c      2008-05-08 22:42:06.000000000 +0800</p>
-<p>@@ -5936,6 +5936,7 @@</p>
-<p>        case SAA7134_BOARD_AVERMEDIA_SUPER_007:</p>
-<p>        case SAA7134_BOARD_TWINHAN_DTV_DVB_3056:</p>
-<p>        case SAA7134_BOARD_CREATIX_CTX953:</p>
-<p>+       case SAA7134_BOARD_VIDEOMATE_T750:</p>
-<p>        {</p>
-<p>                /* this is a hybrid board, initialize to analog mode</p>
-<p>                 * and configure firmware eeprom address</p>
-<p>diff -ru v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-dvb.c v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-dvb.c</p>
-<p>--- v4l-dvb-4c4fd6b8755c-ori/linux/drivers/media/video/saa7134/saa7134-dvb.c    2008-05-02 18:51:27.000000000 +0800</p>
-<p>+++ v4l-dvb-4c4fd6b8755c/linux/drivers/media/video/saa7134/saa7134-dvb.c        2008-05-08 22:42:54.000000000 +0800</p>
-<p>@@ -40,6 +40,8 @@</p>
-<p> #include &quot;tda1004x.h&quot;</p>
-<p> #include &quot;nxt200x.h&quot;</p>
-<p> #include &quot;tuner-xc2028.h&quot;</p>
-<p>+#include &quot;zl10353.h&quot;</p>
-<p>+#include &quot;qt1010.h&quot;</p>
-<p></p>
-<p> #include &quot;tda10086.h&quot;</p>
-<p> #include &quot;tda826x.h&quot;</p>
-<p>@@ -937,6 +939,17 @@</p>
-<p>        .demod_address    = 0x0a,</p>
-<p> };</p>
-<p></p>
-<p>+static struct zl10353_config videomate_t750_zl10353_config = {</p>
-<p>+       .demod_address  = 0x0f,</p>
-<p>+       .no_tuner = 0,</p>
-<p>+       .parallel_ts = 1,</p>
-<p>+};</p>
-<p>+</p>
-<p>+static struct qt1010_config videomate_t750_qt1010_config = {</p>
-<p>+       .i2c_address = 0x62</p>
-<p>+};</p>
-<p>+</p>
-<p>+</p>
-<p> /* ==================================================================</p>
-<p>  * Core code</p>
-<p>  */</p>
-<p>@@ -1263,15 +1276,33 @@</p>
-<p>                        goto dettach_frontend;</p>
-<p>                break;</p>
-<p>        case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:</p>
-<p>-#if 0</p>
-<p>-       /*FIXME: What frontend does Videomate T750 use? */</p>
-<p>-       case SAA7134_BOARD_VIDEOMATE_T750:</p>
-<p>-#endif</p>
-<p>                dev-&gt;dvb.frontend = dvb_attach(mt352_attach,</p>
-<p>                                               &amp;avermedia_e506r_mt352_dev,</p>
-<p>                                               &amp;dev-&gt;i2c_adap);</p>
-<p>                attach_xc3028 = 1;</p>
-<p>                break;</p>
-<p>+#if 1</p>
-<p>+       /*FIXME: What frontend does Videomate T750 use? */</p>
-<p>+       case SAA7134_BOARD_VIDEOMATE_T750:</p>
-<p>+               printk(&quot;Compro VideoMate T750 DVB setup\n&quot;);</p>
-<p>+               dev-&gt;dvb.frontend = dvb_attach(zl10353_attach,</p>
-<p>+                                               &amp;videomate_t750_zl10353_config,</p>
-<p>+                                               &amp;dev-&gt;i2c_adap);</p>
-<p>+               if (dev-&gt;dvb.frontend != NULL) {</p>
-<p>+                       printk(&quot;Attaching pll\n&quot;);</p>
-<p>+                       // if there is a gate function then the i2c bus breaks.....!</p>
-<p>+                       dev-&gt;dvb.frontend-&gt;ops.i2c_gate_ctrl = 0;</p>
-<p>+</p>
-<p>+                       if (dvb_attach(qt1010_attach,</p>
-<p>+                                      dev-&gt;dvb.frontend,</p>
-<p>+                                      &amp;dev-&gt;i2c_adap,</p>
-<p>+                                      &amp;videomate_t750_qt1010_config) == NULL)</p>
-<p>+                       {</p>
-<p>+                               wprintk(&quot;error attaching QT1010\n&quot;);</p>
-<p>+                       }</p>
-<p>+               }</p>
-<p>+               break;</p>
-<p>+#endif</p>
-<p>        case SAA7134_BOARD_MD7134_BRIDGE_2:</p>
-<p>                dev-&gt;dvb.frontend = dvb_attach(tda10086_attach,</p>
-<p>                                                &amp;sd1878_4m, &amp;dev-&gt;i2c_adap);</p>
-<p></p>
-</body></html>
---Boundary-01=_7hxIIr6cveb8cyi--
+Cheers,
+Hermann
 
 
---===============1974318695==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1974318695==--
