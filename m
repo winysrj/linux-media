@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4A1nYHP001920
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:49:34 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4A1nMD7009563
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 21:49:22 -0400
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@gmail.com>
-In-Reply-To: <e686f5060805091810h5ce89e7dide1c1138d2ad30b7@mail.gmail.com>
-References: <e686f5060805091255m70e5d959i1ee3169232aadda2@mail.gmail.com>
-	<1210378476.3292.52.camel@palomino.walls.org>
-	<e686f5060805091810h5ce89e7dide1c1138d2ad30b7@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 09 May 2008 21:48:08 -0400
-Message-Id: <1210384088.3292.109.camel@palomino.walls.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4J1xJUW018753
+	for <video4linux-list@redhat.com>; Sun, 18 May 2008 21:59:19 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4J1x9kR004193
+	for <video4linux-list@redhat.com>; Sun, 18 May 2008 21:59:10 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so763864tim.7
+	for <video4linux-list@redhat.com>; Sun, 18 May 2008 18:59:09 -0700 (PDT)
+Message-ID: <998e4a820805181859l505c95daw81ca89fd8142d2e3@mail.gmail.com>
+Date: Mon, 19 May 2008 09:59:08 +0800
+From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0805161245230.3714@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Steven Toth <stoth@hauppauge.com>
-Subject: Re: Is anyone else running a CX18 in 64bit OS?
+Content-Disposition: inline
+References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
+	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
+	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
+	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
+	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
+	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	<998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
+	<Pine.LNX.4.64.0805151432110.14292@axis700.grange>
+	<998e4a820805160332x727bf6adkcedac4934dea2414@mail.gmail.com>
+	<Pine.LNX.4.64.0805161245230.3714@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: question for soc-camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,104 +39,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-05-09 at 21:10 -0400, Brandon Jenkins wrote:
-> On Fri, May 9, 2008 at 8:14 PM, Andy Walls <awalls@radix.net> wrote:
-> > On Fri, 2008-05-09 at 15:55 -0400, Brandon Jenkins wrote:
-> >
-> > Brandon,
-> >
-> > Yes I'm running the cx18 driver with an HVR-1600 on a 64 bit OS.
-> >
-> >> I have noticed an appreciable difference in video capture quality.
-> >
-> > The first analog capture after a modprobe of the cx18 is usually
-> > terrible and unwatchable due to apparently lost frames or no initial
-> > audio followed by audio and lost frames.  The work around is to stop the
-> > analog capture and restart.
-> >
-> > Would you characterize the analog capture quality problems as being only
-> > on weak channels or strong channels as well?
-> >
-> >>  The
-> >> timeline for the change is exactly the same time that development
-> >> ceased on the IVTV version of CX18 and moved to V4L.
-> >
-> > I'm not clear on exactly what versions you mean.  Do you have hg
-> > repository names and change ID's?
-> >
-> >
-> >>  I see heavy
-> >> pixelation in analog capture and the dvb tuner module returns far
-> >> fewer channels on a scan than before. I would like to troubleshoot,
-> >> please let me know what is needed.
-> >
-> >
-> > Since you have the two particular source trees at hand, could you do a
-> > recursive diff so we can see the changes?  That hopefully will narrow
-> > the search for potential causes.
-> >
-> > Regards,
-> > Andy
-> >
-> >> I am attaching dmesg/channel.conf/channel scan output for v4l drivers
-> >> comparing the results from a cx18 and a cx23885 card. (hvr-1600 and
-> >> hvr-1800) If I switch back to the older ivtv and mxl500s dvb tuner all
-> >> works fine.
-> >>
-> >> Thanks in advance
-> >>
-> >> Brandon
-> >
-> >
-> >
-> Andy,
-> 
-> Thanks for the response.
-> 
-> I am running the following command in rc.local to start a capture and
-> then kill it.
-> 
-> cat /dev/video3 > /dev/null & sleep 8 && kill $!
-> 
-> Is that sufficient for an initial capture?
+2008/5/16 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> > 2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>> > What is your <struct pxacamera_platform_data>.mclk_10khz set to? What
+>> > kernel version are you using? I do not know what you do in your FPGA, are
+>> > you sure it doesn't modify your camera bus timing (pixel clock, VSYNC,
+>> > HSYNC, master clock)?
+>>
+>> mclk_10khz=1000,and I try 800,500. And the number of dropped frames do
+>> not decrease with lower frequencies. kernel I used is linux-2.6.24.
+>> And I sure FPGA doesn't modify my camera bus timing.
+>
+> Strange, that dropped frames do not decrease. But you do see, that frames
+> are generated at a lower rate? You can also try 2000 for comparison.
 
-Without testing it, I'm going to say, I imagine it would be from the
-look of it.
+I try 2000,But have no evident changes.
 
+>> > I assume, you write to the filesystem from another thread, right? And the
+>> > writer thread just blocks on write(). What does your grabber thread do at
+>> > this time? Can it continue processing video buffers and queuing new ones
+>> > or it waits for the writer thread?
+>>
+>> yes, I use another thread to write a file.when I write a file to
+>> Norflash,overrun will occur until writting is over.My grabber thread
+>> waits for the writer thread at this time.
+>
+> This is certainly wrong. Your grabber thread must continue collecting
+> completed and supplying new video buffers to the driver.
 
-> I am recording via svideo from a DirecTV signal. All signal levels are
-> consistent.
+I feel strange.Why does grabber thread wait for the writer thread.But
+if I write to Nandflash,grabber thread continues.In these case overrun
+will occur.
+Last two days I try montavista driver for linux-2.6.20.When I write a
+file to JFFS2 Norflash or delete a file from Norflash,overrun will
+occur,but grabber thread continues.When I write a file to YAFFS
+Nandflash,overrun will not occur.It's so strange,why?
 
-OK.  I looked at the cx28885 channels.conf, after I sent the questions,
-and noticed you didn't have terrestrial over the air source.  I saw you
-have the same local channels on QAM that I get over 8-VSB: WETA-HD,
-WUSA-HD, 9-Radar, CW50, etc.
+> If your writer thread is not fast enough, you should drop frames
+> between your two threads.
 
-> The driver base which works for me is cx18-8788bde67f6c it is the
-> older cx18-ivtv branch
+Do you mean writer thread is so slow that FIFO overrun occur.So frames
+are dropped.Why?
 
-This is precisely the version (with a small change for auto chroma
-subcarrier locking) that I use when I need to leave my machine with a
-reliable cx18 driver with digital capability for use with MythTV.
-("General Hospital" *must* be recorded properly daily!)
-
-
-> The version I am having issues with was built from a v4l-dvb pull this morning.
-> 
-> I did not mention this in my email but it was in the log files; I am
-> scanning QAM for DVB. With the mxl500x.ko frontend everything works
-> well. With mxl5005s.ko in the new v4l-dvb scanning is broken.
-
-OK.  Steve just introduced that mxl5005s driver from a separate code
-base.  I've copied him on this e-mail to let him know of the problem.
-
-I'll have to do the pull and test scanning my 8VSB stations.
-
--Andy
-
-> rdiff -r cx18-8788bde67f6c v4l-dvb output attached.
-> 
-> Brandon
+Thanks
+fengxin
 
 --
 video4linux-list mailing list
