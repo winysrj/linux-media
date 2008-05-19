@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from server42.ukservers.net ([217.10.138.242])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1JrMXl-0005Z4-LZ
-	for linux-dvb@linuxtv.org; Thu, 01 May 2008 02:21:40 +0200
-Message-ID: <48190CDB.3080307@linuxtv.org>
-Date: Wed, 30 Apr 2008 20:20:43 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <stephen@rowles.org.uk>) id 1Jy22Z-0001O4-G9
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 11:52:24 +0200
+Received: from server42.ukservers.net (localhost.localdomain [127.0.0.1])
+	by server42.ukservers.net (Postfix smtp) with ESMTP id 08E4CA720B
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 10:51:49 +0100 (BST)
+Received: from miner.localdomain (unknown [89.240.61.40])
+	by server42.ukservers.net (Postfix smtp) with ESMTP id E0DACA71E6
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 10:51:48 +0100 (BST)
+Received: from manicminer.homeip.net (miner [127.0.0.1])
+	by miner.localdomain (Postfix) with ESMTP id 19C661855D
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 10:51:48 +0100 (BST)
+Message-ID: <49403.81.144.130.125.1211190708.squirrel@manicminer.homeip.net>
+In-Reply-To: <cc9679b791c3fa15ec83ebc10b5ba8d3@nkindia.com>
+References: <cc9679b791c3fa15ec83ebc10b5ba8d3@nkindia.com>
+Date: Mon, 19 May 2008 10:51:48 +0100 (BST)
+From: "Stephen Rowles" <stephen@rowles.org.uk>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Eric Cronin <ecronin@gizmolabs.org>
-References: <CAB8636B-64E8-40CB-9D6C-0F52E9CD2394@gizmolabs.org>
-	<37219a840804301134q68a86301y2373329d2fef5a2f@mail.gmail.com>
-	<37219a840804301136r71b240afi16dcf75b5442fe1b@mail.gmail.com>
-	<B3017A65-6616-4FBF-BF82-30B3F69B6CAA@gizmolabs.org>
-In-Reply-To: <B3017A65-6616-4FBF-BF82-30B3F69B6CAA@gizmolabs.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 failing to detect any QAM256 channels
+Subject: Re: [linux-dvb] EIT EPG parser
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,36 +33,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Eric Cronin wrote:
+> Hi all,
+> I am looking for EPG / EIT parser. Any who have already implemented this
+> or
+> can help me in some other way.
+> Gurumurti
 >
-> On Apr 30, 2008, at 2:36 PM, Michael Krufky wrote:
->
->>>
->>> Eric,
->>>
->>> When you use the scan command to scan for QAM channels, you must
->>> specify -a2, to signify that you are scanning digital cable.
->>>
->>> Try that -- does that work?
->>
->>
->> My bad -- I meant, "-A 2"  (capitol A, space, 2) 
 
-scan -A 2 -vvv dvb-apps/util/scan/atsc/us-Cable-Standard-whatever >
-channels.conf
+I have used this program to grab EPG data from DVB-T transmissions in the UK:
 
-Is THAT what you're doing to scan ?
+http://darkskiez.co.uk/index.php?page=tv_grab_dvb
 
+It will produce xmltv format xml which can then be used with various
+different programs for display.
 
-It looks like what you were doing was scan a tuned frequency for pids. 
-If you want to do THAT, then you must actually be tuned to the given
-frequency.  you need to azap SOME_CHANNEL -r, and keep that running
-before attempting to run 'scan -c' ...  I think you should try the scan
-command that I mentioned above.
-
-HTH,
-
-Mike
 
 _______________________________________________
 linux-dvb mailing list
