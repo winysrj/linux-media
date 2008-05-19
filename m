@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from server1.3continents.com ([64.34.166.88])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1JvYiO-00044h-BP
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 16:09:23 +0200
-Date: Mon, 12 May 2008 16:08:35 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Rogan Dawes <lists@dawes.za.net>
-In-Reply-To: <48284D8B.4050909@dawes.za.net>
-Message-ID: <Pine.LNX.4.64.0805121604170.11078@pub3.ifh.de>
-References: <48281E7A.8010006@dawes.za.net>
-	<Pine.LNX.4.64.0805121254410.11078@pub3.ifh.de>
-	<48282843.6010906@dawes.za.net>
-	<Pine.LNX.4.64.0805121418530.11078@pub3.ifh.de>
-	<48283D17.3060303@dawes.za.net> <48284D8B.4050909@dawes.za.net>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-T South Africa
+	(envelope-from <tony@tgds.net>) id 1Jy8XY-0006Yy-NN
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 18:48:49 +0200
+Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
+	by server1.3continents.com (Postfix) with ESMTP id 337604449CD
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 11:48:41 -0500 (CDT)
+From: Tony Grant <tony@tgds.net>
+To: dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1211215078.6089.2.camel@amd.dragonfly.dnsalias.net>
+References: <40312.81.144.130.125.1210936580.squirrel@server27.ukservers.net>
+	<482D79B1.5080504@web.de> <482DC39C.2080100@iname.com>
+	<4831A6B4.1010201@netmindz.net>
+	<1211215078.6089.2.camel@amd.dragonfly.dnsalias.net>
+Date: Mon, 19 May 2008 18:48:41 +0200
+Message-Id: <1211215721.22007.255.camel@hush.lan>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] BBC HD on Freesat?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,34 +24,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi again,
-On Mon, 12 May 2008, Rogan Dawes wrote:
-> I guess this is related to a weak/corrupted signal, although the ber showing 
-> up while running tzap seemed reasonable:
 
-A reasonable BER is 0 and (if the demod-driver is supporting) UNC should 
-be 0 as well.
+Le lundi 19 mai 2008 =E0 17:37 +0100, Robert a =E9crit :
 
-BER is the bit-error-rate, not the bitrate.
+> > So these are basically the same old FTA channels that have always been =
 
-> I guess I'll need to get a better DVB antenna.
+> > on 28.8 but now HD is FTA too ? Or do i need to rescan ?
+> =
 
-Try to open the window or to put the antenna outside, rotate the antenna, 
-check the cables and connector, while having femon running and check which 
-position is the best.
+> Yes, they are the same FTA channels.  BBC HD has been there for some
+> time too.  Only new things are C4, E4, More4 and some +1 channels - I'm
+> not sure if they have "moved" or just had encryption turned off.
 
-Sometimes it helps,
-Patrick.
+They have become FTA moving from FTV and the requirement of the Sky CAM
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+Film4 was first followed by E4 and More4 with Channel4 still
+"experimental" this weekend - i.e. hidden behind a non descriptif
+number.
+
+My hardware does not permit HD but it was there quite a while ago,
+before Film4.
+
+Cheers
+
+Tony
+
+-- =
+
+
 
 _______________________________________________
 linux-dvb mailing list
