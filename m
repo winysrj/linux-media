@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from an-out-0708.google.com ([209.85.132.240])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1JvZgf-0001Bh-6I
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 17:11:39 +0200
-Received: from dsl-roibrasgw1-fe97fb00-89.dhcp.inet.fi ([84.251.151.89]
-	helo=[192.168.1.148])
-	by mail.kapsi.fi with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50) id 1JvZIW-0001Sc-2a
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 17:46:40 +0300
-Message-ID: <4828584C.3040602@iki.fi>
-Date: Mon, 12 May 2008 17:46:36 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <trojanfoe@googlemail.com>) id 1JyD6t-0005G3-SP
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 23:41:38 +0200
+Received: by an-out-0708.google.com with SMTP id c31so646813anc.125
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 14:41:31 -0700 (PDT)
+From: "Andy Duplain" <trojanfoe@googlemail.com>
+To: "Linux DVB Mailing List" <linux-dvb@linuxtv.org>
+Date: Mon, 19 May 2008 22:41:28 +0100
+Message-ID: <000101c8b9f9$19cbefd0$4d63cf70$@com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TDA10023 testers needed
+Content-Language: en-gb
+Subject: [linux-dvb] Technotrend C-1501 DVB-C: Any progress
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,17 +25,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hello,
-I have done some changes to TDA10023-module to get it working with 
-Anysee DVB-receiver. Due to these changes testing is needed.
+Hi there, I can see in the mailing list archive that there has been some
+effort to get this card working; can anyone tell if there has been any
+success?
 
-Testing should be done against Anysee development tree at:
-http://linuxtv.org/hg/~anttip/anysee/
+ 
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Are there any patches I can apply to the Linux-dvb source tree to get this
+card working myself?
+
+ 
+
+Cheers,
+
+Andy
+
+
 
 _______________________________________________
 linux-dvb mailing list
