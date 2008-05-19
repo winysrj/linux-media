@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.156.147.13] (helo=jenni1.rokki.sonera.fi)
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anssi.hannula@gmail.com>) id 1JymnS-0004Jn-Sk
-	for linux-dvb@linuxtv.org; Wed, 21 May 2008 13:47:55 +0200
-Message-ID: <48340BE1.40003@gmail.com>
-Date: Wed, 21 May 2008 14:47:45 +0300
-From: Anssi Hannula <anssi.hannula@gmail.com>
+	(envelope-from <alexanderterhaar@gmail.com>) id 1JyBSq-00005s-Aq
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 21:56:12 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so1143493tib.13
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 12:56:02 -0700 (PDT)
+Message-ID: <d8ba26160805191256h16f5c760md6112dd9612f4bdd@mail.gmail.com>
+Date: Mon, 19 May 2008 21:56:00 +0200
+From: "Alexander ter Haar" <alexanderterhaar@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Dominik Kuhlen <dkuhlen@gmx.net>
-References: <200804190101.14457.dkuhlen@gmx.net>
-In-Reply-To: <200804190101.14457.dkuhlen@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e)
- and	TT-Connect-S2-3600 final version
+Content-Disposition: inline
+Subject: [linux-dvb] v4l-dvb-hg conflict with zoran
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,51 +19,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dominik Kuhlen wrote:
-> Hi,
+Hi,
 
-Hi!
+I have a questen relating to the v4l-dvb-hg drivers on my gentoo
+system with kernel 2.6.25-gentoo-r3. I tried both using portage and
+using the drivers from linuxtv.org, same problem however...
 
-> Here is my current version after quite a while of testing and tuning:
-> I stripped the stb0899 tuning/searching algo to speed up tuning a bit
-> now I have very fast and reliable locks (no failures, no errors)
-> =
+After emerge or make compiling stops; There seems to be some conflict
+with Zoran; I get an error:
 
-> I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it t=
-hough.)
+CC [M]  /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_device.o
+/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:
+In function 'zoran_proc_init':
+/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:208:
+error: implicit declaration of function 'proc_create_data'
+/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:208:
+warning: assignment makes pointer from integer without a cast
+make[2]: *** [/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.o]
+Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [_module_/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l]
+Error 2
+make[1]: Leaving directory `/usr/src/linux-2.6.25-gentoo-r3'
+make: *** [default] Error 2
+*
 
-I was able to use my TT-S2-3600 with your patches for DVB-S, with a few
-caveats:
+After which installing or emerging stops..
 
-I can't tune to 12727 V with 18400 symbolrate on 1=B0W. The only
-meaningful difference to other transponders on 1=B0W seems to be the
-symbolrate.
+Any idea what i should do?
+Thanks in advance for any help !
 
-$ ./simpletune -a 4 -f12717 -p v -s 18400 -d 1
-using '/dev/dvb/adapter4/frontend0' as frontend
-frontend fd=3D3: type=3D0
-ioclt: FE_SET_VOLTAGE : 0
-High band
-tone: 1
-dvbfe setparams :  delsys=3D1 2117MHz / Rate : 18400kBPS
-Status: 00:
-SNR: 222 173 (0xdead) (5700.5dB)
-BER: 0 0 0 0 (0x0)
-Signal: 222 173 (0xdead) -8531 (5700.5dBm)
-Frontend: f=3D2117.021
-
-I also get some image distortions like Andr=E9 mentioned in his earlier
-message.
-
--- =
-
-Anssi Hannula
+Alexander.
 
 _______________________________________________
 linux-dvb mailing list
