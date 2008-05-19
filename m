@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from smtp1.us4.outblaze.com ([205.158.62.78])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1Jur08-0008Cm-CV
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 17:28:46 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sat, 10 May 2008 17:27:55 +0200
-References: <482560EB.2000306@gmail.com>
-	<200805101717.23199@orion.escape-edv.de>
-In-Reply-To: <200805101717.23199@orion.escape-edv.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805101727.55810@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
-	stv0297
-Reply-To: linux-dvb@linuxtv.org
+	(envelope-from <RobertCL@iname.com>) id 1Jy8OY-0005e7-Bx
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 18:39:33 +0200
+From: Robert <RobertCL@iname.com>
+To: Will Tatam <will@netmindz.net>
+In-Reply-To: <4831A6B4.1010201@netmindz.net>
+References: <40312.81.144.130.125.1210936580.squirrel@server27.ukservers.net>
+	<482D79B1.5080504@web.de> <482DC39C.2080100@iname.com>
+	<4831A6B4.1010201@netmindz.net>
+Date: Mon, 19 May 2008 17:37:58 +0100
+Message-Id: <1211215078.6089.2.camel@amd.dragonfly.dnsalias.net>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] BBC HD on Freesat?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,47 +21,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Oliver Endriss wrote:
-> e9hack wrote:
-> > the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
-> > makes the UNC value of the femon plugin useless.
-> 
-> Why? It does not make sense to accumulate the errors forever, i.e.
-> nobody wants to know what happened last year...
-> 
-> Afaics it is ok to reset the counter after reading it.
-> All drivers should behave this way.
-> 
-> If the femon plugin requires something else it might store the values
-> and process them as desired.
-> 
-> Afaics the femon command line tool has no problems with that.
 
-Argh, I just checked the API 1.0.0. spec:
-| FE READ UNCORRECTED BLOCKS
-| This ioctl call returns the number of uncorrected blocks detected by the device
-| driver during its lifetime. For meaningful measurements, the increment
-| in block count during a speci c time interval should be calculated. For this
-| command, read-only access to the device is suf cient.
-| Note that the counter will wrap to zero after its maximum count has been
-| reached
+On Mon, 2008-05-19 at 17:11 +0100, Will Tatam wrote:
+> Robert wrote:
+> > Andr=E9 Weidemann wrote:
+> >> Stephen Rowles wrote:
+> >>
+> >>> 1) does anyone know if the freesat broadcasts are encrypted or real f=
+ree
+> >>> to air?
+> >> I am receiving BBC HD and all other Freesat channels free-to-air over =
 
-So it seens you are right and the drivers should accumulate the errors
-forever. Any opinions?
+> >> Astra 28.2=B0.
+> > =
 
-CU
-Oliver
+> > Same here - they are FTA.  Have been receiving them for ages (before th=
+e =
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+> > lauch of Freesat). The only thing that "new" is that Channel 4, E4 and =
+
+> > More4 are no longer encrypted.  They are supposed to have EPG data, but =
+
+> > I've not tried to get that yet.   Also Five is supposed to be following =
+
+> > later this year moving from encrypted to FTA.
+> =
+
+> So these are basically the same old FTA channels that have always been =
+
+> on 28.8 but now HD is FTA too ? Or do i need to rescan ?
+
+Yes, they are the same FTA channels.  BBC HD has been there for some
+time too.  Only new things are C4, E4, More4 and some +1 channels - I'm
+not sure if they have "moved" or just had encryption turned off.
+
+Robert.
+
 
 _______________________________________________
 linux-dvb mailing list
