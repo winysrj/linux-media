@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.movial.fi ([62.236.91.34])
+Received: from mail-in-03.arcor-online.net ([151.189.21.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dennis.noordsij@movial.fi>) id 1K2S9B-0005Bf-OV
-	for linux-dvb@linuxtv.org; Sat, 31 May 2008 16:33:30 +0200
-Message-ID: <48416195.9040209@movial.fi>
-Date: Sat, 31 May 2008 16:32:53 +0200
-From: Dennis Noordsij <dennis.noordsij@movial.fi>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <48414EC8.3080008@movial.fi> <48415A24.5080305@iki.fi>
-In-Reply-To: <48415A24.5080305@iki.fi>
+	(envelope-from <hermann-pitton@arcor.de>) id 1JyDl2-0007oP-I2
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 00:23:07 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Alexander ter Haar <alexanderterhaar@gmail.com>
+In-Reply-To: <d8ba26160805191256h16f5c760md6112dd9612f4bdd@mail.gmail.com>
+References: <d8ba26160805191256h16f5c760md6112dd9612f4bdd@mail.gmail.com>
+Date: Tue, 20 May 2008 00:22:12 +0200
+Message-Id: <1211235732.3241.42.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] usb-dvb and endpoints question
+Subject: Re: [linux-dvb] v4l-dvb-hg conflict with zoran
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,86 +19,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgQW50dGksCgpUaGFuayB5b3UgZm9yIHlvdXIgcmVwbHkhCgo+IE90aGVyIHRob3VnaHRzLCB3
-TWF4UGFja2V0U2l6ZSAweDAwNDAgMXggNjQgYnl0ZXMgbG9va3MgcmF0aGVyIHNtYWxsIGZvcgo+
-IFRTLgoKWWVhaCBpdCB3b3VsZCBiZSwgYnV0IHNvbWVob3cgdGhpcyBzZWVtcyB0byBqdXN0IGJl
-IGlnbm9yZWQuIEEgdHlpY2FsCnJlc3BvbnNlIHdvdWxkIGJlIGEgc2luZ2xlIFVTQiBwYWNrZXQg
-Y29udGFpbmluZyBleGFjdGx5IDIxIFRTIHBhY2tldHMsCmFuZCA4IGJ5dGVzIG9mIGhlYWRlciAo
-Zm9yIGEgdG90YWwgb2YgMzk1NiBieXRlcykKClNlZSBleGFtcGxlIGJlbG93IHdoZXJlIGl0IHNl
-ZW1zIHRvIGludGVycnVwdCB0aGUgcmVxdWVzdC1yZXNwb25zZSB3aXRoClRTIGRhdGEuCgpBcyBm
-b3IgcmVhZGluZy13cml0aW5nLCBJJ3ZlIGdvdCBhIHNwZWNpZmljIHZlcnNpb24gb2YgdGhlCnVz
-Yl9kdmJfZ2VuZXJpY19ydyAodXNpbmcgMiBlbmRwb2ludHMpIGFuZCBpdCB3b3JrcyBmaW5lIGJ5
-IGl0c2VsZi4gQnV0CkkgaGF2ZW4ndCBnb3QgYXJvdW5kIHRvIGhvdyB0aGUgdGhlIFRTIHN0cmVh
-bWluZyBpcyBnb2luZyB3b3JrLgoKV2hhdCBpcyB0aGUgcmVhZC1sb29wIGdvaW5nIHRvIGJlIGxp
-a2UgPyA6LSkKCgo+IENhbiB5b3UgcHJvdmlkZSBzYW1wbGUgdXNiLXNuaWZmIGZyb20gd2luZG93
-cz8gUGFyc2VkIHdpdGggdXNiLXJlcGxheQo+IHBhcnNlci5wbCAtc2NyaXB0IHdvdWxkIGJlIGVu
-b3VnaCBpZiB3aG9sZSBzbmlmZiBpcyB2ZXJ5IGxhcmdlLgoKCkkndmUgdXNlZCBkaWZmZXJlbnQg
-cHJvZ3JhbXMsIGJ1dCBzb21lIGV4YW1wbGU6CgoKMDAwODIwOiBCdWxrIG9yIEludGVycnVwdCBU
-cmFuc2ZlciAoVVApLCAzMC4wNS4yMDA4IDE0OjA2OjA5LjMzNiArMC4xMjUuClN0YXR1czogMHgw
-MDAwMDAwMApQaXBlIEhhbmRsZTogMHhmZmFkMmJlYyAoRW5kcG9pbnQgQWRkcmVzczogMHg4MSkK
-R2V0IDB4Zjc0IGJ5dGVzIGZyb20gdGhlIGRldmljZQogQjUgMDIgMTQgMDEgNzQgMEYgMDUgMDAg
-NDcgMDAgMTIgMUIgNjcgNjUgNzIgMDUgICAuLi4udC4uLkcuLi5nZXIuCiAwNSA1MiA2NSA2MiA2
-MSAwQyAwNSA1NiA2RiA2QyA2QyA2NSA3MyAyMCA0OCA2MSAgIC5SZWJhLi5Wb2xsZXMgSGEKIDc1
-IDczIDU0IDAyIDE1IDAwIDRFIEZBIDAyIDY3IDY1IDcyIDAwIEY0IDA1IDU1ICAgdXNULi4uTi4u
-Z2VyLi4uVQogNkUgNzQgNjUgNzIgNjggNjEgNkMgNzQgNzUgNkUgNjcgNzMgNzMgNjUgNzIgNjkg
-ICBudGVyaGFsdHVuZ3NzZXJpCiAuLi4gZXRjCgpOb3RlIHRoYXQgdGhpcyBjb250YWlucyBUUyBk
-YXRhLCAiNzQgMEYiIGlzIHRoZSBsZW5ndGggb2YgdGhlIFVTQiBwYWNrZXQKKDB4Rjc0ID0gMzk1
-NiksIGFmdGVyIDggYnl0ZXMgb2YgaGVhZGVyIHRoZSBUUyBzeW5jIDB4NDcgY2FuIGJlIHNlZW4u
-CkV4YWN0bHkgMjEgVFMgcGFja2V0cyBhcmUgY29udGFpbmVkLgoKCgpTaW5jZSB0aGUgcGFja2V0
-cyBhcmUgc28gbGFyZ2UsIGFuZCBJIGNhbid0IGdldCB0aGUgVGVycmFUZWMgc29mdHdhcmUgdG8K
-ZG8gdG9vIG11Y2ggaW4gdGVybXMgb2Ygc2VuZGluZyBjb21tYW5kcyBpbiBiZXR3ZWVuLCBJIGRv
-bid0IHJlYWxseSBoYXZlCiBtYW55IGdvb2QgbG9ncyBvZiB0aGUgbWl4aW5nIG9mIFRTIGFuZCBy
-ZXNwb25zZXMuCgpCdXQgb25lIGV4YW1wbGU6CgowMDAzOTI6IEJ1bGsgb3IgSW50ZXJydXB0IFRy
-YW5zZmVyIChET1dOKSwgMzAuMDUuMjAwOCAxODozMToxNC45MTkgKzAuMApQaXBlIEhhbmRsZTog
-MHg4MTE4YjY2YyAoRW5kcG9pbnQgQWRkcmVzczogMHgyKQpTZW5kIDB4YyBieXRlcyB0byB0aGUg
-ZGV2aWNlCiA2NyAwMiBDOSAwQiAwQyAwMCAwMCAwMCAyMCAwMCAyMCA4MSAgICAgICAgICAgICAg
-IGcu77+9Li4uLi4gLiDvv70KCjAwMDM5MzogQnVsayBvciBJbnRlcnJ1cHQgVHJhbnNmZXIgKFVQ
-KSwgMzAuMDUuMjAwOCAxODozMToxNC45MTkgKzAuMC4KU3RhdHVzOiAweDAwMDAwMDAwClBpcGUg
-SGFuZGxlOiAweDgxMThiNjZjIChFbmRwb2ludCBBZGRyZXNzOiAweDIpClNlbmQgMHhjIGJ5dGVz
-IHRvIHRoZSBkZXZpY2UKMDAwMzk0OiBCdWxrIG9yIEludGVycnVwdCBUcmFuc2ZlciAoVVApLCAz
-MC4wNS4yMDA4IDE4OjMxOjE0LjkxOSArMC4wLgpTdGF0dXM6IDB4MDAwMDAwMDAKUGlwZSBIYW5k
-bGU6IDB4ODExOGI2NGMgKEVuZHBvaW50IEFkZHJlc3M6IDB4ODEpCkdldCAweGY3NCBieXRlcyBm
-cm9tIHRoZSBkZXZpY2UKIEI1IDAyIDE0IDAxIDc0IDBGIDA1IDAwIDQ3IDBGIEI0IDFCIDI3IDBC
-IEJBIEMyICAg77+9Li4udC4uLkcu77+9Licu77+977+9CiAuLi4gVFMgZGF0YSBmb2xsb3dzIC4u
-CgowMDAzOTU6IEJ1bGsgb3IgSW50ZXJydXB0IFRyYW5zZmVyIChET1dOKSwgMzAuMDUuMjAwOCAx
-ODozMToxNC45MTkgKzAuMApQaXBlIEhhbmRsZTogMHg4MTE4YjY0YyAoRW5kcG9pbnQgQWRkcmVz
-czogMHg4MSkKR2V0IDB4MTAwMCBieXRlcyBmcm9tIHRoZSBkZXZpY2UKMDAwMzk2OiBCdWxrIG9y
-IEludGVycnVwdCBUcmFuc2ZlciAoVVApLCAzMC4wNS4yMDA4IDE4OjMxOjE0LjkzNSArMC4wMTUu
-ClN0YXR1czogMHgwMDAwMDAwMApQaXBlIEhhbmRsZTogMHg4MTE4YjY0YyAoRW5kcG9pbnQgQWRk
-cmVzczogMHg4MSkKR2V0IDB4ZTAgYnl0ZXMgZnJvbSB0aGUgZGV2aWNlCiA2OCAwMiAwQiBDOSBF
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgIGguLu+/ve+/vS4uLi4uLi4uLi4u
-CiAwMSAwMCAwMCAwMCAwMSAwMCAwMCAwMCAwMCAwMCAwMCAwMCAxQiAwMCAwMCAwMCAgIC4uLi4u
-Li4uLi4uLi4uLi4KIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwICAgLi4uLi4uLi4uLi4uLi4uLgogMUQgMDAgMDAgMDAgRDIgRkYgRkYgRkYgMkQgQzUgRkYg
-RkYgNzAgQ0UgMzQgMUQgICAuLi4u77+977+977+977+9Le+/ve+/ve+/vXDvv700LgogMDAgMDAg
-MDAgMDAgMDEgMDAgMDAgMDAgMEQgMDAgMDAgMDAgMDMgMDAgMDAgMDAgICAuLi4uLi4uLi4uLi4u
-Li4uCiAwMiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMSAwMCAwMCAwMCAgIC4u
-Li4uLi4uLi4uLi4uLi4KIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwICAgLi4uLi4uLi4uLi4uLi4uLgogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgICAuLi4uLi4uLi4uLi4uLi4uCiAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAgIC4uLi4uLi4uLi4uLi4uLi4KIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgLi4uLi4uLi4uLi4uLi4u
-LgogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgICAuLi4u
-Li4uLi4uLi4uLi4uCiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
-MCAwMCAgIC4uLi4uLi4uLi4uLi4uLi4KIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
-IDAwIDAwIDAwIDAwIDAwICAgLi4uLi4uLi4uLi4uLi4uLgogMDAgMDAgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgICAuLi4uLi4uLi4uLi4uLi4uCgoxKSBXaGF0IGRh
-dGEgd2FzIHNlbnQgaW4gMzkzID8KMikgVGhlIHJlc3BvbnNlIGNhbWUgYWZ0ZXIgdGhlIFRTIHBh
-Y2tldCAoMzk2IGlzIHRoZSByZXNwb25zZSB0byAzOTIpLgozKSBXaGF0IGRhdGEgd2FzIHJlY2Vp
-dmVkIGluIDM5NSA/CgpOb3RlIHRoYXQgSSd2ZSBiYXNpY2FsbHkgaWdub3JlZCB0aGUgMzk1LXR5
-cGUgcmVzcG9uc2VzLCB0aGV5J3JlIHNob3duCmFsc28gaW4gdGhlIGZpcm13YXJlIGluaXRpYWxp
-emF0aW9uIGJ1dCBpZiBJIGp1c3QgbG9vayBhdCBsb2dzIHdoaWNoCmFjdHVhbGx5IHNob3cgZGF0
-YSB0aGVuIGV2ZXJ5dGhpbmcgd29ya3MgY29ycmVjdGx5LCBzbyAzOTUgYW5kIDM5MyB3b3VsZApi
-ZSBub2lzZSA/CgpIb3BlIEkgYW0gbm90IG1pc3Npbmcgc29tZSBiYXNpYyBVU0IgdGhpbmcgdGhh
-dCBtYWtlcyB5b3Ugc2xhcCB5b3VyCmZvcmVoZWFkIGFuZCBzYXkgImFoYSBpdCdzIGp1c3QgdGhl
-IGRldmljZSB0ZWxsaW5nIHlvdSB0byBkbyBYISIgIDotKQoKCkNoZWVycywKRGVubmlzCgoKPj4g
-Q2hlZXJzLAo+PiBEZW5uaXMKPiAKPiByZWdhcmRzCj4gQW50dGkKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0Cmxp
-bnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
-bi9saXN0aW5mby9saW51eC1kdmI=
+Hi,
+
+Am Montag, den 19.05.2008, 21:56 +0200 schrieb Alexander ter Haar:
+> Hi,
+> 
+> I have a questen relating to the v4l-dvb-hg drivers on my gentoo
+> system with kernel 2.6.25-gentoo-r3. I tried both using portage and
+> using the drivers from linuxtv.org, same problem however...
+> 
+> After emerge or make compiling stops; There seems to be some conflict
+> with Zoran; I get an error:
+> 
+> CC [M]  /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_device.o
+> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:
+> In function 'zoran_proc_init':
+> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:208:
+> error: implicit declaration of function 'proc_create_data'
+> /var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.c:208:
+> warning: assignment makes pointer from integer without a cast
+> make[2]: *** [/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l/zoran_procfs.o]
+> Error 1
+> make[2]: *** Waiting for unfinished jobs....
+> make[1]: *** [_module_/var/tmp/portage/media-tv/v4l-dvb-hg-0.1-r2/work/v4l-dvb/v4l]
+> Error 2
+> make[1]: Leaving directory `/usr/src/linux-2.6.25-gentoo-r3'
+> make: *** [default] Error 2
+> *
+> 
+> After which installing or emerging stops..
+> 
+> Any idea what i should do?
+> Thanks in advance for any help !
+> 
+> Alexander.
+> 
+
+you can at least try to disable the zoran stuff in make
+xconfig/menuconfig and there is also some module for one of the new
+webcams failing, until it is fixed.
+
+Cheers,
+Hermann
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
