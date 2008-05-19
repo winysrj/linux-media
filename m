@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GDuvHZ008685
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 09:56:57 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GDuSSv023746
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 09:56:29 -0400
-Received: by fk-out-0910.google.com with SMTP id e30so824073fke.3
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 06:56:28 -0700 (PDT)
-Message-ID: <a5eaedfa0805160656t29d2858ao3c1c81469b87b0af@mail.gmail.com>
-Date: Fri, 16 May 2008 19:26:27 +0530
-From: "Veda N" <veda74@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4J7tG6L010722
+	for <video4linux-list@redhat.com>; Mon, 19 May 2008 03:55:16 -0400
+Received: from out3.laposte.net (out4.laposte.net [193.251.214.121])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4J7t2Is026679
+	for <video4linux-list@redhat.com>; Mon, 19 May 2008 03:55:02 -0400
+Received: from meplus.info (localhost [127.0.0.1])
+	by mwinf8304.laposte.net (SMTP Server) with ESMTP id DDF81700008F
+	for <video4linux-list@redhat.com>;
+	Mon, 19 May 2008 09:54:56 +0200 (CEST)
+Message-ID: <4831347C.6090009@laposte.net>
+Date: Mon, 19 May 2008 10:04:12 +0200
+From: "pw.marcus" <pw.marcus@laposte.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: hermann pitton <hermann-pitton@arcor.de>, video4linux-list@redhat.com
+References: <482D4579.8090203@laposte.net>	
+	<1210937808.3138.7.camel@pc10.localdom.local>
+	<482DBF75.60009@laposte.net>	
+	<1210966904.4735.35.camel@pc10.localdom.local>	
+	<482FFEEB.5080902@laposte.net>
+	<1211153425.2599.4.camel@pc10.localdom.local>
+In-Reply-To: <1211153425.2599.4.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: pixel count doubts
+Cc: 
+Subject: Re: My Cinema-P7131 Hybrid (spider cable)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,25 +36,9 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-I am trying to write a camera sensor driver.
+No problem.
 
-The sensor documents says that -
-For the resolution VGA, The pixel count is 640x480x3.
-
-I did not understand what is meant by x3 in pixel count.
-
-Usually it is 60x480. The number of bytes per pixel is 2.
-
-Does this mean that instead of 2 bytes per pixel. it is 3 bytes?
-
-
-How should i account this pixel count in my driver.
-How much should be  bytesperline and sizeimage
-How should i account this in my application as well.
-
-Regards,
-vedan
+Cheers
 
 --
 video4linux-list mailing list
