@@ -1,27 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail16.syd.optusnet.com.au ([211.29.132.197])
+Received: from ns218.ovh.net ([213.186.34.114])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pjama@optusnet.com.au>) id 1Jsxzd-0000WN-TU
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 12:32:29 +0200
-Received: from zerver.home.pjama.net
-	(c122-104-130-106.kelvn2.qld.optusnet.com.au [122.104.130.106])
-	by mail16.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	m45AWHfa004407
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Mon, 5 May 2008 20:32:18 +1000
-Received: from [192.168.200.201] (emma.home.pjama.net [192.168.200.201])
-	by zerver.home.pjama.net (8.13.8+Sun/8.13.8) with ESMTP id
-	m45AWCEp006633
-	for <linux-dvb@linuxtv.org>; Mon, 5 May 2008 20:32:13 +1000 (EST)
-Message-ID: <481EE22C.6090102@optusnet.com.au>
-Date: Mon, 05 May 2008 20:32:12 +1000
-From: pjama <pjama@optusnet.com.au>
+	(envelope-from <webdev@chaosmedia.org>) id 1Jy1Ll-0007Lv-5J
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 11:08:13 +0200
+Message-ID: <4831434A.7000502@chaosmedia.org>
+Date: Mon, 19 May 2008 11:07:22 +0200
+From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <481E7399.1040909@optusnet.com.au> <481E91D8.7010404@wentink.de>
-	<481EBF63.2050601@optusnet.com.au> <481ECDFE.40203@iki.fi>
-In-Reply-To: <481ECDFE.40203@iki.fi>
-Subject: Re: [linux-dvb] probs with af901x on mythbuntu
+References: <48310988.8080806@pilppa.org>
+In-Reply-To: <48310988.8080806@pilppa.org>
+Subject: Re: [linux-dvb] Well working S2 cards?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,68 +24,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Antti,
-You're a legend!
 
-Antti Palosaari wrote:
-> pjama wrote:
->> Now (while donning my flame proof suit), I must confess that I hadn't 
->> thoroughly gone through the mailing list (google failed me) but since 
->> posting I've discovered a few things....
->>
->> 1) in dmesg where it says "af9013: firmware version:4.73.0" Does this 
->> mean it found version 4.73.0 on the device or in the 
->> /lib/firmware/kernel<blah>/dvb_usb_af9015 file? I believe I installed 
->> version 4.95.0 (but being a binary file it's hard to confirm). Should 
->> they match, Can I upgrade the device or should I downgrade the 
->> dvb_usb_af9015 file?
-> 
-> yes (you have old one), install the new one. Probably it does not matter 
-> but it is still better use newest available.
+> Mika Laitio wrote:
+>
+> I am planning to obtain satellite dish and some PCI or PCIE satellite 
+> card for my Linux box that is running X86-64 on amd 4850e.
+>
+> So far I have found the Technotrend S2-3200 and WinTV NOVA-HD-S2 that 
+> seems to be pretty equally priced. Then the HVR-4000 costs about 50 euro 
+> more but has in addition the DVB-T support.
+>   
+don't know about the hvr-4000
+i have a tt s2-3200 it's cheap and works well, i don't use the CI 
+though, so i can't tell if it's well supported by the driver 
+(multiproto) but besides the CI part i couldn't tell you what's not 
+properly working with this card at the moment..
 
-Do you mean in /lib/firmware/kernel.... ? Do you have a copy of the latest firmware. I think my source may be suspect.
+you'll get some good info on linuxtv wiki : 
+http://www.linuxtv.org/wiki/index.php/DVB-S2_PCI_Cards
 
-> 
->> 2) A post from Antti back in the beginning of April 
->> (http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025267.html) 
->> says the driver works but tuning fails because of the MXL5005 tuner. 
->> Bummer! 
-> 
-> It (now) should work, even both tuners. You should use different 
-> devel-tree:
-> http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
 
-Yes you are right. A recompile with these drivers has scan and kaffeine finding channels now.
-A quick test of kaffein confirms it works. The only problem I've seen is that one HDTV channel has no audio but I'm not sure this is related to the driver.
+But if you're going for Sat HD (1080i h264) on linux 64bit, i don't 
+think the dvb device will be the problem as long as it has a working driver.
 
-> 
-> Using both tuners same time got it hangs, due to broken mutex lock for 
-> i2c-bus. I have been a little busy now to fix this, but probably in this 
-> week I got it fixed.
+> What card you would recommend for the Linux usage and for which one the 
+> drivers are working best? (running on AMD x86-64 with 4850e cpu)
+> And is there any differences in the tuner quality of these cards?
+>   
+With 1080i H264 that you'll get on DVB-T or DVB-S2 (in europe) the main 
+problem will be to properly decode it.
 
-I can now watch TV while I wait ;)
+If you're on 32bit you'll probably go for a dvb app with a CoreAVC patch 
+and use that windows 32bit decoder, then your CPU hardware or the stream 
+source, won't really matter as it's a very fast, full featured, decoder..
 
-> 
->> Antti, did you get the usb sniff that you were after? If not, can you 
->> recommend an application that can dump a suitable file?
-> 
-> Thanx for help but I have got needed logs already.
+On 64bit, you won't be able to use CoreAVC as simply as on 32bit, it's a 
+work in progress as far as i can tell. Then the only straight way to 
+decode h264 is through ffmpeg (ffh264) and that decoder will probably 
+have some troubles decoding some (most) sat streams.
+Problems will come either from the stream specifications, unsuported in 
+ffh264, that will produce a jerky decoding or from the lack of CPU of 
+your system..
+Although it seems that latest ffh264 version do use multithreading on 
+those 1080i streams, tested myself on ANIXEHD/ ASTRA PROMO HD streams, 
+ffh264 is not a multithreaded decoder to begin with so in the worst case 
+senario it'll use one single core of your CPU for decoding and then you 
+can get in serious troubles..
 
-Cool
+I personnaly have now a much better experience with my little intel 
+e2180 than i got with my previous AMD be2350, both are overclocked 
+around 2.8-3.0GHz.
 
-> 
->>
->> Cheers
->> peter
->>
-> 
-> Antti
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+So choosing your dvb-s2 hardware/system is important regarding the DVB 
+part but also and probably more important regarding h264 decoding, 
+especially when using 64bit systems..
 
+sorry it was a bit long ;)
+
+Marc
 
 _______________________________________________
 linux-dvb mailing list
