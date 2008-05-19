@@ -1,27 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns218.ovh.net ([213.186.34.114])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <webdev@chaosmedia.org>) id 1JsyoJ-0004XP-CG
-	for linux-dvb@linuxtv.org; Mon, 05 May 2008 13:24:51 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ns218.ovh.net (Postfix) with ESMTP id 6F36C82E4
-	for <linux-dvb@linuxtv.org>; Mon,  5 May 2008 13:24:13 +0200 (CEST)
-Received: from ns218.ovh.net ([127.0.0.1])
-	by localhost (ns218.ovh.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id TAyCya6LW+pT for <linux-dvb@linuxtv.org>;
-	Mon,  5 May 2008 13:24:13 +0200 (CEST)
-Received: from [192.168.1.50] (droid.chaosmedia.org [82.225.228.49])
-	by ns218.ovh.net (Postfix) with ESMTP id 3AC557D8F
-	for <linux-dvb@linuxtv.org>; Mon,  5 May 2008 13:24:13 +0200 (CEST)
-Message-ID: <481EEE5C.1050009@chaosmedia.org>
-Date: Mon, 05 May 2008 13:24:12 +0200
-From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
-MIME-Version: 1.0
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Jy8NA-0005Dr-Pw
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 18:38:05 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Jy8N1-0000GQ-Qm
+	for linux-dvb@linuxtv.org; Mon, 19 May 2008 16:37:55 +0000
+Received: from 213-140-22-66.fastres.net ([213.140.22.66])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 16:37:55 +0000
+Received: from kaboom by 213-140-22-66.fastres.net with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 16:37:55 +0000
 To: linux-dvb@linuxtv.org
-References: <481EBD4D.1070905@chaosmedia.org>
-	<E1Jsvjz-000OP1-00.goga777-bk-ru@f190.mail.ru>
-In-Reply-To: <E1Jsvjz-000OP1-00.goga777-bk-ru@f190.mail.ru>
-Subject: Re: [linux-dvb] libdvbapi multiproto patch ?
+From: Francesco Schiavarelli <kaboom@tiscalinet.it>
+Date: Mon, 19 May 2008 18:37:44 +0200
+Message-ID: <g0sact$e6d$1@ger.gmane.org>
+References: <g072jh$h25$1@ger.gmane.org>
+Mime-Version: 1.0
+In-Reply-To: <g072jh$h25$1@ger.gmane.org>
+Subject: Re: [linux-dvb] dvbnet not working anymore with 2.6.25
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,27 +34,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I've done a bit of testing and seems like the problem it's related to 
+kernel version and not v4l-dvb.
+I've managed to compile actual v4l-dvb (rev7901) against debian kernel 
+2.6.18-4-486 and everything works.
+Next step is checking every kernel between 2.6.22-3 and 2.6.25-1 trying 
+to isolate the problem.
 
+Anyone guessing which change in the kernel tree may have broken dvbnet?
+Suggestions are more than welcome.
 
-Igor wrote:
->
-> you can see the new multiproto API in http://jusst.de/hg/multiproto/file/b5a34b6a209d/linux/include/linux/dvb/frontend.h
-> You can compare it (diff) with existing frontend.h from dvb-v4l
->   
-humm yeah but it seems that multiproto frontend.h just takes the whole 
-regular frontend, for backward compatibility i guess, and puts its own 
-declarations for the same values and its new ones at the bottom.
-
-Not sure i need to go over it though if i can hide function calls from 
-the libdvbapi using macros as it was done in other examples.
-
-i'll probably need to update the api with missing dvb-s2 declarations, 
-as the api's supposed to act as a layer between the driver and the 
-application, and then update the api to access them or do it in the 
-application, i don't really know..
-
-Marc
-
+Francesco
 
 
 _______________________________________________
