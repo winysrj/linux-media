@@ -1,30 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail01.syd.optusnet.com.au ([211.29.132.182])
+Received: from viefep27-int.chello.at ([62.179.121.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pjama@optusnet.com.au>) id 1JyfjN-0007uU-RQ
-	for linux-dvb@linuxtv.org; Wed, 21 May 2008 06:15:17 +0200
-Received: from zerver.home.pjama.net
-	(c122-104-130-106.kelvn2.qld.optusnet.com.au [122.104.130.106])
-	by mail01.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	m4L4EuZV026788
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Wed, 21 May 2008 14:14:58 +1000
-Received: from pjama.net (localhost [127.0.0.1])
-	by zerver.home.pjama.net (8.13.8+Sun/8.13.8) with ESMTP id
-	m4L4E6II014197
-	for <linux-dvb@linuxtv.org>; Wed, 21 May 2008 14:14:07 +1000 (EST)
-Message-ID: <27514.203.9.185.254.1211343247.squirrel@pjama.net>
-In-Reply-To: <483232A9.6010609@iki.fi>
-References: <56913.192.168.200.51.1211237228.squirrel@pjama.net>
-	<48320E91.3010306@iki.fi>
-	<57913.192.168.200.51.1211245507.squirrel@pjama.net>
-	<4832259A.6050101@iki.fi> <483232A9.6010609@iki.fi>
-Date: Wed, 21 May 2008 14:14:07 +1000 (EST)
-From: "pjama" <pjama@optusnet.com.au>
-To: linux-dvb@linuxtv.org
+	(envelope-from <rscheidegger_lists@hispeed.ch>) id 1JyQbI-0003CT-6c
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 14:05:57 +0200
+Message-ID: <4832BE7D.2080808@hispeed.ch>
+Date: Tue, 20 May 2008 14:05:17 +0200
+From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] IR for Afatech 901x
-Reply-To: pjama@optusnet.com.au
+To: Pauli Borodulin <pauli@borodulin.fi>
+References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>	<4831CC3F.803@borodulin.fi>
+	<48320E0B.8090501@tungstengraphics.com>
+	<48326CC4.7010401@borodulin.fi>
+In-Reply-To: <48326CC4.7010401@borodulin.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
+ Manu's jusst.de Mantis branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,36 +28,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On 20.05.2008 08:16, Pauli Borodulin wrote:
+>> On 19.05.2008 20:51, Pauli Borodulin wrote:
+>  >> [...]
+>>> What comes to auto-repeat... With your version of the patch it works 
+>>> equally well/badly on 2033 as it did with the earlier version.
+> 
+> Roland Scheidegger wrote:
+>> Just curious, what's the native repeat rate (what it prints out with
+>> verbose set time between irqs) with this card?
+> 
+> Initial delay ~270ms and repeats ~220ms.
+Ah so exactly the same as for my remote. Interesting...
 
->
-> Load driver with debug=2 (rmmod dvb-usb-af9015; modprobe dvb-usb-af9015
-> debug=2) and tail -f /var/log/messages to see if there is now some bytes
-> coming from remote.
+> 
+> Btw I found these in dvb-usb-remote.c:
+> 
+>      input_dev->rep[REP_PERIOD] = d->props.rc_interval;
+>      input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
+> 
+> So there seems to be some configurable auto-repeat functionality in 
+> input layer. I guess I'll experiment with those even tho' RCs delays are 
+> a bit crappy, since it's a pretty painful to go through a long list of 
+> recordings without any auto-repeat...
+If you change these values (to anything but zero) before
+input_register_device, the input driver will just disable auto-repeat
+(or rather, you'd need to handle it yourself in the driver with the
+appropriate timer func, and I didn't feel like duplicating half the code
+of the input driver). input_register_device also says all capabilities
+must be set up before calling it, when I tried to change those values
+afterwards it didn't seem to work (though maybe I made some testing
+error, I can't see why it shouldn't work). I guess a REP_DELAY a bit
+over the initial delay (like 300ms) should work, and a REP_PERIOD of
+about 100 (which would give you about 50% chance of stopping pressing
+keys exactly) might be reasonable - though it really is annoying if you
+can't stop exactly (but it's not solvable - either live with slow repeat
+or live with that).
 
-As mentioned in an earlier response to this post, the above trashes the
-device /dev/input/event7. Is there any way I can boot with debug set?
+Roland
 
->
->>> This looks promising....
->>> $ evtest /dev/input/event7
->>> Input driver version is 1.0.0
->>> Input device ID: bus 0x3 vendor 0x13d3 product 0x3226 version 0x200
->>> Input device name: "IR-receiver inside an USB DVB receiver"
->>
->> Thats the correct one.
-
-Doing evtest on /dev/input/event7 then pushing remote buttons give me
-nothing. I have confirmed remote/receiver works by booting into windows
-and using vendor supplied app.
-
-Cheers
-Peter
-
-
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
 
 
 _______________________________________________
