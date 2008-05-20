@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+4f9853696f040eae3e7e+1738+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1K14UJ-0006wq-C8
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 21:05:35 +0200
-Date: Tue, 27 May 2008 16:05:09 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-Message-ID: <20080527160509.723fa149@gaivota>
-In-Reply-To: <ea4209750805270823h357384fcmfa981d2244472dae@mail.gmail.com>
-References: <483C2458.4080004@pandora.be>
-	<ea4209750805270823h357384fcmfa981d2244472dae@mail.gmail.com>
-Mime-Version: 1.0
+Received: from rehuapila.uta.fi ([153.1.1.45])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <pauli@borodulin.fi>) id 1JyQzG-0004XD-GE
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 14:30:39 +0200
+Message-ID: <4832C453.5070306@borodulin.fi>
+Date: Tue, 20 May 2008 15:30:11 +0300
+From: Pauli Borodulin <pauli@borodulin.fi>
+MIME-Version: 1.0
+To: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>	<4831CC3F.803@borodulin.fi>
+	<48320E0B.8090501@tungstengraphics.com>
+	<48326CC4.7010401@borodulin.fi> <4832BE7D.2080808@hispeed.ch>
+In-Reply-To: <4832BE7D.2080808@hispeed.ch>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem initialising Terratec Cinergy HT USB XE
+Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
+ Manu's jusst.de Mantis branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,31 +28,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Albert,
+> On 20.05.2008 08:16, Pauli Borodulin wrote:
+ >> [...]
+>> Btw I found these in dvb-usb-remote.c:
+>>
+>>      input_dev->rep[REP_PERIOD] = d->props.rc_interval;
+>>      input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
+>>
+>> So there seems to be some configurable auto-repeat functionality in 
+>> input layer. I guess I'll experiment with those even tho' RCs delays are 
+>> a bit crappy, since it's a pretty painful to go through a long list of 
+>> recordings without any auto-repeat...
 
-On Tue, 27 May 2008 17:23:50 +0200
-"Albert Comerma" <albert.comerma@gmail.com> wrote:
+Roland Scheidegger wrote:
+> If you change these values (to anything but zero) before
+> input_register_device, the input driver will just disable auto-repeat
+> (or rather, you'd need to handle it yourself in the driver with the
+> appropriate timer func, and I didn't feel like duplicating half the code
+> of the input driver). input_register_device also says all capabilities
+> must be set up before calling it, when I tried to change those values
+> afterwards it didn't seem to work (though maybe I made some testing
+> error, I can't see why it shouldn't work). I guess a REP_DELAY a bit
+> over the initial delay (like 300ms) should work, and a REP_PERIOD of
+> about 100 (which would give you about 50% chance of stopping pressing
+> keys exactly) might be reasonable - though it really is annoying if you
+> can't stop exactly (but it's not solvable - either live with slow repeat
+> or live with that).
 
-> There seems to be a problem with the last changes on xc2028 code, please try
-> this;
-> 
-> In linux/drivers/media/common/tuners/tuner-xc2028.c file, on xc2028_attach,
-> video_dev must be = cfg->video_dev;
-> and on the current source it's = cfg->i2c_adap->algo_data; which completely
-> breaks the module when loaded.
-> 
-> It was already suggested that this should be changed, but nobody said why
-> this modification was done or why it was kept.
-> 
-> Mauro could you trace when and why this modification was done? or at least
-> give it back to original state?
-> 
+In dvb/ttpci/budget-ci.c there's a note:
 
-It seems that I forgot to merge the fix for this. I've just committed it. Could
-you please test ? It is already available at mercurial tree.
+         /* note: these must be after input_register_device */
+         input_dev->rep[REP_DELAY] = 400;
+         input_dev->rep[REP_PERIOD] = 250;
 
-Cheers,
-Mauro
+I wondered why and proceeded to kernel's drivers/input/input.c. There's
+a note in input_register_device:
+
+/*
+  * If delay and period are pre-set by the driver, then autorepeating
+  * is handled by the driver itself and we don't do it in input.c.
+  */
+
+init_timer(&dev->timer);
+if (!dev->rep[REP_DELAY] && !dev->rep[REP_PERIOD]) {
+	dev->timer.data = (long) dev;
+	dev->timer.function = input_repeat_key;
+	dev->rep[REP_DELAY] = 250;
+	dev->rep[REP_PERIOD] = 33;
+}
+
+So it is different whether you set REP_DELAY & REP_PERIOD before or 
+after calling input_register_device. If you set them before, it seems 
+you are also expected to provide your own input_repeat_key function. If 
+after, then... I guess input layer uses it's own logic, but just using 
+customized REP_DELAY and REP_PERIOD.
+
+I don't know why for example ttpci/av7110_ir.c uses it's own 
+input_repeat_key function instead of using the logic provided by input 
+layer. I will probably find this out later today when trying to 
+experiment auto-repeat functionality.
+
+Regards,
+Pauli Borodulin
 
 _______________________________________________
 linux-dvb mailing list
