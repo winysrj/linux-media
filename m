@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f172.mail.ru ([194.67.57.165])
+Received: from alsikeapila.uta.fi ([153.1.1.44])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1JyPRI-0007gH-Kr
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 12:51:31 +0200
-Received: from mail by f172.mail.ru with local id 1JyPQl-0003Nn-00
-	for linux-dvb@linuxtv.org; Tue, 20 May 2008 14:50:55 +0400
-From: Igor <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Tue, 20 May 2008 14:50:55 +0400
-References: <E1JyP1N-000PjE-00.goga777-bk-ru@f168.mail.ru>
-In-Reply-To: <E1JyP1N-000PjE-00.goga777-bk-ru@f168.mail.ru>
-Message-Id: <E1JyPQl-0003Nn-00.goga777-bk-ru@f172.mail.ru>
-Subject: Re: [linux-dvb] =?koi8-r?b?WC1wb2xhcmlzYXRpb24gLSB3aGF0J3MgPw==?=
-Reply-To: Igor <goga777@bk.ru>
+	(envelope-from <pauli@borodulin.fi>) id 1JyL9U-0001M0-Rj
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 08:16:51 +0200
+Message-ID: <48326CC4.7010401@borodulin.fi>
+Date: Tue, 20 May 2008 09:16:36 +0300
+From: Pauli Borodulin <pauli@borodulin.fi>
+MIME-Version: 1.0
+To: Roland Scheidegger <sroland@tungstengraphics.com>
+References: <482E114E.1000609@borodulin.fi>	<d9def9db0805161621n1a291192n8c15db11949b3dad@mail.gmail.com>	<4831B058.1030107@borodulin.fi>	<4831B70D.8050809@tungstengraphics.com>
+	<4831CC3F.803@borodulin.fi> <48320E0B.8090501@tungstengraphics.com>
+In-Reply-To: <48320E0B.8090501@tungstengraphics.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Updated Mantis VP-2033 remote control patch for
+ Manu's jusst.de Mantis branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,22 +27,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> here there's FAVAL Single LNB 0.2dB (X-polarization) - HDTV/S2 - EAN: 4260107560265
-> http://www.dvbshop.net/product_info.php/info/p210_FAVAL-Single-LNB-0-2dB--X-polarization----HDTV-S2.html
-> 
-> what's X polarisation and why the description points out on HDTV/S2 ?
+> On 19.05.2008 20:51, Pauli Borodulin wrote:
+ >> [...]
+>> What comes to auto-repeat... With your version of the patch it works 
+>> equally well/badly on 2033 as it did with the earlier version.
 
+Roland Scheidegger wrote:
+> Just curious, what's the native repeat rate (what it prints out with
+> verbose set time between irqs) with this card?
 
-I have founded the information
-http://www.eutelsat.com/business/2_6_1.html
+Initial delay ~270ms and repeats ~220ms.
 
-X-Polarisation	A more precise definition of horizontal linear polarisation. X-polarisation is defined with respect to a particular direction from the satellite towards the earth, allowing precise calculation of the polarisation alignment angle for any given geographic location.
- 	top
+Btw I found these in dvb-usb-remote.c:
 
+     input_dev->rep[REP_PERIOD] = d->props.rc_interval;
+     input_dev->rep[REP_DELAY]  = d->props.rc_interval + 150;
 
- 
-Y-Polarisation	A more precise definition of vertical linear polarisation. Y-polarisation is defined with respect to a particular direction from the satellite towards the earth, allowing precise calculation of the polarisation alignment angle for any given geographic location.
+So there seems to be some configurable auto-repeat functionality in 
+input layer. I guess I'll experiment with those even tho' RCs delays are 
+a bit crappy, since it's a pretty painful to go through a long list of 
+recordings without any auto-repeat...
 
+ >> [...]
+
+Regards,
+Pauli Borodulin
 
 
 _______________________________________________
