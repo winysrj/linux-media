@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2e.orange.fr ([80.12.242.112])
+Received: from smtp1.dnainternet.fi ([87.94.96.108])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kafifi@orange.fr>) id 1Jzg11-0001qp-MQ
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 00:45:37 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2e07.orange.fr (SMTP Server) with ESMTP id 6BFD0700008F
-	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 00:45:02 +0200 (CEST)
-Received: from pcserver (ASte-Genev-Bois-151-1-46-208.w83-114.abo.wanadoo.fr
-	[83.114.156.208])
-	by mwinf2e07.orange.fr (SMTP Server) with ESMTP id 36EC0700008E
-	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 00:45:02 +0200 (CEST)
-Received: from pcserver ([192.168.200.1]) by pcserver (602LAN SUITE 2004) id
-	376e4524 for linux-dvb@linuxtv.org; Sat, 24 May 2008 0:44:20 +0200
-From: "kafifi" <kafifi@orange.fr>
-To: <linux-dvb@linuxtv.org>
-Date: Sat, 24 May 2008 00:44:20 +0200
+	(envelope-from <crope@iki.fi>) id 1JyGQ0-0006gM-KP
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 03:13:33 +0200
+Message-ID: <4832259A.6050101@iki.fi>
+Date: Tue, 20 May 2008 04:12:58 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1211576182.26119.12.camel@youkaida>
-Message-Id: <20080523224502.36EC0700008E@mwinf2e07.orange.fr>
-Subject: Re: [linux-dvb] NOVA-T500 : mesuring bit rate error ?
+To: pjama@optusnet.com.au
+References: <56913.192.168.200.51.1211237228.squirrel@pjama.net>	<48320E91.3010306@iki.fi>
+	<57913.192.168.200.51.1211245507.squirrel@pjama.net>
+In-Reply-To: <57913.192.168.200.51.1211245507.squirrel@pjama.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] IR for Afatech 901x
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +20,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Nico,
-Thanks a lot for your response, I am going to try the script.
+pjama wrote:
+>> Probably there is wrong ir-table loaded to the device by the driver.
+>> Ir-table in device and ir-codes from remote should match. Otherwise it
+>> will not work.
+> 
+> How do I confirm this? Should there be something in dmesg?
 
-Regards.
-Karim.
+I can try to look correct tables from sniffs I have... but it can take 
+some time. Maybe tomorrow.
 
+> This looks promising....
+> $ evtest /dev/input/event7
+> Input driver version is 1.0.0
+> Input device ID: bus 0x3 vendor 0x13d3 product 0x3226 version 0x200
+> Input device name: "IR-receiver inside an USB DVB receiver"
 
-
-
------Message d'origine-----
-De : Nicolas Will [mailto:nico@youplala.net] =
-
-Envoy=E9 : vendredi 23 mai 2008 22:56
-=C0 : kafifi
-Cc : linux-dvb@linuxtv.org
-Objet : Re: [linux-dvb] NOVA-T500 : mesuring bit rate error ?
-
-This was generated on my Nova-T-500 before I got a low-noise masthead amp:
-http://www.youplala.net/~will/htpc/signaltest/
-I used the following scripts to generate this:
-http://www.linuxtv.org/wiki/index.php/Testing_reception_quality
-Maybe femon has an issue, though, as those scripts do not use it.
-Nico
-http://www.youplala.net/linux/home-theater-pc
+Thats the correct one.
 
 
-
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
