@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns218.ovh.net ([213.186.34.114])
+Received: from f121.mail.ru ([194.67.57.127])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <webdev@chaosmedia.org>) id 1Jy7gz-0002ov-0M
-	for linux-dvb@linuxtv.org; Mon, 19 May 2008 17:54:31 +0200
-Message-ID: <4831A292.4070704@chaosmedia.org>
-Date: Mon, 19 May 2008 17:53:54 +0200
-From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
-MIME-Version: 1.0
+	(envelope-from <goga777@bk.ru>) id 1JyRqU-0007ut-Ag
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 15:25:38 +0200
+Received: from mail by f121.mail.ru with local id 1JyRpw-0001jr-00
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 17:25:04 +0400
+From: Igor <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-References: <48310988.8080806@pilppa.org> <4831434A.7000502@chaosmedia.org>
-	<48318B8C.7040900@pilppa.org>
-In-Reply-To: <48318B8C.7040900@pilppa.org>
-Subject: Re: [linux-dvb] Well working S2 cards?
+Mime-Version: 1.0
+Date: Tue, 20 May 2008 17:25:04 +0400
+Message-Id: <E1JyRpw-0001jr-00.goga777-bk-ru@f121.mail.ru>
+Subject: [linux-dvb] =?koi8-r?b?bmV3IGZpcm13YXJlIGZvciBIVlItMTEwMC8xMzAw?=
+	=?koi8-r?b?LzMwMDAvNDAwMCAmIE5vdmEtVC9TLVBDSS9IRF9TMg==?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +26,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi
 
-> Mika Laitio wrote:
-> But nice to hear that all 3 of these cards have changes to work both 
-> with S and S2.
-As i said i haven't had any problems with my tt s2-3200 and multiproto 
-driver.
-I believe that "budget" cards like that one are easier to support 
-because their design is basic.
+http://www.hauppauge.co.uk/pages/support/support_driversonly.html
+here you can find the updated firmware version for  HVR-1100/1300/3000/4000 & Nova-T/S-PCI/HD_S2
+Version 2.122.26109 (1.39Mb)
 
-
-> It would be interesting to find some dvb-t usb gadget for playing with 
-> it and laptop while sitting on the city cafe.
-some usb dvb-t adapters are supported but never tested that so i can't 
-tell for sure.
-i need to get a dvb-t device myself but it'll be a pci one..
-
-> Yeah, the 780G chipset I have has something called UVD 2.0 integrated 
-> to motherboard that should provide hardware acceleration for decoding 
-> VC-1, H.264 (AVC), WMV, and MPEG-2 sources up to 1080p resolutions. 
-> But I pet no-one has data available for getting the Linux 
-> encoding/decoding libraries to support those features.
->
-There's no GPU hardware acceleration currently on linux, as far as i 
-known, besides xvmc for MPEG2 on nvidia chipsets if i'm correct..
-So you'll have to rely only on your CPU for decoding h264 and that can 
-be quite tricky with 1080i..
-
-As Igor pointed out there's an existing project to bring coreavc support 
-to 64 bit linux, but i couldn't get it to work so far and have no idea 
-how stable it actually is..
-Having something that "works" is very different from having something 
-that works but will crash or freeze your app every few channel zap..
-But again i'm not telling it's not working as i couldn't get it to work 
-on my setup yet..
-
-Good luck.
-
-Marc
+Igor
 
 
 _______________________________________________
