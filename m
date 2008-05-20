@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
+Received: from f172.mail.ru ([194.67.57.165])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1JvAn4-0001IZ-6P
-	for linux-dvb@linuxtv.org; Sun, 11 May 2008 14:36:34 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so1309266ywj.41
-	for <linux-dvb@linuxtv.org>; Sun, 11 May 2008 05:36:20 -0700 (PDT)
-Message-ID: <37219a840805110536h300b2b6eq699ab09d5b1fc220@mail.gmail.com>
-Date: Sun, 11 May 2008 08:36:20 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Quentin Anciaux" <allcolor@gmail.com>
-In-Reply-To: <57da2dd30805110344u629351e1mb23cc249ffbdde52@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <57da2dd30805110344u629351e1mb23cc249ffbdde52@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Wintv hvr-1200 hybrid cx23885
+	(envelope-from <goga777@bk.ru>) id 1JyPRI-0007gH-Kr
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 12:51:31 +0200
+Received: from mail by f172.mail.ru with local id 1JyPQl-0003Nn-00
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 14:50:55 +0400
+From: Igor <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Tue, 20 May 2008 14:50:55 +0400
+References: <E1JyP1N-000PjE-00.goga777-bk-ru@f168.mail.ru>
+In-Reply-To: <E1JyP1N-000PjE-00.goga777-bk-ru@f168.mail.ru>
+Message-Id: <E1JyPQl-0003Nn-00.goga777-bk-ru@f172.mail.ru>
+Subject: Re: [linux-dvb] =?koi8-r?b?WC1wb2xhcmlzYXRpb24gLSB3aGF0J3MgPw==?=
+Reply-To: Igor <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,20 +27,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, May 11, 2008 at 6:44 AM, Quentin Anciaux <allcolor@gmail.com> wrote:
-> Hi,
->
-> I've got a problem with my tv card hybrid hvr-1200. I've taken the latest
-> v4l-dvb from the site, the card is recognized as I can see in dmesg, I have
-> devices node created in /dev/dvb/adapter0/. But I've got no device
-> /dev/video0.
->
-> My question is, do my setup is erroneous or there is only digital support
-> for this card on linux ?
+> here there's FAVAL Single LNB 0.2dB (X-polarization) - HDTV/S2 - EAN: 4260107560265
+> http://www.dvbshop.net/product_info.php/info/p210_FAVAL-Single-LNB-0-2dB--X-polarization----HDTV-S2.html
+> 
+> what's X polarisation and why the description points out on HDTV/S2 ?
 
-The linux driver for this card currently supports digital tv, only.
 
--Mike
+I have founded the information
+http://www.eutelsat.com/business/2_6_1.html
+
+X-Polarisation	A more precise definition of horizontal linear polarisation. X-polarisation is defined with respect to a particular direction from the satellite towards the earth, allowing precise calculation of the polarisation alignment angle for any given geographic location.
+ 	top
+
+
+ 
+Y-Polarisation	A more precise definition of vertical linear polarisation. Y-polarisation is defined with respect to a particular direction from the satellite towards the earth, allowing precise calculation of the polarisation alignment angle for any given geographic location.
+
+
 
 _______________________________________________
 linux-dvb mailing list
