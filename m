@@ -1,29 +1,38 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42Fwr1D032147
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 11:58:53 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42FwKcV011003
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 11:58:21 -0400
-Message-ID: <481B3A18.8030302@hni.uni-paderborn.de>
-Date: Fri, 02 May 2008 17:58:16 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <4811F4EE.9060409@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804281604400.7897@axis700.grange>
-	<481AE400.8090709@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021156400.4920@axis700.grange>
-	<481AF860.9060603@hni.uni-paderborn.de>
-	<481B04AE.8020609@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021417140.4920@axis700.grange>
-	<481B1094.4020303@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021519350.4920@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0805021519350.4920@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4KLbeEV030478
+	for <video4linux-list@redhat.com>; Tue, 20 May 2008 17:37:40 -0400
+Received: from ashesmtp01.verizonbusiness.com (ashesmtp01.verizonbusiness.com
+	[198.4.8.163])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4KLbSuA009650
+	for <video4linux-list@redhat.com>; Tue, 20 May 2008 17:37:28 -0400
+Received: from dgismtp05.wcomnet.com ([166.38.58.88])
+	by firewall.verizonbusiness.com
+	(Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct 12 2007;
+	32bit))
+	with ESMTP id <0K1600M16S2AZ600@firewall.verizonbusiness.com> for
+	video4linux-list@redhat.com; Tue, 20 May 2008 21:37:22 +0000 (GMT)
+Received: from dgismtp05.wcomnet.com ([127.0.0.1])
+	by dgismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with SMTP id <0K160060YS2A3Z@dgismtp05.mcilink.com> for
+	video4linux-list@redhat.com; Tue, 20 May 2008 21:37:22 +0000 (GMT)
+Received: from [127.0.0.1] ([166.34.132.9])
+	by dgismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with ESMTP id <0K1600463S27PA@dgismtp05.mcilink.com> for
+	video4linux-list@redhat.com; Tue, 20 May 2008 21:37:22 +0000 (GMT)
+Date: Tue, 20 May 2008 15:37:24 -0600
+From: Mark Paulus <mark.paulus@verizonbusiness.com>
+In-reply-to: <4291817.1211318326884.JavaMail.root@mswamui-billy.atl.sa.earthlink.net>
+To: Adam Glover <aglover.v4l@mindspring.com>
+Message-id: <48334494.9090505@verizonbusiness.com>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary=------------030708070109030201050208
+References: <4291817.1211318326884.JavaMail.root@mswamui-billy.atl.sa.earthlink.net>
 Cc: video4linux-list@redhat.com
-Subject: Re: pxa_camera with one buffer don't work
+Subject: Re: Problems building on Debian Etch
+Reply-To: mark.paulus@verizonbusiness.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,51 +44,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> On Fri, 2 May 2008, Stefan Herbrechtsmeier wrote:
->
->   
->> question: The function pxa_camera_dma_irq reset the passed FIFO channel if an
->> overrun occur.
->> But it should clear the others FIFOs too? Or is this wrong?
->>     
->
-> From the datasheet:
->
-> "Reset input FIFO (RESETF)-- When set, the FIFO pointers of all three 
-> FIFOs are reset. This bit is automatically cleared after resetting the 
-> pointers."
->
->   
-But only the current DMA channel was stopped.
+This is a multi-part message in MIME format.
+--------------030708070109030201050208
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The V4L2_PIX_FMT_YUYV mode uses only on DMA channel. So there should be 
-no difference to RGB / raw mode.
 
-I will going on with porting my system to 2.6.25 and then test again.
 
-Thanks
-    Stefan
+Adam Glover wrote:
+> Kernel 2.6.18 (2.6.18.6?) is over a year old.  I don't know what
+> the latest kernel available in the Etch repositories but Sid has
+> the latest stable version (2.6.18.25 as of a few weeks ago) so
+> you might want to update your kernel.  Etch doesn't appear to
+> have a newer kernel, so you will need to compile your own.
+> 
+> I had problems just a few weeks ago compiling mercurial against
+> 2.6.25.2 (linux stable) due to recent changes in the Linux GIT
+> branches not yet merged into stable.  In my case, the errors
+> only occurred for certain modules which I did not need so I was
+> able to compile without them.
+> 
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+Actually, you can get 2.6.24 from etchnhalf...
+http://wiki.debian.org/EtchAndAHalf
+Has info on what to add to /etc/apt/sources.list
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+--------------030708070109030201050208
+Content-Type: text/x-vcard; charset=utf-8;
+ name="mark_paulus.vcf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="mark_paulus.vcf"
 
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+YmVnaW46dmNhcmQNCmZuOk1hcmsgUGF1bHVzDQpuOlBhdWx1cztNYXJrDQpvcmc6TUNJO0xl
+YyBJbnRlcmZhY2VzIC8gNDA0MTkNCmFkcjtkb206OzsyNDI0IEdhcmRlbiBvZiB0aGUgR29k
+cyBSZDtDb2xvcmFkbyBTcHJpbmdzO0NPOzgwOTE5DQplbWFpbDtpbnRlcm5ldDptYXJrLnBh
+dWx1c0B2ZXJpem9uYnVzaW5lc3MuY29tDQp0aXRsZTpNYXJrIFBhdWx1cw0KdGVsO3dvcms6
+NzE5LTUzNS01NTc4DQp0ZWw7cGFnZXI6ODAwLXBhZ2VtY2kgLyAxNDA2MDUyDQp0ZWw7aG9t
+ZTp2NjIyLTU1NzgNCnZlcnNpb246Mi4xDQplbmQ6dmNhcmQNCg0K
+--------------030708070109030201050208
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------030708070109030201050208--
