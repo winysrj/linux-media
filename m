@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx03.lb01.inode.at ([62.99.145.3] helo=mx.inode.at)
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <philipp@kolmann.at>) id 1JukuB-0000YA-33
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:11 +0200
-Received: from [62.178.45.207] (port=15368 helo=p2k.at)
-	by smartmx-03.inode.at with esmtpsa (TLS-1.0:RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50) id 1Juku3-0006bk-TN
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:03 +0200
-Received: from philipp by p2k.at with local (Exim 4.63)
-	(envelope-from <philipp@kolmann.at>) id 1Juku3-00089m-51
-	for linux-dvb@linuxtv.org; Sat, 10 May 2008 10:58:03 +0200
-Date: Sat, 10 May 2008 10:58:03 +0200
-From: Philipp Kolmann <philipp@kolmann.at>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080510085803.GA30598@kolmann.at>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Mantis-08f27ef99d74: Compile error with 2.6.25
+	(envelope-from <stoth@linuxtv.org>) id 1JySqv-0003Ho-Bw
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 16:30:14 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K1600KSO899Q3O0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 20 May 2008 10:29:33 -0400 (EDT)
+Date: Tue, 20 May 2008 10:29:32 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <25670.1211292560@kewl.org>
+To: Darron Broad <darron@kewl.org>
+Message-id: <4832E04C.9090506@linuxtv.org>
+MIME-version: 1.0
+References: <E1JyRpw-0001jr-00.goga777-bk-ru@f121.mail.ru>
+	<25670.1211292560@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] new firmware for HVR-1100/1300/3000/4000 &
+ Nova-T/S-PCI/HD_S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,33 +33,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Darron Broad wrote:
+> In message <E1JyRpw-0001jr-00.goga777-bk-ru@f121.mail.ru>, Igor wrote:
+>> Hi
+> 
+> lo
+> 
+>> http://www.hauppauge.co.uk/pages/support/support_driversonly.html
+>> here you can find the updated firmware version for  HVR-1100/1300/3000/4000 & Nova-T/S-PCI/HD_S2
+>> Version 2.122.26109 (1.39Mb)
+> 
+> to extract for the cx24116 try this:
+> 
+> (FW version 1.22.82.0, previously 1.20.79.0)
+> 
+> dd if=hcw88bda.sys of=dvb-fe-cx24116.fw skip=75504 bs=1 count=32501
+> 
+> What difference it makes is unknown.
 
-I have a Terratec Cinergy C which worked with the mantis driver and 2.6.24
-fine. Now I have updated to 2.6.25 and can't compile the mantis driver
-anymore:
+You could just ask ;)
 
-[...]
-  CC [M]  /home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx23885-dvb.o
-  CC [M]  /home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.o
-/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.c:71: error: conflicting type qualifiers for 'addr_data'
-/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/../linux/include/media/v4l2-i2c-drv-legacy.h:41: error: previous declaration of 'addr_data' was here
-make[3]: *** [/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l/cx25840-core.o] Error 1
-make[2]: *** [_module_/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.25-1-686'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/philipp/test/deb/dvb/mantis-08f27ef99d74/v4l'
-make: *** [all] Error 2
+This does not contain any new firmware.
 
-Any ideas how to solve this.
+The best and latest firmware is still from www.steventoth.net/linux/cx24116
 
-Thanks
-Philipp
-
-PS: Anyone know, if and when mantis will be merged with v4l-dvb tree?
-
--- 
-The more I learn about people, the more I like my dog!
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
