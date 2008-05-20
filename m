@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1JvLF1-0007Qn-7Q
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 01:46:08 +0200
-Message-ID: <4827851D.2000104@gmx.net>
-Date: Mon, 12 May 2008 01:45:33 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <482560EB.2000306@gmail.com>		<200805101717.23199@orion.escape-edv.de>		<200805101727.55810@orion.escape-edv.de>		<1210456421.7632.29.camel@palomino.walls.org>	<48261EB5.2090604@gmail.com>	<1210463068.7632.102.camel@palomino.walls.org>
-	<48268EB9.6060000@gmail.com>
-In-Reply-To: <48268EB9.6060000@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
- stv0297
+Received: from [78.32.104.161] (helo=oak.r2g2.co.uk)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rob@r2g2.co.uk>) id 1JyOBM-0003Sb-48
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 11:30:58 +0200
+Received: by oak.r2g2.co.uk (8.13.1),
+	id m4K9UpBS024069 for <linux-dvb@linuxtv.org>
+Received: from oak.r2g2.co.uk ([127.0.0.1])
+	by localhost (oak.r2g2.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 60afL0kXqYef for <linux-dvb@linuxtv.org>;
+	Tue, 20 May 2008 10:30:51 +0100 (BST)
+Received: from [192.168.255.2] (acer.r2g2.co.uk [192.168.255.2])
+	by oak.r2g2.co.uk (8.13.1/8.13.1/Rx) with ESMTP id m4K9UpiL024066
+	for <linux-dvb@linuxtv.org>; Tue, 20 May 2008 10:30:51 +0100
+Resent-Message-Id: <200805200930.m4K9UpiL024066@oak.r2g2.co.uk>
+From: Rob Clive <rob@r2g2.co.uk>
+To: linux-dvb@linuxtv.org
+Message-Id: <1211206664.5314.9.camel@acer.r2g2.co.uk>
+Mime-Version: 1.0
+Date: Tue, 20 May 2008 10:30:55 +0100
+Subject: [linux-dvb] DVB-S USB box
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +32,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 05/11/2008 08:14 AM, Manu Abraham wrote:
->>> Absolute errors are used very scantily, but have been used to see how
->>> good/bad the whole system is.
->> Except for in safety critical systems (fire suppression system,
->> automobile brakes, etc.), how can a "good/bad" determination based on an
->> error count be separated from a time interval over which that error
->> count occurred?
-> 
-> 
-> It defines whether the FEC engine worked as expected. eg: Just looking
-> at a UNC counter counting up with a high BER shows a bad channel.
-> looking at a UNC counter going up with a low BER shows a bad error
-> correction scheme. looking at a very low BER and a high number of
-> uncorrectables imply a bad FEC engine/scheme.
+There are a number of auctions on EBay atm for a
 
-Not necessarily. Here some femon output from my Technotrend T-1500:
+USB Digital DVB-S Satellite TV Tuner Box PVR DVR
 
-status SCVYL | signal  54% | snr  99% | ber 188 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 230 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 240 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 234 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 228 | unc 21 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 248 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 280 | unc 0 | FE_HAS_LOCK
-status SCVYL | signal  54% | snr  99% | ber 234 | unc 0 | FE_HAS_LOCK
+The picture is fairly nondescript; being the original black box!  They
+come with remotes and drivers for Windows (2000/XP) and are all located
+in China.
 
-Nothing special for the BER levels, just a fairly good signal (need to 
-get into tens of thousands before it drops). But there, all of a sudden, 
-unc 21 (meaning the picture gets garbled for a moment). I still don't 
-know who or what is bullying me with those, but it seems to be caused by 
-sparks. I sometimes get it when I flick a light on or off. At night I 
-usually don't get these much (or not at all!), in the weekends usually 
-have less as well. At day, and especially in the evening though, 
-disaster (several each hour or even minute). It's no fault in the shemes 
-or FEC engine, I see the standalones hickup as well. So a very short 
-error will cause unc, but no higher BER.
+Does anyone have any experience of using these with Linux?  Without
+model nos or chipsets it's difficult to look anything up in the Wiki.  I
+run a Mythbuntu system and it would be nice to access Freesat,
+especially since it appears you don't need any specific-to-Freesat box
+nonsense.
 
-P.
+Thanks for your help,
+
+Rob Clive
+< I've had a perfectly wonderful evening. But this wasn't it -- Groucho
+Marx >
+
 
 _______________________________________________
 linux-dvb mailing list
