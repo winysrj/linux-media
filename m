@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway15.websitewelcome.com ([67.18.94.13])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1Jwd8J-00038X-NI
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 15:04:33 +0200
-Received: from [77.109.107.153] (port=60909 helo=[127.0.0.1])
-	by gator143.hostgator.com with esmtpa (Exim 4.68)
-	(envelope-from <skerit@kipdola.com>) id 1Jwd8C-0004Yf-Bc
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 08:04:25 -0500
-Message-ID: <482C34D7.8020608@kipdola.com>
-Date: Thu, 15 May 2008 15:04:23 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
+Received: from wa-out-1112.google.com ([209.85.146.177])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <owen.townend@gmail.com>) id 1JyGls-0007qW-TS
+	for linux-dvb@linuxtv.org; Tue, 20 May 2008 03:36:10 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so1935495wag.13
+	for <linux-dvb@linuxtv.org>; Mon, 19 May 2008 18:36:03 -0700 (PDT)
+Message-ID: <bb72339d0805191836l26aa826fl3b6dd3aafa20712@mail.gmail.com>
+Date: Tue, 20 May 2008 11:36:03 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
-References: <482BF672.1090402@kipdola.com>	<20080515111150.392be0b9@bercot.org>	<200805151140.15939.rudy@grumpydevil.homelinux.org>	<482C111D.6000400@kipdola.com>
-	<20080515143850.5dc9b190@bercot.org>
-In-Reply-To: <20080515143850.5dc9b190@bercot.org>
-Subject: Re: [linux-dvb] Technotrend S2-3200 (Or Technisat Skystar HD) on
- LinuxMCE 0710 (Kubuntu Feisty)
+Content-Disposition: inline
+Subject: [linux-dvb] Kworld 399U Dual DVB-T USB tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,391 +19,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0628876654=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0628876654==
-Content-Type: multipart/alternative;
- boundary="------------040608060805040401070004"
+Hey,
+  I have had some trouble trying to get a new KWorld 399U dual dvb-t
+USB dongle working with my debian etch 64-bit (+mythtv) box [1].
+  Physically dissasembling the dongle reveals the four chips on board
+are labeled AF9013-N1, FA9015-N1 and 2x MXL5003S.
+  I have found and followed instructions on linuxtv.org for building
+the latest v4l drivers[2] with some modifications[3]. I have also
+found that the 399U has recently had support added[4]. Building and
+installing from the latest source[5], restarting and trying `modprobe
+dvb-usb-af9005` tells me I need firmware.
+  Adding an image to /lib/firmware[6] solves this issue. I then reboot
+and this now detects as /dev/dvb/adapter0 and works well with mythtv
+though the channel changes are a little slow.
+  Only one of the two tuners is working for now, I am guessing this
+could be because of the firmware image I chose to use. I have the
+windows driver disk that came with the tuner and have read suggestions
+that the firmware image can be extracted from it. I tried using
+AF15BDA.sys file from the x64 driver dir as
+/lib/firmware/dvb-usb/ad9015.fw without success. dmesg shows the
+driver continually trying to load the firmware.
 
-This is a multi-part message in MIME format.
---------------040608060805040401070004
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+  A second issue is that the computer already has a working KWorld pci
+tuner which uses the cx88 drivers which are not compiled when building
+the af9015 checkout. The files seem available, but the modules are not
+being build. My existing kernel modules are not compatible (I backed
+up then rm -rf /lib/modules/`uname -r`/kernel/drivers/media/* before
+doing `make install`, restoring my backed up video/cx88 dir and
+contents throws unknown symbol errors when trying `modprobe
+cx88-dvb`).
+  I tried `make all cx88-ivtv` in case that was relevant, but this
+doesn't seem to help (possibly because the link is dead
+v4l/cx88-ivtv.c -> ../v4l_experimental/cx88-ivtv.c but this doesn't
+exist).
 
-This is my first mailing-list experience, but I'm liking it more then a 
-regular forum! :-P
->> I have rebooted the computer multiple times.
->> I also unloaded the modules and reloaded them without rebooting.
->> I even added the modules to the blacklist, rebooted, loaded the
->> modules manually - they still won't go.
->>     
-> Hum, I don't understand...
-What I was trying to say: I tried everything I could think of to get 
-them to work! (rebooting, modprobe -r && modprobe, adding the modules to 
-/etc/modprobe/d/blacklist to make them not load at boot and load them 
-afterwards)
+So two questions:
+  What can I do to enable the second tuner on the dongle?
+  How can I compile the cx88 drivers along with the rest in the af9015 checkout?
 
->> As stated before, I'm also curious what the difference between all
->> these drivers are.
->>     
->
-> I don't know. I did not have time to look at it but I hope, soon, I
-> will be able to study it...
-I look forward to it! :-)
+If there's any other output or info that may help, please let me know.
 
-If I can't get it to work on my LinuxMCE machine (which is a strange 
-beast, after all!) I'll just install Mythbuntu 8.04 on another partition 
-and try that out.
+cheers,
+Owen.
 
->> Met vriendelijke groeten,
->>     
->
-> Mhummm, it looks like a strange language ;-)
-Am I wrong to assume you live in France? Otherwise you're not 
-recognising your neighbouring country's language! :-D
-It's Dutch, by the way ;)
-
-Greetings,
-
-Jelle De Loecker
-
-David BERCOT schreef:
-> Hi again,
->
-> Le Thu, 15 May 2008 12:31:57 +0200,
-> Jelle De Loecker <skerit@kipdola.com> a écrit :
->   
->> Ah, my apologies, I'm trying to get help from every available
->> resource, and asking the person who wrote the tutorial seemed like a
->> good idea! :)
->>     
->
-> Yes, it was ;-) No problem...
->
->   
->> I have rebooted the computer multiple times.
->> I also unloaded the modules and reloaded them without rebooting.
->> I even added the modules to the blacklist, rebooted, loaded the
->> modules manually - they still won't go.
->>     
->
-> Hum, I don't understand...
->  
->   
->> As stated before, I'm also curious what the difference between all
->> these drivers are.
->>     
->
-> I don't know. I did not have time to look at it but I hope, soon, I
-> will be able to study it...
->
->   
->> Am I correct in assuming the CI doesn't work yet?
->>     
->
-> It doesn't matter. The CI doesn't work on my computer (I don't know
-> why) but everything else is OK !
->
->   
->> It's not such a big deal at the moment, I just spent all my money on
->> the setup!
->> I'll get along with freesat & othe free-to-air channels untill I
->> finally get a subscription, I'm just curious.
->>     
->
-> For me, I have another terminal, so, it explains why I don't take time
-> to do other tests... But I'll do ;-)
->
->   
->> Met vriendelijke groeten,
->>     
->
-> Mhummm, it looks like a strange language ;-)
->
-> David.
->
->   
->> Jelle De Loecker
->>
->>
->> Rudy Zijlstra schreef:
->>     
->>> On Thursday 15 May 2008 11:11, David BERCOT wrote:
->>>   
->>>       
->>>> Hi Jelle,
->>>>
->>>> I've seen your mail this morning ;-)
->>>>
->>>> Le Thu, 15 May 2008 10:38:10 +0200,
->>>>
->>>> Jelle De Loecker <skerit@kipdola.com> a écrit :
->>>>     
->>>>         
->>>>> Good morning all,
->>>>>
->>>>> I'm having difficulty getting my DVB-S2 card to work on LinuxMCE
->>>>> 0710 (Kubuntu Feisty, kernel 2.6.22-14-generic) I'll start with
->>>>> some lspci info to prove the card is connected:
->>>>> lspci -v:
->>>>> 04:01.0 Multimedia controller: Philips Semiconductors SAA7146
->>>>> (rev 01) Subsystem: Technotrend Systemtechnik GmbH S2-3200
->>>>>         Flags: bus master, medium devsel, latency 64, IRQ 16
->>>>>         Memory at febffc00 (32-bit, non-prefetchable) [size=512]
->>>>>
->>>>> I can compile the drivers just fine, I followed the instructions
->>>>> from this French page:
->>>>> http://wilco.bercot.org/debian/s2-3200.html
->>>>> <http://wilco.bercot.org/debian/s2-3200.html>(I don't completely
->>>>> understand French, but we all speak code!)
->>>>>
->>>>> But after loading the drivers I don't get a /dev/dvb folder.
->>>>> My dmesg output only shows this message:
->>>>> saa7146: register extension 'budget_ci dvb'.
->>>>>       
->>>>>           
->>>> Have you reboot your computer ? May be it can solve your
->>>> problems... If not, I'll do another version with the multiproto
->>>> plus driver soon.
->>>>
->>>>     
->>>>         
->>> Remains the question, what is the difference between multiproto and
->>> multiproto plus?
->>>
->>> Its something i also would like to understand. Another question,
->>> how if progress on CI with the TT-3200?
->>>
->>> Cheers,
->>>
->>> Rudy
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>       
-
-
---------------040608060805040401070004
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-This is my first mailing-list experience, but I'm liking it more then a
-regular forum! <span class="moz-smiley-s4"><span> :-P </span></span><br>
-<blockquote type="cite">
-  <blockquote type="cite">
-    <pre wrap="">I have rebooted the computer multiple times.
-I also unloaded the modules and reloaded them without rebooting.
-I even added the modules to the blacklist, rebooted, loaded the
-modules manually - they still won't go.
-    </pre>
-  </blockquote>
-  <pre wrap="">
-Hum, I don't understand...</pre>
-</blockquote>
-What I was trying to say: I tried everything I could think of to get
-them to work! (rebooting, modprobe -r &amp;&amp; modprobe, adding the
-modules to /etc/modprobe/d/blacklist to make them not load at boot and
-load them afterwards)<br>
-<br>
-<blockquote type="cite">
-  <blockquote type="cite">
-    <pre wrap="">As stated before, I'm also curious what the difference between all
-these drivers are.
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-I don't know. I did not have time to look at it but I hope, soon, I
-will be able to study it...</pre>
-</blockquote>
-I look forward to it! <span class="moz-smiley-s1"><span> :-) </span></span><br>
-<br>
-If I can't get it to work on my LinuxMCE machine (which is a strange
-beast, after all!) I'll just install Mythbuntu 8.04 on another
-partition and try that out.<br>
-<br>
-<blockquote type="cite">
-  <blockquote type="cite">
-    <pre wrap="">Met vriendelijke groeten,
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Mhummm, it looks like a strange language ;-)</pre>
-</blockquote>
-Am I wrong to assume you live in France? Otherwise you're not
-recognising your neighbouring country's language! <span
- class="moz-smiley-s5"><span> :-D </span></span><br>
-It's Dutch, by the way ;)<br>
-<br>
-Greetings,<br>
-<br>
-Jelle De Loecker<br>
-<br>
-David BERCOT schreef:
-<blockquote cite="mid:20080515143850.5dc9b190@bercot.org" type="cite">
-  <pre wrap="">Hi again,
-
-Le Thu, 15 May 2008 12:31:57 +0200,
-Jelle De Loecker <a class="moz-txt-link-rfc2396E" href="mailto:skerit@kipdola.com">&lt;skerit@kipdola.com&gt;</a> a écrit :
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Ah, my apologies, I'm trying to get help from every available
-resource, and asking the person who wrote the tutorial seemed like a
-good idea! :)
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Yes, it was ;-) No problem...
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">I have rebooted the computer multiple times.
-I also unloaded the modules and reloaded them without rebooting.
-I even added the modules to the blacklist, rebooted, loaded the
-modules manually - they still won't go.
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Hum, I don't understand...
- 
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">As stated before, I'm also curious what the difference between all
-these drivers are.
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-I don't know. I did not have time to look at it but I hope, soon, I
-will be able to study it...
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Am I correct in assuming the CI doesn't work yet?
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-It doesn't matter. The CI doesn't work on my computer (I don't know
-why) but everything else is OK !
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">It's not such a big deal at the moment, I just spent all my money on
-the setup!
-I'll get along with freesat &amp; othe free-to-air channels untill I
-finally get a subscription, I'm just curious.
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-For me, I have another terminal, so, it explains why I don't take time
-to do other tests... But I'll do ;-)
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Met vriendelijke groeten,
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Mhummm, it looks like a strange language ;-)
-
-David.
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Jelle De Loecker
-
-
-Rudy Zijlstra schreef:
-    </pre>
-    <blockquote type="cite">
-      <pre wrap="">On Thursday 15 May 2008 11:11, David BERCOT wrote:
-  
-      </pre>
-      <blockquote type="cite">
-        <pre wrap="">Hi Jelle,
-
-I've seen your mail this morning ;-)
-
-Le Thu, 15 May 2008 10:38:10 +0200,
-
-Jelle De Loecker <a class="moz-txt-link-rfc2396E" href="mailto:skerit@kipdola.com">&lt;skerit@kipdola.com&gt;</a> a écrit :
-    
-        </pre>
-        <blockquote type="cite">
-          <pre wrap="">Good morning all,
-
-I'm having difficulty getting my DVB-S2 card to work on LinuxMCE
-0710 (Kubuntu Feisty, kernel 2.6.22-14-generic) I'll start with
-some lspci info to prove the card is connected:
-lspci -v:
-04:01.0 Multimedia controller: Philips Semiconductors SAA7146
-(rev 01) Subsystem: Technotrend Systemtechnik GmbH S2-3200
-        Flags: bus master, medium devsel, latency 64, IRQ 16
-        Memory at febffc00 (32-bit, non-prefetchable) [size=512]
-
-I can compile the drivers just fine, I followed the instructions
-from this French page:
-<a class="moz-txt-link-freetext" href="http://wilco.bercot.org/debian/s2-3200.html">http://wilco.bercot.org/debian/s2-3200.html</a>
-<a class="moz-txt-link-rfc2396E" href="http://wilco.bercot.org/debian/s2-3200.html">&lt;http://wilco.bercot.org/debian/s2-3200.html&gt;</a>(I don't completely
-understand French, but we all speak code!)
-
-But after loading the drivers I don't get a /dev/dvb folder.
-My dmesg output only shows this message:
-saa7146: register extension 'budget_ci dvb'.
-      
-          </pre>
-        </blockquote>
-        <pre wrap="">Have you reboot your computer ? May be it can solve your
-problems... If not, I'll do another version with the multiproto
-plus driver soon.
-
-    
-        </pre>
-      </blockquote>
-      <pre wrap="">Remains the question, what is the difference between multiproto and
-multiproto plus?
-
-Its something i also would like to understand. Another question,
-how if progress on CI with the TT-3200?
-
-Cheers,
-
-Rudy
-
-_______________________________________________
-linux-dvb mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a>
-      </pre>
-    </blockquote>
-  </blockquote>
-</blockquote>
-<br>
-</body>
-</html>
-
---------------040608060805040401070004--
-
-
---===============0628876654==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Footnotes:
+--
+[1] Linux kushiel 2.6.18-6-amd64 #1 SMP Thu May 8 06:49:39 UTC 2008
+x86_64 GNU/Linux
+[2] http://linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+[3] http://www.gossamer-threads.com/lists/ivtv/devel/37175
+[4] http://linuxtv.org/hg/~anttip/af9015/rev/22fc34924b9e
+[5] hg clone http://linuxtv.org/hg/~anttip/af9015; cd af9005; ( Make
+recommended mods for 2.6.18 ); sudo mv
+/lib/modules/2.6.18-6-amd-64/kernel/drivers/media/* ~/mod.bak; sudo
+make install;
+[6] Firmware from:
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0628876654==--
