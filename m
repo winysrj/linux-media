@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.241])
+Received: from rv-out-0506.google.com ([209.85.198.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tomasz.belina@gmail.com>) id 1Jw0uG-0001vQ-6W
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 22:15:29 +0200
-Received: by an-out-0708.google.com with SMTP id c31so844719anc.125
-	for <linux-dvb@linuxtv.org>; Tue, 13 May 2008 13:15:22 -0700 (PDT)
-Message-ID: <67bbdc0805131315n14bea69fn1f2b1c8412bc350a@mail.gmail.com>
-Date: Tue, 13 May 2008 22:15:22 +0200
-From: "Tomasz Belina" <tomasz.belina@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <mrechberger@gmail.com>) id 1JyraO-00077x-4S
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 18:54:45 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so3075867rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 21 May 2008 09:54:38 -0700 (PDT)
+Message-ID: <d9def9db0805210954t3a36c837g6fdbe37171330acb@mail.gmail.com>
+Date: Wed, 21 May 2008 18:54:38 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+In-Reply-To: <617be8890805210711j726bc505jde87e32078a8d4eb@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb]  HPC2000 once again
+References: <mailman.67.1211375422.824.linux-dvb@linuxtv.org>
+	<617be8890805210711j726bc505jde87e32078a8d4eb@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] linux-dvb Digest, Vol 40, Issue 74
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,15 +31,39 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-I didn't find the way to force  my HPC2000 DVB-T card to work under
-linux. I added some informations about this card in unsupported card
-list section in project wiki. Is there anyone here who can help me to
-make this card work under linux ? I'm professional developer with good
-C and Linux knowladge (unfortunately without driver writing experience
-) and I think I can be usefull but I need some information what to do
-and where to start.
+2008/5/21 Eduard Huguet <eduardhc@gmail.com>:
+>> ---------- Missatge reenviat ----------
+>> From: bvidinli <bvidinli@gmail.com>
+>> To: stev391@email.com, linux-dvb@linuxtv.org
+>> Date: Wed, 21 May 2008 16:10:08 +0300
+>> Subject: [linux-dvb] fail:Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04,
+>> kernel 2.6.24-16-generic (bvidinli)
+>> This problem persists, continues,
+>> does anybody have suggestions ?
+>>
+>> i continue on my search of this problem...
+>>
+>> thanks.
+>
+>
+> I'm sorry :(. I'm really not an Ubuntu expert, so I really can't help you a
+> lot on this one. However, as the problem is clearly that you are mixing the
+> old modules with newest ones, you should maybe consider compiling yourself a
+> custrom  kernel for your machine with the DVB / V4L support removed, and
+> then compile  LinuxTV drivers as described.
+>
+> Regards
+>
+>
 
-Tom
+Do you have any debug messages?
+You need to compile the linuxtv code against the linux ubuntu modules
+package, only problem here the linuxtv code isnt prepared to do so,
+the easiest way is to cut out the saa module and integrate it into the
+linux ubuntu modules source package and regenerate the lum package for
+installing it.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
