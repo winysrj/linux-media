@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway01.websitewelcome.com ([69.93.115.19])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1Jxpss-0006q8-5I
-	for linux-dvb@linuxtv.org; Sun, 18 May 2008 22:53:35 +0200
-Message-ID: <48309746.3080803@kipdola.com>
-Date: Sun, 18 May 2008 22:53:26 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
+Received: from smtp1.dnainternet.fi ([87.94.96.108])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1JymhD-0003ek-EZ
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 13:41:28 +0200
+Message-ID: <48340A29.6030505@iki.fi>
+Date: Wed, 21 May 2008 14:40:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>, linux-dvb@linuxtv.org
-References: <482CC0F0.30005@kipdola.com>	<E1JwrWW-0006Ye-00.goga777-bk-ru@f139.mail.ru>	<482D1AB7.3070101@kipdola.com>
-	<20080518121250.7dc0eaac@bk.ru>	<482FF520.4070303@kipdola.com>	<854d46170805180424r1ca63161h51f6f5e43c78d45f@mail.gmail.com>	<4830158C.2030309@kipdola.com>	<854d46170805180507q33d8b71ct16547fce16603d66@mail.gmail.com>	<483027AE.6020107@kipdola.com>
-	<1211139899.3380.15.camel@palomino.walls.org>
-In-Reply-To: <1211139899.3380.15.camel@palomino.walls.org>
-Subject: Re: [linux-dvb] Technotrend S2-3200 Scanning
+To: pjama@optusnet.com.au
+References: <56913.192.168.200.51.1211237228.squirrel@pjama.net>	<48320E91.3010306@iki.fi>	<57913.192.168.200.51.1211245507.squirrel@pjama.net>	<4832259A.6050101@iki.fi>
+	<483232A9.6010609@iki.fi>
+	<27514.203.9.185.254.1211343247.squirrel@pjama.net>
+In-Reply-To: <27514.203.9.185.254.1211343247.squirrel@pjama.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] IR for Afatech 901x
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,29 +27,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+pjama wrote:
+>> Load driver with debug=2 (rmmod dvb-usb-af9015; modprobe dvb-usb-af9015
+>> debug=2) and tail -f /var/log/messages to see if there is now some bytes
+>> coming from remote.
+> 
+> As mentioned in an earlier response to this post, the above trashes the
+> device /dev/input/event7. Is there any way I can boot with debug set?
 
-Andy Walls schreef:
-> On Sun, 2008-05-18 at 14:57 +0200, Jelle De Loecker wrote:
->   
-> This "just worked" for me using mplayer with a digital video broadcast
-> from my HVR-1600 with the cx18 driver (I'm in ATSC country):
->   
-Apparently /dev/dvb/adapter0/dvr0 is a very sensitive "file" - when I 
-directly open it using mplayer, or even cat, it won't output to anything 
-else afterwards.
+1) unplug your device
+2) make sure new drivers are installed
+3) reboot your machine
+4) modprobe dvb-usb-af9015 debug=2
+5) tail -f /var/log/messages
+6) plug stick (now it should start pushing lines to /var/log/messages 
+(or /var/log/debug) ?)
 
-I'm using Faruk's solution to stream it like this:
+Remote buttons should now recognized in debug dumps.
 
-dvbstream 8192 -i 192.168.1.2 -r 1234
+> Doing evtest on /dev/input/event7 then pushing remote buttons give me
+> nothing. I have confirmed remote/receiver works by booting into windows
+> and using vendor supplied app.
 
-and then opening that stream with VLC - which works rather well (even if I have to always manually change the frequency using szap)
+It does not work because driver does not have mappings to your remote 
+controller buttons yet. You should find correct mappings from debug dump 
+described above.
 
-
-By the way, I scribbled down my notes in a small tutorial on how to get 
-the "old drivers" working again (using an older revision made the scan 
-tool work again!) If any other beginner needs any help it can be found here:
-
-http://skerit.kipdola.com/?p=5&language=en
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
