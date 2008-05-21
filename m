@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1K0YiY-0000Nr-Ev
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 11:10:11 +0200
-Message-ID: <483A7E56.2080103@anevia.com>
-Date: Mon, 26 May 2008 11:09:42 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+Received: from gateway14.websitewelcome.com ([69.93.164.18])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1JyjPm-00007u-PL
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 10:11:16 +0200
+Received: from [77.109.107.126] (port=48144 helo=[127.0.0.1])
+	by gator143.hostgator.com with esmtpa (Exim 4.68)
+	(envelope-from <skerit@kipdola.com>) id 1JyjPb-0004J9-It
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 03:11:03 -0500
+Message-ID: <4833D91A.1050101@kipdola.com>
+Date: Wed, 21 May 2008 10:11:06 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
-To: vivichrist@gmail.com
-References: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>
-	<48377956.2000307@gmail.com>
-In-Reply-To: <48377956.2000307@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [HVR1300] issue with VLC
+To: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] TT S2-3200 LIRC remote - Multiproto drivers merge?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,35 +20,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-vivian stewart a =E9crit :
-> I have problems with audio/video getting out of sync regardless of cache =
+Hello again,
 
-> side and dropframe etc. using HVR3000 and mplayer ... could be related.
-> =
+I finally got the Technotrend S2-3200 to work on LinuxMCE 0710, now I'm 
+wondering how to get the IR transceiver to work. (Not that I've managed 
+to get mythtv working, but since activity on that subject is a bit 
+slower...)
 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> =
+I already tried to ask on the lirc mailing list, but it seems like a 
+very dead place.
 
+My dmesg output proves the transceiver is discovered and I have a 
+/dev/class/input kind of file, I just don't know how to get lirc to 
+work, or how to get a /dev/lirc0 file (I actually already have another 
+transceiver on this computer which apparantly only works with MCE 
+remotes (it's an integrated IR transceiver in my Antec Fusion v2 case)) 
+since there isn't a specific driver in lirc for this technotrend card.
 
-has the HVR 3000 a hardware MPEG2 encoder too ?
-if so, are you using mplayer to read the MPEG video stream or the RAW =
+Now, I want to get some facts straight about the multiproto driver:
+Is it "done"? What's the big difference between multiproto and 
+multiproto plus? (Even though there hasn't been an update in 5 weeks for 
+the regular drivers, the plus drivers seemed to have more activity)
 
-video stream ?
+Or is it correct to assume that now only the software applications need 
+to get a patch to work with our multiproto drivers?
 
--- =
+And, looking at the multiproto_plus drivers, I see they "merged" with 
+v4l-dvb - what does this mean exactly?
 
-CAND Frederic
-Product Manager
-ANEVIA
+Thank you for your time,
+
+Jelle De Loecker
 
 _______________________________________________
 linux-dvb mailing list
