@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from [195.156.147.13] (helo=jenni1.rokki.sonera.fi)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1Js0XO-0003xy-Tf
-	for linux-dvb@linuxtv.org; Fri, 02 May 2008 21:03:19 +0200
-Received: by yw-out-2324.google.com with SMTP id 5so35924ywb.41
-	for <linux-dvb@linuxtv.org>; Fri, 02 May 2008 12:02:58 -0700 (PDT)
-Message-ID: <37219a840805021202w57218167x9e0949e01575125b@mail.gmail.com>
-Date: Fri, 2 May 2008 15:02:58 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Robert Penland" <penland@pacbell.net>
-In-Reply-To: <DD4A3CFD-1E9F-4629-BC0F-117AF495F3BF@pacbell.net>
+	(envelope-from <anssi.hannula@gmail.com>) id 1JymnS-0004Jn-Sk
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 13:47:55 +0200
+Message-ID: <48340BE1.40003@gmail.com>
+Date: Wed, 21 May 2008 14:47:45 +0300
+From: Anssi Hannula <anssi.hannula@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <DD4A3CFD-1E9F-4629-BC0F-117AF495F3BF@pacbell.net>
+To: Dominik Kuhlen <dkuhlen@gmx.net>
+References: <200804190101.14457.dkuhlen@gmx.net>
+In-Reply-To: <200804190101.14457.dkuhlen@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1250 Analog mode
+Subject: Re: [linux-dvb] Pinnacle PCTV Sat HDTV Pro USB (PCTV452e)
+ and	TT-Connect-S2-3600 final version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,29 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, May 2, 2008 at 1:17 PM, Robert Penland <penland@pacbell.net> wrote:
-> Has any progress been made on getting the analog mode of the HVR-1250
->  working?  I looked through the recent archives, but didn't see any
->  relevant information.
+Dominik Kuhlen wrote:
+> Hi,
 
-Analog video is not yet supported by the linux cx23885 driver for
-Conexant cx23885 PCIe bridge chipsets.
+Hi!
 
-Currently, the linux cx23885 driver only supports analog video on the
-Conexant cx23887 PCIe bridge chipset.
+> Here is my current version after quite a while of testing and tuning:
+> I stripped the stb0899 tuning/searching algo to speed up tuning a bit
+> now I have very fast and reliable locks (no failures, no errors)
+> =
 
-The HVR-1800 uses a cx23887, but the HVR-1250 uses a cx23885 -- only
-digital television is supported at this time.
+> I have also merged the TT-S2-3600 patch from Andr=E9. (I cannot test it t=
+hough.)
 
-Regards,
+I was able to use my TT-S2-3600 with your patches for DVB-S, with a few
+caveats:
 
-Mike
+I can't tune to 12727 V with 18400 symbolrate on 1=B0W. The only
+meaningful difference to other transponders on 1=B0W seems to be the
+symbolrate.
+
+$ ./simpletune -a 4 -f12717 -p v -s 18400 -d 1
+using '/dev/dvb/adapter4/frontend0' as frontend
+frontend fd=3D3: type=3D0
+ioclt: FE_SET_VOLTAGE : 0
+High band
+tone: 1
+dvbfe setparams :  delsys=3D1 2117MHz / Rate : 18400kBPS
+Status: 00:
+SNR: 222 173 (0xdead) (5700.5dB)
+BER: 0 0 0 0 (0x0)
+Signal: 222 173 (0xdead) -8531 (5700.5dBm)
+Frontend: f=3D2117.021
+
+I also get some image distortions like Andr=E9 mentioned in his earlier
+message.
+
+-- =
+
+Anssi Hannula
 
 _______________________________________________
 linux-dvb mailing list
