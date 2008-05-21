@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4AMiesJ008662
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 18:44:40 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4AMiQVB026627
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 18:44:26 -0400
-Date: Sun, 11 May 2008 00:44:05 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: tsw@johana.com
-Message-ID: <20080510224404.GA897@daniel.bse>
-References: <20080510160013.1EC04619507@hormel.redhat.com>
-	<206624.42234.qm@web65402.mail.ac4.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4L18bfA002371
+	for <video4linux-list@redhat.com>; Tue, 20 May 2008 21:08:37 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4L18LVE004564
+	for <video4linux-list@redhat.com>; Tue, 20 May 2008 21:08:22 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Carl Karsten <carl@personnelware.com>
+In-Reply-To: <483314EF.5050009@personnelware.com>
+References: <483314EF.5050009@personnelware.com>
+Content-Type: text/plain
+Date: Wed, 21 May 2008 03:07:25 +0200
+Message-Id: <1211332045.5029.6.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <206624.42234.qm@web65402.mail.ac4.yahoo.com>
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Information request (USB ID:EB1A:E305)
+Subject: Re: xawtv "no fontset found"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,14 +28,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, May 10, 2008 at 01:09:48PM -0700, Tom Watson wrote:
-> USB vendor: EB1A, eMPIA Technology, Inc.
-> USB device: E305, nothing recorded (yet).
+Hi Carl,
 
-This one is supported by Markus Rechberger's em28xx driver on
-http://mcentral.de/
+Am Dienstag, den 20.05.2008, 13:14 -0500 schrieb Carl Karsten:
+> Ubuntu hardy - guessing I need to install some font package?
+> 
+> $ sudo modprobe vivi
+> 
+> carl@dell29:~$ xawtv -c /dev/video0
+> This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.24-16-generic)
+> xinerama 0: 1280x1024+0+0
+> xinerama 1: 1600x1200+1280+0
+> X Error of failed request:  XF86DGANoDirectVideoMode
+>    Major opcode of failed request:  136 (XFree86-DGA)
+>    Minor opcode of failed request:  1 (XF86DGAGetVideoLL)
+>    Serial number of failed request:  13
+>    Current serial number in output stream:  13
+> v4l-conf had some trouble, trying to continue anyway
+> Warning: Missing charsets in String to FontSet conversion
+> Warning: Cannot convert string 
+> "-*-lucidatypewriter-bold-r-normal-*-14-*-*-*-m-*-iso8859-*, 
+> -*-courier-bold-r-normal-*-14-*-*-*-m-*-iso8859-*, 
+> -gnu-unifont-bold-r-normal--16-*-*-*-c-*-*-*, 
+> -efont-biwidth-bold-r-normal--16-*-*-*-*-*-*-*, 
+> -*-*-bold-r-normal-*-16-*-*-*-m-*-*-*, 
+> -*-*-bold-r-normal-*-16-*-*-*-c-*-*-*, 
+> -*-*-*-*-*-*-16-*-*-*-*-*-*-*,*" to type FontSet
+> Warning: Missing charsets in String to FontSet conversion
+> Warning: Unable to load any usable fontset
+> Warning: Missing charsets in String to FontSet conversion
+> Warning: Unable to load any usable fontset
+> Error: Aborting: no fontset found
+> 
+> Carl K
+> 
 
-  Daniel
+if no tv-fonts available you can get some from Gerd.
+
+http://linux.bytesex.org/xawtv/tvfonts.html
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
