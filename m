@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48Lshxb015502
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:54:43 -0400
-Received: from mailout01.t-online.de (mailout01.t-online.de [194.25.134.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m48LsVix006042
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 17:54:31 -0400
-Message-ID: <4823768D.4070405@t-online.de>
-Date: Thu, 08 May 2008 23:54:21 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4LGHm77022247
+	for <video4linux-list@redhat.com>; Wed, 21 May 2008 12:17:48 -0400
+Received: from smtp50.hccnet.nl (smtp50.hccnet.nl [62.251.0.47])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4LGHbMB024645
+	for <video4linux-list@redhat.com>; Wed, 21 May 2008 12:17:38 -0400
+Message-ID: <48344B16.2010005@hccnet.nl>
+Date: Wed, 21 May 2008 18:17:26 +0200
+From: Gert Vervoort <gert.vervoort@hccnet.nl>
 MIME-Version: 1.0
-To: Adam Glover <aglover.v4l@mindspring.com>
-References: <5143530.1210229476468.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
-In-Reply-To: <5143530.1210229476468.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Dmitri Belimov <d.belimov@gmail.com>
+References: <20080414114746.3955c089@glory.loctelecom.ru>	<20080414172821.3966dfbf@areia>	<20080415125059.3e065997@glory.loctelecom.ru>	<20080415000611.610af5c6@gaivota>	<20080415135455.76d18419@glory.loctelecom.ru>	<20080415122524.3455e060@gaivota>	<20080422175422.3d7e4448@glory.loctelecom.ru>	<20080422130644.7bfe3b2d@gaivota>	<20080423124157.1a8eda0a@glory.loctelecom.ru>	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>	<20080423160505.36064bf7@glory.loctelecom.ru>	<20080423113739.7f314663@gaivota>	<20080424093259.7880795b@glory.loctelecom.ru>	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>	<20080512201114.3bd41ee5@glory.loctelecom.ru>	<1210719122.26311.37.camel@pc10.localdom.local>	<20080520152426.5540ee7f@glory.loctelecom.ru>	<1211331167.4235.26.camel@pc10.localdom.local>
+	<20080521131652.5a4850a5@glory.loctelecom.ru>
+In-Reply-To: <20080521131652.5a4850a5@glory.loctelecom.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: odd behavior in tuner module in hg and linux stable
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] I2S on for MPEG of saa7134_empress
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,56 +28,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-HI, Adam
+Dmitri Belimov wrote:
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+>
+> P.S. After this patch I have some data from /dev/video1. Mplayer mpeg_test02.dat
+> I can see gray screen with blinked color squares. May be audio data?
+>
+>   
+If the board has the SAA6752 directly connected to the SAA7134 TS port, 
+then on /dev/video1 there should be MPEG-2 transport stream packets 
+(check for 188 byte packets starting with 0x47).
+If I remember correctly for the original TS capture code of the SAA7134 
+driver, if the SAA6752 was not properly enabled or there was no video 
+signal, no data was available on the /dev/video1.
+At that time I used an user space I2C program to configure the encoder, 
+currently there is a module called  saa6752hs which I suppose does these 
+settings.
+ 
+   Gert
 
-Adam Glover schrieb:
-> This has to do with the patch I submitted to add explicit
-> support for the ADS Tech Instant HDTV PCI card (PTV-380).
-> 
-> It appears that in the latest kernel stable release as well
-> as the hg snapshot I had used for the patch the tuner module
-> does not identify the tuner chip on its initial automatic
-> loadup.  I must rmmod and reinsert the tuner module before it
-> will report detecting the TDA9887 / TUV1236D tuner chips.
-> 
-> This did not happen with version 2.6.24.4 so I'm wondering
-> what changed?  As it stands, it's not fatal to have to remove
-> and reinsert the module but it's not right...
-> 
-> This seems to be change from the last couple of months that
-> has already made it into the stable kernel tree.
-> 
-> Incidentally, the dvb frontend loads and works despite the
-> tuner having not registered the chips.  I just have no control
-> over analog tuning.  I don't know if this is normal behavior
-> or not.
-> 
-> So is this some sort of bug or is there something I should
-> do with the card config when compiling the modules?
-> 
-> I'd like to see the card working (even though I have a pcHDTV
-> card coming in the mail...)
-> 
-> Adam Glover
-> 
-> (I do apologize if I did not submit that patch correctly...
-> I'm pretty sure I was wrong in not including relative paths
-> and that the patch had to be run inside the saa7134 folder...)
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-
-The cause of the problem migt be this changeset 7268:e7668fc3666c
-in the v4l-dvb main repository. I have a problem with it as well.
-The initialization order on hybrid cards is very critical.
-So if it turns out that my hing is right, we need to discuss and
-test this carefully.
-
-Best regards
-   Hartmut
 
 --
 video4linux-list mailing list
