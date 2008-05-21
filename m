@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.dnainternet.fi ([87.94.96.112])
+Received: from smtphost.cis.strath.ac.uk ([130.159.196.96])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1K26UR-00008H-JP
-	for linux-dvb@linuxtv.org; Fri, 30 May 2008 17:26:03 +0200
-Received: from localhost.localdomain (dyn3-82-128-187-102.psoas.suomi.net
-	[82.128.187.102])
-	by smtp2.dnainternet.fi (Postfix) with ESMTP id E4253CD76
-	for <linux-dvb@linuxtv.org>; Fri, 30 May 2008 18:25:23 +0300 (EEST)
-Message-ID: <48401C63.1010601@iki.fi>
-Date: Fri, 30 May 2008 18:25:23 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <gnapier@cis.strath.ac.uk>) id 1Jyo7c-0002bM-6k
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 15:12:49 +0200
+Message-ID: <48341FBD.7080603@cis.strath.ac.uk>
+Date: Wed, 21 May 2008 14:12:29 +0100
+From: Gary Napier <gnapier@cis.strath.ac.uk>
 MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <1212079844.26238.22.camel@rommel.snap.tv>	<483EED5A.7080200@iki.fi>	<48400833.60909@gmail.com>	<48401099.7040908@iki.fi>
-	<484014AC.3090603@gmail.com>
-In-Reply-To: <484014AC.3090603@gmail.com>
-Subject: Re: [linux-dvb] Oops in tda10023
+To: Dennis Schwan <dennis.schwan@leuchtturm-it.de>
+References: <48341B25.2070306@leuchtturm-it.de>
+In-Reply-To: <48341B25.2070306@leuchtturm-it.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with cx88
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,27 +25,84 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-e9hack wrote:
-> Antti Palosaari schrieb:
->>> I think the oops occurs, because tda10023_writereg() fails in tda10023_attach(). If 
->>> tda10023_writereg fails, an error message is printed. In this case, 
->>> state->frontend.dvb->num is accessed, but it isn't initialized yet.
->> hmm, I see the problem now. Originally state was initialized before 
->> tda10023_writereg() was called but after I did some changes this is not 
->> done anymore. And when writereg() fails in attach some reason it oops.
-> 
-> It wasn't introduced with your modifications. The frontend.dvb part is initialized after 
-> the attach call. tda10023_writereg() must check, if state->frontend.dvb is initialized or 
-> not.
+Dennis,
+Im not certain what your card is, but my hvr-3000 uses the same modules. 
+It seems in a bid to fix some
+bug or other, hardy has its own cx88 module among others, and even if 
+you build your own, it uses its own, which seems
+to be broken for DVB-S. The solution so far is to delete its copy and 
+build your own...
 
-yeah, you are correct. I looked through all frontend drivers and only 
-TDA10021 and TDA10023 was using dvb->num in writereg. Anyhow, TDA10021 
-is not affected because it does not write in attach.
+Hope it helps, but anyone with more experience should probably chip in 
+here esp if i have it all wrong
 
-Antti
+(Optional) Remove modules from *buntu 8.04
+
+This step is only required if you are running an Ubuntu variant, after one of their bug fixes duplicated the modules being run.
+This also may be useful to anyone who gets dmesg errors like : cx88xx: disagrees about version of symbol (videobuf_dma_free)
+
+# rm -rf /lib/modules/`uname -r`/ubuntu/media/cx88
+# rm -rf /lib/modules/`uname -r`/ubuntu/media/saa7134
+# depmod -a
+
+
+
+Dennis Schwan wrote:
+> Hi,
+>
+> I have problems with my Hauppauge Nova-S Card. It works mostly but i 
+> have problems when watching Live-TV on a MythTV Client.
+> The Errors ind the Backends Syslog are as follows:
+>
+> May 21 14:49:38 myth kernel: [  319.630976] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:39 myth kernel: [  320.638820] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:40 myth kernel: [  321.646477] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:41 myth kernel: [  322.654081] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:42 myth kernel: [  323.661852] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:43 myth kernel: [  324.669599] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:44 myth kernel: [  325.677362] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:45 myth kernel: [  326.685118] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:46 myth kernel: [  327.691986] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:47 myth kernel: [  328.700559] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:48 myth kernel: [  329.707352] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:49 myth kernel: [  330.714884] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+> May 21 14:49:50 myth kernel: [  331.722389] cx88[0]/2-mpeg: general 
+> errors: 0x00000100
+>
+> When i reload the driver and just use my budget-card everything works 
+> fine, so i really need a solition for this.
+> The card worked without problems before upgrading to Ubuntu Hardy/8.04
+>
+> The problem occurs with the default Ubuntu drivers and also with newes 
+> CVS drivers.
+>
+> Regards,
+> Dennis
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
 -- 
-http://palosaari.fi/
+_____________________________________________________________________________
+Gary Napier
+
 
 _______________________________________________
 linux-dvb mailing list
