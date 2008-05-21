@@ -1,17 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4L1K6rX006658
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 21:20:06 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4L1JYeA009701
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 21:19:35 -0400
-Received: by ug-out-1314.google.com with SMTP id s2so48665uge.6
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 18:19:34 -0700 (PDT)
-Date: Wed, 21 May 2008 11:20:34 +1000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4LNO1xs026790
+	for <video4linux-list@redhat.com>; Wed, 21 May 2008 19:24:02 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4LNNnQ7022122
+	for <video4linux-list@redhat.com>; Wed, 21 May 2008 19:23:50 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1254503nfc.21
+	for <video4linux-list@redhat.com>; Wed, 21 May 2008 16:23:49 -0700 (PDT)
+Date: Thu, 22 May 2008 09:24:52 +1000
 From: Dmitri Belimov <d.belimov@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080521112034.4477f3db@glory.loctelecom.ru>
-In-Reply-To: <1211331167.4235.26.camel@pc10.localdom.local>
+To: Gert Vervoort <gert.vervoort@hccnet.nl>
+Message-ID: <20080522092452.35878221@glory.loctelecom.ru>
+In-Reply-To: <48344B16.2010005@hccnet.nl>
 References: <20080414114746.3955c089@glory.loctelecom.ru>
 	<20080414172821.3966dfbf@areia>
 	<20080415125059.3e065997@glory.loctelecom.ru>
@@ -30,10 +30,13 @@ References: <20080414114746.3955c089@glory.loctelecom.ru>
 	<1210719122.26311.37.camel@pc10.localdom.local>
 	<20080520152426.5540ee7f@glory.loctelecom.ru>
 	<1211331167.4235.26.camel@pc10.localdom.local>
+	<20080521131652.5a4850a5@glory.loctelecom.ru>
+	<48344B16.2010005@hccnet.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/Y0WZEf3xN9Kd5u6BTXhuoVX"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] saa7134_empress
+Subject: Re: [PATCH] I2S on for MPEG of saa7134_empress
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -45,62 +48,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---MP_/Y0WZEf3xN9Kd5u6BTXhuoVX
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Gert
 
-Hi All
+> Dmitri Belimov wrote:
+> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
+> > <d.belimov@gmail.com>
+> >
+> > P.S. After this patch I have some data from /dev/video1. Mplayer
+> > mpeg_test02.dat I can see gray screen with blinked color squares.
+> > May be audio data?
+> >
+> >   
+> If the board has the SAA6752 directly connected to the SAA7134 TS
+> port, then on /dev/video1 there should be MPEG-2 transport stream
+> packets (check for 188 byte packets starting with 0x47).
 
-This is patch for fix data structure in querycap syscall.
+I check data. First 4 bytes in data packet is 0x80 0x80 0x80 0x80.
 
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-empress.c
---- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Wed May 21 05:12:37 2008 +1000
-@@ -172,8 +172,7 @@ static int empress_querycap(struct file 
- static int empress_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
--	struct saa7134_fh *fh = priv;
--	struct saa7134_dev *dev = fh->dev;
-+	struct saa7134_dev *dev = file->private_data;
- 
- 	strcpy(cap->driver, "saa7134");
- 	strlcpy(cap->card, saa7134_boards[dev->board].name,
+I add initialization video_out for my card and right data for 
+SAA7134_VIDEO_PORT_CTRL*
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+in new data file i have more data but first 4 bytes is 0x89 0x89 0x89 0x89.
+
+I can send you tared data files if you want.
+Last changes not sended to mailling list.
+
+> If I remember correctly for the original TS capture code of the
+> SAA7134 driver, if the SAA6752 was not properly enabled or there was
+> no video signal, no data was available on the /dev/video1.
+> At that time I used an user space I2C program to configure the
+> encoder, currently there is a module called  saa6752hs which I
+> suppose does these settings.
+
+Can you send me this programm??
 
 With my best regards, Dmitry.
-
---MP_/Y0WZEf3xN9Kd5u6BTXhuoVX
-Content-Type: text/x-patch; name=beholder_empress_01.diff
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=beholder_empress_01.diff
-
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-empress.c
---- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Wed May 21 05:12:37 2008 +1000
-@@ -172,8 +172,7 @@ static int empress_querycap(struct file 
- static int empress_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
--	struct saa7134_fh *fh = priv;
--	struct saa7134_dev *dev = fh->dev;
-+	struct saa7134_dev *dev = file->private_data;
- 
- 	strcpy(cap->driver, "saa7134");
- 	strlcpy(cap->card, saa7134_boards[dev->board].name,
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/Y0WZEf3xN9Kd5u6BTXhuoVX
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---MP_/Y0WZEf3xN9Kd5u6BTXhuoVX--
