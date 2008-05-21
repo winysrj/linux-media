@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.tue.nl ([131.155.3.8])
+Received: from rv-out-0506.google.com ([209.85.198.236])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bas@kompasmedia.nl>) id 1JwD4j-0002dT-D7
-	for linux-dvb@linuxtv.org; Wed, 14 May 2008 11:15:08 +0200
-Message-ID: <482AAD8A.80309@kompasmedia.nl>
-Date: Wed, 14 May 2008 11:14:50 +0200
-From: "Bas v.d. Wiel" <bas@kompasmedia.nl>
+	(envelope-from <eduardhc@gmail.com>) id 1JytPV-0005WI-KJ
+	for linux-dvb@linuxtv.org; Wed, 21 May 2008 20:51:39 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so3163982rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 21 May 2008 11:51:33 -0700 (PDT)
+Message-ID: <617be8890805211151naf6095of1c8a3c10c0c3bd@mail.gmail.com>
+Date: Wed, 21 May 2008 20:51:28 +0200
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>, bvidinli@gmail.com
+In-Reply-To: <d9def9db0805210954t3a36c837g6fdbe37171330acb@mail.gmail.com>
 MIME-Version: 1.0
-To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
-References: <48295A62.50708@kompasmedia.nl> <4829FA37.8030007@freenet.de>
-In-Reply-To: <4829FA37.8030007@freenet.de>
+References: <mailman.67.1211375422.824.linux-dvb@linuxtv.org>
+	<617be8890805210711j726bc505jde87e32078a8d4eb@mail.gmail.com>
+	<d9def9db0805210954t3a36c837g6fdbe37171330acb@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend 2300 DVB-C, does it work?
+Subject: Re: [linux-dvb] linux-dvb Digest, Vol 40, Issue 74
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,63 +23,98 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1027439679=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Ruediger,
-The AD-CP300 is exactly the card I own right now. I haven't been able to 
-tune this card to a single channel yet, using whatever version of the 
-Mantis driver, even though the card functions perfectly using Windows so 
-the hardware is OK. My assumption is that a working Mantis card should 
-be able to at least detect the channels, even if it's unable to decrypt 
-them. I'm using the right frequencies, symbol rates and QAM-settings for 
-tuning. They come straight from the working Windows side of the system, 
-but nothing is found at all. I only receive a long stream of tuning 
-failures using scan. I have time to wait for the Mantis driver to 
-mature. On the Windows side of things MediaPortal is more or less ok. I 
-just very much prefer to use Linux for my HTPC (or any of my systems for 
-that matter).
+--===============1027439679==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_5936_30414617.1211395893161"
 
-But, if I understand you correctly, the TT2300 allows you to watch 
-encrypted DVB-C under Linux, right?
+------=_Part_5936_30414617.1211395893161
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Bas
+Thanks, Markus
+I forward the message to the one who is really having the issue. I use
+Gentoo abd it's working fine for me, thanks.
 
-Ruediger Dohmhardt wrote:
-> Bas v.d. Wiel schrieb:
->> Hello list,
->> Because of my troubles with a TwinHan Mantis 2033 based board, I'm   
-> Bas, I'm waiting for the working CI Interface on the AD-CP300 (2033) 
-> card as well and I hope
-> the CI/CAM is going to work by summer.
-> Besides can't watching encrypted channels the card has worked 
-> perfectly over the last 11/2 year.
-> I use it with "vdr-1.60" and "xineliboutput".
-> <http://www.twinhan.com/product_cable_2033.asp>
->> looking to buy something else that actually does work. I was advised 
->> that a Technotrend 2300 DVB-C + CI-module will work with Linux. 
->> This'll be the second time I'll be spending over 150 euro's on video 
->> hardware so I'd like to be sure: does this combination work with 
->> Linux, and MythTV in particular, to view encrypted channels?
->>   
-> The TT-2300 (and the identical card from Hauppauge) are the cards I 
-> have used over the last 5 years.
-> I still use it for watching encrypted channels (i.e. when the Twinhan 
-> card is useless).
+Best regards
+  Eduard
+
+2008/5/21, Markus Rechberger <mrechberger@gmail.com>:
 >
-> CAM:           Alphacrypt-light
-> Smartcard:  Card from "Kabel Deutschland".
-> Software:     vdr-1.4.7 with tvtime; I have no idea concerning MythTv.
+> Hi,
 >
-> Ciao Ruediger D.
+> 2008/5/21 Eduard Huguet <eduardhc@gmail.com>:
 >
+> >> ---------- Missatge reenviat ----------
+> >> From: bvidinli <bvidinli@gmail.com>
+> >> To: stev391@email.com, linux-dvb@linuxtv.org
+> >> Date: Wed, 21 May 2008 16:10:08 +0300
+> >> Subject: [linux-dvb] fail:Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04,
+> >> kernel 2.6.24-16-generic (bvidinli)
+> >> This problem persists, continues,
+> >> does anybody have suggestions ?
+> >>
+> >> i continue on my search of this problem...
+> >>
+> >> thanks.
+> >
+> >
+> > I'm sorry :(. I'm really not an Ubuntu expert, so I really can't help you
+> a
+> > lot on this one. However, as the problem is clearly that you are mixing
+> the
+> > old modules with newest ones, you should maybe consider compiling
+> yourself a
+> > custrom  kernel for your machine with the DVB / V4L support removed, and
+> > then compile  LinuxTV drivers as described.
+> >
+> > Regards
+> >
+> >
+>
+>
+> Do you have any debug messages?
+> You need to compile the linuxtv code against the linux ubuntu modules
+> package, only problem here the linuxtv code isnt prepared to do so,
+> the easiest way is to cut out the saa module and integrate it into the
+> linux ubuntu modules source package and regenerate the lum package for
+> installing it.
+>
+>
+> Markus
 >
 
+------=_Part_5936_30414617.1211395893161
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Thanks, Markus<br>I forward the message to the one who is really having the issue. I use Gentoo abd it&#39;s working fine for me, thanks.<br><br>Best regards<br>&nbsp; Eduard<br><br><div><span class="gmail_quote">2008/5/21, Markus Rechberger &lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi,<br> <br> 2008/5/21 Eduard Huguet &lt;<a href="mailto:eduardhc@gmail.com">eduardhc@gmail.com</a>&gt;:<br> <br>&gt;&gt; ---------- Missatge reenviat ----------<br> &gt;&gt; From: bvidinli &lt;<a href="mailto:bvidinli@gmail.com">bvidinli@gmail.com</a>&gt;<br>
+ &gt;&gt; To: <a href="mailto:stev391@email.com">stev391@email.com</a>, <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br> &gt;&gt; Date: Wed, 21 May 2008 16:10:08 +0300<br> &gt;&gt; Subject: [linux-dvb] fail:Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04,<br>
+ &gt;&gt; kernel 2.6.24-16-generic (bvidinli)<br> &gt;&gt; This problem persists, continues,<br> &gt;&gt; does anybody have suggestions ?<br> &gt;&gt;<br> &gt;&gt; i continue on my search of this problem...<br> &gt;&gt;<br>
+ &gt;&gt; thanks.<br> &gt;<br> &gt;<br> &gt; I&#39;m sorry :(. I&#39;m really not an Ubuntu expert, so I really can&#39;t help you a<br> &gt; lot on this one. However, as the problem is clearly that you are mixing the<br>
+ &gt; old modules with newest ones, you should maybe consider compiling yourself a<br> &gt; custrom&nbsp;&nbsp;kernel for your machine with the DVB / V4L support removed, and<br> &gt; then compile&nbsp;&nbsp;LinuxTV drivers as described.<br>
+ &gt;<br> &gt; Regards<br> &gt;<br> &gt;<br> <br> <br>Do you have any debug messages?<br> You need to compile the linuxtv code against the linux ubuntu modules<br> package, only problem here the linuxtv code isnt prepared to do so,<br>
+ the easiest way is to cut out the saa module and integrate it into the<br> linux ubuntu modules source package and regenerate the lum package for<br> installing it.<br> <br><br> Markus<br> </blockquote></div><br>
+
+------=_Part_5936_30414617.1211395893161--
+
+
+--===============1027439679==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1027439679==--
