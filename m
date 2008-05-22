@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Jv4pI-0004OK-Eu
-	for linux-dvb@linuxtv.org; Sun, 11 May 2008 08:14:29 +0200
-Message-ID: <48268EB9.6060000@gmail.com>
-Date: Sun, 11 May 2008 10:14:17 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from n45.bullet.mail.ukl.yahoo.com ([87.248.110.178])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1JzAZa-0005EC-Km
+	for linux-dvb@linuxtv.org; Thu, 22 May 2008 15:11:11 +0200
+Date: Thu, 22 May 2008 08:57:31 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <4833D91A.1050101@kipdola.com> <1211395598l.5771l.1l@manu-laptop>
+In-Reply-To: <1211395598l.5771l.1l@manu-laptop>
+Message-Id: <1211461051l.8212l.1l@manu-laptop>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-References: <482560EB.2000306@gmail.com>	
-	<200805101717.23199@orion.escape-edv.de>	
-	<200805101727.55810@orion.escape-edv.de>	
-	<1210456421.7632.29.camel@palomino.walls.org>
-	<48261EB5.2090604@gmail.com>
-	<1210463068.7632.102.camel@palomino.walls.org>
-In-Reply-To: <1210463068.7632.102.camel@palomino.walls.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021	and
- stv0297
+Content-Type: multipart/mixed; boundary="=-LtcKsHHtDX3ZHvxgy/SA"
+Subject: [linux-dvb] Re : Re : TT S2-3200 LIRC remote - Multiproto drivers
+ merge?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,169 +20,181 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andy Walls wrote:
-> On Sun, 2008-05-11 at 02:16 +0400, Manu Abraham wrote:
->> Andy Walls wrote:
->>> On Sat, 2008-05-10 at 17:27 +0200, Oliver Endriss wrote:
->>>> Oliver Endriss wrote:
->>>>> e9hack wrote:
->>>>>> the uncorrected block count is reset on a read request for the tda10021 and stv0297. This 
->>>>>> makes the UNC value of the femon plugin useless.
->>>>> Why? It does not make sense to accumulate the errors forever, i.e.
->>>>> nobody wants to know what happened last year...
->>>>>
->>>>> Afaics it is ok to reset the counter after reading it.
->>>>> All drivers should behave this way.
->>>>>
->>>>> If the femon plugin requires something else it might store the values
->>>>> and process them as desired.
->>>>>
->>>>> Afaics the femon command line tool has no problems with that.
->>>> Argh, I just checked the API 1.0.0. spec:
->>>> | FE READ UNCORRECTED BLOCKS
->>>> | This ioctl call returns the number of uncorrected blocks detected by the device
->>>> | driver during its lifetime. For meaningful measurements, the increment
->>>> | in block count during a speci c time interval should be calculated. For this
->>>> | command, read-only access to the device is suf cient.
->>>> | Note that the counter will wrap to zero after its maximum count has been
->>>> | reached
->>>>
->>>> So it seens you are right and the drivers should accumulate the errors
->>>> forever. Any opinions?
->>> For communications systems, whether its is two-way or one-way broadcast,
->>> most people are concerned with the error *rate* (errors per unit time)
->>> rather than absolute error counts.  Communications engineers have a good
->>> understanding of what it means to have a 10^-2 BER vs 10^-12 BER, and
->>> adjust their expectations accordingly.  Absolute counts have less
->>> meaning to engineers, and I'm not sure what a layman would make of them.
->> There is different terminology involved:
->>
->> BER: implies a rate which is averaged over a period of time. This
->> implies the errors in the stream, not after FEC.
-> 
-> Yes.  I used the term too loosely in my example.  Thank you for the
-> clarification/correction.
-> 
-> 
->> UNC: Uncorrected symbols over a lifetime, well this is not practically
->> possible and will wrap around. This is not related to time, but it is
->> just a measure of the symbols that wasn't been able by the FEC engine to
->> correct.
-> 
-> Right.  But maybe a Symbol Error (or Erasure) Rate provides more useful
-> information than just a count, no?
+--=-LtcKsHHtDX3ZHvxgy/SA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On 05/21/2008 02:46:38 PM, manu wrote:
+> On 05/21/2008 04:11:06 AM, Jelle De Loecker wrote:
+> > Hello again,
+> >=20
+> > I finally got the Technotrend S2-3200 to work on LinuxMCE 0710, now
+> > I'm=20
+> > wondering how to get the IR transceiver to work. (Not that I've
+> > managed=20
+> > to get mythtv working, but since activity on that subject is a bit=20
+> > slower...)
+> >=20
+> > I already tried to ask on the lirc mailing list, but it seems like=20
+> a
+>=20
+> > very dead place.
+> >=20
+> > My dmesg output proves the transceiver is discovered and I have a=20
+> > /dev/class/input kind of file, I just don't know how to get lirc to=20
+> > work, or how to get a /dev/lirc0 file (I actually already have=20
+> > another
+> >=20
+> > transceiver on this computer which apparantly only works with MCE=20
+> > remotes (it's an integrated IR transceiver in my Antec Fusion v2
+> > case))=20
+> > since there isn't a specific driver in lirc for this technotrend=20
+> > card.
+> >=20
+> > Now, I want to get some facts straight about the multiproto driver:
+> > Is it "done"? What's the big difference between multiproto and=20
+> > multiproto plus? (Even though there hasn't been an update in 5=20
+> weeks
+> > for=20
+> > the regular drivers, the plus drivers seemed to have more activity)
+> >=20
+> > Or is it correct to assume that now only the software applications
+> > need=20
+> > to get a patch to work with our multiproto drivers?
+> >=20
+> > And, looking at the multiproto_plus drivers, I see they "merged"
+> with=20
+> > v4l-dvb - what does this mean exactly?
+> >=20
+>=20
+> I have a patch to make it work, I will post it on the list in a short=20
+> while.
+> Bye
+> Manu
 
-Let me make it more clear. All the parameters defined are quite
-standard, and used consistently for all demodulators.
-eg: Es/No ==> SNR or CNR
-
-For the channel as it is, there is no UNC used there. No channel is
-considered noise free at any rate for a given bandwidth. To avoid this
-situation, encoding/decoding is used.
-
-For the channel as it is, the errors are mentioned in relation to time,
-ie BER
-
-After it passes through this channel, then BER is useless, because the
-constraints of the channel do not apply any more. The encoding/decoding
-concept follows the methodology that a certain number of errors can be
-corrected when some information is sent alongwith in the same channel
-alongwith the same data in a cyclic fashion.
-
-The decoder in this case is able to correct a certain number of symbols
-and in certain cases there will uncorrectable symbols. There is not much
-of a use knowing at what exact instance these were uncorrectable, as
-these are just dealing with block errors.
-
-> 
-> An error rate computed over a "short" interval can be used to detect a
-> period of communications interruption within software to alert the user
-> or to take corrective action.
-> 
-> Absolute counts aren't useful for assessing the current "health" of the
-> system.
-
-
-When you want to state how many blocks the FEC engine corrected (there
-are different FEC engines that we use currently RS32, TurboCodes, LDPC),
-you have only the uncorrectable symbols to state and unfortunately these
-are not really time bound.
-
-> 
->> Generally a meaningless term, in many cases except a few.
-> 
-> I agree.
-> 
->> Absolute errors are used very scantily, but have been used to see how
->> good/bad the whole system is.
-> 
-> Except for in safety critical systems (fire suppression system,
-> automobile brakes, etc.), how can a "good/bad" determination based on an
-> error count be separated from a time interval over which that error
-> count occurred?
-
-
-It defines whether the FEC engine worked as expected. eg: Just looking
-at a UNC counter counting up with a high BER shows a bad channel.
-looking at a UNC counter going up with a low BER shows a bad error
-correction scheme. looking at a very low BER and a high number of
-uncorrectables imply a bad FEC engine/scheme.
-
-Error correction works by looking at the last n symbols received, not
-symbol errors per unit time.
-
-
->>  BER cannot define this, as it is defined
->> before the FEC. Sometimes what's defined in the BER, the FEC engine
->> might be able to correct and hence.
-> 
-> Right BER doesn't define performance of a system, just a constraint
-> under which the system is expected to work.
-
-BER (BER) and Es/No (SNR) together defines the quality of a channel.
-
-
-> So we can call what I suggested Uncorrected Symbol Rate, or Symbol Error
-> Rate, or Message Error Rate if the FEC covers more than 1 symbol -
-> whatever makes the most sense.
-
-Error correction is never a part of the channel. In all cases as the
-receiver, we are interested in the channel only, but for a safeguard
-sometimes we look at what the Error correction engine did, whether the
-scheme as a whole worked well. For the channel, the broadcaster knows
-that he doesn't have to look at UNC in the long run, but while setting
-up his system as a whole UNC is very much useful, as to find whether his
-scheme worked as expected.
-
-For the noisy channel, there is no error correction. The channel doesn't
-know what error correction you use. Always Rate is measured against time
-Similar to an Energy meter in your home doesn't know what you use the
-energy for, but it knows how much you consumed and at what power factor.
-
-> My opinion is that reporting of rate is more useful than absolute
-> counts.
-
-It is rate that which is used (BER) for the channel, Absolute count from
-the FEC engine is used to find whether the FEC scheme alongwith the
-engine worked as expected. Error correction schemes are used
-selectively, depending upon different conditions. Sometimes it is tested
-empirically, by the broadcaster. In this case UNC is very much helpful.
-UNC per unit time doesn't make sense in that regard. UNC can be
-considered more like a log sheet, that some events occured.
-
-
-Regards,
+And here it is. It has been generated against a 1- months old=20
+multiproto treebut I think it should be OK.
+HTH
+Bye
 Manu
 
+
+--=-LtcKsHHtDX3ZHvxgy/SA
+Content-Type: text/x-patch; charset=us-ascii; name=TT-3200-remote.patch
+Content-Disposition: attachment; filename=TT-3200-remote.patch
+Content-Transfer-Encoding: quoted-printable
+
+--- linux/drivers/media/common/ir-keymaps.c	2008-03-22 10:12:18.000000000 -=
+0400
++++ ../multiproto-bis/multiproto/linux/drivers/media/common/ir-keymaps.c	20=
+08-05-14 11:30:09.000000000 -0400
+@@ -1507,6 +1507,57 @@
+=20
+ EXPORT_SYMBOL_GPL(ir_codes_hauppauge_new);
+=20
++/* Hauppauge: the newer, gray remotes (seems there are multiple
++ * slightly different versions), shipped with cx88+ivtv cards.
++ * almost rc5 coding, but some non-standard keys */
++
++IR_KEYTAB_TYPE ir_codes_tt_3200[IR_KEYTAB_SIZE] =3D {
++  /* Keys 0 to 9 */
++  [ 0x03 ] =3D KEY_1,
++  [ 0x04 ] =3D KEY_2,
++  [ 0x05 ] =3D KEY_3,
++  [ 0x06 ] =3D KEY_4,
++  [ 0x07 ] =3D KEY_5,
++  [ 0x08 ] =3D KEY_6,
++  [ 0x09 ] =3D KEY_7,
++  [ 0x0a ] =3D KEY_8,
++  [ 0x0b ] =3D KEY_9,
++  [ 0x0c ] =3D KEY_0,
++
++  [ 0x19 ] =3D KEY_TEXT,            /* keypad asterisk as well */
++  [ 0x14 ] =3D KEY_RED,             /* red button */
++  [ 0x12 ] =3D KEY_MENU,            /* The "i" key */
++  [ 0x18 ] =3D KEY_MUTE,
++  [ 0x25 ] =3D KEY_VOLUMEUP,
++  [ 0x26 ] =3D KEY_VOLUMEDOWN,
++  [ 0x0d ] =3D KEY_UP,
++  [ 0x11 ] =3D KEY_DOWN,
++  [ 0x0e ] =3D KEY_LEFT,
++  [ 0x10 ] =3D KEY_RIGHT,
++
++  [ 0x22 ] =3D KEY_EPG,             /* Guide */
++  [ 0x1a ] =3D KEY_TV,
++  [ 0x1e ] =3D KEY_NEXTSONG,        /* skip >| */
++  [ 0x13 ] =3D KEY_EXIT,            /* back/exit */
++  [ 0x23 ] =3D KEY_CHANNELUP,       /* channel / program + */
++  [ 0x24 ] =3D KEY_CHANNELDOWN,     /* channel / program - */
++  [ 0x22 ] =3D KEY_CHANNEL,         /* source (old black remote) */
++  [ 0x0f ] =3D KEY_ENTER,           /* OK */
++  [ 0x26 ] =3D KEY_SLEEP,           /* minimize (old black remote) */
++  [ 0x17 ] =3D KEY_BLUE,            /* blue button */
++  [ 0x15 ] =3D KEY_GREEN,           /* green button */
++  [ 0x3e ] =3D KEY_PAUSE,           /* pause */
++  [ 0x3d ] =3D KEY_REWIND,          /* backward << */
++  [ 0x3f ] =3D KEY_FASTFORWARD,     /* forward >> */
++  [ 0x3b ] =3D KEY_PLAY,
++  [ 0x3c ] =3D KEY_STOP,
++  [ 0x3a ] =3D KEY_RECORD,          /* recording */
++  [ 0x16 ] =3D KEY_YELLOW,          /* yellow key */
++  [ 0x01 ] =3D KEY_POWER,           /* system power */
++};
++
++EXPORT_SYMBOL_GPL(ir_codes_tt_3200);
++
+ IR_KEYTAB_TYPE ir_codes_npgtech[IR_KEYTAB_SIZE] =3D {
+ 	[ 0x1d ] =3D KEY_SWITCHVIDEOMODE, /* switch inputs */
+ 	[ 0x2a ] =3D KEY_FRONT,
+--- linux/drivers/media/dvb/ttpci/budget-ci.c	2008-03-22 12:31:19.000000000=
+ -0400
++++ ../multiproto-bis/multiproto/linux/drivers/media/dvb/ttpci/budget-ci.c	=
+2008-05-22 08:24:48.000000000 -0400
+@@ -249,6 +249,17 @@
+ 		else
+ 			budget_ci->ir.rc5_device =3D rc5_device;
+ 		break;
++	case 0x1019:
++		/* For the TT 3200 bundled remote */
++		ir_input_init(input_dev, &budget_ci->ir.state,
++			      IR_TYPE_RC5, ir_codes_tt_3200);
++
++		if (rc5_device < 0)
++		  /* I don't know the device for now so...*/
++		  budget_ci->ir.rc5_device =3D IR_DEVICE_ANY;
++		else
++			budget_ci->ir.rc5_device =3D rc5_device;
++		break;
+ 	default:
+ 		/* unknown remote */
+ 		ir_input_init(input_dev, &budget_ci->ir.state,
+--- linux/include/media/ir-common.h	2008-03-22 10:12:19.000000000 -0400
++++ ../multiproto-bis/multiproto/linux/include/media/ir-common.h	2008-05-14=
+ 11:34:18.000000000 -0400
+@@ -139,6 +139,7 @@
+ extern IR_KEYTAB_TYPE ir_codes_asus_pc39[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_encore_enltv[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_tt_1500[IR_KEYTAB_SIZE];
++extern IR_KEYTAB_TYPE ir_codes_tt_3200[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_fusionhdtv_mce[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_behold[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
+
+
+
+--=-LtcKsHHtDX3ZHvxgy/SA
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-LtcKsHHtDX3ZHvxgy/SA--
