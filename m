@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CNZFG6019609
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 19:35:15 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CNZ4Ph029711
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 19:35:04 -0400
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200805121705.58552.hverkuil@xs4all.nl>
-References: <481B1027.1040002@linuxtv.org>
-	<1209782607.27140.14.camel@palomino.walls.org>
-	<200805121705.58552.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Mon, 12 May 2008 19:30:52 -0400
-Message-Id: <1210635052.3194.38.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4M6vkTi006267
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 02:57:46 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4M6vUNP027103
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 02:57:31 -0400
+Date: Thu, 22 May 2008 08:57:07 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Ryan Churches <ryan.churches@gmail.com>
+Message-ID: <20080522065707.GA226@daniel.bse>
+References: <a93d57c00805211820k5e1b4920ga548e1d541f20b3e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>, ivtv-devel@ivtvdriver.org
-Subject: Re: [PATCH] Fix potential cx18_cards[] entry leaks
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a93d57c00805211820k5e1b4920ga548e1d541f20b3e@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: scrambled video with bttv driver and bt848 (card=98)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,74 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 2008-05-12 at 17:05 +0200, Hans Verkuil wrote:
-> On Saturday 03 May 2008 04:43:27 Andy Walls wrote:
-> > Hans,
-> >
-> > When investigating Mike Krufky's report of module reload problems, I
-> > ran across problems with the management of the cx18_cards[] array. 
-> > They're corner cases and not likely to be the cause of Mike problems
-> > though.
-> >
-> > Upon error conditions in cx18_probe(), the code at the 'err:' label
-> > could leak cx18_cards[] entries.  Not a big problem since there are
-> > 32 of them, but they could have caused a NULL pointer de-reference
-> in
-> > cx18_v4l2_open().
-> >
-> > The attached patch fixes these and reworks the management of the
-> > cx18_cards[] entries.  The cx18_active_cards variable is replaced
-> > with cx18_highest_cards_index (because that's essentially what
-> > cx18_active_cards_was doing +1), and cleanup of entries happens a
-> > little more pedantically (obtaining the lock, and removing each
-> entry
-> > on a pci remove, instead of waiting until module unload).
-> >
-> > The attached patch was made against the latest v4l-dvb hg
-> repository.
-> >
-> > Comments welcome.
-> >
-> > Regards,
-> > Andy
-> 
-> Hi Andy,
-> 
-> Thanks for looking into this. I've copied the open() fix into the cx18 
-> and ivtv drivers, but not the additional changes: in my opinion they do 
-> not actually add anything useful. The potential NULL pointer 
-> dereference is however an important fix and definitely should go into 
-> 2.6.26.
-> 
-> Regards,
-> 
-> 	Hans
+On Wed, May 21, 2008 at 09:20:02PM -0400, Ryan Churches wrote:
+> http://www.ubintel.com/files/nph-zms.jpeg
 
-Hans,
+Looks like wrong tv standard.
 
-Thanks.
+> If i cat the video to a file and try to play it in VLC
 
-Please also review the second, less extensive version of the patch.  I
-think calling kfree() at the end of cx18_probe() with a good pointer, to
-avoid leaking a struct cx18 allocation, is important too. 
+cat /dev/videoX > file will never produce anything playable with bttv.
+The bt878 can not compress your pictures. Your file will contain
+uncompressed pictures without any headers that indicate the size.
 
-When the err exit is executed, cx18_cards_active has already been
-incremented at least once, since the pointer was stored in what was 
+> bttv15: subsystem: 1836:1540 (UNKNOWN)
+> please mail id, board name and the correct card= insmod option to
+> video4linux-list@redhat.com
 
-   cx18_cards[cx18_cards_active]
+What is your card's name?
+This id is completely different from the PV150 id's in the driver.
 
-but is now
+> bttv15: PLL: 28636363 => 35468950 . ok
 
-   cx18_cards[cx18_cards_active-(something >= 1)]
+So it's trying to capture PAL video.
+Do you live in a NTSC country?
+If not, do you even have a 28.6 MHz crystal on your card?
 
-
-It is better to call
-
-   kfree(cx18_cards[cx->num])
-
-to make sure the dynamically allocated memory is actually freed.
-
--Andy
+  Daniel
 
 --
 video4linux-list mailing list
