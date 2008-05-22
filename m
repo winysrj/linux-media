@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway04.websitewelcome.com ([67.18.124.7])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1K0YwC-0001Hg-41
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 11:24:17 +0200
-Received: from [77.109.107.89] (port=54253 helo=[127.0.0.1])
-	by gator143.hostgator.com with esmtpa (Exim 4.68)
-	(envelope-from <skerit@kipdola.com>) id 1K0Yw3-00029t-20
-	for linux-dvb@linuxtv.org; Mon, 26 May 2008 04:24:07 -0500
-Message-ID: <483A81B8.2030700@kipdola.com>
-Date: Mon, 26 May 2008 11:24:08 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
-MIME-Version: 1.0
+Received: from wr-out-0506.google.com ([64.233.184.233])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <totallymaxed@gmail.com>) id 1JzBWv-0000Ql-H3
+	for linux-dvb@linuxtv.org; Thu, 22 May 2008 16:12:30 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so64577wra.14
+	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 07:12:21 -0700 (PDT)
+Message-ID: <71798b430805220712h54a5b1a2u788e56e978f683a3@mail.gmail.com>
+Date: Thu, 22 May 2008 15:12:20 +0100
+From: "Andrew Herron" <totallymaxed@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TechnoTrend S2-3200 CAM / CI
+MIME-Version: 1.0
+Subject: [linux-dvb] uk-RidgeHill - scan file
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,27 +18,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0202643521=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Good morning everyone,
+--===============0202643521==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_17578_33025055.1211465540635"
 
-Since my setup with VDR is currently running perfectly (I still want to 
-use MythTV later on, but anyway ...) I think the time has come to get my 
-Satellite subscription (TV Vlaanderen)
+------=_Part_17578_33025055.1211465540635
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-All I want to know is: is it as simple as inserting the CAM in my 
-Technotrend's CI? Will the hardware do everything, or does Multiproto 
-and VDR have some work, too?
+Hi,
 
-Thank you for your time,
+Does anyone have a working tuning file for this UK transmitter that I can
+use with scan?
 
-Jelle De Loecker
+All the best
+
+Andrew
+
+-- 
+Convergent Home Technologies Ltd
+www.dianemo.co.uk
+Tel: +44 (0)1245 330101
+Fax: +44 (0)1245 263916
+
+Unit 205 Waterhouse Business Centre
+Cromar Way
+Chelmsford
+Essex CM1 2QE
+UK
+
+------=_Part_17578_33025055.1211465540635
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br><br>Does anyone have a working tuning file for this UK transmitter that I can use with scan?<br><br>All the best<br><br>Andrew<br clear="all"><br>-- <br>Convergent Home Technologies Ltd<br><a href="http://www.dianemo.co.uk">www.dianemo.co.uk</a><br>
+Tel: +44 (0)1245 330101<br>Fax: +44 (0)1245 263916<br><br>Unit 205 Waterhouse Business Centre<br>Cromar Way<br>Chelmsford<br>Essex CM1 2QE<br>UK
+
+------=_Part_17578_33025055.1211465540635--
+
+
+--===============0202643521==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0202643521==--
