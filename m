@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [217.10.138.207] (helo=server30.ukservers.net)
+Received: from mail-in-17.arcor-online.net ([151.189.21.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stephen@rowles.org.uk>) id 1JvwkT-0001G6-QL
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 17:49:27 +0200
-Message-ID: <17428.81.144.130.125.1210692335.squirrel@manicminer.homeip.net>
-In-Reply-To: <48299D88.3060608@cis.strath.ac.uk>
-References: <48299D88.3060608@cis.strath.ac.uk>
-Date: Tue, 13 May 2008 16:25:35 +0100 (BST)
-From: "Stephen Rowles" <stephen@rowles.org.uk>
-To: "Gary Napier" <gnapier@cis.strath.ac.uk>
-MIME-Version: 1.0
+	(envelope-from <hermann-pitton@arcor.de>) id 1JzJV9-0005VK-SO
+	for linux-dvb@linuxtv.org; Fri, 23 May 2008 00:43:13 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jelle De Loecker <skerit@kipdola.com>
+In-Reply-To: <4835EF00.2030306@kipdola.com>
+References: <4835EF00.2030306@kipdola.com>
+Date: Fri, 23 May 2008 00:42:10 +0200
+Message-Id: <1211496130.2515.25.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-3000
+Subject: Re: [linux-dvb] Multiproto annoying compilation error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,45 +25,59 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> The problem.
-> The tv is very slow to update and impossible to watch. I would like to
-> know if this is a driver/software issue or
-> a hardware issue. During TV playback the processor maxs out at 100%
->
-> 1. Am i right in assuming that the output from the HVR-3000 (DVB-T) is
-> an MPEG stream, and as such needs very little CPU resources?
-> 2. Am i right in assuming that with the Hardware MPEG decoding ability
-> of the Via C7, very little CPU resources are needed for playback?
-> 3. What tools are available for me to get a measure of signal strength
-> and quality of broadcast, which i believe may be the issue (although
-> dedicated Set Top boxes seem to work fine)?
-> 4. Please share any other comments that may be useful to the setup.
->
-> Cheers
-> Gary
 
-I run a via SP13000 to watch DVB-T in the UK. But you have to use
-accelerated playback to get a decent system running rather than relying on
-the CPU. For this to work you will need the openchrome packages installed
-(note Fedora 9 this should work out of the box):
+Am Freitag, den 23.05.2008, 00:09 +0200 schrieb Jelle De Loecker:
+> Hi again,
+> 
+> I've recently declared success on installing the multiproto drivers on
+> LinuxMCE 0710 (kubuntu 7.10)
+> After a lot of hard work, I created a guide which did it like a charm
+> ( http://skerit.kipdola.com/?p=5&language=en )
+> 
+> My guide instructs you to use the older multiproto version, which
+> makes scan work and all.
+> 
+> Now, I reinstalled linuxmce again, but I mistakenly installed the
+> newer multiproto_plus version, like previously, nothing loaded:
+> 
+>         [   76.128799] saa7146: register extension 'budget_ci dvb'.
+>         [   76.238955] Linux video capture interface: v2.00
+>         [   76.671737] saa7146: register extension 'dvb'.
+> 
+> No bad, I expected it to load nothing.
+> So I remove all the modules, I delete every bit of source code, I try
+> to use my own guide and I get *absolutely nothing*! 
+> 
+>         [  192.299179] saa7146: register extension 'budget_ci dvb'.
+> 
+> I've rebooted so many times I've lost count! I've removed all the
+> drivers again, rebooted, reinstalled, it just won't load again! 
+> 
+> I refuse to reinstall linuxmce just so I can install the right drivers
+> from the beginning.
+> 
+> Does anyone have *any* idea as to why it's not working? I'm really
+> getting desperate.
 
-http://wiki.openchrome.org/tikiwiki/tiki-index.php?page=Collection+of+contributed+binary+packages
+to give something in between totally OT.
 
-For playback I then use the standard xine rpm from the livna repository,
-then I use that to "play" a DVB channel using the following:
+As expected, the lame old ATI stuff (the card was not cheap:) is far
+beyond to display BBC HD under, oh well, for what we are serviced.
 
-/usr/bin/xine -V xxmc dvb://BBC ONE
+It was totally simple to get it with quite zero BER to the dish and disk
+using the thumb, and concerning CPU load for that, a 266 can do I guess.
 
-The key here is using -V xxmc to enable the hardware accelerated playback,
-there are similar options to mplayer to achieve the same effect.
+Are there known versions of mplayer dealing with that BBC HD, or what
+one would have to set for the scaling, if the incoming spits errors on a
+too small display ;) (comes as 1963x1080)
 
-(note in reality I don't do anything on the command line, I just use
-Freevo with the appropriate setup: http://freevo.sourceforge.net/)
+Cheers,
+Hermann
 
->From my experience you MUST get the accelerated playback via XvMC working
-to stand a chance of playing mpeg content on a small via system. And you
-won't get anything working for h.264 high-def content. Your 100% cpu usage
-indicates that the lack of acceleration support is the problem.
+
+
+
+
 
 
 _______________________________________________
