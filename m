@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4EHvTIh012539
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 13:57:29 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4EHv1Nm009964
-	for <video4linux-list@redhat.com>; Wed, 14 May 2008 13:57:18 -0400
-Date: Wed, 14 May 2008 14:55:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Adrian Bunk <bunk@kernel.org>
-Message-ID: <20080514145554.10e3385c@gaivota>
-In-Reply-To: <20080514165434.GC22115@cs181133002.pp.htv.fi>
-References: <20080514114910.4bcfd220@gaivota>
-	<20080514165434.GC22115@cs181133002.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	linux-dvb-maintainer@linuxtv.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-Subject: Re: [GIT PATCHES] V4L/DVB fixes for 2.6.26
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4MJJYGP004367
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 15:19:34 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4MJJMin001878
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 15:19:22 -0400
+Date: Thu, 22 May 2008 21:19:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Darius <augulis.darius@gmail.com>
+In-Reply-To: <g13s6k$a2c$1@ger.gmane.org>
+Message-ID: <Pine.LNX.4.64.0805222105360.8800@axis700.grange>
+References: <g09j17$3m9$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>
+	<g0bjtj$b0d$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805132212530.4988@axis700.grange>
+	<g0hhpt$jfp$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805152121210.14292@axis700.grange>
+	<g13s6k$a2c$1@ger.gmane.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: question about SoC Camera driver (Micron)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,63 +32,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 14 May 2008 19:54:34 +0300
-Adrian Bunk <bunk@kernel.org> wrote:
+On Thu, 22 May 2008, Darius wrote:
 
-> On Wed, May 14, 2008 at 11:49:10AM -0300, Mauro Carvalho Chehab wrote:
-> >...
-> > PS.: There are yet a number of other Kconfig potential breakages at V4L/DVB. I'm 
-> > currently working on fixing those issues. Basically, what users do is to select 
-> > I2C, DVB and V4L as module. This works fine, but more complex scenarios where
-> > you mix 'M' and 'Y' inside the subsystem generally cause compilation breakage.
-> > Those scenarios are more theorical, since there's not much practical sense on
-> > having a DVB driver foo as module, and V4L driver bar as in-kernel. However,
-> > the better is to not allow compilation of the scenarios that don't work.
+> Guennadi Liakhovetski wrote:
+> > On Thu, 15 May 2008, Darius wrote:
 > > 
-> > The main trouble at drivers/media Kbuild is that several rules there assumed that
-> > "select" would check the "depends on" dependencies of the selected drivers.
-> > However, this feature doesn't exist at the current Kbuild implementation. Even
-> > if implemented, I suspect that this will generate circular dependency errors on
-> > some cases.
-> >...
+> > > Guennadi, can you please describe more detailed struct soc_camera_device
+> > > structure? All these members xmin, ymin, etc...
+> > 
+> > The main point is, that the unit is 1 pixel. The rest is pretty much
+> > implementation specific. Just see your datasheet and select some natural
+> > values for allowed frame sizes and location. As the struct declaration says:
+> > 
+> > 	unsigned short width;		/* Current window */
+> > 	unsigned short height;		/* sizes */
+> > 	unsigned short x_min;		/* Camera capabilities */
+> > 	unsigned short y_min;
+> > 	unsigned short x_current;	/* Current window location */
+> > 	unsigned short y_current;
+> > 
 > 
-> The basic problem is that drivers/media/ does the most fancy kconfig 
-> stuff in the kernel since it tries to both have very fine grained 
-> dependencies and offer a usable kconfig UI to the user, which results
-> in very complicated dependencies.
+> where they are used? as I can see, in *_try_fmt_cap() and *__set_fmt_cap() you
+> are using hard coded constants.
+> in video_probe you are setting this structure, but these values are never
+> used?
 
-True.
+Which of them you don't see being used? The ones I checked are used.
 
-> We are not getting this solved by any changes in the kconfig 
-> implementation.
+> > The vales below are again min and max allowed values.
+> > 
+> > 	unsigned short width_min;
+> > 	unsigned short width_max;
+> > 	unsigned short height_min;
+> > 	unsigned short height_max;
 > 
-> Thinking about reasonable ways to reduce the problem space:
-> 
-> Where could we reduce the complexity without big disadvantages?
-> 
-> Could we e.g. let VIDEO_DEV select I2C which would remove all the 
-> fiddling with I2C dependencies (which is a bigger part of recent
-> problems)?
+> should they be used in *_try_fmt_cap() function to inform v4l2 driver about
+> sensor posibilities?
+> now in *_try_fmt_cap() you are using hard coded constants. values from
+> soc_camera_device *icd struct are not used?
 
-This seems to be reasonable. However, there are quite a few devices that don't
-need I2C (for example, some legacy ISA radio modules - also, some webcam
-drivers don't use i2c layer to communicate with their i2c sensor - so - they
-don't need I2C. The same also applies to some DVB drivers).
+Please, tell me exactly where you suspect bugs. soc_camera.c, 
+pxa_camera.c, mt9?0??.c all have *try_fmt_cap().
 
-So, I'm not sure if this would be a good idea, since it will force I2C even for
-devices that don't need. This is bad, for example, on embedded devices like
-set-top-boxes and maybe on cellular phones with non-i2c webcams.
+> btw, can you tell something about frame rate setting? how to implement that?
+> for example, I want from user space adjust frame rate (4, 15, 25, 30fps...).
+> Should I pass these setting to sensor driver via *_set_fmt_cap()?
 
-> I can make a patch for it after this pull went into Linus' tree if it is 
-> considered an acceptable option.
+This is not supported.
 
-It would be nice if you could help on fixing those issues.
-
-One dependency that will probably solve is to add "depends on VIDEO_MEDIA &&
-I2C" to all devices that are hybrid (bttv, saa7134, cx88, pvrusb, em28xx).
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
