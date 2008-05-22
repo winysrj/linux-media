@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns218.ovh.net ([213.186.34.114])
+Received: from lax-green-bigip-5.dreamhost.com ([208.113.200.5]
+	helo=friskymail-a2.g.dreamhost.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <webdev@chaosmedia.org>) id 1Jthrc-0007gc-7N
-	for linux-dvb@linuxtv.org; Wed, 07 May 2008 13:31:35 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ns218.ovh.net (Postfix) with ESMTP id 93BA982B3
-	for <linux-dvb@linuxtv.org>; Wed,  7 May 2008 13:00:24 +0200 (CEST)
-Received: from ns218.ovh.net ([127.0.0.1])
-	by localhost (ns218.ovh.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id QPc9E1OcNugr for <linux-dvb@linuxtv.org>;
-	Wed,  7 May 2008 13:00:24 +0200 (CEST)
-Received: from [192.168.1.50] (droid.chaosmedia.org [82.225.228.49])
-	by ns218.ovh.net (Postfix) with ESMTP id 5D69C7E74
-	for <linux-dvb@linuxtv.org>; Wed,  7 May 2008 13:00:24 +0200 (CEST)
-Message-ID: <48218BC7.2060606@chaosmedia.org>
-Date: Wed, 07 May 2008 13:00:23 +0200
-From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+	(envelope-from <list@gosub5000.net>) id 1JzBwp-00033P-Dd
+	for linux-dvb@linuxtv.org; Thu, 22 May 2008 16:39:18 +0200
+Received: from [192.168.1.6] (unknown [87.14.150.16])
+	by friskymail-a2.g.dreamhost.com (Postfix) with ESMTP id EE1E0131B28
+	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 07:39:08 -0700 (PDT)
+Message-ID: <48358570.8070207@gosub5000.net>
+Date: Thu, 22 May 2008 16:38:40 +0200
+From: gio <list@gosub5000.net>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] multiproto dev question
+Subject: [linux-dvb] kword dvb-t 210
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,24 +26,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+I have a issue with kword dvb-t 210.
+The i2c module are loaded, but remote still not recognized and audio 
+input from composite input isn't redirected to standard output, when 
+select (with tvtime or xawtv) the external input I can see the pictures 
+but no heared audio.
 
-doing a multiproto kaffeine patch, i'd like to know if there a way to 
-match the regular api's dvb_frontend_info.caps (frontend features info) ?
+if I try to configure the device created with saa7134-alsa module with 
+alsaconf, I can obtain audio in this way: check to mute input2 and 
+recheck to activate input2.
 
-For example in kaffeine code we check for FE_CAN_INVERSION_AUTO and then 
-decide if we can set INVERSION_AUTO or not.
-
-In all multiproto codes i've seen so far inversion is always set to 
-DVBFE_INVERSION_AUTO skipping any frontend features check..
-
-Is it common use to always set those values to AUTO (same thing with 
-FEC) considering nowdays hadware ? or is it something missing in 
-multiproto that we should keep aside for the moment ?
-
-any comment's welcome,
-
-Marc
+ideas?
+(apologize for bad english)
 
 _______________________________________________
 linux-dvb mailing list
