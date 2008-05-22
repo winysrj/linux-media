@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1JtJu6-0003Ki-7E
-	for linux-dvb@linuxtv.org; Tue, 06 May 2008 11:56:11 +0200
-Message-ID: <48200EB2.8060603@anevia.com>
-Date: Tue, 06 May 2008 09:54:26 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	(envelope-from <stev391@email.com>) id 1JzKB9-00080y-PS
+	for linux-dvb@linuxtv.org; Fri, 23 May 2008 01:26:39 +0200
+Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
+	[192.168.9.180])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	A940F18001A0
+	for <linux-dvb@linuxtv.org>; Thu, 22 May 2008 23:25:58 +0000 (GMT)
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <4816E5DA.7010204@anevia.com>		<1209467866.3247.45.camel@pc10.localdom.local>		<48171207.8080602@anevia.com>		<1209489568.3456.17.camel@pc10.localdom.local>		<48186290.2070603@anevia.com>	<4818731A.8060305@anevia.com>		<48188621.2050904@anevia.com>	<1209857251.2514.5.camel@pc10.localdom.local>	<481EC6DF.60001@anevia.com>
-	<481ED3BC.2000401@anevia.com>
-In-Reply-To: <481ED3BC.2000401@anevia.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC TV Station DVR Tuner Sound Issue
+From: stev391@email.com
+To: bvidinli <bvidinli@gmail.com>, stev391@email.com,
+	linux-dvb@linuxtv.org
+Date: Fri, 23 May 2008 09:25:58 +1000
+Message-Id: <20080522232558.6591811581F@ws1-7.us4.outblaze.com>
+Subject: Re: [linux-dvb] fail2: Avermedia DVB-S Hybrid+FM A700 on ubuntu
+ 8.04, kernel 2.6.24-16-generic (bvidinli)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,182 +23,1486 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1551582664=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-RnJlZGVyaWMgQ0FORCBhIMOpY3JpdCA6Cj4gRnJlZGVyaWMgQ0FORCBhIMOpY3JpdCA6Cj4+IGhl
-cm1hbm4gcGl0dG9uIGEgw6ljcml0IDoKPj4+IEFtIE1pdHR3b2NoLCBkZW4gMzAuMDQuMjAwOCwg
-MTY6NDUgKzAyMDAgc2NocmllYiBGcmVkZXJpYyBDQU5EOiAKPj4+PiBGcmVkZXJpYyBDQU5EIGEg
-w6ljcml0IDoKPj4+Pj4gRnJlZGVyaWMgQ0FORCBhIMOpY3JpdCA6Cj4+Pj4+PiBoZXJtYW5uIHBp
-dHRvbiBhIMOpY3JpdCA6Cj4+Pj4+Pj4gQW0gRGllbnN0YWcsIGRlbiAyOS4wNC4yMDA4LCAxNDox
-OCArMDIwMCBzY2hyaWViIEZyZWRlcmljIENBTkQ6Cj4+Pj4+Pj4+IGhlcm1hbm4gcGl0dG9uIGEg
-w6ljcml0IDoKPj4+Pj4+Pj4+IEhpIEZyZWRlcmljLAo+Pj4+Pj4+Pj4KPj4+Pj4+Pj4+IEFtIERp
-ZW5zdGFnLCBkZW4gMjkuMDQuMjAwOCwgMTE6MDkgKzAyMDAgc2NocmllYiBGcmVkZXJpYyBDQU5E
-Ogo+Pj4+Pj4+Pj4+IERlYXIgYWxsLAo+Pj4+Pj4+Pj4+Cj4+Pj4+Pj4+Pj4gSSByZWNlbnRseSBo
-YWQgdG8gY2hhbmdlIHY0bCBkcml2ZXJzIHRvIHN1cHBvcnQgbXkgV2luVFYgSFZSIDEzMDAuCj4+
-Pj4+Pj4+Pj4gSSBoYXZlIGlzc3VlcyBtYWtpbmcgbXkgSFZSIHdvcmsgYnV0IHRoYXQncyBub3Qg
-dGhlIHBvaW50IGhlcmUuCj4+Pj4+Pj4+Pj4gTXkgcHJvYmxlbSBpcyB0aGF0IHNpbmNlIEkgdXBk
-YXRlZCBrZXJuZWwgKyBkcml2ZXJzLCBJIGNhbid0IG1hbmFnZSB0byAKPj4+Pj4+Pj4+PiBtYWtl
-IHNvdW5kIHdvcmsgd2hlbiBJJ20gdXNpbmcgdGhlIHR1bmVyIGlucHV0LiBTb3VuZCBqYWNrIGlu
-cHV0IHdvcmtzIAo+Pj4+Pj4+Pj4+IHdoZW4gSSdtIHVzaW5nIFNWaWRlbyBvciBDb21wb3NpdGUg
-VmlkZW8sIGJ1dCBub3Qgd2hlbiBJJ20gdXNpbmcgdHVuZXIuCj4+Pj4+Pj4+Pj4KPj4+Pj4+Pj4+
-PiBIZXJlIGFyZSB0aGUgb3B0aW9ucyBJJ20gdXNpbmcKPj4+Pj4+Pj4+PiB0dW5lciA6IHBvcnQy
-PTAKPj4+Pj4+Pj4+PiBzYWE3MTM0OiBvc3M9MSBkaXNhYmxlX2lyPTEKPj4+Pj4+Pj4+PiBzYWE3
-MTM0LW9zczogcmF0ZT00ODAwMAo+Pj4+Pj4+Pj4gdGhlIHJhdGU9NDgwMDAgaXMgb25seSB2YWxp
-ZCBmb3IgZXh0ZXJuYWwgYW5hbG9nIGlucHV0IGFuZCBkaXNhYmxlcwo+Pj4+Pj4+Pj4gc291bmQg
-ZnJvbSB0dW5lci4gSGF2ZSBhIGxvb2sgYXQgdGhlIHNhYTcxMzQtb3NzIG1peGVyIHVuZGVyIHN1
-Y2gKPj4+Pj4+Pj4+IGNvbmRpdGlvbnMuCj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4gWW91IG11c3QgdXNl
-IGRlZmF1bHQgcmF0ZSBvZiAzMjAwMCBmb3IgZG1hIHNvdW5kIGZyb20gdHVuZXIuCj4+Pj4+Pj4+
-Pgo+Pj4+Pj4+Pj4gVGhlIHNhYTcxMzQtb3NzIGlzIGFsc28gc29vbiBkZXByZWNhdGVkIGFuZCBy
-ZXBsYWNlZCBieSBzYWE3MTM0LWFsc2EuCj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4gSWYgeW91IGFyZSBj
-b25zaWRlcmluZyB1c2luZyByZWNlbnQgdjRsLWR2YiBtZXJjdXJpYWwgc3R1ZmYsIHdoaWNoCj4+
-Pj4+Pj4+PiBzaG91bGQgYmUgYmVzdCBmb3IgdGhlIEhWUjEzMDAgYW5kIHJlcG9ydGluZyBidWdz
-IG9uIHNhYTcxMzQtZW1wcmVzcywKPj4+Pj4+Pj4+IHlvdSBtaWdodCBzdGlsbCBoYXZlIHlvdXIg
-b2xkIHNhYTcxMzQtb3NzIG1vZHVsZSBhcm91bmQgYW5kIHNvbWUgb3RoZXJzCj4+Pj4+Pj4+PiBs
-aWtlIHRoZSBvbGQgdmlkZW9fYnVmIG5vdyBsb2FkZWQsIHNpbmNlIG5vdCBkZWxldGVkIG9uIHVw
-Z3JhZGUuCj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4gQWZ0ZXIgbWFrZSBybW1vZCBhbmQgcm1pbnN0YWxs
-IHdpdGggY3VycmVudCB2NGwtZHZiIHlvdSBzaG91bGQgZGVsZXRlCj4+Pj4+Pj4+PiBzdWNoIHJl
-bWFpbmluZyBtb2R1bGVzIG9uIG9sZGVyIGtlcm5lbHMgdG9vIGJlZm9yZSBtYWtlIGluc3RhbGwu
-Cj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4gQ2hlZXJzLAo+Pj4+Pj4+Pj4gSGVybWFubgo+Pj4+Pj4+PiBo
-dW0gSSB1c2VkIHRvIHNldCByYXRlIHRvIDQ4MDAwIHdpdGggbXkgb2xkIDIwMDUganVseSBzbmFw
-c2hvdCBhbmQgaXQgCj4+Pj4+Pj4+IHdhcyB3b3JraW5nIGV2ZW4gd2l0aCB0dW5lciAuLi4gYnV0
-IG9rIEknbGwgdHJ5IDMyMDAwCj4+Pj4+Pj4+IGkndmUgdHJpZWQgYWxzYSBhbmQgSSBoYWQgdGhl
-IHNhbWUgcmVzdWx0cywgdGhhdCBpcyBubyBzb3VuZCB3aXRoIHR1bmVyIAo+Pj4+Pj4+PiBidXQg
-bGluZSBpbiBzb3VuZCB3aXRoIGNvbXBvc2l0ZSBhbmQgc3ZpZGVvCj4+Pj4+Pj4+IGRvIEkgbmVl
-ZCBzb21lIHNwZWNpYWwgc3R1ZmZzIGNvbXBpbGVkIGluIG15IGtlcm5lbCBleGNlcHQgZnJvbSBj
-b25maWdfc25kID8KPj4+Pj4+Pj4gYWJvdXQgb2xkIG1vZHVsZXMgc3RpbGwgbG9hZGVkIHRoaXMg
-Y2FuJ3QgYmUgc2luY2UgSSBidWlsZCBteSBzeXN0ZW0gCj4+Pj4+Pj4+IGZyb20gc2NyYXRjaCBl
-YWNoIHRpbWUgaSB0cnkgYSBuZXcga2VybmVsIC8gZHJpdmVyIGludG8gYW4gZXh0MiBmaWxlLCAK
-Pj4+Pj4+Pj4gd2hpY2ggSSBwdXQgb24gYSAzMk1CIGZsYXNoIGRpc2sgYW5kIGJvb3Qgb24gaXQg
-Li4uIHNvIEknbSBzdXJlIEknbSBub3QgCj4+Pj4+Pj4+IHVzaW5nIG15IG9sZCB2NGwgc25hcHNo
-b3QsIGJ1dCB0aGUgMi42LjIyLjE5IHY0bCBkcml2ZXJzCj4+Pj4+Pj4+Cj4+Pj4+Pj4+IEknbGwg
-bGV0IHlvdSBrbm93IGlmIEkgY2FuIG1ha2UgaXQgd29yawo+Pj4+Pj4+IEFoLCB5b3UgYXJlIGlu
-IEZyYW5jZSEKPj4+Pj4+IHllYWghCj4+Pj4+Pgo+Pj4+Pj4+IFRyeSAibW9kaW5mbyBzYWE3MTM0
-Ii4gRHVlIHRvIHVucmVzb2x2YWJsZSBhdXRvIGRldGVjdGlvbiBpc3N1ZXMgYmV0d2Vlbgo+Pj4+
-Pj4+IGRpZmZlcmVudCBTRUNBTSBzdGFuZGFyZHMgdGhlcmUgd2FzIGEgc2VjYW09IGVpdGhlciBE
-SywgTCBvciBMYyBvcHRpb24KPj4+Pj4+PiBpbnRyb2R1Y2VkLgo+Pj4+Pj4gaHVodS4uLiBidXQg
-bXkgc3lzdGVtIGhhcyB0byB3b3JrIHdvcmxkd2lkZSAuLi4gc28gYSBtb2R1bGUgb3B0aW9uIGlz
-IAo+Pj4+Pj4gbm90IGEgZ29vZCBpZGVhLCBiZWNhdXNlIGl0IGRvZXMgbm90IG9ubHkgZGVwZW5k
-cyBvbiB0aGUgY291bnRyeSwgYnV0IAo+Pj4+Pj4gYWxzbyBpZiBteSBjdXN0b21lciBpcyB1c2lu
-ZyBhIHNpZ25hbCBtb2R1bGF0b3Igb3Igbm90LCAuLi4gYW5kIEkgaGF2ZSAKPj4+Pj4+IHR3byBj
-YXJkcyBpbiBteSBzeXN0ZW0sIGFuZCBJIHdhbnQgdG8gYmUgYWJsZSB0byBzZWxlY3QgYSBjZXJ0
-YWluIFNFQ0FNIAo+Pj4+Pj4gbW9kZSB3aXRoIHRoZSBmaXJzdCBvbmUsIGFuZCBhbm90aGVyIG1v
-ZGUgd2l0aCB0aGUgc2Vjb25kIGNhcmQKPj4+Pj4+IEFjdHVhbGx5IEknbSBzZWxlY3Rpbmcgc2Vj
-YW0gTCwgREsgb3IgQkcgd2l0aCBhbiBpb2N0bCBjYXVzZSBteSBjYXJkIGNhbiAKPj4+Pj4+IGhh
-bmRsZSB0aGVtICh0ZXN0ZWQgYW5kIHdvcmtpbmcgd2l0aCBvbGRlciBkcml2ZXJzL2tlcm5lbHMp
-Cj4+Pj4+Pgo+Pj4+Pj4KPj4+Pj4+PiBBbnl0aGluZyBlbHNlIHRoZW4gMzIwMDBIeiBzYW1wbGlu
-ZyByYXRlIGZvciBUViBpcyB3cm9uZyBjdXJyZW50bHkgYW5kCj4+Pj4+Pj4geW91IGdldCB0aGF0
-IGlucHV0IGRpc2FibGVkIG9uIHNhYTcxMzQtb3NzIG1peGVyLiBZZXMsIGl0IHdhcyBvbmNlCj4+
-Pj4+Pj4gcG9zc2libGUsIGJ1dCBub3QgaW50ZW5kZWQsIHRvIHVzZSA0ODAwMCBhbHNvIGZvciBU
-Vi9WaWRlbyBvbiBzYWE3MTM0Cj4+Pj4+Pj4gY2hpcHMsIGJ1dCBnYXZlIHZlcnkgcG9vciBhbmQg
-Y3JhY2tsaW5nIHNvdW5kIGFuZCBpcyB3cm9uZy4KPj4+Pj4+Pgo+Pj4+Pj4+IFRoZSBjdXJyZW50
-IHNhYTcxMzQtYWxzYSBpcyBzaW1wbGVyIHRvIHVzZSBhbmQgYWxzbyB1c2VzIGFuIGV4cG9ydGVk
-Cj4+Pj4+Pj4gbXV0ZSBzeW1ib2wgZnJvbSBzYWE3MTM0LXR2YXVkaW8uIERlZmF1bHQgZGlzdHJp
-YnV0aW9uIHNldHRpbmdzIGFyZQo+Pj4+Pj4+IHN1ZmZpY2llbnQuIE9uIHJlY2VudCBVYnV0dSBy
-ZWxlYXNlcyBzZWVtIHRvIGJlIHByb2JsZW1zIHdpdGggYW4gb3V0IG9mCj4+Pj4+Pj4gdHJlZSBh
-bHNhIHRoZXJlLgo+Pj4+Pj4gT2sgSSdsbCBzZWUgd2l0aCB0aGlzIHJhdGUgdGhpbmcgYW5kIGxl
-dCB5b3Uga25vdwo+Pj4+Pj4KPj4+Pj4+PiBDaGVlcnMsCj4+Pj4+Pj4gSGVybWFubgo+Pj4+Pj4+
-Cj4+Pj4+Pj4KPj4+Pj4+Pgo+Pj4+Pj4gR3JlZXRpbmdzLgo+Pj4+Pj4KPj4+Pj4gSSBzdGlsbCBo
-YXZlIG5vdGhpbmcgd2l0aCBvc3MgYW5kIHJhdGU9MzIwMDAsIHdpdGggYWxzYSwgb3Igd2l0aCBz
-ZWNhbT1sCj4+Pj4+IEFueXdheSwgc29tZSBtb3JlIGluZm9ybWF0aW9ucyA6Cj4+Pj4+ICogSSd2
-ZSBnb3QgdGhlIGZvbGxvd2luZyBlcnJvciBtZXNzYWdlcyBvbiBzYWE3MTM0IG1vZHVsZSBpbnNl
-cnRpb24KPj4+Pj4KPj4+Pj4gc2FhNzEzNF9lbXByZXNzOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0
-X2Rldmxpc3QKPj4+Pj4gc2FhNzEzNF9lbXByZXNzOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X2Nv
-bW1vbl9pb2N0bAo+Pj4+PiBzYWE3MTM0X2VtcHJlc3M6IFVua25vd24gc3ltYm9sIHNhYTcxMzRf
-Ym9hcmRzCj4+Pj4+IHNhYTcxMzRfZW1wcmVzczogVW5rbm93biBzeW1ib2wgc2FhNzEzNF90c19y
-ZWdpc3Rlcgo+Pj4+PiBzYWE3MTM0X2VtcHJlc3M6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfdHNf
-cW9wcwo+Pj4+PiBzYWE3MTM0X2VtcHJlc3M6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfaTJjX2Nh
-bGxfY2xpZW50cwo+Pj4+PiBzYWE3MTM0X2VtcHJlc3M6IFVua25vd24gc3ltYm9sIHNhYTcxMzRf
-dHNfdW5yZWdpc3Rlcgo+Pj4+PiBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRf
-dHZhdWRpb19zZXRtdXRlCj4+Pj4+IHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhX2Rz
-cF93cml0ZWwKPj4+Pj4gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X2Rldmxp
-c3QKPj4+Pj4gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3BndGFibGVfYWxs
-b2MKPj4+Pj4gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3BndGFibGVfYnVp
-bGQKPj4+Pj4gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3BndGFibGVfZnJl
-ZQo+Pj4+PiBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfZG1hc291bmRfaW5p
-dAo+Pj4+PiBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfZG1hc291bmRfZXhp
-dAo+Pj4+PiBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfc2V0X2RtYWJpdHMK
-Pj4+Pj4gc2FhNzEzNCBBTFNBIGRyaXZlciBmb3IgRE1BIHNvdW5kIGxvYWRlZAo+Pj4+PiBzYWE3
-MTM0WzBdL2Fsc2E6IHNhYTcxMzRbMF0gYXQgMHhlNTMwMDAwMCBpcnEgNSByZWdpc3RlcmVkIGFz
-IGNhcmQgLTEKPj4+Pj4gc2FhNzEzNFsxXS9hbHNhOiBzYWE3MTM0WzFdIGF0IDB4ZTUzMDEwMDAg
-aXJxIDkgcmVnaXN0ZXJlZCBhcyBjYXJkIC0xCj4+Pj4+Cj4+Pj4+ICogV2hlbiB1c2luZyBhdWRp
-b19kZWJ1Zz0xIGZvciBzYWE3MTM0LCBJJ3ZlIGdvdCB0aGUgZm9sbG93aW5nIDoKPj4+Pj4gc2Fh
-NzEzNFsxXS9hdWRpbzogbXV0ZS9pbnB1dDogbm90aGluZyB0byBkbyBbbXV0ZT0xLGlucHV0PVRl
-bGV2aXNpb25dCj4+Pj4+IHNhYTcxMzRbMV0vYXVkaW86IHNvdW5kIElGIG5vdCBpbiB1c2UsIHNr
-aXBwaW5nIHNjYW4KPj4+Pj4gc2FhNzEzNFsxXS9hdWRpbzogbXV0ZS9pbnB1dDogbm90aGluZyB0
-byBkbyBbbXV0ZT0xLGlucHV0PVRlbGV2aXNpb25dCj4+Pj4+IHNhYTcxMzRbMV0vYXVkaW86IG11
-dGUvaW5wdXQ6IG5vdGhpbmcgdG8gZG8gW211dGU9MSxpbnB1dD1UZWxldmlzaW9uXQo+Pj4+PiBz
-YWE3MTM0WzFdL2F1ZGlvOiBjdGxfbXV0ZT0wIGF1dG9tdXRlPTAgaW5wdXQ9VGVsZXZpc2lvbiAg
-PT4gIG11dGU9MCAKPj4+Pj4gaW5wdXQ9VGVsZXZpc2lvbgo+Pj4+PiBzYWE3MTM0WzFdL2F1ZGlv
-OiBzb3VuZCBJRiBub3QgaW4gdXNlLCBza2lwcGluZyBzY2FuCj4+Pj4+IHNhYTcxMzRbMV0vYXVk
-aW86IG11dGUvaW5wdXQ6IG5vdGhpbmcgdG8gZG8gW211dGU9MCxpbnB1dD1UZWxldmlzaW9uXQo+
-Pj4+PiBzYWE3MTM0WzFdL2F1ZGlvOiBzb3VuZCBJRiBub3QgaW4gdXNlLCBza2lwcGluZyBzY2Fu
-Cj4+Pj4+IHNhYTcxMzRbMV0vYXVkaW86IG11dGUvaW5wdXQ6IG5vdGhpbmcgdG8gZG8gW211dGU9
-MCxpbnB1dD1UZWxldmlzaW9uXQo+Pj4+PiBzYWE3MTM0WzFdL2F1ZGlvOiBjdGxfbXV0ZT0wIGF1
-dG9tdXRlPTEgaW5wdXQ9VGVsZXZpc2lvbiAgPT4gIG11dGU9MSAKPj4+Pj4gaW5wdXQ9VGVsZXZp
-c2lvbgo+Pj4+PiBzYWE3MTM0WzFdL2F1ZGlvOiBzb3VuZCBJRiBub3QgaW4gdXNlLCBza2lwcGlu
-ZyBzY2FuCj4+Pj4+IHNhYTcxMzRbMV0vYXVkaW86IGN0bF9tdXRlPTAgYXV0b211dGU9MCBpbnB1
-dD1UZWxldmlzaW9uICA9PiAgbXV0ZT0wIAo+Pj4+PiBpbnB1dD1UZWxldmlzaW9uCj4+Pj4+Cj4+
-Pj4gRGlkIEkgbWVudGlvbiBJJ20gdXNpbmcgMi42LjIyLjE5ID8KPj4+Pgo+Pj4gSGksCj4+Pgo+
-Pj4geWVzLCB0aGF0IGlzIHRoZSBhbm5veWluZyBwYXJ0IDspLCBidXQgc3RpbGwgZmluZSwgc2lu
-Y2Ugb3RoZXJzIGhhdmUKPj4+IGJlZW4gYWxyZWFkeSByZXN0bGVzcyBvbiBnZXR0aW5nIHN1cHBv
-cnQgd2l0aCBsYXRlc3QgZHJpdmVycyBvbiBhCj4+PiAyLjQuMTggISB3aXRob3V0IHRvIHByb3Zp
-ZGUgYSBzaW5nbGUgbGluZSBvZiBjb2RlIHRoZW1zZWx2ZXMgLi4uCj4+Pgo+Pj4gVGhpcyBpcyBj
-b21wbGV0ZWx5IGRpZmZlcmVudCB3aXRoIHlvdSwgYnV0IHdlIGhhdmUgb3RoZXIgaXNzdWVzIHRv
-by4KPj4+Cj4+PiBodHRwOi8vbGludXh0di5vcmcvaGcvdjRsLWR2Yi9yZXYvZDY2NjBmOGM2ZGJi
-Cj4+Pgo+Pj4gWW91IG1pZ2h0IHRyeSB0byBjbGVhbiB5b3VyIC9tZWRpYSBtb2R1bGVzIGFuZCB0
-cnkgd2l0aCB0aGF0IHNuYXBzaG90Lgo+Pj4gTm90IGNvbXBpbGUgdGVzdGVkIGZvciAyLjYuMjIs
-IGJ1dCBtaWdodCBmaXQuIENsaWNrIG9uIGJ6MiBvciBneiBvbiB0b3AuCj4+Pgo+PiBvaywgSSds
-bCBoYXZlIGEgbG9vayBhdCB0aGlzIGFzYXAKPj4KPj4+IE9mIGNvdXJzZSwgaWYgbm90IGF1dG8g
-ZGV0ZWN0ZWQgeW91IGNhbiBzZWxlY3QgZWFjaCBUViBhbmFsb2cgc3RhbmRhcmQKPj4+IHNlcGFy
-YXRlbHkgZm9yIGVhY2ggY2FyZCB5b3UgaGF2ZSwgYnV0IHNlbGVjdGFibGUgU0VDQU0gd2FzIG5l
-dy4KPj4+Cj4+PiBEbyB5b3UgaGF2ZSBhbnkgcHJvZ3Jlc3Mgb24gaXQgb3IgYXJlIHlvdSBzZXJp
-b3VzbHkgYXNraW5nIG1lIHRvIGxvb2sgYXQKPj4+IGEgMi42LjIyLjE5Pwo+PiBNeSBjb25jZXJu
-IGlzIHRvIHVzZSBhbnkga2VybmVsIHdoaWxlIGhhdmluZyBmdWxsIHN1cHBvcnQgZm9yIG15IGtu
-YyB0diAKPj4gc3RhdGlvbiBkdnIgQU5EIG15IEhhdXBwYXVnZSBIVlIgMTMwMCAuLi4gdGhhdCBp
-cywgc291bmQgYW5kIG1wZWcgCj4+IGNvbXByZXNzaW9uCj4+IEkgd2FzIHVzaW5nIGEgMi42LjE2
-LjI5ICd0aWwgbm93LCB3aXRoIGFuIG9sZCB2NGwgKG5vdCB2NGwtZHZiKSBzbmFwc2hvdCAKPj4g
-c28gLi4uIGlmIEkgY2FuIHN0aWxsIHVzZSBteSAyLjYuMTYuMjkgYW5kIGhhdmUgc3VwcG9ydCBm
-b3IgbXkga25jIGFuZCAKPj4gbXkgaGF1cHBhdWdlIHdpdGhpbiB0aGUgc2FtZSBzeXN0ZW0sIEkn
-bGwgYmUgdGhlIGhhcHBpZXN0IG1hbiAoY2hhbmdpbmcgCj4+IGtlcm5lbCBpcyBub3QgYW4gaWRl
-YSB3ZSBsaWtlIHNpbmNlIGJ5IGRvaW5nIHRoYXQgd2UnbGwgbmVlZCB0aW1lIHRvIAo+PiB0ZXN0
-IHVwdGltZSBlcXVpcG1lbnRzIGJlZm9yZSByZWxlYXNpbmcgYSBuZXcgdmVyc2lvbiBvZiBvdXIg
-cHJvZHVjdHMsIC4uLikKPj4KPj4gMi42LjIyLjE5IGlzIG5vdCBtYW5kYXRvcnkgYnV0IEkga25v
-dyBzb21lIHRoaW5ncyBjaGFuZ2VkIGJldHdlZW4gMi42LjE2IAo+PiBhbmQgcmVjZW50IGtlcm5l
-bHMgcmVnYXJkaW5nIG1vZHVsZXMgKHN5bm9wc2lzIG9mIHNvbWUgZnVuY3Rpb25zIAo+PiBjaGFu
-Z2VkLCAuLi4pIHNvIGFkYXB0aW5nIGEgcmVjZW50IHNuYXBzaG90IGFnYWluc3QgMi42LjE2IG1p
-Z2h0IGJlIAo+PiBwYWluZnVsIC4uLgo+Pgo+Pj4gWW91IG1pZ2h0IHJlbWVtYmVyLCBJJ20gaW50
-ZXJlc3RlZCBhdCB0aGUgcG9pbnQsIHRoZSBlbmNvZGVyIGdhdmUgdXAuCj4+Pgo+PiBodWh1LCBJ
-IGtub3cgdGhhdAo+PiBJJ2xsIGJ1aWxkIDIuNi4xNiB0byAyLjYuMjEga2VybmVscyB0aGlzIG1v
-cm5pbmcgdG8gc2VlIGlmIG15IGtuYyBoYXZlIAo+PiBzb3VuZCBpbiBhbnkgb2YgdGhlbSB3aXRo
-IHRoZSBtb2R1bGVzIGluY2x1ZGVkIGluIHRoZSBrZXJuZWxzIChpLmUgSSAKPj4gd29uJ3QgdXNl
-IG15IDIwMDUgdjRsIHNuYXBzaG90KSBhbmQgbGV0IHlvdSBrbm93Cj4gCj4gSSBjYW4ndCBnZXQg
-c291bmQgd2hlbiBzZWxlY3RpbmcgdHVuZXIgd2l0aCBkcml2ZXJzIGluY2x1ZGVkIGluIGtlcm5l
-bCAKPiAyLjYuMTYuMjkgLi4uIHdoZXRoZXIgSSB1c2UgYWxzYSBvciBvc3MKPiBvcHRpb25zIHVz
-ZWQgOgo+IHRkYTk4ODc6IHBvcnQyPTAKPiBzYWE3MTM0LW9zcyA6IHJhdGU9MzIwMDAgb3IgcmF0
-ZT00ODAwMCAoc2FtZSByZXN1bHRzKQo+IHNhYTcxMzQ6IGRpc2FibGVfaXI9MSBvc3M9MQo+IAo+
-IG9yCj4gdGRhOTg4NzogcG9ydDI9MAo+IHNhYTcxMzQ6IGRpc2FibGVfaXI9MSBhbHNhPTEKPiAK
-PiBJIHRyaWVkIHdpdGhvdXQgcG9ydDI9MCwgc2FtZSByZXN1bHRzIC4uLgo+IAo+PiB3aGF0IGRv
-IHlvdSBtZWFuIGJ5ICJ0aGUgZW5jb2RlciBnYXZlIHVwIiA/Cj4+Cj4+PiBDaGVlcnMsCj4+PiBI
-ZXJtYW5uCj4+Pgo+PiBSZWdhcmRzCj4+Cj4+Cj4+Cj4gCj4gCgp0ZXN0cyByZXN1bHRzIDoKCiog
-Mi42LjEyLjYKCnNvdW5kIHdvcmtpbmcgd2l0aCB0dW5lciwgc2FhNzEzNCBvcHRpb25zIGFyZSBv
-c3M9MSBvc3NfcmF0ZT00ODAwMCAKKDMyMDAwIHdvcmtzIHRvbykKCiogMi42LjEzLjUKVW5hYmxl
-IHRvIGhhbmRsZSBrZXJuZWwgcGFnaW5nIHJlcXVlc3QgYXQgdmlydHVhbCBhZGRyZXNzIC4uLgpN
-b2R1bGVzIGxpbmtlZCBpbjogc2FhNzEzNF9lbXByZXNzIHNhYTcxMzQgIC4uLgoKCm9rICEhISEK
-CgoqIDIuNi4xNC43Ci0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQprZXJuZWwg
-QlVHIGF0IDxiYWQgZmlsZW5hbWU+OjU3MzIzIQppbnZhbGlkIG9wZXJhbmQ6IDAwMDAgWyMxXQpN
-b2R1bGVzIGxpbmtlZCBpbjogc2FhNzEzNF9lbXByZXNzIHNhYTcxMzQgLi4uLgpbLi4uXQpDb2Rl
-OiAwNyA4MyBjNCAwOCBjMyA4ZCA3NiAwMCA4YiA0MiAwOCA0MCA3OCAxZCBiOCBmZiBmZiBmZiBm
-ZiA4OSA0NCAyNCAKMDQgYzcgMDQgMjQgMTAgMDAgMDAgMDAgZTggMTUgMDcgZmYgZmYgODMgYzQg
-MDggYzMgMGYgMGIgZWIgY2IgPDBmPiAwYiAKZWIgZGYgODkgZjYgOGQgYmMgMjcgMDAgMDAgMDAg
-MDAgODMgZWMgMjAgODkgNzQgMjQgMTQgOGIKICA8MT5GaXhpbmcgcmVjdXJzaXZlIGZhdWx0IGJ1
-dCByZWJvb3QgaXMgbmVlZGVkIQoKCmh1aHVtICEhIQoKKiAyLjYuMTUuNwoKZG9lcyBub3QgY3Jh
-Y2gsIGJ1dCBubyBzb3VuZCB3aGVuIHVzaW5nIHR1bmVyLCB3aGV0aGVyIEkgdXNlIHJhdGU9MzIw
-MDAgCm9yIHJhdGU9NDgwMDAgLi4uIG9zcyBwYXJ0IGhhcyBiZWVuIG1vdmVkIHRvIGEgbmV3IG1v
-ZHVsZSA6IHNhYTcxMzQtb3NzIC4uLgoKLS0gCkNBTkQgRnJlZGVyaWMKUHJvZHVjdCBNYW5hZ2Vy
-CkFORVZJQQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5s
-aW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+This is a multi-part message in MIME format.
+
+--===============1551582664==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_1211498758135150"
+
+This is a multi-part message in MIME format.
+
+--_----------=_1211498758135150
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-9"
+
+One obvious error in you script is that it just moves the old modules
+around in the modules directory.  You have to move them completely out of
+the modules directory, else depmod will still find them and possible use
+them instead of the new ones.
+
+  ----- Original Message -----
+  From: bvidinli
+  To: stev391@email.com, linux-dvb@linuxtv.org
+  Subject: fail2: Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04, kernel
+  2.6.24-16-generic (bvidinli)
+  Date: Thu, 22 May 2008 16:02:42 +0300
+
+  i wrote the script below, since i do many install about this,
+  result is same, fail,
+  i/we miss something on files that we should replace/edit..
+
+  i did just as you said about /lib/modules/`uname -r`/ubuntu/
+  i replaced files there, with script, with manual, retried but result
+  same...
+  i also replaced files in /lib/modules/`uname -r`/kernel/drivers/media
+
+
+  is there any idea about this ?
+
+  #!/bin/bash
+  echo "i must run this as normal user... press enter to continue"
+  read
+
+  cd
+  #install mercurial, get v4l files, patch and compile,
+  sudo apt-get install mercurial linux-headers-$(uname -r)
+  build-essential
+  hg clone http://linuxtv.org/hg/v4l-dvb
+  wget http://dev.gentoo.org/~zzam/dvb/a700_full_20080519.diff
+  cd ~/v4l-dvb/v4l
+  patch -p1 < ../a700_full_20080519.diff
+  make
+
+
+  # first, backup all
+  cd /lib/modules/`uname -r`/kernel/drivers/
+  sudo cp -rvf media media.bck
+
+  cd /lib/modules/`uname -r`/ubuntu/media
+  sudo cp -rvf saa7134 saa7134.bck
+
+  # goto where you got your v4l files by hg
+  cd ~/v4l-dvb/v4l
+  sudo cp -f ir-common.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/common/
+  sudo cp -f saa7146.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/common/
+  sudo cp -f saa7146_vv.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/common/
+
+  sudo cp -f dvb-core.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/dvb/dvb-core/
+
+
+  sudo cp -f saa6752hs.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/saa7134/
+  sudo cp -f saa7134-dvb.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/saa7134/
+  sudo cp -f saa7134-empress.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/saa7134/
+  sudo cp -f saa7134.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/saa7134/
+
+  sudo cp -f cx23885.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx23885/
+  sudo cp -f cx25840.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx25840/
+
+  sudo cp -f cx88-blackbird.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+  sudo cp -f cx88-dvb.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+  sudo cp -f cx88-vp3054-i2c.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+  sudo cp -f cx88xx.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+  sudo cp -f cx8800.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+  sudo cp -f cx8802.ko /lib/modules/`uname
+  -r`/kernel/drivers/media/video/cx88/
+
+
+
+  sudo cp -f saa6752hs.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/
+  sudo cp -f saa7134-dvb.ko /lib/modules/`uname
+  -r`/ubuntu/media/saa7134/
+  sudo cp -f saa7134-empress.ko /lib/modules/`uname
+  -r`/ubuntu/media/saa7134/
+  sudo cp -f saa7134.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/
+
+  #these two raised error, so, i left them as old.. thre is no file in
+  v4l dir as -alsa and -oss
+  sudo cp -f saa7134-alsa.ko /lib/modules/`uname
+  -r`/ubuntu/media/saa7134/
+  sudo cp -f saa7134-oss.ko /lib/modules/`uname
+  -r`/ubuntu/media/saa7134/
+
+
+
+  sudo cp -f cx88-blackbird.ko /lib/modules/`uname
+  -r`/ubuntu/media/cx88/
+  sudo cp -f cx88-dvb.ko /lib/modules/`uname -r`/ubuntu/media/cx88/
+  sudo cp -f cx88-vp3054-i2c.ko /lib/modules/`uname
+  -r`/ubuntu/media/cx88/
+  sudo cp -f cx88xx.ko /lib/modules/`uname -r`/ubuntu/media/cx88/
+  sudo cp -f cx8800.ko /lib/modules/`uname -r`/ubuntu/media/cx88/
+  sudo cp -f cx8802.ko /lib/modules/`uname -r`/ubuntu/media/cx88/
+  # below line raised error, no file -alsa.ko in v4l
+  sudo cp -f cx88-alsa.ko /lib/modules/`uname -r`/ubuntu/media/cx88/
+
+
+  echo "replacing all files in
+  /lib/modules/2.6.24-16-generic/kernel/drivers/media/video/*.ko from
+  new compiled ones... "
+  for i in `ls /lib/modules/`uname -r`/kernel/drivers/media/video/*.ko`
+  ; do i=3D`echo $i | awk -F "/" '{print $NF}'`; ls $i ; cp -vf $i
+  /lib/modules/2.6.24-16-generic/kernel/drivers/media/video/ ; done
+
+  # remove and reinstall modules
+  rmmod saa7134_alsa saa7134
+  depmod -a
+  modprobe saa7134 i2c_scan=3D1
+
+
+
+
+
+  echo "finished... you may run dmesg to see result.."
+
+
+
+  result:
+  (note that this is without make install, before reboot)
+  [ 6011.912699] saa7130/34: v4l2 driver version 0.2.14 loaded
+  [ 6011.914021] saa7133[0]: found at 0000:00:14.0, rev: 209, irq: 10,
+  latency: 32, mmio: 0xde003000
+  [ 6011.914045] saa7133[0]: subsystem: 1461:a7a2, board:
+  UNKNOWN/GENERIC [card=3D0,autodetected]
+  [ 6011.914069] saa7133[0]: board init: gpio is 2fe00
+  [ 6012.048607] saa7133[0]: i2c eeprom 00: 61 14 a2 a7 ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048641] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048664] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048687] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048709] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048732] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048755] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.048777] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+  ff ff ff ff ff ff ff
+  [ 6012.068598] saa7133[0]: i2c scan: found device @ 0x1c [???]
+  [ 6012.088599] saa7133[0]: i2c scan: found device @ 0xa0 [eeprom]
+  [ 6012.109784] saa7133[0]: registered device video0 [v4l2]
+  [ 6012.111066] saa7133[0]: registered device vbi0
+  [ 6012.176702] saa7134 ALSA driver for DMA sound loaded
+  [ 6012.177925] saa7133[0]/alsa: saa7133[0] at 0xde003000 irq 10
+  registered as card -2
+
+
+
+  after reboot:
+  [ 43.901412] saa7134: disagrees about version of symbol
+  videobuf_streamoff
+  [ 43.901425] saa7134: Unknown symbol videobuf_streamoff
+  [ 43.901792] saa7134: disagrees about version of symbol
+  videobuf_poll_stream
+  [ 43.901800] saa7134: Unknown symbol videobuf_poll_stream
+  [ 43.902582] saa7134: disagrees about version of symbol
+  videobuf_dma_free
+  [ 43.902590] saa7134: Unknown symbol videobuf_dma_free
+  [ 43.902875] saa7134: disagrees about version of symbol
+  videobuf_reqbufs
+  [ 43.902883] saa7134: Unknown symbol videobuf_reqbufs
+  [ 43.903523] saa7134: disagrees about version of symbol
+  videobuf_waiton
+  [ 43.903531] saa7134: Unknown symbol videobuf_waiton
+  [ 43.904079] saa7134: disagrees about version of symbol
+  videobuf_dqbuf
+  [ 43.904087] saa7134: Unknown symbol videobuf_dqbuf
+  [ 43.905471] saa7134: disagrees about version of symbol videobuf_stop
+  [ 43.905479] saa7134: Unknown symbol videobuf_stop
+  [ 43.906472] saa7134: Unknown symbol videobuf_queue_pci_init
+  [ 43.906614] saa7134: disagrees about version of symbol
+  videobuf_dma_unmap
+  [ 43.906623] saa7134: Unknown symbol videobuf_dma_unmap
+  [ 43.906751] saa7134: disagrees about version of symbol
+  videobuf_read_stream
+  [ 43.906759] saa7134: Unknown symbol videobuf_read_stream
+  [ 43.906940] saa7134: disagrees about version of symbol
+  videobuf_querybuf
+  [ 43.906948] saa7134: Unknown symbol videobuf_querybuf
+  [ 43.907300] saa7134: disagrees about version of symbol
+  video_unregister_device
+  [ 43.907309] saa7134: Unknown symbol video_unregister_device
+  [ 43.907428] saa7134: disagrees about version of symbol videobuf_qbuf
+  [ 43.907436] saa7134: Unknown symbol videobuf_qbuf
+  [ 43.907755] saa7134: disagrees about version of symbol
+  video_device_alloc
+  [ 43.907763] saa7134: Unknown symbol video_device_alloc
+  [ 43.907882] saa7134: disagrees about version of symbol
+  videobuf_read_one
+  [ 43.907890] saa7134: Unknown symbol videobuf_read_one
+  [ 43.908173] saa7134: disagrees about version of symbol
+  video_register_device
+  [ 43.908181] saa7134: Unknown symbol video_register_device
+  [ 43.909011] saa7134: disagrees about version of symbol
+  videobuf_iolock
+  [ 43.909019] saa7134: Unknown symbol videobuf_iolock
+  [ 43.909292] saa7134: disagrees about version of symbol
+  videobuf_streamon
+  [ 43.909300] saa7134: Unknown symbol videobuf_streamon
+  [ 43.910040] saa7134: disagrees about version of symbol
+  video_device_release
+  [ 43.910048] saa7134: Unknown symbol video_device_release
+  [ 43.910164] saa7134: disagrees about version of symbol
+  videobuf_mmap_mapper
+  [ 43.910173] saa7134: Unknown symbol videobuf_mmap_mapper
+  [ 43.910548] saa7134: disagrees about version of symbol
+  videobuf_cgmbuf
+  [ 43.910556] saa7134: Unknown symbol videobuf_cgmbuf
+  [ 43.910985] saa7134: disagrees about version of symbol
+  videobuf_to_dma
+  [ 43.910993] saa7134: Unknown symbol videobuf_to_dma
+  [ 43.911108] saa7134: disagrees about version of symbol
+  videobuf_mmap_free
+  [ 43.911116] saa7134: Unknown symbol videobuf_mmap_free
+
+
+
+  the result is same after reboot,
+  same after reboot, make install in v4l-dvb
+
+  we are back in same point...
+
+  2008/5/22 :
+  >
+  > With ubuntu 8.04 they made a copy of some of the drivers (I had the
+  > directory structure wrong in my previous email as I have already
+  removed
+  > mine), check in:
+  > /lib/modules/`uname -r`/ubuntu/media/
+  >
+  > for any folders relating to cx* and saa* and remove them as Ubuntu
+  checks
+  > here first for the modules instead of the new freshly compiled
+  ones.
+  > the run depmod -a and try again.
+  >
+  > Regards,
+  >
+  > Stephen.
+  >
+  > ----- Original Message -----
+  > From: bvidinli
+  > To: stev391@email.com, linux-dvb@linuxtv.org
+  > Subject: fail:Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04, kernel
+  > 2.6.24-16-generic (bvidinli)
+  > Date: Wed, 21 May 2008 16:10:08 +0300
+  >
+  > This problem persists, continues,
+  > does anybody have suggestions ?
+  >
+  > i continue on my search of this problem...
+  >
+  > thanks.
+  >
+  >
+  > 2008/5/21 bvidinli :
+  >> i did your suggestions, but result is same.
+  >>
+  >> there was no file at locations you specified, (/lib/modules/`uname
+  >> -r`/ubuntu/media/common/)
+  >> instead i removed files on :
+  >> rm -rvf /lib/modules/2.6.24-16-generic/kernel/drivers/media/video/
+  >> dvb, video, etc...
+  >>
+  >> if you/anybody may help me, please do..
+  >>
+  >>
+  >> root@bvidinli-desktop:/home/bvidinli/v4l-dvb# modprobe saa7134
+  i2c_scan=3D1
+  >> FATAL: Error inserting saa7134
+  >> (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):
+  >> Unknown symbol in module, or unknown parameter (see dmesg)
+  >> FATAL: Error running install command for saa7134
+  >> root@bvidinli-desktop:/home/bvidinli/v4l-dvb#
+  >>
+  >>
+  >> dmesg output:
+  >>
+  >> [ 4261.474794] Linux video capture interface: v2.00
+  >> [ 4261.603077] saa7134: disagrees about version of symbol
+  >> videobuf_streamoff
+  >> [ 4261.603104] saa7134: Unknown symbol videobuf_streamoff
+  >> [ 4261.603450] saa7134: disagrees about version of symbol
+  >> videobuf_poll_stream
+  >> [ 4261.603459] saa7134: Unknown symbol videobuf_poll_stream
+  >> [ 4261.604240] saa7134: disagrees about version of symbol
+  >> videobuf_dma_free
+  >> [ 4261.604249] saa7134: Unknown symbol videobuf_dma_free
+  >> [ 4261.604521] saa7134: disagrees about version of symbol
+  videobuf_reqbufs
+  >> [ 4261.604529] saa7134: Unknown symbol videobuf_reqbufs
+  >> [ 4261.605140] saa7134: disagrees about version of symbol
+  videobuf_waiton
+  >> [ 4261.605148] saa7134: Unknown symbol videobuf_waiton
+  >> [ 4261.605672] saa7134: disagrees about version of symbol
+  videobuf_dqbuf
+  >> [ 4261.605680] saa7134: Unknown symbol videobuf_dqbuf
+  >> [ 4261.607190] saa7134: disagrees about version of symbol
+  videobuf_stop
+  >> [ 4261.607199] saa7134: Unknown symbol videobuf_stop
+  >> [ 4261.608245] saa7134: Unknown symbol videobuf_queue_pci_init
+  >> [ 4261.608459] saa7134: disagrees about version of symbol
+  >> videobuf_dma_unmap
+  >> [ 4261.608467] saa7134: Unknown symbol videobuf_dma_unmap
+  >> [ 4261.608592] saa7134: disagrees about version of symbol
+  >> videobuf_read_stream
+  >> [ 4261.608600] saa7134: Unknown symbol videobuf_read_stream
+  >> [ 4261.608776] saa7134: disagrees about version of symbol
+  >> videobuf_querybuf
+  >> [ 4261.608784] saa7134: Unknown symbol videobuf_querybuf
+  >> [ 4261.609121] saa7134: disagrees about version of symbol
+  >> video_unregister_device
+  >> [ 4261.609130] saa7134: Unknown symbol video_unregister_device
+  >> [ 4261.609244] saa7134: disagrees about version of symbol
+  videobuf_qbuf
+  >> [ 4261.609252] saa7134: Unknown symbol videobuf_qbuf
+  >> [ 4261.609538] saa7134: disagrees about version of symbol
+  >> video_device_alloc
+  >> [ 4261.609547] saa7134: Unknown symbol video_device_alloc
+  >> [ 4261.609660] saa7134: disagrees about version of symbol
+  >> videobuf_read_one
+  >> [ 4261.609668] saa7134: Unknown symbol videobuf_read_one
+  >> [ 4261.609940] saa7134: disagrees about version of symbol
+  >> video_register_device
+  >> [ 4261.609948] saa7134: Unknown symbol video_register_device
+  >> [ 4261.610871] saa7134: disagrees about version of symbol
+  videobuf_iolock
+  >> [ 4261.610879] saa7134: Unknown symbol videobuf_iolock
+  >> [ 4261.611139] saa7134: disagrees about version of symbol
+  >> videobuf_streamon
+  >> [ 4261.611147] saa7134: Unknown symbol videobuf_streamon
+  >> [ 4261.611941] saa7134: disagrees about version of symbol
+  >> video_device_release
+  >> [ 4261.611950] saa7134: Unknown symbol video_device_release
+  >> [ 4261.612061] saa7134: disagrees about version of symbol
+  >> videobuf_mmap_mapper
+  >> [ 4261.612070] saa7134: Unknown symbol videobuf_mmap_mapper
+  >> [ 4261.612426] saa7134: disagrees about version of symbol
+  videobuf_cgmbuf
+  >> [ 4261.612434] saa7134: Unknown symbol videobuf_cgmbuf
+  >> [ 4261.612908] saa7134: disagrees about version of symbol
+  videobuf_to_dma
+  >> [ 4261.612917] saa7134: Unknown symbol videobuf_to_dma
+  >> [ 4261.613027] saa7134: disagrees about version of symbol
+  >> videobuf_mmap_free
+  >> [ 4261.613035] saa7134: Unknown symbol videobuf_mmap_free
+  >>
+  >>
+  >>
+  >> 2008/5/20 :
+  >>> bvidibli,
+  >>>
+  >>> To get this working try removing all modules(all files) in the
+  following
+  >>> directories:
+  >>> /lib/modules/`uname -r`/ubuntu/media/common/
+  >>> /lib/modules/`uname -r`/ubuntu/media/dvb/
+  >>> /lib/modules/`uname -r`/ubuntu/media/radio/
+  >>> /lib/modules/`uname -r`/ubuntu/media/video/
+  >>>
+  >>> For some reason Ubuntu decided to rearrange the module directory
+  and
+  >>> broke
+  >>> the normal make install scripts.
+  >>>
+  >>> If this breaks something that you need, just reinstall the
+  >>> linux-ubuntu-modules-`uname -r` package to get them back.
+  >>>
+  >>> This solved the issues that I had with Unkown symbol and version
+  >>> disagrees
+  >>> error messages.
+  >>>
+  >>> Regards,
+  >>> Stephen.
+  >>>
+  >>> Date: Tue, 20 May 2008 00:05:47 +0300
+  >>> From: bvidinli
+  >>> Subject: [linux-dvb] Failed: Avermedia DVB-S Hybrid+FM A700 on
+  ubuntu
+  >>> 8.04, kernel 2.6.24-16-generic
+  >>> To: "Eduard Huguet" , "Matthias Schwarzott"
+  >>> , linux-dvb@linuxtv.org
+  >>> Message-ID:
+  >>> <36e8a7020805191405r6b0d4ce6h3a53228500b20ce1@mail.gmail.com>
+  >>> Content-Type: text/plain; charset=3DISO-8859-1
+  >>>
+  >>> Unfortunately, failed,
+  >>> below is what i did, if you have any idea, please try to help
+  me...
+  >>>
+  >>> Thanks...
+  >>>
+  >>> on ubuntu 8.04 with kernel 2.6.24.16-generic, ubuntu's current
+  kernel.:
+  >>> i got sources and headers for this kernel..
+  >>> (btw, i learned now that zzam =3D Matthias, thanks.. .)
+  >>>
+  >>> i got mercurial,
+  >>> i did: hg clone http://linuxtv.org/hg/v4l-dvb
+  >>> then, got a700_full_20080519.diff from
+  http://dev.gentoo.org/~zzam/dvb/
+  >>> i did:
+  >>> cd v4l-dvb
+  >>> patch -p1 < a700_full_20080519.diff
+  >>> make
+  >>> (make was successfull, without errors.. )
+  >>> sudo make install
+  >>> (install was successfull.)
+  >>>
+  >>>
+  >>> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo rmmod saa7134_alsa
+  >>> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo make rmmod
+  >>> make -C /home/bvidinli/v4l-dvb/v4l rmmod
+  >>> make[1]: Entering directory `/home/bvidinli/v4l-dvb/v4l'
+  >>> scripts/rmmod.pl unload
+  >>> found 233 modules
+  >>> /sbin/rmmod saa7134
+  >>> /sbin/rmmod videodev
+  >>> /sbin/rmmod videobuf_dma_sg
+  >>> /sbin/rmmod ir_kbd_i2c
+  >>> /sbin/rmmod compat_ioctl32
+  >>> /sbin/rmmod v4l1_compat
+  >>> /sbin/rmmod v4l2_common
+  >>> /sbin/rmmod videobuf_core
+  >>> /sbin/rmmod ir_common
+  >>> make[1]: Leaving directory `/home/bvidinli/v4l-dvb/v4l'
+  >>>
+  >>>
+  >>> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134
+  i2c_scan=3D1
+  >>> FATAL: Error inserting saa7134
+  >>> (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):
+  >>> Unknown symbol in module, or unknown parameter (see dmesg)
+  >>> FATAL: Error running install command for saa7134
+  >>> bvidinli@bvidinli-desktop:~/v4l-dvb$
+  >>>
+  >>>
+  >>>
+  >>> dmesg is as follows:
+  >>>
+  >>>
+  >>> [ 48.937645] saa7134: disagrees about version of symbol
+  >>> videobuf_streamoff
+  >>> [ 48.937663] saa7134: Unknown symbol videobuf_streamoff
+  >>> [ 48.938027] saa7134: disagrees about version of symbol
+  >>> videobuf_poll_stream
+  >>> [ 48.938035] saa7134: Unknown symbol videobuf_poll_stream
+  >>> [ 48.938809] saa7134: disagrees about version of symbol
+  videobuf_dma_free
+  >>> [ 48.938817] saa7134: Unknown symbol videobuf_dma_free
+  >>> [ 48.939134] saa7134: disagrees about version of symbol
+  videobuf_reqbufs
+  >>> [ 48.939142] saa7134: Unknown symbol videobuf_reqbufs
+  >>> [ 48.939779] saa7134: disagrees about version of symbol
+  videobuf_waiton
+  >>> [ 48.939787] saa7134: Unknown symbol videobuf_waiton
+  >>> [ 48.940332] saa7134: disagrees about version of symbol
+  videobuf_dqbuf
+  >>> [ 48.940340] saa7134: Unknown symbol videobuf_dqbuf
+  >>> [ 48.941669] saa7134: disagrees about version of symbol
+  videobuf_stop
+  >>> [ 48.941677] saa7134: Unknown symbol videobuf_stop
+  >>> [ 48.942673] saa7134: Unknown symbol videobuf_queue_pci_init
+  >>> [ 48.942813] saa7134: disagrees about version of symbol
+  >>> videobuf_dma_unmap
+  >>> [ 48.942822] saa7134: Unknown symbol videobuf_dma_unmap
+  >>> [ 48.942972] saa7134: disagrees about version of symbol
+  >>> videobuf_read_stream
+  >>> [ 48.942981] saa7134: Unknown symbol videobuf_read_stream
+  >>> [ 48.943162] saa7134: disagrees about version of symbol
+  videobuf_querybuf
+  >>> [ 48.943170] saa7134: Unknown symbol videobuf_querybuf
+  >>> [ 48.943520] saa7134: disagrees about version of symbol
+  >>> video_unregister_device
+  >>> [ 48.943529] saa7134: Unknown symbol video_unregister_device
+  >>> [ 48.943647] saa7134: disagrees about version of symbol
+  videobuf_qbuf
+  >>> [ 48.943655] saa7134: Unknown symbol videobuf_qbuf
+  >>> [ 48.943950] saa7134: disagrees about version of symbol
+  >>> video_device_alloc
+  >>> [ 48.943958] saa7134: Unknown symbol video_device_alloc
+  >>> [ 48.944075] saa7134: disagrees about version of symbol
+  videobuf_read_one
+  >>> [ 48.944083] saa7134: Unknown symbol videobuf_read_one
+  >>> [ 48.944365] saa7134: disagrees about version of symbol
+  >>> video_register_device
+  >>> [ 48.944373] saa7134: Unknown symbol video_register_device
+  >>> [ 48.945156] saa7134: disagrees about version of symbol
+  videobuf_iolock
+  >>> [ 48.945164] saa7134: Unknown symbol videobuf_iolock
+  >>> [ 48.945433] saa7134: disagrees about version of symbol
+  videobuf_streamon
+  >>> [ 48.945442] saa7134: Unknown symbol videobuf_streamon
+  >>> [ 48.946164] saa7134: disagrees about version of symbol
+  >>> video_device_release
+  >>> [ 48.946172] saa7134: Unknown symbol video_device_release
+  >>> [ 48.946287] saa7134: disagrees about version of symbol
+  >>> videobuf_mmap_mapper
+  >>> [ 48.946295] saa7134: Unknown symbol videobuf_mmap_mapper
+  >>> [ 48.946665] saa7134: disagrees about version of symbol
+  videobuf_cgmbuf
+  >>> [ 48.946673] saa7134: Unknown symbol videobuf_cgmbuf
+  >>> [ 48.947108] saa7134: disagrees about version of symbol
+  videobuf_to_dma
+  >>> [ 48.947116] saa7134: Unknown symbol videobuf_to_dma
+  >>> [ 48.947228] saa7134: disagrees about version of symbol
+  >>> videobuf_mmap_free
+  >>> [ 48.947237] saa7134: Unknown symbol videobuf_mmap_free
+  >>>
+  >>> i rebooted, the same..
+  >>>
+  >>>
+  >>> i repeated same compile with patch avertv_A700_dvb_part.diff
+  >>>
+  >>>
+  >>>
+  >>> result:
+  >>> bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134
+  i2c_scan=3D1
+  >>> FATAL: Error inserting saa7134
+  >>> (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):
+  >>> Unknown symbol in module, or unknown parameter (see dmesg)
+  >>> FATAL: Error running install command for saa7134
+  >>>
+  >>>
+  >>> here is dmesg related output:
+  >>> [ 2023.405692] Linux video capture interface: v2.00
+  >>> [ 2023.525841] saa7134: disagrees about version of symbol
+  >>> videobuf_streamoff
+  >>> [ 2023.525868] saa7134: Unknown symbol videobuf_streamoff
+  >>> [ 2023.526215] saa7134: disagrees about version of symbol
+  >>> videobuf_poll_stream
+  >>> [ 2023.526223] saa7134: Unknown symbol videobuf_poll_stream
+  >>> [ 2023.526968] saa7134: disagrees about version of symbol
+  >>> videobuf_dma_free
+  >>> [ 2023.526976] saa7134: Unknown symbol videobuf_dma_free
+  >>> [ 2023.527249] saa7134: disagrees about version of symbol
+  >>> videobuf_reqbufs
+  >>> [ 2023.527257] saa7134: Unknown symbol videobuf_reqbufs
+  >>> [ 2023.527904] saa7134: disagrees about version of symbol
+  videobuf_waiton
+  >>> [ 2023.527912] saa7134: Unknown symbol videobuf_waiton
+  >>> [ 2023.528438] saa7134: disagrees about version of symbol
+  videobuf_dqbuf
+  >>> [ 2023.528446] saa7134: Unknown symbol videobuf_dqbuf
+  >>> [ 2023.529926] saa7134: disagrees about version of symbol
+  videobuf_stop
+  >>> [ 2023.529935] saa7134: Unknown symbol videobuf_stop
+  >>> [ 2023.530940] saa7134: Unknown symbol videobuf_queue_pci_init
+  >>> [ 2023.531137] saa7134: disagrees about version of symbol
+  >>> videobuf_dma_unmap
+  >>> [ 2023.531146] saa7134: Unknown symbol videobuf_dma_unmap
+  >>> [ 2023.531271] saa7134: disagrees about version of symbol
+  >>> videobuf_read_stream
+  >>> [ 2023.531279] saa7134: Unknown symbol videobuf_read_stream
+  >>> [ 2023.531485] saa7134: disagrees about version of symbol
+  >>> videobuf_querybuf
+  >>> [ 2023.531494] saa7134: Unknown symbol videobuf_querybuf
+  >>> [ 2023.531832] saa7134: disagrees about version of symbol
+  >>> video_unregister_device
+  >>> [ 2023.531841] saa7134: Unknown symbol video_unregister_device
+  >>> [ 2023.531956] saa7134: disagrees about version of symbol
+  videobuf_qbuf
+  >>> [ 2023.531964] saa7134: Unknown symbol videobuf_qbuf
+  >>> [ 2023.532251] saa7134: disagrees about version of symbol
+  >>> video_device_alloc
+  >>> [ 2023.532260] saa7134: Unknown symbol video_device_alloc
+  >>> [ 2023.532373] saa7134: disagrees about version of symbol
+  >>> videobuf_read_one
+  >>> [ 2023.532381] saa7134: Unknown symbol videobuf_read_one
+  >>> [ 2023.532655] saa7134: disagrees about version of symbol
+  >>> video_register_device
+  >>> [ 2023.532663] saa7134: Unknown symbol video_register_device
+  >>> [ 2023.533561] saa7134: disagrees about version of symbol
+  videobuf_iolock
+  >>> [ 2023.533569] saa7134: Unknown symbol videobuf_iolock
+  >>> [ 2023.533831] saa7134: disagrees about version of symbol
+  >>> videobuf_streamon
+  >>> [ 2023.533839] saa7134: Unknown symbol videobuf_streamon
+  >>> [ 2023.534615] saa7134: disagrees about version of symbol
+  >>> video_device_release
+  >>> [ 2023.534624] saa7134: Unknown symbol video_device_release
+  >>> [ 2023.534736] saa7134: disagrees about version of symbol
+  >>> videobuf_mmap_mapper
+  >>> [ 2023.534745] saa7134: Unknown symbol videobuf_mmap_mapper
+  >>> [ 2023.535101] saa7134: disagrees about version of symbol
+  videobuf_cgmbuf
+  >>> [ 2023.535109] saa7134: Unknown symbol videobuf_cgmbuf
+  >>> [ 2023.535598] saa7134: disagrees about version of symbol
+  videobuf_to_dma
+  >>> [ 2023.535606] saa7134: Unknown symbol videobuf_to_dma
+  >>> [ 2023.535717] saa7134: disagrees about version of symbol
+  >>> videobuf_mmap_free
+  >>> [ 2023.535725] saa7134: Unknown symbol videobuf_mmap_free
+  >>>
+  >>>
+  >>> my linux kernel is: 2.6.24-16-generic, which is ubuntu 8.04's
+  >>> current kernel...
+  >>> i have source and header files for this kernel..
+  >>>
+  >>> bvidinli@bvidinli-desktop:/usr/src$ uname -a
+  >>> Linux bvidinli-desktop 2.6.24-16-generic #1 SMP Thu Apr 10
+  13:23:42
+  >>> UTC 2008 i686 GNU/Linux
+  >>>
+  >>>
+  >>>
+  >>> bvidinli@bvidinli-desktop:/usr/src$ ls -l
+  >>> total 45880
+  >>> lrwxrwxrwx 1 root src 19 2008-05-19 22:14 linux ->
+  linux-source-2.6.24
+  >>> drwxr-xr-x 20 root root 4096 2008-04-22 20:54
+  linux-headers-2.6.24-16
+  >>> drwxr-xr-x 6 root root 4096 2008-04-22 20:54
+  >>> linux-headers-2.6.24-16-generic
+  >>> drwxr-xr-x 23 root root 4096 2008-04-10 19:36 linux-source-2.6.24
+  >>> -rw-r--r-- 1 root root 46914792 2008-04-10 19:38
+  >>> linux-source-2.6.24.tar.bz2
+  >>> bvidinli@bvidinli-desktop:/usr/src$
+  >>>
+  >>> Attention :
+  >>> should these be applied on 2.6.26.rc2 or 2.6.25 ?
+  >>> i applied to 2.6.24, which is current kernel for ubuntu 8.04...
+  >>>
+  >>>
+  >>>
+  >>> ------------------------------
+  >>>
+  >>> _______________________________________________
+  >>> linux-dvb mailing list
+  >>> linux-dvb@linuxtv.org
+  >>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+  >>>
+  >>> End of linux-dvb Digest, Vol 40, Issue 64
+  >>> *****************************************
+  >>>
+  >>> --
+  >>> See Exclusive Video: 10th Annual Young Hollywood Awards
+  >>>
+  >>
+  >>
+  >>
+  >> --
+  >> =DD.Bahattin Vidinli
+  >> Elk-Elektronik M=FCh.
+  >> -------------------
+  >> iletisim bilgileri (Tercih sirasina gore):
+  >> skype: bvidinli (sesli gorusme icin, www.skype.com)
+  >> msn: bvidinli@iyibirisi.com
+  >> yahoo: bvidinli
+  >>
+  >> +90.532.7990607
+  >> +90.505.5667711
+  >>
+  >
+  >
+  >
+  > --
+  > =DD.Bahattin Vidinli
+  > Elk-Elektronik M=FCh.
+  > -------------------
+  > iletisim bilgileri (Tercih sirasina gore):
+  > skype: bvidinli (sesli gorusme icin, www.skype.com)
+  > msn: bvidinli@iyibirisi.com
+  > yahoo: bvidinli
+  >
+  > +90.532.7990607
+  > +90.505.5667711
+  >
+  > --
+  > See Exclusive Video: 10th Annual Young Hollywood Awards
+  >
+
+
+
+  --
+  =DD.Bahattin Vidinli
+  Elk-Elektronik M=FCh.
+  -------------------
+  iletisim bilgileri (Tercih sirasina gore):
+  skype: bvidinli (sesli gorusme icin, www.skype.com)
+  msn: bvidinli@iyibirisi.com
+  yahoo: bvidinli
+
+  +90.532.7990607
+  +90.505.5667711
+
+--=20
+See Exclusive Video: 10th Annual Young Hollywood Awards
+http://www.hollywoodlife.net/younghollywoodawards2008/
+
+
+--_----------=_1211498758135150
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-9"
+
+
+<div>
+<br>
+One obvious error in you script is that it just moves the old modules aroun=
+d in the modules directory.&nbsp; You have to move them completely out of t=
+he modules directory, else depmod will still find them and possible use the=
+m instead of the new ones.<br>
+<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
+5px; padding-left: 5px;">----- Original Message -----<br>
+From: bvidinli <bvidinli@gmail.com><br>
+To: stev391@email.com, linux-dvb@linuxtv.org<br>
+Subject: fail2: Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04, kernel 2.6.2=
+4-16-generic (bvidinli)<br>
+Date: Thu, 22 May 2008 16:02:42 +0300<br>
+<br>
+i wrote the script below, since i do many install about this,<br>
+result is same, fail,<br>
+i/we miss something on files that we should replace/edit..<br>
+<br>
+i did just as you said about /lib/modules/`uname -r`/ubuntu/<br>
+i replaced files there, with script, with manual, retried but result same..=
+.<br>
+i also replaced files in /lib/modules/`uname -r`/kernel/drivers/media<br>
+<br>
+<br>
+is there any idea about this ?<br>
+<br>
+#!/bin/bash<br>
+echo "i must run this as normal user... press enter to continue"<br>
+read<br>
+<br>
+cd<br>
+#install mercurial, get v4l files, patch and compile,<br>
+sudo apt-get install mercurial linux-headers-$(uname -r) build-essential<br>
+hg clone http://linuxtv.org/hg/v4l-dvb<br>
+wget http://dev.gentoo.org/~zzam/dvb/a700_full_20080519.diff<br>
+cd ~/v4l-dvb/v4l<br>
+patch -p1 &lt; ../a700_full_20080519.diff<br>
+make<br>
+<br>
+<br>
+# first, backup all<br>
+cd /lib/modules/`uname -r`/kernel/drivers/<br>
+sudo cp -rvf media media.bck<br>
+<br>
+cd /lib/modules/`uname -r`/ubuntu/media<br>
+sudo cp -rvf saa7134 saa7134.bck<br>
+<br>
+# goto where you got your v4l files by hg<br>
+cd ~/v4l-dvb/v4l<br>
+sudo cp -f ir-common.ko /lib/modules/`uname -r`/kernel/drivers/media/common=
+/<br>
+sudo cp -f saa7146.ko /lib/modules/`uname -r`/kernel/drivers/media/common/<=
+br>
+sudo cp -f saa7146_vv.ko /lib/modules/`uname -r`/kernel/drivers/media/commo=
+n/<br>
+<br>
+sudo cp -f dvb-core.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/dvb/dvb-core/<br>
+<br>
+<br>
+sudo cp -f saa6752hs.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/saa7134/<br>
+sudo cp -f saa7134-dvb.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/saa7134/<br>
+sudo cp -f saa7134-empress.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/saa7134/<br>
+sudo cp -f saa7134.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/saa7134/<br>
+<br>
+sudo cp -f cx23885.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/cx23885/<br>
+sudo cp -f cx25840.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/cx25840/<br>
+<br>
+sudo cp -f cx88-blackbird.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/cx88/<br>
+sudo cp -f cx88-dvb.ko /lib/modules/`uname <br>
+-r`/kernel/drivers/media/video/cx88/<br>
+sudo cp -f cx88-vp3054-i2c.ko /lib/modules/`uname<br>
+-r`/kernel/drivers/media/video/cx88/<br>
+sudo cp -f cx88xx.ko /lib/modules/`uname -r`/kernel/drivers/media/video/cx8=
+8/<br>
+sudo cp -f cx8800.ko /lib/modules/`uname -r`/kernel/drivers/media/video/cx8=
+8/<br>
+sudo cp -f cx8802.ko /lib/modules/`uname -r`/kernel/drivers/media/video/cx8=
+8/<br>
+<br>
+<br>
+<br>
+sudo cp -f saa6752hs.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/<br>
+sudo cp -f saa7134-dvb.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/<br>
+sudo cp -f saa7134-empress.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/=
+<br>
+sudo cp -f saa7134.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/<br>
+<br>
+#these two raised error, so, i left them as old.. thre is no file in<br>
+v4l dir as -alsa and -oss<br>
+sudo cp -f saa7134-alsa.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/<br>
+sudo cp -f saa7134-oss.ko /lib/modules/`uname -r`/ubuntu/media/saa7134/<br>
+<br>
+<br>
+<br>
+sudo cp -f cx88-blackbird.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+sudo cp -f cx88-dvb.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+sudo cp -f cx88-vp3054-i2c.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+sudo cp -f cx88xx.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+sudo cp -f cx8800.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+sudo cp -f cx8802.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+# below line raised error, no file -alsa.ko in v4l<br>
+sudo cp -f cx88-alsa.ko /lib/modules/`uname -r`/ubuntu/media/cx88/<br>
+<br>
+<br>
+echo "replacing all files in<br>
+/lib/modules/2.6.24-16-generic/kernel/drivers/media/video/*.ko from<br>
+new compiled ones... "<br>
+  for i in `ls /lib/modules/`uname -r`/kernel/drivers/media/video/*.ko`<br>
+; do i=3D`echo $i | awk -F "/" '{print $NF}'`; ls  $i ; cp -vf $i<br>
+/lib/modules/2.6.24-16-generic/kernel/drivers/media/video/ ; done<br>
+<br>
+# remove and reinstall modules<br>
+rmmod saa7134_alsa saa7134<br>
+depmod -a<br>
+modprobe saa7134 i2c_scan=3D1<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+echo "finished... you may run dmesg to see result.."<br>
+<br>
+<br>
+<br>
+result:<br>
+(note that this is without make install, before reboot)<br>
+[ 6011.912699] saa7130/34: v4l2 driver version 0.2.14 loaded<br>
+[ 6011.914021] saa7133[0]: found at 0000:00:14.0, rev: 209, irq: 10,<br>
+latency: 32, mmio: 0xde003000<br>
+[ 6011.914045] saa7133[0]: subsystem: 1461:a7a2, board:<br>
+UNKNOWN/GENERIC [card=3D0,autodetected]<br>
+[ 6011.914069] saa7133[0]: board init: gpio is 2fe00<br>
+[ 6012.048607] saa7133[0]: i2c eeprom 00: 61 14 a2 a7 ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048641] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048664] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048687] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048709] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048732] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048755] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.048777] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff<br>
+ff ff ff ff ff ff ff<br>
+[ 6012.068598] saa7133[0]: i2c scan: found device @ 0x1c  [???]<br>
+[ 6012.088599] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]<br>
+[ 6012.109784] saa7133[0]: registered device video0 [v4l2]<br>
+[ 6012.111066] saa7133[0]: registered device vbi0<br>
+[ 6012.176702] saa7134 ALSA driver for DMA sound loaded<br>
+[ 6012.177925] saa7133[0]/alsa: saa7133[0] at 0xde003000 irq 10<br>
+registered as card -2<br>
+<br>
+<br>
+<br>
+after reboot:<br>
+[   43.901412] saa7134: disagrees about version of symbol videobuf_streamof=
+f<br>
+[   43.901425] saa7134: Unknown symbol videobuf_streamoff<br>
+[   43.901792] saa7134: disagrees about version of symbol videobuf_poll_str=
+eam<br>
+[   43.901800] saa7134: Unknown symbol videobuf_poll_stream<br>
+[   43.902582] saa7134: disagrees about version of symbol videobuf_dma_free=
+<br>
+[   43.902590] saa7134: Unknown symbol videobuf_dma_free<br>
+[   43.902875] saa7134: disagrees about version of symbol videobuf_reqbufs<=
+br>
+[   43.902883] saa7134: Unknown symbol videobuf_reqbufs<br>
+[   43.903523] saa7134: disagrees about version of symbol videobuf_waiton<b=
+r>
+[   43.903531] saa7134: Unknown symbol videobuf_waiton<br>
+[   43.904079] saa7134: disagrees about version of symbol videobuf_dqbuf<br>
+[   43.904087] saa7134: Unknown symbol videobuf_dqbuf<br>
+[   43.905471] saa7134: disagrees about version of symbol videobuf_stop<br>
+[   43.905479] saa7134: Unknown symbol videobuf_stop<br>
+[   43.906472] saa7134: Unknown symbol videobuf_queue_pci_init<br>
+[   43.906614] saa7134: disagrees about version of symbol videobuf_dma_unma=
+p<br>
+[   43.906623] saa7134: Unknown symbol videobuf_dma_unmap<br>
+[   43.906751] saa7134: disagrees about version of symbol videobuf_read_str=
+eam<br>
+[   43.906759] saa7134: Unknown symbol videobuf_read_stream<br>
+[   43.906940] saa7134: disagrees about version of symbol videobuf_querybuf=
+<br>
+[   43.906948] saa7134: Unknown symbol videobuf_querybuf<br>
+[   43.907300] saa7134: disagrees about version of symbol<br>
+video_unregister_device<br>
+[   43.907309] saa7134: Unknown symbol video_unregister_device<br>
+[   43.907428] saa7134: disagrees about version of symbol videobuf_qbuf<br>
+[   43.907436] saa7134: Unknown symbol videobuf_qbuf<br>
+[   43.907755] saa7134: disagrees about version of symbol video_device_allo=
+c<br>
+[   43.907763] saa7134: Unknown symbol video_device_alloc<br>
+[   43.907882] saa7134: disagrees about version of symbol videobuf_read_one=
+<br>
+[   43.907890] saa7134: Unknown symbol videobuf_read_one<br>
+[   43.908173] saa7134: disagrees about version of symbol <br>
+video_register_device<br>
+[   43.908181] saa7134: Unknown symbol video_register_device<br>
+[   43.909011] saa7134: disagrees about version of symbol videobuf_iolock<b=
+r>
+[   43.909019] saa7134: Unknown symbol videobuf_iolock<br>
+[   43.909292] saa7134: disagrees about version of symbol videobuf_streamon=
+<br>
+[   43.909300] saa7134: Unknown symbol videobuf_streamon<br>
+[   43.910040] saa7134: disagrees about version of symbol video_device_rele=
+ase<br>
+[   43.910048] saa7134: Unknown symbol video_device_release<br>
+[   43.910164] saa7134: disagrees about version of symbol videobuf_mmap_map=
+per<br>
+[   43.910173] saa7134: Unknown symbol videobuf_mmap_mapper<br>
+[   43.910548] saa7134: disagrees about version of symbol videobuf_cgmbuf<b=
+r>
+[   43.910556] saa7134: Unknown symbol videobuf_cgmbuf<br>
+[   43.910985] saa7134: disagrees about version of symbol videobuf_to_dma<b=
+r>
+[   43.910993] saa7134: Unknown symbol videobuf_to_dma<br>
+[   43.911108] saa7134: disagrees about version of symbol videobuf_mmap_fre=
+e<br>
+[   43.911116] saa7134: Unknown symbol videobuf_mmap_free<br>
+<br>
+<br>
+<br>
+the result is same after reboot,<br>
+same after reboot, make install in v4l-dvb<br>
+<br>
+we are back in same point...<br>
+<br>
+2008/5/22  <stev391@email.com>:<br>
+&gt;<br>
+&gt; With ubuntu 8.04 they made a copy of some of the drivers (I had the<br>
+&gt; directory structure wrong in my previous email as I have already remov=
+ed<br>
+&gt; mine), check in:<br>
+&gt; /lib/modules/`uname -r`/ubuntu/media/<br>
+&gt;<br>
+&gt; for any folders relating to cx* and saa* and remove them as Ubuntu che=
+cks<br>
+&gt; here first for the modules instead of the new freshly compiled ones.<b=
+r>
+&gt; the run depmod -a and try again.<br>
+&gt;<br>
+&gt; Regards,<br>
+&gt;<br>
+&gt; Stephen.<br>
+&gt;<br>
+&gt; ----- Original Message -----<br>
+&gt; From: bvidinli<br>
+&gt; To: stev391@email.com, linux-dvb@linuxtv.org<br>
+&gt; Subject: fail:Avermedia DVB-S Hybrid+FM A700 on ubuntu 8.04, kernel<br>
+&gt; 2.6.24-16-generic (bvidinli)<br>
+&gt; Date: Wed, 21 May 2008 16:10:08 +0300<br>
+&gt;<br>
+&gt; This problem persists, continues,<br>
+&gt; does anybody have suggestions ?<br>
+&gt;<br>
+&gt; i continue on my search of this problem...<br>
+&gt;<br>
+&gt; thanks.<br>
+&gt;<br>
+&gt;<br>
+&gt; 2008/5/21 bvidinli :<br>
+&gt;&gt; i did your suggestions, but result is same.<br>
+&gt;&gt;<br>
+&gt;&gt; there was no file at locations you specified, (/lib/modules/`uname=
+<br>
+&gt;&gt; -r`/ubuntu/media/common/)<br>
+&gt;&gt; instead i removed files on :<br>
+&gt;&gt; rm -rvf /lib/modules/2.6.24-16-generic/kernel/drivers/media/video/=
+<br>
+&gt;&gt; dvb, video, etc...<br>
+&gt;&gt;<br>
+&gt;&gt; if you/anybody may help me, please do..<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; root@bvidinli-desktop:/home/bvidinli/v4l-dvb# modprobe saa7134 i2c=
+_scan=3D1<br>
+&gt;&gt; FATAL: Error inserting saa7134<br>
+&gt;&gt; (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.ko):<=
+br>
+&gt;&gt; Unknown symbol in module, or unknown parameter (see dmesg)<br>
+&gt;&gt; FATAL: Error running install command for saa7134<br>
+&gt;&gt; root@bvidinli-desktop:/home/bvidinli/v4l-dvb#<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; dmesg output:<br>
+&gt;&gt;<br>
+&gt;&gt; [ 4261.474794] Linux video capture interface: v2.00<br>
+&gt;&gt; [ 4261.603077] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_streamoff<br>
+&gt;&gt; [ 4261.603104] saa7134: Unknown symbol videobuf_streamoff<br>
+&gt;&gt; [ 4261.603450] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_poll_stream<br>
+&gt;&gt; [ 4261.603459] saa7134: Unknown symbol videobuf_poll_stream<br>
+&gt;&gt; [ 4261.604240] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_dma_free<br>
+&gt;&gt; [ 4261.604249] saa7134: Unknown symbol videobuf_dma_free<br>
+&gt;&gt; [ 4261.604521] saa7134: disagrees about version of symbol videobuf=
+_reqbufs<br>
+&gt;&gt; [ 4261.604529] saa7134: Unknown symbol videobuf_reqbufs<br>
+&gt;&gt; [ 4261.605140] saa7134: disagrees about version of symbol videobuf=
+_waiton<br>
+&gt;&gt; [ 4261.605148] saa7134: Unknown symbol videobuf_waiton<br>
+&gt;&gt; [ 4261.605672] saa7134: disagrees about version of symbol videobuf=
+_dqbuf<br>
+&gt;&gt; [ 4261.605680] saa7134: Unknown symbol videobuf_dqbuf<br>
+&gt;&gt; [ 4261.607190] saa7134: disagrees about version of symbol videobuf=
+_stop<br>
+&gt;&gt; [ 4261.607199] saa7134: Unknown symbol videobuf_stop<br>
+&gt;&gt; [ 4261.608245] saa7134: Unknown symbol videobuf_queue_pci_init<br>
+&gt;&gt; [ 4261.608459] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_dma_unmap<br>
+&gt;&gt; [ 4261.608467] saa7134: Unknown symbol videobuf_dma_unmap<br>
+&gt;&gt; [ 4261.608592] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_read_stream<br>
+&gt;&gt; [ 4261.608600] saa7134: Unknown symbol videobuf_read_stream<br>
+&gt;&gt; [ 4261.608776] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_querybuf<br>
+&gt;&gt; [ 4261.608784] saa7134: Unknown symbol videobuf_querybuf<br>
+&gt;&gt; [ 4261.609121] saa7134: disagrees about version of symbol<br>
+&gt;&gt; video_unregister_device<br>
+&gt;&gt; [ 4261.609130] saa7134: Unknown symbol video_unregister_device<br>
+&gt;&gt; [ 4261.609244] saa7134: disagrees about version of symbol videobuf=
+_qbuf<br>
+&gt;&gt; [ 4261.609252] saa7134: Unknown symbol videobuf_qbuf<br>
+&gt;&gt; [ 4261.609538] saa7134: disagrees about version of symbol<br>
+&gt;&gt; video_device_alloc<br>
+&gt;&gt; [ 4261.609547] saa7134: Unknown symbol video_device_alloc<br>
+&gt;&gt; [ 4261.609660] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_read_one<br>
+&gt;&gt; [ 4261.609668] saa7134: Unknown symbol videobuf_read_one<br>
+&gt;&gt; [ 4261.609940] saa7134: disagrees about version of symbol<br>
+&gt;&gt; video_register_device<br>
+&gt;&gt; [ 4261.609948] saa7134: Unknown symbol video_register_device<br>
+&gt;&gt; [ 4261.610871] saa7134: disagrees about version of symbol videobuf=
+_iolock<br>
+&gt;&gt; [ 4261.610879] saa7134: Unknown symbol videobuf_iolock<br>
+&gt;&gt; [ 4261.611139] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_streamon<br>
+&gt;&gt; [ 4261.611147] saa7134: Unknown symbol videobuf_streamon<br>
+&gt;&gt; [ 4261.611941] saa7134: disagrees about version of symbol<br>
+&gt;&gt; video_device_release<br>
+&gt;&gt; [ 4261.611950] saa7134: Unknown symbol video_device_release<br>
+&gt;&gt; [ 4261.612061] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_mmap_mapper<br>
+&gt;&gt; [ 4261.612070] saa7134: Unknown symbol videobuf_mmap_mapper<br>
+&gt;&gt; [ 4261.612426] saa7134: disagrees about version of symbol videobuf=
+_cgmbuf<br>
+&gt;&gt; [ 4261.612434] saa7134: Unknown symbol videobuf_cgmbuf<br>
+&gt;&gt; [ 4261.612908] saa7134: disagrees about version of symbol videobuf=
+_to_dma<br>
+&gt;&gt; [ 4261.612917] saa7134: Unknown symbol videobuf_to_dma<br>
+&gt;&gt; [ 4261.613027] saa7134: disagrees about version of symbol<br>
+&gt;&gt; videobuf_mmap_free<br>
+&gt;&gt; [ 4261.613035] saa7134: Unknown symbol videobuf_mmap_free<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; 2008/5/20 :<br>
+&gt;&gt;&gt; bvidibli,<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; To get this working try removing all modules(all files) in the=
+ following<br>
+&gt;&gt;&gt; directories:<br>
+&gt;&gt;&gt; /lib/modules/`uname -r`/ubuntu/media/common/<br>
+&gt;&gt;&gt; /lib/modules/`uname -r`/ubuntu/media/dvb/<br>
+&gt;&gt;&gt; /lib/modules/`uname -r`/ubuntu/media/radio/<br>
+&gt;&gt;&gt; /lib/modules/`uname -r`/ubuntu/media/video/<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; For some reason Ubuntu decided to rearrange the module directo=
+ry and<br>
+&gt;&gt;&gt; broke<br>
+&gt;&gt;&gt; the normal make install scripts.<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; If this breaks something that you need, just reinstall the<br>
+&gt;&gt;&gt; linux-ubuntu-modules-`uname -r` package to get them back.<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; This solved the issues that I had with Unkown symbol and versi=
+on<br>
+&gt;&gt;&gt; disagrees<br>
+&gt;&gt;&gt; error messages.<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; Regards,<br>
+&gt;&gt;&gt; Stephen.<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; Date: Tue, 20 May 2008 00:05:47 +0300<br>
+&gt;&gt;&gt; From: bvidinli<br>
+&gt;&gt;&gt; Subject: [linux-dvb] Failed: Avermedia DVB-S Hybrid+FM A700 on=
+ ubuntu<br>
+&gt;&gt;&gt; 8.04, kernel 2.6.24-16-generic<br>
+&gt;&gt;&gt; To: "Eduard Huguet" , "Matthias Schwarzott"<br>
+&gt;&gt;&gt; , linux-dvb@linuxtv.org<br>
+&gt;&gt;&gt; Message-ID:<br>
+&gt;&gt;&gt; &lt;36e8a7020805191405r6b0d4ce6h3a53228500b20ce1@mail.gmail.co=
+m&gt;<br>
+&gt;&gt;&gt; Content-Type: text/plain; charset=3DISO-8859-1<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; Unfortunately, failed,<br>
+&gt;&gt;&gt; below is what i did, if you have any idea, please try to help =
+me...<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; Thanks...<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; on ubuntu 8.04 with kernel 2.6.24.16-generic, ubuntu's current=
+ kernel.:<br>
+&gt;&gt;&gt; i got sources and headers for this kernel..<br>
+&gt;&gt;&gt; (btw, i learned now that zzam =3D Matthias, thanks.. .)<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; i got mercurial,<br>
+&gt;&gt;&gt; i did: hg clone http://linuxtv.org/hg/v4l-dvb<br>
+&gt;&gt;&gt; then, got a700_full_20080519.diff from http://dev.gentoo.org/~=
+zzam/dvb/<br>
+&gt;&gt;&gt; i did:<br>
+&gt;&gt;&gt; cd v4l-dvb<br>
+&gt;&gt;&gt; patch -p1 &lt; a700_full_20080519.diff<br>
+&gt;&gt;&gt; make<br>
+&gt;&gt;&gt; (make was successfull, without errors.. )<br>
+&gt;&gt;&gt; sudo make install<br>
+&gt;&gt;&gt; (install was successfull.)<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo rmmod saa7134_alsa<b=
+r>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo make rmmod<br>
+&gt;&gt;&gt; make -C /home/bvidinli/v4l-dvb/v4l rmmod<br>
+&gt;&gt;&gt; make[1]: Entering directory `/home/bvidinli/v4l-dvb/v4l'<br>
+&gt;&gt;&gt; scripts/rmmod.pl unload<br>
+&gt;&gt;&gt; found 233 modules<br>
+&gt;&gt;&gt; /sbin/rmmod saa7134<br>
+&gt;&gt;&gt; /sbin/rmmod videodev<br>
+&gt;&gt;&gt; /sbin/rmmod videobuf_dma_sg<br>
+&gt;&gt;&gt; /sbin/rmmod ir_kbd_i2c<br>
+&gt;&gt;&gt; /sbin/rmmod compat_ioctl32<br>
+&gt;&gt;&gt; /sbin/rmmod v4l1_compat<br>
+&gt;&gt;&gt; /sbin/rmmod v4l2_common<br>
+&gt;&gt;&gt; /sbin/rmmod videobuf_core<br>
+&gt;&gt;&gt; /sbin/rmmod ir_common<br>
+&gt;&gt;&gt; make[1]: Leaving directory `/home/bvidinli/v4l-dvb/v4l'<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134 i2c=
+_scan=3D1<br>
+&gt;&gt;&gt; FATAL: Error inserting saa7134<br>
+&gt;&gt;&gt; (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.k=
+o):<br>
+&gt;&gt;&gt; Unknown symbol in module, or unknown parameter (see dmesg)<br>
+&gt;&gt;&gt; FATAL: Error running install command for saa7134<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:~/v4l-dvb$<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; dmesg is as follows:<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; [ 48.937645] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_streamoff<br>
+&gt;&gt;&gt; [ 48.937663] saa7134: Unknown symbol videobuf_streamoff<br>
+&gt;&gt;&gt; [ 48.938027] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_poll_stream<br>
+&gt;&gt;&gt; [ 48.938035] saa7134: Unknown symbol videobuf_poll_stream<br>
+&gt;&gt;&gt; [ 48.938809] saa7134: disagrees about version of symbol videob=
+uf_dma_free<br>
+&gt;&gt;&gt; [ 48.938817] saa7134: Unknown symbol videobuf_dma_free<br>
+&gt;&gt;&gt; [ 48.939134] saa7134: disagrees about version of symbol videob=
+uf_reqbufs<br>
+&gt;&gt;&gt; [ 48.939142] saa7134: Unknown symbol videobuf_reqbufs<br>
+&gt;&gt;&gt; [ 48.939779] saa7134: disagrees about version of symbol videob=
+uf_waiton<br>
+&gt;&gt;&gt; [ 48.939787] saa7134: Unknown symbol videobuf_waiton<br>
+&gt;&gt;&gt; [ 48.940332] saa7134: disagrees about version of symbol videob=
+uf_dqbuf<br>
+&gt;&gt;&gt; [ 48.940340] saa7134: Unknown symbol videobuf_dqbuf<br>
+&gt;&gt;&gt; [ 48.941669] saa7134: disagrees about version of symbol videob=
+uf_stop<br>
+&gt;&gt;&gt; [ 48.941677] saa7134: Unknown symbol videobuf_stop<br>
+&gt;&gt;&gt; [ 48.942673] saa7134: Unknown symbol videobuf_queue_pci_init<b=
+r>
+&gt;&gt;&gt; [ 48.942813] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_dma_unmap<br>
+&gt;&gt;&gt; [ 48.942822] saa7134: Unknown symbol videobuf_dma_unmap<br>
+&gt;&gt;&gt; [ 48.942972] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_read_stream<br>
+&gt;&gt;&gt; [ 48.942981] saa7134: Unknown symbol videobuf_read_stream<br>
+&gt;&gt;&gt; [ 48.943162] saa7134: disagrees about version of symbol videob=
+uf_querybuf<br>
+&gt;&gt;&gt; [ 48.943170] saa7134: Unknown symbol videobuf_querybuf<br>
+&gt;&gt;&gt; [ 48.943520] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_unregister_device<br>
+&gt;&gt;&gt; [ 48.943529] saa7134: Unknown symbol video_unregister_device<b=
+r>
+&gt;&gt;&gt; [ 48.943647] saa7134: disagrees about version of symbol videob=
+uf_qbuf<br>
+&gt;&gt;&gt; [ 48.943655] saa7134: Unknown symbol videobuf_qbuf<br>
+&gt;&gt;&gt; [ 48.943950] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_device_alloc<br>
+&gt;&gt;&gt; [ 48.943958] saa7134: Unknown symbol video_device_alloc<br>
+&gt;&gt;&gt; [ 48.944075] saa7134: disagrees about version of symbol videob=
+uf_read_one<br>
+&gt;&gt;&gt; [ 48.944083] saa7134: Unknown symbol videobuf_read_one<br>
+&gt;&gt;&gt; [ 48.944365] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_register_device<br>
+&gt;&gt;&gt; [ 48.944373] saa7134: Unknown symbol video_register_device<br>
+&gt;&gt;&gt; [ 48.945156] saa7134: disagrees about version of symbol videob=
+uf_iolock<br>
+&gt;&gt;&gt; [ 48.945164] saa7134: Unknown symbol videobuf_iolock<br>
+&gt;&gt;&gt; [ 48.945433] saa7134: disagrees about version of symbol videob=
+uf_streamon<br>
+&gt;&gt;&gt; [ 48.945442] saa7134: Unknown symbol videobuf_streamon<br>
+&gt;&gt;&gt; [ 48.946164] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_device_release<br>
+&gt;&gt;&gt; [ 48.946172] saa7134: Unknown symbol video_device_release<br>
+&gt;&gt;&gt; [ 48.946287] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_mmap_mapper<br>
+&gt;&gt;&gt; [ 48.946295] saa7134: Unknown symbol videobuf_mmap_mapper<br>
+&gt;&gt;&gt; [ 48.946665] saa7134: disagrees about version of symbol videob=
+uf_cgmbuf<br>
+&gt;&gt;&gt; [ 48.946673] saa7134: Unknown symbol videobuf_cgmbuf<br>
+&gt;&gt;&gt; [ 48.947108] saa7134: disagrees about version of symbol videob=
+uf_to_dma<br>
+&gt;&gt;&gt; [ 48.947116] saa7134: Unknown symbol videobuf_to_dma<br>
+&gt;&gt;&gt; [ 48.947228] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_mmap_free<br>
+&gt;&gt;&gt; [ 48.947237] saa7134: Unknown symbol videobuf_mmap_free<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; i rebooted, the same..<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; i repeated same compile with patch avertv_A700_dvb_part.diff<b=
+r>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; result:<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:~/v4l-dvb$ sudo modprobe saa7134 i2c=
+_scan=3D1<br>
+&gt;&gt;&gt; FATAL: Error inserting saa7134<br>
+&gt;&gt;&gt; (/lib/modules/2.6.24-16-generic/ubuntu/media/saa7134/saa7134.k=
+o):<br>
+&gt;&gt;&gt; Unknown symbol in module, or unknown parameter (see dmesg)<br>
+&gt;&gt;&gt; FATAL: Error running install command for saa7134<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; here is dmesg related output:<br>
+&gt;&gt;&gt; [ 2023.405692] Linux video capture interface: v2.00<br>
+&gt;&gt;&gt; [ 2023.525841] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_streamoff<br>
+&gt;&gt;&gt; [ 2023.525868] saa7134: Unknown symbol videobuf_streamoff<br>
+&gt;&gt;&gt; [ 2023.526215] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_poll_stream<br>
+&gt;&gt;&gt; [ 2023.526223] saa7134: Unknown symbol videobuf_poll_stream<br>
+&gt;&gt;&gt; [ 2023.526968] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_dma_free<br>
+&gt;&gt;&gt; [ 2023.526976] saa7134: Unknown symbol videobuf_dma_free<br>
+&gt;&gt;&gt; [ 2023.527249] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_reqbufs<br>
+&gt;&gt;&gt; [ 2023.527257] saa7134: Unknown symbol videobuf_reqbufs<br>
+&gt;&gt;&gt; [ 2023.527904] saa7134: disagrees about version of symbol vide=
+obuf_waiton<br>
+&gt;&gt;&gt; [ 2023.527912] saa7134: Unknown symbol videobuf_waiton<br>
+&gt;&gt;&gt; [ 2023.528438] saa7134: disagrees about version of symbol vide=
+obuf_dqbuf<br>
+&gt;&gt;&gt; [ 2023.528446] saa7134: Unknown symbol videobuf_dqbuf<br>
+&gt;&gt;&gt; [ 2023.529926] saa7134: disagrees about version of symbol vide=
+obuf_stop<br>
+&gt;&gt;&gt; [ 2023.529935] saa7134: Unknown symbol videobuf_stop<br>
+&gt;&gt;&gt; [ 2023.530940] saa7134: Unknown symbol videobuf_queue_pci_init=
+<br>
+&gt;&gt;&gt; [ 2023.531137] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_dma_unmap<br>
+&gt;&gt;&gt; [ 2023.531146] saa7134: Unknown symbol videobuf_dma_unmap<br>
+&gt;&gt;&gt; [ 2023.531271] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_read_stream<br>
+&gt;&gt;&gt; [ 2023.531279] saa7134: Unknown symbol videobuf_read_stream<br>
+&gt;&gt;&gt; [ 2023.531485] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_querybuf<br>
+&gt;&gt;&gt; [ 2023.531494] saa7134: Unknown symbol videobuf_querybuf<br>
+&gt;&gt;&gt; [ 2023.531832] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_unregister_device<br>
+&gt;&gt;&gt; [ 2023.531841] saa7134: Unknown symbol video_unregister_device=
+<br>
+&gt;&gt;&gt; [ 2023.531956] saa7134: disagrees about version of symbol vide=
+obuf_qbuf<br>
+&gt;&gt;&gt; [ 2023.531964] saa7134: Unknown symbol videobuf_qbuf<br>
+&gt;&gt;&gt; [ 2023.532251] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_device_alloc<br>
+&gt;&gt;&gt; [ 2023.532260] saa7134: Unknown symbol video_device_alloc<br>
+&gt;&gt;&gt; [ 2023.532373] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_read_one<br>
+&gt;&gt;&gt; [ 2023.532381] saa7134: Unknown symbol videobuf_read_one<br>
+&gt;&gt;&gt; [ 2023.532655] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_register_device<br>
+&gt;&gt;&gt; [ 2023.532663] saa7134: Unknown symbol video_register_device<b=
+r>
+&gt;&gt;&gt; [ 2023.533561] saa7134: disagrees about version of symbol vide=
+obuf_iolock<br>
+&gt;&gt;&gt; [ 2023.533569] saa7134: Unknown symbol videobuf_iolock<br>
+&gt;&gt;&gt; [ 2023.533831] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_streamon<br>
+&gt;&gt;&gt; [ 2023.533839] saa7134: Unknown symbol videobuf_streamon<br>
+&gt;&gt;&gt; [ 2023.534615] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; video_device_release<br>
+&gt;&gt;&gt; [ 2023.534624] saa7134: Unknown symbol video_device_release<br>
+&gt;&gt;&gt; [ 2023.534736] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_mmap_mapper<br>
+&gt;&gt;&gt; [ 2023.534745] saa7134: Unknown symbol videobuf_mmap_mapper<br>
+&gt;&gt;&gt; [ 2023.535101] saa7134: disagrees about version of symbol vide=
+obuf_cgmbuf<br>
+&gt;&gt;&gt; [ 2023.535109] saa7134: Unknown symbol videobuf_cgmbuf<br>
+&gt;&gt;&gt; [ 2023.535598] saa7134: disagrees about version of symbol vide=
+obuf_to_dma<br>
+&gt;&gt;&gt; [ 2023.535606] saa7134: Unknown symbol videobuf_to_dma<br>
+&gt;&gt;&gt; [ 2023.535717] saa7134: disagrees about version of symbol<br>
+&gt;&gt;&gt; videobuf_mmap_free<br>
+&gt;&gt;&gt; [ 2023.535725] saa7134: Unknown symbol videobuf_mmap_free<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; my linux kernel is: 2.6.24-16-generic, which is ubuntu 8.04's<=
+br>
+&gt;&gt;&gt; current kernel...<br>
+&gt;&gt;&gt; i have source and header files for this kernel..<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:/usr/src$ uname -a<br>
+&gt;&gt;&gt; Linux bvidinli-desktop 2.6.24-16-generic #1 SMP Thu Apr 10 13:=
+23:42<br>
+&gt;&gt;&gt; UTC 2008 i686 GNU/Linux<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:/usr/src$ ls -l<br>
+&gt;&gt;&gt; total 45880<br>
+&gt;&gt;&gt; lrwxrwxrwx 1 root src 19 2008-05-19 22:14 linux -&gt; linux-so=
+urce-2.6.24<br>
+&gt;&gt;&gt; drwxr-xr-x 20 root root 4096 2008-04-22 20:54 linux-headers-2.=
+6.24-16<br>
+&gt;&gt;&gt; drwxr-xr-x 6 root root 4096 2008-04-22 20:54<br>
+&gt;&gt;&gt; linux-headers-2.6.24-16-generic<br>
+&gt;&gt;&gt; drwxr-xr-x 23 root root 4096 2008-04-10 19:36 linux-source-2.6=
+.24<br>
+&gt;&gt;&gt; -rw-r--r-- 1 root root 46914792 2008-04-10 19:38<br>
+&gt;&gt;&gt; linux-source-2.6.24.tar.bz2<br>
+&gt;&gt;&gt; bvidinli@bvidinli-desktop:/usr/src$<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; Attention :<br>
+&gt;&gt;&gt; should these be applied on 2.6.26.rc2 or 2.6.25 ?<br>
+&gt;&gt;&gt; i applied to 2.6.24, which is current kernel for ubuntu 8.04..=
+.<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; ------------------------------<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; _______________________________________________<br>
+&gt;&gt;&gt; linux-dvb mailing list<br>
+&gt;&gt;&gt; linux-dvb@linuxtv.org<br>
+&gt;&gt;&gt; http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; End of linux-dvb Digest, Vol 40, Issue 64<br>
+&gt;&gt;&gt; *****************************************<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;&gt; --<br>
+&gt;&gt;&gt; See Exclusive Video: 10th Annual Young Hollywood Awards<br>
+&gt;&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; --<br>
+&gt;&gt; =DD.Bahattin Vidinli<br>
+&gt;&gt; Elk-Elektronik M=FCh.<br>
+&gt;&gt; -------------------<br>
+&gt;&gt; iletisim bilgileri (Tercih sirasina gore):<br>
+&gt;&gt; skype: bvidinli (sesli gorusme icin, www.skype.com)<br>
+&gt;&gt; msn: bvidinli@iyibirisi.com<br>
+&gt;&gt; yahoo: bvidinli<br>
+&gt;&gt;<br>
+&gt;&gt; +90.532.7990607<br>
+&gt;&gt; +90.505.5667711<br>
+&gt;&gt;<br>
+&gt;<br>
+&gt;<br>
+&gt;<br>
+&gt; --<br>
+&gt; =DD.Bahattin Vidinli<br>
+&gt; Elk-Elektronik M=FCh.<br>
+&gt; -------------------<br>
+&gt; iletisim bilgileri (Tercih sirasina gore):<br>
+&gt; skype: bvidinli (sesli gorusme icin, www.skype.com)<br>
+&gt; msn: bvidinli@iyibirisi.com<br>
+&gt; yahoo: bvidinli<br>
+&gt;<br>
+&gt; +90.532.7990607<br>
+&gt; +90.505.5667711<br>
+&gt;<br>
+&gt; --<br>
+&gt; See Exclusive Video: 10th Annual Young Hollywood Awards<br>
+&gt;<br>
+<br>
+<br>
+<br>
+--<br>
+=DD.Bahattin Vidinli<br>
+Elk-Elektronik M=FCh.<br>
+-------------------<br>
+iletisim bilgileri (Tercih sirasina gore):<br>
+skype: bvidinli (sesli gorusme icin, www.skype.com)<br>
+msn: bvidinli@iyibirisi.com<br>
+yahoo: bvidinli<br>
+<br>
++90.532.7990607<br>
++90.505.5667711<br>
+</stev391@email.com></bvidinli@gmail.com></blockquote>
+</div>
+<BR>
+
+--=20
+<div> See Exclusive Video: <a href=3D "http://www.hollywoodlife.net/youngho=
+llywoodawards2008/" target=3D"_blank"> <b> 10th Annual Young Hollywood Awar=
+ds</b></a><br></div>
+
+--_----------=_1211498758135150--
+
+
+
+--===============1551582664==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1551582664==--
