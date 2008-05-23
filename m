@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4GBbeax011664
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 07:37:40 -0400
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4GBb7HQ027315
-	for <video4linux-list@redhat.com>; Fri, 16 May 2008 07:37:08 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "pw.marcus" <pw.marcus@laposte.net>
-In-Reply-To: <482D4579.8090203@laposte.net>
-References: <482D4579.8090203@laposte.net>
-Content-Type: text/plain
-Date: Fri, 16 May 2008 13:36:48 +0200
-Message-Id: <1210937808.3138.7.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4NCtGAS011899
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 08:55:17 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4NCs2QD008538
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 08:54:02 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so713511rvb.51
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 05:54:02 -0700 (PDT)
+Message-ID: <d9def9db0805230554w34519e73nabccdfce93999643@mail.gmail.com>
+Date: Fri, 23 May 2008 14:54:02 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: ralf@ark.in-berlin.de
+In-Reply-To: <20080523112305.GA25477@ark.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080523112305.GA25477@ark.in-berlin.de>
 Cc: video4linux-list@redhat.com
-Subject: Re: My Cinema-P7131 Hybrid (spider cable)
+Subject: Re: hardware noob needs orientation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Ralf,
 
-Am Freitag, den 16.05.2008, 10:27 +0200 schrieb pw.marcus:
+On 5/23/08, Ralf Stephan <ralf@ark.in-berlin.de> wrote:
 > Hello,
-> 
-> I would like to know if the spider cable (S-video, coaxial video, RCA 
-> audio L-R) works with this card, or is possible, because, I can watch 
-> DVB-T on the computer, but when  I plug this cable from the card to a TV 
-> (peritel), I don't get anything on the TV.
-> 
-> My system:
-> -------------------
-> intel dual core processor
-> Intel motherboard (i945 built-in graphic card)
-> Debian unstable 64 bits
-> kernel 2.6.25-3 (with the  original v4l driver of the kernel)
-> 
-> Thanks for help, cheers
-> 
+> please excuse me asking possibly basic questions. My problem is
+> 1. the need to use a specific camera (having Cinch cable/adapter)
+> 2. the impossibility of installing a card in this box (fanless)
+>
+> Is there a supported Cinch/USB converter you can recommend?
+>
 
-if I understand you right, you seem to think that the card has output on
-this "spider cable", but it are all INPUTS.
+With Chinch you mean Composite?
 
-You need TV-OUT from your graphics card or something else capable to
-display on TV.
+(Look at analog TV Devices)
+http://mcentral.de/wiki/index.php5/Em2880#Devices
 
-Cheers,
-Hermann
+Those devices are also manufacturer supported. So even if you run into
+trouble with TV applications just put a request onto the corresponding
+em28xx Mailinglist which is specialized on those devices.
 
+> As the camera is placed >4m from the box, which configuration
+> would be best? Short Cinch, then long USB, with intermediate hub?
+>
 
+short USB Cable and long Chinch cable should be fine, I used a cheap
+Chinch cable for testing Compiste and a short USB Cable
 
+Markus
 
 --
 video4linux-list mailing list
