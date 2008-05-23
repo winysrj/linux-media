@@ -1,22 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4BHuK8o007673
-	for <video4linux-list@redhat.com>; Sun, 11 May 2008 13:56:20 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4BHtWaI013323
-	for <video4linux-list@redhat.com>; Sun, 11 May 2008 13:55:32 -0400
-Date: Sun, 11 May 2008 19:55:08 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Jody Gugelhupf <knueffle@yahoo.com>
-Message-ID: <20080511175507.GA255@daniel.bse>
-References: <67277.16991.qm@web36106.mail.mud.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N9BfqY024028
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 05:11:41 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N9BCSC023590
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 05:11:20 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1JzTIp-0004Nb-Dm
+	for video4linux-list@redhat.com; Fri, 23 May 2008 09:11:07 +0000
+Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 09:11:07 +0000
+Received: from augulis.darius by 82-135-208-232.static.zebra.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 09:11:07 +0000
+To: video4linux-list@redhat.com
+From: Darius <augulis.darius@gmail.com>
+Date: Fri, 23 May 2008 12:05:33 +0300
+Message-ID: <g161n1$vmf$1@ger.gmane.org>
+References: <g09j17$3m9$1@ger.gmane.org>	<Pine.LNX.4.64.0805122030310.5526@axis700.grange>	<g0bjtj$b0d$1@ger.gmane.org>	<Pine.LNX.4.64.0805132212530.4988@axis700.grange>	<g0hhpt$jfp$1@ger.gmane.org>	<Pine.LNX.4.64.0805152121210.14292@axis700.grange>	<g13s6k$a2c$1@ger.gmane.org>
+	<Pine.LNX.4.64.0805222105360.8800@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <67277.16991.qm@web36106.mail.mud.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: kodicom 8 channel 240 fps real time dvr capture card in linux
-	help please
+Content-Type: text/plain; charset=ISO-8859-13; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.0805222105360.8800@axis700.grange>
+Subject: Re: question about SoC Camera driver (Micron)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,25 +37,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, May 11, 2008 at 07:22:37AM -0400, Jody Gugelhupf wrote:
-> 240 fps real time 8 channel kodicom dvr capture card
-> I attached a picture of it, but I was wondering if anyone knows if I can get this to run under
-> linux without problems or not?
 
-I think I recognize eight Conexant chips on that card.
-I'm not shure if these are 878 or 2388X chips.
-It should be supported either by the bttv or by the cx88 driver.
+> Please, tell me exactly where you suspect bugs. soc_camera.c, 
+> pxa_camera.c, mt9?0??.c all have *try_fmt_cap().
 
-This card is equivalent to using eight of your low budget cards with
-each having only two inputs.
+I see, but try_fmt_cap does not return camera capabilities, it only tries pixel format, without driver state changing.
+Maybe it is good idea to implement additional g_fmt_cap ioctl handler in soc_camera? Or instead try_fmt_cap?
+Because s_fmt_cap is for fmt setting, g_fmt_cap for getting camera fmt capabilities, and try_fmt_cap is for what? For getting fmt too?
+v4l2 documentation recommends not implement this ioctl in the driver.
 
-In any case, the PCI bus does not have enough bandwidth to capture eight
-channels at full resolution. You are restricted to smaller videos.
+> 
+>> btw, can you tell something about frame rate setting? how to implement that?
+>> for example, I want from user space adjust frame rate (4, 15, 25, 30fps...).
+>> Should I pass these setting to sensor driver via *_set_fmt_cap()?
+> 
+> This is not supported.
+> 
 
-By the way, the Kodicom DigiNet devices are usually sold as complete
-computers. Look at the dimensions given in the table of the eBay auction.
-
-  Daniel
+I think should be not hard to implement vidioc_g_parm and vidioc_s_parm in soc_camera to support frame rate setting?
+Now I'm writing driver for OV7670, and I plan to add these features (frame rate setting and g_fmt_cap) to soc_camera driver.
+What is your opinion?
 
 --
 video4linux-list mailing list
