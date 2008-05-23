@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Wed, 28 May 2008 04:34:13 -0400
-From: Alan Cox <alan@redhat.com>
-To: Andy Walls <awalls@radix.net>
-Message-ID: <20080528083413.GB30339@devserv.devel.redhat.com>
-References: <20080527101039.1c0a3804@gaivota>
-	<20080527094144.1189826a@bike.lwn.net>
-	<20080527133100.6a9302fb@gaivota>
-	<20080527103755.1fd67ec1@bike.lwn.net>
-	<20080527155942.7693c360@gaivota>
-	<412bdbff0805271226t41fe55b0jd0b8e3c737f34734@mail.gmail.com>
-	<20080527180048.6a27dbf7@gaivota>
-	<1211932138.3197.29.camel@palomino.walls.org>
-	<412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
-	<1211942221.3197.154.camel@palomino.walls.org>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N75hQf026645
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 03:05:43 -0400
+Received: from rs25s12.datacenter.cha.cantv.net
+	(rs25s12.datacenter.cha.cantv.net [200.44.33.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N75E0n008307
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 03:05:19 -0400
+From: Emilio Lazo Zaia <emiliolazozaia@gmail.com>
+To: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	video4linux-list@redhat.com
+In-Reply-To: <4820BD94.90005@t-online.de>
+References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
+	<1209512868.5699.32.camel@palomino.walls.org>
+	<1209863718.546.24.camel@localhost.localdomain>
+	<481E1AD3.2060304@t-online.de>
+	<1210045099.21581.6.camel@localhost.localdomain>
+	<4820BD94.90005@t-online.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Fri, 23 May 2008 02:34:48 -0430
+Message-Id: <1211526288.12831.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1211942221.3197.154.camel@palomino.walls.org>
-Cc: video4linux-list@redhat.com, Jonathan Corbet <corbet@lwn.net>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Alan Cox <alan@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] video4linux: Push down the BKL
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: MCE TV Philips 7135 Cardbus don't work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,19 +34,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, May 27, 2008 at 10:37:01PM -0400, Andy Walls wrote:
-> I note the man page for open() doesn't list EBUSY as a valid errno.
-> However, the V4L2 API Spec does list EBUSY as a valid errno for V4L2
-> open().
+Hi!
 
-The posix spec doesn't limit the errors returnable this way - it says if
-the error is one of the ones listed it must return the error code stated so
-EBUSY is just fine.
+El mar, 06-05-2008 a las 22:20 +0200, Hartmut Hackmann escribió:
 
-> But in this case I can't.  The driver probably shouldn't hold a lock and
-> suspend an open() indefinitely (IMO).  It should say the device is BUSY
+> But before you open the module, you might try a "modprobe saa7134 card=55"
+> and watch the kernel log. If the driver tells you it found a tda8175(a),
+> we already learned a lot.
 
-Agreed - especially if it is opened with O_NDELAY
+With card=53 (ASUS TV-FM 7135) and tuner=54 (tda8290+75) radio works!
+but seems to be swapped Television and Composite modes; I can watch RCA
+input using _Television_ mode and switching to Composite mode shows
+typical TV noise. Obviously the channel can't be changed in Composite
+but there is a way to correct this input mode confusion?
+
+There is a lag when radio station is changed, maybe because of a
+card/tuner misconfiguration but works and ALSA audio capture function
+also works!
+-- 
+Emilio Lazo Zaia <emiliolazozaia@gmail.com>
+Facultad de Ciencias, UCV
 
 --
 video4linux-list mailing list
