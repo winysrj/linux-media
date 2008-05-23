@@ -1,39 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4DFuQlR003509
-	for <video4linux-list@redhat.com>; Tue, 13 May 2008 11:56:26 -0400
-Received: from smtp1.mtw.ru (smtp1.mtw.ru [194.135.105.241])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4DFu6dc027188
-	for <video4linux-list@redhat.com>; Tue, 13 May 2008 11:56:14 -0400
-Date: Tue, 13 May 2008 19:55:59 +0400
-From: Andrew Junev <a-j@a-j.ru>
-Message-ID: <1455396550.20080513195559@a-j.ru>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1207782190.5554.47.camel@pc08.localdom.local>
-References: <1115343012.20080318233620@a-j.ru>
-	<200803200048.15063@orion.escape-edv.de>
-	<1206067079.3362.10.camel@pc08.localdom.local>
-	<200803210742.57119@orion.escape-edv.de>
-	<1206912674.3520.58.camel@pc08.localdom.local>
-	<1063704330.20080331082850@a-j.ru>
-	<1206999694.7762.41.camel@pc08.localdom.local>
-	<1112443057.20080402224744@a-j.ru>
-	<1207179525.14887.13.camel@pc08.localdom.local>
-	<1207265002.3364.12.camel@pc08.localdom.local>
-	<20080403221833.34d3c4d6@gaivota>
-	<1207275545.3365.26.camel@pc08.localdom.local>
-	<1076827621.20080406215420@a-j.ru>
-	<1207522685.6334.29.camel@pc08.localdom.local>
-	<1135983778.20080408193408@a-j.ru>
-	<1207702576.5135.42.camel@pc08.localdom.local>
-	<1271819320.20080409101744@a-j.ru>
-	<1207782190.5554.47.camel@pc08.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N6TFuS013002
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:29:15 -0400
+Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N6T3AM020501
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:29:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 23 May 2008 08:28:49 +0200
+References: <20080522223700.2f103a14@core>
+	<1211508484.3273.86.camel@palomino.walls.org>
+	<200805230816.05229.hverkuil@xs4all.nl>
+In-Reply-To: <200805230816.05229.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT S-1401 problem with kernel 2.6.24 ???
-Reply-To: Andrew Junev <a-j@a-j.ru>
+Content-Disposition: inline
+Message-Id: <200805230828.49525.hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -45,91 +31,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Friday 23 May 2008 08:16:05 Hans Verkuil wrote:
+> On Friday 23 May 2008 04:08:04 Andy Walls wrote:
+> > On Thu, 2008-05-22 at 22:37 +0100, Alan Cox wrote:
+> > > For most drivers the generic ioctl handler does the work and we
+> > > update it and it becomes the unlocked_ioctl method. Older drivers
+> > > use the usercopy method so we make it do the work. Finally there
+> > > are a few special cases.
+> > >
+> > > Signed-off-by: Alan Cox <alan@redhat.com>
+> >
+> > I'd like to start planning out the changes to eliminate the BKL
+> > from cx18.
+> >
+> > Could someone give me a brief education as to what elements of
+> > cx18/ivtv_v4l2_do_ioctl() would be forcing the use of the BKL for
+> > these drivers' ioctls?   I'm assuming it's not the
+> > mutex_un/lock(&....->serialize_lock) and that the answer's not in
+> > the diff.
+>
+> To the best of my knowledge there is no need for a BKL in ivtv or
+> cx18. It was just laziness on my part that I hadn't switched to
+> unlocked_ioctl yet. If you know of a reason why it should be kept for
+> now, then I'd like to know, otherwise the BKL can be removed
+> altogether for ivtv/cx18. I suspect you just pushed the lock down
+> into the driver and in that case you can just remove it for
+> ivtv/cx18.
 
-Thursday, April 10, 2008, 3:03:10 AM, you wrote:
+Hmm, of course you just pushed down the lock, the subject said so. 
+Sorry, it's early morning here and I'm apparently not yet fully 
+awake :-)
 
-> Am Mittwoch, den 09.04.2008, 10:17 +0400 schrieb Andrew Junev:
->> > Hi Andrew,
->> 
->> > Am Dienstag, den 08.04.2008, 19:34 +0400 schrieb Andrew Junev:
->> >> Hello Hermann,
->> >> 
->> >> Monday, April 7, 2008, 2:58:05 AM, you wrote:
->> >> 
->> >> > you always drop the lists.
->> >> 
->> >> Not always. :) I do it just sometimes, when I feel my message doesn't
->> >> contain useful information for everybody on the list.
->> >> But we can move back to the lists, if you think it's more appropriate.
->> >> 
->> >> > I come back to you, if nobody else who is more fluently in just add a
->> >> > patch and compile a vanilla kernel does not move in. 
->> >> 
->> >> Well, I believe I can do it, if noone else does. It shouldn't be that
->> >> hard.
->> >> 
->> >> > I of course know for sure the fix is correct, but the stable team wants
->> >> > a report from a user on 2.6.24 and support for my stuff is new and it is
->> >> > nonsense to bring it down to 2.6.24 to demonstrate it working for
->> >> > someone on 2.6.24 ...
->> >> 
->> >> I wonder how the unpatched driver made its way to 2.6.24 stable...
->> >> Or maybe it's just me who gets affected by this problem that much.
->> >> 
->> >> > B.T.W, why you don't use at least the v4l-dvb master stuff to come over
->> >> > it. Needs no patching :)
->> >> 
->> >> If I ever need to move to 2.6.24 and it gets no patch included by
->> >> then, I'll surely do so! :)
->> >> At the moment I'm perfectly fine with 2.6.23...
->> >> 
->> 
->> > however it will go out for now, seems in the end you will have something
->> > to test ;)
->> 
->> 
->> I have no problems with that! :)
->> 
->> Ok, can you point me to a guide on how to do this? Otherwise I'm
->> affraid I'll waste lots of time just by trying something that I should
->> not...
->> 
->> I'm ready to test it sometime this week.
->> 
+Regards,
 
-> Hi Andrew,
-
-> Mike has forwarded the patch to the stable kernel team. (Thanks!)
-
-> Likely it will be fixed in 2.6.24.5 then.
-
-> To build a vanilla kernel is still a very easy task, but there are
-> distribution specific helper scripts and customs.
-
-> The real problem, that could appear, is that dependencies on other
-> utilities are not resolved on your current distribution version anymore
-> and you run into some circular dependencies, not easy to resolve and
-> then you must know what you are doing exactly or upgrade.
-
-> If a 2.6.24 is available for your current stuff, just install it and see
-> the missing. If you then install the kernel source for it, we can apply
-> the patch also there and build a new kernel.
-
-> Cheers,
-> Hermann
-
-
-Sorry for my slow response...
-I just installed kernel 2.6.24.5 and my S-1401 works good now!
-
-Thanks a million to everyone who was involved!
-
-And once again sorry for not providing my feedback fast enough.
-
-
--- 
-Best regards,
- Andrew
+	Hans
 
 --
 video4linux-list mailing list
