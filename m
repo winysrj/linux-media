@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57])
+Received: from smtp2e.orange.fr ([80.12.242.112])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JzJV9-0005VK-SO
-	for linux-dvb@linuxtv.org; Fri, 23 May 2008 00:43:13 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jelle De Loecker <skerit@kipdola.com>
-In-Reply-To: <4835EF00.2030306@kipdola.com>
-References: <4835EF00.2030306@kipdola.com>
-Date: Fri, 23 May 2008 00:42:10 +0200
-Message-Id: <1211496130.2515.25.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto annoying compilation error
+	(envelope-from <kafifi@orange.fr>) id 1Jzg11-0001qp-MQ
+	for linux-dvb@linuxtv.org; Sat, 24 May 2008 00:45:37 +0200
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e07.orange.fr (SMTP Server) with ESMTP id 6BFD0700008F
+	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 00:45:02 +0200 (CEST)
+Received: from pcserver (ASte-Genev-Bois-151-1-46-208.w83-114.abo.wanadoo.fr
+	[83.114.156.208])
+	by mwinf2e07.orange.fr (SMTP Server) with ESMTP id 36EC0700008E
+	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 00:45:02 +0200 (CEST)
+Received: from pcserver ([192.168.200.1]) by pcserver (602LAN SUITE 2004) id
+	376e4524 for linux-dvb@linuxtv.org; Sat, 24 May 2008 0:44:20 +0200
+From: "kafifi" <kafifi@orange.fr>
+To: <linux-dvb@linuxtv.org>
+Date: Sat, 24 May 2008 00:44:20 +0200
+MIME-Version: 1.0
+In-Reply-To: <1211576182.26119.12.camel@youkaida>
+Message-Id: <20080523224502.36EC0700008E@mwinf2e07.orange.fr>
+Subject: Re: [linux-dvb] NOVA-T500 : mesuring bit rate error ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,63 +26,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi Nico,
+Thanks a lot for your response, I am going to try the script.
 
-Am Freitag, den 23.05.2008, 00:09 +0200 schrieb Jelle De Loecker:
-> Hi again,
-> 
-> I've recently declared success on installing the multiproto drivers on
-> LinuxMCE 0710 (kubuntu 7.10)
-> After a lot of hard work, I created a guide which did it like a charm
-> ( http://skerit.kipdola.com/?p=5&language=en )
-> 
-> My guide instructs you to use the older multiproto version, which
-> makes scan work and all.
-> 
-> Now, I reinstalled linuxmce again, but I mistakenly installed the
-> newer multiproto_plus version, like previously, nothing loaded:
-> 
->         [   76.128799] saa7146: register extension 'budget_ci dvb'.
->         [   76.238955] Linux video capture interface: v2.00
->         [   76.671737] saa7146: register extension 'dvb'.
-> 
-> No bad, I expected it to load nothing.
-> So I remove all the modules, I delete every bit of source code, I try
-> to use my own guide and I get *absolutely nothing*! 
-> 
->         [  192.299179] saa7146: register extension 'budget_ci dvb'.
-> 
-> I've rebooted so many times I've lost count! I've removed all the
-> drivers again, rebooted, reinstalled, it just won't load again! 
-> 
-> I refuse to reinstall linuxmce just so I can install the right drivers
-> from the beginning.
-> 
-> Does anyone have *any* idea as to why it's not working? I'm really
-> getting desperate.
-
-to give something in between totally OT.
-
-As expected, the lame old ATI stuff (the card was not cheap:) is far
-beyond to display BBC HD under, oh well, for what we are serviced.
-
-It was totally simple to get it with quite zero BER to the dish and disk
-using the thumb, and concerning CPU load for that, a 266 can do I guess.
-
-Are there known versions of mplayer dealing with that BBC HD, or what
-one would have to set for the scaling, if the incoming spits errors on a
-too small display ;) (comes as 1963x1080)
-
-Cheers,
-Hermann
+Regards.
+Karim.
 
 
 
+
+-----Message d'origine-----
+De : Nicolas Will [mailto:nico@youplala.net] =
+
+Envoy=E9 : vendredi 23 mai 2008 22:56
+=C0 : kafifi
+Cc : linux-dvb@linuxtv.org
+Objet : Re: [linux-dvb] NOVA-T500 : mesuring bit rate error ?
+
+This was generated on my Nova-T-500 before I got a low-noise masthead amp:
+http://www.youplala.net/~will/htpc/signaltest/
+I used the following scripts to generate this:
+http://www.linuxtv.org/wiki/index.php/Testing_reception_quality
+Maybe femon has an issue, though, as those scripts do not use it.
+Nico
+http://www.youplala.net/linux/home-theater-pc
 
 
 
