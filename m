@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4L4mpST030431
-	for <video4linux-list@redhat.com>; Wed, 21 May 2008 00:48:51 -0400
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4L4mMOd023280
-	for <video4linux-list@redhat.com>; Wed, 21 May 2008 00:48:22 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dan Taylor <dtaylor@startrac.com>
-In-Reply-To: <A0E1B902C85838448AEA276170BCB5A5097886C8@NEVAEH.startrac.com>
-References: <A0E1B902C85838448AEA276170BCB5A5097886C8@NEVAEH.startrac.com>
-Content-Type: text/plain
-Date: Wed, 21 May 2008 06:47:22 +0200
-Message-Id: <1211345242.2517.12.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m4NJ8lVf030588
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 15:08:47 -0400
+Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m4NJ7Qjs005302
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 15:07:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 23 May 2008 21:05:30 +0200
+References: <20080522223700.2f103a14@core>
+In-Reply-To: <20080522223700.2f103a14@core>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: where to send patch for SAA7134-cards.c?
+Content-Disposition: inline
+Message-Id: <200805232105.30577.hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,35 +30,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dan,
+On Thursday 22 May 2008 23:37:00 Alan Cox wrote:
+> For most drivers the generic ioctl handler does the work and we
+> update it and it becomes the unlocked_ioctl method. Older drivers use
+> the usercopy method so we make it do the work. Finally there are a
+> few special cases.
+>
+> Signed-off-by: Alan Cox <alan@redhat.com>
 
-Am Dienstag, den 20.05.2008, 20:06 -0700 schrieb Dan Taylor:
-> I have fixed a problem with the S-Video input on the AverMedia A16D.
-> It's a minor patch to add gpio mask and values to the entry in the
-> saa7134_boards structure.  Should the patch be at the directory level of
-> the file (.../drivers/media/video/saa7134) or higher in the tree?  Do I
-> just post it to this list, or should I send it to a specific maintainer
-> (and, if so, who?)?
-> 
+Here is my Ack for the ivtv/cx18 parts of this patch:
 
-use "hg diff > my_patch.patch". (p1)
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-The current maintainer of the saa713x devices is Hartmut.
-(Hartmut Hackmann <hartmut.hackmann@t-online.de)
+Regards,
 
-However, due to specific scenarios that can happen, some more people are
-involved since ever and do work together.
-
-Last stamp should come from Hartmut.
-
-Cheers,
-Hermann
-
-
-
-
-
-
+	Hans
 
 --
 video4linux-list mailing list
