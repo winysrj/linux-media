@@ -1,24 +1,40 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m429o7QH012684
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:50:07 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m429ntQw016425
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:49:55 -0400
-Date: Fri, 2 May 2008 11:49:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-In-Reply-To: <481ADED1.8050201@hni.uni-paderborn.de>
-Message-ID: <Pine.LNX.4.64.0805021143250.4920@axis700.grange>
-References: <48030F6F.1040007@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
-	<480477BD.5090900@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>
-	<481ADED1.8050201@hni.uni-paderborn.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: OmniVision OV9655 camera chip via soc-camera interface
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N3HPt3004580
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 23:17:25 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N3HDaJ015118
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 23:17:13 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so204136nfc.21
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 20:17:13 -0700 (PDT)
+Date: Fri, 23 May 2008 13:18:19 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080523131819.322eabab@glory.loctelecom.ru>
+In-Reply-To: <1211331167.4235.26.camel@pc10.localdom.local>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
+	<20080415000611.610af5c6@gaivota>
+	<20080415135455.76d18419@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+	<20080512201114.3bd41ee5@glory.loctelecom.ru>
+	<1210719122.26311.37.camel@pc10.localdom.local>
+	<20080520152426.5540ee7f@glory.loctelecom.ru>
+	<1211331167.4235.26.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Beholder card M6 with MPEG2 coder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,67 +46,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-You forgot to cc the list, readded.
+Hi All
 
-On Fri, 2 May 2008, Stefan Herbrechtsmeier wrote:
+I found some bugs by design:
 
-> Guennadi Liakhovetski schrieb:
-> > 
-> > 1. ATM these functions are called from the camera-host (pxa-camera) driver.
-> > And until now it knew nothing about soc_camera_link. Which is also good.
-> > 
-> >    a) If we want to keep calls to these functions in the camera-host driver,
-> > we'll either have to let it also handle soc_camera_link, or introduce some
-> > parameter to these functions to tell the platform which camera shall be
-> > resetted / powered on or off.
-> > 
-> >    b) Alternatively, we could call these functions from soc_camera_ops
-> > init() and release() methods. Actually, I think, this would be the best
-> > option.
-> >   
-> This means moving the init() and reset() functions into the soc_camera_link.
-> Is this right?
+1. saa7134-ts hardcoded only to parallel TS stream, but it may be serial ts, parallel ps. Need add more config information into a TV cards descriptions.
+2. syscall buffer_prepare run 32  again when I set correct value for buffers = 32 and for ts_nr_packets=312. But each start of this function configure TS to start. It is not correct. TS must be start after buffer_prepare. and TS must be stop before buffer_release (my mean). How to i can make it?
 
-Yes.
-
-> > 2. Do you have a real-life example with several cameras on one interface?
-> > ATM pxa_camera is explicitely limited to handle only one camera on its quick
-> > capture interface. You would have to lift that restriction too.
-> >   
-> Not at the moment.
-> 
-> I have some addition suggestion for the soc_camera interface:
-> 
-> 1. Renaming SOCAM_HSYNC_* to SOCAM_HREF_*
-> I think the current used Signal is HREF and not HSYNC.
-> - HREF is active during valid pixels
-> - HSYNC is a impulse at the start of each line before valid pixels and need
-> some pixel skipping.
-> 
-> 2. Add a new SOCAM_HSYNC_* to the soc_camera interface
-> 
-> 3. Add x_skip_left to soc_camera_device
-> The pxa_camera has to skip some pixel at the begin of each line if a HSYNC
-> signal is used.
-> (y_skip_top and x_skip_left can change with each format adjustment!)
-
-How and why shall they change?
-
-> 4. Remove camera_init() call before camera_probe()
-> I think the driver should first detect the hardware before it do something
-> with it.
-> The first hardware initialization should be done in the probe function.
-
-What camera_init do you mean? If you mean the ->add() call in 
-soc_camera_open() then it is needed to activate the interface.
-
-As usual, patches are welcome. When we see the code we can discuss it in 
-detail.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+With my best regards, Dmitry.
 
 --
 video4linux-list mailing list
