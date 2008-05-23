@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp5.freeserve.com ([193.252.22.128])
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
-	id 1Jxgzg-0004Nk-EA
-	for linux-dvb@linuxtv.org; Sun, 18 May 2008 13:24:01 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf3406.me.freeserve.com (SMTP Server) with ESMTP id 9FC971C0008D
-	for <linux-dvb@linuxtv.org>; Sun, 18 May 2008 13:23:17 +0200 (CEST)
-Received: from rachael (unknown [91.108.92.32])
-	by mwinf3406.me.freeserve.com (SMTP Server) with ESMTP id C3C601C0008A
-	for <linux-dvb@linuxtv.org>; Sun, 18 May 2008 13:23:14 +0200 (CEST)
-From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
-To: linux-dvb@linuxtv.org
-Date: Sun, 18 May 2008 12:23:19 +0100
+	(envelope-from <devin.heitmueller@gmail.com>) id 1JzccM-0005m8-2q
+	for linux-dvb@linuxtv.org; Fri, 23 May 2008 21:07:55 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so827627tib.13
+	for <linux-dvb@linuxtv.org>; Fri, 23 May 2008 12:07:47 -0700 (PDT)
+Message-ID: <412bdbff0805231207g38c3cfeet7e20edda43561160@mail.gmail.com>
+Date: Fri, 23 May 2008 15:07:45 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200805181223.19666.linuxtv@mfraz74.orangehome.co.uk>
-Subject: [linux-dvb] Hauppauge Win TV Nova-S
+Subject: [linux-dvb] Warning regarding Ubuntu 8.04, mplayer,
+	and some dvb drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,34 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I'm currently using a Hauppauge WinTV-Nova-T-500 card with Kubuntu 7.10 and =
+Just an FYI in case people run into mplayer problems with Ubuntu 8.04
+(I don't know what other drivers this affects, but I would assume just
+about all of them)
 
-successfully managing to record programmes with Kaffeine.
+I upgraded to Ubuntu 8.04 this week to test the V4L HVR-950 driver and
+ran into a problem where mplayer would work the first time but then
+subsequent attempts to connect to /dev/dvb/adapter0/dvr0 would always
+be return EBUSY.  After spending the morning littering the driver with
+debug code trying to locate what I thought was a bug in the
+referencing counting, it occurred to me to just run fuser against the
+device file.
 
-I would like to add a Hauppauge Win TV Nova-S Plus card and record with =
+root@devin-desktop:~# fuser -v /dev/dvb/adapter0/dvr0
+                    USER        PID ACCESS COMMAND
+/dev/dvb/adapter0/dvr0:
+                    root       6455 f.... mplayer
+                    root       6459 f.... dbus-launch
+                    root       6460 f.... dbus-daemon
 
-Kaffeine, but according to =
+Looks like they integrated mplayer with dbus, but they don't close the
+file handles on fork() so dbus inherits the file indefinitely (since
+it doesn't close when mplayer closes).
 
-http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-S-Plus there are =
+I then put "ubuntu dbus" into my search and it turns up I'm about a
+week behind Markus Rechberger because he appears to have already found
+the issue:
 
-problems with 2.6.22-14 kernels which is what I currently have.
+http://www.mail-archive.com/em28xx@mcentral.de/msg01097.html
 
-I will be upgrading to 8.04 very shortly if that makes any difference. Also=
- do =
+And he has already submitted a fix to Ubuntu:
 
-I need to download any firmware like I had to with the Nova-T-500?
--- =
+https://bugs.launchpad.net/ubuntu/+source/dbus/+bug/230877
 
-|\ =A0/| ark Fraser =A0/Registered Linux User #466407
-| \/ | Somerset =A0 /Using Kmail on Kubuntu Gutsy Gibbon
-| =A0 =A0|___________/You know what the sig means!
+Just a heads up in case anybody runs into the same problem with other devices...
 
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
