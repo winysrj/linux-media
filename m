@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QLQhjo021771
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 17:26:43 -0400
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QLQVoD023848
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 17:26:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Mon, 26 May 2008 23:26:30 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N29A7Y010718
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 22:09:10 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N28wtJ008723
+	for <video4linux-list@redhat.com>; Thu, 22 May 2008 22:08:58 -0400
+From: Andy Walls <awalls@radix.net>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>, video4linux-list@redhat.com
+In-Reply-To: <20080522223700.2f103a14@core>
+References: <20080522223700.2f103a14@core>
+Content-Type: text/plain
+Date: Thu, 22 May 2008 22:08:04 -0400
+Message-Id: <1211508484.3273.86.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200805262326.30501.hverkuil@xs4all.nl>
-Cc: Michael Schimek <mschimek@gmx.at>
-Subject: Need VIDIOC_CROPCAP clarification
+Cc: linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +27,157 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Thu, 2008-05-22 at 22:37 +0100, Alan Cox wrote:
+> For most drivers the generic ioctl handler does the work and we update it
+> and it becomes the unlocked_ioctl method. Older drivers use the usercopy
+> method so we make it do the work. Finally there are a few special cases.
+> 
+> Signed-off-by: Alan Cox <alan@redhat.com>
 
-How should the pixelaspect field of the v4l2_cropcap struct be filled? 
-Looking at existing drivers it can be anything from 0/0, 1/1, 54/59 for 
-PAL/SECAM and 11/10 for NTSC or the horizontal number of samples/the 
-horizontal number of pixels.
+I'd like to start planning out the changes to eliminate the BKL from
+cx18.
 
-However, it is my understanding that the last one as used in bttv is the 
-correct interpretation. Meaning that if the horizontal unit used for 
-cropping is equal to a pixel (this is the case for most drivers), then 
-pixelaspect should be 1/1. If the horizontal unit is different from a 
-pixel, then it should be:
+Could someone give me a brief education as to what elements of
+cx18/ivtv_v4l2_do_ioctl() would be forcing the use of the BKL for these
+drivers' ioctls?   I'm assuming it's not the
+mutex_un/lock(&....->serialize_lock) and that the answer's not in the
+diff.
 
-(total number of horizontal units) / (horizontal pixels)
+Thanks.
+Andy
 
-So given a crop coordinate X, the corresponding coordinate in pixels 
-would be:
+> diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+> index dbdcb86..faf3a31 100644
+> --- a/drivers/media/video/cx18/cx18-ioctl.c
+> +++ b/drivers/media/video/cx18/cx18-ioctl.c
+> @@ -837,15 +837,16 @@ static int cx18_v4l2_do_ioctl(struct inode *inode, struct file *filp,
+>  	return 0;
+>  }
+>  
+> -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+> -		    unsigned long arg)
+> +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>  {
+>  	struct cx18_open_id *id = (struct cx18_open_id *)filp->private_data;
+>  	struct cx18 *cx = id->cx;
+>  	int res;
+>  
+> +	lock_kernel();
+>  	mutex_lock(&cx->serialize_lock);
+> -	res = video_usercopy(inode, filp, cmd, arg, cx18_v4l2_do_ioctl);
+> +	res = video_usercopy(filp, cmd, arg, cx18_v4l2_do_ioctl);
+>  	mutex_unlock(&cx->serialize_lock);
+> +	unlock_kernel();
+>  	return res;
+>  }
+> diff --git a/drivers/media/video/cx18/cx18-ioctl.h b/drivers/media/video/cx18/cx18-ioctl.h
+> index 9f4c7eb..32bede3 100644
+> --- a/drivers/media/video/cx18/cx18-ioctl.h
+> +++ b/drivers/media/video/cx18/cx18-ioctl.h
+> @@ -1,4 +1,4 @@
+> -/*
+> + /*
+>   *  cx18 ioctl system call
+>   *
+>   *  Derived from ivtv-ioctl.h
+> @@ -24,7 +24,6 @@
+>  u16 cx18_service2vbi(int type);
+>  void cx18_expand_service_set(struct v4l2_sliced_vbi_format *fmt, int is_pal);
+>  u16 cx18_get_service_set(struct v4l2_sliced_vbi_format *fmt);
+> -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+> -		    unsigned long arg);
+> +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+>  int cx18_v4l2_ioctls(struct cx18 *cx, struct file *filp, unsigned cmd,
+>  		     void *arg);
+> diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
+> index afb141b..7348b82 100644
+> --- a/drivers/media/video/cx18/cx18-streams.c
+> +++ b/drivers/media/video/cx18/cx18-streams.c
+> @@ -39,7 +39,7 @@ static struct file_operations cx18_v4l2_enc_fops = {
+>        .owner = THIS_MODULE,
+>        .read = cx18_v4l2_read,
+>        .open = cx18_v4l2_open,
+> -      .ioctl = cx18_v4l2_ioctl,
+> +      .unlocked_ioctl = cx18_v4l2_ioctl,
+>        .release = cx18_v4l2_close,
+>        .poll = cx18_v4l2_enc_poll,
+>  };
 
-X * pixelaspect.denominator / pixelaspect.numerator
+> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+> index d508b5d..a481b2d 100644
+> --- a/drivers/media/video/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+> @@ -1726,7 +1726,7 @@ static int ivtv_v4l2_do_ioctl(struct inode *inode, struct file *filp,
+>  	return 0;
+>  }
+>  
+> -static int ivtv_serialized_ioctl(struct ivtv *itv, struct inode *inode, struct file *filp,
+> +static int ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
+>  		unsigned int cmd, unsigned long arg)
+>  {
+>  	/* Filter dvb ioctls that cannot be handled by video_usercopy */
+> @@ -1761,18 +1761,19 @@ static int ivtv_serialized_ioctl(struct ivtv *itv, struct inode *inode, struct f
+>  	default:
+>  		break;
+>  	}
+> -	return video_usercopy(inode, filp, cmd, arg, ivtv_v4l2_do_ioctl);
+> +	return video_usercopy(filp, cmd, arg, ivtv_v4l2_do_ioctl);
+>  }
+>  
+> -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+> -		    unsigned long arg)
+> +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>  {
+>  	struct ivtv_open_id *id = (struct ivtv_open_id *)filp->private_data;
+>  	struct ivtv *itv = id->itv;
+>  	int res;
+>  
+> +	lock_kernel();
+>  	mutex_lock(&itv->serialize_lock);
+> -	res = ivtv_serialized_ioctl(itv, inode, filp, cmd, arg);
+> +	res = ivtv_serialized_ioctl(itv, filp, cmd, arg);
+>  	mutex_unlock(&itv->serialize_lock);
+> +	unlock_kernel();
+>  	return res;
+>  }
+> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.h b/drivers/media/video/ivtv/ivtv-ioctl.h
+> index a03351b..6708ea0 100644
+> --- a/drivers/media/video/ivtv/ivtv-ioctl.h
+> +++ b/drivers/media/video/ivtv/ivtv-ioctl.h
+> @@ -24,8 +24,7 @@
+>  u16 service2vbi(int type);
+>  void expand_service_set(struct v4l2_sliced_vbi_format *fmt, int is_pal);
+>  u16 get_service_set(struct v4l2_sliced_vbi_format *fmt);
+> -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+> -		    unsigned long arg);
+> +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+>  int ivtv_v4l2_ioctls(struct ivtv *itv, struct file *filp, unsigned int cmd, void *arg);
+>  void ivtv_set_osd_alpha(struct ivtv *itv);
+>  int ivtv_set_speed(struct ivtv *itv, int speed);
+> diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+> index 4ab8d36..3131f68 100644
+> --- a/drivers/media/video/ivtv/ivtv-streams.c
+> +++ b/drivers/media/video/ivtv/ivtv-streams.c
+> @@ -48,7 +48,7 @@ static const struct file_operations ivtv_v4l2_enc_fops = {
+>        .read = ivtv_v4l2_read,
+>        .write = ivtv_v4l2_write,
+>        .open = ivtv_v4l2_open,
+> -      .ioctl = ivtv_v4l2_ioctl,
+> +      .unlocked_ioctl = ivtv_v4l2_ioctl,
+>        .release = ivtv_v4l2_close,
+>        .poll = ivtv_v4l2_enc_poll,
+>  };
+> @@ -58,7 +58,7 @@ static const struct file_operations ivtv_v4l2_dec_fops = {
+>        .read = ivtv_v4l2_read,
+>        .write = ivtv_v4l2_write,
+>        .open = ivtv_v4l2_open,
+> -      .ioctl = ivtv_v4l2_ioctl,
+> +      .unlocked_ioctl = ivtv_v4l2_ioctl,
+>        .release = ivtv_v4l2_close,
+>        .poll = ivtv_v4l2_dec_poll,
+>  };
 
-This is what bttv does and I'm pretty sure that's when this ioctl was 
-introduced.
 
-Assuming this is correct, then the Spec needs to be fixed in several 
-places (and drivers too, for that matter):
-
-- all references to the term 'pixel aspect' are incorrect: it has 
-nothing to do with the pixel aspect, it is about the ratio between the 
-horizontal sampling frequency and the 'pixel frequency'.
-
-- the description of 'bounds' is wrong: "Width and height are defined in 
-pixels, the driver writer is free to choose origin and units of the 
-coordinate system in the analog domain." This is contradictory: the 
-width units are up to the driver so the unit for the width is not 
-necessarily a pixel. The way the cropping is setup implies that the 
-height and Y coordinates are ALWAYS in line (aka pixel) units. It 
-cannot be anything else since that's the way analog video works. You 
-can't sample the height of half a line.
-
-- pixelaspect: has nothing to do with the pixel aspect. So the 
-references to PAL/SECAM and NTSC are irrelevant.
-
-Comments?
-
-	Hans
 
 --
 video4linux-list mailing list
