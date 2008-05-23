@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4SKG6pY005051
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 16:16:06 -0400
-Received: from QMTA04.emeryville.ca.mail.comcast.net
-	(qmta04.emeryville.ca.mail.comcast.net [76.96.30.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4SKFqPP001915
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 16:15:53 -0400
-Message-ID: <483DBD67.8090508@personnelware.com>
-Date: Wed, 28 May 2008 15:15:35 -0500
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N6GoEO008875
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:16:50 -0400
+Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N6GDUY012815
+	for <video4linux-list@redhat.com>; Fri, 23 May 2008 02:16:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
-References: <47C8A0C9.4020107@personnelware.com>
-	<20080304112519.6f4c748c@gaivota>
-In-Reply-To: <20080304112519.6f4c748c@gaivota>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Date: Fri, 23 May 2008 08:16:05 +0200
+References: <20080522223700.2f103a14@core>
+	<1211508484.3273.86.camel@palomino.walls.org>
+In-Reply-To: <1211508484.3273.86.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [patch] vivi: registered as /dev/video%d
+Content-Disposition: inline
+Message-Id: <200805230816.05229.hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,97 +30,182 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I posted a week ago and haven't heard anything.  How long should I wait before 
-posting this? :)
+On Friday 23 May 2008 04:08:04 Andy Walls wrote:
+> On Thu, 2008-05-22 at 22:37 +0100, Alan Cox wrote:
+> > For most drivers the generic ioctl handler does the work and we
+> > update it and it becomes the unlocked_ioctl method. Older drivers
+> > use the usercopy method so we make it do the work. Finally there
+> > are a few special cases.
+> >
+> > Signed-off-by: Alan Cox <alan@redhat.com>
+>
+> I'd like to start planning out the changes to eliminate the BKL from
+> cx18.
+>
+> Could someone give me a brief education as to what elements of
+> cx18/ivtv_v4l2_do_ioctl() would be forcing the use of the BKL for
+> these drivers' ioctls?   I'm assuming it's not the
+> mutex_un/lock(&....->serialize_lock) and that the answer's not in the
+> diff.
 
-Carl K
+To the best of my knowledge there is no need for a BKL in ivtv or cx18. 
+It was just laziness on my part that I hadn't switched to 
+unlocked_ioctl yet. If you know of a reason why it should be kept for 
+now, then I'd like to know, otherwise the BKL can be removed altogether 
+for ivtv/cx18. I suspect you just pushed the lock down into the driver 
+and in that case you can just remove it for ivtv/cx18.
 
-Mauro Carvalho Chehab wrote:
-> Carl,
-> 
-> On Fri, 29 Feb 2008 18:18:17 -0600
-> Carl Karsten <carl@personnelware.com> wrote:
-> 
->> Now that vivi can be something other than /dev/video0, it should tell us what it 
->>   is.  This works for n_devs>1.
->>
->> sudo modprobe vivi n_devs=3
->>
->> [115041.616401] vivi: V4L2 device registered as /dev/video0
->> [115041.616445] vivi: V4L2 device registered as /dev/video1
->> [115041.616481] vivi: V4L2 device registered as /dev/video2
->> [115041.616486] Video Technology Magazine Virtual Video Capture Board 
->> successfully loaded.
-> 
-> Please, re-send your patches, adding your SOB. Please numberate them with something like 
-> [PATCH 1/3] for me to apply at the proper order.
-> 
+Regards,
 
-------------------------------------------------------
-Patch 1:
+	Hans
 
-diff -r 9d04bba82511 linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/vivi.c	Tue May 20 01:51:56 2008 -0500
-@@ -48,6 +48,8 @@
-  #include <linux/freezer.h>
-  #endif
-
-+#define MODULE_NAME "vivi"
-+
-  /* Wake up at about 30 fps */
-  #define WAKE_NUMERATOR 30
-  #define WAKE_DENOMINATOR 1001
-@@ -56,7 +58,7 @@
-  #include "font.h"
-
-  #define VIVI_MAJOR_VERSION 0
--#define VIVI_MINOR_VERSION 4
-+#define VIVI_MINOR_VERSION 5
-  #define VIVI_RELEASE 0
-  #define VIVI_VERSION \
-  	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
-@@ -1086,10 +1088,14 @@ static int vivi_release(void)
-  		list_del(list);
-  		dev = list_entry(list, struct vivi_dev, vivi_devlist);
-
--		if (-1 != dev->vfd->minor)
-+		if (-1 != dev->vfd->minor) {
-  			video_unregister_device(dev->vfd);
--		else
-+            printk(KERN_INFO "%s: /dev/video%d unregistered.\n", MODULE_NAME,
-dev->vfd->minor);
-+        }
-+		else {
-  			video_device_release(dev->vfd);
-+            printk(KERN_INFO "%s: /dev/video%d released.\n", MODULE_NAME,
-dev->vfd->minor);
-+        }
-
-  		kfree(dev);
-  	}
-@@ -1202,6 +1208,7 @@ static int __init vivi_init(void)
-  			video_nr++;
-
-  		dev->vfd = vfd;
-+        printk(KERN_INFO "%s: V4L2 device registered as /dev/video%d\n",
-MODULE_NAME, vfd->minor);
-  	}
-
-  	if (ret < 0) {
-@@ -1209,7 +1216,8 @@ static int __init vivi_init(void)
-  		printk(KERN_INFO "Error %d while loading vivi driver\n", ret);
-  	} else
-  		printk(KERN_INFO "Video Technology Magazine Virtual Video "
--				 "Capture Board successfully loaded.\n");
-+                 "Capture Board ver %u.%u.%u successfully loaded.\n",
-+        (VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF, VIVI_VERSION &
-0xFF);
-  	return ret;
-  }
-
-------------------------------------------------------
-Signed-off-by: Carl Karsten  <carl@personnelware.com>
+>
+> Thanks.
+> Andy
+>
+> > diff --git a/drivers/media/video/cx18/cx18-ioctl.c
+> > b/drivers/media/video/cx18/cx18-ioctl.c index dbdcb86..faf3a31
+> > 100644
+> > --- a/drivers/media/video/cx18/cx18-ioctl.c
+> > +++ b/drivers/media/video/cx18/cx18-ioctl.c
+> > @@ -837,15 +837,16 @@ static int cx18_v4l2_do_ioctl(struct inode
+> > *inode, struct file *filp, return 0;
+> >  }
+> >
+> > -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp,
+> > unsigned int cmd, -		    unsigned long arg)
+> > +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
+> > long arg) {
+> >  	struct cx18_open_id *id = (struct cx18_open_id
+> > *)filp->private_data; struct cx18 *cx = id->cx;
+> >  	int res;
+> >
+> > +	lock_kernel();
+> >  	mutex_lock(&cx->serialize_lock);
+> > -	res = video_usercopy(inode, filp, cmd, arg, cx18_v4l2_do_ioctl);
+> > +	res = video_usercopy(filp, cmd, arg, cx18_v4l2_do_ioctl);
+> >  	mutex_unlock(&cx->serialize_lock);
+> > +	unlock_kernel();
+> >  	return res;
+> >  }
+> > diff --git a/drivers/media/video/cx18/cx18-ioctl.h
+> > b/drivers/media/video/cx18/cx18-ioctl.h index 9f4c7eb..32bede3
+> > 100644
+> > --- a/drivers/media/video/cx18/cx18-ioctl.h
+> > +++ b/drivers/media/video/cx18/cx18-ioctl.h
+> > @@ -1,4 +1,4 @@
+> > -/*
+> > + /*
+> >   *  cx18 ioctl system call
+> >   *
+> >   *  Derived from ivtv-ioctl.h
+> > @@ -24,7 +24,6 @@
+> >  u16 cx18_service2vbi(int type);
+> >  void cx18_expand_service_set(struct v4l2_sliced_vbi_format *fmt,
+> > int is_pal); u16 cx18_get_service_set(struct v4l2_sliced_vbi_format
+> > *fmt); -int cx18_v4l2_ioctl(struct inode *inode, struct file *filp,
+> > unsigned int cmd, -		    unsigned long arg);
+> > +long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
+> > long arg); int cx18_v4l2_ioctls(struct cx18 *cx, struct file *filp,
+> > unsigned cmd, void *arg);
+> > diff --git a/drivers/media/video/cx18/cx18-streams.c
+> > b/drivers/media/video/cx18/cx18-streams.c index afb141b..7348b82
+> > 100644
+> > --- a/drivers/media/video/cx18/cx18-streams.c
+> > +++ b/drivers/media/video/cx18/cx18-streams.c
+> > @@ -39,7 +39,7 @@ static struct file_operations cx18_v4l2_enc_fops
+> > = { .owner = THIS_MODULE,
+> >        .read = cx18_v4l2_read,
+> >        .open = cx18_v4l2_open,
+> > -      .ioctl = cx18_v4l2_ioctl,
+> > +      .unlocked_ioctl = cx18_v4l2_ioctl,
+> >        .release = cx18_v4l2_close,
+> >        .poll = cx18_v4l2_enc_poll,
+> >  };
+> >
+> > diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c
+> > b/drivers/media/video/ivtv/ivtv-ioctl.c index d508b5d..a481b2d
+> > 100644
+> > --- a/drivers/media/video/ivtv/ivtv-ioctl.c
+> > +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+> > @@ -1726,7 +1726,7 @@ static int ivtv_v4l2_do_ioctl(struct inode
+> > *inode, struct file *filp, return 0;
+> >  }
+> >
+> > -static int ivtv_serialized_ioctl(struct ivtv *itv, struct inode
+> > *inode, struct file *filp, +static int ivtv_serialized_ioctl(struct
+> > ivtv *itv, struct file *filp, unsigned int cmd, unsigned long arg)
+> >  {
+> >  	/* Filter dvb ioctls that cannot be handled by video_usercopy */
+> > @@ -1761,18 +1761,19 @@ static int ivtv_serialized_ioctl(struct
+> > ivtv *itv, struct inode *inode, struct f default:
+> >  		break;
+> >  	}
+> > -	return video_usercopy(inode, filp, cmd, arg, ivtv_v4l2_do_ioctl);
+> > +	return video_usercopy(filp, cmd, arg, ivtv_v4l2_do_ioctl);
+> >  }
+> >
+> > -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp,
+> > unsigned int cmd, -		    unsigned long arg)
+> > +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
+> > long arg) {
+> >  	struct ivtv_open_id *id = (struct ivtv_open_id
+> > *)filp->private_data; struct ivtv *itv = id->itv;
+> >  	int res;
+> >
+> > +	lock_kernel();
+> >  	mutex_lock(&itv->serialize_lock);
+> > -	res = ivtv_serialized_ioctl(itv, inode, filp, cmd, arg);
+> > +	res = ivtv_serialized_ioctl(itv, filp, cmd, arg);
+> >  	mutex_unlock(&itv->serialize_lock);
+> > +	unlock_kernel();
+> >  	return res;
+> >  }
+> > diff --git a/drivers/media/video/ivtv/ivtv-ioctl.h
+> > b/drivers/media/video/ivtv/ivtv-ioctl.h index a03351b..6708ea0
+> > 100644
+> > --- a/drivers/media/video/ivtv/ivtv-ioctl.h
+> > +++ b/drivers/media/video/ivtv/ivtv-ioctl.h
+> > @@ -24,8 +24,7 @@
+> >  u16 service2vbi(int type);
+> >  void expand_service_set(struct v4l2_sliced_vbi_format *fmt, int
+> > is_pal); u16 get_service_set(struct v4l2_sliced_vbi_format *fmt);
+> > -int ivtv_v4l2_ioctl(struct inode *inode, struct file *filp,
+> > unsigned int cmd, -		    unsigned long arg);
+> > +long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
+> > long arg); int ivtv_v4l2_ioctls(struct ivtv *itv, struct file
+> > *filp, unsigned int cmd, void *arg); void ivtv_set_osd_alpha(struct
+> > ivtv *itv);
+> >  int ivtv_set_speed(struct ivtv *itv, int speed);
+> > diff --git a/drivers/media/video/ivtv/ivtv-streams.c
+> > b/drivers/media/video/ivtv/ivtv-streams.c index 4ab8d36..3131f68
+> > 100644
+> > --- a/drivers/media/video/ivtv/ivtv-streams.c
+> > +++ b/drivers/media/video/ivtv/ivtv-streams.c
+> > @@ -48,7 +48,7 @@ static const struct file_operations
+> > ivtv_v4l2_enc_fops = { .read = ivtv_v4l2_read,
+> >        .write = ivtv_v4l2_write,
+> >        .open = ivtv_v4l2_open,
+> > -      .ioctl = ivtv_v4l2_ioctl,
+> > +      .unlocked_ioctl = ivtv_v4l2_ioctl,
+> >        .release = ivtv_v4l2_close,
+> >        .poll = ivtv_v4l2_enc_poll,
+> >  };
+> > @@ -58,7 +58,7 @@ static const struct file_operations
+> > ivtv_v4l2_dec_fops = { .read = ivtv_v4l2_read,
+> >        .write = ivtv_v4l2_write,
+> >        .open = ivtv_v4l2_open,
+> > -      .ioctl = ivtv_v4l2_ioctl,
+> > +      .unlocked_ioctl = ivtv_v4l2_ioctl,
+> >        .release = ivtv_v4l2_close,
+> >        .poll = ivtv_v4l2_dec_poll,
+> >  };
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 
 --
