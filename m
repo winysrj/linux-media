@@ -1,33 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FCNstS025361
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:23:54 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FCNam1006555
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:23:43 -0400
-Received: by ti-out-0910.google.com with SMTP id 24so237010tim.7
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 05:23:34 -0700 (PDT)
-Message-ID: <998e4a820805150523v4af2a62am8f9b169bd4c368d@mail.gmail.com>
-Date: Thu, 15 May 2008 20:23:34 +0800
-From: "=?GB2312?B?t+v2zg==?=" <fengxin215@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0805151105290.14292@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4OBZhsi025034
+	for <video4linux-list@redhat.com>; Sat, 24 May 2008 07:35:43 -0400
+Received: from smtp-out03.email.it (smtp-out03.email.it [212.97.34.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4OBZAXv004887
+	for <video4linux-list@redhat.com>; Sat, 24 May 2008 07:35:11 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp-out03.email.it (Postfix) with ESMTP id 9046554002
+	for <video4linux-list@redhat.com>;
+	Sat, 24 May 2008 13:35:03 +0200 (CEST)
+Received: from smtp-out03.email.it ([127.0.0.1])
+	by localhost (smtp-out03.email.it [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 1KsoR4Ls7IML for <video4linux-list@redhat.com>;
+	Sat, 24 May 2008 13:35:02 +0200 (CEST)
+Received: from [192.168.0.4] (unknown [83.147.86.163])
+	by smtp-out03.email.it (Postfix) with ESMTP id 6916E54004
+	for <video4linux-list@redhat.com>;
+	Sat, 24 May 2008 13:35:02 +0200 (CEST)
+Message-ID: <4837FD65.8030009@email.it>
+Date: Sat, 24 May 2008 13:35:01 +0200
+From: gionnico <gionnico@email.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+References: <20080524054443.1262.qmail@f5mail-237-202.rediffmail.com>
+In-Reply-To: <20080524054443.1262.qmail@f5mail-237-202.rediffmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <998e4a820804040811l748bd5b7tedf7a50521ff449e@mail.gmail.com>
-	<Pine.LNX.4.64.0804132124100.6622@axis700.grange>
-	<998e4a820804161747m6d8377b1k7481aaff7d081259@mail.gmail.com>
-	<Pine.LNX.4.64.0804171824130.6716@axis700.grange>
-	<998e4a820804172245i473cd822yf09c5cdb799e9cd5@mail.gmail.com>
-	<Pine.LNX.4.64.0804181621560.5725@axis700.grange>
-	<998e4a820804190643o1956fb6dxa90748fc6b6a8cbd@mail.gmail.com>
-	<Pine.LNX.4.64.0804221618510.8132@axis700.grange>
-	<998e4a820805150152p51f8f9fek5462aee7a6d3ba06@mail.gmail.com>
-	<Pine.LNX.4.64.0805151105290.14292@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: question for soc-camera driver
+Subject: Re: Make file issue
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,60 +38,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-sorry,i trouble you.
+Sandipan Bhattacharjee ha scritto:
+>
+> Dear All,
+>
+> I was trying to install Ethernet driver on my new HP laptop. The NIC 
+> card is from Realtek. I got the source and makefile from Realtek 
+> website. When i use make install, i get an error like:
+> install: cannot stat `r8101e.ko': No such file or directory
+>
+> Can you please guide me how to go about this?
+>
+> Thanks in advance.
+>
+> Cheers,
+> Sandipan.
+>
+> -- 
+> video4linux-list mailing list
+> Unsubscribe 
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-2008/5/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> What is your <struct pxacamera_platform_data>.mclk_10khz set to? What
-> kernel version are you using? I do not know what you do in your FPGA, are
-> you sure it doesn't modify your camera bus timing (pixel clock, VSYNC,
-> HSYNC, master clock)?
-
-mclk_10khz=1000,and I try 800,500. kernel is linux-2.6.24. I sure it
-doesn't modify your camera bus timing.Usually FIFO overrun occur.
-
-> Do you mean camera FIFO overruns occur, but fraims do not get dropped? The
-> reason, why with NOR you have more problems might be, that you produce
-> extra load on the memory bus? I don't remember id you already told us,
-> what type of LCD you have on your system and what other bus masters you
-> have? What's your frame format? 640x480x8bit?
-
-My frame format is 752x480x8bit.Now I only capure frame.And I do not
-display. the following is my capture thread:
-static int dhpa_capture_thread(void)
-{
-	struct v4l2_buffer buf;
-	int frame_cnt;
-	static time_t init, end;
-	
-	while(1)
-	{
-		/*read frame*/
-		memset(&buf, 0, sizeof(buf));
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;	
-
-		/*get the captured buffer*/
-		if(-1 == ioctl(fd, VIDIOC_DQBUF, &buf))
-		{
-			printf( "VIDIOC_DQBUF failed\n ");
-			return -1;
-		}
-
-		if(-1 == ioctl(fd, VIDIOC_QBUF, &buf))
-		{
-			printf("VIDIOC_QBUF failed\n");
-			return -1;
-		}
-	}
-}
-Now if I write a file to jffs2 norflash,FIFO overrun will
-occur.Certainly frame is dropped.I only hope you give me some
-advice.why do overrun occur when writting norflash.Because I feel
-capture frame only use DMA now,I think that write norflash will not
-affect DMA.
-
-thanks
-fengxin
+It's because make failed somehow.
+You should post the last lines of output .. not here, because it's OT.
+ 
+ 
+ --
+ Email.it, the professional e-mail, gratis per te: http://www.email.it/f
+ 
+ Sponsor:
+ Caschi, abbigliamento e accessori per la moto a prezzi convenienti, solo su Motostorm.it
+ Clicca qui: http://adv.email.it/cgi-bin/foclick.cgi?mid=7850&d=24-5
 
 --
 video4linux-list mailing list
