@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.dnainternet.fi ([87.94.96.112])
+Received: from rv-out-0506.google.com ([209.85.198.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1K1qOU-0002MU-4t
-	for linux-dvb@linuxtv.org; Fri, 30 May 2008 00:14:47 +0200
-Message-ID: <483F2AB3.7080304@iki.fi>
-Date: Fri, 30 May 2008 01:14:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <mrechberger@gmail.com>) id 1JzrRe-0000zV-Lt
+	for linux-dvb@linuxtv.org; Sat, 24 May 2008 12:57:51 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1391224rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 03:57:44 -0700 (PDT)
+Message-ID: <d9def9db0805240357s46fcbb2di50a129f580906bdf@mail.gmail.com>
+Date: Sat, 24 May 2008 12:57:44 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Nico Sabbi" <Nicola.Sabbi@poste.it>
+In-Reply-To: <200805241207.33777.Nicola.Sabbi@poste.it>
 MIME-Version: 1.0
-To: Germano Paciocco <germano.paciocco@gmail.com>
-References: <8ffdeb6d0805291448oe0cb37coa5ae2a6fcc2308ea@mail.gmail.com>
-In-Reply-To: <8ffdeb6d0805291448oe0cb37coa5ae2a6fcc2308ea@mail.gmail.com>
+Content-Disposition: inline
+References: <412bdbff0805231207g38c3cfeet7e20edda43561160@mail.gmail.com>
+	<200805241207.33777.Nicola.Sabbi@poste.it>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem with AF9015
+Subject: Re: [linux-dvb] Warning regarding Ubuntu 8.04, mplayer,
+	and some dvb drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,41 +30,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+On 5/24/08, Nico Sabbi <Nicola.Sabbi@poste.it> wrote:
+> Il Friday 23 May 2008 21:07:45 Devin Heitmueller ha scritto:
+>
+>> Looks like they integrated mplayer with dbus
+>
+> shocking :(
+>
 
-Germano Paciocco wrote:
-> Hi.
-> I installed this device on a gentoo. I think I have made all correct
-> things. In fact I have no errors on dmesg (i post it below).
-> modules loaded are these:
-> 
-> af9013                 12868  1
-> dvb_usb_af9015         13252  0
-> dvb_usb                20684  1 dvb_usb_af9015
-> i2c_core               22336  5 mt2060,af9013,v4l2_common,dvb_usb,i2c_i801
-> 
-> I have downlaoded source with command "hg clone
-> http://linuxtv.org/hg/~anttip/af9015/" and compiled succesfully, but
-> kaffeine says that dvb device is af9013, and nothing is shown!
-> I downloades this firmware
-> 
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
-> 
-> and placed into /lib/firmware. It seems it is loaded correctly, how
-> you can see in the dmesg pasted below
-> 
-> Thank you in advance for the help.
+it's just implemented for enabling/disabling the gnome screensaver actually.
 
-All seems to be ok and device is just "standard" one that is worked 
-ages... But there is still I2C error seen that breaks functionality. 
-Does it always same when re-plugging the stick?
-
-You can also try newer tree to see if it helps.
-http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
-
-Antti
--- 
-http://palosaari.fi/
+Markus
 
 _______________________________________________
 linux-dvb mailing list
