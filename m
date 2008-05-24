@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1JuJV5-0007zW-71
-	for linux-dvb@linuxtv.org; Fri, 09 May 2008 05:42:30 +0200
-From: Andy Walls <awalls@radix.net>
-To: Matthias Dahl <mldvb@mortal-soul.de>
-In-Reply-To: <200805081929.16409.mldvb@mortal-soul.de>
-References: <200805020849.15170.mldvb@mortal-soul.de>
-	<200805031657.00691.mldvb@mortal-soul.de>
-	<1209861838.9347.124.camel@palomino.walls.org>
-	<200805081929.16409.mldvb@mortal-soul.de>
-Date: Thu, 08 May 2008 23:41:33 -0400
-Message-Id: <1210304493.12356.30.camel@palomino.walls.org>
+	(envelope-from <nico@youplala.net>) id 1Jzpdf-0003aO-G4
+	for linux-dvb@linuxtv.org; Sat, 24 May 2008 11:02:08 +0200
+Received: from [10.11.11.138] (user-514f84eb.l1.c4.dsl.pol.co.uk
+	[81.79.132.235])
+	by mail.youplala.net (Postfix) with ESMTP id 2D77CD8815E
+	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 11:01:07 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+Date: Sat, 24 May 2008 10:01:06 +0100
+Message-Id: <1211619666.26119.34.camel@youkaida>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC1 DVB-C (MK3) w/ CI causes i2c_timeouts
+Subject: [linux-dvb] compiling quickcam messenger driver when v4l-dvb tree
+	compiled on	the side
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,102 +27,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-05-08 at 19:29 +0200, Matthias Dahl wrote:
-> Hi Andy.
-> 
-> Sorry for the delay but I was having some hw trouble and other things kept me 
-> quite busy as well (studies).
-> 
-> On Sunday 04 May 2008 02:43:58 you wrote:
-> 
-> > Maybe.  Given the lspci output, you may have two separate problem, that
-> > are now making things noticable.
-> 
-> Well I fixed the issue with the vt switch not working right after a cold 
-> start. I updated the motherboard's bios to its latest revision (after which 
-> it was basically brain-dead but that's a different story and fixed now -g-) 
-> and the issue is gone for good. Strange as it may seem...
+Hi all,
 
-A buggy BIOS or bad ESCD data doesn't seem strange now that you mention
-it.
+I have that laptop, using Ubuntu, with the kernel headers installed.
 
-> > That means the bridge is unhappy, and it could very well be something behind
-> > it, like the DVB card. 
-> 
-> I tested it with the old card- it's the same there: the PCI bridge reports the 
-> error condition after a cold start and those are gone after a simple reboot.
-> 
-> The error from the memory controller seems strange but I doubt its really an 
-> issue. The memory works just fine and I also tested both dimms seperately. It 
-> also happens without the dvb card. Besides I find it strange that I get 6 
-> memory controllers and one unnumbered one reported. Something can't be right 
-> with that data, can it?
+I have also a recent v4l-dvb tree. The dvb stuff is compiled directly
+from that tree using the headers and the DVB stick works very fine.
 
-Most likely the ascii label given to the devices by lspci is wrong.  The
-lspci command reports things from a static database which may not be
-perfect as nVidia may have reused id's on functions within a highly
-integrated device.  Those controllers appear to all be functions of one
-highly integrated chip.  A block diagram from nVidia literature on the
-chipset would probably make things clear.
+Now, I have that Logitech quickcam messenger that needs this driver:
 
+http://home.mag.cx/messenger/
 
-> > The prefetchable addr limit upper 32 bits differ
-> > on the PCI Bridge that the DVB card is behind.
-> > Also no SERR is reported by this bridge any longer.
-> 
-> What's responsible for setting the appropriate value? Maybe that's a clue.
+It wants to use the kernel headers I have and compile.
 
-The BIOS is probably responsible for basic setup of the motherboard to
-get disks and usb controllers working.  Additional setup is done by the
-pci drivers in the linux kernel, if I'm reading the source correctly.
-Although it looks like linux may leave bridge configurations alone under
-some conditions.
+But when I want to insert the module, it complains loudly:
 
+[31431.072034] quickcam: Unknown symbol video_devdata
+[31431.072436] quickcam: disagrees about version of symbol
+video_unregister_device
+[31431.072442] quickcam: Unknown symbol video_unregister_device
+[31431.072620] quickcam: disagrees about version of symbol
+video_register_device
+[31431.072624] quickcam: Unknown symbol video_register_device
 
-> One other thing. Is the tda10023 module reporting the real BER and UNC values? 
-> The reason I ask is with the new card I get a constant BER and UNC of 0 with 
-> QAM256 modulated channels even though there are still artefacts due to 
-> transmission errors. On the other hand, if those values are correct maybe the 
-> stream gets corrupted due to some other issues.
+My guess is that it was compiled against the v4l version in the Ubuntu
+header, and that I have in fact a different v4l version in binary form
+because I compiled and installed a recent v4l-dvb tree.
 
-You may have complete MPEG TS packet erasures being introduced somewhere
-before or after your digital tuner.  I'd think the tuner hardware
-wouldn't count those as bit errors, unless it made the packet erasure
-itself.
+Could someone give me directions about how I could compile my webcam
+driver against the proper code?
 
-If your cable provider gets a channel via some other digital feed
-subject to errors before passing it to you, then his transmission to you
-may be "cleaned up" and sent without error, but his original reception
-of the program may have experienced errors.
+Thanks much,
 
-
-> BTW I have increased the card's latency to 64. So far I haven't had any of 
-> those timeouts but I will have to do some more testing this weekend to see if 
-> it's really fixed.
-
-Cool.
-
-
->  I actually hoped those timeouts were causing the stream 
-> corruptions... well... can't be because I had those issues today and no 
-> timeouts.
-> 
-> If you have any other ideas what I could try to get to the bottom of this, 
-> please let me know. Thanks a lot in advance...!
-
-Watch the same digital channel on a dedicated television set at the same
-time you watch it on your computer.  That way you can test the
-hypothesis that the artifacts are introduced by your cable provider and
-not in transmission to your home or playback on your computer hardware.
-
--Andy
-
-> Have a nice weekend,
-> matthew.
-> 
-> PS. I have attached some more lspci output.
-
-
+Nico
 
 
 _______________________________________________
