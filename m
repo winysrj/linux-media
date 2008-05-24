@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.movial.fi ([62.236.91.34])
+Received: from wa-out-1112.google.com ([209.85.146.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dennis.noordsij@movial.fi>) id 1K2UVM-0000Cc-70
-	for linux-dvb@linuxtv.org; Sat, 31 May 2008 19:04:32 +0200
-Message-ID: <484184FB.9050308@movial.fi>
-Date: Sat, 31 May 2008 19:03:55 +0200
-From: Dennis Noordsij <dennis.noordsij@movial.fi>
+	(envelope-from <vivichrist@gmail.com>) id 1JzjEX-0003vv-I1
+	for linux-dvb@linuxtv.org; Sat, 24 May 2008 04:11:47 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so830648wag.13
+	for <linux-dvb@linuxtv.org>; Fri, 23 May 2008 19:11:38 -0700 (PDT)
+Message-ID: <48377956.2000307@gmail.com>
+Date: Sat, 24 May 2008 14:11:34 +1200
+From: vivian stewart <vivichrist@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <48414EC8.3080008@movial.fi> <48415A24.5080305@iki.fi>
-	<484183BC.6060405@movial.fi>
-In-Reply-To: <484183BC.6060405@movial.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] usb-dvb and endpoints question
+To: linux-dvb@linuxtv.org
+References: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.121.1211561290.824.linux-dvb@linuxtv.org>
+Subject: [linux-dvb]  [HVR1300] issue with VLC
+Reply-To: vivichrist@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,15 +27,8 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dennis Noordsij schreef:
->> Other thoughts, wMaxPacketSize 0x0040 1x 64 bytes looks rather small for
->> TS.
->
-> Incidentally, usb-sniff reports the following:
-
-Ahem, my mistake, mixed up some terminology. Sorry for the spam.
-
-
+I have problems with audio/video getting out of sync regardless of cache 
+side and dropframe etc. using HVR3000 and mplayer ... could be related.
 
 _______________________________________________
 linux-dvb mailing list
