@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43HuHeB009869
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 13:56:17 -0400
-Received: from web31306.mail.mud.yahoo.com (web31306.mail.mud.yahoo.com
-	[68.142.198.101])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m43Hu5Dv024857
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 13:56:05 -0400
-Date: Sat, 3 May 2008 10:55:59 -0700 (PDT)
-From: Azdine Trachi <azdine_trachi@yahoo.ca>
-To: Linux V4L Help <video4linux-list@redhat.com>
-Message-ID: <811572.83202.qm@web31306.mail.mud.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4OHnK14029698
+	for <video4linux-list@redhat.com>; Sat, 24 May 2008 13:49:20 -0400
+Received: from jade.aracnet.com (jade.aracnet.com [216.99.193.136])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4OHn679010259
+	for <video4linux-list@redhat.com>; Sat, 24 May 2008 13:49:06 -0400
+Received: from [192.168.0.100] (216-99-218-74.dsl.aracnet.com [216.99.218.74])
+	(authenticated bits=0)
+	by jade.aracnet.com (8.13.6/8.12.8) with ESMTP id m4OHn52k025523
+	for <video4linux-list@redhat.com>; Sat, 24 May 2008 10:49:05 -0700
+Message-ID: <4838550F.3070707@nvr.com>
+Date: Sat, 24 May 2008 10:49:03 -0700
+From: Todd Brunhoff <toddb@nvr.com>
+To: video4linux-list@redhat.com
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Subject: interface HD 5500 card with Matlab software
-Reply-To: azdine_trachi@yahoo.ca
+Content-Type: text/plain; charset="ISO-8859-1"
+Subject: XC5000 firmware for Pinnacle 800i
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
