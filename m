@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42JY6S9014510
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 15:34:07 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42JXrYE021983
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 15:33:53 -0400
-Received: by yw-out-2324.google.com with SMTP id 2so774486ywt.81
-	for <video4linux-list@redhat.com>; Fri, 02 May 2008 12:33:11 -0700 (PDT)
-Message-ID: <37219a840805021206r4f409269j1d2a6df260af8ca0@mail.gmail.com>
-Date: Fri, 2 May 2008 15:06:15 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Brandon Jenkins" <bcjenkins@gmail.com>
-In-Reply-To: <1209754601.3269.30.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4PNkg4s023589
+	for <video4linux-list@redhat.com>; Sun, 25 May 2008 19:46:42 -0400
+Received: from cnc.isely.net (cnc.isely.net [64.81.146.143])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4PNkVHd006252
+	for <video4linux-list@redhat.com>; Sun, 25 May 2008 19:46:31 -0400
+Date: Sun, 25 May 2008 18:46:24 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+In-Reply-To: <20080522223700.2f103a14@core>
+Message-ID: <Pine.LNX.4.64.0805251835520.25571@cnc.isely.net>
+References: <20080522223700.2f103a14@core>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <e686f5060805021035w1f804d9eifde9c7837737e618@mail.gmail.com>
-	<1209754601.3269.30.camel@palomino.walls.org>
-Cc: video4linux-list@redhat.com, ivtv-users@ivtvdriver.org
-Subject: Re: Trouble with drivers for CX18, CX23885, IVTV
+Cc: Video4Linux list <video4linux-list@redhat.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] video4linux: Push down the BKL
+Reply-To: Mike Isely <isely@pobox.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +30,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, May 2, 2008 at 2:56 PM, Andy Walls <awalls@radix.net> wrote:
->
-> On Fri, 2008-05-02 at 13:35 -0400, Brandon Jenkins wrote:
->  > Greetings,
->  >
->  > When the CX18 merge to the V4L tree happened, I began pulling the
->  > source from the v4l mercurial. Everything compiles correctly, but upon
->  > reboot the only driver which loads for me is cx88 all others fail
->  > with:
->  >
->  > [    8.554593] videobuf_dvb: disagrees about version of symbol
->  > videobuf_read_stop
+On Thu, 22 May 2008, Alan Cox wrote:
 
-You are using an Ubuntu Hardy Heron kernel -- This is Ubuntu's fault,
-not the drivers.
+> For most drivers the generic ioctl handler does the work and we update it
+> and it becomes the unlocked_ioctl method. Older drivers use the usercopy
+> method so we make it do the work. Finally there are a few special cases.
+> 
+> Signed-off-by: Alan Cox <alan@redhat.com>
 
-Please see accurate problem description AND workaround solution here:
+The pvrusb2 driver already should not require the BKL.  Though since 
+this driver (like every V4L driver) is using video_usercopy() then it's 
+obviously going along for the ride here with respect to the overall 
+issue here in pushing the lock down into video_usercopy().  In the mean 
+time, for the pvrusb2 portion of this patch...
 
-https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/220857
+Acked-By: Mike Isely <isely@pobox.com>
 
--Mike
+  -Mike
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
 
 --
 video4linux-list mailing list
