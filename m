@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1JxyaS-0007z4-HZ
-	for linux-dvb@linuxtv.org; Mon, 19 May 2008 08:11:08 +0200
-Message-ID: <48310988.8080806@pilppa.org>
-Date: Mon, 19 May 2008 08:00:56 +0300
-From: Mika Laitio <lamikr@pilppa.org>
-MIME-Version: 1.0
+Received: from firefly.xen.no ([193.71.199.6])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tlan@firefly.xen.no>) id 1K0GNH-0000u4-UN
+	for linux-dvb@linuxtv.org; Sun, 25 May 2008 15:35:00 +0200
+Date: Sun, 25 May 2008 15:34:56 +0200
+From: Thomas =?iso-8859-1?Q?Lang=E5s?= <thomas@langaas.org>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Well working S2 cards?
+Message-ID: <20080525133454.GA30316@firefly.xen.no>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Drivers for Technotrend CT-3650 CI (USB 2.0-device)
+Reply-To: thomas@langaas.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,23 +24,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Hi!
 
-I am planning to obtain satellite dish and some PCI or PCIE satellite 
-card for my Linux box that is running X86-64 on amd 4850e.
+I just got this device, and I see there's a driver called ttusb2 that
+seems to be what I need (with some modifications, I suspect).  I've got
+a few logs from when I've been playing with the device in Windows, and I
+see that there's a few more commands sent to the device (than is listen
+in the ttusb2-driver).  Is there a good util in Windows to send single
+commands to a device?  Like "adjust frequency", "adjust QAM-setting"
+etc?  I thoought that logging such settings might be the easiest way to
+decode the various messages sent to the device.  
 
-So far I have found the Technotrend S2-3200 and WinTV NOVA-HD-S2 that 
-seems to be pretty equally priced. Then the HVR-4000 costs about 50 euro 
-more but has in addition the DVB-T support.
+In advance, thanks!
 
-What card you would recommend for the Linux usage and for which one the 
-drivers are working best? (running on AMD x86-64 with 4850e cpu)
-And is there any differences in the tuner quality of these cards?
-
-I assume I would with all of these cards use these multiproto/multiprotu 
-plus versions from drivers and apps...
-
-Mika
+-- 
+Thomas
 
 _______________________________________________
 linux-dvb mailing list
