@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from mail-out.m-online.net ([212.18.0.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1K11Oc-0006yZ-LZ
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 17:47:30 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K11OV-0002q3-71
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 15:47:23 +0000
-Received: from 213-140-22-66.fastres.net ([213.140.22.66])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 27 May 2008 15:47:23 +0000
-Received: from kaboom by 213-140-22-66.fastres.net with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 27 May 2008 15:47:23 +0000
+	(envelope-from <zzam@gentoo.org>) id 1K0k1K-0001N7-PK
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 23:14:19 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-dvb@linuxtv.org
-From: Francesco Schiavarelli <kaboom@tiscalinet.it>
-Date: Tue, 27 May 2008 17:47:15 +0200
-Message-ID: <g1hae4$1eo$1@ger.gmane.org>
-References: <a451a2ff79285f88eff7d220d0ebcf91@woodvillage.de>
-Mime-Version: 1.0
-In-Reply-To: <a451a2ff79285f88eff7d220d0ebcf91@woodvillage.de>
-Subject: Re: [linux-dvb] Skystar USB 2
+Date: Mon, 26 May 2008 23:13:42 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_GgyOIbtb43vnkOU"
+Message-Id: <200805262313.42843.zzam@gentoo.org>
+Subject: [linux-dvb] [PATCH] Add Analog RF Tuner support for Avermedia
+	Avertv A700 Hybrid+FM DVB-S
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,22 +19,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-daniel wrote:
-> Can anyone help me with this? It's brandnew so I could also bring it back to the store,
-> but then it would be nice, if someone could name an alternative USB device.
+--Boundary-00=_GgyOIbtb43vnkOU
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Pinnacle PCTV-400e is working fine here (DVB-S only).
+Hi there!
 
-Francesco
+This is an untested patch to add support for the Analog RF Tuner for the 
+Avermedia Avertv A700 Hybrid+FM DVB-S card.
 
+It is currently untested.
+
+Regards
+Matthias
+
+--Boundary-00=_GgyOIbtb43vnkOU
+Content-Type: text/x-diff;
+  charset="utf-8";
+  name="avertv_a700_hybrid_rf_tuner.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="avertv_a700_hybrid_rf_tuner.diff"
+
+saa7134: add analog RF tuner support for Avermedia A700 DVB-S Hybrid+FM
+
+This patch adds support for the RF tuner input on the
+Avermedia A700 DVB-S Hybrid+FM card.
+It is currently untested.
+
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+
+Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
+@@ -4277,13 +4277,18 @@ struct saa7134_board saa7134_boards[] = 
+ 		/* Matthias Schwarzott <zzam@gentoo.org> */
+ 		.name           = "Avermedia DVB-S Hybrid+FM A700",
+ 		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_ABSENT, /* TUNER_XC2028 */
++		.tuner_type     = TUNER_XC2028,
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		/* no DVB support for now */
+ 		/* .mpeg           = SAA7134_MPEG_DVB, */
+ 		.inputs         = { {
++			.name = name_tv,
++			.vmux = 3, /* untested */
++			.amux = TV,
++			.tv   = 1,
++		}, {
+ 			.name = name_comp,
+ 			.vmux = 1,
+ 			.amux = LINE1,
+@@ -4292,6 +4297,10 @@ struct saa7134_board saa7134_boards[] = 
+ 			.vmux = 6,
+ 			.amux = LINE1,
+ 		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++		},
+ 	},
+ 	[SAA7134_BOARD_BEHOLD_H6] = {
+ 		/* Igor Kuznetsov <igk@igk.ru> */
+
+--Boundary-00=_GgyOIbtb43vnkOU
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_GgyOIbtb43vnkOU--
