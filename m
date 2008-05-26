@@ -1,30 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from outmailhost.telefonica.net ([213.4.149.242]
+	helo=ctsmtpout3.frontal.correo)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1JrwfZ-0002nA-4u
-	for linux-dvb@linuxtv.org; Fri, 02 May 2008 16:55:30 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K080038TXFG2250@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 02 May 2008 10:54:55 -0400 (EDT)
-Date: Fri, 02 May 2008 10:54:52 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <481B26E2.1050600@web.de>
-To: Torben Viets <viets@web.de>
-Message-id: <481B2B3C.5070403@linuxtv.org>
-MIME-version: 1.0
-References: <4815B2A9.4060209@web.de> <4815F0AF.4010709@linuxtv.org>
-	<4815FA2B.5030502@web.de> <4815FF67.6050004@linuxtv.org>
-	<4816050D.2040408@web.de> <48161163.9000602@linuxtv.org>
-	<4816186B.3030703@web.de> <48161B2D.6090602@linuxtv.org>
-	<48176236.1020306@web.de> <481763AA.4030702@linuxtv.org>
-	<481767E4.8030608@web.de> <48176969.6070306@linuxtv.org>
-	<4817935E.8090801@web.de> <4817ACDA.1010105@web.de>
-	<4817BD7F.9000902@linuxtv.org> <481B26E2.1050600@web.de>
+	(envelope-from <jareguero@telefonica.net>) id 1K0bY4-0003eK-S6
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 14:11:35 +0200
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Andy Walls <awalls@radix.net>
+Date: Mon, 26 May 2008 14:10:50 +0200
+References: <200805241817.07810.jareguero@telefonica.net>
+	<1211682783.3200.36.camel@palomino.walls.org>
+	<1211766048.20092.7.camel@palomino.walls.org>
+In-Reply-To: <1211766048.20092.7.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200805261410.50862.jareguero@telefonica.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1700 Support
+Subject: Re: [linux-dvb] [PATCH] Fix tuner_warn() induced kernel Ooops in
+	simple_tuner_attach()
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,51 +24,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Torben Viets wrote:
-> Steven Toth wrote:
->>
->>> Hey, I've update, now the dvb works with 2.6.25 ant the v4l-dvb hg, I 
->>> was sure that I already tried this combinations...
->>
->> Good, because it's working for various other peopple too.
->>
->>>
->>> Now, only the analog input have to work (this was the main reason I 
->>> bought this card), is it really so hard, because I
->>> saw that the HVR-1600 and the HVR-1800 is supported.
->>
->>
->> lol, after all this traffic, bad news for you because analog doesn't 
->> work - it never has.
->>
->> - Steve
->>
-> 
-> yes, but better I've got DVB-T , than nothing, but the main reason was 
-> the analog Mpeg encoder and I thought HVR-1700 and HVR-1800 have the 
-> same chipset (cx23817). That's why I'm thought it should work. If I make 
-> a modprobe cx23885 card=2 (this is the Cardid for HVR-1800), I've got 
-> video0 and video1, but I 'don't know whether it doesn't work or don't 
-> know which program I've to use. But after your comments I think it is 
-> useless.
-
-Hi,
-
-Sorry, I'm not too worried about supporting the HVR1700 analog video 
-anytime soon. It's just not a priority on my list.
-
-Still, you have great DVB-T support :)
-
-- Steve
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+RWwgTHVuZXMgMjYgTWF5byAyMDA4LCBBbmR5IFdhbGxzIGVzY3JpYmnDszoKPiBPbiBTYXQsIDIw
+MDgtMDUtMjQgYXQgMjI6MzMgLTA0MDAsIEFuZHkgV2FsbHMgd3JvdGU6Cj4gPiBPbiBTYXQsIDIw
+MDgtMDUtMjQgYXQgMTg6MTcgKzAyMDAsIEpvc2UgQWxiZXJ0byBSZWd1ZXJvIHdyb3RlOgo+ID4g
+PiBXb3JrIHdlbGwgd2l0aCBrZXJuZWwgMi42LjI1Cj4gPiA+Cj4gPiA+IEpvc2UgQWxiZXJ0bwo+
+ID4KPiA+IEl0IGxvb2tzIGxpa2Ugc29tZXRoaW5nIGFib3V0IHRoZSAidHVuZXJfd2FybigpIiBt
+YWNybyBpcyBjYXVzaW5nCj4gPiByZWZlcmVuY2VzIHRvIGJlIG1hZGUgdG8gdmVyeSBsb3cgbWVt
+b3J5IGFkZHJlc3Nlcy4gIFRoYXQgaXMgcHJvYmFibHkKPiA+IG5vdCByaWdodC4KPiA+Cj4gPiBT
+byBsZXQncyBsb29rIGZ1cnRoZXI6IGhlcmUgaXMgdGhlIHNhbWUgc2VjdGlvbiBvZgo+ID4gdHVu
+ZXItc2ltcGxlLmM6c2ltcGxlX3R1bmVyX2F0dGFjaCgpIGFmdGVyIHByZXByb2Nlc3NpbmcsIGJ1
+dCBiZWZvcmUKPiA+IGNvbnZlcnNpb24gdG8gYXNzZW1ibHk6Cj4gPgo+ID4gICAgIGlmIChmZS0+
+b3BzLmkyY19nYXRlX2N0cmwpCj4gPiAgICAgIGZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMSk7
+Cj4gPgo+ID4gICAgIGlmICgxICE9IGkyY190cmFuc2ZlcihpMmNfYWRhcCwgJm1zZywgMSkpCj4g
+PiAgICAgIGRvIHsgZG8geyBwcmludGsoIjw0PiIgIiVzICVkLSUwNHg6ICIgInVuYWJsZSB0byBw
+cm9iZSAlcywKPiA+IHByb2NlZWRpbmcgYW55d2F5LiIsIHByaXYtPmkyY19wcm9wcy5uYW1lLCBw
+cml2LT5pMmNfcHJvcHMuYWRhcCA/Cj4gPiBpMmNfYWRhcHRlcl9pZChwcml2LT5pMmNfcHJvcHMu
+YWRhcCkgOiAtMSwgcHJpdi0+aTJjX3Byb3BzLmFkZHIsCj4gPiB0dW5lcnNbdHlwZV0ubmFtZSk7
+IH0gd2hpbGUgKDApOyB9IHdoaWxlICgwKTsKPiA+Cj4gPgo+ID4gICAgIGlmIChmZS0+b3BzLmky
+Y19nYXRlX2N0cmwpCj4gPiAgICAgIGZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMCk7Cj4gPgo+
+ID4KPiA+IEhtbW0uIExvdHMgb2YgZGVyZWZlcmVuY2VzIG9mIHNvbWV0aGluZyBjYWxsZWQgInBy
+aXYiLiAgTG9va2luZyBhdCB0aGUKPiA+IHRvcCBvZiB0dW5lci1zaW1wbGUuYzpzaW1wbGVfdHVu
+ZXJfYXR0YWNoKCkgd2UgZmluZDoKPiA+Cj4gPiAxMDMyICAgICAgICAgc3RydWN0IHR1bmVyX3Np
+bXBsZV9wcml2ICpwcml2ID0gTlVMTDsKPiA+IDEwMzMgICAgICAgICBpbnQgaW5zdGFuY2U7Cj4g
+Pgo+ID4gV2l0aCBubyBvdGhlciBvcGVyYXRpb25zIG9uICJwcml2IiBiZWZvcmUgdGhlICJ0dW5l
+cl93YXJuKCkiCj4gPiBpbnZvY2F0aW9uLgo+ID4KPiA+IFNvIHR1bmVyLXNpbXBsZS5jOnNpbXBs
+ZV90dW5lcl9hdHRhY2goKSBoYXMgYSBoYXJkIGNvZGVkIE5VTEwgcG9pbnRlcgo+ID4gZGVyZWZl
+cmVuY2UgYnVyaWVkIGluIGEgbWFjcm8gdGhhdCBvbmx5IHNvbWV0aW1lcyBnZXRzIGV4ZWN1dGVk
+Lgo+Cj4gUGF0Y2ggYXR0YWNoZWQuICBJdCBjb21waWxlcy4gIEkgYXNzdW1lIGl0IHdvcmtzLgo+
+Cj4gSSBkaWQgYSBzZWFyY2ggdGhyb3VnaCB0aGUgcmVzdCBvZiB0dW5lci1zaW1wbGUuYyBhbmQg
+ZGlkIG5vdCBzZWUgYW55Cj4gb3RoZXIgaW5zdGFuY2VzIG9mIHR1bmVyX3dhcm4oKSBiZWluZyBj
+YWxsZWQgd2l0aG91dCAicHJpdiIgYmVpbmcKPiBkZWZpbmVkLgo+Cj4gUmVnYXJkcywKPiBBbmR5
+CgpUaGFua3MuIEl0ICB3b3Jrcy4KCkpvc2UgQWxiZXJ0bwoKCgoKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
+dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LWR2Yg==
