@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f189.mail.ru ([194.67.57.153])
+Received: from outgoing.selfhost.de ([82.98.87.70] helo=mordac.selfhost.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1Jz7C3-0002AR-Q9
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 11:34:40 +0200
-Received: from mail by f189.mail.ru with local id 1Jz7BS-000Pdm-00
-	for linux-dvb@linuxtv.org; Thu, 22 May 2008 13:34:02 +0400
-From: Igor <goga777@bk.ru>
+	(envelope-from <bumkunjo@gmx.de>) id 1K0SKe-0007um-4C
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 04:21:05 +0200
+From: bumkunjo@gmx.de
 To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Thu, 22 May 2008 13:34:02 +0400
-References: <200805221013.10246.ajurik@quick.cz>
-In-Reply-To: <200805221013.10246.ajurik@quick.cz>
-Message-Id: <E1Jz7BS-000Pdm-00.goga777-bk-ru@f189.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?UmUgOiBSZSA6IE5vIGxvY2sgcG9zc2libGUgYXQg?=
-	=?koi8-r?b?c29tZSBEVkItUzIgY2hhbm5lbHN3aXRoIFRUIFMyLTMyMDAvbGlu?=
-	=?koi8-r?b?dXg=?=
-Reply-To: Igor <goga777@bk.ru>
+Date: Mon, 26 May 2008 04:20:58 +0200
+References: <20080525112820.374AC104F0@ws1-3.us4.outblaze.com>
+In-Reply-To: <20080525112820.374AC104F0@ws1-3.us4.outblaze.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200805260420.59067.bumkunjo@gmx.de>
+Cc: stev391@email.com
+Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express [PATCH]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,14 +26,79 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> my friend told me that he is sometimes able to get lock by decreasing (not 
-> increasing) the frequency. Yesterday I've tested it and it seems to me he was 
-> right. So I'm able to get (not very stable, for few minutes) lock as well as 
-> by increasing and by decreasing frequency of the same channel (EurosportHD). 
 
-yes. it's right. Also you can decrease/incease the symbol rate - sometimes it can help to get the LOCK.
+Thanks for the patch, Frieder - it seems to work perfectly on my vdr box - all 
+channels tune - good reception.
+i will report if any issues appear. if I can help testing upcoming versions of 
+the driver ask me.
 
-Igor
+Thanks a lot to Chris and Stephen for your work,
+
+Jochen
+
+Am Sonntag 25 Mai 2008 13:28:20 schrieb stev391@email.com:
+>  Hans-Frieder,
+>
+> Thanks, for this patch.  I have tested it on 1 of 3 machines that I have
+> access to with this DVB card. No issues (Now loads 80 firmwares, instead
+> of 3)
+>
+> It doesn't break Chris Pascoe's xc-test branch with the DViCO Fusion HDTV
+> DVB-T Dual Express.
+>
+> It also makes my patch, to get support into the v4l-dvb head, (newer
+> version then posted here) work a lot more reliably (Perfectly on this
+> test machine, I will run it on my mythbox for a week or so before I post
+> it).
+>
+> I think you should email Chris Pascoe and petition him to include it in
+> his branch.  As this will definitely help alot of people out.
+>
+> Thanks again,
+>
+> Stephen.
+>
+>   ----- Original Message -----
+>   From: "Hans-Frieder Vogt"
+>   To: "jochen s" , stev391@email.com
+>   Subject: Re: [linux-dvb] DViCO Fusion HDTV DVB-T Dual Express [PATCH]
+>   Date: Fri, 23 May 2008 21:46:58 +0200
+>
+>
+>   Jochen,
+>
+>   you are indeed missing firmwares. The xc-test branch from Chris
+>   Pascoe uses the special collection of firmwares
+>   xc3028-dvico-au-01.fw which only contains firmwares for 7MHz
+>   bandwidth (just try to tune a channel in the 7MHz band to confirm
+>   this). To make the card work also for other bandwidths please apply
+>   the following patch and put the standard firmware for xc3028
+>   (xc3028-v27.fw) in the usual place (e.g. /lib/firmware).
+>
+>   This approach should also work for australia, because the standard
+>   firmware also contains those firmwares in xc3028-dvico-au-01.fw.
+>
+>   Stephen, can you confirm this?
+>
+>   Cheers,
+>   Hans-Frieder
+>
+>   --- xc-test.orig/linux/drivers/media/video/cx23885/cx23885-dvb.c
+>   2008-04-26 23:40:52.000000000 +0200
+>   +++ xc-test/linux/drivers/media/video/cx23885/cx23885-dvb.c
+>   2008-05-19 23:15:08.000000000 +0200
+>   @@ -217,9 +217,9 @@ static int dvb_register(struct cx23885_t
+>   .callback = cx23885_dvico_xc2028_callback,
+>   };
+>   static struct xc2028_ctrl ctl = {
+>   - .fname = "xc3028-dvico-au-01.fw",
+>   + .fname = "xc3028-v27.fw",
+>   .max_len = 64,
+>   - .scode_table = ZARLINK456,
+>   + .demod = XC3028_FE_ZARLINK456,
+>   };
+>
+>   fe = dvb_attach(xc2028_attach, port->dvb.frontend,
 
 
 
