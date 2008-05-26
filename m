@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.236])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bvidinli@gmail.com>) id 1JzvVS-0006ok-I6
-	for linux-dvb@linuxtv.org; Sat, 24 May 2008 17:18:03 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1502304rvf.41
-	for <linux-dvb@linuxtv.org>; Sat, 24 May 2008 08:17:58 -0700 (PDT)
-Message-ID: <36e8a7020805240817w3130d876tf685b4648623c8b@mail.gmail.com>
-Date: Sat, 24 May 2008 18:17:57 +0300
-From: bvidinli <bvidinli@gmail.com>
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1K0jrp-0000Cr-4S
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 23:04:29 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1K0jrk-00020p-Sl
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 21:04:24 +0000
+Received: from 213-140-22-66.fastres.net ([213.140.22.66])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 26 May 2008 21:04:24 +0000
+Received: from kaboom by 213-140-22-66.fastres.net with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 26 May 2008 21:04:24 +0000
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] distributions that work with linuxtv and dvb drivers
+From: Francesco Schiavarelli <kaboom@tiscalinet.it>
+Date: Mon, 26 May 2008 23:04:13 +0200
+Message-ID: <g1f8kg$upn$1@ger.gmane.org>
+References: <g072jh$h25$1@ger.gmane.org> <g0sact$e6d$1@ger.gmane.org>
+Mime-Version: 1.0
+In-Reply-To: <g0sact$e6d$1@ger.gmane.org>
+Subject: Re: [linux-dvb] dvbnet not working anymore with 2.6.25
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,11 +34,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-May i ask,
-what are linux distributions, that you know to be working with
-linuxtv/dvb drivers and preferably mathius' patches... ?
+I've narrowed down the problem to kernel version 2.6.24.
+This is the output with
+# strace ifconfig dvb0_0 10.0.0.1 promisc up
 
-thanks
+(WORKING)
+...
+> open("/usr/share/locale/en_US/LC_MESSAGES/net-tools.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> open("/usr/share/locale/en/LC_MESSAGES/net-tools.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> ioctl(4, SIOCSIFADDR, 0xbfc8e968)       = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_BROADCAST|IFF_NOARP|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc8e85c)      = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_UP|IFF_BROADCAST|IFF_RUNNING|IFF_NOARP|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc8e85c)      = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_UP|IFF_BROADCAST|IFF_RUNNING|IFF_NOARP|IFF_PROMISC|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc8e85c)      = 0
+> exit_group(0)                           = ?
+> Process 24330 detached
+
+(NOT WORKING)
+...
+> open("/usr/share/locale/en_US/LC_MESSAGES/net-tools.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> open("/usr/share/locale/en/LC_MESSAGES/net-tools.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> ioctl(4, SIOCSIFADDR, 0xbfc59138)       = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_BROADCAST|IFF_NOARP|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc5902c)      = -1 EADDRNOTAVAIL (Cannot assign requested address)
+> dup(2)                                  = 5
+> fcntl64(5, F_GETFL)                     = 0x2 (flags O_RDWR)
+> fstat64(5, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 1), ...}) = 0
+> mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb7f3c000
+> _llseek(5, 0, 0xbfc58a88, SEEK_CUR)     = -1 ESPIPE (Illegal seek)
+> open("/usr/share/locale/en_US/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> open("/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY) = -1 ENOENT (No such file or directory)
+> write(5, "SIOCSIFFLAGS: Cannot assign requ"..., 46SIOCSIFFLAGS: Cannot assign requested address
+> ) = 46
+> close(5)                                = 0
+> munmap(0xb7f3c000, 4096)                = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_BROADCAST|IFF_NOARP|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc5902c)      = 0
+> ioctl(4, SIOCGIFFLAGS, {ifr_name="dvb0_0", ifr_flags=IFF_BROADCAST|IFF_NOARP|IFF_PROMISC|IFF_MULTICAST}) = 0
+> ioctl(4, SIOCSIFFLAGS, 0xbfc5902c)      = -1 EADDRNOTAVAIL (Cannot assign requested address)
+> dup(2)                                  = 5
+> fcntl64(5, F_GETFL)                     = 0x2 (flags O_RDWR)
+> fstat64(5, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 1), ...}) = 0
+> mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb7f3c000
+> _llseek(5, 0, 0xbfc58a88, SEEK_CUR)     = -1 ESPIPE (Illegal seek)
+> write(5, "SIOCSIFFLAGS: Cannot assign requ"..., 46SIOCSIFFLAGS: Cannot assign requested address
+> ) = 46
+> close(5)                                = 0
+> munmap(0xb7f3c000, 4096)                = 0
+> exit_group(-1)                          = ?
+> Process 2778 detached
+
+Not being a kernel hacker I was not able to investigate deeply the problem.
+Can it be related to new NAPI in /net/core/dev.c? I don't have a clue.
+Also no answers on this ml, so probably I'm alone with this problem.
+
+thanks,
+Francesco
+
 
 _______________________________________________
 linux-dvb mailing list
