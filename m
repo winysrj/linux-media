@@ -1,31 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CEgknL028306
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:42:46 -0400
-Received: from mta4.srv.hcvlny.cv.net (mta4.srv.hcvlny.cv.net [167.206.4.199])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CEgYBx006366
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 10:42:34 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K0R00H7UFIS51X0@mta4.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Mon, 12 May 2008 10:42:29 -0400 (EDT)
-Date: Mon, 12 May 2008 10:42:28 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <481B31CC.6090606@linuxtv.org>
-To: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <48285754.8010608@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <481B1027.1040002@linuxtv.org>
-	<1209736068.3475.66.camel@palomino.walls.org>
-	<481B31CC.6090606@linuxtv.org>
-Cc: Steven Toth <stoth@hauppauge.com>, Michael Krufky <mkrufky@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE in
- page.h
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QFXcZp000947
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 11:33:38 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QFXK0t026481
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 11:33:21 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1359021fga.7
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 08:33:20 -0700 (PDT)
+Message-ID: <6cdc87030805260833x180aa1caxdf7fb2699207a0a@mail.gmail.com>
+Date: Mon, 26 May 2008 17:33:20 +0200
+From: "Aimar Marco" <marco.aimar@gmail.com>
+To: "Michael Hunold" <hunold@linuxtv.org>
+In-Reply-To: <483AB549.9070603@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
+	<483AB549.9070603@linuxtv.org>
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7146 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,17 +31,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Steven Toth wrote:
->>         if (cx->dev)
->>                 cx18_iounmap(cx);
-> 
-> This doesn't feel right.
+On Mon, May 26, 2008 at 3:04 PM, Michael Hunold <hunold@linuxtv.org> wrote:
+> Hello Aimar,
+>
+> on 20.05.2008 22:26 Aimar Marco said the following:
+>> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+>>       Subsystem: Unknown device 4342:4343
+>
+> A quick search on the net did not bring up any vendor that matches this
+> id. What kind of card is this?
+You can view photo:
+-box: http://img151.imageshack.us/img151/4577/scava0.jpg
+-card: http://img138.imageshack.us/img138/2078/dsc00127modaf2.jpg
+It don't have manufacture name :(
+thank for your help
 
-Hans / Andy,
 
-Any comments?
-
-- Steve
+-- 
+A presto, Aimar Marco
 
 --
 video4linux-list mailing list
