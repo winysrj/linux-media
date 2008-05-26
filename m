@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4K1SgY3013461
-	for <video4linux-list@redhat.com>; Mon, 19 May 2008 21:28:43 -0400
-Received: from exprod8og107.obsmtp.com (exprod8og107.obsmtp.com [64.18.3.94])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4K1SU6I029857
-	for <video4linux-list@redhat.com>; Mon, 19 May 2008 21:28:31 -0400
-Content-class: urn:content-classes:message
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QLQhjo021771
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 17:26:43 -0400
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QLQVoD023848
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 17:26:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: v4l <video4linux-list@redhat.com>
+Date: Mon, 26 May 2008 23:26:30 +0200
 MIME-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Date: Mon, 19 May 2008 18:11:09 -0700
-Message-ID: <A0E1B902C85838448AEA276170BCB5A509742CF1@NEVAEH.startrac.com>
-From: "Dan Taylor" <dtaylor@startrac.com>
-To: <video4linux-list@redhat.com>
-Content-Transfer-Encoding: 8bit
-Subject: memory leak with CX88 ALSA audio
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200805262326.30501.hverkuil@xs4all.nl>
+Cc: Michael Schimek <mschimek@gmx.at>
+Subject: Need VIDIOC_CROPCAP clarification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,76 +27,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have been using MPlayer-1.0rc2, with the recommended patches through
-February 2008.
+Hi all,
 
-I am running Ubuntu 8.04, and have also built and tested a custom kernel
-with the drivers/media components from 2.6.26-rc2.
+How should the pixelaspect field of the v4l2_cropcap struct be filled? 
+Looking at existing drivers it can be anything from 0/0, 1/1, 54/59 for 
+PAL/SECAM and 11/10 for NTSC or the horizontal number of samples/the 
+horizontal number of pixels.
 
-I have tried this with two different cards, a pcHDTV-5500 (cx88) and an
-AverMEDIA A16D (saa7134), and get the symptom only with the cx88.  If I
-use the ALSA PCI streaming audio and memory leaks badly enough to run
-the system out of free memory within a few hours.  This does NOT happen
-if I use the analog audio out of the '5500, and my pcHDTV-3000 does not
-(yet) have the PCI audio output.
+However, it is my understanding that the last one as used in bttv is the 
+correct interpretation. Meaning that if the horizontal unit used for 
+cropping is equal to a pixel (this is the case for most drivers), then 
+pixelaspect should be 1/1. If the horizontal unit is different from a 
+pixel, then it should be:
 
-Here's the config line for the '5500:
+(total number of horizontal units) / (horizontal pixels)
 
-tv=driver=v4l2:chanlist=us-cable:norm=NTSC-M:alsa=1:adevice=hw.1,0:immed
-iatemode=0:audiorate=48000:forceaudio=1:outfmt=yuy2
+So given a crop coordinate X, the corresponding coordinate in pixels 
+would be:
 
-When started mplayer uses about 2.1% of 1 GiByte system memory (reported
-by "top"); 20 minutes later it is 10.7 and continues to rise.
+X * pixelaspect.denominator / pixelaspect.numerator
 
-I don't mind trying to find the problem myself, but I need some idea
-where to start.  I did notice a suspicious bit of code in cx88-alsa.c,
-but changing it doesn't seem to help.
+This is what bttv does and I'm pretty sure that's when this ioctl was 
+introduced.
 
-from cx88-alsa.c: if both AUD_INT_DN_SYNC and AUD_INT_DN_RISCI1 are
-asserted, as my log shows, then AUD_INT_DN_RISCI1 is not serviced due to
-the "return" marked "???" in the AUD_INT_DN_SYNC case.
+Assuming this is correct, then the Spec needs to be fixed in several 
+places (and drivers too, for that matter):
 
-static void cx8801_aud_irq(snd_cx88_card_t *chip)
-{
-	struct cx88_core *core = chip->core;
-	u32 status, mask;
+- all references to the term 'pixel aspect' are incorrect: it has 
+nothing to do with the pixel aspect, it is about the ratio between the 
+horizontal sampling frequency and the 'pixel frequency'.
 
-	status = cx_read(MO_AUD_INTSTAT);
-	mask   = cx_read(MO_AUD_INTMSK);
-	if (0 == (status & mask))
-		return;
-	cx_write(MO_AUD_INTSTAT, status);
-	if (debug > 1  ||  (status & mask & ~0xff))
-		cx88_print_irqbits(core->name, "irq aud",
-				   cx88_aud_irqs,
-ARRAY_SIZE(cx88_aud_irqs),
-				   status, mask);
-	/* risc op code error */
-	if (status & AUD_INT_OPC_ERR) {
-		printk(KERN_WARNING "%s/1: Audio risc op code
-error\n",core->name);
-		cx_clear(MO_AUD_DMACNTRL, 0x11);
-		cx88_sram_channel_dump(core,
-&cx88_sram_channels[SRAM_CH25]);
-	}
-	if (status & AUD_INT_DN_SYNC) {
-#if 0
-		timestamp();
-#endif
-		dprintk(1, "Downstream sync error\n");
-		cx_write(MO_AUDD_GPCNTRL, GP_COUNT_CONTROL_RESET);
-		return; /* ??? */
-	}
-	/* risc1 downstream */
-	if (status & AUD_INT_DN_RISCI1) {
-#if 0
-		timestamp();
-#endif
-		atomic_set(&chip->count, cx_read(MO_AUDD_GPCNT));
-		snd_pcm_period_elapsed(chip->substream);
-	}
-	/* FIXME: Any other status should deserve a special handling? */
-}
+- the description of 'bounds' is wrong: "Width and height are defined in 
+pixels, the driver writer is free to choose origin and units of the 
+coordinate system in the analog domain." This is contradictory: the 
+width units are up to the driver so the unit for the width is not 
+necessarily a pixel. The way the cropping is setup implies that the 
+height and Y coordinates are ALWAYS in line (aka pixel) units. It 
+cannot be anything else since that's the way analog video works. You 
+can't sample the height of half a line.
+
+- pixelaspect: has nothing to do with the pixel aspect. So the 
+references to PAL/SECAM and NTSC are irrelevant.
+
+Comments?
+
+	Hans
 
 --
 video4linux-list mailing list
