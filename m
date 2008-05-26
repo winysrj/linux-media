@@ -1,22 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CDvlnZ022469
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 09:57:47 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CDvbU4010615
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 09:57:37 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2549120rvb.51
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 06:57:36 -0700 (PDT)
-Message-ID: <62e5edd40805120657q156cec8bkd9f2cd846889bcdf@mail.gmail.com>
-Date: Mon, 12 May 2008 15:57:36 +0200
-From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QKqAJF011960
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:52:10 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QKpEwX007418
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:51:14 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1458086fga.7
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 13:51:13 -0700 (PDT)
+Message-ID: <6cdc87030805261351w1b35c1b0n136709c888f07682@mail.gmail.com>
+Date: Mon, 26 May 2008 22:51:13 +0200
+From: "Aimar Marco" <marco.aimar@gmail.com>
+To: Eugene <roginovicci@nm.ru>
+In-Reply-To: <200805270031.07302.roginovicci@nm.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: m560x driver devel <m560x-driver-devel@lists.sourceforge.net>
-Subject: Searching for an image sensor with an I2C address of 0x5A
+References: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
+	<483AB549.9070603@linuxtv.org>
+	<6cdc87030805260833x180aa1caxdf7fb2699207a0a@mail.gmail.com>
+	<200805270031.07302.roginovicci@nm.ru>
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7146 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,18 +33,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+>> You can view photo:
+>> -box: http://img151.imageshack.us/img151/4577/scava0.jpg
+>> -card: http://img138.imageshack.us/img138/2078/dsc00127modaf2.jpg
+> Hmm, but where is RF block?
+>
+mmm...do not think so!
 
-I'm one of the developers of the downstream ALi m560x webcam project.
-Recently I've come across an unknown sensor connected to the ALi m5602 chip
-and I've been struggling to identify it.
-All I currently know is that it has an I2C address of 0x5A.
 
-Does someone know an image sensor connecting via that address and, if
-possible and available, post a link to some datasheets for it?
+-- 
+A presto, Aimar Marco
 
-Regards,
-Erik Andr=E9n
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
