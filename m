@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4CF7Q3X021145
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 11:07:26 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4CF6gPW022518
-	for <video4linux-list@redhat.com>; Mon, 12 May 2008 11:06:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Date: Mon, 12 May 2008 17:05:58 +0200
-References: <481B1027.1040002@linuxtv.org>
-	<1209782607.27140.14.camel@palomino.walls.org>
-In-Reply-To: <1209782607.27140.14.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QD4N5N027754
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:04:23 -0400
+Received: from bar.sig21.net (bar.sig21.net [88.198.146.85])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QD4ASp031601
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:04:11 -0400
+Message-ID: <483AB549.9070603@linuxtv.org>
+Date: Mon, 26 May 2008 15:04:09 +0200
+From: Michael Hunold <hunold@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Aimar Marco <marco.aimar@gmail.com>
+References: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
+In-Reply-To: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200805121705.58552.hverkuil@xs4all.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>, ivtv-devel@ivtvdriver.org
-Subject: Re: [PATCH] Fix potential cx18_cards[] entry leaks
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7146 card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,44 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 03 May 2008 04:43:27 Andy Walls wrote:
-> Hans,
->
-> When investigating Mike Krufky's report of module reload problems, I
-> ran across problems with the management of the cx18_cards[] array. 
-> They're corner cases and not likely to be the cause of Mike problems
-> though.
->
-> Upon error conditions in cx18_probe(), the code at the 'err:' label
-> could leak cx18_cards[] entries.  Not a big problem since there are
-> 32 of them, but they could have caused a NULL pointer de-reference in
-> cx18_v4l2_open().
->
-> The attached patch fixes these and reworks the management of the
-> cx18_cards[] entries.  The cx18_active_cards variable is replaced
-> with cx18_highest_cards_index (because that's essentially what
-> cx18_active_cards_was doing +1), and cleanup of entries happens a
-> little more pedantically (obtaining the lock, and removing each entry
-> on a pci remove, instead of waiting until module unload).
->
-> The attached patch was made against the latest v4l-dvb hg repository.
->
-> Comments welcome.
->
-> Regards,
-> Andy
+Hello Aimar,
 
-Hi Andy,
+on 20.05.2008 22:26 Aimar Marco said the following:
+> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+> 	Subsystem: Unknown device 4342:4343
 
-Thanks for looking into this. I've copied the open() fix into the cx18 
-and ivtv drivers, but not the additional changes: in my opinion they do 
-not actually add anything useful. The potential NULL pointer 
-dereference is however an important fix and definitely should go into 
-2.6.26.
+A quick search on the net did not bring up any vendor that matches this
+id. What kind of card is this?
 
-Regards,
+> and with this card I don't have a /dev/videoX.....
 
-	Hans
+Besides the generic saa7146 driver you need a so-called extension driver
+for your specific hardware. There is no extension driver for your
+hardware yet, so no /dev/videoX.
+
+> With another card (with chip bt878) my linux work (it created
+> /dev/video0)...any idea?
+
+As said above, there is no extension driver for your hardware.
+
+> thank you
+
+CU
+Michael.
 
 --
 video4linux-list mailing list
