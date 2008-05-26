@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JxCo9-0006ac-Qh
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 05:10:07 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Tim Hewett <tghewett2@onetel.com>
-In-Reply-To: <EB92D838-BD10-459D-89FA-AB538B791D45@onetel.com>
-References: <EB92D838-BD10-459D-89FA-AB538B791D45@onetel.com>
-Date: Sat, 17 May 2008 05:09:00 +0200
-Message-Id: <1210993740.2517.11.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] BBC HD on Freesat?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <acros@gmx.de>) id 1K0iLz-0002nw-HN
+	for linux-dvb@linuxtv.org; Mon, 26 May 2008 21:27:32 +0200
+Message-ID: <483B0F00.4040305@gmx.de>
+Date: Mon, 26 May 2008 21:26:56 +0200
+From: Acros <acros@gmx.de>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Hauppauge HVR1110 Firmware Not Loading
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,66 +22,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hello!
 
-Am Samstag, den 17.05.2008, 00:40 +0100 schrieb Tim Hewett:
-> Try this using VLC:
-> 
-> vlc dvb:// :dvb-adapter=<YOUR_CARD_NO> :dvb-frequency=10847000 :dvb- 
-> srate=22000000 :programs=6940
-> 
-> You might have to select the program manually but this should setup  
-> the tuner ok for you. It is on a DVB-S transponder, not DVB-S2, so any  
-> budget hardware should be fine.
-> 
-> I overclock my 2GHz AMD64 X2 to 2.4GHz to watch it smoothly, also try  
-> selecting "Bob" as the de-interlacing option to avoid the jagged edges  
-> when the camera pans.
-> 
-> I've not managed to get VLC to play ITV HD yet as it is a non-standard  
-> broadcast, but it is displayed using DVBViewer under Windows if you  
-> adjust some of the settings for the channel (force it to H.264, mainly).
-> 
-> The only "special" thing about Freesat is the EPG and interactive  
-> services. All the channels (except ITV HD) can be viewed using any FTA  
-> receiver. Some have found ways to get some FTA HD receivers to display  
-> ITV HD, see some of the threads at Digital Spy.
-> 
-> HTH,
-> 
-> Tim.
+I'm having a problem with my Hauppauge HVR1110-Card (a PCI-Card with 
+tda10046 Frontend).
+I already posted this in the IRC-Channel but got no answer.
+I am trying to use the DVB-T-Part of the Card, sometimes it works fine, 
+but most the time there is some problem with firmware uploading.
+I've turned on debugging in the tda1004x module, and it seems that 
+during the firmware upload tda10046_init() is executed a second time and 
+messing up something.
+Here is a syslog when it's not working, at line 2500 tda10046_init() is 
+executed during firmware upload: http://ubuntuusers.de/paste/226485/
+The few times it is working, this is not occuring, tda10046_init() is 
+only executed once and the firmware upload finishes without errors.
+When its not working, also removing and re-inserting of the 
+kernel-module doesn't help, i have to reboot the computer.
 
-hmm, what is interesting on BBC HD currently, that you can't get
-anywhere else as well? EPG sucks on all DVB-S stuff.
+I am running Ubuntu 8.04 and have no other OS installed where the 
+working firmware might be coming from.
 
-But which content is new there?
+I have no clue where this is coming from, maybe something with 
+hotplugging? (is hotplug used for firmware upload?)
+It is really annoying to reboot the system three or four times to get 
+the TV thing working (the sole purpose of this pc is watching tv/movies)
 
-I assume nothing for now. I doubt anything is worth to move the dish for
-it.
-
-Cheers,
-Hermann
-
-> 
-> > Hi all, I'm interested in watching BBC HD broadcasts from the new  
-> > freesat service. However there seems to be conflicting reports about  
-> > what hardware this is possible with.  In particular there is comment  
-> > here from the freesat people that seems to imply that they will use  
-> > some sort access restrictions: http://uk.news.yahoo.com/techdigest/20080423/ttc-opinion-freesat-confusion-and-secrec-e870a33.html 
-> >  "would like to clarify that the Hauppauge free-to-air USB2  
-> > satellite tuner is not a freesat licensed product and as such will  
-> > not receive freesat services. freesat licensed products can be  
-> > identified by the freesat logo and are subject to a stringent test  
-> > and conformance regime." So... 1) does anyone know if the freesat  
-> > broadcasts are encrypted or real free to air? 2) Is anyone  
-> > successfully watching freesat including the BBC HD broadcasts under  
-> > linux? 3) And if so what hardware are you using? (I'm particularly  
-> > interested in USB attached hardware as I have no room in my media  
-> > centre case for a tuner card :D, but maybe I will have to buy a new  
-> > case!) Cheers, Steve.
-> 
-
-
+regards
+Moritz
 
 _______________________________________________
 linux-dvb mailing list
