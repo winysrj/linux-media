@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4B6rl7w030151
-	for <video4linux-list@redhat.com>; Sun, 11 May 2008 02:53:47 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QKZ8DE007682
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:35:08 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4B6rEhZ021958
-	for <video4linux-list@redhat.com>; Sun, 11 May 2008 02:53:14 -0400
-Date: Sun, 11 May 2008 08:52:54 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Jody Gugelhupf <knueffle@yahoo.com>
-Message-ID: <20080511065254.GA323@daniel.bse>
-References: <140248.59791.qm@web36105.mail.mud.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4QKYnjd031608
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:34:49 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 26 May 2008 22:34:42 +0200
+References: <200805072253.23219.tobias.lorenz@gmx.net>
+	<20080526104146.7ef1bc91@gaivota>
+In-Reply-To: <20080526104146.7ef1bc91@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Disposition: inline
-In-Reply-To: <140248.59791.qm@web36105.mail.mud.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: problems with 4 port video capture card with conexant fusion
-	878a 25878-132 chip, please help
+Message-Id: <200805262234.42735.tobias.lorenz@gmx.net>
+Content-Transfer-Encoding: 8bit
+Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
+	v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [PATCH 4/6] si470x: afc indication
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,39 +31,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, May 10, 2008 at 07:45:30PM -0400, Jody Gugelhupf wrote:
-> [   60.601732] bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+Hi Mauro,
 
+> Please, don't send a patch with several different things on it. Instead, send me incremental patches. with just one change. So, you would send me:
+>       a patch for harware seek support;
+>       a patch for afc indication; 
+>       ...
 
->  Subsystem: 0x00000000
+I splitted PATCH 2/2 into six separate parts.
+Again this applies to vanilla 2.6.25.
+For 5/6 and 6/6 also the previous general hw seek support PATCH 1/2 is necessary.
 
+1/6: unplugging fixed
+- problem fixed, when unplugging the device while still in use
+- version bump to 1.0.7 finally made, was inconsistent in linux-2.6.25!
 
-> At the current state when I try to view the inputs with e.g. xawtv i can change the "video source"
-> (the current option in xawtv are called Television,Composite1,SVideo,Composite3) it shows me some
-> very distored picture but also not all four resources, so what do i have to do to get it working,
+2/6: let si470x_get_freq return errno
+- version bumped to 1.0.8 for all the following patches
+- si470x_get_freq now returns errno
 
+3/6: a lot of small code cleanups
+- comment on how to listen to an usb audio device
+  (i get so many questions about that...)
+- code cleanup (error handling, more warnings, spacing, ...)
 
-Ok, you have two problems:
+4/6: afc indication
+- afc indication:
+  device has no indication whether freq is too low or too high
+  therefore afc always return 1, when freq is wrong
 
-1. You live in a PAL country and your card can not automatically be detected
-2. You want to watch four channels while your card has only one 878
+5/6: hardware frequency seek support
+- this now finally adds hardware frequency seek support
 
-Solutions:
-1. As the subsystem ID is zero, you have to manually specify the card number.
-When card is UNKNOWN/GENERIC, the driver does not program the PLL.
-Usually cards are manufactured with a NTSC quartz, so programming the
-PLL is necessary for PAL. Otherwise one gets a "very distored picture".
-Try loading the bttv module with pll=28 . If you don't have a svhs
-input, you may want to additionally set svhs=-1 to get color on the third
-input.
+6/6: private video controls
+- private video controls
+  - to control seek behaviour
+  - to module parameters
+  - corrected access rights of module parameters
+  - separate header file to let the user space know about it
 
-2. There is no solution. The chip can capture only one input at a time.
-If you switch inputs fast enough, you can achieve something below 6
-frames per second. Your Windows application may have some clever logic
-to switch inputs as soon as possible and in the optimal order. Using
-only one field of a frame makes this significantly easier.
+Best regards,
 
-  Daniel
+Toby
+
+Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h -uprN 3_code_style/drivers/media/radio/radio-si470x.c 4_afc/drivers/media/radio/radio-si470x.c
+--- 3_code_style/drivers/media/radio/radio-si470x.c	2008-05-26 22:07:02.000000000 +0200
++++ 4_afc/drivers/media/radio/radio-si470x.c	2008-05-26 22:06:41.000000000 +0200
+@@ -101,6 +101,7 @@
+  *		- unplugging fixed
+  * 2008-05-07	Tobias Lorenz <tobias.lorenz@gmx.net>
+  *		Version 1.0.8
++ *		- afc indication
+  *		- more safety checks, let si470x_get_freq return errno
+  *
+  * ToDo:
+@@ -1391,7 +1392,8 @@ static int si470x_vidioc_g_tuner(struct 
+ 				* 0x0101;
+ 
+ 	/* automatic frequency control: -1: freq to low, 1 freq to high */
+-	tuner->afc = 0;
++	/* AFCRL does only indicate that freq. differs, not if too low/high */
++	tuner->afc = (radio->registers[STATUSRSSI] & STATUSRSSI_AFCRL) ? 1 : 0;
+ 
+ done:
+ 	if (retval < 0)
 
 --
 video4linux-list mailing list
