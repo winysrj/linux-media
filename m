@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45MM62w006587
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 18:22:06 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m45MLoLQ002286
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 18:21:50 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: "zied frikha" <frikha.zied@gmail.com>
-Date: Tue, 6 May 2008 00:21:43 +0200
-References: <20080428160019.AB5306186B3@hormel.redhat.com>
-	<74a5bce60804290637k21f2465ajed607224a8fe764b@mail.gmail.com>
-In-Reply-To: <74a5bce60804290637k21f2465ajed607224a8fe764b@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 26 May 2008 18:46:35 +0200
+References: <20080522223700.2f103a14@core>
+	<20080523090919.GA31575@devserv.devel.redhat.com>
+	<20080526133457.6f892af9@gaivota>
+In-Reply-To: <20080526133457.6f892af9@gaivota>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="windows-1252"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200805060021.44095.tobias.lorenz@gmx.net>
-Cc: video4linux-list@redhat.com
-Subject: Re: video4linux-list Digest, Vol 50, Issue 28
+Message-Id: <200805261846.35758.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	Alan Cox <alan@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,27 +26,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Zied,
+On Monday 26 May 2008 18:34:57 Mauro Carvalho Chehab wrote:
+> On Fri, 23 May 2008 05:09:19 -0400
+>
+> Alan Cox <alan@redhat.com> wrote:
+> > On Thu, May 22, 2008 at 10:08:04PM -0400, Andy Walls wrote:
+> > > Could someone give me a brief education as to what elements of
+> > > cx18/ivtv_v4l2_do_ioctl() would be forcing the use of the BKL for
+> > > these drivers' ioctls?   I'm assuming it's not the
+> > > mutex_un/lock(&....->serialize_lock) and that the answer's not in
+> > > the diff.
+> >
+> > As it stood previous for historical reasons the kernel called the
+> > driver ioctl method already holding the big kernel lock. That lock
+> > effectively serialized a lot of ioctl processing and also
+> > serializes against module loading and registration/open for the
+> > most part. If all the resources you are working on within the ioctl
+> > handler are driver owned as is likely with a video capture driver,
+> > and you have sufficient locking of your own you can drop the lock.
+> >
+> > video_usercopy currently also uses the BKL so you might want to
+> > copy a version to video_usercopy_unlocked() without that.
+>
+> In the specific case of ivtv and cx18, I think that the better would
+> be to convert it first to video_ioctl2. Then, remove the BKL, with a
+> video_ioctl2_unlocked version.
+>
+> Douglas already did an experimental patch converting ivtv to
+> video_ioctl2 and sent to Hans. It needs testing, since he doesn't
+> have any ivtv board. It should be trivial to port this to cx18, since
+> both drivers have similar structures.
+>
+> Douglas,
+>
+> Could you send this patch to the ML for people to review and for Andy
+> to port it to cx18?
 
-> I check to run the FM Radio under the Mandriva 2008 Linux
-> I have any problem with my Radio that use the v4l and v4l2 librarys.
-> this is the driver that I use :
-> http://www.linuxhq.com/kernel/v2.6/25-rc8/drivers/media/radio/radio-si470x.c
-> and I use the Qt Radio as GUI
-> the seeking operations run normally but I have not the RDS (no audio)
-> have you any ideas to correcting this problem please.
+Unless there is an objection, I would prefer to take Douglas' patch and 
+merge it into the v4l-dvb ivtv driver myself. There were several things 
+in the patch I didn't like, but I need to 'work' with it a bit to see 
+how/if it can be done better.
 
-RDS (Radio Data System) has nothing to do with audio, but can be used f.e. with the rds daemon: http://rdsd.berlios.de/
+I can work on it tonight and tomorrow. Hopefully it is finished by then. 
+I can move the BKL down at the same time for ivtv. It is unlikely that 
+I will have time to do cx18 as well as I'm abroad from Wednesday until 
+Monday, but I think Andy can do that easily based on the ivtv changes.
 
-The device has an USB audio endpoint, which gives you an additional alsa sound device.
-You must forward the output from this device to your sound card. That's what I use for it:
+Regards,
 
-arecord -D hw:1,0 -r96000 -c2 -f S16_LE | artsdsp aplay -B -
-
-That's because the device has 96k samples/second with 16 bits/sample and 2 channels.
-
-Bye,
-  Toby
+	Hans
 
 --
 video4linux-list mailing list
