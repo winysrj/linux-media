@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FCvXqc015785
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:57:33 -0400
-Received: from host06.hostingexpert.com (host06.hostingexpert.com
-	[216.80.70.60])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FCvMWG029193
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 08:57:22 -0400
-Message-ID: <482C3324.1020804@linuxtv.org>
-Date: Thu, 15 May 2008 08:57:08 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-References: <482858AD.1050504@linuxtv.org>
-	<1210818265.3202.25.camel@palomino.walls.org>
-In-Reply-To: <1210818265.3202.25.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QDgBiK013030
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:42:11 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QDfxxn020221
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 09:41:59 -0400
+Date: Mon, 26 May 2008 10:41:46 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Message-ID: <20080526104146.7ef1bc91@gaivota>
+In-Reply-To: <200805072253.23219.tobias.lorenz@gmx.net>
+References: <200805072253.23219.tobias.lorenz@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mkrufky@linuxtv.org, Stoth@hauppauge.com
-Subject: Re: cx18-0: ioremap failed, perhaps increasing __VMALLOC_RESERVE
- in page.h
+Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
+	v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [PATCH 2/2] v4l2: hardware frequency seek ioctl interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,91 +28,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Andy Walls wrote:
-> On Mon, 2008-05-12 at 10:48 -0400, mkrufky@linuxtv.org wrote:
->   
->> Steven Toth wrote:
->>     
->>> Steven Toth wrote:
->>>       
->>>>>         if (cx->dev)
->>>>>                 cx18_iounmap(cx);
->>>>>           
->>>> This doesn't feel right.
->>>>         
->>> Hans / Andy,
->>>
->>> Any comments?
->>>       
->> For the record, I've tested again with today's tip ( d87638488880 ) -- 
->> same exact behavior.
->>
->> When I load the modules for the first time, everything is fine.
->>
->> If I unload the cx18 module, I am unable to load it again, the same 
->> error is displayed as I posted in my original message.
->>     
->
-> Mike,
->
-> Could you apply the attached patch and run this test
->
-> 	(precondition: cx18.ko hasn't been loaded once yet)
-> 	# cat /proc/iomem /proc/meminfo > ~/memstats
-> 	# modprobe cx18 debug=3
-> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
-> 	# modprobe -r cx18
-> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
-> 	# modprobe cx18 debug=3
-> 	# cat /proc/iomem /proc/meminfo >> ~/memstats
->
-> and provide the contents of dmesg (or /var/log/messages) and memstats?
->
-> The patch will let me see if the contents of cx->enc_mem are bogus on
-> iounmap() and if iounmap() is even being called.
->
-> I also want to verify that "cx18 encoder" doesn't get removed
-> from /proc/iomem and that "VmallocUsed" doesn't return to it's previous
-> size when the module is unloaded.  That would show that the iounmap()
-> fails.
->
-> I'd also want to ensure there is no overlap in /proc/iomem with "cx18
-> encoder" and something else.  The kernel should prevent it, but I want
-> to make sure.
->
->
-> (Hopefully the patch applies cleanly, the line numbers won't quite match
-> up with the latest hg version.)
->
-> Regards,
-> Andy
->
->   
->> Regards,
->>
->> Mike
->>
->>     
->> ------------------------------------------------------------------------
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
+Hi Tobias,
 
+On Wed, 7 May 2008 22:53:22 +0200
+Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+> + *		- unplugging fixed
+> + * 2008-05-07	Tobias Lorenz <tobias.lorenz@gmx.net>
+> + *		Version 1.0.8
+> + *		- hardware frequency seek support
+> + *		- afc indication
+> + *		- implementation of private video controls for
+> + *		  seek options and band/space/de changes
+> + *		- register definitions moved to separate header file
+> + *		- more safety checks, let si470x_get_freq return errno
 
+Please, don't send a patch with several different things on it. Instead, send me incremental patches. with just one change. So, you would send me:
+	a patch for harware seek support;
+	a patch for afc indication; 
+	...
 
+Also version numbers are generally incremented once by each kernel.
 
+Please split this patch into smaller ones and submit me again.
 
-
-
-Andy,
-
-I'm out of town right now, and things will be hectic when I get 
-back....  I most likely won't get to this until the middle of the week, 
-perhaps even next weekend.
-
--Mike
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
