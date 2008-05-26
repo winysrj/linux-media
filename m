@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4513pQh006371
-	for <video4linux-list@redhat.com>; Sun, 4 May 2008 21:03:51 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4513d0G004295
-	for <video4linux-list@redhat.com>; Sun, 4 May 2008 21:03:39 -0400
-From: Andy Walls <awalls@radix.net>
-To: Xefur Ragnarok <x3fur@yahoo.com>
-In-Reply-To: <652962.17032.qm@web63111.mail.re1.yahoo.com>
-References: <652962.17032.qm@web63111.mail.re1.yahoo.com>
-Content-Type: text/plain
-Date: Sun, 04 May 2008 21:03:39 -0400
-Message-Id: <1209949419.3218.41.camel@palomino.walls.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QIf6Iw002269
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 14:41:06 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4QIetfl002580
+	for <video4linux-list@redhat.com>; Mon, 26 May 2008 14:40:55 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 26 May 2008 20:40:46 +0200
+References: <200805072252.16704.tobias.lorenz@gmx.net>
+	<20080526104130.355b6f41@gaivota>
+In-Reply-To: <20080526104130.355b6f41@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: WinTV PVR PCI
+Content-Disposition: inline
+Message-Id: <200805262040.47204.tobias.lorenz@gmx.net>
+Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
+	v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [PATCH 1/2] v4l2: hardware frequency seek ioctl interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,74 +31,113 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 2008-05-04 at 12:43 -0700, Xefur Ragnarok wrote:
-> When you mentioned that there might be a corrupt line in the card's
-> hardware, I decided to take it out and remove any dust from it, and
-> switched the slot that it was in. It came back up and was recognized
-> immediately, and worked immediately as well.
+Hi Mauro,
 
-Excellent. :)
+> The patch itself looks good. However, there are several codingstyle errors. Please run checkpatch.pl against it and send me again, having the pointed issues fixed.
 
-> I sincerely appreciate you sticking with me, even though there wasnt
-> really anything wrong lol....
-> 
-> Thanks for your time!
-> 
-> Timothy
+Yes, I know. The errors are a result from trying to follow the coding style of these files.
 
-You're welcome.  Glad to help.
+This is the file list with comments on coding style and patch:
+drivers/media/video/videodev.c: has unusual coding style, but hwseek patch is now corrected
+drivers/media/video/compat_ioctl32.c: had already nice coding style, hwseek patch too
+include/linux/videodev2.h: has unusual coding style, but hwseek patch is now corrected except from one long line...
+include/media/v4l2-dev.h: has unusual coding style, but hwseek patch is now corrected
+Maybe I should send a coding style cleanup patch for these files too :-)
 
--Andy
+The corrected patch is still against linux-2.6.25. I hope it applies cleanly to the mercurial v4l repository.
+
+Best regards,
+
+Toby
 
 
-> Andy Walls <awalls@radix.net> wrote:
->         > I looked through the contents of the bttv driver source, and saw where
->         > the 0070:4500 line is, and what it says it is. But what is still
->         > making me wonder if it is related to the PCI ID is when I do lspci it
->         > says its an unknown board:
->         > 
->         > 01:02.0 Multimedia video controller: Unknown device 009e:036e (rev 11)
->         > 01:02.1 Multimedia controller: Unknown device 009e:0878 (rev 11)
->         
->         Don't worry about lspci, even if it doesn't know, the proper driver can
->         know. The 009e is really supposed to be 109e for Brooktree. Somehow
->         the configuration data on the card got mangled (or maybe the card has a
->         bad data line or some other defect?).
->         
->         
->         > lspci -nv
->         > 
->         > 01:02.0 0400: 009e:036e (rev 11)
->         > Subsystem: 0070:4500
->         > Flags: bus master, medium devsel, latency 32, IRQ 9
->         > Memory at d6afc000 (32-bit, prefetchable) [size=8K]
->         > Capabilities: [44] Vital Product Data
->         > Capabilities: [4c] Power Management version 2
->         > 
->         > 01:02.1 0480: 009e:0878 (rev 11)
->         > Subsystem: 0070:4500
->         > Flags: bus master, medium devsel, latency 32, IRQ 9
->         > Memory at d6afe000 (32-bit, prefetchable) [size=8K]
->         > Capabilities: [44] Vital Product Data
->         > Capabilities: [4c] Power Management version 2
->         > 
->         > The subsystem is right, but the main vendor ID of the card is
->         > unrecognized anywhere. Its not even listed on the PCI-ID's website.
->         
->         The 0070 is Hauppauge's ID. The 009e:0878 is really supposed to be
->         109e:0878 for Brooktree's Bt878 chip. I believe Conexant swallowed up
->         Brooktree; Brooktree is long defunct.
->         
->         > The card I have is apparently ancient. I'm positive that its a winTV
->         > PVR/PCI card though. Maybe I should just buy a new card? lol...
->         
->         Maybe, but not because it's old, but because it's configuration data is
->         slightly corrupt, one has to wonder what other problems the card has.
-
->         Good luck.
->         
->         -Andy
-
+Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h --exclude='radio-si470x.[ch]' -uprN linux-2.6.25/drivers/media/video/compat_ioctl32.c linux-2.6.25-si470x/drivers/media/video/compat_ioctl32.c
+--- linux-2.6.25/drivers/media/video/compat_ioctl32.c	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.25-si470x/drivers/media/video/compat_ioctl32.c	2008-04-30 08:39:14.000000000 +0200
+@@ -884,6 +884,7 @@ long v4l_compat_ioctl32(struct file *fil
+ 	case VIDIOC_G_INPUT32:
+ 	case VIDIOC_S_INPUT32:
+ 	case VIDIOC_TRY_FMT32:
++	case VIDIOC_S_HW_FREQ_SEEK:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h --exclude='radio-si470x.[ch]' -uprN linux-2.6.25/drivers/media/video/videodev.c linux-2.6.25-si470x/drivers/media/video/videodev.c
+--- linux-2.6.25/drivers/media/video/videodev.c	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.25-si470x/drivers/media/video/videodev.c	2008-05-26 20:28:17.000000000 +0200
+@@ -331,6 +331,7 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
+ 
+ 	[_IOC_NR(VIDIOC_G_CHIP_IDENT)]     = "VIDIOC_G_CHIP_IDENT",
++	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+ #endif
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+@@ -1853,6 +1854,17 @@ static int __video_do_ioctl(struct inode
+ 			dbgarg (cmd, "chip_ident=%u, revision=0x%x\n", p->ident, p->revision);
+ 		break;
+ 	}
++	case VIDIOC_S_HW_FREQ_SEEK:
++	{
++		struct v4l2_hw_freq_seek *p = arg;
++		if (!vfd->vidioc_s_hw_freq_seek)
++			break;
++		dbgarg(cmd,
++			"tuner=%d, type=%d, seek_upward=%d, wrap_around=%d\n",
++			p->tuner, p->type, p->seek_upward, p->wrap_around);
++		ret = vfd->vidioc_s_hw_freq_seek(file, fh, p);
++		break;
++	}
+ 	} /* switch */
+ 
+ 	if (vfd->debug & V4L2_DEBUG_IOCTL_ARG) {
+diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h --exclude='radio-si470x.[ch]' -uprN linux-2.6.25/include/linux/videodev2.h linux-2.6.25-si470x/include/linux/videodev2.h
+--- linux-2.6.25/include/linux/videodev2.h	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.25-si470x/include/linux/videodev2.h	2008-05-26 20:28:55.000000000 +0200
+@@ -246,6 +246,7 @@ struct v4l2_capability
+ #define V4L2_CAP_SLICED_VBI_OUTPUT	0x00000080  /* Is a sliced VBI output device */
+ #define V4L2_CAP_RDS_CAPTURE		0x00000100  /* RDS data capture */
+ #define V4L2_CAP_VIDEO_OUTPUT_OVERLAY	0x00000200  /* Can do video output overlay */
++#define V4L2_CAP_HW_FREQ_SEEK		0x00000400  /* Can do hardware frequency seek  */
+ 
+ #define V4L2_CAP_TUNER			0x00010000  /* has a tuner */
+ #define V4L2_CAP_AUDIO			0x00020000  /* has audio support */
+@@ -1111,6 +1112,14 @@ struct v4l2_frequency
+ 	__u32		      reserved[8];
+ };
+ 
++struct v4l2_hw_freq_seek {
++	__u32		      tuner;
++	enum v4l2_tuner_type  type;
++	__u32		      seek_upward;
++	__u32		      wrap_around;
++	__u32		      reserved[8];
++};
++
+ /*
+  *	A U D I O
+  */
+@@ -1396,6 +1405,7 @@ struct v4l2_chip_ident {
+ 
+ #define VIDIOC_G_CHIP_IDENT     _IOWR ('V', 81, struct v4l2_chip_ident)
+ #endif
++#define VIDIOC_S_HW_FREQ_SEEK	_IOW  ('V', 82, struct v4l2_hw_freq_seek)
+ 
+ #ifdef __OLD_VIDIOC_
+ /* for compatibility, will go away some day */
+diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h --exclude='radio-si470x.[ch]' -uprN linux-2.6.25/include/media/v4l2-dev.h linux-2.6.25-si470x/include/media/v4l2-dev.h
+--- linux-2.6.25/include/media/v4l2-dev.h	2008-04-17 04:49:44.000000000 +0200
++++ linux-2.6.25-si470x/include/media/v4l2-dev.h	2008-04-24 23:21:48.000000000 +0200
+@@ -318,6 +318,8 @@ struct video_device
+ 	int (*vidioc_g_chip_ident)     (struct file *file, void *fh,
+ 					struct v4l2_chip_ident *chip);
+ 
++	int (*vidioc_s_hw_freq_seek)   (struct file *file, void *fh,
++					struct v4l2_hw_freq_seek *a);
+ 
+ #ifdef OBSOLETE_OWNER /* to be removed soon */
+ /* obsolete -- fops->owner is used instead */
 
 --
 video4linux-list mailing list
