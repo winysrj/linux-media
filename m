@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from walker.ipnetwork.de ([83.246.120.22])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <admin@ipnetwork.de>) id 1JuD1E-0000Bd-Ay
-	for linux-dvb@linuxtv.org; Thu, 08 May 2008 22:47:12 +0200
-Received: from [192.168.0.20] (BAG0e2e.bag.pppool.de [77.134.14.46])
-	(authenticated bits=0)
-	by walker.ipnetwork.de (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m48Kkw7S013840
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Thu, 8 May 2008 22:46:58 +0200
-Message-ID: <482366CA.7050204@ipnetwork.de>
-Date: Thu, 08 May 2008 22:47:06 +0200
-From: Ingo Peukes <admin@ipnetwork.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rmie@gmx.de>) id 1K0vsX-0006Hx-66
+	for linux-dvb@linuxtv.org; Tue, 27 May 2008 11:54:03 +0200
+Date: Tue, 27 May 2008 11:53:25 +0200
+From: "Roland Mieslinger" <rmie@gmx.de>
+In-Reply-To: <a451a2ff79285f88eff7d220d0ebcf91@woodvillage.de>
+Message-ID: <20080527095325.276270@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <43276.192.168.9.10.1192357983.squirrel@ncircle.nullnet.fi>	<20071018181040.GA6960@dose.home.local>	<20071018182940.GA7317@dose.home.local>	<20071018201418.GA16574@dose.home.local>	<47075.192.168.9.10.1193248379.squirrel@ncircle.nullnet.fi>	<472A0CC2.8040509@free.fr>
-	<480F9062.6000700@free.fr>	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>	<481B4A78.8090305@free.fr>	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
-	<481F66B0.4090302@free.fr>
-In-Reply-To: <481F66B0.4090302@free.fr>
-Subject: Re: [linux-dvb] Testers wanted for alternative version of Terratec
- Cinergy T2 driver
+References: <a451a2ff79285f88eff7d220d0ebcf91@woodvillage.de>
+To: daniel <daniel@woodvillage.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Skystar USB 2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,105 +18,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGVsbG8sCgpjb3VudCBtZSBhcyBhIHRlc3RlciBmb3IgdGhlIG5ldyBkcml2ZXIgY2F1c2UgSSBj
-YW4ndCB1c2UgdGhlIG9sZCBvbmUuCkFzIEknbSBwcmltYXJ5IGEgc3lzdGVtIGFkbWluaXN0cmF0
-b3IgYW5kIG5vdCBhIHByb2dyYW1tZXIgSSBqdXN0IGNhbiAKZ2l2ZSBpbmZvcm1hdGlvbnMgZnJv
-bSBhIHVzZXJzIHZpZXcuCgpJIHVzZSB0aGUgZHJpdmVyIG9uIG15IExpbmtzdGF0aW9uIExpdmUg
-d2hpY2ggSSdtIGdvaW5nIHRvIHR1cm4gaW50byBhClZEUiB1c2luZyBteXRodHYsIGFuZCBmb3Ig
-bm93IEkgY2FuIHRlbGwgaXQgY29tcGlsZXMgb24gdGhpcyBOQVMgd2l0aCAKa2VybmVsIDIuNi4y
-NS4xIGFuZCB0aGUgdjRsLWR2YiBzb3VyY2VzIGZvdW5kIGhlcmU6Cmh0dHA6Ly91YnVudHVmb3J1
-bXMub3JnL3Nob3d0aHJlYWQucGhwP3Q9NTExNjc2JnBhZ2U9OAoKSSB1c2UgdGhpcyBjYXVzZSBJ
-IGFsc28gaGF2ZSBQaW5uYWNsZSBQQ1RWMjAwZSB3aGljaCBpcyBub3Qgc3VwcG9ydGVkIGJ5CnRo
-ZSBvZmZpY2lhbCBzb3VyY2VzLiBUaGUgUENUViBjYXJkIGlzIGFsc28gdGhlIHJlYXNvbiB3aHkg
-SSBjYW5ub3QgdXNlIAp0aGUgb2xkL29yaWdpbmFsIGRyaXZlciBjYXVzZSBzb21laG93IG5laXRo
-ZXIgZGV2aWNlIGlzIHVzYWJsZSB3aGVuIApib3RoIGRyaXZlcnMgYXJlIGxvYWRlZC4gSSB0aGlu
-ayB0aGlzIGNvbWVzIGJlY2F1c2UgdGhleSBib3RoIGhhdmUgYSAKWmFybGluayBNVDM1MiBhbmQg
-aXQgc2VlbXMgdGhhdCB0aGUgbW9kdWxlcyBtdDM1MiBhbmQgY2luZXJneVQyCmNhbid0IHdvcmsg
-dG9nZXRoZXIuIFRoaXMgcHJvYmxlbSBkb2VzIG5vdCBleGlzdCB3aXRoIHlvdXIgZHJpdmVyLgpT
-byBJJ20gaGFwcHkgeW91IGdvIGZvciBhIG5ldyBjaW5lcmd5VDIgZHJpdmVyIDopCgpXZWxsLCBh
-cyBJIHNhaWQgaXQgY29tcGlsZXMgYW5kIHdvcmtzIHdpdGggdGhlIGFib3ZlIGtlcm5lbCBhbmQg
-djRsLWR2YgpidXQgd19zY2FuIGZpbmRzIG5vIGNoYW5uZWxzIHdpdGggdGhpcyBtb2R1bGUgbW9z
-dCBvZiB0aGUgdGltZS4gSW4gNSAKcnVucyBpdCBmb3VuZCA0IGNoYW5uZWxzIG9uIG9uZSBtdWx0
-aXBsZXguCkkgZG91YnQgaXQncyB0aGUgYW50ZW5uYSBhbHRob3VnaCBpdCdzIHRoZSBzdG9jayBv
-bmUgYnV0IGlmIEkgdXNlIHRoZQpjaW5lcmd5VDIgb24gbXkgZGVza3RvcCBwYyB3aXRoIHRoZSBv
-cmlnaW5hbCBtb2R1bGUgb2Yga2VybmVsIDIuNi4yNS4xIAp3X3NjYW4gZmluZHMgYWxsIGF2YWls
-YWJsZSBjaGFubmVscyBhbGwgdGhlIHRpbWUgd2l0aCB0aGUgc2FtZSBhbnRlbm5hIAppbiB0aGUg
-c2FtZSBwbGFjZS4gSSB3aWxsIHRyeSBhIGJldHRlciBhbnRlbm5hIHRvbW9ycm93IHRvIHNlZSBp
-ZiBJIGNhbiAKdXNlIGl0IHNvbWV3aGF0IHByb2R1Y3RpdmUgaW4gbXl0aHR2Li4uCgoKUmVnYXJk
-cwpJbmdvIFBldWtlcwoKClRoaWVycnkgTWVybGUgd3JvdGU6Cj4gVG9taSBPcmF2YSBhIMOpY3Jp
-dCA6Cj4gICAKPj4gSGksCj4+Cj4+ICAgICAKPj4+IFdlbGwsIEkgc2VlIHNvbWUgaXNzdWVzIGFm
-dGVyIHRha2luZyBhIGNsb3NlciBsb29rIGF0IHlvdXIgZHJpdmVyOgo+Pj4gMS0gY2hlY2twYXRj
-aC5wbCByYWlzZXMgZXJyb3JzOiA5MCBlcnJvcnMsIDUzIHdhcm5pbmdzLCA5OTUgbGluZXMgY2hl
-Y2tlZAo+Pj4gMi0gdGhlcmUgaXMgYSBjb21waWxhdGlvbiBlcnJvciAoSSBhcHBsaWVkIHRoZSBw
-YXRjaCBvbiB0aGUgbGF0ZXN0Cj4+PiB2NGwtZHZiIHRyZWUpOgo+Pj4gY2luZXJneVQyLWNvcmUu
-YzogSW4gZnVuY3Rpb24gJ2NpbmVyZ3l0Ml91c2JfcHJvYmUnOgo+Pj4gY2luZXJneVQyLWNvcmUu
-YzoxMzg6IGVycm9yOiB0b28gZmV3IGFyZ3VtZW50cyB0byBmdW5jdGlvbgo+Pj4gJ2R2Yl91c2Jf
-ZGV2aWNlX2luaXQnCj4+PiAzLSB5b3Ugc2hvdWxkIHJlcGxhY2UgdGhlIGV4aXN0aW5nIGRyaXZl
-ciwgbm90IHByb3Bvc2luZyBhIGRpZmZlcmVudAo+Pj4gZHJpdmVyLiBJIG1lYW4sIHBhdGNoIGRp
-cmVjdGx5Cj4+PiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9jaW5lcmd5VDIvY2luZXJneVQyLmMu
-Cj4+PiAgICAgICAKPj4gT2ssIHRoZXNlIGFyZSBlYXN5IHRvIGZpeC4KPj4KPj4gICAgIAo+Pj4g
-RnVydGhlcm1vcmUsIEkgaGF2ZSBzb21lIHF1ZXN0aW9uczoKPj4+IC0gaXMgdGhlcmUgYSB3YXkg
-dG8gdXNlIHRoZSBkdmItdXNiLXJlbW90ZSBtb2R1bGU/IFRoaXMgaW4gb3JkZXIgdG8gZ2V0Cj4+
-PiByaWQgb2YgY2luZXJneVQyLXJlbW90ZS5jCj4+PiAgICAgICAKPj4gTm8sIGR1ZSB0byB0aGUg
-ZmFjdCB0aGF0IHRoZSBkdmItdXNiLmggZGVmaW5lcyBhIHN0cnVjdCB3aGljaCBpcyB0b28KPj4g
-bGltaXRlZCBmb3IgdGhlIENpbmVyZ3kgVDIgcmVtb3RlIGNvbnRyb2xsZXIgaGFuZGxpbmcuIElm
-IHlvdSBjb21wYXJlCj4+IHRoZSBvcmlnaW5hbCBzdHJ1Y3QgZHZiX3VzYl9yY19rZXkgdG8gdGhl
-IG1vZGlmaWVkIG9uZToKPj4KPj4gT3JpZ2luYWw6Cj4+Cj4+IHN0cnVjdCBkdmJfdXNiX3JjX2tl
-eSB7Cj4+ICAgICAgICAgdTggY3VzdG9tLGRhdGE7IDwtLS0tLS0tLS0tLS0tLS0tLS0tLQo+PiAg
-ICAgICAgIHUzMiBldmVudDsKPj4gfTsKPj4KPj4gQ2luZXJneSBUMiBzZW5kIFUzMiByZW1vdGUg
-Y29udHJvbGxlcjoKPj4KPj4gc3RydWN0IGNpbmVyZ3l0Ml9yY19rZXkgewo+PiAJdTMyIGN1c3Rv
-bTsgPC0tLS0tLS0tLS0tLS0tCj4+IAl1MzIgZGF0YTsgICA8LS0tLS0tLS0tLS0tLS0KPj4gCXUz
-MiBldmVudDsKPj4gfTsKPj4KPj4gT2J2aW91c2x5IEkgY291bGQgZ2V0IHJpZCBvZiB0aGUgd2hv
-bGUgY2luZXJneVQyLXJlbW90ZS5jIGZpbGUKPj4gaWYgdGhlIGR2Yi11c2IgZGVmaW5lZCBzdHJ1
-Y3QgY291bGQgYmUgd2lkZW5lZC4KPj4KPj4gICAgIAo+IEluZGVlZCwgYnV0IGluIHRoZSBjdXJy
-ZW50IHN0cnVjdHVyZSBJIGFtIG5vdCBzdXJlIHRoYXQgYWxsIHRoZSBiaXRzIG9mIHRoZSB1MzIg
-ZGF0YSBpcyB1c2VmdWwuCj4gRm9yIGV4YW1wbGU6Cj4gCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZ
-UEVfTkVDLAkweGZlMDFlYjA0LAlLRVlfUE9XRVIgfSwKPiAJeyBDSU5FUkdZVDJfUkNfRVZFTlRf
-VFlQRV9ORUMsCTB4ZmQwMmViMDQsCUtFWV8xIH0sCj4gCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZ
-UEVfTkVDLAkweGZjMDNlYjA0LAlLRVlfMiB9LAo+IAl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBF
-X05FQywJMHhmYjA0ZWIwNCwJS0VZXzMgfSwKPiAJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9O
-RUMsCTB4ZmEwNWViMDQsCUtFWV80IH0sCj4gCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVD
-LAkweGY5MDZlYjA0LAlLRVlfNSB9LAo+IAl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJ
-MHhmODA3ZWIwNCwJS0VZXzYgfSwKPiAJeyBDSU5FUkdZVDJfUkNfRVZFTlRfVFlQRV9ORUMsCTB4
-ZjcwOGViMDQsCUtFWV83IH0sCj4gCXsgQ0lORVJHWVQyX1JDX0VWRU5UX1RZUEVfTkVDLAkweGY2
-MDllYjA0LAlLRVlfOCB9LAo+IAl7IENJTkVSR1lUMl9SQ19FVkVOVF9UWVBFX05FQywJMHhmNTBh
-ZWIwNCwJS0VZXzkgfSwKPiBJIHNlZSBmb3IgZXhhbXBsZSB0aGF0IGluIHRoZSB1MzIgMHhmZTAx
-ZWIwNCwgZmlyc3QgYW5kIHNlY29uZCBieXRlcyBhcmUgbGlua2VkICgweGZlICsgMHgwMSA9IDB4
-ZmYpCj4gSXQgd29ya3Mgd2l0aCBhbGwgb3RoZXJzOiAweGZkMDJlYjA0IC0+IDB4ZmQgKyAweDAy
-ID0gMHhmZiwgLi4uCj4gRnVydGhlcm1vcmUgdGhlIGxhc3QgMiBieXRlcyBhcmUgY29uc3RhbnQg
-KDB4ZWIwNCkuCj4gU28gdGhlIHNvbGUgc2lnbmlmaWNhbnQgYnl0ZSBpcyB0aGUgc2Vjb25kOiAw
-eDAxLCAweDAyLCAuLi4KPiBJIHdpbGwgdHJ5IHRvIGRvIHNvbWV0aGluZyBhcm91bmQgdGhhdC4K
-Pgo+ICAgCj4+PiAtIHNvLCByZW5hbWluZyBjaW5lcmd5VDItY29yZS5jIHRvIGNpbmVyZ3lUMi5j
-IHdvdWxkIGJlIGNvcnJlY3Q/Cj4+PiAgICAgICAKPj4gSG1tLCBpZiBJIHJlbWVtYmVyIGNvcnJl
-Y3RseSB0aGVyZSB3YXMgc29tZSBzb3J0IG9mIGNsYXNoIHdpdGggdGhlIGZpbGVuYW1lcwo+PiBh
-bmQgdGhlIGFjdHVhbCBjb21waWxlZCBkcml2ZXIuCj4+ICAgICAKPiBJbiBmYWN0IGlmIHlvdSBy
-ZW1vdmUgdGhlIG9sZCBkcml2ZXIgKGJ5IHJlc29sdmluZyB0aGUgaXNzdWUgIzMpLCBJIHN1Z2dl
-c3RlZCB0byBuYW1lIHRoZSBjaW5lcmd5VDItY29yZS5jIGNpbmVyZ3lUMi5jIGJ1dCB0aGVyZSBp
-cyBubyBvYmxpZ2F0aW9uLiAKPiAgIAo+Pj4gLSBzdHJlYW0gYnVmZmVyIGNvdW50IHdhcyBzZXQg
-dG8gMzIgaW4gdGhlIG9sZCBkcml2ZXIgYW5kIHlvdSBzZXQgaXQgdG8KPj4+IDUsIHdoeSB0aGlz
-IGNoYW5nZT8gSXQgd29ya3MgcGVyZmVjdGx5IHdpdGggNSBhbmQgY29uc3VtZXMgbGVzcyBtZW1v
-cnkKPj4+IHNvIGlmIHRoaXMgaXMgdGhlIHJlYXNvbiBJIGZ1bGx5IGFncmVlIQo+Pj4gICAgICAg
-Cj4+IEFzIHRoZSBvbGQgZXhpc3RpbmcgZHJpdmVyIGlzIGhhbmRsaW5nIHRoZSBjb21tdW5pY2F0
-aW9uIGRpZmZlcmVudGx5Cj4+IGFsc28gdGhlIGJ1ZmZlciBjb3VudCB2YWx1ZXMgYXJlIGRpZmZl
-cmVudC4gV2hlbiBJIGJlZ2FuIHdyaXRpbmcgdGhlCj4+IG5ldyB2ZXJzaW9uIG9mIHRoZSBDaW5l
-cmd5VDIgZHJpdmVyIEkgZGlkIHNvbWUgdHJpYWxzIGFuZCBiYXNlZCBvbiB0aGUKPj4gaGVscGZ1
-bCBjb21tZW50cyAmIHRlc3QgcmVzdWx0cyB0aGUgdmFsdWUgb2YgNSBoYXMgYmVlbiB0aGVyZS4K
-Pj4KPj4gICAgIAo+IE9LCj4gICAKPj4+IEkgdGhpbmsgdGhlIGJlc3Qgd2F5IGlzIHRvIHJld29y
-ayB5b3VyIHBhdGNoIGFuZCBmaXggdGhlc2UgaXNzdWVzOyBJIGNhbgo+Pj4gaGVscCB5b3UgaWYg
-eW91IHdhbnQuCj4+PiBUaGVuIEkgd2lsbCBjb21taXQgdGhhdCBpbiBhIHBhcnRpY3VsYXIgdHJl
-ZSBhbmQgYXNrIGZvciBwdXNoaW5nIGl0IHRvCj4+PiB0aGUgb2ZmaWNpYWwgdHJlZS4KPj4+ICAg
-ICAgIAo+PiBTdXJlLCBJJ2xsIGZpeCB0aGUgcmVwb3J0ZWQgZXJyb3JzIGFuZCBnZXQgYmFjayB0
-byB5b3UuCj4+Cj4+ICAgICAKPiBUaGFua3MKPiAgIAo+PiBSZWdhcmRzLAo+PiBUb21pIE9yYXZh
-Cj4+Cj4+ICAgICAKPiBDaGVlcnMsCj4gVGhpZXJyeQo+Cj4gX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
-YW4vbGlzdGluZm8vbGludXgtZHZiCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
-b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWR2Yg==
+> Hi,
+> I'm new to this list. I bought myself a Skystar USB 2 to upgrade my myth
+> box to DVB-S. Unfortunatly it seems that it is not supported by linux right
+> now. Can anyone help me with this? It's brandnew so I could also bring it
+> back to the store, but then it would be nice, if someone could name an
+> alternative USB device. On the other hand I also willing to take the
+> challenge... :-)
+> Btw. PCI devices are not a choice for me, since my board has only one PCI
+> slot, which is already in use.
+
+I've tested the same HW on the weekend, and can confirm it's not working. 
+
+If you need a working solution quickly, I'd take the box back to the dealer. But I can't recommend any other right now.
+
+Older Skystar devices are working (tested with "Skystar USB" DVB-T). I'm not sure about "Skystar USB plus", but as the driver has only one USD-ID listed ("Skystar USB"), I belive it's not working
+
+Roland
+-- 
+GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
+Jetzt dabei sein: http://www.shortview.de/?mc=sv_ext_mf@gmx
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
