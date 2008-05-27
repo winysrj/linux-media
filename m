@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4NEk2st016217
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 10:46:02 -0400
-Received: from hirsch.in-berlin.de (hirsch.in-berlin.de [192.109.42.6])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4NEj3Gd012184
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 10:45:09 -0400
-Date: Fri, 23 May 2008 16:40:00 +0200
-From: Ralf Stephan <ralf@ark.in-berlin.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Message-ID: <20080523144000.GB25477@ark.in-berlin.de>
-References: <20080523112305.GA25477@ark.in-berlin.de>
-	<d9def9db0805230554w34519e73nabccdfce93999643@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RD63NJ020797
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 09:06:04 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4RD5rVo003656
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 09:05:53 -0400
+Received: by rn-out-0910.google.com with SMTP id j77so1474525rne.7
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 06:05:53 -0700 (PDT)
+Message-ID: <dee83fc60805270605m1913c267oeff360f0bfdbea5@mail.gmail.com>
+Date: Tue, 27 May 2008 17:05:52 +0400
+From: "Paul Wolneykien" <wolneykien@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <d9def9db0805230554w34519e73nabccdfce93999643@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: hardware noob needs orientation
-Reply-To: ralf@ark.in-berlin.de
+Subject: Re: Is anyone else running a CX18 in 64bit OS?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,20 +27,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> With Chinch you mean Composite?
+  Hello,
 
-Yes, composite video, ah I see now. So this is the same as
-analog TV which is simply AV...
+  I have the same problem as being discussed here, except I cannot
+manage to work my card under 64-bit kernel at all.
+Does anybody know what is the _principal_ difference between driving
+the card with 32-bit and 64-bit kernel module?
 
-> (Look at analog TV Devices)
-> http://mcentral.de/wiki/index.php5/Em2880#Devices
-> 
-> short USB Cable and long Chinch cable should be fine, I used a cheap
-> Chinch cable for testing Compiste and a short USB Cable
+  Thank you,
 
+  Paul Wolneykien.
 
-Thanks again!
-ralf
+  SMTP: wolneykien [at] gmail [dot] com.
+  XMPP: wolneykien [at] jabber [dot] org.
 
 --
 video4linux-list mailing list
