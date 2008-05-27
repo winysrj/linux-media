@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4J7tG6L010722
-	for <video4linux-list@redhat.com>; Mon, 19 May 2008 03:55:16 -0400
-Received: from out3.laposte.net (out4.laposte.net [193.251.214.121])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4J7t2Is026679
-	for <video4linux-list@redhat.com>; Mon, 19 May 2008 03:55:02 -0400
-Received: from meplus.info (localhost [127.0.0.1])
-	by mwinf8304.laposte.net (SMTP Server) with ESMTP id DDF81700008F
-	for <video4linux-list@redhat.com>;
-	Mon, 19 May 2008 09:54:56 +0200 (CEST)
-Message-ID: <4831347C.6090009@laposte.net>
-Date: Mon, 19 May 2008 10:04:12 +0200
-From: "pw.marcus" <pw.marcus@laposte.net>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>, video4linux-list@redhat.com
-References: <482D4579.8090203@laposte.net>	
-	<1210937808.3138.7.camel@pc10.localdom.local>
-	<482DBF75.60009@laposte.net>	
-	<1210966904.4735.35.camel@pc10.localdom.local>	
-	<482FFEEB.5080902@laposte.net>
-	<1211153425.2599.4.camel@pc10.localdom.local>
-In-Reply-To: <1211153425.2599.4.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: My Cinema-P7131 Hybrid (spider cable)
+Date: Tue, 27 May 2008 14:14:47 -0400
+From: Alan Cox <alan@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20080527181447.GB17790@devserv.devel.redhat.com>
+References: <20080522223700.2f103a14@core> <20080526135951.7989516d@gaivota>
+	<20080526202317.GA12793@devserv.devel.redhat.com>
+	<20080526181027.1ff9c758@gaivota>
+	<20080526220154.GA15487@devserv.devel.redhat.com>
+	<20080527101039.1c0a3804@gaivota>
+	<20080527094144.1189826a@bike.lwn.net>
+	<20080527133100.6a9302fb@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080527133100.6a9302fb@gaivota>
+Cc: Alan Cox <alan@redhat.com>, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,9 +29,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-No problem.
+On Tue, May 27, 2008 at 01:31:00PM -0300, Mauro Carvalho Chehab wrote:
+> It is safer to have a tool to test and stress the driver before going to
+> production.
 
-Cheers
+Stress testing is rarely useful here - things like ioctl races you find by
+thinking evil thoughts. Stress tests that fail obviously help find some stuff
+but its error cases and hotplug corner cases that are usually the most foul
 
 --
 video4linux-list mailing list
