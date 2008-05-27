@@ -1,20 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m45JgiH0001193
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 15:42:44 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m45JgR4V018916
-	for <video4linux-list@redhat.com>; Mon, 5 May 2008 15:42:27 -0400
-Date: Mon, 5 May 2008 21:42:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: 604hcl@telenet.be
-In-Reply-To: <W4018854147541210000621@nocme1bl6.telenet-ops.be>
-Message-ID: <Pine.LNX.4.64.0805052140500.5648@axis700.grange>
-References: <W4018854147541210000621@nocme1bl6.telenet-ops.be>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: phycore_im27 platform + mt9v022 camera
+Date: Tue, 27 May 2008 17:24:46 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Arjan van de Ven <arjan@infradead.org>
+Message-ID: <20080527172446.6f856f21@gaivota>
+In-Reply-To: <20080527125041.0fc28fd4@infradead.org>
+References: <20080522223700.2f103a14@core> <20080526135951.7989516d@gaivota>
+	<20080526202317.GA12793@devserv.devel.redhat.com>
+	<20080526181027.1ff9c758@gaivota>
+	<20080526220154.GA15487@devserv.devel.redhat.com>
+	<20080527101039.1c0a3804@gaivota>
+	<20080527094144.1189826a@bike.lwn.net>
+	<20080527133100.6a9302fb@gaivota>
+	<20080527103755.1fd67ec1@bike.lwn.net>
+	<20080527155942.7693c360@gaivota>
+	<20080527125041.0fc28fd4@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Alan Cox <alan@redhat.com>, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,23 +32,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 5 May 2008, 604hcl@telenet.be wrote:
+On Tue, 27 May 2008 12:50:41 -0700
+Arjan van de Ven <arjan@infradead.org> wrote:
 
-> I've been trying to capture an image from my mt9v022 camera with the 
-> video4linux example code. The code stops working in the start_capturing 
-> method. Right after the VIDIOC_STREAMON ioctl, the system freezes 
-> completely.
+> On Tue, 27 May 2008 15:59:42 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 > 
-> Maybe some of you have an idea of the reason for this? I have attached 
-> modified code of the example
+> > On Tue, 27 May 2008 10:37:55 -0600
+> > Jonathan Corbet <corbet@lwn.net> wrote:
+> > 
+> > > On Tue, 27 May 2008 13:31:00 -0300
+> > > Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> > > 
+> > > > Since the other methods don't explicitly call BKL (and, AFAIK,
+> > > > kernel open handler don't call it neither), if a program 1 is
+> > > > opening a device and initializing some data, and a program 2
+> > > > starts doing ioctl, interrupting program 1 execution in the
+> > > > middle of a data initialization procedure, you may have a race
+> > > > condition, since some devices initialize some device global data
+> > > > during open [1].
+> > > 
+> > > In fact, 2.6.26 and prior kernels *do* acquire the BKL on open (for
+> > > char devices) - that's the behavior that the bkl-removal tree is
+> > > there to do away with.  So, for example, I've pushed that
+> > > acquisition down into video_open() instead. 
+> > > 
+> > > So, for now, open() is serialized against ioctl() in video
+> > > drivers.  As soon as you take the BKL out of ioctl(), though, that
+> > > won't happen, unless the mutex you use is also acquired in the open
+> > > path.
+> > 
+> > Ok.
+> > 
+> > A few drivers seem to be almost read to work without BKL. 
+> > 
+> > For example, em28xx has already a lock at the operations that change
+> > values at "dev" struct, including open() method. However, since the
+> > lock is not called at get operations, it needs to be fixed. I would
+> > also change it from mutex to a read/write semaphore, since two (or
+> > more) get operations can safely happen in parallel.
+> > 
+> \
+> 
+> please don't use rw/sems just because there MIGHT be parallel.
+> THey're more expensive than mutexes by quite a bit and you get a lot
+> less checking from lockdep. They make sense for very specific, very
+> read biased, contended cases. But please don't use them "just
+> because"...
+> 
+Good point. The nature of get operations on V4L are not worthy enough to justify
+the loss of lockdep checking.
 
-Your test programme runs through without problem here - same hardware, 
-current v4l-dvb/devel git tree.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
