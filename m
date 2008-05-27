@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48ERJaN016372
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 10:27:19 -0400
-Received: from mail.linsys.ca (205-200-74-130.static.mts.net [205.200.74.130])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m48ER72e024252
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 10:27:07 -0400
-Received: from localhost.localdomain by linsys.ca (MDaemon PRO v9.6.5)
-	with ESMTP id md50000251762.msg
-	for <video4linux-list@redhat.com>; Thu, 08 May 2008 09:26:54 -0500
-Message-ID: <48230D7E.9050503@linsys.ca>
-Date: Thu, 08 May 2008 09:26:06 -0500
-From: Dinesh Bhat <dbhat@linsys.ca>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RLaZAE018630
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:36:35 -0400
+Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4RLZwke027439
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:35:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Date: Tue, 27 May 2008 23:35:35 +0200
 MIME-Version: 1.0
-To: Video-4l-list <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Apple quicktime v210 codec equivalent support on V4L
+Content-Disposition: inline
+Message-Id: <200805272335.35852.hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,23 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all,
+Hi Mauro,
 
-We have a card that supports v210 codec type on Mac OS X. We have our 
-regular drivers (we implement frame buffers) and are interested in 
-supporting v4l for this card. I was wondering if there is any direct 
-support available for v210 codec. Can anyone please suggest what is the 
-best way to go here if we want to support v4l?
+Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the 
+following:
 
-Here are the details on v210 packing.
+- videodev: small fixes for VIDIOC_G_FREQUENCY and VIDIOC_G_FMT
 
-http://developer.apple.com/quicktime/icefloe/dispatch019.html#v210
+__video_do_ioctl incorrectly zeroed the tuner field of v4l2_frequency 
+for the G_FREQ ioctl and did not zero the full fmt union of v4l2_format 
+for VIDIOC_G_FMT.
 
-Thanks for your help.
+Thanks,
 
-Kind Regards,
+	Hans
 
-Dinesh
+diffstat:
+ videodev.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
 --
 video4linux-list mailing list
