@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m42BI9x6023949
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:18:09 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m42BHtnt030184
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 07:17:55 -0400
-Message-ID: <481AF860.9060603@hni.uni-paderborn.de>
-Date: Fri, 02 May 2008 13:17:52 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <4811F4EE.9060409@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804281604400.7897@axis700.grange>
-	<481AE400.8090709@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021156400.4920@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0805021156400.4920@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: pxa_camera with one buffer don't work
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RLfY6O022994
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:41:34 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4RLfMKA030704
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 17:41:22 -0400
+Date: Tue, 27 May 2008 18:41:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20080527184104.07e242a0@gaivota>
+In-Reply-To: <200805272313.18651.hverkuil@xs4all.nl>
+References: <200805272313.18651.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Handling of VIDIOC_G_STD and ENUMSTD in __video_do_ioctl
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,84 +27,256 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> On Fri, 2 May 2008, Stefan Herbrechtsmeier wrote:
->
->   
->> Guennadi Liakhovetski schrieb:
->>     
->>> On Fri, 25 Apr 2008, Stefan Herbrechtsmeier wrote:
->>>
->>>   
->>>       
->>>> Hi,
->>>>
->>>> is it normal, that the pxa_camera driver don`t work with one buffer?. The
->>>> DQBUF blocks if only one buffer is in the query.
->>>>     
->>>>         
->>> Well, in v4l2-apps/test/capture_example.c we see:
->>>
->>> 	if (req.count < 2) {
->>> 		fprintf (stderr, "Insufficient buffer memory on %s\n",
->>> 			 dev_name);
->>> 		exit (EXIT_FAILURE);
->>> 	}
->>>
->>> so, they seem to refuse to run with fewer than 2 buffers. But if I remove
->>> this restriction and enforce 1 buffer, it works. 2.5 times slower, but
->>> works. 
->>>       
->> If I do the same thing, I get a select timeout.
->>     
->
-> With the same capture_example.c?
->   
-I used a modified capture_example.c (with the modification you point me 
-some emails ago). If I change the
-req.count to 1 and remove the restriction I get the select timeout.
->   
->>> Can there be a problem with your application? What kernel sources are you
->>> using? Try using the latest v4l-dvb/devel git.
->>>   
->>>       
->> At the moment I use the kernel 2.6.24 and the V4L kernel modules from
->> mercurial.
->>     
->
-> How new are the modules?
->   
-I have update the modules some hours ago.
->   
->> After I have port my robot platform to the current kernel, I will test it
->> again.
->> What do you mean by latest v4l-dvb/devel git:
->>    git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git?
->>     
->
-> Yes, its "devel" branch.
->
->   
-Thanks
-    Stefan
+On Tue, 27 May 2008 23:13:18 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+> Hi Mauro,
+> 
+> While converting ivtv I noticed that VIDIOC_G_STD is now handled inside 
+> __video_do_ioctl and is implemented by returning a field from the 
+> video_device struct (which is set in turn when S_STD is called).
+> 
+> This is not correct: this assumes that each device has its own 
+> independent tvnorm setting, but devices like /dev/video0 and /dev/vbi0 
+> are linked: setting the standard to NTSC for one should set it to NTSC 
+> for the other as well. And this is even more important for ivtv with 
+> its additional raw video and audio devices.
+> 
+> The way it is done now means that this happens:
+> 
+> v4l2-ctl -s ntsc -d /dev/vbi0
+> v4l2-ctl -s pal -d /dev/video0
+> v4l2-ctl -S -d /dev/video0
+> Video Standard = 0x000000ff
+>         PAL-B/B1/G/H/I/D/D1/K
+> v4l2-ctl -S -d /dev/vbi0
+> Video Standard = 0x0000b000
+>         NTSC-M/M-JP/M-KR
+> 
+> That's not right. I suggest adding a proper vidioc_g_std callback 
+> instead and let the driver handle it. The driver knows which devices 
+> are linked.
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+Yes. IMO, the proper fix is to keep the default behaviour, if vidioc_g_std is
+not defined, but letting you specify a different behaviour, if needed.
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+Something like:
 
-mailto : hbmeier@hni.upb.de
+	if (!vidioc_g_std)
+		*id = vfd->current_norm;
+	else
+		ret = vfd->vidioc_g_std(file, fh, arg);
 
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
 
+> In addition, the VIDIOC_ENUMSTD is now also handled inside 
+> __video_do_ioctl. I don't think that is correct. The purpose of this 
+> ioctl is for applications to setup a list of standards that the input 
+> supports and more importantly that the input will handle differently. 
+> The way it is implemented now means that v4l2-ctl --list-standards 
+> returns this:
+> 
+>         index       : 0
+>         ID          : 0x00000000000000FF
+>         Name        : PAL
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 1
+>         ID          : 0x0000000000000100
+>         Name        : PAL-M
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 2
+>         ID          : 0x0000000000000200
+>         Name        : PAL-N
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 3
+>         ID          : 0x0000000000000400
+>         Name        : PAL-Nc
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 4
+>         ID          : 0x0000000000000800
+>         Name        : PAL-60
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 5
+>         ID          : 0x000000000000B000
+>         Name        : NTSC
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 6
+>         ID          : 0x0000000000004000
+>         Name        : NTSC-443
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 7
+>         ID          : 0x0000000000FF0000
+>         Name        : SECAM
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+> Compare that to what ivtv used to return:
+> 
+>         index       : 0
+>         ID          : 0x000000000000000F
+>         Name        : PAL-BGH
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 1
+>         ID          : 0x00000000000000E0
+>         Name        : PAL-DK
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 2
+>         ID          : 0x0000000000000010
+>         Name        : PAL-I
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 3
+>         ID          : 0x0000000000000100
+>         Name        : PAL-M
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 4
+>         ID          : 0x0000000000000200
+>         Name        : PAL-N
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 5
+>         ID          : 0x0000000000000400
+>         Name        : PAL-Nc
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 6
+>         ID          : 0x00000000000D0000
+>         Name        : SECAM-BGH
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 7
+>         ID          : 0x0000000000320000
+>         Name        : SECAM-DK
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 8
+>         ID          : 0x0000000000400000
+>         Name        : SECAM-L
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 9
+>         ID          : 0x0000000000800000
+>         Name        : SECAM-L'
+>         Frame period: 1/25
+>         Frame lines : 625
+> 
+>         index       : 10
+>         ID          : 0x0000000000001000
+>         Name        : NTSC-M
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 11
+>         ID          : 0x0000000000002000
+>         Name        : NTSC-J
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+>         index       : 12
+>         ID          : 0x0000000000008000
+>         Name        : NTSC-K
+>         Frame period: 1001/30000
+>         Frame lines : 525
+> 
+> All these standards might be explicitly selected by the user. Which 
+> substandards can be combined into one ENUMSTD entry is really dependent 
+> on the hardware and the input. E.g. standards like PAL-60 and NTSC-443 
+> are never used in broadcasts, but can be used when capturing from 
+> composite/S-Video inputs.
+> 
+> Again, I think that it might be better to leave this to the driver, 
+> although perhaps the driver might supply a table instead and let 
+> __video_do_ioctl do the actual job.
+
+There are some discussions about this at V4L ML. A recent report rised the
+point that this behaviour broke a few programs that considers the enumbered
+standards as if they aren't in fact a bitmask (other userspace programs, like
+tvtime, considers standards as bitmask, so they work well).
+
+IMO, the proper solution would be to enumerate the grouped bitmasks, as the
+code already does, plus all individual standards.
+
+So, it would return STD_SECAM and also STD_SECAM_L, STD_SECAM_Lc, etc.
+
+The big advantage of having this code inside videodev is that a lot of duplicated
+(and sometimes conflicting) code were removed (for example, NTSC/M had
+different names, depending on the driver: NTSC-M, NTSC, NTSC_M, NTSC/M). On
+some cases, the above names were including the japanese/korean standards, on
+others they are added as separate entries (even if they were using the same
+parameters inside the drivers).
+
+I really prefer to keep this handled inside video_ioctl2, since it avoids
+similar mistakes.
+
+> I found a few other bugs as well in __video_do_ioctl, but the two that I 
+> found are easy to fix and I'll make a pull request for them. But I will 
+> need to do a closer review of __video_do_ioctl, in case there are more 
+> surprises.
+
+Ok. 
+
+The most relevant behaviour changes are those above, and the split of streaming
+commands, like:
+
+        case VIDIOC_TRY_FMT:
+        {
+                struct v4l2_format *f = (struct v4l2_format *)arg;
+
+                /* FIXME: Should be one dump per type */
+                dbgarg (cmd, "type=%s\n", prt_names(f->type,
+                                                v4l2_type_names));
+                switch (f->type) {
+                case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+                        if (vfd->vidioc_try_fmt_cap)
+                                ret=vfd->vidioc_try_fmt_cap(file, fh, f);
+                        if (!ret)
+                                v4l_print_pix_fmt(vfd,&f->fmt.pix);
+                        break;
+                case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+                        if (vfd->vidioc_try_fmt_overlay)
+                                ret=vfd->vidioc_try_fmt_overlay(file, fh, f);
+                        break;
+
+	...
+
+You should agree with me that those ioctls with different input parameters and
+similar but different functions into an union {} were something really weird at
+V4L2 API ;)
+
+Except for G_STD and ENUM_STD, the other commands are (or should be) just a
+call to the callback (and a memset(0) for _G_ commands - but preserving the
+input argument).
+
+Since a few of those calls are used only at ivtv/cx18, it may have a few
+cut-and-paste mistakes ;)
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
