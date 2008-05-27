@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m49GHqTh006793
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 12:17:52 -0400
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m49GHWAa008229
-	for <video4linux-list@redhat.com>; Fri, 9 May 2008 12:17:32 -0400
-Message-ID: <48247919.8020402@users.sourceforge.net>
-Date: Fri, 09 May 2008 18:17:29 +0200
-From: Andre Auzi <aauzi@users.sourceforge.net>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <482370FD.7000001@users.sourceforge.net>	
-	<1210296633.2541.26.camel@pc10.localdom.local>
-	<1210297053.2541.31.camel@pc10.localdom.local>
-In-Reply-To: <1210297053.2541.31.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: cx88 driver: Help needed to add radio support on Leadtek	WINFAST
- DTV 2000 H (version J)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RNF3vY016590
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 19:15:03 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4RNElUM003658
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 19:14:47 -0400
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200805270900.20790.hverkuil@xs4all.nl>
+References: <200805262326.30501.hverkuil@xs4all.nl>
+	<1211850976.3188.83.camel@palomino.walls.org>
+	<200805270853.31287.hverkuil@xs4all.nl>
+	<200805270900.20790.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Tue, 27 May 2008 19:14:56 -0400
+Message-Id: <1211930096.3197.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: Need VIDIOC_CROPCAP clarification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,42 +30,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton a écrit :
-> Am Freitag, den 09.05.2008, 03:30 +0200 schrieb hermann pitton:
->> Am Donnerstag, den 08.05.2008, 23:30 +0200 schrieb Andre Auzi:
+On Tue, 2008-05-27 at 09:00 +0200, Hans Verkuil wrote:
+> Here's an old article I found detailing the design of pixelaspect, it 
+> makes me wonder if what bttv does isn't wrong and pixelaspect is really 
+> a pixel aspect.
 > 
->> Radio on the FMD1216ME/I MK3 is not perfect anyway, on other stuff it
->> might also only be the best hack around then, but some still claim new
->> hardware doesn't exist ...
+> http://www.spinics.net/lists/vfl/msg02653.html
 > 
-> One is missing here.
+> Regards,
 > 
-> You might have the newer FMD1216MEX, Steve mentioned sometime
-> previously, it might be slightly different for the radio support.
-> 
-> I do know exactly nothing about it.
-> 
-> Cheers,
-> Hermann
-> 
-> 
+> 	Hans
 > 
 
- From the driver's inf file I read:
 
-[LR6F2B.AddReg]
-HKR,"DriverData","FMD1216MEX",0x0010001, 0x01, 0x00, 0x00, 0x00
+Yet another good reference on pixel aspect conversions from one digital
+video scheme to another:
 
-This probably means you guessed right.
+http://lipas.uwasa.fi/~f76998/video/conversion/
 
-That's a step forward, isn't it?
 
-Too bad you cannot say more.
+Also,  I think I've determined the rationale for defining 12 3/11 MHz as
+the sampling rate of NTSC for NTSC square pixel displays, since this
+page challenges one to mail in a guess at the rationale:
 
-I'll keep you posted.
+http://lurkertech.com/lg/video-systems/#sqnonsq
 
-Rgards,
-Andre
+I'll email the author, but once one realizes that 12 3/11 MHz is 1080/88
+MHz and that it's related to the fc = 63/88 * 5 MHz FCC rule for the
+NTSC chroma subcarrier, things begin to unwind from there.
+
+-Andy
+
 
 --
 video4linux-list mailing list
