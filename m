@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4RIPexq024552
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 14:25:40 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4RIPQmN020983
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 14:25:27 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2974355rvb.51
-	for <video4linux-list@redhat.com>; Tue, 27 May 2008 11:25:26 -0700 (PDT)
-Message-ID: <d9def9db0805271125o6a231616x1134f7c2a11e0a8d@mail.gmail.com>
-Date: Tue, 27 May 2008 20:25:26 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Collin Day" <dcday137@gmail.com>
-In-Reply-To: <cb70ae690805271050h111e8d42oeda95e5e93ab036a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Tue, 27 May 2008 13:31:00 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Message-ID: <20080527133100.6a9302fb@gaivota>
+In-Reply-To: <20080527094144.1189826a@bike.lwn.net>
+References: <20080522223700.2f103a14@core> <20080526135951.7989516d@gaivota>
+	<20080526202317.GA12793@devserv.devel.redhat.com>
+	<20080526181027.1ff9c758@gaivota>
+	<20080526220154.GA15487@devserv.devel.redhat.com>
+	<20080527101039.1c0a3804@gaivota>
+	<20080527094144.1189826a@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <cb70ae690805271050h111e8d42oeda95e5e93ab036a@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Kworld USB2800 Device - how do I get it working - em28xx driver?
+Cc: Alan Cox <alan@redhat.com>, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,46 +27,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Tue, 27 May 2008 09:41:44 -0600
+Jonathan Corbet <corbet@lwn.net> wrote:
 
-On Tue, May 27, 2008 at 7:50 PM, Collin Day <dcday137@gmail.com> wrote:
-> Hi all -
->
-> I apologize if this has been answered, but I am new and don't know where to
-> search the list at.  I have a Kworld USB2800 DVD Maker.  I have not been
-> able to get it to work at all.  I am in N. America, so I am using NTSC.
-> Anyway, I looked in the em28xx-cards.c file and found the
-> [EM2800_BOARD_KWORLD_USB2800].  I am not positive, but I took mine apart and
-> it has a NXP SAA7113h chip and a em2860 chip.  First off, I am assuming
-> (oplease correct me if I am wrong anywhere) that I need the SAA7115.ko
-> module and the em28xx module.  Next, I noticed that the .norm only lists
-> PAL_BG and that is the only norm listed.  Is it as simple as changing the
-> .em_type to EM2860, changing hass tuner to 0 (it is only a video capture
-> device, there is no tuner) and adding the NTSC norm, revcompiling and
-> installing?  This has really been bothering me and even though I have read
-> that others have been successful with this device some how.
->
-> lsusb info:
->
-> Bus 001 Device 005: ID eb1a:2860 eMPIA Technology, Inc.
->
-> using parameter card=13 when I load the module, it tells me that it finds
-> everything.
->
-> The device is a Kworld VS-USV2800D.
->
 
-did you try to follow the instruction on mcentral.de?
+> > A next step would be to move the drivers to use the serialized one. 
+> 
+> So we're replacing the big kernel lock with the big v4l2 lock.  That
+> might help the situation, but you'd need to be sure to serialize
+> against other calls (open(), for example) which are also currently done
+> under the BKL.
 
--Markus
+True, but on a quick analysis, I suspect that this is already somewhat broken
+on some drivers.
 
-> If there is any other info I can provide, please let me know and I will post
-> it.  Thank you!
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Since the other methods don't explicitly call BKL (and, AFAIK, kernel open
+handler don't call it neither), if a program 1 is opening a device and
+initializing some data, and a program 2 starts doing ioctl, interrupting
+program 1 execution in the middle of a data initialization procedure, you may
+have a race condition, since some devices initialize some device global data
+during open [1].
+
+[1] For example: cx88 and saa7134 will change some data structures if you open
+a device via /dev/radio or via /dev/video. So, if program 1 opens as radio and
+program 2 opens as video, you may have a race condition. A way to fix this is to
+initialize such structs only by the first program that is opening the device,
+and serialize a concurrent open.
+
+> > IMO, we need to create a multi-thread stress userspace tool for
+> > checking the locks at the ioctls. There are a few testing utils at
+> > mercurial tree, under v4l2-apps/test. This can be a starting point
+> > for this tool. Also, Brandon improved one of those tools to work with
+> > multithread.
+> 
+> I don't think that stress tools are the way to eliminate the BKL.
+> You'll never find all the problems that way.  There's really no way to
+> avoid the task of actually *looking* at each driver and ensuring that
+> it has its act together with regard to locking.
+
+True. Yet, just looking at the code may not be enough, since people make
+mistakes. The recent changes at videobuf lock showed this. The lock fix
+patches caused several new locking issues.
+
+It is safer to have a tool to test and stress the driver before going to
+production.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
