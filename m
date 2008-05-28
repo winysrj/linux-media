@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Jvsca-00013y-Ti
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 13:24:47 +0200
-Message-ID: <48297A72.4050305@iki.fi>
-Date: Tue, 13 May 2008 14:24:34 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from n40.bullet.mail.ukl.yahoo.com ([87.248.110.173])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1K1Jr6-0006ce-81
+	for linux-dvb@linuxtv.org; Wed, 28 May 2008 13:30:09 +0200
+Date: Wed, 28 May 2008 07:22:18 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1211682529l.9766l.0l@manu-laptop>
+	<1211683962l.9766l.2l@manu-laptop> <1211745313l.6418l.0l@manu-laptop>
+	<200805271250.55118.vpivaini@cs.helsinki.fi>
+In-Reply-To: <200805271250.55118.vpivaini@cs.helsinki.fi> (from
+	vpivaini@cs.helsinki.fi on Tue May 27 05:50:54 2008)
+Message-Id: <1211973738l.6080l.0l@manu-laptop>
 MIME-Version: 1.0
-To: nick <boexli@gmx.net>
-References: <198698.40491.qm@web55111.mail.re4.yahoo.com>
-	<200805121720.37639.boexli@gmx.net>
-In-Reply-To: <200805121720.37639.boexli@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy PCI C  HDTV
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Re : Re : [PATCH]: TT-3200 remote patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,23 +28,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-nick kirjoitti:
-> Hi - Has anybody successfully managed to watch HDTV using the Terratec Cinergy 
-> PCI C card?  If is switch to a HD channel using Kaffeine nothing happens and 
-> after a couple of minutes the program freezes and does not reponse anymore. 
-> Any ideas what I might have done wrong? Thanks Nick
+On 05/27/2008 05:50:54 AM, Ville-Pekka Vainio wrote:
+> manu wrote:
+> > Oh well I think I should have gotten more sleep before mail bombing
+> > with empty patches ;-)
+> > Here it is.
+> 
+> The patch looks fine to me otherwise, but why does it have have
+> comment about 
+> Hauppauge and cx88 in the beginning, when this is for Technotrend and 
+> budget-ci? (I didn't try to build the patch, though, nor do I have 
+> the
+> 
+> hardware in question to test.)
 
-There might be bug in the driver.
+Well the comments are just another left-over of my copy n' paste.
+I will send a clean version later today.
+Thx for the review.
+Bye
+Manu
 
-Someone has similar problem in unbuntu-fi forum and he has hacked driver 
-to get it working. Hacked solution is most probably wrong and could be 
-break other functionality. Feel free to try.
-http://forum.ubuntu-fi.org/index.php?topic=18193.0
-
-regards
-Antti
--- 
-http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
