@@ -1,39 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4L3G4rP026422
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 23:16:04 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4L3FqaF007564
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 23:15:52 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1061935nfc.21
-	for <video4linux-list@redhat.com>; Tue, 20 May 2008 20:15:51 -0700 (PDT)
-Date: Wed, 21 May 2008 13:16:52 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080521131652.5a4850a5@glory.loctelecom.ru>
-In-Reply-To: <1211331167.4235.26.camel@pc10.localdom.local>
-References: <20080414114746.3955c089@glory.loctelecom.ru>
-	<20080414172821.3966dfbf@areia>
-	<20080415125059.3e065997@glory.loctelecom.ru>
-	<20080415000611.610af5c6@gaivota>
-	<20080415135455.76d18419@glory.loctelecom.ru>
-	<20080415122524.3455e060@gaivota>
-	<20080422175422.3d7e4448@glory.loctelecom.ru>
-	<20080422130644.7bfe3b2d@gaivota>
-	<20080423124157.1a8eda0a@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
-	<20080423160505.36064bf7@glory.loctelecom.ru>
-	<20080423113739.7f314663@gaivota>
-	<20080424093259.7880795b@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
-	<20080512201114.3bd41ee5@glory.loctelecom.ru>
-	<1210719122.26311.37.camel@pc10.localdom.local>
-	<20080520152426.5540ee7f@glory.loctelecom.ru>
-	<1211331167.4235.26.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4SN2QS4026005
+	for <video4linux-list@redhat.com>; Wed, 28 May 2008 19:02:26 -0400
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
+	[151.189.21.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4SN2DCR020436
+	for <video4linux-list@redhat.com>; Wed, 28 May 2008 19:02:14 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Carl Karsten <carl@personnelware.com>
+In-Reply-To: <483DD6AA.1070203@personnelware.com>
+References: <47C8A0C9.4020107@personnelware.com>
+	<20080304112519.6f4c748c@gaivota>	<483DBD67.8090508@personnelware.com>
+	<20080528173755.594ea08b@gaivota> <483DD6AA.1070203@personnelware.com>
+Content-Type: text/plain
+Date: Thu, 29 May 2008 00:59:48 +0200
+Message-Id: <1212015588.5745.9.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/+RobRYDM=ojV.3B_n2eFMrF"
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] I2S on for MPEG of saa7134_empress
+Subject: Re: [patch] vivi: registered as /dev/video%d
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -45,134 +30,144 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---MP_/+RobRYDM=ojV.3B_n2eFMrF
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Carl,
 
-Hi All
+Am Mittwoch, den 28.05.2008, 17:03 -0500 schrieb Carl Karsten:
+> Mauro Carvalho Chehab wrote:
+> > On Wed, 28 May 2008 15:15:35 -0500
+> > Carl Karsten <carl@personnelware.com> wrote:
+> > 
+> >> I posted a week ago and haven't heard anything.
+> > 
+> > I was on vacations last week.
+> > 
+> >>  How long should I wait before 
+> >> posting this? :)
+> > 
+> > There are a few issues on your patch:
+> > 
+> >> -		else
+> >> +            printk(KERN_INFO "%s: /dev/video%d unregistered.\n", MODULE_NAME,
+> >> dev->vfd->minor);
+> > 
+> > Your patch got word wrapped. So, it didn't apply.
+> > 
+> >> +        }
+> >> +		else {
+> > 
+> > CodingStyle is wrong. It should be:
+> > 	} else {
+> > 
+> > (at the same line)
+> > 
+> > Also, on some places, you used space, instead of tabs.
+> > 
+> > Please, check your patch with checkpatch.pl (or, inside Mercurial, make
+> > checkpatch) before sending it.
+> > 
+> > Also, be sure that your emailer won't add line breaks at the wrong places.
+> >>   	} else
+> >>   		printk(KERN_INFO "Video Technology Magazine Virtual Video "
+> >> -				 "Capture Board successfully loaded.\n");
+> >> +                 "Capture Board ver %u.%u.%u successfully loaded.\n",
+> >> +        (VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF, VIVI_VERSION &
+> >> 0xFF);
+> 
+> Fixed what you mentioned, make checkpatch doesn't report anything now.  It was 
+> reporting "warning: line over 80 characters" so now that those are fixed maybe 
+> t-bird won't wrap them.
 
-Rework saa7134_enable_i2s function. Add vendor specific data.
-Add definition for I2S audio output control register.
+your hope is in vain for the one space indent in front of every line
+tbird adds. We have that issue already seen with your previous patches
+and I told you about, it is a very well known tbird flaw ;)
 
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/linux/drivers/media/video/saa7134/saa7134-tvaudio.c	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-tvaudio.c	Wed May 21 06:45:52 2008 +1000
-@@ -928,13 +928,25 @@ void saa7134_enable_i2s(struct saa7134_d
- 
- 	if (!card_is_empress(dev))
- 		return;
--	i2s_format = (dev->input->amux == TV) ? 0x00 : 0x01;
--
--	/* enable I2S audio output for the mpeg encoder */
--	saa_writeb(SAA7134_I2S_OUTPUT_SELECT,  0x80);
--	saa_writeb(SAA7134_I2S_OUTPUT_FORMAT,  i2s_format);
--	saa_writeb(SAA7134_I2S_OUTPUT_LEVEL,   0x0F);
--	saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x01);
-+
-+	switch (dev->board) {
-+	case SAA7134_BOARD_BEHOLD_M6:
-+	    /* configure GPIO for out audio */
-+	    saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x0E000000, 0x00000000);
-+	    /* Set I2S format  */
-+	    saa_writeb(SAA7134_I2S_AUDIO_CONTROL,  0x00);
-+	    /* Start I2S */
-+	    saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x11);
-+	    break;
-+	default:
-+	    i2s_format = (dev->input->amux == TV) ? 0x00 : 0x01;
-+
-+	    /* enable I2S audio output for the mpeg encoder */
-+	    saa_writeb(SAA7134_I2S_OUTPUT_SELECT,  0x80);
-+	    saa_writeb(SAA7134_I2S_OUTPUT_FORMAT,  i2s_format);
-+	    saa_writeb(SAA7134_I2S_OUTPUT_LEVEL,   0x0F);
-+	    saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x01);
-+	}
- }
- 
- int saa7134_tvaudio_rx2mode(u32 rx)
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-reg.h
---- a/linux/drivers/media/video/saa7134/saa7134-reg.h	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-reg.h	Wed May 21 06:04:49 2008 +1000
-@@ -353,6 +353,7 @@
- 
- /* I2S output */
- #define SAA7134_I2S_AUDIO_OUTPUT                0x1c0
-+#define SAA7134_I2S_AUDIO_CONTROL               0x591
- 
- /* test modes */
- #define SAA7134_SPECIAL_MODE                    0x1d0
+Please use always attachments with thunderbird.
+It is no fun to fix all lines for indentation.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+Try to apply your mailed patches yourself, as you should if unsure about
+the mailer.
 
-P.S. After this patch I have some data from /dev/video1. Mplayer mpeg_test02.dat
-I can see gray screen with blinked color squares. May be audio data?
+Cheers,
+Hermann
 
-With my best regards, Dmitry.
+>  >
+>  > The indentation is very weird here.
+> 
+> 
+> Either the original code was weird ("quoted strings" were lined up) or a side 
+> effect of me using 4 space tabs.
+> 
+> If it still looks odd, I'll be happy to adjust.
+> 
+> ------------------------------------------------------
+> Patch 1:
+> diff -r 9d04bba82511 linux/drivers/media/video/vivi.c
+> --- a/linux/drivers/media/video/vivi.c	Wed May 14 23:14:04 2008 +0000
+> +++ b/linux/drivers/media/video/vivi.c	Wed May 28 16:51:51 2008 -0500
+> @@ -48,6 +48,8 @@
+>   #include <linux/freezer.h>
+>   #endif
+> 
+> +#define MODULE_NAME "vivi"
+> +
+>   /* Wake up at about 30 fps */
+>   #define WAKE_NUMERATOR 30
+>   #define WAKE_DENOMINATOR 1001
+> @@ -56,7 +58,7 @@
+>   #include "font.h"
+> 
+>   #define VIVI_MAJOR_VERSION 0
+> -#define VIVI_MINOR_VERSION 4
+> +#define VIVI_MINOR_VERSION 5
+>   #define VIVI_RELEASE 0
+>   #define VIVI_VERSION \
+>   	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
+> @@ -1086,10 +1088,15 @@ static int vivi_release(void)
+>   		list_del(list);
+>   		dev = list_entry(list, struct vivi_dev, vivi_devlist);
+> 
+> -		if (-1 != dev->vfd->minor)
+> +		if (-1 != dev->vfd->minor) {
+>   			video_unregister_device(dev->vfd);
+> -		else
+> +			printk(KERN_INFO "%s: /dev/video%d unregistered.\n",
+> +				MODULE_NAME, dev->vfd->minor);
+> +		} else {
+>   			video_device_release(dev->vfd);
+> +			printk(KERN_INFO "%s: /dev/video%d released.\n",
+> +				MODULE_NAME, dev->vfd->minor);
+> +		}
+> 
+>   		kfree(dev);
+>   	}
+> @@ -1202,6 +1209,8 @@ static int __init vivi_init(void)
+>   			video_nr++;
+> 
+>   		dev->vfd = vfd;
+> +		printk(KERN_INFO "%s: V4L2 device registered as /dev/video%d\n",
+> +			MODULE_NAME, vfd->minor);
+>   	}
+> 
+>   	if (ret < 0) {
+> @@ -1209,7 +1218,9 @@ static int __init vivi_init(void)
+>   		printk(KERN_INFO "Error %d while loading vivi driver\n", ret);
+>   	} else
+>   		printk(KERN_INFO "Video Technology Magazine Virtual Video "
+> -				 "Capture Board successfully loaded.\n");
+> +			"Capture Board ver %u.%u.%u successfully loaded.\n",
+> +			(VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF,
+> +			VIVI_VERSION & 0xFF);
+>   	return ret;
+>   }
+> 
+> ------------------------------------------------------
+> Signed-off-by: Carl Karsten  <carl@personnelware.com>
+> 
+> Carl K
+> 
 
---MP_/+RobRYDM=ojV.3B_n2eFMrF
-Content-Type: text/x-patch; name=beholder_empress_02.diff
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=beholder_empress_02.diff
-
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/linux/drivers/media/video/saa7134/saa7134-tvaudio.c	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-tvaudio.c	Wed May 21 06:45:52 2008 +1000
-@@ -928,13 +928,25 @@ void saa7134_enable_i2s(struct saa7134_d
- 
- 	if (!card_is_empress(dev))
- 		return;
--	i2s_format = (dev->input->amux == TV) ? 0x00 : 0x01;
--
--	/* enable I2S audio output for the mpeg encoder */
--	saa_writeb(SAA7134_I2S_OUTPUT_SELECT,  0x80);
--	saa_writeb(SAA7134_I2S_OUTPUT_FORMAT,  i2s_format);
--	saa_writeb(SAA7134_I2S_OUTPUT_LEVEL,   0x0F);
--	saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x01);
-+
-+	switch (dev->board) {
-+	case SAA7134_BOARD_BEHOLD_M6:
-+	    /* configure GPIO for out audio */
-+	    saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x0E000000, 0x00000000);
-+	    /* Set I2S format  */
-+	    saa_writeb(SAA7134_I2S_AUDIO_CONTROL,  0x00);
-+	    /* Start I2S */
-+	    saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x11);
-+	    break;
-+	default:
-+	    i2s_format = (dev->input->amux == TV) ? 0x00 : 0x01;
-+
-+	    /* enable I2S audio output for the mpeg encoder */
-+	    saa_writeb(SAA7134_I2S_OUTPUT_SELECT,  0x80);
-+	    saa_writeb(SAA7134_I2S_OUTPUT_FORMAT,  i2s_format);
-+	    saa_writeb(SAA7134_I2S_OUTPUT_LEVEL,   0x0F);
-+	    saa_writeb(SAA7134_I2S_AUDIO_OUTPUT,   0x01);
-+	}
- }
- 
- int saa7134_tvaudio_rx2mode(u32 rx)
-diff -r 9d04bba82511 linux/drivers/media/video/saa7134/saa7134-reg.h
---- a/linux/drivers/media/video/saa7134/saa7134-reg.h	Wed May 14 23:14:04 2008 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-reg.h	Wed May 21 06:04:49 2008 +1000
-@@ -353,6 +353,7 @@
- 
- /* I2S output */
- #define SAA7134_I2S_AUDIO_OUTPUT                0x1c0
-+#define SAA7134_I2S_AUDIO_CONTROL               0x591
- 
- /* test modes */
- #define SAA7134_SPECIAL_MODE                    0x1d0
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/+RobRYDM=ojV.3B_n2eFMrF
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---MP_/+RobRYDM=ojV.3B_n2eFMrF--
