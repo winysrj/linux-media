@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QKXZXw007111
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:33:35 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4S2Jx4S020483
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 22:19:59 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4QKXN13030991
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 16:33:23 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Mon, 26 May 2008 22:33:16 +0200
-References: <200805072253.23219.tobias.lorenz@gmx.net>
-	<20080526104146.7ef1bc91@gaivota>
-In-Reply-To: <20080526104146.7ef1bc91@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4S2JlOq016610
+	for <video4linux-list@redhat.com>; Tue, 27 May 2008 22:19:48 -0400
+Date: Wed, 28 May 2008 04:19:13 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20080528021912.GA789@daniel.bse>
+References: <200805262326.30501.hverkuil@xs4all.nl>
+	<1211850976.3188.83.camel@palomino.walls.org>
+	<200805270853.31287.hverkuil@xs4all.nl>
+	<1211930655.3197.18.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-Message-Id: <200805262233.16410.tobias.lorenz@gmx.net>
 Content-Transfer-Encoding: 8bit
-Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
-	v4l-dvb-maintainer@linuxtv.org
-Subject: Re: [PATCH 3/6] si470x: a lot of small code cleanups
+In-Reply-To: <1211930655.3197.18.camel@palomino.walls.org>
+Cc: v4l <video4linux-list@redhat.com>, Michael Schimek <mschimek@gmx.at>
+Subject: Re: Need VIDIOC_CROPCAP clarification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,676 +31,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+Just looking at the intended usage of struct v4l2_cropcap and ignoring
+most of the descriptions in the standard, I would explain it this way:
 
-> Please, don't send a patch with several different things on it. Instead, send me incremental patches. with just one change. So, you would send me:
->       a patch for harware seek support;
->       a patch for afc indication; 
->       ...
+struct v4l2_crop x = {
+  type,
+  { 0, 0,
+    v4l2_cropcap.pixelaspect.numerator,
+    v4l2_cropcap.pixelaspect.denominator
+  }
+};
 
-I splitted PATCH 2/2 into six separate parts.
-Again this applies to vanilla 2.6.25.
-For 5/6 and 6/6 also the previous general hw seek support PATCH 1/2 is necessary.
+defines a square region on (or outside) the screen.
+This does not take into account anamorphic 16:9 transmissions.
 
-1/6: unplugging fixed
-- problem fixed, when unplugging the device while still in use
-- version bump to 1.0.7 finally made, was inconsistent in linux-2.6.25!
+There is no information in v4l2_cropcap on how to map these values to
+pixels. The mapping has to be done with VIDIOC_S_FMT.
 
-2/6: let si470x_get_freq return errno
-- version bumped to 1.0.8 for all the following patches
-- si470x_get_freq now returns errno
+v4l2_cropcap tells us how to calculate the DAR for a crop region.
+v4l2_format defines how to calculate the PAR from the DAR.
 
-3/6: a lot of small code cleanups
-- comment on how to listen to an usb audio device
-  (i get so many questions about that...)
-- code cleanup (error handling, more warnings, spacing, ...)
+The height of defrect should correspond to the active picture area.
+In case of 625-line PAL/SECAM it should represent 576 lines.
+It follows that
+width = defrect.height * 4/3
+        * v4l2_cropcap.pixelaspect.numerator
+        / v4l2_cropcap.pixelaspect.denominator;
+covers 52µs of a 64µs PAL/SECAM line.
+52µs equals 702 BT.601 pixels.
 
-4/6: afc indication
-- afc indication:
-  device has no indication whether freq is too low or too high
-  therefore afc always return 1, when freq is wrong
+The defrect.left+defrect.width/2 should be the center of the active picture
+area. This is 36.5µs after OH (start of horizontal sync) for PAL/SECAM
+according to BT.1700.
 
-5/6: hardware frequency seek support
-- this now finally adds hardware frequency seek support
+These microsecond calculations can of course only be done if v4l2_std_id is
+a known standard.
 
-6/6: private video controls
-- private video controls
-  - to control seek behaviour
-  - to module parameters
-  - corrected access rights of module parameters
-  - separate header file to let the user space know about it
+If it is unknown, the application only knows that defrect looks good and
+how to scale the image to get the aspect ratio right.
 
-Best regards,
+All of this is how I think it should work, not necessarily how it is
+standardized.
 
-Toby
+Many people use 480 lines instead of 486 lines for the active region in NTSC
+and if there are inconsistencies in drivers, application may degrade the
+picture by scaling. Therefore it would be nice if at least analog vertical
+resolution was mapped 1:1 to cropping regions per standard.
+Not doing so would make sense only if there was a tv standard where the
+image is drawn column-wise.
 
-Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
-diff --exclude='*.o' --exclude='*.ko' --exclude='.*' --exclude='*.mod.*' --exclude=modules.order --exclude=autoconf.h --exclude=compile.h --exclude=version.h --exclude=utsrelease.h -uprN 2_ret_get_freq/drivers/media/radio/radio-si470x.c 3_code_style/drivers/media/radio/radio-si470x.c
---- 2_ret_get_freq/drivers/media/radio/radio-si470x.c	2008-05-26 22:12:17.000000000 +0200
-+++ 3_code_style/drivers/media/radio/radio-si470x.c	2008-05-26 22:07:02.000000000 +0200
-@@ -101,7 +101,7 @@
-  *		- unplugging fixed
-  * 2008-05-07	Tobias Lorenz <tobias.lorenz@gmx.net>
-  *		Version 1.0.8
-- *		- let si470x_get_freq return errno
-+ *		- more safety checks, let si470x_get_freq return errno
-  *
-  * ToDo:
-  * - add seeking support
-@@ -487,11 +487,11 @@ static int si470x_get_report(struct si47
- 		USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN,
- 		report[0], 2,
- 		buf, size, usb_timeout);
-+
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
- 			": si470x_get_report: usb_control_msg returned %d\n",
- 			retval);
--
- 	return retval;
- }
- 
-@@ -510,11 +510,11 @@ static int si470x_set_report(struct si47
- 		USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_OUT,
- 		report[0], 2,
- 		buf, size, usb_timeout);
-+
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
- 			": si470x_set_report: usb_control_msg returned %d\n",
- 			retval);
--
- 	return retval;
- }
- 
-@@ -596,7 +596,7 @@ static int si470x_get_rds_registers(stru
- 		usb_rcvintpipe(radio->usbdev, 1),
- 		(void *) &buf, sizeof(buf), &size, usb_timeout);
- 	if (size != sizeof(buf))
--		printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_register: "
-+		printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_registers: "
- 			"return size differs: %d != %zu\n", size, sizeof(buf));
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME ": si470x_get_rds_registers: "
-@@ -626,24 +626,30 @@ static int si470x_set_chan(struct si470x
- 	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
- 	retval = si470x_set_register(radio, CHANNEL);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
--	/* wait till seek operation has completed */
-+	/* wait till tune operation has completed */
- 	timeout = jiffies + msecs_to_jiffies(tune_timeout);
- 	do {
- 		retval = si470x_get_register(radio, STATUSRSSI);
- 		if (retval < 0)
--			return retval;
-+			goto stop;
- 		timed_out = time_after(jiffies, timeout);
- 	} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0) &&
- 		(!timed_out));
-+	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
-+		printk(KERN_WARNING DRIVER_NAME ": tune does not complete\n");
- 	if (timed_out)
- 		printk(KERN_WARNING DRIVER_NAME
--			": seek does not finish after %u ms\n", tune_timeout);
-+			": tune timed out after %u ms\n", tune_timeout);
- 
-+stop:
- 	/* stop tuning */
- 	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
--	return si470x_set_register(radio, CHANNEL);
-+	retval = si470x_set_register(radio, CHANNEL);
-+
-+done:
-+	return retval;
- }
- 
- 
-@@ -734,27 +740,30 @@ static int si470x_start(struct si470x_de
- 		POWERCFG_DMUTE | POWERCFG_ENABLE | POWERCFG_RDSM;
- 	retval = si470x_set_register(radio, POWERCFG);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
- 	/* sysconfig 1 */
- 	radio->registers[SYSCONFIG1] = SYSCONFIG1_DE;
- 	retval = si470x_set_register(radio, SYSCONFIG1);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
- 	/* sysconfig 2 */
- 	radio->registers[SYSCONFIG2] =
--		(0x3f  << 8) |	/* SEEKTH */
--		(band  << 6) |	/* BAND */
--		(space << 4) |	/* SPACE */
--		15;		/* VOLUME (max) */
-+		(0x3f  << 8) |				/* SEEKTH */
-+		((band  << 6) & SYSCONFIG2_BAND)  |	/* BAND */
-+		((space << 4) & SYSCONFIG2_SPACE) |	/* SPACE */
-+		15;					/* VOLUME (max) */
- 	retval = si470x_set_register(radio, SYSCONFIG2);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
- 	/* reset last channel */
--	return si470x_set_chan(radio,
-+	retval = si470x_set_chan(radio,
- 		radio->registers[CHANNEL] & CHANNEL_CHAN);
-+
-+done:
-+	return retval;
- }
- 
- 
-@@ -769,13 +778,16 @@ static int si470x_stop(struct si470x_dev
- 	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_RDS;
- 	retval = si470x_set_register(radio, SYSCONFIG1);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
- 	/* powercfg */
- 	radio->registers[POWERCFG] &= ~POWERCFG_DMUTE;
- 	/* POWERCFG_ENABLE has to automatically go low */
- 	radio->registers[POWERCFG] |= POWERCFG_ENABLE |	POWERCFG_DISABLE;
--	return si470x_set_register(radio, POWERCFG);
-+	retval = si470x_set_register(radio, POWERCFG);
-+
-+done:
-+	return retval;
- }
- 
- 
-@@ -892,6 +904,7 @@ static void si470x_work(struct work_stru
- 	struct si470x_device *radio = container_of(work, struct si470x_device,
- 		work.work);
- 
-+	/* safety checks */
- 	if (radio->disconnected)
- 		return;
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-@@ -926,11 +939,15 @@ static ssize_t si470x_fops_read(struct f
- 
- 	/* block if no new data available */
- 	while (radio->wr_index == radio->rd_index) {
--		if (file->f_flags & O_NONBLOCK)
--			return -EWOULDBLOCK;
-+		if (file->f_flags & O_NONBLOCK) {
-+			retval = -EWOULDBLOCK;
-+			goto done;
-+		}
- 		if (wait_event_interruptible(radio->read_queue,
--			radio->wr_index != radio->rd_index) < 0)
--			return -EINTR;
-+			radio->wr_index != radio->rd_index) < 0) {
-+			retval = -EINTR;
-+			goto done;
-+		}
- 	}
- 
- 	/* calculate block count from byte count */
-@@ -959,6 +976,7 @@ static ssize_t si470x_fops_read(struct f
- 	}
- 	mutex_unlock(&radio->lock);
- 
-+done:
- 	return retval;
- }
- 
-@@ -970,6 +988,7 @@ static unsigned int si470x_fops_poll(str
- 		struct poll_table_struct *pts)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval = 0;
- 
- 	/* switch on rds reception */
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0) {
-@@ -981,9 +1000,9 @@ static unsigned int si470x_fops_poll(str
- 	poll_wait(file, &radio->read_queue, pts);
- 
- 	if (radio->rd_index != radio->wr_index)
--		return POLLIN | POLLRDNORM;
-+		retval = POLLIN | POLLRDNORM;
- 
--	return 0;
-+	return retval;
- }
- 
- 
-@@ -1000,17 +1019,18 @@ static int si470x_fops_open(struct inode
- 	retval = usb_autopm_get_interface(radio->intf);
- 	if (retval < 0) {
- 		radio->users--;
--		return -EIO;
-+		retval = -EIO;
-+		goto done;
- 	}
- 
- 	if (radio->users == 1) {
- 		retval = si470x_start(radio);
- 		if (retval < 0)
- 			usb_autopm_put_interface(radio->intf);
--		return retval;
- 	}
- 
--	return 0;
-+done:
-+	return retval;
- }
- 
- 
-@@ -1022,8 +1042,11 @@ static int si470x_fops_release(struct in
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
- 	int retval = 0;
- 
--	if (!radio)
--		return -ENODEV;
-+	/* safety check */
-+	if (!radio) {
-+		retval = -ENODEV;
-+		goto done;
-+	}
- 
- 	mutex_lock(&radio->disconnect_lock);
- 	radio->users--;
-@@ -1047,6 +1070,8 @@ static int si470x_fops_release(struct in
- 
- unlock:
- 	mutex_unlock(&radio->disconnect_lock);
-+
-+done:
- 	return retval;
- }
- 
-@@ -1132,7 +1157,7 @@ static int si470x_vidioc_querycap(struct
- /*
-  * si470x_vidioc_g_input - get input
-  */
--static int si470x_vidioc_g_input(struct file *filp, void *priv,
-+static int si470x_vidioc_g_input(struct file *file, void *priv,
- 		unsigned int *i)
- {
- 	*i = 0;
-@@ -1144,12 +1169,18 @@ static int si470x_vidioc_g_input(struct 
- /*
-  * si470x_vidioc_s_input - set input
-  */
--static int si470x_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
-+static int si470x_vidioc_s_input(struct file *file, void *priv, unsigned int i)
- {
-+	int retval = 0;
-+
-+	/* safety checks */
- 	if (i != 0)
--		return -EINVAL;
-+		retval = -EINVAL;
- 
--	return 0;
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": set input failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1162,17 +1193,22 @@ static int si470x_vidioc_queryctrl(struc
- 	unsigned char i;
- 	int retval = -EINVAL;
- 
-+	/* safety checks */
-+	if (!qc->id)
-+		goto done;
-+
- 	for (i = 0; i < ARRAY_SIZE(si470x_v4l2_queryctrl); i++) {
--		if (qc->id && qc->id == si470x_v4l2_queryctrl[i].id) {
-+		if (qc->id == si470x_v4l2_queryctrl[i].id) {
- 			memcpy(qc, &(si470x_v4l2_queryctrl[i]), sizeof(*qc));
- 			retval = 0;
- 			break;
- 		}
- 	}
-+
-+done:
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
--			": query control failed with %d\n", retval);
--
-+			": query controls failed with %d\n", retval);
- 	return retval;
- }
- 
-@@ -1184,9 +1220,13 @@ static int si470x_vidioc_g_ctrl(struct f
- 		struct v4l2_control *ctrl)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
-@@ -1197,9 +1237,15 @@ static int si470x_vidioc_g_ctrl(struct f
- 		ctrl->value = ((radio->registers[POWERCFG] &
- 				POWERCFG_DMUTE) == 0) ? 1 : 0;
- 		break;
-+	default:
-+		retval = -EINVAL;
- 	}
- 
--	return 0;
-+done:
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": get control failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1210,10 +1256,13 @@ static int si470x_vidioc_s_ctrl(struct f
- 		struct v4l2_control *ctrl)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--	int retval;
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
-@@ -1231,10 +1280,11 @@ static int si470x_vidioc_s_ctrl(struct f
- 	default:
- 		retval = -EINVAL;
- 	}
-+
-+done:
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
- 			": set control failed with %d\n", retval);
--
- 	return retval;
- }
- 
-@@ -1245,13 +1295,22 @@ static int si470x_vidioc_s_ctrl(struct f
- static int si470x_vidioc_g_audio(struct file *file, void *priv,
- 		struct v4l2_audio *audio)
- {
--	if (audio->index > 1)
--		return -EINVAL;
-+	int retval = 0;
-+
-+	/* safety checks */
-+	if (audio->index != 0) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
- 
- 	strcpy(audio->name, "Radio");
- 	audio->capability = V4L2_AUDCAP_STEREO;
- 
--	return 0;
-+done:
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": get audio failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1261,10 +1320,19 @@ static int si470x_vidioc_g_audio(struct 
- static int si470x_vidioc_s_audio(struct file *file, void *priv,
- 		struct v4l2_audio *audio)
- {
--	if (audio->index != 0)
--		return -EINVAL;
-+	int retval = 0;
- 
--	return 0;
-+	/* safety checks */
-+	if (audio->index != 0) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
-+
-+done:
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": set audio failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1275,20 +1343,23 @@ static int si470x_vidioc_g_tuner(struct 
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--	int retval;
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
--	if (tuner->index > 0)
--		return -EINVAL;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
-+	if ((tuner->index != 0) && (tuner->type != V4L2_TUNER_RADIO)) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
- 
--	/* read status rssi */
- 	retval = si470x_get_register(radio, STATUSRSSI);
- 	if (retval < 0)
--		return retval;
-+		goto done;
- 
- 	strcpy(tuner->name, "FM");
--	tuner->type = V4L2_TUNER_RADIO;
- 	switch (band) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe, default) */
- 	default:
-@@ -1322,7 +1393,11 @@ static int si470x_vidioc_g_tuner(struct 
- 	/* automatic frequency control: -1: freq to low, 1 freq to high */
- 	tuner->afc = 0;
- 
--	return 0;
-+done:
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": get tuner failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1333,12 +1408,17 @@ static int si470x_vidioc_s_tuner(struct 
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--	int retval;
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
--	if (tuner->index > 0)
--		return -EINVAL;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
-+	if ((tuner->index != 0) && (tuner->type != V4L2_TUNER_RADIO)) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
- 
- 	if (tuner->audmode == V4L2_TUNER_MODE_MONO)
- 		radio->registers[POWERCFG] |= POWERCFG_MONO;  /* force mono */
-@@ -1346,10 +1426,11 @@ static int si470x_vidioc_s_tuner(struct 
- 		radio->registers[POWERCFG] &= ~POWERCFG_MONO; /* try stereo */
- 
- 	retval = si470x_set_register(radio, POWERCFG);
-+
-+done:
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
- 			": set tuner failed with %d\n", retval);
--
- 	return retval;
- }
- 
-@@ -1361,12 +1442,25 @@ static int si470x_vidioc_g_frequency(str
- 		struct v4l2_frequency *freq)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
-+	if ((freq->tuner != 0) && (freq->type != V4L2_TUNER_RADIO)) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
-+
-+	retval = si470x_get_freq(radio, &freq->frequency);
- 
--	freq->type = V4L2_TUNER_RADIO;
--	return si470x_get_freq(radio, &radio->frequency);
-+done:
-+	if (retval < 0)
-+		printk(KERN_WARNING DRIVER_NAME
-+			": get frequency failed with %d\n", retval);
-+	return retval;
- }
- 
- 
-@@ -1377,19 +1471,25 @@ static int si470x_vidioc_s_frequency(str
- 		struct v4l2_frequency *freq)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--	int retval;
-+	int retval = 0;
- 
--	if (radio->disconnected)
--		return -EIO;
--	if (freq->type != V4L2_TUNER_RADIO)
--		return -EINVAL;
-+	/* safety checks */
-+	if (radio->disconnected) {
-+		retval = -EIO;
-+		goto done;
-+	}
-+	if ((freq->tuner != 0) && (freq->type != V4L2_TUNER_RADIO)) {
-+		retval = -EINVAL;
-+		goto done;
-+	}
- 
- 	retval = si470x_set_freq(radio, freq->frequency);
-+
-+done:
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
- 			": set frequency failed with %d\n", retval);
--
--	return 0;
-+	return retval;
- }
- 
- 
-@@ -1429,33 +1529,36 @@ static int si470x_usb_driver_probe(struc
- 		const struct usb_device_id *id)
- {
- 	struct si470x_device *radio;
--	int retval = -ENOMEM;
-+	int retval = 0;
- 
--	/* private data allocation */
-+	/* private data allocation and initialization */
- 	radio = kzalloc(sizeof(struct si470x_device), GFP_KERNEL);
--	if (!radio)
-+	if (!radio) {
-+		retval = -ENOMEM;
- 		goto err_initial;
--
--	/* video device allocation */
--	radio->videodev = video_device_alloc();
--	if (!radio->videodev)
--		goto err_radio;
--
--	/* initial configuration */
--	memcpy(radio->videodev, &si470x_viddev_template,
--			sizeof(si470x_viddev_template));
-+	}
- 	radio->users = 0;
- 	radio->disconnected = 0;
- 	radio->usbdev = interface_to_usbdev(intf);
- 	radio->intf = intf;
- 	mutex_init(&radio->disconnect_lock);
- 	mutex_init(&radio->lock);
-+
-+	/* video device allocation and initialization */
-+	radio->videodev = video_device_alloc();
-+	if (!radio->videodev) {
-+		retval = -ENOMEM;
-+		goto err_radio;
-+	}
-+	memcpy(radio->videodev, &si470x_viddev_template,
-+			sizeof(si470x_viddev_template));
- 	video_set_drvdata(radio->videodev, radio);
- 
- 	/* show some infos about the specific device */
--	retval = -EIO;
--	if (si470x_get_all_registers(radio) < 0)
-+	if (si470x_get_all_registers(radio) < 0) {
-+		retval = -EIO;
- 		goto err_all;
-+	}
- 	printk(KERN_INFO DRIVER_NAME ": DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
- 			radio->registers[DEVICEID], radio->registers[CHIPID]);
- 
-@@ -1481,8 +1584,10 @@ static int si470x_usb_driver_probe(struc
- 	/* rds buffer allocation */
- 	radio->buf_size = rds_buf * 3;
- 	radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
--	if (!radio->buffer)
-+	if (!radio->buffer) {
-+		retval = -EIO;
- 		goto err_all;
-+	}
- 
- 	/* rds buffer configuration */
- 	radio->wr_index = 0;
-@@ -1494,6 +1599,7 @@ static int si470x_usb_driver_probe(struc
- 
- 	/* register video device */
- 	if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
-+		retval = -EIO;
- 		printk(KERN_WARNING DRIVER_NAME
- 				": Could not register video device\n");
- 		goto err_all;
+  Daniel
 
 --
 video4linux-list mailing list
