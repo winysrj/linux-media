@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48FdlRd014484
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 11:39:47 -0400
-Received: from bay0-omc1-s13.bay0.hotmail.com (bay0-omc1-s13.bay0.hotmail.com
-	[65.54.246.85])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m48FdYdp017478
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 11:39:35 -0400
-Message-ID: <BAY109-W240853DDEBBA5891A3DD0ECBD00@phx.gbl>
-From: =?iso-8859-1?Q?Vicent_Jord=E0?= <vjorda@hotmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 8 May 2008 15:39:29 +0000
-In-Reply-To: <20080507155819.2df442b5@gaivota>
-References: <BAY109-W5337BE0CEB1701C6AC945ACBDE0@phx.gbl>
-	<20080428114741.040ccfd6@gaivota>
-	<BAY109-W23742D6ECAA5EF9CDEF632CBDE0@phx.gbl>
-	<20080507155819.2df442b5@gaivota>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: video4linux-list@redhat.com
-Subject: RE: Trying to set up a NPG Real DVB-T PCI Card
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
+References: <20080522223700.2f103a14@core>
+	<20080526220154.GA15487@devserv.devel.redhat.com>
+	<20080527101039.1c0a3804@gaivota>
+	<20080527094144.1189826a@bike.lwn.net>
+	<20080527133100.6a9302fb@gaivota>
+	<20080527103755.1fd67ec1@bike.lwn.net>
+	<20080527155942.7693c360@gaivota>
+	<412bdbff0805271226t41fe55b0jd0b8e3c737f34734@mail.gmail.com>
+	<20080527180048.6a27dbf7@gaivota>
+	<1211932138.3197.29.camel@palomino.walls.org>
+	<412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 27 May 2008 22:37:01 -0400
+Message-Id: <1211942221.3197.154.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Jonathan Corbet <corbet@lwn.net>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Alan Cox <alan@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,33 +34,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-=20
-I have sent in other message the output of regspy.exe.
-=20
-I hope you can help me to solve the problem.
-=20
-Thanks,
-Vicent Jord=E0
-=20
+On Tue, 2008-05-27 at 20:46 -0400, Devin Heitmueller wrote:
+> Hello Andy,
+> 
+> On Tue, May 27, 2008 at 7:48 PM, Andy Walls <awalls@radix.net> wrote:
+> > MythTV's mythbackend can open both sides of the card at the same time
+> > and the cx18 driver supports it.  On my HVR-1600, MythTV may have the
+> > digital side of the card open pulling EPG data off of the ATSC
+> > broadcasts, when I open up the MythTV frontend and start watching live
+> > TV on the analog side of the card.  MythTV also supports
+> > Picture-in-Picture using both the analog and digital parts of the
+> > HVR-1600.
+> 
+> In this case, what you see as a 'feature' in MythTV is actually a
+> problem in our case.  While the HVR-1600 can support this scenario,
+> the HVR-950 can only use one or the other (the em28xx chip uses GPIOs
+> to enable the demodulator and presumably you should never have both
+> demodulators enabled at the same time).  Because of this we need a
+> lock.  If MythTV only opened one device or the other at a time, we
+> could put the lock on the open() call, but since MythTV opens both
+> simultaneously even though it may only be using one, we would need a
+> much more granular lock.
+
+I don't think a lock would be good for MythTV or any other app that
+open()s multiple nodes at once.  How can an app know that it's
+dead-locking or barring itself via the kernel driver?
+
+Maybe return an EBUSY or E-something else for these cases when Myth
+tries to open() the second device node, when there's an underlying
+factor that requires things to be mutually exclusive.  Allowing things
+like read() to allow hardware mode switching between analog and digital
+seems like it could result in really weird behaviors at the application.
+
+I'll cite a precedent:
+ivtv returns EBUSY on open() when there's a conflict with it's various
+analog devices nodes that depend on the same underlying hardware: MPG,
+YUV, FM Radio, etc.
+
+I note the man page for open() doesn't list EBUSY as a valid errno.
+However, the V4L2 API Spec does list EBUSY as a valid errno for V4L2
+open().
 
 
+> Certainly I'm not blaming MythTV for this behavior, but it will make
+> the locking much more complicated in some hybrid devices.
 
-> Date: Wed, 7 May 2008 15:58:19 -0300> From: mchehab@infradead.org> To: vj=
-orda@hotmail.com> CC: video4linux-list@redhat.com> Subject: Re: Trying to s=
-et up a NPG Real DVB-T PCI Card> > On Mon, 28 Apr 2008 20:26:43 +0000> Vice=
-nt Jord=E0 <vjorda@hotmail.com> wrote:> > > > > Hi,> > > > (2) tuner-callba=
-ck is sending a wrong reset. Xc3028 needs to receive a reset, gia a GPIO pi=
-n, for firmware to load. If you don't send a reset, firmware won't load; Th=
-e better is to use regspy.exe (provided together with DCALER) and see what =
-gpio changes during firmware load.> > > > But regspy.exe is a Windows progr=
-am. I tried to run it from wine but doesn't work.> > True. This software he=
-lps to identify what the windows proprietary driver is> doing at the device=
-. I guess your device uses a different pin for XC3028 reset.> > > > Cheers,=
-> Mauro
-_________________________________________________________________
-La vida de los famosos al desnudo en MSN Entretenimiento
-http://entretenimiento.es.msn.com/=
+I like to blame MythTV for a lot of things. ;)
+
+But in this case I can't.  The driver probably shouldn't hold a lock and
+suspend an open() indefinitely (IMO).  It should say the device is BUSY
+as that is the truth: an underlying hardware device or resource is busy.
+
+
+Regards,
+Andy
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
