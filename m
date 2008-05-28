@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4N75hQf026645
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 03:05:43 -0400
-Received: from rs25s12.datacenter.cha.cantv.net
-	(rs25s12.datacenter.cha.cantv.net [200.44.33.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4N75E0n008307
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 03:05:19 -0400
-From: Emilio Lazo Zaia <emiliolazozaia@gmail.com>
-To: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	video4linux-list@redhat.com
-In-Reply-To: <4820BD94.90005@t-online.de>
-References: <88771.83842.qm@web83107.mail.mud.yahoo.com>
-	<1209512868.5699.32.camel@palomino.walls.org>
-	<1209863718.546.24.camel@localhost.localdomain>
-	<481E1AD3.2060304@t-online.de>
-	<1210045099.21581.6.camel@localhost.localdomain>
-	<4820BD94.90005@t-online.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Fri, 23 May 2008 02:34:48 -0430
-Message-Id: <1211526288.12831.18.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: MCE TV Philips 7135 Cardbus don't work
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4SKG6pY005051
+	for <video4linux-list@redhat.com>; Wed, 28 May 2008 16:16:06 -0400
+Received: from QMTA04.emeryville.ca.mail.comcast.net
+	(qmta04.emeryville.ca.mail.comcast.net [76.96.30.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4SKFqPP001915
+	for <video4linux-list@redhat.com>; Wed, 28 May 2008 16:15:53 -0400
+Message-ID: <483DBD67.8090508@personnelware.com>
+Date: Wed, 28 May 2008 15:15:35 -0500
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <47C8A0C9.4020107@personnelware.com>
+	<20080304112519.6f4c748c@gaivota>
+In-Reply-To: <20080304112519.6f4c748c@gaivota>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [patch] vivi: registered as /dev/video%d
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,26 +29,98 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
+I posted a week ago and haven't heard anything.  How long should I wait before 
+posting this? :)
 
-El mar, 06-05-2008 a las 22:20 +0200, Hartmut Hackmann escribió:
+Carl K
 
-> But before you open the module, you might try a "modprobe saa7134 card=55"
-> and watch the kernel log. If the driver tells you it found a tda8175(a),
-> we already learned a lot.
+Mauro Carvalho Chehab wrote:
+> Carl,
+> 
+> On Fri, 29 Feb 2008 18:18:17 -0600
+> Carl Karsten <carl@personnelware.com> wrote:
+> 
+>> Now that vivi can be something other than /dev/video0, it should tell us what it 
+>>   is.  This works for n_devs>1.
+>>
+>> sudo modprobe vivi n_devs=3
+>>
+>> [115041.616401] vivi: V4L2 device registered as /dev/video0
+>> [115041.616445] vivi: V4L2 device registered as /dev/video1
+>> [115041.616481] vivi: V4L2 device registered as /dev/video2
+>> [115041.616486] Video Technology Magazine Virtual Video Capture Board 
+>> successfully loaded.
+> 
+> Please, re-send your patches, adding your SOB. Please numberate them with something like 
+> [PATCH 1/3] for me to apply at the proper order.
+> 
 
-With card=53 (ASUS TV-FM 7135) and tuner=54 (tda8290+75) radio works!
-but seems to be swapped Television and Composite modes; I can watch RCA
-input using _Television_ mode and switching to Composite mode shows
-typical TV noise. Obviously the channel can't be changed in Composite
-but there is a way to correct this input mode confusion?
+------------------------------------------------------
+Patch 1:
 
-There is a lag when radio station is changed, maybe because of a
-card/tuner misconfiguration but works and ALSA audio capture function
-also works!
--- 
-Emilio Lazo Zaia <emiliolazozaia@gmail.com>
-Facultad de Ciencias, UCV
+diff -r 9d04bba82511 linux/drivers/media/video/vivi.c
+--- a/linux/drivers/media/video/vivi.c	Wed May 14 23:14:04 2008 +0000
++++ b/linux/drivers/media/video/vivi.c	Tue May 20 01:51:56 2008 -0500
+@@ -48,6 +48,8 @@
+  #include <linux/freezer.h>
+  #endif
+
++#define MODULE_NAME "vivi"
++
+  /* Wake up at about 30 fps */
+  #define WAKE_NUMERATOR 30
+  #define WAKE_DENOMINATOR 1001
+@@ -56,7 +58,7 @@
+  #include "font.h"
+
+  #define VIVI_MAJOR_VERSION 0
+-#define VIVI_MINOR_VERSION 4
++#define VIVI_MINOR_VERSION 5
+  #define VIVI_RELEASE 0
+  #define VIVI_VERSION \
+  	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
+@@ -1086,10 +1088,14 @@ static int vivi_release(void)
+  		list_del(list);
+  		dev = list_entry(list, struct vivi_dev, vivi_devlist);
+
+-		if (-1 != dev->vfd->minor)
++		if (-1 != dev->vfd->minor) {
+  			video_unregister_device(dev->vfd);
+-		else
++            printk(KERN_INFO "%s: /dev/video%d unregistered.\n", MODULE_NAME,
+dev->vfd->minor);
++        }
++		else {
+  			video_device_release(dev->vfd);
++            printk(KERN_INFO "%s: /dev/video%d released.\n", MODULE_NAME,
+dev->vfd->minor);
++        }
+
+  		kfree(dev);
+  	}
+@@ -1202,6 +1208,7 @@ static int __init vivi_init(void)
+  			video_nr++;
+
+  		dev->vfd = vfd;
++        printk(KERN_INFO "%s: V4L2 device registered as /dev/video%d\n",
+MODULE_NAME, vfd->minor);
+  	}
+
+  	if (ret < 0) {
+@@ -1209,7 +1216,8 @@ static int __init vivi_init(void)
+  		printk(KERN_INFO "Error %d while loading vivi driver\n", ret);
+  	} else
+  		printk(KERN_INFO "Video Technology Magazine Virtual Video "
+-				 "Capture Board successfully loaded.\n");
++                 "Capture Board ver %u.%u.%u successfully loaded.\n",
++        (VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF, VIVI_VERSION &
+0xFF);
+  	return ret;
+  }
+
+------------------------------------------------------
+Signed-off-by: Carl Karsten  <carl@personnelware.com>
+
 
 --
 video4linux-list mailing list
