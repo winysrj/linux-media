@@ -1,22 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m429phun013442
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:51:43 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m429oxPU017402
-	for <video4linux-list@redhat.com>; Fri, 2 May 2008 05:51:00 -0400
-Message-ID: <481AE400.8090709@hni.uni-paderborn.de>
-Date: Fri, 02 May 2008 11:50:56 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <4811F4EE.9060409@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804281604400.7897@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0804281604400.7897@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: pxa_camera with one buffer don't work
+Date: Wed, 28 May 2008 04:34:13 -0400
+From: Alan Cox <alan@redhat.com>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20080528083413.GB30339@devserv.devel.redhat.com>
+References: <20080527101039.1c0a3804@gaivota>
+	<20080527094144.1189826a@bike.lwn.net>
+	<20080527133100.6a9302fb@gaivota>
+	<20080527103755.1fd67ec1@bike.lwn.net>
+	<20080527155942.7693c360@gaivota>
+	<412bdbff0805271226t41fe55b0jd0b8e3c737f34734@mail.gmail.com>
+	<20080527180048.6a27dbf7@gaivota>
+	<1211932138.3197.29.camel@palomino.walls.org>
+	<412bdbff0805271746x3db9ae28h3c0f0b565f50d4c6@mail.gmail.com>
+	<1211942221.3197.154.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1211942221.3197.154.camel@palomino.walls.org>
+Cc: video4linux-list@redhat.com, Jonathan Corbet <corbet@lwn.net>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Alan Cox <alan@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] video4linux: Push down the BKL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,58 +33,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> On Fri, 25 Apr 2008, Stefan Herbrechtsmeier wrote:
->
->   
->> Hi,
->>
->> is it normal, that the pxa_camera driver don`t work with one buffer?. The
->> DQBUF blocks if only one buffer is in the query.
->>     
->
-> Well, in v4l2-apps/test/capture_example.c we see:
->
-> 	if (req.count < 2) {
-> 		fprintf (stderr, "Insufficient buffer memory on %s\n",
-> 			 dev_name);
-> 		exit (EXIT_FAILURE);
-> 	}
->
-> so, they seem to refuse to run with fewer than 2 buffers. But if I remove 
-> this restriction and enforce 1 buffer, it works. 2.5 times slower, but 
-> works. 
-If I do the same thing, I get a select timeout.
-> Can there be a problem with your application? What kernel sources 
-> are you using? Try using the latest v4l-dvb/devel git.
->   
-At the moment I use the kernel 2.6.24 and the V4L kernel modules from 
-mercurial.
-After I have port my robot platform to the current kernel, I will test 
-it again.
-What do you mean by latest v4l-dvb/devel git:
-    git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git?
+On Tue, May 27, 2008 at 10:37:01PM -0400, Andy Walls wrote:
+> I note the man page for open() doesn't list EBUSY as a valid errno.
+> However, the V4L2 API Spec does list EBUSY as a valid errno for V4L2
+> open().
 
-Regards
-    Stefan
+The posix spec doesn't limit the errors returnable this way - it says if
+the error is one of the ones listed it must return the error code stated so
+EBUSY is just fine.
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+> But in this case I can't.  The driver probably shouldn't hold a lock and
+> suspend an open() indefinitely (IMO).  It should say the device is BUSY
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
-
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
-
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+Agreed - especially if it is opened with O_NDELAY
 
 --
 video4linux-list mailing list
