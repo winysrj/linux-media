@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.oca.ch ([193.238.142.68] helo=mail-server2.oca.ch)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <tille@almana.ch>) id 1Ju3n1-0005z4-3I
-	for linux-dvb@linuxtv.org; Thu, 08 May 2008 12:55:56 +0200
-Received: from [212.101.18.67] by mail-server2.oca.ch (NTMail
-	7.00.0021/NT4306.00.618a11d8) with ESMTP id dyrvzjaa for
-	linux-dvb@linuxtv.org; Thu, 8 May 2008 12:57:15 +0200
-From: tille <tille@almana.ch>
-To: linux-dvb@linuxtv.org
-Date: Thu, 8 May 2008 12:55:33 +0200
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200805081255.33507.tille@almana.ch>
-Subject: [linux-dvb] Lite-On TVT-1060
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sonofzev@iinet.net.au>) id 1K1LRu-0003Es-CC
+	for linux-dvb@linuxtv.org; Wed, 28 May 2008 15:12:15 +0200
+From: allan k <sonofzev@iinet.net.au>
+To: jochen s <bumkunjo@gmx.de>
+In-Reply-To: <200805202213.02034.bumkunjo@gmx.de>
+References: <200805202213.02034.bumkunjo@gmx.de>
+Date: Wed, 28 May 2008 23:12:28 +1000
+Message-Id: <1211980348.24396.3.camel@media1>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] dvico Fusion HDTV DVB-T dual express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,16 +25,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi 
+Sorry about the late reply 
 
-I am responding to your "If you own one or more devices from the following 
-list and you want to help with support development" on 
-http://linuxtv.org/wiki/index.php/DVB-T_PCIe_Cards.
+I'm using the xc3028-dvico-au-01.fw firmware from Chris Pascoe's site.
 
-I am owner of a Asus G2 Laptop with a Lite-On TVT-1060 TV card and I do not at 
-all mind to support development or do some development myself.
+The best solution was to remove the "card=" line and let the
+auto-detection do it's thing. 
 
-Patrick
+To correct my reception I just bought a much higher quality cable (10
+aud about 6 eur)
+
+I hope this helps somehow... or am I too late
+
+ On Tue, 2008-05-20 at 22:13 +0200, jochen s wrote:
+> hi allan
+> 
+> ok - I read your messages to the mailing list and I got the card - but... no 
+> success here - grr!  - my 99EUR investment doesn't do anything...
+> What exactly was your breakthrough? The "card=5" option to the driver or 
+> anything more?
+> As I understand you tried sucessfully Chris Pascoe's xc-test branch?
+> What kind of firmware did you use?
+> 
+> greets, jochen
 
 _______________________________________________
 linux-dvb mailing list
