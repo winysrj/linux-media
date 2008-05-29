@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48])
+Received: from static.135.41.46.78.clients.your-server.de ([78.46.41.135]
+	helo=hetzner.kompasmedia.nl)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JxU7e-0003A2-1V
-	for linux-dvb@linuxtv.org; Sat, 17 May 2008 23:39:23 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: bvidinli <bvidinli@gmail.com>
-In-Reply-To: <36e8a7020805171423q42051749y5f6c82da88b695cd@mail.gmail.com>
-References: <617be8890805171034t539f9c67qe339f7b4f79d8e62@mail.gmail.com>
-	<36e8a7020805171423q42051749y5f6c82da88b695cd@mail.gmail.com>
-Date: Sat, 17 May 2008 23:38:19 +0200
-Message-Id: <1211060299.2592.10.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, Eduard Huguet <eduardhc@gmail.com>
-Subject: Re: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
+	(envelope-from <bas@kompasmedia.nl>) id 1K1mGE-0005YW-4n
+	for linux-dvb@linuxtv.org; Thu, 29 May 2008 19:49:59 +0200
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Date: Thu, 29 May 2008 19:49:54 +0200
+From: Bas v.d. Wiel <bas@kompasmedia.nl>
+Message-ID: <425dd4c41015c1c7de90ed667ccd1aa9@localhost>
+Subject: [linux-dvb] Mantis problems: my hardware
+Reply-To: bas@kompasmedia.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,110 +24,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
 
-Am Sonntag, den 18.05.2008, 00:23 +0300 schrieb bvidinli:
-> Hi,
-> thank you for your answer,
-> 
-> may i ask,
-> 
-> what is meant by "analog  input", it is mentioned on logs that:" only
-> analog inputs supported yet.." like that..
-> is that mean: s-video, composit ?
+Hello all,
+Since the mantis driver from Manu still doesn't give me any channels
+whatsoever, I decided to have a closer look at the hardware. Here's all the
+information I can get from looking at the card itself:
 
-yes, only s-video and composite is enabled there.
-Better we would have print only external analog inputs.
+Mantis-chip: 
+K62323.1A-2
+061117
 
-> (i installed mythtv on ubuntu kernel 2.6.26.rc2 , it shows in input
-> connections only svideo and composit... )
-> 
-> i want to scan air-tv channels, and dvb-s channels...
-> aren't these supported yet ?
+Frontend: (hidden under nasty Twinhan sticker):
+NXP
+3139 147 24321C8 (this is uncertain, the sticker destroyed part of this
+label)
+CU1216LS/ACICH-3 (everything after '/A' uncertain)
+SW21 0716
+MADE IN INDONESIA
 
-Not with 2.6.26, but likely with Matthias' patches.
+Corner of card:
+VP-20330 Ver:1.4
+2005.12.22
 
-> i will check your suggestions... and try...
-> 
-> thanks again
-> 
-> 
-> 
-> 2008/5/17 Eduard Huguet <eduardhc@gmail.com>:
-> > Hi,
-> >     You should maybe try the patches that Matthias Schwarzott made for
-> > non-hybrid variant of the A700 card (the one I use). They implement the add
-> > DVB-S support for that card, and it's running fine now for me.  don't know
-> > if these patches might be also valid for the Hybrid version, but it's
-> > probably worth the try.
-> >
-> >     You can find the patches in the Avermedia A700 wiki page of LinuxTV,
-> > here:
-> >
-> > http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-S_Pro_%28A700%29
-> >
-> >     Take the lastest full diff file  from ZZam's repository and apply it
-> > over the current HG tree. If you are unsure about how to proceed, myou
-> > should first take a look at the howto page regarding LinuxTV drivers
-> > install:
-> >
-> > http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
-> >
-> > Good luck :D
-> >   Eduard Huguet
-> >
-> >
-> >
-> >
-> >
-> >> ---------- Missatge reenviat ----------
-> >> From: bvidinli <bvidinli@gmail.com>
-> >> To: linux-dvb@linuxtv.org, "fahri donmez" <fahridon@gmail.com>,
-> >> ozbilen@gmail.com
-> >> Date: Sat, 17 May 2008 13:16:14 +0300
-> >> Subject: [linux-dvb] merhaba: About Avermedia DVB-S Hybrid+FM A700
-> >> i just compiled kernel version 2.6.26.rc2 on my ubuntu linux 8.04,
-> >> many things including sound not working, but i got finally name of my
-> >> tv/dvb card on dmesg output.
-> >> previously i was getting UNKNOWN/GENERIC on dmesg for my tv card,
-> >>
-> >>  i use tvtime-scanner or tvtime, it does not scan, even analog channels,
-> >>  i use following to try new tuners, :
-> >> rmmod saa7134
-> >> modprobe saa7134 card=141 tuner=2
-> >>
-> >> i run these two lines fo rtuner 0,1,2,3 and so on... to try different
-> >> tuner numbers... on some numbers, computers locks down.. i had to
-> >> reset...
-> >>
-> >>
-> >> currently i have two questions:
-> >> 1- what is correct statements/commands to be able to scan tv channels...
-> >> 2- the log says only analog inputs available now, when it will be
-> >> possible to watch dvb channels ?
-> >> 3- what is best/good tutorials/sites that describe/help in
-> >> dvb/tv/multimedia for ubuntu/linux, (i already looked linuxtv,
-> >> searched google, many sites..)
-> >>
-> >>
-> >> thanks.
-> >>
-> >>
-> >> logs: dmesg,
-> >>
-> >> [   39.243703] saa7133[0]: found at 0000:00:14.0, rev: 209, irq: 12,
-> >> latency: 32, mmio: 0xde003000
-> >> [   39.243776] saa7133[0]: subsystem: 1461:a7a2, board: Avermedia
-> >> DVB-S Hybrid+FM A700 [card=141,autodetected]
-> >> [   39.243858] saa7133[0]: board init: gpio is b400
-> >> [   39.243909] saa7133[0]: Avermedia DVB-S Hybrid+FM A700: hybrid
-> >> analog/dvb card
-> >> [   39.243915] saa7133[0]: Sorry, only the analog inputs are supported for
-> >> now.
-> >>
+Barcode label on the back of the card
+2-T2033-14
+SN: 07053E00015
 
-Cheers,
-Hermann
+The frontend has two coaxial connectors of which only the left one is
+connected to the connector on the back of the card. The other (male) seems
+to have no purpose. Also the letters NXP are engraved into the cover of the
+frontend assembly. Other than this I found a very small IC next to the CAM
+slot. This reads:
+
+EMC
+EM78P156ELMJ-G
+0615A BD64A6
+
+Is this in any significant way different from the cards that are reported
+working here?
+
+Bas
+
 
 
 
