@@ -1,37 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4S8M5jE002981
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 04:22:05 -0400
-Received: from vds19s01.yellis.net (ns1019.yellis.net [213.246.41.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4S8LKPx026788
-	for <video4linux-list@redhat.com>; Wed, 28 May 2008 04:21:20 -0400
-Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
-	[88.170.236.224])
-	by vds19s01.yellis.net (Postfix) with ESMTP id 9F6612FA88F
-	for <video4linux-list@redhat.com>;
-	Wed, 28 May 2008 10:21:24 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by goliath.anevia.com (Postfix) with ESMTP id 2EA9B1300374
-	for <video4linux-list@redhat.com>;
-	Wed, 28 May 2008 10:21:19 +0200 (CEST)
-Received: from goliath.anevia.com ([127.0.0.1])
-	by localhost (goliath.anevia.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id TPgitwEt3c3j for <video4linux-list@redhat.com>;
-	Wed, 28 May 2008 10:21:06 +0200 (CEST)
-Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
-	by goliath.anevia.com (Postfix) with ESMTP id 8209F1300377
-	for <video4linux-list@redhat.com>;
-	Wed, 28 May 2008 10:21:06 +0200 (CEST)
-Message-ID: <483D15DA.7020901@anevia.com>
-Date: Wed, 28 May 2008 10:20:42 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4TGWFlU028851
+	for <video4linux-list@redhat.com>; Thu, 29 May 2008 12:32:16 -0400
+Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
+	[195.188.213.5])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4TGW2i5014072
+	for <video4linux-list@redhat.com>; Thu, 29 May 2008 12:32:02 -0400
+Received: from [172.23.170.140] (helo=anti-virus02-07)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1K1l2n-00013Z-UI
+	for video4linux-list@redhat.com; Thu, 29 May 2008 17:32:01 +0100
+Received: from [80.195.195.227] (helo=[80.195.195.227])
+	by asmtp-out1.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1K1l2n-0005d6-GB
+	for video4linux-list@redhat.com; Thu, 29 May 2008 17:32:01 +0100
+Message-ID: <483EDAF0.9050304@blueyonder.co.uk>
+Date: Thu, 29 May 2008 17:33:52 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <483A87CA.6070408@anevia.com>
-In-Reply-To: <483A87CA.6070408@anevia.com>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: [HVR 1300] MPEG PS issues
+Content-Transfer-Encoding: 7bit
+Subject: Advice wanted for new system
+Reply-To: Ian.davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,63 +34,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Frederic CAND a écrit :
-> Dear all,
-> I post here cause I'm not sure everyone read my post in v4l-dvb.
-> Just copy/pasting my troubles here :
-> 
-> anybody
-> encountering picture / sound issues with VLC after some time running
-> (let's say half an hour) reading the MPEG PS output ?
-> I tried many different v4l-dvb tarballs, including latest repository,
-> but I could not make it work more that 30 minutes (or 20, it depends).
-> Stopping VLC and restarting it "solves" this issue but I'm looking for
-> someone who could confirm this behaviour, and then maybe fix this.
-> My VLC works fine , btw , with other MPEG PS or TS live streaming.
-> 
-> Other thing : I just use VLC to read the MPEG PS, not to setup the card. 
-> I do this with my own (simple) code which ressembles to this :
-> 
-> /* open devices */
-> fd1 = open("/dev/video0", 0_RDWR);
-> fd2 = open("/dev/video1", 0_RDWR);
-> 
-> /* prepare input/format */
-> int i = 1;
-> int j = V4L2_STD_SECAM;
-> ioctl(fd1, VIDIOC_S_INPUT, &i);
-> ioctl(fd1, VIDIOC_S_STD, &j);
-> struct v4l2_ext_controls mc;
-> struct v4l2_ext_control ctrls[32];
-> 
-> /* mpeg settings */
-> mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
-> mc.controls = ctrls;
-> i = 0;
-> mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
-> ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE;
-> ctrls[i++].value = V4L2_MPEG_VIDEO_BITRATE_MODE_CBR;
-> ctrls[i].id = V4L2_CID_MPEG_AUDIO_ENCODING;
-> ctrls[i++].value = V4L2_MPEG_AUDIO_ENCODING_LAYER_2;
-> ctrls[i].id = V4L2_CID_MPEG_AUDIO_L2_BITRATE;
-> ctrls[i++].value = V4L2_MPEG_AUDIO_L2_BITRATE_256K;
-> ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE;
-> ctrls[i++].value = 4096 * 1000;
-> ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK;
-> ctrls[i++].value = 4096 * 1000;
-> ctrls[i].id = V4L2_CID_MPEG_VIDEO_ASPECT;
-> ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_4x3;
-> mc.count = i;
-> ioctl(fd2, VIDIOC_S_EXT_CTRLS, &mc);
-> 
-> Anyone having troubles with VLC after 30 minutes ?
-hey all, you can forget about this
-my computer had troubles
+I have been recording (church services) using xawtv (streamer) and 
+composite video input to create avi files.
+
+I have discovered that the maximum size that the avi can reach is about 
+2GB - and obviously, this is affected by frame size and frame rate - 
+and, of course, length of recording. 
+
+I particularly like the ability of being able to start the capture 
+process using command-line parameters.
+
+I have the opportunity to renew the system and would appreciate any 
+suggestions about what I might do different next time.
+
+Regards
 
 -- 
-CAND Frederic
-Product Manager
-ANEVIA
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying
+objective reality. Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. Facts
+supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of
+actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury
+resulting from memorisation and subsequent use.
+
 
 --
 video4linux-list mailing list
