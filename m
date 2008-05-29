@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QFXcZp000947
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 11:33:38 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QFXK0t026481
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 11:33:21 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1359021fga.7
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 08:33:20 -0700 (PDT)
-Message-ID: <6cdc87030805260833x180aa1caxdf7fb2699207a0a@mail.gmail.com>
-Date: Mon, 26 May 2008 17:33:20 +0200
-From: "Aimar Marco" <marco.aimar@gmail.com>
-To: "Michael Hunold" <hunold@linuxtv.org>
-In-Reply-To: <483AB549.9070603@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <6cdc87030805201326k42740666h1266beb035aba684@mail.gmail.com>
-	<483AB549.9070603@linuxtv.org>
-Cc: video4linux-list@redhat.com
-Subject: Re: saa7146 card
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4THJSHD028943
+	for <video4linux-list@redhat.com>; Thu, 29 May 2008 13:19:28 -0400
+Received: from patton.snap.tv ([213.161.191.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4THJCOw018153
+	for <video4linux-list@redhat.com>; Thu, 29 May 2008 13:19:13 -0400
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Dinesh Bhat <dbhat@linsys.ca>
+In-Reply-To: <483C7696.9060004@linsys.ca>
+References: <483C7696.9060004@linsys.ca>
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 29 May 2008 18:41:49 +0200
+Message-Id: <1212079309.26238.15.camel@rommel.snap.tv>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: Video-4l-list <video4linux-list@redhat.com>, linux-dvb@linuxtv.org
+Subject: Re: DVB ASI related question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,24 +27,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, May 26, 2008 at 3:04 PM, Michael Hunold <hunold@linuxtv.org> wrote:
-> Hello Aimar,
->
-> on 20.05.2008 22:26 Aimar Marco said the following:
->> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->>       Subsystem: Unknown device 4342:4343
->
-> A quick search on the net did not bring up any vendor that matches this
-> id. What kind of card is this?
-You can view photo:
--box: http://img151.imageshack.us/img151/4577/scava0.jpg
--card: http://img138.imageshack.us/img138/2078/dsc00127modaf2.jpg
-It don't have manufacture name :(
-thank for your help
+tir, 27.05.2008 kl. 16.01 -0500, skrev Dinesh Bhat:
+> Hello,
+> 
+> Please suggest if this is not a question relevant to this list.
+> 
+> I do not see support DVB over ASI on linuxtv.org. We are DVB/SDI over 
+> ASI manufacturers and was wondering how much need is there in the market 
+> for video 4 linux drivers for DVB ASI. Currently we have regular PCI 
+> based drivers for Linux 2.6 and are thinking of porting our drivers to 
+> V4L if there is need. I could not obtain enough information while 
+> searching on the Internet.
+It was discussed at some point wether to add the necessary apis to
+handle ASI input devices to the linuxtv dvb api at some point. The post
+that started the discussion can be read here:
+http://www.mail-archive.com/linux-dvb@linuxtv.org/msg26193.html
+
+I don't think the discussion ended in any conclution, and I don't think
+anyone did anything towards adding ASI support. As you might know linux
+multimedia support has two different sets of apis, one for dvb cards
+(called "dvb" or "linuxtv dvb" and one for analog capture cards (called
+v4l and v4l2). The previous discussion was about adding support for ASI
+input boards to the dvb api. This would need some work because it
+wouldn't be well defined how to "tune" a ASI card. I think you by this
+mail suggested to add the ASI card as a v4l(2) driver. This might be a
+good idea as this api is allready well defined for devices that don't
+need to be tuned. Also many devices has arrived lately with hardware
+encoders on them, so the api does handle capturing codec data.
+
+So if you want to create a ASI capture card driver within the confines
+of standard linux apis you have the following alternatives (as I see
+it):
+
+Use the DVB Api:
+pros:
+ * you can take advantage of the software pid and section filters in the
+dvb framework
+ * if your device supports hardware pid/section filters, apis will be
+available to take advantage of them
+ * userspace applications that handle mpeg2 ts often use this api, and
+would be easy to adapt.
+cons:
+ * you might need to extend the apis to handle asi cards
+
+Use the v4l2 api:
+pros:
+ * semantics are well defined.
+ * provides an extensible api using so called "controls"
+cons:
+ * adapting user space applications will be more difficult
+ * no reuse of software filters
+
+Just my 2 norwegian øre
+
+Sigmund Augdal
 
 
--- 
-A presto, Aimar Marco
+> 
+> Any advice is appreciated.
+> 
+> Kind Regards,
+> 
+> Dinesh
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
