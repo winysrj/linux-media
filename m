@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway06.websitewelcome.com ([67.18.15.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1Jwu5A-0004Pn-9x
-	for linux-dvb@linuxtv.org; Fri, 16 May 2008 09:10:24 +0200
-Message-ID: <482D3359.2020506@kipdola.com>
-Date: Fri, 16 May 2008 09:10:17 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
-MIME-Version: 1.0
-To: =?windows-1252?Q?Jens_Krehbiel-Gr=E4ther?=
-	<linux-dvb@okg-computer.de>, LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
-References: <482D1AB7.3070101@kipdola.com>	<E1Jwsxt-000E0b-00.goga777-bk-ru@f151.mail.ru>
-	<482D2A0E.1030307@okg-computer.de>
-In-Reply-To: <482D2A0E.1030307@okg-computer.de>
-Subject: Re: [linux-dvb] Technotrend S2-3200 Scanning
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1K1oWX-00005p-0c
+	for linux-dvb@linuxtv.org; Thu, 29 May 2008 22:14:58 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K1N00BU0C7PN1W0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 29 May 2008 16:14:14 -0400 (EDT)
+Date: Thu, 29 May 2008 16:14:13 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <W7358116513137441212075159@webmail36>
+To: alan@alanlee.org
+Message-id: <483F0E95.4030008@linuxtv.org>
+MIME-version: 1.0
+References: <W7358116513137441212075159@webmail36>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Question about GPL & closed source drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,81 +25,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jens Krehbiel-Gr=E4ther schreef:
-> I postet a patch a few weeks ago (here again).
-> These szap and scan patches prepare the apps for actual multiproto =
+alan@alanlee.org wrote:
+> 
+> Can Linux DVB project drivers derived from non-GPL closed source SDKs be 
+> distributed in binary form only legally?  It seems most if not all of 
+> Linux-DVB is standard GPL.  And if that requires driver source to be 
+> GPL'd as well, it seems like it closes the Linux community off a bit 
+> from companies wanting to provide driver support to Linux while still 
+> keeping trade secrets protected.
 
-> (well for multiproto a few weeks ago, if the api hasn't changed again, =
+Correct.
 
-> these should work).
->
-> you have to patch the szap and scan from this sources:
->
-> http://abraham.manu.googlepages.com/szap.c
-> http://abraham.manu.googlepages.com/szap.c
-I fear things have changed too much for the patches to work. (Or I'm =
+See this: http://kerneltrap.org/node/1735
 
-messing up a simple command like patch)
+However, in most cases, the tv card vendors who don't provide open 
+source drivers, or don't assist the community in building open source 
+drivers are losing sales to their competitors.
 
-Szap: (Using the other szap.c file I can actually apply the patch, but =
+- Steve
 
-the new szap.c seems to be incompatible)
-# wget http://abraham.manu.googlepages.com/szap.c
-# sudo mv szap.c.1 szap.c
-# patch < szap-multiproto-apiv33.diff
-patching file szap.c
-# make
-CC lnb.o
-CC azap
-CC czap
-CC szap
-szap.c: In function =91do_tune=92:
-szap.c:243: error: storage size of =91fe_params=92 isn=92t known
-szap.c:282: error: =91DVBFE_SET_PARAMS=92 undeclared (first use in this =
 
-function)
-szap.c:282: error: (Each undeclared identifier is reported only once
-szap.c:282: error: for each function it appears in.)
-szap.c:243: warning: unused variable =91fe_params=92
-szap.c: In function =91zap_to=92:
-szap.c:353: error: storage size of =91fe_info=92 isn=92t known
-szap.c:354: error: storage size of =91delivery=92 isn=92t known
-szap.c:369: error: =91DVBFE_DELSYS_DVBS=92 undeclared (first use in this =
 
-function)
-szap.c:373: error: =91DVBFE_DELSYS_DSS=92 undeclared (first use in this =
 
-function)
-szap.c:377: error: =91DVBFE_DELSYS_DVBS2=92 undeclared (first use in this =
 
-function)
-szap.c:395: error: =91DVBFE_SET_DELSYS=92 undeclared (first use in this =
-
-function)
-szap.c:397: error: =91DVBFE_GET_INFO=92 undeclared (first use in this funct=
-ion)
-szap.c:354: warning: unused variable =91delivery=92
-szap.c:353: warning: unused variable =91fe_info=92
-make: *** [szap] Error 1
-
-Scan: (I'm using the original file, since I can't find another version =
-
-on Manu's googlepages)
-# patch -i scan-multiproto-3.3.patch
-
-patching file scan.c
-Hunk #1 FAILED at 1674.
-Hunk #2 FAILED at 1693.
-Hunk #3 FAILED at 1704.
-3 out of 3 hunks FAILED -- saving rejects to file scan.c.rej
-
-Thank you for your time
 
 _______________________________________________
 linux-dvb mailing list
