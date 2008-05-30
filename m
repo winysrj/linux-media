@@ -1,31 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FGvtCs026182
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 12:57:55 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FGvjI1024300
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 12:57:45 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so576103rvb.51
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 09:57:44 -0700 (PDT)
-Message-ID: <d9def9db0805150957y2551bb19taf751b275decf79e@mail.gmail.com>
-Date: Thu, 15 May 2008 18:57:43 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Dean Anderson" <dean@sensoray.com>
-In-Reply-To: <482C5812.9090903@sensoray.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VG2XOa015186
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 12:02:33 -0400
+Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
+	[75.180.132.123])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VG1WTl006959
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 12:01:42 -0400
+Received: from opus ([76.184.165.27]) by cdptpa-omta02.mail.rr.com with ESMTP
+	id <20080531160127.IPYI23887.cdptpa-omta02.mail.rr.com@opus>
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 16:01:27 +0000
+Received: from david by opus with local (Exim 4.69)
+	(envelope-from <david@opus.istwok.net>) id 1K2TWJ-00034o-3L
+	for video4linux-list@redhat.com; Sat, 31 May 2008 11:01:27 -0500
+Resent-Message-ID: <20080531160127.GA11803@opus.istwok.net>
+Date: Fri, 30 May 2008 09:58:30 -0500
+From: David Engel <david@istwok.net>
+To: Jason Pontious <jpontious@gmail.com>
+Message-ID: <20080530145830.GA7177@opus.istwok.net>
+References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-References: <20080514205927.GA13134@kroah.com>
-	<d9def9db0805141817n4182deedp780791b0a51fb7be@mail.gmail.com>
-	<20080515024141.GB21941@kroah.com>
-	<Pine.LNX.4.58.0805142006130.23876@shell4.speakeasy.net>
-	<482C5812.9090903@sensoray.com>
-Cc: video4linux-list@redhat.com, Greg KH <greg@kroah.com>,
-	linux-usb@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
-	mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] [PATCH] USB: add Sensoray 2255 v4l driver
+In-Reply-To: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Kworld 115-No Analog Channels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,40 +35,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 5/15/08, Dean Anderson <dean@sensoray.com> wrote:
->>
->> Virtually all apps (V4L1 & 2) can handle YUV and RGB colorspaces.
->> Certainly all the major ones do and all the major libraries as well.
->>
->> The problem is when the device only supports some vendor specific or
->> otherwise very uncommon format.  In that case not doing the conversion in
->> the kernel means the device won't work with any existing software without
->> patches.  In this case, while it's not "the right way", drivers often end
->> up including an in kernel conversion for pragmatic reasons.
->>
->> This was a problem with the bayer format, but now userspace support for
->> that format is more common.
->>
->
-> I agree the conversions don't belong in a driver. For the record, the
-> following are done in the 2255 hardware: V4L2_PIX_FMT_GREY and
-> V4L2_PIX_FMT_YUV422P.
->
-> Since planar YUV formats such as V4L2_PIX_FMT_YUV422P are still not that
-> well supported, is it possible to keep at least one packed YUV
-> format(V4L2_PIX_FMT_YUYV) in the driver?  If not, let me know.  I will
-> strongly suggest that the hardware Engineers add YUY2 or YUYV on board
-> in the DSP firmware.  Thanks, Dean
->
+On Thu, May 29, 2008 at 06:57:03PM -0400, Jason Pontious wrote:
+> After getting upgraded to the latest v4l-dvb repository I am no longer able
+> to get any analog channels from my Kworld 115. (I finally broke down and
+> installed 2.6.25 kernel in Ubuntu).
 
-Maybe it's better to fix up the corresponding application? If someone
-wants to get those devices work he already either has to upgrade his
-system or compile it manually at the moment.
-With libswscale it's just a few lines of code to convert the formats
-with a decent performance.
-Seems like the demand of conversions is also growing for the future.
+Which drivers are you really using, 2.6.25 or latest v4l-dvb from
+Mercurial?
 
-Markus
+> Before I was getting analog channels via the top rf input.  Now I get no
+> channels regardless if i set atv_input tuner_simple module setting.  Digital
+> channels are not affected just analog in this.  I get no errors from dmesg.
+> 
+> Any Ideas?
+
+I ran into a similar (probably the same) problem last week.  My search
+of the list archives revealed a known tuner detection regression in
+2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
+because it was simpler to just go back to 2.6.24.x.  I don't know why
+the fix hasn't made it into 2.6.25.x yet.
+
+David
+-- 
+David Engel
+david@istwok.net
 
 --
 video4linux-list mailing list
