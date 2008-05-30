@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4AMS9bJ003130
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 18:28:09 -0400
-Received: from omta0101.mta.everyone.net (imta-38.everyone.net
-	[216.200.145.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4AMRvVH021251
-	for <video4linux-list@redhat.com>; Sat, 10 May 2008 18:27:57 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4UMMxUn010342
+	for <video4linux-list@redhat.com>; Fri, 30 May 2008 18:22:59 -0400
+Received: from smtp2.infomaniak.ch (smtp2.infomaniak.ch [84.16.68.90])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4UMMlKT012740
+	for <video4linux-list@redhat.com>; Fri, 30 May 2008 18:22:47 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Sat, 31 May 2008 00:22:26 +0200
+References: <200804230137.12502.laurent.pinchart@skynet.be>
+	<200804242219.23906.laurent.pinchart@skynet.be>
+	<20080527161038.71d55b3f@gaivota>
+In-Reply-To: <20080527161038.71d55b3f@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Message-Id: <20080510152609.C0FB7D5F@resin13.mta.everyone.net>
-Date: Sat, 10 May 2008 15:26:09 -0700
-From: <jortega@listpropertiesnow.com>
-To: <tsw@johana.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Information request (USB ID:EB1A:E305)
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200805310022.26392.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] USB Video Class driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,47 +31,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Tom,
+Hi Mauro,
 
-I'm by far no expert on this but you will need to check dmesg or the sys log file and attempt to find the card and what is being assigned to it. Have you already installed the dvb4 drivers? Do you know what device it's on, etc...
+On Tuesday 27 May 2008, Mauro Carvalho Chehab wrote:
+> Hi Laurent,
+>
+> Any news about the UVC patches for kernel inclusion? We urge to send it,
+> otherwise it may be too late for 2.5.27 addition.
 
-John
+I haven't got much feedback, unfortunately :-(
 
---- sdc695@yahoo.com wrote:
+I'm away this weekend, can it wait until next week ?
 
-From: Tom Watson <sdc695@yahoo.com>
-To: video4linux-list@redhat.com
-Subject: Information request (USB ID:EB1A:E305)
-Date: Sat, 10 May 2008 13:09:48 -0700 (PDT)
+Best regards,
 
-Hi...
-
-I've got a KWorld "VS-PVR-TV 305U" which is a tuner that plugs into a usb (2.0)
-port.  Its other spigot is a simple F connector that awaits an antenna.
-
-I've looked for a driver under Linux, but there appears to be none.
-Some details:
-USB vendor: EB1A, eMPIA Technology, Inc.
-USB device: E305, nothing recorded (yet).
-
-Does anyone know if a driver for this device is around, or if a current one can
-be adapted for use.  I can do lots of experiments if someone has specifics on
-what to do.  I can send a full 'lsusb' if needed, but won't waste the lists
-space right now.
-
-Thanks,
-
-
-
-      ____________________________________________________________________________________
-Be a better friend, newshound, and 
-know-it-all with Yahoo! Mobile.  Try it now.  http://mobile.yahoo.com/;_ylt=Ahu06i62sR8HDtDypao8Wcj9tAcJ
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
+Laurent Pinchart
 
 --
 video4linux-list mailing list
