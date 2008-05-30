@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42])
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1JwQqT-0005EM-Pj
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 01:57:18 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
-In-Reply-To: <482B44D1.1000906@freenet.de>
-References: <48295A62.50708@kompasmedia.nl> <4829FA37.8030007@freenet.de>
-	<482AAD8A.80309@kompasmedia.nl>  <482B44D1.1000906@freenet.de>
-Date: Thu, 15 May 2008 01:56:13 +0200
-Message-Id: <1210809373.2514.10.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend 2300 DVB-C, does it work?
+	(envelope-from <e9hack@googlemail.com>) id 1K258o-00021J-NG
+	for linux-dvb@linuxtv.org; Fri, 30 May 2008 15:59:35 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so146795fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 30 May 2008 06:59:30 -0700 (PDT)
+Message-ID: <48400833.60909@gmail.com>
+Date: Fri, 30 May 2008 15:59:15 +0200
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <1212079844.26238.22.camel@rommel.snap.tv>
+	<483EED5A.7080200@iki.fi>
+In-Reply-To: <483EED5A.7080200@iki.fi>
+From: e9hack <e9hack@googlemail.com>
+Subject: Re: [linux-dvb] Oops in tda10023
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +27,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Antti Palosaari schrieb:
+> Sigmund Augdal wrote:
+>> using latest hg v4l-dvb on a 2.6.20 kernel.
+> 
+> I did some changes recently to tda10023 (needed for Anysee driver). I 
+> wonder if these errors start coming after that? Those changes are 
+> committed to master only few days ago, 05/26/2008.
 
-Am Mittwoch, den 14.05.2008, 22:00 +0200 schrieb Ruediger Dohmhardt:
-> Bas v.d. Wiel schrieb:
-> > Hi Ruediger,
-> > The AD-CP300 is exactly the card I own right now. I haven't been able 
-> > to tune this card to a single channel yet, using whatever version of 
-> This is strange, and as said already, my card tunes not only perfectly, 
-> but also fast. Channel switching is less than 2s!
-> > the Mantis driver, even though the card functions perfectly using 
-> > Windows so the hardware is OK. My assumption is that a working Mantis 
-> > card should be able to at least detect the channels, even if it's 
-> > unable to decrypt them. 
-> Yes! By the way, do you have just encrypted channels in Netherland?
+I think the oops occurs, because tda10023_writereg() fails in tda10023_attach(). If 
+tda10023_writereg fails, an error message is printed. In this case, 
+state->frontend.dvb->num is accessed, but it isn't initialized yet.
 
-yes, that was reported by countless people, but I'm not there.
-
-This was only one of the reasons to ask Manu to stop advertising the new
-expensive stuff that hard in Europe. The same goes for free S2. It is
-nothing more than some blown up "muppets" show you get for now, at least
-in Germany.
-
-The work is fine, but people need to know how far they can get with it
-on their place for now.
-
-Results about pointing to it are known ... ;)
-
-Cheers,
-Hermann
-
-
-
-
-
-
+-Hartmut
 
 _______________________________________________
 linux-dvb mailing list
