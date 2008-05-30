@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway10.websitewelcome.com ([67.18.124.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1JwjuY-0002y5-AD
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 22:18:49 +0200
-Received: from [77.109.107.153] (port=49645 helo=[192.168.1.3])
-	by gator143.hostgator.com with esmtpa (Exim 4.68)
-	(envelope-from <skerit@kipdola.com>) id 1JwjuP-0007IZ-Up
-	for linux-dvb@linuxtv.org; Thu, 15 May 2008 15:18:38 -0500
-Message-ID: <482C9A9E.1000204@kipdola.com>
-Date: Thu, 15 May 2008 22:18:38 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
-MIME-Version: 1.0
+Received: from mu-out-0910.google.com ([209.85.134.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stefanselariu@gmail.com>) id 1K1zao-0001Vs-1W
+	for linux-dvb@linuxtv.org; Fri, 30 May 2008 10:04:08 +0200
+Received: by mu-out-0910.google.com with SMTP id w8so2933916mue.1
+	for <linux-dvb@linuxtv.org>; Fri, 30 May 2008 01:04:01 -0700 (PDT)
+From: Stefan Selariu <stefanselariu@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <1210882270l.5853l.0l@manu-laptop>
-In-Reply-To: <1210882270l.5853l.0l@manu-laptop>
-Subject: Re: [linux-dvb] Re : Technotrend S2-3200 (Or Technisat Skystar HD)
- on LinuxMCE 0710 (Kubuntu Feisty)
+In-Reply-To: <cc5a77190805291011t68f70773re0851a68f188e1a6@mail.gmail.com>
+References: <cc5a77190805291011t68f70773re0851a68f188e1a6@mail.gmail.com>
+Date: Fri, 30 May 2008 11:04:01 +0300
+Message-Id: <1212134641.11428.1.camel@stefan>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] saa7136E status?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,115 +20,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1895234895=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============1895234895==
-Content-Type: multipart/alternative;
- boundary="------------020604030808090700020002"
-
-This is a multi-part message in MIME format.
---------------020604030808090700020002
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-manu schreef:
-> On 05/15/2008 09:04:23 AM, Jelle De Loecker wrote:
->   
->>>> I have rebooted the computer multiple times.
->>>> I also unloaded the modules and reloaded them without rebooting.
->>>> I even added the modules to the blacklist, rebooted, loaded the
->>>> modules manually - they still won't go.
->>>>     
->>>>         
->
-> So to make it clear: you compiled and installed the drivers from the 
-> multiproto tree of Manu Abraham (not me, another Manu ;-)
-> Then how do you test it? I use mythtv but for that you need to patch it 
-> (I use mythtv-0.21 branch).
-> Bye
-> Manu
->   
-Hi Manu,
-
-I never got to test it! I would never get a /dev/dvb map with the needed 
-devices in it.
-Apparently it's a problem with that kernel, because I tried the latest 
-Mythbuntu 8.04 and the drivers do work there!
-
-I wish it could be fixed, though, as I strongly prefer LinuxMCE to 
-Mythbuntu.
-
-Now that I'm temporarily running Mythbuntu I'm trying to get *any* 
-signal from my LNB (through a disecq switch)
-Fingers crossed!
-
---------------020604030808090700020002
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-manu schreef:
-<blockquote cite="mid:1210882270l.5853l.0l@manu-laptop" type="cite">
-  <pre wrap="">On 05/15/2008 09:04:23 AM, Jelle De Loecker wrote:
-  </pre>
-  <blockquote type="cite">
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <pre wrap="">I have rebooted the computer multiple times.
-I also unloaded the modules and reloaded them without rebooting.
-I even added the modules to the blacklist, rebooted, loaded the
-modules manually - they still won't go.
-    
-        </pre>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->
-So to make it clear: you compiled and installed the drivers from the 
-multiproto tree of Manu Abraham (not me, another Manu ;-)
-Then how do you test it? I use mythtv but for that you need to patch it 
-(I use mythtv-0.21 branch).
-Bye
-Manu
-  </pre>
-</blockquote>
-Hi Manu,<br>
-<br>
-I never got to test it! I would never get a /dev/dvb map with the
-needed devices in it. <br>
-Apparently it's a problem with that kernel, because I tried the latest
-Mythbuntu 8.04 and the drivers do work there!<br>
-<br>
-I wish it could be fixed, though, as I strongly prefer LinuxMCE to
-Mythbuntu.<br>
-<br>
-Now that I'm temporarily running Mythbuntu I'm trying to get *any*
-signal from my LNB (through a disecq switch)<br>
-Fingers crossed!<br>
-</body>
-</html>
-
---------------020604030808090700020002--
-
-
---===============1895234895==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1895234895==--
+SGFzIGFueW9uZSBhbiBpZGVhIGFib3V0IHRoZSBzdGF0dXMgZm9yIHRoZXNlIGNoaXBzPwoKVGhh
+bmtzLApTdGVmYW4KCk9uIFRodSwgMjAwOC0wNS0yOSBhdCAyMDoxMSArMDMwMCwgxZ50ZWZhbiDF
+nmVsYXJpdSB3cm90ZToKPiBJIGhhdmUgYW4gQXZlcm1lZGlhIEF2ZXJUViBTcGVlZHkgUENJLUUg
+d2hpY2ggaGFzIHRoZSBOWEQgY2hpcHM6Cj4gU0FBNzEzNkUvMS9HLCBTQUE3MTYwRVQgYW5kIFRE
+QTE4MjcxSERDMQo+IAo+ICNsc3BjaSAtdgo+IDAzOjAwLjAgTXVsdGltZWRpYSBjb250cm9sbGVy
+OiBQaGlsaXBzIFNlbWljb25kdWN0b3JzIFVua25vd24gZGV2aWNlCj4gNzE2MCAocmV2IDAzKQo+
+ICAgICBTdWJzeXN0ZW06IEF2ZXJtZWRpYSBUZWNobm9sb2dpZXMgSW5jIFVua25vd24gZGV2aWNl
+IDE2NTUKPiAgICAgRmxhZ3M6IGJ1cyBtYXN0ZXIsIGZhc3QgZGV2c2VsLCBsYXRlbmN5IDAsIElS
+USAxMAo+ICAgICBNZW1vcnkgYXQgZmVhMDAwMDAgKDY0LWJpdCwgbm9uLXByZWZldGNoYWJsZSkg
+W3NpemU9MU1dCj4gICAgIENhcGFiaWxpdGllczogWzQwXSBNZXNzYWdlIFNpZ25hbGxlZCBJbnRl
+cnJ1cHRzOiBNYXNrLSA2NGJpdCsKPiBRdWV1ZT0wLzUgRW5hYmxlLQo+ICAgICBDYXBhYmlsaXRp
+ZXM6IFs1MF0gRXhwcmVzcyBFbmRwb2ludCBJUlEgMAo+ICAgICBDYXBhYmlsaXRpZXM6IFs3NF0g
+UG93ZXIgTWFuYWdlbWVudCB2ZXJzaW9uIDIKPiAgICAgQ2FwYWJpbGl0aWVzOiBbODBdIFZlbmRv
+ciBTcGVjaWZpYyBJbmZvcm1hdGlvbgo+IAo+IElzIHRoZXJlIGEgZHJpdmVyIGZvciB0aGlzIGNh
+cmQ/Cj4gCj4gQmVzdCByZWdhcmRzLAo+IFN0ZWZhbgo+IAoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgt
+ZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LWR2Yg==
