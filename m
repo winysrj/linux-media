@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtphost.cis.strath.ac.uk ([130.159.196.96])
+Received: from [213.161.191.158] (helo=patton.snap.tv)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gnapier@cis.strath.ac.uk>) id 1Jyo7c-0002bM-6k
-	for linux-dvb@linuxtv.org; Wed, 21 May 2008 15:12:49 +0200
-Message-ID: <48341FBD.7080603@cis.strath.ac.uk>
-Date: Wed, 21 May 2008 14:12:29 +0100
-From: Gary Napier <gnapier@cis.strath.ac.uk>
-MIME-Version: 1.0
-To: Dennis Schwan <dennis.schwan@leuchtturm-it.de>
-References: <48341B25.2070306@leuchtturm-it.de>
-In-Reply-To: <48341B25.2070306@leuchtturm-it.de>
+	(envelope-from <sigmund@snap.tv>) id 1K20he-0006jH-HL
+	for linux-dvb@linuxtv.org; Fri, 30 May 2008 11:15:16 +0200
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <483EED5A.7080200@iki.fi>
+References: <1212079844.26238.22.camel@rommel.snap.tv>
+	<483EED5A.7080200@iki.fi>
+Date: Fri, 30 May 2008 11:15:09 +0200
+Message-Id: <1212138909.26238.34.camel@rommel.snap.tv>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with cx88
+Subject: Re: [linux-dvb] Oops in tda10023
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,83 +26,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dennis,
-Im not certain what your card is, but my hvr-3000 uses the same modules. 
-It seems in a bid to fix some
-bug or other, hardy has its own cx88 module among others, and even if 
-you build your own, it uses its own, which seems
-to be broken for DVB-S. The solution so far is to delete its copy and 
-build your own...
+tor, 29.05.2008 kl. 20.52 +0300, skrev Antti Palosaari:
+> Sigmund Augdal wrote:
+> > using latest hg v4l-dvb on a 2.6.20 kernel.
+> 
+> I did some changes recently to tda10023 (needed for Anysee driver). I 
+> wonder if these errors start coming after that? Those changes are 
+> committed to master only few days ago, 05/26/2008.
+When the crash happened I was using a module with these changes
+included. This doesn't necessarily mean that these changes were the
+cause of the problem. From reading the relevant diff I'd say it's quite
+unlikely that your changes is causing the problem, as tda10023_writereg
+was called from tda10023_attach before also, and you didn't change
+anything in tda10023_writereg it self. I also know for a fact that the
+i2c problems also did happen without your changes, so your changes isn't
+the cause of that either.
 
-Hope it helps, but anyone with more experience should probably chip in 
-here esp if i have it all wrong
+About your changes to the tda10023 module, I tried these a while ago
+(before they were merged into master, with a technotrend C-1501 board
+that has a tda10023 demod with at tda8274a silicon tuner. I figured the
+tuner had the same deltaf setting as the tuner used in anysee (based on
+how this tuner is used in conjunction with tda10046), but I couldn't
+figure out values for the pll_x parameters. I tried setting them to the
+the same as the ones used in the anysee tree , but I couldn't get any
+lock still, it may however be because my signal was bad at that point.
+If I remember correctly your comments said something about an unknown
+tuner used in the anysee device. Is there any chance it actually is the
+tda827x? As this tuner-demod combo is sold as a refference design from
+phillips.
 
-(Optional) Remove modules from *buntu 8.04
+Best Regards
 
-This step is only required if you are running an Ubuntu variant, after one of their bug fixes duplicated the modules being run.
-This also may be useful to anyone who gets dmesg errors like : cx88xx: disagrees about version of symbol (videobuf_dma_free)
-
-# rm -rf /lib/modules/`uname -r`/ubuntu/media/cx88
-# rm -rf /lib/modules/`uname -r`/ubuntu/media/saa7134
-# depmod -a
-
-
-
-Dennis Schwan wrote:
-> Hi,
->
-> I have problems with my Hauppauge Nova-S Card. It works mostly but i 
-> have problems when watching Live-TV on a MythTV Client.
-> The Errors ind the Backends Syslog are as follows:
->
-> May 21 14:49:38 myth kernel: [  319.630976] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:39 myth kernel: [  320.638820] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:40 myth kernel: [  321.646477] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:41 myth kernel: [  322.654081] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:42 myth kernel: [  323.661852] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:43 myth kernel: [  324.669599] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:44 myth kernel: [  325.677362] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:45 myth kernel: [  326.685118] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:46 myth kernel: [  327.691986] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:47 myth kernel: [  328.700559] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:48 myth kernel: [  329.707352] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:49 myth kernel: [  330.714884] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
-> May 21 14:49:50 myth kernel: [  331.722389] cx88[0]/2-mpeg: general 
-> errors: 0x00000100
->
-> When i reload the driver and just use my budget-card everything works 
-> fine, so i really need a solition for this.
-> The card worked without problems before upgrading to Ubuntu Hardy/8.04
->
-> The problem occurs with the default Ubuntu drivers and also with newes 
-> CVS drivers.
->
-> Regards,
-> Dennis
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
-
--- 
-_____________________________________________________________________________
-Gary Napier
+Sigmund
+> 
+> regards
+> Antti
 
 
 _______________________________________________
