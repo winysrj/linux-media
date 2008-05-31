@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.188])
+Received: from smtp5.freeserve.com ([193.252.22.128])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1K2QbD-0003R2-1b
-	for linux-dvb@linuxtv.org; Sat, 31 May 2008 14:54:19 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so2308054fka.1
-	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 05:54:05 -0700 (PDT)
-Message-ID: <ea4209750805310554h75ecb9e4wdd05f3fb275454c6@mail.gmail.com>
-Date: Sat, 31 May 2008 14:54:05 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-In-Reply-To: <ea4209750805281007g7c2d3b9dl4d3da8f4397ca34a@mail.gmail.com>
+	(envelope-from <linuxtv@mfraz74.orangehome.co.uk>)
+	id 1K2USw-0007xA-Na
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 19:02:05 +0200
+Received: from smtp5.freeserve.com (mwinf3429 [10.232.11.129])
+	by mwinf3410.me.freeserve.com (SMTP Server) with ESMTP id 1BE831C00F44
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 19:00:23 +0200 (CEST)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3429.me.freeserve.com (SMTP Server) with ESMTP id 2BE341C00086
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 18:57:49 +0200 (CEST)
+Received: from rachael.local (unknown [91.108.98.216])
+	by mwinf3429.me.freeserve.com (SMTP Server) with ESMTP id E423B1C00084
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 18:57:45 +0200 (CEST)
+From: Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
+To: linux-dvb@linuxtv.org
+Date: Sat, 31 May 2008 17:57:46 +0100
 MIME-Version: 1.0
-References: <483C2458.4080004@pandora.be>
-	<ea4209750805270823h357384fcmfa981d2244472dae@mail.gmail.com>
-	<20080527160509.723fa149@gaivota>
-	<ea4209750805281007g7c2d3b9dl4d3da8f4397ca34a@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem initialising Terratec Cinergy HT USB XE
+Content-Disposition: inline
+Message-Id: <200805311757.46842.linuxtv@mfraz74.orangehome.co.uk>
+Subject: [linux-dvb] Hauppauge Nova-S-Plus PCI card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,121 +27,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0023323783=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0023323783==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_24_11432669.1212238445478"
+I've just bought a Hauppauge Nova-S-Plus PCI card which seems to be slightl=
+y =
 
-------=_Part_24_11432669.1212238445478
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+different to the one in the Wiki - =
 
-I just tested the latest changes and they work great!!
+http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-S-Plus - having =
 
-Albert
+IIRC a model number of 790. LSPCI -v gives this info for the card:
 
-2008/5/28 Albert Comerma <albert.comerma@gmail.com>:
+01:08.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and =
 
-> I can't test it right now (I'm out for work). But I've looked the changes
-> and they seem great for me, I just compiled and installed, without any
-> problem, there's just the test left, for next weekend.
->
-> Thanks!
->
-> Albert
->
-> 2008/5/27 Mauro Carvalho Chehab <mchehab@infradead.org>:
->
-> Hi Albert,
->>
->> On Tue, 27 May 2008 17:23:50 +0200
->> "Albert Comerma" <albert.comerma@gmail.com> wrote:
->>
->> > There seems to be a problem with the last changes on xc2028 code, please
->> try
->> > this;
->> >
->> > In linux/drivers/media/common/tuners/tuner-xc2028.c file, on
->> xc2028_attach,
->> > video_dev must be = cfg->video_dev;
->> > and on the current source it's = cfg->i2c_adap->algo_data; which
->> completely
->> > breaks the module when loaded.
->> >
->> > It was already suggested that this should be changed, but nobody said
->> why
->> > this modification was done or why it was kept.
->> >
->> > Mauro could you trace when and why this modification was done? or at
->> least
->> > give it back to original state?
->> >
->>
->> It seems that I forgot to merge the fix for this. I've just committed it.
->> Could
->> you please test ? It is already available at mercurial tree.
->>
->> Cheers,
->> Mauro
->>
->
->
+Audio Decoder (rev 05)
+        Subsystem: Hauppauge computer works Inc. Nova-S-Plus DVB-S
+        Flags: bus master, medium devsel, latency 32, IRQ 19
+        Memory at f5000000 (32-bit, non-prefetchable) [size=3D16M]
+        Capabilities: [44] Vital Product Data
+        Capabilities: [4c] Power Management version 2
 
-------=_Part_24_11432669.1212238445478
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+01:08.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio =
 
-I just tested the latest changes and they work great!!<br><br>Albert<br><br><div class="gmail_quote">2008/5/28 Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-I can&#39;t test it right now (I&#39;m out for work). But I&#39;ve looked the changes and they seem great for me, I just compiled and installed, without any problem, there&#39;s just the test left, for next weekend.<br><br>
+Decoder [Audio Port] (rev 05)
+        Subsystem: Hauppauge computer works Inc. Unknown device 9202
+        Flags: bus master, medium devsel, latency 32, IRQ 19
+        Memory at f6000000 (32-bit, non-prefetchable) [size=3D16M]
+        Capabilities: [4c] Power Management version 2
 
-Thanks!<br><br>Albert<br><br><div class="gmail_quote">2008/5/27 Mauro Carvalho Chehab &lt;<a href="mailto:mchehab@infradead.org" target="_blank">mchehab@infradead.org</a>&gt;:<div><div></div><div class="Wj3C7c"><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+01:08.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio =
 
-Hi Albert,<br>
-<div><br>
-On Tue, 27 May 2008 17:23:50 +0200<br>
-&quot;Albert Comerma&quot; &lt;<a href="mailto:albert.comerma@gmail.com" target="_blank">albert.comerma@gmail.com</a>&gt; wrote:<br>
-<br>
-&gt; There seems to be a problem with the last changes on xc2028 code, please try<br>
-&gt; this;<br>
-&gt;<br>
-&gt; In linux/drivers/media/common/tuners/tuner-xc2028.c file, on xc2028_attach,<br>
-&gt; video_dev must be = cfg-&gt;video_dev;<br>
-&gt; and on the current source it&#39;s = cfg-&gt;i2c_adap-&gt;algo_data; which completely<br>
-&gt; breaks the module when loaded.<br>
-&gt;<br>
-&gt; It was already suggested that this should be changed, but nobody said why<br>
-&gt; this modification was done or why it was kept.<br>
-&gt;<br>
-&gt; Mauro could you trace when and why this modification was done? or at least<br>
-&gt; give it back to original state?<br>
-&gt;<br>
-<br>
-</div>It seems that I forgot to merge the fix for this. I&#39;ve just committed it. Could<br>
-you please test ? It is already available at mercurial tree.<br>
-<br>
-Cheers,<br>
-<font color="#888888">Mauro<br>
-</font></blockquote></div></div></div><br>
-</blockquote></div><br>
+Decoder [MPEG Port] (rev 05)
+        Subsystem: Hauppauge computer works Inc. Unknown device 9202
+        Flags: bus master, medium devsel, latency 32, IRQ 19
+        Memory at f7000000 (32-bit, non-prefetchable) [size=3D16M]
+        Capabilities: [4c] Power Management version 2
 
-------=_Part_24_11432669.1212238445478--
+01:08.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio =
 
+Decoder [IR Port] (rev 05)
+        Subsystem: Hauppauge computer works Inc. Unknown device 9202
+        Flags: bus master, medium devsel, latency 32, IRQ 10
+        Memory at f8000000 (32-bit, non-prefetchable) [size=3D16M]
+        Capabilities: [4c] Power Management version 2
 
---===============0023323783==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Plugged it in, connected the cable from the dish and fired up Kaffeine and =
+it =
+
+works. There is some A/V sync problems at times which I haven't figured out =
+
+the cause of yet, but I'm more than pleased with it.
+
+Just one question, is this the right mailing list to ask questions on how t=
+o =
+
+use the analogue audio/video inputs available on this card?
+
+-- =
+
+|\ =A0/| ark Fraser =A0/Registered Linux User #466407
+| \/ | Somerset =A0 /Using Kmail on Kubuntu Gutsy Gibbon
+| =A0 =A0|___________/You know what the sig means!
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0023323783==--
