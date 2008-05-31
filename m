@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m48FbvAP013414
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 11:37:57 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m48FbiV4016204
-	for <video4linux-list@redhat.com>; Thu, 8 May 2008 11:37:44 -0400
-Date: Thu, 8 May 2008 17:37:20 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Dinesh Bhat <dbhat@linsys.ca>
-Message-ID: <20080508153720.GA2727@daniel.bse>
-References: <48230D7E.9050503@linsys.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4V70vre012090
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 03:00:57 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4V70hTQ032238
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 03:00:43 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so80823ywb.81
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 00:00:42 -0700 (PDT)
+Message-ID: <b7b14cbb0805310000p4f0761d3n1c1b68754cc5ee80@mail.gmail.com>
+Date: Sat, 31 May 2008 09:00:42 +0200
+From: "C.Lee Taylor" <clintonlee.taylor@gmail.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <48230D7E.9050503@linsys.ca>
-Cc: Video-4l-list <video4linux-list@redhat.com>
-Subject: Re: Apple quicktime v210 codec equivalent support on V4L
+Subject: OT: Network to TV hardware ...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,37 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, May 08, 2008 at 09:26:06AM -0500, Dinesh Bhat wrote:
-> We have a card that supports v210 codec type on Mac OS X. We have our 
-> regular drivers (we implement frame buffers) and are interested in 
-> supporting v4l for this card. I was wondering if there is any direct 
-> support available for v210 codec. Can anyone please suggest what is the 
-> best way to go here if we want to support v4l?
+Greetings ...
 
-If I understand you correctly, you want to write a V4L driver for this card.
+ A little off topic, but I'm hoping you will forgive me and help with a bit
+of direction ...
 
-There is currently no equivalent to v210 defined but adding support for it to
-V4L is just a matter of adding
+ Have a friend with a shop that wants to do advertising using TV sets.  Now
+he already as network points through out the shop and I was thinking we
+could put up a network to TV adapter to stream video over the network to the
+TV's ... Great idea, but I can't seem to find anything like this with google
+... Thinking I might be using the wrong search terms " network video stream
+to TV RCA S-Video"...  Can find plenty of things about streaming to PC and
+so on, but that's not what I'm looking for ...
 
-#define V4L2_PIX_FMT_V210    v4l2_fourcc('v','2','1','0') /* 20  YUV 4:2:2 */
+ Does anybody have any ideas?
 
-to videodev2.h.
-
-A description for the V4L2 API specification should be provided as well.
-
-Conversion between different pixel formats is not supposed to be done in V4L
-drivers. It should be done either on the card or in the application if needed.
-If you need to reorder bits to have v210, invent a new pixel format and
-advertise that one instead of v210. Drivers should not touch the frame buffer.
-Only hardware and userspace do.
-
-A userspace library is in the works to aid application writers:
-http://linuxtv.org/v4lwiki/index.php/V4L2UserspaceLibrary
-
-So your driver should expect the application to already know about v210.
-
-  Daniel
-
+Thanks
+Mailed
+LeeT
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
