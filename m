@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m43CD6Y8011805
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 08:13:06 -0400
-Received: from omta0102.mta.everyone.net (imta-38.everyone.net
-	[216.200.145.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m43CCrnI013185
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 08:12:53 -0400
-Received: from sj1-dm04.mta.everyone.net (sj1-slb03-gw2 [172.16.1.96])
-	by omta0102.mta.everyone.net (Postfix) with ESMTP id 8BE5B6BB613
-	for <video4linux-list@redhat.com>; Sat,  3 May 2008 05:11:49 -0700 (PDT)
-Received: by sj1-dm04.mta.everyone.net (EON-AUTHRELAY2 - c198dd4f) id
-	sj1-dm04.4819fc67.35e37
-	for <video4linux-list@redhat.com>; Sat, 3 May 2008 05:11:36 -0700
-From: "John Ortega" <jortega@listpropertiesnow.com>
-To: <video4linux-list@redhat.com>
-Date: Sat, 3 May 2008 08:11:35 -0400
-Message-ID: <EEEHJJMABEBDCNKAINKCMEBMCHAA.jortega@listpropertiesnow.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Subject: Pinnacle PCTV usb2 PAL EUROPE
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4V9CaR1020560
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 05:12:36 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m4V9CJ93006520
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 05:12:19 -0400
+Date: Sat, 31 May 2008 11:11:55 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: "C.Lee Taylor" <clintonlee.taylor@gmail.com>
+Message-ID: <20080531091155.GA244@daniel.bse>
+References: <b7b14cbb0805310000p4f0761d3n1c1b68754cc5ee80@mail.gmail.com>
+	<48410446.5050109@iname.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <48410446.5050109@iname.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: OT: Network to TV hardware ...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,29 +28,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all (Markus if you're there),
+On Sat, May 31, 2008 at 08:54:46AM +0100, Robert wrote:
+> C.Lee Taylor wrote:
+> > Now
+> >he already as network points through out the shop and I was thinking we
+> >could put up a network to TV adapter to stream video over the network to 
+> >the
+> >TV's ... Great idea, but I can't seem to find anything like this with 
+> >google
+> >... Thinking I might be using the wrong search terms " network video 
+> >stream
+> >to TV RCA S-Video"...  Can find plenty of things about streaming to PC and
+> >so on, but that's not what I'm looking for ...
+> >
+> > Does anybody have any ideas?
+> 
+> Something like this? - not quite what you are after I think, but in the 
+> right ballpark.
+> 
+> http://www.maplin.co.uk/Module.aspx?ModuleNo=45472&C=Newsletter&U=08P06-6&T=12466569
 
-I've successfully installed my device with the v4l libraries (stable) but I
-can not get the remote to work. I've attempted various different options
-such as:
+That one doesn't have a composite output.
+An IPTV set-top-box is better suited.
 
-1) recompile the v4l library changing the em28xx-input.c code to 0xFE
-instead of 0x00
-2) install lirc using the ic option
-3) modprobing ir_kbd_i2 and later bttv
-4) irrecord, irw, xev
+Google turns up this list of manufacturers:
+http://www.iptvdirectory.com/#settop
 
-None of the above work.
-
-I've received errors such as major number 81 or 13 incorrect.
-I've also seen the device in /proc/bus/input/devices as /class/input/input6
-then tried to cat the /dev/input/...6 part and nothing.
-
-Please someone help me!
-
-Thanks,
-John Ortega
-www.listpropertiesnow.com
+  Daniel
 
 --
 video4linux-list mailing list
