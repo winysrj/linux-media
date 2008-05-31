@@ -1,14 +1,31 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp3.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1Jw1At-000433-1O
-	for linux-dvb@linuxtv.org; Tue, 13 May 2008 22:32:42 +0200
-Message-ID: <4829FAC4.2000707@avalpa.com>
-Date: Tue, 13 May 2008 22:32:04 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
+Received: from mo-p07-ob.rzone.de ([81.169.146.190])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <postfix@au-79.de>) id 1K2SRt-000767-EU
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 16:52:50 +0200
+Received: from agathe (dslb-084-057-022-143.pools.arcor-ip.net [84.57.22.143])
+	by post.webmailer.de (fruni mo10) (RZmta 16.38)
+	with ESMTP id 906e0ak4VAoRFU for <linux-dvb@linuxtv.org>;
+	Sat, 31 May 2008 16:52:43 +0200 (MEST)
+	(envelope-from: <postfix@au-79.de>)
+Received: from localhost (agathe [127.0.0.1])
+	by agathe (Postfix) with ESMTP id 71AA61BF91
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:52:43 +0200 (CEST)
+Received: from agathe ([127.0.0.1])
+	by localhost (agathe.au-79.intra [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id U1qyMiFQv1oB for <linux-dvb@linuxtv.org>;
+	Sat, 31 May 2008 16:52:37 +0200 (CEST)
+Received: from [192.168.23.123] (hepto.au-79.intra [192.168.23.123])
+	by agathe (Postfix) with ESMTP id 8DE031BF90
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:52:36 +0200 (CEST)
+Message-ID: <4841663B.5080105@au-79.de>
+Date: Sat, 31 May 2008 16:52:43 +0200
+From: postfix@au-79.de
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] RE : inserting user PIDs in TS
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Problems with WinTV Nova T by Hauppauge USB-stick (id:
+	2040:7070)
+Reply-To: postfix@au-79.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,50 +39,195 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thierry Lelegard wrote:
+Hi,
 
->
->
->> I would like to know that can we insert user defined PIDs into the TS
->> stream. how should i go about? What standard should i follow? How
-should I
->> format the the packets ( segment - section etc...).
->> can any body help in this regard.
->
-> Yes, in theory, you can.
->
-> Keep in mind, however, that multiplexing is a quite difficult job
-> (this is what multiplexers are made for).
+a view days ago I bought a dvb-USB stick from Hauppauge (WinTV Nova T). 
+I want to use this stick with linux, but I sill have some trubble.
+After a google-search it is clear, that the correct driver is dib0700, 
+and the firmware to use is  dvb-usb-dib0700-1.10.fw (md5: 
+5878ebfcba2d8deb90b9120eb89b02da)
+Kernel is 2.6.25
 
-hi,
+lsusb:
+2040:7070 Hauppauge
 
-if i can suggest a starting point, there's already a free software
-project for transport stream manipulation; it's called JustDVb-It, the
-GPL licensed package we made in our previous company Cineca since 2004:
+If I want to tune to a channel (e.g. with kaffine) the dmesg-log is 
+overcrowed with "DiB0070 I2C write failed" and there is no sucessfull 
+tuning. The output of kaffeine while searching a channel is:
 
- http://www.cineca.tv/labs/mhplab/JustDVb-It%202.0.html
+Using DVB device 0:0 "DiBcom 7000PC"
+tuning DVB-T to 402000000 Hz
+inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+. LOCKED.
+Transponders: 1/63
 
-it's a set of simple tools (following unix filosophy) you can put
-together in some customized ways to accomplish complex tasks.
+Invalid section length or timeout: pid=17
 
-for example, it can filter PID on a TS, swap some PIDs with others,
-transform python described PSI tables in sections then in TS packets,
-and create DSMCC carousels too..
+Frontend closed
+Using DVB device 0:0 "DiBcom 7000PC"
+tuning DVB-T to 410000000 Hz
+inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+. LOCKED.
+Transponders: 2/63
 
-there's a live CD to demo it with a DVB ASI port in a sample
-configuration (for italian MHP based interactive television)
+Invalid section length or timeout: pid=17
+.... <and so on>
 
-the current version can't restamp PCR, as it's quite a complex task, but
-this feature is something that we are releasing RSN in our new-born
-start-up Avalpa (http://www.avalpa.com). stay tuned!
+The output of dmesg while attaching the stick and searching with 
+kaffeine and debug enabled is:
 
-HTH
+usb 1-6: new high speed USB device using ehci_hcd and address 6
+usb 1-6: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Hauppauge Nova-T Stick' in cold state, will try to 
+load a firmware
+dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+dib0700: firmware started successfully.
+dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
+i2c-adapter i2c-0: SMBus Quick command not supported, can't probe for chips
+dvb-usb: will pass the complete MPEG2 transport stream to the software 
+demuxer.
+DVB: registering new adapter (Hauppauge Nova-T Stick)
+i2c-adapter i2c-1: SMBus Quick command not supported, can't probe for chips
+DVB: registering frontend 0 (DiBcom 7000PC)...
+DiB0070: Revision: 3
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070: CTRL_LO5: 0x16a4
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C read failed
+DiB0070 I2C write failed
+DiB0070: WBDStart = 0 (Vargen) - FF = 0
+DiB0070: successfully identified
+input: IR-receiver inside an USB DVB receiver as /class/input/input11
+dvb-usb: schedule remote query interval to 150 msecs.
+dvb-usb: Hauppauge Nova-T Stick successfully initialized and connected.
+usb 1-6: New USB device found, idVendor=2040, idProduct=7070
+usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-6: Product: Nova-T Stick
+usb 1-6: Manufacturer: Hauppauge
+usb 1-6: SerialNumber: 4030980792
+DiB0070: Tuning for Band: 2 (402000 kHz)
+DiB0070 I2C write failed
+DiB0070 I2C read failed
+DiB0070 I2C write failed
+DiB0070: HFDIV code: 5
+DiB0070: VCO = 1
+DiB0070: VCOF in kHz: 4824000 ((6*402000) << 1))
+DiB0070: REFDIV: 1, FREF: 12000
+DiB0070: FBDIV: 67, Rest: 0
+DiB0070: Num: 0, Den: 1, SD: 0
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C write failed
+DiB0070 I2C read failed
+DiB0070: CAPTRIM=64; ADC = 0 (ADC) & 0mV
+DiB0070: CAPTRIM=64 is closer to target (400/3000)
+DiB0070 I2C write failed
+DiB0070 I2C read failed
+DiB0070: CAPTRIM=96; ADC = 0 (ADC) & 0mV
+<and so on...>
 
-bye
+Here some more information about the stick:
 
-andrea venturi
+lsusb -vvvv:
+
+Bus 001 Device 006: ID 2040:7070 Hauppauge
+Device Descriptor:
+   bLength                18
+   bDescriptorType         1
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   idVendor           0x2040 Hauppauge
+   idProduct          0x7070
+   bcdDevice            1.00
+   iManufacturer           1
+   iProduct                2
+   iSerial                 3
+   bNumConfigurations      1
+   Configuration Descriptor:
+     bLength                 9
+     bDescriptorType         2
+     wTotalLength           46
+     bNumInterfaces          1
+     bConfigurationValue     1
+     iConfiguration          0
+     bmAttributes         0xa0
+       (Bus Powered)
+       Remote Wakeup
+     MaxPower              500mA
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       0
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x01  EP 1 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x82  EP 2 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x83  EP 3 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+can't get device qualifier: Operation not permitted
+can't get debug descriptor: Operation not permitted
+cannot read device status, Operation not permitted (1)
 
 
+Thanks for your assistance. If you need any further informations or 
+tests, please let me know.
+
+Best regards
+
+Robert
 
 _______________________________________________
 linux-dvb mailing list
