@@ -1,24 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from smtp.movial.fi ([62.236.91.34])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <legrandluc@gmail.com>) id 1JsEOL-0006vk-CS
-	for linux-dvb@linuxtv.org; Sat, 03 May 2008 11:50:54 +0200
-Received: by fg-out-1718.google.com with SMTP id 13so1223658fge.25
-	for <linux-dvb@linuxtv.org>; Sat, 03 May 2008 02:50:50 -0700 (PDT)
-Message-ID: <9f2475180805030250w7e25d43cie6220c614a23acca@mail.gmail.com>
-Date: Sat, 3 May 2008 11:50:50 +0200
-From: "luc legrand" <legrandluc@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <d9def9db0805021215n3f5cbc06r24340d7dd551a541@mail.gmail.com>
+	(envelope-from <dennis.noordsij@movial.fi>) id 1K2Qta-000513-7O
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 15:13:19 +0200
+Received: from localhost (mailscanner.hel.movial.fi [172.17.81.9])
+	by smtp.movial.fi (Postfix) with ESMTP id 75A3FC80D2
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:12:43 +0300 (EEST)
+Received: from smtp.movial.fi ([62.236.91.34])
+	by localhost (mailscanner.hel.movial.fi [172.17.81.9]) (amavisd-new,
+	port 10026) with ESMTP id XDVdL1oPcLHk for <linux-dvb@linuxtv.org>;
+	Sat, 31 May 2008 16:12:43 +0300 (EEST)
+Received: from [127.0.0.1] (hellgapp.hel.movial.fi [172.17.83.1])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp.movial.fi (Postfix) with ESMTP id 272B8C809D
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 16:12:43 +0300 (EEST)
+Message-ID: <48414EC8.3080008@movial.fi>
+Date: Sat, 31 May 2008 15:12:40 +0200
+From: Dennis Noordsij <dennis.noordsij@movial.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <9f2475180805020625nd6ff2a9ked408aa61ba3553@mail.gmail.com>
-	<d9def9db0805020754tbe8fcd1k1c2bbe2024c17d9a@mail.gmail.com>
-	<9f2475180805021058s2292cfe8pac958286b7cfb36a@mail.gmail.com>
-	<d9def9db0805021124sf25e63fme8e4319169bc83de@mail.gmail.com>
-	<9f2475180805021151r5ae14022w90603f5c3c66c8d9@mail.gmail.com>
-	<d9def9db0805021215n3f5cbc06r24340d7dd551a541@mail.gmail.com>
-Subject: Re: [linux-dvb] Avermedia M115 MiniPCI hybrid
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] usb-dvb and endpoints question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,96 +34,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-ok I'll give it a try.
-I have seen that you recently modify v4l-dvb-experimental tree. Should
-I compile using make or should I continue using make
-LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
--include include/linux/autoconf.h" ?
 
-Luc
+Hi list,
 
+I am writing a driver for the TerraTec Piranha DVB-T USB stick (actually
+the Sanio SMS-1000 chipset). From reading USB logs I have a working
+libusb prototype which can tune and receive the transport stream, and
+use the hardware PID filter.
 
-2008/5/2 Markus Rechberger <mrechberger@gmail.com>:
->
-> On Fri, May 2, 2008 at 2:51 PM, luc legrand <legrandluc@gmail.com> wrote:
->  > last time I tried with v4l-dvb-experimental from mcentral.de in order
->  >  to compile I did :
->  >  make LINUXINCLUDE="-I`pwd`/linux/include -I`pwd`/v4l -Iinclude
->  >  -include include/linux/autoconf.h"
->  >
->  >
->  >  and here is what dmesg tells me :
->  >
->  >
->  > # dmesg | grep saa
->  >  saa7130/34: v4l2 driver version 0.2.14 loaded
->  >  saa7133[0]: found at 0000:09:04.0, rev: 209, irq: 16, latency: 0,
->  >  mmio: 0xd2005000
->  >  saa7133[0]: subsystem: 1461:a836, board: Avermedia M115 [card=119,autodetected]
->  >
->  > saa7133[0]: board init: gpio is a400000
->  >  saa7133[0]: i2c eeprom 00: 61 14 36 a8 00 00 00 00 00 00 00 00 00 00 00 00
->  >  saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
->  >  saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 c0 ff ff ff ff
->  >  saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  >  saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 1e ff ff ff ff ff ff ff ff ff ff
->  >  saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  >  saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  >  saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->  >
->  > tuner 1-0061: chip found @ 0xc2 (saa7133[0])
->  >  saa7133[0]: registered device video0 [v4l2]
->  >  saa7133[0]: registered device vbi0
->  >  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
->  >  saa7134_dvb: Unknown symbol videobuf_dvb_register
->  >
->  >  # dmesg | grep dvb
->  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
->  >  tuner callback
->  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: setting
->  >  tuner callback
->  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/xc3028-tuner.c: attach request!
->  >  /home/ouam/.TunerTV/v4l-dvb-experimental/v4l/tuner-core.c: xc3028
->  >  tuner successfully loaded
->  >  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_init
->  >  videobuf_dvb: Unknown symbol dvb_dmxdev_init
->  >  videobuf_dvb: disagrees about version of symbol videobuf_read_stop
->  >  videobuf_dvb: Unknown symbol videobuf_read_stop
->  >  videobuf_dvb: disagrees about version of symbol videobuf_waiton
->  >  videobuf_dvb: Unknown symbol videobuf_waiton
->  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_release
->  >  videobuf_dvb: Unknown symbol dvb_dmx_release
->  >  videobuf_dvb: disagrees about version of symbol videobuf_read_start
->  >  videobuf_dvb: Unknown symbol videobuf_read_start
->  >  videobuf_dvb: disagrees about version of symbol dvb_net_init
->  >  videobuf_dvb: Unknown symbol dvb_net_init
->  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_swfilter
->  >  videobuf_dvb: Unknown symbol dvb_dmx_swfilter
->  >  videobuf_dvb: disagrees about version of symbol dvb_dmxdev_release
->  >  videobuf_dvb: Unknown symbol dvb_dmxdev_release
->  >  videobuf_dvb: disagrees about version of symbol dvb_frontend_detach
->  >  videobuf_dvb: Unknown symbol dvb_frontend_detach
->  >  videobuf_dvb: disagrees about version of symbol dvb_net_release
->  >  videobuf_dvb: Unknown symbol dvb_net_release
->  >  videobuf_dvb: disagrees about version of symbol dvb_unregister_frontend
->  >  videobuf_dvb: Unknown symbol dvb_unregister_frontend
->  >  videobuf_dvb: disagrees about version of symbol dvb_register_frontend
->  >  videobuf_dvb: Unknown symbol dvb_register_frontend
->  >  videobuf_dvb: disagrees about version of symbol dvb_dmx_init
->  >  videobuf_dvb: Unknown symbol dvb_dmx_init
->  >  videobuf_dvb: Unknown symbol videobuf_to_dma
->  >  saa7134_dvb: Unknown symbol videobuf_dvb_unregister
->  >  saa7134_dvb: Unknown symbol videobuf_dvb_register
->  >
->
->  try
->
->  rm -rf /lib/modules/`uname -r`/kernel/drivers/media
->
->  and reinstall that package.
->
->  Markus
->
+Porting it to a proper linux DVB driver I have the following question:
+
+This device has exactly 2 bulk endpoints, as follows:
+
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval               0
+
+All control messages go out over EP2. All responses, as well as the
+transport stream, come in over EP1.
+
+All incoming packets have a small header which allows it to be mapped
+back to the corresponding request (excepting TS data which can be read
+spontaneously, but which is still marked with an additional header).
+
+Does this mean that I can not really use the dvb-usb framework ? (since
+there is no generic_bulk_ctrl_endpoint, and since the TS stream also
+does not come on its own endpoint and even needs additional depackatizing).
+
+Since incoming data is mixed with TS packets, you can no longer just
+write a command and read the next response. TS data will be streaming in
+and every time you make some request you will probably get some TS data
+first, and only then your response. How to solve?
+
+Any pointers in the right direction? :-)
+
+Cheers,
+Dennis
+
 
 _______________________________________________
 linux-dvb mailing list
