@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.156.147.13] (helo=kirsi2.rokki.sonera.fi)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lwgt@iki.fi>) id 1K10X0-0002v8-4p
-	for linux-dvb@linuxtv.org; Tue, 27 May 2008 16:52:06 +0200
-Received: from [127.0.0.1] (84.249.53.62) by kirsi2.rokki.sonera.fi (8.5.014)
-	id 483BB4130004A6A4 for linux-dvb@linuxtv.org;
-	Tue, 27 May 2008 17:52:02 +0300
-Message-ID: <483C2010.3070609@iki.fi>
-Date: Tue, 27 May 2008 17:52:00 +0300
-From: Lauri Tischler <lwgt@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1K2QTC-0002cU-3r
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 14:46:04 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 31 May 2008 14:45:04 +0200
+References: <482560EB.2000306@gmail.com>
+	<200805310146.30798@orion.escape-edv.de>
+	<4840FBED.3050902@gmail.com>
+In-Reply-To: <4840FBED.3050902@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <483BD07E.3050802@iki.fi> <483BEBEB.6030705@iki.fi>
-In-Reply-To: <483BEBEB.6030705@iki.fi>
-Subject: Re: [linux-dvb] Success with af9015 tree
+Content-Disposition: inline
+Message-Id: <200805311445.04487@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
+	stv0297
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,36 +23,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
-> Lauri Tischler wrote:
->> Just spent a horrendous amount of =8019,90 for a DVB-T USB-stick
->> name of this el-cheapo thing is Fuj:tech DTV PRO
->> Needed to get Antti's af9015 tree and install
->> Works now with Kaffeine
->>
->> Are there any plans of adding this stuff to maintree ?
-> =
+e9hack wrote:
+> Oliver Endriss schrieb:
+> > Hi,
+> > 
+> > I just wanted to commit this changeset when I spotted this:
+> > 
+> > e9hack wrote:
+> >> @@ -266,6 +268,10 @@ static int tda10021_set_parameters (stru
+> >>  
+> >>         tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
+> >>  
+> >> +       /* reset uncorrected block counter */
+> >> +       state->last_lock = 0;
+> >> +       state->ucblocks = 0;
+> > 
+> > Note that UCB must count the number of uncorrected blocls during the
+> > lifetime of the driver. So it must not be reset during tuning.
+> 
+> I've add this reset for two reasons:
+> 
+> 1) My second card uses a stv0297. The UCB value is always reset during the tuning, because 
+> the stv0297 is completely reinitialized. This occurs, if the frequency is changed or if 
+> the frontend lost the lock. I've add the reset to see the same behavior within the 
+> femon-plugin for both cards.
 
-> Maybe later, haven't worked this one much nowadays. Currently problem is =
+Then the stv0297 must also be fixed. This can be achieved by adding a
+software counter to the state struct.
 
-> that it does not work very well with dual tuner devices. Picture goes =
+> 2) Above 650MHz, the signal strength of my cable is very low. It isn't usable. I get high 
+> BER and UCB values. The card with the tda10021 is a budget one. It is used for epg 
+> scanning in the background. It isn't possible to compare the UCB values of both cards, if 
+> the cards are tuned to the same frequency/channel and if the tda10021 was previous tuned 
+> to a frequency with a low signal.
 
-> jittery when both FE's are streaming.
+The API is clear: The UNC counter starts when the driver is loaded and
+counts up until the driver is unloaded.
 
-Ummm... I really would like to have a combination of various trees,
-based on v4l-dvb, then added multiproto_plus-stuff and af9xxx things
-because I want to build a testbox for all my DVB-cards.
-I have various NEXUS-S and NEXUS-T cards, various incarnations
-of Hauppauge NOVA-T cards, one AF9015 based USB stick and
-I will soon buy some DVB-S2 card.
-It seems that there is no single tree to support all that.
-Is it possible to merge all known trees ?
+Sorry, I will not replace one faulty implementation by another faulty
+implementation.
+
+A counter starting at channel switch can be implemented by using the
+cStatus class of VDR. cStatus::ChannelSwitch() will notify a plugin
+whenever a channel switch happens, so it is very easy to capture the
+UNC value at channel switch (UNCsw).
+
+Finally, the plugin may display the value (UNC - UNCsw), and you have
+the desired behaviour without breaking the API.
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
