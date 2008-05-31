@@ -1,31 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4FFJnFh010018
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 11:19:49 -0400
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4FFJaPS008027
-	for <video4linux-list@redhat.com>; Thu, 15 May 2008 11:19:37 -0400
-Received: from smtp8-g19.free.fr (localhost [127.0.0.1])
-	by smtp8-g19.free.fr (Postfix) with ESMTP id 3130417F5B1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VCu96S021684
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 08:56:09 -0400
+Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VCtv14015679
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 08:55:57 -0400
+Received: from smtp5-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp5-g19.free.fr (Postfix) with ESMTP id EA66B3F629B
 	for <video4linux-list@redhat.com>;
-	Thu, 15 May 2008 17:19:36 +0200 (CEST)
-Received: from jef.local (lns-bzn-32-82-254-26-141.adsl.proxad.net
-	[82.254.26.141])
-	by smtp8-g19.free.fr (Postfix) with ESMTP id 0D8CF17F55C
+	Sat, 31 May 2008 14:55:56 +0200 (CEST)
+Received: from sidero.numenor.net (lac49-1-82-245-43-74.fbx.proxad.net
+	[82.245.43.74])
+	by smtp5-g19.free.fr (Postfix) with ESMTP id CB2673F629F
 	for <video4linux-list@redhat.com>;
-	Thu, 15 May 2008 17:19:35 +0200 (CEST)
-Received: from jef by jef.moine.bzh with local (masqmail 0.2.21) id
-	1Jwfji-0SI-00 for <video4linux-list@redhat.com>; Thu, 15 May 2008
-	17:51:18 +0200
-To: video4linux-list@redhat.com
-From: Jean-Francois Moine <moinejf@free.fr>
-References: <62e5edd40805150604h6d0f23ffybf13eb6b07d87a76@mail.gmail.com>
-Message-ID: <TTY-Grin-jef-482C5BF6.4DDD7B2D@jef>
+	Sat, 31 May 2008 14:55:56 +0200 (CEST)
+From: stef <stef.dev@free.fr>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Date: Sat, 31 May 2008 14:55:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Date: Thu, 15 May 2008 17:51:18 +0200
-Subject: Re: In-kernel frame conversion
+Message-Id: <200805311455.15669.stef.dev@free.fr>
+Subject: Trouble making PCTV 310c working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,46 +35,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 15 May 2008 15:04:45 +0200, "Erik_Andrén" 
-<erik.andren@gmail.com> wrote:
->Hi list,
+	Hello,
 
-Hi Erik,
+	I have Pinnacle PCTV 310c hybrid card:
 
->I'm one of the developers of the m560x project. (
->http://sourceforge.net/projects/m560x-driver/ )
->aiming to provide a driver for the ALi m5602, m5603 chipsets.
-	[snip]
->This driver is unfortunately braindead, always sending Bayer-encoded frames
->at a fixed VGA resolution.
->Color recovery, resizing and format conversion is all done in software.
->
->Currently we do the same in order to make the camera useful as many relevant
->linux v4l2 applications fail to have user-space routines converting
->Bayer-frames.
->
->Is it possible to get a driver included upstream and still have such
->kernel-space frame conversion routines or do they have to go in order to get
->the driver in an acceptable shape?
+02:00.0 0400: 14f1:8800 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 60000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx8800
+	Kernel modules: cx8800
 
-I am working on a driver, gspca v2, which does frame conversion in
-user-space. It is based on gspca v1 which handles over 270 USB
-webcams. It is composed of:
-- a main driver with the USB exchanges and the v4l2 interface,
-- kernel modules for the different webcam types (actually 20) and
-- a helper process which does frame conversion (JPEG and Bayer to
-  YUV420, YUYV and RGB24/32).
+02:00.1 0480: 14f1:8801 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 61000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88_audio
+	Kernel modules: cx88-alsa
 
-I planned to put it under mercurial as soon as most of the webcams
-will be tested (and the code will be purified ;)). Feel free to get
-a tarball from my site (see below) and to tell me if you may enter
-into this scheme.
+02:00.2 0480: 14f1:8802 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 62000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88-mpeg driver manager
+	Kernel modules: cx8802
 
-Cheers.
+	With latest mercurial, I can capture video with good quality from Composite1, 
+but I don't get sound. I checked that the alsa device exists and is unmuted. 
+I'm capturing with:
+mplayer tv:// -tv 
+driver=v4l2:norm=PAL-BG:input=1:device=/dev/video1:alsa:adevice=hw.2:volume=60
+-vo xv -ao alsa
+	where I double checked that hw.2 is really the Conexant CX8801 Playback.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+	Another problem I have is that after scanning french tv channels (with 
+tvtime-scanner), the detected channels are garbled when I try to watch them 
+with tvtime. It looks like that SECAM isn't taken into account, and that the 
+signal is decoded as if it was another norm.
+
+	Looking at the sources I noted a comment about some GPIO work needed for the 
+DVB subsystem. I have a windows partition on the same machine where the card 
+is working fine, and I installed DScaler's regspy. So I may provide any data 
+needed.
+
+	Last, I believe there should also be an entry for the  cx8802 in the card 
+description. 
+
+Regards,
+	Stef
 
 --
 video4linux-list mailing list
