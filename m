@@ -1,20 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sd-green-bigip-83.dreamhost.com ([208.97.132.83]
-	helo=spunkymail-a1.g.dreamhost.com)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@dawes.za.net>) id 1JvW7a-0006M6-V2
-	for linux-dvb@linuxtv.org; Mon, 12 May 2008 13:23:13 +0200
-Message-ID: <48282843.6010906@dawes.za.net>
-Date: Mon, 12 May 2008 13:21:39 +0200
-From: Rogan Dawes <lists@dawes.za.net>
+	(envelope-from <abraham.manu@gmail.com>) id 1K2EX9-00083a-4z
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 02:01:21 +0200
+Received: from [212.12.32.49] (helo=smtp.work.de)
+	by mail.work.de with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1K2EX5-0005LO-MS
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 02:01:15 +0200
+Received: from [86.97.137.166] (helo=[192.168.1.101])
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1K2EX5-0004IE-DL
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 02:01:15 +0200
+Message-ID: <48409549.2000501@gmail.com>
+Date: Sat, 31 May 2008 04:01:13 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-References: <48281E7A.8010006@dawes.za.net>
-	<Pine.LNX.4.64.0805121254410.11078@pub3.ifh.de>
-In-Reply-To: <Pine.LNX.4.64.0805121254410.11078@pub3.ifh.de>
-Content-Type: multipart/mixed; boundary="------------020300020406080207090603"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-T South Africa
+To: linux-dvb@linuxtv.org
+References: <482560EB.2000306@gmail.com>
+	<200805310146.30798@orion.escape-edv.de>
+In-Reply-To: <200805310146.30798@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
+ stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,375 +28,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020300020406080207090603
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Oliver Endriss wrote:
+> Hi,
+> 
+> I just wanted to commit this changeset when I spotted this:
+> 
+> e9hack wrote:
+>> @@ -266,6 +268,10 @@ static int tda10021_set_parameters (stru
+>>  
+>>         tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
+>>  
+>> +       /* reset uncorrected block counter */
+>> +       state->last_lock = 0;
+>> +       state->ucblocks = 0;
+> 
+> Note that UCB must count the number of uncorrected blocls during the
+> lifetime of the driver. So it must not be reset during tuning.
+> Agreed?
+> 
 
-Patrick Boettcher wrote:
-> Hi Rogan,
-> 
-> your dvbtraffic output raises a question: What happens when you run it 
-> for several seconds ?
-> 
-> Are the PIDs always the same? Especially the one with the higher bitrate?
-> 
-> I'm asking because if that is the case, it could be that this is a DVB-H 
-> transmission.
-> 
-> I have some tools (which I did not commit yet) which "scan", in a very 
-> basic way, for DVB-H services, maybe this could help you.
-> 
-> Before that you can try to use dvbsnoop on PID 0x00 and 0x10 to see 
-> whether it signals a INT-section.
-> 
-> I could also be a pure radio transmission, but in that case scan should 
-> detect those channels.
-> 
-> Patrick.
-
-Hi Patrick,
-
-Actually, I think you may well be right. Our cell networks are trialling 
-(or even deploying) DVB-H, and the content is provided by MultiChoice. 
-Unfortunately (for me) that content is almost definitely encrypted.
-
-I guess I might have to retry w_scan to see if it picks up any other 
-frequencies that might have the real DVB-T signals on them. And maybe 
-improve my antennae - I am currently using a Technisat DigiFlex TT2, 
-which is just sitting on my desk.
-
-I am attaching the results of "dvbsnoop -s pidscan", as well as a longer 
-capture of dvbtraffic (using "dvbtraffic | tee dvbtraffic.txt", then 
-Ctrl-C after 6-7 seconds).
-
-Thanks for your help.
+ACK
 
 Regards,
-
-Rogan
-
---------------020300020406080207090603
-Content-Type: text/plain;
- name="pidscan.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pidscan.txt"
-
-rogan@athena:~$ dvbsnoop -s pidscan
-dvbsnoop V1.4.00 -- http://dvbsnoop.sourceforge.net/
-
----------------------------------------------------------
-Transponder PID-Scan...
----------------------------------------------------------
-PID found:    0 (0x0000)  [SECTION: Program Association Table (PAT)]
-PID found:   16 (0x0010)  [SECTION: Network Information Table (NIT) - actual network]
-PID found:   17 (0x0011)  [SECTION: Service Description Table (SDT) - actual transport stream]
-PID found:   20 (0x0014)  [SECTION: Time Date Table (TDT)]
-PID found:   21 (0x0015)  [SECTION: ITU-T Rec. H.222.0|ISO/IEC13818 reserved]
-PID found:  101 (0x0065)  [SECTION: IP/MAC Notification Table (INT) [EN 301 192]]
-PID found:  102 (0x0066)  [SECTION: ATSC reserved]
-PID found:  110 (0x006e)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  111 (0x006f)  [SECTION: Program Map Table (PMT)]
-PID found:  120 (0x0078)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  121 (0x0079)  [SECTION: Program Map Table (PMT)]
-PID found:  130 (0x0082)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  131 (0x0083)  [SECTION: Program Map Table (PMT)]
-PID found:  140 (0x008c)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  141 (0x008d)  [SECTION: Program Map Table (PMT)]
-PID found:  150 (0x0096)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  151 (0x0097)  [SECTION: Program Map Table (PMT)]
-PID found:  152 (0x0098)  [SECTION: Program Map Table (PMT)]
-PID found:  160 (0x00a0)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  161 (0x00a1)  [SECTION: Program Map Table (PMT)]
-PID found:  170 (0x00aa)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  171 (0x00ab)  [SECTION: Program Map Table (PMT)]
-PID found:  180 (0x00b4)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  181 (0x00b5)  [SECTION: Program Map Table (PMT)]
-PID found:  186 (0x00ba)  [SECTION: Program Map Table (PMT)]
-PID found:  188 (0x00bc)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  189 (0x00bd)  [SECTION: Program Map Table (PMT)]
-PID found:  190 (0x00be)  [SECTION: MPE-FEC Table (MFT)]
-PID found:  191 (0x00bf)  [SECTION: Program Map Table (PMT)]
-PID found:  200 (0x00c8)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  201 (0x00c9)  [SECTION: Program Map Table (PMT)]
-PID found:  210 (0x00d2)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  211 (0x00d3)  [SECTION: Program Map Table (PMT)]
-PID found:  220 (0x00dc)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  221 (0x00dd)  [SECTION: Program Map Table (PMT)]
-PID found:  260 (0x0104)  [SECTION: MPE-FEC Table (MFT)]
-PID found:  261 (0x0105)  [SECTION: Program Map Table (PMT)]
-PID found:  280 (0x0118)  [SECTION: DSM-CC - private data section  // DVB datagram]
-PID found:  281 (0x0119)  [SECTION: Program Map Table (PMT)]
-PID found: 8191 (0x1fff)
-rogan@athena:~$
-
---------------020300020406080207090603
-Content-Type: text/plain;
- name="dvbtraffic.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dvbtraffic.txt"
-
-MDAwMCAgICAgNCBwL3MgICAgIDAga2IvcyAgICAgNyBrYml0CjAwMTAgICAgIDIgcC9zICAg
-ICAwIGtiL3MgICAgIDQga2JpdAowMDExICAgIDEyIHAvcyAgICAgMiBrYi9zICAgIDE4IGti
-aXQKMDAxNSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwNjUgICAgIDMgcC9z
-ICAgICAwIGtiL3MgICAgIDUga2JpdAowMDY2ICAgICAwIHAvcyAgICAgMCBrYi9zICAgICAx
-IGtiaXQKMDA2ZSAgIDQxOSBwL3MgICAgNzYga2IvcyAgIDYzMCBrYml0CjAwNmYgICAgIDIg
-cC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMDc4ICAgMzk1IHAvcyAgICA3MiBrYi9zICAg
-NTk0IGtiaXQKMDA3OSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwODIgICA0
-MDAgcC9zICAgIDczIGtiL3MgICA2MDIga2JpdAowMDgzICAgICAyIHAvcyAgICAgMCBrYi9z
-ICAgICA0IGtiaXQKMDA4YyAgIDM0MCBwL3MgICAgNjIga2IvcyAgIDUxMiBrYml0CjAwOGQg
-ICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMDk2ICAgMjA2IHAvcyAgICAzNyBr
-Yi9zICAgMzExIGtiaXQKMDA5NyAgICAgNSBwL3MgICAgIDAga2IvcyAgICAgOCBrYml0CjAw
-OTggICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGExICAgICAyIHAvcyAgICAg
-MCBrYi9zICAgICA0IGtiaXQKMDBhYiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0
-CjAwYjUgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGJhICAgICAyIHAvcyAg
-ICAgMCBrYi9zICAgICA0IGtiaXQKMDBiZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBr
-Yml0CjAwYmYgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGM4ICAgMTI4IHAv
-cyAgICAyMyBrYi9zICAgMTkyIGtiaXQKMDBjOSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAg
-NCBrYml0CjAwZDIgICAgNTkgcC9zICAgIDEwIGtiL3MgICAgODkga2JpdAowMGQzICAgICAy
-IHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBkYyAgIDI4OCBwL3MgICAgNTIga2IvcyAg
-IDQzMyBrYml0CjAwZGQgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTA0ICAg
-MzI4IHAvcyAgICA2MCBrYi9zICAgNDk0IGtiaXQKMDEwNSAgICAgMiBwL3MgICAgIDAga2Iv
-cyAgICAgNCBrYml0CjAxMTggICAzMTQgcC9zICAgIDU3IGtiL3MgICA0NzIga2JpdAowMTE5
-ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDEyZCAgICAgMiBwL3MgICAgIDAg
-a2IvcyAgICAgNCBrYml0CjAxNDEgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAow
-MTRiICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMWZmZiAgIDIxOSBwL3MgICAg
-NDAga2IvcyAgIDMyOSBrYml0CjIwMDAgIDMxODcgcC9zICAgNTg1IGtiL3MgIDQ3OTQga2Jp
-dAotUElELS1GUkVRLS0tLS1CQU5EV0lEVEgtQkFORFdJRFRILQowMDAwICAgICA0IHAvcyAg
-ICAgMCBrYi9zICAgICA3IGtiaXQKMDAxMCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBr
-Yml0CjAwMTEgICAgMTMgcC9zICAgICAyIGtiL3MgICAgMjAga2JpdAowMDE1ICAgICAxIHAv
-cyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDA2NSAgICAgMyBwL3MgICAgIDAga2IvcyAgICAg
-NSBrYml0CjAwNjYgICAgIDAgcC9zICAgICAwIGtiL3MgICAgIDEga2JpdAowMDZmICAgICAx
-IHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDA3OSAgICAgMSBwL3MgICAgIDAga2IvcyAg
-ICAgMiBrYml0CjAwODMgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDhkICAg
-ICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDA5NiAgIDE5NyBwL3MgICAgMzYga2Iv
-cyAgIDI5NiBrYml0CjAwOTcgICAgIDMgcC9zICAgICAwIGtiL3MgICAgIDUga2JpdAowMDk4
-ICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBhMCAgIDM2MCBwL3MgICAgNjYg
-a2IvcyAgIDU0MSBrYml0CjAwYTEgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAow
-MGFhICAgNDAwIHAvcyAgICA3MyBrYi9zICAgNjAyIGtiaXQKMDBhYiAgICAgMSBwL3MgICAg
-IDAga2IvcyAgICAgMiBrYml0CjAwYjQgICAzNzEgcC9zICAgIDY4IGtiL3MgICA1NTgga2Jp
-dAowMGI1ICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBiYSAgICAgMSBwL3Mg
-ICAgIDAga2IvcyAgICAgMiBrYml0CjAwYmMgICAzMjEgcC9zICAgIDU4IGtiL3MgICA0ODMg
-a2JpdAowMGJkICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBiZSAgIDQ0MiBw
-L3MgICAgODEga2IvcyAgIDY2NSBrYml0CjAwYmYgICAgIDEgcC9zICAgICAwIGtiL3MgICAg
-IDIga2JpdAowMGM4ICAgMzU4IHAvcyAgICA2NSBrYi9zICAgNTM4IGtiaXQKMDBjOSAgICAg
-MSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwZDIgICAgNjAgcC9zICAgIDExIGtiL3Mg
-ICAgOTEga2JpdAowMGQzICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBkYyAg
-IDQwNSBwL3MgICAgNzQga2IvcyAgIDYxMCBrYml0CjAwZGQgICAgIDEgcC9zICAgICAwIGti
-L3MgICAgIDIga2JpdAowMTA0ICAgMjA5IHAvcyAgICAzOCBrYi9zICAgMzE1IGtiaXQKMDEw
-NSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAxMTkgICAgIDEgcC9zICAgICAw
-IGtiL3MgICAgIDIga2JpdAowMTJkICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQK
-MDE0MSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAxNGIgICAgIDEgcC9zICAg
-ICAwIGtiL3MgICAgIDIga2JpdAoxZmZmICAgMTEzIHAvcyAgICAyMCBrYi9zICAgMTcwIGti
-aXQKMjAwMCAgMzMxMSBwL3MgICA2MDcga2IvcyAgNDk4MCBrYml0Ci1QSUQtLUZSRVEtLS0t
-LUJBTkRXSURUSC1CQU5EV0lEVEgtCjAwMDAgICAgIDQgcC9zICAgICAwIGtiL3MgICAgIDcg
-a2JpdAowMDEwICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDAxMSAgICAxNCBw
-L3MgICAgIDIga2IvcyAgICAyMiBrYml0CjAwMTUgICAgIDAgcC9zICAgICAwIGtiL3MgICAg
-IDEga2JpdAowMDY1ICAgICAzIHAvcyAgICAgMCBrYi9zICAgICA1IGtiaXQKMDA2NiAgICAg
-MCBwL3MgICAgIDAga2IvcyAgICAgMSBrYml0CjAwNmUgICA0NDAgcC9zICAgIDgwIGtiL3Mg
-ICA2NjIga2JpdAowMDZmICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDA3OCAg
-IDQwNyBwL3MgICAgNzQga2IvcyAgIDYxMyBrYml0CjAwNzkgICAgIDIgcC9zICAgICAwIGti
-L3MgICAgIDQga2JpdAowMDgyICAgNDEzIHAvcyAgICA3NSBrYi9zICAgNjIyIGtiaXQKMDA4
-MyAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwOGMgICAzNjggcC9zICAgIDY3
-IGtiL3MgICA1NTMga2JpdAowMDhkICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQK
-MDA5NiAgIDM4MSBwL3MgICAgNjkga2IvcyAgIDU3MyBrYml0CjAwOTcgICAgIDUgcC9zICAg
-ICAwIGtiL3MgICAgIDgga2JpdAowMDk4ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGti
-aXQKMDBhMCAgIDI2OSBwL3MgICAgNDkga2IvcyAgIDQwNSBrYml0CjAwYTEgICAgIDIgcC9z
-ICAgICAwIGtiL3MgICAgIDQga2JpdAowMGFiICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0
-IGtiaXQKMDBiNSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYmEgICAgIDIg
-cC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGJjICAgMjEwIHAvcyAgICAzOCBrYi9zICAg
-MzE3IGtiaXQKMDBiZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYmYgICAg
-IDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGM5ICAgICAyIHAvcyAgICAgMCBrYi9z
-ICAgICA0IGtiaXQKMDBkMyAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwZGQg
-ICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTA0ICAgMTI2IHAvcyAgICAyMyBr
-Yi9zICAgMTg5IGtiaXQKMDEwNSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAx
-MTggICAxMzcgcC9zICAgIDI1IGtiL3MgICAyMDYga2JpdAowMTE5ICAgICAyIHAvcyAgICAg
-MCBrYi9zICAgICA0IGtiaXQKMDEyZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0
-CjAxNDEgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTRiICAgICAyIHAvcyAg
-ICAgMCBrYi9zICAgICA0IGtiaXQKMWZmZiAgIDQ2NCBwL3MgICAgODUga2IvcyAgIDY5OCBr
-Yml0CjIwMDAgIDMzMTEgcC9zICAgNjA3IGtiL3MgIDQ5ODAga2JpdAotUElELS1GUkVRLS0t
-LS1CQU5EV0lEVEgtQkFORFdJRFRILQowMDAwICAgICA0IHAvcyAgICAgMCBrYi9zICAgICA3
-IGtiaXQKMDAxMCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwMTEgICAgMTQg
-cC9zICAgICAyIGtiL3MgICAgMjIga2JpdAowMDE1ICAgICAxIHAvcyAgICAgMCBrYi9zICAg
-ICAyIGtiaXQKMDA2NSAgICAgMyBwL3MgICAgIDAga2IvcyAgICAgNSBrYml0CjAwNjYgICAg
-IDAgcC9zICAgICAwIGtiL3MgICAgIDEga2JpdAowMDZmICAgICAxIHAvcyAgICAgMCBrYi9z
-ICAgICAyIGtiaXQKMDA3OCAgIDM5MiBwL3MgICAgNzEga2IvcyAgIDU4OSBrYml0CjAwNzkg
-ICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDgzICAgICAxIHAvcyAgICAgMCBr
-Yi9zICAgICAyIGtiaXQKMDA4ZCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAw
-OTcgICAgIDMgcC9zICAgICAwIGtiL3MgICAgIDUga2JpdAowMDk4ICAgICAxIHAvcyAgICAg
-MCBrYi9zICAgICAyIGtiaXQKMDBhMCAgIDEzNyBwL3MgICAgMjUga2IvcyAgIDIwNiBrYml0
-CjAwYTEgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGFhICAgNDE3IHAvcyAg
-ICA3NiBrYi9zICAgNjI4IGtiaXQKMDBhYiAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBr
-Yml0CjAwYjQgICAzNTEgcC9zICAgIDY0IGtiL3MgICA1Mjgga2JpdAowMGI1ICAgICAxIHAv
-cyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBiYSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAg
-MiBrYml0CjAwYmMgICAxMDggcC9zICAgIDE5IGtiL3MgICAxNjIga2JpdAowMGJkICAgICAx
-IHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBiZSAgIDQxOCBwL3MgICAgNzYga2IvcyAg
-IDYyOSBrYml0CjAwYmYgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGM4ICAg
-MzQ0IHAvcyAgICA2MyBrYi9zICAgNTE3IGtiaXQKMDBjOSAgICAgMSBwL3MgICAgIDAga2Iv
-cyAgICAgMiBrYml0CjAwZDIgICAgNjAgcC9zICAgIDExIGtiL3MgICAgOTEga2JpdAowMGQz
-ICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBkYyAgIDQxNiBwL3MgICAgNzYg
-a2IvcyAgIDYyNiBrYml0CjAwZGQgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAow
-MTA0ICAgMzQyIHAvcyAgICA2MiBrYi9zICAgNTE0IGtiaXQKMDEwNSAgICAgMSBwL3MgICAg
-IDAga2IvcyAgICAgMiBrYml0CjAxMTggICAxMzcgcC9zICAgIDI1IGtiL3MgICAyMDYga2Jp
-dAowMTE5ICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDEyZCAgICAgMSBwL3Mg
-ICAgIDAga2IvcyAgICAgMiBrYml0CjAxNDEgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIg
-a2JpdAowMTRiICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMWZmZiAgIDExMyBw
-L3MgICAgMjAga2IvcyAgIDE3MCBrYml0CjIwMDAgIDMzMTEgcC9zICAgNjA3IGtiL3MgIDQ5
-ODAga2JpdAotUElELS1GUkVRLS0tLS1CQU5EV0lEVEgtQkFORFdJRFRILQowMDAwICAgICA1
-IHAvcyAgICAgMCBrYi9zICAgICA4IGtiaXQKMDAxMCAgICAgMSBwL3MgICAgIDAga2IvcyAg
-ICAgMiBrYml0CjAwMTEgICAgMTMgcC9zICAgICAyIGtiL3MgICAgMjAga2JpdAowMDE1ICAg
-ICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDA2NSAgICAgMyBwL3MgICAgIDAga2Iv
-cyAgICAgNSBrYml0CjAwNjYgICAgIDAgcC9zICAgICAwIGtiL3MgICAgIDEga2JpdAowMDZl
-ICAgNDQyIHAvcyAgICA4MSBrYi9zICAgNjY1IGtiaXQKMDA2ZiAgICAgMiBwL3MgICAgIDAg
-a2IvcyAgICAgNCBrYml0CjAwNzggICAgMjEgcC9zICAgICAzIGtiL3MgICAgMzIga2JpdAow
-MDc5ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDA4MiAgIDQxNCBwL3MgICAg
-NzYga2IvcyAgIDYyMyBrYml0CjAwODMgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2Jp
-dAowMDhjICAgMzcyIHAvcyAgICA2OCBrYi9zICAgNTU5IGtiaXQKMDA4ZCAgICAgMiBwL3Mg
-ICAgIDAga2IvcyAgICAgNCBrYml0CjAwOTYgICA0MzIgcC9zICAgIDc5IGtiL3MgICA2NTAg
-a2JpdAowMDk3ICAgICA1IHAvcyAgICAgMCBrYi9zICAgICA4IGtiaXQKMDA5OCAgICAgMiBw
-L3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYTAgICAzNTkgcC9zICAgIDY1IGtiL3MgICA1
-NDAga2JpdAowMGExICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBhYSAgIDQw
-NCBwL3MgICAgNzQga2IvcyAgIDYwOCBrYml0CjAwYWIgICAgIDIgcC9zICAgICAwIGtiL3Mg
-ICAgIDQga2JpdAowMGI1ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBiYSAg
-ICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYmMgICAzMTcgcC9zICAgIDU4IGti
-L3MgICA0Nzcga2JpdAowMGJkICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBi
-ZiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYzkgICAgIDIgcC9zICAgICAw
-IGtiL3MgICAgIDQga2JpdAowMGQzICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQK
-MDBkZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAxMDUgICAgIDIgcC9zICAg
-ICAwIGtiL3MgICAgIDQga2JpdAowMTE5ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGti
-aXQKMDEyZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAxNDEgICAgIDIgcC9z
-ICAgICAwIGtiL3MgICAgIDQga2JpdAowMTRiICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0
-IGtiaXQKMWZmZiAgIDQ1MyBwL3MgICAgODMga2IvcyAgIDY4MiBrYml0CjIwMDAgIDMzMTEg
-cC9zICAgNjA3IGtiL3MgIDQ5ODAga2JpdAotUElELS1GUkVRLS0tLS1CQU5EV0lEVEgtQkFO
-RFdJRFRILQowMDAwICAgICA0IHAvcyAgICAgMCBrYi9zICAgICA3IGtiaXQKMDAxMCAgICAg
-MSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwMTEgICAgMTQgcC9zICAgICAyIGtiL3Mg
-ICAgMjIga2JpdAowMDE1ICAgICAwIHAvcyAgICAgMCBrYi9zICAgICAxIGtiaXQKMDA2NSAg
-ICAgMyBwL3MgICAgIDAga2IvcyAgICAgNSBrYml0CjAwNjYgICAgIDAgcC9zICAgICAwIGti
-L3MgICAgIDEga2JpdAowMDZlICAgNDU2IHAvcyAgICA4MyBrYi9zICAgNjg2IGtiaXQKMDA2
-ZiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwNzggICA0MTEgcC9zICAgIDc1
-IGtiL3MgICA2MTkga2JpdAowMDc5ICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQK
-MDA4MyAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwOGQgICAgIDIgcC9zICAg
-ICAwIGtiL3MgICAgIDQga2JpdAowMDk3ICAgICA1IHAvcyAgICAgMCBrYi9zICAgICA4IGti
-aXQKMDA5OCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYTEgICAgIDIgcC9z
-ICAgICAwIGtiL3MgICAgIDQga2JpdAowMGFhICAgIDE3IHAvcyAgICAgMyBrYi9zICAgIDI2
-IGtiaXQKMDBhYiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYjQgICAzMjMg
-cC9zICAgIDU5IGtiL3MgICA0ODYga2JpdAowMGI1ICAgICAyIHAvcyAgICAgMCBrYi9zICAg
-ICA0IGtiaXQKMDBiYSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYmQgICAg
-IDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGJlICAgMzk5IHAvcyAgICA3MyBrYi9z
-ICAgNjAwIGtiaXQKMDBiZiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYzgg
-ICAzNTggcC9zICAgIDY1IGtiL3MgICA1Mzgga2JpdAowMGM5ICAgICAyIHAvcyAgICAgMCBr
-Yi9zICAgICA0IGtiaXQKMDBkMiAgICA2MSBwL3MgICAgMTEga2IvcyAgICA5MiBrYml0CjAw
-ZDMgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMGRjICAgNDIwIHAvcyAgICA3
-NyBrYi9zICAgNjMyIGtiaXQKMDBkZCAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0
-CjAxMDQgICAzNDUgcC9zICAgIDYzIGtiL3MgICA1MTkga2JpdAowMTA1ICAgICAyIHAvcyAg
-ICAgMCBrYi9zICAgICA0IGtiaXQKMDExOCAgIDEzMSBwL3MgICAgMjQga2IvcyAgIDE5NyBr
-Yml0CjAxMTkgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTJkICAgICAyIHAv
-cyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDE0MSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAg
-NCBrYml0CjAxNGIgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAoxZmZmICAgMjk0
-IHAvcyAgICA1MyBrYi9zICAgNDQyIGtiaXQKMjAwMCAgMzMxMSBwL3MgICA2MDcga2IvcyAg
-NDk4MCBrYml0Ci1QSUQtLUZSRVEtLS0tLUJBTkRXSURUSC1CQU5EV0lEVEgtCjAwMDAgICAg
-IDQgcC9zICAgICAwIGtiL3MgICAgIDcga2JpdAowMDEwICAgICAxIHAvcyAgICAgMCBrYi9z
-ICAgICAyIGtiaXQKMDAxMSAgICAxMyBwL3MgICAgIDIga2IvcyAgICAyMCBrYml0CjAwMTUg
-ICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDY1ICAgICAzIHAvcyAgICAgMCBr
-Yi9zICAgICA1IGtiaXQKMDA2NiAgICAgMCBwL3MgICAgIDAga2IvcyAgICAgMSBrYml0CjAw
-NmYgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDc5ICAgICAxIHAvcyAgICAg
-MCBrYi9zICAgICAyIGtiaXQKMDA4MiAgIDQxNSBwL3MgICAgNzYga2IvcyAgIDYyNSBrYml0
-CjAwODMgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDhjICAgMzc1IHAvcyAg
-ICA2OCBrYi9zICAgNTY0IGtiaXQKMDA4ZCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBr
-Yml0CjAwOTYgICA0MjQgcC9zICAgIDc3IGtiL3MgICA2Mzkga2JpdAowMDk3ICAgICAzIHAv
-cyAgICAgMCBrYi9zICAgICA1IGtiaXQKMDA5OCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAg
-MiBrYml0CjAwYTAgICAzNTUgcC9zICAgIDY1IGtiL3MgICA1MzQga2JpdAowMGExICAgICAx
-IHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBhYSAgIDQxNyBwL3MgICAgNzYga2IvcyAg
-IDYyOCBrYml0CjAwYWIgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGI0ICAg
-MzE3IHAvcyAgICA1OCBrYi9zICAgNDc3IGtiaXQKMDBiNSAgICAgMSBwL3MgICAgIDAga2Iv
-cyAgICAgMiBrYml0CjAwYmEgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGJj
-ICAgMzIxIHAvcyAgICA1OCBrYi9zICAgNDgzIGtiaXQKMDBiZCAgICAgMSBwL3MgICAgIDAg
-a2IvcyAgICAgMiBrYml0CjAwYmUgICAzMzEgcC9zICAgIDYwIGtiL3MgICA0OTgga2JpdAow
-MGJmICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBjOSAgICAgMSBwL3MgICAg
-IDAga2IvcyAgICAgMiBrYml0CjAwZDMgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2Jp
-dAowMGRkICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDEwNSAgICAgMSBwL3Mg
-ICAgIDAga2IvcyAgICAgMiBrYml0CjAxMTkgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIg
-a2JpdAowMTJkICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDE0MSAgICAgMSBw
-L3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAxNGIgICAgIDEgcC9zICAgICAwIGtiL3MgICAg
-IDIga2JpdAoxZmZmICAgMjgyIHAvcyAgICA1MSBrYi9zICAgNDI0IGtiaXQKMjAwMCAgMzMx
-MSBwL3MgICA2MDcga2IvcyAgNDk4MCBrYml0Ci1QSUQtLUZSRVEtLS0tLUJBTkRXSURUSC1C
-QU5EV0lEVEgtCjAwMDAgICAgIDQgcC9zICAgICAwIGtiL3MgICAgIDcga2JpdAowMDEwICAg
-ICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDAxMSAgICAxMyBwL3MgICAgIDIga2Iv
-cyAgICAyMCBrYml0CjAwMTUgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMDY1
-ICAgICAzIHAvcyAgICAgMCBrYi9zICAgICA1IGtiaXQKMDA2NiAgICAgMCBwL3MgICAgIDAg
-a2IvcyAgICAgMSBrYml0CjAwNmUgICA0NDMgcC9zICAgIDgxIGtiL3MgICA2Njcga2JpdAow
-MDZmICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDA3OCAgIDQwNyBwL3MgICAg
-NzQga2IvcyAgIDYxMyBrYml0CjAwNzkgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2Jp
-dAowMDgyICAgNDEzIHAvcyAgICA3NSBrYi9zICAgNjIyIGtiaXQKMDA4MyAgICAgMiBwL3Mg
-ICAgIDAga2IvcyAgICAgNCBrYml0CjAwOGMgICAgNzQgcC9zICAgIDEzIGtiL3MgICAxMTIg
-a2JpdAowMDhkICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDA5NyAgICAgNCBw
-L3MgICAgIDAga2IvcyAgICAgNyBrYml0CjAwOTggICAgIDIgcC9zICAgICAwIGtiL3MgICAg
-IDQga2JpdAowMGExICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBhYiAgICAg
-MiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYjUgICAgIDIgcC9zICAgICAwIGtiL3Mg
-ICAgIDQga2JpdAowMGJhICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMDBiZCAg
-ICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwYmUgICAxMDcgcC9zICAgIDE5IGti
-L3MgICAxNjEga2JpdAowMGJmICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDBj
-OCAgIDM3MiBwL3MgICAgNjgga2IvcyAgIDU1OSBrYml0CjAwYzkgICAgIDIgcC9zICAgICAw
-IGtiL3MgICAgIDQga2JpdAowMGQyICAgIDYxIHAvcyAgICAxMSBrYi9zICAgIDkyIGtiaXQK
-MDBkMyAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjAwZGMgICA0MTcgcC9zICAg
-IDc2IGtiL3MgICA2Mjgga2JpdAowMGRkICAgICAyIHAvcyAgICAgMCBrYi9zICAgICA0IGti
-aXQKMDEwNCAgIDM0MCBwL3MgICAgNjIga2IvcyAgIDUxMSBrYml0CjAxMDUgICAgIDEgcC9z
-ICAgICAwIGtiL3MgICAgIDIga2JpdAowMTE4ICAgMTE2IHAvcyAgICAyMSBrYi9zICAgMTc1
-IGtiaXQKMDExOSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAxMmQgICAgIDIg
-cC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTQxICAgICAxIHAvcyAgICAgMCBrYi9zICAg
-ICAyIGtiaXQKMDE0YiAgICAgMiBwL3MgICAgIDAga2IvcyAgICAgNCBrYml0CjFmZmYgICA0
-NjkgcC9zICAgIDg2IGtiL3MgICA3MDYga2JpdAoyMDAwICAzMzExIHAvcyAgIDYwNyBrYi9z
-ICA0OTgwIGtiaXQKLVBJRC0tRlJFUS0tLS0tQkFORFdJRFRILUJBTkRXSURUSC0KMDAwMCAg
-ICAgNCBwL3MgICAgIDAga2IvcyAgICAgNyBrYml0CjAwMTAgICAgIDEgcC9zICAgICAwIGti
-L3MgICAgIDIga2JpdAowMDExICAgIDE1IHAvcyAgICAgMiBrYi9zICAgIDIzIGtiaXQKMDAx
-NSAgICAgMCBwL3MgICAgIDAga2IvcyAgICAgMSBrYml0CjAwNjUgICAgIDMgcC9zICAgICAw
-IGtiL3MgICAgIDUga2JpdAowMDY2ICAgICAwIHAvcyAgICAgMCBrYi9zICAgICAxIGtiaXQK
-MDA2ZiAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwNzkgICAgIDEgcC9zICAg
-ICAwIGtiL3MgICAgIDIga2JpdAowMDgzICAgICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGti
-aXQKMDA4YyAgIDMwMCBwL3MgICAgNTUga2IvcyAgIDQ1MSBrYml0CjAwOGQgICAgIDEgcC9z
-ICAgICAwIGtiL3MgICAgIDIga2JpdAowMDk2ICAgMzk2IHAvcyAgICA3MiBrYi9zICAgNTk1
-IGtiaXQKMDA5NyAgICAgNCBwL3MgICAgIDAga2IvcyAgICAgNyBrYml0CjAwOTggICAgIDEg
-cC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGEwICAgMzkyIHAvcyAgICA3MSBrYi9zICAg
-NTg5IGtiaXQKMDBhMSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAwYWEgICA0
-MTMgcC9zICAgIDc1IGtiL3MgICA2MjIga2JpdAowMGFiICAgICAxIHAvcyAgICAgMCBrYi9z
-ICAgICAyIGtiaXQKMDBiNCAgIDMzNyBwL3MgICAgNjEga2IvcyAgIDUwNyBrYml0CjAwYjUg
-ICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGJhICAgICAyIHAvcyAgICAgMCBr
-Yi9zICAgICA0IGtiaXQKMDBiYyAgIDMxOCBwL3MgICAgNTgga2IvcyAgIDQ3OCBrYml0CjAw
-YmQgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGJlICAgNDI1IHAvcyAgICA3
-OCBrYi9zICAgNjQwIGtiaXQKMDBiZiAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0
-CjAwYzggICAzNzAgcC9zICAgIDY3IGtiL3MgICA1NTYga2JpdAowMGM5ICAgICAxIHAvcyAg
-ICAgMCBrYi9zICAgICAyIGtiaXQKMDBkMiAgICA2MCBwL3MgICAgMTEga2IvcyAgICA5MSBr
-Yml0CjAwZDMgICAgIDEgcC9zICAgICAwIGtiL3MgICAgIDIga2JpdAowMGRjICAgMTE0IHAv
-cyAgICAyMCBrYi9zICAgMTcyIGtiaXQKMDBkZCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAg
-MiBrYml0CjAxMDUgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTE5ICAgICAy
-IHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMDEyZCAgICAgMSBwL3MgICAgIDAga2IvcyAg
-ICAgMiBrYml0CjAxNDEgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMTRiICAg
-ICAxIHAvcyAgICAgMCBrYi9zICAgICAyIGtiaXQKMWZmZiAgIDEwNiBwL3MgICAgMTkga2Iv
-cyAgIDE1OSBrYml0CjIwMDAgIDMzMTEgcC9zICAgNjA3IGtiL3MgIDQ5ODAga2JpdAotUElE
-LS1GUkVRLS0tLS1CQU5EV0lEVEgtQkFORFdJRFRILQowMDAwICAgICA0IHAvcyAgICAgMCBr
-Yi9zICAgICA3IGtiaXQKMDAxMCAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0CjAw
-MTEgICAgMTIgcC9zICAgICAyIGtiL3MgICAgMTkga2JpdAowMDE0ICAgICAwIHAvcyAgICAg
-MCBrYi9zICAgICAxIGtiaXQKMDAxNSAgICAgMSBwL3MgICAgIDAga2IvcyAgICAgMiBrYml0
-CjAwNjUgICAgIDMgcC9zICAgICAwIGtiL3MgICAgIDUga2JpdAowMDY2ICAgICAwIHAvcyAg
-ICAgMCBrYi9zICAgICAxIGtiaXQKMDA2ZSAgIDQzOSBwL3MgICAgODAga2IvcyAgIDY2MSBr
-Yml0CjAwNmYgICAgIDIgcC9zICAgICAwIGtiL3MgICAgIDQga2JpdAowMDc4ICAgNDEyIHAv
-cyAgICA3NSBrYi9zICAgNjIwIGtiaXQKMDA3OSAgICAgMiBwL3MgICAgIDAga2IvcyAgICAg
-NCBrYml0CjAwODIgICA0MTUgcC9zICAgIDc2IGtiL3MgICA2MjUga2JpdAowMDgzICAgICAy
-IHAvcyAgICAgMCBrYi9zICAgICA0IGtiaXQKMA==
---------------020300020406080207090603
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Manu
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020300020406080207090603--
