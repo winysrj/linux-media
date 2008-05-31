@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4NCtGAS011899
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 08:55:17 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4NCs2QD008538
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 08:54:02 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so713511rvb.51
-	for <video4linux-list@redhat.com>; Fri, 23 May 2008 05:54:02 -0700 (PDT)
-Message-ID: <d9def9db0805230554w34519e73nabccdfce93999643@mail.gmail.com>
-Date: Fri, 23 May 2008 14:54:02 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: ralf@ark.in-berlin.de
-In-Reply-To: <20080523112305.GA25477@ark.in-berlin.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4V2v6fY008488
+	for <video4linux-list@redhat.com>; Fri, 30 May 2008 22:57:06 -0400
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
+	[151.189.21.42])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4V2ur4u004019
+	for <video4linux-list@redhat.com>; Fri, 30 May 2008 22:56:53 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Content-Type: text/plain
+Date: Sat, 31 May 2008 04:55:45 +0200
+Message-Id: <1212202545.4701.18.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080523112305.GA25477@ark.in-berlin.de>
-Cc: video4linux-list@redhat.com
-Subject: Re: hardware noob needs orientation
+Cc: 
+Subject: Medion md8835 Akoya, eventually also with a CTX944 Quad or CTX948
+	triple ...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,34 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Ralf,
+Hi folks,
 
-On 5/23/08, Ralf Stephan <ralf@ark.in-berlin.de> wrote:
-> Hello,
-> please excuse me asking possibly basic questions. My problem is
-> 1. the need to use a specific camera (having Cinch cable/adapter)
-> 2. the impossibility of installing a card in this box (fanless)
->
-> Is there a supported Cinch/USB converter you can recommend?
->
+after being burned for some days running into the next supermarket last
+Monday, finally a first grin on my face ;)
 
-With Chinch you mean Composite?
+GNU/Linux is very well doable (not totally GPL2) and bangs ...
 
-(Look at analog TV Devices)
-http://mcentral.de/wiki/index.php5/Em2880#Devices
+No tests on the blue-ray, HD-DVD stuff yet, maybe it does not even burn
+CDs and on the rest we are cut off anyway.
 
-Those devices are also manufacturer supported. So even if you run into
-trouble with TV applications just put a request onto the corresponding
-em28xx Mailinglist which is specialized on those devices.
+If anyone else is on it, we can talk, also off list, since maybe partly OT.
 
-> As the camera is placed >4m from the box, which configuration
-> would be best? Short Cinch, then long USB, with intermediate hub?
->
+Cheers,
+Hermann
 
-short USB Cable and long Chinch cable should be fine, I used a cheap
-Chinch cable for testing Compiste and a short USB Cable
 
-Markus
+
+
 
 --
 video4linux-list mailing list
