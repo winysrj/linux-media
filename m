@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout3.freenet.de ([195.4.92.93])
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ruediger.dohmhardt@freenet.de>) id 1K1Qya-0005Oj-Rw
-	for linux-dvb@linuxtv.org; Wed, 28 May 2008 21:06:21 +0200
-Received: from [195.4.92.10] (helo=0.mx.freenet.de)
-	by mout3.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port
-	25) (Exim 4.69 #19) id 1K1QyX-0005bx-Gg
-	for linux-dvb@linuxtv.org; Wed, 28 May 2008 21:06:17 +0200
-Received: from [91.64.66.13] (port=64941 helo=[192.168.2.170])
-	by 0.mx.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port
-	25) (Exim 4.69 #18) id 1K1QyX-0002OV-CO
-	for linux-dvb@linuxtv.org; Wed, 28 May 2008 21:06:17 +0200
-Message-ID: <483DAD23.9060507@freenet.de>
-Date: Wed, 28 May 2008 21:06:11 +0200
-From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+	(envelope-from <e9hack@googlemail.com>) id 1K2LMx-0005lg-TW
+	for linux-dvb@linuxtv.org; Sat, 31 May 2008 09:19:18 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so295227fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 31 May 2008 00:19:12 -0700 (PDT)
+Message-ID: <4840FBED.3050902@gmail.com>
+Date: Sat, 31 May 2008 09:19:09 +0200
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <482EB3E5.7090607@freenet.de>
-	<482F49BB.4060300@gmail.com>	<48327AEF.1060809@freenet.de>
-	<48371567.8080304@gmail.com>
-	<20080523212816.e3l3sl8pccg08ogc@192.168.1.1>
-In-Reply-To: <20080523212816.e3l3sl8pccg08ogc@192.168.1.1>
-Subject: Re: [linux-dvb] CAM of Mantis 2033 still not working
+References: <482560EB.2000306@gmail.com>
+	<200805310146.30798@orion.escape-edv.de>
+In-Reply-To: <200805310146.30798@orion.escape-edv.de>
+From: e9hack <e9hack@googlemail.com>
+Subject: Re: [linux-dvb] [PATCH] Fix the unc for the frontends tda10021 and
+ stv0297
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,20 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I just tried the changeset from today (7348 0b04be0c088a)
+Oliver Endriss schrieb:
+> Hi,
+> 
+> I just wanted to commit this changeset when I spotted this:
+> 
+> e9hack wrote:
+>> @@ -266,6 +268,10 @@ static int tda10021_set_parameters (stru
+>>  
+>>         tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
+>>  
+>> +       /* reset uncorrected block counter */
+>> +       state->last_lock = 0;
+>> +       state->ucblocks = 0;
+> 
+> Note that UCB must count the number of uncorrected blocls during the
+> lifetime of the driver. So it must not be reset during tuning.
 
-My machine still crashes, when inserting "mantis.ko"
+I've add this reset for two reasons:
 
-The last running changeset (of course without CAM functionality) for me is:
+1) My second card uses a stv0297. The UCB value is always reset during the tuning, because 
+the stv0297 is completely reinitialized. This occurs, if the frequency is changed or if 
+the frontend lost the lock. I've add the reset to see the same behavior within the 
+femon-plugin for both cards.
 
-7328 - d371e22416dd   from   21. Mai .08
+2) Above 650MHz, the signal strength of my cable is very low. It isn't usable. I get high 
+BER and UCB values. The card with the tda10021 is a budget one. It is used for epg 
+scanning in the background. It isn't possible to compare the UCB values of both cards, if 
+the cards are tuned to the same frequency/channel and if the tda10021 was previous tuned 
+to a frequency with a low signal.
 
-Am I the only one, who uses 2.6.22.19  (64bit)?
-Shall I switch the kernel version?
- 
-Ciao Ruediger D.
-
-
+-Hartmut
 
 _______________________________________________
 linux-dvb mailing list
