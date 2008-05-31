@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4QH0JdJ032681
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 13:00:19 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4QH07T5012594
-	for <video4linux-list@redhat.com>; Mon, 26 May 2008 13:00:07 -0400
-Date: Mon, 26 May 2008 13:59:51 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Message-ID: <20080526135951.7989516d@gaivota>
-In-Reply-To: <20080522223700.2f103a14@core>
-References: <20080522223700.2f103a14@core>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m4VDQLoG032378
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 09:26:21 -0400
+Received: from omta0107.mta.everyone.net (imta-38.everyone.net
+	[216.200.145.38])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m4VDQB9x029143
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 09:26:11 -0400
+From: "John Ortega" <jortega@listpropertiesnow.com>
+To: "stef" <stef.dev@free.fr>,
+	"Linux and Kernel Video" <video4linux-list@redhat.com>
+Date: Sat, 31 May 2008 09:26:08 -0400
+Message-ID: <EEEHJJMABEBDCNKAINKCAEDNCHAA.jortega@listpropertiesnow.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] video4linux: Push down the BKL
+In-Reply-To: <200805311455.15669.stef.dev@free.fr>
+Cc: 
+Subject: RE: Trouble making PCTV 310c working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,103 +29,77 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 22 May 2008 22:37:00 +0100
-Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+With my pctv usb I couldn't get the scan to work...
+I had to look at the channels and manually put them in xml file.
 
-> For most drivers the generic ioctl handler does the work and we update it
-> and it becomes the unlocked_ioctl method. Older drivers use the usercopy
-> method so we make it do the work. Finally there are a few special cases.
-
-I liked the patch also.
-
-Still, it didn't apply cleanly on my -git tree, probably due to some fixes at
-cx18 and ivtv (see the attached log). Also, IMO, it would be better if you
-split drivers/net/tun.c into a different changeset.
-
-I think you should add a video_ioctl2_unlocked() function, without BKL (and keeping
-BKL explicit locks at video_ioctl2). This would help on migrating the drivers
-to the unlocked version, since I suspect that most drivers already have enough
-locks for the removal of BKL.
-
-I would just implement video_ioctl2 as:
-
-video_ioctl2_locked (...)
-{
-	lock_kernel();
-	video_ioctl2_unlocked();
-	unlock_kernel();
-}
-
-The next step can be to add the obvious locks inside video_ioctl2_unlocked(). Like, for
-example, locking the VIDIOC_S calls, if someone is calling the corresponding
-VIDIOC_G or VIDIOC_TRY ones.
-
-Cheers,
-Mauro.
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com]On Behalf Of stef
+Sent: Saturday, May 31, 2008 8:55 AM
+To: Linux and Kernel Video
+Subject: Trouble making PCTV 310c working
 
 
----
+	Hello,
 
+	I have Pinnacle PCTV 310c hybrid card:
 
-patching file drivers/media/video/bt8xx/bttv-driver.c
-patching file drivers/media/video/bw-qcam.c
-patching file drivers/media/video/c-qcam.c
-patching file drivers/media/video/cafe_ccic.c
-patching file drivers/media/video/cpia.c
-patching file drivers/media/video/cpia2/cpia2_v4l.c
-patching file drivers/media/video/cx18/cx18-ioctl.c
-patching file drivers/media/video/cx18/cx18-ioctl.h
-patching file drivers/media/video/cx18/cx18-streams.c
-Hunk #1 FAILED at 39.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/video/cx18/cx18-streams.c.rej
-patching file drivers/media/video/cx23885/cx23885-417.c
-patching file drivers/media/video/cx23885/cx23885-video.c
-patching file drivers/media/video/cx88/cx88-blackbird.c
-patching file drivers/media/video/cx88/cx88-video.c
-patching file drivers/media/video/dabusb.c
-patching file drivers/media/video/em28xx/em28xx-video.c
-patching file drivers/media/video/et61x251/et61x251_core.c
-patching file drivers/media/video/ivtv/ivtv-ioctl.c
-patching file drivers/media/video/ivtv/ivtv-ioctl.h
-Hunk #1 FAILED at 24.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/video/ivtv/ivtv-ioctl.h.rej
-patching file drivers/media/video/ivtv/ivtv-streams.c
-Hunk #1 FAILED at 48.
-Hunk #2 FAILED at 58.
-2 out of 2 hunks FAILED -- saving rejects to file drivers/media/video/ivtv/ivtv-streams.c.rej
-patching file drivers/media/video/meye.c
-patching file drivers/media/video/ov511.c
-patching file drivers/media/video/pms.c
-patching file drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-Hunk #1 succeeded at 861 (offset -1 lines).
-Hunk #2 succeeded at 869 (offset -1 lines).
-Hunk #3 succeeded at 1153 (offset -1 lines).
-patching file drivers/media/video/pwc/pwc-if.c
-patching file drivers/media/video/saa5246a.c
-patching file drivers/media/video/saa5249.c
-patching file drivers/media/video/saa7134/saa7134-empress.c
-patching file drivers/media/video/saa7134/saa7134-video.c
-patching file drivers/media/video/se401.c
-patching file drivers/media/video/sn9c102/sn9c102_core.c
-patching file drivers/media/video/soc_camera.c
-patching file drivers/media/video/stk-webcam.c
-Hunk #1 succeeded at 1320 (offset 7 lines).
-patching file drivers/media/video/stradis.c
-patching file drivers/media/video/stv680.c
-patching file drivers/media/video/usbvideo/usbvideo.c
-patching file drivers/media/video/usbvideo/vicam.c
-patching file drivers/media/video/usbvision/usbvision-video.c
-patching file drivers/media/video/videodev.c
-patching file drivers/media/video/vivi.c
-patching file drivers/media/video/w9966.c
-patching file drivers/media/video/w9968cf.c
-patching file drivers/media/video/zc0301/zc0301_core.c
-patching file drivers/media/video/zoran_driver.c
-patching file drivers/media/video/zr364xx.c
-patching file drivers/net/tun.c
-patching file include/media/v4l2-dev.h
-Hunk #1 succeeded at 343 (offset -1 lines).
-Hunk #2 succeeded at 352 (offset -1 lines).
+02:00.0 0400: 14f1:8800 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 60000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx8800
+	Kernel modules: cx8800
+
+02:00.1 0480: 14f1:8801 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 61000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88_audio
+	Kernel modules: cx88-alsa
+
+02:00.2 0480: 14f1:8802 (rev 05)
+	Subsystem: 12ab:1788
+	Flags: bus master, medium devsel, latency 64, IRQ 11
+	Memory at 62000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88-mpeg driver manager
+	Kernel modules: cx8802
+
+	With latest mercurial, I can capture video with good quality from
+Composite1,
+but I don't get sound. I checked that the alsa device exists and is unmuted.
+I'm capturing with:
+mplayer tv:// -tv
+driver=v4l2:norm=PAL-BG:input=1:device=/dev/video1:alsa:adevice=hw.2:volume=
+60
+-vo xv -ao alsa
+	where I double checked that hw.2 is really the Conexant CX8801 Playback.
+
+	Another problem I have is that after scanning french tv channels (with
+tvtime-scanner), the detected channels are garbled when I try to watch them
+with tvtime. It looks like that SECAM isn't taken into account, and that the
+signal is decoded as if it was another norm.
+
+	Looking at the sources I noted a comment about some GPIO work needed for
+the
+DVB subsystem. I have a windows partition on the same machine where the card
+is working fine, and I installed DScaler's regspy. So I may provide any data
+needed.
+
+	Last, I believe there should also be an entry for the  cx8802 in the card
+description.
+
+Regards,
+	Stef
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
