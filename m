@@ -1,28 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m514l43b022554
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 00:47:04 -0400
-Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
-	[151.189.21.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m514jnNt005006
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 00:45:59 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Carl Karsten <carl@personnelware.com>
-In-Reply-To: <4840F22C.2060908@personnelware.com>
-References: <47C8A0C9.4020107@personnelware.com>
-	<20080304112519.6f4c748c@gaivota>	<483DBD67.8090508@personnelware.com>
-	<20080528173755.594ea08b@gaivota> <483DD6AA.1070203@personnelware.com>
-	<1212015588.5745.9.camel@pc10.localdom.local>
-	<483DEB53.40604@personnelware.com>
-	<1212021382.5745.13.camel@pc10.localdom.local>
-	<4840F22C.2060908@personnelware.com>
-Content-Type: text/plain
-Date: Sun, 01 Jun 2008 06:38:23 +0200
-Message-Id: <1212295103.8234.25.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m512k5v5023668
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 22:46:05 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m512jZEB025548
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 22:45:36 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1K2dZa-0004IH-NN
+	for video4linux-list@redhat.com; Sun, 01 Jun 2008 02:45:33 +0000
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sun, 01 Jun 2008 02:45:30 +0000
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sun, 01 Jun 2008 02:45:30 +0000
+To: video4linux-list@redhat.com
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Sun, 1 Jun 2008 02:45:22 +0000 (UTC)
+Message-ID: <loom.20080601T023335-56@post.gmane.org>
+References: <c5bea28d26aa1caa1e85da.20080531171359.qnavryt4@webmail.dslextreme.com>
+	<20080531231049.725bf4d2@tux>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [patch] vivi: registered as /dev/video%d
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] PowerColor RA330 (Real Angel 330) fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,85 +36,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Dâniel Fraga <fragabr <at> gmail.com> writes:
 
-Am Samstag, den 31.05.2008, 01:37 -0500 schrieb Carl Karsten:
-> hermann pitton wrote:
-> > Am Mittwoch, den 28.05.2008, 18:31 -0500 schrieb Carl Karsten:
-> >> hermann pitton wrote:
-> >>> Hi Carl,
-> >>>
-> >>> Am Mittwoch, den 28.05.2008, 17:03 -0500 schrieb Carl Karsten:
-> >>>> Mauro Carvalho Chehab wrote:
-> >>>>> On Wed, 28 May 2008 15:15:35 -0500
-> >>>>> Carl Karsten <carl@personnelware.com> wrote:
-> >>>>>
-> >>>>>> I posted a week ago and haven't heard anything.
-> >>>>> I was on vacations last week.
-> >>>>>
-> >>>>>>  How long should I wait before 
-> >>>>>> posting this? :)
-> >>>>> There are a few issues on your patch:
-> >>>>>
-> >>>>>> -		else
-> >>>>>> +            printk(KERN_INFO "%s: /dev/video%d unregistered.\n", MODULE_NAME,
-> >>>>>> dev->vfd->minor);
-> >>>>> Your patch got word wrapped. So, it didn't apply.
-> >>>>>
-> >>>>>> +        }
-> >>>>>> +		else {
-> >>>>> CodingStyle is wrong. It should be:
-> >>>>> 	} else {
-> >>>>>
-> >>>>> (at the same line)
-> >>>>>
-> >>>>> Also, on some places, you used space, instead of tabs.
-> >>>>>
-> >>>>> Please, check your patch with checkpatch.pl (or, inside Mercurial, make
-> >>>>> checkpatch) before sending it.
-> >>>>>
-> >>>>> Also, be sure that your emailer won't add line breaks at the wrong places.
-> >>>>>>   	} else
-> >>>>>>   		printk(KERN_INFO "Video Technology Magazine Virtual Video "
-> >>>>>> -				 "Capture Board successfully loaded.\n");
-> >>>>>> +                 "Capture Board ver %u.%u.%u successfully loaded.\n",
-> >>>>>> +        (VIVI_VERSION >> 16) & 0xFF, (VIVI_VERSION >> 8) & 0xFF, VIVI_VERSION &
-> >>>>>> 0xFF);
-> >>>> Fixed what you mentioned, make checkpatch doesn't report anything now.  It was 
-> >>>> reporting "warning: line over 80 characters" so now that those are fixed maybe 
-> >>>> t-bird won't wrap them.
-> >>> your hope is in vain for the one space indent in front of every line
-> >>> tbird adds. We have that issue already seen with your previous patches
-> >>> and I told you about, it is a very well known tbird flaw ;)
-> >>>
-> >>> Please use always attachments with thunderbird.
-> >>> It is no fun to fix all lines for indentation.
-> >> Sorry about that - I meant to attach it too.
-> >>
-> >> What is the proper way to supply:
-> >>
-> >> Signed-off-by: Carl Karsten  <carl@personnelware.com>
-> >>
-> >> Carl K
+> 	Hi Daniel. Regarding your patch (patch1.diff), I have the
+> following problems if I apply it:
 > 
-> list ate .diff, trying .patch.
+> 1) the sound from TV/radio doesn't work
+
+Are you sure you applied it against the current Mercurial tip? I also had no TV
+sound when the MTS bit was 1, but I leave it 0, and have sound. FM worked,
+regardless.
+
+> 2) the s-video input image worked with tvtime but didn't work with
+> mencoder (it recorded everything as a black screen). Without your patch
+> (and using v25 firmware, mencoder works fine). I record using:
 > 
-> Carl K
+> mencoder -tv device=/dev/video1:input=2:norm=pal-m:amode=1 -ovc lavc
+> -lavcopts vcodec=mpeg4:mbd=1 -oac mp3lame
+> -o /home/fraga/src/tvrecord-${TODAY}-${NOW}.avi tv://
+
+I used this line to test TV:
+mplayer tv://54 -tv
+chanlist=us-cable:normid=7:input=1:amode=1:immediatemode=0:alsa -vo xv -ao alsa
+
+To test S-Video, I simply replaced "input=1" with "input=3" in the same line.
+
+> 	I'm using the following firmware:
 > 
+> e7ffa23f8898839ebeb6e2e8b65f829e  xc3028-v27.fw
 
-Hi Carl,
+I get:
+$ md5sum /lib/firmware/xc3028-v27.fw
+293dc5e915d9a0f74a368f8a2ce3cc10  /lib/firmware/xc3028-v27.fw
 
-patch is there now and others seem to come through with .diff stuff.
-
-Always send to Mauro directly or at least maintainers list too.
-
-Under the current load Mauro has, the video4linux list only is no safe
-place for patches anymore.
-
-Cheers,
-Hermann
-
-
-
+It's from the download now referenced in the current extraction script.
 
 --
 video4linux-list mailing list
