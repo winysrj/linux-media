@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5IC5ZcD027043
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 08:05:35 -0400
-Received: from n5a.bullet.mail.ac4.yahoo.com (n5a.bullet.mail.ac4.yahoo.com
-	[76.13.13.68])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5IC5K4q015577
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 08:05:20 -0400
-Message-ID: <393A6514A13E499AA058F7B457ADE534@voyager>
-From: "Stephane Marchand" <smarchand291@yahoo.ca>
-To: <video4linux-list@redhat.com>
-References: <20080617160012.0E639619767@hormel.redhat.com>
-Date: Wed, 18 Jun 2008 08:05:51 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Subject: Trying to adapt  a javascript with Motion
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m51GEDTa014962
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 12:14:13 -0400
+Received: from vms044pub.verizon.net (vms044pub.verizon.net [206.46.252.44])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m51GDSEF029808
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 12:13:29 -0400
+Received: from coyote.coyote.den ([151.205.30.51])
+	by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01
+	(built Apr
+	3 2006)) with ESMTPA id <0K1S00203L1N8WNM@vms044.mailsrvcs.net> for
+	video4linux-list@redhat.com; Sun, 01 Jun 2008 11:13:00 -0500 (CDT)
+Date: Sun, 01 Jun 2008 12:12:58 -0400
+From: Gene Heskett <gene.heskett@verizon.net>
+In-reply-to: <200806011733.38017.janne-dvb@grunau.be>
+To: video4linux-list@redhat.com
+Message-id: <200806011212.59160.gene.heskett@verizon.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-1
+Content-transfer-encoding: 7bit
+Content-disposition: inline
+References: <200805141917.52078.janne-dvb@grunau.be>
+	<200806011733.38017.janne-dvb@grunau.be>
+Subject: Re: Compro S300/S350 linux driver violates the GPL
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,101 +33,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
+On Sunday 01 June 2008, Janne Grunau wrote:
+>On Wednesday 14 May 2008 19:17:51 Janne Grunau wrote:
+>> a mythtv user discovered that compro offers linux drivers for at
+>> least one of their products. After selecting S350/S300 on
+>> http://www.comprousa.com/en/download/sseries.html they offer a
+>> complete linux kernel rpm for Mandriva Linux 2007 Spring for
+>> downbload.
+>
+>They have removed the drivers and added a note that they work on GPL
+>compliance. New drivers should be available in Q3 2008.
+>
+>Janne
+>
+Q3? Frankly that sort of a delay sounds like they are writing new drivers that 
+WON'T be gpl'd.  Complying with the gpl is, if the lawyers stay the hell out of 
+it, at best a days work.  All they have to do is make sure the licenses are 
+still there, if not put them back in and put them in a package & hand the 
+location of the package to their webmaster to add it as a download on their web 
+page.  I could be wrong, but to me Q3 is a smoke screen while they do their 
+best to make non-gpl drivers. The FSF needs to get a settlement at the least.
 
-I know it's not specifically related to V4L but I'm trying to solve a 
-problem with Camserv which is not working
-anymore for me "(V4L) mmap error". Motion is almost doing the job for me but 
-I don't want to use a java applet to display
-my webcam and Motion is a great piece of software. So since Motion is acting 
-as Camserv
-(sending jpeg to the browser http protocol) I hope I can use a javascript to 
-display the picture in a webpage. but no go yet.
-
-I'm still wondering what's the problem with Camserv ? I think it's having a 
-bug that reference to v4l2 instead of v4l...
-It's really not a problem with my bt848 card or even the kernel (2.4 -> 2.6)
-
-anyone seeing my error in the code below ?
-
-thanks for any help
-
-
-<?php
-$ip = gethostbyname('my.server.org');
-?>
-<html>
-<head>
-  <title>SMARCH</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta http-equiv="PRAGMA" content="NO-CACHE">
-  <meta http-equiv="Refresh" 
-content="1800;url=http://my.server.org/webcam/sessionoff.html">
-  <link href="style.css" rel="stylesheet" type="text/css">
-  <script LANGUAGE="JavaScript">
-<!-- hide
-// "var speed" is the refresh rate adjustment in seconds.
-var speed = 1;
-var y = 1;
-var x = speed + y;
-var time = x - y;
-var now;
-campicture = new Image();
-function stopClock() {
-	x = "off";
-	document.form0.clock.value = x;
-}
-function startClock() {
-        if (x != "off") {
-	x = x - y;
-	document.form0.clock.value = x;
-	if (x <= 1)
-        {
-          reload()
-        }
-	timerID = setTimeout("startClock()", 1000);
-        }
-}
-function reload() {
-	now = new Date();
-	var camImg = "http://<?php echo $ip;?>:9192/singleframe/" + "?" + 
-now.getTime();
-	document.campicture.src = camImg;
-    x = speed;
-    document.form0.clock.value = x;
-              	  }
-//end hide -->
-
-</script>
-</head>
-<body style="color: rgb(204, 204, 204); background-color: rgb(0, 0, 0);" 
-alink="#33ff33" link="#00cccc" vlink="#ff0000" onload="startClock()" 
-leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
-
-<table border="0" width=100% height=380>
-    <tr>
-      <td valign=top>
-	<FORM action="JSCam.html" name="form0">
-	<center>
-	Boul Universit&eacute;, Rouyn-Noranda, Qu&eacute;bec, Canada<br>
-	<IMG src="webcamstream.jpg" name="campicture" border=1 reload="60" 
-width=400 height=300 alt="soyez patient...chargement">
-	<br>Images intervales: 1 sec, 1 "frame". USB Logitech Quickcam Express - 
-camserv</CENTER>
-	<INPUT type="hidden" name="clock" size="3" value="">
-	</FORM>
-      </td>
-      <td valign=top align=center><br>
-      <a href=top2.php><img src=images/iconcegep.jpg border=0><br>Cam 2</a>
-      </td>
-     </tr>
-</table>
-
-</BODY>
-</HTML>
-
- 
-
+-- 
+Cheers, Gene
+"There are four boxes to be used in defense of liberty:
+ soap, ballot, jury, and ammo. Please use in that order."
+-Ed Howdershelt (Author)
+PENGUINICITY!!
 
 --
 video4linux-list mailing list
