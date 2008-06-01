@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JFZN9D021302
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 11:35:23 -0400
-Received: from horsea.3ti.be (horsea.3ti.be [62.213.193.164])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JFYsMv030486
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 11:34:55 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by horsea.3ti.be (Postfix) with ESMTP id 74F452A805F
-	for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 17:34:54 +0200 (CEST)
-Received: from horsea.3ti.be ([127.0.0.1])
-	by localhost (horsea.3ti.be [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id ixG31tpc6LfF for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 17:34:49 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by horsea.3ti.be (Postfix) with ESMTP id 3344C2A805F
-	for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 17:34:49 +0200 (CEST)
-Date: Thu, 19 Jun 2008 17:34:49 +0200 (CEST)
-From: Dag Wieers <dag@wieers.com>
-To: video4linux-list@redhat.com
-Message-ID: <alpine.LRH.1.10.0806191731570.24892@horsea.3ti.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m517IuPU026314
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 03:18:56 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m517IkVZ027317
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 03:18:46 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so215869ywb.81
+	for <video4linux-list@redhat.com>; Sun, 01 Jun 2008 00:18:45 -0700 (PDT)
+Message-ID: <37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
+Date: Sun, 1 Jun 2008 03:18:45 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "David Engel" <david@istwok.net>
+In-Reply-To: <20080530145830.GA7177@opus.istwok.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Subject: Opening up the archives of this list
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
+	<20080530145830.GA7177@opus.istwok.net>
+Cc: video4linux-list@redhat.com, Jason Pontious <jpontious@gmail.com>
+Subject: Re: Kworld 115-No Analog Channels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,17 +31,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, May 30, 2008 at 10:58 AM, David Engel <david@istwok.net> wrote:
+> On Thu, May 29, 2008 at 06:57:03PM -0400, Jason Pontious wrote:
+>> After getting upgraded to the latest v4l-dvb repository I am no longer able
+>> to get any analog channels from my Kworld 115. (I finally broke down and
+>> installed 2.6.25 kernel in Ubuntu).
+>
+> Which drivers are you really using, 2.6.25 or latest v4l-dvb from
+> Mercurial?
+>
+>> Before I was getting analog channels via the top rf input.  Now I get no
+>> channels regardless if i set atv_input tuner_simple module setting.  Digital
+>> channels are not affected just analog in this.  I get no errors from dmesg.
+>>
+>> Any Ideas?
+>
+> I ran into a similar (probably the same) problem last week.  My search
+> of the list archives revealed a known tuner detection regression in
+> 2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
+> because it was simpler to just go back to 2.6.24.x.  I don't know why
+> the fix hasn't made it into 2.6.25.x yet.
 
-I just noticed that the archives of this list are only accessible for list 
-members, which excludes being able to Google for information on this list.
+Which fix?  What problem does it fix?  More details, please :-)
 
-Is there a reason for keeping the archives closed, or could we open up the 
-archives so Google can index it ?
+-Mike
 
--- 
---   dag wieers,  dag@wieers.com,  http://dag.wieers.com/   --
-[Any errors in spelling, tact or fact are transmission errors]
+P.S. ...  I respond quicker if you cc me.  ;-)  (I should have added
+that to my last email, not this one)
 
 --
 video4linux-list mailing list
