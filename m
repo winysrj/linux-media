@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5H9PDMf020902
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:25:13 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5H9P0iO007240
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:25:01 -0400
-Date: Tue, 17 Jun 2008 11:24:39 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Veda N <veda74@gmail.com>
-Message-ID: <20080617092439.GA631@daniel.bse>
-References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m512ecam022526
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 22:40:38 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m512eOPE023727
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 22:40:25 -0400
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200805261846.35758.hverkuil@xs4all.nl>
+References: <20080522223700.2f103a14@core>
+	<20080523090919.GA31575@devserv.devel.redhat.com>
+	<20080526133457.6f892af9@gaivota>
+	<200805261846.35758.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed; boundary="=-RpssKpq+yyS7wBbRf2l1"
+Date: Sat, 31 May 2008 22:34:06 -0400
+Message-Id: <1212287646.20064.21.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2_pix_format doubts
+Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] cx18: convert driver to video_ioctl2() (Re: [PATCH]
+	video4linux: Push down the BKL)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +31,246 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 17, 2008 at 02:35:04PM +0530, Veda N wrote:
->  My datasheet says the size of each pixel is 12 bits per color channel.
+
+--=-RpssKpq+yyS7wBbRf2l1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Mon, 2008-05-26 at 18:46 +0200, Hans Verkuil wrote:
+> On Monday 26 May 2008 18:34:57 Mauro Carvalho Chehab wrote:
+
+> > In the specific case of ivtv and cx18, I think that the better would
+> > be to convert it first to video_ioctl2. Then, remove the BKL, with a
+> > video_ioctl2_unlocked version.
+> >
+> > Douglas already did an experimental patch converting ivtv to
+> > video_ioctl2 and sent to Hans. It needs testing, since he doesn't
+> > have any ivtv board. It should be trivial to port this to cx18, since
+> > both drivers have similar structures.
+> >
+> > Douglas,
+> >
+> > Could you send this patch to the ML for people to review and for Andy
+> > to port it to cx18?
 > 
->  Hence for RGB will be 36bits.
+> Unless there is an objection, I would prefer to take Douglas' patch and 
+> merge it into the v4l-dvb ivtv driver myself. There were several things 
+> in the patch I didn't like, but I need to 'work' with it a bit to see 
+> how/if it can be done better.
 > 
->  I wanted to know if the same hold true for YUV data.
+> I can work on it tonight and tomorrow. Hopefully it is finished by then. 
+> I can move the BKL down at the same time for ivtv. It is unlikely that 
+> I will have time to do cx18 as well as I'm abroad from Wednesday until 
+> Monday, but I think Andy can do that easily based on the ivtv changes.
 
-Can you tell us for which hardware you want to write a driver?
+I have attached a patch, made against Hans' v4l-dvb-ioctl2 repository,
+to convert the cx18 driver to use video_ioctl2().  In the process I
+pushed down the priority checks and the debug messages into the
+individual functions.  I did not remove the serialization lock as I have
+not had the time to assess if that would be safe.  I "#if 0"'ed out some
+sliced VBI code that was being skipped in the original code.
 
-The values to fill in depend on the final layout of the data in memory.
-As you should not convert to YUV in software, it depends solely on the
-hardware.
+Comments are welcome.
 
-  Daniel
+Many thanks to Hans, for without his changeset to ivtv for reference,
+this would have taken me much, much longer.
+
+
+Short term initial tests of this patch with MythTV, v4l-ctl, and v4l-dbg
+indicate things are OK.  I did notice once strange artifact with MythTV.
+When switching from one analog channel to another, for about a second, I
+see the two television video fields non-interlaced, stacked one atop of
+the other in the frame.  Weird, but not a big deal.
+
+Regards,
+Andy
+
+
+
+--=-RpssKpq+yyS7wBbRf2l1
+Content-Disposition: attachment; filename=cx18-ioctl2.patch.bz2
+Content-Type: application/x-bzip; name=cx18-ioctl2.patch.bz2
+Content-Transfer-Encoding: base64
+
+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
+
+
+--=-RpssKpq+yyS7wBbRf2l1
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--=-RpssKpq+yyS7wBbRf2l1--
