@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5H9XcQM024914
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:33:38 -0400
-Received: from smtp2.pixelworks.com (smtp2.pixelworks.com [207.179.28.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5H9XQiw013014
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:33:27 -0400
-From: Xuesong Yang <xsyang@pixelworks.com>
-To: Veda N <veda74@gmail.com>
-In-Reply-To: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-Date: Tue, 17 Jun 2008 17:33:19 +0800
-Message-Id: <1213695199.6020.3.camel@star-sea>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2_pix_format doubts
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m510EVDZ019830
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 20:14:31 -0400
+Received: from mail5.dslextreme.com (mail5.dslextreme.com [66.51.199.81])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m510EKE4002592
+	for <video4linux-list@redhat.com>; Sat, 31 May 2008 20:14:21 -0400
+Message-ID: <c5bea28d26aa1caa1e85da.20080531171359.qnavryt4@webmail.dslextreme.com>
+Date: Sat, 31 May 2008 17:13:59 -0700 (PDT)
+From: "Daniel Gimpelevich" <daniel@gimpelevich.san-francisco.ca.us>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: multipart/mixed;boundary="----=_20080531171359_34515"
+Cc: komendantsky@gmail.com, fragabr@gmail.com
+Subject: [PATCH] PowerColor RA330 (Real Angel 330) fixes
+Reply-To: daniel@gimpelevich.san-francisco.ca.us
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +25,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-=E5=9C=A8 2008-06-17=E4=BA=8C=E7=9A=84 14:35 +0530=EF=BC=8CVeda N=E5=86=99=
-=E9=81=93=EF=BC=9A
+------=_20080531171359_34515
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-> The v4l2_pix_format has the following variables to fill
->   a) bytesperline
->   b) width
->   c) height
->   4) pixelformat
+I finally got around to the RA330 patches. Here is hopefully the final
+fix. Also attached is the revised lircd.conf for its IR receiver. The IR
+codes are somehow different from what was needed with Markus Rechberger's
+flavor of the driver.
 
-Just a guess
-a  640x12x3/8
-b 640
-c 480
-4 this should be one of the enum type
+Next order of business: the KWorld ATSC120
+I see that initial support has already been added while I was dawdling.
+The I2C issues shouldn't be too big a hurdle...
+------=_20080531171359_34515
+Content-Type: application/octet-stream; name="patch1.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="patch1.diff"
+
+U2lnbmVkLW9mZi1ieTogRGFuaWVsIEdpbXBlbGV2aWNoIDxkYW5pZWxAZ2ltcGVsZXZpY2guc2Fu
+LWZyYW5jaXNjby5jYS51cz4KCmRpZmYgLXIgMzk4YjA3ZmRmZTc5IGxpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRl
+by9jeDg4L2N4ODgtY2FyZHMuYwlXZWQgTWF5IDI4IDE3OjU1OjEzIDIwMDggLTAzMDAKKysrIGIv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwlTYXQgTWF5IDMxIDA5
+OjMwOjM0IDIwMDggLTA3MDAKQEAgLTE1NDMsMTAgKzE1NDMsMTYgQEAKIAkJfSwKIAl9LAogCVtD
+WDg4X0JPQVJEX1BPV0VSQ09MT1JfUkVBTF9BTkdFTF0gPSB7Ci0JCS5uYW1lICAgICAgICAgICA9
+ICJQb3dlckNvbG9yIFJlYWwgQW5nZWwgMzMwIiwKKwkJLm5hbWUgICAgICAgICAgID0gIlBvd2Vy
+Q29sb3IgUkEzMzAiLAkvKiBMb25nIG5hbWVzIG1heSBjb25mdXNlIExJUkMuICovCiAJCS50dW5l
+cl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2MSwKIAkJ
+LmlucHV0ICAgICAgICAgID0geyB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0RFQlVHLAorCQkJ
+LnZtdXggICA9IDMsCQkvKiBEdWUgdG8gdGhlIHdheSB0aGUgY3g4OCBkcml2ZXIgaXMgd3JpdHRl
+biwJKi8KKwkJCS5ncGlvMCA9IDB4MDBmZiwJLyogdGhlcmUgaXMgbm8gd2F5IHRvIGRlYWN0aXZh
+dGUgYXVkaW8gcGFzcy0JKi8KKwkJCS5ncGlvMSA9IDB4ZjM5ZCwJLyogdGhyb3VnaCB3aXRob3V0
+IHRoaXMgZW50cnkuIEZ1cnRoZXJtb3JlLCBpZgkqLworCQkJLmdwaW8zID0gMHgwMDAwLAkvKiB0
+aGUgVFYgbXV4IGVudHJ5IGlzIGZpcnN0LCB5b3UgZ2V0IGF1ZGlvCSovCisJCX0sIHsJCQkJLyog
+ZnJvbSB0aGUgdHVuZXIgb24gYm9vdCBmb3IgYSBsaXR0bGUgd2hpbGUuCSovCiAJCQkudHlwZSAg
+ID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKIAkJCS5ncGlvMCA9IDB4
+MDBmZiwKQEAgLTI0NzQsOCArMjQ4MCw5IEBACiAKIAlzd2l0Y2ggKGNvcmUtPmJvYXJkbnIpIHsK
+IAljYXNlIENYODhfQk9BUkRfUE9XRVJDT0xPUl9SRUFMX0FOR0VMOgotCQkvKiBEb2Vzbid0IHdv
+cmsgd2l0aCBmaXJtd2FyZSB2ZXJzaW9uIDIuNyAqLwotCQljdGwtPmZuYW1lID0gInhjMzAyOC12
+MjUuZnciOworCQkvKiBOb3cgd29ya3Mgd2l0aCBmaXJtd2FyZSB2ZXJzaW9uIDIuNyAqLworCQlp
+ZiAoY29yZS0+aTJjX2FsZ28udWRlbGF5IDwgMTYpCisJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkg
+PSAxNjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1Rf
+UFJPOgogCQljdGwtPnNjb2RlX3RhYmxlID0gWEMzMDI4X0ZFX1pBUkxJTks0NTY7Cg==
+------=_20080531171359_34515
+Content-Type: application/octet-stream; name="sam3507b.lircd.conf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="sam3507b.lircd.conf"
+
+CiMgUGxlYXNlIG1ha2UgdGhpcyBmaWxlIGF2YWlsYWJsZSB0byBvdGhlcnMKIyBieSBzZW5kaW5n
+IGl0IHRvIDxsaXJjQGJhcnRlbG11cy5kZT4KIwojIHRoaXMgY29uZmlnIGZpbGUgd2FzIGF1dG9t
+YXRpY2FsbHkgZ2VuZXJhdGVkCiMgdXNpbmcgbGlyYy0wLjguMihkZXYvaW5wdXQpIG9uIFNhdCBN
+YXkgMzEgMDk6MTA6MjYgMjAwOAojCiMgY29udHJpYnV0ZWQgYnkgRGFuaWVsIEdpbXBlbGV2aWNo
+IDxkYW5pZWxAZ2ltcGVsZXZpY2guc2FuLWZyYW5jaXNjby5jYS51cz4KIwojIGJyYW5kOiAgICAg
+ICAgICAgICAgICAgICAgICAgUG93ZXJDb2xvcgojIG1vZGVsIG5vLiBvZiByZW1vdGUgY29udHJv
+bDogU0FNMzUwN0IKIyBkZXZpY2VzIGJlaW5nIGNvbnRyb2xsZWQgYnkgdGhpcyByZW1vdGU6CiMg
+UkEzMzAgKFJlYWwgQW5nZWwgMzMwKQoKYmVnaW4gcmVtb3RlCgogIG5hbWUgIHNhbTM1MDdiCiAg
+Yml0cyAgICAgICAgICAgMTYKICBlcHMgICAgICAgICAgICAzMAogIGFlcHMgICAgICAgICAgMTAw
+CgogIG9uZSAgICAgICAgICAgICAwICAgICAwCiAgemVybyAgICAgICAgICAgIDAgICAgIDAKICBw
+cmVfZGF0YV9iaXRzICAgMTYKICBwcmVfZGF0YSAgICAgICAweDgwMDEKICB0b2dnbGVfYml0X21h
+c2sgMHg4MDAxMDA3MQoKICAgICAgYmVnaW4gY29kZXMKICAgICAgICAgIElOUFVUICAgICAgICAg
+ICAgICAgICAgICAweDAwRTMKICAgICAgICAgIE9QRU5fQ0xPU0UgICAgICAgICAgICAgICAweDAw
+RTIKICAgICAgICAgIDEgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDIKICAgICAgICAgIDIg
+ICAgICAgICAgICAgICAgICAgICAgICAweDAwMDMKICAgICAgICAgIDMgICAgICAgICAgICAgICAg
+ICAgICAgICAweDAwMDQKICAgICAgICAgIDQgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDUK
+ICAgICAgICAgIDUgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDYKICAgICAgICAgIDYgICAg
+ICAgICAgICAgICAgICAgICAgICAweDAwMDcKICAgICAgICAgIDcgICAgICAgICAgICAgICAgICAg
+ICAgICAweDAwMDgKICAgICAgICAgIDggICAgICAgICAgICAgICAgICAgICAgICAweDAwMDkKICAg
+ICAgICAgIDkgICAgICAgICAgICAgICAgICAgICAgICAweDAwMEEKICAgICAgICAgIDAgICAgICAg
+ICAgICAgICAgICAgICAgICAweDAwMEIKICAgICAgICAgIDEwICAgICAgICAgICAgICAgICAgICAg
+ICAweDAxOUQKICAgICAgICAgIENIQU5ORUxfUkVUVVJOICAgICAgICAgICAweDAxOUMKICAgICAg
+ICAgIEJSSUdIVCsgICAgICAgICAgICAgICAgICAweDAwRTEKICAgICAgICAgIEJSSUdIVC0gICAg
+ICAgICAgICAgICAgICAweDAwRTAKICAgICAgICAgIENIKyAgICAgICAgICAgICAgICAgICAgICAw
+eDAwNjcKICAgICAgICAgIENILSAgICAgICAgICAgICAgICAgICAgICAweDAwNkMKICAgICAgICAg
+IFZPTCsgICAgICAgICAgICAgICAgICAgICAweDAwNkEKICAgICAgICAgIFZPTC0gICAgICAgICAg
+ICAgICAgICAgICAweDAwNjkKICAgICAgICAgIE1VVEUgICAgICAgICAgICAgICAgICAgICAweDAw
+NzEKICAgICAgICAgIEFVRCAgICAgICAgICAgICAgICAgICAgICAweDAxNzUKICAgICAgICAgIFRU
+WCAgICAgICAgICAgICAgICAgICAgICAweDAxODQKICAgICAgICAgIFJFQyAgICAgICAgICAgICAg
+ICAgICAgICAweDAwQTcKICAgICAgICAgIFBMQVkgICAgICAgICAgICAgICAgICAgICAweDAwQ0YK
+ICAgICAgICAgIFBBVVNFICAgICAgICAgICAgICAgICAgICAweDAwNzcKICAgICAgICAgIFNUT1Ag
+ICAgICAgICAgICAgICAgICAgICAweDAwODAKICAgICAgICAgIEZGICAgICAgICAgICAgICAgICAg
+ICAgICAweDAwRDAKICAgICAgICAgIFJFVyAgICAgICAgICAgICAgICAgICAgICAweDAwQTgKICAg
+ICAgICAgIFNDQU4gICAgICAgICAgICAgICAgICAgICAweDAwRDkKICAgICAgICAgIENBUFRVUkUg
+ICAgICAgICAgICAgICAgICAweDAxOUEKICAgICAgICAgIERJU1BMQVkgICAgICAgICAgICAgICAg
+ICAweDAwOEQKICAgICAgICAgIEZVTExTQ1JFRU4gICAgICAgICAgICAgICAweDAxNzcKICAgICAg
+ICAgIEZNICAgICAgICAgICAgICAgICAgICAgICAweDAxODEKICAgICAgICAgIFBPV0VSICAgICAg
+ICAgICAgICAgICAgICAweDAwNzQKICAgICAgZW5kIGNvZGVzCgplbmQgcmVtb3RlCgoK
+------=_20080531171359_34515
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_20080531171359_34515--
