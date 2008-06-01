@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5GFKEDU014149
-	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:20:14 -0400
-Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
-	[83.236.181.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5GFJaJp021961
-	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:19:37 -0400
-Date: Mon, 16 Jun 2008 17:19:29 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Message-ID: <20080616151929.GC21869@pengutronix.de>
-References: <48512E08.6020608@teltonika.lt>
-	<Pine.LNX.4.64.0806121748070.18017@axis700.grange>
-	<20080616145511.GB21869@pengutronix.de>
-	<485681DE.4010701@teltonika.lt>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m51AGAbP006171
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 06:16:10 -0400
+Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m51AFwQD008037
+	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 06:15:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Date: Sun, 1 Jun 2008 12:15:11 +0200
+References: <20080522223700.2f103a14@core>
+	<200805261846.35758.hverkuil@xs4all.nl>
+	<1212287646.20064.21.camel@palomino.walls.org>
+In-Reply-To: <1212287646.20064.21.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <485681DE.4010701@teltonika.lt>
-Cc: Greg KH <greg@kroah.com>,
-	Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>,
-	video4linux-list@redhat.com
-Subject: Re: SoC camera crashes when host is not module
+Message-Id: <200806011215.11489.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] cx18: convert driver to video_ioctl2() (Re: [PATCH]
+	video4linux: Push down the BKL)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,31 +33,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jun 16, 2008 at 06:08:14PM +0300, Paulius Zaleckas wrote:
-> Robert Schwebel wrote:
->> On Thu, Jun 12, 2008 at 05:51:42PM +0200, Guennadi Liakhovetski wrote:
->>> BTW, I'd love to see at least one of those i.MX CSI drivers I only 
->>> get to hear about and never to see one...
->>
->> We have them in the internal linux-latest series; however, it is based
->> on the entire i.MX support, and as long as we don't get this forward
->> through alkml, it will be stuck ...
+On Sunday 01 June 2008 04:34, Andy Walls wrote:
+> On Mon, 2008-05-26 at 18:46 +0200, Hans Verkuil wrote:
+> > On Monday 26 May 2008 18:34:57 Mauro Carvalho Chehab wrote:
+> > > In the specific case of ivtv and cx18, I think that the better
+> > > would be to convert it first to video_ioctl2. Then, remove the
+> > > BKL, with a video_ioctl2_unlocked version.
+> > >
+> > > Douglas already did an experimental patch converting ivtv to
+> > > video_ioctl2 and sent to Hans. It needs testing, since he doesn't
+> > > have any ivtv board. It should be trivial to port this to cx18,
+> > > since both drivers have similar structures.
+> > >
+> > > Douglas,
+> > >
+> > > Could you send this patch to the ML for people to review and for
+> > > Andy to port it to cx18?
+> >
+> > Unless there is an objection, I would prefer to take Douglas' patch
+> > and merge it into the v4l-dvb ivtv driver myself. There were
+> > several things in the patch I didn't like, but I need to 'work'
+> > with it a bit to see how/if it can be done better.
+> >
+> > I can work on it tonight and tomorrow. Hopefully it is finished by
+> > then. I can move the BKL down at the same time for ivtv. It is
+> > unlikely that I will have time to do cx18 as well as I'm abroad
+> > from Wednesday until Monday, but I think Andy can do that easily
+> > based on the ivtv changes.
 >
-> I have written driver for i.MX1/L... Its not finished yet, but generally
-> working :) Should we cooperate here?
+> I have attached a patch, made against Hans' v4l-dvb-ioctl2
+> repository, to convert the cx18 driver to use video_ioctl2().  In the
+> process I pushed down the priority checks and the debug messages into
+> the individual functions.  I did not remove the serialization lock as
+> I have not had the time to assess if that would be safe.  I "#if
+> 0"'ed out some sliced VBI code that was being skipped in the original
+> code.
+>
+> Comments are welcome.
+>
+> Many thanks to Hans, for without his changeset to ivtv for reference,
+> this would have taken me much, much longer.
+>
+>
+> Short term initial tests of this patch with MythTV, v4l-ctl, and
+> v4l-dbg indicate things are OK.  I did notice once strange artifact
+> with MythTV. When switching from one analog channel to another, for
+> about a second, I see the two television video fields non-interlaced,
+> stacked one atop of the other in the frame.  Weird, but not a big
+> deal.
 
-Our driver is for the i.MX27, so probably a different beast, right?
+Thanks Andy!
 
-However, if you send me the patches, we can integrate it into our next
-i.MX series.
+I'll take a closer look on Tuesday or Wednesday, but I noticed one 
+thing: you set unused callbacks to NULL in cx18_set_funcs(), however 
+these can just be removed as they are NULL by default.
 
-rsc
--- 
- Dipl.-Ing. Robert Schwebel | http://www.pengutronix.de
- Pengutronix - Linux Solutions for Science and Industry
-   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
-     Hannoversche Str. 2, 31134 Hildesheim, Germany
-   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
