@@ -1,18 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m52FbB7C026929
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 11:37:11 -0400
-Received: from mout.perfora.net (mout.perfora.net [74.208.4.194])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m52FafWe007989
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 11:36:41 -0400
-From: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m52KkxTc029267
+	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:46:59 -0400
+Received: from ch-smtp01.sth.basefarm.net (ch-smtp01.sth.basefarm.net
+	[80.76.149.212])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m52Kkk3n025296
+	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:46:46 -0400
+Received: from c83-249-123-83.bredband.comhem.se ([83.249.123.83]:45017
+	helo=mail.akerlind.nu)
+	by ch-smtp01.sth.basefarm.net with esmtp (Exim 4.68)
+	(envelope-from <jonatan@akerlind.nu>) id 1K3GvT-0003zo-57
+	for video4linux-list@redhat.com; Mon, 02 Jun 2008 22:46:46 +0200
+Received: from [172.22.0.6] (baloo.lan.akerlind.nu [172.22.0.6])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.akerlind.nu (Postfix) with ESMTP id C2FCA60B57
+	for <video4linux-list@redhat.com>;
+	Mon,  2 Jun 2008 22:46:41 +0200 (CEST)
+From: Jonatan =?ISO-8859-1?Q?=C5kerlind?= <jonatan@akerlind.nu>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 02 Jun 2008 11:37:14 -0400
-Message-Id: <1212421034.7097.19.camel@jaspav.missionsit.net.missionsit.net>
+In-Reply-To: <200806022158.54175.linux@janfrey.de>
+References: <1212092787.7328.16.camel@skoll> <1212323843.4184.7.camel@skoll>
+	<200806022158.54175.linux@janfrey.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Date: Mon, 02 Jun 2008 22:46:41 +0200
+Message-Id: <1212439601.18833.4.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: NX client and remote video input devices
+Subject: Re: Hauppauge HVR-1300 analog troubles
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,73 +39,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, all.  We are planning to launch a business to provide linux
-based, virtual desktops and office environments to small business using
-NoMachine's  NX technology.  One of the difficult issues we are facing
-is video input especially for those wishing to use video over IP.  We
-would like to use NX's native abilities rather than trying to manage a
-second data stream for video via ssh or netcat and we are not even sure
-such an arrangement would give us the control we would want over the
-input device.
+On m�n, 2008-06-02 at 21:58 +0200, Jan Frey wrote:
+> Hi Jonatan,
+> 
+> I'm quite successfully using this code here:
+> http://linuxtv.org/hg/~rmcc/hvr-1300/
+> 
+> And additionally I have all the v4l modules unloaded and reloaded via 
+> rc.local to get the tuner up reliably.
+> 
+> Regards,
+> Jan
 
-The basic set up is an end user at a physical desktop with a web cam
-viewing a virtual desktop and needing to see the input of the web cam on
-the virtual desktop as well as being able to control the input device,
-e.g., start, stop, pause.  Something like this using mplayer as a
-typical application:
+Ok, sounds nice. Right now I have the analog working but without the
+MPEG encoder. This will have to do for now because I'm just about to
+leave for a longer vacation trip, but when I get back I will definetely
+have a look at this again. 
 
-﻿
-            user                                   mplayer
-              |                                        |
-CAM______physical desktop-----------------------virtual desktop
-             |                                          |
-             |                                          |
-          NXClient----------SMB share----------------NXServer
+Thanks anyway
 
-The SMB share is something NX supports natively.  We noticed we could
-create a symbolic link to /dev/video0 and use this link to manage the
-video input device.  However, when we try to mount this symbolic link as
-an SMB share, we get an initial blinking light on our Logitech web cam
-but then receive an error.  Here is the result of trying to use mplayer
-to control the web cam input:
-
-﻿jsullivan@denisedell:~$ mplayer -fps 15 tv:// -tv
-driver=v4l2:width=640:height=480:device=/home/jsullivan/MyShares/NXSHARES/video0
-MPlayer 1.0rc2-4.2.3 (C) 2000-2007 MPlayer Team
-CPU: Intel(R) Pentium(R) 4 CPU 2.80GHz (Family: 15, Model: 3, Stepping:
-4)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled with runtime CPU detection.
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote
-control.
-
-Playing tv://.
-TV file format detected.
-Selected driver: v4l2
- name: Video 4 Linux 2 input
- author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
- comment: first try, more to come ;-)
-v4l2: ioctl query capabilities failed: Inappropriate ioctl for device
-v4l2: ioctl set mute failed: Inappropriate ioctl for device
-v4l2: 0 frames successfully processed, 0 frames dropped.
-
-
-Exiting... (End of file)
-
-How can we control and access a video input device on a remote computer?
-This is a high priority project for us (our first potential customer) so
-any help would be greatly appreciated.  Thanks - John
--- 
-John A. Sullivan III
-Open Source Development Corporation
-+1 207-985-7880
-jsullivan@opensourcedevel.com
-
-http://www.spiritualoutreach.com
-Making Christianity intelligible to secular society
-
+/Jonatan
 
 --
 video4linux-list mailing list
