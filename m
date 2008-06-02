@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.elion.ee ([88.196.160.58] helo=mail1.elion.ee)
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artlov@gmail.com>) id 1K873Y-0004jG-CF
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 07:15:15 +0200
-Message-ID: <4855F6B0.8060507@gmail.com>
-Date: Mon, 16 Jun 2008 08:14:24 +0300
-From: Arthur Konovalov <artlov@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <plr.vincent@gmail.com>) id 1K36Pd-0005VG-LH
+	for linux-dvb@linuxtv.org; Mon, 02 Jun 2008 11:33:10 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so742840fga.25
+	for <linux-dvb@linuxtv.org>; Mon, 02 Jun 2008 02:33:05 -0700 (PDT)
+From: Vincent Pelletier <plr.vincent@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <20080615192300.90886244.SiestaGomez@web.de>
-In-Reply-To: <20080615192300.90886244.SiestaGomez@web.de>
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+Date: Mon, 2 Jun 2008 11:33:00 +0200
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806021133.01194.plr.vincent@gmail.com>
+Subject: [linux-dvb] [PATCH] WinFast DTV2000 H: add support for missing
+	analog inputs
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,34 +26,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SG wrote:
-> The patch works quite well and nearly all channels seem to work.
-> 
-> But when tuning to some radio channels I'll get this kernel message:
-> 
-> saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-> 
-> Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
-> smoothly when using Win32.
-> 
-> initial transponder 386000000 6900000 0 3
->  >>> tune to: 386:M64:C:6900:
-> WARNING: >>> tuning failed!!!
->  >>> tune to: 386:M64:C:6900: (tuning failed)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
+# HG changeset patch
+# User plr.vincent@gmail.com
+# Date 1212398724 -7200
+# Node ID 78a011dfba127b593b6d01ea6a0010fcc29c94ad
+# Parent  398b07fdfe79ff66a8c1bf2874de424ce29b9c78
+WinFast DTV2000 H: add support for missing analog inputs
 
-Yes, I discovered too that tuning to frequency 386MHz has no lock.
-VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0
+From: Vincent Pelletier <plr.vincent@gmail.com>
 
-At same time, 394MHz (and others) works.
+Add support for the following inputs:
+ - radio tuner
+ - composite 1 & 2 (only 1 is physicaly available, but composite 2 is also
+   advertised by windows driver)
+ - svideo
 
-Regards,
-AK
+Signed-off-by: Vincent Pelletier <plr.vincent@gmail.com>
 
-
+diff -r 398b07fdfe79 -r 78a011dfba12 linux/drivers/media/video/cx88/cx88-cards.c
+--- a/linux/drivers/media/video/cx88/cx88-cards.c       Wed May 28 17:55:13 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-cards.c       Mon Jun 02 11:25:24 2008 +0200
+@@ -1297,7 +1297,35 @@
+                        .gpio1  = 0x00008203,
+                        .gpio2  = 0x00017304,
+                        .gpio3  = 0x02000000,
++               },{
++                       .type   = CX88_VMUX_COMPOSITE1,
++                       .vmux   = 1,
++                       .gpio0  = 0x0001D701,
++                       .gpio1  = 0x0000B207,
++                       .gpio2  = 0x0001D701,
++                       .gpio3  = 0x02000000,
++               },{
++                       .type   = CX88_VMUX_COMPOSITE2,
++                       .vmux   = 2,
++                       .gpio0  = 0x0001D503,
++                       .gpio1  = 0x0000B207,
++                       .gpio2  = 0x0001D503,
++                       .gpio3  = 0x02000000,
++               },{
++                       .type   = CX88_VMUX_SVIDEO,
++                       .vmux   = 3,
++                       .gpio0  = 0x0001D701,
++                       .gpio1  = 0x0000B207,
++                       .gpio2  = 0x0001D701,
++                       .gpio3  = 0x02000000,
+                }},
++               .radio = {
++                        .type  = CX88_RADIO,
++                        .gpio0 = 0x00015702,
++                        .gpio1 = 0x0000F207,
++                        .gpio2 = 0x00015702,
++                        .gpio3 = 0x02000000,
++               },
+                .mpeg           = CX88_MPEG_DVB,
+        },
+        [CX88_BOARD_GENIATECH_DVBS] = {
 
 _______________________________________________
 linux-dvb mailing list
