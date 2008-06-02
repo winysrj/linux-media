@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from xsmtp1.ethz.ch ([82.130.70.13])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cluck@student.ethz.ch>) id 1K64Lj-0005yW-72
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 15:57:27 +0200
-Message-ID: <484E8834.3000601@ethz.ch>
-Date: Tue, 10 Jun 2008 15:57:08 +0200
-From: Claudio Luck <cluck@ethz.ch>
+Message-ID: <4844219C.3040700@movial.fi>
+Date: Mon, 02 Jun 2008 18:36:44 +0200
+From: Dennis Noordsij <dennis.noordsij@movial.fi>
 MIME-Version: 1.0
-To: abraham.manu@gmail.com
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <4843B75C.7090505@movial.fi>
+	<37219a840806020838u5d46fba0xe5061ebb0f25bd9e@mail.gmail.com>
+In-Reply-To: <37219a840806020838u5d46fba0xe5061ebb0f25bd9e@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Multiproto DVBFE_GET_INFO and (not) locked
+Subject: Re: [linux-dvb] Driver TerraTec Piranha functional,
+ need some advice to finish up
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,87 +23,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Manu, hi all
+Michael Krufky schreef:
 
-I'm referring to the jusst.de/hg/multiproto tree. Working with a KNC1
-DVB-S2 card to enhance the VideoLAN dvb plugin.
-
-Testing showed that DVBFE_GET_INFO returns different frontend infos
-(fec, mods) when the tuner is locked and when it is not (pasted below).
-
-Is this the correct/expected behavior?
+> Dennis,
+> 
+> I am currently in the process of cleaning up a public GPL'd driver
+> released by Siano for the SMS1010 / SMS1150 silicon.
 
 
->From two separate runs, where the first leaves the tuner locked; first
-run (femon says no lock at start):
+Hi Mike,
 
-> [00000303] dvb access debug: Opening device /dev/dvb/adapter1/frontend0
-> [00000303] dvb access debug: ioctl DVBFE_GET_DELSYS
-> [00000303] dvb access debug: ioctl DVBFE_GET_INFO
-> [00000303] dvb access debug: Frontend Info:
-> [00000303] dvb access debug:   api = DVB API 3.3
-> [00000303] dvb access debug:   name = STB0899 DVB-S
-> [00000303] dvb access debug:   frequency_min = 950000 (kHz)
-> [00000303] dvb access debug:   frequency_max = 2150000 (kHz)
-> [00000303] dvb access debug:   frequency_step = 0
-> [00000303] dvb access debug:   frequency_tolerance = 0
-> [00000303] dvb access debug:   symbol_rate_min = 1000000 (kHz)
-> [00000303] dvb access debug:   symbol_rate_max = 45000000 (kHz)
-> [00000303] dvb access debug:   symbol_rate_tolerance (ppm) = 0
-> [00000303] dvb access debug: Frontend Info capability list:
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DSS
-> [00000303] dvb access debug:     modulations: QPSK
-> [00000303] dvb access debug:     FEC: 1/2 2/3 3/4 5/6 6/7
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DVB-S
-> [00000303] dvb access debug:     modulations: QPSK
-> [00000303] dvb access debug:     FEC: 1/2 2/3 3/4 5/6 6/7
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DVB-S2
-> [00000303] dvb access debug:     modulations: QPSK
-> [00000303] dvb access debug:     FEC: 1/2 2/3 3/4 5/6 6/7
-> [00000303] dvb access debug: End of capability list
-> [00000303] dvb access debug: selected: DVB-S DSS DVB-S2
-> [00000303] dvb access debug: dropped: DVB-T DVB-C DVB-H
-> ...
-> then more ioctl called (all works fine, i.e. VLC can stream DVB-S2)
+Ehh, D'OH I guess! I wrote to Siano in April when I bought this adapter,
+but never got any reply. I know it was advertised as a mobile linux
+chipset, but couldn't find any reference to any actual drivers.
 
-Second run (femon says has lock at start):
+At first try it seems to work in DVB-T mode with my device.
 
-> [00000303] dvb access debug: Opening device /dev/dvb/adapter1/frontend0
-> [00000303] dvb access debug: ioctl DVBFE_GET_DELSYS
-> [00000303] dvb access debug: ioctl DVBFE_GET_INFO
-> [00000303] dvb access debug: Frontend Info:
-> [00000303] dvb access debug:   api = DVB API 3.3
-> [00000303] dvb access debug:   name = STB0899 DVB-S2
-> [00000303] dvb access debug:   frequency_min = 950000 (kHz)
-> [00000303] dvb access debug:   frequency_max = 2150000 (kHz)
-> [00000303] dvb access debug:   frequency_step = 0
-> [00000303] dvb access debug:   frequency_tolerance = 0
-> [00000303] dvb access debug:   symbol_rate_min = 1000000 (kHz)
-> [00000303] dvb access debug:   symbol_rate_max = 45000000 (kHz)
-> [00000303] dvb access debug:   symbol_rate_tolerance (ppm) = 0
-> [00000303] dvb access debug: Frontend Info capability list:
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DSS
-> [00000303] dvb access debug:     modulations: QPSK 8PSK 16APSK 32APSK
-> [00000303] dvb access debug:     FEC: 1/2 1/3 1/4 2/3 2/5 3/4 3/5 4/5 5/6 8/9 9/10
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DVB-S
-> [00000303] dvb access debug:     modulations: QPSK 8PSK 16APSK 32APSK
-> [00000303] dvb access debug:     FEC: 1/2 1/3 1/4 2/3 2/5 3/4 3/5 4/5 5/6 8/9 9/10
-> [00000303] dvb access debug: ioctl DVBFE_SET_DELSYS DVBFE_GET_INFO
-> [00000303] dvb access debug:   delivery system DVB-S2
-> [00000303] dvb access debug:     modulations: QPSK 8PSK 16APSK 32APSK
-> [00000303] dvb access debug:     FEC: 1/2 1/3 1/4 2/3 2/5 3/4 3/5 4/5 5/6 8/9 9/10
-> [00000303] dvb access debug: End of capability list
-> [00000303] dvb access debug: selected: DVB-S DSS DVB-S2
-> [00000303] dvb access debug: dropped: DVB-T DVB-C DVB-H
+And at first glance it does the same things for DVB-T (only about 8
+commands are really needed to function, though it is interesting to know
+the real meaning behind all the bits).
 
--- 
-Best Regards
-Claudio Luck
+
+> It makes more sense for you to add support for your device, rather
+> than writing a new driver from scratch, especially considering that
+> the driver I have comes directly from Siano, themselves.
+
+Yes, of course. Well, at least it was interesting to reverse engineer
+the protocol :-)
+
+Goodluck with the many coding style violations, and please let me know
+if you would like me to try or test something.
+
+I will switch to this driver, and if I run into any issues with the
+SMS1000 chipset I will send you a patch.
+
+Can you provide a link to the "officially supported" firmware blobs ?
+
+Thanks for your reply,
+Dennis
+
 
 _______________________________________________
 linux-dvb mailing list
