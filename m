@@ -1,23 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from lilly.ping.de ([83.97.42.2] ident=qmailr)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <wolfgang@leila.ping.de>) id 1K6rR5-0000eA-J9
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 20:22:12 +0200
-Date: Thu, 12 Jun 2008 20:16:59 +0200
-To: Dan Lita <dan.lita@sttcr.org>
-Message-ID: <20080612181659.GZ25254@leila.ping.de>
-References: <20B2C1F8-9DFE-43C1-BACD-22DC74AE9136@krastelcom.ru>
-	<485100C3.2090908@sttcr.org>
-	<B582543D-F8CE-48ED-81B9-18665F49EEB6@krastelcom.ru>
-	<48512411.6000900@anevia.com>
-	<41475762-773E-425C-BADA-C9FC86BA749B@krastelcom.ru>
-	<485162A2.6070409@sttcr.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <485162A2.6070409@sttcr.org>
-From: wolfgang@leila.ping.de (Wolfgang Wegner)
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Smit CAM problems
+Received: from smtp2.unimelb.edu.au ([128.250.20.112]
+	helo=cygnus.its.unimelb.EDU.AU)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rns@unimelb.edu.au>) id 1K31JZ-0006hc-Tm
+	for linux-dvb@linuxtv.org; Mon, 02 Jun 2008 06:06:37 +0200
+Received: from CONVERSION-DAEMON.SMTP.UNIMELB.EDU.AU by SMTP.UNIMELB.EDU.AU
+	(PMDF V6.3-x3 #31385) id <01MVIOKJL64GC1TTGB@SMTP.UNIMELB.EDU.AU> for
+	linux-dvb@linuxtv.org; Mon, 02 Jun 2008 14:06:28 +1000
+Received: from granville.its.unimelb.edu.au
+	(granville.its.unimelb.edu.au [128.250.146.85])
+	by SMTP.UNIMELB.EDU.AU (PMDF V6.3-x3 #31385)
+	with ESMTP id <01MVIOKJJXM8C1UJEO@SMTP.UNIMELB.EDU.AU> for
+	linux-dvb@linuxtv.org; Mon, 02 Jun 2008 14:06:27 +1000
+Date: Mon, 02 Jun 2008 14:06:32 +1000
+From: Robert Sturrock <rns@unimelb.edu.au>
+To: linux-dvb@linuxtv.org
+Message-id: <20080602040632.GI4833@unimelb.edu.au>
+MIME-version: 1.0
+Content-disposition: inline
+Subject: [linux-dvb] Leadtek Winfast Gold USB Dongle - USB id 0x6029?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,182 +26,154 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Dan,
+Hi All.
 
-according to the DVB (ETSI) specification, CAMs can only have 5V operating
-voltage. I do not know if there is any CAM around that (claims to) operate
-with 3.3V, although I know there are some that better should...
+I recently acquired a Leadtek Winfast Gold USB Dongle, which unfortunately
+does not seem to be recognised at present.  I think this may have been
+mentioned in a couple of other threads:
+
+    http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024330.html    
+    http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024931.html
+
+However, the one I have seems to come up with a USB-id of 6029 (maybe
+this is a particular Australian variant as the other threads mention an
+id of 6f01, not sure).
+
+Does anyone have any ideas about how I might get this card working?  I
+attach the output of an "lsusb -v" below.
+
+The current dvb-usb-ids.h has only these ids:
+
+#define USB_PID_WINFAST_DTV_DONGLE_COLD                 0x6025
+#define USB_PID_WINFAST_DTV_DONGLE_WARM                 0x6026
+#define USB_PID_WINFAST_DTV_DONGLE_STK7700P             0x6f00
+#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2           0x6f01
 
 Regards,
-Wolfgang
 
-On Thu, Jun 12, 2008 at 08:53:38PM +0300, Dan Lita wrote:
-> Dear Vladimir,
-> =
-
-> I took a closer look on the CI-CAM adapter from Technotrend.
-> There is a 3.3V voltage regulator (LM1117 DT 3.3V)
-> =
-
-> Similar, on the AD-SP400 it seems to be also a 3.3V voltage regulator =
-
-> (marked 1084-33PE). 4046 board from Twinhan/Azurewave.
-> =
-
-> According to SMIT operation voltage for their modules is 4.5 to 5.5V
-> =
-
-> If in both cards the CAM takes power after these rectifiers =
-
-> you cannot have a guaranteed operation.
-> =
-
-> Dan =
-
-> =
-
-> Vladimir Prudnikov wrote:
-> >Do you think SMiT will be interested in hunting for bugs in linux  =
-
-> >drivers? These modules apparently work fine with any other hardware  =
-
-> >(I'm sure professional ones do!)
-> >
-> >Regards,
-> >Vladimir
-> >
-> >On Jun 12, 2008, at 5:26 PM, Frederic CAND wrote:
-> >
-> >  =
-
-> >>Did you try to contact SMIT support ?
-> >>
-> >>Vladimir Prudnikov a =E9crit :
-> >>    =
-
-> >>>Didn't try Aston CAMs with mpeg4. But they do up to 12 channels of   =
-
-> >>>mpeg2 perfectly well. With no problems at all. SMiTs that are for  =
-
-> >>>8  services can do only 3 to 4 for me.
-> >>>I think it's some kind of a driver bug because it begins working  =
-
-> >>>after  reinitialisation. Doesn't get hot. I have tried to call  =
-
-> >>>Aston as well  but with no success yet.
-> >>>Regards,
-> >>>Vladimir
-> >>>On Jun 12, 2008, at 2:56 PM, dan.lita@sttcr.org wrote:
-> >>>      =
-
-> >>>>Dear Vladimir,
-> >>>>
-> >>>>I read your post on linux-dvb list. We have an Aston Viaccess   =
-
-> >>>>Professional 2.15 CAM .
-> >>>>I read that you also use Aston CAMS.  My question is whether your   =
-
-> >>>>Aston Viaccess cam can descramble H264  feeds or not?
-> >>>>We have tried on a PACE HDTV receiver and a Tandberg unit and it   =
-
-> >>>>does not descramble the H264 video pid. (black screen)
-> >>>>This does not happen with Viaccess RED cam.
-> >>>>
-> >>>>On older Common interface adapters from Technotrend, the one for  =
-
-> >>>>TT  Premium DVB-S card, there was a jumper for 3V or 5V cam  =
-
-> >>>>operation.
-> >>>>I assume the new CI adapter does not have such jumper. If it  =
-
-> >>>>still  exist maybe it will be a good idea to switch from one  =
-
-> >>>>voltage to the  other.
-> >>>>Another solution is to test whether it works or not for Irdeto to   =
-
-> >>>>use an Alphacrypt Classic CAM which, at least in theory,  =
-
-> >>>>according  to MASCOM, supports Irdeto.
-> >>>>The third thing is to notice whether the SMIT cam gets hot in   =
-
-> >>>>operation. If it gets too hot maybe a fan similar to the one for   =
-
-> >>>>graphics card must be put near the Common interface adapter.
-> >>>>
-> >>>>BTW. Do you have any e-mail address from Aston? I have tried to   =
-
-> >>>>contact  them but there is no e-mail address in their website.
-> >>>>
-> >>>>Best regards,
-> >>>>Dan Lita
-> >>>>
-> >>>>
-> >>>>Vladimir Prudnikov wrote:
-> >>>>        =
-
-> >>>>>Hello!
-> >>>>>
-> >>>>>I'm using SMIT cams to descramble channels on TT S-1500 and TT-   =
-
-> >>>>>S2-3200. After some time of normal operation SMIT cams drop out   =
-
-> >>>>>and  stop decrypting the stream. It needs to be removed from the  =
-
-> >>>>>CI  slot  and reinserted to resume normal operation. Aston CAMs  =
-
-> >>>>>have no  such  problems, but they don't support 0x652 Irdeto.
-> >>>>>I'm streaming with vlc. Tried many SMITs (Viaccess and Irdeto).   =
-
-> >>>>>Same  problem everywhere.
-> >>>>>
-> >>>>>Regards,
-> >>>>>Vladimir
-> >>>>>
-> >>>>>_______________________________________________
-> >>>>>linux-dvb mailing list
-> >>>>>linux-dvb@linuxtv.org
-> >>>>>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>          =
-
-> >>>_______________________________________________
-> >>>linux-dvb mailing list
-> >>>linux-dvb@linuxtv.org
-> >>>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >>>      =
-
-> >>-- =
-
-> >>CAND Frederic
-> >>Product Manager
-> >>ANEVIA
-> >>    =
-
-> >
-> >
-> >_______________________________________________
-> >linux-dvb mailing list
-> >linux-dvb@linuxtv.org
-> >http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
-> >
-> >  =
-
-> =
+Robert.
 
 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Bus 004 Device 007: ID 0413:6029 Leadtek Research, Inc. 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x0413 Leadtek Research, Inc.
+  idProduct          0x6029 
+  bcdDevice            2.00
+  iManufacturer           1 Leadtek
+  iProduct                2 WinFast DTV Dongle Gold
+  iSerial                 0 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           71
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass         3 Human Interface Devices
+      bInterfaceSubClass      0 No Subclass
+      bInterfaceProtocol      1 Keyboard
+      iInterface              0 
+        HID Device Descriptor:
+          bLength                 9
+          bDescriptorType        33
+          bcdHID               1.01
+          bCountryCode            0 Not supported
+          bNumDescriptors         1
+          bDescriptorType        34 Report
+          wDescriptorLength      65
+         Report Descriptors: 
+           ** UNAVAILABLE **
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval              16
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  bNumConfigurations      1
 
 _______________________________________________
 linux-dvb mailing list
