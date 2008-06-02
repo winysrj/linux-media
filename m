@@ -1,27 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m52JDqKv020994
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 15:13:52 -0400
-Received: from mout4.freenet.de (mout4.freenet.de [195.4.92.94])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m52JCPOO024628
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 15:12:52 -0400
-Received: from [195.4.92.16] (helo=6.mx.freenet.de)
-	by mout4.freenet.de with esmtpa (ID fgunni@01019freenet.de) (port 25)
-	(Exim 4.69 #19) id 1K3FS0-0005ji-Q7
-	for video4linux-list@redhat.com; Mon, 02 Jun 2008 21:12:12 +0200
-Received: from xdsl-84-44-197-99.netcologne.de ([84.44.197.99]:47939
-	helo=[192.168.1.222])
-	by 6.mx.freenet.de with esmtpsa (ID fgunni@01019freenet.de)
-	(TLSv1:AES256-SHA:256) (port 25) (Exim 4.69 #12) id 1K3FS0-0003uU-Ik
-	for video4linux-list@redhat.com; Mon, 02 Jun 2008 21:12:12 +0200
-Message-ID: <4844460B.7030602@01019freenet.de>
-Date: Mon, 02 Jun 2008 21:12:11 +0200
-From: Frank Sagurna <fgunni@01019freenet.de>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15
+From: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+To: Alan Cox <alan@redhat.com>
+In-Reply-To: <20080602155800.GE933@devserv.devel.redhat.com>
+References: <1212421034.7097.19.camel@jaspav.missionsit.net.missionsit.net>
+	<20080602155800.GE933@devserv.devel.redhat.com>
+Content-Type: text/plain
+Date: Mon, 02 Jun 2008 12:27:04 -0400
+Message-Id: <1212424024.7097.32.camel@jaspav.missionsit.net.missionsit.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: HVR 1300 remote error, link to fix inside
+Cc: video4linux-list@redhat.com
+Subject: Re: NX client and remote video input devices
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,31 +22,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, 2008-06-02 at 11:58 -0400, Alan Cox wrote:
+> On Mon, Jun 02, 2008 at 11:37:14AM -0400, John A. Sullivan III wrote:
+> > The SMB share is something NX supports natively.  We noticed we could
+> > create a symbolic link to /dev/video0 and use this link to manage the
+> 
+> SMB can't export devices, let alone manage a distributed mmap interface
+> 
+> > How can we control and access a video input device on a remote computer?
+> > This is a high priority project for us (our first potential customer) so
+> > any help would be greatly appreciated.  Thanks - John
+> 
+> You need some kind of video library in the middle. Look at something like
+> gstreamer or videolan would be my first thoughts. A lot of video apps already
+> use gstreamer as their video framework and it means compression and processing
+> can occur before you burn network bandwidth.
+> 
+> Alan
+> 
+Thank you very much.  I'm still on a steep learning curve for video and
+so don't know much about either especially in a KDE environment.  I'll
+put in the research time and see what I find! Thanks again - John
+-- 
+John A. Sullivan III
+Open Source Development Corporation
++1 207-985-7880
+jsullivan@opensourcedevel.com
 
-Seems this is not merged long time. I searched so long to find a
-solution for my mail:
-https://www.redhat.com/mailman/private/video4linux-list/2007-July/msg00040.html
-
-Now i searched again, and found this solution:
-
-http://www.linuxtv.org/pipermail/linux-dvb/2007-November/021867.html
-
-I applied the changes, and remote gets recognized again.
-Seems like a working patch and i would be happy if it gets included.
-
-Regards
-
-Frank
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFIREYLrcfRHnkKaDYRAjY5AJ91fFbTbQLnkPVnHgW5JjgAheN99QCfUHZ0
-30uY2onI5mVWkRTTbKtT3u0=
-=0Ne0
------END PGP SIGNATURE-----
+http://www.spiritualoutreach.com
+Making Christianity intelligible to secular society
 
 --
 video4linux-list mailing list
