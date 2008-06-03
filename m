@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JGjVMM017897
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 12:45:31 -0400
-Received: from simmts7-srv.bellnexxia.net (simmts7-qfe0.srvr.bell.ca
-	[206.47.199.165])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JGig66020447
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 12:44:47 -0400
-Received: from simip10.srvr.bell.ca ([206.47.199.89])
-	by simmts7-srv.bellnexxia.net
-	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
-	<20080619164433.NKHT1779.simmts7-srv.bellnexxia.net@simip10.srvr.bell.ca>
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 12:44:33 -0400
-From: Ignacio Vazquez-Abrams <ivazqueznet@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <alpine.LRH.1.10.0806191731570.24892@horsea.3ti.be>
-References: <alpine.LRH.1.10.0806191731570.24892@horsea.3ti.be>
-Date: Thu, 19 Jun 2008 12:44:14 -0400
-Message-Id: <1213893854.10118.196.camel@ignacio.lan>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53LP0el025197
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:25:00 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53LOntt007881
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:24:49 -0400
+Date: Tue, 3 Jun 2008 18:24:37 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Message-ID: <20080603182437.3feb1bdf@gaivota>
+In-Reply-To: <200805311700.25686.tobias.lorenz@gmx.net>
+References: <200805072253.23219.tobias.lorenz@gmx.net>
+	<200805262230.26492.tobias.lorenz@gmx.net>
+	<20080526183027.7e05f64f@gaivota>
+	<200805311700.25686.tobias.lorenz@gmx.net>
 Mime-Version: 1.0
-Subject: Re: Opening up the archives of this list
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
+	v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [PATCH 1/6] si470x: unplugging fixed
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,64 +27,39 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0138993965=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Sat, 31 May 2008 17:00:25 +0200
+Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
 
---===============0138993965==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-YUoXxNHa9twC8jkK42lV"
+> Hi Mauro,
+> 
+> > Hmm... The patch didn't apply at Mercurial tree. Not sure why, but I suspect
+> > that there are some patches at Mercurial that aren't present at 2.6.25. Please,
+> > always generate patches against the latest development version at -hg (or,
+> > alternatively, against my -git tree).
+> 
+> That's true. The last patch to the driver in mercurial, introduced a lot of changes with buffer access functions:
+> "be_16_to_cpu(get_unaligned..." -> "get_unaligned_be16("
+> 
+> Anyway, I downloaded the current mercurial versions and recreated this patchset for it.
+> I upload it with the next postings...
 
-
---=-YUoXxNHa9twC8jkK42lV
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2008-06-19 at 17:34 +0200, Dag Wieers wrote:
-> I just noticed that the archives of this list are only accessible for lis=
-t=20
-> members, which excludes being able to Google for information on this list=
-.
->=20
-> Is there a reason for keeping the archives closed, or could we open up th=
-e=20
-> archives so Google can index it ?
-
-Gmane archives this list, but yes, having it be private is mildly
-obnoxious, especially since it doesn't seem as though there's any good
-reason to do so.
-
---=20
-Ignacio Vazquez-Abrams <ivazqueznet@gmail.com>
-
-PLEASE don't CC me; I'm already subscribed
-
---=-YUoXxNHa9twC8jkK42lV
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iD8DBQBIWozeVHZgjzioB0IRAuz/AKCDGKNFQe/q9CMH1eQBiVl4xG7qWgCgoZb8
-3xJNRuhw/Z6ri/Rrg6UrxI4=
-=nQB7
------END PGP SIGNATURE-----
-
---=-YUoXxNHa9twC8jkK42lV--
+Ok, I'll wait for you to send me the hole series again.
+> 
+> Bye,
+> 
+> Toby
 
 
---===============0138993965==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0138993965==--
