@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53LMaXW023710
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:22:36 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53LMMed006805
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:22:24 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K3dxP-0004dF-GR
-	for video4linux-list@redhat.com; Tue, 03 Jun 2008 21:22:16 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 21:22:15 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 21:22:15 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53MpC5e005850
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:51:12 -0400
+Received: from n20.bullet.mail.mud.yahoo.com (n20.bullet.mail.mud.yahoo.com
+	[68.142.206.147])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m53MoVp9024645
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:50:31 -0400
+From: Andres Suarez <andrestepeite@yahoo.com.mx>
 To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Tue, 3 Jun 2008 21:22:06 +0000 (UTC)
-Message-ID: <loom.20080603T211838-212@post.gmane.org>
-References: <986038.14508.qm@web35602.mail.mud.yahoo.com>
+In-Reply-To: <20080603160014.D7A2A8E002E@hormel.redhat.com>
+References: <20080603160014.D7A2A8E002E@hormel.redhat.com>
+Content-Type: text/plain
+Date: Tue, 03 Jun 2008 17:50:24 -0500
+Message-Id: <1212533424.7582.13.camel@pc2008>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Subject: Re: Question - Component input via software card
+Subject: Need help choosing a camera.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,19 +27,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sam Logen <starz909 <at> yahoo.com> writes:
+Hi everybody.
 
->  Would it be possible to connect component cables from
-> a high def. video source to the video and audio
-> composite plugs of the capture card, and have a
-> program process the three streams together as video
-> streams instead of video and audio streams, then save
-> the result in a file?
+I need to build a machine vision system, I think it would be very useful
+to have a well suported good quality USB camera for that purpose (i.e.
+if I could focus using software it would be great). I would appreciate A
+LOT some advice about the right model to choose.
 
-That would not be possible with any off-the-shelf composite capture card, but it
-would be possible to design your own capture hardware that could use the same
-plugs for either audio or component video. Just getting a Hauppauge HD-PVR would
-likely be cheaper.
+Thanks in advance.
+
+Andres Suarez
+
+__________________________________________________
+Correo Yahoo!
+Espacio para todos tus mensajes, antivirus y antispam ¡gratis! 
+Regístrate ya - http://correo.yahoo.com.mx/ 
 
 --
 video4linux-list mailing list
