@@ -1,28 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JGsp39024996
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 12:54:51 -0400
-Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JGs3s8026628
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 12:54:03 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K2P0096XYXTIF91@mta3.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Thu, 19 Jun 2008 12:53:55 -0400 (EDT)
-Date: Thu, 19 Jun 2008 12:53:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <khcbp9y7b.fsf@liva.fdsoft.se>
-To: Frej Drejhammar <frej.drejhammar@gmail.com>
-Message-id: <485A8F21.907@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <200806152158.48344.linux@janfrey.de>
-	<khcbp9y7b.fsf@liva.fdsoft.se>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: HVR-1300 support lacking quality?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53GDQBN032237
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:13:26 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53GDCsh017328
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:13:13 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1K3Z8I-0004s6-6d
+	for video4linux-list@redhat.com; Tue, 03 Jun 2008 16:13:10 +0000
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 16:13:10 +0000
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 16:13:10 +0000
+To: video4linux-list@redhat.com
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Tue, 3 Jun 2008 16:13:00 +0000 (UTC)
+Message-ID: <loom.20080603T161011-175@post.gmane.org>
+References: <4845660E.mail5RL112CPN@vesta.asc.rssi.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Subject: Re: v4l API question: any support for HDTV is possible?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,27 +35,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Frej Drejhammar wrote:
-> Hi Jan,
-> 
->> 2. I can't get DVB-T to work. All the modules load fine, scanning for 
->> channels fails, no channel can be tuned - no stations found. I tried to 
->> use dvbsnoop, only visible effect is the following line repeated in kernel 
->> log:
->>
->>  cx8802_start_dma() Failed. Unsupported value in .mpeg (0x00000003)  
-> 
-> DVB-T works fine for me unless I have used the HW MPEG encoder
-> beforehand. As the card is in a development machine which is mainly
-> used for digitizing composite video and occasionally used for DVB-T
-> software development (with a reboot in between) I have not
-> investigated it further... On the other hand, I only tune to a known
-> frequency and have not tried to scan for channels.
+Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
 
-Somebody was trashing GPIO's recently, try the tip and report back, it 
-should be ok now.
+> Im working at open-source drivers for devices with HDTV-capabilities:
+> http://sourceforge.net/projects/opensigma/
 
-- Steve
+Have you not seen this at all? http://dxr3.sf.net
 
 --
 video4linux-list mailing list
