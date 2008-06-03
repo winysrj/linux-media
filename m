@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from honiara.magic.fr ([195.154.193.36])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aconrad.tlv@magic.fr>) id 1K8CQD-0001hc-F1
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 12:58:50 +0200
-Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
-	by honiara.magic.fr (8.13.1/8.13.1) with ESMTP id m5GAwErf030914
-	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 12:58:15 +0200
-Message-ID: <485646D3.6040201@magic.fr>
-Date: Mon, 16 Jun 2008 12:56:19 +0200
-From: Alexandre Conrad <aconrad.tlv@magic.fr>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] SkyStar 2 - rev 2.8A
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+63b0658080dc5992c56f+1745+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1K3ekP-0006Zn-Hc
+	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 00:12:53 +0200
+Date: Tue, 3 Jun 2008 19:12:40 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: e9hack <e9hack@googlemail.com>
+Message-ID: <20080603191240.1ece7f28@gaivota>
+In-Reply-To: <48457545.6060509@gmail.com>
+References: <48457545.6060509@gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [BUG] Firmware loading of FF cards is broken
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,47 +26,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Tue, 03 Jun 2008 18:45:57 +0200
+e9hack <e9hack@googlemail.com> wrote:
 
-we just bought around 70 SkyStar2 PCI cards for deploying at our
-customer's sites meant for a digital signage application. We've always
-been working with these cards before which have always worked flawlessly
-under linux.
+> Hi,
+> 
+> changsets 7973/7958 break the firmware loading of the TT-C2300 card. I get the following 
+> message:
+> 
+> Linux video capture interface: v2.00
+> saa7146: register extension 'dvb'.
+> ACPI: PCI Interrupt 0000:04:06.0[A] -> Link [LNKA] -> GSI 18 (level, low) -> IRQ 21
+> saa7146: found saa7146 @ mem f98f6c00 (revision 1, irq 21) (0x13c2,0x000a).
+> dvb-ttpci: crc32 of dpram file does not match.
+> ACPI: PCI interrupt for device 0000:04:06.0 disabled
+> 
+> It seems, that get_unaligned_be32() is broken. The definition in compat.h is:
+> 
+> #define get_unaligned_be32(a)                                   \
+>          be32_to_cpu(get_unaligned((unsigned short *)(a)))
+> 
+> 'unsigned short *' is wrong. It should be 'unsigned long *'.
+> 
+> put_unaligned_be32(), get_unaligned_le32() and put_unaligned_le32() are also wrong.
 
-Anyway, it turns out that after we have ordered more SkyStar 2 cards
-from our supplier, the "new" cards we have recieved this morning looked
-physically different from the previous generation we were using for a
-couple of years now. So I opened one and tested it in our system. It
-seems to be recognized by the kernel somehow, but after a few "i2c
-master_xfer failed" messages ending with a "no frontend driver found for
-this B2C2/FlexCop adapter" message in dmesg, the card doesn't work. On
-the circuit board, it says REV 2.8A. I took a card that worked fine
-before, it's says REV 2.6D.
+Argh! cut-and-past error. Sorry. 
 
-After searching over the linux-dvb mailing list, I ran across the
-following post from Patrick Boettcher regarding the REV 2.8A card:
+I've just commit a fix about this. Please test.
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023866.html
-
-"""
-an OpenSource driver is not in sight for that card. There are some NDA
-problems... I will see what I can do.
-"""
-
-Of course, that's puts us in a very uncomfortable situation with our client.
-
-The message is from last febuary. I'm posting a message here to ask the
-dvb experts if anything has changed since then.
-
-Thanks for your help, pointers and suggestions.
-
-Best regards,
--- 
-Alexandre CONRAD
-
-
-
-
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
