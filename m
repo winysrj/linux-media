@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from [213.161.191.158] (helo=patton.snap.tv)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sigmund@snap.tv>) id 1K8E10-00089F-33
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 14:40:54 +0200
+	(envelope-from <sigmund@snap.tv>) id 1K3fpT-0001Jm-Qo
+	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 01:22:15 +0200
 From: Sigmund Augdal <sigmund@snap.tv>
-To: Arthur Konovalov <artlov@gmail.com>
-In-Reply-To: <4855F6B0.8060507@gmail.com>
-References: <20080615192300.90886244.SiestaGomez@web.de>
-	<4855F6B0.8060507@gmail.com>
-Date: Mon, 16 Jun 2008 14:40:50 +0200
-Message-Id: <1213620050.6543.6.camel@pascal>
+To: linux-dvb@linuxtv.org
+Date: Wed, 04 Jun 2008 01:22:12 +0200
+Message-Id: <1212535332.32385.29.camel@pascal>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Subject: [linux-dvb] Ooops in tda827x.c
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,55 +23,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2008-06-16 at 08:14 +0300, Arthur Konovalov wrote:
-> SG wrote:
-> > The patch works quite well and nearly all channels seem to work.
-> > 
-> > But when tuning to some radio channels I'll get this kernel message:
-> > 
-> > saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-> > 
-> > Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
-> > smoothly when using Win32.
-> > 
-> > initial transponder 386000000 6900000 0 3
-> >  >>> tune to: 386:M64:C:6900:
-> > WARNING: >>> tuning failed!!!
-> >  >>> tune to: 386:M64:C:6900: (tuning failed)
-> > WARNING: >>> tuning failed!!!
-> > ERROR: initial tuning failed
-> > dumping lists (0 services)
-> > Done.
-> 
-> Yes, I discovered too that tuning to frequency 386MHz has no lock.
-> VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0
-> 
-> At same time, 394MHz (and others) works.
-Hi.
+changeset 49ba58715fe0 (7393) introduces an ooops in tda827x.c in
+tda827xa_lna_gain. The initialization of the "msg" variable accesses
+priv->cfg before the NULL check causing an oops when it is in fact
+NULL. 
 
-Both transponders reported to not tune here has different symbolrates
-from what I used for my testing. Maybe this is relevant in some way.
-Could you please compare this with the channels that did tune to see if
-there is a pattern?
-
-About the i2c message, I get that every now and then here as well, but I
-have not seen any ill effect from it. I also see that on some other TT
-cards so I think that might be unrelated to the demod/tuner.
-
-Regards
+Best regards
 
 Sigmund Augdal
-> 
-> Regards,
-> AK
-> 
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
 
 
 _______________________________________________
