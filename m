@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53GDQBN032237
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:13:26 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53GDCsh017328
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:13:13 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K3Z8I-0004s6-6d
-	for video4linux-list@redhat.com; Tue, 03 Jun 2008 16:13:10 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 16:13:10 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 16:13:10 +0000
-To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Tue, 3 Jun 2008 16:13:00 +0000 (UTC)
-Message-ID: <loom.20080603T161011-175@post.gmane.org>
-References: <4845660E.mail5RL112CPN@vesta.asc.rssi.ru>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53LulX5010766
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:56:47 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53LuIG3026968
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:56:18 -0400
+Date: Tue, 3 Jun 2008 18:56:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+Message-ID: <20080603185603.33647fc1@gaivota>
+In-Reply-To: <37219a840806030844p4ac8612x3388859ad29ad0dc@mail.gmail.com>
+References: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
+	<37219a840806030844p4ac8612x3388859ad29ad0dc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: Re: v4l API question: any support for HDTV is possible?
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Tony Lindgren <tony@atomide.com>,
+	Linux and Kernel Video <video4linux-list@redhat.com>, Eduardo
+	Valentin <eduardo.valentin@indt.org.br>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH 0/1] Add support for TEA5761 (from linux-omap)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,12 +31,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
+On Tue, 3 Jun 2008 11:44:36 -0400
+"Michael Krufky" <mkrufky@linuxtv.org> wrote:
 
-> Im working at open-source drivers for devices with HDTV-capabilities:
-> http://sourceforge.net/projects/opensigma/
+> On Tue, Jun 3, 2008 at 11:25 AM, Eduardo Valentin <edubezval@gmail.com> wrote:
+> > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+> >
+> > Hi guys,
+> >
+> > This patch is just an update from linux-omap tree.
+> > It is a v4l2 driver which is only in linux-omap tree.
+> > I'm just sendint it to proper repository.
+> >
+> > It adds support for tea5761 chip.
+> > It is a v4l2 driver which exports a radio interface.
+> >
+> > Comments are wellcome!
+> >
+> > Cheers,
+> >
+> > Eduardo Valentin (1):
+> >  Add support for tea5761 chip
+> >
+> >  drivers/media/radio/Kconfig         |   13 +
+> >  drivers/media/radio/Makefile        |    1 +
+> >  drivers/media/radio/radio-tea5761.c |  516 +++++++++++++++++++++++++++++++++++
+> >  3 files changed, 530 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/radio/radio-tea5761.c
+> 
+> Eduardo,
+> 
+> We already have a tea5761 driver in our tree -- can you use that one,
+> instead?  Mauro Carvalho Chehab (cc added) wrote that driver based on
+> a datasheet -- it should work for you.  If it needs changes, please
+> generate patches against
+> linux/drivers/media/common/tuners/tea5761.[ch]
 
-Have you not seen this at all? http://dxr3.sf.net
+Michael,
+
+Thanks for noticing this. I'm very busy those days, still trying to figure out
+what patches are missed.
+
+Olá Eduardo,
+
+We should avoid to duplicate drivers. Feel free to fix tea5761, if it is not
+working, but don't add another version.
+
+If you have any doubts about it, feel free to send it to me.
+
+Thanks.
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
