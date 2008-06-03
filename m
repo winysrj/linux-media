@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m52KfcmI023150
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:43:59 -0400
-Received: from mail9.dslextreme.com (mail9.dslextreme.com [66.51.199.94])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m52KBkiJ002527
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:11:47 -0400
-Message-ID: <484453F7.709@gimpelevich.san-francisco.ca.us>
-Date: Mon, 02 Jun 2008 13:11:35 -0700
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53Ffd9k003731
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:42:47 -0400
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53FQDcS013146
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:26:20 -0400
+From: Eduardo Valentin <edubezval@gmail.com>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Date: Tue,  3 Jun 2008 11:25:41 -0400
+Message-Id: <1212506741-17056-2-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
+References: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
 MIME-Version: 1.0
-To: Vladimir Komendantsky <komendantsky@gmail.com>
-References: <c5bea28d26aa1caa1e85da.20080531171359.qnavryt4@webmail.dslextreme.com>
-	<20080531231049.725bf4d2@tux>
-	<4fd977fd0806020149ne6221fai7384be4d7ffaa0fd@mail.gmail.com>
-In-Reply-To: <4fd977fd0806020149ne6221fai7384be4d7ffaa0fd@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] PowerColor RA330 (Real Angel 330) fixes
+Content-Type: text/plain; charset=unknown-8bit
+Content-Transfer-Encoding: 8bit
+Cc: Tony Lindgren <tony@atomide.com>,
+	Eduardo Valentin <eduardo.valentin@indt.org.br>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+Subject: [PATCH 1/1] Add support for tea5761 chip
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,396 +29,581 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Vladimir Komendantsky wrote:
-> Daniel,
-> 
-> As far as I can see this patch doesn't touch upon cx88-tvaudio.c,
-> although this file seems to control audio norm setup and produces
-> dmesg output like the one below:
-> 
-> cx88[0]/0: set_audio_standard_A2 AM-L (status: devel)
-> cx88[0]/0: set_audio_standard_NICAM SECAM-L NICAM (status: devel)
-> 
-> For PAL, the status is "known-good". My signal is SECAM-L and the
-> sound was very noisy. For some reason, with firmware v27 I experienced
-> somewhat better sound than with v25 (with v25 there was just noise and
-> nothing else).
-> 
-> I attach the dmesg output which I saved a couple of days before this
-> patch when I returned the card to the retailer. I exchanged it for a
-> bt878-based Hauppage WinTV which works much better under v4l.
-> 
-> Vladimir
+From: Eduardo Valentin <eduardo.valentin@indt.org.br>
 
-WinTV cards with the bt878 typically have inferior ("tin-box") tuners, 
-but v4l support of those tuners is relatively complete. The tuner-xc2028 
-driver is something of a work in progress. However, much of the stuff in 
-cx88-tvaudio.c is best-guess data, so it's difficult to separate 
-problems with SECAM-L in cx88 from general problems in tuner-xc2028 
-unless you try a SECAM-L signal on a cx88 card with a different tuner.
+This patch adds support for tea5761 chip. This chip
+is a FM receiver. It basically exports a radio interface
+through V4L2 api. This support uses i2c protocol to
+communicate with this chip.
 
-I have found that on this card (the one you returned), when the tuner is 
-left active while a different vmux is used, the S-Video cable, if 
-connected, draws in a ton of RFI from the tuner. This is a bug; the 
-tuner should be software-deactivated when not needed.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
+---
+ drivers/media/radio/Kconfig         |   13 +
+ drivers/media/radio/Makefile        |    1 +
+ drivers/media/radio/radio-tea5761.c |  516 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 530 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-tea5761.c
 
-> ----------------------------
-> dmesg:
-> 
-> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> ACPI: PCI Interrupt 0000:00:10.0[A] -> Link [LNKD] -> GSI 10 (level,
-> low) -> IRQ 10
-> cx88[0]: quirk: PCIPCI_NATOMA -- set TBFX
-> cx88[0]: subsystem: 14f1:ea3d, board: PowerColor Real Angel 330
-> [card=62,autodetected]
-> cx88[0]: TV tuner type 71, Radio tuner type 0
-> cx88[0]: i2c register ok
-> cx88[0]: i2c scan: found device @ 0x66  [???]
-> cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
-> cx88[0]: i2c scan: found device @ 0xc2  [tuner (analog/dvb)]
-> tuner' 1-0061: Setting mode_mask to 0x0e
-> tuner' 1-0061: chip found @ 0xc2 (cx88[0])
-> tuner' 1-0061: tuner 0x61: Tuner type absent
-> cx88[0]: tuner' i2c attach [addr=0x61,client=(tuner unset)]
-> tuner' 1-0061: Calling set_type_addr for type=0, addr=0x00, mode=0x02,
-> config=0x00
-> tuner' 1-0061: set addr discarded for type -1, mask e. Asked to change
-> tuner at addr 0x00, with mask 2
-> tuner' 1-0061: Calling set_type_addr for type=71, addr=0x61,
-> mode=0x0c, config=0x00
-> tuner' 1-0061: defining GPIO callback
-> xc2028: Xcv2028/3028 init called!
-> xc2028: video_dev =cfcef258
-> xc2028: usage count is 1
-> xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-> tuner' 1-0061: type set to Xceive XC3028
-> tuner' 1-0061: cx88[0] tuner' I2C addr 0xc2 with type 71 used for 0x0e
-> cx88[0]: Asking xc2028/3028 to load firmware xc3028-v25.fw
-> xc2028 1-0061: xc2028_set_config called
-> tuner' 1-0061: Cmd TUNER_SET_STANDBY accepted for analog TV
-> input: cx88 IR (PowerColor Real Angel  as /class/input/input3
-> cx88[0]/0: found at 0000:00:10.0, rev: 5, irq: 10, latency: 66, mmio: 0x43000000
-> cx88[0]/0: registered device video0 [v4l2]
-> cx88[0]/0: registered device vbi0
-> cx88[0]/0: registered device radio0
-> cx88[0]/0: set_audio_standard_BTSC (status: known-good)
-> tuner' 1-0061: Cmd VIDIOC_S_STD accepted for analog TV
-> tuner' 1-0061: switching to v4l2
-> tuner' 1-0061: tv freq set to 400.00
-> xc2028 1-0061: xc2028_set_analog_freq called
-> xc2028 1-0061: generic_set_freq called
-> xc2028 1-0061: should set frequency 400000 kHz
-> xc2028 1-0061: check_firmware called
-> xc2028 1-0061: load_all_firmwares called
-> xc2028 1-0061: Reading firmware xc3028-v25.fw
-> cx88 IR (PowerColor Real Angel : unknown key: key=0x3f raw=0x3f down=1
-> cx88 IR (PowerColor Real Angel : unknown key: key=0x3f raw=0x3f down=0
-> xc2028 1-0061: Loading 80 firmware images from xc3028-v25.fw, type:
-> xc2028 firmware, ver 2.7
-> xc2028 1-0061: Reading firmware type BASE F8MHZ (3), id 0, size=8718.
-> xc2028 1-0061: Reading firmware type BASE F8MHZ MTS (7), id 0, size=8712.
-> xc2028 1-0061: Reading firmware type BASE FM (401), id 0, size=8562.
-> xc2028 1-0061: Reading firmware type BASE FM INPUT1 (c01), id 0, size=8576.
-> xc2028 1-0061: Reading firmware type BASE (1), id 0, size=8706.
-> xc2028 1-0061: Reading firmware type BASE MTS (5), id 0, size=8682.
-> xc2028 1-0061: Reading firmware type (0), id 100000007, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 100000007, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 200000007, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 200000007, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 400000007, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 400000007, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 800000007, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 800000007, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 3000000e0, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 3000000e0, size=169.
-> xc2028 1-0061: Reading firmware type (0), id c000000e0, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id c000000e0, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 200000, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 200000, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 4000000, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 4000000, size=169.
-> xc2028 1-0061: Reading firmware type D2633 DTV6 ATSC (10030), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2620 DTV6 QAM (68), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2633 DTV6 QAM (70), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2620 DTV7 (88), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2633 DTV7 (90), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2620 DTV78 (108), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2633 DTV78 (110), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2620 DTV8 (208), id 0, size=149.
-> xc2028 1-0061: Reading firmware type D2633 DTV8 (210), id 0, size=149.
-> xc2028 1-0061: Reading firmware type FM (400), id 0, size=135.
-> xc2028 1-0061: Reading firmware type (0), id 10, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 10, size=169.
-> xc2028 1-0061: Reading firmware type (0), id 1000400000, size=169.
-> xc2028 1-0061: Reading firmware type (0), id c00400000, size=161.
-> xc2028 1-0061: Reading firmware type (0), id 800000, size=161.
-> xc2028 1-0061: Reading firmware type (0), id 8000, size=161.
-> xc2028 1-0061: Reading firmware type LCD (1000), id 8000, size=161.
-> xc2028 1-0061: Reading firmware type LCD NOGD (3000), id 8000, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id 8000, size=169.
-> xc2028 1-0061: Reading firmware type (0), id b700, size=161.
-> xc2028 1-0061: Reading firmware type LCD (1000), id b700, size=161.
-> xc2028 1-0061: Reading firmware type LCD NOGD (3000), id b700, size=161.
-> xc2028 1-0061: Reading firmware type (0), id 2000, size=161.
-> xc2028 1-0061: Reading firmware type MTS (4), id b700, size=169.
-> xc2028 1-0061: Reading firmware type MTS LCD (1004), id b700, size=169.
-> xc2028 1-0061: Reading firmware type MTS LCD NOGD (3004), id b700, size=169.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_3280 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_3300 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_3440 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_3460 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 ATSC OREN36 SCODE
-> HAS_IF_3800 (60210020), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_4000 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 ATSC TOYOTA388 SCODE
-> HAS_IF_4080 (60410020), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_4200 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_4320
-> (60008000), id 8000, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_4450 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type MTS LCD NOGD MONO IF SCODE
-> HAS_IF_4500 (6002b004), id b700, size=192.
-> xc2028 1-0061: Reading firmware type LCD NOGD IF SCODE HAS_IF_4600
-> (60023000), id 8000, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 QAM DTV7 DTV78 DTV8
-> ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_4940 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_5260 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_5320
-> (60008000), id f00000007, size=192.
-> xc2028 1-0061: Reading firmware type DTV7 DTV78 DTV8 DIBCOM52 CHINA
-> SCODE HAS_IF_5400 (65000380), id 0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 ATSC OREN538 SCODE
-> HAS_IF_5580 (60110020), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_5640 (60000000), id
-> 300000007, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_5740 (60000000), id
-> c00000007, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_5900 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_6000
-> (60008000), id c04c000f0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 QAM ATSC LG60 F6MHZ SCODE
-> HAS_IF_6200 (68050060), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_6240 (60000000), id
-> 10, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_6320
-> (60008000), id 200000, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_6340 (60000000), id
-> 200000, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_6500
-> (60008000), id c044000e0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 ATSC ATI638 SCODE
-> HAS_IF_6580 (60090020), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_6600 (60000000), id
-> 3000000e0, size=192.
-> xc2028 1-0061: Reading firmware type MONO SCODE HAS_IF_6680
-> (60008000), id 3000000e0, size=192.
-> xc2028 1-0061: Reading firmware type DTV6 ATSC TOYOTA794 SCODE
-> HAS_IF_8140 (60810020), id 0, size=192.
-> xc2028 1-0061: Reading firmware type SCODE HAS_IF_8200 (60000000), id
-> 0, size=192.
-> xc2028 1-0061: Firmware files loaded.
-> xc2028 1-0061: checking firmware, user requested type=(0), id
-> 0000000000001000, scode_tbl (0), scode_nr 0
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE (1), id 0000000000000000.
-> xc2028 1-0061: Found firmware for type=BASE (1), id 0000000000000000.
-> xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: Load init1 firmware, if exists
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=(0), id 0000000000001000.
-> xc2028 1-0061: Found firmware for type=(0), id 000000000000b700.
-> xc2028 1-0061: Loading firmware for type=(0), id 000000000000b700.
-> xc2028 1-0061: Trying to load scode 0
-> xc2028 1-0061: load_scode called
-> xc2028 1-0061: seek_firmware called, want type=SCODE (20000000), id
-> 000000000000b700.
-> xc2028 1-0061: Selecting best matching firmware (1 bits) for
-> type=SCODE (20000000), id 000000000000b700:
-> xc2028 1-0061: Found firmware for type=SCODE (20000000), id 0000000000008000.
-> xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320
-> (60008000), id 0000000000008000.
-> xc2028 1-0061: xc2028_get_reg 0004 called
-> xc2028 1-0061: xc2028_get_reg 0008 called
-> xc2028 1-0061: Device is Xceive 35840 version 2.4, firmware version 0.0
-> xc2028 1-0061: Incorrect readback of firmware version.
-> xc2028 1-0061: Retrying firmware load
-> xc2028 1-0061: checking firmware, user requested type=(0), id
-> 0000000000001000, scode_tbl (0), scode_nr 0
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE (1), id 0000000000000000.
-> xc2028 1-0061: Found firmware for type=BASE (1), id 0000000000000000.
-> xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: Load init1 firmware, if exists
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=(0), id 0000000000001000.
-> xc2028 1-0061: Found firmware for type=(0), id 000000000000b700.
-> xc2028 1-0061: Loading firmware for type=(0), id 000000000000b700.
-> xc2028 1-0061: Trying to load scode 0
-> xc2028 1-0061: load_scode called
-> xc2028 1-0061: seek_firmware called, want type=SCODE (20000000), id
-> 000000000000b700.
-> xc2028 1-0061: Selecting best matching firmware (1 bits) for
-> type=SCODE (20000000), id 000000000000b700:
-> xc2028 1-0061: Found firmware for type=SCODE (20000000), id 0000000000008000.
-> xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320
-> (60008000), id 0000000000008000.
-> xc2028 1-0061: xc2028_get_reg 0004 called
-> xc2028 1-0061: xc2028_get_reg 0008 called
-> xc2028 1-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: divisor= 00 00 64 00 (freq=400.000)
-> cx88[0]/0: set_control id=0x980900(Brightness) ctrl=0x7f, reg=0x310110
-> val=0xff (mask 0xff)
-> cx88[0]/0: set_control id=0x980901(Contrast) ctrl=0x3f, reg=0x310110
-> val=0x3f00 (mask 0xff00)
-> cx88[0]/0: set_control id=0x980903(Hue) ctrl=0x7f, reg=0x310118
-> val=0xff (mask 0xff)
-> cx88[0]/0: set_control id=0x980902(Saturation) ctrl=0x7f, reg=0x310114
-> val=0x5a7f (mask 0xffff)
-> cx88[0]/0: set_control id=0x98091D(Chroma AGC) ctrl=0x01, reg=0x310104
-> val=0x400 (mask 0x400)
-> cx88[0]/0: set_control id=0x98091E(Color killer) ctrl=0x01,
-> reg=0x310104 val=0x200 (mask 0x200)
-> cx88[0]/0: set_control id=0x980909(Mute) ctrl=0x01, reg=0x320594
-> val=0x40 (mask 0x40) [shadowed]
-> cx88[0]/0: set_control id=0x980905(Volume) ctrl=0x3f, reg=0x320594
-> val=0x00 (mask 0x3f) [shadowed]
-> cx88[0]/0: set_control id=0x980906(Balance) ctrl=0x40, reg=0x320598
-> val=0x00 (mask 0x7f) [shadowed]
-> cx88[0]/0: video_mux: 0 [vmux=0,gpio=0xff,0xf35d,0x0,0x0]
-> cx88[0]/0: cx88: tvaudio thread started
-> ACPI: PCI Interrupt 0000:00:0f.0[A] -> Link [LNKC] -> GSI 11 (level,
-> low) -> IRQ 11
-> cx88[0]/0: AUD_STATUS: 0xf332 [mono/no pilot] ctl=BTSC_AUTO_STEREO
-> cx88[0]/0: open minor=0 radio=0 type=video-cap
-> cx88[0]/0: video_mux: 0 [vmux=0,gpio=0xff,0xf35d,0x0,0x0]
-> cx88[0]/0: set_audio_standard_A2 AM-L (status: devel)
-> cx88[0]/0: set_audio_standard_NICAM SECAM-L NICAM (status: devel)
-> cx88[0]/0: start nicam autodetect.
-> cx88[0]/0: nicam is not detected.
-> cx88[0]/0: set_audio_standard_A2 AM-L (status: devel)
-> tuner' 1-0061: tv freq set to 400.00
-> xc2028 1-0061: xc2028_set_analog_freq called
-> xc2028 1-0061: generic_set_freq called
-> xc2028 1-0061: should set frequency 400000 kHz
-> xc2028 1-0061: check_firmware called
-> xc2028 1-0061: checking firmware, user requested type=F8MHZ (2), id
-> 0000000000400000, scode_tbl (0), scode_nr 0
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 1-0061: Found firmware for type=BASE F8MHZ (3), id 0000000000000000.
-> xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-> cx88[0]: Calling XC2028/3028 callback
-> cx88[0]/0: AUD_STATUS: 0x32 [mono/no pilot] ctl=A2_FORCE_MONO1
-> xc2028 1-0061: Load init1 firmware, if exists
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 F8MHZ
-> (4003), id 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 F8MHZ (4003),
-> id 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: Can't find firmware for type=BASE INIT1 (4001), id
-> 0000000000000000.
-> xc2028 1-0061: load_firmware called
-> xc2028 1-0061: seek_firmware called, want type=F8MHZ (2), id 0000000000400000.
-> xc2028 1-0061: Found firmware for type=(0), id 0000001000400000.
-> xc2028 1-0061: Loading firmware for type=(0), id 0000001000400000.
-> xc2028 1-0061: Trying to load scode 0
-> xc2028 1-0061: load_scode called
-> xc2028 1-0061: seek_firmware called, want type=F8MHZ SCODE (20000002),
-> id 0000001000400000.
-> xc2028 1-0061: Selecting best matching firmware (1 bits) for
-> type=SCODE (20000000), id 0000001000400000:
-> xc2028 1-0061: Found firmware for type=SCODE (20000000), id 0000000c04c000f0.
-> xc2028 1-0061: Loading SCODE for type=MONO SCODE HAS_IF_6000
-> (60008000), id 0000000c04c000f0.
-> xc2028 1-0061: xc2028_get_reg 0004 called
-> xc2028 1-0061: xc2028_get_reg 0008 called
-> xc2028 1-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
-> cx88[0]: Calling XC2028/3028 callback
-> cx88[0]/0: AUD_STATUS: 0x3a [mono/pilot c2] ctl=A2_FORCE_MONO1
-> xc2028 1-0061: divisor= 00 00 64 00 (freq=400.000)
-> tuner' 1-0061: tv freq set to 479.25
-> xc2028 1-0061: xc2028_set_analog_freq called
-> xc2028 1-0061: generic_set_freq called
-> xc2028 1-0061: should set frequency 479250 kHz
-> xc2028 1-0061: check_firmware called
-> xc2028 1-0061: checking firmware, user requested type=F8MHZ (2), id
-> 0000000000400000, scode_tbl (0), scode_nr 0
-> xc2028 1-0061: BASE firmware not changed.
-> xc2028 1-0061: Std-specific firmware already loaded.
-> xc2028 1-0061: SCODE firmware already loaded.
-> xc2028 1-0061: xc2028_get_reg 0004 called
-> xc2028 1-0061: xc2028_get_reg 0008 called
-> xc2028 1-0061: Device is Xceive 3028 version 1.0, firmware version 2.7
-> cx88[0]: Calling XC2028/3028 callback
-> xc2028 1-0061: divisor= 00 00 77 d0 (freq=479.250)
-> cx88[0]/0: set_audio_standard_A2 AM-L (status: devel)
-> cx88[0]/0: set_audio_standard_NICAM SECAM-L NICAM (status: devel)
-> cx88[0]/0: start nicam autodetect.
-> cx88[0]/0: nicam is not detected.
-> cx88[0]/0: set_audio_standard_A2 AM-L (status: devel)
-> tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-> xc2028 1-0061: xc2028_get_frequency called
-> tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-> xc2028 1-0061: xc2028_get_frequency called
-> cx88[0]/0: set_control id=0x980909(Mute) ctrl=0x00, reg=0x320594
-> val=0x00 (mask 0x40) [shadowed]
-> cx88[0]/0: set_control id=0x980900(Brightness) ctrl=0x7f, reg=0x310110
-> val=0xff (mask 0xff)
-> cx88[0]/0: set_control id=0x980903(Hue) ctrl=0x7f, reg=0x310118
-> val=0xff (mask 0xff)
-> cx88[0]/0: set_control id=0x980902(Saturation) ctrl=0x7f, reg=0x310114
-> val=0x7f7f (mask 0xffff)
-> cx88[0]/0: set_control id=0x980901(Contrast) ctrl=0x3f, reg=0x310110
-> val=0x3f00 (mask 0xff00)
-> cx88[0]/0: set_control id=0x980909(Mute) ctrl=0x01, reg=0x320594
-> val=0x40 (mask 0x40) [shadowed]
-> tuner' 1-0061: Cmd TUNER_SET_STANDBY accepted for analog TV
-> cx88[0]/0: AUD_STATUS: 0x32 [mono/no pilot] ctl=A2_FORCE_MONO1
-> cx88[0]/0: AUD_STATUS: 0x3a [mono/pilot c2] ctl=A2_FORCE_MONO1
-> cx88[0]/0: AUD_STATUS: 0x32 [mono/no pilot] ctl=A2_FORCE_MONO1
-> cx88[0]/0: AUD_STATUS: 0x3a [mono/pilot c2] ctl=A2_FORCE_MONO1
-> cx88[0]/0: AUD_STATUS: 0x32 [mono/no pilot] ctl=A2_FORCE_MONO1
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 1b41b3f..de6ca27 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -339,6 +339,19 @@ config RADIO_ZOLTRIX_PORT
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
+ 
++config RADIO_TEA5761
++	tristate "Philips Semiconductors TEA5761 I2C FM Radio"
++	help
++	  Choose Y here if you have one of these AM/FM radio cards.
++
++	  In order to control your radio card, you will need to use programs
++	  that are compatible with the Video For Linux 2 API.  Information on
++	  this API and pointers to "v4l" programs may be found at
++	  <file:Documentation/video4linux/API.html>.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called radio-tea5761.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index a30159f..f5bffcc 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
+ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
++obj-$(CONFIG_RADIO_TEA5761) += radio-tea5761.o
+ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+ 
+diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
+new file mode 100644
+index 0000000..e8ccf29
+--- /dev/null
++++ b/drivers/media/radio/radio-tea5761.c
+@@ -0,0 +1,516 @@
++/*
++ * drivers/media/radio/radio-tea5761.c
++ *
++ * Copyright (C) 2005 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
++#include <linux/module.h>
++#include <linux/version.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <media/v4l2-common.h>
++
++#define DRIVER_NAME "tea5761"
++
++#define TEA5761_VERSION		KERNEL_VERSION(0, 0, 1)
++
++#define TEA5761_I2C_ADDR	0x10
++
++#define TEA5761_MANID		0x002b
++#define TEA5761_CHIPID		0x5761
++
++#define TEA5761_INTREG_BLMSK	0x0001
++#define TEA5761_INTREG_FRRMSK	0x0002
++#define TEA5761_INTREG_LEVMSK	0x0008
++#define TEA5761_INTREG_IFMSK	0x0010
++#define TEA5761_INTREG_BLMFLAG	0x0100
++#define TEA5761_INTREG_FRRFLAG	0x0200
++#define TEA5761_INTREG_LEVFLAG	0x0800
++#define TEA5761_INTREG_IFFLAG	0x1000
++
++#define TEA5761_FRQSET_SUD	0x8000
++#define TEA5761_FRQSET_SM	0x4000
++
++#define TEA5761_TNCTRL_PUPD0	0x4000
++#define TEA5761_TNCTRL_BLIM	0x2000
++#define TEA5761_TNCTRL_SWPM	0x1000
++#define TEA5761_TNCTRL_IFCTC	0x0800
++#define TEA5761_TNCTRL_AFM	0x0400
++#define TEA5761_TNCTRL_SMUTE	0x0200
++#define TEA5761_TNCTRL_SNC	0x0100
++#define TEA5761_TNCTRL_MU	0x0080
++#define TEA5761_TNCTRL_SSL1	0x0040
++#define TEA5761_TNCTRL_SSL0	0x0020
++#define TEA5761_TNCTRL_HLSI	0x0010
++#define TEA5761_TNCTRL_MST	0x0008
++#define TEA5761_TNCTRL_SWP	0x0004
++#define TEA5761_TNCTRL_DTC	0x0002
++#define TEA5761_TNCTRL_AHLSI	0x0001
++
++#define TEA5761_TUNCHK_LEVEL(x)	(((x) & 0x00F0) >> 4)
++#define TEA5761_TUNCHK_IFCNT(x) (((x) & 0xFE00) >> 9)
++#define TEA5761_TUNCHK_TUNTO	0x0100
++#define TEA5761_TUNCHK_LD	0x0008
++#define TEA5761_TUNCHK_STEREO	0x0004
++
++#define TEA5761_TESTREG_TRIGFR	0x0800
++
++#define TEA5761_FREQ_LOW	87500
++#define TEA5761_FREQ_HIGH	108000
++
++struct tea5761_regs {
++	u16 intreg;
++	u16 frqset;
++	u16 tnctrl;
++	u16 frqchk;
++	u16 tunchk;
++	u16 testreg;
++	u16 manid;
++	u16 chipid;
++} __attribute__ ((packed));
++
++struct tea5761_write_regs {
++	u8 intreg;
++	u16 frqset;
++	u16 tnctrl;
++	u16 testreg;
++} __attribute__ ((packed));
++
++struct tea5761_device {
++	struct video_device	*video_dev;
++	struct i2c_client	*i2c_dev;
++	struct tea5761_regs	regs;
++	struct mutex		mutex;
++	int			users;
++};
++
++static struct tea5761_device tea5761;
++
++static struct i2c_driver	tea5761_driver;
++static int radio_nr = -1;
++
++static int tea5761_read_regs(struct tea5761_device *tea)
++{
++	int rc, i;
++	u16 *p = (u16 *) &tea->regs;
++	struct i2c_client *client = tea->i2c_dev;
++
++	rc = i2c_master_recv(client, (void*) &tea->regs, sizeof(tea->regs));
++	for (i = 0; i < 8; i++) {
++		p[i] = __be16_to_cpu(p[i]);
++	}
++
++	dev_dbg(&client->dev,
++		"chip state: %04x %04x %04x %04x %04x %04x %04x %04x\n",
++		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
++
++	if (rc < 0)
++		dev_err(&client->dev, "read\n");
++
++	return rc;
++}
++
++static void tea5761_write_regs(struct tea5761_device *tea)
++{
++	struct tea5761_write_regs wr;
++	struct tea5761_regs *r = &tea->regs;
++	struct i2c_client *client = tea->i2c_dev;
++	u8 *p = (u8 *) r;
++
++	wr.intreg = r->intreg & 0xff;
++	wr.frqset = __cpu_to_be16(r->frqset);
++	wr.tnctrl = __cpu_to_be16(r->tnctrl);
++	wr.testreg = __cpu_to_be16(r->testreg);
++
++	dev_dbg(&client->dev,
++		"writing state: %02x %02x %02x %02x %02x %02x %02x\n",
++		p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
++	if (i2c_master_send(client, (void *) &wr, sizeof(wr)) < 0)
++		dev_err(&client->dev, "write\n");
++}
++
++static void tea5761_power_up(struct tea5761_device *tea)
++{
++	struct tea5761_regs *r = &tea->regs;
++
++	if (!(r->tnctrl & TEA5761_TNCTRL_PUPD0)) {
++		r->tnctrl &= ~(TEA5761_TNCTRL_AFM | TEA5761_TNCTRL_MU |
++			       TEA5761_TNCTRL_HLSI);
++		r->testreg |= TEA5761_TESTREG_TRIGFR;
++		r->tnctrl |= TEA5761_TNCTRL_PUPD0;
++		return tea5761_write_regs(tea);
++	}
++}
++
++static void tea5761_power_down(struct tea5761_device *tea)
++{
++	struct tea5761_regs *r = &tea->regs;
++
++	if (r->tnctrl & TEA5761_TNCTRL_PUPD0) {
++		r->tnctrl &= ~TEA5761_TNCTRL_PUPD0;
++		return tea5761_write_regs(tea);
++	}
++}
++
++static void tea5761_set_freq(struct tea5761_device *tea, int freq)
++{
++	struct tea5761_regs *r = &tea->regs;
++
++	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
++		r->frqset = (freq + 225000) / 8192;
++	else
++		r->frqset = (freq - 225000) / 8192;
++}
++
++static int tea5761_get_freq(struct tea5761_device *tea)
++{
++	struct tea5761_regs *r = &tea->regs;
++
++	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
++		return (r->frqchk * 8192) - 225000;
++	else
++		return (r->frqchk * 8192) + 225000;
++}
++
++static void tea5761_tune(struct tea5761_device *tea, int freq)
++{
++	tea5761_set_freq(tea, freq);
++	tea5761_write_regs(tea);
++}
++
++static void tea5761_set_audout_mode(struct tea5761_device *tea, int audmode)
++{
++	struct tea5761_regs *r = &tea->regs;
++	int tnctrl = r->tnctrl;
++
++	if (audmode == V4L2_TUNER_MODE_MONO)
++		r->tnctrl |= TEA5761_TNCTRL_MST;
++	else
++		r->tnctrl &= ~TEA5761_TNCTRL_MST;
++	if (tnctrl != r->tnctrl)
++		tea5761_write_regs(tea);
++}
++
++static int tea5761_get_audout_mode(struct tea5761_device *tea)
++{
++	struct tea5761_regs *r = &tea->regs;
++
++	if (r->tnctrl & TEA5761_TNCTRL_MST)
++		return V4L2_TUNER_MODE_MONO;
++	else
++		return V4L2_TUNER_MODE_STEREO;
++}
++
++static void tea5761_mute(struct tea5761_device *tea, int on)
++{
++	struct tea5761_regs *r = &tea->regs;
++	int tnctrl = r->tnctrl;
++
++	if (on)
++		r->tnctrl |= TEA5761_TNCTRL_MU;
++	else
++		r->tnctrl &= ~TEA5761_TNCTRL_MU;
++	if (tnctrl != r->tnctrl)
++		tea5761_write_regs(tea);
++}
++
++static int tea5761_is_muted(struct tea5761_device *tea)
++{
++	return tea->regs.tnctrl & TEA5761_TNCTRL_MU;
++}
++
++static int tea5761_do_ioctl(struct inode *inode, struct file *file,
++			    unsigned int cmd, void *arg)
++{
++	struct tea5761_device *tea = file->private_data;
++	struct video_device *dev = tea->video_dev;
++	struct i2c_client *client = tea->i2c_dev;
++	struct tea5761_regs *r = &tea->regs;
++
++	union {
++		struct v4l2_capability c;
++		struct v4l2_tuner t;
++		struct v4l2_frequency f;
++		struct v4l2_queryctrl qc;
++		struct v4l2_control ct;
++	} *u = arg;
++
++	tea5761_read_regs(tea);
++
++	switch (cmd) {
++	case VIDIOC_QUERYCAP:
++		dev_dbg(&client->dev, "VIDIOC_QUERYCAP\n");
++		memset(&u->c, 0, sizeof(u->c));
++		strlcpy(u->c.driver, dev->dev->driver->name,
++			sizeof(u->c.driver));
++		strlcpy(u->c.card, dev->name, sizeof(u->c.card));
++		snprintf(u->c.bus_info, sizeof(u->c.bus_info), "I2C:%s",
++			 dev->dev->bus_id);
++		u->c.version = TEA5761_VERSION;
++		u->c.capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++		break;
++
++	case VIDIOC_G_TUNER:
++		/* Only one tuner chip */
++		dev_dbg(&client->dev, "VIDIOC_G_TUNER\n");
++		if (u->t.index != 0)
++			return -EINVAL;
++
++		memset(&u->t, 0, sizeof(u->t));
++		u->t.type = V4L2_TUNER_RADIO;
++		strlcpy(u->t.name, "FM", sizeof(u->t.name));
++		/* Freq in 62.5Hz units */
++		u->t.rangelow = TEA5761_FREQ_LOW * 16;
++		u->t.rangehigh = TEA5761_FREQ_HIGH * 16;
++		u->t.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
++		if (r->tunchk & TEA5761_TUNCHK_STEREO)
++			u->t.rxsubchans = V4L2_TUNER_SUB_STEREO;
++		u->t.audmode = tea5761_get_audout_mode(tea);
++		u->t.signal = TEA5761_TUNCHK_LEVEL(r->tunchk) * 0xffff / 0xf;
++		u->t.afc = TEA5761_TUNCHK_IFCNT(r->tunchk);
++		break;
++
++	case VIDIOC_S_TUNER:
++		/* Only tuner nro 0 can be selected. */
++		dev_dbg(&client->dev, "VIDIOC_S_TUNER\n");
++		if (u->t.index != 0)
++			return -EINVAL;
++		tea5761_set_audout_mode(tea, u->t.audmode);
++		break;
++
++	case VIDIOC_G_FREQUENCY:
++		dev_dbg(&client->dev, "VIDIOC_G_FREQUENCY\n");
++		memset(&u->f, 0, sizeof(u->f));
++		u->f.type = V4L2_TUNER_RADIO;
++		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
++			u->f.frequency = (tea5761_get_freq(tea) * 2) / 125;
++		else
++			u->f.frequency = 0;
++		break;
++
++	case VIDIOC_S_FREQUENCY:
++		dev_dbg(&client->dev, "VIDIOC_S_FREQUENCY %u\n",
++			u->f.frequency);
++		if (u->f.tuner != 0)
++			return -EINVAL;
++		if (u->f.frequency == 0) {
++			/* We special case this as a power down
++			 * control. */
++			tea5761_power_down(tea);
++			break;
++		}
++		if (u->f.frequency < 16 * TEA5761_FREQ_LOW)
++			return -EINVAL;
++		if (u->f.frequency > 16 * TEA5761_FREQ_HIGH)
++			return -EINVAL;
++
++		tea5761_power_up(tea);
++		tea5761_tune(tea, (u->f.frequency * 125) / 2);
++		break;
++
++	case VIDIOC_QUERYCTRL:
++		dev_dbg(&client->dev, "VIDIOC_QUERYCTRL %d\n", u->qc.id);
++		if (u->qc.id != V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		strlcpy(u->qc.name, "Mute", sizeof(u->qc.name));
++		u->qc.minimum = 0;
++		u->qc.maximum = 1;
++		u->qc.step = 1;
++		u->qc.default_value = 0;
++		u->qc.type = V4L2_CTRL_TYPE_BOOLEAN;
++		break;
++
++	case VIDIOC_G_CTRL:
++		dev_dbg(&client->dev, "VIDIOC_G_CTRL %d\n", u->ct.id);
++		if (u->ct.id != V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
++			u->ct.value = tea5761_is_muted(tea) ? 1 : 0;
++		else
++			u->ct.value = 0;
++		break;
++
++	case VIDIOC_S_CTRL:
++		dev_dbg(&client->dev, "VIDIOC_S_CTRL %d\n", u->ct.id);
++		if (u->ct.id != V4L2_CID_AUDIO_MUTE)
++			return -EINVAL;
++		tea5761_mute(tea, u->ct.value);
++		break;
++
++	default:
++		return -ENOIOCTLCMD;
++	}
++
++	return 0;
++}
++
++static int tea5761_ioctl(struct inode *inode, struct file *file,
++			 unsigned int cmd, unsigned long arg)
++{
++	return video_usercopy(inode, file, cmd, arg, tea5761_do_ioctl);
++}
++
++static int tea5761_open(struct inode *inode, struct file *file)
++{
++	int minor = iminor(file->f_dentry->d_inode);
++	/* Currently we support only one device */
++	struct tea5761_device *tea = &tea5761;
++
++	if (tea->video_dev->minor != minor)
++		return -ENODEV;
++
++	mutex_lock(&tea->mutex);
++	/* Only exclusive access */
++	if (tea->users) {
++		mutex_unlock(&tea->mutex);
++		return -EBUSY;
++	}
++	tea->users++;
++	mutex_unlock(&tea->mutex);
++
++	file->private_data = tea;
++	return 0;
++}
++
++static int tea5761_release(struct inode *inode, struct file *file)
++{
++	struct tea5761_device *tea = file->private_data;
++
++	mutex_lock(&tea->mutex);
++	tea->users--;
++	mutex_unlock(&tea->mutex);
++
++	return 0;
++}
++
++static struct file_operations tea5761_fops = {
++	.owner		= THIS_MODULE,
++	.open           = tea5761_open,
++	.release	= tea5761_release,
++	.ioctl		= tea5761_ioctl,
++	.llseek         = no_llseek,
++};
++
++static struct video_device tea5761_video_device = {
++	.owner         = THIS_MODULE,
++	.name          = "TEA5761 FM-Radio",
++	.type          = VID_TYPE_TUNER,
++	.fops          = &tea5761_fops,
++	.release       = video_device_release
++};
++
++static int tea5761_i2c_driver_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct video_device *video_dev;
++	int err = 0;
++	struct tea5761_device *tea = &tea5761;
++
++	mutex_init(&tea->mutex);
++
++	tea->i2c_dev = client;
++
++	/* V4L initialization */
++	video_dev = video_device_alloc();
++	if (video_dev == NULL) {
++		dev_err(&client->dev, "couldn't allocate memory\n");
++		err = -ENOMEM;
++		goto exit;
++	}
++	tea->video_dev = video_dev;
++
++	*video_dev = tea5761_video_device;
++	video_dev->dev = &client->dev;
++	i2c_set_clientdata(client, video_dev);
++
++	/* initialize and power off the chip */
++	tea5761_read_regs(tea);
++	tea5761_set_audout_mode(tea, V4L2_TUNER_MODE_STEREO);
++	tea5761_mute(tea, 0);
++	tea5761_power_down(tea);
++
++	tea5761.video_dev = video_dev;
++	tea5761.i2c_dev = client;
++
++	err = video_register_device(video_dev, VFL_TYPE_RADIO, radio_nr);
++	if (err) {
++		dev_err(&client->dev, "couldn't register video device\n");
++		goto err_video_alloc;
++	}
++
++	dev_info(&client->dev, "tea5761 (version %d) detected\n",
++		(tea->regs.manid >> 12) & 0xf);
++
++	return 0;
++
++err_video_alloc:
++	video_device_release(video_dev);
++exit:
++	kfree(client);
++	return err;
++}
++
++static int tea5761_i2c_driver_remove(struct i2c_client *client)
++{
++	struct video_device *vd = i2c_get_clientdata(client);
++
++	video_unregister_device(vd);
++
++	return 0;
++}
++
++static const struct i2c_device_id tea5761_id[] = {
++	{ DRIVER_NAME, 0 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, tea5761_id);
++
++static struct i2c_driver tea5761_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++	},
++	.probe	= tea5761_i2c_driver_probe,
++	.remove = __devexit_p(tea5761_i2c_driver_remove),
++	.id_table = tea5761_id,
++};
++
++static int __init tea5761_init(void)
++{
++	int res;
++
++	if ((res = i2c_add_driver(&tea5761_driver))) {
++		printk(KERN_ERR DRIVER_NAME ": driver registration failed\n");
++		return res;
++	}
++
++	return 0;
++}
++
++static void __exit tea5761_exit(void)
++{
++	i2c_del_driver(&tea5761_driver);
++}
++
++MODULE_AUTHOR("Timo Teräs");
++MODULE_DESCRIPTION("I2C interface for TEA5761.");
++MODULE_LICENSE("GPL");
++
++module_param(radio_nr, int, 0);
++MODULE_PARM_DESC(nr_radio, "video4linux device number to use");
++
++module_init(tea5761_init)
++module_exit(tea5761_exit)
+-- 
+1.5.6.rc0.84.g06f60.dirty
 
 --
 video4linux-list mailing list
