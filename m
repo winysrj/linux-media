@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m51AGAbP006171
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 06:16:10 -0400
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m51AFwQD008037
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 06:15:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Date: Sun, 1 Jun 2008 12:15:11 +0200
-References: <20080522223700.2f103a14@core>
-	<200805261846.35758.hverkuil@xs4all.nl>
-	<1212287646.20064.21.camel@palomino.walls.org>
-In-Reply-To: <1212287646.20064.21.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53J1SXN021155
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:01:28 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.239])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53J0SXW009378
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:00:28 -0400
+Received: by wr-out-0506.google.com with SMTP id c57so553966wra.9
+	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 12:00:28 -0700 (PDT)
+Message-ID: <3192d3cd0806031200k48d63141hefbb3df5d812e903@mail.gmail.com>
+Date: Tue, 3 Jun 2008 21:00:28 +0200
+From: "Christian Gmeiner" <christian.gmeiner@gmail.com>
+To: "Daniel Gimpelevich" <daniel@gimpelevich.san-francisco.ca.us>
+In-Reply-To: <loom.20080603T165006-806@post.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200806011215.11489.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] cx18: convert driver to video_ioctl2() (Re: [PATCH]
-	video4linux: Push down the BKL)
+References: <48457617.mail5YC1S9Z5F@vesta.asc.rssi.ru>
+	<loom.20080603T165006-806@post.gmane.org>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l API question: any support for HDTV is possible?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,64 +31,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sunday 01 June 2008 04:34, Andy Walls wrote:
-> On Mon, 2008-05-26 at 18:46 +0200, Hans Verkuil wrote:
-> > On Monday 26 May 2008 18:34:57 Mauro Carvalho Chehab wrote:
-> > > In the specific case of ivtv and cx18, I think that the better
-> > > would be to convert it first to video_ioctl2. Then, remove the
-> > > BKL, with a video_ioctl2_unlocked version.
-> > >
-> > > Douglas already did an experimental patch converting ivtv to
-> > > video_ioctl2 and sent to Hans. It needs testing, since he doesn't
-> > > have any ivtv board. It should be trivial to port this to cx18,
-> > > since both drivers have similar structures.
-> > >
-> > > Douglas,
-> > >
-> > > Could you send this patch to the ML for people to review and for
-> > > Andy to port it to cx18?
-> >
-> > Unless there is an objection, I would prefer to take Douglas' patch
-> > and merge it into the v4l-dvb ivtv driver myself. There were
-> > several things in the patch I didn't like, but I need to 'work'
-> > with it a bit to see how/if it can be done better.
-> >
-> > I can work on it tonight and tomorrow. Hopefully it is finished by
-> > then. I can move the BKL down at the same time for ivtv. It is
-> > unlikely that I will have time to do cx18 as well as I'm abroad
-> > from Wednesday until Monday, but I think Andy can do that easily
-> > based on the ivtv changes.
+2008/6/3 Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>:
+> Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
 >
-> I have attached a patch, made against Hans' v4l-dvb-ioctl2
-> repository, to convert the cx18 driver to use video_ioctl2().  In the
-> process I pushed down the priority checks and the debug messages into
-> the individual functions.  I did not remove the serialization lock as
-> I have not had the time to assess if that would be safe.  I "#if
-> 0"'ed out some sliced VBI code that was being skipped in the original
-> code.
+>> > Have you not seen this at all? http://dxr3.sf.net
+>>
+>> I know that project. The DXR3 boards dont have HDTV capabilities.
 >
-> Comments are welcome.
->
-> Many thanks to Hans, for without his changeset to ivtv for reference,
-> this would have taken me much, much longer.
->
->
-> Short term initial tests of this patch with MythTV, v4l-ctl, and
-> v4l-dbg indicate things are OK.  I did notice once strange artifact
-> with MythTV. When switching from one analog channel to another, for
-> about a second, I see the two television video fields non-interlaced,
-> stacked one atop of the other in the frame.  Weird, but not a big
-> deal.
+> The v4l API is a framework for frame grabbers and hardware encoders. There
+> exists no unified API for hardware decoders such as yours. Each hardware decoder
+> driver supplies an API of its own. The DXR3 project is most similar
+> hardware-wise to what you're coding. Other projects in that category include:
 
-Thanks Andy!
+I thought v4l2 has support for video output? Have a look at
+http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#OUTPUT
 
-I'll take a closer look on Tuesday or Wednesday, but I noticed one 
-thing: you set unused callbacks to NULL in cx18_set_funcs(), however 
-these can just be removed as they are NULL by default.
+Maybe its time to come up with an extension for v4l to support
+decoders?! As far as I can see
+the DVB API hase some output stuff, as there exists FF-DVB cards with
+an mpeg2 decoder
+on it. But I think that there should be an api for decoding which gets
+used by dvb cards, dxr3
+and all other encoder cards.
 
-Regards,
-
-	Hans
+Greets,
+Christian Gmeiner
 
 --
 video4linux-list mailing list
