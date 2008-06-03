@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NMXt3P019138
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:33:55 -0400
-Received: from mailrelay001.isp.belgacom.be (mailrelay001.isp.belgacom.be
-	[195.238.6.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NMXiGi005051
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:33:44 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: linux-uvc-devel@lists.berlios.de
-Date: Tue, 24 Jun 2008 00:33:40 +0200
-References: <485F7A42.8020605@vidsoft.de>
-In-Reply-To: <485F7A42.8020605@vidsoft.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Date: Tue, 3 Jun 2008 18:08:28 -0400
+From: Alan Cox <alan@redhat.com>
+To: Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>
+Message-ID: <20080603220828.GE30842@devserv.devel.redhat.com>
+References: <20080522223700.2f103a14@core>
+	<200805261846.35758.hverkuil@xs4all.nl>
+	<1212287646.20064.21.camel@palomino.walls.org>
+	<200806011215.11489.hverkuil@xs4all.nl>
+	<1212346919.3294.6.camel@palomino.walls.org>
+	<20080603182052.1080408e@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200806240033.41145.laurent.pinchart@skynet.be>
+In-Reply-To: <20080603182052.1080408e@gaivota>
 Cc: video4linux-list@redhat.com
-Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
+Subject: Re: [ivtv-devel] [PATCH] cx18: convert driver to video_ioctl2()
+	(Re: [PATCH] video4linux: Push down the BKL)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,54 +28,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Gregor,
+On Tue, Jun 03, 2008 at 06:20:52PM -0300, Mauro Carvalho Chehab wrote:
+> > Yeah, they can go.  I left them in as an aid for double checking that I
+> > didn't forget any callbacks that needed to be implemented.
+> 
+> Please don't do that. All static vars that have a value 0 or NULL shouldn't be
+> initialized, since this will eat some space inside the module.
 
-On Monday 23 June 2008, Gregor Jasny wrote:
-> Hi,
->
-> in our video conference application the grabbing (QBUF, DQBUF) is done
-> in a separate thread. The main thread is responsible for the user
-> interface and queries the controls, input and current standard values
-> from time to time.
->
-> With the latest uvc driver (r217) and vanilla Linux 2.6.25.6 I've
-> noticed the strange behavior that the grabbing thread hangs in the DQBUF
-> ioctl. If I remove the control queries from the gui thread everything is
-> working fine. After the first hang of the driver, even luvcview hangs at
-> the buffer operation.
->
-> With the bttv driver everything works fine. I'll test vivi and pwc
-> driver later.
->
-> My systems are a i686 and one amd64 system with one Logitech 9000 and
-> one Microsoft NX-6000. I've tried to create a simple testcase, but
-> suprinsingly this testcase works fine.
->
-> Can I enable more logging than setting the trace parameter to 0xfff?
+The compiler is smarter than that. Besides which 4 bytes will make no difference
+whether it is data or bss given 4K disk block sizes 8)
 
-No without adding more printk's to the driver, which I encourage you to do.
+It is coding style not to do it but it isn't a bad idea to leave them in if
+they make something explicitly clear IMHO.
 
-> Have you any idea what went wrong here?
-
-Not really. The ioctl handler is protected by the big kernel lock, so ioctls 
-are currently not reentrant.
-
-Could you give more information about the hardware you are using (webcam, SMP 
-system) ? Please report kernel log message printed by the UVC driver as well.
-
-> Is the V4L2-API designed to be thread safe?
-
-There is no mention of thread safety in the V4L2 spec, so one can always argue 
-that thread safety is not required for V4L2 drivers :-)
-
-Most drivers are probably not designed with thread safety in mind, and I'm 
-pretty sure lots of race conditions still lie in the depth of V4L(2) drivers. 
-In the long term all those bugs should be fixed, and drivers should support 
-multi-threaded applications without crashing or misbehaving.
-
-Best regards,
-
-Laurent Pinchart
 
 --
 video4linux-list mailing list
