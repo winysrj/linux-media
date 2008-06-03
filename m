@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1K8iFW-0005dt-UG
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 22:57:59 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Tue, 17 Jun 2008 22:56:35 +0200
-References: <485646D3.6040201@magic.fr> <48566EE7.5030101@magic.fr>
-	<48569D96.5050209@magic.fr>
-In-Reply-To: <48569D96.5050209@magic.fr>
+Received: from wr-out-0506.google.com ([64.233.184.239])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <morgan.torvolt@gmail.com>) id 1K3dFq-00011H-2M
+	for linux-dvb@linuxtv.org; Tue, 03 Jun 2008 22:37:14 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so630993wra.14
+	for <linux-dvb@linuxtv.org>; Tue, 03 Jun 2008 13:37:09 -0700 (PDT)
+Message-ID: <3cc3561f0806031337v18517af4ncc6a75fa0b4a47e4@mail.gmail.com>
+Date: Tue, 3 Jun 2008 22:37:08 +0200
+From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806172256.35351@orion.escape-edv.de>
-Subject: Re: [linux-dvb] SkyStar 2 - rev 2.8A
-Reply-To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Providers in Brazil
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,37 +19,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alexandre Conrad wrote:
-> In the worst of the cases, I'll have to return the cards to my vendor as 
-> TechniSat might just no longer make 2.6 cards anymore. Then what would 
-> be the recommanded alternative hardware that could work for me? A few 
-> years back, I've was using a budget Hauppauge Nova-S card. But it might 
-> be outdated and/or hard to find in large quantities these days.
->
-> Any recommendation for cards that would be well supported by the kernel 
-> and are still "comfortably" available? We're doing DVB-IP stuff (no TV 
-> watching).
+Hi.
 
-There are tons of well-supported cards. ;-)
+I am interested in knowing of providers in Brazil. Preferably some
+that can be watched using a CAM and Linux. English language channels
+are also preferred. If anyone has any experiences I would love to know
+of it.
 
-For example: http://www.technotrend.com/2762/PRODUCTS_for_PC.html
-- Budget DVB-S 1401 (w/o CI connector) --> driver: budget
-- Budget DVB-S 1500 (with CI connector) --> driver: budget-ci
-(There is also an experimental driver for the DVB-S2 3200)
+Thanks
 
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Morgan T=F8rvolt
 
 _______________________________________________
 linux-dvb mailing list
