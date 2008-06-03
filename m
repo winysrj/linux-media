@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56CMZJO014571
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:22:35 -0400
-Received: from linos.es (centrodatos.linos.es [86.109.105.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56CMNBa008362
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:22:24 -0400
-Message-ID: <48492BE9.1050201@linos.es>
-Date: Fri, 06 Jun 2008 14:22:01 +0200
-From: Linos <info@linos.es>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53FEk33010035
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:14:46 -0400
+Received: from vesta.asc.rssi.ru (vesta.asc.rssi.ru [193.232.12.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53FEXIw006782
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:14:34 -0400
+Received: from vesta.asc.rssi.ru (localhost [127.0.0.1])
+	by vesta.asc.rssi.ru (8.12.7/8.12.7/SuSE Linux 0.6) with ESMTP id
+	m53Ff3lq007483
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 19:41:03 +0400
+Received: (from kostyuk@localhost)
+	by vesta.asc.rssi.ru (8.12.7/8.12.7/Submit) id m53Ff20M007482
+	for video4linux-list@redhat.com; Tue, 3 Jun 2008 19:41:02 +0400
+From: Sergey Kostyuk <kostyuk@vesta.asc.rssi.ru>
+Date: Tue, 03 Jun 2008 19:41:02 +0400
 To: video4linux-list@redhat.com
-References: <484920B9.4010107@linos.es> <20080606121719.GA506@daniel.bse>
-In-Reply-To: <20080606121719.GA506@daniel.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: bttv driver problem last kernels
+Message-ID: <4845660E.mail5RL112CPN@vesta.asc.rssi.ru>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Subject: v4l API question: any support for HDTV is possible?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,45 +31,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel Glöckner escribió:
-> On Fri, Jun 06, 2008 at 01:34:17PM +0200, Linos wrote:
->> Hello all,
->> 	i am using a bttv multicapture board and i have been having 
->> 	increasing problems in last kernels, i am using two programs to capture my 
->> video input for security reasons (helix producer and mp4live from mpeg4ip 
->> project) since the first versions of v4l2 in 2.4 patched kernel versions i 
->> can attach the two programs at the same time at the same video input, only 
->> loss framerate
-> 
-> You are relying on undocumented behaviour when two v4l1 applications are
-> reading from bttv at the same time. Furthermore the v4l2 standards says
-> 
-> "1.1.4. Shared Data Streams
-> 
-> V4L2 drivers should not support multiple applications reading or writing
-> the same data stream on a device by copying buffers, time multiplexing
-> or similar means. This is better handled by a proxy application in user
-> space. When the driver supports stream sharing anyway it must be
-> implemented transparently. The V4L2 API does not specify how conflicts
-> are solved."
-> 
-> You should change your setup to use only one application accessing the
-> device.
-> 
->   Daniel
-> 
+Hello
 
-I have two options here:
+The TV-encoders provide capabilies concerning analog video signal of standart PAL, SECAM
+and NTSC. That standards are described quite exhaustively by v4l2_std_id.
 
-1) maintain 2.6.20 kernel version
-2) search for an application proxy that lets me use the same input for two programs
+Some modern HDTV-encoders use more complicated video standards. Is it possible to
+set parameters of HDTV-output device by v4linux API?
 
-i have a windows client connecting the two streams in different options, i cant disable any of them and i cant 
-double the number of capture inputs in the system, anyway i have not read the v4l2 standard so you have reason 
-that i should not be doing that but i have been doing from 2.4.17 (with patches) to 2.6.20.
+I am expecting that HDTV-parameters must include the thing like: H & V frequency, width & height,
+misc H & V sync intervals, pixel frequency and interlaced and progressive to describe custom
+HDTV-signal.
 
-Regards,
-Miguel Angel.
+Im working at open-source drivers for devices with HDTV-capabilities:
+http://sourceforge.net/projects/opensigma/
+
+The second question:
+could we add new type of output video devices (field type in v4l2_output structure):
+V4L2_OUTPUT_TYPE_DIGITAL_OVERLAY
+to describe digital output of my multimedia-board?
+
+Sergey
+/
 
 --
 video4linux-list mailing list
