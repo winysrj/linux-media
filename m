@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UM2W4P017116
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 18:02:32 -0400
-Received: from web63003.mail.re1.yahoo.com (web63003.mail.re1.yahoo.com
-	[69.147.96.214])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5UM2FO9022198
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 18:02:15 -0400
-Date: Mon, 30 Jun 2008 15:02:09 -0700 (PDT)
-From: Fritz Katz <frtzkatz@yahoo.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53LnnHP006866
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:49:49 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m53Lnb5w022553
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:49:37 -0400
+Date: Tue, 3 Jun 2008 23:49:18 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Sam Logen <starz909@yahoo.com>
+Message-ID: <20080603214917.GA596@daniel.bse>
+References: <986038.14508.qm@web35602.mail.mud.yahoo.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Message-ID: <642127.1103.qm@web63003.mail.re1.yahoo.com>
-Cc: pksings@gmail.com
-Subject: Re: DVICO dual express second tuner?
-Reply-To: frtzkatz@yahoo.com
+Content-Disposition: inline
+In-Reply-To: <986038.14508.qm@web35602.mail.mud.yahoo.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Question - Component input via software card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,69 +27,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-"Paul Kelly" wrote Monday, June 30, 2008: 
->  
->  I got the latest tree and firmware and successfully 
->  brought up a new DVICO dual express and can tune HD cable.
->  
->  According to the marketing fluff this card has two 
->  tuners and can tune either two digital HD streams or one 
->  analog and one HD stream. 
->  
->  Can anyone give me any idea how to make it do that? 
->  Mythtv only identifies tuner 0. 
->  
->  Any information needed will happily be supplied, 
->  please ask.
->  
->  Thanks in advance
->  
->  PK
-_________________________
+On Tue, Jun 03, 2008 at 01:55:07PM -0700, Sam Logen wrote:
+> Now, software capture cards collect raw information
+> from their video and audio composite jacks, right? 
 
-Hello Paul Kelly,
+Some capture cards can collect raw information.
 
-  I don't own one myself, but I can point you in the direction of the HCL (Linux Hardware Compatability List):
+> Then the software processes these streams into a file.
 
-http://www.linuxquestions.org/hcl/showproduct.php/product/4012/cat/196
+No, drivers make the card process the raw data for normal use.
+This is too much to be done in software.
 
-  Maybe info here can help you getting the second tuner working:
-http://www.mythtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Digital_Installation
+>  Would it be possible to connect component cables from
+> a high def. video source to the video and audio
+> composite plugs of the capture card, and have a
+> program process the three streams together as video
+> streams instead of video and audio streams, then save
+> the result in a file?
 
-> The "DViCO FusionHDTV DVB-T Dual Tuner" card has two tuners. 
-> One is PCI, the other is USB. You will either need to connect 
-> an external USB cable to your card, or use the supplied internal 
-> USB cable which connects to your motherboard. This will enable 
-> the second tuner and is needed for the remote to function.
+Baseband audio inputs are usually sampled at a much lower frequency than
+video inputs.
+And if audio is not input as baseband signal, there is only one ADC.
 
-Let me know how it works out.
+> Or would the hardware on the capture card filter out
+> anything it would not perceive as audio?
 
------------------------
-Everyone,
+In baseband audio there may be an analog low pass filter corresponding
+to the low sampling rate.
 
-I'm considering getting this el-cheapo card that isn't on the HCL list :
+I don't know any chip that captures raw modulated audio.
+But on the other hand I don't know that many chips.
 
-"Sabrent Philips7130 PCI TV Tuner/Video Capture Card"
-http://www.geeks.com/details.asp?invtid=TV-PCIRC&cat=VID
+> I'm not taking into consideration processing power or
+> hard drive access bottlenecks, or other hardware
+> limitations beyond the capture card.
 
-Reviewers using Windoze at NewEgg gave it bad reviews. But maybe it works better for Linux-TV?  What's your experience?
+It is a bit difficult to consider the limitations of an unknown capture
+card.
 
-I'm looking for a card that does analog PAL/NTSC/SECAM -- that also works for Linux-TV.
-
-Regards,
--- Fritz Katz
-frtzkatz (at) yahoo.com
-
-
-
-
-
-
-
-
-
-
-      
+  Daniel
 
 --
 video4linux-list mailing list
