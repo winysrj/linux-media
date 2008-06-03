@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m54KNHGi024520
-	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 16:23:17 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m54KMaVi001030
-	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 16:22:44 -0400
-Date: Wed, 4 Jun 2008 17:22:21 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Eduardo Valentin" <edubezval@gmail.com>
-Message-ID: <20080604172221.6c7448e7@gaivota>
-In-Reply-To: <a0580c510806041313p237077e0wf3f92b4ef67285b3@mail.gmail.com>
-References: <20080604114437.0cf0dd69@gaivota> <4846B2B4.7080501@linuxtv.org>
-	<a0580c510806041313p237077e0wf3f92b4ef67285b3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: tony@atomide.com, eduardo.valentin@indt.org.br, video4linux-list@redhat.com,
-	mkrufky@linuxtv.org, sakari.ailus@nokia.com
-Subject: Re: [PATCH 0/1] Add support for TEA5761 (from linux-omap)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53F4vYu031922
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:04:57 -0400
+Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
+	[75.180.132.121])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53F4eI6029767
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:04:40 -0400
+Date: Tue, 3 Jun 2008 10:04:33 -0500
+From: David Engel <david@istwok.net>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-ID: <20080603150433.GA30532@opus.istwok.net>
+References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
+	<20080530145830.GA7177@opus.istwok.net>
+	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
+	<20080601190328.GA23388@opus.istwok.net>
+	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
+	<20080601205522.GA2793@opus.istwok.net>
+	<37219a840806021309x516f204ep8b25d8a730c4f0e0@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840806021309x516f204ep8b25d8a730c4f0e0@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Jason Pontious <jpontious@gmail.com>
+Subject: Re: Kworld 115-No Analog Channels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,71 +34,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 4 Jun 2008 16:13:57 -0400
-"Eduardo Valentin" <edubezval@gmail.com> wrote:
-
-> Hi Mike,
+On Mon, Jun 02, 2008 at 04:09:12PM -0400, Michael Krufky wrote:
+> On Sun, Jun 1, 2008 at 4:55 PM, David Engel <david@istwok.net> wrote:
+> > The tuner is detected this time and analog capture works.
 > 
-> On Wed, Jun 4, 2008 at 11:20 AM,  <mkrufky@linuxtv.org> wrote:
-> > Mauro Carvalho Chehab wrote:
-> >> Hi Eduardo,
-> >>
-> >> On Wed, 4 Jun 2008 10:25:23 -0400
-> >> "Eduardo Valentin" <edubezval@gmail.com> wrote:
-> >>
-> >>
-> >>> Hi Mauro and Michael,
-> >>>
-> >>> Thanks for pointing that there were a duplicated work. If there is any
-> >>> update on the current driver, I'll contact you. I'm not the author of
-> >>> this driver, but I'm interested in some points here.
-> >>>
-> >>> This chip is used on n800 FM radio. That's why this version came from
-> >>> linux-omap.
-> >>> Anyway, one quest that came from my mind, taking a brief look into
-> >>> this two drivers,
-> >>> I see they use different interfaces to register a FM radio driver, and
-> >>> more they are located
-> >>> under different places inside the tree. So, what is more recommended
-> >>> for FM radio drivers?
-> >>> being under drivers/media/radio/ or under drivers/media/common/tunners/ ?
-> >>> What is the API more recommended dvb_tuner_ops or video_device ? I
-> >>> wonder also what current applications are using.
-> >>>
-> >>
-> >> Good point. some radio tuners are used inside video boards. Before, this
-> > were
-> >> located inside drivers/media/video. Now, they are at common/tuners. This
-> > seems
-> >> to be a better place.
-> >>
-> >> It should be noticed that tea5761 is an I2C device. So, you'll probably
-> > need a
-> >> counterpart module, at media/radio, that will provice I2C access methods
-> > needed
-> >> on N800.
-> >>
-> > Basically, what you will have to do is create a n800 driver under
-> > media/radio.  This n800 driver will provide the userspace interface via
-> > v4l2, and it will use internal tuner API to interface to the tea5761 module.
-> >
+> The fact that reloading tuner.ko confirms my suspicion --
 > 
-> Yeah, true.
+> In the case of the ATSC110 / ATSC115, we can't attach the tuner client
+> module until after the NXT2004 has been initialized with its i2c gate
+> left in open state.
 > 
-> > When all is said and done, most likely all of the tea5761-specific code
-> > would be removed from the driver that you submit -- the remaining code
-> > would merely handle glue between userspace and internal tuner api.
-> 
-> Humm.. some code may remain inside this driver. Functions to power on/down
-> the device, for example. They are not exported through this tuner API.
+> If you unload all v4l/dvb drivers and modprobe saa7134, I believe this
+> will work properly, since the demod has already been initialized once,
+> with the gate left open by default.
 
-Please map what functions you're needing. It makes sense to extend tuner API to
-handle such things. In the case of power down, I think there's one callback for
-it already.
+This jives with what I saw in further testing.  After it worked once,
+it would continue to work across all sorts of module reloads.  I
+thought there was one time it didn't continue to work, though, but I
+could never reproduce it.
 
+> So, that's a workaround to your problem.  When I find some spare time,
+> I'll investigate into what changed in 2.6.25 that led to this issue.
+> This is *not* the same issue that Hermann described in his mail.
 
-Cheers,
-Mauro
+Thanks.  It would be very nice to get this fixed.  FWIW, I just tried
+unloading and reloading tuner/tuner-simple on my system with 2 ATSC
+115s and 2 PVR x50s.  All tuners were detected for the first time I
+can remember.  The PVR x50 tuners were always detected but no more
+than one of the ATSC 115 tuners was ever detected before.
+
+David
+-- 
+David Engel
+david@istwok.net
 
 --
 video4linux-list mailing list
