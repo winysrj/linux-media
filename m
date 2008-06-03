@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5PJpirt001489
-	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 15:51:44 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5PJpXaU031212
-	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 15:51:34 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1705567fga.7
-	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 12:51:33 -0700 (PDT)
-Message-ID: <30353c3d0806251251v6f91a7efy7ceedab39a42f0a6@mail.gmail.com>
-Date: Wed, 25 Jun 2008 15:51:33 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53JDYBY030549
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:13:34 -0400
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53JDKxO018169
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:13:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
+Date: Tue, 3 Jun 2008 21:13:15 +0200
+References: <48457617.mail5YC1S9Z5F@vesta.asc.rssi.ru>
+	<loom.20080603T165006-806@post.gmane.org>
+	<3192d3cd0806031200k48d63141hefbb3df5d812e903@mail.gmail.com>
+In-Reply-To: <3192d3cd0806031200k48d63141hefbb3df5d812e903@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: Bug in stv680
+Message-Id: <200806032113.15468.hverkuil@xs4all.nl>
+Cc: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Subject: Re: v4l API question: any support for HDTV is possible?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,45 +31,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm currently in the process of developing driver for a currently
-unsupported usb camera. For guidance, I've been referencing the code
-of other usb camera drivers. While reviewing the stv680 code, I've
-come across a bug that looks like it could crash the driver. Since I
-do not have a camera that is supported by this driver, I can only rely
-on my interpretation of the code and how my still underdeveloped
-driver behaves.
+On Tuesday 03 June 2008 21:00:28 Christian Gmeiner wrote:
+> 2008/6/3 Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>:
+> > Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
+> >> > Have you not seen this at all? http://dxr3.sf.net
+> >>
+> >> I know that project. The DXR3 boards dont have HDTV capabilities.
+> >
+> > The v4l API is a framework for frame grabbers and hardware
+> > encoders. There exists no unified API for hardware decoders such as
+> > yours. Each hardware decoder driver supplies an API of its own. The
+> > DXR3 project is most similar hardware-wise to what you're coding.
+> > Other projects in that category include:
+>
+> I thought v4l2 has support for video output? Have a look at
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single
+>/v4l2.html#OUTPUT
+>
+> Maybe its time to come up with an extension for v4l to support
+> decoders?! As far as I can see
+> the DVB API hase some output stuff, as there exists FF-DVB cards with
+> an mpeg2 decoder
+> on it. But I think that there should be an api for decoding which
+> gets used by dvb cards, dxr3
+> and all other encoder cards.
 
-In stv_open, stv680->user is set to 1. In stv_close, stv680->user is
-set to 0. In stv680_disconnect, the value of stv680->user is used to
-determine if the stv680 struct should be freed. Under the following
-conditions stv680->user will be 0 and the stv680 struct will be freed
-while it is still in use.
-     1. Application 1 opens the device. stv680->user transitions from 0->1
-     2. Application 2 opens the device. stv680->user transitions from 1->1
-     3. Application 2 closes the device. stv680->user transitions from 1->0
-     4. Device is physically disconnected. stv680 is freed.
-     5. Application 1 closes the device.
+MPEG decoders ARE supported: ivtv does it for MPEG2, and that includes 
+an framebuffer device and Xorg overlay driver.
 
-The crash could happen at step 4 in stv680_read, stv680_mmap, or
-stv680_do_ioctl, or at step 5 in stv_close depending on how
-Application 1 is using the device.
+See the following sections in the V4L2 spec:
 
-The apparent fix for this, is that stv680->user should be incremented
-whenever the device is opened, and decremented when it is closed.
-Likewise, a lock should be used to guarantee exclusive access to
-stv680->user to avoid a race condition between stv_open and stv_close.
-This should correct the case where the structure is freed by
-stv_disconnect while it is still open and in use.
+- 1.9.5 MPEG Control reference
+- 4.3 Video Output Interface
+- 4.4 Video Output Overlay Interface
 
-I should note, the v4l2 specs indicate that the device may be opened
-multiple times as in the case above. The reasoning for this is that
-while one application is streaming the video, another may modify
-controls. A valid fix would therefore not be to deny multiple opens to
-the device.
+And these sources:
+
+- linux/dvb/video.h for: VIDEO_COMMAND
+- ivtv_decoder_ioctls() in ivtv-ioctl.c
+
+So decoder commands are really handled through DVB ioctls, but they work 
+pretty well.
+
+There is currently no way to set the HDTV-parameters through the V4L2 
+API, so I suggest you make a proposal for this.
 
 Regards,
 
-David Ellingsworth
+	Hans
 
 --
 video4linux-list mailing list
