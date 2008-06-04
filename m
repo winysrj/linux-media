@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hu-out-0506.google.com ([72.14.214.233])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artlov@gmail.com>) id 1K7dvP-0004Ec-SR
-	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 00:08:46 +0200
-Received: by hu-out-0506.google.com with SMTP id 23so6445409huc.11
-	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 15:08:27 -0700 (PDT)
-Message-ID: <48544159.8080706@gmail.com>
-Date: Sun, 15 Jun 2008 01:08:25 +0300
-From: Arthur Konovalov <artlov@gmail.com>
+	(envelope-from <bokola@gmail.com>) id 1K416h-0003YV-Qx
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 00:05:24 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so175287fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 04 Jun 2008 15:05:20 -0700 (PDT)
+Message-ID: <854d46170806041505w69a0bebakfa997223cade4381@mail.gmail.com>
+Date: Thu, 5 Jun 2008 00:05:19 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "=?ISO-8859-1?Q?Michael_Sch=F6ller?="
+	<michael.schoeller@schoeller-soft.net>
+In-Reply-To: <484709F3.7020003@schoeller-soft.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <1212585271.32385.41.camel@pascal>	<1212590233.15236.11.camel@rommel.snap.tv>	<1212657011.32385.53.camel@pascal><200806081738.20609@orion.escape-edv.de>	<484CBDF3.90806@gmail.com>
-	<09e001c8ce5a$558b9a50$7501010a@ad.sytec.com>
-In-Reply-To: <09e001c8ce5a$558b9a50$7501010a@ad.sytec.com>
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+Content-Disposition: inline
+References: <484709F3.7020003@schoeller-soft.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,40 +23,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Baxter wrote:
-> Hi
-> 
-> What am I doing wrong - sorry for the potentially idiot error...
-> 
-> I got what I thought was the latest, which would include these c-1501 
-> patches yes??
-> hg clone http://linuxtv.org/hg/v4l-dvb
-> 
-> 
-> But there's no "linux/drivers/media/dvb/frontends/tda827x.c"   and the 
-> "linux/drivers/media/dvb/ttpci/budget-ci.c"   is not the same as the patches 
-> references.
-> 
-> [root@freddy v4l-dvb]# find . | grep tda827x.c
-> ./.hg/store/data/linux/drivers/media/common/tuners/tda827x.c.i
-> ./.hg/store/data/linux/drivers/media/dvb/frontends/tda827x.c.i
-> ./linux/drivers/media/common/tuners/tda827x.c
-> 
-> 
-> Have I got the wrong repository??
-> 
-Mentioned patches adopted to multiproto tree. For v4l-dvb please use 
-Sigmund's original patches if these not committed yet.
+Hi Michael!
 
-Regards,
-AK
+You can find dvb-apps patches for the latest API 3.3 here.
+http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025222.html
 
+One more thing patches for PCTV 452e posted on the wiki is too old, there i=
+s new
+and final patches available.
+You need this files:
+patch_multiproto_pctv452e_tts23600.diff.bz2
+patch_multiproto_dvbs2_frequency.diff
+You can find it here
+http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025539.html
+
+Faruk
+
+
+On Wed, Jun 4, 2008 at 11:32 PM, Michael Sch=F6ller
+<michael.schoeller@schoeller-soft.net> wrote:
+> Hi,
+> I run into some problems when trying to get my 452e running.
+> I followed the infos at
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Sat_HDTV_Pro_USB_%284=
+52e%29
+>
+> and compiled multiproto kernel modules.
+> The device seems to be detected and working (even if the kernel now is
+> very unstable)
+> But I'm not able to do any more.
+> I downloaded the newest dvb-apps and compiled it. But scan, szap or
+> szap2 are not working.
+> Maybe I need some multiproto patch for dvb-apps but I didn't find
+> anything useful on the Internet.
+>
+> Can someone gives me an step by step explanation that I can use. Even I
+> ran into errors I could post them and get an solution this way.
+>
+> My System:
+> PS3 running YDL6 (with newest available packaged from the YDL6
+> repositories)
+>
+> Michael
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
