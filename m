@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5DAkrml029374
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 06:46:53 -0400
-Received: from scing.com (scing.com [217.160.110.58])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5DAkTux014254
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 06:46:40 -0400
-From: Janne Grunau <janne-dvb@grunau.be>
-To: video4linux-list@redhat.com
-Date: Fri, 13 Jun 2008 12:47:03 +0200
-References: <200806121535.30530.janne-dvb@grunau.be>
-	<200806130836.49227.hverkuil@xs4all.nl>
-In-Reply-To: <200806130836.49227.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m541cLKF005511
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 21:38:21 -0400
+Received: from host06.hostingexpert.com (host06.hostingexpert.com
+	[216.80.70.60])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m541c9JZ006397
+	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 21:38:09 -0400
+Message-ID: <4845F1FF.3050406@linuxtv.org>
+Date: Tue, 03 Jun 2008 21:38:07 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Jason Pontious <jpontious@gmail.com>
+References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>	<20080530145830.GA7177@opus.istwok.net>	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>	<20080601190328.GA23388@opus.istwok.net>	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>	<20080601205522.GA2793@opus.istwok.net>
+	<f50b38640806031701g31353ee0h39b42a4c51a3374b@mail.gmail.com>
+In-Reply-To: <f50b38640806031701g31353ee0h39b42a4c51a3374b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200806131247.03511.janne-dvb@grunau.be>
-Subject: Re: [RFC] Extend V4L MPEG Encoding API, add AVC and AAC
+Cc: video4linux-list@redhat.com, David Engel <david@istwok.net>
+Subject: Re: Kworld 115-No Analog Channels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,79 +29,132 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 13 June 2008 08:36:49 Hans Verkuil wrote:
->
-> Looks good! Make sure you also document these in the v4l2 spec.
+Jason Pontious wrote:
+> On Sun, Jun 1, 2008 at 4:55 PM, David Engel <david@istwok.net> wrote:
+> 
+>> On Sun, Jun 01, 2008 at 03:10:21PM -0400, Michael Krufky wrote:
+>>> modprobe -r tuner
+>>> modprobe -r tuner-simple
+>>> modprobe tuner-simple debug=1
+>>> modprobe tuner debug=1
+>>>
+>>> ...then test again and show the dmesg logs.
+>> Here are the logs:
+>>
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: chip found @ 0x86 (saa7133[0])
+>> Jun  1 15:52:36 opus kernel: tda9887 2-0043: tda988[5/6/7] found
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: type set to tda9887
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: tv freq set to 0.00
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: TV freq (0.00) out of range
+>> (44-958)
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: saa7133[0] tuner' I2C addr 0x86
+>> with type 74 used for 0x0e
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: Calling set_type_addr for
+>> type=68, addr=0xff, mode=0x04, config=0x00
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0043: set addr for type 74
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Setting mode_mask to 0x0e
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tuner 0x61: Tuner type absent
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Calling set_type_addr for
+>> type=68, addr=0xff, mode=0x04, config=0x00
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: set addr for type -1
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: defining GPIO callback
+>> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: type set to 68 (Philips
+>> TUV1236D ATSC/NTSC dual in)
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: type set to Philips TUV1236D AT
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tv freq set to 400.00
+>> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: IFPCoff = 623:
+>> tuner_t_params undefined for tuner 68
+>> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv: param 0, range 1
+>> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: Freq= 400.00 MHz,
+>> V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
+>> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv 0x1b 0x6f 0xce 0x02
+>> Jun  1 15:52:36 opus kernel: tuner' 2-0061: saa7133[0] tuner' I2C addr 0xc2
+>> with type 68 used for 0x0e
+>>
+>> The tuner is detected this time and analog capture works.
+>>
+>> David
+>> --
+>> David Engel
+>> david@istwok.net
+>>
+> 
+> 
+> I've been following this discussion closely and will give you my input from
+> what I have seen.  Here is my output from a 2.6.24-rc4 kernel with the
+> v4l-dvb drivers included in that kernel.
+> 
+> My output from lsmod | grep tuner is :
+> 
+> [snip]
+> 
+> After modprobe -r tuner; modprobe -r saa7134-dvb; modprobe -r tuner-simple;
+> then modprobe tuner debug=1; modprobe saa7134-dvb; modprobe tuner-simple
+> debug=1
 
-But it wasn't. I missed to update v4l2_ctrl_query_fill_std()
-with the new max values. Updated patch below.
+module load order matters.  to explain how and why is beyond the scope of this conversation.  To make things easy, use "make unload" inside the v4l-dvb tree to unload all the media drivers.  (do NOT ever use make load)
 
-Janne
+The order that you loaded above will not propogate the debug=1 module option to tuner-simple, since you already loaded 'tuner' and saa7134 is already running -- the combination of saa7134 and tuner will automatically load tuner-simple without any regard to your command line module options.
 
-----
+try this:
 
-Extend V4L MPEG Encoding API with AVC and AAC
+make unload
+modprobe tuner-simple debug=1
+modprobe tuner debug=1
+modprobe saa7134
+modprobe saa7134-dvb
 
-From: Janne Grunau <j@jannau.net>
+> [17205274.727019] tda9887 1-0043: destroying instance
+> [17205281.126932] tuner-simple 1-0061: destroying instance
+> [17205295.203526] tuner' 1-0043: chip found @ 0x86 (saa7133[0])
+> [17205295.203535] tda9887 1-0043: creating new instance
+> [17205295.203538] tda9887 1-0043: tda988[5/6/7] found
+> [17205295.203540] tuner' 1-0043: type set to tda9887
+> [17205295.203543] tuner' 1-0043: tv freq set to 0.00
+> [17205295.203546] tuner' 1-0043: TV freq (0.00) out of range (44-958)
+> [17205295.211552] tuner' 1-0043: saa7133[0] tuner' I2C addr 0x86 with type
+> 74 used for 0x0e
+> [17205295.219525] tuner' 1-0061: Setting mode_mask to 0x0e
+> [17205295.219530] tuner' 1-0061: chip found @ 0xc2 (saa7133[0])
+> [17205295.219532] tuner' 1-0061: tuner 0x61: Tuner type absent
+> [17205319.208573] nxt200x: NXT2004 Detected
+> [17205319.216610] tuner-simple 1-0061: creating new instance
+> [17205319.216615] tuner-simple 1-0061: type set to 68 (Philips TUV1236D
+> ATSC/NTSC dual in)
+> [17205319.216619] tuner-simple 1-0061: tuner 0 atv rf input will be
+> autoselected
+> [17205319.216621] tuner-simple 1-0061: tuner 0 dtv rf input will be
+> autoselected
+> [17205319.216625] DVB: registering new adapter (saa7133[0])
+> [17205319.216628] DVB: registering frontend 0 (Nextwave NXT200X VSB/QAM
+> frontend)...
+> [17205319.232698] nxt2004: Waiting for firmware upload
+> (dvb-fe-nxt2004.fw)...
+> [17205319.232706] firmware: requesting dvb-fe-nxt2004.fw
+> [17205319.256572] nxt2004: Waiting for firmware upload(2)...
+> [17205320.877005] nxt2004: Firmware upload complete
+> 
+> I dont have analog channels before or after this.  I should have some set of
+> analog channels on either input.  Before with the ubuntu 2.6.24 I would
+> receive analog from the top input.  With 2.6.26-rc4 I can't seem to get
+> analog no matter what.  I'm not sure how my problem applies to the rest of
+> this conversation or if its completely different.
+> 
+> Let me know if you would like me to test anything else.
 
-Adds Advanced Audio Coding (AAC) and MPEG-4 Advanced Video Coding (AVC/H.264)
-as audio/video codecs to the extended controls API.
+If the top input doesn't work, then try the bottom one.  Use the module options to change them if you like.
 
-Signed-off-by: Janne Grunau <j@jannau.net>
+If things still dont work, then try the following:
 
-diff -r 87878a6b80a8 -r a8438761721d linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Fri Jun 13 11:21:43 2008 +0200
-+++ b/linux/drivers/media/video/v4l2-common.c	Fri Jun 13 11:29:04 2008 +0200
-@@ -359,7 +359,7 @@ int v4l2_ctrl_query_fill(struct v4l2_que
- 	/* MPEG controls */
- 	case V4L2_CID_MPEG_CLASS: 		name = "MPEG Encoder Controls"; break;
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: name = "Audio Sampling Frequency"; break;
--	case V4L2_CID_MPEG_AUDIO_ENCODING: 	name = "Audio Encoding Layer"; break;
-+	case V4L2_CID_MPEG_AUDIO_ENCODING: 	name = "Audio Encoding"; break;
- 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	name = "Audio Layer I Bitrate"; break;
- 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	name = "Audio Layer II Bitrate"; break;
- 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	name = "Audio Layer III Bitrate"; break;
-@@ -494,7 +494,7 @@ int v4l2_ctrl_query_fill_std(struct v4l2
- 	case V4L2_CID_MPEG_AUDIO_ENCODING:
- 		return v4l2_ctrl_query_fill(qctrl,
- 				V4L2_MPEG_AUDIO_ENCODING_LAYER_1,
--				V4L2_MPEG_AUDIO_ENCODING_LAYER_3, 1,
-+				V4L2_MPEG_AUDIO_ENCODING_AAC, 1,
- 				V4L2_MPEG_AUDIO_ENCODING_LAYER_2);
- 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
- 		return v4l2_ctrl_query_fill(qctrl,
-@@ -536,7 +536,7 @@ int v4l2_ctrl_query_fill_std(struct v4l2
- 	case V4L2_CID_MPEG_VIDEO_ENCODING:
- 		return v4l2_ctrl_query_fill(qctrl,
- 				V4L2_MPEG_VIDEO_ENCODING_MPEG_1,
--				V4L2_MPEG_VIDEO_ENCODING_MPEG_2, 1,
-+				V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 1,
- 				V4L2_MPEG_VIDEO_ENCODING_MPEG_2);
- 	case V4L2_CID_MPEG_VIDEO_ASPECT:
- 		return v4l2_ctrl_query_fill(qctrl,
-diff -r 87878a6b80a8 -r a8438761721d linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Fri Jun 13 11:21:43 2008 +0200
-+++ b/linux/include/linux/videodev2.h	Fri Jun 13 11:29:04 2008 +0200
-@@ -923,6 +923,7 @@ enum v4l2_mpeg_audio_encoding {
- 	V4L2_MPEG_AUDIO_ENCODING_LAYER_1 = 0,
- 	V4L2_MPEG_AUDIO_ENCODING_LAYER_2 = 1,
- 	V4L2_MPEG_AUDIO_ENCODING_LAYER_3 = 2,
-+	V4L2_MPEG_AUDIO_ENCODING_AAC     = 3,
- };
- #define V4L2_CID_MPEG_AUDIO_L1_BITRATE 		(V4L2_CID_MPEG_BASE+102)
- enum v4l2_mpeg_audio_l1_bitrate {
-@@ -1005,8 +1006,9 @@ enum v4l2_mpeg_audio_crc {
- /*  MPEG video */
- #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
- enum v4l2_mpeg_video_encoding {
--	V4L2_MPEG_VIDEO_ENCODING_MPEG_1 = 0,
--	V4L2_MPEG_VIDEO_ENCODING_MPEG_2 = 1,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_2     = 1,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC = 2,
- };
- #define V4L2_CID_MPEG_VIDEO_ASPECT 		(V4L2_CID_MPEG_BASE+201)
- enum v4l2_mpeg_video_aspect {
+make unload
+modprobe saa7134-dvb
+modprobe -r tuner
+modprobe tuner
+
+...that should do it.  Try both inputs.
+
+-Mike
 
 --
 video4linux-list mailing list
