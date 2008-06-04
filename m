@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m58D9sJo008819
-	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 09:09:54 -0400
-Received: from viefep11-int.chello.at (viefep11-int.chello.at [62.179.121.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m58D9gpD019437
-	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 09:09:42 -0400
-From: Michael Schimek <mschimek@gmx.at>
-To: Andy Walls <awalls@radix.net>
-In-Reply-To: <1212805718.3168.99.camel@palomino.walls.org>
-References: <200805262326.30501.hverkuil@xs4all.nl>
-	<1211850976.3188.83.camel@palomino.walls.org>
-	<200805270853.31287.hverkuil@xs4all.nl>
-	<200805270900.20790.hverkuil@xs4all.nl>
-	<1212791383.17465.742.camel@localhost>
-	<1212805718.3168.99.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Sun, 08 Jun 2008 14:27:25 +0200
-Message-Id: <1212928045.17465.1044.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m548KFcW008203
+	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 04:20:15 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m548K3ID032474
+	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 04:20:03 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1K3oDy-0000G5-8d
+	for video4linux-list@redhat.com; Wed, 04 Jun 2008 08:20:02 +0000
+Received: from 178.121.221.87.dynamic.jazztel.es ([87.221.121.178])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 04 Jun 2008 08:20:02 +0000
+Received: from svoop by 178.121.221.87.dynamic.jazztel.es with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 04 Jun 2008 08:20:02 +0000
+To: video4linux-list@redhat.com
+From: Sven <svoop@delirium.ch>
+Date: Wed, 4 Jun 2008 07:25:14 +0000 (UTC)
+Message-ID: <loom.20080604T072013-7@post.gmane.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Need VIDIOC_CROPCAP clarification
-Reply-To: mschimek@gmx.at
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Subject: Hauppauge WinTV-HVR-1110 (saa7134) causes freezes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,22 +34,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-06-06 at 22:28 -0400, Andy Walls wrote:
-> On Sat, 2008-06-07 at 00:29 +0200, Michael Schimek wrote:
-> 
-> > As Daniel wrote, another way to view this is that the active portion of
-> > the video is about 52 µs wide. At 12.27 MHz (for NTSC square pixels) one
-> > would sample or "crop" 638 pixels over this period.
-> 
-> 
-> Actually since the NTSC line frequency is
-> 
-> Fh = 4.5 MHz/286 ~= 15.73426 kHz
+Hi
 
-I know. Do I have to give three decimal places for every single video
-standard to explain the basic idea? ;-)
+I'm using a Hauppauge WinTV-HVR-1110 (triangular shape) using saa7134 and
+tda1004x modules. Unfortunately, the signal strength I get from our house
+antenna to this DVB-T card is not very good on some channels which causes
+"frontend lost/regained" showers in the log.
 
-Michael
+Yet what's much worse: After a while (hours to days), the amd64 box freezes.
+This does not happen if I don't load the above modules.
+
+Anybody seen this behaviour before?
+
+-sven
 
 
 --
