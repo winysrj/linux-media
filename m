@@ -1,26 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5R12fKJ008230
-	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 21:02:41 -0400
-Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
-	[151.189.21.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5R12Qwc016200
-	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 21:02:27 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Ben Collins <ben.collins@canonical.com>
-In-Reply-To: <1214525206.7150.118.camel@cunning>
-References: <1214501094.7150.29.camel@cunning>
-	<1214524580.4480.32.camel@pc10.localdom.local>
-	<1214525206.7150.118.camel@cunning>
-Content-Type: text/plain
-Date: Fri, 27 Jun 2008 02:59:52 +0200
-Message-Id: <1214528392.4480.40.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: [v4l-dvb-maintainer] saa7134 duplicate device in module, but
-	different device_data?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m54EQ996017762
+	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 10:26:09 -0400
+Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.182])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m54EPTAW006788
+	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 10:25:29 -0400
+Received: by el-out-1112.google.com with SMTP id j27so33875elf.7
+	for <video4linux-list@redhat.com>; Wed, 04 Jun 2008 07:25:29 -0700 (PDT)
+Message-ID: <a0580c510806040725i8070ce1n2445c5a422bb88a3@mail.gmail.com>
+Date: Wed, 4 Jun 2008 10:25:23 -0400
+From: "Eduardo Valentin" <edubezval@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20080603185603.33647fc1@gaivota>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+References: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
+	<37219a840806030844p4ac8612x3388859ad29ad0dc@mail.gmail.com>
+	<20080603185603.33647fc1@gaivota>
+Content-Transfer-Encoding: 8bit
+Cc: Tony Lindgren <tony@atomide.com>,
+	Eduardo Valentin <eduardo.valentin@indt.org.br>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>, Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH 0/1] Add support for TEA5761 (from linux-omap)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,90 +35,88 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Mauro and Michael,
 
-Am Donnerstag, den 26.06.2008, 20:06 -0400 schrieb Ben Collins:
-> On Fri, 2008-06-27 at 01:56 +0200, hermann pitton wrote:
-> > Hello,
-> > 
-> > Am Donnerstag, den 26.06.2008, 13:24 -0400 schrieb Ben Collins:
-> > > In the saa7134 module, there are these two entries in
-> > > MODULE_DEVICE_TABLE():
-> > > 
-> > > 
-> > >         },{
-> > >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
-> > >                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-> > >                 .subvendor    = 0x185b,
-> > >                 .subdevice    = 0xc100,
-> > >                 .driver_data  = SAA7134_BOARD_VIDEOMATE_TV,
-> > >         },{
-> > >                 .vendor       = PCI_VENDOR_ID_PHILIPS,
-> > >                 .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-> > >                 .subvendor    = 0x185b,
-> > >                 .subdevice    = 0xc100,
-> > >                 .driver_data  = SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUS,
-> > >         },{
-> > > 
-> > > Both will exactly match, and I assume only the first one will ever be
-> > > used, hence the second is just a wasted dupe. At least, I would assume
-> > > if not for the differing driver_data. Anyway to clear up this ambiguity?
-> > > 
-> > 
-> > there are even more devices with the same PCI device and subsystem ID
-> > from that vendor and the problem goes also over saa7133 and saa7135
-> > devices, for which we have no means to detect them as different, but the
-> > saa7133 does only NTSC-M system TV sound decoding and saa7135 and the
-> > even later saa7131e global analog TV sound.
-> > 
-> > For the early saa7133 SAA7134_BOARD_VIDEOMATE_TV we don't have eeprom
-> > readout data and the contributor doesn't have the card anymore.
-> > A request for helping out with such on the list had no result so far.
-> > 
-> > As of now, we can't try to separate them by eeprom differences, which
-> > would be the best attempt and is done for some other Compro products
-> > with similar flaws already.
-> > 
-> > Before that likely possible eeprom detection ever happens, we have two
-> > options left to make you feel better.
-> > 
-> > Kick both out of the auto detection and the users will get a list of
-> > supported devices printed out, from which they have to choose.
-> > 
-> > Leave the oldest one in and print some warnings that they have to look
-> > it up for their newer cards. Naming is quite consistent, except some
-> > early Gold Plus II variants seen first in New Zealand coming with Gold
-> > Plus only stickers. They also come with different tuners, latest have a
-> > separate silicon radio tuner and all such usual ...
-> > 
-> > Patches are always welcome.
-> > 
-> > Internally it was only a reminder for missing eeprom data to be
-> > investigated.
-> 
-> Well I was thinking that mainly, this was just a table for loading and
-> binding the driver with a device. In that case, only one entry is
-> needed. The probing would have to decide which device it is.
-> 
-> I'm not up for suggesting a fix, because I don't know enough about the
-> background. This email is just a friendly reminder that there exists
-> ambiguity, and at least for one of these devices, the driver isn't going
-> to detect it properly anyway :)
-> 
+Thanks for pointing that there were a duplicated work. If there is any
+update on the current driver, I'll contact you. I'm not the author of
+this driver, but I'm interested in some points here.
 
-I do agree and will be happy with any patch you provide to get it out of
-sight ;)
-
-Comes back to mind, there is another Compro one on M systems with a NEC
-"deghoster", converting to s-video for that and hence hangs on unusally
-TV vmux 7.
-
-All through so far, but not on the ground enough, since users went away,
-after they have it working ...
+This chip is used on n800 FM radio. That's why this version came from
+linux-omap.
+Anyway, one quest that came from my mind, taking a brief look into
+this two drivers,
+I see they use different interfaces to register a FM radio driver, and
+more they are located
+under different places inside the tree. So, what is more recommended
+for FM radio drivers?
+being under drivers/media/radio/ or under drivers/media/common/tunners/ ?
+What is the API more recommended dvb_tuner_ops or video_device ? I
+wonder also what current applications are using.
 
 Cheers,
-Hermann
+
+On 6/3/08, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> On Tue, 3 Jun 2008 11:44:36 -0400
+> "Michael Krufky" <mkrufky@linuxtv.org> wrote:
+>
+>> On Tue, Jun 3, 2008 at 11:25 AM, Eduardo Valentin <edubezval@gmail.com>
+>> wrote:
+>> > From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+>> >
+>> > Hi guys,
+>> >
+>> > This patch is just an update from linux-omap tree.
+>> > It is a v4l2 driver which is only in linux-omap tree.
+>> > I'm just sendint it to proper repository.
+>> >
+>> > It adds support for tea5761 chip.
+>> > It is a v4l2 driver which exports a radio interface.
+>> >
+>> > Comments are wellcome!
+>> >
+>> > Cheers,
+>> >
+>> > Eduardo Valentin (1):
+>> >  Add support for tea5761 chip
+>> >
+>> >  drivers/media/radio/Kconfig         |   13 +
+>> >  drivers/media/radio/Makefile        |    1 +
+>> >  drivers/media/radio/radio-tea5761.c |  516
+>> > +++++++++++++++++++++++++++++++++++
+>> >  3 files changed, 530 insertions(+), 0 deletions(-)
+>> >  create mode 100644 drivers/media/radio/radio-tea5761.c
+>>
+>> Eduardo,
+>>
+>> We already have a tea5761 driver in our tree -- can you use that one,
+>> instead?  Mauro Carvalho Chehab (cc added) wrote that driver based on
+>> a datasheet -- it should work for you.  If it needs changes, please
+>> generate patches against
+>> linux/drivers/media/common/tuners/tea5761.[ch]
+>
+> Michael,
+>
+> Thanks for noticing this. I'm very busy those days, still trying to figure
+> out
+> what patches are missed.
+>
+> Olá Eduardo,
+>
+> We should avoid to duplicate drivers. Feel free to fix tea5761, if it is not
+> working, but don't add another version.
+>
+> If you have any doubts about it, feel free to send it to me.
+>
+> Thanks.
+>
+>
+> Cheers,
+> Mauro
+>
 
 
+-- 
+Eduardo Bezerra Valentin
 
 --
 video4linux-list mailing list
