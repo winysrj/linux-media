@@ -1,12 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <4857E384.1000200@linuxtv.org>
+Received: from mail.hauppauge.com ([167.206.143.4])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1K4IMn-0000gt-BF
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 18:31:10 +0200
+Message-ID: <4848149A.10900@linuxtv.org>
 From: mkrufky@linuxtv.org
-To: bcjenkins@tvwhere.com
-Date: Tue, 17 Jun 2008 12:17:08 -0400
+To: crope@iki.fi
+Date: Thu, 5 Jun 2008 12:30:18 -0400 
 MIME-Version: 1.0
-in-reply-to: <6CF9A586-AF45-4900-8BA4-3F537C1CB562@tvwhere.com>
+in-reply-to: <48480E9D.9000004@iki.fi>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [PATCH]
+Subject: Re: [linux-dvb] PEAK DVB-T Digital Dual Tuner PCI - anyone got t	his
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,115 +24,81 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Brandon Jenkins wrote:
->
-> On Jun 17, 2008, at 11:24 AM, mkrufky@linuxtv.org wrote:
->
->> Brandon Jenkins wrote:
->>>
->>> On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
->>>
->>>> Brandon Jenkins wrote:
->>>> Brandon,
->>>>
->>>> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
->>>> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner 
->>>> dependency
->>>> selections.  Please note the description of this option:
->>>>
->>>> menuconfig MEDIA_TUNER_CUSTOMIZE
->>>>       bool "Customize analog and hybrid tuner modules to build"
->>>>       depends on MEDIA_TUNER
->>>>       help
->>>>         This allows the user to deselect tuner drivers unnecessary
->>>>         for their hardware from the build. Use this option with care
->>>>         as deselecting tuner drivers which are in fact necessary will
->>>>         result in V4L/DVB devices which cannot be tuned due to lack of
->>>>         driver support
->>>>
->>>>         If unsure say N.
->>>>
->>>>
->>>> We allow users to disable certain modules if they think they know
->>>> better, and choose to compile out drivers that they don't need.  You
->>>> should not have disabled tuner-simple -- to play it safe, don't enable
->>>> MEDIA_TUNER_CUSTOMIZE
->>>>
->>>> Regards,
->>>>
->>>> Mike
->>>>
->>>>
->>> Mike,
->>>
->>> Thank you. I understand the impact my choice makes in that matter.
->>> However, all of the other modules required for cx18 to function are
->>> marked in the lists as -M- indicating it is a required module/module
->>> dependency. I apologize for my ignorance of terminology, etc., but it
->>> would seem to me that "Simple tuner support" should automatically have
->>> the -M- as a required resource for the tuner to function correctly.
->>>
->>> Thank you for your time in responding.
->>>
->>> Brandon
->> No -- You are misunderstanding -- The selection of the tuner.ko i2c
->> client module is forced as -M- , since it is selected as a dependency.
->> You then proceeded into a deeper layer of customization, and enabled
->> "MEDIA_TUNER_CUSTOMIZE" -- this option allows you to disable tuner
->> modules that should have otherwise been autoselected for your hardware.
->> I repeat -- this is an advanced customization option, and you have been
->> so warned by its Kconfig description.
+Antti Palosaari wrote:
+> Serge Nikitin wrote:
+>> Andrew,
 >>
->> I am pushing up a patch now that disables MEDIA_TUNER_CUSTOMIZE by 
->> default.
+>> PEAK DVB-T Dual tuner PCI (221544AGPK) is either renamed or rebadged 
+>> KWorld DVB-T PC160 card.
 >>
->> -Mike
-> Mike,
+>> I'm using first tuner on this card with help of the driver from 
+>> following source tree (snapshot was taken around 20/05/2008):
+>> http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
+>> and latest firmware from
+>>
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_fil
+es/ 
+>>
+>>
+>> Small modification for sources (file af9015.c) was needed (just add 
+>> one more USB Device ID (1b80:c160)) and the card is "just work" as a 
+>> single-tuner card.
 >
-> That doesn't solve the problem. I believe the patch below, will.
+> Thank you for this information, I will add this USB-ID to the driver.
 >
-> Brandon
+>> I have not test second tuner due to following issue:
+>>  
+>> Second tuner identified itself correctly only after really "cold 
+>> restart" (power down, wait some time, power up):
+>> May 20 23:39:09 dvbbird kernel: DVB: registering new adapter (KWorld  
+>> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
+>> May 20 23:39:10 dvbbird kernel: af9013: firmware version:4.95.0
+>> May 20 23:39:10 dvbbird kernel: tda18271 3-00c0: creating new instance
+>> May 20 23:39:10 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
+>> May 20 23:39:10 dvbbird kernel: dvb-usb: will pass the complete MPEG2 
+>> transportstream to the software demuxer.
+>> May 20 23:39:10 dvbbird kernel: DVB: registering new adapter (KWorld  
+>> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
+>> May 20 23:39:11 dvbbird kernel: af9013: firmware version:4.95.0
+>> May 20 23:39:11 dvbbird kernel: tda18271 4-00c0: creating new instance
+>> May 20 23:39:11 dvbbird kernel: TDA18271HD/C1 detected @ 4-00c0
+>>
+>> For any sort of "not-really-cold" restarts second tuner fails to 
+>> respond correctly:
+>> May 21 00:10:10 dvbbird kernel: DVB: registering new adapter (KWorld  
+>> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
+>> May 21 00:10:11 dvbbird kernel: af9013: firmware version:4.95.0
+>> May 21 00:10:11 dvbbird kernel: tda18271 3-00c0: creating new instance
+>> May 21 00:10:11 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
+>> May 21 00:10:11 dvbbird kernel: dvb-usb: will pass the complete MPEG2 
+>> transportstream to the software demuxer.
+>> May 21 00:10:11 dvbbird kernel: DVB: registering new adapter (KWorld  
+>> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
+>> May 21 00:10:12 dvbbird kernel: af9013: firmware version:4.95.0
+>> May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: creating new instance
+>> May 21 00:10:12 dvbbird kernel: Unknown device detected @ 4-00c0, 
+>> device not supported.
 >
-> diff -r 50be11af3fdb linux/drivers/media/video/cx18/Kconfig
-> --- a/linux/drivers/media/video/cx18/Kconfig    Mon Jun 16 18:04:06 
-> 2008 -0300
-> +++ b/linux/drivers/media/video/cx18/Kconfig    Tue Jun 17 12:02:03 
-> 2008 -0400
-> @@ -12,6 +12,7 @@ config VIDEO_CX18
->      select VIDEO_CS5345
->      select DVB_S5H1409
->      select MEDIA_TUNER_MXL5005S
-> +    select MEDIA_TUNER_SIMPLE
->      ---help---
->        This is a video4linux driver for Conexant cx23418 based
->        PCI combo video recorder devices.
->
-Brandon,
+> Hmm, Mike have you any idea why it does not detect this tuner 
+> correctly  when "warm  restart" done ? 
 
-Thank you for this, but this patch will not be merged.  I explained in 
-the quoted email, above, that you have invoked a deeper layer of 
-customization that allows us to disable tuner modules, regardless of 
-your actual hardware.
 
-This option was designed for the sake of larger drivers, such as cx88 or 
-saa7134, who may use many different tuners depending on the actual board 
-present.  In the future, there may eventually be a cx18 board that does 
-not use tuner-simple.  This option allows users to disable tuner-simple 
-from building.  The default behavior is to automatically select the 
-tuner driver needed for your hardware, but when you enable 
-MEDIA_TUNER_CUSTOMIZE, this autoselection is turned off.  This is the 
-correct behavior.
+Maybe the tuner is behind an i2c gate that is closed at the time of 
+attach / detection?
 
-I repeat again that this Kconfig option provides a warning to the user 
-that this should be enabled at your own risk, only.
+tda18271 driver will refuse to attach to the driver if the ID register 
+does not contain a valid value.  The ID register is a single byte.
 
-"Use this option with care as deselecting tuner drivers which are in 
-fact necessary will result in V4L/DVB devices which cannot be tuned due 
-to lack of driver support."
+if ID_REGISTER & 0x7F == 3 then
+    TDA18271c1
+else if ID_REGISTER & 0x7F == 4 then
+    TDA18271c2
+else
+    INVALID
 
-Do not enable MEDIA_TUNER_CUSTOMIZE unless you know what you're doing.
-
-End of story.
+I suggest disabling the ability to close the i2c gate -- force it to 
+stay always open.  That should help you to determine whether or not the 
+i2c gate is the cause of this problem.
 
 -Mike
 
