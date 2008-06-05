@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hond.eatserver.nl ([195.20.9.5])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joep@groovytunes.nl>) id 1K3wjX-0004HJ-5W
-	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 19:25:12 +0200
-Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
-	(authenticated bits=0)
-	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
-	m54HP60x009941
-	for <linux-dvb@linuxtv.org>; Wed, 4 Jun 2008 19:25:07 +0200
-From: joep <joep@groovytunes.nl>
+Received: from n44.bullet.mail.ukl.yahoo.com ([87.248.110.177])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1K4Nzu-00010Z-1E
+	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 00:31:56 +0200
+Date: Thu, 05 Jun 2008 18:27:32 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Date: Wed, 4 Jun 2008 19:28:26 +0200
-References: <1212585271.32385.41.camel@pascal> <48469F71.1070904@iki.fi>
-	<1212590233.15236.11.camel@rommel.snap.tv>
-In-Reply-To: <1212590233.15236.11.camel@rommel.snap.tv>
+References: <1212610778l.7239l.1l@manu-laptop>
+	<200806052223.10682.dkuhlen@gmx.net>
+In-Reply-To: <200806052223.10682.dkuhlen@gmx.net> (from dkuhlen@gmx.net on
+	Thu Jun  5 16:23:10 2008)
+Message-Id: <1212704852l.9365l.2l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806041928.26807.joep@groovytunes.nl>
-Subject: [linux-dvb] diseqc VP-1041 skystar hd2
+Subject: [linux-dvb] Re : No lock on a particular transponder with TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +21,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello all.
-I have a skystar hd2 card and installed the latest mantis driver.
-Now I am able to watch some dvb-s and dvb-s2 channels from astra 19,2.
-The LNB for this satalite is connected to the default switch port.
-When I try to tune to a channel on any other satalite that is on de diseqc 
-switch I get no signal.
-I tried this with mythtv 0.21 and the mythtv patch from:
-http://svn.mythtv.org/trac/ticket/5403
+Le 05.06.2008 16:23:10, Dominik Kuhlen a =E9crit=A0:
+> On Wednesday 04 June 2008, manu wrote:
+> > 	Hi all,
+> > one more datapoint for the TT 3200 tuning problems. I solved all my =
 
-I have 2 questions.
-1. Has anyone used the skystar hd2 or twinhand vp-1041 succesfull with a 
-diseqc switch?
+> > locking problems by add 4MHz to the reported frequencies (coming
+> from =
 
-2. What should I do to figure out what the problem is exactly?
+> > the stream tables); note that one of the transponders always locked =
 
-Thanks
-Joep
+> > even without this correction (its freq is 11093MHz, the others =
+
+> are :
+> =
+
+> > 11555, 11635, 11675MHz), so as you see the others are much higher.
+> > Now there is another transponder at 11495MHz but this one I cant
+> lock =
+
+> > on it even with my correction. Here are its characteristic as
+> reported =
+
+> ---snip---
+> According to =
+
+> http://www.ses-astra.com/consumer/de/Sender/
+> senderlisten/2001_20080603_pdf.pdf
+> this transponder is analog TV with some ADRs.
+> =
+
+
+Actually if you look at the position, the sat is intelsat-9
+3 (somewhere above south america, I am located in the caribbean; I know =
+
+that there is a mention of an astra sat, but this is just a confusion.
+Thx
+Bye
+Manu
 
 
 _______________________________________________
