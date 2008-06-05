@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp3.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1KB4Cz-0001zr-9A
-	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 10:49:04 +0200
-Message-ID: <4860B4DA.10004@avalpa.com>
-Date: Tue, 24 Jun 2008 10:48:26 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
-MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] OpenCaster (transport stream modder server) ver 1.0 has
-	been released..
+Received: from mail-in-10.arcor-online.net ([151.189.21.50])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1K45ug-00017u-Ss
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 05:13:23 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Peter Meszmer <hubblest@web.de>, bvidinli <bvidinli@gmail.com>
+In-Reply-To: <200806042002.43971.hubblest@web.de>
+References: <36e8a7020806040347t27206049je7e12b233ababf04@mail.gmail.com>
+	<200806042002.43971.hubblest@web.de>
+Date: Thu, 05 Jun 2008 05:12:44 +0200
+Message-Id: <1212635564.2641.7.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] About Avermedia DVB-S Hybrid+FM A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,63 +28,80 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-I'm Andrea Venturi, i've been working with my colleague Lorenzo Pallara,
-since 2004, on a free DVB TS server software called JustDvb-It. Then
-early this year we have been start-upping a company doing the same stuff.
+Am Mittwoch, den 04.06.2008, 20:02 +0200 schrieb Peter Meszmer:
+> Hello,
+> 
+> to my mind your card _should_ work. 
+> I'm using a DVB-S Hybrid+FM A700 card with zzam's driver since version 
+> 20080204 without any problems on vanilla kernels 2.6.* and Gentoo-patched 
+> kernels. So I'm able to watch freeTV and listen to DVB-S-radio (Astra). 
+> 
+> Did you ever thought of building your own, fresh vanilla-kernel from the 
+> sources?
+> 
+> Regards
+> Peter
 
-So today, after some more development, we are proud to announce the
-birth of OpenCaster
-<http://www.avalpa.com/the-key-values/15-free-software/33-opencaster>
-version 1.0, the first release after Avalpa start up.
+thanks, this is the only valid rule here :)
 
-http://www.avalpa.com/component/content/article/12-newsflash/35-opencaster-ver10-release-today-2062008
+bvidinli, you can't file bugs against us from ubuntix.
 
+:)
 
-OpenCaster is still a free (free as freedom
-<http://www.gnu.org/licenses/gpl-2.0.html>) software for transport
-stream generation and management useful for many purposes: carousel
-server, PSI table generator, datacasting, MPEG2 "poor man" playout system.
+> 
+> Am Mittwoch, 4. Juni 2008 schrieb bvidinli:
+> > What is last status of driver for Avermedia DVB-S Hybrid+FM A700 ?
+> >
+> > as i last tested 20 days ago,
+> > 1- i build using hg, from linuxtv.org, dvb drivers,
+> > 2- i manually copied *.ko files to lib/modules directory, relevant dirs,
+> > 3- got satellite channels list/names of channels, using kaffeine, but
+> > no image/sound, i think decode fails...
+> >
+> > is there a recent update that i should try, or is there  a new method
+> > to overcome problem of "make install not working, because of unusual
+> > ubuntu directory structure for video modules...". I mean, lastly i run
+> > make install, but it did not solve driver problem, "symbol not found,
+> > disagrees messages on dmesg" this was because of ubuntu's choice for
+> > new directory structure of media modules...
+> >
+> > shortly, is there  a recent update to dvb drivers for avermedia dvb-s
+> > hybrid+fm a700 ?
+> >
+> > thanks..
+> >
+> > 2008/6/4, Eduard Huguet <eduardhc@gmail.com>:
+> > > Good point. I think the message is more explicative this way.
+> > >
+> > > Best regards,
+> > >   Eduard
+> > >
+> > > 2008/6/4 Matthias Schwarzott <zzam@gentoo.org>:
+> > > > On Samstag, 17. Mai 2008, hermann pitton wrote:
+> > > > > Hello,
+> > > > >
+> > > > > Am Sonntag, den 18.05.2008, 00:23 +0300 schrieb bvidinli:
+> > > > > > Hi,
+> > > > > > thank you for your answer,
+> > > > > >
+> > > > > > may i ask,
+> > > > > >
+> > > > > > what is meant by "analog  input", it is mentioned on logs that:"
+> > > > > > only analog inputs supported yet.." like that..
+> > > > > > is that mean: s-video, composit ?
+> > > > >
+> > > > > yes, only s-video and composite is enabled there.
+> > > > > Better we would have print only external analog inputs.
+> > > >
+> > > > If there is still interest to improve the printk message, here is a
+> > > > patch.
+> > > >
+> > > > Regards
+> > > > Matthias
+> 
 
-OpenCaster of course, grows on top of JustDvb-It
-<http://www.cineca.tv/labs/mhplab/JustDVb-It%202.0.html>, the previous
-free software we were carrying on in Cineca (kudos for them to give us
-this great opportunity!)
-
-Actually there are three main new features :
-
-    * *TS conversion (with right PCR) of ffmpeg
-      <http://ffmpeg.mplayerhq.hu/> encoded PS (PCR stamping in ffmpeg
-      TS is someway  broken!)*
-    * *PCR stamping for Transport Stream bitrate change*
-    * *hot multplexing of many SPTS in a single MPTS*
-
-Many more smaller ones are well embedded in the software (please read
-all the description files like *Readme* and *CHANGES*)
-
-We made a manual too, after many requests. It's a 70 page user manual
-and should be useful to ramp up quickly
-
-http://www.avalpa.com/assets/freesoft/opencaster/OpenCasterUserManual-v0.5.pdf
-
-
-To get this stuff, create an account
-<http://www.avalpa.com/component/user/?task=register> and then go to the
-reserved area <http://www.avalpa.com/reserved-area>. Please, *it could
-take some time* for the registration email to get delivered. Don't
-worry, it works.
-
-Let us know when you find a bug or some unexpected result. Write to
-opencaster-support@avalpa.com
-
-We are wide open to hear your complaints or success stories!
-
-Bye
-
-Andrea Venturi
-
- 
-
-
+Cheers,
+Hermann
 
 
 
