@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.wohnheimg.uni-frankfurt.de ([141.2.118.239])
+Received: from ik-out-1112.google.com ([66.249.90.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9sW2-0002Ae-Nh
-	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 04:07:50 +0200
-Received: from localhost ([127.0.0.1] helo=ssl.verfeiert.org)
-	by www.wohnheimg.uni-frankfurt.de with esmtp (Exim 4.69)
-	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9sVT-0006Qa-2S
-	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 04:07:43 +0200
-Message-ID: <45786.85.180.168.159.1214014031.squirrel@ssl.verfeiert.org>
-Date: Sat, 21 Jun 2008 04:07:11 +0200 (CEST)
-From: "Sven Eschenberg" <sven@whgl.uni-frankfurt.de>
+	(envelope-from <seb.linuxtv@googlemail.com>) id 1K4FcG-0004ho-Hh
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 15:34:57 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so420747ika.1
+	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 06:34:50 -0700 (PDT)
+Message-ID: <7296686b0806050634k515ee421n8f483b60aa8ce58f@mail.gmail.com>
+Date: Thu, 5 Jun 2008 15:34:50 +0200
+From: "Sebastian B" <seb.linuxtv@googlemail.com>
 To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: [linux-dvb] Support for MSI TV @nywhere Satellite [Correction]
-Reply-To: sven@whgl.uni-frankfurt.de
+Content-Type: multipart/mixed;
+	boundary="----=_Part_1140_22630503.1212672890733"
+Subject: [linux-dvb] Mantis VP-2040 (Terratec Cinergy C PCI) Remote Control
+	Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,108 +21,306 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi List,
+------=_Part_1140_22630503.1212672890733
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1141_10857331.1212672890734"
 
-I am terribly sorry, the MB86A16 (L) is from Fujitsu ...
+------=_Part_1141_10857331.1212672890734
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards
+Hello,
 
--Sven
+I'm quite new to this mailing list. So maybe somebody posted something
+similar but I haven't found it here.
 
+I have a Terratec Cinergy C PCI. AFAIK this is an clone of Mantis VP-2040.
 
-Old Mail:
+I'm using the mantis driver from http://jusst.de/hg/mantis.
 
-Hi List,
+Unfortunately there's no remote control support for any mantis chip type.
 
-what exactly is needed, to get support for the TV @nywhere Satellite.
+So I wrote a patch for the mantis driver version 0b04be0c088a which enables
+remote control support for Mantis VP-2040.
 
-Some Info that might be required:
+The patch is basically an extension of the remote patch for the VP-2033 I
+found on this mailing list.
 
-Card has Connectors for Sat, S-Video, AV (RCA JAcket), and IR reciever.
-
-Card is based upon Conexant CX23883-39 and uses a MB86A16 (L)
-Tuner/Demodulator from Fairchild Semiconductors.
-
-There is a sticker on the card saying 1027_V1.2 (Seems there are different
-Versions/Revisions).
-
-Output from lspci:
-
-01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder (rev 05)
-01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
-Decoder [MPEG Port] (rev 05)
-01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
-Decoder [IR Port] (rev 05)
----
-01:07.0 0400: 14f1:8800 (rev 05)
-01:07.2 0480: 14f1:8802 (rev 05)
-01:07.4 0480: 14f1:8804 (rev 05)
-
-lspci -v:
-01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder (rev 05)
-	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
-	Flags: bus master, medium devsel, latency 32, IRQ 15
-	Memory at eb000000 (32-bit, non-prefetchable) [size=16M]
-
-01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
-Decoder [MPEG Port] (rev 05)
-	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
-	Flags: bus master, medium devsel, latency 32, IRQ 15
-	Memory at ec000000 (32-bit, non-prefetchable) [size=16M]
-
-01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
-Decoder [IR Port] (rev 05)
-	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
-	Flags: bus master, medium devsel, latency 32, IRQ 15
-	Memory at ed000000 (32-bit, non-prefetchable) [size=16M]
-
-Output from dmesg:
-
-[   42.293604] cx88[0]: Your board isn't known (yet) to the driver.  You can
-[   42.293605] cx88[0]: try to pick one of the existing card configs via
-[   42.293607] cx88[0]: card=<n> insmod option.  Updating to the latest
-[   42.293608] cx88[0]: version might help as well.
-[   42.293610] cx88[0]: Here is a list of valid choices for the card=<n>
-insmod option:
-[   42.293612] cx88[0]:    [cardlist cropped]
-[   42.293716] cx88[0]: subsystem: 1822:0023, board: UNKNOWN/GENERIC
-[card=0,autodetected]
-[   42.293718] cx88[0]: TV tuner type -1, Radio tuner type -1
-[   42.439466] cx88[0]/0: found at 0000:01:07.0, rev: 5, irq: 15, latency:
-32, mmio: 0xeb000000
-[   42.614814] cx88[0]/0: registered device video0 [v4l2]
-[   42.614837] cx88[0]/0: registered device vbi0
-
-Any help or recommendations would be appreciated. If further information
-is needed, please don't hesitate to ask.
-
-Regards
-
--Sven
-
-I just realized, thath the twinhan AD-SP200(1027) board looks exactly the
-same as the MSI TV @nywhere Satellite board, as far as I can compare it
-and it seems it is no coincidence, that the MSI board carries the
-1027_V1.2 Sticker.
+It's not perfect yet, but it's working without any problems on my system.
 
 
+
+Here's how it works:
+
+1. Download version 0b04be0c088a from http://jusst.de/hg/mantis
+
+2. tar jfx mantis-0b04be0c088a.tar.bz2
+
+3. cd mantis-0b04be0c088a
+
+4. patch -p1 < mantis-patch-0b04be0c088a
+
+5. compile and install it like usually
+
+
+
+If somebody has any improvements or suggestions, please let me know.
+
+Maybe Manu can add remote control support in future releases?
+
+Best Regards,
+
+Sebastian
+
+------=_Part_1141_10857331.1212672890734
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<br>Hello,<br><br>I&#39;m quite new to this mailing list. So maybe somebody posted something similar but I haven&#39;t found it here.<br><br>I have a Terratec Cinergy C PCI. AFAIK this is an clone of Mantis VP-2040.<br><br>
+I&#39;m using the mantis driver from <a href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a>.<br><br>Unfortunately there&#39;s no remote control support for any mantis chip type.<br><br>So I wrote a patch for the mantis driver version 0b04be0c088a which enables remote control support for Mantis VP-2040.<br>
+<br>The patch is basically an extension of the remote patch for the VP-2033 I found on this mailing list.<br><br>It&#39;s not perfect yet, but it&#39;s working without any problems on my system.<br><br><br><br>Here&#39;s how it works:<br>
+<br>1. Download version 0b04be0c088a from <a href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a><br><br>2. tar jfx mantis-0b04be0c088a.tar.bz2<br><br>3. cd mantis-0b04be0c088a<br><br>4. patch -p1 &lt; mantis-patch-0b04be0c088a<br>
+<br>5. compile and install it like usually<br><br>&nbsp;<br><br>If somebody has any improvements or suggestions, please let me know.<br><br>Maybe Manu can add remote control support in future releases?<br><br>Best Regards,<br>
+<br>Sebastian<br>
+
+------=_Part_1141_10857331.1212672890734--
+
+------=_Part_1140_22630503.1212672890733
+Content-Type: application/octet-stream; name=mantis-patch-0b04be0c088a
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fh3e0d0i0
+Content-Disposition: attachment; filename=mantis-patch-0b04be0c088a
+
+ZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21h
+bnRpcy9NYWtlZmlsZSBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2
+Yi9tYW50aXMvTWFrZWZpbGUKLS0tIG1hbnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9t
+ZWRpYS9kdmIvbWFudGlzL01ha2VmaWxlCTIwMDgtMDUtMjggMTE6MjU6MjMuMDAwMDAwMDAwICsw
+MjAwCisrKyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50
+aXMvTWFrZWZpbGUJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTEyLDcg
+KzEyLDggQEAKIAkJbWFudGlzX3ZwMTA0MS5vCVwKIAkJbWFudGlzX3ZwMjAzMy5vCVwKIAkJbWFu
+dGlzX3ZwMjA0MC5vCVwKLQkJbWFudGlzX3ZwMzAzMC5vCisJCW1hbnRpc192cDMwMzAubyBcCisg
+ICAgICAgICAgICAgICAgbWFudGlzX3JjLm8KIAogb2JqLSQoQ09ORklHX0RWQl9NQU5USVMpICs9
+IG1hbnRpcy5vCiAKZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvZHZiL21hbnRpcy9tYW50aXNfY29tbW9uLmggbWFudGlzLTIwMDgtMDUtMjgtcmMvbGlu
+dXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19jb21tb24uaAotLS0gbWFudGlzLTBi
+MDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvbW1vbi5o
+CTIwMDgtMDUtMjggMTE6MjU6MjMuMDAwMDAwMDAwICswMjAwCisrKyBtYW50aXMtMjAwOC0wNS0y
+OC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvbW1vbi5oCTIwMDgt
+MDYtMDQgMjM6MjE6MTQuMDAwMDAwMDAwICswMjAwCkBAIC0yNiw2ICsyNiw4IEBACiAjaW5jbHVk
+ZSA8bGludXgva2VybmVsLmg+CiAjaW5jbHVkZSA8bGludXgvcGNpLmg+CiAjaW5jbHVkZSA8bGlu
+dXgvbXV0ZXguaD4KKyNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2luY2x1ZGUgPG1lZGlhL2ly
+LWNvbW1vbi5oPgogCiAjaW5jbHVkZSAiZHZiZGV2LmgiCiAjaW5jbHVkZSAiZHZiX2RlbXV4Lmgi
+CkBAIC03NCw2ICs3NiwyMCBAQAogCWNoYXIJCQkqbW9kZWxfbmFtZTsKIAljaGFyCQkJKmRldl90
+eXBlOwogCXUzMgkJCXRzX3NpemU7CisgICAgICAgIElSX0tFWVRBQl9UWVBFCQkqaXJfY29kZXM7
+Cit9OworCitzdHJ1Y3QgbWFudGlzX2lyIHsKKwlzdHJ1Y3QgaW5wdXRfZGV2CSpyY19kZXY7CisJ
+Y2hhcgkJCXJjX25hbWVbODBdOworCWNoYXIJCQlyY19waHlzWzgwXTsKKyNpZiBMSU5VWF9WRVJT
+SU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLDYsMjApCisJc3RydWN0IHdvcmtfc3RydWN0CXJj
+X3F1ZXJ5X3dvcms7CisjZWxzZQorCXN0cnVjdCBkZWxheWVkX3dvcmsJcmNfcXVlcnlfd29yazsK
+KyNlbmRpZgorCXUzMgkJCWlyX2xhc3RfY29kZTsKKwlzdHJ1Y3QgaXJfaW5wdXRfc3RhdGUJaXI7
+CiB9OwogCiBzdHJ1Y3QgbWFudGlzX3BjaSB7CkBAIC0xNDIsNiArMTU4LDkgQEAKIAl1MzIJCQln
+cGlmX3N0YXR1czsKIAogCXN0cnVjdCBtYW50aXNfY2EJKm1hbnRpc19jYTsKKworCS8qIAlSQwkJ
+CSovCisJc3RydWN0IG1hbnRpc19pcglpcjsKIH07CiAKICNkZWZpbmUgTUFOVElTX0hJRl9TVEFU
+VVMJKG1hbnRpcy0+Z3Bpb19zdGF0dXMgPDwgMTIpCmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBj
+MDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuYyBtYW50aXMt
+MjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUu
+YwotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMv
+bWFudGlzX2NvcmUuYwkyMDA4LTA1LTI4IDExOjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFu
+dGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19j
+b3JlLmMJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTE2NSw2ICsxNjUs
+MTAgQEAKIAkJZHByaW50ayh2ZXJib3NlLCBNQU5USVNfREVCVUcsIDEsICJNYW50aXMgRFZCIGlu
+aXQgZmFpbGVkIik7CiAJCXJldHVybiBlcnI7CiAJfQorCWlmICgoZXJyID0gbWFudGlzX3JjX2lu
+aXQobWFudGlzKSkgPCAwKSB7CisJCWRwcmludGsodmVyYm9zZSwgTUFOVElTX0RFQlVHLCAxLCAi
+bWFudGlzIFJDIGluaXQgZmFpbGVkIik7CisJCXJldHVybiBlcnI7CisJfQogCiAJcmV0dXJuIDA7
+CiB9CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2
+Yi9tYW50aXMvbWFudGlzX2NvcmUuaCBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuaAotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9s
+aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuaAkyMDA4LTA1LTI4IDEx
+OjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJp
+dmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19jb3JlLmgJMjAwOC0wNi0wNCAyMzoyMToxNC4w
+MDAwMDAwMDAgKzAyMDAKQEAgLTUzLDUgKzUzLDcgQEAKIGV4dGVybiBpbnQgbWFudGlzX2kyY19l
+eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOwogZXh0ZXJuIGludCBtYW50aXNfY29yZV9p
+bml0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOwogZXh0ZXJuIGludCBtYW50aXNfY29yZV9l
+eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOworZXh0ZXJuIGludCBtYW50aXNfcmNfaW5p
+dChzdHJ1Y3QgbWFudGlzX3BjaSAqbWFudGlzKTsKK2V4dGVybiBpbnQgbWFudGlzX3JjX2V4aXQo
+c3RydWN0IG1hbnRpc19wY2kgKm1hbnRpcyk7CiAKICNlbmRpZiAvL19fTUFOVElTX0NPUkVfSApk
+aWZmIC1OYXVyIG1hbnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFu
+dGlzL21hbnRpc19wY2kuYyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlh
+L2R2Yi9tYW50aXMvbWFudGlzX3BjaS5jCi0tLSBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcGNpLmMJMjAwOC0wNS0yOCAxMToyNToyMy4w
+MDAwMDAwMDAgKzAyMDAKKysrIG1hbnRpcy0yMDA4LTA1LTI4LXJjL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvZHZiL21hbnRpcy9tYW50aXNfcGNpLmMJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAg
+KzAyMDAKQEAgLTk0LDYgKzk0LDIyIEBACiAJfQogCWlmIChzdGF0ICYgTUFOVElTX0lOVF9JUlEx
+KSB7CiAJCWRwcmludGsodmVyYm9zZSwgTUFOVElTX0RFQlVHLCAwLCAiKiBJTlQgSVJRLTEgKiIp
+OworCisJCS8vYSBuYXN0eSB0cmljayB0byByZWFkIHRoZSBJUiBjb2RlCisgICAgICAgICAgICAg
+ICAgLy9mb3Igc29tZSByZWFzb24gdGhlIG1lbW9yeSBnZXRzIGNvcnJ1cHRlZAorICAgICAgICAg
+ICAgICAgIC8vdGhpcyBpcyBhIHdvcmsgYXJvdW5kIGZvciB0aGlzIHByb2JsZW0JCQorICAgICAg
+ICAgICAgICAgIHUzMiBpID0gMDsKKwkJZm9yKGkgPSAwOyBpIDwgMTAyNDsgKytpKQorCQl7CisJ
+CQl1MzIgdmFsID0gbW1yZWFkKDB4ZTgpOworICAgICAgICAgICAgICAgICAgICAgICAgLy9vbmx5
+IHVzZSB2YWx1ZSBpZiBtZW1vcnkgaXNuJ3QgY29ycnVwdGVkCisJCQlpZiAoKHZhbCAhPSAwKSAm
+JiAodmFsICE9IDB4ODApKQorICAgICAgICAgICAgICAgICAgICAgICAgeworCQkJCW1hbnRpcy0+
+aXIuaXJfbGFzdF9jb2RlID0gdmFsOworICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBi
+cmVhazsgICAgICAgICAgICAgICAgICAgICAgICAKKyAgICAgICAgICAgICAgICAgICAgICAgIH0K
+KwkJCQkKKwkJfSAgICAgICAgICAgICAgIAogCX0KIAlpZiAoc3RhdCAmIE1BTlRJU19JTlRfT0NF
+UlIpIHsKIAkJZHByaW50ayh2ZXJib3NlLCBNQU5USVNfREVCVUcsIDAsICIqIElOVCBPQ0VSUiAq
+Iik7CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2
+Yi9tYW50aXMvbWFudGlzX3JjLmMgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
+ZWRpYS9kdmIvbWFudGlzL21hbnRpc19yYy5jCi0tLSBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4
+L2RyaXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcmMuYwkxOTcwLTAxLTAxIDAxOjAwOjAw
+LjAwMDAwMDAwMCArMDEwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
+ZWRpYS9kdmIvbWFudGlzL21hbnRpc19yYy5jCTIwMDgtMDYtMDQgMjM6MjE6MTQuMDAwMDAwMDAw
+ICswMjAwCkBAIC0wLDAgKzEsMjE4IEBACisjaW5jbHVkZSA8bGludXgvYml0b3BzLmg+CisjaW5j
+bHVkZSAibWFudGlzX2NvbW1vbi5oIgorI2luY2x1ZGUgIm1hbnRpc19jb3JlLmgiCisKKyNpbmNs
+dWRlICJkbXhkZXYuaCIKKyNpbmNsdWRlICJkdmJkZXYuaCIKKyNpbmNsdWRlICJkdmJfZGVtdXgu
+aCIKKyNpbmNsdWRlICJkdmJfZnJvbnRlbmQuaCIKKyNpbmNsdWRlICJtYW50aXNfdnAxMDMzLmgi
+CisjaW5jbHVkZSAibWFudGlzX3ZwMTAzNC5oIgorI2luY2x1ZGUgIm1hbnRpc192cDIwMzMuaCIK
+KyNpbmNsdWRlICJtYW50aXNfdnAzMDMwLmgiCisKKyNkZWZpbmUgUE9MTF9GUkVRIChIWi8xMCkK
+KworLyogVHdpbmhhbiBDQUItQ0kgMjAzMyAqLworSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfbWFu
+dGlzX3ZwMjAzM1tJUl9LRVlUQUJfU0laRV0gPSB7CisJWyAweDI5IF0gPSBLRVlfUE9XRVIsCisJ
+WyAweDI4IF0gPSBLRVlfRkFWT1JJVEVTLAorCVsgMHgzMCBdID0gS0VZX1RFWFQsCisJWyAweDE3
+IF0gPSBLRVlfSU5GTywJCS8vIFByZXZpZXcKKwlbIDB4MjMgXSA9IEtFWV9FUEcsCisJWyAweDNi
+IF0gPSBLRVlfRjIyLAkJLy8gUmVjb3JkIExpc3QKKworCVsgMHgzYyBdID0gS0VZXzEsCisJWyAw
+eDNlIF0gPSBLRVlfMiwKKwlbIDB4MzkgXSA9IEtFWV8zLAorCVsgMHgzNiBdID0gS0VZXzQsCisJ
+WyAweDIyIF0gPSBLRVlfNSwKKwlbIDB4MjAgXSA9IEtFWV82LAorCVsgMHgzMiBdID0gS0VZXzcs
+CisJWyAweDI2IF0gPSBLRVlfOCwKKwlbIDB4MjQgXSA9IEtFWV85LAorCVsgMHgyYSBdID0gS0VZ
+XzAsCisKKwlbIDB4MzMgXSA9IEtFWV9DQU5DRUwsCisJWyAweDJjIF0gPSBLRVlfQkFDSywKKwlb
+IDB4MTUgXSA9IEtFWV9DTEVBUiwKKwlbIDB4M2YgXSA9IEtFWV9UQUIsCisJWyAweDEwIF0gPSBL
+RVlfRU5URVIsCisJWyAweDE0IF0gPSBLRVlfVVAsCisJWyAweDBkIF0gPSBLRVlfUklHSFQsCisJ
+WyAweDBlIF0gPSBLRVlfRE9XTiwKKwlbIDB4MTEgXSA9IEtFWV9MRUZULAorCisJWyAweDIxIF0g
+PSBLRVlfVk9MVU1FVVAsCisJWyAweDM1IF0gPSBLRVlfVk9MVU1FRE9XTiwKKwlbIDB4M2QgXSA9
+IEtFWV9DSEFOTkVMRE9XTiwKKwlbIDB4M2EgXSA9IEtFWV9DSEFOTkVMVVAsCisJWyAweDJlIF0g
+PSBLRVlfUkVDT1JELAorCVsgMHgyYiBdID0gS0VZX1BMQVksCisJWyAweDEzIF0gPSBLRVlfUEFV
+U0UsCisJWyAweDI1IF0gPSBLRVlfU1RPUCwKKworCVsgMHgxZiBdID0gS0VZX1JFV0lORCwKKwlb
+IDB4MmQgXSA9IEtFWV9GQVNURk9SV0FSRCwKKwlbIDB4MWUgXSA9IEtFWV9QUkVWSU9VUywJLy8g
+UmVwbGF5IHw8CisJWyAweDFkIF0gPSBLRVlfTkVYVCwJCS8vIFNraXAgICA+fAorCisJWyAweDBi
+IF0gPSBLRVlfQ0FNRVJBLAkJLy8gQ2FwdHVyZQorCVsgMHgwZiBdID0gS0VZX0xBTkdVQUdFLAkv
+LyBTQVAKKwlbIDB4MTggXSA9IEtFWV9NT0RFLAkJLy8gUElQCisJWyAweDEyIF0gPSBLRVlfWk9P
+TSwJCS8vIEZ1bGwgc2NyZWVuLAorCVsgMHgxYyBdID0gS0VZX1NVQlRJVExFLAorCVsgMHgyZiBd
+ID0gS0VZX01VVEUsCisJWyAweDE2IF0gPSBLRVlfRjIwLAkJLy8gTC9SLAorCVsgMHgzOCBdID0g
+S0VZX0YyMSwJCS8vIEhpYmVybmF0ZSwKKworCVsgMHgzNyBdID0gS0VZX1NXSVRDSFZJREVPTU9E
+RSwJLy8gQS9WCisJWyAweDMxIF0gPSBLRVlfQUdBSU4sCQkvLyBSZWNhbGwsCisJWyAweDFhIF0g
+PSBLRVlfS1BQTFVTLAkJLy8gWm9vbSssCisJWyAweDE5IF0gPSBLRVlfS1BNSU5VUywJCS8vIFpv
+b20tLAorCVsgMHgyNyBdID0gS0VZX1JFRCwKKwlbIDB4MEMgXSA9IEtFWV9HUkVFTiwKKwlbIDB4
+MDEgXSA9IEtFWV9ZRUxMT1csCisJWyAweDAwIF0gPSBLRVlfQkxVRSwKK307CisKKy8qIFR3aW5o
+YW4gQ0FCLUNJIDIwNDAgKi8KK0lSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX21hbnRpc192cDIwNDBb
+SVJfS0VZVEFCX1NJWkVdID0geworICAgICAgICBbIDB4MWUgXSA9IEtFWV9IT01FLCAgICAgICAg
+CQorCVsgMHgzZSBdID0gS0VZX1BPV0VSLAkgICAgICAgIAorCVsgMHgxZCBdID0gS0VZX01FTlUs
+ICAgICAgICAJLy8gYWN0dWFsbHkgRFZEIE1FTlUKKwlbIDB4MWMgXSA9IEtFWV9TVUJUSVRMRSwg
+ICAgICAgCS8vIGFjdHVhbGx5IERWRCBTVUJUSVRMRQkKKyAgICAgICAgWyAweDFiIF0gPSBLRVlf
+VEVYVCwJICAgICAgICAvLyBURUxFVEVYVAorCVsgMHgxYSBdID0gS0VZX0RFTEVURSwKKyAgICAg
+ICAgCisJWyAweDM0IF0gPSBLRVlfU1dJVENIVklERU9NT0RFLCAvLyBhY3R1YWxseSBBVgorCVsg
+MHgzMiBdID0gS0VZX0FCLCAgICAgICAgCQorICAgICAgICAKKwlbIDB4M2QgXSA9IEtFWV8xLAkK
+KwlbIDB4M2MgXSA9IEtFWV8yLAkKKwlbIDB4M2IgXSA9IEtFWV8zLAkKKwlbIDB4M2EgXSA9IEtF
+WV80LAorCVsgMHgzOSBdID0gS0VZXzUsCQorCVsgMHgzOCBdID0gS0VZXzYsCisJWyAweDM3IF0g
+PSBLRVlfNywJCisJWyAweDM2IF0gPSBLRVlfOCwKKwlbIDB4MzUgXSA9IEtFWV85LAkKKwlbIDB4
+MzMgXSA9IEtFWV8wLAorCisJWyAweDE5IF0gPSBLRVlfVFYsCQorCVsgMHgxOCBdID0gS0VZX0RW
+RCwKKwlbIDB4MTYgXSA9IEtFWV9WSURFTywJCisJWyAweDE1IF0gPSBLRVlfVFVORVIsICAgICAg
+ICAgICAvL2FjdHVhbGx5IE1VU0lDCQorCVsgMHgxNCBdID0gS0VZX1NDUkVFTiwgICAgICAgICAg
+Ly9hY3R1YWxseSBQSUMKKworCVsgMHgyZCBdID0gS0VZX09LLAkKKwlbIDB4MmYgXSA9IEtFWV9V
+UCwKKwlbIDB4MmIgXSA9IEtFWV9ET1dOLAkKKwlbIDB4MmUgXSA9IEtFWV9MRUZULAorCVsgMHgy
+YyBdID0gS0VZX1JJR0hULAkKKworICAgICAgICBbIDB4MzAgXSA9IEtFWV9FUEcsCQorCVsgMHgy
+OSBdID0gS0VZX0lORk8sCisJWyAweDEyIF0gPSBLRVlfQkFDSywKKyAgICAgICAgCQorCVsgMHgy
+MyBdID0gS0VZX1ZPTFVNRVVQLAorCVsgMHgyMSBdID0gS0VZX1ZPTFVNRURPV04sCisKKwlbIDB4
+MjQgXSA9IEtFWV9DSEFOTkVMVVAsCisJWyAweDIwIF0gPSBLRVlfQ0hBTk5FTERPV04sCisKKwlb
+IDB4MTMgXSA9IEtFWV9QTEFZLAorCVsgMHgyMiBdID0gS0VZX01VVEUsCQorCisJWyAweDI4IF0g
+PSBLRVlfUkVELAorCVsgMHgyNyBdID0gS0VZX0dSRUVOLAkKKwlbIDB4MjYgXSA9IEtFWV9ZRUxM
+T1csCisJWyAweDI1IF0gPSBLRVlfQkxVRSwJCisKKyAgICAgICAgWyAweDA3IF0gPSBLRVlfUkVD
+T1JELAkKKwlbIDB4MTcgXSA9IEtFWV9TVE9QLAorCVsgMHgxRiBdID0gS0VZX1BBVVNFLAorCisg
+ICAgICAgIFsgMHgwQiBdID0gS0VZX0xBU1QsCisJWyAweDExIF0gPSBLRVlfUkVXSU5ELAkKKwlb
+IDB4MTAgXSA9IEtFWV9GQVNURk9SV0FSRCwKKwlbIDB4MDMgXSA9IEtFWV9ORVhULAorCQorfTsK
+Kwordm9pZCBtYW50aXNfcXVlcnlfcmMoc3RydWN0IHdvcmtfc3RydWN0ICp3b3JrKQoreworICAg
+ICAgICBzdHJ1Y3QgbWFudGlzX3BjaSAqbWFudGlzID0KKyAgICAgICAgICAgICAgICBjb250YWlu
+ZXJfb2Yod29yaywgc3RydWN0IG1hbnRpc19wY2ksIGlyLnJjX3F1ZXJ5X3dvcmsud29yayk7Cisg
+ICAgICAgIHN0cnVjdCBpcl9pbnB1dF9zdGF0ZSAqaXIgPSAmbWFudGlzLT5pci5pcjsKKworICAg
+ICAgICB1MzIgbGFzdGtleSA9IG1hbnRpcy0+aXIuaXJfbGFzdF9jb2RlOworCisgICAgICAgIGlm
+IChsYXN0a2V5ICE9IC0xKSB7CisgICAgICAgICAgICAgICAgaXJfaW5wdXRfa2V5ZG93bihtYW50
+aXMtPmlyLnJjX2RldiwgaXIsIGxhc3RrZXksIDApOworICAgICAgICAgICAgICAgIG1hbnRpcy0+
+aXIuaXJfbGFzdF9jb2RlID0gLTE7CisgICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAgICAg
+aXJfaW5wdXRfbm9rZXkobWFudGlzLT5pci5yY19kZXYsIGlyKTsKKyAgICAgICAgfQorICAgICAg
+ICBzY2hlZHVsZV9kZWxheWVkX3dvcmsoJm1hbnRpcy0+aXIucmNfcXVlcnlfd29yaywgUE9MTF9G
+UkVRKTsKK30KKworaW50IG1hbnRpc19yY19pbml0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMp
+Cit7CisgICAgICAgIHN0cnVjdCBpbnB1dF9kZXYgKnJjX2RldjsKKyAgICAgICAgc3RydWN0IG1h
+bnRpc19pciAqbWlyID0gJm1hbnRpcy0+aXI7CisgICAgICAgIHN0cnVjdCBpcl9pbnB1dF9zdGF0
+ZSAqaXIgPSAmbWlyLT5pcjsKKyAgICAgICAgaW50IGVycjsKKworICAgICAgICBpZiAoIW1hbnRp
+cy0+aHdjb25maWctPmlyX2NvZGVzKSB7CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3Nl
+LCBNQU5USVNfREVCVUcsIDEsICJObyBSQyBjb2RlcyBhdmFpbGFibGUiKTsKKyAgICAgICAgICAg
+ICAgICByZXR1cm4gMDsKKyAgICAgICAgfQorCisgICAgICAgIG1td3JpdGUobW1yZWFkKE1BTlRJ
+U19JTlRfTUFTSykgfCBNQU5USVNfSU5UX0lSUTEsIE1BTlRJU19JTlRfTUFTSyk7CisKKyAgICAg
+ICAgcmNfZGV2ID0gaW5wdXRfYWxsb2NhdGVfZGV2aWNlKCk7CisgICAgICAgIGlmICghcmNfZGV2
+KSB7CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3NlLCBNQU5USVNfRVJST1IsIDEsICJk
+dmJfcmNfaW5pdCBmYWlsZWQiKTsKKyAgICAgICAgICAgICAgICByZXR1cm4gLUVOT0VOVDsKKyAg
+ICAgICAgfQorCisgICAgICAgIG1pci0+cmNfZGV2ID0gcmNfZGV2OworCisgICAgICAgIHNucHJp
+bnRmKG1pci0+cmNfbmFtZSwgc2l6ZW9mKG1pci0+cmNfbmFtZSksIAorICAgICAgICAgICAgICAg
+ICAiTWFudGlzICVzIElSIFJlY2VpdmVyIiwgbWFudGlzLT5od2NvbmZpZy0+bW9kZWxfbmFtZSk7
+CisgICAgICAgIHNucHJpbnRmKG1pci0+cmNfcGh5cywgc2l6ZW9mKG1pci0+cmNfcGh5cyksIAor
+ICAgICAgICAgICAgICAgICAicGNpLSVzL2lyMCIsIHBjaV9uYW1lKG1hbnRpcy0+cGRldikpOwor
+CisgICAgICAgIHJjX2Rldi0+bmFtZSA9IG1pci0+cmNfbmFtZTsKKyAgICAgICAgcmNfZGV2LT5w
+aHlzID0gbWlyLT5yY19waHlzOworCisgICAgICAgIGlyX2lucHV0X2luaXQocmNfZGV2LCBpciwg
+SVJfVFlQRV9PVEhFUiwgbWFudGlzLT5od2NvbmZpZy0+aXJfY29kZXMpOworCisgICAgICAgIHJj
+X2Rldi0+aWQuYnVzdHlwZSA9IEJVU19QQ0k7CisgICAgICAgIHJjX2Rldi0+aWQudmVuZG9yICA9
+IG1hbnRpcy0+dmVuZG9yX2lkOworICAgICAgICByY19kZXYtPmlkLnByb2R1Y3QgPSBtYW50aXMt
+PmRldmljZV9pZDsKKyAgICAgICAgcmNfZGV2LT5pZC52ZXJzaW9uID0gMTsKKyAgICAgICAgcmNf
+ZGV2LT5jZGV2LmRldiA9ICZtYW50aXMtPnBkZXYtPmRldjsKKworICAgICAgICBJTklUX0RFTEFZ
+RURfV09SSygmbWlyLT5yY19xdWVyeV93b3JrLCBtYW50aXNfcXVlcnlfcmMpOworCisgICAgICAg
+IGVyciA9IGlucHV0X3JlZ2lzdGVyX2RldmljZShyY19kZXYpOworICAgICAgICBpZiAoZXJyKSB7
+CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3NlLCBNQU5USVNfRVJST1IsIDEsICJyYyBy
+ZWdpc3RlcmluZyBmYWlsZWQiKTsKKyAgICAgICAgICAgICAgICByZXR1cm4gLUVOT0VOVDsKKyAg
+ICAgICAgfQorCisgICAgICAgIHNjaGVkdWxlX2RlbGF5ZWRfd29yaygmbWlyLT5yY19xdWVyeV93
+b3JrLCBQT0xMX0ZSRVEpOworICAgICAgICByZXR1cm4gMDsKK30KKworaW50IG1hbnRpc19yY19l
+eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpCit7CisgICAgICAgIG1td3JpdGUobW1yZWFk
+KE1BTlRJU19JTlRfTUFTSykgJiAofk1BTlRJU19JTlRfSVJRMSksIE1BTlRJU19JTlRfTUFTSyk7
+CisKKyAgICAgICAgY2FuY2VsX2RlbGF5ZWRfd29yaygmbWFudGlzLT5pci5yY19xdWVyeV93b3Jr
+KTsKKyAgICAgICAgaW5wdXRfdW5yZWdpc3Rlcl9kZXZpY2UobWFudGlzLT5pci5yY19kZXYpOwor
+ICAgICAgICBkcHJpbnRrKHZlcmJvc2UsIE1BTlRJU19ERUJVRywgMSwgIlJDIHVucmVnaXN0ZXJl
+ZCIpOworICAgICAgICByZXR1cm4gMDsKK30KZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhh
+L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcmMuaCBtYW50aXMtMjAwOC0w
+NS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3JjLmgKLS0tIG1h
+bnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19y
+Yy5oCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBtYW50aXMtMjAwOC0w
+NS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3JjLmgJMjAwOC0w
+Ni0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTAsMCArMSwyIEBACitleHRlcm4gSVJf
+S0VZVEFCX1RZUEUgaXJfY29kZXNfbWFudGlzX3ZwMjAzM1tJUl9LRVlUQUJfU0laRV07CitleHRl
+cm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfbWFudGlzX3ZwMjA0MFtJUl9LRVlUQUJfU0laRV07
+CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9t
+YW50aXMvbWFudGlzX3ZwMjAzMy5jIG1hbnRpcy0yMDA4LTA1LTI4LXJjL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvZHZiL21hbnRpcy9tYW50aXNfdnAyMDMzLmMKLS0tIG1hbnRpcy0wYjA0YmUwYzA4OGEv
+bGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwMzMuYwkyMDA4LTA1LTI4
+IDExOjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgv
+ZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwMzMuYwkyMDA4LTA2LTA0IDIzOjIx
+OjE0LjAwMDAwMDAwMCArMDIwMApAQCAtMjAsNiArMjAsNyBAQAogCiAjaW5jbHVkZSAibWFudGlz
+X2NvbW1vbi5oIgogI2luY2x1ZGUgIm1hbnRpc192cDIwMzMuaCIKKyNpbmNsdWRlICJtYW50aXNf
+cmMuaCIKIAogI2RlZmluZSBNQU5USVNfTU9ERUxfTkFNRQkiVlAtMjAzMyIKICNkZWZpbmUgTUFO
+VElTX0RFVl9UWVBFCQkiRFZCLUMiCkBAIC0yOCw2ICsyOSw3IEBACiAJLm1vZGVsX25hbWUJPSBN
+QU5USVNfTU9ERUxfTkFNRSwKIAkuZGV2X3R5cGUJPSBNQU5USVNfREVWX1RZUEUsCiAJLnRzX3Np
+emUJPSBNQU5USVNfVFNfMjA0LAorCS5pcl9jb2Rlcwk9IGlyX2NvZGVzX21hbnRpc192cDIwMzMs
+CiB9OwogCiBzdHJ1Y3QgdGRhMTAwMnhfY29uZmlnIHBoaWxpcHNfY3UxMjE2X2NvbmZpZyA9IHsK
+ZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21h
+bnRpcy9tYW50aXNfdnAyMDQwLmMgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
+ZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwNDAuYwotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9s
+aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3ZwMjA0MC5jCTIwMDgtMDUtMjgg
+MTE6MjU6MjMuMDAwMDAwMDAwICswMjAwCisrKyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9k
+cml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3ZwMjA0MC5jCTIwMDgtMDYtMDQgMjM6MjE6
+MTQuMDAwMDAwMDAwICswMjAwCkBAIC0yMCw2ICsyMCw3IEBACiAKICNpbmNsdWRlICJtYW50aXNf
+Y29tbW9uLmgiCiAjaW5jbHVkZSAibWFudGlzX3ZwMjA0MC5oIgorI2luY2x1ZGUgIm1hbnRpc19y
+Yy5oIgogCiAjZGVmaW5lIE1BTlRJU19NT0RFTF9OQU1FCSJWUC0yMDQwIgogI2RlZmluZSBNQU5U
+SVNfREVWX1RZUEUJCSJEVkItQyIKQEAgLTI4LDYgKzI5LDcgQEAKIAkubW9kZWxfbmFtZQk9IE1B
+TlRJU19NT0RFTF9OQU1FLAogCS5kZXZfdHlwZQk9IE1BTlRJU19ERVZfVFlQRSwKIAkudHNfc2l6
+ZQk9IE1BTlRJU19UU18yMDQsCisJLmlyX2NvZGVzCT0gaXJfY29kZXNfbWFudGlzX3ZwMjA0MCwK
+IH07CiAKIHN0cnVjdCB0ZGExMDAyeF9jb25maWcgdGRhMTAwMjNfY3UxMjE2X2NvbmZpZyA9IHsK
+
+------=_Part_1140_22630503.1212672890733
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_1140_22630503.1212672890733--
