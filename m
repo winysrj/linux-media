@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45])
+Received: from ag-out-0708.google.com ([72.14.246.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1K4fdu-0003IF-5n
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 19:22:24 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Nico Sabbi <Nicola.Sabbi@poste.it>
-In-Reply-To: <200806061630.35379.Nicola.Sabbi@poste.it>
-References: <200806061630.35379.Nicola.Sabbi@poste.it>
-Date: Fri, 06 Jun 2008 19:22:09 +0200
-Message-Id: <1212772929.15600.41.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Remote on Lifeview Trio: anyone got it working?
+	(envelope-from <sergeniki@googlemail.com>) id 1K4FUT-0003P2-03
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 15:26:57 +0200
+Received: by ag-out-0708.google.com with SMTP id 8so1942799agc.0
+	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 06:26:48 -0700 (PDT)
+Message-ID: <9e5406cc0806050626r5588f1d3k36896b75c05070b0@mail.gmail.com>
+Date: Thu, 5 Jun 2008 14:26:48 +0100
+From: "Serge Nikitin" <sergeniki@googlemail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb]  PEAK DVB-T Digital Dual Tuner PCI - anyone got this
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,56 +18,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1425138589=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1425138589==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_2339_30726719.1212672408173"
 
-Am Freitag, den 06.06.2008, 16:30 +0200 schrieb Nico Sabbi:
-> Hi,
-> did anyone get the remote controller on the Trio working?
-> I found a patch from which it seems that it talks via i2c either
-> at 0x0b or at 0x0e address and someone reported success,
-> but it seems that no patch was applied to linuxtv's HG repository.
-> 
-> Can anyone who has it working post the correct patch(-es), please?
-> 
-> Thanks,
-> 	Nico
-> 
+------=_Part_2339_30726719.1212672408173
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-you find the patch from Eddi based on the Henry Wong MSI TV@nywhere
-patch here.
+Andrew,
 
-http://tux.dpeddi.com/lr319sta
+PEAK DVB-T Dual tuner PCI (221544AGPK) is either renamed or rebadged KWorld
+DVB-T PC160 card.
 
-You might have to apply it manually, since quite old.
-If so, please post an updated patch after that for others.
-It is known to work.
+I'm using first tuner on this card with help of the driver from following
+source tree (snapshot was taken around 20/05/2008):
+http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
+and latest firmware from
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
 
-Doing the probing of the IR chip in ir-kbd-i2c to make it responsive is
-the main reason for not have been included, since it is expected not to
-be accepted at mainline. 
+Small modification for sources (file af9015.c) was needed (just add one more
+USB Device ID (1b80:c160)) and the card is "just work" as a single-tuner
+card.
 
-According to Eddi and Peter on the video4linux-list on May 28 2007, the
-driver has a flaw in implementing i2c remotes card specific.
-Dwaine Garden with the same problem on the Kworld ATSC110 also confirmed
-that it is not possible to initialize the similar behaving KS chips from
-saa7134-cards.c currently. His patch version is also only off tree
-available.
+I have not test second tuner due to following issue:
 
-Sampling from gpio IRQ, what we do on recent Asus PC39 remotes, is also
-not implemented yet for i2c remotes and the lack is visible in
-saa7134-core.c.
+Second tuner identified itself correctly only after really "cold restart"
+(power down, wait some time, power up):
+May 20 23:39:09 dvbbird kernel: DVB: registering new adapter (KWorld  PC160
+(PEAK 221544AGPK) DVB-T PCI dual tuner)
+May 20 23:39:10 dvbbird kernel: af9013: firmware version:4.95.0
+May 20 23:39:10 dvbbird kernel: tda18271 3-00c0: creating new instance
+May 20 23:39:10 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
+May 20 23:39:10 dvbbird kernel: dvb-usb: will pass the complete MPEG2
+transportstream to the software demuxer.
+May 20 23:39:10 dvbbird kernel: DVB: registering new adapter (KWorld  PC160
+(PEAK 221544AGPK) DVB-T PCI dual tuner)
+May 20 23:39:11 dvbbird kernel: af9013: firmware version:4.95.0
+May 20 23:39:11 dvbbird kernel: tda18271 4-00c0: creating new instance
+May 20 23:39:11 dvbbird kernel: TDA18271HD/C1 detected @ 4-00c0
 
-Cheers,
-Hermann
+For any sort of "not-really-cold" restarts second tuner fails to respond
+correctly:
+May 21 00:10:10 dvbbird kernel: DVB: registering new adapter (KWorld  PC160
+(PEAK 221544AGPK) DVB-T PCI dual tuner)
+May 21 00:10:11 dvbbird kernel: af9013: firmware version:4.95.0
+May 21 00:10:11 dvbbird kernel: tda18271 3-00c0: creating new instance
+May 21 00:10:11 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
+May 21 00:10:11 dvbbird kernel: dvb-usb: will pass the complete MPEG2
+transportstream to the software demuxer.
+May 21 00:10:11 dvbbird kernel: DVB: registering new adapter (KWorld  PC160
+(PEAK 221544AGPK) DVB-T PCI dual tuner)
+May 21 00:10:12 dvbbird kernel: af9013: firmware version:4.95.0
+May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: creating new instance
+May 21 00:10:12 dvbbird kernel: Unknown device detected @ 4-00c0, device not
+supported.
+May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: destroying instance
 
+Hope this help.
+Sergej.
+
+------=_Part_2339_30726719.1212672408173
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Andrew,<br><br>PEAK DVB-T Dual tuner PCI (221544AGPK) is either renamed or rebadged KWorld DVB-T PC160 card.<br><br>I&#39;m using first tuner on this card with help of the driver from following source tree (snapshot was taken around 20/05/2008):<br>
+<a href="http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/">http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/</a><br>and latest firmware from<br><a href="http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/">http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/</a><br>
+<br>Small modification for sources (file af9015.c) was needed (just add one more USB Device ID (1b80:c160)) and the card is &quot;just work&quot; as a single-tuner card.<br><br>I have not test second tuner due to following issue:<br>
+&nbsp;<br>Second tuner identified itself correctly only after really &quot;cold restart&quot; (power down, wait some time, power up):<br>May 20 23:39:09 dvbbird kernel: DVB: registering new adapter (KWorld&nbsp; PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)<br>
+May 20 23:39:10 dvbbird kernel: af9013: firmware version:4.95.0<br>May 20 23:39:10 dvbbird kernel: tda18271 3-00c0: creating new instance<br>May 20 23:39:10 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0<br>May 20 23:39:10 dvbbird kernel: dvb-usb: will pass the complete MPEG2 transportstream to the software demuxer.<br>
+May 20 23:39:10 dvbbird kernel: DVB: registering new adapter (KWorld&nbsp; PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)<br>May 20 23:39:11 dvbbird kernel: af9013: firmware version:4.95.0<br>May 20 23:39:11 dvbbird kernel: tda18271 4-00c0: creating new instance<br>
+May 20 23:39:11 dvbbird kernel: TDA18271HD/C1 detected @ 4-00c0<br><br>For any sort of &quot;not-really-cold&quot; restarts second tuner fails to respond correctly:<br>May 21 00:10:10 dvbbird kernel: DVB: registering new adapter (KWorld&nbsp; PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)<br>
+May 21 00:10:11 dvbbird kernel: af9013: firmware version:4.95.0<br>May 21 00:10:11 dvbbird kernel: tda18271 3-00c0: creating new instance<br>May 21 00:10:11 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0<br>May 21 00:10:11 dvbbird kernel: dvb-usb: will pass the complete MPEG2 transportstream to the software demuxer.<br>
+May 21 00:10:11 dvbbird kernel: DVB: registering new adapter (KWorld&nbsp; PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)<br>May 21 00:10:12 dvbbird kernel: af9013: firmware version:4.95.0<br>May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: creating new instance<br>
+May 21 00:10:12 dvbbird kernel: Unknown device detected @ 4-00c0, device not supported.<br>May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: destroying instance<br><br>Hope this help.<br>Sergej.<br><br>
+
+------=_Part_2339_30726719.1212672408173--
+
+
+--===============1425138589==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1425138589==--
