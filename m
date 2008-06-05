@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.176])
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1K4lFr-00070Y-AT
-	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 01:21:56 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so793725ika.1
-	for <linux-dvb@linuxtv.org>; Fri, 06 Jun 2008 16:21:51 -0700 (PDT)
-Message-ID: <412bdbff0806061621m67235004p360951a0c8c42fdb@mail.gmail.com>
-Date: Fri, 6 Jun 2008 19:21:50 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: Sneake <2hteq3r02@sneakemail.com>
-In-Reply-To: <20999-51361@sneakemail.com>
+	(envelope-from <ajurik@quick.cz>) id 1K4KVL-0003OY-8R
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 20:48:09 +0200
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 5 Jun 2008 20:47:29 +0200
+References: <1212610778l.7239l.1l@manu-laptop>
+In-Reply-To: <1212610778l.7239l.1l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20999-51361@sneakemail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] multiple em28xx devices doesn't work (well)
+Message-Id: <200806052047.30008.ajurik@quick.cz>
+Subject: Re: [linux-dvb] No lock on a particular transponder with TT S2-3200
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,133 +26,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Wednesday 04 of June 2008, manu wrote:
+> 	Hi all,
+> one more datapoint for the TT 3200 tuning problems. I solved all my
+> locking problems by add 4MHz to the reported frequencies (coming from
+> the stream tables); note that one of the transponders always locked
+> even without this correction (its freq is 11093MHz, the others are :
+> 11555, 11635, 11675MHz), so as you see the others are much higher.
+> Now there is another transponder at 11495MHz but this one I cant lock
+> on it even with my correction. 
 
-Thanks for the heads up.  I just got a second device this week,
-noticed the same thing, and was planning to work on it this weekend.
+Hi,
 
-The driver is designed to handle multiple devices, but there is
-apparently a bug in there somewhere...
+I have a little more problems with TT S2-3200 under linux. At DVB-S exists 
+transponders to which is not possible to switch directly (when changing 
+satellite), it is necessary to tune first to another transponder at same 
+position (I'm using diseqc switch). At these transponders changing the 
+frequency is not helpful.
 
-Devin
+At DVB-S2 transponders are some transponders at which is possible to get lock 
+without problems. Also at some transponders it is possible to get lock when 
+changing frequency by 4-5MHz after some minutes (typically 2 min.). But there 
+exists some transponders where is practically impossible to get lock. 
+Interesting is that those problematic transponders were without problems 
+receivable some time ago. The change appeared when transponders were switched 
+from Thor2 to Thor5 (same frequency but only FEC changed from 2/3 to 3/4 and 
+pilot was switched off), also one transponder at HB 13.0E which was 
+receivable two months ago is not receivable any more (don't know if pilot was 
+switched off but other paremeters are the same).
 
-On Fri, Jun 6, 2008 at 7:10 PM, Sneake <2hteq3r02@sneakemail.com> wrote:
-> I have 2 em28xx USB capture devices - a Hauppauge Win-HVR-950 and a Pinnacle HD stick:
->
-> Bus 001 Device 007: ID 2304:0227 Pinnacle Systems, Inc. [hex] Pinnacle TV for Mac, HD Stick
-> Bus 001 Device 004: ID 2040:6513 Hauppauge
->
-> Both of which are em28xx devices.
-> I am running the latest HG pull of the v4l-dvb drivers as of today (6th June 2008).
->
-> From a cold start, both devices are seen by the USB probe, however only one gets a /dev/dvb/adapter entry. If I remove the one that did not, I get the following warning:
->
-> ==========
-> Jun  6 18:00:15 Deathwish kernel: usb 1-3: new high speed USB device using ehci_hcd and address 7
-> Jun  6 18:00:15 Deathwish kernel: usb 1-3: configuration #1 chosen from 1 choice
-> Jun  6 18:00:15 Deathwish kernel: em28xx new video device (2304:0227): interface 0, class 255
-> Jun  6 18:00:15 Deathwish kernel: em28xx Doesn't have usb audio class
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate settings: 8
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 0, max size= 0
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 1, max size= 0
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 2, max size= 1448
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 3, max size= 2048
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 4, max size= 2304
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 5, max size= 2580
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 6, max size= 2892
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: Alternate setting 7, max size= 3072
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: chip ID is em2882/em2883
-> Jun  6 18:00:15 Deathwish kernel: tuner' 1-0061: chip found @ 0xc2 (em28xx #0)
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 37 00 30 00 38 00 30 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom b0: 31 00 30 00 36 00 31 00 33 00 37 00 33 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 54 00
-> Jun  6 18:00:15 Deathwish kernel: em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Jun  6 18:00:15 Deathwish kernel: EEPROM ID= 0x9567eb1a, hash = 0x2de5f5bf
-> Jun  6 18:00:15 Deathwish kernel: Vendor/Product ID= 2304:0227
-> Jun  6 18:00:15 Deathwish kernel: AC97 audio (5 sample rates)
-> Jun  6 18:00:15 Deathwish kernel: 500mA max power
-> Jun  6 18:00:15 Deathwish kernel: Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
-> Jun  6 18:00:15 Deathwish kernel: xc2028 1-0061: creating new instance
-> Jun  6 18:00:15 Deathwish kernel: xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-> Jun  6 18:00:15 Deathwish kernel: xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-> Jun  6 18:00:15 Deathwish kernel: xc2028 1-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
-> Jun  6 18:00:16 Deathwish kernel: xc2028 1-0061: Loading firmware for type=MTS (4), id 000000000000b700.
-> Jun  6 18:00:16 Deathwish kernel: tvp5150 1-005c: tvp5150am1 detected.
-> Jun  6 18:00:17 Deathwish kernel: em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-> Jun  6 18:00:17 Deathwish kernel: em28xx-audio.c: probing for em28x1 non standard usbaudio
-> Jun  6 18:00:17 Deathwish kernel: em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> Jun  6 18:00:17 Deathwish kernel: proc_dir_entry 'Em28xx Audio' already registered
-> Jun  6 18:00:17 Deathwish kernel: Pid: 135, comm: khubd Not tainted 2.6.25 #1
-> Jun  6 18:00:17 Deathwish kernel:  [<c04935cf>] proc_register+0xa3/0xfd
-> Jun  6 18:00:17 Deathwish kernel:  [<c04937ce>] proc_symlink+0x55/0x70
-> Jun  6 18:00:17 Deathwish kernel:  [<f899d848>] snd_info_card_register+0x31/0x47 [snd]
-> Jun  6 18:00:17 Deathwish kernel:  [<f899c9e8>] snd_card_register+0x1af/0x204 [snd]
-> Jun  6 18:00:17 Deathwish kernel:  [<f9a15144>] em28xx_audio_init+0xf2/0x120 [em28xx_alsa]
-> Jun  6 18:00:17 Deathwish kernel:  [<f9a27a7c>] em28xx_usb_probe+0x607/0x6a0 [em28xx]
-> Jun  6 18:00:17 Deathwish kernel:  [<c054c80f>] usb_autopm_do_device+0xaa/0xb1
-> Jun  6 18:00:17 Deathwish kernel:  [<c054d1be>] usb_probe_interface+0xba/0xfa
-> Jun  6 18:00:17 Deathwish kernel:  [<c05382fd>] driver_probe_device+0xb5/0x126
-> Jun  6 18:00:17 Deathwish kernel:  [<c053836e>] __device_attach+0x0/0x5
-> Jun  6 18:00:17 Deathwish kernel:  [<c05377c6>] bus_for_each_drv+0x36/0x5e
-> Jun  6 18:00:17 Deathwish kernel:  [<c05383fa>] device_attach+0x6c/0x7f
-> Jun  6 18:00:17 Deathwish kernel:  [<c053836e>] __device_attach+0x0/0x5
-> Jun  6 18:00:17 Deathwish kernel:  [<c0537763>] bus_attach_device+0x25/0x52
-> Jun  6 18:00:17 Deathwish kernel:  [<c053697b>] device_add+0x30b/0x45f
-> Jun  6 18:00:17 Deathwish kernel:  [<c054bc16>] usb_set_configuration+0x3c4/0x432
-> Jun  6 18:00:17 Deathwish kernel:  [<c0551dc4>] generic_probe+0x48/0x7c
-> Jun  6 18:00:17 Deathwish kernel:  [<c054cfd8>] usb_probe_device+0x2f/0x34
-> Jun  6 18:00:17 Deathwish kernel:  [<c05382fd>] driver_probe_device+0xb5/0x126
-> Jun  6 18:00:17 Deathwish kernel:  [<c053836e>] __device_attach+0x0/0x5
-> Jun  6 18:00:17 Deathwish kernel:  [<c05377c6>] bus_for_each_drv+0x36/0x5e
-> Jun  6 18:00:17 Deathwish kernel:  [<c05383fa>] device_attach+0x6c/0x7f
-> Jun  6 18:00:17 Deathwish kernel:  [<c053836e>] __device_attach+0x0/0x5
-> Jun  6 18:00:17 Deathwish kernel:  [<c0537763>] bus_attach_device+0x25/0x52
-> Jun  6 18:00:17 Deathwish kernel:  [<c053697b>] device_add+0x30b/0x45f
-> Jun  6 18:00:17 Deathwish kernel:  [<c054c80f>] usb_autopm_do_device+0xaa/0xb1
-> Jun  6 18:00:17 Deathwish kernel:  [<c05477e1>] usb_new_device+0x4a/0x7c
-> Jun  6 18:00:17 Deathwish kernel:  [<c0548ac8>] hub_thread+0x687/0xa4b
-> Jun  6 18:00:17 Deathwish kernel:  [<c0429e51>] autoremove_wake_function+0x0/0x2d
-> Jun  6 18:00:17 Deathwish kernel:  [<c0548441>] hub_thread+0x0/0xa4b
-> Jun  6 18:00:17 Deathwish kernel:  [<c0429d6f>] kthread+0x36/0x5b
-> Jun  6 18:00:17 Deathwish kernel:  [<c0429d39>] kthread+0x0/0x5b
-> Jun  6 18:00:17 Deathwish kernel:  [<c04051cf>] kernel_thread_helper+0x7/0x10
-> Jun  6 18:00:17 Deathwish kernel:  =======================
-> Jun  6 18:00:17 Deathwish kernel: xc2028 1-0061: attaching existing instance
-> Jun  6 18:00:17 Deathwish kernel: xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-> Jun  6 18:00:17 Deathwish kernel: em28xx #0/2: xc3028 attached
-> Jun  6 18:00:17 Deathwish kernel: DVB: registering new adapter (em28xx #0)
-> Jun  6 18:00:17 Deathwish kernel: DVB: registering frontend 2 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-> Jun  6 18:00:17 Deathwish kernel: Successfully loaded em28xx-dvb
-> Jun  6 18:00:17 Deathwish kernel: em28xx #0: Found Pinnacle PCTV HD Pro Stick
-> =======
-> at which point both devices have /dev/dvb/adapter entries.
->
-> It would seem that the code as it is is not multiple-device friendly.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+So now I'm able to get lock on less then half of DVB-S2 HD programs which I'm 
+able to watch. This is not very funny situation, even if all of these 
+programs are without any problem receivable at the same PC but under Windows. 
+So I'm nearly sure that problem is in driver.
 
+If I could be helpful with debugging and testing I'll glad to cooperate.
 
+BR,
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Ales
+
 
 _______________________________________________
 linux-dvb mailing list
