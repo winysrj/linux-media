@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from viefep27-int.chello.at ([62.179.121.47])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rscheidegger_lists@hispeed.ch>) id 1KBd85-0006jl-IL
-	for linux-dvb@linuxtv.org; Thu, 26 Jun 2008 00:06:24 +0200
-Message-ID: <4862C130.6000300@hispeed.ch>
-Date: Thu, 26 Jun 2008 00:05:36 +0200
-From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+	(envelope-from <wimmer.mike@googlemail.com>) id 1K4MRH-0008RQ-Jt
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 22:52:08 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so483370fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 13:52:00 -0700 (PDT)
+Message-ID: <484851E8.7030606@googlemail.com>
+Date: Thu, 05 Jun 2008 22:51:52 +0200
+From: Michael Wimmer <wimmer.mike@googlemail.com>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-References: <4861501B.9050507@kolumbus.fi>	<48615A7E.2030600@tungstengraphics.com>
-	<4862A909.6040105@kolumbus.fi>
-In-Reply-To: <4862A909.6040105@kolumbus.fi>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Ticlkess Mantis remote control implementation
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Trident TM6010 based tv cards (WinTV-HVR 900H,
+	Terratec Cinergy XE, ...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,114 +25,129 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 25.06.2008 22:22, Marko Ristola wrote:
-> Roland Scheidegger wrote:
->> On 24.06.2008 21:50, Marko Ristola wrote:
->>   
->>> Hi,
->>>
->>> I have still my own version of Manu's jusst.de/mantis driver that is 
->>> based on v4l-dvb-linuxtv main branch,
->>> mainly because I use so new Linux kernels.
->>> I have done the following improvement lately:
->>>
->>> I implemented a remote control patch, that doesn't poll the remote 
->>> control all the time.
->>> It polls the remote control only if you press the button (a tickless 
->>> version, you know).
->>> It surprised me, that the actual implementation was really small, it 
->>> took very few lines of code.
->>>
->>>     
->> You're not the first to think that the constant polling is not
->> necessary, too bad these things always get lost because they aren't
->> integrated in the official driver...
->>
->> http://www.linuxtv.org/pipermail/linux-dvb/2008-May/026102.html
->>   
-> Okay, I understood from your patch that you just deliver all key repeats 
-> as initial key presses.
-> You have disabled the polling altogether, but just deliver the key 
-> presses as initial key presses
-> and deliver the "key unpressed" instantly after the key press.
-Yes, I guess though this is probably somewhat of an abuse of the API and
-maybe there could be an easier way by just delivering one key press
-without having to send an unpress event. I dunno though, I'm not
-familiar enough with the ir / input code.
+Hello group,
 
-> What is the feeling? I think that it might work for my remote control 
-> equally.
-> Also I noticed that you mentioned that you remote control's initial key 
-> repeat comes after 270ms.
-> So polling on my code should be done with 300ms intervals for example.
-> Maybe it would make my own remote control also more robust.
-> 
-> My version is better only in the sense that some application would be 
-> able to
-> catch the fact that the user is pressing a button and holding it down a 
-> long time. Maybe some programs need that for robustness.
-That's the theory, but with the delays from the remote it didn't happen
-to work in practice here consistently. Maybe if you'd change the default
-initial repeat / frequency of the input layer code (which I failed to
-do), since increasing the poll frequency just above 300ms is a bad idea
-(larger than the input layer code initial repeat - hence it is
-impossible to get single key presses).
-Also, I'm not sure there's any program out there which actually cares if
-you press a key multiple times or hold it down? And ultimately, you
-can't reliably detect this from the remote itself anyway (well you could
-try based on the timing intervals), since apparently you just get the
-same keycode again if you hold it down.
+recently, there were people asking about the Happauge WinTV-HVR 900H USB 
+video card. Was there any progress?
+I ask this, as I have recently acquired the Terratec Cinergy XE card, 
+and it seem to be based on the same chip set (as is the Twinhan 704D1 
+video card) - at least the Windows drivers in both cases always refer to 
+a file called UDXTTM6010.sys.
 
-> 
-> Your version is better in the sense that you repeat 270ms and 220ms 
-> rerepeats correctly, as the remote control sends them.
-> 
-> Can we implement a version that has both advantages and is still 
-> acceptable to the kernel?
-> 
-> + no work cancellation needs to be done during normal operation.
-> + no current time calculation is done.
-> 
-> With both features working, it could be done in the following way:
-> Set a work with a timeout of 300ms.
-> Deliver all key presses and repeats instantly.
-> On key press delivery, cancel the assumed ealier delayed check and setup 
-> a new checking work with 300ms delay.
-> If a 300ms checking delay will be ever active, it will just inform "no 
-> key pressed" and continue.
-It sounds good in theory (and I tried something along these lines), but
-finally decided I didn't want to waste any more time - it got too
-complicated (mostly because I failed to change the initial repeat /
-frequency of the input layer code, looking at it I'm not sure it can be
-done after initialization, and if you do it before you will need to
-duplicate all the logic for key repeats which is in the input code
-yourself). Just didn't seem worth the trouble.
+It seems safe to say that these cards are all Trident TM6010 based. I 
+downloaded Mauro's tm6010 repository 
+(http://linuxtv.org/hg/~mchehab/tm6010) and built the modules.
 
-> 
-> On my opinion this "final" implementation might be a generic 
-> implementation which could be used in more places than on Mantis driver.
-> 
-> One question is, that are these Mantis remote controls at all like RC5 
-> remote controls mentioned in ir-common.c/h.
-> If yes, the correct way might be to use it's implementation.
-> 
-> Personally I haven't seen a "key unpressed" IRQ with my remote.
-> That event seems to be needed, if RC5 code is going to be used.
-> 
-> It might though be, that the interrupt line for "key unpressed" isn't 
-> the same as with "key pressed".
-> That might be rather easy to investigate and the implementation for "key 
-> unpressed" would be then trivial.
-I don't think you'd ever get something for key unpressed. Seems quite
-logical, the uart just generates an interrupt for any key it receives,
-and if you "unpress" well there simply won't be any more keys.
+When calling "modprobe tm6000 card=3", (card=3 is described as 
+TM6010_GENERIC in tm6000-cards.c) dmesg says
 
-So all in all I figured not using any kind of auto-repeat works just as
-well, and the only real improvement possible (e.g. the timing based
-recognition of hold-down keys) is something likely noone cares about
-anyway but requires 10 times as complicated code.
+--------------------
+[ 1356.661730] tm6000: alt 0, interface 0, class 255
+[ 1356.661737] tm6000: alt 0, interface 0, class 255
+[ 1356.661740] tm6000: Bulk IN endpoint: 0x82 (max size=512 bytes)
+[ 1356.661744] tm6000: alt 0, interface 0, class 255
+[ 1356.661747] tm6000: alt 1, interface 0, class 255
+[ 1356.661750] tm6000: ISOC IN endpoint: 0x81 (max size=3072 bytes)
+[ 1356.661753] tm6000: alt 1, interface 0, class 255
+[ 1356.661757] tm6000: alt 1, interface 0, class 255
+[ 1356.661760] tm6000: alt 2, interface 0, class 255
+[ 1356.661763] tm6000: alt 2, interface 0, class 255
+[ 1356.661765] tm6000: alt 2, interface 0, class 255
+[ 1356.661768] tm6000: alt 3, interface 0, class 255
+[ 1356.661771] tm6000: alt 3, interface 0, class 255
+[ 1356.661774] tm6000: alt 3, interface 0, class 255
+[ 1356.661777] tm6000: New video device @ 480 Mbps (0ccd:0086, ifnum 0)
+[ 1356.661781] tm6000: Found Generic tm6010 board
+[ 1357.523811] Error -32 while retrieving board version
+[ 1357.827325] tm6000 #0: i2c eeprom 00: 42 59 54 45 12 01 00 02 00 00 
+00 40 cd 0c 86 00  BYTE.......@....
+[ 1358.023244] tm6000 #0: i2c eeprom 10: 01 00 10 20 40 01 02 03 48 79 
+62 72 69 64 2d 55  ... @...Hybrid-U
+[ 1358.223677] tm6000 #0: i2c eeprom 20: 53 42 ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  SB..............
+[ 1358.422380] tm6000 #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1358.618076] tm6000 #0: i2c eeprom 40: 24 00 43 00 69 00 6e 00 65 00 
+72 00 67 00 79 00  $.C.i.n.e.r.g.y.
+[ 1358.809772] tm6000 #0: i2c eeprom 50: 20 00 48 00 79 00 62 00 72 00 
+69 00 64 00 20 00   .H.y.b.r.i.d. .
+[ 1359.005462] tm6000 #0: i2c eeprom 60: 58 00 45 00 ff ff ff ff ff ff 
+08 03 32 00 2e 00  X.E.........2...
+[ 1359.197158] tm6000 #0: i2c eeprom 70: 30 00 ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  0...............
+[ 1359.388853] tm6000 #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1359.584546] tm6000 #0: i2c eeprom 90: ff ff ff ff 1a 03 30 00 30 00 
+30 00 38 00 43 00  ......0.0.0.8.C.
+[ 1359.776240] tm6000 #0: i2c eeprom a0: 41 00 31 00 32 00 33 00 34 00 
+35 00 36 00 ff ff  A.1.2.3.4.5.6...
+[ 1359.971940] tm6000 #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1360.163631] tm6000 #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1360.355322] tm6000 #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1360.551011] tm6000 #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1360.746700] tm6000 #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[ 1360.926418]   ................
+[ 1360.926477] Trident TVMaster TM5600/TM6000 USB2 board (Load status: 0)
+--------------------
 
-Roland
+which seems promising - at least the video card name (Cinergy Hybrid XE) 
+is read out correctly. After that, dmesg complained about a missing 
+firmware called xc3028-v27.fw, that I got from a previous message to 
+this list - although this post referred to a different card. 
+Consequently, loading the tuner firmware fails:
+
+--------------------
+[ 1360.961939] Hack: enabling device at addr 0xc2
+[ 1360.961949] tuner' 3-0061: chip found @ 0xc2 (tm6000 #0)
+[ 1361.021613] xc2028 3-0061: type set to XCeive xc2028/xc3028 tuner
+[ 1361.021731] Setting firmware parameters for xc2028
+[ 1361.047203] xc2028 3-0061: Loading 80 firmware images from 
+xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[ 1361.341754] xc2028 3-0061: Loading firmware for type=BASE MTS (5), id 
+0000000000000000.
+[ 1395.287932] xc2028 3-0061: Loading firmware for type=MTS (4), id 
+000000000000b700.
+[ 1395.930937] xc2028 3-0061: Loading SCODE for type=MTS LCD NOGD MONO 
+IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+[ 1396.070703] xc2028 3-0061: Returned an incorrect version. However, 
+read is not reliable enough. Ignoring it.
+[ 1396.414145] xc2028 3-0061: Returned an incorrect version. However, 
+read is not reliable enough. Ignoring it.
+[ 1396.414151] xc2028 3-0061: Read invalid device hardware information - 
+tuner hung?
+[ 1396.765600] xc2028 3-0061: Loading firmware for type=BASE MTS (5), id 
+0000000000000000.
+[ 1430.695815] xc2028 3-0061: Loading firmware for type=MTS (4), id 
+000000000000b700.
+[ 1431.338799] xc2028 3-0061: Loading SCODE for type=MTS LCD NOGD MONO 
+IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+[ 1431.478569] xc2028 3-0061: Returned an incorrect version. However, 
+read is not reliable enough. Ignoring it.
+[ 1431.478578] xc2028 3-0061: Read invalid device hardware information - 
+tuner hung?
+[ 1431.767140] tm6000: no frontend defined for the device!
+[ 1431.767151] tm6000: couldn't attach the frontend!
+[ 1431.767179] tm6000: probe of 5-2:1.0 failed with error -1
+--------------------
+
+Right now, I don't know for sure which tuner is in this card (although 
+the usual combination seems to be tm6010 and an xceive tuner as far as 
+I've seen in the net), nor do I know which would be the correct firmware 
+for the tuner.
+
+Is it possible to extract the firmware from the Windows driver? I mean, 
+is there a way to identify in an unknwown driver the parts corresponding 
+to the firmware?
+Any ideas or suggestions?
+
+Best,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
