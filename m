@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hond.eatserver.nl ([195.20.9.5])
+Received: from yosemite.cellcom.com ([206.40.111.98])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joep@groovytunes.nl>) id 1KAN7k-0003zg-SO
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 12:48:56 +0200
-Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
-	(authenticated bits=0)
-	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
-	m5MAmeLe017518
-	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 12:48:40 +0200
-From: joep <joep@groovytunes.nl>
-To: linux-dvb@linuxtv.org
-Date: Sun, 22 Jun 2008 12:52:47 +0200
-References: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
-In-Reply-To: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
+	(envelope-from <Mark.Jenks@nsighttel.com>) id 1K4DeY-0004C5-7C
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 13:29:13 +0200
+Received: from exchange01.Nsighttel.com (exchange01.nsighttel.com
+	[10.70.91.215])
+	by yosemite.cellcom.com (Postfix) with ESMTP id CC2414E99B
+	for <linux-dvb@linuxtv.org>; Thu,  5 Jun 2008 06:28:31 -0500 (CDT)
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Message-Id: <200806221252.47503.joep@groovytunes.nl>
-Subject: Re: [linux-dvb] s2-3200 fec problem?
+Date: Thu, 5 Jun 2008 06:28:30 -0500
+Message-ID: <E90972B408355145B0D256944398F80516F6@exchange01.nsighttel.com>
+From: "Mark A Jenks" <Mark.Jenks@nsighttel.com>
+To: <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Best card right now for Mythtv?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,100 +21,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0560024332=="
+Content-Type: multipart/mixed; boundary="===============1996196563=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0560024332==
+This is a multi-part message in MIME format.
+
+--===============1996196563==
+Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-  boundary="Boundary-01=_/7iXI/gTl4x8dmC"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+	boundary="----_=_NextPart_001_01C8C6FF.4797BE1C"
 
---Boundary-01=_/7iXI/gTl4x8dmC
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C8C6FF.4797BE1C
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Op Saturday 21 June 2008 15:38:00 schreef Niels Wagenaar:
-> > -- SNIP --
-> >
-> > Thats great news!
-> > I did patch mythtv-0.21 with this patch:
-> > http://svn.mythtv.org/trac/ticket/5403
-> > I don't have problems with the dvb-s2 channels from astra19,2 with
-> > mythtv.
->
-> I know the following (Swedish, but we all speak code!) guide seems to work:
->
-> http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854
->&showtopic=172770&st=30&start=30
->
-> > However mythtv and even szap didn't tune to the transponder on astra 23.5
-> > I have to go to a festival today so I will try multiproto_plus and vdr on
-> > sunday.
->
-> If you do, be sure to follow this guide (it's for Ubuntu but you get the
-> information on how to get it working)
->
-> http://www.kipdola.com/skerit/?language=nl
->
-> > Do you know what the differece is betweed the normal multiproto and the
-> > plus version?
->
-> It's a combine of multiproto and the mantis or v4l tree if I've got it
-> right. The last revisions of multiproto didn't seem to work for me (a lot
-> of lock problems on DVB-S2 transponders with H264 channles). I have to use
-> the revisions from March to get it working.
+I am about to build a new Myth box.  It's been about 4 months since I
+did the last one, and I used the HVR-1250 for it since I don't need
+analog.
+=20
+The next box I am going to build is going to record HD from Timewarner,
+and DTV from OTA (usa). =20
+=20
+I would like to have a dual tuner in it also if possible.
+=20
+What is everyone out there using?   Which has the most complete mod
+support right now?
+=20
+TIA!
+=20
+-Mark
 
-Can you give me the exact version or date of the revision which you are using?
-Just to be shure I do my tests on the same version as you are.
---Boundary-01=_/7iXI/gTl4x8dmC
+------_=_NextPart_001_01C8C6FF.4797BE1C
 Content-Type: text/html;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-<html><head><meta name="qrichtext" content="1" /></head><body style="font-size:10pt;font-family:Sans Serif">
-<p>Op Saturday 21 June 2008 15:38:00 schreef Niels Wagenaar:</p>
-<p><span style="color:#007000">&gt; &gt; -- SNIP --</span></p>
-<p><span style="color:#007000">&gt; &gt;</span></p>
-<p><span style="color:#007000">&gt; &gt; Thats great news!</span></p>
-<p><span style="color:#007000">&gt; &gt; I did patch mythtv-0.21 with this patch:</span></p>
-<p><span style="color:#007000">&gt; &gt; http://svn.mythtv.org/trac/ticket/5403</span></p>
-<p><span style="color:#007000">&gt; &gt; I don't have problems with the dvb-s2 channels from astra19,2 with</span></p>
-<p><span style="color:#007000">&gt; &gt; mythtv.</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#008000">&gt; I know the following (Swedish, but we all speak code!) guide seems to work:</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#008000">&gt; http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854</span></p>
-<p><span style="color:#008000">&gt;&amp;showtopic=172770&amp;st=30&amp;start=30</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#007000">&gt; &gt; However mythtv and even szap didn't tune to the transponder on astra 23.5</span></p>
-<p><span style="color:#007000">&gt; &gt; I have to go to a festival today so I will try multiproto_plus and vdr on</span></p>
-<p><span style="color:#007000">&gt; &gt; sunday.</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#008000">&gt; If you do, be sure to follow this guide (it's for Ubuntu but you get the</span></p>
-<p><span style="color:#008000">&gt; information on how to get it working)</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#008000">&gt; http://www.kipdola.com/skerit/?language=nl</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#007000">&gt; &gt; Do you know what the differece is betweed the normal multiproto and the</span></p>
-<p><span style="color:#007000">&gt; &gt; plus version?</span></p>
-<p><span style="color:#008000">&gt;</span></p>
-<p><span style="color:#008000">&gt; It's a combine of multiproto and the mantis or v4l tree if I've got it</span></p>
-<p><span style="color:#008000">&gt; right. The last revisions of multiproto didn't seem to work for me (a lot</span></p>
-<p><span style="color:#008000">&gt; of lock problems on DVB-S2 transponders with H264 channles). I have to use</span></p>
-<p><span style="color:#008000">&gt; the revisions from March to get it working.</span></p>
-<p></p>
-<p>Can you give me the exact version or date of the revision which you are using?</p>
-<p>Just to be shure I do my tests on the same version as you are.</p>
-</body></html>
---Boundary-01=_/7iXI/gTl4x8dmC--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.6000.16640" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial size=3D2>I am =
+about to build=20
+a new Myth box.&nbsp; It's been about 4 months since I did the last one, =
+and I=20
+used the HVR-1250 for it since I don't need analog.</FONT></SPAN></DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial size=3D2>The =
+next box I am=20
+going to build is going to record HD from Timewarner, and DTV from OTA=20
+(usa).&nbsp; </FONT></SPAN></DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial size=3D2>I =
+would like to have=20
+a dual tuner in it also if possible.</FONT></SPAN></DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial size=3D2>What =
+is everyone out=20
+there using?&nbsp;&nbsp; Which has the most complete mod support right=20
+now?</FONT></SPAN></DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2>TIA!</FONT></SPAN></DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D360542311-05062008><FONT face=3DArial=20
+size=3D2>-Mark</FONT></SPAN></DIV></BODY></HTML>
+
+------_=_NextPart_001_01C8C6FF.4797BE1C--
 
 
---===============0560024332==
+--===============1996196563==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -126,4 +112,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0560024332==--
+--===============1996196563==--
