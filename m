@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-3.dlr.de ([195.37.61.187] helo=smtp-2.dlr.de)
+Received: from gv-out-0910.google.com ([216.239.58.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Lukas.Orlowski@dlr.de>) id 1KAspH-0000Ls-Nh
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 22:39:50 +0200
-Content-class: urn:content-classes:message
+	(envelope-from <gujs.lists@gmail.com>) id 1K4Bus-0005dz-Rl
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 11:37:55 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so204175gve.16
+	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 02:37:50 -0700 (PDT)
+Message-ID: <4847B3F0.1030501@gmail.com>
+Date: Thu, 05 Jun 2008 11:37:52 +0200
+From: Gregor Fuis <gujs.lists@gmail.com>
 MIME-Version: 1.0
-Date: Mon, 23 Jun 2008 22:38:31 +0200
-Message-ID: <D28FC8DB666FC448B462784151E59C05011039F8@exbe07.intra.dlr.de>
-From: <Lukas.Orlowski@dlr.de>
-To: <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Getting Avermedia AverTV E506 DVB-T to work
+To: linux-dvb@linuxtv.org,
+	Mailing list for VLC media player developers <vlc-devel@videolan.org>
+Subject: [linux-dvb] multiproto and vlc
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,82 +25,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello
 
-> >
-> > I am struggling to enjoy DVB-T on my AverTV E506
-> PCMCIA card. It seams
-> > I'm doing something terribly wrong but I cannot
-> find the solution on my
-> > own. I am grateful for any help provided.
+I am using the latest multiproto from Manu's repository with KNC1 DVB-S2 
+card. I patched drivers with multiproto-support-old-api.dif patch which 
+enables drivers for older DVB api. When I watch programs with vlc i get 
+a lot of discontinuity error. I was measuring how frequently they are 
+appearing and came to an interesting finding. It looks like they are 
+appearing in every 10 seconds (+- 1 second).
 
-which program are you using for TV (I'm using kplayer that runs mplayer)
+But if I use szap to select channel and then open dvr0, the stream is 
+working great and without any errors.
 
-> >
-> > What I did so far:
-> >
-> > I'm running Gentoo with a 2.6.24-r8 kernel on my
-> Centrino Laptop. I have
-> > selected "Video for Linux" (nothing else, no
-> cards, no frontends, no
-> > chips..) as a module in my kernel configuration and
-> compiled the
-> > "v4l-dvb" drivers from the mercurial
-> repository. I also have obtained
-> > the (hopefully) correct firmware for my card.
-> >
-> > Well when I plug the PCMCIA device in this is what
-> dmesg shows me:
+szap and vlc are both compiled for old api. VLC is version 0.8.6h on 
+Ubuntu 8.04 compiled by me. If I use latest hg drivers with KNC1 DVB-S 
+card vlc is working without problems.
 
-This one seems to be OK.
+Can somebody help me find where the problem could be in vlc or 
+multiproto drivers when vlc is accessing dvb card directly. Is there any 
+event in drivers or VLC which is occurring every 10 seconds, that it 
+could have some effect on card. Probably it should be something in the 
+drivers, because VLC is working great with hg drivers and dvb-s card.
 
-> > xc2028 5-0061: creating new instance
-> > xc2028 5-0061: type set to XCeive xc2028/xc3028 tuner
-> > xc2028 5-0061: Loading 80 firmware images from
-> xc3028-v27.fw, type:
-> > xc2028 firmware, ver 2.7
-> > xc2028 5-0061: Loading firmware for type=BASE F8MHZ
-> (3), id
-> > 0000000000000000.
-> > (0), id 00000000000000ff:
-> > xc2028 5-0061: Loading firmware for type=(0), id
-> 0000000100000007.
-> > SCODE (20000000), id 0000000100000007:
-> > xc2028 5-0061: Loading SCODE for type=MONO SCODE
-> HAS_IF_5320 (60008000),
-> > id 0000000800000007.
-> > saa7133[0]: registered device video0 [v4l2]
-> > saa7133[0]: registered device vbi0
-> > saa7133[0]: registered device radio0
-> >
-> > Analog TV works with this setup, but I have no signs
-> of DVB-T. No
-> > /dev/dvb devices are created although the module for
+Thanks!
 
->Your DVB device is vbi0
+Best Regards,
+Gregor
 
->/dev/vbi0
-
->see the last lines from your dmsg
-
->I've tried vlc too it works also very well. You just have to point your tv app to read from vbi0
-
->I think this is your problem
-
->regards
-
----------------------------------------
-
-Hi 
-
-With respect, I think the /dev/vbi0 device is responsible for teletext (videotext).
-I require the whole /dev/dvb/adapter0/ structure to use dvbscan for channel scanning.
-Currently I'm dissecting the driver source code, adding debug messages to certain section (pretty lame, I know but I'm out of options).
-
-As far as I can tell "mt352_attach" gets called. I'm working on finding the weak spot.
-
-regards
-
-Luke
 
 _______________________________________________
 linux-dvb mailing list
