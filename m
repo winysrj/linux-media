@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.236])
+Received: from relay3.mail.uk.clara.net ([80.168.70.183])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <askvictor@gmail.com>) id 1K4ahY-0000O1-U0
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 14:05:49 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1529793rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 06 Jun 2008 05:05:41 -0700 (PDT)
-Message-ID: <8f8b28f10806060505o633a1b27h78f73d9f05b49e73@mail.gmail.com>
-Date: Fri, 6 Jun 2008 22:05:41 +1000
-From: "victor rajewski" <askvictor@gmail.com>
-To: Blacky <linux-dvb@blackdog.shacknet.nu>
-In-Reply-To: <000101c8bbab$cda34450$68e9ccf0$@shacknet.nu>
+	(envelope-from <simon.farnsworth@onelan.co.uk>) id 1K4HnQ-0005TF-JI
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 17:54:41 +0200
+Message-ID: <48480C33.3060705@onelan.co.uk>
+Date: Thu, 05 Jun 2008 16:54:27 +0100
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <000101c8bbab$cda34450$68e9ccf0$@shacknet.nu>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Building v4l-dvb on mythbuntu (kernel
-	2.6.24-16-generic)
+To: Simon Kilvington <s.kilvington@eris.qinetiq.com>
+References: <48480A2D.9010507@eris.qinetiq.com>
+In-Reply-To: <48480A2D.9010507@eris.qinetiq.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] UK FreeView logical channel numbers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,25 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, May 22, 2008 at 11:33 AM, Blacky <linux-dvb@blackdog.shacknet.nu> wrote:
->
-> Hi all
->
-> I've been using v4l-dvb build tree for a while, and recently installed
-> mythbuntu.
->
-> I pulled the latest release from the repository, and after building and
-> installing
-> the modules I get an error while booting (or specifically, while loading
-> module tuner_xc2028
-> during start-up)
+Simon Kilvington wrote:
+> Hi,
+> 
+> 	does anyone know where the logical channel numbers are
+> transmitted in FreeView? - ie BBC1 is 1, BBC News is 80, etc - I've been
+> looking at the PAT and PMTs with dvbsnoop but can't see anything
+> obvious.
+> 
 
-Apparently the driver is included in 2.6.25. I haven't tried it
-though. If you wanted you could pull the kernel out of the PPA
-repository. But if you're using nvidia graphics, that has problems
-with 2.6.25 - needs a patch to work.
+It's in the NIT, using a private descriptor - scan from dvb-apps 
+(http://linuxtv.org/hg/dvb-apps/file/9311c900f746/util/scan/scan.c) 
+knows about them, and they're fully specced in the DTG 'D-Book' (see 
+http://dtg.org.uk/publications/books.html).
+-- 
+HTH,
 
-vik
+Simon Farnsworth
+
 
 _______________________________________________
 linux-dvb mailing list
