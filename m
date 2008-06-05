@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.228])
+Received: from mailfe13.swipnet.se ([212.247.155.129] helo=swip.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KCzEM-0006Tl-3K
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 17:54:22 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1150479rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 08:54:15 -0700 (PDT)
-Message-ID: <d9def9db0806290854k43fd66e6ua3eb5ca3730f3f0f@mail.gmail.com>
-Date: Sun, 29 Jun 2008 17:54:15 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Andrew Websdale" <websdaleandrew@googlemail.com>
-In-Reply-To: <e37d7f810806281609o527dfdb6w6d785560b20ee8fa@mail.gmail.com>
+	(envelope-from <kene@swip.net>) id 1K4MF9-0006v5-Q6
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 22:39:36 +0200
+Received: from [213.112.225.72] (account kene@swip.net HELO [192.168.0.5])
+	by mailfe13.swip.net (CommuniGate Pro SMTP 5.1.13)
+	with ESMTPA id 575461689 for linux-dvb@linuxtv.org;
+	Thu, 05 Jun 2008 22:38:58 +0200
+Message-ID: <48484EE2.7090503@swip.net>
+Date: Thu, 05 Jun 2008 22:38:58 +0200
+From: =?ISO-8859-1?Q?Oscar_Ken=E9?= <kene@swip.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <e37d7f810806281609o527dfdb6w6d785560b20ee8fa@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Location of parser.pl
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Pinnacle PCTV Dual Hybrid Pro 3010IX
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,27 +26,10 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/6/29 Andrew Websdale <websdaleandrew@googlemail.com>:
-> I'm looking for a copy of parser.pl - it seems to have disappeared from the
-> hg repos, or I might not have looked hard enough.
+Any support for this one or maybe anything incoming?
 
-I put the scripts and usbreplay together in one repository around 15 months ago.
-http://mcentral.de/hg/~mrec/usbreplay
-
--Markus
-
-> Could someone point me to
-> the file please? I'm  attempting to modify the M920x driver to work with my
-> Dposh dvb-usb stick, which has a MT2060 tuner , unlike the existng driver
-> which works with the Q1010 instead & I wanted to generate some firmware for
-> it.
-> regards Andrew Websdale
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+regards
+/Oscar
 
 _______________________________________________
 linux-dvb mailing list
