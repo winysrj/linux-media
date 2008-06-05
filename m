@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from n36.bullet.mail.ukl.yahoo.com ([87.248.110.169])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1K7AgX-00004y-1j
-	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 16:55:26 +0200
-From: Dominik Kuhlen <dkuhlen@gmx.net>
-To: linux-dvb@linuxtv.org
-Date: Fri, 13 Jun 2008 16:54:11 +0200
-References: <f3acf9620806130531j18a64bbcw92256044a491a26f@mail.gmail.com>
-In-Reply-To: <f3acf9620806130531j18a64bbcw92256044a491a26f@mail.gmail.com>
+	(envelope-from <eallaud@yahoo.fr>) id 1K4Lbx-0001eK-IG
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 21:59:04 +0200
+Date: Thu, 05 Jun 2008 15:58:05 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1212610778l.7239l.1l@manu-laptop>
+	<200806052047.30008.ajurik@quick.cz>
+In-Reply-To: <200806052047.30008.ajurik@quick.cz> (from ajurik@quick.cz on
+	Thu Jun  5 14:47:29 2008)
+Message-Id: <1212695886l.9365l.0l@manu-laptop>
 MIME-Version: 1.0
-Message-Id: <200806131654.11715.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Firmware extraction script for Pinnacle PCTV Sat
-	Pro USB
+Content-Disposition: inline
+Subject: [linux-dvb] Re : No lock on a particular transponder with TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,84 +21,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0467248420=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0467248420==
-Content-Type: multipart/signed;
-  boundary="nextPart2528752.7rg6RyCUgq";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Le 05.06.2008 14:47:29, Ales Jurik a =E9crit=A0:
+> On Wednesday 04 of June 2008, manu wrote:
+> > 	Hi all,
+> > one more datapoint for the TT 3200 tuning problems. I solved all my
+> > locking problems by add 4MHz to the reported frequencies (coming
+> from
+> > the stream tables); note that one of the transponders always locked
+> > even without this correction (its freq is 11093MHz, the others =
 
---nextPart2528752.7rg6RyCUgq
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> are :
+> > 11555, 11635, 11675MHz), so as you see the others are much higher.
+> > Now there is another transponder at 11495MHz but this one I cant
+> lock
+> > on it even with my correction. =
 
-Hi,
-On Friday 13 June 2008, anton repko wrote:
+> =
+
 > Hi,
-> I extracted firmware for DVB-S Pinnacle PCTV Sat Pro USB (450e) from file=
- on
-> installation cd:
-> /mnt/cdrom0/Driver/PCTV 4XXe/pctv4XXe.sys
-> I placed it also on my site:
-> http://www.natur.cuni.cz/~repko/fw/pctv4XXe.sys
-> because Pinnacle has some new driver, which I haven't tried yet:
-> http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450=
-e,%20452e/XP32.ZIP
->=20
->=20
-> #!/bin/bash
-> dd if=3Dpctv4XXe.sys of=3Ddvb-ttusb2-a.raw bs=3D8 skip=3D22287 count=3D13=
-90
-> dd if=3Dpctv4XXe.sys of=3Ddvb-ttusb2-b.raw bs=3D8 skip=3D23682 count=3D14=
-08
-> dd if=3Dpctv4XXe.sys of=3Ddvb-usb-pctv-400e-01.raw bs=3D8 skip=3D25093 co=
-unt=3D1315
-> dd if=3Dpctv4XXe.sys of=3Ddvb-ttusb2-c.raw bs=3D8 skip=3D26411 count=3D12=
-32
-> dd if=3Dpctv4XXe.sys of=3Ddvb-ttusb2-d.raw bs=3D8 skip=3D27646 count=3D13=
-26
-> dd if=3Dpctv4XXe.sys of=3Ddvb-ttusb2-e.raw bs=3D8 skip=3D28975 count=3D13=
-78
-> dd if=3Dpctv4XXe.sys of=3Ddvb-usb-pctv-450e-01.raw bs=3D8 skip=3D30356 co=
-unt=3D1323
-> dd if=3Dpctv4XXe.sys of=3Ddvb-usb-pctv-452e-01.raw bs=3D8 skip=3D31682 co=
-unt=3D1375
-Are you sure that the 450e does need a firmware?
-I know that the 452e does not.
+> =
 
-Dominik
+> I have a little more problems with TT S2-3200 under linux. At DVB-S
+> exists =
 
---nextPart2528752.7rg6RyCUgq
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+> transponders to which is not possible to switch directly (when
+> changing =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
+> satellite), it is necessary to tune first to another transponder at
+> same =
 
-iEYEABECAAYFAkhSihMACgkQ6OXrfqftMKJaCgCeOIdx37oZuoMYzVRke/ENSger
-1goAnRDZSqkkHW+ZaaJOODl0Vfl7Yhld
-=IYnQ
------END PGP SIGNATURE-----
+> position (I'm using diseqc switch). At these transponders changing =
 
---nextPart2528752.7rg6RyCUgq--
+> the
+> =
+
+> frequency is not helpful.
+> =
+
+> At DVB-S2 transponders are some transponders at which is possible to
+> get lock =
+
+> without problems. Also at some transponders it is possible to get =
+
+> lock
+> when =
+
+> changing frequency by 4-5MHz after some minutes (typically 2 min.).
+> But there =
+
+> exists some transponders where is practically impossible to get lock. =
+
+> Interesting is that those problematic transponders were without
+> problems =
+
+> receivable some time ago. The change appeared when transponders were
+> switched =
+
+> from Thor2 to Thor5 (same frequency but only FEC changed from 2/3 to
+> 3/4 and =
+
+> pilot was switched off), also one transponder at HB 13.0E which was =
+
+> receivable two months ago is not receivable any more (don't know if
+> pilot was =
+
+> switched off but other paremeters are the same).
+> =
 
 
---===============0467248420==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Well so this would point to a problem involving FEC. But is that a =
+
+problem to get a lock? I mean FEC is just involved after a successful =
+
+tuning, right? So even tuning is a problem IMHO and FEC might be =
+
+another one.
+I hope that someone else can elaborate/confirm or not.
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0467248420==--
