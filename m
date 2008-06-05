@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1K89ZF-0005VH-Te
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 09:56:05 +0200
-Date: Mon, 16 Jun 2008 09:54:57 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-In-Reply-To: <4855C780.9040501@gmx.net>
-Message-ID: <Pine.LNX.4.64.0806160949440.3677@pub3.ifh.de>
-References: <4852C2FE.6040107@gmx.net> <4855C780.9040501@gmx.net>
-MIME-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Technisat Airstar USB round two
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <4846A0B3.5000202@linuxtv.org>
+References: <1212535332.32385.29.camel@pascal>
+	<1212584764.32385.36.camel@pascal>
+	<37219a840806040639q737327c7r9cab46cfdd88eaae@mail.gmail.com>
+	<48469C7A.1070607@linuxtv.org> <1212587661.32385.47.camel@pascal>
+	<4846A0B3.5000202@linuxtv.org>
+Content-Type: multipart/mixed; boundary="=-6aFxyLZyb4QrsHFZjPuS"
+Date: Thu, 05 Jun 2008 11:13:56 +0200
+Message-Id: <1212657236.32385.55.camel@pascal>
+Mime-Version: 1.0
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Re: Ooops in tda827x.c
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,151 +20,128 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-Ignore the conexant error. The driver cannot know which device you exactly 
-have other than trying to guess. And guessing works, by trying every 
-possible frontend-driver. The CX24123 says wrong revision. OK, that is 
-correct, there is no CX24123.
+--=-6aFxyLZyb4QrsHFZjPuS
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-The following line says the truth:
+On Wed, 2008-06-04 at 10:03 -0400, Michael Krufky wrote:
+> Sigmund Augdal wrote:
+> > On Wed, 2008-06-04 at 09:45 -0400, Michael Krufky wrote:
+> >   
+> >> Michael Krufky wrote:
+> >>     
+> >>>> On Wed, 2008-06-04 at 01:22 +0200, Sigmund Augdal wrote:
+> >>>>         
+> >>>>> changeset 49ba58715fe0 (7393) introduces an ooops in tda827x.c in
+> >>>>> tda827xa_lna_gain. The initialization of the "msg" variable accesses
+> >>>>> priv->cfg before the NULL check causing an oops when it is in fact
+> >>>>> NULL.
+> >>>>>
+> >>>>> Best regards
+> >>>>>
+> >>>>> Sigmund Augdal
+> >>>>>           
+> >>> 2008/6/4 Sigmund Augdal <sigmund@snap.tv>:
+> >>>       
+> >>>> Attached patch fixes the problem.
+> >>>>
+> >>>> Best regards
+> >>>>
+> >>>> Sigmund Augdal
+> >>>>
+> >>>>         
+> >>> Sigmund,
+> >>>
+> >>> The driver was only able to get into this function without priv->cfg
+> >>> being defined, because m920x passes in NULL as cfg.
+> >>>
+> >>> In my opinion, this is flawed by design, and m920x should pass in an
+> >>> empty structure rather than a NULL pointer, but I understand why
+> >>> people might disagree with that.
+> >>>
+> >>> With that said, your patch looks good and I see that it fixes the
+> >>> issue. Please provide a sign-off so that your fix can be integrated
+> >>> and you will receive credit for your work.
+> >>>
+> >>> Use the form:
+> >>>
+> >>> Signed-off-by: Your Name <email@addre.ss>
+> >>>
+> >>>       
+> >> Sigmund,
+> >>
+> >> Looking at the C-1501 patch that you sent in, here is the cause of your OOPS.
+> >>
+> >> if (dvb_attach(tda827x_attach, budget_ci->budget.dvb_frontend, 0x61,
+> >> +				       &budget_ci->budget.i2c_adap, 0) == NULL)
+> >>
+> >> You are passing "0" to the config structure of tda827x_attach.  First off, "0" is an illegal value.  This should be a pointer to a "struct tda827x_config"
+> >>
+> >> ...Please take a look at the tda827x_attach calls in saa7134-dvb.c for a better idea on what belongs there.
+> >>     
+> > The documentation in tda827x.h says that this parameter is optional.
+> > Furthermore there are other drivers that don't use it  (as you allready
+> > mentioned), and ever further the module used to work without crashing
+> > before the above-mentioned changeset. I think that applying a two line
+> > patch to fix a regression is worthwhile compared to having a number of
+> > drivers allocate structures to hold no useful information. I do however
+> > agree that I should have used NULL rather than 0.
+> 
+> I agree with you as well -- I just wanted to state the facts so that
+> this thread makes sense to other readers.
+> 
+> As stated in my prior email, your tda287x fix should definitely be
+> merged after you send in your sign-off.
+> 
+> Regards,
+> 
+> Mike
+> 
+New patch with signed of line, passed through checkpatch as well.
 
-[ 3083.612219] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
+Best regards,
 
->From the init point of view everything looks correct here.
+Sigmund Augdal
 
-The error messages when unplugging are strange, but should not prevent you 
-from using it.
+--=-6aFxyLZyb4QrsHFZjPuS
+Content-Disposition: attachment; filename=tda827x-oops.patch
+Content-Type: text/x-patch; name=tda827x-oops.patch; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-However. Maybe it is better to sell the device at Ebay and buy another 
-(better) one. Yours is only USB1.1, you cannot receive a complete 
-transport stream with it.
+Signed-off-by: Sigmund Augdal <sigmund@snap.tv>
+diff -r 6541620a09b7 linux/drivers/media/common/tuners/tda827x.c
+--- a/linux/drivers/media/common/tuners/tda827x.c	Tue Jun 03 10:32:16 2008 -0300
++++ b/linux/drivers/media/common/tuners/tda827x.c	Wed Jun 04 15:03:15 2008 +0200
+@@ -419,13 +419,14 @@
+ 	unsigned char buf[] = {0x22, 0x01};
+ 	int arg;
+ 	int gp_func;
+-	struct i2c_msg msg = { .addr = priv->cfg->switch_addr, .flags = 0,
++	struct i2c_msg msg = { .flags = 0,
+ 			       .buf = buf, .len = sizeof(buf) };
+ 
+ 	if (NULL == priv->cfg) {
+ 		dprintk("tda827x_config not defined, cannot set LNA gain!\n");
+ 		return;
+ 	}
++	msg.addr = priv->cfg->switch_addr;
+ 	if (priv->cfg->config) {
+ 		if (high)
+ 			dprintk("setting LNA to high gain\n");
 
-Did you try the device in Windows using the same antenna?
-
-Patrick.
-
-
-On Mon, 16 Jun 2008, P. van Gaans wrote:
-
-> On 06/13/2008 08:57 PM, P. van Gaans wrote:
->> Approximately a year ago I tried to make this USB DVB-T box work. But it
->> wouldn't. With a little more knowledge today I tried again with v4l-dvb
->> from hg, but it still won't go. I get this when I plug it in:
->>
->> [ 3083.152125] usb 1-2: new full speed USB device using ohci_hcd and
->> address 4
->> [ 3083.253055] usb 1-2: configuration #1 chosen from 1 choice
->> [ 3083.258204] flexcop_usb: running at FULL speed.
->> [ 3083.501399] DVB: registering new adapter (FlexCop Digital TV device)
->> [ 3083.502758] b2c2-flexcop: MAC address = 00:d0:d7:09:e7:70
->> [ 3083.516842] CX24123: wrong demod revision: 0
->> [ 3083.612219] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
->> [ 3083.612226] DVB: registering frontend 1 (Zarlink MT352 DVB-T)...
->> [ 3083.612261] b2c2-flexcop: initialization of 'Air2PC/AirStar 2 DVB-T'
->> at the 'USB' bus controlled by a 'FlexCopIII' complete
->> [ 3083.621757] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV
->> USB Driver successfully initialized and connected.
->>
->> Note the "CX24123: wrong demod revision: 0". What's with that? It looks
->> like something is wrong.
->>
->> I get this when I unplug it:
->>
->> [ 3081.464885] flexcop_usb: iso frame descriptor 0 has an error: -62
->> [ 3081.464887]
->> [ 3081.464892] flexcop_usb: iso frame descriptor 1 has an error: -62
->> [ 3081.464893]
->> [ 3081.464895] flexcop_usb: iso frame descriptor 2 has an error: -62
->> [ 3081.464896]
->> [ 3081.464897] flexcop_usb: iso frame descriptor 3 has an error: -62
->> [ 3081.464898]
->> [ 3081.468884] flexcop_usb: iso frame descriptor 0 has an error: -62
->> [ 3081.468886]
->> [ 3081.468891] flexcop_usb: iso frame descriptor 1 has an error: -62
->> [ 3081.468892]
->> [ 3081.468894] flexcop_usb: iso frame descriptor 2 has an error: -62
->> [ 3081.468895]
->> [ 3081.468896] flexcop_usb: iso frame descriptor 3 has an error: -62
->> [ 3081.468897]
->> [ 3081.472876] flexcop_usb: iso frame descriptor 0 has an error: -62
->> [ 3081.472877]
->> [ 3081.472879] flexcop_usb: iso frame descriptor 1 has an error: -62
->> [ 3081.472880]
->> [ 3081.472881] flexcop_usb: iso frame descriptor 2 has an error: -62
->> [ 3081.472882]
->> [ 3081.472883] flexcop_usb: iso frame descriptor 3 has an error: -62
->> [ 3081.472885]
->> [ 3081.475209] usb 1-2: USB disconnect, address 3
->> [ 3081.479869] flexcop_usb: iso frame descriptor 0 has an error: -62
->> [ 3081.479871]
->> [ 3081.479873] flexcop_usb: iso frame descriptor 1 has an error: -62
->> [ 3081.479874]
->> [ 3081.479875] flexcop_usb: iso frame descriptor 2 has an error: -62
->> [ 3081.479876]
->> [ 3081.479877] flexcop_usb: iso frame descriptor 3 has an error: -18
->> [ 3081.479878]
->> [ 3081.479880] flexcop_usb: iso frame descriptor 0 has an error: -18
->> [ 3081.479881]
->> [ 3081.479883] flexcop_usb: iso frame descriptor 1 has an error: -18
->> [ 3081.479884]
->> [ 3081.479885] flexcop_usb: iso frame descriptor 2 has an error: -18
->> [ 3081.479886]
->> [ 3081.479887] flexcop_usb: iso frame descriptor 3 has an error: -18
->> [ 3081.479888]
->> [ 3081.479890] flexcop_usb: iso frame descriptor 0 has an error: -18
->> [ 3081.479891]
->> [ 3081.479892] flexcop_usb: iso frame descriptor 1 has an error: -18
->> [ 3081.479893]
->> [ 3081.479895] flexcop_usb: iso frame descriptor 2 has an error: -18
->> [ 3081.479896]
->> [ 3081.479897] flexcop_usb: iso frame descriptor 3 has an error: -18
->> [ 3081.479898]
->> [ 3081.479900] flexcop_usb: iso frame descriptor 0 has an error: -18
->> [ 3081.479901]
->> [ 3081.479902] flexcop_usb: iso frame descriptor 1 has an error: -18
->> [ 3081.479903]
->> [ 3081.479904] flexcop_usb: iso frame descriptor 2 has an error: -18
->> [ 3081.479905]
->> [ 3081.479906] flexcop_usb: iso frame descriptor 3 has an error: -18
->> [ 3081.479907]
->> [ 3081.480307] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV
->> USB Driver successfully deinitialized and disconnected.
->>
->> I think it doesn't like being unplugged. The problem is still the same:
->> I see the device in /dev/dvb and in Kaffeine, when I try to watch a
->> channel I see the ACT LED on the device blink a bit, but the LOCK LED
->> will never light up and I never get to watch anything. Using Ubuntu 8.04.
->>
->> P.
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
-> Doesn't anyone have any idea, or even care about this device? I can't
-> find any Conexant chip in there, unless it would be inside the tuner.
->
-> If nobody cares about it (I see only one secondhand Airstar USB on eBay
-> and it looks different from mine), I'll sell mine and forget about it.
-> Otherwise.. Please post.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
+--=-6aFxyLZyb4QrsHFZjPuS
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-6aFxyLZyb4QrsHFZjPuS--
