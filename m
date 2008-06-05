@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from fmmailgate01.web.de ([217.72.192.221])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1K7Uw4-0008C8-U5
-	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 14:32:54 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K7Uvv-0003zM-M7
-	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 12:32:39 +0000
-Received: from 77-103-126-124.cable.ubr10.dals.blueyonder.co.uk
-	([77.103.126.124]) by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 12:32:39 +0000
-Received: from mariofutire by 77-103-126-124.cable.ubr10.dals.blueyonder.co.uk
-	with local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 12:32:39 +0000
-To: linux-dvb@linuxtv.org
-From: Andrea <mariofutire@googlemail.com>
-Date: Sat, 14 Jun 2008 13:31:46 +0100
-Message-ID: <4853BA32.4050606@googlemail.com>
-References: <g2unka$ivi$1@ger.gmane.org> <4853B5CD.3050906@ethz.ch>
-Mime-Version: 1.0
+	(envelope-from <hubblest@web.de>) id 1K4Jeo-0007zU-9h
+	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 19:53:51 +0200
+From: Peter Meszmer <hubblest@web.de>
+To: bvidinli <bvidinli@gmail.com>
+Date: Thu, 5 Jun 2008 19:53:15 +0200
+References: <36e8a7020806040347t27206049je7e12b233ababf04@mail.gmail.com>
+	<1212635564.2641.7.camel@pc10.localdom.local>
+	<36e8a7020806042348oe4d11b1r65adc7add8ec2ea6@mail.gmail.com>
+In-Reply-To: <36e8a7020806042348oe4d11b1r65adc7add8ec2ea6@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806051953.15879.hubblest@web.de>
 Cc: linux-dvb@linuxtv.org
-In-Reply-To: <4853B5CD.3050906@ethz.ch>
-Subject: Re: [linux-dvb] How to use a DVB FRONTEND in read only?
+Subject: Re: [linux-dvb] About Avermedia DVB-S Hybrid+FM A700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,23 +28,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Claudio Luck wrote:
-> Andrea wrote:
-> 
-> 
-> Check for open filehandles on demux device:
-> 
-> root@iptv:~# ls -l /proc/*/fd/* | grep demux
-> lrwx------ 1 vlc  vlc  64 2008-06-14 14:02 /proc/19876/fd/6 ->
-> /dev/dvb/adapter0/demux0
-> lrwx------ 1 vlc  vlc  64 2008-06-14 14:02 /proc/19892/fd/6 ->
-> /dev/dvb/adapter1/demux0
+Hallo,
 
-I will try that, but it sounds to me a very non natural solution.
-Should the dvb framework tell the clients if it is streaming or not? via an ioctl like FE_GET_INFO?
+my tip was really meant as tip. I knew the problems which occur 
+from "non-standard"-directories from my first SuSE-experiences.
+If you want to build your own vanilla-kernel and need help, please drop me a 
+note.
 
-Andrea
+May I ask, which hardware are you using? If I'm copying lots of files, I'm 
+loosing the picture too...
 
+Regards
+Peter
+
+Am Donnerstag, 5. Juni 2008 schrieben Sie:
+> This was only in case somebody may help, and for your information,
+>
+> As you know, Ubuntu is the most used distribution these days....
+> i think you should care about it...
+> Thanks anyway, information provided was usefull.
+> i will retry soon about my card..
+>
 
 _______________________________________________
 linux-dvb mailing list
