@@ -1,22 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.226])
+Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alireza.torabi@gmail.com>) id 1K6kSj-0007nm-CX
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 12:55:26 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so4835811rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 03:55:20 -0700 (PDT)
-Message-ID: <cffd8c580806120355jac08149vb702aaf552e38382@mail.gmail.com>
-Date: Thu, 12 Jun 2008 11:55:19 +0100
-From: "Alireza Torabi" <alireza.torabi@gmail.com>
-To: joep <joep@groovytunes.nl>
-In-Reply-To: <200806121209.32545.joep@groovytunes.nl>
+	(envelope-from <frederic.cand@anevia.com>) id 1K4apP-0001HA-ML
+	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 14:13:57 +0200
+Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
+	[88.170.236.224])
+	by vds19s01.yellis.net (Postfix) with ESMTP id 16DDB2FA8AB
+	for <linux-dvb@linuxtv.org>; Fri,  6 Jun 2008 14:14:00 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by goliath.anevia.com (Postfix) with ESMTP id C7E96130008C
+	for <linux-dvb@linuxtv.org>; Fri,  6 Jun 2008 14:13:50 +0200 (CEST)
+Received: from goliath.anevia.com ([127.0.0.1])
+	by localhost (goliath.anevia.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id iO+XVMNixUuL for <linux-dvb@linuxtv.org>;
+	Fri,  6 Jun 2008 14:13:42 +0200 (CEST)
+Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
+	by goliath.anevia.com (Postfix) with ESMTP id B07EA1300089
+	for <linux-dvb@linuxtv.org>; Fri,  6 Jun 2008 14:13:42 +0200 (CEST)
+Message-ID: <484929F0.3060701@anevia.com>
+Date: Fri, 06 Jun 2008 14:13:36 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
-	<cffd8c580806120240n72b7ffb2h179b30dfc5b851b@mail.gmail.com>
-	<200806121209.32545.joep@groovytunes.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fwd: 2.6.x kernels and TechniSat SkyStar2 HD
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [CAM] SCM Irdeto
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,27 +36,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 6/12/08, joep <joep@groovytunes.nl> wrote:
-> Op Thursday 12 June 2008 11:40:37 schreef Alireza Torabi:
-> > Dear All,
-> >
-> > If anyone has a working TechniSat SkyStar HD 2 (Azurewave AD SP400 /
-> > Twinhan VP-1041) linux 2.6.x kernel driver, Could they please let me
-> > know what version of kernel and Mantis driver they use?
-> >
->
-> I am using mantis 0b04be0c088a on OpenSuse 10.3(32bit).
->
-> On the mythtv mailing list someone reported this combination also to work:
-> mantis driver, 0b04be0c088a on Ubuntu 8.04 amd64.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Anyone having a SCM Irdeto managed to make it work ?
+ioctls do work, but reads/writes gives an "input/output error" ... with 
+any software i used
 
-Sorry to be pain in the neck but what's your "uname -a" please?
+I tried with an old technotrend dvbs budget card, a knc tv star dvbs, 
+dvbs2, with no sucess
+
+btw the cam is working under windows and in a set top box
+
+nothing written in dmesg, just the -1 error when I try to write to the 
+CAM to send a TPDU (perror saying "input/output error")
+
+
+-- 
+CAND Frederic
+Product Manager
+ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
