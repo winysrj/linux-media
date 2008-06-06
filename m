@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5FIeahi006226
-	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 14:40:37 -0400
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5FIeJTH010247
-	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 14:40:20 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans-Peter Diettrich <DrDiettrich1@aol.com>, video4linux-list@redhat.com
-In-Reply-To: <48540B1E.3020908@aol.com>
-References: <485273BB.6040608@aol.com>
-	<1213387999.2758.65.camel@pc10.localdom.local>
-	<48540B1E.3020908@aol.com>
-Content-Type: text/plain
-Date: Sun, 15 Jun 2008 20:39:08 +0200
-Message-Id: <1213555148.2683.61.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: Medion problem
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56EWUZx016144
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 10:32:30 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56EWGMt028385
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 10:32:17 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1K4czH-0000S2-KC
+	for video4linux-list@redhat.com; Fri, 06 Jun 2008 16:32:15 +0200
+Message-ID: <48494770.7060503@hhs.nl>
+Date: Fri, 06 Jun 2008 16:19:28 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <484934FD.1080401@hhs.nl>
+	<200806061519.50350.laurent.pinchart@skynet.be>
+In-Reply-To: <200806061519.50350.laurent.pinchart@skynet.be>
+Content-Type: multipart/mixed; boundary="------------060201070200060705090302"
+Cc: video4linux-list@redhat.com, spca50x-devs@lists.sourceforge.net,
+	Elmar Kleijn <elmar_kleijn@hotmail.com>,
+	"need4weed@gmail.com" <need4weed@gmail.com>
+Subject: uvc open/close race (Was Re: v4l1 compat wrapper version 0.3)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,149 +32,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------060201070200060705090302
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Am Samstag, den 14.06.2008, 20:17 +0200 schrieb Hans-Peter Diettrich:
-> hermann pitton schrieb:
+Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> > The Nvidia binary drivers are in most cases fine, on latest cards even
-> > needed, since only VESA support else, that would work with xawtv in its
-> > default overlay preview mode, but that is not supported on the binary
-> > drivers anymore. Therefore you would like to force it to
-> > grabdisplay/mmapped mode with "xawtv -nodga -remote -c /dev/video0"
+> On Friday 06 June 2008 15:00, Hans de Goede wrote:
+>> Hi All,
+>>
+>> Ok, this one _really_ works with ekiga (and still works fine with spcaview)
+>> and also works with camorama with selected cams (not working on some cams
+>> due to a camorama bug).
+>>
+>> Changes:
+>> * Don't allow multiple opens, in theory our code can handle it, but not all
+>>    v4l2 devices like it (ekiga does it and uvc doesn't like it).
 > 
-> Close, but here's what really works so far:
-> 
-> dodi@noname:~> xawtv -nodga -remote -c /dev/video1
-> This is xawtv-3.95, running on Linux/x86_64 (2.6.22.17-0.1-default)
-> xinerama 0: 1280x1024+1680+0
-> xinerama 1: 1680x1050+0+0
+> Could you please elaborate ? Have you noticed a bug in the UVC driver ? It 
+> should support multiple opens.
 
-it is because the 16be:0005 device is detected at first now on the PCI
-bus and thus 16be:0003 becomes /dev/video1.
+A good question, which I kinda knew I had coming. So now it has been asked I've 
+spend some time tracking this down. There seems to be an open/close race 
+somewhere in the UVC driver, ekiga does many open/close cycles in quick 
+succession during probing.
 
-> Only the sound is missing :-(
-> Even modprobe (tuner and saa7134) didn't help.
+It seems my no multiple opens code slows it down just enough to stop the race, 
+but indeed multiple opens does not seem to be the real problem.
 
-The card has usually also internally a red MPC2 style analog audio out
-connector. Since about the md8383 this is not connected anymore to AUX
-or CD-in of the soundchip of the board. You can use a cdrom audio cable
-for that.
+I've attached a program which reproduces it. I've commented out the fork as 
+that does not seem necessary to reproduce this, just very quickly doing
+open/some-io/close, open/some-io/close seems to be enough to trigger this, here 
+is the output on my machine:
 
-The other option is to load saa7134-alsa for dma sound.
-Have a look at the v4l wiki at linuxtv.org for usage hints.
+[hans@localhost v4l1-compat-0.4]$ ./test
+[hans@localhost v4l1-compat-0.4]$ ./test
+[hans@localhost v4l1-compat-0.4]$ ./test
+[hans@localhost v4l1-compat-0.4]$ ./test
+TRY_FMT 2: Input/output error
+[hans@localhost v4l1-compat-0.4]$ ./test
+TRY_FMT 1: Input/output error
+[hans@localhost v4l1-compat-0.4]$ ./test
+TRY_FMT 1: Input/output error
+[hans@localhost v4l1-compat-0.4]$ ./test
+TRY_FMT 1: Input/output error
+[hans@localhost v4l1-compat-0.4]$
 
-A quick start is:
-"sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -w -r 32000 /dev/dsp"
+Notice how after the first time it gets the I/O error, it never recovers and 
+from now on every first TRY_FMT fails.
 
-> The -nodga seems to have no effect, -remote is required, as well as -c.
+Some notes:
+1) TRY_FMT should really never do I/O (but then I guess the
+    problem would still persists with S_FMT)
+2) I've also seen it fail at TRY_FMT 1 without first failing
+    a TRY_FMT 2, I guess that was just me doing arrow-up -> enter to quickly :)
 
-The -remote forces grabdisplay mode, since overlay preview is not
-supported with the binary drivers, -c sets the video device, since the
-Nvidia cards have some own videoport, which confuses xawtv.
-Likely -nodga is not required, since you are in xinerama mode and are
-using the videoblitter.
+Regards,
 
-> 
-> > Please post the relevant part of "dmesg" after that.
-> 
-> Here's a possibly incomplete snippet:
-> 
-> saa7134[0]: found at 0000:02:00.0, rev: 1, irq: 16, latency: 84, mmio: 
-> 0xfddff000
-> saa7134[0]: subsystem: 16be:0005, board: Medion 7134 Bridge #2 
-> [card=93,autodetected]
-> saa7134[0]: board init: gpio is 0
-> saa7134[0]: Medion 7134 Bridge #2: dual saa713x broadcast decoders
-> saa7134[0]: Sorry, none of the inputs to this chip are supported yet.
-> saa7134[0]: Dual decoder functionality is disabled for now, use the 
-> other chip.
-> saa7134[0]: i2c eeprom 00: be 16 05 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> saa7134[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
-> saa7134[0]: i2c eeprom 20: 01 40 01 02 02 03 01 00 06 ff 00 21 02 51 96 2b
-> saa7134[0]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
-> saa7134[0]: i2c eeprom 40: ff 24 00 c0 ff 1c 00 ff ff ff fd 79 44 9f c2 8f
-> saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[0]: registered device video0 [v4l2]
-> saa7134[0]: registered device vbi0
-> ACPI: PCI Interrupt 0000:02:01.0[A] -> GSI 17 (level, low) -> IRQ 17
-> saa7134[1]: found at 0000:02:01.0, rev: 1, irq: 17, latency: 8, mmio: 
-> 0xfddfe000
-> PCI: Setting latency timer of device 0000:02:01.0 to 64
-> saa7134[1]: subsystem: 16be:0003, board: Medion 7134 [card=12,autodetected]
-> saa7134[1]: board init: gpio is 0
-> tuner 2-0043: chip found @ 0x86 (saa7134[1])
-> tda9887 2-0043: tda988[5/6/7] found @ 0x43 (tuner)
-> tuner 2-0060: All bytes are equal. It is not a TEA5767
-> tuner 2-0060: chip found @ 0xc0 (saa7134[1])
-> tuner 2-0060: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-> tuner 2-0060: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-> saa7134[1]: i2c eeprom 00: be 16 03 00 08 20 1c 55 43 43 a9 1c 55 43 43 a9
-> saa7134[1]: i2c eeprom 10: ff ff ff ff 15 00 0e 01 0c c0 08 00 00 00 00 00
-> saa7134[1]: i2c eeprom 20: 00 00 00 e3 ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7134[1] Tuner type is 38
-> saa7134[1]: registered device video1 [v4l2]
-> saa7134[1]: registered device vbi1
-> saa7134[1]: registered device radio0
-> saa7134[1]/dvb: frontend initialization failed
-> 
+Hans
 
-Thanks, this did confuse me a little last night,
-but on a second look it really might mean that you have a new and
-undocumented card type/revision under 16be:0003 and I start some
-guessing.
+--------------060201070200060705090302
+Content-Type: text/plain;
+ name="test.c"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="test.c"
 
-It is all about if you really have the detected, but not loaded analog
-only tuner=38 (FM1216ME/I H-3) or the hybrid with analog and DVB-T
-support tuner=63 (FMD1216ME/I H-3).
-
-It seems it is the analog only tuner.
-The hybrid one comes also with an external Philips tda10046 channel
-decoder chip.
-If you would enable "i2c_scan=1" on loading the saa7134 it should be
-found at i2c address 0x10 in dmesg, but frontend attach fails already
-and the tda10046 is also not present in the eeprom.
-
-Is DVB-T announced at all? Best would be to take the card out, look at
-the CTX???_V? type and revision, read the tuner label and report if the
-tda10046 is there.
-
-If it has the FM1216ME/I H-3 analog only, some pictures would be welcome
-as well, since not yet documented.
-The version of the ISL chip for the 12Volt supply of the LNB would also
-be interesting. On the known one it is isl6405er.
-In case you send pics, please off list or load them up somewhere.
-
-The likely correct tuner=38 would be set again with current v4l-dvb.
-There was a regression in the eeprom tuner detection, which is fixed
-now. Both tuners are not fully compatible for analog. With a wrong one
-set, you lose some channels and on low VHF they might be noisy/snowy.
-
-To escape the broken eeprom detected tuner setup, you can use the
-compatible card=5 and force the tuner type there for the 16be:0003
-section.
-"modprobe -v saa7134 card=93,5 tuner=4,38 latency=64 gbuffers=32"
-something. The -v is important to see if there is something from YAST
-overriding your command line.
-
-Please keep the list in reply.
-
-Cheers,
-Hermann
-
-
-
-
-
+I2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDxzdHJpbmcuaD4KI2luY2x1ZGUgPGVycm5v
+Lmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUgPGZjbnRsLmg+CiNpbmNsdWRlIDxz
+eXNjYWxsLmg+CiNpbmNsdWRlIDxzeXMvaW9jdGwuaD4KI2luY2x1ZGUgPGxpbnV4L3ZpZGVv
+ZGV2Mi5oPgoKaW50IG1haW4odm9pZCkKewogIGludCBmZDsKICBwaWRfdCBwaWQ7CiAgc3Ry
+dWN0IHY0bDJfZm9ybWF0IGZtdDIgPSB7IC50eXBlID0gVjRMMl9CVUZfVFlQRV9WSURFT19D
+QVBUVVJFIH07CiAgCiAgZmQgPSBvcGVuKCIvZGV2L3ZpZGVvMCIsIE9fUkRPTkxZKTsKICBp
+ZiAoZmQgPT0gLTEpIHsKICAgIHBlcnJvcigib3BlbiAxIik7CiAgICByZXR1cm4gMTsKICB9
+CgogIGlmIChzeXNjYWxsKFNZU19pb2N0bCwgZmQsIFZJRElPQ19HX0ZNVCwgJmZtdDIpKSB7
+CiAgICBwZXJyb3IoIkdfRk1UIDEiKTsKICAgIHJldHVybiAxOwogIH0KICAgICAgCiAgaWYg
+KHN5c2NhbGwoU1lTX2lvY3RsLCBmZCwgVklESU9DX1RSWV9GTVQsICZmbXQyKSkgewogICAg
+cGVycm9yKCJUUllfRk1UIDEiKTsKICAgIHJldHVybiAxOwogIH0KCiAgaWYgKHN5c2NhbGwo
+U1lTX2lvY3RsLCBmZCwgVklESU9DX1NfRk1ULCAmZm10MikpIHsKICAgIHBlcnJvcigiU19G
+TVQgMSIpOwogICAgcmV0dXJuIDE7CiAgfQoKLyogIHBpZCA9IGZvcmsoKTsKICBpZiAocGlk
+ID09IC0xKSB7CiAgICBwZXJyb3IoImZvcmsiKTsKICAgIHJldHVybiAxOwogIH0KICAKICBp
+ZiAoIXBpZCkgewogICAgY2xvc2UoZmQpOwogIH0gZWxzZSAqLyB7CiAgICBjbG9zZShmZCk7
+CiAgICBmZCA9IG9wZW4oIi9kZXYvdmlkZW8wIiwgT19SRE9OTFkpOwogICAgaWYgKGZkID09
+IC0xKSB7CiAgICAgIHBlcnJvcigib3BlbiAyIik7CiAgICAgIHJldHVybiAxOwogICAgfQoK
+ICAgIGlmIChzeXNjYWxsKFNZU19pb2N0bCwgZmQsIFZJRElPQ19HX0ZNVCwgJmZtdDIpKSB7
+CiAgICAgIHBlcnJvcigiR19GTVQgMiIpOwogICAgICByZXR1cm4gMTsKICAgIH0KICAgICAg
+ICAKICAgIGlmIChzeXNjYWxsKFNZU19pb2N0bCwgZmQsIFZJRElPQ19UUllfRk1ULCAmZm10
+MikpIHsKICAgICAgcGVycm9yKCJUUllfRk1UIDIiKTsKICAgICAgcmV0dXJuIDE7CiAgICB9
+CgogICAgaWYgKHN5c2NhbGwoU1lTX2lvY3RsLCBmZCwgVklESU9DX1NfRk1ULCAmZm10Mikp
+IHsKICAgICAgcGVycm9yKCJTX0ZNVCAyIik7CiAgICAgIHJldHVybiAxOwogICAgfQogIH0K
+ICByZXR1cm4gMDsKfQo=
+--------------060201070200060705090302
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------060201070200060705090302--
