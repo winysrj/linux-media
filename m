@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m510EVDZ019830
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 20:14:31 -0400
-Received: from mail5.dslextreme.com (mail5.dslextreme.com [66.51.199.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m510EKE4002592
-	for <video4linux-list@redhat.com>; Sat, 31 May 2008 20:14:21 -0400
-Message-ID: <c5bea28d26aa1caa1e85da.20080531171359.qnavryt4@webmail.dslextreme.com>
-Date: Sat, 31 May 2008 17:13:59 -0700 (PDT)
-From: "Daniel Gimpelevich" <daniel@gimpelevich.san-francisco.ca.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56DK95d021174
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 09:20:09 -0400
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56DJvIl009737
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 09:19:57 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: video4linux-list@redhat.com
+Date: Fri, 6 Jun 2008 15:19:49 +0200
+References: <484934FD.1080401@hhs.nl>
+In-Reply-To: <484934FD.1080401@hhs.nl>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20080531171359_34515"
-Cc: komendantsky@gmail.com, fragabr@gmail.com
-Subject: [PATCH] PowerColor RA330 (Real Angel 330) fixes
-Reply-To: daniel@gimpelevich.san-francisco.ca.us
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200806061519.50350.laurent.pinchart@skynet.be>
+Cc: Elmar Kleijn <elmar_kleijn@hotmail.com>, spca50x-devs@lists.sourceforge.net,
+	"need4weed@gmail.com" <need4weed@gmail.com>
+Subject: Re: v4l1 compat wrapper version 0.3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,99 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_20080531171359_34515
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Hi Hans,
 
-I finally got around to the RA330 patches. Here is hopefully the final
-fix. Also attached is the revised lircd.conf for its IR receiver. The IR
-codes are somehow different from what was needed with Markus Rechberger's
-flavor of the driver.
+On Friday 06 June 2008 15:00, Hans de Goede wrote:
+> Hi All,
+> 
+> Ok, this one _really_ works with ekiga (and still works fine with spcaview)
+> and also works with camorama with selected cams (not working on some cams
+> due to a camorama bug).
+> 
+> Changes:
+> * Don't allow multiple opens, in theory our code can handle it, but not all
+>    v4l2 devices like it (ekiga does it and uvc doesn't like it).
 
-Next order of business: the KWorld ATSC120
-I see that initial support has already been added while I was dawdling.
-The I2C issues shouldn't be too big a hurdle...
-------=_20080531171359_34515
-Content-Type: application/octet-stream; name="patch1.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="patch1.diff"
+Could you please elaborate ? Have you noticed a bug in the UVC driver ? It 
+should support multiple opens.
 
-U2lnbmVkLW9mZi1ieTogRGFuaWVsIEdpbXBlbGV2aWNoIDxkYW5pZWxAZ2ltcGVsZXZpY2guc2Fu
-LWZyYW5jaXNjby5jYS51cz4KCmRpZmYgLXIgMzk4YjA3ZmRmZTc5IGxpbnV4L2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRl
-by9jeDg4L2N4ODgtY2FyZHMuYwlXZWQgTWF5IDI4IDE3OjU1OjEzIDIwMDggLTAzMDAKKysrIGIv
-bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwlTYXQgTWF5IDMxIDA5
-OjMwOjM0IDIwMDggLTA3MDAKQEAgLTE1NDMsMTAgKzE1NDMsMTYgQEAKIAkJfSwKIAl9LAogCVtD
-WDg4X0JPQVJEX1BPV0VSQ09MT1JfUkVBTF9BTkdFTF0gPSB7Ci0JCS5uYW1lICAgICAgICAgICA9
-ICJQb3dlckNvbG9yIFJlYWwgQW5nZWwgMzMwIiwKKwkJLm5hbWUgICAgICAgICAgID0gIlBvd2Vy
-Q29sb3IgUkEzMzAiLAkvKiBMb25nIG5hbWVzIG1heSBjb25mdXNlIExJUkMuICovCiAJCS50dW5l
-cl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2MSwKIAkJ
-LmlucHV0ICAgICAgICAgID0geyB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0RFQlVHLAorCQkJ
-LnZtdXggICA9IDMsCQkvKiBEdWUgdG8gdGhlIHdheSB0aGUgY3g4OCBkcml2ZXIgaXMgd3JpdHRl
-biwJKi8KKwkJCS5ncGlvMCA9IDB4MDBmZiwJLyogdGhlcmUgaXMgbm8gd2F5IHRvIGRlYWN0aXZh
-dGUgYXVkaW8gcGFzcy0JKi8KKwkJCS5ncGlvMSA9IDB4ZjM5ZCwJLyogdGhyb3VnaCB3aXRob3V0
-IHRoaXMgZW50cnkuIEZ1cnRoZXJtb3JlLCBpZgkqLworCQkJLmdwaW8zID0gMHgwMDAwLAkvKiB0
-aGUgVFYgbXV4IGVudHJ5IGlzIGZpcnN0LCB5b3UgZ2V0IGF1ZGlvCSovCisJCX0sIHsJCQkJLyog
-ZnJvbSB0aGUgdHVuZXIgb24gYm9vdCBmb3IgYSBsaXR0bGUgd2hpbGUuCSovCiAJCQkudHlwZSAg
-ID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKIAkJCS5ncGlvMCA9IDB4
-MDBmZiwKQEAgLTI0NzQsOCArMjQ4MCw5IEBACiAKIAlzd2l0Y2ggKGNvcmUtPmJvYXJkbnIpIHsK
-IAljYXNlIENYODhfQk9BUkRfUE9XRVJDT0xPUl9SRUFMX0FOR0VMOgotCQkvKiBEb2Vzbid0IHdv
-cmsgd2l0aCBmaXJtd2FyZSB2ZXJzaW9uIDIuNyAqLwotCQljdGwtPmZuYW1lID0gInhjMzAyOC12
-MjUuZnciOworCQkvKiBOb3cgd29ya3Mgd2l0aCBmaXJtd2FyZSB2ZXJzaW9uIDIuNyAqLworCQlp
-ZiAoY29yZS0+aTJjX2FsZ28udWRlbGF5IDwgMTYpCisJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkg
-PSAxNjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1Rf
-UFJPOgogCQljdGwtPnNjb2RlX3RhYmxlID0gWEMzMDI4X0ZFX1pBUkxJTks0NTY7Cg==
-------=_20080531171359_34515
-Content-Type: application/octet-stream; name="sam3507b.lircd.conf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="sam3507b.lircd.conf"
+Best regards,
 
-CiMgUGxlYXNlIG1ha2UgdGhpcyBmaWxlIGF2YWlsYWJsZSB0byBvdGhlcnMKIyBieSBzZW5kaW5n
-IGl0IHRvIDxsaXJjQGJhcnRlbG11cy5kZT4KIwojIHRoaXMgY29uZmlnIGZpbGUgd2FzIGF1dG9t
-YXRpY2FsbHkgZ2VuZXJhdGVkCiMgdXNpbmcgbGlyYy0wLjguMihkZXYvaW5wdXQpIG9uIFNhdCBN
-YXkgMzEgMDk6MTA6MjYgMjAwOAojCiMgY29udHJpYnV0ZWQgYnkgRGFuaWVsIEdpbXBlbGV2aWNo
-IDxkYW5pZWxAZ2ltcGVsZXZpY2guc2FuLWZyYW5jaXNjby5jYS51cz4KIwojIGJyYW5kOiAgICAg
-ICAgICAgICAgICAgICAgICAgUG93ZXJDb2xvcgojIG1vZGVsIG5vLiBvZiByZW1vdGUgY29udHJv
-bDogU0FNMzUwN0IKIyBkZXZpY2VzIGJlaW5nIGNvbnRyb2xsZWQgYnkgdGhpcyByZW1vdGU6CiMg
-UkEzMzAgKFJlYWwgQW5nZWwgMzMwKQoKYmVnaW4gcmVtb3RlCgogIG5hbWUgIHNhbTM1MDdiCiAg
-Yml0cyAgICAgICAgICAgMTYKICBlcHMgICAgICAgICAgICAzMAogIGFlcHMgICAgICAgICAgMTAw
-CgogIG9uZSAgICAgICAgICAgICAwICAgICAwCiAgemVybyAgICAgICAgICAgIDAgICAgIDAKICBw
-cmVfZGF0YV9iaXRzICAgMTYKICBwcmVfZGF0YSAgICAgICAweDgwMDEKICB0b2dnbGVfYml0X21h
-c2sgMHg4MDAxMDA3MQoKICAgICAgYmVnaW4gY29kZXMKICAgICAgICAgIElOUFVUICAgICAgICAg
-ICAgICAgICAgICAweDAwRTMKICAgICAgICAgIE9QRU5fQ0xPU0UgICAgICAgICAgICAgICAweDAw
-RTIKICAgICAgICAgIDEgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDIKICAgICAgICAgIDIg
-ICAgICAgICAgICAgICAgICAgICAgICAweDAwMDMKICAgICAgICAgIDMgICAgICAgICAgICAgICAg
-ICAgICAgICAweDAwMDQKICAgICAgICAgIDQgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDUK
-ICAgICAgICAgIDUgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDYKICAgICAgICAgIDYgICAg
-ICAgICAgICAgICAgICAgICAgICAweDAwMDcKICAgICAgICAgIDcgICAgICAgICAgICAgICAgICAg
-ICAgICAweDAwMDgKICAgICAgICAgIDggICAgICAgICAgICAgICAgICAgICAgICAweDAwMDkKICAg
-ICAgICAgIDkgICAgICAgICAgICAgICAgICAgICAgICAweDAwMEEKICAgICAgICAgIDAgICAgICAg
-ICAgICAgICAgICAgICAgICAweDAwMEIKICAgICAgICAgIDEwICAgICAgICAgICAgICAgICAgICAg
-ICAweDAxOUQKICAgICAgICAgIENIQU5ORUxfUkVUVVJOICAgICAgICAgICAweDAxOUMKICAgICAg
-ICAgIEJSSUdIVCsgICAgICAgICAgICAgICAgICAweDAwRTEKICAgICAgICAgIEJSSUdIVC0gICAg
-ICAgICAgICAgICAgICAweDAwRTAKICAgICAgICAgIENIKyAgICAgICAgICAgICAgICAgICAgICAw
-eDAwNjcKICAgICAgICAgIENILSAgICAgICAgICAgICAgICAgICAgICAweDAwNkMKICAgICAgICAg
-IFZPTCsgICAgICAgICAgICAgICAgICAgICAweDAwNkEKICAgICAgICAgIFZPTC0gICAgICAgICAg
-ICAgICAgICAgICAweDAwNjkKICAgICAgICAgIE1VVEUgICAgICAgICAgICAgICAgICAgICAweDAw
-NzEKICAgICAgICAgIEFVRCAgICAgICAgICAgICAgICAgICAgICAweDAxNzUKICAgICAgICAgIFRU
-WCAgICAgICAgICAgICAgICAgICAgICAweDAxODQKICAgICAgICAgIFJFQyAgICAgICAgICAgICAg
-ICAgICAgICAweDAwQTcKICAgICAgICAgIFBMQVkgICAgICAgICAgICAgICAgICAgICAweDAwQ0YK
-ICAgICAgICAgIFBBVVNFICAgICAgICAgICAgICAgICAgICAweDAwNzcKICAgICAgICAgIFNUT1Ag
-ICAgICAgICAgICAgICAgICAgICAweDAwODAKICAgICAgICAgIEZGICAgICAgICAgICAgICAgICAg
-ICAgICAweDAwRDAKICAgICAgICAgIFJFVyAgICAgICAgICAgICAgICAgICAgICAweDAwQTgKICAg
-ICAgICAgIFNDQU4gICAgICAgICAgICAgICAgICAgICAweDAwRDkKICAgICAgICAgIENBUFRVUkUg
-ICAgICAgICAgICAgICAgICAweDAxOUEKICAgICAgICAgIERJU1BMQVkgICAgICAgICAgICAgICAg
-ICAweDAwOEQKICAgICAgICAgIEZVTExTQ1JFRU4gICAgICAgICAgICAgICAweDAxNzcKICAgICAg
-ICAgIEZNICAgICAgICAgICAgICAgICAgICAgICAweDAxODEKICAgICAgICAgIFBPV0VSICAgICAg
-ICAgICAgICAgICAgICAweDAwNzQKICAgICAgZW5kIGNvZGVzCgplbmQgcmVtb3RlCgoK
-------=_20080531171359_34515
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Laurent Pinchart
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_20080531171359_34515--
