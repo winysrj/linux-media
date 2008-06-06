@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UKucKk007694
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:56:38 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UKuPWM017982
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:56:25 -0400
-Date: Mon, 30 Jun 2008 17:56:05 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20080630175605.445b7672@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
-	Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org,
-	linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>
-Subject: [GIT PATCH for 2.6.26] V4L/DVB: Addition of UVC driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56CMZJO014571
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:22:35 -0400
+Received: from linos.es (centrodatos.linos.es [86.109.105.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56CMNBa008362
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:22:24 -0400
+Message-ID: <48492BE9.1050201@linos.es>
+Date: Fri, 06 Jun 2008 14:22:01 +0200
+From: Linos <info@linos.es>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <484920B9.4010107@linos.es> <20080606121719.GA506@daniel.bse>
+In-Reply-To: <20080606121719.GA506@daniel.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: Re: bttv driver problem last kernels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,57 +26,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
+Daniel Glöckner escribió:
+> On Fri, Jun 06, 2008 at 01:34:17PM +0200, Linos wrote:
+>> Hello all,
+>> 	i am using a bttv multicapture board and i have been having 
+>> 	increasing problems in last kernels, i am using two programs to capture my 
+>> video input for security reasons (helix producer and mp4live from mpeg4ip 
+>> project) since the first versions of v4l2 in 2.4 patched kernel versions i 
+>> can attach the two programs at the same time at the same video input, only 
+>> loss framerate
+> 
+> You are relying on undocumented behaviour when two v4l1 applications are
+> reading from bttv at the same time. Furthermore the v4l2 standards says
+> 
+> "1.1.4. Shared Data Streams
+> 
+> V4L2 drivers should not support multiple applications reading or writing
+> the same data stream on a device by copying buffers, time multiplexing
+> or similar means. This is better handled by a proxy application in user
+> space. When the driver supports stream sharing anyway it must be
+> implemented transparently. The V4L2 API does not specify how conflicts
+> are solved."
+> 
+> You should change your setup to use only one application accessing the
+> device.
+> 
+>   Daniel
+> 
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+I have two options here:
 
-For USB Video Class (UVC) driver.
+1) maintain 2.6.20 kernel version
+2) search for an application proxy that lets me use the same input for two programs
 
-I know that we are very late on 2.6.26 cycle. However,
-	1) most of modern webcams are based on USB Video Class (UVC). So, this
-driver is important to suport those cams.
-	2) This is a driver-only addition. There aren't any changes at V4L/DVB
-core. No risk of causing regressions on the already supported devices;
-	3) The driver were already reviewed by V4L and USB people;
-	4) The driver is already widely used, since it is merged as an
-out-of-tree driver on several distros. 
+i have a windows client connecting the two streams in different options, i cant disable any of them and i cant 
+double the number of capture inputs in the system, anyway i have not read the v4l2 standard so you have reason 
+that i should not be doing that but i have been doing from 2.4.17 (with patches) to 2.6.20.
 
-So, on my opinion, we should merge it for 2.6.26.
-
-Cheers,
-Mauro.
-
----
-
- MAINTAINERS                          |    8 +
- drivers/media/video/Kconfig          |    8 +
- drivers/media/video/Makefile         |    2 +
- drivers/media/video/uvc/Makefile     |    3 +
- drivers/media/video/uvc/uvc_ctrl.c   | 1256 ++++++++++++++++++++++
- drivers/media/video/uvc/uvc_driver.c | 1955 ++++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvc_isight.c |  134 +++
- drivers/media/video/uvc/uvc_queue.c  |  477 +++++++++
- drivers/media/video/uvc/uvc_status.c |  207 ++++
- drivers/media/video/uvc/uvc_v4l2.c   | 1105 +++++++++++++++++++
- drivers/media/video/uvc/uvc_video.c  |  934 ++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h   |  796 ++++++++++++++
- 12 files changed, 6885 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/uvc/Makefile
- create mode 100644 drivers/media/video/uvc/uvc_ctrl.c
- create mode 100644 drivers/media/video/uvc/uvc_driver.c
- create mode 100644 drivers/media/video/uvc/uvc_isight.c
- create mode 100644 drivers/media/video/uvc/uvc_queue.c
- create mode 100644 drivers/media/video/uvc/uvc_status.c
- create mode 100644 drivers/media/video/uvc/uvc_v4l2.c
- create mode 100644 drivers/media/video/uvc/uvc_video.c
- create mode 100644 drivers/media/video/uvc/uvcvideo.h
-
-Laurent Pinchart (1):
-      V4L/DVB (8145a): USB Video Class driver
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+Regards,
+Miguel Angel.
 
 --
 video4linux-list mailing list
