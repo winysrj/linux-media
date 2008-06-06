@@ -1,15 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Mon, 2 Jun 2008 11:58:00 -0400
-From: Alan Cox <alan@redhat.com>
-To: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
-Message-ID: <20080602155800.GE933@devserv.devel.redhat.com>
-References: <1212421034.7097.19.camel@jaspav.missionsit.net.missionsit.net>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56CI7ZP011941
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:18:07 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m56CHgs3005301
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 08:17:42 -0400
+Date: Fri, 6 Jun 2008 14:17:19 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Linos <info@linos.es>
+Message-ID: <20080606121719.GA506@daniel.bse>
+References: <484920B9.4010107@linos.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1212421034.7097.19.camel@jaspav.missionsit.net.missionsit.net>
+In-Reply-To: <484920B9.4010107@linos.es>
 Cc: video4linux-list@redhat.com
-Subject: Re: NX client and remote video input devices
+Subject: Re: bttv driver problem last kernels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,22 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jun 02, 2008 at 11:37:14AM -0400, John A. Sullivan III wrote:
-> The SMB share is something NX supports natively.  We noticed we could
-> create a symbolic link to /dev/video0 and use this link to manage the
+On Fri, Jun 06, 2008 at 01:34:17PM +0200, Linos wrote:
+> Hello all,
+> 	i am using a bttv multicapture board and i have been having 
+> 	increasing problems in last kernels, i am using two programs to capture my 
+> video input for security reasons (helix producer and mp4live from mpeg4ip 
+> project) since the first versions of v4l2 in 2.4 patched kernel versions i 
+> can attach the two programs at the same time at the same video input, only 
+> loss framerate
 
-SMB can't export devices, let alone manage a distributed mmap interface
+You are relying on undocumented behaviour when two v4l1 applications are
+reading from bttv at the same time. Furthermore the v4l2 standards says
 
-> How can we control and access a video input device on a remote computer?
-> This is a high priority project for us (our first potential customer) so
-> any help would be greatly appreciated.  Thanks - John
+"1.1.4. Shared Data Streams
 
-You need some kind of video library in the middle. Look at something like
-gstreamer or videolan would be my first thoughts. A lot of video apps already
-use gstreamer as their video framework and it means compression and processing
-can occur before you burn network bandwidth.
+V4L2 drivers should not support multiple applications reading or writing
+the same data stream on a device by copying buffers, time multiplexing
+or similar means. This is better handled by a proxy application in user
+space. When the driver supports stream sharing anyway it must be
+implemented transparently. The V4L2 API does not specify how conflicts
+are solved."
 
-Alan
+You should change your setup to use only one application accessing the
+device.
+
+  Daniel
 
 --
 video4linux-list mailing list
