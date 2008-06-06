@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout04.t-online.de ([194.25.134.18])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <halim.sahin@t-online.de>) id 1KALlN-0005NT-L5
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 11:21:35 +0200
-Date: Sun, 22 Jun 2008 11:21:33 +0200
-From: Halim Sahin <halim.sahin@t-online.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080622092133.GA21319@halim.local>
+	(envelope-from <crope@iki.fi>) id 1K4cwa-000268-Pp
+	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 16:29:32 +0200
+Message-ID: <484949C4.8000903@iki.fi>
+Date: Fri, 06 Jun 2008 17:29:24 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] dvbscan errormessage on astra 19.0
+To: Serge Nikitin <sergeniki@googlemail.com>
+References: <71798b430806050447g1570a889ld2ad306a8b14b1f1@mail.gmail.com>	<484941CB.8060805@iki.fi>
+	<9e5406cc0806060725m1224882bu6c18393e56f96596@mail.gmail.com>
+In-Reply-To: <9e5406cc0806060725m1224882bu6c18393e56f96596@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] PEAK DVB-T Digital Dual Tuner PCI - anyone got this
+ card working?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,25 +27,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Serge Nikitin wrote:
+> I do have PEAK DVB-T Dual tuner PCI (221544AGPK) and it is reported in lsusb as: 
+> 
+> Bus 2 Device 2: ID 1b80:c160
+> 
+> Moreover, .ini file for win driver provided on CD listed this card as 
+> KWorld PC160 (with USB IDs 1b80:c160 and 1b80:c161) and I've definitely 
+> seen "PC160" printed on card's PCB.
+> 
+> In my case those PEAK and KWorld look like the same card.
 
-I.ve scanned today astra with the initial list of dvb-apps from hg.
-It finished with the following message:
->>> tune to: 1574:h:S19.2E:22000:
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
-22 Invali
-d argument
->>> tune to: 1574:h:S19.2E:22000:
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
-22 Invali
-d argument
+Yeah, looks like. Thanks anyhow, I have now added this id to the driver.
 
-My card is a kncone dvbstar 
-What can be the problem here?
+Case clear and closed.
 
-Thanks
-Halim
+> Serge.
 
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
