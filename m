@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1K8J7j-0003l8-Is
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:08:12 +0200
-Message-ID: <4856ABE9.30609@gmx.net>
-Date: Mon, 16 Jun 2008 20:07:37 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <4852C2FE.6040107@gmx.net> <4855C780.9040501@gmx.net>
-	<Pine.LNX.4.64.0806160949440.3677@pub3.ifh.de>
-In-Reply-To: <Pine.LNX.4.64.0806160949440.3677@pub3.ifh.de>
-Subject: Re: [linux-dvb] Technisat Airstar USB round two
+Received: from smtp.adfinis.com ([212.103.64.13])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lists@0x17.ch>) id 1K4d5O-0003J0-Tt
+	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 16:38:39 +0200
+From: Nicolas Christener <lists@0x17.ch>
+To: Dennis Noordsij <dennis.noordsij@movial.fi>
+In-Reply-To: <4849016A.8050607@movial.fi>
+References: <1212736555.4264.12.camel@oipunk.loozer.local>
+	<4849016A.8050607@movial.fi>
+Date: Fri, 06 Jun 2008 16:38:30 +0200
+Message-Id: <1212763110.14191.12.camel@oipunk.loozer.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy Piranha
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,170 +26,103 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 06/16/2008 09:54 AM, Patrick Boettcher wrote:
-> Hi,
-> 
-> Ignore the conexant error. The driver cannot know which device you 
-> exactly have other than trying to guess. And guessing works, by trying 
-> every possible frontend-driver. The CX24123 says wrong revision. OK, 
-> that is correct, there is no CX24123.
-> 
-> The following line says the truth:
-> 
-> [ 3083.612219] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
-> 
->> From the init point of view everything looks correct here.
-> 
-> The error messages when unplugging are strange, but should not prevent 
-> you from using it.
-> 
-> However. Maybe it is better to sell the device at Ebay and buy another 
-> (better) one. Yours is only USB1.1, you cannot receive a complete 
-> transport stream with it.
-> 
-> Did you try the device in Windows using the same antenna?
-> 
-> Patrick.
-> 
-> 
-> On Mon, 16 Jun 2008, P. van Gaans wrote:
-> 
->> On 06/13/2008 08:57 PM, P. van Gaans wrote:
->>> Approximately a year ago I tried to make this USB DVB-T box work. But it
->>> wouldn't. With a little more knowledge today I tried again with v4l-dvb
->>> from hg, but it still won't go. I get this when I plug it in:
->>>
->>> [ 3083.152125] usb 1-2: new full speed USB device using ohci_hcd and
->>> address 4
->>> [ 3083.253055] usb 1-2: configuration #1 chosen from 1 choice
->>> [ 3083.258204] flexcop_usb: running at FULL speed.
->>> [ 3083.501399] DVB: registering new adapter (FlexCop Digital TV device)
->>> [ 3083.502758] b2c2-flexcop: MAC address = 00:d0:d7:09:e7:70
->>> [ 3083.516842] CX24123: wrong demod revision: 0
->>> [ 3083.612219] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
->>> [ 3083.612226] DVB: registering frontend 1 (Zarlink MT352 DVB-T)...
->>> [ 3083.612261] b2c2-flexcop: initialization of 'Air2PC/AirStar 2 DVB-T'
->>> at the 'USB' bus controlled by a 'FlexCopIII' complete
->>> [ 3083.621757] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV
->>> USB Driver successfully initialized and connected.
->>>
->>> Note the "CX24123: wrong demod revision: 0". What's with that? It looks
->>> like something is wrong.
->>>
->>> I get this when I unplug it:
->>>
->>> [ 3081.464885] flexcop_usb: iso frame descriptor 0 has an error: -62
->>> [ 3081.464887]
->>> [ 3081.464892] flexcop_usb: iso frame descriptor 1 has an error: -62
->>> [ 3081.464893]
->>> [ 3081.464895] flexcop_usb: iso frame descriptor 2 has an error: -62
->>> [ 3081.464896]
->>> [ 3081.464897] flexcop_usb: iso frame descriptor 3 has an error: -62
->>> [ 3081.464898]
->>> [ 3081.468884] flexcop_usb: iso frame descriptor 0 has an error: -62
->>> [ 3081.468886]
->>> [ 3081.468891] flexcop_usb: iso frame descriptor 1 has an error: -62
->>> [ 3081.468892]
->>> [ 3081.468894] flexcop_usb: iso frame descriptor 2 has an error: -62
->>> [ 3081.468895]
->>> [ 3081.468896] flexcop_usb: iso frame descriptor 3 has an error: -62
->>> [ 3081.468897]
->>> [ 3081.472876] flexcop_usb: iso frame descriptor 0 has an error: -62
->>> [ 3081.472877]
->>> [ 3081.472879] flexcop_usb: iso frame descriptor 1 has an error: -62
->>> [ 3081.472880]
->>> [ 3081.472881] flexcop_usb: iso frame descriptor 2 has an error: -62
->>> [ 3081.472882]
->>> [ 3081.472883] flexcop_usb: iso frame descriptor 3 has an error: -62
->>> [ 3081.472885]
->>> [ 3081.475209] usb 1-2: USB disconnect, address 3
->>> [ 3081.479869] flexcop_usb: iso frame descriptor 0 has an error: -62
->>> [ 3081.479871]
->>> [ 3081.479873] flexcop_usb: iso frame descriptor 1 has an error: -62
->>> [ 3081.479874]
->>> [ 3081.479875] flexcop_usb: iso frame descriptor 2 has an error: -62
->>> [ 3081.479876]
->>> [ 3081.479877] flexcop_usb: iso frame descriptor 3 has an error: -18
->>> [ 3081.479878]
->>> [ 3081.479880] flexcop_usb: iso frame descriptor 0 has an error: -18
->>> [ 3081.479881]
->>> [ 3081.479883] flexcop_usb: iso frame descriptor 1 has an error: -18
->>> [ 3081.479884]
->>> [ 3081.479885] flexcop_usb: iso frame descriptor 2 has an error: -18
->>> [ 3081.479886]
->>> [ 3081.479887] flexcop_usb: iso frame descriptor 3 has an error: -18
->>> [ 3081.479888]
->>> [ 3081.479890] flexcop_usb: iso frame descriptor 0 has an error: -18
->>> [ 3081.479891]
->>> [ 3081.479892] flexcop_usb: iso frame descriptor 1 has an error: -18
->>> [ 3081.479893]
->>> [ 3081.479895] flexcop_usb: iso frame descriptor 2 has an error: -18
->>> [ 3081.479896]
->>> [ 3081.479897] flexcop_usb: iso frame descriptor 3 has an error: -18
->>> [ 3081.479898]
->>> [ 3081.479900] flexcop_usb: iso frame descriptor 0 has an error: -18
->>> [ 3081.479901]
->>> [ 3081.479902] flexcop_usb: iso frame descriptor 1 has an error: -18
->>> [ 3081.479903]
->>> [ 3081.479904] flexcop_usb: iso frame descriptor 2 has an error: -18
->>> [ 3081.479905]
->>> [ 3081.479906] flexcop_usb: iso frame descriptor 3 has an error: -18
->>> [ 3081.479907]
->>> [ 3081.480307] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV
->>> USB Driver successfully deinitialized and disconnected.
->>>
->>> I think it doesn't like being unplugged. The problem is still the same:
->>> I see the device in /dev/dvb and in Kaffeine, when I try to watch a
->>> channel I see the ACT LED on the device blink a bit, but the LOCK LED
->>> will never light up and I never get to watch anything. Using Ubuntu 
->>> 8.04.
->>>
->>> P.
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>
->> Doesn't anyone have any idea, or even care about this device? I can't
->> find any Conexant chip in there, unless it would be inside the tuner.
->>
->> If nobody cares about it (I see only one secondhand Airstar USB on eBay
->> and it looks different from mine), I'll sell mine and forget about it.
->> Otherwise.. Please post.
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
-> 
+Hello 
+thanks very much for your fast response!
 
-Hi,
+Am Freitag, den 06.06.2008, 11:20 +0200 schrieb Dennis Noordsij:
 
-I already have some other USB DVB-T devices that are supported, so if 
-anyone is going to fix the support for this one it would be for other 
-people who own it. But if nobody does, there's no point.
+[...]
 
-Yes, it does work on Windows. Antenna is fine. It's a revision 2.1 
-according to the PCB btw.
+> You're in luck :-) That device works very well.
 
-The chips in mine are the Zarlink MT352 and B2C2 Flexcop III. That's normal.
+*w00h00* sounds good :)
 
-The tuner is a Samsung TDTC9251DH01C(B). The sticker on the tuner also 
-says "040722    JAT.". I see this tuner is listed in flexcop-fe-tuner.c 
-for the MT352 so that seems to be normal as well. Only thing I can think 
-of is Technisat changing register addresses or something, and I think 
-it's beyond my capability to fix that.
+> The driver is not in the official tree (yet) so if you would like to use
+> it you will need to compile it yourself, 
 
-I made a log with usbsnoop on Windows, tuning and locking. It's 17,1MB 
-compressed and 89,1MB unzipped and can be found here: 
-http://megaupload.com/?d=VEBBWOO3
+[...]
 
-If anyone can do anything with it (even if it's only telling me 
-Technisat messed up the entire device and it's never going to be 
-supported), it would be interesting to hear.
+> You will also need to take the firmware file "SMS100x_Dvbt.inp" (from
+> the installation CD or windows, or download the drivers from
+> terratec.net) and copy it to your \lib\firmware or \lib\firmware\`uname
+> -r` as "dvbt_stellar_usb.inp".
+> 
+> I hope those instructions make sense :-)
+
+thank you very much four your explanation. This is what I get:
+
+[root@oipunk:/lib/firmware]# uname -a
+Linux oipunk 2.6.25.4-paldo1-x86 #1 SMP PREEMPT Fri May 16 14:52:58 CEST
+2008 i686 GNU/Linux
+
+[root@oipunk:/lib/firmware]# lsmod | grep sms1xxx
+sms1xxx                25560  0 
+dvb_core               80512  1 sms1xxx
+firmware_class         10496  4 sms1xxx,microcode,iwl3945,pcmcia
+
+[root@oipunk:/lib/firmware]# modinfo sms1xxx
+filename:       /lib/modules/2.6.25.4-paldo1-x86/kernel/drivers/media/dvb/siano/sms1xxx.ko
+license:        GPL
+author:         Anatoly Greenblatt,,, (anatolyg@siano-ms.com)
+description:    smscore
+alias:          usb:v187Fp0200d*dc*dsc*dp*ic*isc*ip*
+alias:          usb:v187Fp0100d*dc*dsc*dp*ic*isc*ip*
+alias:          usb:v187Fp0010d*dc*dsc*dp*ic*isc*ip*
+depends:        dvb-core,firmware_class
+vermagic:       2.6.25.4-paldo1-x86 SMP preempt mod_unload PENTIUMIII 
+parm:           adapter_nr:DVB adapter numbers (array of short)
+parm:           default_mode:default firmware id (device mode) (int)
+
+[root@oipunk:/lib/firmware]# ls -la *.inp
+-r-xr-xr-x 1 root root 40324 2008-06-06 14:34 dvbh_stellar_usb.inp
+-r-xr-xr-x 1 root root 38144 2008-06-06 14:28 dvbt_stellar_usb.inp
+
+[root@oipunk:/var/log]# dmesg
+[...]
+usb 3-1: new full speed USB device using uhci_hcd and address 43
+usb 3-1: configuration #1 chosen from 1 choice
+smsusb_probe 0
+endpoint 0 81 02 64
+endpoint 1 02 02 64
+smscore_register_device allocated 50 buffers
+smscore_register_device device ed48cf00 created
+smsusb1_detectmode: 1 "SMS DVBH Receiver"
+smscore_onresponse no client (00000000) or error (-16), type:698 dstid:0
+DVB: registering new adapter (Siano Digital Receiver)
+DVB: registering frontend 0 (Siano Mobile Digital SMS10xx)...
+smscore_register_client f6972800 693 0
+smsdvb_hotplug success
+smscore_start_device device ed48cf00 started, rc 0
+smsusb_init_device device f6973000 created
+usb 3-1: New USB device found, idVendor=187f, idProduct=0100
+usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 3-1: Product: SMS DVBH Receiver
+usb 3-1: Manufacturer: Siano Mobile Silicon
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+smsusb_onresponse error, urb status -84, 0 bytes
+usb 3-1: USB disconnect, address 43
+smscore_unregister_client f6972800 693
+smscore_unregister_device freed 50 buffers
+smscore_unregister_device device ed48cf00 destroyed
+smsusb_term_device device f6973000 destroyed
+
+Unfortunately I do not get a device within /dev
+Am I doing something wrong? Or is there just something missing in my
+installation?
+
+I would very much appreciate any help.
+
+kind regards
+Nicolas
+
 
 _______________________________________________
 linux-dvb mailing list
