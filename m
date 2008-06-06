@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1K4wbz-0004zL-5c
-	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 13:29:32 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so975029fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 07 Jun 2008 04:29:26 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1K4cxT-0002WN-NW
+	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 16:30:24 +0200
+Received: from [192.168.0.188] (89.97.249.170) by relay-pt1.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 48487E810000CF0E for linux-dvb@linuxtv.org;
+	Fri, 6 Jun 2008 16:30:19 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-Date: Sat, 7 Jun 2008 13:29:24 +0200
+Date: Fri, 6 Jun 2008 16:30:35 +0200
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_UEnSIdp4827VgHR"
-Message-Id: <200806071329.24445.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: Unity Media (DVB-C in NRW and Hessen, Germany)
+Content-Disposition: inline
+Message-Id: <200806061630.35379.Nicola.Sabbi@poste.it>
+Subject: [linux-dvb] Remote on Lifeview Trio: anyone got it working?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,89 +21,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
+did anyone get the remote controller on the Trio working?
+I found a patch from which it seems that it talks via i2c either
+at 0x0b or at 0x0e address and someone reported success,
+but it seems that no patch was applied to linuxtv's HG repository.
 
---Boundary-00=_UEnSIdp4827VgHR
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Can anyone who has it working post the correct patch(-es), please?
 
-=46rom a kaffeine user ...
-
-Christoph
-
-
-=2D---------  Weitergeleitete Nachricht  ----------
-
-Betreff: [kaffeine-user] Unity Media (DVB-C in NRW and Hessen, Germany)
-Datum: Sonntag 01 Juni 2008
-Von: Oliver Schwaneberg <oliver.schwaneberg@smail.inf.fh-bonn-rhein-sieg.de>
-An: kaffeine-user@lists.sourceforge.net
-
-Hi Guys,
-
-Unity Media changed some QAM settings. Here is the updated file for
-Unity Media.
-
-Regards,
-
-Olli
-
-=2D------------------------------------------------------
-
---Boundary-00=_UEnSIdp4827VgHR
-Content-Type: text/plain;
-  charset="utf-8";
-  name="de-unity_media"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=de-unity_media
-
-# Unity Media (iesy Hessen, ish Nordrhein-Westfalen)
-# Date: June 2007
-# freq sr fec mod
-
-C 113000000 6900000 NONE QAM256
-C 113000000 6900000 NONE QAM64
-C 121000000 6900000 NONE QAM64
-C 121000000 6900000 NONE QAM256
-C 338000000 6900000 NONE QAM64
-C 346000000 6900000 NONE QAM256
-C 354000000 6900000 NONE QAM64
-C 362000000 6900000 NONE QAM64
-C 370000000 6900000 NONE QAM64
-C 378000000 6900000 NONE QAM64
-C 386000000 6900000 NONE QAM64
-C 394000000 6900000 NONE QAM64
-C 394000000 6900000 NONE QAM256
-C 402000000 6900000 NONE QAM256
-C 410000000 6900000 NONE QAM64
-C 410000000 6900000 NONE QAM256
-C 426000000 6900000 NONE QAM64
-C 434000000 6900000 NONE QAM256
-C 442000000 6900000 NONE QAM256
-C 450000000 6900000 NONE QAM64
-C 458000000 6900000 NONE QAM64
-C 466000000 6900000 NONE QAM64
-C 522000000 6900000 NONE QAM256
-C 530000000 6900000 NONE QAM256
-C 538000000 6900000 NONE QAM256
-C 546000000 6900000 NONE QAM256
-C 554000000 6900000 NONE QAM256
-
-
-
---Boundary-00=_UEnSIdp4827VgHR
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+	Nico
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_UEnSIdp4827VgHR--
