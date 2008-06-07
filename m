@@ -1,18 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.174])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alireza.torabi@gmail.com>) id 1K7IaQ-0005wY-VT
-	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 01:21:42 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so4365673wfd.17
-	for <linux-dvb@linuxtv.org>; Fri, 13 Jun 2008 16:21:19 -0700 (PDT)
-Message-ID: <cffd8c580806131621p6c8e783al4c96b00763721acf@mail.gmail.com>
-Date: Sat, 14 Jun 2008 00:21:19 +0100
-From: "Alireza Torabi" <alireza.torabi@gmail.com>
+	(envelope-from <goga777@bk.ru>) id 1K53R2-00013R-5b
+	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 20:46:41 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 1774B19E63A3
+	for <linux-dvb@linuxtv.org>; Sat,  7 Jun 2008 22:46:06 +0400 (MSD)
+Received: from localhost.localdomain (unknown [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 6F7FA19E6315
+	for <linux-dvb@linuxtv.org>; Sat,  7 Jun 2008 22:46:05 +0400 (MSD)
+Date: Sat, 7 Jun 2008 22:50:06 +0400
+From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Scanning with DVB-S2 card (VP-1041) and Mantis
-	drivers...
+Message-ID: <20080607225006.51805d6f@bk.ru>
+In-Reply-To: <854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
+References: <45e226e50806060327s7e3ecf86wb9141ee394e854d1@mail.gmail.com>
+	<E1K4ZQk-000ARd-00.goga777-bk-ru@f145.mail.ru>
+	<45e226e50806060353o32b215afwc3017e3ab8a2dd10@mail.gmail.com>
+	<854d46170806060550u5c238e26ia003c713ed68095e@mail.gmail.com>
+	<45e226e50806071017y4e09413dl23c119da0910fae2@mail.gmail.com>
+	<854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Terratec Cinergy S2 PCI HD ioctl DVBFE_GET_INFO
+ failed:Operation not supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,35 +30,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I've been reading all these messages about the scan and patches
-required to make it work with STB0899 frontends.
-Could anyone help please:
-
-scan)
-[alireza@linux ~]$ scan Astra-28.2E
-scanning Astra-28.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12441000 V 27500000 2
->>> tune to: 12441:v:0:27500
-DVB-S IF freq is 1841000
-__tune_to_transponder:1516: ERROR: FE_READ_STATUS failed: 22 Invalid argument
->>> tune to: 12441:v:0:27500
-DVB-S IF freq is 1841000
-__tune_to_transponder:1516: ERROR: FE_READ_STATUS failed: 22 Invalid argument
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-kernel message)
-Jun 14 04:16:59 linux kernel: stb0899_search: Unsupported delivery system
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+0J/RgNC40LLQtdGC0YHRgtCy0YPRjiwgRmFydWsKCkkgaGF2ZSBkb3dubG9hZGVkIHNjYW4gZnJv
+bSBodHRwOi8vd3d3LnpzaGFyZS5uZXQvZG93bmxvYWQvMTMyMjAwNjExOGM5YzcwYS8KYW5kIEkg
+aGF2ZSB0aGUgc2FtZSBlcnJvcnMgd2l0aCBteSBodnI0MDAwIChJIHVzZSB0aGUgbGF0ZXN0IG11
+bHRpcHJvdG9fcGx1cyArIGh2cjQwMDAgcGF0Y2ggZnJvbSAyIE1heSApCgpnb2dhOi91c3Ivc3Jj
+L2R2Yi1hcHBzL3V0aWwvc2Nhbl9mYXJ1YyMgZ29nYTovdXNyL3NyYy9kdmItYXBwcy91dGlsL3Nj
+YW5fZmFydWMjIC4vc2NhbiAxM2UKc2Nhbm5pbmcgMTNlCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVy
+MC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwppbml0aWFsIHRyYW5z
+cG9uZGVyIDEyMzk4MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKaW5pdGlhbCB0cmFuc3BvbmRlciAx
+MTI1ODAwMCBIIDI3NTAwMDAwIDI3NTAwMDAwCmluaXRpYWwgdHJhbnNwb25kZXIgMTE0NDkwMDAg
+SCAyNzUwMDAwMCAyNzUwMDAwMAppbml0aWFsIHRyYW5zcG9uZGVyIDExOTk2MDAwIFYgMjc1MDAw
+MDAgMjc1MDAwMDAKaW5pdGlhbCB0cmFuc3BvbmRlciAxMjI2NTAwMCBWIDI3NTAwMDAwIDI3NTAw
+MDAwCgoKaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRl
+ZAppb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3VwcG9ydGVkCmlv
+Y3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0ZWQKaW9jdGwg
+RFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAppb2N0bCBEVkJG
+RV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3VwcG9ydGVkCmlvY3RsIERWQkZFX0dF
+VF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0ZWQKRVJST1I6IGluaXRpYWwgdHVu
+aW5nIGZhaWxlZApkdW1waW5nIGxpc3RzICgwIHNlcnZpY2VzKQpEb25lLgoKZ29nYTovdXNyL3Ny
+Yy9kdmItYXBwcy91dGlsL3NjYW5fZmFydWMjIG1ha2UgY2xlYW4KY2xlYW5pbmcKZ29nYTovdXNy
+L3NyYy9kdmItYXBwcy91dGlsL3NjYW5fZmFydWMjIG1ha2UKcGVybCBzZWN0aW9uX2dlbmVyYXRl
+LnBsIGF0c2NfcHNpcF9zZWN0aW9uLnBsCkNDIHNjYW4ubwpzY2FuLmM6NDE0OiB3YXJuaW5nOiB1
+bnVzZWQgcGFyYW1ldGVyIOKAmGJ1ZuKAmQpzY2FuLmM6NDE1OiB3YXJuaW5nOiB1bnVzZWQgcGFy
+YW1ldGVyIOKAmHTigJkKc2Nhbi5jOjQ0OTogd2FybmluZzogdW51c2VkIHBhcmFtZXRlciDigJhi
+dWbigJkKc2Nhbi5jOjUxODogd2FybmluZzogdW51c2VkIHBhcmFtZXRlciDigJhidWbigJkKc2Nh
+bi5jOjUxOTogd2FybmluZzogdW51c2VkIHBhcmFtZXRlciDigJh04oCZCnNjYW4uYzogSW4gZnVu
+Y3Rpb24g4oCYdHVuZV9pbml0aWFs4oCZOgpzY2FuLmM6MTg5MTogd2FybmluZzogdW51c2VkIHZh
+cmlhYmxlIOKAmGhpZXLigJkKc2Nhbi5jOjE4OTE6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSDi
+gJhndWFyZOKAmQpzY2FuLmM6MTg5MTogd2FybmluZzogdW51c2VkIHZhcmlhYmxlIOKAmG1vZGXi
+gJkKc2Nhbi5jOjE4OTE6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSDigJhmZWMy4oCZCnNjYW4u
+YzoxODkxOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUg4oCYYnfigJkKc2Nhbi5jOjE4OTE6IHdh
+cm5pbmc6IHVudXNlZCB2YXJpYWJsZSDigJhxYW3igJkKc2Nhbi5jOiBBdCB0b3AgbGV2ZWw6CnNj
+YW4uYzoxODA4OiB3YXJuaW5nOiDigJhzdHIycWFt4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCnNj
+YW4uYzoxODI1OiB3YXJuaW5nOiDigJhzdHIyYmFuZHdpZHRo4oCZIGRlZmluZWQgYnV0IG5vdCB1
+c2VkCnNjYW4uYzoxODM3OiB3YXJuaW5nOiDigJhzdHIybW9kZeKAmSBkZWZpbmVkIGJ1dCBub3Qg
+dXNlZApzY2FuLmM6MTg0ODogd2FybmluZzog4oCYc3RyMmd1YXJk4oCZIGRlZmluZWQgYnV0IG5v
+dCB1c2VkCnNjYW4uYzoxODYxOiB3YXJuaW5nOiDigJhzdHIyaGllcuKAmSBkZWZpbmVkIGJ1dCBu
+b3QgdXNlZApzY2FuLmM6MjA4MDogd2FybmluZzog4oCYcGlkc19kdW1wX3NlcnZpY2VfcGFyYW1l
+dGVyX3NldOKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApDQyBhdHNjX3BzaXBfc2VjdGlvbi5vCkND
+IGRpc2VxYy5vCkNDIGR1bXAtdmRyLm8KQ0MgZHVtcC16YXAubwpkdW1wLXphcC5jOjY6IHdhcm5p
+bmc6IOKAmGludl9uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAtemFwLmM6MTI6IHdh
+cm5pbmc6IOKAmGZlY19uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAtemFwLmM6MjY6
+IHdhcm5pbmc6IOKAmHFhbV9uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAtemFwLmM6
+Mzk6IHdhcm5pbmc6IOKAmGJ3X25hbWXigJkgZGVmaW5lZCBidXQgbm90IHVzZWQKZHVtcC16YXAu
+Yzo0Nzogd2FybmluZzog4oCYbW9kZV9uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAt
+emFwLmM6NTM6IHdhcm5pbmc6IOKAmGd1YXJkX25hbWXigJkgZGVmaW5lZCBidXQgbm90IHVzZWQK
+ZHVtcC16YXAuYzo2Mjogd2FybmluZzog4oCYaGllcmFyY2h5X25hbWXigJkgZGVmaW5lZCBidXQg
+bm90IHVzZWQKQ0MgbG5iLm8KQ0Mgc2VjdGlvbi5vCkNDIHNjYW4KZ29nYTovdXNyL3NyYy9kdmIt
+YXBwcy91dGlsL3NjYW5fZmFydWMjIC4vc2NhbiAxM2UKc2Nhbm5pbmcgMTNlCnVzaW5nICcvZGV2
+L2R2Yi9hZGFwdGVyMC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwpp
+bml0aWFsIHRyYW5zcG9uZGVyIDEyMzk4MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKaW5pdGlhbCB0
+cmFuc3BvbmRlciAxMTI1ODAwMCBIIDI3NTAwMDAwIDI3NTAwMDAwCmluaXRpYWwgdHJhbnNwb25k
+ZXIgMTE0NDkwMDAgSCAyNzUwMDAwMCAyNzUwMDAwMAppbml0aWFsIHRyYW5zcG9uZGVyIDExOTk2
+MDAwIFYgMjc1MDAwMDAgMjc1MDAwMDAKaW5pdGlhbCB0cmFuc3BvbmRlciAxMjI2NTAwMCBWIDI3
+NTAwMDAwIDI3NTAwMDAwCgoKCmlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9u
+IG5vdCBzdXBwb3J0ZWQKaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90
+IHN1cHBvcnRlZAppb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3Vw
+cG9ydGVkCmlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0
+ZWQKaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZApF
+UlJPUjogaW5pdGlhbCB0dW5pbmcgZmFpbGVkCmR1bXBpbmcgbGlzdHMgKDAgc2VydmljZXMpCkRv
+bmUuCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGlu
+dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
