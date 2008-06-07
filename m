@@ -1,21 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.169])
+Received: from mailout09.t-online.de ([194.25.134.84])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <websdaleandrew@googlemail.com>) id 1K6mhv-0006yN-Jg
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 15:19:17 +0200
-Received: by ug-out-1314.google.com with SMTP id m3so364254uge.20
-	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 06:19:10 -0700 (PDT)
-Message-ID: <e37d7f810806120619q28bff0d8y8f2d5319187ab6b0@mail.gmail.com>
-Date: Thu, 12 Jun 2008 14:19:09 +0100
-From: "Andrew Websdale" <websdaleandrew@googlemail.com>
+	(envelope-from <halim.sahin@t-online.de>) id 1K53SX-0001ZF-Ox
+	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 20:48:14 +0200
+Date: Sat, 7 Jun 2008 20:47:58 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <4850F597.9030603@iki.fi>
+Message-ID: <20080607184758.GA30074@halim.local>
 MIME-Version: 1.0
-References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
-	<4850566E.8030001@iki.fi>
-	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
-	<4850F597.9030603@iki.fi>
-Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
+Content-Disposition: inline
+Subject: [linux-dvb] budget_av,  high cpuload with kncone tvstar
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,84 +17,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1172219586=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1172219586==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_19549_6823236.1213276749942"
+Hi,
 
-------=_Part_19549_6823236.1213276749942
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I have one knc one tvstar.
+After loading budget_av the machine show this:
+uptime
+ 20:44:58 up 37 min,  2 users,  load average: 0.71, 0.65, 0.67
 
-2008/6/12 Antti Palosaari <crope@iki.fi>:
+When I unload the modules the load is 0.00.
+The machine is a amd athlon x2 1900 mhz.
+running a i686 kenel 2.6.25 from debian.
+Here is dmesg output:
+[ 2044.394304] saa7146: register extension 'budget_av'.
+[ 2044.394345] ACPI: PCI Interrupt 0000:03:02.0[A] -> GSI 22 (level,
+low) -> IRQ
+ 22
+[ 2044.394370] saa7146: found saa7146 @ mem f8a64400 (revision 1, irq
+22) (0x189
+4,0x0014).
+[ 2044.394380] saa7146 (0): dma buffer size 192512
+[ 2044.394384] DVB: registering new adapter (KNC TV STAR DVB-S)
+[ 2044.398012] adapter failed MAC signature check
+[ 2044.398020] encoded MAC from EEPROM was
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:f
+f:ff:ff:ff:ff:ff:ff:ff
+[ 2044.666029] KNC1-0: MAC addr = 00:09:d6:65:83:60
+[ 2045.017670] DVB: registering frontend 0 (ST STV0299 DVB-S)...
+[ 2045.021319] budget-av: ci interface initialised.
 
-> Andrew Websdale wrote:
->
->> I've examined the logs, & I can find no mention of a Quantek tuner - your
->> suggestion of a non-working tuner seems likely, as tuning is what doesn't
->> seem to work when I run e.g. w_scan - can you make any suggestion as to
->> where I go from here? I'm more than willing to test new code etc.
->> regards Andrew
->>
->
-> OK, then the reason might by tuner. Tuner may be changed to other one or
-> tuner i2c-address is changed. I doubt whole tuner is changed. Now we should
-> identify which tuner is used. There is some ways how to do that.
->
-> 1) Look from Windows driver files
-> 2) Open stick and look chips
-> 3) Take USB-sniffs and try to identify tuner from there
->
-> regards
-> Antti
-> --
-> http://palosaari.fi/
+thanks for any help.
+Halim
 
-
-
-I shall try these things tonight - thanks for your advice
-
-------=_Part_19549_6823236.1213276749942
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br><br><div class="gmail_quote">2008/6/12 Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div class="Ih2E3d">Andrew Websdale wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-I&#39;ve examined the logs, &amp; I can find no mention of a Quantek tuner - your suggestion of a non-working tuner seems likely, as tuning is what doesn&#39;t seem to work when I run e.g. w_scan - can you make any suggestion as to where I go from here? I&#39;m more than willing to test new code etc.<br>
-
-regards Andrew<br>
-</blockquote>
-<br></div>
-OK, then the reason might by tuner. Tuner may be changed to other one or tuner i2c-address is changed. I doubt whole tuner is changed. Now we should identify which tuner is used. There is some ways how to do that.<br>
-<br>
-1) Look from Windows driver files<br>
-2) Open stick and look chips<br>
-3) Take USB-sniffs and try to identify tuner from there<br>
-<br>
-regards<br>
-Antti<br><font color="#888888">
--- <br>
-<a href="http://palosaari.fi/" target="_blank">http://palosaari.fi/</a></font></blockquote><div><br><br>I shall try these things tonight - thanks for your advice <br></div></div><br>
-
-------=_Part_19549_6823236.1213276749942--
-
-
---===============1172219586==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1172219586==--
