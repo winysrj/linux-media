@@ -1,18 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <debalance@arcor.de>) id 1KCbHC-0004n9-3D
-	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 16:19:43 +0200
-Message-ID: <48664867.9060507@arcor.de>
-Date: Sat, 28 Jun 2008 16:19:19 +0200
-From: =?UTF-8?B?UGhpbGlwcCBIw7xibmVy?= <debalance@arcor.de>
-MIME-Version: 1.0
-To: Artem Makhutov <artem@makhutov.org>
-References: <486563DE.4070705@arcor.de>
-	<20080628063926.GN12592@moelleritberatung.de>
-In-Reply-To: <20080628063926.GN12592@moelleritberatung.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
+	(envelope-from <goga777@bk.ru>) id 1K551v-0006QL-Tb
+	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 22:28:52 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id E3B6E19E647A
+	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 00:28:17 +0400 (MSD)
+Received: from localhost.localdomain (unknown [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 6519319E63D7
+	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 00:28:17 +0400 (MSD)
+Date: Sun, 8 Jun 2008 00:32:22 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080608003222.661e4393@bk.ru>
+In-Reply-To: <854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
+References: <45e226e50806060327s7e3ecf86wb9141ee394e854d1@mail.gmail.com>
+	<E1K4ZQk-000ARd-00.goga777-bk-ru@f145.mail.ru>
+	<45e226e50806060353o32b215afwc3017e3ab8a2dd10@mail.gmail.com>
+	<854d46170806060550u5c238e26ia003c713ed68095e@mail.gmail.com>
+	<45e226e50806071017y4e09413dl23c119da0910fae2@mail.gmail.com>
+	<854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
+	<20080607225006.51805d6f@bk.ru>
+	<854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Terratec Cinergy S2 PCI HD ioctl DVBFE_GET_INFO
+ failed:Operation not supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,81 +38,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> I'm using multiproto and this works 100% just tested with two machines.
+> I'm not sure if multiproto_plus is using new API or the old one anyway
 
-Hey,
+multiproto_plus is using the same new api as multiproto
 
-Artem Makhutov schrieb:
-> The dvb-utils package, that is shipped with debian won't work with multiproto,
-> because multiproto introduced a new DVB-API.
+> the best advice that i can give you is to try the old scan without any patches.
 > 
-> You have to compile szap (szap2) and scan for yourself, otherwise it
-> won't work.
+> http://jusst.de/manu/scan.tar.bz2
 
-Thanks for that hint.
-I uninstalled dvb-utils and compiled and installed the dvb-apps.
-Scan ran successfully and now I've got a very long channels.conf ;)
+it doesn't work too :(
+with the same errors
 
-Unfortunately szap seems not to work successfully and I didn't manage to
-see any TV yet.
+Goga
 
-Here's the output:
-
-der_schakal@kuehlschrank:~$ szap -r -n 001
-reading channels from file '/home/der_schakal/.szap/channels.conf'
-zapping to 1 'ASTRA SDT':
-sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid = 0x1fff, apid
-= 0x1fff sid = 0x000c
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 00 | signal 0009 | snr 0000 | ber 00000000 | unc fffffffe |
-status 00 | signal 0009 | snr 0000 | ber 00000000 | unc fffffffe |
-status 00 | signal 0009 | snr 0000 | ber 00000000 | unc fffffffe |
-status 00 | signal 0009 | snr 0000 | ber 00000000 | unc fffffffe |
-[...]
-
-It goes on like this forever until I press CTRL+C.
-
-
-The test with mplayer looks like this:
-
-der_schakal@kuehlschrank:~$ mplayer /dev/dvb/adapter0/dvr0
-MPlayer dev-SVN-r26940
-CPU: Intel(R) Pentium(R) 4 CPU 3.00GHz (Family: 15, Model: 4, Stepping: 3)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled with runtime CPU detection.
-Can't open joystick device /dev/input/js0: No such file or directory
-Can't init input joystick
-mplayer: could not open config files /home/der_schakal/.lircrc and
-/etc/lirc//lircrc
-[I guess the joystick- and lirc-stuff can be ignored]
-mplayer: No such file or directory
-Failed to read LIRC config file ~/.lircrc.
-
-Playing /dev/dvb/adapter0/dvr0.
-
-[I don't hear anything and I don't see anything since now mplayer window
-pops up.]
-
-[CTRL+C]
-MPlayer interrupted by signal 2 in module: demux_open
-
-[CTRL+C]
-MPlayer interrupted by signal 2 in module: demux_open
-
-
-
-Any more ideas?
-
-Best wishes,
-Philipp
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIZkhmFhl05MJZ4OgRAlzEAJ9TpUrENl9KPCykm8RxDS9NnlMevACfQE9x
-Fo6seaAAu2wUjKcWCRQcVpo=
-=hw8d
------END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
