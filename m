@@ -1,18 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5D9XGnL026204
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 05:33:16 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5D9X2bH010528
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 05:33:03 -0400
-Date: Fri, 13 Jun 2008 11:33:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0806131131250.27615@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] soc-camera bug-fixes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m572T9RT007843
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 22:29:09 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m572SvQh025996
+	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 22:28:57 -0400
+From: Andy Walls <awalls@radix.net>
+To: mschimek@gmx.at
+In-Reply-To: <1212791383.17465.742.camel@localhost>
+References: <200805262326.30501.hverkuil@xs4all.nl>
+	<1211850976.3188.83.camel@palomino.walls.org>
+	<200805270853.31287.hverkuil@xs4all.nl>
+	<200805270900.20790.hverkuil@xs4all.nl>
+	<1212791383.17465.742.camel@localhost>
+Content-Type: text/plain; charset=utf-8
+Date: Fri, 06 Jun 2008 22:28:38 -0400
+Message-Id: <1212805718.3168.99.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Need VIDIOC_CROPCAP clarification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,28 +31,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro,
+On Sat, 2008-06-07 at 00:29 +0200, Michael Schimek wrote:
 
-Please pull from http://linuxtv.org/hg/~gliakhovetski/v4l-dvb
-
-for the following 2 changesets:
-
-01/02: pxa-camera: fix platform_get_irq() error handling.
-http://linuxtv.org/hg/~gliakhovetski/v4l-dvb?cmd=changeset;node=2d2b7431aaf2
-
-02/02: soc-camera: remove soc_camera_host_class class
-http://linuxtv.org/hg/~gliakhovetski/v4l-dvb?cmd=changeset;node=ab0c1a4f7cf1
+> As Daniel wrote, another way to view this is that the active portion of
+> the video is about 52 µs wide. At 12.27 MHz (for NTSC square pixels) one
+> would sample or "crop" 638 pixels over this period.
 
 
- pxa_camera.c |    4 ++--
- soc_camera.c |   16 ----------------
- 2 files changed, 2 insertions(+), 18 deletions(-)
+Actually since the NTSC line frequency is
 
-Thanks,
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Fh = 4.5 MHz/286 ~= 15.73426 kHz
+
+so
+
+1/Fh ~= 63.5556 usec
+
+thus the active part of an NTSC line is actually
+
+(1/Fh - 10.9 us) ~= 52.65556 usec
+
+
+At the NTSC 12 3/11 MHz square pixel sampling rate that's actually
+
+(1/Fh - 10.9 us) * 12 3/11 MHz = (286/4.5 MHz - 10.9 us) * 12 3/11 MHz =
+646.22727 samples
+
+It's slightly above and close, to the VGA screen width of 640 pixels,
+with ~3 pixels of active video lost on each of the left and right
+edge.  
+
+-Andy
 
 --
 video4linux-list mailing list
