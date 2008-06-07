@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5HAMn6Q018470
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:22:49 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5HAMQbh008765
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:22:26 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so4047319fga.7
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 03:22:25 -0700 (PDT)
-Message-ID: <a5eaedfa0806170322v382f5b98o22f2b94830585f7c@mail.gmail.com>
-Date: Tue, 17 Jun 2008 15:52:25 +0530
-From: "Veda N" <veda74@gmail.com>
-To: "Veda N" <veda74@gmail.com>, video4linux-list@redhat.com
-In-Reply-To: <20080617094510.GA726@daniel.bse>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m576WPl7012582
+	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 02:32:25 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m576VjlW022544
+	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 02:31:46 -0400
+Message-ID: <484A2B45.1090200@hhs.nl>
+Date: Sat, 07 Jun 2008 08:31:33 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-	<20080617092439.GA631@daniel.bse>
-	<a5eaedfa0806170239ye9951acv1cc9361b1d43abbe@mail.gmail.com>
-	<20080617094510.GA726@daniel.bse>
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: v4l2_pix_format doubts
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <484934FD.1080401@hhs.nl>
+	<200806061519.50350.laurent.pinchart@skynet.be>
+	<48494770.7060503@hhs.nl>
+	<200806070054.51210.laurent.pinchart@skynet.be>
+In-Reply-To: <200806070054.51210.laurent.pinchart@skynet.be>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: uvc open/close race (Was Re: v4l1 compat wrapper version 0.3)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,45 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I think you got confused by RGB and YUV.
+Laurent Pinchart wrote:
+> Hi Hans,
+> 
+>> Some notes:
+>> 1) TRY_FMT should really never do I/O (but then I guess the
+>>     problem would still persists with S_FMT)
+> 
+> Why not ? The UVC specification defines probe requests to negotiate the 
+> streaming format. Unlike for most other devices, the UVC model requires I/O 
+> in TRY_FMT.
+> 
 
-The device is capable of giving RGB and YUV data. This is done by a
-setting in the sensor register.
+I would expect the driver to ask the camera what format it supports once, at 
+probe and then cache that info, many applications do a lot of TRY_FMT calls in 
+quick succession, so doing the querying then and each time seems like a bad 
+idea to me. Esp as, as seen in my example try_fmt can now throw IO/errors 
+whichs is somewhat strange IMHO.
 
-Once i set the value, For every pixel clock a pixel is fetched from
-the device and is
-placed in memory  Once a entire frame is captured. it is returned to
-the application.
->From the application   i can write this data into LCD or a file to be
-viewed by a YUV/RGB
-viewer like YUVTOOLS.
+Quoting from:
+http://lwn.net/Articles/227533/
 
+"The VIDIOC_TRY_FMT handlers are optional for drivers, but omitting this 
+functionality is not recommended. If provided, this function is callable at any 
+time, even if the device is currently operating. It should not make any changes 
+to the actual hardware operating parameters; it is just a way for the 
+application to find out what is possible."
 
-Now, i know what i should set the pix->pixelformat, but what about
-other members of the
-v4l2_pix_format structure.
+>> 2) I've also seen it fail at TRY_FMT 1 without first failing
+>>     a TRY_FMT 2, I guess that was just me doing arrow-up -> enter to
+>> quickly :)
+> 
+> Could you please tell me what webcam you used, as well as what kernel version 
+> you are running ?
 
+I'm using a Logitech sphere usb id: 046d:08cc
 
+Fedora kernel: kernel-2.6.25-8.fc9, which includes UVC (added by Fedora).
+
+> I would also appreciate if you could check the kernel log 
+> for error messages after triggering the problem.
+
+No messages I'm afraid.
 
 Regards,
-vedan
 
-On Tue, Jun 17, 2008 at 3:15 PM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-> On Tue, Jun 17, 2008 at 03:09:04PM +0530, Veda N wrote:
->>   As i understand, my camera has a image processor inside it. what i
->> want to say is it is
->>   not a plain raw sensor.
->
-> So this image processor converts RGB to YUV?
->
->>   For every pixel clock a pixel is fetched from the device and is
->> placed in memory
->>   Once a entire frame is captured. it is returned to the application.
->
-> And if you look at this data in memory, what does it look like?
->
->  Daniel
->
+Hans
 
 --
 video4linux-list mailing list
