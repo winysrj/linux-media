@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KA2cf-0007PH-4R
-	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 14:55:19 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K2T001RED73IZW0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 21 Jun 2008 08:54:40 -0400 (EDT)
-Date: Sat, 21 Jun 2008 08:54:39 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080621052211.5D76732675A@ws1-8.us4.outblaze.com>
-To: stev391@email.com
-Message-id: <485CFA0F.9020407@linuxtv.org>
-MIME-version: 1.0
-References: <20080621052211.5D76732675A@ws1-8.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] cx23885 driver and DMA timeouts
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1K4zUA-0005Zk-Tu
+	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 16:33:39 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Sat, 7 Jun 2008 16:33:04 +0200
+MIME-Version: 1.0
+Message-Id: <200806071633.04876.dkuhlen@gmx.net>
+Subject: [linux-dvb] Pinnacle PCTV Dual Sat Pro PCI (4000i) update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,39 +16,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0699170142=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0699170142==
+Content-Type: multipart/signed;
+  boundary="nextPart10556318.paC7Yva4KS";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
-> As soon as I try to access both cards at the same time it breaks and 
-> only a full computer restart will fix it, i have tried unloading all the 
-> modules that I can find that this card uses and loading them again. I 
-> get the syslog attached below (cx23885 with debug =1).  It doesn't 
-> matter what progam i use to access them (tried gxine, totem, mythtv) it 
-> all works the same, only one at a time or it breaks.
+--nextPart10556318.paC7Yva4KS
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-If the vidb and vidc (ts1 / ts2) bridge streams each single channel 
-correctly, but not both together then this is either a sram 
-configuration issue (the risc engine's workspace is being corrupted by 
-another risc channel), or your system has a pcie compatibility issue.
+Hi,
 
-I've seen both of these issues in the past.
+I have both tuners running on this card. (qemu with pciproxy works well :)
+Next step is DMA setup/transfer. I cannot use qemu for this since the=20
+IRQs get somehow shuffled when attaching to qemu :(
 
-I don't have a hardware product with demodulators on vidb and c, so 
-that's not something I can repro.
+Has anybody ideas how to reverse engineer this?
+Does it work using real win with rr0d or similar?
 
-Can you dual boot the same system under windows and remove any pcie 
-compatibility doubts?
+Thanks,
+ Dominik
 
-- Steve
+--nextPart10556318.paC7Yva4KS
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAkhKnCAACgkQ6OXrfqftMKKS5ACcDTFOn9ZsPk91S3SlJ365Wir1
+OHsAmwXGRP1MKUih8rOG0Ytwt6P0GY05
+=SFJB
+-----END PGP SIGNATURE-----
+
+--nextPart10556318.paC7Yva4KS--
 
 
-
+--===============0699170142==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0699170142==--
