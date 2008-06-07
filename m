@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5HDcwVL013798
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 09:38:58 -0400
-Received: from mailmxout.mailmx.agnat.pl (mailmxout.mailmx.agnat.pl
-	[193.239.44.238])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5HDcfZp007574
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 09:38:42 -0400
-Received: from smtp.agnat.pl ([193.239.44.82])
-	by mailmxout.mailmx.agnat.pl with esmtp (Exim 4.69)
-	(envelope-from <admin@satland.com.pl>) id 1K8bOS-0007Mz-DM
-	for video4linux-list@redhat.com; Tue, 17 Jun 2008 15:38:40 +0200
-Received: from [79.187.82.59] (helo=[192.168.0.5])
-	by smtp.agnat.pl with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
-	(Exim 4.67) (envelope-from <admin@satland.com.pl>)
-	id 1K8bOS-0005Bi-7g
-	for video4linux-list@redhat.com; Tue, 17 Jun 2008 15:38:40 +0200
-Message-ID: <4857BE60.4000305@satland.com.pl>
-Date: Tue, 17 Jun 2008 15:38:40 +0200
-From: =?UTF-8?B?xYF1a2FzeiDFgXVrb2rEhw==?= <admin@satland.com.pl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m577hAxX029779
+	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 03:43:10 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m577ggjr018065
+	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 03:42:43 -0400
+Message-ID: <484A2DDB.6090705@hhs.nl>
+Date: Sat, 07 Jun 2008 08:42:35 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4853745E.6000805@satland.com.pl>
-	<1213444547.3173.4.camel@palomino.walls.org>
-In-Reply-To: <1213444547.3173.4.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: Re: multiple saa7130 chipsets problem
+To: engage <engage@n0sq.us>
+References: <200806061812.30755.engage@n0sq.us>
+In-Reply-To: <200806061812.30755.engage@n0sq.us>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: webcams
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,43 +27,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Andy Walls pisze:
-> On Sat, 2008-06-14 at 09:33 +0200, Łukasz Łukojć wrote:
->   
->> Hi
->>
->> I'm using 8 x saa7130hl chipset  based surveillance card and recently 
->> bought another one.
->> Just wanted to achieve 16 channels for cams recording.
->> Problem is that saa7134 module will only see eight integrals of card 
->> array 'card=x,x,x,x,x,x,x' and while i'm putting 
->> 'card=x,x,x,x,x,x,x,x,x,x,x,x,x,x,x' - dmesg will print 
->>
->> card: can only take 8 arguments
->> saa734: '69' invalid for parameter 'card'
->>
->> Modprobing with 'only' eight parameters will result that saa714 will be 
->> try to autodetect chipsets, which is appraently ends with hang errors.
->> Is there a siple hack to ovverride this behaviour ?
->>     
->
-> You could try modifying
->
-> 	#define SAA7134_MAXBOARDS 8
->
-> in linux/drivers/media/video/saa7134/saa7134.h and recompiling.
->
-> -Andy
->
->
->   
-It did the trick :)
-Now kernel seees two x eight channel cards, and i've '/dev/video*' from 
-0 to 15
+engage wrote:
+> I don't know if I'm OT but I believe that v4l is used with usb webcams. I just 
+> bought an HP webcam but can't get it to work in Mandriva 2008.1 with amsn or 
+> camorama on any PC. lsusb says it's a Pixart Imaging device.
+> 
+> lsusb output:
+> 
+> Bus 003 Device 002: ID 093a:2621 Pixart Imaging, Inc.
+> 
 
-Thanks
+That looks like an pixart 731x id to me, unfortunately adding extra usb id's to 
+gspca is harder then it should be, so I've added the above id for you, here is 
+a version with this ID included for you to build and try (follow the included 
+instructions):
+http://people.atrpms.net/~hdegoede/gspcav1-20071224-extra-usb-id.tar.gz
 
-Lucas
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
