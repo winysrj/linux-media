@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m55L8Kje027924
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 17:08:20 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m55L83P1023300
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 17:08:03 -0400
-Date: Thu, 5 Jun 2008 18:07:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: jon.dufresne@infinitevideocorporation.com
-Message-ID: <20080605180748.0b8f81cd@gaivota>
-In-Reply-To: <1212675977.16563.24.camel@localhost.localdomain>
-References: <1212675977.16563.24.camel@localhost.localdomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m58GuNmZ010343
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 12:56:23 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m58GuBv8030969
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 12:56:11 -0400
+Date: Sun, 8 Jun 2008 18:55:45 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Michael Schimek <mschimek@gmx.at>
+Message-ID: <20080608165544.GB314@daniel.bse>
+References: <200805262326.30501.hverkuil@xs4all.nl>
+	<1211850976.3188.83.camel@palomino.walls.org>
+	<200805270853.31287.hverkuil@xs4all.nl>
+	<200805270900.20790.hverkuil@xs4all.nl>
+	<1212791383.17465.742.camel@localhost>
+	<20080607013340.GA2011@daniel.bse>
+	<1212928036.17465.1043.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1212928036.17465.1043.camel@localhost>
 Cc: video4linux-list@redhat.com
-Subject: Re: Writing first v4l2 driver
+Subject: Re: Need VIDIOC_CROPCAP clarification
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,43 +33,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 05 Jun 2008 10:26:17 -0400
-Jon Dufresne <jon.dufresne@infinitevideocorporation.com> wrote:
+On Sun, Jun 08, 2008 at 02:27:16PM +0200, Michael Schimek wrote:
+> I'd hope v4l2_cropcap tells me what the hardware is actually capable of,
+> i.e. the maximum physical resolution, not interpolated pixels.
 
-> Hi,
-> 
-> I'm in the process of writing my first v4l2 linux driver. I have written
-> drivers in the past but this is my first time with a video device. I
-> have read as much documentation as I could get my hands on.
-> 
-> My device is a pci capture device and I am trying to use streaming
-> mmaped buffers. Right now I am trying to integrate the video-buf helper
-> functions to do the actual frame grabbing. I am quite confused as how
-> this all fits together. 
+How many cards do support upscaling?
+Defining crop units that way would make it impossible to make use of the
+higher resolution in cropping after upscaling.
 
-Does your device support DMA scatter/gather mode (e.g. instead of a continuous
-DMA memory, you would be using a range of non-continuous memory areas)? If not,
-then you'll need to write a different video-buf driver.
-> 
-> Is there a good guide on using video-buf for video dma transfer? I did
-> quite a few google searches but I didn't find anything.
-> 
-> What is the simplest example of a capture device using video-buf for a
-> streaming device in the source tree to use as an example? I've looked at
-> a few, but I want to look at the simplest one.
+And it conflicts with the idea of using tv frame lines for vertical
+units if the device can only capture one field.
 
-The simplest driver is vivi.c. Yet, it uses videobuf-vmalloc, which is a little
-bit different. However, since this is a fake device, it helps to understand how
-videobuf works. If you get into vivi.c previous versions, at mercurial repo,
-you'll find even a vivi example using the video-buf-dma-sg. Most of stuff
-will be similar. 
+> You think defrect should return the size and position of the active
+> picture area in hardware units, not what the closest area is the
+> hardware can actually capture?
 
-The other two examples for PCI devices are saa7134-video and cx88-video. bttv
-also uses it, but bttv driver is more complex to understand, since its code is
-bigger.
+Not necessarily in hardware units, but yes. Using hardware units would
+suggest that the hardware is capable of cropping to that size.
 
-Cheers,
-Mauro
+> Well that's a possibility, but for once many drivers do not support
+> VIDIOC_G/S_CROP, implying defrect is what they capture.
+
+You mean drivers that support VIDIOC_CROPCAP without VIDIOC_G/S_CROP?
+I see two possibilities:
+1. add VIDIOC_G/S_CROP dummies
+2. add to spec that drivers without VIDIOC_G/S_CROP capture bounds
+
+> Well the idea was that all drivers support at least 1:1 scaling, defrect
+> is what apps usually want to capture and what the hardware can actually
+> capture, so defrect.width and .height is a valid image size and
+> presumably the highest resolution image apps can get of the active
+> picture area.
+
+That makes me think about my old FAST MovieMachine Pro.
+It does not have enough on board ram to capture both fields at full
+resolution. It can downscale horizontally and vertically by dropping
+pixels/lines in a Bresenham way. So it's either 448x576 or 704x372 maximum.
+Using 13.5 MHz sample rate pixels horizontally and tv lines vertically as
+crop units will make defrect too big to be a valid image size.
+What do you suggest?
+
+> That's right but I didn't pick the numbers. By default bttv always
+> captured 480 lines and quite a few apps may depend on that. I guess most
+> drivers capture 480 lines in NTSC-M mode, and most apps request 480
+> scaled lines.
+
+Ah those beautiful numbers divisibly by 16 needed for MPEG...
+A workaround could be to decouple the startup crop region from defrect.
+Then applications that don't know about cropping get 480 lines on open
+while those that do can work with 486 lines. 
+
+This is a problem for horizontal cropping as well, when the active
+region is 702 pixels wide and scaling is impossible.
+
+> The bt8x8 in particular
+> cannot begin scaling on an even frame line and end on an odd frame line,
+> of the opposite field, as an odd cropping height would suggest.
+
+On bt8x8 you set the scaling factor and tell the hardware where to save
+each line. You can't prevent the chip from using one more line for
+scaling but you can set a scaling factor that maps 517 lines to 512
+and then capture 512 lines.
+
+> With known cropping units one can select an absolute position. Without
+> that knowledge one can still move and resize the crop window relative to
+> the default and pick scale factors.
+
+So with unknown units one can still select the absolute position if defrect
+is standardized.
+
+
+The ability to capture without scaling could be implemented by other
+means. One could for example pass v4l2_pix_format.width=0 to get the
+unscaled width for the current crop region. Width and height should then
+be tried independently to make it work with my old capture card.
+
+  Daniel
+
+P.S.: GMX hat -all im SPF TXT RR. Du solltest deren Mailserver benutzen.
 
 --
 video4linux-list mailing list
