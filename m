@@ -1,18 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1019.yellis.net ([213.246.41.159] helo=vds19s01.yellis.net)
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1K6mpP-0007yL-JE
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 15:27:00 +0200
-Message-ID: <48512411.6000900@anevia.com>
-Date: Thu, 12 Jun 2008 15:26:41 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
-MIME-Version: 1.0
-To: Vladimir Prudnikov <vpr@krastelcom.ru>
-References: <20B2C1F8-9DFE-43C1-BACD-22DC74AE9136@krastelcom.ru>	<485100C3.2090908@sttcr.org>
-	<B582543D-F8CE-48ED-81B9-18665F49EEB6@krastelcom.ru>
-In-Reply-To: <B582543D-F8CE-48ED-81B9-18665F49EEB6@krastelcom.ru>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Smit CAM problems
+	(envelope-from <goga777@bk.ru>) id 1K5QAd-0000FR-Km
+	for linux-dvb@linuxtv.org; Sun, 08 Jun 2008 21:03:16 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 0A29919E644C
+	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 23:02:41 +0400 (MSD)
+Received: from localhost.localdomain (unknown [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 8E36C19E60B2
+	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 23:02:40 +0400 (MSD)
+Date: Sun, 8 Jun 2008 23:06:50 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080608230650.5204d141@bk.ru>
+In-Reply-To: <484B8E23.302@okg-computer.de>
+References: <484709F3.7020003@schoeller-soft.net>
+	<854d46170806041505w69a0bebakfa997223cade4381@mail.gmail.com>
+	<484794C8.5090506@okg-computer.de>
+	<200806052227.52847.dkuhlen@gmx.net>
+	<4848C6D2.6040805@schoeller-soft.net>
+	<854d46170806060249h1aec73e4s645462a123371c29@mail.gmail.com>
+	<48497340.3050602@schoeller-soft.net>
+	<854d46170806061050t12eee403re359ecfeac9143ec@mail.gmail.com>
+	<48497F86.9020702@schoeller-soft.net>
+	<48499E14.8000905@okg-computer.de> <20080608022114.5399c075@bk.ru>
+	<484B8E23.302@okg-computer.de>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] scan & szap for new multiproto api (was - How to
+ get a PCTV Sat HDTC Pro USB (452e) running?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,117 +35,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Did you try to contact SMIT support ?
+Hi, Jens
 
-Vladimir Prudnikov a =E9crit :
-> Didn't try Aston CAMs with mpeg4. But they do up to 12 channels of  =
+> >> For szap you have to download
+> >>
+> >> http://abraham.manu.googlepages.com/szap.c
+> >> then applie the api-v3.3 patch and compile it. This should work too.
+> >>
+> >> Or download the hg tree of dvb-apps and apply the attached patch on the whole tree. After that go to the scan and szap
+> >> directory and run "make". This works for me.
+> >>     
+> >
+> > should your patch for scan/szap from dvb-apps work with others dvb-s2 cards - tt3200, vp1041, hvr4000  and the latest
+> > multiproto/multiproto_plus ?
+> >   
+> 
+> Well, I don't have such a device for testing, but why not? The dvb-apps 
+> are not driver dependent. 
 
-> mpeg2 perfectly well. With no problems at all. SMiTs that are for 8  =
+I hope so 
 
-> services can do only 3 to 4 for me.
-> I think it's some kind of a driver bug because it begins working after  =
+>>Or am I wrong? The HVR4000 I don't know? I 
 
-> reinitialisation. Doesn't get hot. I have tried to call Aston as well  =
+here's information about this card
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
 
-> but with no success yet.
-> =
+> think this card works only with the szap2-util!? (But I'm not sure!!)
 
-> Regards,
-> Vladimir
-> =
+thanks for your patch. It's working with dvb-s
+i applied your patch_scan_szap.diff for HG dvb-apps. And I could run szap & scan with my hvr4000
+But only with dvb-s channels.
 
-> On Jun 12, 2008, at 2:56 PM, dan.lita@sttcr.org wrote:
-> =
+And what about dvb-s2 ? I couldn't find any dvb-s2 option in szap & scan
+How can I scan dvb-s2 transponders and switch to dvb-s2 channels ?
 
->> Dear Vladimir,
->>
->> I read your post on linux-dvb list. We have an Aston Viaccess  =
+btw - there's patched szap2 in 
+http://linuxtv.org/hg/dvb-apps/file/9311c900f746/test/szap2.c
+but it doesn't work with my card
 
->> Professional 2.15 CAM .
->> I read that you also use Aston CAMS.  My question is whether your  =
+/usr/src/dvb-apps/test# ./szap2 -c 19 -n1
+reading channels from file '19'
+zapping to 1 'Astra HD Promo 2':
+sat 0, frequency = 11914 MHz H, symbolrate 27500000, vpid = 0x04ff, apid = 0x0503 sid = 0x0083
+Querying info .. Delivery system=DVB-S
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+ioctl DVBFE_GET_INFO failed: Operation not supported
 
->> Aston Viaccess cam can descramble H264  feeds or not?
->> We have tried on a PACE HDTV receiver and a Tandberg unit and it  =
-
->> does not descramble the H264 video pid. (black screen)
->> This does not happen with Viaccess RED cam.
->>
->> On older Common interface adapters from Technotrend, the one for TT  =
-
->> Premium DVB-S card, there was a jumper for 3V or 5V cam operation.
->> I assume the new CI adapter does not have such jumper. If it still  =
-
->> exist maybe it will be a good idea to switch from one voltage to the  =
-
->> other.
->> Another solution is to test whether it works or not for Irdeto to  =
-
->> use an Alphacrypt Classic CAM which, at least in theory, according  =
-
->> to MASCOM, supports Irdeto.
->> The third thing is to notice whether the SMIT cam gets hot in  =
-
->> operation. If it gets too hot maybe a fan similar to the one for  =
-
->> graphics card must be put near the Common interface adapter.
->>
->> BTW. Do you have any e-mail address from Aston? I have tried to  =
-
->> contact  them but there is no e-mail address in their website.
->>
->> Best regards,
->> Dan Lita
->>
->>
->> Vladimir Prudnikov wrote:
->>> Hello!
->>>
->>> I'm using SMIT cams to descramble channels on TT S-1500 and TT-  =
-
->>> S2-3200. After some time of normal operation SMIT cams drop out  =
-
->>> and  stop decrypting the stream. It needs to be removed from the CI  =
-
->>> slot  and reinserted to resume normal operation. Aston CAMs have no  =
-
->>> such  problems, but they don't support 0x652 Irdeto.
->>> I'm streaming with vlc. Tried many SMITs (Viaccess and Irdeto).  =
-
->>> Same  problem everywhere.
->>>
->>> Regards,
->>> Vladimir
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>
->>>
-> =
-
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> =
+Goga
 
 
 
--- =
 
-CAND Frederic
-Product Manager
-ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
