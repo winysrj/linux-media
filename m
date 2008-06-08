@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53LLar2023145
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:21:36 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m58AXEZF030337
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 06:33:14 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53LLEaG005914
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 17:21:14 -0400
-Date: Tue, 3 Jun 2008 18:20:52 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m58AX3e5016202
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 06:33:03 -0400
+Date: Sun, 8 Jun 2008 07:32:55 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Message-ID: <20080603182052.1080408e@gaivota>
-In-Reply-To: <1212346919.3294.6.camel@palomino.walls.org>
-References: <20080522223700.2f103a14@core>
-	<200805261846.35758.hverkuil@xs4all.nl>
-	<1212287646.20064.21.camel@palomino.walls.org>
-	<200806011215.11489.hverkuil@xs4all.nl>
-	<1212346919.3294.6.camel@palomino.walls.org>
+To: Marcin Slusarz <marcin.slusarz@gmail.com>
+Message-ID: <20080608073255.67b8233c@gaivota>
+In-Reply-To: <20080608063104.GA5608@joi>
+References: <20080607224835.GA25025@joi>
+	<20080608063104.GA5608@joi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org
-Subject: Re: [PATCH] cx18: convert driver to video_ioctl2() (Re: [PATCH]
- video4linux: Push down the BKL)
+Cc: video4linux-list@redhat.com, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC PATCH] v4l: saa7134: fix multiple clients access (and oops)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,24 +28,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 01 Jun 2008 15:01:59 -0400
-Andy Walls <awalls@radix.net> wrote:
+On Sun, 8 Jun 2008 08:31:07 +0200
+Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
 
-> On Sun, 2008-06-01 at 12:15 +0200, Hans Verkuil wrote:
+> On Sun, Jun 08, 2008 at 12:48:35AM +0200, Marcin Slusarz wrote:
+> > (...)
 > 
-> 
-> > Thanks Andy!
-> > 
-> > I'll take a closer look on Tuesday or Wednesday, but I noticed one 
-> > thing: you set unused callbacks to NULL in cx18_set_funcs(), however 
-> > these can just be removed as they are NULL by default.
-> 
-> Yeah, they can go.  I left them in as an aid for double checking that I
-> didn't forget any callbacks that needed to be implemented.
+> This patch is stupid. Please ignore.
 
-Please don't do that. All static vars that have a value 0 or NULL shouldn't be
-initialized, since this will eat some space inside the module.
-
+Patch ignored. Yet, it seemed ok to my eyes. We shouldn't stop/deallocate
+resources if there is still someone using the module.
 
 Cheers,
 Mauro
