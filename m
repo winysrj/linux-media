@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5RAHHs1018492
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 06:17:17 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5RAGfCE023050
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 06:16:42 -0400
-Received: by fk-out-0910.google.com with SMTP id e30so482718fke.3
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 03:16:41 -0700 (PDT)
-Message-ID: <5d5443650806270316u252564e2v8258ddb57c850760@mail.gmail.com>
-Date: Fri, 27 Jun 2008 15:46:41 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Jalori, Mohit" <mjalori@ti.com>
-In-Reply-To: <8AA5EFF14ED6C44DB31DA963D1E78F0DAF6DCCD1@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m58AU6Pp029329
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 06:30:06 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m58ATrfm014832
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 06:29:53 -0400
+Date: Sun, 8 Jun 2008 07:29:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Marcin Slusarz <marcin.slusarz@gmail.com>
+Message-ID: <20080608072942.59d495f8@gaivota>
+In-Reply-To: <20080607224835.GA25025@joi>
+References: <20080607224835.GA25025@joi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <8AA5EFF14ED6C44DB31DA963D1E78F0DAF6DCCD1@dlee02.ent.ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: omap3 camera driver
+Cc: video4linux-list@redhat.com, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC PATCH] v4l: saa7134: fix multiple clients access (and oops)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,27 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mohit,
+On Sun, 8 Jun 2008 00:48:40 +0200
+Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
 
-On Fri, Jun 27, 2008 at 4:23 AM, Jalori, Mohit <mjalori@ti.com> wrote:
-> Hi,
->
+> While looking for a reason of multiple oopses in empress_querycap as reported
+> by kerneloops.org I noticed that only first open of device initializes
+> struct_file->private_data properly. (Closing the device was broken too).
+> 
+> So initialize private_date and free all resources on last close.
+> I think this change will fix oops in empress_querycap.
+> 
+> http://kerneloops.org/guilty.php?guilty=empress_querycap&version=2.6.25-release&start=1671168&end=1703935&class=oops
+> 
+> Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: video4linux-list@redhat.com
+> ---
+> 
+> Compile tested only. Please test on real hardware.
 
-...
->
->
-> All files are available at http://linux.omap.com/pub/patches/rfc/34xxcamisp/omap34xx_camera_files.tar.gz. The files are available for review and will be shared as patches once review is complete.
->
+Thanks.
+
+The patch looks sane to my eyes. I'll apply at the tree, in order to allow more
+people to test it.
 
 
-This way of distribution of code doesn't help in review. Please
-break-up this code into multiple patches as per the functionality, so
-that we can review it.
-
-
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
