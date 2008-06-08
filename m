@@ -1,18 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m539QZWf019091
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 05:26:35 -0400
-Received: from MTA003E.interbusiness.it (MTA003E.interbusiness.it [88.44.62.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m539QLOD004331
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 05:26:22 -0400
-Message-ID: <48450E32.7080700@gmail.com>
-Date: Tue, 03 Jun 2008 11:26:10 +0200
-From: Mat <heavensdoor78@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m58KnVwI009687
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 16:49:31 -0400
+Received: from mail9.dslextreme.com (mail9.dslextreme.com [66.51.199.94])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m58Kmfmp008360
+	for <video4linux-list@redhat.com>; Sun, 8 Jun 2008 16:48:41 -0400
+Message-ID: <484C459B.7030201@gimpelevich.san-francisco.ca.us>
+Date: Sun, 08 Jun 2008 13:48:27 -0700
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Need help with a new USB framegrabber...
+To: video4linux-list@redhat.com
+Content-Type: multipart/mixed; boundary="------------020205090802090701090604"
+Subject: [PATCH] Implement proper cx88 deactivation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,217 +23,329 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+This is a multi-part message in MIME format.
+--------------020205090802090701090604
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi all.
-Need help again!
-Info about the device:
+As it stands, the cx88 driver has no framework for keeping track of 
+card's GPIO settings for when the card is not used. The settings are 
+left in the state of the last used input, and if that input supplies 
+audio, that audio persists. Also, the cx88 chip cannot handle more than 
+one input at a time, so the /dev/radio and /dev/video devices may step 
+on each other. The audio standard setting from the last used tuner input 
+is preserved for non-tuner inputs, which is incorrect, and the default 
+standard is undefined rather than WW_NONE. Resetting the cx88 does not 
+send a reset callback to the tuner, which may leave the tuner 
+unresponsive to i2c under certain circumstances. The tuner is needlessly 
+activated on boot. This patch, which is intended to be atomic, aims to 
+fix all those issues. I have added the deactivation GPIO values for the 
+cards I have previously examined, and more can be added later. I don't 
+expect this patch to break anything, but if it does, I'm sure it can be 
+taken care of easily. I hope it may be committed so that it may gain the 
+widest possible stress testing. Thank you.
 
-+ Brand:
-EasyCAP
+--------------020205090802090701090604
+Content-Type: text/x-patch;
+ name="better-cx88.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="better-cx88.patch"
 
-+ Site:
-I don't know... here's a small review:
-  http://gadizmo.com/easycap-usb-review.php
+Signed-off-by: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
 
-+ lusb:
-Bus 001 Device 003: ID 05e1:0408 Syntek Semiconductor Co., Ltd
+diff -r 3f7d664a285d linux/Documentation/video4linux/CARDLIST.cx88
+--- a/linux/Documentation/video4linux/CARDLIST.cx88	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/Documentation/video4linux/CARDLIST.cx88	Sun Jun 08 13:19:53 2008 -0700
+@@ -60,7 +60,7 @@
+  59 -> DViCO FusionHDTV 5 PCI nano                         [18ac:d530]
+  60 -> Pinnacle Hybrid PCTV                                [12ab:1788]
+  61 -> Winfast TV2000 XP Global                            [107d:6f18]
+- 62 -> PowerColor RA330                                    [14f1:ea3d]
++ 62 -> PowerColor Real Angel 330                           [14f1:ea3d]
+  63 -> Geniatech X8000-MT DVBT                             [14f1:8852]
+  64 -> DViCO FusionHDTV DVB-T PRO                          [18ac:db30]
+  65 -> DViCO FusionHDTV 7 Gold                             [18ac:d610]
+diff -r 3f7d664a285d linux/drivers/media/video/cx88/cx88-cards.c
+--- a/linux/drivers/media/video/cx88/cx88-cards.c	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-cards.c	Sun Jun 08 13:19:53 2008 -0700
+@@ -1425,10 +1425,6 @@
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		.input          = {{
+-			.type   = CX88_VMUX_DEBUG,
+-			.vmux   = 3,
+-			.gpio0  = 0x04ff,
+-		},{
+ 			.type   = CX88_VMUX_COMPOSITE1,
+ 			.vmux   = 1,
+ 			.gpio0  = 0x07fa,
+@@ -1437,6 +1433,10 @@
+ 			.vmux   = 2,
+ 			.gpio0  = 0x07fa,
+ 		}},
++		.off = {
++			.type   = CX88_OFF,
++			.gpio0  = 0x04ff,
++		},
+ 	},
+ 	[CX88_BOARD_PINNACLE_PCTV_HD_800i] = {
+ 		.name           = "Pinnacle PCTV HD 800i",
+@@ -1547,35 +1547,39 @@
+ 		.tuner_type     = TUNER_XC2028,
+ 		.tuner_addr     = 0x61,
+ 		.input          = { {
+-			.type   = CX88_VMUX_DEBUG,
+-			.vmux   = 3,		/* Due to the way the cx88 driver is written,	*/
+-			.gpio0 = 0x00ff,	/* there is no way to deactivate audio pass-	*/
+-			.gpio1 = 0xf39d,	/* through without this entry. Furthermore, if	*/
+-			.gpio3 = 0x0000,	/* the TV mux entry is first, you get audio	*/
+-		}, {				/* from the tuner on boot for a little while.	*/
+ 			.type   = CX88_VMUX_TELEVISION,
+ 			.vmux   = 0,
+-			.gpio0 = 0x00ff,
+-			.gpio1 = 0xf35d,
+-			.gpio3 = 0x0000,
++			.gpio0  = 0x00ff,
++			.gpio1  = 0xf35d,
++			.gpio3  = 0x0000,
++			.audioroute = 1,
+ 		}, {
+ 			.type   = CX88_VMUX_COMPOSITE1,
+ 			.vmux   = 1,
+-			.gpio0 = 0x00ff,
+-			.gpio1 = 0xf37d,
+-			.gpio3 = 0x0000,
++			.gpio0  = 0x00ff,
++			.gpio1  = 0xf37d,
++			.gpio3  = 0x0000,
++			.audioroute = 1,
+ 		}, {
+ 			.type   = CX88_VMUX_SVIDEO,
+ 			.vmux   = 2,
+ 			.gpio0  = 0x000ff,
+ 			.gpio1  = 0x0f37d,
+ 			.gpio3  = 0x00000,
++			.audioroute = 1,
+ 		} },
+ 		.radio = {
+ 			.type   = CX88_RADIO,
+ 			.gpio0  = 0x000ff,
+ 			.gpio1  = 0x0f35d,
+ 			.gpio3  = 0x00000,
++			.audioroute = 1,
++		},
++		.off = {
++			.type   = CX88_OFF,
++			.gpio0  = 0x00ff,
++			.gpio1  = 0xf39d,
++			.gpio3  = 0x0000,
+ 		},
+ 	},
+ 	[CX88_BOARD_GENIATECH_X8000_MT] = {
+@@ -2396,14 +2400,20 @@
+ 
+ 	switch (core->board.tuner_type) {
+ 		case TUNER_XC2028:
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 			info_printk(core, "Calling XC2028/3028 callback\n");
++#endif
+ 			return cx88_xc2028_tuner_callback(core, command, arg);
+ 		case TUNER_XC5000:
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 			info_printk(core, "Calling XC5000 callback\n");
++#endif
+ 			return cx88_xc5000_tuner_callback(core, command, arg);
+ 	}
++#if 0
+ 	err_printk(core, "Error: Calling callback for tuner %d\n",
+ 		   core->board.tuner_type);
++#endif
+ 	return -EINVAL;
+ }
+ EXPORT_SYMBOL(cx88_tuner_callback);
+diff -r 3f7d664a285d linux/drivers/media/video/cx88/cx88-core.c
+--- a/linux/drivers/media/video/cx88/cx88-core.c	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-core.c	Sun Jun 08 13:19:53 2008 -0700
+@@ -605,6 +605,8 @@
+ int cx88_reset(struct cx88_core *core)
+ {
+ 	dprintk(1,"%s\n",__func__);
++	core->i2c_algo.data = core;
++	cx88_tuner_callback(&(core->i2c_algo), 0, 0);
+ 	cx88_shutdown(core);
+ 
+ 	/* clear irq status */
+@@ -854,10 +856,11 @@
+ {
+ 	v4l2_std_id norm = core->tvnorm;
+ 
+-	if (CX88_VMUX_TELEVISION != INPUT(core->input).type)
++	if (CX88_VMUX_TELEVISION != INPUT(core->input).type) {
++		core->tvaudio = WW_NONE;
+ 		return 0;
+ 
+-	if (V4L2_STD_PAL_BG & norm) {
++	} else if (V4L2_STD_PAL_BG & norm) {
+ 		core->tvaudio = WW_BG;
+ 
+ 	} else if (V4L2_STD_PAL_DK & norm) {
+@@ -882,7 +885,7 @@
+ 	} else {
+ 		printk("%s/0: tvaudio support needs work for this tv norm [%s], sorry\n",
+ 		       core->name, v4l2_norm_to_name(core->tvnorm));
+-		core->tvaudio = 0;
++		core->tvaudio = WW_NONE;
+ 		return 0;
+ 	}
+ 
+diff -r 3f7d664a285d linux/drivers/media/video/cx88/cx88-tvaudio.c
+--- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Sun Jun 08 13:19:53 2008 -0700
+@@ -774,6 +774,7 @@
+ 		set_audio_standard_FM(core, radio_deemphasis);
+ 		break;
+ 	case WW_NONE:
++		break;
+ 	default:
+ 		printk("%s/0: unknown tv audio mode [%d]\n",
+ 		       core->name, core->tvaudio);
+diff -r 3f7d664a285d linux/drivers/media/video/cx88/cx88-video.c
+--- a/linux/drivers/media/video/cx88/cx88-video.c	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88-video.c	Sun Jun 08 13:19:53 2008 -0700
+@@ -1033,6 +1033,9 @@
+ 
+ 	core = dev->core;
+ 
++	if (radio?core->vinst:core->rinst)
++		return -EBUSY;
++
+ 	dprintk(1,"open minor=%d radio=%d type=%s\n",
+ 		minor,radio,v4l2_type_names[type]);
+ 
+@@ -1063,6 +1066,7 @@
+ 
+ 	if (fh->radio) {
+ 		dprintk(1,"video_open: setting radio device\n");
++		core->rinst++;
+ 		cx_write(MO_GP3_IO, core->board.radio.gpio3);
+ 		cx_write(MO_GP0_IO, core->board.radio.gpio0);
+ 		cx_write(MO_GP1_IO, core->board.radio.gpio1);
+@@ -1071,7 +1075,8 @@
+ 		cx88_set_tvaudio(core);
+ 		cx88_set_stereo(core,V4L2_TUNER_MODE_STEREO,1);
+ 		cx88_call_i2c_clients(core,AUDC_SET_RADIO,NULL);
+-	}
++	} else
++		core->vinst++;
+ 
+ 	return 0;
+ }
+@@ -1130,8 +1135,14 @@
+ 
+ static int video_release(struct inode *inode, struct file *file)
+ {
+-	struct cx8800_fh  *fh  = file->private_data;
+-	struct cx8800_dev *dev = fh->dev;
++	struct cx8800_fh  *fh   = file->private_data;
++	struct cx8800_dev *dev  = fh->dev;
++	struct cx88_core  *core = dev->core;
++
++	if (fh->radio)
++		core->rinst--;
++	else
++		core->vinst--;
+ 
+ 	/* turn off overlay */
+ 	if (res_check(fh, RESOURCE_OVERLAY)) {
+@@ -1160,6 +1171,15 @@
+ 	file->private_data = NULL;
+ 	kfree(fh);
+ 
++	if (core->vinst || core->rinst)
++		return 0;
++
++	if (core->board.off.type == CX88_OFF) {
++		cx_write(MO_GP3_IO, core->board.off.gpio3);
++		cx_write(MO_GP0_IO, core->board.off.gpio0);
++		cx_write(MO_GP1_IO, core->board.off.gpio1);
++		cx_write(MO_GP2_IO, core->board.off.gpio2);
++	}
+ 	cx88_call_i2c_clients (dev->core, TUNER_SET_STANDBY, NULL);
+ 
+ 	return 0;
+@@ -2215,9 +2235,7 @@
+ 
+ 	/* initial device configuration */
+ 	mutex_lock(&core->lock);
+-	cx88_set_tvnorm(core,core->tvnorm);
+ 	init_controls(core);
+-	cx88_video_mux(core,0);
+ 	mutex_unlock(&core->lock);
+ 
+ 	/* start tvaudio thread */
+diff -r 3f7d664a285d linux/drivers/media/video/cx88/cx88.h
+--- a/linux/drivers/media/video/cx88/cx88.h	Sun Jun 08 07:26:00 2008 -0300
++++ b/linux/drivers/media/video/cx88/cx88.h	Sun Jun 08 13:19:53 2008 -0700
+@@ -236,6 +236,7 @@
+ 	CX88_VMUX_DVB,
+ 	CX88_VMUX_DEBUG,
+ 	CX88_RADIO,
++	CX88_OFF,
+ };
+ 
+ struct cx88_input {
+@@ -253,7 +254,7 @@
+ 	unsigned char		radio_addr;
+ 	int                     tda9887_conf;
+ 	struct cx88_input       input[MAX_CX88_INPUT];
+-	struct cx88_input       radio;
++	struct cx88_input       radio, off;
+ 	enum cx88_board_type    mpeg;
+ 	enum audiochip          audio_chip;
+ };
+@@ -341,6 +342,7 @@
+ 	u32                        input;
+ 	u32                        astat;
+ 	u32			   use_nicam;
++	u32			   vinst, rinst;
+ 
+ 	/* IR remote control state */
+ 	struct cx88_IR             *ir;
+@@ -643,15 +645,15 @@
+ /* ----------------------------------------------------------- */
+ /* cx88-tvaudio.c                                              */
+ 
+-#define WW_NONE		 1
+-#define WW_BTSC		 2
+-#define WW_BG		 3
+-#define WW_DK		 4
+-#define WW_I		 5
+-#define WW_L		 6
+-#define WW_EIAJ		 7
+-#define WW_I2SPT	 8
+-#define WW_FM		 9
++#define WW_NONE		 0
++#define WW_BTSC		 1
++#define WW_BG		 2
++#define WW_DK		 3
++#define WW_I		 4
++#define WW_L		 5
++#define WW_EIAJ		 6
++#define WW_I2SPT	 7
++#define WW_FM		 8
+ 
+ void cx88_set_tvaudio(struct cx88_core *core);
+ void cx88_newstation(struct cx88_core *core);
 
-I got the latest v4l-dvb drivers from Mercurial this morning. Build. Reboot.
-No module is loaded automatically.
-I modified:
-  v4l-dvb/linux/drivers/media/video/stk-webcam.c
-There is a device here with the same vendor ID, but different product 
-ID... 05e1:0501
-I tried to add:
-  { USB_DEVICE_AND_INTERFACE_INFO(0x05e1, 0x0408, 0xff, 0xff, 0xff) },
-The module stkwebcam is loaded. I activated the option debug=3
-When I start xawtv I get:
-  ioctl: VIDIOC_STREAMON(int=1): Bad address
-  v4l2: oops: select timeout
-  v4l2: read: Cannot allocate memory
-
-There's little I can do to get it working soon I suppose...
-
-+ dmesg output:
-[  108.275813] stkwebcam: VIDIOC_QUERYCAP driver=stk, card=stk, bus=, 
-version=0x00000001, capabilities=0x05000001
-[  108.276969] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCAP
-[  108.277154] stkwebcam: VIDIOC_QUERYCAP driver=stk, card=stk, bus=, 
-version=0x00000001, capabilities=0x05000001
-[  108.277275] stkwebcam: VIDIOC_ENUMINPUT index=0, name=Syntek USB 
-Camera, type=2, audioset=0, tuner=0, std=00000000, status=0
-[  108.277388] stkwebcam: err: on <7>stkwebcam: VIDIOC_ENUMINPUT
-[  108.277498] stkwebcam: VIDIOC_ENUM_FMT index=0, type=1, flags=0, 
-pixelformat=RGBP, description='r5g6b5'
-[  108.277605] stkwebcam: VIDIOC_ENUM_FMT index=1, type=1, flags=0, 
-pixelformat=RGBR, description='r5g6b5BE'
-[  108.277712] stkwebcam: VIDIOC_ENUM_FMT index=2, type=1, flags=0, 
-pixelformat=UYVY, description='yuv4:2:2'
-[  108.277860] stkwebcam: VIDIOC_ENUM_FMT index=3, type=1, flags=0, 
-pixelformat=BA81, description='Raw bayer'
-[  108.277967] stkwebcam: VIDIOC_ENUM_FMT index=4, type=1, flags=0, 
-pixelformat=YUYV, description='yuv4:2:2'
-[  108.278074] stkwebcam: err: on <7>stkwebcam: VIDIOC_ENUM_FMT
-[  108.278182] stkwebcam: VIDIOC_G_PARM type=1
-[  108.278282] stkwebcam: VIDIOC_QUERYCTRL id=9963776, type=1, 
-name=Brightness, min/max=0/65535, step=256, default=24576, flags=0x00000000
-[  108.278393] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.278500] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.278608] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.278715] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.278822] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.278937] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279104] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279213] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279320] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279452] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279559] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279666] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279773] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279880] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.279986] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280093] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280201] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280307] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280414] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280522] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280628] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280734] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280841] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.280947] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281053] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281159] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281264] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281370] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281475] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281580] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281686] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281793] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.281901] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282007] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282114] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282220] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282326] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282432] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282539] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282646] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282774] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282880] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.282987] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283093] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283198] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283305] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283412] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283518] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283624] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283730] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283837] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.283970] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284077] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284204] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284310] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284417] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284524] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284631] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284737] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284844] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.284951] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.285057] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.285164] stkwebcam: err: on <7>stkwebcam: VIDIOC_QUERYCTRL
-[  108.909340] stkwebcam: VIDIOC_G_STD value=00000000
-[  108.909687] stkwebcam: VIDIOC_G_INPUT value=0
-[  108.909869] stkwebcam: VIDIOC_G_CTRL Enum for index=9963776
-[  108.909975] stkwebcam: id=9963776, value=32767
-[  108.911746] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  108.912045] stkwebcam: width=384, height=288, format=YUYV, field=any, 
-bytesperline=0 sizeimage=0, colorspace=0
-[  108.922005] stkwebcam: Sensor resetting failed
-[  109.099313] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  109.099547] stkwebcam: width=352, height=288, format=YUYV, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  109.109457] stkwebcam: Sensor resetting failed
-[  109.268312] stkwebcam: VIDIOC_REQBUFS count=3, type=video-cap, 
-memory=mmap
-[  109.268474] stkwebcam: VIDIOC_QUERYBUF 00:00:00.00000000 index=0, 
-type=video-cap, bytesused=0, flags=0x00000000, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x00000000, length=204800
-[  109.268595] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.268718] stkwebcam: VIDIOC_QUERYBUF 00:00:00.00000000 index=1, 
-type=video-cap, bytesused=0, flags=0x00000000, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x00064000, length=204800
-[  109.268837] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.268944] stkwebcam: VIDIOC_QUERYBUF 00:00:00.00000000 index=2, 
-type=video-cap, bytesused=0, flags=0x00000000, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x000c8000, length=204800
-[  109.269061] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.269176] stkwebcam: VIDIOC_QBUF 00:00:00.00000000 index=0, 
-type=video-cap, bytesused=0, flags=0x00000003, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x00000000, length=204800
-[  109.269291] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.269439] stkwebcam: VIDIOC_QBUF 00:00:00.00000000 index=1, 
-type=video-cap, bytesused=0, flags=0x00000003, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x00064000, length=204800
-[  109.269555] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.269652] stkwebcam: VIDIOC_QBUF 00:00:00.00000000 index=2, 
-type=video-cap, bytesused=0, flags=0x00000003, field=1, sequence=0, 
-memory=mmap, offset/userptr=0x000c8000, length=204800
-[  109.269790] stkwebcam: timecode= 00:00:00 type=0, flags=0x00000000, 
-frames=0, userbits=0x00000000
-[  109.269911] stkwebcam: VIDIOC_STREAMON type=video-cap
-[  109.270011] stkwebcam: FIXME: Buffers are not allocated
-[  109.270098] stkwebcam: err: on <7>stkwebcam: VIDIOC_STREAMON
-[  109.270966] stkwebcam: VIDIOC_S_CTRL id=9963776, value=32767
-[  109.284432] stkwebcam: VIDIOC_S_INPUT value=0
-[  109.284576] stkwebcam: VIDIOC_S_STD value=00000000
-[  114.306522] stkwebcam: VIDIOC_STREAMOFF type=video-cap
-[  114.307613] stkwebcam: stk_sensor_inb failed, status=0x08
-[  114.307698] stkwebcam: error suspending the sensor
-[  114.933694] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.933954] stkwebcam: width=384, height=288, format=BGR4, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.934057] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.934187] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.934290] stkwebcam: width=384, height=288, format=BGR3, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.934388] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.934499] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.934600] stkwebcam: width=384, height=288, format=RGB3, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.934697] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.934806] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.934909] stkwebcam: width=384, height=288, format=BGR3, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.935005] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.935114] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.935214] stkwebcam: width=384, height=288, format=stkwebcam: err: 
-on <7>stkwebcam: VIDIOC_S_FMT
-[  114.935332] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.935433] stkwebcam: width=384, height=288, format=BGR4, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.935530] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.935638] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.935739] stkwebcam: width=384, height=288, format=GREY, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.935836] stkwebcam: err: on <7>stkwebcam: VIDIOC_S_FMT
-[  114.935946] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  114.936047] stkwebcam: width=384, height=288, format=YUYV, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  114.939824] stkwebcam: stk_sensor_outb failed, status=0x08
-[  114.939908] stkwebcam: Sensor resetting failed
-[  115.096567] stkwebcam: VIDIOC_S_FMT type=video-cap
-[  115.096741] stkwebcam: width=352, height=264, format=YUYV, field=any, 
-bytesperline=0 sizeimage=202752, colorspace=8
-[  115.135779] stkwebcam: Sensor resetting failed
-[  115.306104] stkwebcam: Sensor resetting failed
-[  115.308229] stkwebcam: stk_sensor_inb failed, status=0x08
-[  115.308331] stkwebcam: error suspending the sensor
+--------------020205090802090701090604
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------020205090802090701090604--
