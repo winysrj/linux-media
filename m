@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from eazy.amigager.de ([213.239.192.238])
+Received: from hond.eatserver.nl ([195.20.9.5])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tino@tikei.de>) id 1K8Xyq-0008CN-1z
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 12:00:00 +0200
-Received: from dose.home.local (port-212-202-169-83.dynamic.qsc.de
-	[212.202.169.83])
-	by eazy.amigager.de (Postfix) with ESMTP id 7669AC8C05A
-	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 11:59:56 +0200 (CEST)
-Received: from scorpion by dose.home.local with local (Exim 4.69)
-	(envelope-from <tino.keitel@tikei.de>) id 1K8Xzd-0001p8-7u
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 12:00:49 +0200
-Date: Tue, 17 Jun 2008 12:00:49 +0200
-From: Tino Keitel <tino.keitel@tikei.de>
+	(envelope-from <joep@groovytunes.nl>) id 1K5klp-0006w4-IA
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 19:03:04 +0200
+Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
+	(authenticated bits=0)
+	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
+	m59H2uoh022614
+	for <linux-dvb@linuxtv.org>; Mon, 9 Jun 2008 19:02:56 +0200
+From: joep <joep@groovytunes.nl>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080617100049.GA6880@dose.home.local>
+Date: Mon, 9 Jun 2008 19:06:28 +0200
+References: <1212585271.32385.41.camel@pascal>
+	<1212590233.15236.11.camel@rommel.snap.tv>
+	<200806041928.26807.joep@groovytunes.nl>
+In-Reply-To: <200806041928.26807.joep@groovytunes.nl>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] What source for the CinergyT2-V8.patch
+Message-Id: <200806091906.28380.joep@groovytunes.nl>
+Subject: Re: [linux-dvb] diseqc VP-1041 skystar hd2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,34 +32,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Op Wednesday 04 June 2008 19:28:26 schreef joep:
+> Hello all.
+> I have a skystar hd2 card and installed the latest mantis driver.
+> Now I am able to watch some dvb-s and dvb-s2 channels from astra 19,2.
+> The LNB for this satalite is connected to the default switch port.
+> When I try to tune to a channel on any other satalite that is on de diseqc
+> switch I get no signal.
+> I tried this with mythtv 0.21 and the mythtv patch from:
+> http://svn.mythtv.org/trac/ticket/5403
+>
+> I have 2 questions.
+> 1. Has anyone used the skystar hd2 or twinhand vp-1041 succesfull with a
+> diseqc switch?
+>
+> 2. What should I do to figure out what the problem is exactly?
+>
+> Thanks
+> Joep
+>
 
-what v4l source should I use for the CinergyT2-V8.patch patch? I tried
-the current v4l hg tree. The first problem was that the last line of
-the patch missed a trailing line feed. Then I got this failure:
+Hmm nobody seems to use the same setup as I am using..
+I have a more common question:
+Is it possilbe to load the mantis module with some kind of debug parameter?
+In my case I would like to know exactly what driver calls MythTV makes.
 
-$ patch -p1 < ../CinergyT2-V8.patch
-patching file linux/drivers/media/dvb/Kconfig
-patching file linux/drivers/media/dvb/cinergyT2/Kconfig
-patching file linux/drivers/media/dvb/cinergyT2/Makefile
-patching file linux/drivers/media/dvb/cinergyT2/cinergyT2.c
-Reversed (or previously applied) patch detected!  Assume -R? [n] 
-Apply anyway? [n] 
-Skipping patch.
-1 out of 1 hunk ignored -- saving rejects to file
-linux/drivers/media/dvb/cinergyT2/cinergyT2.c.rej
-patching file linux/drivers/media/dvb/dvb-usb/Kconfig
-Hunk #1 FAILED at 241.
-1 out of 1 hunk FAILED -- saving rejects to file
-linux/drivers/media/dvb/dvb-usb/Kconfig.rej
-patching file linux/drivers/media/dvb/dvb-usb/Makefile
-Hunk #1 succeeded at 64 with fuzz 2 (offset 3 lines).
-patching file linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c
-patching file linux/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-patching file linux/drivers/media/dvb/dvb-usb/cinergyT2.h
-
-Regards,
-Tino
+Thanks,
+Joep
 
 _______________________________________________
 linux-dvb mailing list
