@@ -1,23 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.191])
+Received: from gv-out-0910.google.com ([216.239.58.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <websdaleandrew@googlemail.com>) id 1K938x-00078U-0K
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 21:16:31 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so454906fka.1
-	for <linux-dvb@linuxtv.org>; Wed, 18 Jun 2008 12:16:27 -0700 (PDT)
-Message-ID: <e37d7f810806181216v490362afiace17205e362b227@mail.gmail.com>
-Date: Wed, 18 Jun 2008 20:16:27 +0100
-From: "Andrew Websdale" <websdaleandrew@googlemail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+	(envelope-from <zeno.zoli@gmail.com>) id 1K5oRp-0003eK-QB
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 22:58:38 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so764880gve.16
+	for <linux-dvb@linuxtv.org>; Mon, 09 Jun 2008 13:58:34 -0700 (PDT)
+Message-ID: <45e226e50806091358l12f6999dq9a4680066fdd7c92@mail.gmail.com>
+Date: Mon, 9 Jun 2008 22:58:33 +0200
+From: "Zeno Zoli" <zeno.zoli@gmail.com>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20080608232246.46ac431b@bk.ru>
 MIME-Version: 1.0
-References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
-	<4850566E.8030001@iki.fi>
-	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
-	<4850F597.9030603@iki.fi>
-	<e37d7f810806120619q28bff0d8y8f2d5319187ab6b0@mail.gmail.com>
-	<e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
-Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
+References: <45e226e50806060327s7e3ecf86wb9141ee394e854d1@mail.gmail.com>
+	<E1K4ZQk-000ARd-00.goga777-bk-ru@f145.mail.ru>
+	<45e226e50806060353o32b215afwc3017e3ab8a2dd10@mail.gmail.com>
+	<854d46170806060550u5c238e26ia003c713ed68095e@mail.gmail.com>
+	<45e226e50806071017y4e09413dl23c119da0910fae2@mail.gmail.com>
+	<854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
+	<20080607225006.51805d6f@bk.ru>
+	<854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
+	<20080608232246.46ac431b@bk.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy S2 PCI HD ioctl DVBFE_GET_INFO
+	failed:Operation not supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,76 +30,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1552189770=="
+Content-Type: multipart/mixed; boundary="===============0406014519=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1552189770==
+--===============0406014519==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_1445_3334227.1213816587274"
+	boundary="----=_Part_2841_19832896.1213045113840"
 
-------=_Part_1445_3334227.1213816587274
-Content-Type: text/plain; charset=UTF-8
+------=_Part_2841_19832896.1213045113840
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-2008/6/12 Andrew Websdale
+I'm able to scan dvb-s2 transponders, but haven't tuned to them yet. (..and
+it says using "DVB-S2" when scanning.)
+Followed the updated subsection @
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CIHOWTO:
+install dvb-apps (scan/szap2 based on DVB API 3.3) (Testing based on
+revision 1200Basically an organized guide with the  help I got from Faruk.
 
+On Sun, Jun 8, 2008 at 9:22 PM, Goga777 <goga777@bk.ru> wrote:
+
+> > I'm using multiproto and this works 100% just tested with two machines.
 >
->>
->> 2008/6/12 Antti Palosaari <crope@iki.fi>:
->> wrote:
->>
->>> OK, then the reason might by tuner. Tuner may be changed to other one or
->>> tuner i2c-address is changed. I doubt whole tuner is changed. Now we should
->>> identify which tuner is used. There is some ways how to do that.
->>>
->>> 1) Look from Windows driver files
->>> 2) Open stick and look chips
->>> 3) Take USB-sniffs and try to identify tuner from there
->>
->>
-> I've opened the stick & there's an MT352 (as expected) but the other chip
-> is an MT2060 which is the tuner, I think, as I see that there's an 'mt2060'
-> module in the tuner module directory. Is there some modification I can do to
-> the code so that it gets picked up by the driver? - I know a bit of C++ app
-> programming but I'm very new to C driver code, but would like to learn more.
-> Hopefully I can help some others who have this chipset as well.....
+> can you scan dvb-s2 transponders with patched scan ?
 >
-------x--------
+> Goga
+>
+> > I'm not sure if multiproto_plus is using new API or the old one anyway
+> > the best advice that i can give you is to try the old scan without any
+> patches.
+> >
+> > http://jusst.de/manu/scan.tar.bz2
+> >
+> > Good Luck
+> >
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-I've had a look at the code & have been attempting to add new code to the
-M920x driver to cope with the mt2060 tuner module, although all I've got to
-go on is the existing code for the qt1010 tuner. I'm not sure of 1 or 2
-magic numbers like the i2c address & so on, and my C abilities are fairly
-limited, so I haven't managed to compile my new code without errors yet. I
-could do with some help ( or even a patch) to be honest
-regards andrew
-
-------=_Part_1445_3334227.1213816587274
-Content-Type: text/html; charset=UTF-8
+------=_Part_2841_19832896.1213045113840
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-2008/6/12 Andrew Websdale <br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<br><br><div class="gmail_quote"><div class="Ih2E3d">
-2008/6/12 Antti Palosaari &lt;<a href="mailto:crope@iki.fi" target="_blank">crope@iki.fi</a>&gt;:</div><div class="Ih2E3d"><div><div></div><div>
-wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-OK, then the reason might by tuner. Tuner may be changed to other one or tuner i2c-address is changed. I doubt whole tuner is changed. Now we should identify which tuner is used. There is some ways how to do that.<br>
+I&#39;m able to scan dvb-s2 transponders, but haven&#39;t tuned to them yet. (..and&nbsp; it says using &quot;DVB-S2&quot; when scanning.)<br><h3><span style="font-weight: normal;">Followed the updated subsection @ <a href="http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI">http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI</a></span></h3>
+<h3><span style="font-weight: normal;" class="mw-headline">HOWTO: install dvb-apps (scan/szap2 based on DVB API 3.3) (Testing based on revision 1200</span></h3>Basically an organized guide with the&nbsp; help I got from Faruk. <br>
+<br><div class="gmail_quote">On Sun, Jun 8, 2008 at 9:22 PM, Goga777 &lt;<a href="mailto:goga777@bk.ru">goga777@bk.ru</a>&gt; wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class="Ih2E3d">&gt; I&#39;m using multiproto and this works 100% just tested with two machines.<br>
 <br>
-1) Look from Windows driver files<br>
-2) Open stick and look chips<br>
-3) Take USB-sniffs and try to identify tuner from there</blockquote></div></div></div></div></blockquote><div><br>I&#39;ve opened the stick &amp; there&#39;s an MT352 (as expected) but the other chip is an MT2060 which is the tuner, I think, as I see that there&#39;s an &#39;mt2060&#39; module in the tuner module directory. Is there some modification I can do to the code so that it gets picked up by the driver? - I know a bit of C++ app programming but I&#39;m very new to C driver code, but would like to learn more. Hopefully I can help some others who have this chipset as well.....<br>
+</div>can you scan dvb-s2 transponders with patched scan ?<br>
+<br>
+Goga<br>
+<div class="Ih2E3d"><br>
+&gt; I&#39;m not sure if multiproto_plus is using new API or the old one anyway<br>
+&gt; the best advice that i can give you is to try the old scan without any patches.<br>
+&gt;<br>
+&gt; <a href="http://jusst.de/manu/scan.tar.bz2" target="_blank">http://jusst.de/manu/scan.tar.bz2</a><br>
+&gt;<br>
+&gt; Good Luck<br>
+&gt;<br>
+<br>
+<br>
+</div><div><div></div><div class="Wj3C7c">_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div></div></blockquote></div><br>
 
-</div></div></blockquote><div>------x--------<br><br>I&#39;ve had a look at the code &amp; have been attempting to add new code to the M920x driver to cope with the mt2060 tuner module, although all I&#39;ve got to go on is the existing code for the qt1010 tuner. I&#39;m not sure of 1 or 2 magic numbers like the i2c address &amp; so on, and my C abilities are fairly limited, so I haven&#39;t managed to compile my new code without errors yet. I could do with some help ( or even a patch) to be honest<br>
-regards andrew<br><br>&nbsp;</div></div><br>
-
-------=_Part_1445_3334227.1213816587274--
+------=_Part_2841_19832896.1213045113840--
 
 
---===============1552189770==
+--===============0406014519==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -104,4 +118,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1552189770==--
+--===============0406014519==--
