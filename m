@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f172.mail.ru ([194.67.57.165])
+Received: from wr-out-0506.google.com ([64.233.184.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1K5Z1B-0001op-H4
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 06:30:05 +0200
-From: Goga777 <goga777@bk.ru>
-To: Faruk A <fa@elwak.com>
-Mime-Version: 1.0
-Date: Mon, 09 Jun 2008 08:29:31 +0400
-References: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
-In-Reply-To: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
-Message-Id: <E1K5Z0d-000P20-00.goga777-bk-ru@f172.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?c2NhbiAmIHN6YXAgZm9yIG5ldyBtdWx0aXByb3Rv?=
-	=?koi8-r?b?IGFwaSAod2FzIC0gSG93IHRvIGdldCBhIFBDVFYgU2F0IEhEVEMg?=
-	=?koi8-r?b?UHJvIFVTQiAoNDUyZSkgcnVubmluZz8p?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <michaelbeeson@gmail.com>) id 1K5gWH-0006WC-CB
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 14:30:44 +0200
+Received: by wr-out-0506.google.com with SMTP id c30so1084826wra.14
+	for <linux-dvb@linuxtv.org>; Mon, 09 Jun 2008 05:30:34 -0700 (PDT)
+Message-ID: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
+Date: Mon, 9 Jun 2008 13:30:34 +0100
+From: "Mike Beeson" <michaelbeeson@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,107 +18,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1837018382=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I'm glad everything worked out for you :).
-> with szap to tune to DVB-S2 channels use this option "-t 2" default is
-> "- t 0" which is for DVB-S
-> to tune to 'Astra HD Promo 2' you do:
-> szap -r -c 19 -t 2 "Astra HD Promo 2"
+--===============1837018382==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_13323_30054573.1213014634489"
 
-I will try so. It will be fine if new dvb-s2 option will include in szap --help output
+------=_Part_13323_30054573.1213014634489
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-btw, why do you use the -r option ?
+Hi all,
 
-> As for scan you don't have do anything as far as i know it finds
-> DVB-S2  channels as well.
+I've searched high and low, but can't find a product (either USB, PCI or
+PCI-E) that can allow me to have twin tuners and pick up the UK freesat
+service (with BBC and ITV HD content). Does such a thing exist?
 
-no, I couldn't find the dvb-s2 transponders on 13e and 19e
+I wouldn't mid going with 2 single tuner USB products, but even then I'm not
+sure what is required.
 
-19e
+The wiki pages don't seem to offer any light and neither does a large amount
+of googling.
 
-S 11914000 H 27500000 9/10
-S 12522000 V 22000000 2/3 
-S 12581000 V 22000000 2/3
+Thanks for the help.
 
-13e
+Mike.
 
-S 11258000 H 27500000 2/3 
-S 11278000 V 27500000 2/3
-S 11449000 H 27500000 2/3
-S 11996000 V 27500000 2/3
+------=_Part_13323_30054573.1213014634489
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Hi all,</div>
+<div>&nbsp;</div>
+<div>I&#39;ve searched high and low, but can&#39;t find a product (either USB, PCI or PCI-E) that can allow me to have twin tuners and pick up the UK freesat service (with BBC and ITV HD content). Does such a thing exist?</div>
+
+<div>&nbsp;</div>
+<div>I wouldn&#39;t mid going with 2 single tuner USB products, but even then I&#39;m not sure what is required.</div>
+<div>&nbsp;</div>
+<div>The wiki pages don&#39;t seem to offer any light and neither does a large amount of googling.</div>
+<div>&nbsp;</div>
+<div>Thanks for the help.</div>
+<div>&nbsp;</div>
+<div>Mike.</div>
+
+------=_Part_13323_30054573.1213014634489--
 
 
-Goga
-
-> 
-> Faruk
-> 
-> On Sun, Jun 8, 2008 at 9:06 PM, Goga777 <goga777@bk.ru> wrote:
-> > Hi, Jens
-> >
-> >> >> For szap you have to download
-> >> >>
-> >> >> http://abraham.manu.googlepages.com/szap.c
-> >> >> then applie the api-v3.3 patch and compile it. This should work too.
-> >> >>
-> >> >> Or download the hg tree of dvb-apps and apply the attached patch on the whole tree. After that go to the scan and szap
-> >> >> directory and run "make". This works for me.
-> >> >>
-> >> >
-> >> > should your patch for scan/szap from dvb-apps work with others dvb-s2 cards - tt3200, vp1041, hvr4000  and the latest
-> >> > multiproto/multiproto_plus ?
-> >> >
-> >>
-> >> Well, I don't have such a device for testing, but why not? The dvb-apps
-> >> are not driver dependent.
-> >
-> > I hope so
-> >
-> >>>Or am I wrong? The HVR4000 I don't know? I
-> >
-> > here's information about this card
-> > http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
-> >
-> >> think this card works only with the szap2-util!? (But I'm not sure!!)
-> >
-> > thanks for your patch. It's working with dvb-s
-> > i applied your patch_scan_szap.diff for HG dvb-apps. And I could run szap & scan with my hvr4000
-> > But only with dvb-s channels.
-> >
-> > And what about dvb-s2 ? I couldn't find any dvb-s2 option in szap & scan
-> > How can I scan dvb-s2 transponders and switch to dvb-s2 channels ?
-> >
-> > btw - there's patched szap2 in
-> > http://linuxtv.org/hg/dvb-apps/file/9311c900f746/test/szap2.c
-> > but it doesn't work with my card
-> >
-> > /usr/src/dvb-apps/test# ./szap2 -c 19 -n1
-> > reading channels from file '19'
-> > zapping to 1 'Astra HD Promo 2':
-> > sat 0, frequency = 11914 MHz H, symbolrate 27500000, vpid = 0x04ff, apid = 0x0503 sid = 0x0083
-> > Querying info .. Delivery system=DVB-S
-> > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> > ioctl DVBFE_GET_INFO failed: Operation not supported
-> >
-> > Goga
-> >
-> >
-> >
-> >
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
-> 
+--===============1837018382==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1837018382==--
