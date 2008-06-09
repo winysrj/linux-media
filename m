@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
+Received: from hu-out-0506.google.com ([72.14.214.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gujs.lists@gmail.com>) id 1K4L0Q-00069t-Tl
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 21:20:15 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so395601ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 12:20:10 -0700 (PDT)
-Message-ID: <23be820f0806051220y2da4167ew3681396e136cdb94@mail.gmail.com>
-Date: Thu, 5 Jun 2008 21:20:10 +0200
-From: "Gregor Fuis" <gujs.lists@gmail.com>
-To: "Vladimir Prudnikov" <vpr@krastelcom.ru>
-In-Reply-To: <22F7D555-1DAA-4B47-8BFB-BB6E5B167C62@krastelcom.ru>
+	(envelope-from <drax307@googlemail.com>) id 1K5pvy-0000RR-Sk
+	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 00:33:55 +0200
+Received: by hu-out-0506.google.com with SMTP id 23so4085775huc.11
+	for <linux-dvb@linuxtv.org>; Mon, 09 Jun 2008 15:33:47 -0700 (PDT)
+Message-ID: <a108ff8e0806091533s1c4ccfv98dcf07c5cd10f65@mail.gmail.com>
+Date: Mon, 9 Jun 2008 23:33:45 +0100
+From: "Daniel Ramsay" <drax307@googlemail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <alpine.DEB.0.99.0806092051083.5396@dragon>
 MIME-Version: 1.0
-References: <4847B3F0.1030501@gmail.com>
-	<22F7D555-1DAA-4B47-8BFB-BB6E5B167C62@krastelcom.ru>
-Cc: Mailing list for VLC media player developers <vlc-devel@videolan.org>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] multiproto and vlc
+Content-Type: multipart/mixed;
+	boundary="----=_Part_10793_12545173.1213050826762"
+References: <alpine.DEB.0.99.0806092051083.5396@dragon>
+Subject: [linux-dvb] Fwd: WinTV-Nova-S-USB2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,130 +22,134 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0692833608=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0692833608==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1834_7060362.1212693610754"
-
-------=_Part_1834_7060362.1212693610754
+------=_Part_10793_12545173.1213050826762
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-On Thu, Jun 5, 2008 at 11:40 AM, Vladimir Prudnikov <vpr@krastelcom.ru>
-wrote:
+Hi,
 
-> That's because vlc is relocking every 10 secs.
->
-> Regards,
-> Vladimir
->
->
-> On Jun 5, 2008, at 1:37 PM, Gregor Fuis wrote:
->
->  Hello
->>
->> I am using the latest multiproto from Manu's repository with KNC1 DVB-S2
->> card. I patched drivers with multiproto-support-old-api.dif patch which
->> enables drivers for older DVB api. When I watch programs with vlc i get
->> a lot of discontinuity error. I was measuring how frequently they are
->> appearing and came to an interesting finding. It looks like they are
->> appearing in every 10 seconds (+- 1 second).
->>
->> But if I use szap to select channel and then open dvr0, the stream is
->> working great and without any errors.
->>
->> szap and vlc are both compiled for old api. VLC is version 0.8.6h on
->> Ubuntu 8.04 compiled by me. If I use latest hg drivers with KNC1 DVB-S
->> card vlc is working without problems.
->>
->> Can somebody help me find where the problem could be in vlc or
->> multiproto drivers when vlc is accessing dvb card directly. Is there any
->> event in drivers or VLC which is occurring every 10 seconds, that it
->> could have some effect on card. Probably it should be something in the
->> drivers, because VLC is working great with hg drivers and dvb-s card.
->>
->> Thanks!
->>
->> Best Regards,
->> Gregor
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
->
-How come that VLC is not causing any problems to DVB-S cards with latest hg
-drivers. I don't know VLC code very well, but do you think that I could
-disable this retuning every 10 seconds without causing another issues to VLC
-DVB handling.
+I recently bought a WinTV Nova-S-USB2, and have obtained a few
+technical details for it.  (I think) this card isn't supported yet.
+I'd be very interested in helping to get this to work.
 
-Regards,
-Gregor
+Opening the case, it appears that it uses
+the CX24123 and CX24109 chips.  Its USB id is:
 
-------=_Part_1834_7060362.1212693610754
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+2040:4700
 
-<br><br><div class="gmail_quote">On Thu, Jun 5, 2008 at 11:40 AM, Vladimir Prudnikov &lt;<a href="mailto:vpr@krastelcom.ru">vpr@krastelcom.ru</a>&gt; wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-That&#39;s because vlc is relocking every 10 secs.<br>
-<br>
-Regards,<br>
-Vladimir<div><div></div><div class="Wj3C7c"><br>
-<br>
-On Jun 5, 2008, at 1:37 PM, Gregor Fuis wrote:<br>
-<br>
-</div></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div><div></div><div class="Wj3C7c">
-Hello<br>
-<br>
-I am using the latest multiproto from Manu&#39;s repository with KNC1 DVB-S2<br>
-card. I patched drivers with multiproto-support-old-api.dif patch which<br>
-enables drivers for older DVB api. When I watch programs with vlc i get<br>
-a lot of discontinuity error. I was measuring how frequently they are<br>
-appearing and came to an interesting finding. It looks like they are<br>
-appearing in every 10 seconds (+- 1 second).<br>
-<br>
-But if I use szap to select channel and then open dvr0, the stream is<br>
-working great and without any errors.<br>
-<br>
-szap and vlc are both compiled for old api. VLC is version 0.8.6h on<br>
-Ubuntu 8.04 compiled by me. If I use latest hg drivers with KNC1 DVB-S<br>
-card vlc is working without problems.<br>
-<br>
-Can somebody help me find where the problem could be in vlc or<br>
-multiproto drivers when vlc is accessing dvb card directly. Is there any<br>
-event in drivers or VLC which is occurring every 10 seconds, that it<br>
-could have some effect on card. Probably it should be something in the<br>
-drivers, because VLC is working great with hg drivers and dvb-s card.<br>
-<br>
-Thanks!<br>
-<br>
-Best Regards,<br>
-Gregor<br>
-<br>
-<br></div></div>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org" target="_blank">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote>
-<br>
-</blockquote></div><br>How come that VLC is not causing any problems to DVB-S cards with latest hg drivers. I don&#39;t know VLC code very well, but do you think that I could disable this retuning every 10 seconds without causing another issues to VLC DVB handling.<br>
-<br>Regards,<br>Gregor<br>
+Attached is the output of lsusb for the device.
 
-------=_Part_1834_7060362.1212693610754--
+I notice that the chips used in the device are very similar to the
+DVB-S portion of the  Hauppauge HVR-3000, only it's a USB device, not
+PCI. I don't know if it will require firmware to work.
 
+If anybody has any suggestions where to start, I'd be most grateful.
+I'm also happy to do builds & testing for the device even if I'm not
+able to actually produce code for it (I know C pretty well, but have
+never done kernel driver development).
 
---===============0692833608==
+Hope this helps,
+
+Daniel.
+
+PS. Apologies if this information has been posted elsewhere, I've only
+just joined the list.  The only other post I saw regarding this device
+was posted in march, regarding the availability of the device.
+
+------=_Part_10793_12545173.1213050826762
+Content-Type: text/plain; name=wintv_nova_s_usb_lsusb.txt
+Content-Transfer-Encoding: base64
+Content-ID: <alpine.DEB.0.99.0806092039190.5396@dragon>
+X-Attachment-Id: 0.1
+Content-Disposition: attachment; filename=wintv_nova_s_usb_lsusb.txt
+
+DQpCdXMgMDA1IERldmljZSAwMDM6IElEIDIwNDA6NDcwMCBIYXVwcGF1Z2UgDQpEZXZpY2UgRGVz
+Y3JpcHRvcjoNCiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOA0KICBiRGVzY3JpcHRvclR5cGUg
+ICAgICAgICAxDQogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDANCiAgYkRldmljZUNsYXNzICAg
+ICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2ZWwpDQogIGJEZXZpY2VTdWJDbGFz
+cyAgICAgICAgIDAgDQogIGJEZXZpY2VQcm90b2NvbCAgICAgICAgIDAgDQogIGJNYXhQYWNrZXRT
+aXplMCAgICAgICAgNjQNCiAgaWRWZW5kb3IgICAgICAgICAgIDB4MjA0MCBIYXVwcGF1Z2UNCiAg
+aWRQcm9kdWN0ICAgICAgICAgIDB4NDcwMCANCiAgYmNkRGV2aWNlICAgICAgICAgICAgMC4wMQ0K
+ICBpTWFudWZhY3R1cmVyICAgICAgICAgIDE2IEhDVw0KICBpUHJvZHVjdCAgICAgICAgICAgICAg
+IDMyIFdpblRWIE1vZGVsIDQ3eHh4DQogIGlTZXJpYWwgICAgICAgICAgICAgICAgNjQgNDAzMTAy
+MDAyOA0KICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxDQogIENvbmZpZ3VyYXRpb24gRGVzY3Jp
+cHRvcjoNCiAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5DQogICAgYkRlc2NyaXB0b3JUeXBl
+ICAgICAgICAgMg0KICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAgNzgNCiAgICBiTnVtSW50ZXJm
+YWNlcyAgICAgICAgICAxDQogICAgYkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQ0KICAgIGlDb25m
+aWd1cmF0aW9uICAgICAgICAgNDggDQogICAgYm1BdHRyaWJ1dGVzICAgICAgICAgMHg4MA0KICAg
+ICAgKEJ1cyBQb3dlcmVkKQ0KICAgIE1heFBvd2VyICAgICAgICAgICAgICA1MDBtQQ0KICAgIElu
+dGVyZmFjZSBEZXNjcmlwdG9yOg0KICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQ0KICAg
+ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNA0KICAgICAgYkludGVyZmFjZU51bWJlciAgICAg
+ICAgMA0KICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgMA0KICAgICAgYk51bUVuZHBvaW50
+cyAgICAgICAgICAgMg0KICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3Bl
+Y2lmaWMgQ2xhc3MNCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgDQogICAgICBiSW50
+ZXJmYWNlUHJvdG9jb2wgICAgMjU1IA0KICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAN
+CiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAg
+ICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9p
+bnRBZGRyZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAg
+ICAgIDENCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMNCiAg
+ICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQ0KICAgICAgICAgIFVzYWdlIFR5
+cGUgICAgICAgICAgICAgICBEYXRhDQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDAg
+IDF4IDAgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQ0KICAgICAgRW5k
+cG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNw0KICAg
+ICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAgICAgIGJFbmRwb2ludEFkZHJlc3Mg
+ICAgIDB4ODIgIEVQIDIgSU4NCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMg0KICAg
+ICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrDQogICAgICAgICAgU3luY2ggVHlw
+ZSAgICAgICAgICAgICAgIE5vbmUNCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAg
+RGF0YQ0KICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMNCiAg
+ICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMA0KICAgIEludGVyZmFjZSBEZXNjcmlwdG9y
+Og0KICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQ0KICAgICAgYkRlc2NyaXB0b3JUeXBl
+ICAgICAgICAgNA0KICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMA0KICAgICAgYkFsdGVy
+bmF0ZVNldHRpbmcgICAgICAgMQ0KICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMg0KICAg
+ICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MNCiAgICAg
+IGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgDQogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAg
+MjU1IA0KICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCANCiAgICAgIEVuZHBvaW50IERl
+c2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRl
+c2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgx
+ICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDENCiAgICAgICAgICBU
+cmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMNCiAgICAgICAgICBTeW5jaCBUeXBl
+ICAgICAgICAgICAgICAgTm9uZQ0KICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBE
+YXRhDQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDE0MDAgIDN4IDAgYnl0ZXMNCiAgICAg
+ICAgYkludGVydmFsICAgICAgICAgICAgICAgMQ0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoN
+CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5
+cGUgICAgICAgICA1DQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4N
+CiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMg0KICAgICAgICAgIFRyYW5zZmVyIFR5
+cGUgICAgICAgICAgICBCdWxrDQogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5v
+bmUNCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQ0KICAgICAgICB3TWF4
+UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAg
+ICAgICAgICAgICAgMA0KICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOg0KICAgICAgYkxlbmd0aCAg
+ICAgICAgICAgICAgICAgOQ0KICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNA0KICAgICAg
+YkludGVyZmFjZU51bWJlciAgICAgICAgMA0KICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAg
+Mg0KICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMg0KICAgICAgYkludGVyZmFjZUNsYXNz
+ICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MNCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFz
+cyAgICAgIDAgDQogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IA0KICAgICAgaUludGVy
+ZmFjZSAgICAgICAgICAgICAgMCANCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAg
+IGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
+ICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAg
+IGJtQXR0cmlidXRlcyAgICAgICAgICAgIDENCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
+ICAgICAgSXNvY2hyb25vdXMNCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9u
+ZQ0KICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhDQogICAgICAgIHdNYXhQ
+YWNrZXRTaXplICAgICAweDE0MDAgIDN4IDAgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAg
+ICAgICAgICAgMQ0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAg
+ICAgICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAg
+ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4NCiAgICAgICAgYm1BdHRyaWJ1
+dGVzICAgICAgICAgICAgMg0KICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxr
+DQogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUNCiAgICAgICAgICBVc2Fn
+ZSBUeXBlICAgICAgICAgICAgICAgRGF0YQ0KICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
+MjAwICAxeCA1MTIgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMA0KRGV2
+aWNlIFF1YWxpZmllciAoZm9yIG90aGVyIGRldmljZSBzcGVlZCk6DQogIGJMZW5ndGggICAgICAg
+ICAgICAgICAgMTANCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNg0KICBiY2RVU0IgICAgICAg
+ICAgICAgICAyLjAwDQogIGJEZXZpY2VDbGFzcyAgICAgICAgICAgIDAgKERlZmluZWQgYXQgSW50
+ZXJmYWNlIGxldmVsKQ0KICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAwIA0KICBiRGV2aWNlUHJv
+dG9jb2wgICAgICAgICAwIA0KICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0DQogIGJOdW1Db25m
+aWd1cmF0aW9ucyAgICAgIDENCkRldmljZSBTdGF0dXM6ICAgICAweDAwMDINCiAgKEJ1cyBQb3dl
+cmVkKQ0KICBSZW1vdGUgV2FrZXVwIEVuYWJsZWQNCg==
+------=_Part_10793_12545173.1213050826762
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -156,4 +159,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0692833608==--
+------=_Part_10793_12545173.1213050826762--
