@@ -1,14 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48480E9D.9000004@iki.fi>
-Date: Thu, 05 Jun 2008 19:04:45 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Serge Nikitin <sergeniki@googlemail.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-References: <9e5406cc0806050626r5588f1d3k36896b75c05070b0@mail.gmail.com>
-In-Reply-To: <9e5406cc0806050626r5588f1d3k36896b75c05070b0@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PEAK DVB-T Digital Dual Tuner PCI - anyone got this
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1K5keR-00066d-Ou
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 18:55:26 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id A68BA19E605F
+	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 20:54:49 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id E472019E6064
+	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 20:54:48 +0400 (MSD)
+Date: Mon, 9 Jun 2008 20:59:00 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080609205900.69768a02@bk.ru>
+In-Reply-To: <484CD9F5.60906@okg-computer.de>
+References: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
+	<E1K5Z0d-000P20-00.goga777-bk-ru@f172.mail.ru>
+	<484CD9F5.60906@okg-computer.de>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] scan & szap for new multiproto api (was - How to
+ get a PCTV Sat HDTC Pro USB (452e) running?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,75 +33,124 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Serge Nikitin wrote:
-> Andrew,
+Hi
+
+> >> I'm glad everything worked out for you :).
+> >> with szap to tune to DVB-S2 channels use this option "-t 2" default is
+> >> "- t 0" which is for DVB-S
+> >> to tune to 'Astra HD Promo 2' you do:
+> >> szap -r -c 19 -t 2 "Astra HD Promo 2"
+> >>     
+> >
+> > I will try so. It will be fine if new dvb-s2 option will include in szap --help output
+> >   
 > 
-> PEAK DVB-T Dual tuner PCI (221544AGPK) is either renamed or rebadged 
-> KWorld DVB-T PC160 card.
+> jens@midas-phalanx:/usr/src/dvb-apps-patched/util/szap# ./szap -h
 > 
-> I'm using first tuner on this card with help of the driver from 
-> following source tree (snapshot was taken around 20/05/2008):
-> http://linuxtv.org/hg/~anttip/af9015-mxl500x-copy-fw/
-> and latest firmware from
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+> usage: szap -q
+>          list known channels
+>        szap [options] {-n channel-number|channel_name}
+>          zap to channel via number or full name (case insensitive)
+>      -a number : use given adapter (default 0)
+>      -f number : use given frontend (default 0)
+>      -d number : use given demux (default 0)
+>      -c file   : read channels list from 'file'
+>      -b        : enable Audio Bypass (default no)
+>      -x        : exit after tuning
+>      -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
+>      -l lnb-type (DVB-S Only) (use -l help to print types) or
+>      -l low[,high[,switch]] in Mhz
+>      -i        : run interactively, allowing you to type in channel names
+>      -p        : add pat and pmt to TS recording (implies -r)
+>                  or -n numbers for zapping
+>           -t        : delivery system type DVB-S=0, DSS=1, DVB-S2=2
 > 
-> Small modification for sources (file af9015.c) was needed (just add one 
-> more USB Device ID (1b80:c160)) and the card is "just work" as a 
-> single-tuner card.
-
-Thank you for this information, I will add this USB-ID to the driver.
-
-> I have not test second tuner due to following issue:
->  
-> Second tuner identified itself correctly only after really "cold 
-> restart" (power down, wait some time, power up):
-> May 20 23:39:09 dvbbird kernel: DVB: registering new adapter (KWorld  
-> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
-> May 20 23:39:10 dvbbird kernel: af9013: firmware version:4.95.0
-> May 20 23:39:10 dvbbird kernel: tda18271 3-00c0: creating new instance
-> May 20 23:39:10 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
-> May 20 23:39:10 dvbbird kernel: dvb-usb: will pass the complete MPEG2 
-> transportstream to the software demuxer.
-> May 20 23:39:10 dvbbird kernel: DVB: registering new adapter (KWorld  
-> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
-> May 20 23:39:11 dvbbird kernel: af9013: firmware version:4.95.0
-> May 20 23:39:11 dvbbird kernel: tda18271 4-00c0: creating new instance
-> May 20 23:39:11 dvbbird kernel: TDA18271HD/C1 detected @ 4-00c0
 > 
-> For any sort of "not-really-cold" restarts second tuner fails to respond 
-> correctly:
-> May 21 00:10:10 dvbbird kernel: DVB: registering new adapter (KWorld  
-> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
-> May 21 00:10:11 dvbbird kernel: af9013: firmware version:4.95.0
-> May 21 00:10:11 dvbbird kernel: tda18271 3-00c0: creating new instance
-> May 21 00:10:11 dvbbird kernel: TDA18271HD/C1 detected @ 3-00c0
-> May 21 00:10:11 dvbbird kernel: dvb-usb: will pass the complete MPEG2 
-> transportstream to the software demuxer.
-> May 21 00:10:11 dvbbird kernel: DVB: registering new adapter (KWorld  
-> PC160 (PEAK 221544AGPK) DVB-T PCI dual tuner)
-> May 21 00:10:12 dvbbird kernel: af9013: firmware version:4.95.0
-> May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: creating new instance
-> May 21 00:10:12 dvbbird kernel: Unknown device detected @ 4-00c0, device 
-> not supported.
+> You see the last line? The Information is included!! ;-)
 
-Hmm, Mike have you any idea why it does not detect this tuner correctly 
-  when "warm  restart" done ?
+yes, I see. But in my patched szap I don't see this information. I don't know why :(
 
-> May 21 00:10:12 dvbbird kernel: tda18271 4-00c0: destroying instance
+/usr/src/dvb-apps# cat patch_scan_szap_jens.diff | patch -p1 --dry-run
+
+goga:/usr/src/dvb-apps# cat patch_scan_szap_jens.diff | patch -p1 --dry-run
+patching file util/scan/atsc/us-ATSC-center-frequencies-8VSB
+patching file util/scan/atsc/us-NTSC-center-frequencies-8VSB
+patching file util/scan/atsc/us-NY-TWC-NYC
+patching file util/scan/diseqc.c
+patching file util/scan/diseqc.h
+patching file util/scan/dump-vdr.c
+patching file util/scan/dump-vdr.h
+patching file util/scan/dump-zap.c
+patching file util/scan/dump-zap.h
+patching file util/scan/dvb-c/at-SalzburgAG
+patching file util/scan/dvb-c/be-IN.DI-Integan
+patching file util/scan/dvb-c/de-Muenchen
+patching file util/scan/dvb-c/fi-3ktv
+
+[skip]
+
+
+patching file util/scan/dvb-t/uk-WinterHill
+patching file util/scan/list.h
+patching file util/scan/lnb.c
+patching file util/scan/lnb.h
+patching file util/scan/Makefile
+patching file util/scan/scan.c
+patching file util/scan/scan.h
+patching file util/szap/szap.c
+
+goga:/usr/src/dvb-apps/util/szap# make
+CC lnb.o
+CC azap
+CC czap
+CC szap
+CC tzap
+
+
+goga:/usr/src/dvb-apps/util/szap# ./szap -h
+
+usage: szap -q
+         list known channels
+       szap [options] {-n channel-number|channel_name}
+         zap to channel via number or full name (case insensitive)
+     -a number : use given adapter (default 0)
+     -f number : use given frontend (default 0)
+     -d number : use given demux (default 0)
+     -c file   : read channels list from 'file'
+     -b        : enable Audio Bypass (default no)
+     -x        : exit after tuning
+     -H        : human readable output
+     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
+     -l lnb-type (DVB-S Only) (use -l help to print types) or
+     -l low[,high[,switch]] in Mhz
+     -i        : run interactively, allowing you to type in channel names
+     -p        : add pat and pmt to TS recording (implies -r)
+                 or -n numbers for zapping
+
+usage: szap -q
+         list known channels
+       szap [options] {-n channel-number|channel_name}
+         zap to channel via number or full name (case insensitive)
+     -a number : use given adapter (default 0)
+     -f number : use given frontend (default 0)
+     -d number : use given demux (default 0)
+     -c file   : read channels list from 'file'
+     -b        : enable Audio Bypass (default no)
+     -x        : exit after tuning
+     -H        : human readable output
+     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
+     -l lnb-type (DVB-S Only) (use -l help to print types) or
+     -l low[,high[,switch]] in Mhz
+     -i        : run interactively, allowing you to type in channel names
+     -p        : add pat and pmt to TS recording (implies -r)
+                 or -n numbers for zapping
+
+Goga777
+
+> And Faruk is right, scan should find S2-Channels "out of the box".
 > 
-> Hope this help.
+> Jens
 
-Thanks.
-
-Could you give all debug / message logs printed in startup? It should 
-print eeprom content and some more information as well.
-
-> Sergej.
-
-regards
-Antti
--- 
-http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
