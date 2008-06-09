@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta-out.inet.fi ([195.156.147.13] helo=jenni2.rokki.sonera.fi)
+Received: from mta-out.inet.fi ([195.156.147.13] helo=jenni1.rokki.sonera.fi)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lwgt@iki.fi>) id 1K5h5F-00022m-Ga
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 15:06:50 +0200
-Message-ID: <484D2AE3.1030208@iki.fi>
-Date: Mon, 09 Jun 2008 16:06:43 +0300
+	(envelope-from <lwgt@iki.fi>) id 1K5gnh-0007gU-Ho
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 14:48:46 +0200
+Received: from [127.0.0.1] (84.249.53.62) by jenni1.rokki.sonera.fi (8.5.014)
+	id 483E82F10088E4AC for linux-dvb@linuxtv.org;
+	Mon, 9 Jun 2008 15:48:36 +0300
+Message-ID: <484D26A3.2010604@iki.fi>
+Date: Mon, 09 Jun 2008 15:48:35 +0300
 From: Lauri Tischler <lwgt@iki.fi>
 MIME-Version: 1.0
-To: Mike Beeson <michaelbeeson@gmail.com>
-References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>	<484D26A3.2010604@iki.fi>
-	<57eb3fe80806090553s44e6cbe0wf77b4c0cbc9b1cdd@mail.gmail.com>
-In-Reply-To: <57eb3fe80806090553s44e6cbe0wf77b4c0cbc9b1cdd@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
+To: linux-dvb@linuxtv.org
+References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
+In-Reply-To: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
 Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,18 +28,22 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Mike Beeson wrote:
-> Thanks Lauri,
+> Hi all,
 > 
-> Those cards are for UK freeview on DVB-T. The freesat service is on DVB-S or
-> DVB-S2 (again I can't find which).
+> I've searched high and low, but can't find a product (either USB, PCI or
+> PCI-E) that can allow me to have twin tuners and pick up the UK freesat
+> service (with BBC and ITV HD content). Does such a thing exist?
+> 
+> I wouldn't mid going with 2 single tuner USB products, but even then I'm not
+> sure what is required.
+> 
+> The wiki pages don't seem to offer any light and neither does a large amount
+> of googling.
 
-I dont believe that there exists dual-tuner cards for dvb-s or dvb-s2.
-Here's some single tuners.
-Technotrend Budget DVB-S2 S3600 USB
-Technotrend S2-S3650 DVB-S2 CI USB
-Azurewave SP400 1041+4046 DVB-S2 PCI
-Technotrend S2-3200 DVB-S2 PCI
-TerraTec Cinergy S2 DVB-S2 PCI
+Pinnacle PCTV 3010IX (2x DVB-T + 2x analog) PCI-express
+Terratec 2400i DT Dual DVB-T PCI-E
+Hauppauge WinTV Nova-T 500 2x DVB-T PCI
+Pinnacle PCTV 2000i Dual DVB-T Pro 2xDVB-T PCI
 
 _______________________________________________
 linux-dvb mailing list
