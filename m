@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail05.adl2.internode.on.net ([203.16.214.145])
+Received: from mail2.elion.ee ([88.196.160.58] helo=mail1.elion.ee)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ianwroberts@internode.on.net>) id 1KCuuG-0000VM-B8
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 13:17:23 +0200
-Message-ID: <48676F36.8080401@internode.on.net>
-Date: Sun, 29 Jun 2008 20:47:10 +0930
-From: Ian W Roberts <ianwroberts@internode.on.net>
+	(envelope-from <artlov@gmail.com>) id 1K5Zpt-00045K-Gz
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 07:22:30 +0200
+Message-ID: <484CBDF3.90806@gmail.com>
+Date: Mon, 9 Jun 2008 08:21:55 +0300
+From: Arthur Konovalov <artlov@gmail.com>
 MIME-Version: 1.0
-To: stev391@email.com
-References: <20080629102814.9177D11581F@ws1-7.us4.outblaze.com>
-In-Reply-To: <20080629102814.9177D11581F@ws1-7.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Tuning problems
+To: linux-dvb@linuxtv.org
+References: <1212585271.32385.41.camel@pascal>	<1212590233.15236.11.camel@rommel.snap.tv>	<1212657011.32385.53.camel@pascal>
+	<200806081738.20609@orion.escape-edv.de>
+In-Reply-To: <200806081738.20609@orion.escape-edv.de>
+Content-Type: multipart/mixed; boundary="------------080302090209060300090307"
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,109 +20,145 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-stev391@email.com wrote:
-> Ian,
->
-> Try updating to the latest scan file from the dvb-apps mercurial.  
->
-> Channel 7 have changed their parameters in the last year and some tuners automatically try other combinations then instructed, that is why it is working with one and not the other.
->
-> The new Channel 7 parameters are:
-> # Seven
-> T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->   
-Brilliant, that worked! :-)
+--------------080302090209060300090307
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I had tried changing the guard interval to 1/16 which seemed to change 
-the behaviour subtly but didn't achieve successful tuning. Changing that 
-4 parameter (FEC High?) to 3/4 as well means my device works fine now. 
+Oliver Endriss wrote:
+> Sigmund Augdal wrote:
+>> Here is a new version. This one passes checkpatch without warnings. I
+>> removed the read_pwm function, as it always uses the fallback path for
+>> my card (and frankly I have no idea wether it is actually relevant at
+>> all for this kind of card). Furthermore the tda10023 driver doesn't seem
+>> to use this value for anything.
+> 
+> Any issues with this patch? If not I will commit it next weekend.
 
-Thanks
+At the first glance it works fine, thanks Sigmund.
+Although for multiproto drivers I slightly modified patches and replaced some 
+files from linux-dvb tree (tda10021.c, tda10023.c, tda1002x.h).
 
-ian
-> As for the SBS problem it might be just poor reception or the tuner wasn't designed for the Australian frequencies correctly.
->
-> Regards,
-> Stephen.
->
->
->
-> <Original  Message>
-> Dear Linux-DVBers,
->
-> I now own two USB DVB-T receivers (dongles): a Gigabyte U7000-RH and a
-> digitalNow tinyUSB2.
->
-> I use them on my Kubuntu 7.10 workstation.
->
-> I've had the digitalNow for a year or so and it has been working fine
-> (and easy to get going) with kaffeine except that I couldn't receive SBS
-> reliably (in Adelaide, Australia) although I was able to tune to it from
-> time to time. With the Tour de France starting next week (coverage
-> broadcast by SBS), I took a punt yesterday and bought a Gigabyte
-> U7000-RH and, yes, it too was easy to get going, and, luckily, receives
-> SBS nicely -but it can't tune to Channel 7 at all!
->
-> My kaffeine installation now has a channel list that covers all the
-> local terrestrial TV stations. If I connect the digitalNow device, I can
-> watch 2, 9, 7 & 10 and if I connect the Gigabyte device I can watch SBS,
-> 2, 9 and 10.
->
-> I'm presuming that means that by channel tuning data is OK. I don't know
-> whether it's relevant, but I notice that SBS seems to be the highest
-> frequency local station and Channel Seven seems to be the lowest. There
-> seems to be a problem with both devices at the opposite ends of the
-> frequency range.
->
-> Any suggestions? (other the juggling the two devices!)
->
-> bye
->
-> ian
->
->      # Australia / Adelaide / Mt Lofty
->      # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->      # ABC
->      T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->      # Seven
->      T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
->      # Nine
->      T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->      # Ten
->      T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->      # SBS
->      T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
->
->
->   
->
-> -- 
-> Be Yourself @ mail.com!
-> Choose From 200+ Email Addresses
-> Get a *Free* Account at www.mail.com <http://www.mail.com/Product.aspx>!
+However, I don't know how necessary is tda827x-oops patch with multiproto.
+
+At compile have only one warning:
+   CC [M]  /usr/local/src/multiproto-2008-05-14/v4l/budget-av.o
+/usr/local/src/multiproto-2008-05-14/v4l/budget-av.c: In function 'frontend_init':
+/usr/local/src/multiproto-2008-05-14/v4l/budget-av.c:1306: warning: passing 
+argument 1 of '__a' from incompatible pointer type
 
 
--- 
-Ian W Roberts
-157 Sixth Avenue
-Royston Park 5070
-SOUTH AUSTRALIA
+Regards,
+AK
 
-w:	+61 8 8303 6261
-h:	+61 8 8362 1318
-m:	0423 147 044
-e:	ianwroberts@internode.on.net
+--------------080302090209060300090307
+Content-Type: text/plain; name="tda827x-oops-multiproto.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="tda827x-oops-multiproto.patch"
 
-This email message is intended only for the addressee(s) and contains information that may be confidential and/or copyright. If you are not the intended recipient please notify the sender by reply email and immediately delete this email. Use, disclosure or reproduction of this email by anyone other than the intended recipient(s) is strictly prohibited. No representation is made that this email or any attachments are free of viruses. Virus scanning is recommended and is the responsibility of the recipient.
+--- linux/drivers/media/dvb/frontends/tda827x.c.old	2008-06-06 13:57:57.000000000 +0300
++++ linux/drivers/media/dvb/frontends/tda827x.c	2008-06-06 13:59:52.000000000 +0300
+@@ -554,7 +554,7 @@
+ 	struct tda827x_priv *priv = fe->tuner_priv;
+ 	unsigned char buf[] = {0x22, 0x01};
+ 	int arg;
+-	struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = 0,
++	struct i2c_msg msg = { .flags = 0,
+ 			       .buf = buf, .len = sizeof(buf) };
+ 
+ 	if (NULL == priv->cfg) {
+@@ -562,6 +562,7 @@
+ 		return;
+ 	}
+ 
++	msg.addr = priv->i2c_addr;
+ 	if (priv->cfg->config) {
+ 		if (high)
+ 			dprintk("setting LNA to high gain\n");
 
+--------------080302090209060300090307
+Content-Type: text/plain; name="c-1501-multiproto.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="c-1501-multiproto.patch"
+
+--- linux/drivers/media/dvb/ttpci/budget-ci.c.old	2008-06-06 13:39:23.000000000 +0300
++++ linux/drivers/media/dvb/ttpci/budget-ci.c	2008-06-06 13:50:18.000000000 +0300
+@@ -51,6 +51,8 @@
+ #include "lnbp21.h"
+ #include "bsbe1.h"
+ #include "bsru6.h"
++#include "tda1002x.h"
++#include "tda827x.h"
+ 
+ /*
+  * Regarding DEBIADDR_IR:
+@@ -1337,6 +1339,16 @@
+ 	.refclock	= 27000000,
+ };
+ 
++static struct tda10023_config tda10023_config = {
++	.demod_address = 0xc,
++	.invert = 0,
++	.xtal = 16000000,
++	.pll_m = 11,
++	.pll_p = 3,
++	.pll_n = 1,
++	.deltaf = 0xA511,
++};
++
+ static void frontend_init(struct budget_ci *budget_ci)
+ {
+ 	switch (budget_ci->budget.dev->pci->subsystem_device) {
+@@ -1404,7 +1416,20 @@
+ 				budget_ci->budget.dvb_frontend = NULL;
+ 			}
+ 		}
+-
++		break;
++	case 0x101a: /* TT Budget-C-1501 (philips tda10023/philips tda8274A) */
++		budget_ci->budget.dvb_frontend =
++			dvb_attach(tda10023_attach, &tda10023_config,
++				   &budget_ci->budget.i2c_adap, 0x48);
++		if (budget_ci->budget.dvb_frontend) {
++			if (dvb_attach(tda827x_attach,
++				       budget_ci->budget.dvb_frontend, 0x61,
++				       &budget_ci->budget.i2c_adap, NULL)
++			    == NULL)
++				printk(KERN_ERR "%s: No tda827x found!\n",
++				       __func__);
++			break;
++		}
+ 		break;
+ 
+ 	case 0x1019:		// TT S2-3200 PCI
+@@ -1535,6 +1560,7 @@
+ MAKE_BUDGET_INFO(ttbtci, "TT-Budget-T-CI PCI", BUDGET_TT);
+ MAKE_BUDGET_INFO(ttbcci, "TT-Budget-C-CI PCI", BUDGET_TT);
+ MAKE_BUDGET_INFO(tt3200, "TT-Budget S2-3200 PCI", BUDGET_TT);
++MAKE_BUDGET_INFO(ttc1501, "TT-Budget C-1501 PCI", BUDGET_TT);
+ 
+ static struct pci_device_id pci_tbl[] = {
+ 	MAKE_EXTENSION_PCI(ttbci, 0x13c2, 0x100c),
+@@ -1544,6 +1570,7 @@
+ 	MAKE_EXTENSION_PCI(ttbtci, 0x13c2, 0x1012),
+ 	MAKE_EXTENSION_PCI(ttbs2, 0x13c2, 0x1017),
+ 	MAKE_EXTENSION_PCI(tt3200, 0x13c2, 0x1019),
++	MAKE_EXTENSION_PCI(ttc1501, 0x13c2, 0x101A),
+ 	{
+ 	 .vendor = 0,
+ 	 }
+
+--------------080302090209060300090307
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------080302090209060300090307--
