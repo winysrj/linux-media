@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from mailhost.okg-computer.de ([85.131.254.125])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bcjenkins@tvwhere.com>) id 1K8e5i-000343-6I
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 18:31:33 +0200
-Received: by ug-out-1314.google.com with SMTP id m3so638871uge.20
-	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 09:31:26 -0700 (PDT)
-Message-Id: <87404417-9637-4DA2-A6CD-4B2469C52D72@tvwhere.com>
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: mkrufky@linuxtv.org
-In-Reply-To: <4857E384.1000200@linuxtv.org>
-Mime-Version: 1.0 (Apple Message framework v924)
-Date: Tue, 17 Jun 2008 12:31:22 -0400
-References: <4857E384.1000200@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [PATCH]
+	(envelope-from <linux-dvb@okg-computer.de>) id 1K5bh3-0000KJ-3C
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 09:21:32 +0200
+Received: from [10.10.43.120] (f053208039.adsl.alicedsl.de [78.53.208.39])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mailhost.okg-computer.de (Postfix) with ESMTP id 88DC94429A
+	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 09:21:23 +0200 (CEST)
+Message-ID: <484CD9F5.60906@okg-computer.de>
+Date: Mon, 09 Jun 2008 09:21:25 +0200
+From: =?ISO-8859-1?Q?Jens_Krehbiel-Gr=E4ther?=
+ <linux-dvb@okg-computer.de>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
+	<E1K5Z0d-000P20-00.goga777-bk-ru@f172.mail.ru>
+In-Reply-To: <E1K5Z0d-000P20-00.goga777-bk-ru@f172.mail.ru>
+Subject: Re: [linux-dvb] scan & szap for new multiproto api (was - How to
+ get a PCTV Sat HDTC Pro USB (452e) running?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,161 +32,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Goga777 schrieb:
+>> I'm glad everything worked out for you :).
+>> with szap to tune to DVB-S2 channels use this option "-t 2" default is
+>> "- t 0" which is for DVB-S
+>> to tune to 'Astra HD Promo 2' you do:
+>> szap -r -c 19 -t 2 "Astra HD Promo 2"
+>>     
+>
+> I will try so. It will be fine if new dvb-s2 option will include in szap --help output
+>   
 
-On Jun 17, 2008, at 12:17 PM, mkrufky@linuxtv.org wrote:
+jens@midas-phalanx:/usr/src/dvb-apps-patched/util/szap# ./szap -h
 
-> Brandon Jenkins wrote:
->>
->> On Jun 17, 2008, at 11:24 AM, mkrufky@linuxtv.org wrote:
->>
->>> Brandon Jenkins wrote:
->>>>
->>>> On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
->>>>
->>>>> Brandon Jenkins wrote:
->>>>> Brandon,
->>>>>
->>>>> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
->>>>> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner
->>>>> dependency
->>>>> selections.  Please note the description of this option:
->>>>>
->>>>> menuconfig MEDIA_TUNER_CUSTOMIZE
->>>>>      bool "Customize analog and hybrid tuner modules to build"
->>>>>      depends on MEDIA_TUNER
->>>>>      help
->>>>>        This allows the user to deselect tuner drivers unnecessary
->>>>>        for their hardware from the build. Use this option with  
->>>>> care
->>>>>        as deselecting tuner drivers which are in fact necessary  
->>>>> will
->>>>>        result in V4L/DVB devices which cannot be tuned due to  
->>>>> lack of
->>>>>        driver support
->>>>>
->>>>>        If unsure say N.
->>>>>
->>>>>
->>>>> We allow users to disable certain modules if they think they know
->>>>> better, and choose to compile out drivers that they don't need.   
->>>>> You
->>>>> should not have disabled tuner-simple -- to play it safe, don't  
->>>>> enable
->>>>> MEDIA_TUNER_CUSTOMIZE
->>>>>
->>>>> Regards,
->>>>>
->>>>> Mike
->>>>>
->>>>>
->>>> Mike,
->>>>
->>>> Thank you. I understand the impact my choice makes in that matter.
->>>> However, all of the other modules required for cx18 to function are
->>>> marked in the lists as -M- indicating it is a required module/ 
->>>> module
->>>> dependency. I apologize for my ignorance of terminology, etc.,  
->>>> but it
->>>> would seem to me that "Simple tuner support" should automatically  
->>>> have
->>>> the -M- as a required resource for the tuner to function correctly.
->>>>
->>>> Thank you for your time in responding.
->>>>
->>>> Brandon
->>> No -- You are misunderstanding -- The selection of the tuner.ko i2c
->>> client module is forced as -M- , since it is selected as a  
->>> dependency.
->>> You then proceeded into a deeper layer of customization, and enabled
->>> "MEDIA_TUNER_CUSTOMIZE" -- this option allows you to disable tuner
->>> modules that should have otherwise been autoselected for your  
->>> hardware.
->>> I repeat -- this is an advanced customization option, and you have  
->>> been
->>> so warned by its Kconfig description.
->>>
->>> I am pushing up a patch now that disables MEDIA_TUNER_CUSTOMIZE by
->>> default.
->>>
->>> -Mike
->> Mike,
->>
->> That doesn't solve the problem. I believe the patch below, will.
->>
->> Brandon
->>
->> diff -r 50be11af3fdb linux/drivers/media/video/cx18/Kconfig
->> --- a/linux/drivers/media/video/cx18/Kconfig    Mon Jun 16 18:04:06
->> 2008 -0300
->> +++ b/linux/drivers/media/video/cx18/Kconfig    Tue Jun 17 12:02:03
->> 2008 -0400
->> @@ -12,6 +12,7 @@ config VIDEO_CX18
->>     select VIDEO_CS5345
->>     select DVB_S5H1409
->>     select MEDIA_TUNER_MXL5005S
->> +    select MEDIA_TUNER_SIMPLE
->>     ---help---
->>       This is a video4linux driver for Conexant cx23418 based
->>       PCI combo video recorder devices.
->>
-> Brandon,
->
-> Thank you for this, but this patch will not be merged.  I explained in
-> the quoted email, above, that you have invoked a deeper layer of
-> customization that allows us to disable tuner modules, regardless of
-> your actual hardware.
->
-> This option was designed for the sake of larger drivers, such as  
-> cx88 or
-> saa7134, who may use many different tuners depending on the actual  
-> board
-> present.  In the future, there may eventually be a cx18 board that  
-> does
-> not use tuner-simple.  This option allows users to disable tuner- 
-> simple
-> from building.  The default behavior is to automatically select the
-> tuner driver needed for your hardware, but when you enable
-> MEDIA_TUNER_CUSTOMIZE, this autoselection is turned off.  This is the
-> correct behavior.
->
-> I repeat again that this Kconfig option provides a warning to the user
-> that this should be enabled at your own risk, only.
->
-> "Use this option with care as deselecting tuner drivers which are in
-> fact necessary will result in V4L/DVB devices which cannot be tuned  
-> due
-> to lack of driver support."
->
-> Do not enable MEDIA_TUNER_CUSTOMIZE unless you know what you're doing.
->
-> End of story.
->
-> -Mike
->
->
-Mike,
+usage: szap -q
+         list known channels
+       szap [options] {-n channel-number|channel_name}
+         zap to channel via number or full name (case insensitive)
+     -a number : use given adapter (default 0)
+     -f number : use given frontend (default 0)
+     -d number : use given demux (default 0)
+     -c file   : read channels list from 'file'
+     -b        : enable Audio Bypass (default no)
+     -x        : exit after tuning
+     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
+     -l lnb-type (DVB-S Only) (use -l help to print types) or
+     -l low[,high[,switch]] in Mhz
+     -i        : run interactively, allowing you to type in channel names
+     -p        : add pat and pmt to TS recording (implies -r)
+                 or -n numbers for zapping
+          -t        : delivery system type DVB-S=0, DSS=1, DVB-S2=2
 
-I don't mean to continue this debate, but if you say this is working  
-as designed I will leave it alone and move on. All other tuner modules  
-(the max linear) which are required by the cx18 to function are still  
-indeed -M- in the menuconfig view. Once I added the patch above Simple  
-tuner also became -M- indicating it was required by a selected board.  
-If Simple tuner is required for the card to function, it should be  
-automatically selected as are all the other tuner modules the card  
-requires.
 
-AFAIK - The only way to deselect a required tuner module is to  
-deselect the card it supports.
+You see the last line? The Information is included!! ;-)
+And Faruk is right, scan should find S2-Channels "out of the box".
 
-Your message seems more about the principle of customizing which  
-modules are built, while I am trying to save further troubleshooting  
-by requiring the modules for my particular card to be automatically  
-selected if someone selects the card. I see the two as separate items.  
-If it is not appropriate to use the select TUNER in the Kconfig, whay  
-is the MaxlLinear in there?
-
-Brandon
-
+Jens
 
 _______________________________________________
 linux-dvb mailing list
