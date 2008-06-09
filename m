@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.betherenow.co.uk ([87.194.0.68])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tghewett2@onetel.com>) id 1K6Oee-00028W-C3
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 13:38:18 +0200
-Message-Id: <BA86A83C-165B-44C6-908B-14F483018582@onetel.com>
-From: Tim Hewett <tghewett2@onetel.com>
-To: linux-dvb@linuxtv.org,
- michaelbeeson@gmail.com
-Mime-Version: 1.0 (Apple Message framework v924)
-Date: Wed, 11 Jun 2008 12:36:42 +0100
-Subject: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
+Received: from smtp1.us4.outblaze.com ([205.158.62.78])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <RobertCL@iname.com>) id 1K5hpe-0005O9-ST
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 15:54:48 +0200
+Message-ID: <34063.144.98.76.45.1213019670.squirrel@dragonfly.dnsalias.net>
+In-Reply-To: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
+References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
+Date: Mon, 9 Jun 2008 14:54:30 +0100 (BST)
+From: "Robert" <RobertCL@iname.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
+Reply-To: RobertCL@iname.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,43 +25,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mike,
+On Mon, June 9, 2008 1:30 pm, Mike Beeson wrote:
+> Hi all,
+>
+> I've searched high and low, but can't find a product (either USB, PCI or
+> PCI-E) that can allow me to have twin tuners and pick up the UK freesat
+> service (with BBC and ITV HD content). Does such a thing exist?
+>
+> I wouldn't mid going with 2 single tuner USB products, but even then I'm
+> not
+> sure what is required.
+>
+> The wiki pages don't seem to offer any light and neither does a large
+> amount
+> of googling.
+>
 
-No need to worry about having two of the same D-SAT device so ling as  
-they are both receiving their signal from the same satellite, e.g.  
-28East in your case. One will be adaptor 0 and the other will be  
-adaptor 1. If they don't receive the signal from the same satellite  
-(say one is on 28East and the other on 19.2East) then it might be  
-difficult to identify which is which since they may not be assigned  
-the same adaptor number each time the PC is booted.
+I've been looking for the same thing for a while, and haven't found
+anything.  I was planning on buying the Technotrend S-1500 (PCI card)
+which appears to be fairly well supported.
 
-FYI my system has 3 D-SAT cards (all of the same device), one DVB-S2  
-card and three DVB-T USB sticks (all different types). The 2GHz AMD64  
-X2 PC will happily simultaneously record an entire transponder from  
-each of the satellite cards plus one channel from each of the DVB-T  
-devices. The only issue is that no other activity must be allowed to  
-occur on the hard disk being used for recording or else it won't keep  
-up with the data rate. Two of the DVB-T sticks support recording  
-entire multiplexes, but doing that would probably go beyond what the  
-hard disk can cope with and I've not tried it.
+I think someone else has said it, but all freesat broadcasts are currently
+DVB-S only.  I can currently get BBCHD and ITVHD using the DVB-S part of
+my HVR-3000 (Analog + DVB-T + DVB-S hybrid card)
 
-|n my experience recording entire transponders is a good idea even if  
-you only want one or two channels from it, because every now and again  
-the BBC and ITV change the PIDs of their channels - if you record by  
-specifying PIDs you may find you get no recording when the PIDs  
-change. By recording the whole transponder you get everything  
-regardless of PID changes, and then afterwards you can extract the  
-channel(s) you want using ts2ps (from dvb-mpegtools) specifying the  
-current PIDs for the channel. You need plenty of disk space to do this  
-though.
+I think that DVB-S2 support in Linux is still fairly new, and not
+officially supported by (m)any apps (VDR or MythTv)
 
-Tim.
+Robert.
 
-> Thanks. I see what you mean about saturating the USB bus, but I  
-> would be using USB2 devices on seperate busses (AMD 780G  
-> motherboard). Assuming that this works okay, nobody has voiced that  
-> having two of the same device under linux is going to be a problem?  
-> Thanks, Mike.
 
 _______________________________________________
 linux-dvb mailing list
