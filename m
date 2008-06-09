@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from olammi.iki.fi ([217.112.242.173])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <olammi@olammi.iki.fi>) id 1KB9Pz-00008C-Cf
-	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 16:22:48 +0200
-Date: Tue, 24 Jun 2008 17:22:42 +0300 (EEST)
-From: Olli Lammi <olammi@olammi.iki.fi>
-To: Robert Schedel <r.schedel@yahoo.de>
-In-Reply-To: <484EB8BC.5060604@yahoo.de>
-Message-ID: <Pine.LNX.4.64.0806241719090.16776@zil.olammi.iki.fi>
-References: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
-	<484EB8BC.5060604@yahoo.de>
+Received: from mta-out.inet.fi ([195.156.147.13] helo=jenni2.rokki.sonera.fi)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lwgt@iki.fi>) id 1K5h5F-00022m-Ga
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 15:06:50 +0200
+Message-ID: <484D2AE3.1030208@iki.fi>
+Date: Mon, 09 Jun 2008 16:06:43 +0300
+From: Lauri Tischler <lwgt@iki.fi>
 MIME-Version: 1.0
+To: Mike Beeson <michaelbeeson@gmail.com>
+References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>	<484D26A3.2010604@iki.fi>
+	<57eb3fe80806090553s44e6cbe0wf77b4c0cbc9b1cdd@mail.gmail.com>
+In-Reply-To: <57eb3fe80806090553s44e6cbe0wf77b4c0cbc9b1cdd@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] High load with Terratec Cinergy 1200 DVB-T
+Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +26,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 10 Jun 2008, Robert Schedel wrote:
+Mike Beeson wrote:
+> Thanks Lauri,
+> 
+> Those cards are for UK freeview on DVB-T. The freesat service is on DVB-S or
+> DVB-S2 (again I can't find which).
 
-> Olli Lammi wrote:
->> Hello!
->> ------
->> 
->> I recently moved to area where only DVB-T is available and changed my
->> DVB-C-cards to two Terratec Cinergy 1200 DVB-T cards. However adding
->> one card lifted the load of my server to approx 0.8 and adding the
->> second card to approx 1.6. No processes are consuming the processor time so 
->> I think the high load is due to dvb driver or kernel.
->
-> Please see: <http://bugzilla.kernel.org/show_bug.cgi?id=10459>
->
->> Is this a known problem and is there a workaround available?. I tried to 
->> search the net for answers but found none.
->
-> The last email for this was just three days ago, titled "[linux-dvb] 
-> budget_av,  high cpuload with kncone tvstar".
-
-
-Hello again!
-
-I have now first tried the saa7146_sleep-patch as the thread above 
-suggests adapted to the 2.6.22.14-72.fc6-kernel. There was no change in 
-the load.
-
-Today I upgraded the entire server kernel to kernel.org 2.6.28.5-version 
-and applied the Oliver Endriss saa7147_sleep-patch to it. Still my two 
-Terratec cards produce approx 1.5 load when system is about idle.
-
-Any suggestions how to debug or try to solve the problem?
-
-Olli Lammi
-
---------------------------------------------------------------------------
-Olli Lammi                    olammi@iki.fi                   040 580 7666
---------------------------------------------------------------------------
+I dont believe that there exists dual-tuner cards for dvb-s or dvb-s2.
+Here's some single tuners.
+Technotrend Budget DVB-S2 S3600 USB
+Technotrend S2-S3650 DVB-S2 CI USB
+Azurewave SP400 1041+4046 DVB-S2 PCI
+Technotrend S2-3200 DVB-S2 PCI
+TerraTec Cinergy S2 DVB-S2 PCI
 
 _______________________________________________
 linux-dvb mailing list
