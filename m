@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.movial.fi ([62.236.91.34])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dennis.noordsij@movial.fi>) id 1K4dQH-0004le-Fe
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 17:00:10 +0200
-Message-ID: <484950D4.7050600@movial.fi>
-Date: Fri, 06 Jun 2008 16:59:32 +0200
-From: Dennis Noordsij <dennis.noordsij@movial.fi>
-MIME-Version: 1.0
-To: Nicolas Christener <lists@0x17.ch>
-References: <1212736555.4264.12.camel@oipunk.loozer.local>	
-	<4849016A.8050607@movial.fi>
-	<1212763110.14191.12.camel@oipunk.loozer.local>
-In-Reply-To: <1212763110.14191.12.camel@oipunk.loozer.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy Piranha
+	(envelope-from <goga777@bk.ru>) id 1K5miT-0004mA-1D
+	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 21:07:42 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id C417C19E679E
+	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 23:07:06 +0400 (MSD)
+Received: from localhost.localdomain (unknown [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id F375419E6198
+	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 23:07:05 +0400 (MSD)
+Date: Mon, 9 Jun 2008 23:11:07 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080609231107.0020ccf9@bk.ru>
+In-Reply-To: <200806092045.22041.dkuhlen@gmx.net>
+References: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
+	<484CD9F5.60906@okg-computer.de> <20080609205900.69768a02@bk.ru>
+	<200806092045.22041.dkuhlen@gmx.net>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] scan & szap for new multiproto api (was - How to
+ get a PCTV Sat HDTC Pro USB (452e) running?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,33 +27,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-> thank you very much four your explanation. This is what I get:
-
-> Unfortunately I do not get a device within /dev
-> Am I doing something wrong? Or is there just something missing in my
-> installation?
-
-Ah, yes. Sorry forgot to mention one part. As you can tell from the log,
-the default mode is DVB-H.
-
-use:    modprobe sms1xxx default_mode=0
-
-or change the default_mode variable in the file smscoreapi.c and rebuild
-the driver.
-
-Dennis
-
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+PiA+IAo+ID4gPiA+PiBJJ20gZ2xhZCBldmVyeXRoaW5nIHdvcmtlZCBvdXQgZm9yIHlvdSA6KS4K
+PiA+ID4gPj4gd2l0aCBzemFwIHRvIHR1bmUgdG8gRFZCLVMyIGNoYW5uZWxzIHVzZSB0aGlzIG9w
+dGlvbiAiLXQgMiIgZGVmYXVsdCBpcwo+ID4gPiA+PiAiLSB0IDAiIHdoaWNoIGlzIGZvciBEVkIt
+Uwo+ID4gPiA+PiB0byB0dW5lIHRvICdBc3RyYSBIRCBQcm9tbyAyJyB5b3UgZG86Cj4gPiA+ID4+
+IHN6YXAgLXIgLWMgMTkgLXQgMiAiQXN0cmEgSEQgUHJvbW8gMiIKPiA+ID4gPj4gICAgIAo+ID4g
+PiA+Cj4gPiA+ID4gSSB3aWxsIHRyeSBzby4gSXQgd2lsbCBiZSBmaW5lIGlmIG5ldyBkdmItczIg
+b3B0aW9uIHdpbGwgaW5jbHVkZSBpbiBzemFwIC0taGVscCBvdXRwdXQKPiA+ID4gPiAgIAo+ID4g
+PiAKPiA+ID4gamVuc0BtaWRhcy1waGFsYW54Oi91c3Ivc3JjL2R2Yi1hcHBzLXBhdGNoZWQvdXRp
+bC9zemFwIyAuL3N6YXAgLWgKPiA+ID4gCj4gPiA+IHVzYWdlOiBzemFwIC1xCj4gPiA+ICAgICAg
+ICAgIGxpc3Qga25vd24gY2hhbm5lbHMKPiA+ID4gICAgICAgIHN6YXAgW29wdGlvbnNdIHstbiBj
+aGFubmVsLW51bWJlcnxjaGFubmVsX25hbWV9Cj4gPiA+ICAgICAgICAgIHphcCB0byBjaGFubmVs
+IHZpYSBudW1iZXIgb3IgZnVsbCBuYW1lIChjYXNlIGluc2Vuc2l0aXZlKQo+ID4gPiAgICAgIC1h
+IG51bWJlciA6IHVzZSBnaXZlbiBhZGFwdGVyIChkZWZhdWx0IDApCj4gPiA+ICAgICAgLWYgbnVt
+YmVyIDogdXNlIGdpdmVuIGZyb250ZW5kIChkZWZhdWx0IDApCj4gPiA+ICAgICAgLWQgbnVtYmVy
+IDogdXNlIGdpdmVuIGRlbXV4IChkZWZhdWx0IDApCj4gPiA+ICAgICAgLWMgZmlsZSAgIDogcmVh
+ZCBjaGFubmVscyBsaXN0IGZyb20gJ2ZpbGUnCj4gPiA+ICAgICAgLWIgICAgICAgIDogZW5hYmxl
+IEF1ZGlvIEJ5cGFzcyAoZGVmYXVsdCBubykKPiA+ID4gICAgICAteCAgICAgICAgOiBleGl0IGFm
+dGVyIHR1bmluZwo+ID4gPiAgICAgIC1yICAgICAgICA6IHNldCB1cCAvZGV2L2R2Yi9hZGFwdGVy
+WC9kdnIwIGZvciBUUyByZWNvcmRpbmcKPiA+ID4gICAgICAtbCBsbmItdHlwZSAoRFZCLVMgT25s
+eSkgKHVzZSAtbCBoZWxwIHRvIHByaW50IHR5cGVzKSBvcgo+ID4gPiAgICAgIC1sIGxvd1ssaGln
+aFssc3dpdGNoXV0gaW4gTWh6Cj4gPiA+ICAgICAgLWkgICAgICAgIDogcnVuIGludGVyYWN0aXZl
+bHksIGFsbG93aW5nIHlvdSB0byB0eXBlIGluIGNoYW5uZWwgbmFtZXMKPiA+ID4gICAgICAtcCAg
+ICAgICAgOiBhZGQgcGF0IGFuZCBwbXQgdG8gVFMgcmVjb3JkaW5nIChpbXBsaWVzIC1yKQo+ID4g
+PiAgICAgICAgICAgICAgICAgIG9yIC1uIG51bWJlcnMgZm9yIHphcHBpbmcKPiA+ID4gICAgICAg
+ICAgIC10ICAgICAgICA6IGRlbGl2ZXJ5IHN5c3RlbSB0eXBlIERWQi1TPTAsIERTUz0xLCBEVkIt
+UzI9Mgo+ID4gPiAKPiA+ID4gCj4gPiA+IFlvdSBzZWUgdGhlIGxhc3QgbGluZT8gVGhlIEluZm9y
+bWF0aW9uIGlzIGluY2x1ZGVkISEgOy0pCj4gPiAKPiA+IHllcywgSSBzZWUuIEJ1dCBpbiBteSBw
+YXRjaGVkIHN6YXAgSSBkb24ndCBzZWUgdGhpcyBpbmZvcm1hdGlvbi4gSSBkb24ndCBrbm93IHdo
+eSA6KAo+ID4gCj4gPiAvdXNyL3NyYy9kdmItYXBwcyMgY2F0IHBhdGNoX3NjYW5fc3phcF9qZW5z
+LmRpZmYgfCBwYXRjaCAtcDEgLS1kcnktcnVuCj4gV2h5IGRvIHlvdSB1c2UgdGhlIC0tZHJ5LXJ1
+biBvcHRpb24gaGVyZT8gCj4gbWFuIHBhdGNoIAo+IHNob3dzOgo+ICAtIC1kcnktcnVuIAo+ICBQ
+cmludCB0aGUgcmVzdWx0cyBvZiBhcHBseWluZyB0aGUgcGF0Y2hlcyB3aXRob3V0IGFjdHVhbGx5
+IGNoYW5naW5nIGFueSBmaWxlcy4KCnllcywgaXQgd2FzIG15IGZvb2xpc2ggbWlzdGFrZSAsIHNv
+cnJ5IAoKYnV0IGFmdGVyIHJlYWwgcGF0Y2hpbmcgYW5kIG1ha2luZyAKCmdvZ2E6L3Vzci9zcmMv
+ZHZiLWFwcHMvdXRpbC9zY2FuIyBtYWtlCnBlcmwgc2VjdGlvbl9nZW5lcmF0ZS5wbCBhdHNjX3Bz
+aXBfc2VjdGlvbi5wbApDQyBzY2FuLm8Kc2Nhbi5jOjQxNDogd2FybmluZzogdW51c2VkIHBhcmFt
+ZXRlciDigJhidWbigJkKc2Nhbi5jOjQxNTogd2FybmluZzogdW51c2VkIHBhcmFtZXRlciDigJh0
+4oCZCnNjYW4uYzo0NDk6IHdhcm5pbmc6IHVudXNlZCBwYXJhbWV0ZXIg4oCYYnVm4oCZCnNjYW4u
+Yzo1MTg6IHdhcm5pbmc6IHVudXNlZCBwYXJhbWV0ZXIg4oCYYnVm4oCZCnNjYW4uYzo1MTk6IHdh
+cm5pbmc6IHVudXNlZCBwYXJhbWV0ZXIg4oCYdOKAmQpzY2FuLmM6IEluIGZ1bmN0aW9uIOKAmHR1
+bmVfaW5pdGlhbOKAmToKc2Nhbi5jOjE4OTI6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSDigJho
+aWVy4oCZCnNjYW4uYzoxODkyOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUg4oCYZ3VhcmTigJkK
+c2Nhbi5jOjE4OTI6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSDigJhtb2Rl4oCZCnNjYW4uYzox
+ODkyOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUg4oCYZmVjMuKAmQpzY2FuLmM6MTg5Mjogd2Fy
+bmluZzogdW51c2VkIHZhcmlhYmxlIOKAmGJ34oCZCnNjYW4uYzoxODkyOiB3YXJuaW5nOiB1bnVz
+ZWQgdmFyaWFibGUg4oCYcWFt4oCZCnNjYW4uYzogQXQgdG9wIGxldmVsOgpzY2FuLmM6MTgwOTog
+d2FybmluZzog4oCYc3RyMnFhbeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApzY2FuLmM6MTgyNjog
+d2FybmluZzog4oCYc3RyMmJhbmR3aWR0aOKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApzY2FuLmM6
+MTgzODogd2FybmluZzog4oCYc3RyMm1vZGXigJkgZGVmaW5lZCBidXQgbm90IHVzZWQKc2Nhbi5j
+OjE4NDk6IHdhcm5pbmc6IOKAmHN0cjJndWFyZOKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApzY2Fu
+LmM6MTg2Mjogd2FybmluZzog4oCYc3RyMmhpZXLigJkgZGVmaW5lZCBidXQgbm90IHVzZWQKc2Nh
+bi5jOjIwODE6IHdhcm5pbmc6IOKAmHBpZHNfZHVtcF9zZXJ2aWNlX3BhcmFtZXRlcl9zZXTigJkg
+ZGVmaW5lZCBidXQgbm90IHVzZWQKQ0MgYXRzY19wc2lwX3NlY3Rpb24ubwpDQyBkaXNlcWMubwpD
+QyBkdW1wLXZkci5vCkNDIGR1bXAtemFwLm8KZHVtcC16YXAuYzo2OiB3YXJuaW5nOiDigJhpbnZf
+bmFtZeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApkdW1wLXphcC5jOjEyOiB3YXJuaW5nOiDigJhm
+ZWNfbmFtZeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApkdW1wLXphcC5jOjI2OiB3YXJuaW5nOiDi
+gJhxYW1fbmFtZeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApkdW1wLXphcC5jOjM5OiB3YXJuaW5n
+OiDigJhid19uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAtemFwLmM6NDc6IHdhcm5p
+bmc6IOKAmG1vZGVfbmFtZeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZApkdW1wLXphcC5jOjUzOiB3
+YXJuaW5nOiDigJhndWFyZF9uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCmR1bXAtemFwLmM6
+NjI6IHdhcm5pbmc6IOKAmGhpZXJhcmNoeV9uYW1l4oCZIGRlZmluZWQgYnV0IG5vdCB1c2VkCkND
+IGxuYi5vCkNDIHNlY3Rpb24ubwpDQyBzY2FuCgpJIGhhdmUgdGhlc2UgZXJyb3JzCgoKZ29nYTov
+dXNyL3NyYy9kdmItYXBwcy91dGlsL3NjYW4jIC4vc2NhbiAxM2UKc2Nhbm5pbmcgMTNlCnVzaW5n
+ICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVt
+dXgwJwppbml0aWFsIHRyYW5zcG9uZGVyIDEyMzk4MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKaW5p
+dGlhbCB0cmFuc3BvbmRlciAxMTI1ODAwMCBIIDI3NTAwMDAwIDI3NTAwMDAwCmluaXRpYWwgdHJh
+bnNwb25kZXIgMTE0NDkwMDAgSCAyNzUwMDAwMCAyNzUwMDAwMAppbml0aWFsIHRyYW5zcG9uZGVy
+IDExOTk2MDAwIFYgMjc1MDAwMDAgMjc1MDAwMDAKaW5pdGlhbCB0cmFuc3BvbmRlciAxMjI2NTAw
+MCBWIDI3NTAwMDAwIDI3NTAwMDAwCmluaXRpYWwgdHJhbnNwb25kZXIgMTA3MTkwMDAgViAyNzUw
+MDAwMCAyNzUwMDAwMAoKW3NraXB9Cgppb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJh
+dGlvbiBub3Qgc3VwcG9ydGVkCmlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9u
+IG5vdCBzdXBwb3J0ZWQKaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90
+IHN1cHBvcnRlZAppb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3Vw
+cG9ydGVkCmlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0
+ZWQKRVJST1I6IGluaXRpYWwgdHVuaW5nIGZhaWxlZApkdW1waW5nIGxpc3RzICgwIHNlcnZpY2Vz
+KQpEb25lLgoKdGhlIHNhbWUgLSBmb3Igc3phcAoKZ29nYTovdXNyL3NyYy9kdmItYXBwcy91dGls
+L3N6YXAjIC4vc3phcCAtYzEzIC1uMQpyZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnMTMnCnph
+cHBpbmcgdG8gMSAnWkRGJzoKc2F0IDAsIGZyZXF1ZW5jeSA9IDExMjU4IE1IeiBILCBzeW1ib2xy
+YXRlIDI3NTAwMDAwLCB2cGlkID0gMHgwMjNhLCBhcGlkID0gMHgwMjNiIHNpZCA9IDB4MWY0YgpR
+dWVyeWluZyBpbmZvIC4uIERlbGl2ZXJ5IHN5c3RlbT1EVkItUwp1c2luZyAnL2Rldi9kdmIvYWRh
+cHRlcjAvZnJvbnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKaW9jdGwgRFZC
+RkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAoKCgoKCgoKCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFp
+bGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
+aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
