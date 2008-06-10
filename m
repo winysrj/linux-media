@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.190])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@me.by>) id 1KBb7a-00081T-Gu
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 21:57:39 +0200
-Received: by gv-out-0910.google.com with SMTP id n29so676336gve.16
-	for <linux-dvb@linuxtv.org>; Wed, 25 Jun 2008 12:57:34 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Georg Acher <acher@in.tum.de>,
- linux-dvb@linuxtv.org
-Date: Wed, 25 Jun 2008 22:56:53 +0300
-References: <200709032205293433925@sina.com>
-	<200806162217.15035.liplianin@me.by>
-	<20080616201101.GA3063@braindead1.acher>
-In-Reply-To: <20080616201101.GA3063@braindead1.acher>
+	(envelope-from <crope@iki.fi>) id 1K6B1q-0002Qq-8J
+	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 23:05:21 +0200
+Message-ID: <484EEC89.3000105@iki.fi>
+Date: Wed, 11 Jun 2008 00:05:13 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806252256.53575.liplianin@me.by>
-Subject: Re: [linux-dvb] Driver of STv0288
+To: Christoph Pfister <christophpfister@gmail.com>
+References: <4836F51E.7070403@iki.fi> <483AD86C.4030108@iki.fi>
+	<200805301823.32295.christophpfister@gmail.com>
+In-Reply-To: <200805301823.32295.christophpfister@gmail.com>
+Content-Type: multipart/mixed; boundary="------------090208090403070702060703"
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] update Finland initial DVB-T tuning files
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,26 +21,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTYgSnVuZSAyMDA4IDIzOjExOjAxIEdlb3JnIEFjaGVyIM7B0MnTwcwo
-wSk6Cj4gT24gTW9uLCBKdW4gMTYsIDIwMDggYXQgMTA6MTc6MTRQTSArMDMwMCwgSWdvciBNLiBM
-aXBsaWFuaW4gd3JvdGU6Cj4gPiBJcyBzdHYwMjg4IHNvbWVob3cgY29tcGF0aWJsZSB3aXRoIHN0
-djAyOTk/Cj4KPiBOb3QgcmVhbGx5LCB0aGV5IGhhdmUgcGVybXV0ZWQgdGhlIHJlZ2lzdGVycyBh
-bmQgYSBsb3RvZiBjb250cm9sIGJpdHMuIEJ1dAo+IHRoZSBoZXJpdGFnZSBpcyBjbGVhciBhbmQg
-aXQgc2hvdWxkIGJlIGEgcmVwbGFjZW1lbnQgZm9yIHRoZSBzdHYwMjk5LiBUaGUKPiBzdHYwMjg4
-IGNhbiBhbHNvIGRvIGEgYmxpbmRzY2FuLCBidXQgbmVlZHMgYSBsb3Qgb2YgZHJpdmVyIHN1cHBv
-cnQgZm9yIHRoYXQKPiBhbGdvcml0aG0uCj4KPiA+IEFueSBvbmUgd2hvIGhhdmUgdXNlZnVsIGlu
-Zm9ybWF0aW9uPwo+Cj4gVGhlIFJlZWwgTXVsdGltZWRpYSBTVk4gaGFzIGEgR1BMJ2VkIERWQi1B
-UEkgZHJpdmVyIGZvciB0aGUgc3R2MDI4OC4gSQo+IGRvbid0IGtub3cgd2hhdCB0d2Vha3MgYXJl
-IG5lZWRlZCBmb3IgUENJLWJhc2VkIGNhcmRzIChpZiB0aGV5IGV4aXN0Li4uKS4KClRoYW5rIFlv
-dS4gVG9kYXkgSSByZWNlaXZlZCBsZXR0ZXIgd2l0aCBzb3VyY2UgY29kZSBmb3IgUENpIGNhcmQg
-d2l0aCBzdHYwMjg4ICAKb24gYm9hcmQgYW5kIGRvd25sb2FkZWQgU1ZOLiBOb3cgSSBoYXZlIHR3
-byBzb3VyY2VzIHRvIGxlYXJuLgoKLS0gCklnb3IgTS4gTGlwbGlhbmluCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0
-CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
-bG1hbi9saXN0aW5mby9saW51eC1kdmI=
+This is a multi-part message in MIME format.
+--------------090208090403070702060703
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+
+terve Christoph,
+Channel lists are updated today and attached patch contains those updates.
+
+Antti
+
+Christoph Pfister wrote:
+> Hi Antti,
+> 
+> [ hmm, took some time till I was able again to process my mails ]
+> 
+> Am Montag 26 Mai 2008 17:34:04 schrieb Antti Palosaari:
+>> hello Christoph,
+>> there is new try. Earlier patch didn't remove obsolete files. This one
+>> does it. Use that updated patch instead the old one.
+> 
+> Applied. Thank you very much :)
+> 
+>> Files removed and the new one:
+>> fi-Salla => fi-Salla_Sallatunturi
+>> fi-SaloIsokyla => fi-Salo_Isokyla
+>> fi-Uusikaupunki_Ruokola => fi-Uusikaupunki_Orivo
+>>
+>> Antti
+> <snip>
+> 
+> Christoph
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+-- 
+http://palosaari.fi/
+
+--------------090208090403070702060703
+Content-Type: text/x-patch;
+ name="fi-update_2008-06-10.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fi-update_2008-06-10.patch"
+
+diff -r 9311c900f746 util/scan/dvb-t/fi-Kustavi_Viherlahti
+--- a/util/scan/dvb-t/fi-Kustavi_Viherlahti	Fri May 30 18:16:51 2008 +0200
++++ b/util/scan/dvb-t/fi-Kustavi_Viherlahti	Wed Jun 11 00:01:36 2008 +0300
+@@ -1,5 +1,5 @@
+ # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+-T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+ T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+diff -r 9311c900f746 util/scan/dvb-t/fi-Ylitornio_Ainiovaara
+--- a/util/scan/dvb-t/fi-Ylitornio_Ainiovaara	Fri May 30 18:16:51 2008 +0200
++++ b/util/scan/dvb-t/fi-Ylitornio_Ainiovaara	Wed Jun 11 00:01:36 2008 +0300
+@@ -2,3 +2,4 @@
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+ T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+--------------090208090403070702060703
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------090208090403070702060703--
