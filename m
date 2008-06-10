@@ -1,23 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53Ffd9k003731
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:42:47 -0400
-Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53FQDcS013146
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 11:26:20 -0400
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Date: Tue,  3 Jun 2008 11:25:41 -0400
-Message-Id: <1212506741-17056-2-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
-References: <1212506741-17056-1-git-send-email-edubezval@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=unknown-8bit
-Content-Transfer-Encoding: 8bit
-Cc: Tony Lindgren <tony@atomide.com>,
-	Eduardo Valentin <eduardo.valentin@indt.org.br>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH 1/1] Add support for tea5761 chip
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5A0O8ks023622
+	for <video4linux-list@redhat.com>; Mon, 9 Jun 2008 20:24:08 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5A0NtCM013927
+	for <video4linux-list@redhat.com>; Mon, 9 Jun 2008 20:23:55 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: timf <timf@iinet.net.au>, video4linux-list@redhat.com
+In-Reply-To: <484CA13F.20900@iinet.net.au>
+References: <48498964.10301@iinet.net.au>
+	<1212785950.16279.17.camel@pc10.localdom.local>
+	<20080606183617.5c2b6398@gaivota>	<484A1441.6070400@iinet.net.au>
+	<484A1FC7.6070707@iinet.net.au>
+	<1212886803.25974.44.camel@pc10.localdom.local>
+	<20080608073836.233e801a@gaivota> <484C9E0A.1030909@iinet.net.au>
+	<484CA13F.20900@iinet.net.au>
+Content-Type: text/plain
+Date: Tue, 10 Jun 2008 02:22:44 +0200
+Message-Id: <1213057364.3997.42.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb@linuxtv.org, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] Problem with latest v4l-dvb hg -extra question -
+	saa7133[0]: board init: gpio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,581 +35,126 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Eduardo Valentin <eduardo.valentin@indt.org.br>
+Hi,
 
-This patch adds support for tea5761 chip. This chip
-is a FM receiver. It basically exports a radio interface
-through V4L2 api. This support uses i2c protocol to
-communicate with this chip.
+Am Montag, den 09.06.2008, 11:19 +0800 schrieb timf:
+> timf wrote:
+> > Mauro Carvalho Chehab wrote:
+> >   
+> >> On Sun, 08 Jun 2008 03:00:03 +0200
+> >> hermann pitton <hermann-pitton@arcor.de> wrote:
+> >>
+> >>   
+> >>     
+> >>> Am Samstag, den 07.06.2008, 13:42 +0800 schrieb timf:
+> >>>     
+> >>>       
+> >>>> timf wrote:
+> >>>>       
+> >>>>         
+> >>>>> Mauro Carvalho Chehab wrote:
+> >>>>>   
+> >>>>>         
+> >>>>>           
+> >>>>>> On Fri, 06 Jun 2008 22:59:10 +0200
+> >>>>>> hermann pitton <hermann-pitton@arcor.de> wrote:
+> >>>>>>
+> >>>>>>   
+> >>>>>>     
+> >>>>>>           
+> >>>>>>             
+> >>>>>>> Hi,
+> >>>>>>>
+> >>>>>>> Am Samstag, den 07.06.2008, 03:00 +0800 schrieb timf:
+> >>>>>>>     
+> >>>>>>>       
+> >>>>>>>             
+> >>>>>>>               
+> >>>> <snip>
+> >>>>
+> >>>>       
+> >>>>         
+> > <snip>
+> >   
+> >> There's another possibility. It might be possible that Viro's patches broke
+> >> firmware load. Did firmware load worked before (with the same version you're using)?
+> >>
+> >> Cheers,
+> >> Mauro
+> >>
+> >>   
+> >>     
+> > Hi all,
+> >   
+> Further question, I noticed that
+> 
+> saa7133[0]: board init: gpio is xxxxxx
+> 
+> for both cards keeps changing. Is that normal?
+> 
+> > Regards,
+> > Timf
+> >
+> >   
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@indt.org.br>
----
- drivers/media/radio/Kconfig         |   13 +
- drivers/media/radio/Makefile        |    1 +
- drivers/media/radio/radio-tea5761.c |  516 +++++++++++++++++++++++++++++++++++
- 3 files changed, 530 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-tea5761.c
+yes, at least to some extend, if all is known.
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 1b41b3f..de6ca27 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -339,6 +339,19 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
- 
-+config RADIO_TEA5761
-+	tristate "Philips Semiconductors TEA5761 I2C FM Radio"
-+	help
-+	  Choose Y here if you have one of these AM/FM radio cards.
-+
-+	  In order to control your radio card, you will need to use programs
-+	  that are compatible with the Video For Linux 2 API.  Information on
-+	  this API and pointers to "v4l" programs may be found at
-+	  <file:Documentation/video4linux/API.html>.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-tea5761.
-+
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index a30159f..f5bffcc 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
-+obj-$(CONFIG_RADIO_TEA5761) += radio-tea5761.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
- 
-diff --git a/drivers/media/radio/radio-tea5761.c b/drivers/media/radio/radio-tea5761.c
-new file mode 100644
-index 0000000..e8ccf29
---- /dev/null
-+++ b/drivers/media/radio/radio-tea5761.c
-@@ -0,0 +1,516 @@
-+/*
-+ * drivers/media/radio/radio-tea5761.c
-+ *
-+ * Copyright (C) 2005 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ */
-+#include <linux/module.h>
-+#include <linux/version.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <media/v4l2-common.h>
-+
-+#define DRIVER_NAME "tea5761"
-+
-+#define TEA5761_VERSION		KERNEL_VERSION(0, 0, 1)
-+
-+#define TEA5761_I2C_ADDR	0x10
-+
-+#define TEA5761_MANID		0x002b
-+#define TEA5761_CHIPID		0x5761
-+
-+#define TEA5761_INTREG_BLMSK	0x0001
-+#define TEA5761_INTREG_FRRMSK	0x0002
-+#define TEA5761_INTREG_LEVMSK	0x0008
-+#define TEA5761_INTREG_IFMSK	0x0010
-+#define TEA5761_INTREG_BLMFLAG	0x0100
-+#define TEA5761_INTREG_FRRFLAG	0x0200
-+#define TEA5761_INTREG_LEVFLAG	0x0800
-+#define TEA5761_INTREG_IFFLAG	0x1000
-+
-+#define TEA5761_FRQSET_SUD	0x8000
-+#define TEA5761_FRQSET_SM	0x4000
-+
-+#define TEA5761_TNCTRL_PUPD0	0x4000
-+#define TEA5761_TNCTRL_BLIM	0x2000
-+#define TEA5761_TNCTRL_SWPM	0x1000
-+#define TEA5761_TNCTRL_IFCTC	0x0800
-+#define TEA5761_TNCTRL_AFM	0x0400
-+#define TEA5761_TNCTRL_SMUTE	0x0200
-+#define TEA5761_TNCTRL_SNC	0x0100
-+#define TEA5761_TNCTRL_MU	0x0080
-+#define TEA5761_TNCTRL_SSL1	0x0040
-+#define TEA5761_TNCTRL_SSL0	0x0020
-+#define TEA5761_TNCTRL_HLSI	0x0010
-+#define TEA5761_TNCTRL_MST	0x0008
-+#define TEA5761_TNCTRL_SWP	0x0004
-+#define TEA5761_TNCTRL_DTC	0x0002
-+#define TEA5761_TNCTRL_AHLSI	0x0001
-+
-+#define TEA5761_TUNCHK_LEVEL(x)	(((x) & 0x00F0) >> 4)
-+#define TEA5761_TUNCHK_IFCNT(x) (((x) & 0xFE00) >> 9)
-+#define TEA5761_TUNCHK_TUNTO	0x0100
-+#define TEA5761_TUNCHK_LD	0x0008
-+#define TEA5761_TUNCHK_STEREO	0x0004
-+
-+#define TEA5761_TESTREG_TRIGFR	0x0800
-+
-+#define TEA5761_FREQ_LOW	87500
-+#define TEA5761_FREQ_HIGH	108000
-+
-+struct tea5761_regs {
-+	u16 intreg;
-+	u16 frqset;
-+	u16 tnctrl;
-+	u16 frqchk;
-+	u16 tunchk;
-+	u16 testreg;
-+	u16 manid;
-+	u16 chipid;
-+} __attribute__ ((packed));
-+
-+struct tea5761_write_regs {
-+	u8 intreg;
-+	u16 frqset;
-+	u16 tnctrl;
-+	u16 testreg;
-+} __attribute__ ((packed));
-+
-+struct tea5761_device {
-+	struct video_device	*video_dev;
-+	struct i2c_client	*i2c_dev;
-+	struct tea5761_regs	regs;
-+	struct mutex		mutex;
-+	int			users;
-+};
-+
-+static struct tea5761_device tea5761;
-+
-+static struct i2c_driver	tea5761_driver;
-+static int radio_nr = -1;
-+
-+static int tea5761_read_regs(struct tea5761_device *tea)
-+{
-+	int rc, i;
-+	u16 *p = (u16 *) &tea->regs;
-+	struct i2c_client *client = tea->i2c_dev;
-+
-+	rc = i2c_master_recv(client, (void*) &tea->regs, sizeof(tea->regs));
-+	for (i = 0; i < 8; i++) {
-+		p[i] = __be16_to_cpu(p[i]);
-+	}
-+
-+	dev_dbg(&client->dev,
-+		"chip state: %04x %04x %04x %04x %04x %04x %04x %04x\n",
-+		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
-+
-+	if (rc < 0)
-+		dev_err(&client->dev, "read\n");
-+
-+	return rc;
-+}
-+
-+static void tea5761_write_regs(struct tea5761_device *tea)
-+{
-+	struct tea5761_write_regs wr;
-+	struct tea5761_regs *r = &tea->regs;
-+	struct i2c_client *client = tea->i2c_dev;
-+	u8 *p = (u8 *) r;
-+
-+	wr.intreg = r->intreg & 0xff;
-+	wr.frqset = __cpu_to_be16(r->frqset);
-+	wr.tnctrl = __cpu_to_be16(r->tnctrl);
-+	wr.testreg = __cpu_to_be16(r->testreg);
-+
-+	dev_dbg(&client->dev,
-+		"writing state: %02x %02x %02x %02x %02x %02x %02x\n",
-+		p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
-+	if (i2c_master_send(client, (void *) &wr, sizeof(wr)) < 0)
-+		dev_err(&client->dev, "write\n");
-+}
-+
-+static void tea5761_power_up(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	if (!(r->tnctrl & TEA5761_TNCTRL_PUPD0)) {
-+		r->tnctrl &= ~(TEA5761_TNCTRL_AFM | TEA5761_TNCTRL_MU |
-+			       TEA5761_TNCTRL_HLSI);
-+		r->testreg |= TEA5761_TESTREG_TRIGFR;
-+		r->tnctrl |= TEA5761_TNCTRL_PUPD0;
-+		return tea5761_write_regs(tea);
-+	}
-+}
-+
-+static void tea5761_power_down(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_PUPD0) {
-+		r->tnctrl &= ~TEA5761_TNCTRL_PUPD0;
-+		return tea5761_write_regs(tea);
-+	}
-+}
-+
-+static void tea5761_set_freq(struct tea5761_device *tea, int freq)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
-+		r->frqset = (freq + 225000) / 8192;
-+	else
-+		r->frqset = (freq - 225000) / 8192;
-+}
-+
-+static int tea5761_get_freq(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_HLSI)
-+		return (r->frqchk * 8192) - 225000;
-+	else
-+		return (r->frqchk * 8192) + 225000;
-+}
-+
-+static void tea5761_tune(struct tea5761_device *tea, int freq)
-+{
-+	tea5761_set_freq(tea, freq);
-+	tea5761_write_regs(tea);
-+}
-+
-+static void tea5761_set_audout_mode(struct tea5761_device *tea, int audmode)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+	int tnctrl = r->tnctrl;
-+
-+	if (audmode == V4L2_TUNER_MODE_MONO)
-+		r->tnctrl |= TEA5761_TNCTRL_MST;
-+	else
-+		r->tnctrl &= ~TEA5761_TNCTRL_MST;
-+	if (tnctrl != r->tnctrl)
-+		tea5761_write_regs(tea);
-+}
-+
-+static int tea5761_get_audout_mode(struct tea5761_device *tea)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	if (r->tnctrl & TEA5761_TNCTRL_MST)
-+		return V4L2_TUNER_MODE_MONO;
-+	else
-+		return V4L2_TUNER_MODE_STEREO;
-+}
-+
-+static void tea5761_mute(struct tea5761_device *tea, int on)
-+{
-+	struct tea5761_regs *r = &tea->regs;
-+	int tnctrl = r->tnctrl;
-+
-+	if (on)
-+		r->tnctrl |= TEA5761_TNCTRL_MU;
-+	else
-+		r->tnctrl &= ~TEA5761_TNCTRL_MU;
-+	if (tnctrl != r->tnctrl)
-+		tea5761_write_regs(tea);
-+}
-+
-+static int tea5761_is_muted(struct tea5761_device *tea)
-+{
-+	return tea->regs.tnctrl & TEA5761_TNCTRL_MU;
-+}
-+
-+static int tea5761_do_ioctl(struct inode *inode, struct file *file,
-+			    unsigned int cmd, void *arg)
-+{
-+	struct tea5761_device *tea = file->private_data;
-+	struct video_device *dev = tea->video_dev;
-+	struct i2c_client *client = tea->i2c_dev;
-+	struct tea5761_regs *r = &tea->regs;
-+
-+	union {
-+		struct v4l2_capability c;
-+		struct v4l2_tuner t;
-+		struct v4l2_frequency f;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_control ct;
-+	} *u = arg;
-+
-+	tea5761_read_regs(tea);
-+
-+	switch (cmd) {
-+	case VIDIOC_QUERYCAP:
-+		dev_dbg(&client->dev, "VIDIOC_QUERYCAP\n");
-+		memset(&u->c, 0, sizeof(u->c));
-+		strlcpy(u->c.driver, dev->dev->driver->name,
-+			sizeof(u->c.driver));
-+		strlcpy(u->c.card, dev->name, sizeof(u->c.card));
-+		snprintf(u->c.bus_info, sizeof(u->c.bus_info), "I2C:%s",
-+			 dev->dev->bus_id);
-+		u->c.version = TEA5761_VERSION;
-+		u->c.capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+		break;
-+
-+	case VIDIOC_G_TUNER:
-+		/* Only one tuner chip */
-+		dev_dbg(&client->dev, "VIDIOC_G_TUNER\n");
-+		if (u->t.index != 0)
-+			return -EINVAL;
-+
-+		memset(&u->t, 0, sizeof(u->t));
-+		u->t.type = V4L2_TUNER_RADIO;
-+		strlcpy(u->t.name, "FM", sizeof(u->t.name));
-+		/* Freq in 62.5Hz units */
-+		u->t.rangelow = TEA5761_FREQ_LOW * 16;
-+		u->t.rangehigh = TEA5761_FREQ_HIGH * 16;
-+		u->t.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+		if (r->tunchk & TEA5761_TUNCHK_STEREO)
-+			u->t.rxsubchans = V4L2_TUNER_SUB_STEREO;
-+		u->t.audmode = tea5761_get_audout_mode(tea);
-+		u->t.signal = TEA5761_TUNCHK_LEVEL(r->tunchk) * 0xffff / 0xf;
-+		u->t.afc = TEA5761_TUNCHK_IFCNT(r->tunchk);
-+		break;
-+
-+	case VIDIOC_S_TUNER:
-+		/* Only tuner nro 0 can be selected. */
-+		dev_dbg(&client->dev, "VIDIOC_S_TUNER\n");
-+		if (u->t.index != 0)
-+			return -EINVAL;
-+		tea5761_set_audout_mode(tea, u->t.audmode);
-+		break;
-+
-+	case VIDIOC_G_FREQUENCY:
-+		dev_dbg(&client->dev, "VIDIOC_G_FREQUENCY\n");
-+		memset(&u->f, 0, sizeof(u->f));
-+		u->f.type = V4L2_TUNER_RADIO;
-+		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
-+			u->f.frequency = (tea5761_get_freq(tea) * 2) / 125;
-+		else
-+			u->f.frequency = 0;
-+		break;
-+
-+	case VIDIOC_S_FREQUENCY:
-+		dev_dbg(&client->dev, "VIDIOC_S_FREQUENCY %u\n",
-+			u->f.frequency);
-+		if (u->f.tuner != 0)
-+			return -EINVAL;
-+		if (u->f.frequency == 0) {
-+			/* We special case this as a power down
-+			 * control. */
-+			tea5761_power_down(tea);
-+			break;
-+		}
-+		if (u->f.frequency < 16 * TEA5761_FREQ_LOW)
-+			return -EINVAL;
-+		if (u->f.frequency > 16 * TEA5761_FREQ_HIGH)
-+			return -EINVAL;
-+
-+		tea5761_power_up(tea);
-+		tea5761_tune(tea, (u->f.frequency * 125) / 2);
-+		break;
-+
-+	case VIDIOC_QUERYCTRL:
-+		dev_dbg(&client->dev, "VIDIOC_QUERYCTRL %d\n", u->qc.id);
-+		if (u->qc.id != V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		strlcpy(u->qc.name, "Mute", sizeof(u->qc.name));
-+		u->qc.minimum = 0;
-+		u->qc.maximum = 1;
-+		u->qc.step = 1;
-+		u->qc.default_value = 0;
-+		u->qc.type = V4L2_CTRL_TYPE_BOOLEAN;
-+		break;
-+
-+	case VIDIOC_G_CTRL:
-+		dev_dbg(&client->dev, "VIDIOC_G_CTRL %d\n", u->ct.id);
-+		if (u->ct.id != V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		if (r->tnctrl & TEA5761_TNCTRL_PUPD0)
-+			u->ct.value = tea5761_is_muted(tea) ? 1 : 0;
-+		else
-+			u->ct.value = 0;
-+		break;
-+
-+	case VIDIOC_S_CTRL:
-+		dev_dbg(&client->dev, "VIDIOC_S_CTRL %d\n", u->ct.id);
-+		if (u->ct.id != V4L2_CID_AUDIO_MUTE)
-+			return -EINVAL;
-+		tea5761_mute(tea, u->ct.value);
-+		break;
-+
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tea5761_ioctl(struct inode *inode, struct file *file,
-+			 unsigned int cmd, unsigned long arg)
-+{
-+	return video_usercopy(inode, file, cmd, arg, tea5761_do_ioctl);
-+}
-+
-+static int tea5761_open(struct inode *inode, struct file *file)
-+{
-+	int minor = iminor(file->f_dentry->d_inode);
-+	/* Currently we support only one device */
-+	struct tea5761_device *tea = &tea5761;
-+
-+	if (tea->video_dev->minor != minor)
-+		return -ENODEV;
-+
-+	mutex_lock(&tea->mutex);
-+	/* Only exclusive access */
-+	if (tea->users) {
-+		mutex_unlock(&tea->mutex);
-+		return -EBUSY;
-+	}
-+	tea->users++;
-+	mutex_unlock(&tea->mutex);
-+
-+	file->private_data = tea;
-+	return 0;
-+}
-+
-+static int tea5761_release(struct inode *inode, struct file *file)
-+{
-+	struct tea5761_device *tea = file->private_data;
-+
-+	mutex_lock(&tea->mutex);
-+	tea->users--;
-+	mutex_unlock(&tea->mutex);
-+
-+	return 0;
-+}
-+
-+static struct file_operations tea5761_fops = {
-+	.owner		= THIS_MODULE,
-+	.open           = tea5761_open,
-+	.release	= tea5761_release,
-+	.ioctl		= tea5761_ioctl,
-+	.llseek         = no_llseek,
-+};
-+
-+static struct video_device tea5761_video_device = {
-+	.owner         = THIS_MODULE,
-+	.name          = "TEA5761 FM-Radio",
-+	.type          = VID_TYPE_TUNER,
-+	.fops          = &tea5761_fops,
-+	.release       = video_device_release
-+};
-+
-+static int tea5761_i2c_driver_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct video_device *video_dev;
-+	int err = 0;
-+	struct tea5761_device *tea = &tea5761;
-+
-+	mutex_init(&tea->mutex);
-+
-+	tea->i2c_dev = client;
-+
-+	/* V4L initialization */
-+	video_dev = video_device_alloc();
-+	if (video_dev == NULL) {
-+		dev_err(&client->dev, "couldn't allocate memory\n");
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+	tea->video_dev = video_dev;
-+
-+	*video_dev = tea5761_video_device;
-+	video_dev->dev = &client->dev;
-+	i2c_set_clientdata(client, video_dev);
-+
-+	/* initialize and power off the chip */
-+	tea5761_read_regs(tea);
-+	tea5761_set_audout_mode(tea, V4L2_TUNER_MODE_STEREO);
-+	tea5761_mute(tea, 0);
-+	tea5761_power_down(tea);
-+
-+	tea5761.video_dev = video_dev;
-+	tea5761.i2c_dev = client;
-+
-+	err = video_register_device(video_dev, VFL_TYPE_RADIO, radio_nr);
-+	if (err) {
-+		dev_err(&client->dev, "couldn't register video device\n");
-+		goto err_video_alloc;
-+	}
-+
-+	dev_info(&client->dev, "tea5761 (version %d) detected\n",
-+		(tea->regs.manid >> 12) & 0xf);
-+
-+	return 0;
-+
-+err_video_alloc:
-+	video_device_release(video_dev);
-+exit:
-+	kfree(client);
-+	return err;
-+}
-+
-+static int tea5761_i2c_driver_remove(struct i2c_client *client)
-+{
-+	struct video_device *vd = i2c_get_clientdata(client);
-+
-+	video_unregister_device(vd);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id tea5761_id[] = {
-+	{ DRIVER_NAME, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, tea5761_id);
-+
-+static struct i2c_driver tea5761_driver = {
-+	.driver = {
-+		.name	= DRIVER_NAME,
-+	},
-+	.probe	= tea5761_i2c_driver_probe,
-+	.remove = __devexit_p(tea5761_i2c_driver_remove),
-+	.id_table = tea5761_id,
-+};
-+
-+static int __init tea5761_init(void)
-+{
-+	int res;
-+
-+	if ((res = i2c_add_driver(&tea5761_driver))) {
-+		printk(KERN_ERR DRIVER_NAME ": driver registration failed\n");
-+		return res;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit tea5761_exit(void)
-+{
-+	i2c_del_driver(&tea5761_driver);
-+}
-+
-+MODULE_AUTHOR("Timo Teräs");
-+MODULE_DESCRIPTION("I2C interface for TEA5761.");
-+MODULE_LICENSE("GPL");
-+
-+module_param(radio_nr, int, 0);
-+MODULE_PARM_DESC(nr_radio, "video4linux device number to use");
-+
-+module_init(tea5761_init)
-+module_exit(tea5761_exit)
--- 
-1.5.6.rc0.84.g06f60.dirty
+There is no clean up on exit or something.
+
+If you used the radio last it will come up with 0x0200000 on next load.
+To suppress that is no help, see a little later.
+
+If you tried other cards, it will show what you have last taken ...
+
+However, within this hybrid device stuff, even better with multiple
+tuners, multiple DVB-S/DVB-T channel decoders and also analog IF
+demodulators, almost all have some gpio/port pins too, the manufacturers
+have reach choices how to do all sort of switching on such a card and
+can easily deviate from already known solutions.
+
+A card might be wired also like that, that if for example a remote IR
+receiver is plugged it, a gpio pin changes to output and keypresses can
+be sampled from there. Also cards which do host mode switching between
+DVB TS parallel interface and mpeg interface for an mpeg encoder show
+internally changes of the gpio configuration.
+
+Even an LowNoiseAmplifier might depend on gpio switching, AGC switching
+between analog and digital tuning and more. The first 8 pins of the 28
+gpio pins of the saa713x chips do transmit the TS or mpeg encoder data
+and permanently change when in operation.
+
+We are not much further else and have been there already.
+
+Since I can't reproduce it, and I'm for sure not the firmware expert,
+since never in trouble, find others and try to reach the original
+contributors of the card, that you can get some confirmation to come out
+of this random for you alone.
+
+Confirm that you have no second firmware eeprom, as I already asked for.
+If present and not functional it could be already a reason for the
+trouble.
+
+Take this up with the LNA, disable it in saa7134-dvb for your card and
+see what happens. If it has an impact, noticeable worse or even no
+tuning on DVB-T anymore, you should have config_tuner = 2 in your
+saa7134-cards.c entry too for proper switching.
+
+Or to disable it might even improve all, how can one know without
+reports of what it does and just have it there with "three more cards
+added" ;)
+
+If you are running with private patches, include a hg diff > my.patch.
+
+Anyone else in problems with loading tda10046 firmware on saa713x from
+file?
+
+Cheers,
+Hermann
+
+
+
+
+
 
 --
 video4linux-list mailing list
