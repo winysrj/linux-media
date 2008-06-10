@@ -1,25 +1,39 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56MjVIK006309
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 18:45:31 -0400
-Received: from viefep31-int.chello.at (viefep31-int.chello.at [62.179.121.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56MjIFt024322
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 18:45:19 -0400
-From: Michael Schimek <mschimek@gmx.at>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200805270900.20790.hverkuil@xs4all.nl>
-References: <200805262326.30501.hverkuil@xs4all.nl>
-	<1211850976.3188.83.camel@palomino.walls.org>
-	<200805270853.31287.hverkuil@xs4all.nl>
-	<200805270900.20790.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Sat, 07 Jun 2008 00:29:43 +0200
-Message-Id: <1212791383.17465.742.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5AB02Tl019184
+	for <video4linux-list@redhat.com>; Tue, 10 Jun 2008 07:00:02 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5AAxolo001514
+	for <video4linux-list@redhat.com>; Tue, 10 Jun 2008 06:59:50 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so2026853fga.7
+	for <video4linux-list@redhat.com>; Tue, 10 Jun 2008 03:59:50 -0700 (PDT)
+Date: Tue, 10 Jun 2008 21:01:57 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080610210157.35fa0c11@glory.loctelecom.ru>
+In-Reply-To: <1211331167.4235.26.camel@pc10.localdom.local>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
+	<20080415000611.610af5c6@gaivota>
+	<20080415135455.76d18419@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+	<20080512201114.3bd41ee5@glory.loctelecom.ru>
+	<1210719122.26311.37.camel@pc10.localdom.local>
+	<20080520152426.5540ee7f@glory.loctelecom.ru>
+	<1211331167.4235.26.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Need VIDIOC_CROPCAP clarification
-Reply-To: mschimek@gmx.at
+Content-Type: multipart/mixed; boundary="MP_/N2Zq76NT.2h6_DogzOwwbz0"
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] callbacks function of saa7134_empress
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,161 +45,302 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-05-27 at 09:00 +0200, Hans Verkuil wrote:
-> Here's an old article I found detailing the design of pixelaspect, it 
-> makes me wonder if what bttv does isn't wrong and pixelaspect is really 
-> a pixel aspect.
+--MP_/N2Zq76NT.2h6_DogzOwwbz0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-After all the time I spent on the stuff it better be right. ;)
+Hi All
 
-Well as the spec says, pixelaspect is the aspect ratio (y/x) of pixels
-sampled by the driver. For example in PAL mode bttv samples luminance
-pixels at four times the PAL-BG color carrier frequency: 35468950 / 2
-Hz. The line frequency is 15625 Hz so one gets 1135.0064 pixels/line.
-That's what v4l2_crop counts, pixels as sampled by the hardware.
+If I try v4l2-ctl --all -d /dev/video1 or v4l2-ctl --streamon -d /dev/video1 modules crashed:
 
-The industry standard sampling rate to get PAL square pixels is 14.75
-MHz, giving 944 samples/line. Therefore cropcap.pixelaspect is 1135 /
-944. In human terms the pixels are too narrow. On a square pixel display
-like a computer monitor the unscaled image looks stretched.
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<c028b66e>] __mutex_lock_slowpath+0x29/0x7b
+*pde = 00000000 
+Oops: 0002 [#1] SMP 
+Modules linked in: ac battery loop saa7134_empress(F) saa6752hs(F) tuner_simple(F) tuner_types(F) tea5767(F) tda9887(F) tda8290(F) tea5761(F) tuner(F) snd_cmipci snd_pcm snd_page_alloc snd_opl3_lib saa7134(F) snd_mpu401 parport_pc parport snd_timer snd_hwdep snd_mpu401_uart floppy rtc psmouse videodev(F) v4l1_compat(F) compat_ioctl32(F) v4l2_common(F) videobuf_dma_sg(F) videobuf_core(F) snd_rawmidi snd_seq_device via_ircc pcspkr snd ir_kbd_i2c(F) irda soundcore ir_common(F) crc_ccitt tveeprom(F) i2c_viapro i2c_core button via_agp agpgart evdev ext3 jbd mbcache ide_cd_mod cdrom ide_disk 8139cp via82cxxx ide_core 8139too mii ehci_hcd uhci_hcd usbcore thermal processor fan
 
-Square pixel PAL images have 576 * 4 / 3 = 768 pixels per line. To
-produce 768 square pixels the bttv driver must sample 768 * 1135 / 944 =
-923.4 pixels and scale down to 768. (The driver actually captures
-924x576 pixels since times immemorial, so cropcap.defrect is 924x576.)
+Pid: 2742, comm: v4l2-ctl Tainted: GF        (2.6.25 #1)
+EIP: 0060:[<c028b66e>] EFLAGS: 00010286 CPU: 0
+EIP is at __mutex_lock_slowpath+0x29/0x7b
+EAX: ffffffff EBX: d0a09eb4 ECX: c0314b04 EDX: 00000000
+ESI: d0a09ebc EDI: d0a09eb8 EBP: cf325260 ESP: ced7fde4
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process v4l2-ctl (pid: 2742, ti=ced7e000 task=cf325260 task.ti=ced7e000)
+Stack: d0a09ebc d0a097c4 ced7fed4 fffffff0 d0a09eb4 00000000 cf17e000 c028b52b 
+       d08e5411 00000000 ced7fed4 00000000 d0975acb 40045612 cfa86ee0 ffffffcd 
+       cf2b7000 ced7febc c03858d6 00000019 00000292 d089e4ec cf37b2a0 d089e4a0 
+Call Trace:
+ [<c028b52b>] mutex_lock+0xa/0xb
+ [<d08e5411>] videobuf_streamon+0xf/0x9a [videobuf_core]
+ [<d0975acb>] __video_do_ioctl+0x136a/0x2d68 [videodev]
+ [<d088f789>] task_end_request+0x40/0x51 [ide_core]
+ [<d088c4aa>] ide_intr+0x187/0x192 [ide_core]
+ [<c016a551>] mntput_no_expire+0x11/0x64
+ [<c0160b1c>] path_walk+0x90/0x98
+ [<d0977738>] video_ioctl2+0x173/0x239 [videodev]
+ [<c0140936>] filemap_fault+0x202/0x370
+ [<c014930a>] __do_fault+0x2c3/0x2fe
+ [<c014ab03>] handle_mm_fault+0x22a/0x49f
+ [<c0162737>] vfs_ioctl+0x47/0x5d
+ [<c0162992>] do_vfs_ioctl+0x245/0x258
+ [<c01629e6>] sys_ioctl+0x41/0x5b
+ [<c01036a6>] sysenter_past_esp+0x5f/0x85
+ =======================
+Code: c0 c3 55 57 56 53 89 c3 8d 78 04 83 ec 0c 89 f8 64 8b 2d 00 c0 36 c0 e8 ef 0b 00 00 8d 73 08 83 c8 ff 8b 56 04 89 34 24 89 66 04 <89> 22 89 54 24 04 89 6c 24 08 87 03 48 74 21 83 c8 ff 87 03 48 
+EIP: [<c028b66e>] __mutex_lock_slowpath+0x29/0x7b SS:ESP 0068:ced7fde4
+---[ end trace 157ece570bdba591 ]---
 
-As Daniel wrote, another way to view this is that the active portion of
-the video is about 52 탎 wide. At 12.27 MHz (for NTSC square pixels) one
-would sample or "crop" 638 pixels over this period. At 13.5 MHz (BT.601)
-702 pixels, at 14.75 MHz (for PAL square pixels) 767 pixels, and at
-17.73 MHz (bttv) 922.2 pixels.
+After this fix all of that commands works without problem:
 
-The pixel aspect is (actual sampling rate) / (square pixel sampling
-rate). The examples in the spec are: 54 / 59 = 13.5 MHz / 14.75 MHz (PAL
-BT.601) and 11 / 10 = 13.5 MHz / 12 3/11 MHz (NTSC BT.601).
+v4l2-ctl --all -d /dev/video1
 
-Of course there's no guarantee defrect will cover exactly 52 탎. An
-older chip may always capture 720 pixels at 13.5 MHz with no support for
-scaling or cropping whatsoever. But since all video capture drivers are
-supposed to support VIDIOC_CROPCAP, apps can still determine the pixel
-aspect and display captured images correctly.
+Driver Info:
+	Driver name   : saa7134
+	Card type     : Beholder BeholdTV M6 Extra
+	Bus info      : PCI:0000:00:0d.0
+	Driver version: 526
+	Capabilities  : 0x05000001
+		Video Capture
+		Read/Write
+		Streaming
+Format Video Capture:
+	Width/Height  : 720/576
+	Pixel Format  : MPEG
+	Field         : Any
+	Bytes per Line: 0
+	Size Image    : 58656
+	Colorspace    : Unknown (00000000)
+Video input : 0 (CCIR656)
+Video Standard = 0x000000ff
+	PAL-B/B1/G/H/I/D/D1/K
 
-> [cropcap] does not take into account anamorphic 16:9 transmissions.
 
-It's true cropcap assumes the pixel aspect (or sampling rate) will never
-change. PAL/NTSC/SECAM has a 4:3 picture aspect. Apps must find out by
-other means, perhaps WSS, if a 16:9 signal is transmitted instead, and
-ask the driver to scale the images accordingly or do that themselves.
+diff -r ca65777314d2 linux/drivers/media/video/saa7134/saa7134-empress.c
+--- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Mon Jun 09 11:59:05 2008 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Tue Jun 10 20:34:22 2008 +1000
+@@ -227,8 +227,7 @@ static int empress_g_fmt_vid_cap(struct 
+ static int empress_g_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	saa7134_i2c_call_clients(dev, VIDIOC_G_FMT, f);
+ 
+@@ -241,8 +240,7 @@ static int empress_s_fmt_vid_cap(struct 
+ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	saa7134_i2c_call_clients(dev, VIDIOC_S_FMT, f);
+ 
+@@ -256,8 +254,7 @@ static int empress_reqbufs(struct file *
+ static int empress_reqbufs(struct file *file, void *priv,
+ 					struct v4l2_requestbuffers *p)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_reqbufs(&dev->empress_tsq, p);
+ }
+@@ -265,24 +262,21 @@ static int empress_querybuf(struct file 
+ static int empress_querybuf(struct file *file, void *priv,
+ 					struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_querybuf(&dev->empress_tsq, b);
+ }
+ 
+ static int empress_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_qbuf(&dev->empress_tsq, b);
+ }
+ 
+ static int empress_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_dqbuf(&dev->empress_tsq, b,
+ 				file->f_flags & O_NONBLOCK);
+@@ -291,8 +285,7 @@ static int empress_streamon(struct file 
+ static int empress_streamon(struct file *file, void *priv,
+ 					enum v4l2_buf_type type)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_streamon(&dev->empress_tsq);
+ }
+@@ -300,8 +293,7 @@ static int empress_streamoff(struct file
+ static int empress_streamoff(struct file *file, void *priv,
+ 					enum v4l2_buf_type type)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_streamoff(&dev->empress_tsq);
+ }
+@@ -309,8 +301,7 @@ static int empress_s_ext_ctrls(struct fi
+ static int empress_s_ext_ctrls(struct file *file, void *priv,
+ 			       struct v4l2_ext_controls *ctrls)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	/* count == 0 is abused in saa6752hs.c, so that special
+ 		case is handled here explicitly. */
+@@ -329,8 +320,7 @@ static int empress_g_ext_ctrls(struct fi
+ static int empress_g_ext_ctrls(struct file *file, void *priv,
+ 			       struct v4l2_ext_controls *ctrls)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_MPEG)
+ 		return -EINVAL;
 
-But for a webcam with an anamorphic lens it would be perfectly correct
-to return e.g. defrect=640x480 and pixelaspect=3/4.
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-> The height of defrect should correspond to the active picture area.
-> In case of 625-line PAL/SECAM it should represent 576 lines.
-> It follows that
-> width = defrect.height * 4/3
->         * v4l2_cropcap.pixelaspect.numerator
->         / v4l2_cropcap.pixelaspect.denominator;
-> covers 52탎 of a 64탎 PAL/SECAM line.
-> 52탎 equals 702 BT.601 pixels.
+P.S. data from /dev/video1 is not correct :(( .
 
-Not quite. Let's say defrect is 720x576 and pixelaspect is 54/59
-(PAL/SECAM BT.601).
+With my best regards, Dmitry.
 
-If you want to capture exactly what the driver samples (no scaling) just
-call VIDIOC_S_FMT width cropcap.defrect as the image size. From our
-hypothetical BT.601 driver you'd get 720x576 images (no square pixels)
-with a black bar at the left and right edge because BT.601 overscans the
-picture: 720 / 13.5 MHz = 53.3 탎.
+--MP_/N2Zq76NT.2h6_DogzOwwbz0
+Content-Type: text/x-patch; name=beholder_empress_03.diff
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=beholder_empress_03.diff
 
-To get the same area of the picture with square pixels you request:
+diff -r ca65777314d2 linux/drivers/media/video/saa7134/saa7134-empress.c
+--- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Mon Jun 09 11:59:05 2008 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Tue Jun 10 20:34:22 2008 +1000
+@@ -227,8 +227,7 @@ static int empress_g_fmt_vid_cap(struct 
+ static int empress_g_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	saa7134_i2c_call_clients(dev, VIDIOC_G_FMT, f);
+ 
+@@ -241,8 +240,7 @@ static int empress_s_fmt_vid_cap(struct 
+ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	saa7134_i2c_call_clients(dev, VIDIOC_S_FMT, f);
+ 
+@@ -256,8 +254,7 @@ static int empress_reqbufs(struct file *
+ static int empress_reqbufs(struct file *file, void *priv,
+ 					struct v4l2_requestbuffers *p)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_reqbufs(&dev->empress_tsq, p);
+ }
+@@ -265,24 +262,21 @@ static int empress_querybuf(struct file 
+ static int empress_querybuf(struct file *file, void *priv,
+ 					struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_querybuf(&dev->empress_tsq, b);
+ }
+ 
+ static int empress_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_qbuf(&dev->empress_tsq, b);
+ }
+ 
+ static int empress_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_dqbuf(&dev->empress_tsq, b,
+ 				file->f_flags & O_NONBLOCK);
+@@ -291,8 +285,7 @@ static int empress_streamon(struct file 
+ static int empress_streamon(struct file *file, void *priv,
+ 					enum v4l2_buf_type type)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_streamon(&dev->empress_tsq);
+ }
+@@ -300,8 +293,7 @@ static int empress_streamoff(struct file
+ static int empress_streamoff(struct file *file, void *priv,
+ 					enum v4l2_buf_type type)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	return videobuf_streamoff(&dev->empress_tsq);
+ }
+@@ -309,8 +301,7 @@ static int empress_s_ext_ctrls(struct fi
+ static int empress_s_ext_ctrls(struct file *file, void *priv,
+ 			       struct v4l2_ext_controls *ctrls)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	/* count == 0 is abused in saa6752hs.c, so that special
+ 		case is handled here explicitly. */
+@@ -329,8 +320,7 @@ static int empress_g_ext_ctrls(struct fi
+ static int empress_g_ext_ctrls(struct file *file, void *priv,
+ 			       struct v4l2_ext_controls *ctrls)
+ {
+-	struct saa7134_fh *fh = priv;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = file->private_data;
+ 
+ 	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_MPEG)
+ 		return -EINVAL;
 
-image width = defrect.width / pixelaspect;
-image height = defrect.height;
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-Now the images will be 720 / 54 * 59 = 786 square pixels wide. That's
-more than 768 because you're still overscanning. What you really need
-is:
-
-image width = 768;
-image height = 576;
-
-crop width = round (image width * pixelaspect);
-crop height = defrect.height;
-crop left = defrect.left + (defrect.width - crop width) / 2;
-crop top = defrect.top;
-
-Now the images will be 768 pixels wide, scaled up from 768 * 54 / 59 =
-703 sampled pixels, which cover 703 / 13.5 MHz = 52.0 탎 centered over
-the active picture. With the same code the bttv driver with defrect
-924x576 and pixelaspect 1135/944 would give you 768x576 square pixel
-images covering 923 / 17.73 MHz = 52.0 탎 centered.
-
-But a driver can return any defrect.height and the picture aspect is not
-necessarily 4:3. Imagine a webcam with a 1280x720 sensor.
-
-image width = 768;
-image height = 576;
-
-crop width = round (image width * pixelaspect
-                    * defrect.height / image height);
-crop height = defrect.height;
-crop left = defrect.left + (defrect.width - crop width) / 2;
-crop top = defrect.top;
-
-Now let's say defrect is 720x480 and pixelaspect is 11/10 (NTSC BT.601).
-Result: The driver scales up from 704x480 to 768x576 square pixels
-covering 704 / 13.5 MHz = 52.1 탎 centered.
-
-Let's say defrect is 1280x720 and pixelaspect is 1/1 (16:9 camera).
-Result: It scales images down from 960x720 to 768x576, cutting off 160
-pixels left and right.
-
-Let's say defrect is 640x480 and pixelaspect is 3/4 (camera with
-anamorphic lens). Result: It scales images up from 480x480 to 768x576,
-cutting off 80 pixels left and right.
-
-The relation between picture aspect and pixel aspect is:
-picture aspect = defrect.width / defrect.height / pixelaspect;
-E.g. 16/9 = 640 / 480 / (3/4).
-
-> The defrect.left+defrect.width/2 should be the center of the active
-> picture area.
-
-That's required by the spec, also in the vertical direction. (Well, duh.
-What else would drivers capture by default.)
-
-> Many people use 480 lines instead of 486 lines for the active region in NTSC
-> and if there are inconsistencies in drivers, application may degrade the
-> picture by scaling. Therefore it would be nice if at least analog vertical
-> resolution was mapped 1:1 to cropping regions per standard.
-> Not doing so would make sense only if there was a tv standard where the
-> image is drawn column-wise.
-
-Horizontally the bttv driver's v4l2_crop counts luminance samples
-starting at 0H, which is an obvious choice to me. Don't know about
-saa7134.
-
-Vertically the bttv and saa7134 driver count frame lines. Field lines
-would be admissible too, but considering these devices can capture
-interlaced images it makes sense to return defrect.height 480 and 576.
-An odd cropping height is not possible though.
-
-The vertical origin is given by counting ITU-R line numbers as in the
-VBI API, which simplifies things quite a bit. Specifically these drivers
-count ITU-R line numbers of the first field times two, so bttv's
-defrect.top is 23 * 2.
-
-It may be nice if other drivers followed this convention, but apps
-cannot blindly rely on that. (They can check the driver name if exact
-cropping is important.) The cropping units are undefined by the spec
-because samples, microseconds or scan lines depend on the video standard
-and make no sense for a webcam.
-
-Michael
-
+--MP_/N2Zq76NT.2h6_DogzOwwbz0
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--MP_/N2Zq76NT.2h6_DogzOwwbz0--
