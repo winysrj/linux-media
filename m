@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.231])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yoshi314@gmail.com>) id 1KDIcn-0002Du-5A
-	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 14:36:55 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1498881rvf.41
-	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 05:36:48 -0700 (PDT)
-Message-ID: <51029ae90806300536g734d5d24x84ed8cc84260266a@mail.gmail.com>
-Date: Mon, 30 Jun 2008 14:36:48 +0200
-From: "yoshi watanabe" <yoshi314@gmail.com>
-To: "Simon Farnsworth" <simon.farnsworth@onelan.co.uk>
-In-Reply-To: <4868B148.2030300@onelan.co.uk>
+Received: from olammi.iki.fi ([217.112.242.173])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <olammi@olammi.iki.fi>) id 1K60dT-0007eJ-W9
+	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 11:59:28 +0200
+Date: Tue, 10 Jun 2008 12:59:21 +0300 (EEST)
+From: Olli Lammi <olammi@olammi.iki.fi>
+To: linux-dvb@linuxtv.org
+Message-ID: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
-	<4868A644.5030806@onelan.co.uk>
-	<51029ae90806300304s106305u36be341e80b69b2a@mail.gmail.com>
-	<4868B148.2030300@onelan.co.uk>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr-1300 analog audio question
+Subject: [linux-dvb] High load with Terratec Cinergy 1200 DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,77 +22,101 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-sorry, seems that's the way gmail works by default. that was not intended.
-i'll post results in 3-4 hours time when i'm home.
+Hello!
+------
 
-On Mon, Jun 30, 2008 at 12:11 PM, Simon Farnsworth
-<simon.farnsworth@onelan.co.uk> wrote:
-> Please don't drop the cc when replying - I'm passing on my own experiences
-> with an unrelated card, in the hope that it helps you.
->
-> Someone else on the list may look at this and have an "aha!" moment,
-> answering your question for you.
->
-> Note that the increased buffering is important for the SAA7134 - it seems to
-> only be prepared to transfer audio data in blanking time, so if there's not
-> enough buffering available, it just drops samples.
->
-> yoshi watanabe wrote:
->>
->> i tried 32000 before when using arecord | aplay combo but the arecord
->> insisted on 48000 audio rate. will try again and report later, thanks.
->>
->> On Mon, Jun 30, 2008 at 11:24 AM, Simon Farnsworth
->> <simon.farnsworth@onelan.co.uk> wrote:
->>>
->>> yoshi watanabe wrote:
->>>>
->>>> hello.
->>>>
->>>> i'm using hauppauge hvr-1300 to receive video signal from playstation2
->>>> console, pal model. video is just fine, but i'm having strange audio
->>>> issues, but judging by some searching i did - that's pretty common
->>>> with this card , although people have varied experience with the card.
->>>>
->>> I've had similar issues with SAA7134 based cards, which were resolved by
->>>  changing audio parameters.
->>>
->>> If your problem is the same as mine was, try:
->>> arecord --format=S16 \
->>>       --rate=32000 \
->>>       --period-size=8192 \
->>>       --buffer-size=524288 | aplay
->>>
->>> This forces 32kHz sampling, and gives the card lots of buffer space to
->>> play
->>> with.
->>> --
->>> Simon Farnsworth
->>>
->>>
->>
->>
->>
->
->
-> --
-> Simon Farnsworth
-> Software Engineer
->
-> ONELAN Limited
-> 1st Floor Andersen House
-> Newtown Road
-> Henley-on-Thames, OXON
-> RG9 1HG
-> United Kingdom
->
-> Tel:    +44(0)1491 411400
-> Fax:    +44(0)1491 579254
-> Support:+44(0)1491 845282
->
-> www.onelan.co.uk
->
->
+I recently moved to area where only DVB-T is available and changed my
+DVB-C-cards to two Terratec Cinergy 1200 DVB-T cards. However adding
+one card lifted the load of my server to approx 0.8 and adding the
+second card to approx 1.6. No processes are consuming the processor time so I 
+think the high load is due to dvb driver or kernel.
+
+Is this a known problem and is there a workaround available?. I tried to search 
+the net for answers but found none.
+
+Some info about the problem:
+
+The distribution: Fedora Core 6
+The kernel:       2.6.22.14-72.fc6
+
+   % uname -a
+   Linux zil 2.6.22.14-72.fc6 #1 SMP Wed Nov 21 15:12:59 EST 2007 i686 i686 i386 
+GNU/Linux
+   %
+
+The card firmware:
+
+   % ls -la /lib/firmware/dvb*
+   -rw-r--r-- 1 root root 24478 May 22 23:07 /lib/firmware/dvb-fe-tda10046.fw
+   %
+
+   Jun 10 04:01:21 zil kernel: tda1004x: setting up plls for 53MHz sampling 
+clock
+   Jun 10 04:01:21 zil kernel: tda1004x: found firmware revision 20 -- ok
+
+
+Boot log about the cards:
+
+Linux video capture interface: v2.00
+saa7146: register extension 'budget_av'.
+saa7146: found saa7146 @ mem e0986000 (revision 1, irq 22) (0x153b,0x1157).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (Terratec Cinergy 1200 DVB-T).
+adapter failed MAC signature check
+encoded MAC from EEPROM was 
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+KNC1-0: MAC addr = 00:0a:ac:01:ea:a8
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+budget-av: ci interface initialised.
+saa7146: found saa7146 @ mem e4bb0000 (revision 1, irq 23) (0x153b,0x1157).
+saa7146 (1): dma buffer size 192512
+DVB: registering new adapter (Terratec Cinergy 1200 DVB-T).
+adapter failed MAC signature check
+encoded MAC from EEPROM was 
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+KNC1-1: MAC addr = 00:0a:ac:01:ea:c4
+DVB: registering frontend 1 (Philips TDA10046H DVB-T)...
+budget-av: ci interface initialised.
+
+
+I run oprofile on the server approximately idle and with the 1.6 load average 
+with the following results. Seems that the most time is spent in the dvb_core 
+kernel module:
+
+CPU: P4 / Xeon, speed 2732.57 MHz (estimated)
+Counted GLOBAL_POWER_EVENTS events (time during which processor is not stopped)
+with a unit mask of 0x01 (mandatory) count 100000
+GLOBAL_POWER_E...|
+   samples|      %|
+------------------
+       684 21.2687 dvb_core
+       646 20.0871 libc-2.5.so
+       554 17.2264 vdr
+         GLOBAL_POWER_E...|
+           samples|      %|
+         ------------------
+               490 88.4477 vdr
+                64 11.5523 anon (tgid:2235 range:0x287000-0x288000)
+       364 11.3184 saa7146
+       223  6.9341 bash
+         GLOBAL_POWER_E...|
+           samples|      %|
+         ------------------
+               217 97.3094 bash
+                 6  2.6906 anon (tgid:27354 range:0x2f4000-0x2f5000)
+       114  3.5448 ext3
+        91  2.8296 oprofiled
+         GLOBAL_POWER_E...|
+
+
+Yours and any help appreciated
+
+Olli Lammi
+Pirkkala, Finland
+
+--------------------------------------------------------------------------
+Olli Lammi                    olammi@iki.fi               +358 40 580 7666
+--------------------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
