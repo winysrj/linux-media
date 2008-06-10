@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <r.schedel@yahoo.de>) id 1K56aK-0002IM-Cr
-	for linux-dvb@linuxtv.org; Sun, 08 Jun 2008 00:08:33 +0200
-Message-ID: <484B0607.9020205@yahoo.de>
-Date: Sun, 08 Jun 2008 00:04:55 +0200
-From: Robert Schedel <r.schedel@yahoo.de>
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1K631M-0000Ed-Nn
+	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 14:32:18 +0200
+Message-ID: <484E744A.5060505@iki.fi>
+Date: Tue, 10 Jun 2008 15:32:10 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Halim Sahin <halim.sahin@t-online.de>
-References: <20080607184758.GA30074@halim.local>
-In-Reply-To: <20080607184758.GA30074@halim.local>
+To: L C <lucasspeciaaladres@gmail.com>
+References: <393726e40806100525i15757bf2rc8d3993e763da47b@mail.gmail.com>
+In-Reply-To: <393726e40806100525i15757bf2rc8d3993e763da47b@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] budget_av,  high cpuload with kncone tvstar
+Subject: Re: [linux-dvb] Pinnacle usb dvb-t nano 73e and Ubuntu please Help!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,21 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Halim Sahin wrote:
-> Hi,
-> 
-> I have one knc one tvstar.
-> After loading budget_av the machine show this:
-> uptime
->  20:44:58 up 37 min,  2 users,  load average: 0.71, 0.65, 0.67
-> [...]
+L C wrote:
+> I am Lucas from The Netherlands/Holland. I can get my dvb-t pinnacle usb
+>    nano stick 73 e to work under Ubuntu 7.10. Really don t know what to do.
+>    Could someone help me step by step from install etc.
+>    Thnx.
 
-It is probably this known issue (fix already exists): 
-<http://bugzilla.kernel.org/show_bug.cgi?id=10459>
+It is supported by v4l-dvb. Install drivers from http://linuxtv.org/repo/
 
-Regards,
-Robert
-
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
