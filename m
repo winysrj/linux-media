@@ -1,22 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLaUpF017152
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:36:30 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLaJrG022683
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:36:19 -0400
-Date: Tue, 24 Jun 2008 18:36:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20080624183601.235ff1d5@gaivota>
-In-Reply-To: <200806240033.41145.laurent.pinchart@skynet.be>
-References: <485F7A42.8020605@vidsoft.de>
-	<200806240033.41145.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5BI5nth020548
+	for <video4linux-list@redhat.com>; Wed, 11 Jun 2008 14:05:49 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5BI5cgO029796
+	for <video4linux-list@redhat.com>; Wed, 11 Jun 2008 14:05:38 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so3573101rvb.51
+	for <video4linux-list@redhat.com>; Wed, 11 Jun 2008 11:05:38 -0700 (PDT)
+Message-ID: <f50b38640806111105o7e20dc1eq558a3b9efd0ac617@mail.gmail.com>
+Date: Wed, 11 Jun 2008 14:05:37 -0400
+From: "Jason Pontious" <jpontious@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>, video4linux-list@redhat.com,
+	"David Engel" <david@istwok.net>
+In-Reply-To: <4845F1FF.3050406@linuxtv.org>
+MIME-Version: 1.0
+References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
+	<20080530145830.GA7177@opus.istwok.net>
+	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
+	<20080601190328.GA23388@opus.istwok.net>
+	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
+	<20080601205522.GA2793@opus.istwok.net>
+	<f50b38640806031701g31353ee0h39b42a4c51a3374b@mail.gmail.com>
+	<4845F1FF.3050406@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
-Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
+Content-Disposition: inline
+Cc: 
+Subject: Re: Kworld 115-No Analog Channels
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,19 +38,169 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> > Can I enable more logging than setting the trace parameter to 0xfff?
-> 
-> No without adding more printk's to the driver, which I encourage you to do.
+On Tue, Jun 3, 2008 at 9:38 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-This would be one advantage of having uvc driver using video_ioctl2. to see
-ioctl's it is just a matter of using debug=1. If you use debug=3, you'll also
-view all arguments of the ioctl.
+> Jason Pontious wrote:
+> > On Sun, Jun 1, 2008 at 4:55 PM, David Engel <david@istwok.net> wrote:
+> >
+> >> On Sun, Jun 01, 2008 at 03:10:21PM -0400, Michael Krufky wrote:
+> >>> modprobe -r tuner
+> >>> modprobe -r tuner-simple
+> >>> modprobe tuner-simple debug=1
+> >>> modprobe tuner debug=1
+> >>>
+> >>> ...then test again and show the dmesg logs.
+> >> Here are the logs:
+> >>
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: chip found @ 0x86
+> (saa7133[0])
+> >> Jun  1 15:52:36 opus kernel: tda9887 2-0043: tda988[5/6/7] found
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: type set to tda9887
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: tv freq set to 0.00
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: TV freq (0.00) out of range
+> >> (44-958)
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: saa7133[0] tuner' I2C addr
+> 0x86
+> >> with type 74 used for 0x0e
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: Calling set_type_addr for
+> >> type=68, addr=0xff, mode=0x04, config=0x00
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0043: set addr for type 74
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Setting mode_mask to 0x0e
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: chip found @ 0xc2
+> (saa7133[0])
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tuner 0x61: Tuner type
+> absent
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Calling set_type_addr for
+> >> type=68, addr=0xff, mode=0x04, config=0x00
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: set addr for type -1
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: defining GPIO callback
+> >> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: type set to 68
+> (Philips
+> >> TUV1236D ATSC/NTSC dual in)
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: type set to Philips TUV1236D
+> AT
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tv freq set to 400.00
+> >> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: IFPCoff = 623:
+> >> tuner_t_params undefined for tuner 68
+> >> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv: param 0, range 1
+> >> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: Freq= 400.00 MHz,
+> >> V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
+> >> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv 0x1b 0x6f 0xce 0x02
+> >> Jun  1 15:52:36 opus kernel: tuner' 2-0061: saa7133[0] tuner' I2C addr
+> 0xc2
+> >> with type 68 used for 0x0e
+> >>
+> >> The tuner is detected this time and analog capture works.
+> >>
+> >> David
+> >> --
+> >> David Engel
+> >> david@istwok.net
+> >>
+> >
+> >
+> > I've been following this discussion closely and will give you my input
+> from
+> > what I have seen.  Here is my output from a 2.6.24-rc4 kernel with the
+> > v4l-dvb drivers included in that kernel.
+> >
+> > My output from lsmod | grep tuner is :
+> >
+> > [snip]
+> >
+> > After modprobe -r tuner; modprobe -r saa7134-dvb; modprobe -r
+> tuner-simple;
+> > then modprobe tuner debug=1; modprobe saa7134-dvb; modprobe tuner-simple
+> > debug=1
+>
+> module load order matters.  to explain how and why is beyond the scope of
+> this conversation.  To make things easy, use "make unload" inside the
+> v4l-dvb tree to unload all the media drivers.  (do NOT ever use make load)
+>
+> The order that you loaded above will not propogate the debug=1 module
+> option to tuner-simple, since you already loaded 'tuner' and saa7134 is
+> already running -- the combination of saa7134 and tuner will automatically
+> load tuner-simple without any regard to your command line module options.
+>
+> try this:
+>
+> make unload
+> modprobe tuner-simple debug=1
+> modprobe tuner debug=1
+> modprobe saa7134
+> modprobe saa7134-dvb
+>
+> > [17205274.727019] tda9887 1-0043: destroying instance
+> > [17205281.126932] tuner-simple 1-0061: destroying instance
+> > [17205295.203526] tuner' 1-0043: chip found @ 0x86 (saa7133[0])
+> > [17205295.203535] tda9887 1-0043: creating new instance
+> > [17205295.203538] tda9887 1-0043: tda988[5/6/7] found
+> > [17205295.203540] tuner' 1-0043: type set to tda9887
+> > [17205295.203543] tuner' 1-0043: tv freq set to 0.00
+> > [17205295.203546] tuner' 1-0043: TV freq (0.00) out of range (44-958)
+> > [17205295.211552] tuner' 1-0043: saa7133[0] tuner' I2C addr 0x86 with
+> type
+> > 74 used for 0x0e
+> > [17205295.219525] tuner' 1-0061: Setting mode_mask to 0x0e
+> > [17205295.219530] tuner' 1-0061: chip found @ 0xc2 (saa7133[0])
+> > [17205295.219532] tuner' 1-0061: tuner 0x61: Tuner type absent
+> > [17205319.208573] nxt200x: NXT2004 Detected
+> > [17205319.216610] tuner-simple 1-0061: creating new instance
+> > [17205319.216615] tuner-simple 1-0061: type set to 68 (Philips TUV1236D
+> > ATSC/NTSC dual in)
+> > [17205319.216619] tuner-simple 1-0061: tuner 0 atv rf input will be
+> > autoselected
+> > [17205319.216621] tuner-simple 1-0061: tuner 0 dtv rf input will be
+> > autoselected
+> > [17205319.216625] DVB: registering new adapter (saa7133[0])
+> > [17205319.216628] DVB: registering frontend 0 (Nextwave NXT200X VSB/QAM
+> > frontend)...
+> > [17205319.232698] nxt2004: Waiting for firmware upload
+> > (dvb-fe-nxt2004.fw)...
+> > [17205319.232706] firmware: requesting dvb-fe-nxt2004.fw
+> > [17205319.256572] nxt2004: Waiting for firmware upload(2)...
+> > [17205320.877005] nxt2004: Firmware upload complete
+> >
+> > I dont have analog channels before or after this.  I should have some set
+> of
+> > analog channels on either input.  Before with the ubuntu 2.6.24 I would
+> > receive analog from the top input.  With 2.6.26-rc4 I can't seem to get
+> > analog no matter what.  I'm not sure how my problem applies to the rest
+> of
+> > this conversation or if its completely different.
+> >
+> > Let me know if you would like me to test anything else.
+>
+> If the top input doesn't work, then try the bottom one.  Use the module
+> options to change them if you like.
+>
+> If things still dont work, then try the following:
+>
+> make unload
+> modprobe saa7134-dvb
+> modprobe -r tuner
+> modprobe tuner
+>
+> ...that should do it.  Try both inputs.
+>
+> -Mike
 
-Cheers,
-Mauro
 
-PS.: I'm still waiting for uvc patches for its kernel addition.
+Well after trying everything I could think of I could never get analog
+channels to work with the drivers that came with 2.6.26-rc4.  I finally gave
+up and went back to the 2.6.24 ubuntu kernel and modified tuner-simple.c
+file and recompiled the module.  Hopefully you guys understand the problem
+and have a fix in mind.  I wish I had time to debug all of this.  I had
+analog channels on 2.6.24 it was just using the wrong input for my setup.
+With 2.6.26 I got no analog channels (with the exact same options used in
+2.6.24 setup).  Which is strange since I should have some analog channels
+either way since I have both inputs connected.  With 2.6.24 I got the
+"wrong" analog channels.  With 2.6.26 I got NO analog channels period.  I am
+running amd64 but I doubt this is causing any issues.
 
+Well just thought I would update you guys on where I ended up.  Thanks again
+for all the help you provided!  I learned more about the v4l kernel modules
+than I ever imagined during this.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
