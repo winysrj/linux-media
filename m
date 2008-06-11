@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n29.bullet.mail.ukl.yahoo.com ([87.248.110.146])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KClkY-0007Fb-N9
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 03:30:45 +0200
-Date: Sat, 28 Jun 2008 21:24:26 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1K6O7V-0008D7-2d
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 13:04:04 +0200
+Received: from [192.168.1.2] (01-157.155.popsite.net [66.217.131.157])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m5BB3sA3000897
+	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 07:03:55 -0400 (EDT)
+From: Andy Walls <awalls@radix.net>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <200806282223.39447.ajurik@quick.cz> (from ajurik@quick.cz on
-	Sat Jun 28 16:23:39 2008)
-Message-Id: <1214702666l.6081l.1l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Re : Re : How to solve the TT-S2-3200 tuning
- problems?
+In-Reply-To: <139261.21368.qm@web55108.mail.re4.yahoo.com>
+References: <139261.21368.qm@web55108.mail.re4.yahoo.com>
+Date: Wed, 11 Jun 2008 07:03:28 -0400
+Message-Id: <1213182208.3158.13.camel@palomino.walls.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] symbol rate and signal level
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,52 +22,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 28.06.2008 16:23:39, Ales Jurik a =E9crit=A0:
-> On Saturday 28 of June 2008, manu wrote:
-> > Le 28.06.2008 08:44:12, manu a =E9crit=A0:
-> >
-> > just to precise a bit more: all transponders are DVB-S with QPSK
-> > modulation (at least this is what is advertised in the dvb tables).
-> > BYe
-> > Manu
-> >
-> Hi,
-> =
+On Tue, 2008-06-10 at 23:24 -0700, alireza ghahremanian wrote:
+> Dear friends 
+> 
+> What is the relation between symbol rate and signal level, why when decrease the symbol rate the signal level increase ?
+> 
 
-> this is interesting - I don't have problem with DVB-S/QPSK channels
-> except for =
+S/N = Es/No * Rs/B
 
-> some channels I'm not able to tune directly when changing sat (on
-> diseqc =
+S = Received signal power (Watts)
+N = Noise power (Watts)
 
-> switch) - it is necessary to tune first to another transponder and
-> then to =
+Es = Average energy per symbol (Joules/symbol)
+No = Noise density (Watts/Hz)
 
-> this problematic one.
-> =
+Rs = Symbol rate (Symbols/second)
+B  = Bandwidth (Hz)
 
-> Could you be so kind and specify more channels you have problems =
 
-> with?
+For a particular BER, the receiver will require a certain Es/No.  If S
+goes down, then Rs must go down (or B must go up) as well to maintain
+the same Es/No and hence the same BER.
 
-Thats the thing: every other transponder works great, that is: 11093, =
 
-11555, 11635, 11675 MHz, 30MBauds, DVB-S, QPSK, FEC 3/4.
-The only problematic one: 11495MHz, FEC 5/6 and every other =
+So in the case of lowering Rs and holding S/N the same, you are
+operating at a higher Es/No which means a lower BER.
 
-characteristics are the same as the working ones. I checked in the dvb =
 
-tables from the transport stream.
-Have you got any idea?
-Thanks
-Manu
-
+-Andy
 
 
 _______________________________________________
