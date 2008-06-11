@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 15 Jun 2008 14:09:58 -0500
-From: David Engel <david@istwok.net>
-To: Steven Toth <stoth@linuxtv.org>
-Message-ID: <20080615190958.GA6792@opus.istwok.net>
-References: <20080613163914.GA31437@opus.istwok.net>
-	<4852AB58.9010806@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <4852AB58.9010806@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] A couple HVR-1800 questions
+Received: from f143.mail.ru ([194.67.57.136])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1K6Pks-0006NA-6r
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 14:48:47 +0200
+Received: from mail by f143.mail.ru with local id 1K6PkJ-0009bW-00
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 16:48:11 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Wed, 11 Jun 2008 16:48:11 +0400
+Message-Id: <E1K6PkJ-0009bW-00.goga777-bk-ru@f143.mail.ru>
+Subject: [linux-dvb] =?koi8-r?b?aHZyNDAwMCBjYXJkIGFuZCBpb2N0bCBEVkJGRV9H?=
+	=?koi8-r?b?RVRfSU5GTw==?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,38 +26,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Jun 13, 2008 at 01:16:08PM -0400, Steven Toth wrote:
-> David Engel wrote:
->> First, what is the status of the analog capture capability?  My search
->> ...
->
-> The analog encoder is running with the tree form linuxtv.org. It has  
-> some cleanup video ioctl2 rework going on by another dev here, but it's  
-> functional as is. It's usable today.
+Hi
 
-Thanks for the repsonse, Steven.
+could somebody (who has the hvr4000 card) to run patched szap/scan for dvb-s2 channels ? (I know that on TT3200 these dvb-apps work properly)
+I couldn't run scan/szap due to the error
 
->> Second, as far as I can tell, the hardware can perform simultaneous
->> analog and digital captures.  Is that correct and, if so, does/will
->> the Linux driver support it?
->
-> Yes and yes.
->
-> Typically the analog video devices are exposed as /dev/video0 (analog  
-> preview) /dev/video1 (encoder output) and /dev/dvb/... for the digital 
-> side.
+ioctl DVBFE_GET_INFO failed: Operation not supported
+ERROR: initial tuning failed
 
-Excellent.
+I used multiproto_plus + hvr4000 patch from http://linuxtv.org/pipermail/vdr/2008-May/016713.html
+and the patch_scan_szap.diff.bz2 for current dvb-apps
+from http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026423.html
 
-Regarding the encoder and preview devices, that's different than the
-ivtv convention of using /dev/video(N) and and /dev/video(N+16).  Is
-there a reason you did it differently and should it be standardized
-across drivers?
 
-David
--- 
-David Engel
-david@istwok.net
+
+Goga
+
+
 
 _______________________________________________
 linux-dvb mailing list
