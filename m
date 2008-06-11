@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1K6TTb-0002LJ-1U
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 18:47:11 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so2255698fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 09:47:07 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <janne-dvb@grunau.be>) id 1K6P3p-0003wk-K3
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 14:04:18 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
 To: linux-dvb@linuxtv.org
-Date: Wed, 11 Jun 2008 18:47:04 +0200
-References: <484B40E5.2070109@iinet.net.au>
-In-Reply-To: <484B40E5.2070109@iinet.net.au>
+Date: Wed, 11 Jun 2008 14:04:47 +0200
+References: <BA86A83C-165B-44C6-908B-14F483018582@onetel.com>
+In-Reply-To: <BA86A83C-165B-44C6-908B-14F483018582@onetel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806111847.04772.christophpfister@gmail.com>
-Subject: Re: [linux-dvb] New scan file
+Message-Id: <200806111404.47324.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,27 +25,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Sonntag 08 Juni 2008 04:16:05 schrieb timf:
-> Hi all,
+On Wednesday 11 June 2008 13:36:42 Tim Hewett wrote:
+> Mike,
 >
-> Could someone please tell me where do I send this new scan file which
-> presently I have to manually copy into:
-> /usr/share/doc/dvb-utils/examples/scan/dvb-t
->
-> I think it can also be called dvb-apps
->
-> Here is mine for a dvb-t translator in Perth, Australia.
-> I have called it au-Perth_roleystone:
-<snip>
+> No need to worry about having two of the same D-SAT device so ling as
+> they are both receiving their signal from the same satellite, e.g.
+> 28East in your case. One will be adaptor 0 and the other will be
+> adaptor 1. If they don't receive the signal from the same satellite
+> (say one is on 28East and the other on 19.2East) then it might be
+> difficult to identify which is which since they may not be assigned
+> the same adaptor number each time the PC is booted.
 
-Thanks, added :)
+>From 2.6.26 (or current v4l-dvb hg) on all the frontend modules have a 
+adapter_nr module option which allows to specify which adapter numbers 
+that frontend should prefer. eg. dvb-usb-dib0700 
+adapter_nr=7,6,5,4,3,2,1,0 for reverse allocation of adapter numbers 
+for the dvb-usb-dib0700 modul. This only helps if the cards use 
+different frontend modules. OTOH the ordering is more stable if the 
+devices use the same module.
 
-> Regards,
-> Timf
+> |n my experience recording entire transponders is a good idea even if
+> you only want one or two channels from it, because every now and
+> again the BBC and ITV change the PIDs of their channels - if you
+> record by specifying PIDs you may find you get no recording when the
+> PIDs change. By recording the whole transponder you get everything
+> regardless of PID changes, and then afterwards you can extract the
+> channel(s) you want using ts2ps (from dvb-mpegtools) specifying the
+> current PIDs for the channel. You need plenty of disk space to do
+> this though.
 
-Christoph
+Using an application like MythTV or vdr for recording would solve this 
+two. They handle the pid changes during the recording automatically and 
+record happily more than one program from the same transponder up to 
+the whole transponder. HD speed is might be a little bit more critical 
+due to more independent streams but even the whole tranponder data rate 
+(max 50mbps) is small compared two the speed of modern HD (above 100 
+mbyte/s). MythTV will also happily distribute recordings over multiple 
+discs.
+
+Janne
+
 
 _______________________________________________
 linux-dvb mailing list
