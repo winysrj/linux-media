@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1K6TP5-0001No-9l
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 18:42:31 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so2254471fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 09:42:27 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 11 Jun 2008 18:42:15 +0200
-References: <958689.73756.qm@web53210.mail.re2.yahoo.com>
-In-Reply-To: <958689.73756.qm@web53210.mail.re2.yahoo.com>
+Received: from web53210.mail.re2.yahoo.com ([206.190.49.80])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <deloptes@yahoo.com>) id 1K6W08-0003o9-3A
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 21:28:59 +0200
+Date: Wed, 11 Jun 2008 12:27:56 -0700 (PDT)
+From: Emanoil Kotsev <deloptes@yahoo.com>
+To: Christoph Pfister <christophpfister@gmail.com>, linux-dvb@linuxtv.org
+In-Reply-To: <200806111842.16079.christophpfister@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806111842.16079.christophpfister@gmail.com>
+Message-ID: <389793.51231.qm@web53210.mail.re2.yahoo.com>
 Cc: Emanoil Kotsev <deloptes@yahoo.com>
 Subject: Re: [linux-dvb] Fwd: wrong dvb-t channel information in file
 	"dvb-t/at-Official"
@@ -29,20 +25,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Samstag 07 Juni 2008 16:08:23 schrieb Emanoil Kotsev:
-> Hi,
->
-> I've got the same issue and found the channels in the
-> Bavarian broadcast file. I think I wrote to the list
-> then.
+Hi, Christoph,
 
-Are you sure you wrote to the list? Because I try carefully to deal with all 
-the relevant mails. Feel free to cry if you don't get an answer within a 
-reasonable amount of time.
+--- Christoph Pfister <christophpfister@gmail.com>
+wrote:
 
-> regards
+> Am Samstag 07 Juni 2008 16:08:23 schrieb Emanoil
+> Kotsev:
+> > Hi,
+> >
+> > I've got the same issue and found the channels in
+> the
+> > Bavarian broadcast file. I think I wrote to the
+> list
+> > then.
+> 
+> Are you sure you wrote to the list? Because I try
+> carefully to deal with all 
+> the relevant mails. Feel free to cry if you don't
+> get an answer within a 
+> reasonable amount of time.
 
-Christoph
+I'm sure I wrote but not to the list as I was not
+subscribed.
+
+I found your e-mail (cam@mathematica.scientia.net) in
+the dvb frequency files.
+
+the mail was send at 13.11.2007 14:36 from  
+Emanoil Kotsev <a9706152@unet.univie.ac.at>
+
+you tell me what was wrong with this e-mail
+
+I wrote also to the info@dvb-t.at, who provide
+information about dvb-t in austria and they also did
+not respond. I think the yshould have published this
+information on their official site, so everybody could
+use it ...
+
+regards
+
+
+
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
