@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <debalance@arcor.de>) id 1KDNkl-000208-NY
-	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 20:05:28 +0200
-Message-ID: <48692061.90705@arcor.de>
-Date: Mon, 30 Jun 2008 20:05:21 +0200
-From: =?KOI8-R?Q?Philipp_Hu=22bner?= <debalance@arcor.de>
+	(envelope-from <crope@iki.fi>) id 1K6Z89-00051m-Eh
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 00:49:26 +0200
+Message-ID: <4850566E.8030001@iki.fi>
+Date: Thu, 12 Jun 2008 01:49:18 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Goga777 <goga777@bk.ru>, goga777@bk.ru
-References: <48664867.9060507@arcor.de>
-	<E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
-In-Reply-To: <E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
+To: Andrew Websdale <websdaleandrew@googlemail.com>
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+In-Reply-To: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,58 +25,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Andrew Websdale wrote:
+> I got the front end info from dvbsnoop last night & it says its a 
+> Zarlink MT352, but I should try to open the stick anyway to clear up 
+> exactly what chips it uses, although I think its moulded plastics so 
+> I'll have to cut it open. (@work now, will try later)
+> Andrew (sorry if I sent an email to you direct, Antii, I'm not sure how 
+> Gmail handles mailing lists
 
-hey,
+If dvbsnoop says that there is Zarlink MT352, then there should be.
 
-Goga777 schrieb:
->> Unfortunately szap seems not to work successfully and I didn't manage to
->> see any TV yet.
-> 
-> you should use szap2 from test directory of dvb-apps
-> http://linuxtv.org/hg/dvb-apps/file/77e3c7baa1e4/test/szap2.c
+It should be also seen from the log, try to look your message.log again 
+to see if there is mention about Zarlink MT352 demodulator / frontend 
+and Quantek QT1010 tuner.
 
-I compiled that one and tried it out, but it still doesn't work:
+It could be also possible that tuner is not working.
 
-./szap2 -r -n 001
-reading channels from file '/root/.szap/channels.conf'
-zapping to 1 'ASTRA SDT':
-sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid = 0x1fff, apid
-= 0x1fff sid = 0x000c
-Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
-do_tune: API version=3, delivery system = 0
-do_tune: Frequency = 1951000, Srate = 22000000
-do_tune: Frequency = 1951000, Srate = 22000000
-
-
-status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
-status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
-status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
-status 1e | signal 0154 | snr 007d | ber 00000000 | unc fffffffe |
-FE_HAS_LOCK
-status 1e | signal 0154 | snr 007b | ber 00000000 | unc fffffffe |
-FE_HAS_LOCK
-status 1e | signal 0154 | snr 0079 | ber 00000000 | unc fffffffe |
-FE_HAS_LOCK
-status 1e | signal 0154 | snr 007a | ber 00000000 | unc fffffffe |
-FE_HAS_LOCK
-[..]
-
-Same behaviour for root and a regular user.
-I hate the idea of windows being my only choice.
-
-Best regards,
-Philipp
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIaSBhFhl05MJZ4OgRAp34AKDGuxUFqW+AYJltPhUsAMhpn0IRNgCcC8bs
-yOke07MoeqhLn33kL6kPvyg=
-=uhNh
------END PGP SIGNATURE-----
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
