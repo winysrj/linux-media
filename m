@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from hu-out-0506.google.com ([72.14.214.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KAqM7-0005f9-HE
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:01:33 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id 5408819E65D4
-	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 22:00:57 +0400 (MSD)
-Received: from localhost.localdomain (unknown [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id 949DF19E647B
-	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 22:00:56 +0400 (MSD)
-Date: Mon, 23 Jun 2008 22:05:54 +0400
-From: Goga777 <goga777@bk.ru>
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K6Uo9-0008Jp-0W
+	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 20:12:29 +0200
+Received: by hu-out-0506.google.com with SMTP id 23so5090323huc.11
+	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 11:12:25 -0700 (PDT)
+Message-ID: <de8cad4d0806111112v6872df8cx685631a753ac0a29@mail.gmail.com>
+Date: Wed, 11 Jun 2008 14:12:25 -0400
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080623220554.1d8c6df5@bk.ru>
-In-Reply-To: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
-References: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Problem "watching" (not tuning to?) Astra HD
- Promo/Anixe HD
+In-Reply-To: <1213141323.3196.33.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <de8cad4d0806101321x659cdec7n77714ba6e69cb563@mail.gmail.com>
+	<484EE2EC.40501@linuxtv.org>
+	<200806101419.09700.linuxdreas@launchnet.com>
+	<1213141323.3196.33.camel@palomino.walls.org>
+Subject: Re: [linux-dvb] HVR-1600 multiple cards question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,99 +30,113 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-have you the same problem as I described in vdr list ?
-http://linuxtv.org/pipermail/vdr/2008-May/016766.html
+Appears to be a defective card. Removing all others didn't resolve,
+nor did moving to another slot. Interestingly dmesg is normal compared
+to the other cards.. I'll begin the RMA process with Hauppage,
+hopefully I won't have to confirm it works in windows..
+
+Scan command was: scan -A 1 -a 0
+/usr/share/doc/dvb-utils/examples/scan/atsc/us-ATSC-center-frequencies-8VSB
+
+Thanks for the suggestions,
+
+Brandon
+
+Jun 11 05:16:47 sagetv-server kernel: [    8.780000] Linux video
+capture interface: v2.00
+Jun 11 05:16:47 sagetv-server kernel: [    8.940000] cx18:  Start
+initialization, version 1.0.0
+Jun 11 05:16:47 sagetv-server kernel: [    8.940000] cx18-0:
+Initializing card #0
+Jun 11 05:16:47 sagetv-server kernel: [    8.940000] cx18-0:
+Autodetected Hauppauge card
+Jun 11 05:16:47 sagetv-server kernel: [    8.940000] ACPI: PCI
+Interrupt 0000:05:02.0[A] -> GSI 18 (level, low) -> IRQ 18
+Jun 11 05:16:47 sagetv-server kernel: [    8.940000] cx18-0:
+Unreasonably low latency timer, setting to 64 (was 32)
+Jun 11 05:16:47 sagetv-server kernel: [    8.950000] cx18-0: cx23418
+revision 01010000 (B)
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+Hauppauge model 74041, rev C6B2, serial# 3444629
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+MAC address is 00-0D-FE-34-8F-95
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+tuner model is TCL M2523_5N_E (idx 112, type 50)
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+TV standards NTSC(M) (eeprom 0x08)
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+audio processor is CX23418 (idx 38)
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+decoder processor is CX23418 (idx 31)
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] tveeprom 0-0050:
+has no radio, has IR receiver, has IR transmitter
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] cx18-0:
+Autodetected Hauppauge HVR-1600
+Jun 11 05:16:47 sagetv-server kernel: [    9.070000] cx18-0: VBI is
+not yet supported
+Jun 11 05:16:47 sagetv-server kernel: [    9.300000] tuner 1-0061:
+chip found @ 0xc2 (cx18 i2c driver #0-1)
+Jun 11 05:16:47 sagetv-server kernel: [    9.300000] cs5345 0-004c:
+chip found @ 0x98 (cx18 i2c driver #0-0)
+Jun 11 05:16:47 sagetv-server kernel: [    9.480000] tuner-simple
+1-0061: creating new instance
+Jun 11 05:16:47 sagetv-server kernel: [    9.480000] tuner-simple
+1-0061: type set to 50 (TCL 2002N)
+Jun 11 05:16:47 sagetv-server kernel: [    9.490000] cx18-0: Disabled
+encoder IDX device
+Jun 11 05:16:47 sagetv-server kernel: [    9.490000] cx18-0:
+Registered device video0 for encoder MPEG (4 MB)
+Jun 11 05:16:47 sagetv-server kernel: [    9.490000] DVB: registering
+new adapter (cx18)
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] MXL5005S:
+Attached at address 0x63
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] DVB: registering
+frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] cx18-0: DVB
+Frontend registered
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] cx18-0:
+Registered device video32 for encoder YUV (2 MB)
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] cx18-0:
+Registered device video24 for encoder PCM audio (1 MB)
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] cx18-0:
+Initialized card #0: Hauppauge HVR-1600
+Jun 11 05:16:47 sagetv-server kernel: [    9.730000] cx18:  End initialization
 
 
-
-> I have a Hauppauge HVR-4000. My system is running the latest Debian  
-> testing kernel (2.6.24-7) plus drivers from  http://linuxtv.org/hg/v4l-dvb/rev/127f67dea087 
->   patched with http://dev.kewl.org/hauppauge/experimental/mfe-s2-7285.diff 
-> , as per the wiki notes (mostly): http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers
-> 
-> I have no problem tuning with http://dev.kewl.org/hauppauge/experimental/szap-meow.tgz 
->   to any DVB-S or DVB-S2 QPSK/8PSK transponder I have tried. However  
-> there seems to be a problem with the reception of the Astra HD Promo  
-> service at 11914500H on Astra1H. I don't know what the problem is  
-> exactly, since tuning seems to work:
-> 
-> tvbox2:~# szap-meow -r -p -c diseqc2_Astra-19.2E -m 1 -e 9 -o 2 -w 2  
-> ASTRAHDPROMO
-> reading channels from file 'diseqc2_Astra-19.2E'
-> zapping to 1 'ASTRAHDPROMO':
-> sat 1, frequency = 11914 MHz H, symbolrate 27500000, vpid = 0x04ff,  
-> apid = 0x0503 sid = 0x0083
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 1f | signal fd40 | snr 6199 | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> status 1f | signal fe80 | snr 64cd | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> status 1f | signal fe40 | snr 6333 | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> status 1f | signal fd80 | snr 6333 | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> status 1f | signal fe40 | snr 6199 | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> status 1f | signal fe80 | snr 6000 | ber 00000000 | unc 00000000 |  
-> FE_HAS_LOCK
-> 
-> There is an occasional ber > 0 and the snr is not exceptional, but  
-> there are other services with much worse snr/ber that have no problem  
-> whatsoever.
-> 
-> I don't have vdr, mythtv etc. applications installed on the system. I  
-> test by redirecting the output of vdr0 to a file, to play back the TS  
-> later, or by piping to VLC, to stream on the lan. VLC clearly shows  
-> there is a problem because there is always a flood of messages from  
-> libdvbpsi on stderr like Bad CRC_32, TS discontinuity, invalid  
-> section, PSI section too long etc. I'm not that confident about VLC  
-> debugging, but I know for sure this doesn't happen when the service  
-> works right.
-> 
-> I've tried tuning to freq 11915 as well as using different values for  
-> roll-off (-o) and pilot (-w). It doesn't make any difference (-w 1  
-> doesn't work if I remember right).
-> 
-> The same thing happens with the Anixe HD service, also on the same  
-> transponder.
-> 
-> I have no problem tuning to other transponders on Astra1H that carry a  
-> mix of scrambled+FTA or FTA-only services, like 11875500H or  
-> 12051000V, but they are DVB-S. I also have no problem tuning to DVB-S2  
-> transponders on other LNBs (I have a 4x1 diseqc v1.0 switch with this  
-> LNB in position AB), but I could not test any other such transponders  
-> with QPSK modulation.
-> 
-> I'm wondering what could be the cause of this problem:
-> 
-> At first I thought the problem could be that the transponder carries  
-> scrambled services as well, but that does not seem to be the case.
-> Then I thought the problem could be the H.264 video payload of the  
-> video ES of these services, confusing VLC, hence the many error  
-> messages, but I've been able to stream/play at least one other  
-> "similar" service (Luxe TV) with no particular problems.
-> 
-> Finally I reconsidered the "saga" of the HVR-4000 driver, and started  
-> thinking that perhaps I should have gone with one of the other  
-> implementations in the first place. I had this card setup a few months  
-> ago with 2.6.24 and multiproto, but I had to redo the installation and  
-> this time I wanted to try to stick with the official linuxtv.org tree.  
-> Could this be the reason? If so, however, I suppose tuning wouldn't  
-> work at all, right?
-> 
-> Am I missing something here? Any ideas/suggestions you may have are  
-> more than welcome...
-> 
-> Thanks,
-> Z.
-> 
-> PS: Somewhat off-topic question, but here goes anyway, since I have  
-> not found a definitive answer: Is there any device with DVB-S2 *and*  
-> CI and driver support for both? I have noticed that TT-budget S2-3200  
-> + CI could possibly be the one, but I believe the CI part still  
-> doesn't work.
-> 
-
+On Tue, Jun 10, 2008 at 7:42 PM, Andy Walls <awalls@radix.net> wrote:
+> On Tue, 2008-06-10 at 14:19 -0700, Andreas wrote:
+>> Am Dienstag, 10. Juni 2008 13:24:12 schrieb Steven Toth:
+>> > Brandon Jenkins wrote:
+>> > > Greetings,
+>> > >
+>> > > I currently have 3 HVR-1600 cards installed in my system. I am able to
+>> > > get analog signal on all 3, but the ATSC scanning does not return any
+>> > > data on the third card. I have swapped cables with a known working
+>> > > card, but this does not resolve the issue.
+>> > >
+>> > > 2 of the cards are brand new, dmesg output seems to indicate no
+>> > > issues. Does anyone know if there is an issue with 3 HD tuners? Is
+>> > > there a method of trouble shooting I should follow?
+>> >
+>> > Remove the two working cards and test the failing card, report back.
+>>
+>> I don't know if it would help in this case, but it is generally a good idea
+>> to change PCI slots as well.
+>
+>
+>
+> Change one variable at a time.  Either change PCI slots and retest or
+> remove two cards and retest.  Don't do both before retesting, as you
+> won't know which action "fixed" the problem, if the symptoms go away.
+>
+> -Andy
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
