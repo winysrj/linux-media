@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.174])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <james.ellis@gmail.com>) id 1KAkx6-0004tt-1n
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 14:15:21 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so2049693wfd.17
-	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 05:15:14 -0700 (PDT)
-To: linux-dvb@linuxtv.org
-Content-Disposition: inline
-Date: Mon, 23 Jun 2008 22:15:09 +1000
+Received: from web53201.mail.re2.yahoo.com ([206.190.49.71])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <deloptes@yahoo.com>) id 1K6rY0-0001PW-34
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 20:29:21 +0200
+Date: Thu, 12 Jun 2008 11:28:45 -0700 (PDT)
+From: Emanoil Kotsev <deloptes@yahoo.com>
+To: Christoph Pfister <christophpfister@gmail.com>
+In-Reply-To: <200806121754.07853.christophpfister@gmail.com>
 MIME-Version: 1.0
-Message-Id: <200806232215.09820.je@customr.net>
-From: James Ellis <james.ellis@gmail.com>
-Subject: Re: [linux-dvb] Avermedia HC82 express card
+Content-Type: multipart/mixed; boundary="0-1675967460-1213295325=:26639"
+Content-Transfer-Encoding: 8bit
+Message-ID: <591694.26639.qm@web53201.mail.re2.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fwd: wrong dvb-t channel information in file
+	"dvb-t/at-Official"
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,90 +21,114 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi, sorry for the resend, just wondering whether anyone had some input on this 
-DVB express card ?
+--0-1675967460-1213295325=:26639
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
----------------
-> Hi
->
-> I recently got a new laptop and this express card was included in the
-> package. I'm interested in support for it in Linux, although given I didn't
-> ask for it, I won't be too miffed if it cannot yet be supported.
-> I think the main problem is getting the firmware...
->
-> Here is what I can gather...
->
-> Plugging the express card in (after "pciehp pciehp_force=1") shows:
->
-> ==> /var/log/syslog <==
-> Jun 11 23:14:02 box kernel: [34224.509805] pciehp: Card present on
-> Slot(0013_0005)
->
-> ==> /var/log/messages <==
-> Jun 11 23:14:03 box kernel: [34225.206518] program_fw_provided_values:
-> Could not get hotplug parameters
->
-> Windows shows the card details as:
-> Avermedia HC82 Express-Card Hybrid Analog
->
-> Output of lspci -vvnn
->
-> 0d:00.0 Multimedia controller [0480]: Philips Semiconductors Unknown device
-> [1131:7160] (rev 03)
->         Subsystem: Avermedia Technologies Inc Unknown device [1461:0555]
->         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B-
->         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR-
->         Interrupt: pin A routed to IRQ 0
->         Region 0: Memory at f9c00000 (64-bit, non-prefetchable) [disabled]
-> [size=1M]
->         Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+
-> Queue=0/5 Enable-
->                 Address: 0000000000000000  Data: 0000
->         Capabilities: [50] Express Endpoint IRQ 0
->                 Device: Supported: MaxPayload 128 bytes, PhantFunc 0,
-> ExtTag- Device: Latency L0s <256ns, L1 <1us
->                 Device: AtnBtn- AtnInd- PwrInd-
->                 Device: Errors: Correctable- Non-Fatal- Fatal- Unsupported-
->                 Device: RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
->                 Device: MaxPayload 128 bytes, MaxReadReq 128 bytes
->                 Link: Supported Speed 2.5Gb/s, Width x1, ASPM L0s L1, Port
-> 1 Link: Latency L0s <4us, L1 <64us
->                 Link: ASPM Disabled RCB 128 bytes CommClk- ExtSynch-
->                 Link: Speed 2.5Gb/s, Width x1
->         Capabilities: [74] Power Management version 2
->                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-> PME(D0+,D1+,D2+,D3hot-,D3cold-)
->                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->         Capabilities: [80] Vendor Specific Information
->
->
-> Installing the driver from Dell
-> (http://support.us.dell.com/support/downloads/download.aspx?c=us&l=en&s=gen
->&releaseid=R175809&formatcnt=1&libid=0&fileid=239014) in Windows gives the
-> following files, that look like drivers. Are their any others that could be
-> candidates ?
->
-> AVerBDA716x.sys
-> MV716.ax
->
-> The question then is how can the firmware be installed in linux ? I've read
-> the linux-dvb wiki but am still unsure.
->
-> Any help appreciated..
->
-> Thanks
-> James
+Hi, Christoph,
 
+seems there is another Christoph there doing the
+Muenchen list and may be I've been looking in the
+wrong file, sorry.
+
+/usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Muenchen:2:#
+by Christoph Anton Mitterer
+(cam@mathematica.scientia.net)
+
+I'm sending you my channels.conf.ter that I'm using in
+mplayer and kplayer.
+I'm resident in Vienna now, so it's working here and I
+think in Lower Austria (Niederösterreich).
+Perhaps it helps you or others.
+
+regards
+
+--- Christoph Pfister <christophpfister@gmail.com>
+wrote:
+
+> Am Mittwoch 11 Juni 2008 21:27:56 schrieb Emanoil
+> Kotsev:
+> <snip>
+> > I'm sure I wrote but not to the list as I was not
+> > subscribed.
+> >
+> > I found your e-mail (cam@mathematica.scientia.net)
+> in
+> > the dvb frequency files.
+> 
+> This has never been one of my e-mail addresses.
+> 
+> > the mail was send at 13.11.2007 14:36 from
+> > Emanoil Kotsev <a9706152@unet.univie.ac.at>
+> >
+> > you tell me what was wrong with this e-mail
+> >
+> > I wrote also to the info@dvb-t.at, who provide
+> > information about dvb-t in austria and they also
+> did
+> > not respond. I think the yshould have published
+> this
+> > information on their official site, so everybody
+> could
+> > use it ...
+> 
+> Oh well, there are as always more and less
+> cooperative broadcasters ...
+> 
+> > regards
+> 
+> Christoph
+> 
+
+
+
+
+
+      
+--0-1675967460-1213295325=:26639
+Content-Type: application/octet-stream; name="channels.conf.ter"
+Content-Transfer-Encoding: base64
+Content-Description: 2679352914-channels.conf.ter
+Content-Disposition: attachment; filename="channels.conf.ter"
+
+T1JGMTo0OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUha
+OkZFQ18zXzQ6RkVDXzNfNDpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6
+R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjEwMTA6MTAxMTox
+MDEwMQpPUkYyOjQ5ODAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhf
+OF9NSFo6RkVDXzNfNDpGRUNfM180OlFBTV8xNjpUUkFOU01JU1NJT05fTU9E
+RV84SzpHVUFSRF9JTlRFUlZBTF8xXzQ6SElFUkFSQ0hZX05PTkU6MTAyMDox
+MDIxOjEwMTAyCkFUVjo0OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJ
+RFRIXzhfTUhaOkZFQ18zXzQ6RkVDXzNfNDpRQU1fMTY6VFJBTlNNSVNTSU9O
+X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjEw
+NDA6MTA0MToxMDEyMAojT1JGMl9OOjQ5ODAwMDAwMDpJTlZFUlNJT05fQVVU
+TzpCQU5EV0lEVEhfOF9NSFo6RkVDXzNfNDpGRUNfM180OlFBTV8xNjpUUkFO
+U01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzQ6SElFUkFSQ0hZ
+X05PTkU6MTAyMDoxMDIxOjEwMTIyClBVTFNfVFYgQVVTVFJJQTo1NzgwMDAw
+MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18zXzQ6RkVD
+XzNfNDpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJW
+QUxfMV84OkhJRVJBUkNIWV9OT05FOjEwNTA6MTA1MToxMDEyMwozU0FUOjU3
+ODAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzNf
+NDpGRUNfM180OlFBTV8xNjpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9J
+TlRFUlZBTF8xXzg6SElFUkFSQ0hZX05PTkU6MTA1NToxMDU2OjExMTAyCk9S
+Rl9TUDo1NzgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUha
+OkZFQ18zXzQ6RkVDXzNfNDpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6
+R1VBUkRfSU5URVJWQUxfMV84OkhJRVJBUkNIWV9OT05FOjEwNjA6MTA2MTox
+MTEwMwo=
+
+--0-1675967460-1213295325=:26639
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--0-1675967460-1213295325=:26639--
