@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from hond.eatserver.nl ([195.20.9.5])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1K6yHA-0000m3-P7
-	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 03:40:29 +0200
-Message-ID: <4851D002.8000801@linuxtv.org>
-Date: Thu, 12 Jun 2008 21:40:18 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <joep@groovytunes.nl>) id 1K6jgs-0004G4-C8
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 12:05:58 +0200
+Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
+	(authenticated bits=0)
+	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
+	m5CA5soh022620
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 12:05:54 +0200
+From: joep <joep@groovytunes.nl>
+To: linux-dvb@linuxtv.org
+Date: Thu, 12 Jun 2008 12:09:32 +0200
+References: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
+	<cffd8c580806120240n72b7ffb2h179b30dfc5b851b@mail.gmail.com>
+In-Reply-To: <cffd8c580806120240n72b7ffb2h179b30dfc5b851b@mail.gmail.com>
 MIME-Version: 1.0
-To: William Melgaard <piobair@mindspring.com>
-References: <2496078.1213320530377.JavaMail.root@mswamui-chipeau.atl.sa.earthlink.net>
-In-Reply-To: <2496078.1213320530377.JavaMail.root@mswamui-chipeau.atl.sa.earthlink.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DViCO FusionHDTV7
+Content-Disposition: inline
+Message-Id: <200806121209.32545.joep@groovytunes.nl>
+Subject: Re: [linux-dvb] Fwd: 2.6.x kernels and TechniSat SkyStar2 HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,39 +31,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-William Melgaard wrote:
-> I see in the "hardware supported" wiki that the FusionHDTV5 is supported. How about the -7?
-> 
-> From their web page:
-> Chipset: Conexant CX 2388X, S5H1411
-> Tuner: Xceive XC5000
-> Resolution: 1920 x 1080i
-> Snapshot types: TP, WMV, AVI
-> Source: Free-to-Air, Cable, Video, S-video
+Op Thursday 12 June 2008 11:40:37 schreef Alireza Torabi:
+> Dear All,
+>
+> If anyone has a working TechniSat SkyStar HD 2 (Azurewave AD SP400 /
+> Twinhan VP-1041) linux 2.6.x kernel driver, Could they please let me
+> know what version of kernel and Mantis driver they use?
+>
 
+I am using mantis 0b04be0c088a on OpenSuse 10.3(32bit).
 
-I COULD answer your question, but I always liked the Chinese proverb:
-
-Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime.
-
-Check it:
-
-The master development repository is hosted at http://linuxtv.org/hg/v4l-dvb
-
-Various lists of supported cards are found under linux/Documentation/video4linux
-
-http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/
-
-You see the chipset, "CX 2388X" -- the name of the linux driver is "cx88"
-
-If you think the wiki is missing entries for specific cards, please feel free to create yourself a user account and fill in the missing info.
-
-Enjoy, and please spread the word.
-
-Regards,
-
-Mike Krufky
-
+On the mythtv mailing list someone reported this combination also to work:
+mantis driver, 0b04be0c088a on Ubuntu 8.04 amd64.
 
 _______________________________________________
 linux-dvb mailing list
