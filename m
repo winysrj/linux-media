@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n42.bullet.mail.ukl.yahoo.com ([87.248.110.175])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <r.schedel@yahoo.de>) id 1K67aT-0003xM-Tk
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 19:24:50 +0200
-Message-ID: <484EB8BC.5060604@yahoo.de>
-Date: Tue, 10 Jun 2008 19:24:12 +0200
-From: Robert Schedel <r.schedel@yahoo.de>
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1K6jjK-0004oK-16
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 12:08:30 +0200
+Message-ID: <4850F597.9030603@iki.fi>
+Date: Thu, 12 Jun 2008 13:08:23 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Olli Lammi <olammi@olammi.iki.fi>
-References: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
-In-Reply-To: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
+To: Andrew Websdale <websdaleandrew@googlemail.com>
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>	<4850566E.8030001@iki.fi>
+	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
+In-Reply-To: <e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] High load with Terratec Cinergy 1200 DVB-T
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,27 +26,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Olli Lammi wrote:
-> Hello!
-> ------
-> 
-> I recently moved to area where only DVB-T is available and changed my
-> DVB-C-cards to two Terratec Cinergy 1200 DVB-T cards. However adding
-> one card lifted the load of my server to approx 0.8 and adding the
-> second card to approx 1.6. No processes are consuming the processor time so I 
-> think the high load is due to dvb driver or kernel.
+Andrew Websdale wrote:
+> I've examined the logs, & I can find no mention of a Quantek tuner - 
+> your suggestion of a non-working tuner seems likely, as tuning is what 
+> doesn't seem to work when I run e.g. w_scan - can you make any 
+> suggestion as to where I go from here? I'm more than willing to test new 
+> code etc.
+> regards Andrew
 
-Please see: <http://bugzilla.kernel.org/show_bug.cgi?id=10459>
+OK, then the reason might by tuner. Tuner may be changed to other one or 
+tuner i2c-address is changed. I doubt whole tuner is changed. Now we 
+should identify which tuner is used. There is some ways how to do that.
 
-> Is this a known problem and is there a workaround available?. I tried to search 
-> the net for answers but found none.
+1) Look from Windows driver files
+2) Open stick and look chips
+3) Take USB-sniffs and try to identify tuner from there
 
-The last email for this was just three days ago, titled "[linux-dvb] 
-budget_av,  high cpuload with kncone tvstar".
-
-Regards,
-Robert
-
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
