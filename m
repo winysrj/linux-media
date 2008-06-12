@@ -1,27 +1,40 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SLK3NO022090
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 17:20:03 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SLJXGo026117
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 17:19:34 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so580905fga.7
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 14:19:33 -0700 (PDT)
-Message-ID: <30353c3d0806281419v3a741035sdfe61421cad2951d@mail.gmail.com>
-Date: Sat, 28 Jun 2008 17:19:33 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: video4linux-list@redhat.com, "Jaime Velasco Juan" <jsagarribay@gmail.com>
-In-Reply-To: <30353c3d0806281355p5c88d265ibab48f3f67c69930@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5D0bIaP018770
+	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 20:37:18 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5D0b5ZK024837
+	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 20:37:06 -0400
+Received: by ug-out-1314.google.com with SMTP id s2so7549uge.6
+	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 17:37:05 -0700 (PDT)
+Date: Thu, 12 Jun 2008 19:44:26 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080612194426.0e33d92c@glory.loctelecom.ru>
+In-Reply-To: <1211331167.4235.26.camel@pc10.localdom.local>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
+	<20080415000611.610af5c6@gaivota>
+	<20080415135455.76d18419@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+	<20080512201114.3bd41ee5@glory.loctelecom.ru>
+	<1210719122.26311.37.camel@pc10.localdom.local>
+	<20080520152426.5540ee7f@glory.loctelecom.ru>
+	<1211331167.4235.26.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0806271636k31f1fac7r90d1dccafde99f1b@mail.gmail.com>
-	<20080628140639.GA4089@singular.sob>
-	<30353c3d0806280800n3d6da97ewc84e1af83852197e@mail.gmail.com>
-	<30353c3d0806281355p5c88d265ibab48f3f67c69930@mail.gmail.com>
-Cc: 
-Subject: Re: stk-webcam: [RFT] Fix video_device handling
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Beholder card M6 with MPEG2 coder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,65 +46,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Jun 28, 2008 at 4:55 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> On Sat, Jun 28, 2008 at 11:00 AM, David Ellingsworth
-> <david@identd.dyndns.org> wrote:
-> [snip]
->> According to the API, the video_device struct is not to be freed until
->> it is no longer being used, thus the reason for the release callback
->> in the video_device struct. Currently, video_unregister_device always
->> causes the video_device struct to be freed despite the fact that it
->> may still in use. To me, this is a serious bug in the videodev driver,
->> since it doesn't behave as expected. The videodev driver should
->> reference count the video_device struct and call the release callback
->> only once it is no longer being used. I can work on this if no one
->> objects.
->
-> Upon looking at video_open in videodev.c I noticed that the file_ops
-> were being replaced with those provided by modules calling
-> video_register_device. Since most modules use a const static
-> file_operations structure, it is impossible to overwrite the release
-> callback to call one within the videodev module. Thus in it's current
-> state, we cannot properly reference count the video_device struct. At
-> the moment, I see two possibilities. (1)  return an err in
-> __video_do_ioctl when video_devdata returns NULL or (2) implement all
-> possible file_operations in the videodev driver which then call the
-> associated file_operations in video_device.fops where defined.
->
-> Option 1 is easier to implement, but does not reference count the
-> video_device struct and therefore causes the release callback to occur
-> at inappropriate times. Option 2 requires some serious work to be done
-> in the videodev driver, but allows proper reference counting of the
-> video_device struct. By reference counting the video_device struct,
-> the free of the struct and the setting of video_device[minor]=NULL can
-> be delayed until the device is no longer in use, which may occur
-> during video_unregister_device or in the file_operations release
-> callback.
->
-> What are your opinions on this matter?
->
-> Regards,
->
-> David Ellingsworth
->
-I just thought of another alternative... Option 3, add a private
-file_operations structure to the video_device structure. During
-video_register_device we initialize this structure with the one
-pointed to by fops and set the release callback to a function in the
-videodev module. Then during every open we would replace the current
-file_operations with the private one in the video_device structure.
+Hi All
 
-Option 3 requires less code than option 2, while still allowing proper
-reference counting of the video_device structure between
-video_register_device, video_unregister_device, and the open and
-release callbacks from file_operations.
+I found strange effect. When I start common TV watching with mplayer. I can see TV video.
+When I start cat /dev/video1 (i try get MPEG stream of TV) on the TV screen I see sometimes
+big white square. After stopped cat from /dev/video1 this squares no more.
 
-What are your thoughts?
+What is it??
 
-Regards,
+I want make 3 simple tests.
+1. Fill buffer before DMA reading data from encoder. For test receiving data from encoder.
+2. After receive buffer from encoder I want fill some data into. Buffer N for example. For check out data from video1 device.
+3. Printk part of buffer after encoder 512 bytes. For check data. May be encoder not work now.
 
-David Ellingsworth
+Can you help me make this tests. I have not a lot experience with C and kernel programming.
+
+With my best regards.
 
 --
 video4linux-list mailing list
