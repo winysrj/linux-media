@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rouge.crans.org ([138.231.136.3])
+Received: from mail.krastelcom.ru ([88.151.248.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <braice@braice.net>) id 1KAMtn-0002QM-Ti
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 12:34:34 +0200
-Message-ID: <485E2AA5.6070108@braice.net>
-Date: Sun, 22 Jun 2008 12:34:13 +0200
-From: Brice DUBOST <braice@braice.net>
-MIME-Version: 1.0
-To: Halim Sahin <halim.sahin@t-online.de>
-References: <20080622092133.GA21319@halim.local>
-In-Reply-To: <20080622092133.GA21319@halim.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvbscan errormessage on astra 19.0
+	(envelope-from <vpr@krastelcom.ru>) id 1K6mHP-0004uo-IZ
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 14:51:52 +0200
+Message-Id: <B582543D-F8CE-48ED-81B9-18665F49EEB6@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+In-Reply-To: <485100C3.2090908@sttcr.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Thu, 12 Jun 2008 16:51:46 +0400
+References: <20B2C1F8-9DFE-43C1-BACD-22DC74AE9136@krastelcom.ru>
+	<485100C3.2090908@sttcr.org>
+Subject: Re: [linux-dvb] Smit CAM problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,39 +19,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Halim Sahin a =E9crit :
-> Hello,
-> =
+Didn't try Aston CAMs with mpeg4. But they do up to 12 channels of  
+mpeg2 perfectly well. With no problems at all. SMiTs that are for 8  
+services can do only 3 to 4 for me.
+I think it's some kind of a driver bug because it begins working after  
+reinitialisation. Doesn't get hot. I have tried to call Aston as well  
+but with no success yet.
 
-> I.ve scanned today astra with the initial list of dvb-apps from hg.
-> It finished with the following message:
->>>> tune to: 1574:h:S19.2E:22000:
-> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
-> 22 Invali
-> d argument
->>>> tune to: 1574:h:S19.2E:22000:
-> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
-> 22 Invali
-> d argument
-> =
+Regards,
+Vladimir
 
-> My card is a kncone dvbstar =
+On Jun 12, 2008, at 2:56 PM, dan.lita@sttcr.org wrote:
 
-> What can be the problem here?
-> =
+> Dear Vladimir,
+>
+> I read your post on linux-dvb list. We have an Aston Viaccess  
+> Professional 2.15 CAM .
+> I read that you also use Aston CAMS.  My question is whether your  
+> Aston Viaccess cam can descramble H264  feeds or not?
+> We have tried on a PACE HDTV receiver and a Tandberg unit and it  
+> does not descramble the H264 video pid. (black screen)
+> This does not happen with Viaccess RED cam.
+>
+> On older Common interface adapters from Technotrend, the one for TT  
+> Premium DVB-S card, there was a jumper for 3V or 5V cam operation.
+> I assume the new CI adapter does not have such jumper. If it still  
+> exist maybe it will be a good idea to switch from one voltage to the  
+> other.
+> Another solution is to test whether it works or not for Irdeto to  
+> use an Alphacrypt Classic CAM which, at least in theory, according  
+> to MASCOM, supports Irdeto.
+> The third thing is to notice whether the SMIT cam gets hot in  
+> operation. If it gets too hot maybe a fan similar to the one for  
+> graphics card must be put near the Common interface adapter.
+>
+> BTW. Do you have any e-mail address from Aston? I have tried to  
+> contact  them but there is no e-mail address in their website.
+>
+> Best regards,
+> Dan Lita
+>
+>
+> Vladimir Prudnikov wrote:
+>> Hello!
+>>
+>> I'm using SMIT cams to descramble channels on TT S-1500 and TT-  
+>> S2-3200. After some time of normal operation SMIT cams drop out  
+>> and  stop decrypting the stream. It needs to be removed from the CI  
+>> slot  and reinserted to resume normal operation. Aston CAMs have no  
+>> such  problems, but they don't support 0x652 Irdeto.
+>> I'm streaming with vlc. Tried many SMITs (Viaccess and Irdeto).  
+>> Same  problem everywhere.
+>>
+>> Regards,
+>> Vladimir
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>>
+>>
+>
 
-
-Hello
-
-try "strace scan ..."
-
-And give us the output
 
 _______________________________________________
 linux-dvb mailing list
