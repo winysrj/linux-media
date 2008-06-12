@@ -1,24 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from rv-out-0506.google.com ([209.85.198.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KBA4p-0003M5-2u
-	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 17:04:59 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id ED89E19E68C8
-	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 19:04:24 +0400 (MSD)
-Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id 9A11419E6881
-	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 19:04:24 +0400 (MSD)
-Date: Tue, 24 Jun 2008 19:09:26 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080624190926.525c8571@bk.ru>
-In-Reply-To: <976C5CAC-6426-456A-9509-B7575CB3C5B0@krastelcom.ru>
-References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
-	<DD6302F4D4084A839650A2FE7D164C76@ua0lnjhome>
-	<976C5CAC-6426-456A-9509-B7575CB3C5B0@krastelcom.ru>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps and hvr4000
+	(envelope-from <alireza.torabi@gmail.com>) id 1K6kSj-0007nm-CX
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 12:55:26 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so4835811rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 03:55:20 -0700 (PDT)
+Message-ID: <cffd8c580806120355jac08149vb702aaf552e38382@mail.gmail.com>
+Date: Thu, 12 Jun 2008 11:55:19 +0100
+From: "Alireza Torabi" <alireza.torabi@gmail.com>
+To: joep <joep@groovytunes.nl>
+In-Reply-To: <200806121209.32545.joep@groovytunes.nl>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
+	<cffd8c580806120240n72b7ffb2h179b30dfc5b851b@mail.gmail.com>
+	<200806121209.32545.joep@groovytunes.nl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fwd: 2.6.x kernels and TechniSat SkyStar2 HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,50 +30,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have checked this high SR on two Russian satellites - Express AM22 53E and ExpressAM2 80E. No any lock. I have tried to
-increase/decrease SR/FREQ step by step , but it didn't help me.
-
-11606,V,44948,56
-11044,V,44951,34
-
-
-
-
-> Cool. But TT S-1500 and TT S2-3200 have different tuners. Can you take  
-> a look at those?
-> 
-> Regards,
-> Vladimir
-> 
-> On Jun 24, 2008, at 8:06 AM, ua0lnj wrote:
-> 
-> > I use TT budget S-1102, it have Philips su-1278 tuner.
-> > Locked SR 45 MSps on AM2 80E fine.
-> > But need use my patch for dvb driver, I posted it twice in dvb mail- 
-> > list, but no response from any user...
+On 6/12/08, joep <joep@groovytunes.nl> wrote:
+> Op Thursday 12 June 2008 11:40:37 schreef Alireza Torabi:
+> > Dear All,
 > >
+> > If anyone has a working TechniSat SkyStar HD 2 (Azurewave AD SP400 /
+> > Twinhan VP-1041) linux 2.6.x kernel driver, Could they please let me
+> > know what version of kernel and Mantis driver they use?
 > >
-> > ----- Original Message ----- From: "Vladimir Prudnikov" <vpr@krastelcom.ru 
-> > >
-> > To: "Linux DVB Mailing List" <linux-dvb@linuxtv.org>
-> > Sent: Monday, June 23, 2008 4:53 PM
-> > Subject: [linux-dvb] Express AM2 11044 H 45 MSps
-> >
-> >
-> >> Hi!
-> >>
-> >> I have recently realized that none of the available cards are able to
-> >> properly lock on Express AM2 11044H 45 MSps . The only one that can  
-> >> is
-> >> TT-S1401 with buf[5] register corrections.
-> >>
-> >> I have tried:
-> >>
-> >> TT S-1500
-> >> TT S2-3200
-> >> Skystar 2.6
-> >> TT S-1401 with non-modified drivers.
+>
+> I am using mantis 0b04be0c088a on OpenSuse 10.3(32bit).
+>
+> On the mythtv mailing list someone reported this combination also to work:
+> mantis driver, 0b04be0c088a on Ubuntu 8.04 amd64.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
+Sorry to be pain in the neck but what's your "uname -a" please?
 
 _______________________________________________
 linux-dvb mailing list
