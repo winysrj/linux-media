@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.186])
+Received: from rv-out-0506.google.com ([209.85.198.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mikko.reijo.makinen@gmail.com>) id 1KBZcD-0001yH-EC
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 20:21:10 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so171169nfb.11
-	for <linux-dvb@linuxtv.org>; Wed, 25 Jun 2008 11:21:05 -0700 (PDT)
-Message-ID: <9c84b2480806251121r69c577cdmaac2a5d0b9d7737b@mail.gmail.com>
-Date: Wed, 25 Jun 2008 21:21:05 +0300
-From: "=?ISO-8859-1?Q?Mikko_M=E4kinen?=" <mikko.reijo.makinen@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <bvidinli@gmail.com>) id 1K6txh-0003F8-2g
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 23:04:04 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so5133005rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 14:03:55 -0700 (PDT)
+Message-ID: <36e8a7020806121403q6295bc86q234e008daf9ebadc@mail.gmail.com>
+Date: Fri, 13 Jun 2008 00:03:55 +0300
+From: bvidinli <bvidinli@gmail.com>
+To: "Martin Pitt" <martin.pitt@ubuntu.com>,
+	"Matthias Schwarzott" <zzam@gentoo.org>, linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: [linux-dvb] Terratec Cinergy C HD (1822:4e35)
+Content-Type: multipart/mixed;
+	boundary="----=_Part_27476_8059544.1213304635387"
+Subject: Re: [linux-dvb] Failure: Ubuntu users,
+	rejoyce!-Aver hybrid dvb-s+fm A700 - Ubuntu 8.04 - card=141
+	autodetect
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,138 +23,180 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0310677799=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0310677799==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_3900_13279441.1214418065800"
-
-------=_Part_3900_13279441.1214418065800
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+------=_Part_27476_8059544.1213304635387
+Content-Type: text/plain; charset=ISO-8859-9
+Content-Transfer-Encoding: base64
 Content-Disposition: inline
 
-Hello everybody,
+YXMgaSBzdGF0ZWQgYmVmb3JlLApteSBjYXJkIGlzIGF2ZXIgaHlicmlkIGR2Yi1zICsgZm0gQTcw
+MAp3aGljaCBpcyBhdXRvZGV0ZWN0ZWQgYnkgdGhpcyBuZXcgZHJpdmVyIG9mIHY0bC1kdmIgZm9y
+IHVidW50dS4uLgoKYXV0b2xvYWRlZCBtb2R1bGUgaXMgc2FhNzEzNCwgY2FyZCB0eXBlPTE0MQpD
+dXJyZW50bHkgZG1lc2cgb3V0cHV0IGlzIGJlbG93LCBidXQgaSBhbSB1bmFibGUgdG8gZXZlbiBz
+ZWUgZHZiCmRldmljZS9vciBkdmIgY2hhbm5lbCBsaXN0IGluIGthZmZlaW5lLCBrYWZmZWluZSBz
+YXlzIG5vIGR2YiBkZXZpY2UKYXZhaWxhYmxlLAoKCnByZXZpb3VzbHksIGkgaGFkIGJ1aWxkZWQg
+djRsLWR2YiBpbiBteSB1YnVudHUgOC4wNCwgdGhlbiBwdXQgKi5rbwpmaWxlcyB0byByZWxhdGVk
+IHBsYWNlcyB3aXRoIGEgc21hbGwgc2NyaXB0IGkgbWFkZSwgd2hpY2ggaSBhdHRhY2hlZAppbiB0
+aGlzIG1haWwuCndpdGggdGhhdCBzY3JpcHQgb3IgbWV0aG9kLCBpIHdhcyBhYmxlIHRvIHNlZSBk
+dmIgaW4ga2FmZmVpbmUsIGFuZCBpCndhcyBhYmxlIHRvIHNlZSBjaGFubmVsIGxpc3QsIGJ1dCBu
+b3QgYWJsZSB0byB3YXRjaCBjaGFubmVscy4uLgoKaSB3b3VsZCBiZSBoYXBweSBpZiB5b3UgZml4
+IHY0bCBkcml2ZXIgaW5zdGFsbC9idWlsZCBvbiB1YnVudHUsIG9yIHNheQp1cyBhIHdheSBvZiB1
+c2luZyBvdXIgZHZiIGRldmljZXMuLi4KCmRtZXNnIHJlbGF0ZWQgb3V0cHV0OgpbICAgNDkuNTUx
+NTkzXSBzYWE3MTMzWzBdOiBmb3VuZCBhdCAwMDAwOjAwOjE0LjAsIHJldjogMjA5LCBpcnE6IDEw
+LApsYXRlbmN5OiAzMiwgbW1pbzogMHhkZTAwMzAwMApbICAgNDkuNTUxNjExXSBzYWE3MTMzWzBd
+OiBzdWJzeXN0ZW06IDE0NjE6YTdhMiwgYm9hcmQ6IEF2ZXJtZWRpYQpEVkItUyBIeWJyaWQrRk0g
+QTcwMCBbY2FyZD0xNDEsYXV0b2RldGVjdGVkXQpbICAgNDkuNTUxNjMxXSBzYWE3MTMzWzBdOiBi
+b2FyZCBpbml0OiBncGlvIGlzIDJmMjAwClsgICA0OS41NTE2NDJdIHNhYTcxMzNbMF06IEF2ZXJt
+ZWRpYSBEVkItUyBIeWJyaWQrRk0gQTcwMDogaHlicmlkCmFuYWxvZy9kdmIgY2FyZApbICAgNDku
+NTUxNjQ4XSBzYWE3MTMzWzBdOiBTb3JyeSwgb25seSB0aGUgYW5hbG9nIGlucHV0cyBhcmUgc3Vw
+cG9ydGVkIGZvciBub3cuClsgICA0OS45MzU5MzddIGlyZGFfaW5pdCgpClsgICA0OS45MzU5ODdd
+IE5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMjMKWyAgIDUwLjIzMTc4N10gc2FhNzEz
+M1swXTogaTJjIGVlcHJvbSAwMDogNjEgMTQgYTIgYTcgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTgxN10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSAxMDogZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTg0
+MF0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSAyMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYK
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTg2NF0gc2FhNzEzM1swXTogaTJjIGVlcHJv
+bSAzMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAg
+IDUwLjIzMTg4N10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA0MDogZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTkwOV0gc2FhNzEzM1swXTog
+aTJjIGVlcHJvbSA1MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYKWyAgIDUwLjIzMTkzMl0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA2MDogZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTk1NV0gc2Fh
+NzEzM1swXTogaTJjIGVlcHJvbSA3MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMTk3OF0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA4MDog
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIz
+MjAwMV0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA5MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMjAyM10gc2FhNzEzM1swXTogaTJjIGVl
+cHJvbSBhMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYK
+WyAgIDUwLjIzMjA0Nl0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBiMDogZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMjA2OV0gc2FhNzEzM1sw
+XTogaTJjIGVlcHJvbSBjMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYKWyAgIDUwLjIzMjA5Ml0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBkMDogZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMjExNF0g
+c2FhNzEzM1swXTogaTJjIGVlcHJvbSBlMDogMDAgMDEgODEgYWYgZmUgZjYgZmYgZmYgZmYKZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUwLjIzMjEzN10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBm
+MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgIDUw
+LjI5NjA2Ml0gc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQpbICAg
+NTAuMjk2MTQ4XSBzYWE3MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2YmkwClsgICA1MC4yOTYz
+NzVdIHZpYS1pcmNjOiBkb25nbGUgcHJvYmluZyBub3Qgc3VwcG9ydGVkLCBwbGVhc2Ugc3BlY2lm
+eQpkb25nbGVfaWQgbW9kdWxlIHBhcmFtZXRlci4KWyAgIDUwLjI5NzI2Nl0gSXJEQTogUmVnaXN0
+ZXJlZCBkZXZpY2UgaXJkYTAgKHZpYS1pcmNjKQpbICAgNTEuNDI4NDA5XSBzYWE3MTM0X2Fsc2E6
+IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbApzYWE3MTM0X3R2YXVkaW9fc2V0bXV0
+ZQpbICAgNTEuNDI4NDI4XSBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfdHZh
+dWRpb19zZXRtdXRlClsgICA1MS40Mjg4MjldIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0
+IHZlcnNpb24gb2Ygc3ltYm9sIHNhYV9kc3Bfd3JpdGVsClsgICA1MS40Mjg4MzhdIHNhYTcxMzRf
+YWxzYTogVW5rbm93biBzeW1ib2wgc2FhX2RzcF93cml0ZWwKWyAgIDUxLjQyOTM0NF0gc2FhNzEz
+NF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wgdmlkZW9idWZfZG1hX2Zy
+ZWUKWyAgIDUxLjQyOTM1Ml0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9k
+bWFfZnJlZQpbICAgNTEuNDI5ODYyXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJz
+aW9uIG9mIHN5bWJvbApzYWE3MTM0X3BndGFibGVfYWxsb2MKWyAgIDUxLjQyOTg3MV0gc2FhNzEz
+NF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3BndGFibGVfYWxsb2MKWyAgIDUxLjQzMDAx
+OF0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKc2FhNzEz
+NF9wZ3RhYmxlX2J1aWxkClsgICA1MS40MzAwMjddIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1i
+b2wgc2FhNzEzNF9wZ3RhYmxlX2J1aWxkClsgICA1MS40MzAxNTRdIHNhYTcxMzRfYWxzYTogZGlz
+YWdyZWVzIGFib3V0IHZlcnNpb24gb2Ygc3ltYm9sCnNhYTcxMzRfcGd0YWJsZV9mcmVlClsgICA1
+MS40MzAxNjNdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9wZ3RhYmxlX2Zy
+ZWUKWyAgIDUxLjQzMDI5MV0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBv
+ZiBzeW1ib2wKc2FhNzEzNF9kbWFzb3VuZF9pbml0ClsgICA1MS40MzAzMDBdIHNhYTcxMzRfYWxz
+YTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9kbWFzb3VuZF9pbml0ClsgICA1MS40MzA2NzldIHNh
+YTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24gb2Ygc3ltYm9sCnNhYTcxMzRfZG1h
+c291bmRfZXhpdApbICAgNTEuNDMwNjg4XSBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNh
+YTcxMzRfZG1hc291bmRfZXhpdApbICAgNTEuNDMwOTcyXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVl
+cyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbCB2aWRlb2J1Zl9kbWFfaW5pdApbICAgNTEuNDMwOTgx
+XSBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHZpZGVvYnVmX2RtYV9pbml0ClsgICA1MS40
+MzEzOTFdIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24gb2Ygc3ltYm9sCnZp
+ZGVvYnVmX2RtYV9pbml0X2tlcm5lbApbICAgNTEuNDMxNDAxXSBzYWE3MTM0X2Fsc2E6IFVua25v
+d24gc3ltYm9sIHZpZGVvYnVmX2RtYV9pbml0X2tlcm5lbApbICAgNTEuNDMxODQ4XSBzYWE3MTM0
+X2Fsc2E6IFVua25vd24gc3ltYm9sIHZpZGVvYnVmX3BjaV9kbWFfdW5tYXAKWyAgIDUxLjQzMjI5
+MV0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9wY2lfZG1hX21hcApbICAg
+NTEuNDMyNDU4XSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJv
+bApzYWE3MTM0X3NldF9kbWFiaXRzClsgICA1MS40MzI0NjddIHNhYTcxMzRfYWxzYTogVW5rbm93
+biBzeW1ib2wgc2FhNzEzNF9zZXRfZG1hYml0cwoKCjIwMDgvNi8xMSBNYXJ0aW4gUGl0dCA8bWFy
+dGluLnBpdHRAdWJ1bnR1LmNvbT46Cj4gSGksCj4KPiBidmlkaW5saSBbMjAwOC0wNi0xMSAxMzo0
+MiArMDMwMF06Cj4+IFsgICA0OC42NTU1NTldIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wg
+c2FhNzEzNF90dmF1ZGlvX3NldG11dGUKPj4gWyAgIDQ4LjY1NTk1OV0gc2FhNzEzNF9hbHNhOiBk
+aXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wgc2FhX2RzcF93cml0ZWwKPgo+IEFoLCBB
+RkFJSyBsaW51eC11YnVudHUtbW9kdWxlcyBzaGlwcyBhIG5ld2VyIHZlcnNpb24gb2YgQUxTQSB0
+aGFuIHRoZQo+IGxpbnV4IGtlcm5lbCBpdHNlbGYuIFVidW50dSBzaGlwcyB0aGUgaGVhZGVycyBm
+b3IgdGhvc2UgYXMgd2VsbAo+IChsaW51eC1oZWFkZXJzLWx1bS0yLjYuMjQtMTktZ2VuZXJpYywg
+b3IKPiBsaW51eC1oZWFkZXJzLWx1bS0yLjYuMjQtMTgtZ2VuZXJpYyBpZiB5b3UgZG9uJ3QgcnVu
+IGhhcmR5LXByb3Bvc2VkKS4KPiBUaHVzIHY0bC1kdmIgbmVlZHMgdG8gYmUgYnVpbHQgYWdhaW5z
+dCB0aG9zZSBoZWFkZXJzLgo+Cj4gSG93ZXZlciwgbWVyZWx5IGluc3RhbGxpbmcgdGhlIHBhY2th
+Z2Ugd29uJ3QgbWFnaWNhbGx5IG1ha2UgdGhlbSB1c2VkCj4gYnkgdGhlIGJ1aWxkLiBNYXliZSBp
+dCBoZWxwcyB0byBwYXNzCj4gRVhUUkFfQ0ZMQUdTPSItSSAvdXNyL3NyYy9saW51eC1oZWFkZXJz
+LWx1bS0yLjYuMjQtMTktZ2VuZXJpYyIgKG9yCj4gLTE4LCByZXNwZWN0aXZlbHkpIHRvIHRoZSBN
+QUtFWzBdIGNvbW1hbmQgaW4KPiAvdXNyL3NyYy92NGwtZHZiLTAuMjAwODA2MTAvZGttcy5jb25m
+PyBJZiB0aGF0IGhlbHBzLCBJIGNhbiBnZW5lcmFsaXplCj4gaXQuCj4KPiBBbHNvL0FsdGVybmF0
+aXZlbHksIGlmIHlvdSBjYW4gdGVsbCBtZSB3aGljaCBtb2R1bGUgeW91IHRyaWVkIHRvIGxvYWQK
+PiBmb3IgeW91ciBjYXJkLCB0aGVuIEkgY2FuIHRyeSB0byByZXByb2R1Y2UgaXQgbG9jYWxseS4K
+Pgo+IFRoYW5rcywKPgo+IE1hcnRpbgo+Cj4gLS0KPiBNYXJ0aW4gUGl0dCAgICAgICAgICAgICAg
+ICAgICAgICAgIHwgaHR0cDovL3d3dy5waXdhcmUuZGUKPiBVYnVudHUgRGV2ZWxvcGVyICh3d3cu
+dWJ1bnR1LmNvbSkgIHwgRGViaWFuIERldmVsb3BlciAgKHd3dy5kZWJpYW4ub3JnKQo+CgoKCi0t
+IArdLkJhaGF0dGluIFZpZGlubGkKRWxrLUVsZWt0cm9uaWsgTfxoLgotLS0tLS0tLS0tLS0tLS0t
+LS0tCmlsZXRpc2ltIGJpbGdpbGVyaSAoVGVyY2loIHNpcmFzaW5hIGdvcmUpOgpza3lwZTogYnZp
+ZGlubGkgKHNlc2xpIGdvcnVzbWUgaWNpbiwgd3d3LnNreXBlLmNvbSkKbXNuOiBidmlkaW5saUBp
+eWliaXJpc2kuY29tCnlhaG9vOiBidmlkaW5saQoKKzkwLjUzMi43OTkwNjA3Cis5MC41MDUuNTY2
+NzcxMQo=
+------=_Part_27476_8059544.1213304635387
+Content-Type: application/x-sh; name=dvb_ubuntu.sh
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fhdu5m190
+Content-Disposition: attachment; filename=dvb_ubuntu.sh
 
-I've been trying to get my recently (yesterday) bought dvb-c tuner working
-under Ubuntu Hardy. Installed drivers from http://www.jusst.de/hg/mantis,
-and the /dev/dvb got populated, but without frontend.
-
-
-Output from lspci:
-
-administrator@hydra:~$ lspci -d 1822:4e35 -vv
-00:08.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
-Bridge Controller [Ver 1.0] (rev 01)
-    Subsystem: TERRATEC Electronic GmbH Unknown device 1178
-    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-    Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort-
-<TAbort+ <MAbort- >SERR+ <PERR+
-    Latency: 32 (2000ns min, 63750ns max)
-    Interrupt: pin A routed to IRQ 20
-    Region 0: Memory at fc020000 (32-bit, prefetchable) [size=3D4K]
-
-PCI id seems to have changed from the earlier Cinergy C cards.
-
- Output (partial) from dmesg:
-
-[   33.894498] found a VP-2040 PCI DVB-C device on (00:08.0),
-[   33.894502]     Mantis Rev 1 [153b:1178], irq: 20, latency: 32
-[   33.894507]     memory: 0xfc020000, mmio: 0xf8972000
-[   33.897204]     MAC Address=3D[00:08:c8:1c:80:c0]
-[   33.897246] mantis_alloc_buffers (0): DMA=3D0x374c0000 cpu=3D0xf74c0000
-size=3D65536
-[   33.897253] mantis_alloc_buffers (0): RISC=3D0x1f9e3000 cpu=3D0xdf9e3000
-size=3D1000
-[   33.897258] DVB: registering new adapter (Mantis dvb adapter)
-[   33.926286] input: Power Button (FF) as /devices/virtual/input/input4
-[   33.944481] ACPI: Power Button (FF) [PWRF]
-[   33.944568] input: Power Button (CM) as /devices/virtual/input/input5
-[   33.976486] ACPI: Power Button (CM) [PWRB]
-[   33.976625] input: Sleep Button (CM) as /devices/virtual/input/input6
-[   33.988428] ACPI: Sleep Button (CM) [SLPB]
-[   34.416113] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-[   34.418214] mantis_frontend_init (0): !!! NO Frontends found !!!
-[   34.418220] mantis_ca_init (0): Registering EN50221 device
-[   34.475764] mantis_ca_init (0): Registered EN50221 device
-[   34.475777] mantis_hif_init (0): Adapter(0) Initializing Mantis Host
-Interface
-
-Even I managed to notice one line stating: "!!! NO Frontends found !!!", so
-I guess it's no wonder it isn't working.
-
-Does anyone have a clue what I should try next? Or has anyone had success
-with this card. I couldn't find earlier models, like cinergy 1200-c, or eve=
-n
-newer, anywhere. I'm supposed to build a DVB to IP streaming machine for a
-school, so I would also be happy if someone knew any other available DVB-C
-cards working under linux.
-
-Best regards,
-Mikko M=E4kinen
-
-------=_Part_3900_13279441.1214418065800
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hello everybody, <br>&nbsp;<br>I&#39;ve been trying to get my recently (yes=
-terday) bought dvb-c tuner working under Ubuntu Hardy. Installed drivers fr=
-om <a href=3D"http://www.jusst.de/hg/mantis">http://www.jusst.de/hg/mantis<=
-/a>, and the /dev/dvb got populated, but without frontend. <br>
-<br><br>Output from lspci:<br><br>administrator@hydra:~$ lspci -d 1822:4e35=
- -vv<br>00:08.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DT=
-V PCI Bridge Controller [Ver 1.0] (rev 01)<br>&nbsp;&nbsp;&nbsp; Subsystem:=
- TERRATEC Electronic GmbH Unknown device 1178<br>
-&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASno=
-op- ParErr- Stepping- SERR- FastB2B-<br>&nbsp;&nbsp;&nbsp; Status: Cap- 66M=
-Hz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium &gt;TAbort- &lt;TAbort+ &lt;MAbor=
-t- &gt;SERR+ &lt;PERR+<br>&nbsp;&nbsp;&nbsp; Latency: 32 (2000ns min, 63750=
-ns max)<br>
-&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 20<br>&nbsp;&nbsp;&nbsp; =
-Region 0: Memory at fc020000 (32-bit, prefetchable) [size=3D4K]<br><br>PCI =
-id seems to have changed from the earlier Cinergy C cards. <br><br>&nbsp;Ou=
-tput (partial) from dmesg:<br><br>
-[&nbsp;&nbsp; 33.894498] found a VP-2040 PCI DVB-C device on (00:08.0),<br>=
-[&nbsp;&nbsp; 33.894502]&nbsp;&nbsp;&nbsp;&nbsp; Mantis Rev 1 [153b:1178], =
-irq: 20, latency: 32<br>[&nbsp;&nbsp; 33.894507]&nbsp;&nbsp;&nbsp;&nbsp; me=
-mory: 0xfc020000, mmio: 0xf8972000<br>[&nbsp;&nbsp; 33.897204]&nbsp;&nbsp;&=
-nbsp;&nbsp; MAC Address=3D[00:08:c8:1c:80:c0]<br>
-[&nbsp;&nbsp; 33.897246] mantis_alloc_buffers (0): DMA=3D0x374c0000 cpu=3D0=
-xf74c0000 size=3D65536<br>[&nbsp;&nbsp; 33.897253] mantis_alloc_buffers (0)=
-: RISC=3D0x1f9e3000 cpu=3D0xdf9e3000 size=3D1000<br>[&nbsp;&nbsp; 33.897258=
-] DVB: registering new adapter (Mantis dvb adapter)<br>
-[&nbsp;&nbsp; 33.926286] input: Power Button (FF) as /devices/virtual/input=
-/input4<br>[&nbsp;&nbsp; 33.944481] ACPI: Power Button (FF) [PWRF]<br>[&nbs=
-p;&nbsp; 33.944568] input: Power Button (CM) as /devices/virtual/input/inpu=
-t5<br>[&nbsp;&nbsp; 33.976486] ACPI: Power Button (CM) [PWRB]<br>
-[&nbsp;&nbsp; 33.976625] input: Sleep Button (CM) as /devices/virtual/input=
-/input6<br>[&nbsp;&nbsp; 33.988428] ACPI: Sleep Button (CM) [SLPB]<br>[&nbs=
-p;&nbsp; 34.416113] mantis_frontend_init (0): Probing for CU1216 (DVB-C)<br=
->[&nbsp;&nbsp; 34.418214] mantis_frontend_init (0): !!! NO Frontends found =
-!!!<br>
-[&nbsp;&nbsp; 34.418220] mantis_ca_init (0): Registering EN50221 device<br>=
-[&nbsp;&nbsp; 34.475764] mantis_ca_init (0): Registered EN50221 device<br>[=
-&nbsp;&nbsp; 34.475777] mantis_hif_init (0): Adapter(0) Initializing Mantis=
- Host Interface<br><br>Even I managed to notice one line stating: &quot;!!!=
- NO Frontends found !!!&quot;, so I guess it&#39;s no wonder it isn&#39;t w=
-orking. <br>
-<br>Does anyone have a clue what I should try next? Or has anyone had succe=
-ss with this card. I couldn&#39;t find earlier models, like cinergy 1200-c,=
- or even newer, anywhere. I&#39;m supposed to build a DVB to IP streaming m=
-achine for a school, so I would also be happy if someone knew any other ava=
-ilable DVB-C cards working under linux. <br>
-<br>Best regards, <br>Mikko M=E4kinen<br><br><br>&nbsp;<br><br><br>
-
-------=_Part_3900_13279441.1214418065800--
-
-
---===============0310677799==
+IyEvYmluL2Jhc2gKZWNobyAiaSBtdXN0IHJ1biB0aGlzIGFzIG5vcm1hbCB1c2VyLi4uIHByZXNz
+IGVudGVyIHRvIGNvbnRpbnVlIgpyZWFkCgpjZApybSAtcnZmIHY0bC1kdmIKCiNpbnN0YWxsIG1l
+cmN1cmlhbCwgZ2V0IHY0bCBmaWxlcywgcGF0Y2ggYW5kIGNvbXBpbGUsCnN1ZG8gYXB0LWdldCBp
+bnN0YWxsIG1lcmN1cmlhbCBsaW51eC1oZWFkZXJzLSQodW5hbWUgLXIpIGJ1aWxkLWVzc2VudGlh
+bApoZyBjbG9uZSBodHRwOi8vbGludXh0di5vcmcvaGcvdjRsLWR2Ygp3Z2V0IGh0dHA6Ly9kZXYu
+Z2VudG9vLm9yZy9+enphbS9kdmIvYTcwMF9mdWxsXzIwMDgwNTE5LmRpZmYKY2Qgfi92NGwtZHZi
+LwpwYXRjaCAtcDEgPCAuLi9hNzAwX2Z1bGxfMjAwODA1MTkuZGlmZgptYWtlCgoKIyBmaXJzdCwg
+YmFja3VwIGFsbCBpbiBjYXNlIHdlIG5lZWQgdGhlbS4uLiAKY2QgL2xpYi9tb2R1bGVzL2B1bmFt
+ZSAtcmAva2VybmVsL2RyaXZlcnMvCnN1ZG8gY3AgLXJ2ZiBtZWRpYSAvcm9vdC9iYWNrdXAvbWVk
+aWEuYmNrCgpjZCAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEKc3VkbyBjcCAt
+cnZmIHNhYTcxMzQgL3Jvb3QvYmFja3VwL3NhYTcxMzQuYmNrCgojIGdvdG8gd2hlcmUgeW91IGdv
+dCB5b3VyIHY0bCBmaWxlcyBieSBoZwpjZCB+L3Y0bC1kdmIvdjRsCnN1ZG8gY3AgLWYgaXItY29t
+bW9uLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1v
+bi8Kc3VkbyBjcCAtZiBzYWE3MTQ2LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9k
+cml2ZXJzL21lZGlhL2NvbW1vbi8Kc3VkbyBjcCAtZiBzYWE3MTQ2X3Z2LmtvIC9saWIvbW9kdWxl
+cy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1vbi8KCnN1ZG8gY3AgLWYgZHZi
+LWNvcmUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvZHZi
+L2R2Yi1jb3JlLwoKCnN1ZG8gY3AgLWYgc2FhNjc1MmhzLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
+LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvCnN1ZG8gY3AgLWYgc2FhNzEz
+NC1kdmIua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBzYWE3MTM0LWVtcHJlc3Mua28gL2xpYi9tb2R1bGVzL2B1
+bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBz
+YWE3MTM0LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL3NhYTcxMzQvCgpzdWRvIGNwIC1mIGN4MjM4ODUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAt
+cmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS8Kc3VkbyBjcCAtZiBjeDI1ODQw
+LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
+MjU4NDAvCgpzdWRvIGNwIC1mIGN4ODgtYmxhY2tiaXJkLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
+LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvCnN1ZG8gY3AgLWYgY3g4OC1kdmIu
+a28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC8Kc3VkbyBjcCAtZiBjeDg4LXZwMzA1NC1pMmMua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAv
+a2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4eHgua28gL2xp
+Yi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3Vk
+byBjcCAtZiBjeDg4MDAua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4MDIua28gL2xpYi9tb2R1bGVzL2B1bmFt
+ZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8KCiMgcmVtb3ZlIHVidW50dS1z
+cGVjaWZpYyBtb2R1bGVzLCB3aGljaCBhcmUgbG9hZGVkIGJ5IGRlZmF1bHQgYnkgdWJ1bnR1LCAK
+IyBpIGZvdW5kIHRoaXMgaW5mbyBvbiBodHRwczovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUv
+K3NvdXJjZS9saW51eC11YnVudHUtbW9kdWxlcy0yLjYuMjQvK2J1Zy8yMjA4NTcKIyBkaXJlY3Qg
+bGluayB0byBpbmZvIDogaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQvdWJ1bnR1Lytzb3VyY2Uv
+bGludXgtdWJ1bnR1LW1vZHVsZXMtMi42LjI0LytidWcvMjIwODU3L2NvbW1lbnRzLzkKCnN1ZG8g
+cm0gLXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9jeDg4DQpzdWRvIHJt
+IC1yZiAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEvc2FhNzEzNA0KCgoKdW5h
+bWU9YHVuYW1lIC1yYAplY2hvICJyZXBsYWNpbmcgYWxsIGZpbGVzIGluIC9saWIvbW9kdWxlcy8k
+dW5hbWUva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vKi5rbyBmcm9tIG5ldyBjb21waWxlZCBv
+bmVzLi4uICIKZm9yIGkgaW4gYGxzIC9saWIvbW9kdWxlcy8kdW5hbWUva2VybmVsL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vKi5rb2AgOyBkbyBpPWBlY2hvICRpIHwgYXdrIC1GICIvIiAne3ByaW50ICRO
+Rn0nYDsgc3VkbyBjcCAtdmYgJGkgL2xpYi9tb2R1bGVzLyR1bmFtZS9rZXJuZWwvZHJpdmVycy9t
+ZWRpYS92aWRlby8gOyBkb25lCgojIHJlbW92ZSBhbmQgcmVpbnN0YWxsIG1vZHVsZXMKc3VkbyBy
+bW1vZCBzYWE3MTM0X2Fsc2Egc2FhNzEzNApzdWRvIGRlcG1vZCAtYQpzdWRvIG1vZHByb2JlIHNh
+YTcxMzQgaTJjX3NjYW49MQoKCgoKCg==
+------=_Part_27476_8059544.1213304635387
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -159,4 +206,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0310677799==--
+------=_Part_27476_8059544.1213304635387--
