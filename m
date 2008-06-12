@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JElXCZ009102
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 10:47:33 -0400
-Received: from horsea.3ti.be (horsea.3ti.be [62.213.193.164])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JElHq3028155
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 10:47:18 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by horsea.3ti.be (Postfix) with ESMTP id 59C7F2A80A1
-	for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 16:47:17 +0200 (CEST)
-Received: from horsea.3ti.be ([127.0.0.1])
-	by localhost (horsea.3ti.be [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id Ax6ioFEFKweQ for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by horsea.3ti.be (Postfix) with ESMTP id 9939A2A80A1
-	for <video4linux-list@redhat.com>;
-	Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
-Date: Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
-From: Dag Wieers <dag@wieers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5C9qb66014555
+	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 05:52:37 -0400
+Received: from scing.com (scing.com [217.160.110.58])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5C9qMAU022203
+	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 05:52:23 -0400
+From: Janne Grunau <janne-dvb@grunau.be>
 To: video4linux-list@redhat.com
-Message-ID: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
+Date: Thu, 12 Jun 2008 11:52:55 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Subject: Looking for a well suppord TV card with some requirements
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200806121152.55574.janne-dvb@grunau.be>
+Subject: Hauppauge HD PVR linux driver, first release
+Reply-To: Janne Grunau <j@jannau.net>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,30 +29,35 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-I am looking for a well support TV card with the following feature list:
+I'm pleased to announce the immediately available of a mercurial 
+repository for the Haupauge HD PVR.
 
-   - Must have at least one tuner (PAL), preferably two
-   - Must have composite input (for connecting a Nintendo Wii)
-   - Should not have any delay between input signal and output
-   - Works on kernel 2.6.18 (either vanilla, or by adding a driver)
-   - Additionally, DVB-T would be nice
+The repository is at http://hg.jannau.net/hdpvr/. Follow the howto at 
+http://linuxtv.org/repo/ but use hg clone http://hg.jannau.net/hdpvr/ 
+instead of http://linuxtv.org/hg/v4l-dvb.
 
-I bought a Hauppauge PVR-150 because I thought it complied to the above, 
-but apparently (because it is an MPEG encoder and not a real TV card) 
-there was a 2 second delay between the image from the Wii and the output 
-on screen which is unacceptable for playing games.
+The driver is currently at most alpha quality and tested only with 
+v4l2-ctl and cat /dev/video0. Other applications might fail in 
+interesting ways.
 
-(And the sound didn't work, but I didn't try to look for a solution 
-because of the delay)
+I've compiled the driver only with kernel 2.6.24 and 2.6.25. A tester 
+reported success on 2.6.22.
 
-I still have an old Hauppauge WinTV card from 2000, based on the bttv 
-driver which works fine, but does not have composite input.
+TODO:
+-extend V4L MPEG encoding api (atm only add mpeg4 AVC and AAC
+ as formats)
+-test IR support and merge it into the official repo
+-improve buffer management, especially make it fault-tolerant
+-add missing device options (iirc only sharpness and
+ chroma/luma filters)
+-test with other v4l application and fix issues
 
-Who can help me find something acceptable ?
+Support for MythTV is already worked on.
 
--- 
---   dag wieers,  dag@wieers.com,  http://dag.wieers.com/   --
-[Any errors in spelling, tact or fact are transmission errors]
+I've probably missed a couple of things so feel free to reply or join 
+the development irc channel #hdpvr on freenode.net.
+
+Janne
 
 --
 video4linux-list mailing list
