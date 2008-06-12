@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from wa-out-1112.google.com ([209.85.146.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@me.by>) id 1K8KCh-0001Rt-4N
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 21:17:29 +0200
-Received: by ug-out-1314.google.com with SMTP id m3so465460uge.20
-	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 12:17:17 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
+	(envelope-from <alireza.torabi@gmail.com>) id 1K6iLT-00066H-Km
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 10:39:48 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so2591028wag.13
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 01:39:40 -0700 (PDT)
+Message-ID: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
+Date: Thu, 12 Jun 2008 09:39:39 +0100
+From: "Alireza Torabi" <alireza.torabi@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Mon, 16 Jun 2008 22:17:14 +0300
-References: <200709032205293433925@sina.com>
-In-Reply-To: <200709032205293433925@sina.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806162217.15035.liplianin@me.by>
-Cc: lvjun30@163.com
-Subject: Re: [linux-dvb] Driver of STv0288
+Subject: [linux-dvb] 2.6.x kernels and TechniSat SkyStar2 HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,24 +19,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMyBTZXB0ZW1iZXIgMjAwNyAxNzowNTozMiBFcmljIM7B0MnTwcwowSk6
-Cj4gRGVhciBndXlzLAo+IAlBbnkgb25lIHdobyBoYXZlIGV4cGVyaWVuY2Ugb24gU1R2MDI4OCA/
-Cj4gQ291bGQgeW91IHNoYXJlIHlvdXIgZXhwZXJpZW5jZT8KPiBJIGNvbmZpZyBpdCBhbmQgaW1w
-bGVtZW50cyB0aGUgc2VhcmNoaW5nIGFyaXRobWV0aWMsCj4gYnV0IGl0IGxvc2Ugc29tZSBUUHMg
-YW5kIGNoYW5uZWxzLgo+IEFueSBvbmUgd2hvIGhhdmUgYSBtb3N0IGJldHRlciBhcml0aG1ldGlj
-Pwo+Cj4KPiBCZXN0IHJlZ2FyZHMsCj4KPgo+IKGhoaGhoaGhoaGhoaGhoaFFcmljCj4goaGhoaGh
-oaGhoaGhoaGhoWx2anVuMzBAMTYzLmNvbQo+IKGhoaGhoaGhoaGhoaGhoaGhoaGhMjAwNy0wOS0w
-Mwo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGlu
-dXgtZHZiIG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cu
-bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgpIaSBhbGwsCklz
-IHN0djAyODggc29tZWhvdyBjb21wYXRpYmxlIHdpdGggc3R2MDI5OT8KQW55IG9uZSB3aG8gaGF2
-ZSB1c2VmdWwgaW5mb3JtYXRpb24/CgpCUgpJZ29yIExpcGxpYW5pbgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdAps
-aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
-YW4vbGlzdGluZm8vbGludXgtZHZi
+Hi All,
+
+For the last 4 days I've been trying all the drivers and patches that
+would allow to use this card: TechniSat SkyStar2 HD. And all failed.
+
+Am I right to assume this project is not active or not as active as it
+should be? I've got a feeling it's the "linuxtv" as a whole not just
+the "mantis" type of drivers specifically.
+
+Please correct me if I am wrong.
+
+Thanks
+Alireza
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
