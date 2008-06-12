@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
+Received: from py-out-1112.google.com ([64.233.166.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaswinder@infradead.org>) id 1KAPBa-0004DT-Gn
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 15:00:50 +0200
-From: Jaswinder Singh <jaswinder@infradead.org>
-To: LKML <linux-kernel@vger.kernel.org>, linux-dvb <linux-dvb@linuxtv.org>,
-	kernelnewbies <kernelnewbies@nl.linux.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <dwmw2@infradead.org>
-Date: Sun, 22 Jun 2008 18:24:19 +0530
-Message-Id: <1214139259.2994.8.camel@jaswinder.satnam>
-Mime-Version: 1.0
-Subject: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
+	(envelope-from <bvidinli@gmail.com>) id 1K6u0B-0003pg-Cr
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 23:06:38 +0200
+Received: by py-out-1112.google.com with SMTP id a29so1505041pyi.0
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 14:06:30 -0700 (PDT)
+Message-ID: <36e8a7020806121406k693e93e2l49048f5d0d15eb5e@mail.gmail.com>
+Date: Fri, 13 Jun 2008 00:06:29 +0300
+From: bvidinli <bvidinli@gmail.com>
+To: "Martin Pitt" <martin.pitt@ubuntu.com>,
+	"Matthias Schwarzott" <zzam@gentoo.org>, linux-dvb@linuxtv.org
+In-Reply-To: <36e8a7020806121403q6295bc86q234e008daf9ebadc@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_27493_25082963.1213304790189"
+References: <36e8a7020806121403q6295bc86q234e008daf9ebadc@mail.gmail.com>
+Subject: Re: [linux-dvb] Failure: Ubuntu users,
+	rejoyce!-Aver hybrid dvb-s+fm A700 - Ubuntu 8.04 - card=141
+	autodetect
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,177 +25,201 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-There's no point in this, since the user can use the BUILTIN_FIRMWARE
-option to include arbitrary firmware files directly in the kernel image.
+------=_Part_27493_25082963.1213304790189
+Content-Type: text/plain; charset=ISO-8859-9
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Thanks to David Woodhouse for help.
+aSB1cGRhdGVkIGR2Yl91YnVudHUuc2ggc2NyaXB0IHRvIHJlZmxlY3QgenphbSdzIGxhdGVzdCBw
+YXRjaCBvZgpodHRwOi8vZGV2LmdlbnRvby5vcmcvfnp6YW0vZHZiL2E3MDBfZnVsbF8yMDA4MDYw
+NC5kaWZmCgoKMjAwOC82LzEzIGJ2aWRpbmxpIDxidmlkaW5saUBnbWFpbC5jb20+Ogo+IGFzIGkg
+c3RhdGVkIGJlZm9yZSwKPiBteSBjYXJkIGlzIGF2ZXIgaHlicmlkIGR2Yi1zICsgZm0gQTcwMAo+
+IHdoaWNoIGlzIGF1dG9kZXRlY3RlZCBieSB0aGlzIG5ldyBkcml2ZXIgb2YgdjRsLWR2YiBmb3Ig
+dWJ1bnR1Li4uCj4KPiBhdXRvbG9hZGVkIG1vZHVsZSBpcyBzYWE3MTM0LCBjYXJkIHR5cGU9MTQx
+Cj4gQ3VycmVudGx5IGRtZXNnIG91dHB1dCBpcyBiZWxvdywgYnV0IGkgYW0gdW5hYmxlIHRvIGV2
+ZW4gc2VlIGR2Ygo+IGRldmljZS9vciBkdmIgY2hhbm5lbCBsaXN0IGluIGthZmZlaW5lLCBrYWZm
+ZWluZSBzYXlzIG5vIGR2YiBkZXZpY2UKPiBhdmFpbGFibGUsCj4KPgo+IHByZXZpb3VzbHksIGkg
+aGFkIGJ1aWxkZWQgdjRsLWR2YiBpbiBteSB1YnVudHUgOC4wNCwgdGhlbiBwdXQgKi5rbwo+IGZp
+bGVzIHRvIHJlbGF0ZWQgcGxhY2VzIHdpdGggYSBzbWFsbCBzY3JpcHQgaSBtYWRlLCB3aGljaCBp
+IGF0dGFjaGVkCj4gaW4gdGhpcyBtYWlsLgo+IHdpdGggdGhhdCBzY3JpcHQgb3IgbWV0aG9kLCBp
+IHdhcyBhYmxlIHRvIHNlZSBkdmIgaW4ga2FmZmVpbmUsIGFuZCBpCj4gd2FzIGFibGUgdG8gc2Vl
+IGNoYW5uZWwgbGlzdCwgYnV0IG5vdCBhYmxlIHRvIHdhdGNoIGNoYW5uZWxzLi4uCj4KPiBpIHdv
+dWxkIGJlIGhhcHB5IGlmIHlvdSBmaXggdjRsIGRyaXZlciBpbnN0YWxsL2J1aWxkIG9uIHVidW50
+dSwgb3Igc2F5Cj4gdXMgYSB3YXkgb2YgdXNpbmcgb3VyIGR2YiBkZXZpY2VzLi4uCj4KPiBkbWVz
+ZyByZWxhdGVkIG91dHB1dDoKPiBbICAgNDkuNTUxNTkzXSBzYWE3MTMzWzBdOiBmb3VuZCBhdCAw
+MDAwOjAwOjE0LjAsIHJldjogMjA5LCBpcnE6IDEwLAo+IGxhdGVuY3k6IDMyLCBtbWlvOiAweGRl
+MDAzMDAwCj4gWyAgIDQ5LjU1MTYxMV0gc2FhNzEzM1swXTogc3Vic3lzdGVtOiAxNDYxOmE3YTIs
+IGJvYXJkOiBBdmVybWVkaWEKPiBEVkItUyBIeWJyaWQrRk0gQTcwMCBbY2FyZD0xNDEsYXV0b2Rl
+dGVjdGVkXQo+IFsgICA0OS41NTE2MzFdIHNhYTcxMzNbMF06IGJvYXJkIGluaXQ6IGdwaW8gaXMg
+MmYyMDAKPiBbICAgNDkuNTUxNjQyXSBzYWE3MTMzWzBdOiBBdmVybWVkaWEgRFZCLVMgSHlicmlk
+K0ZNIEE3MDA6IGh5YnJpZAo+IGFuYWxvZy9kdmIgY2FyZAo+IFsgICA0OS41NTE2NDhdIHNhYTcx
+MzNbMF06IFNvcnJ5LCBvbmx5IHRoZSBhbmFsb2cgaW5wdXRzIGFyZSBzdXBwb3J0ZWQgZm9yIG5v
+dy4KPiBbICAgNDkuOTM1OTM3XSBpcmRhX2luaXQoKQo+IFsgICA0OS45MzU5ODddIE5FVDogUmVn
+aXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMjMKPiBbICAgNTAuMjMxNzg3XSBzYWE3MTMzWzBdOiBp
+MmMgZWVwcm9tIDAwOiA2MSAxNCBhMiBhNyBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmCj4gWyAgIDUwLjIzMTgxN10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSAxMDogZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE4
+NDBdIHNhYTcxMzNbMF06IGkyYyBlZXByb20gMjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZm
+Cj4gZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMxODY0XSBzYWE3MTMzWzBdOiBpMmMg
+ZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZm
+IGZmCj4gWyAgIDUwLjIzMTg4N10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA0MDogZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE5MDld
+IHNhYTcxMzNbMF06IGkyYyBlZXByb20gNTA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4g
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMxOTMyXSBzYWE3MTMzWzBdOiBpMmMgZWVw
+cm9tIDYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZm
+Cj4gWyAgIDUwLjIzMTk1NV0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA3MDogZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE5NzhdIHNh
+YTcxMzNbMF06IGkyYyBlZXByb20gODA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMDAxXSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
+IDkwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4g
+WyAgIDUwLjIzMjAyM10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBhMDogZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzIwNDZdIHNhYTcx
+MzNbMF06IGkyYyBlZXByb20gYjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMDY5XSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMw
+OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gWyAg
+IDUwLjIzMjA5Ml0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBkMDogZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzIxMTRdIHNhYTcxMzNb
+MF06IGkyYyBlZXByb20gZTA6IDAwIDAxIDgxIGFmIGZlIGY2IGZmIGZmIGZmCj4gZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMTM3XSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gWyAgIDUw
+LjI5NjA2Ml0gc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQo+IFsg
+ICA1MC4yOTYxNDhdIHNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKPiBbICAgNTAu
+Mjk2Mzc1XSB2aWEtaXJjYzogZG9uZ2xlIHByb2Jpbmcgbm90IHN1cHBvcnRlZCwgcGxlYXNlIHNw
+ZWNpZnkKPiBkb25nbGVfaWQgbW9kdWxlIHBhcmFtZXRlci4KPiBbICAgNTAuMjk3MjY2XSBJckRB
+OiBSZWdpc3RlcmVkIGRldmljZSBpcmRhMCAodmlhLWlyY2MpCj4gWyAgIDUxLjQyODQwOV0gc2Fh
+NzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3MTM0X3R2
+YXVkaW9fc2V0bXV0ZQo+IFsgICA1MS40Mjg0MjhdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1i
+b2wgc2FhNzEzNF90dmF1ZGlvX3NldG11dGUKPiBbICAgNTEuNDI4ODI5XSBzYWE3MTM0X2Fsc2E6
+IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbCBzYWFfZHNwX3dyaXRlbAo+IFsgICA1
+MS40Mjg4MzhdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhX2RzcF93cml0ZWwKPiBb
+ICAgNTEuNDI5MzQ0XSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5
+bWJvbCB2aWRlb2J1Zl9kbWFfZnJlZQo+IFsgICA1MS40MjkzNTJdIHNhYTcxMzRfYWxzYTogVW5r
+bm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2ZyZWUKPiBbICAgNTEuNDI5ODYyXSBzYWE3MTM0X2Fs
+c2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbAo+IHNhYTcxMzRfcGd0YWJsZV9h
+bGxvYwo+IFsgICA1MS40Mjk4NzFdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEz
+NF9wZ3RhYmxlX2FsbG9jCj4gWyAgIDUxLjQzMDAxOF0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMg
+YWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3MTM0X3BndGFibGVfYnVpbGQKPiBbICAgNTEu
+NDMwMDI3XSBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfcGd0YWJsZV9idWls
+ZAo+IFsgICA1MS40MzAxNTRdIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24g
+b2Ygc3ltYm9sCj4gc2FhNzEzNF9wZ3RhYmxlX2ZyZWUKPiBbICAgNTEuNDMwMTYzXSBzYWE3MTM0
+X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfcGd0YWJsZV9mcmVlCj4gWyAgIDUxLjQzMDI5
+MV0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3
+MTM0X2RtYXNvdW5kX2luaXQKPiBbICAgNTEuNDMwMzAwXSBzYWE3MTM0X2Fsc2E6IFVua25vd24g
+c3ltYm9sIHNhYTcxMzRfZG1hc291bmRfaW5pdAo+IFsgICA1MS40MzA2NzldIHNhYTcxMzRfYWxz
+YTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24gb2Ygc3ltYm9sCj4gc2FhNzEzNF9kbWFzb3VuZF9l
+eGl0Cj4gWyAgIDUxLjQzMDY4OF0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0
+X2RtYXNvdW5kX2V4aXQKPiBbICAgNTEuNDMwOTcyXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBh
+Ym91dCB2ZXJzaW9uIG9mIHN5bWJvbCB2aWRlb2J1Zl9kbWFfaW5pdAo+IFsgICA1MS40MzA5ODFd
+IHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2luaXQKPiBbICAgNTEu
+NDMxMzkxXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbAo+
+IHZpZGVvYnVmX2RtYV9pbml0X2tlcm5lbAo+IFsgICA1MS40MzE0MDFdIHNhYTcxMzRfYWxzYTog
+VW5rbm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2luaXRfa2VybmVsCj4gWyAgIDUxLjQzMTg0OF0g
+c2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9wY2lfZG1hX3VubWFwCj4gWyAg
+IDUxLjQzMjI5MV0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9wY2lfZG1h
+X21hcAo+IFsgICA1MS40MzI0NThdIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNp
+b24gb2Ygc3ltYm9sCj4gc2FhNzEzNF9zZXRfZG1hYml0cwo+IFsgICA1MS40MzI0NjddIHNhYTcx
+MzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9zZXRfZG1hYml0cwo+Cj4KPiAyMDA4LzYv
+MTEgTWFydGluIFBpdHQgPG1hcnRpbi5waXR0QHVidW50dS5jb20+Ogo+PiBIaSwKPj4KPj4gYnZp
+ZGlubGkgWzIwMDgtMDYtMTEgMTM6NDIgKzAzMDBdOgo+Pj4gWyAgIDQ4LjY1NTU1OV0gc2FhNzEz
+NF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3R2YXVkaW9fc2V0bXV0ZQo+Pj4gWyAgIDQ4
+LjY1NTk1OV0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wg
+c2FhX2RzcF93cml0ZWwKPj4KPj4gQWgsIEFGQUlLIGxpbnV4LXVidW50dS1tb2R1bGVzIHNoaXBz
+IGEgbmV3ZXIgdmVyc2lvbiBvZiBBTFNBIHRoYW4gdGhlCj4+IGxpbnV4IGtlcm5lbCBpdHNlbGYu
+IFVidW50dSBzaGlwcyB0aGUgaGVhZGVycyBmb3IgdGhvc2UgYXMgd2VsbAo+PiAobGludXgtaGVh
+ZGVycy1sdW0tMi42LjI0LTE5LWdlbmVyaWMsIG9yCj4+IGxpbnV4LWhlYWRlcnMtbHVtLTIuNi4y
+NC0xOC1nZW5lcmljIGlmIHlvdSBkb24ndCBydW4gaGFyZHktcHJvcG9zZWQpLgo+PiBUaHVzIHY0
+bC1kdmIgbmVlZHMgdG8gYmUgYnVpbHQgYWdhaW5zdCB0aG9zZSBoZWFkZXJzLgo+Pgo+PiBIb3dl
+dmVyLCBtZXJlbHkgaW5zdGFsbGluZyB0aGUgcGFja2FnZSB3b24ndCBtYWdpY2FsbHkgbWFrZSB0
+aGVtIHVzZWQKPj4gYnkgdGhlIGJ1aWxkLiBNYXliZSBpdCBoZWxwcyB0byBwYXNzCj4+IEVYVFJB
+X0NGTEFHUz0iLUkgL3Vzci9zcmMvbGludXgtaGVhZGVycy1sdW0tMi42LjI0LTE5LWdlbmVyaWMi
+IChvcgo+PiAtMTgsIHJlc3BlY3RpdmVseSkgdG8gdGhlIE1BS0VbMF0gY29tbWFuZCBpbgo+PiAv
+dXNyL3NyYy92NGwtZHZiLTAuMjAwODA2MTAvZGttcy5jb25mPyBJZiB0aGF0IGhlbHBzLCBJIGNh
+biBnZW5lcmFsaXplCj4+IGl0Lgo+Pgo+PiBBbHNvL0FsdGVybmF0aXZlbHksIGlmIHlvdSBjYW4g
+dGVsbCBtZSB3aGljaCBtb2R1bGUgeW91IHRyaWVkIHRvIGxvYWQKPj4gZm9yIHlvdXIgY2FyZCwg
+dGhlbiBJIGNhbiB0cnkgdG8gcmVwcm9kdWNlIGl0IGxvY2FsbHkuCj4+Cj4+IFRoYW5rcywKPj4K
+Pj4gTWFydGluCj4+Cj4+IC0tCj4+IE1hcnRpbiBQaXR0ICAgICAgICAgICAgICAgICAgICAgICAg
+fCBodHRwOi8vd3d3LnBpd2FyZS5kZQo+PiBVYnVudHUgRGV2ZWxvcGVyICh3d3cudWJ1bnR1LmNv
+bSkgIHwgRGViaWFuIERldmVsb3BlciAgKHd3dy5kZWJpYW4ub3JnKQo+Pgo+Cj4KPgo+IC0tCj4g
+3S5CYWhhdHRpbiBWaWRpbmxpCj4gRWxrLUVsZWt0cm9uaWsgTfxoLgo+IC0tLS0tLS0tLS0tLS0t
+LS0tLS0KPiBpbGV0aXNpbSBiaWxnaWxlcmkgKFRlcmNpaCBzaXJhc2luYSBnb3JlKToKPiBza3lw
+ZTogYnZpZGlubGkgKHNlc2xpIGdvcnVzbWUgaWNpbiwgd3d3LnNreXBlLmNvbSkKPiBtc246IGJ2
+aWRpbmxpQGl5aWJpcmlzaS5jb20KPiB5YWhvbzogYnZpZGlubGkKPgo+ICs5MC41MzIuNzk5MDYw
+Nwo+ICs5MC41MDUuNTY2NzcxMQo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4
+dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8v
+bGludXgtZHZiCj4KCgoKLS0gCt0uQmFoYXR0aW4gVmlkaW5saQpFbGstRWxla3Ryb25payBN/Ggu
+Ci0tLS0tLS0tLS0tLS0tLS0tLS0KaWxldGlzaW0gYmlsZ2lsZXJpIChUZXJjaWggc2lyYXNpbmEg
+Z29yZSk6CnNreXBlOiBidmlkaW5saSAoc2VzbGkgZ29ydXNtZSBpY2luLCB3d3cuc2t5cGUuY29t
+KQptc246IGJ2aWRpbmxpQGl5aWJpcmlzaS5jb20KeWFob286IGJ2aWRpbmxpCgorOTAuNTMyLjc5
+OTA2MDcKKzkwLjUwNS41NjY3NzExCg==
+------=_Part_27493_25082963.1213304790189
+Content-Type: application/x-sh; name=dvb_ubuntu.sh
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fhdubiet1
+Content-Disposition: attachment; filename=dvb_ubuntu.sh
 
-Signed-off-by: Jaswinder Singh <jaswinder@infradead.org>
---
-drivers/media/dvb/ttpci/Kconfig  |   23 +++----------------
-drivers/media/dvb/ttpci/Makefile |    9 -------
-drivers/media/dvb/ttpci/av7110.c |   16 -------------
-drivers/media/dvb/ttpci/fdump.c    |   44 -------------------------------------
-4 files changed, 4 insertions(+), 88 deletions(-)
-diff --git a/drivers/media/dvb/ttpci/Kconfig b/drivers/media/dvb/ttpci/Kconfig
-index e0bbcaf..6b7a586 100644
---- a/drivers/media/dvb/ttpci/Kconfig
-+++ b/drivers/media/dvb/ttpci/Kconfig
-@@ -6,7 +6,7 @@ config DVB_AV7110
- 	tristate "AV7110 cards"
- 	depends on DVB_CORE && PCI && I2C
- 	depends on HOTPLUG
--	select FW_LOADER if !DVB_AV7110_FIRMWARE
-+	select FW_LOADER
- 	select TTPCI_EEPROM
- 	select VIDEO_SAA7146_VV
- 	depends on VIDEO_DEV	# dependencies of VIDEO_SAA7146_VV
-@@ -30,6 +30,9 @@ config DVB_AV7110
- 	  download/extract it, and then copy it to /usr/lib/hotplug/firmware
- 	  or /lib/firmware (depending on configuration of firmware hotplug).
- 
-+	  Alternatively, you can download the file and use the 
-+	  BUILTIN_FIRMWARE option to build it into your kernel image.
-+
- 	  Say Y if you own such a card and want to use it.
- 
- config DVB_AV7110_BOOTCODE
-@@ -39,24 +42,6 @@ config DVB_AV7110_BOOTCODE
- 	  This includes firmware for AV7110 bootcode
- 	  Say 'N' and let it get loaded from userspace on demand 
- 
--config DVB_AV7110_FIRMWARE
--	bool "Compile AV7110 firmware into the driver"
--	depends on DVB_AV7110 && !STANDALONE
--	default y if DVB_AV7110=y
--	help
--	  The AV7110 firmware is normally loaded by the firmware hotplug manager.
--	  If you want to compile the firmware into the driver you need to say
--	  Y here and provide the correct path of the firmware. You need this
--	  option if you want to compile the whole driver statically into the
--	  kernel.
--
--	  All other people say N.
--
--config DVB_AV7110_FIRMWARE_FILE
--	string "Full pathname of av7110 firmware file"
--	depends on DVB_AV7110_FIRMWARE
--	default "/usr/lib/hotplug/firmware/dvb-ttpci-01.fw"
--
- config DVB_AV7110_OSD
- 	bool "AV7110 OSD support"
- 	depends on DVB_AV7110
-diff --git a/drivers/media/dvb/ttpci/Makefile b/drivers/media/dvb/ttpci/Makefile
-index d7483f1..a7ff3cd 100644
---- a/drivers/media/dvb/ttpci/Makefile
-+++ b/drivers/media/dvb/ttpci/Makefile
-@@ -14,12 +14,3 @@ obj-$(CONFIG_DVB_BUDGET_PATCH) += budget-patch.o
- obj-$(CONFIG_DVB_AV7110) += dvb-ttpci.o
- 
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
--
--hostprogs-y	:= fdump
--
--ifeq ($(CONFIG_DVB_AV7110_FIRMWARE),y)
--$(obj)/av7110.o: $(obj)/av7110_firm.h
--
--$(obj)/av7110_firm.h: $(obj)/fdump
--	$(obj)/fdump $(CONFIG_DVB_AV7110_FIRMWARE_FILE) dvb_ttpci_fw $@
--endif
-diff --git a/drivers/media/dvb/ttpci/av7110.c b/drivers/media/dvb/ttpci/av7110.c
-index 747e7f1..c11a13c 100644
---- a/drivers/media/dvb/ttpci/av7110.c
-+++ b/drivers/media/dvb/ttpci/av7110.c
-@@ -1497,20 +1497,6 @@ static int check_firmware(struct av7110* av7110)
- 	return 0;
- }
- 
--#ifdef CONFIG_DVB_AV7110_FIRMWARE_FILE
--#include "av7110_firm.h"
--static void put_firmware(struct av7110* av7110)
--{
--	av7110->bin_fw = NULL;
--}
--
--static inline int get_firmware(struct av7110* av7110)
--{
--	av7110->bin_fw = dvb_ttpci_fw;
--	av7110->size_fw = sizeof(dvb_ttpci_fw);
--	return check_firmware(av7110);
--}
--#else
- static void put_firmware(struct av7110* av7110)
- {
- 	vfree(av7110->bin_fw);
-@@ -1559,8 +1545,6 @@ static int get_firmware(struct av7110* av7110)
- 	release_firmware(fw);
- 	return ret;
- }
--#endif
--
- 
- static int alps_bsrv2_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters *params)
- {
-diff --git a/drivers/media/dvb/ttpci/fdump.c b/drivers/media/dvb/ttpci/fdump.c
-deleted file mode 100644
-index c90001d..0000000
---- a/drivers/media/dvb/ttpci/fdump.c
-+++ /dev/null
-@@ -1,44 +0,0 @@
--#include <stdio.h>
--#include <sys/types.h>
--#include <sys/stat.h>
--#include <fcntl.h>
--#include <unistd.h>
--
--int main(int argc, char **argv)
--{
--    unsigned char buf[8];
--    unsigned int i, count, bytes = 0;
--    FILE *fd_in, *fd_out;
--
--    if (argc != 4) {
--	fprintf(stderr, "\n\tusage: %s <ucode.bin> <array_name> <output_name>\n\n", argv[0]);
--	return -1;
--    }
--
--    fd_in = fopen(argv[1], "rb");
--    if (fd_in == NULL) {
--	fprintf(stderr, "firmware file '%s' not found\n", argv[1]);
--	return -1;
--    }
--
--    fd_out = fopen(argv[3], "w+");
--    if (fd_out == NULL) {
--	fprintf(stderr, "cannot create output file '%s'\n", argv[3]);
--	return -1;
--    }
--
--    fprintf(fd_out, "\n#include <asm/types.h>\n\nu8 %s [] = {", argv[2]);
--
--    while ((count = fread(buf, 1, 8, fd_in)) > 0) {
--	fprintf(fd_out, "\n\t");
--	for (i = 0; i < count; i++, bytes++)
--	    fprintf(fd_out, "0x%02x, ", buf[i]);
--    }
--
--    fprintf(fd_out, "\n};\n\n");
--
--    fclose(fd_in);
--    fclose(fd_out);
--
--    return 0;
--}
-
-
+IyEvYmluL2Jhc2gKZWNobyAiaSBtdXN0IHJ1biB0aGlzIGFzIG5vcm1hbCB1c2VyLi4uIHByZXNz
+IGVudGVyIHRvIGNvbnRpbnVlIgpyZWFkCgpjZApybSAtcnZmIHY0bC1kdmIKCiNpbnN0YWxsIG1l
+cmN1cmlhbCwgZ2V0IHY0bCBmaWxlcywgcGF0Y2ggYW5kIGNvbXBpbGUsCnN1ZG8gYXB0LWdldCBp
+bnN0YWxsIG1lcmN1cmlhbCBsaW51eC1oZWFkZXJzLSQodW5hbWUgLXIpIGJ1aWxkLWVzc2VudGlh
+bApoZyBjbG9uZSBodHRwOi8vbGludXh0di5vcmcvaGcvdjRsLWR2Ygp3Z2V0IGh0dHA6Ly9kZXYu
+Z2VudG9vLm9yZy9+enphbS9kdmIvYTcwMF9mdWxsXzIwMDgwNjA0LmRpZmYKY2Qgfi92NGwtZHZi
+LwpwYXRjaCAtcDEgPCAuLi9hNzAwX2Z1bGxfMjAwODA1MTkuZGlmZgptYWtlCgoKIyBmaXJzdCwg
+YmFja3VwIGFsbCBpbiBjYXNlIHdlIG5lZWQgdGhlbS4uLiAKY2QgL2xpYi9tb2R1bGVzL2B1bmFt
+ZSAtcmAva2VybmVsL2RyaXZlcnMvCnN1ZG8gY3AgLXJ2ZiBtZWRpYSAvcm9vdC9iYWNrdXAvbWVk
+aWEuYmNrCgpjZCAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEKc3VkbyBjcCAt
+cnZmIHNhYTcxMzQgL3Jvb3QvYmFja3VwL3NhYTcxMzQuYmNrCgojIGdvdG8gd2hlcmUgeW91IGdv
+dCB5b3VyIHY0bCBmaWxlcyBieSBoZwpjZCB+L3Y0bC1kdmIvdjRsCnN1ZG8gY3AgLWYgaXItY29t
+bW9uLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1v
+bi8Kc3VkbyBjcCAtZiBzYWE3MTQ2LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9k
+cml2ZXJzL21lZGlhL2NvbW1vbi8Kc3VkbyBjcCAtZiBzYWE3MTQ2X3Z2LmtvIC9saWIvbW9kdWxl
+cy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1vbi8KCnN1ZG8gY3AgLWYgZHZi
+LWNvcmUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvZHZi
+L2R2Yi1jb3JlLwoKCnN1ZG8gY3AgLWYgc2FhNjc1MmhzLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
+LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvCnN1ZG8gY3AgLWYgc2FhNzEz
+NC1kdmIua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBzYWE3MTM0LWVtcHJlc3Mua28gL2xpYi9tb2R1bGVzL2B1
+bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBz
+YWE3MTM0LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL3NhYTcxMzQvCgpzdWRvIGNwIC1mIGN4MjM4ODUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAt
+cmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS8Kc3VkbyBjcCAtZiBjeDI1ODQw
+LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
+MjU4NDAvCgpzdWRvIGNwIC1mIGN4ODgtYmxhY2tiaXJkLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
+LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvCnN1ZG8gY3AgLWYgY3g4OC1kdmIu
+a28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC8Kc3VkbyBjcCAtZiBjeDg4LXZwMzA1NC1pMmMua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAv
+a2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4eHgua28gL2xp
+Yi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3Vk
+byBjcCAtZiBjeDg4MDAua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4MDIua28gL2xpYi9tb2R1bGVzL2B1bmFt
+ZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8KCiMgcmVtb3ZlIHVidW50dS1z
+cGVjaWZpYyBtb2R1bGVzLCB3aGljaCBhcmUgbG9hZGVkIGJ5IGRlZmF1bHQgYnkgdWJ1bnR1LCAK
+IyBpIGZvdW5kIHRoaXMgaW5mbyBvbiBodHRwczovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUv
+K3NvdXJjZS9saW51eC11YnVudHUtbW9kdWxlcy0yLjYuMjQvK2J1Zy8yMjA4NTcKIyBkaXJlY3Qg
+bGluayB0byBpbmZvIDogaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQvdWJ1bnR1Lytzb3VyY2Uv
+bGludXgtdWJ1bnR1LW1vZHVsZXMtMi42LjI0LytidWcvMjIwODU3L2NvbW1lbnRzLzkKCnN1ZG8g
+cm0gLXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9jeDg4CnN1ZG8gcm0g
+LXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9zYWE3MTM0CgoKCnVuYW1l
+PWB1bmFtZSAtcmAKZWNobyAicmVwbGFjaW5nIGFsbCBmaWxlcyBpbiAvbGliL21vZHVsZXMvJHVu
+YW1lL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvLyoua28gZnJvbSBuZXcgY29tcGlsZWQgb25l
+cy4uLiAiCmZvciBpIGluIGBscyAvbGliL21vZHVsZXMvJHVuYW1lL2tlcm5lbC9kcml2ZXJzL21l
+ZGlhL3ZpZGVvLyoua29gIDsgZG8gaT1gZWNobyAkaSB8IGF3ayAtRiAiLyIgJ3twcmludCAkTkZ9
+J2A7IHN1ZG8gY3AgLXZmICRpIC9saWIvbW9kdWxlcy8kdW5hbWUva2VybmVsL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vIDsgZG9uZQoKIyByZW1vdmUgYW5kIHJlaW5zdGFsbCBtb2R1bGVzCnN1ZG8gcm1t
+b2Qgc2FhNzEzNF9hbHNhIHNhYTcxMzQKc3VkbyBkZXBtb2QgLWEKc3VkbyBtb2Rwcm9iZSBzYWE3
+MTM0IGkyY19zY2FuPTEKCgoKCgo=
+------=_Part_27493_25082963.1213304790189
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_27493_25082963.1213304790189--
