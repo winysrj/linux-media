@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n65a.bullet.mail.sp1.yahoo.com ([98.136.45.12])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KCAQd-0005gI-72
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 11:39:42 +0200
-Date: Fri, 27 Jun 2008 02:39:04 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
+Received: from ug-out-1314.google.com ([66.249.92.170])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <websdaleandrew@googlemail.com>) id 1K6ie1-0007U8-O5
+	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 10:58:58 +0200
+Received: by ug-out-1314.google.com with SMTP id m3so306612uge.20
+	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 01:58:54 -0700 (PDT)
+Message-ID: <e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
+Date: Thu, 12 Jun 2008 09:58:53 +0100
+From: "Andrew Websdale" <websdaleandrew@googlemail.com>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <4850566E.8030001@iki.fi>
 MIME-Version: 1.0
-Message-ID: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
-Subject: [linux-dvb] Potential Linux support for new TerraTec Cinergy HTC
-	USB XS HD ?
-Reply-To: free_beer_for_all@yahoo.com
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+	<4850566E.8030001@iki.fi>
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,69 +21,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0966762925=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Moin!
+--===============0966762925==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_18580_32022064.1213261133203"
 
-I'm sure it's far too early, but I thought I'd ask just in case
-someone might know more than I do...
+------=_Part_18580_32022064.1213261133203
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Sometime Real Soon Now or Right About Now there should be available
-a new USB device from TerraTec, capable of supporting DVB-C and DVB-T,
-as well as analog radio/TV, and with a USB2 connection (vital for
-successful DVB-C viewing, not critical for SDTV over DVB-T).
+2008/6/11 Antti Palosaari <crope@iki.fi>:
 
-Unfortunately, I haven't found detailed hardware info, and what I have
-found refers to ``USB 2.0 compatible'', which sounds to me that it
-might really be a USB 1 device with inadequate bandwidth for HDTV
-or high quality SDTV, like the Cinergy Piranha...
-
-Can anyone say if this device could potentially be supported in the
-future, either by vendor-supplied drivers, or by containing supported/
-supportable chipsets within?  I suspect it may be some weeks before
-anyone can.
-
-
-There's some Vista/XP 32/64-bit drivers available from TerraTec
-recently for download.  Perhaps there will be come useful info
-within directory
-Cinergy HTC USB XS HD/BDA Driver 5.8.430.0/
-such as
-; Cinergy HTC USB XS (EM2883 DVB-T & DVB-C & analog TV/FM & audio)
-%Cinergy.DeviceDesc% = Cinergy.NTx86,USB\VID_0CCD&PID_008E
-or
-;;;HKR,settings\OEMSettings,TunerID7        ,0x00010001,21     ;CFG7 = SAM9082
-
-
-I don't have the device; my inquiries about availability have not
-yet turned up positive so I'm not able to think about ordering one,
-but if someone has more info or better contacts, and could say
-something definitive (like, maybe, or no way) then I'd love to hear
-it.  Searches have turned up heaps of press releases but no obvious
-technical info.  Of course, it's way early.
+> Andrew Websdale wrote:
+>
+>> I got the front end info from dvbsnoop last night & it says its a Zarlink
+>> MT352, but I should try to open the stick anyway to clear up exactly what
+>> chips it uses, although I think its moulded plastics so I'll have to cut it
+>> open.
+>> Andrew
+>>
+>
+> If dvbsnoop says that there is Zarlink MT352, then there should be.
+>
+> It should be also seen from the log, try to look your message.log again to
+> see if there is mention about Zarlink MT352 demodulator / frontend and
+> Quantek QT1010 tuner.
+>
+> It could be also possible that tuner is not working.
+>
+> Antti
+> --
+> http://palosaari.fi/
 
 
 
-If I understand correctly, there are no simple DVB-C devices out there
-that have a true USB2 interface, which are supported under Linux,
-other than a few significantly more expensive devices, most with
-CAM/CI support, which doesn't interest me, so this has caught my
-attention.  Also being a hybrid, though conveniently switching
-between DVB-T and DVB-C is certainly not practical with one RF input
+
+I've examined the logs, & I can find no mention of a Quantek tuner - your
+suggestion of a non-working tuner seems likely, as tuning is what doesn't
+seem to work when I run e.g. w_scan - can you make any suggestion as to
+where I go from here? I'm more than willing to test new code etc.
+regards Andrew
+
+------=_Part_18580_32022064.1213261133203
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<br><br><div class="gmail_quote">2008/6/11 Antti Palosaari &lt;<a href="mailto:crope@iki.fi">crope@iki.fi</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class="Ih2E3d">Andrew Websdale wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+I got the front end info from dvbsnoop last night &amp; it says its a Zarlink MT352, but I should try to open the stick anyway to clear up exactly what chips it uses, although I think its moulded plastics so I&#39;ll have to cut it open.<br>
+
+Andrew <br>
+</blockquote>
+<br></div>
+If dvbsnoop says that there is Zarlink MT352, then there should be.<br>
+<br>
+It should be also seen from the log, try to look your message.log again to see if there is mention about Zarlink MT352 demodulator / frontend and Quantek QT1010 tuner.<br>
+<br>
+It could be also possible that tuner is not working.<br>
+<br>
+Antti<br><font color="#888888">
+-- <br>
+<a href="http://palosaari.fi/" target="_blank">http://palosaari.fi/</a></font></blockquote><div><br><br><br>I&#39;ve examined the logs, &amp; I can find no mention of a Quantek tuner - your suggestion of a non-working tuner seems likely, as tuning is what doesn&#39;t seem to work when I run e.g. w_scan - can you make any suggestion as to where I go from here? I&#39;m more than willing to test new code etc.<br>
+regards Andrew<br></div></div><br>
+
+------=_Part_18580_32022064.1213261133203--
 
 
-thanks
-barry bouwsma
-
-
-      
-
+--===============0966762925==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0966762925==--
