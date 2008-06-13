@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <joshoekstra@gmx.net>) id 1KBXHS-00048y-19
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 17:51:34 +0200
-Message-ID: <4862695A.50407@gmx.net>
-Date: Wed, 25 Jun 2008 17:50:50 +0200
-From: Jos Hoekstra <joshoekstra@gmx.net>
+Received: from blu0-omc3-s14.blu0.hotmail.com ([65.55.116.89])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mark1344@hotmail.de>) id 1K7Cug-0003Gy-E2
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 19:18:11 +0200
+Message-ID: <BLU138-W4602303D45C8BA472E6B02B8AC0@phx.gbl>
+From: Mark H <mark1344@hotmail.de>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 13 Jun 2008 19:17:15 +0200
+In-Reply-To: <4852AA43.2070401@linuxtv.org>
+References: <BLU138-W23877FC9494783EB764EF9B8AD0@phx.gbl>
+	<1213306648l.7615l.1l@manu-laptop>
+	<BLU138-W2192CC104E6C0B94581EF2B8AC0@phx.gbl>
+	<4852AA43.2070401@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to get support added?
+Subject: Re: [linux-dvb] Re :  LinuxDVB for STi7109
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,29 +21,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1880927915=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hey,
+--===============1880927915==
+Content-Type: multipart/alternative;
+	boundary="_a77a3968-94a2-4b85-b737-1fc433107a16_"
 
-About a week ago I sent a mail to this list describing how to use a 
-Avermedia Volar X DVB-T device, I was somehow hoping this would be 
-picked up by the developer maintaining the repository I used to make it 
-work.
+--_a77a3968-94a2-4b85-b737-1fc433107a16_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-It didn't :\
 
-Is there an official way to get the changes I hinted on added to a 
-driver-repo so that it benefits more people?
+> Do ST have a public site that I can download the STi7109 Linux=20
+> toolchain, tree and associated utils from?
+>=20
+> Regards,
+>=20
+> - Steve
 
-Thanks,
+STLinux is available from http://www.stlinux.com.
 
-Jos Hoekstra
+_________________________________________________________________
+Lustige Emoticons f=FCr Ihren Messenger! Hier kostenlos downloaden!
+http://messenger.live.de/mein/=
+
+--_a77a3968-94a2-4b85-b737-1fc433107a16_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt;
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+&gt; Do ST have a public site that I can download the STi7109 Linux <br>&gt=
+; toolchain, tree and associated utils from?<br>&gt; <br>&gt; Regards,<br>&=
+gt; <br>&gt; - Steve<br><br>STLinux is available from http://www.stlinux.co=
+m.<br><br /><hr />Immer dabei! <a href=3D'http://redirect.gimas.net/?cat=3D=
+hmtl&n=3DM0804HMHandy&d=3Dhttp://www.gowindowslive.com/minisites/mail/mobil=
+email.aspx?Locale=3Dde-de' target=3D'_new'>Holen Sie sich Ihre Mails aufs H=
+andy!</a></body>
+</html>=
+
+--_a77a3968-94a2-4b85-b737-1fc433107a16_--
+
+
+--===============1880927915==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1880927915==--
