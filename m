@@ -1,15 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5J2QECr023358
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 22:26:14 -0400
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5J2Q0VJ017518
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 22:26:01 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5DKT6FZ014909
+	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 16:29:06 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5DKSgd9017583
+	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 16:28:42 -0400
 From: hermann pitton <hermann-pitton@arcor.de>
 To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20080618091650.0bd7e2ae@glory.loctelecom.ru>
+In-Reply-To: <20080613180516.211a27a9@glory.loctelecom.ru>
 References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080414172821.3966dfbf@areia>
+	<20080415125059.3e065997@glory.loctelecom.ru>
 	<20080415000611.610af5c6@gaivota>
 	<20080415135455.76d18419@glory.loctelecom.ru>
 	<20080415122524.3455e060@gaivota>
@@ -28,11 +30,9 @@ References: <20080414114746.3955c089@glory.loctelecom.ru>
 	<20080612194426.0e33d92c@glory.loctelecom.ru>
 	<2a93ca18e1d9bc5726b7f1fd60da1852.squirrel@webmail.hccnet.nl>
 	<20080613180516.211a27a9@glory.loctelecom.ru>
-	<1213388868.2758.78.camel@pc10.localdom.local>
-	<20080618091650.0bd7e2ae@glory.loctelecom.ru>
 Content-Type: text/plain
-Date: Thu, 19 Jun 2008 04:23:39 +0200
-Message-Id: <1213842219.2554.16.camel@pc10.localdom.local>
+Date: Fri, 13 Jun 2008 22:27:48 +0200
+Message-Id: <1213388868.2758.78.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
@@ -49,59 +49,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dmitri,
+Hello,
 
-Am Mittwoch, den 18.06.2008, 09:16 +1000 schrieb Dmitri Belimov:
-> Hi All
+Am Freitag, den 13.06.2008, 18:05 +1000 schrieb Dmitri Belimov:
+> Ho Gert,
 > 
-> I found next problems with empress :)))
+> > > I found strange effect. When I start common TV watching with
+> > > mplayer. I can see TV video. When I start cat /dev/video1 (i try
+> > > get MPEG stream of TV) on the TV screen I see sometimes
+> > > big white square. After stopped cat from /dev/video1 this squares
+> > > no more.
+> > >
+> > >
+> > > What is it??
+> > >
+> > 
+> > What video format is being used for the TV video?
 > 
-> I can`t get via v4l2-ctl list of external control for control MPEG settings via this tool.
-> --list-ctrls and --list-ctrls-menus
-> In debug log I can see only one call empress_querycap nothink vidioc_g_ext_ctrls/empress_g_ext_ctrls calls.
-> Didn`t work v4l2-ctl --log-status
-
-just a late/early note on this, I'm still without a working empress
-device.
-
-After you have fixed several bugs on the empress ioctl2 conversion, you
-are still the first user after years and now hit mpeg extended controls,
-Hans from the ivtv project kindly introduced, but he is also without any
-such device and the stuff is completely untested.
-
-As far I know, there are no handlers yet to modify the parameters.
-
-Hopefully Beholder sees, in what kind of field you are operating,
-but for sure there is no doubt about, what was already thrown in.
-
-Thanks,
-Hermann
-
-> ./v4l2-ctl --list-ctrls-menus -d /dev/video1
+> modprobe saa7134 alsa=1 secam=d tsbufs=15 ts_nr_packets=312
 > 
->                      brightness (int)  : min=0 max=255 step=1 default=128 value=0
->                        contrast (int)  : min=0 max=127 step=1 default=68 value=0
->                      saturation (int)  : min=0 max=127 step=1 default=64 value=0
->                             hue (int)  : min=-128 max=127 step=1 default=0 value=0
->                          volume (int)  : min=-15 max=15 step=1 default=0 value=0
->                            mute (bool) : default=0 value=0
->                          mirror (bool) : default=0 value=0
->                          invert (bool) : default=0 value=0
->              y_offset_odd_field (int)  : min=0 max=128 step=0 default=0 value=0
->             y_offset_even_field (int)  : min=0 max=128 step=0 default=0 value=0
->                        automute (bool) : default=1 value=0
+> mplayer tv:// -tv
+> driver=v4l2:fps=25:outfmt=i420:width=720:height=576:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:immediatemode=0:freq=175.0:normid=6
+> -aspect 4:3 -vf kerndeint
 > 
-> It`s debug data in log 
+> > I remember that the SAA7134 can not use a planar video format and TS
+> > capture at the same time.
 > 
-> DEBUG: ts_open() start
-> DEBUG: ts_open() stop
-> DEBUG: empress_querycap() start
-> DEBUG: empress_querycap() stop
-> DEBUG: ts_release() start
-> DEBUG: ts_reset_encoder() start
-> DEBUG: ts_release() stop
+> No. Our programmer of drivers for Windows said it is possible. All of this parts is independent.
+> 
+> > When I added the original TS capture code, I did not deal with this
+> > situation, but I'm not sure if that is still the case.
+> 
+> I think it is problem with buffer working.
+> 
+> Other problem is incorrect work with PAT table.
+> Don`t need touch address of PAT in saa7134 when TS started because this chip sometimes make prefetch. When
+> module change PAT table like now saa7134 can crash if try prefetch (sorry my English). More correct 
+> change entry in PAT table.
 > 
 > With my best regards, Dmitry.
+
+Dmitry, I still can't test anything on my card, since I don't know how
+to switch the default DVB-T on the TS interface to the encoder.
+
+But Gert is right. At least for DVB-T or DVB-S and analog TV at once,
+analog TV can't use planar formats during that due to a restriction of
+the dma engines. Mplayer comes up with planar as default !
+
+We are most gratefully for your fixes after the ioctl2 conversion, but
+remember, Frederic is the only one on the lists currently with a working
+empress encoder with a older snapshot I guessed should work for him.
+
+You might contact him to find a known good starting point if you get
+stuck with the current. He also worked on the empress stuff previously
+and might help to find a solution with latest as well.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
