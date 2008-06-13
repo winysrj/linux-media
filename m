@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.siberianet.ru ([89.105.136.7])
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <wmn@siberianet.ru>) id 1K5q1e-00017R-FO
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 00:39:43 +0200
-Received: from mail.siberianet.ru (mail.siberianet.ru [89.105.136.7])
-	by mail.siberianet.ru (Postfix) with ESMTP id 6651A1DE44A
-	for <linux-dvb@linuxtv.org>; Tue, 10 Jun 2008 06:39:06 +0800 (KRAST)
-Received: from pppoe-192-5.siberianet.ru (pppoe-192-5.siberianet.ru
-	[172.31.192.5])
-	by mail.siberianet.ru (Postfix) with ESMTP id C9C7E1DE1DF
-	for <linux-dvb@linuxtv.org>; Tue, 10 Jun 2008 06:39:05 +0800 (KRAST)
+	(envelope-from <gujs.lists@gmail.com>) id 1K79YQ-0004ep-Ko
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 15:42:59 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so2220853ywj.41
+	for <linux-dvb@linuxtv.org>; Fri, 13 Jun 2008 06:42:52 -0700 (PDT)
+Message-ID: <23be820f0806130642n4ccb47cna0e0b404d360d0bb@mail.gmail.com>
+Date: Fri, 13 Jun 2008 15:42:52 +0200
+From: "Gregor Fuis" <gujs.lists@gmail.com>
 To: linux-dvb@linuxtv.org
-Content-Disposition: inline
-From: Wmn <wmn@siberianet.ru>
-Date: Tue, 10 Jun 2008 06:32:22 +0800
 MIME-Version: 1.0
-Message-Id: <200806100632.23804.wmn@siberianet.ru>
-Subject: [linux-dvb] Scan does not tune to transponder and scans only on
-	previously tuned frontend
+Subject: [linux-dvb] new KNC One TV Station
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,148 +18,145 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1782469204=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello.
+--===============1782469204==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12227_19758917.1213364572370"
 
-I have got CR+CL+KUHV LNB on the DVB-S dish looking to the Yamal 201 at 90*, and there are 3 different cables go down to my server from that dish (one cable to one lnb type).
-When i am trying to scan channels  from "4084 R 2500" it does not scan, but it scans perfectly from "4042 R 8681".
+------=_Part_12227_19758917.1213364572370
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-And when i am szapping to some channel from 4084 it is scanning fine too at the same time (but polarization is dumped wrong for some reason which i can not understand)!
+Hello,
 
-Szap shows very good parameters of signal (too good to be true i think:):
-sat 0, frequency = 4084 MHz V, symbolrate 2500000, vpid = 0x0000, apid = 0x1001
+I recently bought new KNC One TV Station card with Cineview CI module. When
+I installed it, it was detected and worked with no problems. I just noticed
+that tuner is not that sensitive and has a little problems with signal
+strentgh in some cases (rain, bad weather) where TT 2300S Premium didn't
+have. The problem got bigger when I tried Cineview module. I inserted
+Viaccess CAM module and RTV Slovenija smartcard. When I inserted CAM, card
+at the same moment lost lock of signal and signal was not good enough to
+lock again. When I get CAM out of the CI signal doesn't lock until I restart
+szap.
+
+I think that this card is not supported directly because lspci reports
+Unknown KNC One card. Is someone working on drivers to support this card?
+
+lspci output:
+03:0f.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+        Subsystem: KNC One Unknown device 0016
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 32 (3750ns min, 9500ns max)
+        Interrupt: pin A routed to IRQ 17
+        Region 0: Memory at ff7ff000 (32-bit, non-prefetchable) [size=512]
+
+
+dmesg reports this:
+[   28.572224] Linux video capture interface: v2.00
+[   28.702747] saa7146: register extension 'budget_av'.
+[   28.702815] ACPI: PCI Interrupt 0000:03:0f.0[A] -> GSI 17 (level, low) ->
+IRQ 17
+[   28.702853] saa7146: found saa7146 @ mem f8986000 (revision 1, irq 17)
+(0x1894,0x0016).
+[   28.702862] saa7146 (0): dma buffer size 192512
+[   28.702866] DVB: registering new adapter (KNC TV STAR DVB-S)
+[   28.762680] adapter failed MAC signature check
+[   28.762685] encoded MAC from EEPROM was
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+[   29.073159] KNC1-0: MAC addr = 00:09:d6:65:b6:57
+[   29.721965] DVB: registering frontend 0 (ST STV0299 DVB-S)...
+[   29.752958] budget-av: ci interface initialised.
+
+
+Here is my szap test:
+szap -a 0 -c /home/gregor/channels/channels.conf "SLO-TV2"
+reading channels from file '/home/gregor/channels/channels.conf'
+zapping to 2 'SLO-TV2':
+sat 1, frequency = 12303 MHz V, symbolrate 27500000, vpid = 0x00cb, apid =
+0x00cc
 using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 03 | signal 97.79% | snr 43.95% | ber 00000000 | unc 00000000 |
-status 03 | signal 100.00% | snr 58.75% | ber 00000000 | unc 00000000 |
-status 1f | signal 100.00% | snr 70.75% | ber 00000113 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 100.00% | snr 71.66% | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 100.00% | snr 72.57% | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 100.00% | snr 72.45% | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 100.00% | snr 71.90% | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 03 | signal c13b | snr 9609 | ber 0000ff00 | unc 00000000 |
+status 1f | signal c1c1 | snr b0e2 | ber 0000ff03 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c312 | snr aa52 | ber 0000ff12 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c1bb | snr a2e1 | ber 0000ff06 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c2c6 | snr ab2d | ber 0000ff10 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c555 | snr b307 | ber 0000ff00 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c5d5 | snr ba54 | ber 0000ff00 | unc 00000000 |
+FE_HAS_LOCK
+status 1f | signal c440 | snr b748 | ber 0000ff00 | unc 00000000 |
+FE_HAS_LOCK
+<----- CAM inserted
+status 01 | signal 95ee | snr 7f74 | ber 00003383 | unc 00000000 |
+status 01 | signal 90e8 | snr 7f74 | ber 000035a0 | unc 00000000 |
+status 01 | signal 90b6 | snr 7f80 | ber 000032b9 | unc 00000000 |
+status 01 | signal 8715 | snr 8022 | ber 00003487 | unc 00000000 |
+status 01 | signal 8bf2 | snr 7fa7 | ber 00003321 | unc 00000000 |
+status 01 | signal 90f8 | snr 7f62 | ber 0000342c | unc 00000000 |
 
-Here is output from scan when i am trying to scan to previously tuned frontend:
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-0x0000 0x0015: pmt_pid 0x0be4 NetService -- SILVER (running)
-0x0000 0x0016: pmt_pid 0x0be7 NetService -- Record-2 (running)
-0x0000 0x0019: pmt_pid 0x0bfa NetService -- Business FM (running)
-0x0000 0x001a: pmt_pid 0x0bfc NetService -- 107-8 (running)
-0x0000 0x001b: pmt_pid 0x0bfe NetService -- Pomestnoe (running)
-0x0000 0x001c: pmt_pid 0x0c00 NetService -- Resurs-2 (running)
-0x0000 0x001d: pmt_pid 0x0c02 NetService -- DOPO*HOE (running)
-0x0000 0x001e: pmt_pid 0x0c04 NetService -- Energia (running)
-0x0000 0x0020: pmt_pid 0x0c08 NetService -- Avtoradio (running)
-0x0000 0x0023: pmt_pid 0x0c1a NetService -- Shanson (running)
-0x0000 0x0024: pmt_pid 0x0be2 NetService -- Radio Alla (running)
-0x0000 0x0025: pmt_pid 0x0be5 NetService -- Mayak (running)
-0x0000 0x0027: pmt_pid 0x0be3 NetService -- Radio Record (running)
-0x0000 0x002a: pmt_pid 0x0be6 NetService -- FINAM FM (running)
-0x0000 0x0039: pmt_pid 0x0be0 NetService -- Humor FM (running)
-0x0000 0x003a: pmt_pid 0x0be1 NetService -- G.2 (running)
-Network Name 'NetworkService'
-dumping lists (16 services)
-SILVER:4084:h:S90.0E:22500:0:4097:0:0:21:0:0:0
-Record-2:4084:h:S90.0E:22500:0:4099:0:0:22:0:0:0
-Business FM:4084:h:S90.0E:22500:0:4130:0:0:25:0:0:0
-107-8:4084:h:S90.0E:22500:0:4136:0:0:26:0:0:0
-DOPO*HOE:4084:h:S90.0E:22500:0:4168:0:0:29:0:0:0
-Energia:4084:h:S90.0E:22500:0:4122:0:0:30:0:0:0
-Avtoradio:4084:h:S90.0E:22500:0:4200:0:0:32:0:0:0
-Shanson:4084:h:S90.0E:22500:0:4108:0:0:35:0:0:0
-Radio Alla:4084:h:S90.0E:22500:0:4106:0:0:36:0:0:0
-Mayak:4084:h:S90.0E:22500:0:4212:0:0:37:0:0:0
-FINAM FM:4084:h:S90.0E:22500:0:4104:0:0:42:0:0:0
-G.2:4084:h:S90.0E:22500:0:4102:0:0:58:0:0:0
-Radio Record:4084:h:S90.0E:22500:0:4154:0:0:39:0:0:0
-Humor FM:4084:h:S90.0E:22500:0:4151:0:0:57:0:0:0
-Pomestnoe:4084:h:S90.0E:22500:0:4150:0:0:27:0:0:0
-Resurs-2:4084:h:S90.0E:22500:0:4160:0:0:28:0:0:0
-Done.
+dmesg when CAM inserted:
+[14494.791667] budget-av: cam inserted B
+[14497.000533] dvb_ca adapter 0: DVB CAM detected and initialised
+successfully
 
-Here is content of initial tuning data file for scan:
-S 4084000 R 2500000 AUTO
-and here is line from channels file for szap:
-SILVER:4084:v:S0.0W:2500::4097:0:0:21:0:0:0
+I would realy like to know if card will be fully supported. I can help
+debuging problems and test solutions whithout a problem.
 
-Here is output of scan utility when i was trying to scan on did not tuned frontend:
-...when i was going to get output from scan it returned me some interesting results (first time from many hours of different tries):
-scanning ./YAMAL_CR4084
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 4084000 R 2500000 9
->>> tune to: 4084:v:0:2500
-0x0000 0x0015: pmt_pid 0x0be4 NetService -- SILVER (running)
-0x0000 0x0016: pmt_pid 0x0be7 NetService -- Record-2 (running)
-0x0000 0x0019: pmt_pid 0x0bfa NetService -- Business FM (running)
-0x0000 0x001a: pmt_pid 0x0bfc NetService -- 107-8 (running)
-0x0000 0x001b: pmt_pid 0x0bfe NetService -- Pomestnoe (running)
-0x0000 0x001c: pmt_pid 0x0c00 NetService -- Resurs-2 (running)
-0x0000 0x001d: pmt_pid 0x0c02 NetService -- DOPO*HOE (running)
-0x0000 0x001e: pmt_pid 0x0c04 NetService -- Energia (running)
-0x0000 0x0020: pmt_pid 0x0c08 NetService -- Avtoradio (running)
-0x0000 0x0023: pmt_pid 0x0c1a NetService -- Shanson (running)
-0x0000 0x0024: pmt_pid 0x0be2 NetService -- Radio Alla (running)
-0x0000 0x0025: pmt_pid 0x0be5 NetService -- Mayak (running)
-0x0000 0x0027: pmt_pid 0x0be3 NetService -- Radio Record (running)
-0x0000 0x002a: pmt_pid 0x0be6 NetService -- FINAM FM (running)
-0x0000 0x0039: pmt_pid 0x0be0 NetService -- Humor FM (running)
-0x0000 0x003a: pmt_pid 0x0be1 NetService -- G.2 (running)
-Network Name 'NetworkService'
->>> tune to: 11514:h:0:7600
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
->>> tune to: 11514:h:0:7600
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
->>> tune to: 12073:h:0:5500
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
->>> tune to: 12073:h:0:5500
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
->>> tune to: 11111:h:0:2500
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
->>> tune to: 11111:h:0:2500
-__tune_to_transponder:1483: ERROR: Setting frontend parameters failed: 22 Invalid argument
-dumping lists (16 services)
-SILVER:4084:h:0:22500:0:4097:21
-Record-2:4084:h:0:22500:0:4099:22
-Business FM:4084:h:0:22500:0:4130:25
-107-8:4084:h:0:22500:0:4136:26
-DOPO*HOE:4084:h:0:22500:0:4168:29
-Energia:4084:h:0:22500:0:4122:30
-Avtoradio:4084:h:0:22500:0:4200:32
-Shanson:4084:h:0:22500:0:4108:35
-Radio Alla:4084:h:0:22500:0:4106:36
-Mayak:4084:h:0:22500:0:4212:37
-FINAM FM:4084:h:0:22500:0:4104:42
-G.2:4084:h:0:22500:0:4102:58
-Radio Record:4084:h:0:22500:0:4154:39
-Humor FM:4084:h:0:22500:0:4151:57
-Pomestnoe:4084:h:0:22500:0:4150:27
-Resurs-2:4084:h:0:22500:0:4160:28
-Done.
+Thanks!
 
-...and then lots of such messages again:
-scanning ./YAMAL_CR4084
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 4084000 R 2500000 9
->>> tune to: 4084:v:0:2500
-WARNING: >>> tuning failed!!!
->>> tune to: 4084:v:0:2500 (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+Regards,
+Gregor
+
+------=_Part_12227_19758917.1213364572370
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hello,<br><br>I recently bought new KNC One TV Station card with Cineview CI module. When I installed it, it was detected and worked with no problems. I just noticed that tuner is not that sensitive and has a little problems with signal strentgh in some cases (rain, bad weather) where TT 2300S Premium didn&#39;t have. The problem got bigger when I tried Cineview module. I inserted Viaccess CAM module and RTV Slovenija smartcard. When I inserted CAM, card at the same moment lost lock of signal and signal was not good enough to lock again. When I get CAM out of the CI signal doesn&#39;t lock until I restart szap. <br>
+<br>I think that this card is not supported directly because lspci reports Unknown KNC One card. Is someone working on drivers to support this card?<br>
+<br>lspci output:<br>03:0f.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: KNC One Unknown device 0016<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 32 (3750ns min, 9500ns max)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 17<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at ff7ff000 (32-bit, non-prefetchable) [size=512]<br>
+
+<br><br>dmesg reports this:<br>[&nbsp;&nbsp; 28.572224] Linux video capture interface: v2.00<br>[&nbsp;&nbsp; 28.702747] saa7146: register extension &#39;budget_av&#39;.<br>[&nbsp;&nbsp; 28.702815] ACPI: PCI Interrupt 0000:03:0f.0[A] -&gt; GSI 17 (level, low) -&gt; IRQ 17<br>
+
+[&nbsp;&nbsp; 28.702853] saa7146: found saa7146 @ mem f8986000 (revision 1, irq 17) (0x1894,0x0016).<br>[&nbsp;&nbsp; 28.702862] saa7146 (0): dma buffer size 192512<br>[&nbsp;&nbsp; 28.702866] DVB: registering new adapter (KNC TV STAR DVB-S)<br>[&nbsp;&nbsp; 28.762680] adapter failed MAC signature check<br>
+
+[&nbsp;&nbsp; 28.762685] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff<br>[&nbsp;&nbsp; 29.073159] KNC1-0: MAC addr = 00:09:d6:65:b6:57<br>[&nbsp;&nbsp; 29.721965] DVB: registering frontend 0 (ST STV0299 DVB-S)...<br>
+
+[&nbsp;&nbsp; 29.752958] budget-av: ci interface initialised.<br><br><br>Here is my szap test:<br>szap -a 0 -c /home/gregor/channels/channels.conf &quot;SLO-TV2&quot;<br>reading channels from file &#39;/home/gregor/channels/channels.conf&#39;<br>
+zapping to 2 &#39;SLO-TV2&#39;:<br>sat 1, frequency = 12303 MHz V, symbolrate 27500000, vpid = 0x00cb, apid = 0x00cc<br>using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>status 03 | signal c13b | snr 9609 | ber 0000ff00 | unc 00000000 | <br>
+status 1f | signal c1c1 | snr b0e2 | ber 0000ff03 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c312 | snr aa52 | ber 0000ff12 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c1bb | snr a2e1 | ber 0000ff06 | unc 00000000 | FE_HAS_LOCK<br>
+status 1f | signal c2c6 | snr ab2d | ber 0000ff10 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c555 | snr b307 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c5d5 | snr ba54 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK<br>
+status 1f | signal c440 | snr b748 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK&nbsp; <br>&lt;----- CAM inserted<br>status 01 | signal 95ee | snr 7f74 | ber 00003383 | unc 00000000 | <br>status 01 | signal 90e8 | snr 7f74 | ber 000035a0 | unc 00000000 | <br>
+status 01 | signal 90b6 | snr 7f80 | ber 000032b9 | unc 00000000 | <br>status 01 | signal 8715 | snr 8022 | ber 00003487 | unc 00000000 | <br>status 01 | signal 8bf2 | snr 7fa7 | ber 00003321 | unc 00000000 | <br>status 01 | signal 90f8 | snr 7f62 | ber 0000342c | unc 00000000 | <br>
+<br>dmesg when CAM inserted:<br>[14494.791667] budget-av: cam inserted B<br>[14497.000533] dvb_ca adapter 0: DVB CAM detected and initialised successfully<br><br>I would realy like to know if card will be fully supported. I can help debuging problems and test solutions whithout a problem.<br>
+<br>Thanks!<br><br>Regards,<br>Gregor<br><br>
+
+------=_Part_12227_19758917.1213364572370--
 
 
-Why is scan trying to tune to Ku-H at some moment? Don't really understand that...
-Any ideas?
-
----
-Thanks,
-Wmn
+--===============1782469204==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1782469204==--
