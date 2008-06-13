@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from neuf-infra-smtp-out-sp604006av.neufgp.fr ([84.96.92.121])
+Received: from wa-out-1112.google.com ([209.85.146.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marsupilamies@free.fr>) id 1K8vo9-0007ir-M9
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 13:26:37 +0200
-From: marsupilamies <marsupilamies@free.fr>
+	(envelope-from <alireza.torabi@gmail.com>) id 1K7Agd-0000AB-Q4
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 16:55:41 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so3042847wag.13
+	for <linux-dvb@linuxtv.org>; Fri, 13 Jun 2008 07:55:27 -0700 (PDT)
+Message-ID: <cffd8c580806130755t21f428e5qdb83daa47f4d6665@mail.gmail.com>
+Date: Fri, 13 Jun 2008 15:55:26 +0100
+From: "Alireza Torabi" <alireza.torabi@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Wed, 18 Jun 2008 13:25:59 +0200
-Message-Id: <1213788359.8904.5.camel@sat>
-Mime-Version: 1.0
-Subject: [linux-dvb] No frontend when using leadtek dtv dongle gold with
-	last cvs	af9015 branch
+In-Reply-To: <cffd8c580806130739s6f23cc11mc96db647e522f072@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <cffd8c580806130739s6f23cc11mc96db647e522f072@mail.gmail.com>
+Subject: [linux-dvb] Fwd: Mantis kernel modules and VP-1041/SP400 CI,
+	HD2 card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,81 +22,366 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-77u/CiAgICAgICAgSGksCiAgICAgICAgCiAgICAgICAgSSd2ZSBqdXN0IGNvbXBpbGVkIHRoZSBs
-YXN0IGN2cyBicmFuY2ggb2YgYWY5MDE1LgogICAgICAgIEJ1dCB3aGVuIEkgcGx1ZyB0aGUgZG9u
-Z2xlIEkndmUgdGhpczoKICAgICAgICAKICAgICAgICBbIDM1ODguMDk1NTYzXSB1c2IgNC02OiBu
-ZXcgaGlnaCBzcGVlZCBVU0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkCiAgICAgICAgYW5kCiAgICAg
-ICAgYWRkcmVzcyAxMQogICAgICAgIFsgMzU4OC4yMzI1MDRdIHVzYiA0LTY6IGNvbmZpZ3VyYXRp
-b24gIzEgY2hvc2VuIGZyb20gMSBjaG9pY2UKICAgICAgICBbIDM1ODguMjMyOTUwXSBhZjkwMTVf
-dXNiX3Byb2JlOiBpbnRlcmZhY2U6MAogICAgICAgIFsgMzU4OC4yMzQ0MzldIGFmOTAxNV9yZWFk
-X2NvbmZpZzogSVIgbW9kZToxCiAgICAgICAgWyAzNTg4LjIzNTkyOF0gYWY5MDE1X3JlYWRfY29u
-ZmlnOiBUUyBtb2RlOjAKICAgICAgICBbIDM1ODguMjM5NTU4XSBhZjkwMTVfcmVhZF9jb25maWc6
-IFswXSB4dGFsOjIgc2V0CiAgICAgICAgYWRjX2Nsb2NrOjI4MDAwCiAgICAgICAgWyAzNTg4LjI0
-NzA5NV0gYWY5MDE1X3JlYWRfY29uZmlnOiBbMF0gSUYxOjQzMDAKICAgICAgICBbIDM1ODguMjUw
-ODgxXSBhZjkwMTVfcmVhZF9jb25maWc6IFswXSBNVDIwNjAgSUYxOjAKICAgICAgICBbIDM1ODgu
-MjUzMzQ4XSBhZjkwMTVfcmVhZF9jb25maWc6IFswXSB0dW5lciBpZDoxNTYKICAgICAgICBbIDM1
-ODguMjUzOTA3XSBhZjkwMTVfaWRlbnRpZnlfc3RhdGU6IHJlcGx5OjAyCiAgICAgICAgWyAzNTg4
-LjI1MzkxMl0gZHZiLXVzYjogZm91bmQgYSAnTGVhZHRlayBXaW5GYXN0IERUViBEb25nbGUKICAg
-ICAgICBHb2xkJyBpbgogICAgICAgIHdhcm0gc3RhdGUuCiAgICAgICAgWyAzNTg4LjI1NDAzNF0g
-ZHZiLXVzYjogd2lsbCBwYXNzIHRoZSBjb21wbGV0ZSBNUEVHMiB0cmFuc3BvcnQKICAgICAgICBz
-dHJlYW0gdG8KICAgICAgICB0aGUgc29mdHdhcmUgZGVtdXhlci4KICAgICAgICBbIDM1ODguMjU0
-MzcwXSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChMZWFkdGVrIFdpbkZhc3QgRFRWCiAg
-ICAgICAgRG9uZ2xlCiAgICAgICAgR29sZCkKICAgICAgICBbIDM1ODguMjU0ODQ0XSBhZjkwMTVf
-YWY5MDEzX2Zyb250ZW5kX2F0dGFjaDogaW5pdCBJMkMKICAgICAgICBbIDM1ODguMjU0ODQ3XSBh
-ZjkwMTVfaTJjX2luaXQ6CiAgICAgICAgWyAzNTg4LjI1NDg3MV0gYWY5MDE1X2VlcHJvbV9kdW1w
-OgogICAgICAgIFsgMzU4OC4yNzg3NjJdIDAwOiAzMSBjMiBiYiAwYiAwMCAwMCAwMCAwMCAxMyAw
-NCAyOSA2MCAwMCAwMiAwMQogICAgICAgIDAyIAogICAgICAgIFsgMzU4OC4zMTM0ODJdIDEwOiAw
-MCA4MCAwMCBmYSBmYSAxMCA0MCBlZiAwMSAzMCAzMSAzMCAzMSAzMCAzMgogICAgICAgIDMwIAog
-ICAgICAgIFsgMzU4OC4zNDUzOTZdIDIwOiAzNSAzMCAzNSAzMCAzMCAzMCAzMCAzMSBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZgogICAgICAgIGZmIAogICAgICAgIFsgMzU4OC4zNjkzMDFdIDMwOiAwMCAw
-MCAzYSAwMSAwMCAwOCAwMiAwMCBjYyAxMCAwMCAwMCA5YyBmZiBmZgogICAgICAgIGZmIAogICAg
-ICAgIFsgMzU4OC4zOTkwOTVdIDQwOiBmZiBmZiBmZiBmZiBmZiAwOCAwMiAwMCAxZCA4ZCBjNCAw
-NCA4MiBmZiBmZgogICAgICAgIGZmIAogICAgICAgIFsgMzU4OC40Mjc2MjVdIDUwOiBmZiBmZiBm
-ZiBmZiBmZiAyNiAwMCAwMCAwNCAwMyAwOSAwNCAxMCAwMyA0YwogICAgICAgIDAwIAogICAgICAg
-IFsgMzU4OC40NTQwOTNdIDYwOiA2NSAwMCA2MSAwMCA2NCAwMCA3NCAwMCA2NSAwMCA2YiAwMCAz
-MCAwMyA1NwogICAgICAgIDAwIAogICAgICAgIFsgMzU4OC40OTA1NTZdIDcwOiA2OSAwMCA2ZSAw
-MCA0NiAwMCA2MSAwMCA3MyAwMCA3NCAwMCAyMCAwMCA0NAogICAgICAgIDAwIAogICAgICAgIFsg
-MzU4OC41MTg2NTNdIDgwOiA1NCAwMCA1NiAwMCAyMCAwMCA0NCAwMCA2ZiAwMCA2ZSAwMCA2NyAw
-MCA2YwogICAgICAgIDAwIAogICAgICAgIFsgMzU4OC41NDI2MzBdIDkwOiA2NSAwMCAyMCAwMCA0
-NyAwMCA2ZiAwMCA2YyAwMCA2NCAwMCAyMCAwMyAzMAogICAgICAgIDAwIAogICAgICAgIFsgMzU4
-OC41NjkyMzFdIGEwOiAzMSAwMCAzMCAwMCAzMSAwMCAzMCAwMCAzMSAwMCAzMCAwMCAzMSAwMCAz
-MAogICAgICAgIDAwIAogICAgICAgIFsgMzU4OC41OTMyMDddIGIwOiAzNiAwMCAzMCAwMCAzMCAw
-MCAzMCAwMCAzMCAwMCAzMSAwMCAwMCBmZiBmZgogICAgICAgIGZmIAogICAgICAgIFsgMzU4OC42
-MTcyMTBdIGMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgog
-ICAgICAgIGZmIAogICAgICAgIFsgMzU4OC42NDExNjNdIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgogICAgICAgIGZmIAogICAgICAgIFsgMzU4OC42NjUx
-MzhdIGUwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgogICAg
-ICAgIGZmIAogICAgICAgIFsgMzU4OC42ODkxMTddIGYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgogICAgICAgIGZmIAogICAgICAgIFsgMzU4OC43NTI4MTZd
-IGFmOTAxMzogVW5rbm93biBzeW1ib2wgX19mbG9hdHNpZGYKICAgICAgICBbIDM1ODguNzUyODg4
-XSBhZjkwMTM6IFVua25vd24gc3ltYm9sIF9fYWRkZGYzCiAgICAgICAgWyAzNTg4Ljc1Mjk2MF0g
-YWY5MDEzOiBVbmtub3duIHN5bWJvbCBfX2ZpeGRmc2kKICAgICAgICBbIDM1ODguNzUzMDI1XSBh
-ZjkwMTM6IFVua25vd24gc3ltYm9sIF9fZGl2ZGYzCiAgICAgICAgWyAzNTg4Ljc1MzA4OV0gYWY5
-MDEzOiBVbmtub3duIHN5bWJvbCBfX211bGRmMwogICAgICAgIFsgMzU4OC43OTU4ODFdIERWQjog
-VW5hYmxlIHRvIGZpbmQgc3ltYm9sIGFmOTAxM19hdHRhY2goKQogICAgICAgIFsgMzU4OC43OTU4
-OTZdIGR2Yi11c2I6IG5vIGZyb250ZW5kIHdhcyBhdHRhY2hlZCBieSAnTGVhZHRlawogICAgICAg
-IFdpbkZhc3QgRFRWCiAgICAgICAgRG9uZ2xlIEdvbGQnCiAgICAgICAgWyAzNTg4Ljc5NjAzNF0g
-aW5wdXQ6IElSLXJlY2VpdmVyIGluc2lkZSBhbiBVU0IgRFZCIHJlY2VpdmVyCiAgICAgICAgYXMg
-L2RldmljZXMvcGNpMDAwMDowMC8wMDAwOjAwOjEwLjMvdXNiNC80LTYvaW5wdXQvaW5wdXQxOQog
-ICAgICAgIFsgMzU4OC44MjI3MzldIGR2Yi11c2I6IHNjaGVkdWxlIHJlbW90ZSBxdWVyeSBpbnRl
-cnZhbCB0byAxNTAKICAgICAgICBtc2Vjcy4KICAgICAgICBbIDM1ODguODIyNzU0XSBkdmItdXNi
-OiBMZWFkdGVrIFdpbkZhc3QgRFRWIERvbmdsZSBHb2xkCiAgICAgICAgc3VjY2Vzc2Z1bGx5CiAg
-ICAgICAgaW5pdGlhbGl6ZWQgYW5kIGNvbm5lY3RlZC4KICAgICAgICBbIDM1ODguODIyNzU5XSBh
-ZjkwMTVfaW5pdDoKICAgICAgICBbIDM1ODguODIyNzYyXSBhZjkwMTVfaW5pdF9lbmRwb2ludDog
-VVNCIHNwZWVkOjMKICAgICAgICBbIDM1ODguODM0MTA2XSBhZjkwMTVfZG93bmxvYWRfaXJfdGFi
-bGU6CiAgICAgICAgWyAzNTg4LjkxNTA0NF0gaW5wdXQ6IExlYWR0ZWsgV2luRmFzdCBEVFYgRG9u
-Z2xlIEdvbGQKICAgICAgICBhcyAvZGV2aWNlcy9wY2kwMDAwOjAwLzAwMDA6MDA6MTAuMy91c2I0
-LzQtNi80LTY6MS4xL2lucHV0L2lucHV0MjAKICAgICAgICAKICAgICAgICAKICAgICAgICBJIGRv
-bid0IGtub3cgd2h5IEkndmUgdGhlICJhZjkwMTM6IFVua25vdyBzeW1ib2wiCiAgICAgICAgSSdt
-IHVzaW5nIGEgMi42LjI0LTE5IGtlcm5lbCBvbiBhIHVidW50dSA4LjA0LgogICAgICAgIAogICAg
-ICAgIE1heWJlIHRoZSBpc3N1ZSBpcyByZWxhdGVkIHRvIHRoaXMga2VybmVsID8KICAgICAgICAK
-ICAgICAgICBJcyBhbnlib2R5IGNhbiBoZWxwIG1lID8KICAgICAgICAKICAgICAgICBUaGFua3MK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
-dmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYu
-b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+I did a couple of menuconfig in /usr/src and mantis dirs and "Mantis
+based cards" came up. Good!
+However, make now exits with an error (Err!):
+Any ideas please (the same bright guys I asked before!)?
+
+
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# make
+make -C /home/alireza/VP-1041/mantis-0b04be0c088a/v4l
+make[1]: Entering directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+./scripts/make_myconfig.pl
+make[1]: Leaving directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+make[1]: Entering directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+perl scripts/make_config_compat.pl /lib/modules/2.6.25.4/source
+./.myconfig ./config-compat.h
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.25.4/build
+make -C /lib/modules/2.6.25.4/build
+SUBDIRS=/home/alireza/VP-1041/mantis-0b04be0c088a/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.25.4'
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-pci.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-usb.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-fe-tuner.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-i2c.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-sram.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-eeprom.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-misc.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-hw-filter.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/flexcop-dma.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_v4l.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_usb.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_core.o
+  CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx25840-core.o
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx25840-core.c:71:
+error: conflicting type qualifiers for 'addr_data'
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/../linux/include/media/v4l2-i2c-drv-legacy.h:41:
+error: previous declaration of 'addr_data' was here
+make[3]: *** [/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx25840-core.o]
+Error 1
+make[2]: *** [_module_/home/alireza/VP-1041/mantis-0b04be0c088a/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.25.4'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+make: *** [all] Error 2
+
+
+---------- Forwarded message ----------
+From: Alireza Torabi <alireza.torabi@gmail.com>
+Date: Jun 13, 2008 3:39 PM
+Subject: Mantis kernel modules and VP-1041/SP400 CI, HD2 card
+To: linux-dvb@linuxtv.org
+
+
+I'm trying to compile this "Mantis" driver for my VP-1041 dvb card
+(which I am told will support this card).
+I've downloaded this from:
+
+http://jusst.de/hg/mantis
+
+and then ran "make". I can't see any Mantis related kernel module that
+I can load for this card.
+
+For all the bright guys out there: What am I missing here?
+
+
+Here is some output you might like to have a look at and give me a trash about:
+
+1)
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# uname -a
+Linux alpha 2.6.25.4 #1 SMP Fri Jun 13 11:20:05 BST 2008 i686 GNU/Linux
+
+2)
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# gcc -v
+Using built-in specs.
+Target: i686-pc-linux-gnu
+Configured with: ./configure --enable-languages=c,c++
+Thread model: posix
+gcc version 4.3.1 (GCC)
+3)
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# ld -v
+GNU ld (GNU Binutils) 2.18
+
+
+make output)
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# make
+make -C /home/alireza/VP-1041/mantis-0b04be0c088a/v4l
+make[1]: Entering directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+scripts/make_makefile.pl
+./scripts/make_myconfig.pl
+make[1]: Leaving directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+make[1]: Entering directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+perl scripts/make_config_compat.pl /lib/modules/2.6.25.4/source
+./.myconfig ./config-compat.h
+creating symbolic links...
+ln -sf . oss
+Kernel build directory is /lib/modules/2.6.25.4/build
+make -C /lib/modules/2.6.25.4/build
+SUBDIRS=/home/alireza/VP-1041/mantis-0b04be0c088a/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.25.4'
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_v4l.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_usb.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2_core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvbdev.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dmxdev.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_demux.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_filter.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_ca_en50221.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_frontend.o
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_frontend.c: In
+function 'dvb_frontend_thread':
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_frontend.c:1126:
+warning: unused variable 'status'
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_net.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_ringbuffer.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb_math.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/et61x251_core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/et61x251_tas5130d1b.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-functions.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-keymaps.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-if.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-misc.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-ctrl.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-v4l.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-uncompress.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-dec1.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-dec23.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-kiara.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc-timon.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_hv7131d.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_hv7131r.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_mi0343.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_mi0360.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_mt9v111.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_ov7630.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_ov7660.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_pas106b.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_pas202bcb.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_tas5110c1b.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_tas5110d.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102_tas5130d1b.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stk-webcam.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stk-sensor.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301_core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301_pb0330.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301_pas202bcb.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-common.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videodev.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/compat_ioctl32.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-int-device.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-common.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l1-compat.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr36060.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stradis.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia_usb.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/tuner-types.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dma-sg.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-vmalloc.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dvb.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btcx-risc.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx2341x.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dabusb.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ov511.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/se401.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stv680.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr364xx.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stkwebcam.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/et61x251.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/usbvideo.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ibmcam.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ultracam.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/konicawc.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vicam.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/quickcam_messenger.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vivi.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maxiradio.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-gemtek-pci.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maestro.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dsbr100.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-si470x.o
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-si470x.c: In
+function 'si470x_get_rds_registers':
+/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-si470x.c:562:
+warning: format '%ld' expects type 'long int', but argument 3 has type
+'unsigned int'
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb-core.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttpci-eeprom.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusb_dec.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusbdecfe.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cinergyT2.o
+ CC [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btaudio.o
+ Building modules, stage 2.
+ MODPOST 47 modules
+WARNING: "videocodec_register"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr36060.ko] undefined!
+WARNING: "videocodec_unregister"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr36060.ko] undefined!
+WARNING: "i2c_transfer"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttpci-eeprom.ko]
+undefined!
+WARNING: "i2c_register_driver"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko]
+undefined!
+WARNING: "i2c_attach_client"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko]
+undefined!
+WARNING: "i2c_master_recv"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko]
+undefined!
+WARNING: "i2c_detach_client"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko]
+undefined!
+WARNING: "i2c_del_driver"
+[/home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko]
+undefined!
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btaudio.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btaudio.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btcx-risc.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/btcx-risc.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cinergyT2.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cinergyT2.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/compat_ioctl32.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/compat_ioctl32.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia2.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia_usb.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cpia_usb.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx2341x.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/cx2341x.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dabusb.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dabusb.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dsbr100.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dsbr100.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb-core.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/dvb-core.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/et61x251.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/et61x251.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ibmcam.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ibmcam.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-common.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-common.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ir-kbd-i2c.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/konicawc.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/konicawc.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ov511.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ov511.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/pwc.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/quickcam_messenger.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/quickcam_messenger.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-gemtek-pci.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-gemtek-pci.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maestro.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maestro.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maxiradio.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-maxiradio.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-si470x.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/radio-si470x.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/se401.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/se401.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/sn9c102.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stkwebcam.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stkwebcam.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stradis.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stradis.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stv680.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/stv680.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttpci-eeprom.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttpci-eeprom.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusb_dec.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusb_dec.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusbdecfe.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ttusbdecfe.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/tuner-types.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/tuner-types.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ultracam.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/ultracam.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/usbvideo.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/usbvideo.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l1-compat.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l1-compat.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-common.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-common.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-int-device.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/v4l2-int-device.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vicam.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vicam.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-core.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-core.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dma-sg.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dma-sg.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dvb.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-dvb.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-vmalloc.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videobuf-vmalloc.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videodev.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/videodev.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vivi.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/vivi.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zc0301.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr36060.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr36060.ko
+ CC      /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr364xx.mod.o
+ LD [M]  /home/alireza/VP-1041/mantis-0b04be0c088a/v4l/zr364xx.ko
+make[2]: Leaving directory `/usr/src/linux-2.6.25.4'
+./scripts/rmmod.pl check
+found 47 modules
+make[1]: Leaving directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+alpha:/home/alireza/VP-1041/mantis-0b04be0c088a# make install
+make -C /home/alireza/VP-1041/mantis-0b04be0c088a/v4l install
+make[1]: Entering directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+Stripping debug info from files
+
+Removing obsolete files from /lib/modules/2.6.25.4/kernel/drivers/media/video:
+
+Installing kernel modules under /lib/modules/2.6.25.4/kernel/drivers/media/:
+       dvb/ttpci/: ttpci-eeprom.ko
+       video/et61x251/: et61x251.ko
+       video/cpia2/: cpia2.ko
+       dvb/cinergyT2/: cinergyT2.ko
+       video/usbvideo/: ibmcam.ko usbvideo.ko vicam.ko
+               ultracam.ko konicawc.ko quickcam_messenger.ko
+       video/sn9c102/: sn9c102.ko
+       dvb/dvb-core/: dvb-core.ko
+       video/: videobuf-dma-sg.ko stradis.ko videobuf-core.ko
+               cx2341x.ko zr364xx.ko stv680.ko
+               videobuf-dvb.ko stkwebcam.ko ir-kbd-i2c.ko
+               ov511.ko dabusb.ko cpia_usb.ko
+               videodev.ko zr36060.ko vivi.ko
+               btcx-risc.ko se401.ko v4l2-common.ko
+               v4l1-compat.ko videobuf-vmalloc.ko compat_ioctl32.ko
+               v4l2-int-device.ko tuner-types.ko cpia.ko
+       common/: ir-common.ko
+       radio/: dsbr100.ko radio-maestro.ko radio-maxiradio.ko
+               radio-si470x.ko radio-gemtek-pci.ko
+       dvb/ttusb-dec/: ttusbdecfe.ko ttusb_dec.ko
+       video/pwc/: pwc.ko
+       video/zc0301/: zc0301.ko
+/sbin/depmod -a 2.6.25.4
+make[1]: Leaving directory `/home/alireza/VP-1041/mantis-0b04be0c088a/v4l'
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
