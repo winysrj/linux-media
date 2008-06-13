@@ -1,14 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web53210.mail.re2.yahoo.com ([206.190.49.80])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <deloptes@yahoo.com>) id 1K4BT6-0002Lj-BX
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 11:09:13 +0200
-Date: Thu, 5 Jun 2008 02:08:38 -0700 (PDT)
-From: Emanoil Kotsev <deloptes@yahoo.com>
+Received: from thouse03.taonet.it ([195.32.96.103])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <steven.dorigotti@tvblob.com>) id 1K7BLH-0003xh-1p
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 17:37:45 +0200
+Message-Id: <873CB0CE-12F6-4967-9E2A-697CFBAD425F@tvblob.com>
+From: Steven Dorigotti <steven.dorigotti@tvblob.com>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Message-ID: <298530.59775.qm@web53210.mail.re2.yahoo.com>
-Subject: [linux-dvb] Sound level too low after installing dvb drivers
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Fri, 13 Jun 2008 17:36:26 +0200
+Subject: [linux-dvb] opening dvr for writing
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,64 +16,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1609589151=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1609589151==
-Content-Type: multipart/alternative; boundary="0-459660919-1212656918=:59775"
-Content-Transfer-Encoding: 8bit
+Hello,
 
---0-459660919-1212656918=:59775
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+   I am trying to write data to the dvr device in order to playback  
+recorded streams back on the frontend device for testing purposes.
 
-Hello everybody,
-I hope that I'm right here posting my problem to this list.
+   I have tried the following test taken from linuxtv-dvb- 
+apps-1.1.1.tar.gz (as well as others):
 
-I have a very very  strange situation with my system. After I've installed the dvb-experimental drivers (I have a hybrid Hauppauge HVR-900 stick) with my second monitor attached  to the notebook the sound level goes about 100% down, so that I have to turn all volume up at MAX to be able to hear something, which leads to distortion if at once there is more music and speech in the movie I'm watching.
+# ./test_dvr_play ../james.mpg 33 34
+Playing '../james.mpg', video PID 0x0021, audio PID 0x0022
+Failed to open '/dev/dvb/adapter0/dvr0': 22 Invalid argument
 
-If I unplug the external monitor sound level is normal.
+both on mips (custom) and x86 (Ubuntu Etch) architectures with the  
+following hardware: DiB0070 and wt220u.
 
-The notebook is Dell D520, but the same behavior  I've tested and observerd on a FujitsuSiemens E8020.
-The ext. Monitor is Phillips S119 (not quite sure about the model right now). I also could not test it with another monitor.
+   If the open() mode is changed to RDWR instead of WRONLY, errno  
+changes to "Operation not supported".
 
-I have talked to hardware engineers and they said someone should take ALL my equipment into a lab and measure the power signals on the board. Such operation is time consuming and wouldn't be cheep.
+   Is this a known bug and is there a patch available? I have done  
+similar tests with a much older version of linux-dvb in the past with  
+no problems.
 
-So I'm wondering why this happens. 
+cheers,
+Steven
 
-The idea is that when drivers loaded and monitor attached the power consumption on the board  increases and there is no power to feed the amplifier chip.
-
-I would be very glad if someone helps to locate and solve the problem, or to find a workaround.
-
-thanks in advance
-
-kind regards
-
-
-
-       
---0-459660919-1212656918=:59775
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-
-Hello everybody,<br>I hope that I'm right here posting my problem to this list.<br><br>I have a very very&nbsp; strange situation with my system. After I've installed the dvb-experimental drivers (I have a hybrid Hauppauge HVR-900 stick) with my second monitor attached&nbsp; to the notebook the sound level goes about 100% down, so that I have to turn all volume up at MAX to be able to hear something, which leads to distortion if at once there is more music and speech in the movie I'm watching.<br><br>If I unplug the external monitor sound level is normal.<br><br>The notebook is Dell D520, but the same behavior&nbsp; I've tested and observerd on a <span style="border-bottom: 1px dashed rgb(0, 102, 204); cursor: pointer;" class="yshortcuts" id="lw_1212656751_0">FujitsuSiemens</span> E8020.<br>The ext. Monitor is Phillips S119 (not quite sure about the model right now). I also could not test it with another monitor.<br><br>I have talked to hardware engineers and they said
- someone should take ALL my equipment into a lab and measure the power signals on the board. Such operation is time consuming and wouldn't be cheep.<br><br>So I'm wondering why this happens. <br><br>The idea is that when drivers loaded and monitor attached the <span style="border-bottom: 1px dashed rgb(0, 102, 204); cursor: pointer;" class="yshortcuts" id="lw_1212656751_1">power consumption</span> on the board  increases and there is no power to feed the amplifier chip.<br><br>I would be very glad if someone helps to locate and solve the problem, or to find a workaround.<br><br>thanks in advance<br><br>kind regards<br><BR><BR><p>&#32;
-
-      
---0-459660919-1212656918=:59775--
-
-
---===============1609589151==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1609589151==--
