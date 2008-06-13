@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay1.mail.uk.clara.net ([80.168.70.181])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon.farnsworth@onelan.co.uk>) id 1K5h1r-0001Tx-4m
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 15:03:23 +0200
-Message-ID: <484D2A08.8020000@onelan.co.uk>
-Date: Mon, 09 Jun 2008 14:03:04 +0100
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-MIME-Version: 1.0
-To: Lauri Tischler <lwgt@iki.fi>
-References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
-	<484D26A3.2010604@iki.fi>
-In-Reply-To: <484D26A3.2010604@iki.fi>
+	(envelope-from <stoth@linuxtv.org>) id 1K7Cov-00020Z-1P
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 19:12:25 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K2E00HH4VR86Z50@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 13 Jun 2008 13:11:33 -0400 (EDT)
+Date: Fri, 13 Jun 2008 13:11:31 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <BLU138-W2192CC104E6C0B94581EF2B8AC0@phx.gbl>
+To: Mark H <mark1344@hotmail.de>
+Message-id: <4852AA43.2070401@linuxtv.org>
+MIME-version: 1.0
+References: <BLU138-W23877FC9494783EB764EF9B8AD0@phx.gbl>
+	<1213306648l.7615l.1l@manu-laptop>
+	<BLU138-W2192CC104E6C0B94581EF2B8AC0@phx.gbl>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
+Subject: Re: [linux-dvb] Re :  LinuxDVB for STi7109
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,31 +33,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Lauri Tischler wrote:
-> Mike Beeson wrote:
->> Hi all,
->>
->> I've searched high and low, but can't find a product (either USB, PCI or
->> PCI-E) that can allow me to have twin tuners and pick up the UK freesat
->> service (with BBC and ITV HD content). Does such a thing exist?
->>
->> I wouldn't mid going with 2 single tuner USB products, but even then I'm not
->> sure what is required.
->>
->> The wiki pages don't seem to offer any light and neither does a large amount
->> of googling.
+Mark H wrote:
+>  > Well if they run linux I dont see how they can provide a proprietary
+>  > implementation... I guess the shortest to get support on linux is to
+>  > ask them to release the source code!
+> I know there are many controversial discussions with respect to closed 
+> source
+> projects for Linux. The fact is that ST Microelectronics has implemented 
+> kernel
+> modules with a proprietary interface (STAPI) for the DVB and is not 
+> willing to
+> disclose the interface details to open source projects. On the other 
+> hand STM
+> provides STLinux distribution for boards based on STi7109 & Co. This 
+> distribution
+> contains open source drivers only the output part of the system (V4Land 
+> ALSA).
 > 
-> Pinnacle PCTV 3010IX (2x DVB-T + 2x analog) PCI-express
-> Terratec 2400i DT Dual DVB-T PCI-E
-> Hauppauge WinTV Nova-T 500 2x DVB-T PCI
-> Pinnacle PCTV 2000i Dual DVB-T Pro 2xDVB-T PCI
+> A copy of the chip datasheet is available on the web. Though, its 
+> legality is questionnable.
 > 
-These are all Freeview-compatible tuners, not Free*sat*.
+> There have been some questions about the API two years ago so I was 
+> wondering
+> whether anybody has started working on an implementation.
 
-Mike needs something that does two DVB-S and S2 tuners.
--- 
-Simon Farnsworth
+Mark,
 
+Do ST have a public site that I can download the STi7109 Linux 
+toolchain, tree and associated utils from?
+
+Regards,
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
