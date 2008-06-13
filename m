@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JNLtdI005222
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 19:21:55 -0400
-Received: from mailout11.t-online.de (mailout11.t-online.de [194.25.134.85])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JNLdGt025304
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 19:21:39 -0400
-Message-ID: <485AE9FF.5070706@t-online.de>
-Date: Fri, 20 Jun 2008 01:21:35 +0200
-From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5DAkrml029374
+	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 06:46:53 -0400
+Received: from scing.com (scing.com [217.160.110.58])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5DAkTux014254
+	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 06:46:40 -0400
+From: Janne Grunau <janne-dvb@grunau.be>
+To: video4linux-list@redhat.com
+Date: Fri, 13 Jun 2008 12:47:03 +0200
+References: <200806121535.30530.janne-dvb@grunau.be>
+	<200806130836.49227.hverkuil@xs4all.nl>
+In-Reply-To: <200806130836.49227.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: timf <timf@iinet.net.au>
-References: <48565075.6040400@iinet.net.au> <485A20DB.2010201@iinet.net.au>
-In-Reply-To: <485A20DB.2010201@iinet.net.au>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linux-dvb] unstable tda1004x firmware loading
+Content-Disposition: inline
+Message-Id: <200806131247.03511.janne-dvb@grunau.be>
+Subject: Re: [RFC] Extend V4L MPEG Encoding API, add AVC and AAC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,28 +29,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Tim
+On Friday 13 June 2008 08:36:49 Hans Verkuil wrote:
+>
+> Looks good! Make sure you also document these in the v4l2 spec.
 
-timf schrieb:
-> Hi Mauro, Hartmut
-> 
-> I wonder if this is relevant in the case of saa7134:
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026816.html
-> 
-> Regards,
-> Timf
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-Thanks a lot for the hint. But for me things currently look like something
-different. See above.
+But it wasn't. I missed to update v4l2_ctrl_query_fill_std()
+with the new max values. Updated patch below.
 
-Best regards
-   Hartmut
+Janne
+
+----
+
+Extend V4L MPEG Encoding API with AVC and AAC
+
+From: Janne Grunau <j@jannau.net>
+
+Adds Advanced Audio Coding (AAC) and MPEG-4 Advanced Video Coding (AVC/H.264)
+as audio/video codecs to the extended controls API.
+
+Signed-off-by: Janne Grunau <j@jannau.net>
+
+diff -r 87878a6b80a8 -r a8438761721d linux/drivers/media/video/v4l2-common.c
+--- a/linux/drivers/media/video/v4l2-common.c	Fri Jun 13 11:21:43 2008 +0200
++++ b/linux/drivers/media/video/v4l2-common.c	Fri Jun 13 11:29:04 2008 +0200
+@@ -359,7 +359,7 @@ int v4l2_ctrl_query_fill(struct v4l2_que
+ 	/* MPEG controls */
+ 	case V4L2_CID_MPEG_CLASS: 		name = "MPEG Encoder Controls"; break;
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: name = "Audio Sampling Frequency"; break;
+-	case V4L2_CID_MPEG_AUDIO_ENCODING: 	name = "Audio Encoding Layer"; break;
++	case V4L2_CID_MPEG_AUDIO_ENCODING: 	name = "Audio Encoding"; break;
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	name = "Audio Layer I Bitrate"; break;
+ 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	name = "Audio Layer II Bitrate"; break;
+ 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	name = "Audio Layer III Bitrate"; break;
+@@ -494,7 +494,7 @@ int v4l2_ctrl_query_fill_std(struct v4l2
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING:
+ 		return v4l2_ctrl_query_fill(qctrl,
+ 				V4L2_MPEG_AUDIO_ENCODING_LAYER_1,
+-				V4L2_MPEG_AUDIO_ENCODING_LAYER_3, 1,
++				V4L2_MPEG_AUDIO_ENCODING_AAC, 1,
+ 				V4L2_MPEG_AUDIO_ENCODING_LAYER_2);
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
+ 		return v4l2_ctrl_query_fill(qctrl,
+@@ -536,7 +536,7 @@ int v4l2_ctrl_query_fill_std(struct v4l2
+ 	case V4L2_CID_MPEG_VIDEO_ENCODING:
+ 		return v4l2_ctrl_query_fill(qctrl,
+ 				V4L2_MPEG_VIDEO_ENCODING_MPEG_1,
+-				V4L2_MPEG_VIDEO_ENCODING_MPEG_2, 1,
++				V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 1,
+ 				V4L2_MPEG_VIDEO_ENCODING_MPEG_2);
+ 	case V4L2_CID_MPEG_VIDEO_ASPECT:
+ 		return v4l2_ctrl_query_fill(qctrl,
+diff -r 87878a6b80a8 -r a8438761721d linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h	Fri Jun 13 11:21:43 2008 +0200
++++ b/linux/include/linux/videodev2.h	Fri Jun 13 11:29:04 2008 +0200
+@@ -923,6 +923,7 @@ enum v4l2_mpeg_audio_encoding {
+ 	V4L2_MPEG_AUDIO_ENCODING_LAYER_1 = 0,
+ 	V4L2_MPEG_AUDIO_ENCODING_LAYER_2 = 1,
+ 	V4L2_MPEG_AUDIO_ENCODING_LAYER_3 = 2,
++	V4L2_MPEG_AUDIO_ENCODING_AAC     = 3,
+ };
+ #define V4L2_CID_MPEG_AUDIO_L1_BITRATE 		(V4L2_CID_MPEG_BASE+102)
+ enum v4l2_mpeg_audio_l1_bitrate {
+@@ -1005,8 +1006,9 @@ enum v4l2_mpeg_audio_crc {
+ /*  MPEG video */
+ #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
+ enum v4l2_mpeg_video_encoding {
+-	V4L2_MPEG_VIDEO_ENCODING_MPEG_1 = 0,
+-	V4L2_MPEG_VIDEO_ENCODING_MPEG_2 = 1,
++	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
++	V4L2_MPEG_VIDEO_ENCODING_MPEG_2     = 1,
++	V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC = 2,
+ };
+ #define V4L2_CID_MPEG_VIDEO_ASPECT 		(V4L2_CID_MPEG_BASE+201)
+ enum v4l2_mpeg_video_aspect {
 
 --
 video4linux-list mailing list
