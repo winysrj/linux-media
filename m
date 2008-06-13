@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.231])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KBXPR-0005NC-2V
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 17:59:49 +0200
-Received: by wx-out-0506.google.com with SMTP id h27so1322923wxd.17
-	for <linux-dvb@linuxtv.org>; Wed, 25 Jun 2008 08:59:45 -0700 (PDT)
-Message-ID: <37219a840806250859p38c463a1u90f883c62ee1b726@mail.gmail.com>
-Date: Wed, 25 Jun 2008 11:59:44 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Jos Hoekstra" <joshoekstra@gmx.net>
-In-Reply-To: <4862695A.50407@gmx.net>
+	(envelope-from <mkrufky@linuxtv.org>) id 1K6yHA-0000m3-P7
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 03:40:29 +0200
+Message-ID: <4851D002.8000801@linuxtv.org>
+Date: Thu, 12 Jun 2008 21:40:18 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <4862695A.50407@gmx.net>
+To: William Melgaard <piobair@mindspring.com>
+References: <2496078.1213320530377.JavaMail.root@mswamui-chipeau.atl.sa.earthlink.net>
+In-Reply-To: <2496078.1213320530377.JavaMail.root@mswamui-chipeau.atl.sa.earthlink.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to get support added?
+Subject: Re: [linux-dvb] DViCO FusionHDTV7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,27 +25,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Jun 25, 2008 at 11:50 AM, Jos Hoekstra <joshoekstra@gmx.net> wrote:
-> Hey,
->
-> About a week ago I sent a mail to this list describing how to use a
-> Avermedia Volar X DVB-T device, I was somehow hoping this would be
-> picked up by the developer maintaining the repository I used to make it
-> work.
->
-> It didn't :\
->
-> Is there an official way to get the changes I hinted on added to a
-> driver-repo so that it benefits more people?
+William Melgaard wrote:
+> I see in the "hardware supported" wiki that the FusionHDTV5 is supported. How about the -7?
+> 
+> From their web page:
+> Chipset: Conexant CX 2388X, S5H1411
+> Tuner: Xceive XC5000
+> Resolution: 1920 x 1080i
+> Snapshot types: TP, WMV, AVI
+> Source: Free-to-Air, Cable, Video, S-video
 
-The procedure for patch submission is outlines within the
-README.patches file within the mercurial repository.
 
-http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
+I COULD answer your question, but I always liked the Chinese proverb:
+
+Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime.
+
+Check it:
+
+The master development repository is hosted at http://linuxtv.org/hg/v4l-dvb
+
+Various lists of supported cards are found under linux/Documentation/video4linux
+
+http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/
+
+You see the chipset, "CX 2388X" -- the name of the linux driver is "cx88"
+
+If you think the wiki is missing entries for specific cards, please feel free to create yourself a user account and fill in the missing info.
+
+Enjoy, and please spread the word.
 
 Regards,
 
-Mike
+Mike Krufky
+
 
 _______________________________________________
 linux-dvb mailing list
