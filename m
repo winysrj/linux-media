@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.187])
+Received: from nef2.ens.fr ([129.199.96.40])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mikerussellnz@gmail.com>) id 1K8vKe-0005LX-Bq
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 12:56:05 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so259026fka.1
-	for <linux-dvb@linuxtv.org>; Wed, 18 Jun 2008 03:55:59 -0700 (PDT)
-Message-ID: <c112e7e90806180355k329049deh965a9f128a46a833@mail.gmail.com>
-Date: Wed, 18 Jun 2008 22:55:59 +1200
-From: "Mike Russell" <mikerussellnz@gmail.com>
+	(envelope-from <george@phare.normalesup.org>) id 1K78bB-0001o2-6N
+	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 14:41:49 +0200
+Received: from phare.normalesup.org (phare.normalesup.org [129.199.129.80])
+	by nef2.ens.fr (8.13.6/1.01.28121999) with ESMTP id m5DCevRs023609
+	for <linux-dvb@linuxtv.org>; Fri, 13 Jun 2008 14:40:57 +0200 (CEST)
+Date: Fri, 13 Jun 2008 14:40:43 +0200
+From: Nicolas George <nicolas.george@normalesup.org>
 To: linux-dvb@linuxtv.org
+Message-ID: <20080613124043.GA3531@phare.normalesup.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] HVR 3000 readreg / writereg problem,
-	is there a patch for the issue triggered by HAL?
+Subject: [linux-dvb] Advice for a DVB-T receiver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,52 +19,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1030185037=="
+Content-Type: multipart/mixed; boundary="===============0657996720=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1030185037==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_6633_7009339.1213786559440"
 
-------=_Part_6633_7009339.1213786559440
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+--===============0657996720==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
 Content-Disposition: inline
 
-Hi
 
-I am getting the same readreg / writereg errors as described in the bug
-report below on my HVR-3000 card.
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/209971
+Hi.
 
-There is a link to the change below that fixes the issue for the HVR-1300,
-Is there an equivalent patch for the HVR-3000 which also seems to suffer the
-same issue?
+I am about to build a small computer to serve as home digital video
+recorder. For that, I would like some advice about the choice of a DVB-T
+tuner. I need something:
 
-http://linuxtv.org/hg/~stoth/v4l-dvb/rev/e55d97ff8bba
+- correctly supported, of course;
 
+- with no bad surprises (such as: the vendor has changed the chipset without
+  changing the packaging);
 
-Thanks and Regards
+- reasonably cheap;
 
-Mike.
+- with two tuners if possible;
 
-------=_Part_6633_7009339.1213786559440
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+- rather internal (PCI or PCIe) than external.
+
+Does anyone here have any advice to give?
+
+Thanks in advance.
+
+--=20
+  Nicolas George
+
+--x+6KMIRAuhnl3hBn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
-Hi<br><br>I am getting the same readreg / writereg errors as described in the bug report below on my HVR-3000 card.<br><br><a href="https://bugs.launchpad.net/ubuntu/+source/linux/+bug/209971">https://bugs.launchpad.net/ubuntu/+source/linux/+bug/209971</a><br>
-<br>There is a link to the change below that fixes the issue for the HVR-1300, Is there an equivalent patch for the HVR-3000 which also seems to suffer the same issue?<br><br><a href="http://linuxtv.org/hg/~stoth/v4l-dvb/rev/e55d97ff8bba">http://linuxtv.org/hg/~stoth/v4l-dvb/rev/e55d97ff8bba</a><br>
-<br><br>Thanks and Regards<br><br>Mike.<br><br>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-------=_Part_6633_7009339.1213786559440--
+iD8DBQFIUmrZsGPZlzblTJMRAoByAKDMO0PDRl9KlQwZWyAuZPRfIw41hwCdFV9d
+jB2og2zO195QyeY0rJYxzoo=
+=mnFr
+-----END PGP SIGNATURE-----
+
+--x+6KMIRAuhnl3hBn--
 
 
---===============1030185037==
+--===============0657996720==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -74,4 +87,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1030185037==--
+--===============0657996720==--
