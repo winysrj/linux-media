@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound-mail.vgs.untd.com ([64.136.55.15])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <kevrust@juno.com>) id 1K7KRM-0003rf-Qh
-	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 03:20:25 +0200
-Received: from outbound-bu1.vgs.untd.com (webmail03.vgs.untd.com
-	[10.181.12.143])
-	by smtpout04.vgs.untd.com with SMTP id AABEFGHEKAWDPVGA
-	for <linux-dvb@linuxtv.org> (sender <kevrust@juno.com>);
-	Fri, 13 Jun 2008 18:19:05 -0700 (PDT)
-Mime-Version: 1.0
-From: "kevrust@juno.com" <kevrust@juno.com>
-Date: Sat, 14 Jun 2008 01:18:11 GMT
-To: linux-dvb@linuxtv.org
-Message-Id: <20080613.201811.28932.1@webmail03.vgs.untd.com>
-Content-Disposition: inline
-Subject: [linux-dvb] extraction xc5000 firmware
+Received: from xsmtp0.ethz.ch ([82.130.70.14])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <cluck@student.ethz.ch>) id 1K7Y9o-0005Fi-R3
+	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 17:59:13 +0200
+Message-ID: <4853EAC7.9080902@ethz.ch>
+Date: Sat, 14 Jun 2008 17:59:03 +0200
+From: Claudio Luck <cluck@ethz.ch>
+MIME-Version: 1.0
+To: Andrea <mariofutire@googlemail.com>
+References: <g2unka$ivi$1@ger.gmane.org> <4853B5CD.3050906@ethz.ch>
+	<4853BA32.4050606@googlemail.com>
+In-Reply-To: <4853BA32.4050606@googlemail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to use a DVB FRONTEND in read only?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,16 +26,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Greetings!
+Andrea wrote:
+>> Check for open filehandles on demux device:
+>  ...
+> I will try that, but it sounds to me a very non natural solution.
 
-This is my first experience with Linux, and I am trying to set up a Pinnacle PCTV HD (800i) card in my new media center PC (Ubuntu Hardy Heron/ Mythbuntu), but I'm having a difficult time installing the xc5000 firmware from your site. When I run the perl script , I consistently get the message: "Invalid zip archive, either corrupt or incorrect version", even though I have downloaded the .zip archive into the same directory as the script file. Could there be a problem with the script, or could my distro be somehow changing the zip file so that the perl script thinks it is corrupt? Or is there another way to extract the firmware to my machine (bearing in mind that I am a newbie, of course)
+Everything is a file :)
 
-Thanks in advance,
-Kevin Rust
+> Should the dvb framework tell the clients if it is streaming or not? via
+> an ioctl like FE_GET_INFO?
 
-____________________________________________________________
-Click now for great vacation packages to beautiful Ireland!
-http://thirdpartyoffers.juno.com/TGL2131/fc/Ioyw6iifIZNn02SMeXwroR3sF0HohL17R8BRwfQXoNgZAiNxe3z8IU/
+IMHO if we realize that any streaming happens through open file handles,
+we also realize that there is no need for a custom query in Linux DVB
+API for the same information (circumventing or reinventing user access
+control). Query the Kernel about process information.
+
+FE_GET_INFO is specific to the frontend, not the demux.
+
+
+A design question might be raised through: should readonly demux file
+handles stop streaming after the readwrite demux filehandle is closed?
+This behavior is different compared to frontends remaining tuned even
+after closing the controlling frontend file handles.
+
+-- 
+Best Regards
+Claudio
 
 _______________________________________________
 linux-dvb mailing list
