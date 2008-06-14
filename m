@@ -1,23 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx5.orcon.net.nz ([219.88.242.55] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mcree@orcon.net.nz>) id 1K80TD-0007SL-9d
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 00:13:08 +0200
-Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.67)
-	(envelope-from <mcree@orcon.net.nz>) id 1K80Sv-0003v3-DM
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 10:12:49 +1200
-Received: from cree.phys.waikato.ac.nz ([130.217.188.11])
-	by mx5.orcon.net.nz with esmtpa (Exim 4.67)
-	(envelope-from <mcree@orcon.net.nz>) id 1K80Sv-0003uc-2o
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 10:12:49 +1200
-Message-Id: <F4ED6217-5ABE-4136-BD5A-A56779902F12@orcon.net.nz>
-From: Michael Cree <mcree@orcon.net.nz>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <484BA795.8010701@orcon.net.nz>
-Mime-Version: 1.0 (Apple Message framework v924)
-Date: Mon, 16 Jun 2008 10:12:47 +1200
-References: <484BA795.8010701@orcon.net.nz>
-Subject: Re: [linux-dvb] Problems (bug?) with Hauppauge Nova T 500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: mkrufky@linuxtv.org
+In-Reply-To: <485310AD.4030003@linuxtv.org>
+References: <485310AD.4030003@linuxtv.org>
+Date: Sat, 14 Jun 2008 02:56:55 +0200
+Message-Id: <1213405015.2758.94.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DViCO FusionHDTV7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,32 +21,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 8/06/2008, at 9:34 PM, Michael Cree wrote:
 
-> I am getting 'I2C read failed' and 'ep 0 read error' errors with a
-> Hauppauge Nova T 500 PCI card.
+Am Freitag, den 13.06.2008, 20:28 -0400 schrieb mkrufky@linuxtv.org:
+> hermann pitton wrote:
+> > Am Donnerstag, den 12.06.2008, 21:40 -0400 schrieb Michael Krufky:
+> >   
+> >> William Melgaard wrote:
+> >>     
+> >>> I see in the "hardware supported" wiki that the FusionHDTV5 is
+> supported. How about the -7?
+> >>>
+> >>> From their web page:
+> >>> Chipset: Conexant CX 2388X, S5H1411
+> >>> Tuner: Xceive XC5000
+> >>> Resolution: 1920 x 1080i
+> >>> Snapshot types: TP, WMV, AVI
+> >>> Source: Free-to-Air, Cable, Video, S-video
+> >>>       
+> >> I COULD answer your question, but I always liked the Chinese proverb:
+> >>
+> >> Give a man a fish and you feed him for a day. Teach a man to fish and you
+> feed him for a lifetime.
+> >>
+> >>     
+> >
+> > Good one!
+> >
+> > But we for sure should not forget, the fish might be the same, if
+> > some ;), but the ocean might look very different every day.
+> >   
+> Please lets stay on-topic.
+> 
+> These unrelated posts make it difficult to follow mailing list threads.
+> 
+> There is no need to reply to this mail.
+> 
+> Thanks.
+> 
+> -Mike
 
-> This is running on a Compaq Alpha XP1000 workstation. It has a 667Mhz
-> Alpha EV67 cpu.  Running Debian Lenny.
+Unfortunately there is still some urgent need to reply,
+if you start to get philanthropic.
 
-I should've also state that the Hauppauge card was in one of the  
-secondary PCI slots, behind a bridge.  Shifting the card to one of the  
-primary PCI slots solved the problems reported above.  I now can tune  
-and stream from the card.
+And this is very much on topic about the fish.
 
-There, not that "scary" as the only responder suggested.
+Cheers,
+Hermann
 
-A new problem arose - mplayer would report that the video stream is  
-MPEG2 and proceed to multitudes of decoding errors.   Somewhere a lie  
-had occurred; it is MPEG4 with H.264 encoding on the terrestrial  
-transmission in NZ.    Updating dvb-utils to latest in mercurial has  
-fixed that problem and I now can get video and audio streams from the  
-hauppauge card.
 
-Unfortunately mplayer on a single Alpha 667MHz EV67 isn't fast enough  
-to play the video streams, not even the 576i streams.  Bugger.
 
-Michael.
 
 
 _______________________________________________
