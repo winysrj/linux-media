@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from anchor-post-37.mail.demon.net ([194.217.242.87])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1K3bj6-0003oP-Br
-	for linux-dvb@linuxtv.org; Tue, 03 Jun 2008 20:59:21 +0200
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-37.mail.demon.net with esmtp (Exim 4.68)
-	id 1K3bj2-0005A5-P9
-	for linux-dvb@linuxtv.org; Tue, 03 Jun 2008 18:59:16 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1K3bix-0005eM-D8
-	for linux-dvb@linuxtv.org; Tue, 03 Jun 2008 19:59:15 +0100
-Date: Tue, 03 Jun 2008 19:56:02 +0100
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4FAF355C38%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <48457545.6060509@gmail.com>
-References: <48457545.6060509@gmail.com>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] [BUG] Firmware loading of FF cards is broken
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <4851D002.8000801@linuxtv.org>
+References: <2496078.1213320530377.JavaMail.root@mswamui-chipeau.atl.sa.earthlink.net>
+	<4851D002.8000801@linuxtv.org>
+Date: Sat, 14 Jun 2008 02:22:08 +0200
+Message-Id: <1213402928.2758.87.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DViCO FusionHDTV7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,25 +22,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I demand that e9hack may or may not have written...
 
-[snip]
-> It seems, that get_unaligned_be32() is broken. The definition in compat.h
-> is:
-> #define get_unaligned_be32(a)                                   \
->          be32_to_cpu(get_unaligned((unsigned short *)(a)))
+Am Donnerstag, den 12.06.2008, 21:40 -0400 schrieb Michael Krufky:
+> William Melgaard wrote:
+> > I see in the "hardware supported" wiki that the FusionHDTV5 is supported. How about the -7?
+> > 
+> > From their web page:
+> > Chipset: Conexant CX 2388X, S5H1411
+> > Tuner: Xceive XC5000
+> > Resolution: 1920 x 1080i
+> > Snapshot types: TP, WMV, AVI
+> > Source: Free-to-Air, Cable, Video, S-video
+> 
+> 
+> I COULD answer your question, but I always liked the Chinese proverb:
+> 
+> Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime.
+> 
 
-> 'unsigned short *' is wrong. It should be 'unsigned long *'.
+Good one!
 
-That could be a 64-bit type. You want unsigned int or uint32_t.
+But we for sure should not forget, the fish might be the same, if
+some ;), but the ocean might look very different every day.
 
-[snip]
--- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Buy local produce. Try to walk or cycle. TRANSPORT CAUSES GLOBAL WARMING.
+:)
 
-Succumb to natural tendencies. Be hateful and boring.
+Cheers,
+Hermann
+
+
 
 _______________________________________________
 linux-dvb mailing list
