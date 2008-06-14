@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.krastelcom.ru ([88.151.248.4])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vpr@krastelcom.ru>) id 1K90AD-0001KX-GR
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 18:05:38 +0200
-Message-Id: <31CCD0B1-6DF4-4640-BA9D-BB8F5B6ECE1A@krastelcom.ru>
-From: Vladimir Prudnikov <vpr@krastelcom.ru>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-In-Reply-To: <48593130.4050109@magic.fr>
-Mime-Version: 1.0 (Apple Message framework v924)
-Date: Wed, 18 Jun 2008 20:05:33 +0400
-References: <48593130.4050109@magic.fr>
-Subject: Re: [linux-dvb] TechnoTrend S-1401 or S-1500 ?
+	(envelope-from <mkrufky@linuxtv.org>) id 1K7JeJ-0000ye-Qz
+	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 02:29:44 +0200
+Message-ID: <485310AD.4030003@linuxtv.org>
+From: mkrufky@linuxtv.org
+To: hermann-pitton@arcor.de
+Date: Fri, 13 Jun 2008 20:28:29 -0400
+MIME-Version: 1.0
+in-reply-to: <1213402928.2758.87.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DViCO FusionHDTV7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,47 +24,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-S-1500 has bugs with high SR for sure! With S-1401 they are fixable.
+hermann pitton wrote:
+> Am Donnerstag, den 12.06.2008, 21:40 -0400 schrieb Michael Krufky:
+>   
+>> William Melgaard wrote:
+>>     
+>>> I see in the "hardware supported" wiki that the FusionHDTV5 is
+supported. How about the -7?
+>>>
+>>> From their web page:
+>>> Chipset: Conexant CX 2388X, S5H1411
+>>> Tuner: Xceive XC5000
+>>> Resolution: 1920 x 1080i
+>>> Snapshot types: TP, WMV, AVI
+>>> Source: Free-to-Air, Cable, Video, S-video
+>>>       
+>> I COULD answer your question, but I always liked the Chinese proverb:
+>>
+>> Give a man a fish and you feed him for a day. Teach a man to fish and you
+feed him for a lifetime.
+>>
+>>     
+>
+> Good one!
+>
+> But we for sure should not forget, the fish might be the same, if
+> some ;), but the ocean might look very different every day.
+>   
+Please lets stay on-topic.
 
-Regards,
-Vladimir
+These unrelated posts make it difficult to follow mailing list threads.
 
-On Jun 18, 2008, at 8:00 PM, Alexandre Conrad wrote:
+There is no need to reply to this mail.
 
-> Hi,
->
-> I'm about to buy TechnoTrend cards, S-1500 or S-1401. The TT budget
-> S-1401 is not listed under the linuxtv WIKI, but people
-> seem to have success making it work according to messages on the  
-> mailing
-> list.
->
-> My supplier states that there are some issues about S1401 - most of  
-> the
-> users state, it works very good, some others have problems with the
-> FEMON-values in Linux, causing a worse receiption sometimes (due to
-> "buggy" driver in CVS).
->
-> He'd strongly recommend to use the S1500 instead, which is supported
-> since 4 years now under Linux! And it works 100%.
->
-> There's quite a price difference compared to the S1401 (I must buy a
-> bunch of them) and I don't need CI, which S-1500 seems to provide.
->
-> Suggestions? Thanks.
->
-> Regards,
-> -- 
-> Alexandre CONRAD
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Thanks.
 
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
