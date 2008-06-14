@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5O7kEpd016191
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 03:46:14 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5O7jmEu019673
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 03:45:48 -0400
-Date: Tue, 24 Jun 2008 09:45:21 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Andrew Chuah <hachuah@gmail.com>
-Message-ID: <20080624074521.GB11578@daniel.bse>
-References: <e18c2fef0806231913w2cab7de9yae74a9bdc7d04160@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5EBuPtY007648
+	for <video4linux-list@redhat.com>; Sat, 14 Jun 2008 07:56:25 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5EBuD7O019801
+	for <video4linux-list@redhat.com>; Sat, 14 Jun 2008 07:56:13 -0400
+Received: from [192.168.1.2] (02-194.155.popsite.net [66.217.132.194])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m5EBuBHN024275
+	for <video4linux-list@redhat.com>; Sat, 14 Jun 2008 07:56:12 -0400 (EDT)
+From: Andy Walls <awalls@radix.net>
+To: video4linux-list@redhat.com
+In-Reply-To: <4853745E.6000805@satland.com.pl>
+References: <4853745E.6000805@satland.com.pl>
+Content-Type: text/plain; charset=UTF-8
+Date: Sat, 14 Jun 2008 07:55:47 -0400
+Message-Id: <1213444547.3173.4.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e18c2fef0806231913w2cab7de9yae74a9bdc7d04160@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: BTTV autodetection code - need help understanding.
+Content-Transfer-Encoding: 8bit
+Subject: Re: multiple saa7130 chipsets problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,25 +30,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 24, 2008 at 10:13:48AM +0800, Andrew Chuah wrote:
-> I am getting 0x00000000 for my cardid, which makes it skip the
-> autodetection step. Does anyone have any idea why this is happening?
-
-Old dmesg output in the list archive tells me that the GV250 does not
-have the EEPROM necessary for autodetection.
-
-> It shows up on lspci -nn as:
+On Sat, 2008-06-14 at 09:33 +0200, Łukasz Łukojć wrote:
+> Hi
 > 
-> 03:01.0 Multimedia video controller [0400]: Brooktree Corporation
-> Bt878 Video Capture [109e:036e] (rev 11)
-> 03:01.1 Multimedia controller [0480]: Brooktree Corporation Bt878
-> Audio Capture [109e:0878] (rev 11)
+> I'm using 8 x saa7130hl chipset  based surveillance card and recently 
+> bought another one.
+> Just wanted to achieve 16 channels for cams recording.
+> Problem is that saa7134 module will only see eight integrals of card 
+> array 'card=x,x,x,x,x,x,x,x' and while i'm putting 
+> 'card=x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x' - dmesg will print 
+> 
+> card: can only take 8 arguments
+> saa734: '69' invalid for parameter 'card'
+> 
+> Modprobing with 'only' eight parameters will result that saa714 will be 
+> try to autodetect chipsets, which is appraently ends with hang errors.
+> Is there a siple hack to ovverride this behaviour ?
 
-The Subsystem IDs used for autodetection only show up when you pass -v to
-lspci. What you see are the PCI vendor and device IDs. These are the same
-for all Bt878 cards.
+You could try modifying
 
-  Daniel
+	#define SAA7134_MAXBOARDS 8
+
+in linux/drivers/media/video/saa7134/saa7134.h and recompiling.
+
+-Andy
 
 --
 video4linux-list mailing list
