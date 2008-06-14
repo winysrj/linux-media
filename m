@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n74.bullet.mail.sp1.yahoo.com ([98.136.44.186])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KBQ1K-0001BQ-BH
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 10:06:27 +0200
-Date: Wed, 25 Jun 2008 01:05:44 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: Esa Hyytia <esa@ftw.at>
+Received: from mail203c25.carrierzone.com ([64.29.147.79])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linuxdreas@launchnet.com>) id 1K7dLM-0001sw-Pw
+	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 23:31:34 +0200
+Received: from hal9001 (208-201-228-169.adsl.dynamic.launchnet.com
+	[208.201.228.169] (may be forged)) (authenticated bits=0)
+	by mail203c25.carrierzone.com (8.13.6.20060614/8.13.1) with ESMTP id
+	m5ELV7ow009699
+	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 21:31:10 GMT
+From: Andreas <linuxdreas@launchnet.com>
+To: linux-dvb@linuxtv.org
+Date: Sat, 14 Jun 2008 14:31:05 -0700
+References: <20080613.201811.28932.1@webmail03.vgs.untd.com>
+In-Reply-To: <20080613.201811.28932.1@webmail03.vgs.untd.com>
 MIME-Version: 1.0
-Message-ID: <555109.53449.qm@web46109.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with Terratec Cinergy Piranha
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+Message-Id: <200806141431.06495.linuxdreas@launchnet.com>
+Subject: Re: [linux-dvb] extraction xc5000 firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,43 +24,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sorry for breaking the References: header; I'm pasting between
-web browsers here, and this message was posted before I suscirbed
+Am Freitag, 13. Juni 2008 18:18:11 schrieb kevrust@juno.com:
+> Greetings!
+>
+> This is my first experience with Linux, and I am trying to set up a
+> Pinnacle PCTV HD (800i) card in my new media center PC (Ubuntu Hardy
+> Heron/ Mythbuntu), but I'm having a difficult time installing the xc5000
+> firmware from your site. When I run the perl script , I consistently get
+> the message: "Invalid zip archive, either corrupt or incorrect version",
+> even though I have downloaded the .zip archive into the same directory as
+> the script file. Could there be a problem with the script, or could my
+> distro be somehow changing the zip file so that the perl script thinks it
+> is corrupt? Or is there another way to extract the firmware to my machine
+> (bearing in mind that I am a newbie, of course)
 
-Esa Hyytia wrote:
+Kevin,
+I use the same atsc card without any problems. You have either a corrupt zi=
+p =
 
-> I bought today this USB stick (187f:0010) and tried to get it work in 32-bit Ub
-> untu 8.04:
+file, or the program md5sum (used by the script extract.sh) is not =
 
->  - Driver snapshot from today (http://linuxtv.org/hg/~mkrufky/siano)
->  - Firmware is extracted from driver-cd (same as from terratec.net)
->  - I also changed 'default_mode' to 0 in smscoreapi.c
+installed on your system (which is highly unlikely, but with Ubuntu, you =
 
-That's your mistake -- now for DVB-T the default mode needs to be
-left as 4 (that's DVBT-DBA-drivers; how that specifically differs
-from mode 0 DVB-T I have no idea, but that's the way it is now)
+never know).
 
-Only mode 4 will work with yesterday's /siano snapshot, even
-though the firmware is the same -- you'll also need to rename the
-firmware to what the code expects:
-dvbt_bda_stellar_usb.inp
+If all else fails, I can email you the extracted firmware if you like.
 
-There appears to be another copy of the smsdvb code in a repository
-called somehow `hd' which differs slightly; the only difference I
-looked at is one which I needed to apply for my 2.6.24-era kernel.
-I need to look more closely at what else differs.
-Hope that helps...
-barry bouwsma
+-- =
 
-
-      
-
+Gru=DF
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
