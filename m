@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <acher@in.tum.de>) id 1KAozJ-000746-4a
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 18:33:53 +0200
-Date: Mon, 23 Jun 2008 18:35:30 +0200
-From: Georg Acher <acher@in.tum.de>
+Received: from outbound-mail.vgs.untd.com ([64.136.55.15])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <kevrust@juno.com>) id 1K7KRM-0003rf-Qh
+	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 03:20:25 +0200
+Received: from outbound-bu1.vgs.untd.com (webmail03.vgs.untd.com
+	[10.181.12.143])
+	by smtpout04.vgs.untd.com with SMTP id AABEFGHEKAWDPVGA
+	for <linux-dvb@linuxtv.org> (sender <kevrust@juno.com>);
+	Fri, 13 Jun 2008 18:19:05 -0700 (PDT)
+Mime-Version: 1.0
+From: "kevrust@juno.com" <kevrust@juno.com>
+Date: Sat, 14 Jun 2008 01:18:11 GMT
 To: linux-dvb@linuxtv.org
-Message-ID: <20080623163529.GI32218@localhost>
-References: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
-MIME-Version: 1.0
+Message-Id: <20080613.201811.28932.1@webmail03.vgs.untd.com>
 Content-Disposition: inline
-In-Reply-To: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
-Subject: Re: [linux-dvb] Problem "watching" (not tuning to?) Astra
-	HD	Promo/Anixe HD
+Subject: [linux-dvb] extraction xc5000 firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,19 +28,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I have no problem tuning with
-> http://dev.kewl.org/hauppauge/experimental/szap-meow.tgz 
->   to any DVB-S or DVB-S2 QPSK/8PSK transponder I have tried. However  
-> there seems to be a problem with the reception of the Astra HD Promo  
-> service at 11914500H on Astra1H. 
+Greetings!
 
-The demo loop is crap. It contains errors and PTS problems. Any HD receiver
-displays this "demo" with judder and visible artifacts.
+This is my first experience with Linux, and I am trying to set up a Pinnacle PCTV HD (800i) card in my new media center PC (Ubuntu Hardy Heron/ Mythbuntu), but I'm having a difficult time installing the xc5000 firmware from your site. When I run the perl script , I consistently get the message: "Invalid zip archive, either corrupt or incorrect version", even though I have downloaded the .zip archive into the same directory as the script file. Could there be a problem with the script, or could my distro be somehow changing the zip file so that the perl script thinks it is corrupt? Or is there another way to extract the firmware to my machine (bearing in mind that I am a newbie, of course)
 
--- 
-         Georg Acher, acher@in.tum.de
-         http://www.lrr.in.tum.de/~acher
-         "Oh no, not again !" The bowl of petunias
+Thanks in advance,
+Kevin Rust
+
+____________________________________________________________
+Click now for great vacation packages to beautiful Ireland!
+http://thirdpartyoffers.juno.com/TGL2131/fc/Ioyw6iifIZNn02SMeXwroR3sF0HohL17R8BRwfQXoNgZAiNxe3z8IU/
 
 _______________________________________________
 linux-dvb mailing list
