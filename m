@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5K0aMiT002188
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 20:36:22 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5K0a8Zj030672
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 20:36:09 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dag Wieers <dag@wieers.com>
-In-Reply-To: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
-References: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
-Content-Type: text/plain
-Date: Fri, 20 Jun 2008 02:33:47 +0200
-Message-Id: <1213922027.2655.24.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5FDwF8I008622
+	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 09:58:15 -0400
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au
+	(outbound.icp-qv1-irony-out4.iinet.net.au [203.59.1.150])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5FDvud4011887
+	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 09:57:58 -0400
+Message-ID: <48551FE5.6090209@iinet.net.au>
+Date: Sun, 15 Jun 2008 21:57:57 +0800
+From: timf <timf@iinet.net.au>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <48513259.6030003@iinet.net.au>	<20080615083447.4d288a9e@gaivota>	<4855044D.7000702@iinet.net.au>	<4855085A.8070002@iinet.net.au>	<20080615092942.312627a1@gaivota>	<485517D8.5040607@iinet.net.au>
+	<20080615103739.526659ff@gaivota>
+In-Reply-To: <20080615103739.526659ff@gaivota>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Looking for a well suppord TV card with some requirements
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [PATCH] Avermedia A16d Avermedia E506
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,60 +29,70 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dag, 
+Mauro Carvalho Chehab wrote:
+> On Sun, 15 Jun 2008 21:23:36 +0800
+> timf <timf@iinet.net.au> wrote:
+>  
+>   
+>> Invisible whitespaces! Grrr!
+>>     
+>
+> Happens all the time :)
+>
+>  "make whitespace" clears it.
+>  
+>   
+>> timf@ubuntu:~/1/try2$ diff -upr v4l-dvb v4l-dvb-tim > tim.patch
+>> timf@ubuntu:~/1/try2$ cd v4l-dvb-tim
+>> timf@ubuntu:~/1/try2/v4l-dvb-tim$ make checkpatch
+>> make -C /home/timf/1/try2/v4l-dvb-tim/v4l checkpatch
+>> make[1]: Entering directory `/home/timf/1/try2/v4l-dvb-tim/v4l'
+>> scripts/check.pl -c
+>> # WARNING: /lib/modules/`uname -r`/build/scripts/checkpatch.pl version 
+>> 0.12 is
+>> #         older than scripts/checkpatch.pl --no-tree version 0.16.
+>> #          Using in-tree one.
+>> #
+>> make[1]: Leaving directory `/home/timf/1/try2/v4l-dvb-tim/v4l'
+>> timf@ubuntu:~/1/try2/v4l-dvb-tim$
+>>
+>> My confidence is shot to pieces, you realise!
+>>
+>> Attached - tim.patch
+>>
+>> Please, please work!
+>>     
+>
+> Worked ;)
+>
+> Patch applied, thanks. 
+>
+> Now, all we need to do is to make tda1004x more stable. The weird thing is that
+> it works fine with my Intel based notebook. It just fails on my dual core AMD,
+> with a higher clock. I suspect that this is due to a timeout issue, but not
+> 100% sure.
+>
+>
+> Cheers,
+> Mauro
+>
+>   
+Fantastic!
 
-Am Donnerstag, den 19.06.2008, 16:47 +0200 schrieb Dag Wieers:
-> Hi,
-> 
-> I am looking for a well support TV card with the following feature list:
-> 
->    - Must have at least one tuner (PAL), preferably two
->    - Must have composite input (for connecting a Nintendo Wii)
->    - Should not have any delay between input signal and output
->    - Works on kernel 2.6.18 (either vanilla, or by adding a driver)
->    - Additionally, DVB-T would be nice
-> 
-> I bought a Hauppauge PVR-150 because I thought it complied to the above, 
-> but apparently (because it is an MPEG encoder and not a real TV card) 
-> there was a 2 second delay between the image from the Wii and the output 
-> on screen which is unacceptable for playing games.
-> 
-> (And the sound didn't work, but I didn't try to look for a solution 
-> because of the delay)
-> 
-> I still have an old Hauppauge WinTV card from 2000, based on the bttv 
-> driver which works fine, but does not have composite input.
-> 
-> Who can help me find something acceptable ?
-> 
+I have an old box which I'm pretty sure has a cpu about 1.6, non-dual core.
+Tomorrow,  (too much noise at this hour of night here!)  I will try 
+either/or Kworld 210, Pinnacle 310i, Kworld 220.
+I will  try  both current v4l-dvb and that patch of yours in  
+tda10046x.c, and see what happens.
 
-this is likely still totally underinvestigated for GNU/Linux.
+Is it worth trying different msleep values?
 
-There was a recent newspaper/internet article somewhere about how
-different and delayed the football goals come in depending on the used
-TV reception system :)
+All I can think of is this is a relatively recent event with this 
+"revision FF" business,
+but I can't be exact as to how long ago I noticed it.
 
-This is a fact. Also censorship in the US for realtime broadcast.
-
-Your best friends, sorry to say so, are likely the robotic and military
-guys on it.
-
->From the surveillance freaks hanging around here, I can say that xawtv
-has a fairly low latency, but it is still noticeable.
-
-As a count of thumb, one likely can say as more physical memory is
-involved, starts with what is on the card for risc operations and
-buffering, the possible delay increases and it has an open end for any
-application to do large buffering to escape real time hickups ...
-
-Gaming is not such harmless as it sounds,
-but it should be allowed ;)
-
-Cheers,
-Hermann
-
-
-
+Regards,
+Timf
 
 --
 video4linux-list mailing list
