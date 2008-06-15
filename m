@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5AIU76b024267
-	for <video4linux-list@redhat.com>; Tue, 10 Jun 2008 14:30:08 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5FBZ784024369
+	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 07:35:07 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5AITuw6021338
-	for <video4linux-list@redhat.com>; Tue, 10 Jun 2008 14:29:56 -0400
-Date: Tue, 10 Jun 2008 15:29:47 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5FBYvws014518
+	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 07:34:57 -0400
+Date: Sun, 15 Jun 2008 08:34:47 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Robert Herb <proletheus@freenet.de>
-Message-ID: <20080610152947.73db9e01@gaivota>
-In-Reply-To: <484E3DFD.2080304@freenet.de>
-References: <484E3DFD.2080304@freenet.de>
+To: timf <timf@iinet.net.au>
+Message-ID: <20080615083447.4d288a9e@gaivota>
+In-Reply-To: <48513259.6030003@iinet.net.au>
+References: <48513259.6030003@iinet.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l-dvb compiling errors with kernel 2.6.25
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [PATCH] Avermedia A16d Avermedia E506
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,18 +27,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 10 Jun 2008 10:40:29 +0200
-Robert Herb <proletheus@freenet.de> wrote:
+On Thu, 12 Jun 2008 22:27:37 +0800
+timf <timf@iinet.net.au> wrote:
 
-> Hi,
 > 
-> since i've updated my kernel to 2.6.25, I always get the following 
-> errors, when i try to compile. Is this caused by my system or by the 
-> source-code? Can you help me?
+> Hi Mauro,
 > 
-> With my last kernel 2.6.23.xx it was always compiled without errors.
+> OK, Herewith find the patch for the Avermedia A16d, and the Avermedia 
+> E506 Cardbus.
+> I am using Thunderbird, so as well as pasting it here I shall attach it.
+> DVB-T, Analog-TV, FM-Radio - work for both cards.
+> Composite, S-Video not tested.
+> 
+> Regards,
+> Timf
+> 
+> Signed-off-by: Tim Farrington <timf@iinet.net.au>
+> 
 
-Thanks for reporting. I've just fixed it at the repo. Tested with mainstream kernel 2.6.25.6.
+Hi Tim,
+
+Your patch didn't apply:
+
+$ patch -p1 -i /home/v4l/tmp/mailimport23503/patch.diff
+patching file linux/drivers/media/common/ir-keymaps.c
+Hunk #1 succeeded at 2251 with fuzz 1.
+missing header for unified diff at line 898 of patch
+patching file linux/drivers/media/video/saa7134/saa7134-cards.c
+Hunk #1 FAILED at 4232.
+Hunk #2 FAILED at 4259.
+Hunk #3 FAILED at 4272.
+Hunk #4 FAILED at 5503.
+Hunk #5 FAILED at 5727.
+Hunk #6 FAILED at 5739.
+Hunk #7 FAILED at 5865.
+7 out of 7 hunks FAILED -- saving rejects to file linux/drivers/media/video/saa7134/saa7134-cards.c.rej
+patching file linux/drivers/media/video/saa7134/saa7134-dvb.c
+Hunk #1 FAILED at 153.
+Hunk #2 FAILED at 212.
+patch: **** malformed patch at line 1073: &avermedia_xc3028_mt352_dev,
+
+Also, running checkpatch.pl generates lots of codingstyle errors and warnings.
+
+Please, re-generate it against the latest tree, fix coding style and be sure
+that your emailer is not breaking long lines or replacing tabs with spaces. If
+you're using thunderbird, maybe it would be better to send, instead, as an
+attachment.
+
+
 
 Cheers,
 Mauro
