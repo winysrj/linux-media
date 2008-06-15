@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from es40.pd.cnr.it ([150.178.1.5])
+Received: from wa-out-1112.google.com ([209.85.146.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <giuliopaci@interfree.it>) id 1KAigP-0003zT-HZ
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 11:49:58 +0200
-Received: from pdadr1.pd.cnr.it (pdadr1.pd.cnr.it [150.178.1.2])
-	by ES40.PD.CNR.IT (PMDF V6.3-x13 #31599)
-	with ESMTP id <01MWBVUGTPBG007Y94@ES40.PD.CNR.IT> for
-	linux-dvb@linuxtv.org; Mon, 23 Jun 2008 11:48:15 +0200 (MET-DST)
-Received: from [150.178.13.89] by PDADR1.PD.CNR.IT (PMDF V6.3-x3 #31599)
-	with ESMTP id <01MWBVWE3US80061FS@PDADR1.PD.CNR.IT> for
-	linux-dvb@linuxtv.org; Mon, 23 Jun 2008 11:49:49 +0200 (MET-DST)
-Date: Mon, 23 Jun 2008 11:49:47 +0200
-From: Giulio Paci <giuliopaci@interfree.it>
+	(envelope-from <owen.townend@gmail.com>) id 1K80TJ-0007Su-Bg
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 00:13:28 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so3753500wag.13
+	for <linux-dvb@linuxtv.org>; Sun, 15 Jun 2008 15:13:02 -0700 (PDT)
+Message-ID: <bb72339d0806151513x6b1d919bla92ad699f3d9fd63@mail.gmail.com>
+Date: Mon, 16 Jun 2008 08:13:01 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
 To: linux-dvb@linuxtv.org
-Message-id: <485F71BB.7020400@interfree.it>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary=------------050508060301070009070502
-Subject: [linux-dvb] hauppauge HVR 900H
+In-Reply-To: <48555CB0.7060606@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48555CB0.7060606@gmail.com>
+Subject: Re: [linux-dvb] em28xx analog audio problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,67 +21,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050508060301070009070502
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On 16/06/2008, Raphael <rpooser@gmail.com> wrote:
+> Hi all,
+>  I'm using one of the more recent hg pulls of the v4l-dvb tree, and I
+>  have a HVR-950 and pinnacle HD pro stick both working under the em28x
+>  drivers recording ATSC.
+>
+>  For analog I can't seem to get audio working, even though the video
+>  plays fine. I've read around that the device is supposed to register its
+>  own /dev/dsp interface, but I only have one /dev/dsp, and no /dev/dsp1,
+>  etc. Does anyone have a quick way to get analog sound working on this
+>  card? I mainly use mythtv for recording.
+>
+>  Cheers,
+>  Raphy
+>
+>  _______________________________________________
+>  linux-dvb mailing list
+>  linux-dvb@linuxtv.org
+>  http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+Hey,
 
-Hi to all!
+I am not sure of the politics involved, but there seems to be active
+development of the em28xx by Markus over here:
+http://www.mcentral.de/wiki/index.php5/Em2880
 
-    As some of You've already done I've bought one of these not
-noticing it's a 'H' version.
+hg pull from:
+http://mcentral.de/hg/~mrec/v4l-dvb-kernel
 
-
-    I'm trying to find out if there is something to do in order to
-make it work with Linux, even with experimental pre-alpha code.
-
-
-    Is there anything that I can do? (I've checked out
-http://linuxtv.org/hg/~mchehab/tm6010
-<http://linuxtv.org/hg/%7Emchehab/tm6010> and I'm trying to figure out
-howto compile, as I've some compilation errors)
-
-
-    My target is just to get a TV working on my Linux box and buying
-another model is still an option for me, but I'll prefer if there is
-something that I can do to get this model working (Maybe testing some
-code?).
-
-    Many thanks for all Your work.
-
-
-    Giulio.
-
-
---------------050508060301070009070502
-Content-Type: text/x-vcard; charset=utf-8;
- name="giuliopaci.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="giuliopaci.vcf"
-
-begin:vcard
-fn:Giulio Paci
-n:Paci;Giulio
-email;internet:giuliopaci@interfree.it
-x-mozilla-html:FALSE
-url:http://www.oizaps.it/blog/oblog.asp?nick=Whit3h4wk
-version:2.1
-end:vcard
-
-
---------------050508060301070009070502
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+cheers,
+Owen.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050508060301070009070502--
