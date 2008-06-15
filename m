@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from highwire.stanford.edu ([171.66.121.166])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1K8loy-0001Ie-Oo
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 02:46:45 +0200
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-In-Reply-To: <D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
-References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
-	<1213567472.3173.50.camel@palomino.walls.org>
-	<1213573393.2683.85.camel@pc10.localdom.local>
-	<1213579027.3164.36.camel@palomino.walls.org>
-	<D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
-Date: Tue, 17 Jun 2008 20:46:02 -0400
-Message-Id: <1213749962.5101.11.camel@palomino.walls.org>
+	(envelope-from <durket@rlucier-home2.stanford.edu>)
+	id 1K7j44-00010p-8S
+	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 05:38:11 +0200
+Received: from rlucier-home2.stanford.edu (rlucier-home2.Stanford.EDU
+	[171.66.222.187])
+	by highwire.stanford.edu (Postfix) with ESMTP id 240EB8DB7
+	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 20:37:43 -0700 (PDT)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by rlucier-home2.stanford.edu (Postfix) with ESMTP id 8FC9817346C
+	for <linux-dvb@linuxtv.org>; Sat, 14 Jun 2008 20:37:43 -0700 (PDT)
+From: Michael Durket <durket@rlucier-home2.stanford.edu>
+To: linux-dvb@linuxtv.org
+Date: Sat, 14 Jun 2008 20:37:43 -0700
+Message-Id: <1213501063.13607.8.camel@rlucier-home2.stanford.edu>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
+Subject: [linux-dvb] Twinhan VP1020A freezes Fedora 9 at udev
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,66 +30,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-06-17 at 09:17 -0400, Brandon Jenkins wrote:
-> On Jun 15, 2008, at 9:17 PM, Andy Walls wrote:
+I have a Twinhan VP-1020A that I've been using in a RedHat 9
+box for several years. I had to patch the bttv drivers in RedHat
+9 (and I informed the driver author) because the VP-1020A doesn't
+have any data in certain PCI registers that allowed the bttv 
+driver to figure out what card it was so it locked up. (My modification
+consisted of a patch to tell the bttv driver to not access the 
+device if certain registers were all 0 - this was because I had my
+own driver to control the card since this was before Linux DVB being
+in any kind of stable state).
 
-> Andy,
-> 
-> Thank you for taking an interest.
+Fast forward to 2008 - I decided to upgrade (on a test box) to Fedora 
+9, because I want to be able to run the new DVB-S2 cards without having
+to write my own drivers again. I installed Fedora Core 9, got the latest
+updates, plugged in my Twinhan card and.... it hangs in udev. It's kind
+of unbelievable that this still isn't fixed. So I'm assuming it is fixed
+and there's some other hangup, like Fedora doesn't include the Linux DVB
+software and I have to rebuild the kernel to get it. So my questions 
+are:
 
-I need a working IR blaster for my ATSC to NTSC converter box by Feb
-2009, so I was mildly interested anyway.
+    1) Does Fedora include Linux DVB and all drivers for it by default?
 
+    2) If so, has anybody seen this behavior plugging in a Twinhan 
+       VP-1020A card to a Fedora box (having udev hang) and is there 
+       a fix?
 
->  I am not quite sure what you said  
-> above,
-
-Short story:
-
-1. I need to make additions to cx18 first.  I've noted which pins are
-used on the IR chip on the HVR-1600, and have to make some informed
-guesses about how to properly write a reset function for the IR chip.
-I'll have to test that reset function before I release it so as not to
-cause anyone problems.
-
-2. Someone will have to modify the lirc_pvr150 module to work with a
-cx18 based card.  In the course of testing the driver reset function,
-I'll probably have to hack that together anyway.  I'll provide a patch,
-but I won't follow through with the lirc_pvr150 maintainer.
-
-
->  but if you need someone to test I am willing to do so. While I  
-> was trying to figure out how to make this work; I did find the  
-> lirc_pvr150 code, but got lost when trying to make it work with the  
-> cx18.
-
-Yeah, it's not the easiest to read.
-
-
->  I do have the firmware downloaded as well.
-
-The "firmware" is kind of weird.  The author captured the Windows driver
-sending data loads to the IR blaster chip for every supported remote at
-the time.  In the author's words, the lirc_pvr150 module does a "replay
-attack" to get the IR blaster work working.
-
-
-> I can set up a HG clone of which ever branch of yours you'd like me to  
-> use. The only drivers I compile are for the cx18 and for the HD-PVR,  
-> which I can merge into your branch.
-
-I'll let you know when I have something working.  It might be longer
-than I originally thought though.  I have 2 HVR-1600's and only one
-available PCI slot on a machine that's a real pain to take apart.  Right
-now I have a card w/o the IR blaster chip in the machine.
-
-Regards,
-Andy
-
-> Regards,
-> 
-> Brandon
-> 
+   Thanks.
 
 
 _______________________________________________
