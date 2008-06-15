@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <scachi@gmx.de>) id 1K8iId-0006WC-2i
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 23:01:07 +0200
-Date: Tue, 17 Jun 2008 23:00:31 +0200
-From: Ingo Arndt <scachi@gmx.de>
+Received: from hu-out-0506.google.com ([72.14.214.225])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K7qz4-0002pV-DL
+	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 14:05:23 +0200
+Received: by hu-out-0506.google.com with SMTP id 23so6563920huc.11
+	for <linux-dvb@linuxtv.org>; Sun, 15 Jun 2008 05:05:18 -0700 (PDT)
+Message-ID: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
+Date: Sun, 15 Jun 2008 08:05:17 -0400
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080617230031.62106ea6@chicken.porkynet>
-Mime-Version: 1.0
-Subject: [linux-dvb] Pinnacle PCTV Dual DVB-T Diversity Stick built in
- IR-Receiver supported ?
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] cx18 - dmesg errors and ir transmit
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,46 +25,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+I use SageTV and upon launch it initializes the adapters resulting in
+the following error messages in dmesg:
 
-I have a Pinnacle PCTV Dual DVB-T Diversity Stick which works fine (I use kaffeine).
-The only thing I am missing is the built-in infrared receiver which is not recognized.
+[   36.371502] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
+Unknown cmd fd(13) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
+/dev/video1
+[   36.373068] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
+Unknown cmd fd(13) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
+/dev/video1
+[   29.311447] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
+Unknown cmd fd(18) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
+/dev/video0
+[   29.312857] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
+Unknown cmd fd(18) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
+/dev/video0
 
-Am I missing a module, a module option or something else 
-or is the ir receiver just not supported by now ?
+I contacted SageTV about the error and was told they don't affect
+anything, but I would like to make sure that is the case.
 
-I use the kernel 2.6.24 with tuxonice-patches.
+Also, I have noticed a new message in dmesg indicating that ir
+transmitters may now be accessible? Is there anything I need to do to
+make use of them?
 
-lsusb output:
-------------------------- lsusb output start ---
-idVendor           0x2304 Pinnacle Systems, Inc. [hex]
-  idProduct          0x0229 
-  bcdDevice            0.01
-  iManufacturer           1 PINNACLE
-  iProduct                2 PCTV 2001e
-  iSerial                 3 12027630
-------------------------- lsusb output stop ---
+tveeprom 2-0050: has no radio, has IR receiver, has IR transmitter
 
+Thanks!
 
-mesg output:
----------------- dmesg code start ---
-usb 7-3: new high speed USB device using ehci_hcd and address 9
-usb 7-3: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Pinnacle PCTV Dual DVB-T Diversity Stick' in cold state, will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Pinnacle PCTV Dual DVB-T Diversity Stick' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)
-DVB: registering frontend 0 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)
-DVB: registering frontend 1 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: Pinnacle PCTV Dual DVB-T Diversity Stick successfully
-initialized and connected.
------------------ dmesg code end ---
+Brandon
 
 _______________________________________________
 linux-dvb mailing list
