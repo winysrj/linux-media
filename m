@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from mail-in-05.arcor-online.net ([151.189.21.45])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1K5keR-00066d-Ou
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 18:55:26 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id A68BA19E605F
-	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 20:54:49 +0400 (MSD)
-Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id E472019E6064
-	for <linux-dvb@linuxtv.org>; Mon,  9 Jun 2008 20:54:48 +0400 (MSD)
-Date: Mon, 9 Jun 2008 20:59:00 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080609205900.69768a02@bk.ru>
-In-Reply-To: <484CD9F5.60906@okg-computer.de>
-References: <854d46170806081250u3e7ca97er32d47be3ccf368fb@mail.gmail.com>
-	<E1K5Z0d-000P20-00.goga777-bk-ru@f172.mail.ru>
-	<484CD9F5.60906@okg-computer.de>
+	(envelope-from <hermann-pitton@arcor.de>) id 1K81u4-0003vs-4V
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 01:44:57 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+In-Reply-To: <1213567472.3173.50.camel@palomino.walls.org>
+References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
+	<1213567472.3173.50.camel@palomino.walls.org>
+Date: Mon, 16 Jun 2008 01:43:13 +0200
+Message-Id: <1213573393.2683.85.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] scan & szap for new multiproto api (was - How to
- get a PCTV Sat HDTC Pro USB (452e) running?)
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,123 +26,105 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Hi,
 
-> >> I'm glad everything worked out for you :).
-> >> with szap to tune to DVB-S2 channels use this option "-t 2" default is
-> >> "- t 0" which is for DVB-S
-> >> to tune to 'Astra HD Promo 2' you do:
-> >> szap -r -c 19 -t 2 "Astra HD Promo 2"
-> >>     
-> >
-> > I will try so. It will be fine if new dvb-s2 option will include in szap --help output
-> >   
+Am Sonntag, den 15.06.2008, 18:04 -0400 schrieb Andy Walls:
+> On Sun, 2008-06-15 at 08:05 -0400, Brandon Jenkins wrote:
+> > I use SageTV and upon launch it initializes the adapters resulting in
+> > the following error messages in dmesg:
+> > 
+> > [   36.371502] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
+> > Unknown cmd fd(13) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
+> > /dev/video1
+> > [   36.373068] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
+> > Unknown cmd fd(13) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
+> > /dev/video1
+> > [   29.311447] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
+> > Unknown cmd fd(18) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
+> > /dev/video0
+> > [   29.312857] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
+> > Unknown cmd fd(18) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
+> > /dev/video0
 > 
-> jens@midas-phalanx:/usr/src/dvb-apps-patched/util/szap# ./szap -h
+> The general V4L2 function used by cx18:
 > 
-> usage: szap -q
->          list known channels
->        szap [options] {-n channel-number|channel_name}
->          zap to channel via number or full name (case insensitive)
->      -a number : use given adapter (default 0)
->      -f number : use given frontend (default 0)
->      -d number : use given demux (default 0)
->      -c file   : read channels list from 'file'
->      -b        : enable Audio Bypass (default no)
->      -x        : exit after tuning
->      -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
->      -l lnb-type (DVB-S Only) (use -l help to print types) or
->      -l low[,high[,switch]] in Mhz
->      -i        : run interactively, allowing you to type in channel names
->      -p        : add pat and pmt to TS recording (implies -r)
->                  or -n numbers for zapping
->           -t        : delivery system type DVB-S=0, DSS=1, DVB-S2=2
+> linux/drivers/media/video/compat_ioctl32.c:v4l_compat_ioctl32()
+> 
+> doesn't support these ioctls.  The absence of support is larger than
+> just for cx18.  The following command roughly shows all the drivers that
+> rely on v4l_compat_ioctl32():
+> 
+> $ grep -Rl v4l_compat_ioctl32 linux/drivers/media/* 
+> 
+> If really needed, I guess one could add the ioctls one needs to the code
+> in compat_ioctl32.c.
 > 
 > 
-> You see the last line? The Information is included!! ;-)
-
-yes, I see. But in my patched szap I don't see this information. I don't know why :(
-
-/usr/src/dvb-apps# cat patch_scan_szap_jens.diff | patch -p1 --dry-run
-
-goga:/usr/src/dvb-apps# cat patch_scan_szap_jens.diff | patch -p1 --dry-run
-patching file util/scan/atsc/us-ATSC-center-frequencies-8VSB
-patching file util/scan/atsc/us-NTSC-center-frequencies-8VSB
-patching file util/scan/atsc/us-NY-TWC-NYC
-patching file util/scan/diseqc.c
-patching file util/scan/diseqc.h
-patching file util/scan/dump-vdr.c
-patching file util/scan/dump-vdr.h
-patching file util/scan/dump-zap.c
-patching file util/scan/dump-zap.h
-patching file util/scan/dvb-c/at-SalzburgAG
-patching file util/scan/dvb-c/be-IN.DI-Integan
-patching file util/scan/dvb-c/de-Muenchen
-patching file util/scan/dvb-c/fi-3ktv
-
-[skip]
-
-
-patching file util/scan/dvb-t/uk-WinterHill
-patching file util/scan/list.h
-patching file util/scan/lnb.c
-patching file util/scan/lnb.h
-patching file util/scan/Makefile
-patching file util/scan/scan.c
-patching file util/scan/scan.h
-patching file util/szap/szap.c
-
-goga:/usr/src/dvb-apps/util/szap# make
-CC lnb.o
-CC azap
-CC czap
-CC szap
-CC tzap
-
-
-goga:/usr/src/dvb-apps/util/szap# ./szap -h
-
-usage: szap -q
-         list known channels
-       szap [options] {-n channel-number|channel_name}
-         zap to channel via number or full name (case insensitive)
-     -a number : use given adapter (default 0)
-     -f number : use given frontend (default 0)
-     -d number : use given demux (default 0)
-     -c file   : read channels list from 'file'
-     -b        : enable Audio Bypass (default no)
-     -x        : exit after tuning
-     -H        : human readable output
-     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
-     -l lnb-type (DVB-S Only) (use -l help to print types) or
-     -l low[,high[,switch]] in Mhz
-     -i        : run interactively, allowing you to type in channel names
-     -p        : add pat and pmt to TS recording (implies -r)
-                 or -n numbers for zapping
-
-usage: szap -q
-         list known channels
-       szap [options] {-n channel-number|channel_name}
-         zap to channel via number or full name (case insensitive)
-     -a number : use given adapter (default 0)
-     -f number : use given frontend (default 0)
-     -d number : use given demux (default 0)
-     -c file   : read channels list from 'file'
-     -b        : enable Audio Bypass (default no)
-     -x        : exit after tuning
-     -H        : human readable output
-     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
-     -l lnb-type (DVB-S Only) (use -l help to print types) or
-     -l low[,high[,switch]] in Mhz
-     -i        : run interactively, allowing you to type in channel names
-     -p        : add pat and pmt to TS recording (implies -r)
-                 or -n numbers for zapping
-
-Goga777
-
-> And Faruk is right, scan should find S2-Channels "out of the box".
 > 
-> Jens
+> 
+> > I contacted SageTV about the error and was told they don't affect
+> > anything, but I would like to make sure that is the case.
+> 
+> Only the SageTV authors are in a position to easily tell you if the
+> unimplemented ioctls matter or not for what SageTV is trying to do.
+> 
+> (Of course if they don't affect anything, why are they doing them? ;] )
+> 
+> > Also, I have noticed a new message in dmesg indicating that ir
+> > transmitters may now be accessible? Is there anything I need to do to
+> > make use of them?
+> > 
+> > tveeprom 2-0050: has no radio, has IR receiver, has IR transmitter
+> 
+> The IR on the HVR-1600 (a Zilog Z8F0811 microcontroller) is very much
+> like that of the PVR-150.  From what I can tell, it even appears to be
+> at the same i2c address. 
+> 
+> This previous message also indicates the PVR-150/500 IR is very similar
+> to the HVR-1600:
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023532.html
+> 
+> 
+> Right now the cx18 driver has omitted some code present in ivtv related
+> to explicit reset of the IR microcontroller.  It shouldn't be hard to
+> add back that reset code,  if needed. 
+> 
+> I haven't had a chance to try the IR blaster out yet (it was on my todo
+> list before Feb 2009).  "Mark's brain dump" has a modified lirc package
+> for the PVR-150 IR blaster:
+> 
+> http://www.blushingpenguin.com/mark/blog/?p=24
+> http://charles.hopto.org/blog/?p=24
+> 
+> It's probably a good starting point.  There are likely to be differences
+> though, as the cx23418 has 2 I2C buses where the cx23416 only has 1 I2C
+> bus.
+> 
+> It looks like you're blazing a trail, as I can't find any documentation
+> on the 'net by anyone who has done this with a HVR-1600.  If lirc_i2c,
+> available with the normal lirc distribution for IR receive, can detect
+> the Z8F0811, you've probably got a good start.
+> 
+> Regards,
+> Andy
+> 
+> > Thanks!
+> > 
+> > Brandon
+> 
+
+just a note, have been there already coming from other stuff to it,
+but don't remember the details off hand.
+
+http://marc.info/?l=linux-video&m=119705840327989&w=2
+
+and following.
+
+I was under the impression we have already duplicate code?
+
+Cheers,
+Hermann
+
 
 
 _______________________________________________
