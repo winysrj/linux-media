@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.movial.fi ([62.236.91.34])
+Received: from fmmailgate03.web.de ([217.72.192.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dennis.noordsij@movial.fi>) id 1K4Y8R-00082Y-RW
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 11:21:26 +0200
-Message-ID: <4849016A.8050607@movial.fi>
-Date: Fri, 06 Jun 2008 11:20:42 +0200
-From: Dennis Noordsij <dennis.noordsij@movial.fi>
-MIME-Version: 1.0
-To: Nicolas Christener <lists@0x17.ch>
-References: <1212736555.4264.12.camel@oipunk.loozer.local>
-In-Reply-To: <1212736555.4264.12.camel@oipunk.loozer.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy Piranha
+	(envelope-from <SiestaGomez@web.de>) id 1K8Ijr-0002Fw-Rb
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 19:43:34 +0200
+Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
+	by fmmailgate03.web.de (Postfix) with ESMTP id 9CCA8E00314A
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 19:42:58 +0200 (CEST)
+Received: from [88.152.136.212] (helo=midian.waldorf.intern)
+	by smtp06.web.de with asmtp (WEB.DE 4.109 #226) id 1K8IjI-0000st-00
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 19:42:56 +0200
+Date: Mon, 16 Jun 2008 19:42:56 +0200
+From: SG <SiestaGomez@web.de>
+To: linux-dvb@linuxtv.org
+Message-Id: <20080616194256.cc5f9a55.SiestaGomez@web.de>
+In-Reply-To: <1213626832.6543.23.camel@pascal>
+References: <20080615192300.90886244.SiestaGomez@web.de>
+	<4855F6B0.8060507@gmail.com> <1213620050.6543.6.camel@pascal>
+	<20080616142616.75F9C3BC99@waldorfmail.homeip.net>
+	<1213626832.6543.23.camel@pascal>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,49 +33,77 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nicolas Christener schreef:
-> Hello
-> according to [1] i should contact this list, because I own a currently
-> unsupported DVB-T USB device and want to support development :)
-> The device I got is labeled 'Terratec Cinergy Piranha'.
+On Mon, 16 Jun 2008 16:33:52 +0200
+Sigmund Augdal <sigmund@snap.tv> wrote:
+
+> On Mon, 2008-06-16 at 16:26 +0200, siestagomez@web.de wrote:
+> > Sigmund Augdal schrieb: 
+> > 
+> > > On Mon, 2008-06-16 at 08:14 +0300, Arthur Konovalov wrote:
+> > >> SG wrote:
+> > >> > The patch works quite well and nearly all channels seem to work.
+> > >> > 
+> > >> > But when tuning to some radio channels I'll get this kernel message:
+> > >> > 
+> > >> > saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+> > >> > 
+> > >> > Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
+> > >> > smoothly when using Win32.
+> > >> > 
+> > >> > initial transponder 386000000 6900000 0 3
+> > >> >  >>> tune to: 386:M64:C:6900:
+> > >> > WARNING: >>> tuning failed!!!
+> > >> >  >>> tune to: 386:M64:C:6900: (tuning failed)
+> > >> > WARNING: >>> tuning failed!!!
+> > >> > ERROR: initial tuning failed
+> > >> > dumping lists (0 services)
+> > >> > Done. 
+> > >> 
+> > >> Yes, I discovered too that tuning to frequency 386MHz has no lock.
+> > >> VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0 
+> > >> 
+> > >> At same time, 394MHz (and others) works.
+> > > Hi. 
+> > > 
+> > > Both transponders reported to not tune here has different symbolrates
+> > > from what I used for my testing. Maybe this is relevant in some way.
+> > > Could you please compare this with the channels that did tune to see if
+> > > there is a pattern? 
+> > > 
+> > > About the i2c message, I get that every now and then here as well, but I
+> > > have not seen any ill effect from it. I also see that on some other TT
+> > > cards so I think that might be unrelated to the demod/tuner. 
+> > > 
+> > > Regards 
+> > > 
+> > > Sigmund Augdal
+> > 
+> > The symbolrate is the same on all other working channels. 
+> > 
+> > Regarding the i2c message when watching video I'll get this only once but 
+> > when tuning to a radio channel my log gets flooded and it seems to hangup. 
+> How does radio or not make a difference? As far as I know the card is
+> DVB only and should not care whether the tuned transponder contains
+> radio or video or whatever. Could you send a list of transponders that
+> work (with tuning parameters) and ones that doesn't?
 > 
-> output of `dmesg':
-> kernel: hub 5-0:1.0: unable to enumerate USB device on port 5
-> kernel: usb 3-1: new full speed USB device using uhci_hcd and address 6
-> kernel: usb 3-1: configuration #1 chosen from 1 choice
-> kernel: usb 3-1: New USB device found, idVendor=187f, idProduct=0010
-> kernel: usb 3-1: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=0
-> kernel: usb 3-1: Product: SMS 1000
-> kernel: usb 3-1: Manufacturer: Siano
-> 
-> Although I can probably not help to write code for this device I'd be
-> happy, if I could help in any other way to get this device supported by
-> linux.
-> 
-> [1] http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices
-> 
-> kind regards
-> Nicolas
 
-Hi Nicolas,
+Odd today no problem with radio and kernel log.
+Anyway here are a few entries from transponder.ini which I use for dvbscan:
+C 362000000 6900000 NONE QAM64		OK
+C 370000000 6900000 NONE QAM64		OK
+C 378000000 6900000 NONE QAM64		OK
+C 386000000 6900000 NONE QAM64		NOT OK
+C 394000000 6900000 NONE QAM64		OK
+C 402000000 6900000 NONE QAM256		NOT OK
+C 410000000 6900000 NONE QAM64		OK
+C 426000000 6900000 NONE QAM64		OK
 
-You're in luck :-) That device works very well.
+I noticed when using Win32 the signal strenght is very poor on the non working transponders for linux-dvb.
+Perhaps it's enough for Win32 but not for the linux driver.
 
-The driver is not in the official tree (yet) so if you would like to use
-it you will need to compile it yourself, there are some instructions on
-linuxtv.org, and use the following tree:
-
-http://linuxtv.org/hg/~mkrufky/siano
-
-You will also need to take the firmware file "SMS100x_Dvbt.inp" (from
-the installation CD or windows, or download the drivers from
-terratec.net) and copy it to your \lib\firmware or \lib\firmware\`uname
--r` as "dvbt_stellar_usb.inp".
-
-I hope those instructions make sense :-)
-
-Dennis
+Regards
+Martin
 
 _______________________________________________
 linux-dvb mailing list
