@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n74.bullet.mail.sp1.yahoo.com ([98.136.44.186])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KCGTH-0004J0-Gu
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 18:06:50 +0200
-Date: Fri, 27 Jun 2008 09:06:11 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: Michael Krufky <mkrufky@gmail.com>
-In-Reply-To: <37219a840806270738u6a456c95q4699b67e03210f98@mail.gmail.com>
+Received: from fk-out-0910.google.com ([209.85.128.185])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <artlov@gmail.com>) id 1K8Jr1-0007z6-2w
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:54:59 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so3669070fka.1
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 11:54:55 -0700 (PDT)
+Message-ID: <4856B6FD.1080906@gmail.com>
+Date: Mon, 16 Jun 2008 21:54:53 +0300
+From: Arthur Konovalov <artlov@gmail.com>
 MIME-Version: 1.0
-Message-ID: <417831.54873.qm@web46116.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with Terratec Cinergy Piranha
-Reply-To: free_beer_for_all@yahoo.com
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <20080615192300.90886244.SiestaGomez@web.de>	<4855F6B0.8060507@gmail.com>
+	<1213620050.6543.6.camel@pascal>	<20080616142616.75F9C3BC99@waldorfmail.homeip.net>
+	<1213626832.6543.23.camel@pascal>
+In-Reply-To: <1213626832.6543.23.camel@pascal>
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,73 +28,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Fri, 6/27/08, Michael Krufky <mkrufky@gmail.com> wrote:
+Sigmund Augdal wrote:
+> Both transponders reported to not tune here has different symbolrates
+> from what I used for my testing. Maybe this is relevant in some way.
+> Could you please compare this with the channels that did tune to see if
+> there is a pattern? 
 
-> > That's your mistake -- now for DVB-T the default mode needs to be
-> > left as 4 (that's DVBT-DBA-drivers; how that specifically differs
+ From my side i can add that all frequency from local cable provider's 
+works with c-1501 except one:
+274
+282
+290
+298
+306
+314
+386 NO LOCK
+394
+402
+410
+All channels QAM64 and SR 6875.
 
-> This is an experimental driver -- You'll notice that I did not merge
-> it into the master branch yet -- those alternative modes are for
-> external software applications, to use the driver in a way without
-> using the dvb core framework.
+In the same PC I have second DVB-C card (KNC One DVB-C), which sharing 
+same cable with c-1501 and there no problem with reception and signal's 
+strength. This is reason why I did not discover current problem earlier. :(
 
-Which brings me to ask publicly what I've been trying to figure
-out how to ask...
-
-The device supports DAB under the supplied Home Cinema Windows
-application, the reason why I bought it (DAB support, that is.
-I have no Windows boxes).  It works and all.
-
-DAB is about as far from DVB as, well, as it is.  There's one
-DAB device support sourcefile, under video or something, but it
-doesn't seem to deal with the composition of the multiplex
-datastream.  Where is it appropriate for me to ask questions
-about DAB, if anywhere?  Shirley, not this list...
-
-And secondly, has anyone who has this adapter and can receive
-DAB radio with it, captured that protocol and data and whatnot,
-to enable some reverse-engineering/hacking?
-
-Basically, I'm wondering, what does a non-DVB external software
-need to say to the device, and what does the device say in return
-(complete multiplex data, or only part thereof, or something),
-in order to tune and listen to a DAB multiplex/channel...
+Arthur
 
 
 
-> > There appears to be another copy of the smsdvb code in a repository
-> > called somehow `*CENSORED*' which differs slightly;
 
-> That code is not for you :-P
-
-Sorry guv, i'm overwriting my downloaded copy thereof repeatedly
-with a random pattern of ones and zeroes formed by the statistical
-cryptographic transformation (and computationally mathematically
-proven, say wot) based on the highly sophisticated algorithm of
-ROT-26ing the data, so you can rest assured I shan't poke my nose
-in places it does not belong, until the next time I see something
-curiously interesting
-
-
-> You think you needed the adapter_nr compat patch, but you dont -- if
-> you build from the "siano" tree, it will install the newer dvb-core
-> along with the adapter_nr interface.
-
-And it will also overwrite the hacked source I have in my present
-kernel that enables a few obscure devices I have to function at all,
-so I'm hoping to clear out all my accumulated hacks before I can
-safely try a stock kernel again.  That's the unfortunate reason
-I'm cherry-picking the best goodies out of new code selectively.
-
-No worries, I'm clearing out my hacks, hopefully before I get
-cleared out
-
-
-thanks
-barry bouwmsa
-
-
-      
 
 
 _______________________________________________
