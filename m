@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from relay-pt3.poste.it ([62.241.4.129])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KAlWL-0007Sn-UD
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 14:51:46 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K2X007F12DAV7Y0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 23 Jun 2008 08:51:10 -0400 (EDT)
-Date: Mon, 23 Jun 2008 08:51:10 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080622121058.122F7BE4078@ws1-9.us4.outblaze.com>
-To: stev391@email.com
-Message-id: <485F9C3E.50309@linuxtv.org>
-MIME-version: 1.0
-References: <20080622121058.122F7BE4078@ws1-9.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] cx23885 driver and DMA timeouts
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1K89CM-0003qk-QH
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 09:32:31 +0200
+Received: from [192.168.0.188] (89.97.249.170) by relay-pt3.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 48559F3F000014CB for linux-dvb@linuxtv.org;
+	Mon, 16 Jun 2008 09:31:50 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
+To: linux-dvb@linuxtv.org
+Date: Mon, 16 Jun 2008 09:32:27 +0200
+References: <484BA795.8010701@orcon.net.nz>
+	<F4ED6217-5ABE-4136-BD5A-A56779902F12@orcon.net.nz>
+In-Reply-To: <F4ED6217-5ABE-4136-BD5A-A56779902F12@orcon.net.nz>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806160932.27229.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] Problems (bug?) with Hauppauge Nova T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,71 +30,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-stev391@email.com wrote:
-> Steven,
-> 
-> The card works perfectly using Chris Pascoe's branch, I can use both 
-> tuners at the same time. It only stuffs up when I try and merge the 
-> relevant sections into tip, as per the patch I attached in the previous 
-> email.  So this eliminates bios/hardware faults. I can also try in 
-> windows for you, but I'm sure this is not the fault.
-> 
-> I would like to run a more modern version of the hg code as I have other 
-> cards sitting around that could go in the same system and also I fear 
-> that if somebody doesn't do the work to get it into tip, support will 
-> disappear for newer kernels.
-> 
-> Thanks for help, any further advice?
-> (Also you lost me a bit with sram and risc, is this for the 
-> microprocessor on the tv card or is it on my motherboard/cpu? And do you 
-> have any documentation about them so I can learn more about it?)
-> 
-> Stephen.
-> 
->     ----- Original Message -----
->     From: "Steven Toth"
->     To: stev391@email.com
->     Subject: Re: [linux-dvb] cx23885 driver and DMA timeouts
->     Date: Sat, 21 Jun 2008 08:54:39 -0400
-> 
-> 
-> 
->      > As soon as I try to access both cards at the same time it breaks
->      > and only a full computer restart will fix it, i have tried
->      > unloading all the modules that I can find that this card uses and
->      > loading them again. I get the syslog attached below (cx23885 with
->      > debug =1). It doesn't matter what progam i use to access them
->      > (tried gxine, totem, mythtv) it all works the same, only one at a
->      > time or it breaks.
-> 
->     If the vidb and vidc (ts1 / ts2) bridge streams each single channel
->     correctly, but not both together then this is either a sram
->     configuration issue (the risc engine's workspace is being corrupted
->     by another risc channel), or your system has a pcie compatibility
->     issue.
-> 
->     I've seen both of these issues in the past.
-> 
->     I don't have a hardware product with demodulators on vidb and c, so
->     that's not something I can repro.
-> 
->     Can you dual boot the same system under windows and remove any pcie
->     compatibility doubts?
-> 
->     - Steve
+On Monday 16 June 2008 00:12:47 Michael Cree wrote:
+> On 8/06/2008, at 9:34 PM, Michael Cree wrote:
+> > I am getting 'I2C read failed' and 'ep 0 read error' errors with
+> > a Hauppauge Nova T 500 PCI card.
+> >
+> > This is running on a Compaq Alpha XP1000 workstation. It has a
+> > 667Mhz Alpha EV67 cpu.  Running Debian Lenny.
+>
+> I should've also state that the Hauppauge card was in one of the
+> secondary PCI slots, behind a bridge.  Shifting the card to one of
+> the primary PCI slots solved the problems reported above.  I now
+> can tune and stream from the card.
+>
+> There, not that "scary" as the only responder suggested.
+>
+> A new problem arose - mplayer would report that the video stream is
+> MPEG2 and proceed to multitudes of decoding errors.   Somewhere a
+> lie had occurred; it is MPEG4 with H.264 encoding on the
+> terrestrial transmission in NZ.    Updating dvb-utils to latest in
+> mercurial has fixed that problem and I now can get video and audio
+> streams from the hauppauge card.
+>
 
-No need to try windows, if you have the driver already running (pascoe's 
-patches) then your chipset and hardware are fine.
-
-Sounds like you have a simple merge issue.
-
-Try to figure out which parts of the merge actually create the problem 
-then bring that issue back to this list for discussion.
-
-Regards,
-
-- Steve
-
+add the pmt pid to the stream and mplayer will decode correctly 
 
 _______________________________________________
 linux-dvb mailing list
