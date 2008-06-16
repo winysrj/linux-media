@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <daniel.isenmann@gmx.de>) id 1KARLg-0004hS-GU
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 17:19:25 +0200
-Date: Sun, 22 Jun 2008 17:18:49 +0200
-From: Daniel Isenmann <daniel.isenmann@gmx.de>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1K8BtP-000879-8S
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 12:24:56 +0200
+Received: from [192.168.1.2] (02-145.155.popsite.net [66.217.132.145])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m5GAOaqY017600
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 06:24:37 -0400 (EDT)
+From: Andy Walls <awalls@radix.net>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080622171849.6c7023fe@fuckup-ng.localdomain>
-In-Reply-To: <485E6299.6030002@iki.fi>
-References: <20080622161411.722de7a7@fuckup-ng.localdomain>
-	<485E6299.6030002@iki.fi>
+In-Reply-To: <1213579027.3164.36.camel@palomino.walls.org>
+References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
+	<1213567472.3173.50.camel@palomino.walls.org>
+	<1213573393.2683.85.camel@pc10.localdom.local>
+	<1213579027.3164.36.camel@palomino.walls.org>
+Date: Mon, 16 Jun 2008 06:24:13 -0400
+Message-Id: <1213611853.3175.2.camel@palomino.walls.org>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] Afatech 9015 problems on i686
+Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,60 +31,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 22 Jun 2008 17:32:57 +0300
-Lauri Tischler <lwgt@iki.fi> wrote:
+On Sun, 2008-06-15 at 21:17 -0400, Andy Walls wrote:
 
-> Daniel Isenmann wrote:
-> > Hi,
-> > 
-> > I have some problems to get the module af9015 to run under i686. I
-> > checked out the afatech9015 development repo from here:
-> > http://linuxtv.org/hg/~anttip/af9015/
-> > 
-> > Compiling the source on my x86_64 box, everything runs fine and
-> > smooth. But under i686 there is following warning, which prevents
-> > the module from loading:
-> > ----------
-> > WARNING:
-> > "__fixdfsi" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
-> > undefined! 
-> > WARNING:
-> > "__divdf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
-> > undefined! 
-> > WARNING:
-> > "__adddf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
-> > undefined! 
-> > WARNING:
-> > "__muldf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
-> > undefined! 
-> > WARNING:
-> > "__floatsidf" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
-> > undefined!
-> > ----------
-> > The compilation runs until the end. But loading the module fails
-> > with errors, that it can't find the functions listed above. Loading
-> > the firmware works on both boxes without problems.
-> > 
-> > GCC: 4.3.1
-> > Kernel: 2.6.25.6 
-> > Distribution: ArchLinux
-> > 
-> > Has anyone a hint or know something more, why the compiler warnings
-> > appears? Complete build log with V=1 can be found here: 
-> > http://dev.archlinux.org/~daniel/afatech9015-eee-hg-8102-1-i686.log
+> I have just examined the lirc_pvr150 code, the kernel i2c-core, the cx18
+> and ivtv code.  Changes will be needed in:
 > 
-> I had same errors with Mythbuntu 8.04, downloaded older tree
-> http://linuxtv.org/hg/~anttip/af9015-t/
-> that seems to work.
+> 1. lirc_pvr150.c
+> 	- add request_module("cx18") near the end
+> 
+> 	- change the explicit call to ivtv_reset_ir_gpio() to a 
+> 		cx18 equivalent or somehow change to an ioctl()
+> 		so that the code is more flexible.
 
-Thanks for posting this. Now it works also on i686 (great...totally
-happy), but that didn't solve the main problem, that the current repo
-doesn't work on i686 (at least for us).
+Oops, an ioctl() isn't a sensible interface between kernel space
+modules.  Scratch that part.
 
-Let me know if you (developer/maintainer of af9015) needs more
-information for this topic. I will provide as much as I can.
+-Andy
 
-Daniel
 
 _______________________________________________
 linux-dvb mailing list
