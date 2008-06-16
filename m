@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from bsmtp.bon.at ([213.33.87.14])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KCvp6-00047e-8m
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 14:16:05 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so548455fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 05:16:00 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Sun, 29 Jun 2008 14:15:52 +0200
-References: <20080622011535.fotkf2wrkk4800wk@blacksheep.qnet>
-In-Reply-To: <20080622011535.fotkf2wrkk4800wk@blacksheep.qnet>
+	(envelope-from <michael.schoeller@schoeller-soft.net>)
+	id 1K8DjK-0006jI-PZ
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 14:22:41 +0200
+Received: from [10.1.2.1] (unknown [80.123.101.150])
+	by bsmtp.bon.at (Postfix) with ESMTP id 818F2CDFD0
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 14:22:01 +0200 (CEST)
+Message-ID: <48565AE7.2010404@schoeller-soft.net>
+Date: Mon, 16 Jun 2008 14:21:59 +0200
+From: =?ISO-8859-15?Q?Michael_Sch=F6ller?=
+	<michael.schoeller@schoeller-soft.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806291415.52547.christophpfister@gmail.com>
-Subject: Re: [linux-dvb] updated de-Muenchen
+To: linux-dvb@linuxtv.org
+References: <200806071627.30907.dkuhlen@gmx.net>	<484C056E.7010002@schoeller-soft.net>	<200806092248.01786.dkuhlen@gmx.net>
+	<48519BEB.3030609@schoeller-soft.net>
+In-Reply-To: <48519BEB.3030609@schoeller-soft.net>
+Subject: Re: [linux-dvb] pctv452e and TT-S2-3600 step-by-step howto
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,47 +24,157 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1689714292=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thanks, updated :)
+This is a multi-part message in MIME format.
+--===============1689714292==
+Content-Type: multipart/alternative;
+ boundary="------------090502050705060306030903"
 
-Christoph
+This is a multi-part message in MIME format.
+--------------090502050705060306030903
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
+
+I did an other test and compiled an new kernel Version 2.6.26-rc5 from=20
+the ps3 kernel tree and disabled all video 4 linux and dvb support in=20
+the kernel. After that I dried that step by step howto again. With the=20
+same result. So I was thinking maybe thats exactly the wrong way and=20
+someone is missing...are there any optins in the "Device=20
+Driver->multimedia device" tabs that must be enabled so that the hole=20
+stuff works.
+
+BTW I noticed an really odd message when compiling multiproto drivers. I=20
+don't know remember exactly but It goes something like "VIDEO PLANB:=20
+need at leas kernel version 2.6.99".
+
+I hope someone can finally help me.
+
+Michael
+
+Michael Sch=F6ller schrieb:
+> Dominik Kuhlen schrieb:
+>> Hmm, this is strange. looks like you are using old drivers or old=20
+>> dvb-core module that doesn't support the new ioctls
+>> Did you load the modules with
+>> insmod ./dvb-core.ko
+>> insmod ./dvb-usb.ko
+>> insmod ./lnbp22.ko
+>> insmod ./stb0899.ko
+>> insmod ./stb6100.ko
+>> insmod ./dvb-usb-pctv452e.ko
+>> to be sure that no old/other modules were used?
+>>
+>>  =20
+>
+> Yes, I did as described. I also checked if no old modules are loaded.=20
+> Just do be sure I downloaded the newest kernel from the PS3-kernel=20
+> tree and compiled it before following the step by step how to.
+>
+> However the error is still the same.
+> Well I try a shoot into the blue and say this is a compatibility=20
+> problem of the code with the ppc architecture. Since this is the only=20
+> significant difference I can think of.
+>
+> Michael
+> -----------------------------------------------------------------------=
+-
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
-Am Sonntag 22 Juni 2008 01:15:35 schrieb kiu:
-> # 2008-06-22
-> # Area: Muenchen City
-> # Cable Provider: Kabel & Medien Service - http://www.atcable.de
-> # Cable Content: Cablevista GmbH - http://www.cablevista.de
-> #
-> # freq sr fec mod
-> C 113000000 6900000 AUTO QAM64
-> C 121000000 6900000 AUTO QAM64
-> C 346000000 6900000 AUTO QAM64
-> C 354000000 6900000 AUTO QAM64
-> C 362000000 6900000 AUTO QAM64
-> C 370000000 6900000 AUTO QAM64
-> C 378000000 6900000 AUTO QAM64
-> C 386000000 6900000 AUTO QAM64
-> C 394000000 6900000 AUTO QAM64
-> C 402000000 6900000 AUTO QAM64
-> C 410000000 6900000 AUTO QAM64
-> C 418000000 6900000 AUTO QAM64
-> C 426000000 6900000 AUTO QAM64
-> C 434000000 6900000 AUTO QAM64
-> C 442000000 6900000 AUTO QAM64
-> C 450000000 6900000 AUTO QAM64
-> C 466000000 6900000 AUTO QAM64
-> C 482000000 6900000 AUTO QAM64
-> C 322000000 6900000 AUTO QAM256
-> C 458000000 6900000 AUTO QAM256
-> C 490000000 6900000 AUTO QAM256
+--------------090502050705060306030903
+Content-Type: text/html; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content=3D"text/html;charset=3DISO-8859-15"
+ http-equiv=3D"Content-Type">
+  <title></title>
+</head>
+<body bgcolor=3D"#ffffff" text=3D"#000000">
+I did an other test and compiled an new kernel Version 2.6.26-rc5 from
+the ps3 kernel tree and disabled all video 4 linux and dvb support in
+the kernel. After that I dried that step by step howto again. With the
+same result. So I was thinking maybe thats exactly the wrong way and
+someone is missing...are there any optins in the "Device
+Driver-&gt;multimedia device" tabs that must be enabled so that the
+hole stuff works.<br>
+<br>
+BTW I noticed an really odd message when compiling multiproto drivers.
+I don't know remember exactly but It goes something like "VIDEO PLANB:
+need at leas kernel version 2.6.99".<br>
+<br>
+I hope someone can finally help me.<br>
+<br>
+Michael<br>
+<br>
+Michael Sch=F6ller schrieb:
+<blockquote cite=3D"mid:48519BEB.3030609@schoeller-soft.net" type=3D"cite=
+">
+  <meta content=3D"text/html;charset=3DISO-8859-15"
+ http-equiv=3D"Content-Type">
+Dominik Kuhlen schrieb:
+  <blockquote cite=3D"mid:200806092248.01786.dkuhlen@gmx.net" type=3D"cit=
+e"><!---->Hmm,
+this is strange. looks like you are using old drivers or old dvb-core
+module that doesn't support the new ioctls<br>
+    <pre wrap=3D"">Did you load the modules with
+insmod ./dvb-core.ko
+insmod ./dvb-usb.ko
+insmod ./lnbp22.ko
+insmod ./stb0899.ko
+insmod ./stb6100.ko
+insmod ./dvb-usb-pctv452e.ko
+to be sure that no old/other modules were used?
+
+  </pre>
+  </blockquote>
+  <br>
+Yes, I did as described. I also checked if no old modules are loaded.
+Just do be sure I downloaded the newest kernel from the PS3-kernel tree
+and compiled it before following the step by step how to.<br>
+  <br>
+However the error is still the same.<br>
+Well I try a shoot into the blue and say this is a compatibility
+problem of the code with the ppc architecture. Since this is the only
+significant difference I can think of.<br>
+  <br>
+Michael<br>
+  <pre wrap=3D"">
+<hr size=3D"4" width=3D"90%">
+_______________________________________________
+linux-dvb mailing list
+<a class=3D"moz-txt-link-abbreviated" href=3D"mailto:linux-dvb@linuxtv.or=
+g">linux-dvb@linuxtv.org</a>
+<a class=3D"moz-txt-link-freetext" href=3D"http://www.linuxtv.org/cgi-bin=
+/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listi=
+nfo/linux-dvb</a></pre>
+</blockquote>
+<br>
+</body>
+</html>
+
+--------------090502050705060306030903--
+
+
+--===============1689714292==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1689714292==--
