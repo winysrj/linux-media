@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.236])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mxm321@gmail.com>) id 1K2kR5-0006LN-RV
-	for linux-dvb@linuxtv.org; Sun, 01 Jun 2008 12:05:13 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so601177rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 01 Jun 2008 03:05:06 -0700 (PDT)
-Message-ID: <932d9c410806010305g549d10b3v875e67f61b5d760c@mail.gmail.com>
-Date: Sun, 1 Jun 2008 13:05:06 +0300
-From: "mohmmad alnefieai" <mxm321@gmail.com>
-To: linux-dvb@linuxtv.org
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1K83v1-0001vM-FL
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 03:54:10 +0200
+Message-ID: <4855C780.9040501@gmx.net>
+Date: Mon, 16 Jun 2008 03:53:04 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] MAOCONY driver
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <4852C2FE.6040107@gmx.net>
+In-Reply-To: <4852C2FE.6040107@gmx.net>
+Subject: Re: [linux-dvb] Technisat Airstar USB round two
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,108 +24,109 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I searched for a driver without succeed
+On 06/13/2008 08:57 PM, P. van Gaans wrote:
+> Approximately a year ago I tried to make this USB DVB-T box work. But it 
+> wouldn't. With a little more knowledge today I tried again with v4l-dvb 
+> from hg, but it still won't go. I get this when I plug it in:
+> 
+> [ 3083.152125] usb 1-2: new full speed USB device using ohci_hcd and 
+> address 4
+> [ 3083.253055] usb 1-2: configuration #1 chosen from 1 choice
+> [ 3083.258204] flexcop_usb: running at FULL speed.
+> [ 3083.501399] DVB: registering new adapter (FlexCop Digital TV device)
+> [ 3083.502758] b2c2-flexcop: MAC address = 00:d0:d7:09:e7:70
+> [ 3083.516842] CX24123: wrong demod revision: 0
+> [ 3083.612219] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
+> [ 3083.612226] DVB: registering frontend 1 (Zarlink MT352 DVB-T)...
+> [ 3083.612261] b2c2-flexcop: initialization of 'Air2PC/AirStar 2 DVB-T' 
+> at the 'USB' bus controlled by a 'FlexCopIII' complete
+> [ 3083.621757] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV 
+> USB Driver successfully initialized and connected.
+> 
+> Note the "CX24123: wrong demod revision: 0". What's with that? It looks 
+> like something is wrong.
+> 
+> I get this when I unplug it:
+> 
+> [ 3081.464885] flexcop_usb: iso frame descriptor 0 has an error: -62
+> [ 3081.464887]
+> [ 3081.464892] flexcop_usb: iso frame descriptor 1 has an error: -62
+> [ 3081.464893]
+> [ 3081.464895] flexcop_usb: iso frame descriptor 2 has an error: -62
+> [ 3081.464896]
+> [ 3081.464897] flexcop_usb: iso frame descriptor 3 has an error: -62
+> [ 3081.464898]
+> [ 3081.468884] flexcop_usb: iso frame descriptor 0 has an error: -62
+> [ 3081.468886]
+> [ 3081.468891] flexcop_usb: iso frame descriptor 1 has an error: -62
+> [ 3081.468892]
+> [ 3081.468894] flexcop_usb: iso frame descriptor 2 has an error: -62
+> [ 3081.468895]
+> [ 3081.468896] flexcop_usb: iso frame descriptor 3 has an error: -62
+> [ 3081.468897]
+> [ 3081.472876] flexcop_usb: iso frame descriptor 0 has an error: -62
+> [ 3081.472877]
+> [ 3081.472879] flexcop_usb: iso frame descriptor 1 has an error: -62
+> [ 3081.472880]
+> [ 3081.472881] flexcop_usb: iso frame descriptor 2 has an error: -62
+> [ 3081.472882]
+> [ 3081.472883] flexcop_usb: iso frame descriptor 3 has an error: -62
+> [ 3081.472885]
+> [ 3081.475209] usb 1-2: USB disconnect, address 3
+> [ 3081.479869] flexcop_usb: iso frame descriptor 0 has an error: -62
+> [ 3081.479871]
+> [ 3081.479873] flexcop_usb: iso frame descriptor 1 has an error: -62
+> [ 3081.479874]
+> [ 3081.479875] flexcop_usb: iso frame descriptor 2 has an error: -62
+> [ 3081.479876]
+> [ 3081.479877] flexcop_usb: iso frame descriptor 3 has an error: -18
+> [ 3081.479878]
+> [ 3081.479880] flexcop_usb: iso frame descriptor 0 has an error: -18
+> [ 3081.479881]
+> [ 3081.479883] flexcop_usb: iso frame descriptor 1 has an error: -18
+> [ 3081.479884]
+> [ 3081.479885] flexcop_usb: iso frame descriptor 2 has an error: -18
+> [ 3081.479886]
+> [ 3081.479887] flexcop_usb: iso frame descriptor 3 has an error: -18
+> [ 3081.479888]
+> [ 3081.479890] flexcop_usb: iso frame descriptor 0 has an error: -18
+> [ 3081.479891]
+> [ 3081.479892] flexcop_usb: iso frame descriptor 1 has an error: -18
+> [ 3081.479893]
+> [ 3081.479895] flexcop_usb: iso frame descriptor 2 has an error: -18
+> [ 3081.479896]
+> [ 3081.479897] flexcop_usb: iso frame descriptor 3 has an error: -18
+> [ 3081.479898]
+> [ 3081.479900] flexcop_usb: iso frame descriptor 0 has an error: -18
+> [ 3081.479901]
+> [ 3081.479902] flexcop_usb: iso frame descriptor 1 has an error: -18
+> [ 3081.479903]
+> [ 3081.479904] flexcop_usb: iso frame descriptor 2 has an error: -18
+> [ 3081.479905]
+> [ 3081.479906] flexcop_usb: iso frame descriptor 3 has an error: -18
+> [ 3081.479907]
+> [ 3081.480307] flexcop_usb: Technisat/B2C2 FlexCop II/IIb/III Digital TV 
+> USB Driver successfully deinitialized and disconnected.
+> 
+> I think it doesn't like being unplugged. The problem is still the same: 
+> I see the device in /dev/dvb and in Kaffeine, when I try to watch a 
+> channel I see the ACT LED on the device blink a bit, but the LOCK LED 
+> will never light up and I never get to watch anything. Using Ubuntu 8.04.
+> 
+> P.
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-this the output
+Doesn't anyone have any idea, or even care about this device? I can't 
+find any Conexant chip in there, unless it would be inside the tuner.
 
-root@xx:~# dmesg | grep dvb
-root@xx:~# ls -l /dev/dvb
-ls: cannot access /dev/dvb: No such file or directory
-root@xx:~# lspci -nnv
-00:00.0 Host bridge [0600]: VIA Technologies, Inc. VT8623 [Apollo
-CLE266] [1106:3123]
-Subsystem: VIA Technologies, Inc. VT8623 [Apollo CLE266] [1106:3123]
-Flags: bus master, 66MHz, medium devsel, latency 8
-Memory at e0000000 (32-bit, prefetchable) [size=64M]
-Capabilities: [a0] AGP version 2.0
-Capabilities: [c0] Power Management version 2
-
-00:01.0 PCI bridge [0604]: VIA Technologies, Inc. VT8633 [Apollo
-Pro266 AGP] [1106:b091] (prog-if 00 [Normal decode])
-Flags: bus master, 66MHz, medium devsel, latency 0
-Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
-Memory behind bridge: e8000000-e9ffffff
-Prefetchable memory behind bridge: e4000000-e7ffffff
-Capabilities: [80] Power Management version 2
-
-00:0a.0 Multimedia video controller [0400]: JumpTec h, GMBH Unknown
-device [1797:6800] (rev 11)
-Flags: bus master, medium devsel, latency 32, IRQ 11
-Memory at ea000000 (32-bit, non-prefetchable) [size=16M]
-
-00:0d.0 Ethernet controller [0200]: Realtek Semiconductor Co., Ltd.
-RTL-8139/8139C/8139C+ [10ec:8139] (rev 10)
-Subsystem: Realtek Semiconductor Co., Ltd. RT8139 [10ec:8139]
-Flags: bus master, medium devsel, latency 32, IRQ 11
-I/O ports at d000 [size=256]
-Memory at eb000000 (32-bit, non-prefetchable) [size=256]
-Capabilities: [50] Power Management version 2
-
-00:10.0 USB Controller [0c03]: VIA Technologies, Inc. VT82xxxxx UHCI
-USB 1.1 Controller [1106:3038] (rev 80) (prog-if 00 [UHCI])
-Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller [1106:3038]
-Flags: bus master, medium devsel, latency 32, IRQ 11
-I/O ports at d400 [size=32]
-Capabilities: [80] Power Management version 2
-
-00:10.1 USB Controller [0c03]: VIA Technologies, Inc. VT82xxxxx UHCI
-USB 1.1 Controller [1106:3038] (rev 80) (prog-if 00 [UHCI])
-Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller [1106:3038]
-Flags: bus master, medium devsel, latency 32, IRQ 5
-I/O ports at d800 [size=32]
-Capabilities: [80] Power Management version 2
-
-00:10.2 USB Controller [0c03]: VIA Technologies, Inc. VT82xxxxx UHCI
-USB 1.1 Controller [1106:3038] (rev 80) (prog-if 00 [UHCI])
-Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller [1106:3038]
-Flags: bus master, medium devsel, latency 32, IRQ 5
-I/O ports at dc00 [size=32]
-Capabilities: [80] Power Management version 2
-
-00:10.3 USB Controller [0c03]: VIA Technologies, Inc. USB 2.0
-[1106:3104] (rev 82) (prog-if 20 [EHCI])
-Subsystem: VIA Technologies, Inc. USB 2.0 [1106:3104]
-Flags: bus master, medium devsel, latency 32, IRQ 11
-Memory at eb001000 (32-bit, non-prefetchable) [size=256]
-Capabilities: [80] Power Management version 2
-
-00:11.0 ISA bridge [0601]: VIA Technologies, Inc. VT8235 ISA Bridge [1106:3177]
-Subsystem: VIA Technologies, Inc. VT8235 ISA Bridge [1106:3177]
-Flags: bus master, stepping, medium devsel, latency 0
-Capabilities: [c0] Power Management version 2
-
-00:11.1 IDE interface [0101]: VIA Technologies, Inc.
-VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE [1106:0571]
-(rev 06) (prog-if 8a [Master SecP PriP])
-Subsystem: VIA Technologies, Inc.
-VT82C586/B/VT82C686/A/B/VT8233/A/C/VT8235 PIPC Bus Master IDE
-[1106:0571]
-Flags: bus master, medium devsel, latency 32
-[virtual] Memory at 000001f0 (32-bit, non-prefetchable) [size=8]
-[virtual] Memory at 000003f0 (type 3, non-prefetchable) [size=1]
-[virtual] Memory at 00000170 (32-bit, non-prefetchable) [size=8]
-[virtual] Memory at 00000370 (type 3, non-prefetchable) [size=1]
-I/O ports at e000 [size=16]
-Capabilities: [c0] Power Management version 2
-
-00:11.5 Multimedia audio controller [0401]: VIA Technologies, Inc.
-VT8233/A/8235/8237 AC97 Audio Controller [1106:3059] (rev 50)
-Subsystem: Jetway Information Co., Ltd. Unknown device [16f3:4765]
-Flags: medium devsel, IRQ 5
-I/O ports at e400 [size=256]
-Capabilities: [c0] Power Management version 2
-
-01:00.0 VGA compatible controller [0300]: VIA Technologies, Inc.
-VT8623 [Apollo CLE266] integrated CastleRock graphics [1106:3122] (rev
-03) (prog-if 00 [VGA controller])
-Subsystem: VIA Technologies, Inc. VT8623 [Apollo CLE266] integrated
-CastleRock graphics [1106:3122]
-Flags: bus master, 66MHz, medium devsel, latency 32, IRQ 11
-Memory at e4000000 (32-bit, prefetchable) [size=64M]
-Memory at e8000000 (32-bit, non-prefetchable) [size=16M]
-[virtual] Expansion ROM at e9000000 [disabled] [size=64K]
-Capabilities: [60] Power Management version 2
-Capabilities: [70] AGP version 2.0
+If nobody cares about it (I see only one secondhand Airstar USB on eBay 
+and it looks different from mine), I'll sell mine and forget about it. 
+Otherwise.. Please post.
 
 _______________________________________________
 linux-dvb mailing list
