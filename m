@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5HHPGsu019909
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 13:25:16 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5HHOrDd021078
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 13:24:59 -0400
-Date: Tue, 17 Jun 2008 19:24:33 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Veda N <veda74@gmail.com>
-Message-ID: <20080617172433.GA227@daniel.bse>
-References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-	<20080617092439.GA631@daniel.bse>
-	<a5eaedfa0806170239ye9951acv1cc9361b1d43abbe@mail.gmail.com>
-	<20080617094510.GA726@daniel.bse>
-	<a5eaedfa0806170322v382f5b98o22f2b94830585f7c@mail.gmail.com>
-	<20080617104614.GA781@daniel.bse>
-	<a5eaedfa0806170815m2911f480lbed9b4fc18622b09@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5GFbfID030432
+	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:37:41 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5GFaODS001098
+	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:36:25 -0400
+Date: Mon, 16 Jun 2008 17:36:18 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Message-ID: <20080616153618.GD21869@pengutronix.de>
+References: <48512E08.6020608@teltonika.lt>
+	<Pine.LNX.4.64.0806121748070.18017@axis700.grange>
+	<20080616145511.GB21869@pengutronix.de>
+	<485681DE.4010701@teltonika.lt>
+	<20080616151929.GC21869@pengutronix.de>
+	<Pine.LNX.4.64.0806161724230.13459@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <a5eaedfa0806170815m2911f480lbed9b4fc18622b09@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2_pix_format doubts
+In-Reply-To: <Pine.LNX.4.64.0806161724230.13459@axis700.grange>
+Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: SoC camera crashes when host is not module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,15 +34,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 17, 2008 at 08:45:21PM +0530, Veda N wrote:
->  1) I am having a pixel format (UYVY)
->  2) RGB565
+On Mon, Jun 16, 2008 at 05:25:11PM +0200, Guennadi Liakhovetski wrote:
+> Please, don't forget, that camera drivers should also be reviewed and
+> acked on the v4l list.
 
-In both cases
-bytesperline=2*width;
-(minimum)
+Sure. It's just to make sure that it does still apply ontop of the imx
+rework. The non-arm stuff has to go through the responsible maintainers
+anyway. So if it's MX1/MXL, it should not be related to i.MX27, so
+the v4l list would be a better choice.
 
-  Daniel
+rsc
+-- 
+ Dipl.-Ing. Robert Schwebel | http://www.pengutronix.de
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
