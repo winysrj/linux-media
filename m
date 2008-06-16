@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.180])
+Received: from fmmailgate01.web.de ([217.72.192.221])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <seb.linuxtv@googlemail.com>) id 1K4FcG-0004ho-Hh
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 15:34:57 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so420747ika.1
-	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 06:34:50 -0700 (PDT)
-Message-ID: <7296686b0806050634k515ee421n8f483b60aa8ce58f@mail.gmail.com>
-Date: Thu, 5 Jun 2008 15:34:50 +0200
-From: "Sebastian B" <seb.linuxtv@googlemail.com>
+	(envelope-from <SiestaGomez@web.de>) id 1K8JKY-0004s5-Se
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:21:27 +0200
+Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 71BFAE441F3F
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 20:20:53 +0200 (CEST)
+Received: from [88.152.136.212] (helo=midian.waldorf.intern)
+	by smtp07.web.de with asmtp (WEB.DE 4.109 #226) id 1K8JK1-000328-00
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:20:53 +0200
+Date: Mon, 16 Jun 2008 20:20:53 +0200
+From: SG <SiestaGomez@web.de>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_1140_22630503.1212672890733"
-Subject: [linux-dvb] Mantis VP-2040 (Terratec Cinergy C PCI) Remote Control
-	Support
+Message-Id: <20080616202053.f7883c6d.SiestaGomez@web.de>
+In-Reply-To: <20080616194256.cc5f9a55.SiestaGomez@web.de>
+References: <20080615192300.90886244.SiestaGomez@web.de>
+	<4855F6B0.8060507@gmail.com> <1213620050.6543.6.camel@pascal>
+	<20080616142616.75F9C3BC99@waldorfmail.homeip.net>
+	<1213626832.6543.23.camel@pascal>
+	<20080616194256.cc5f9a55.SiestaGomez@web.de>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,306 +28,112 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_1140_22630503.1212672890733
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1141_10857331.1212672890734"
+On Mon, 16 Jun 2008 19:42:56 +0200
+SG <SiestaGomez@web.de> wrote:
 
-------=_Part_1141_10857331.1212672890734
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> On Mon, 16 Jun 2008 16:33:52 +0200
+> Sigmund Augdal <sigmund@snap.tv> wrote:
+> 
+> > On Mon, 2008-06-16 at 16:26 +0200, siestagomez@web.de wrote:
+> > > Sigmund Augdal schrieb: 
+> > > 
+> > > > On Mon, 2008-06-16 at 08:14 +0300, Arthur Konovalov wrote:
+> > > >> SG wrote:
+> > > >> > The patch works quite well and nearly all channels seem to work.
+> > > >> > 
+> > > >> > But when tuning to some radio channels I'll get this kernel message:
+> > > >> > 
+> > > >> > saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+> > > >> > 
+> > > >> > Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
+> > > >> > smoothly when using Win32.
+> > > >> > 
+> > > >> > initial transponder 386000000 6900000 0 3
+> > > >> >  >>> tune to: 386:M64:C:6900:
+> > > >> > WARNING: >>> tuning failed!!!
+> > > >> >  >>> tune to: 386:M64:C:6900: (tuning failed)
+> > > >> > WARNING: >>> tuning failed!!!
+> > > >> > ERROR: initial tuning failed
+> > > >> > dumping lists (0 services)
+> > > >> > Done. 
+> > > >> 
+> > > >> Yes, I discovered too that tuning to frequency 386MHz has no lock.
+> > > >> VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0 
+> > > >> 
+> > > >> At same time, 394MHz (and others) works.
+> > > > Hi. 
+> > > > 
+> > > > Both transponders reported to not tune here has different symbolrates
+> > > > from what I used for my testing. Maybe this is relevant in some way.
+> > > > Could you please compare this with the channels that did tune to see if
+> > > > there is a pattern? 
+> > > > 
+> > > > About the i2c message, I get that every now and then here as well, but I
+> > > > have not seen any ill effect from it. I also see that on some other TT
+> > > > cards so I think that might be unrelated to the demod/tuner. 
+> > > > 
+> > > > Regards 
+> > > > 
+> > > > Sigmund Augdal
+> > > 
+> > > The symbolrate is the same on all other working channels. 
+> > > 
+> > > Regarding the i2c message when watching video I'll get this only once but 
+> > > when tuning to a radio channel my log gets flooded and it seems to hangup. 
+> > How does radio or not make a difference? As far as I know the card is
+> > DVB only and should not care whether the tuned transponder contains
+> > radio or video or whatever. Could you send a list of transponders that
+> > work (with tuning parameters) and ones that doesn't?
+> > 
+> 
+> Odd today no problem with radio and kernel log.
+> Anyway here are a few entries from transponder.ini which I use for dvbscan:
+> C 362000000 6900000 NONE QAM64		OK
+> C 370000000 6900000 NONE QAM64		OK
+> C 378000000 6900000 NONE QAM64		OK
+> C 386000000 6900000 NONE QAM64		NOT OK
+> C 394000000 6900000 NONE QAM64		OK
+> C 402000000 6900000 NONE QAM256		NOT OK
+> C 410000000 6900000 NONE QAM64		OK
+> C 426000000 6900000 NONE QAM64		OK
+> 
+> I noticed when using Win32 the signal strenght is very poor on the non working transponders for linux-dvb.
+> Perhaps it's enough for Win32 but not for the linux driver.
+> 
+> Regards
+> Martin
+> 
 
-Hello,
+Hi 
 
-I'm quite new to this mailing list. So maybe somebody posted something
-similar but I haven't found it here.
-
-I have a Terratec Cinergy C PCI. AFAIK this is an clone of Mantis VP-2040.
-
-I'm using the mantis driver from http://jusst.de/hg/mantis.
-
-Unfortunately there's no remote control support for any mantis chip type.
-
-So I wrote a patch for the mantis driver version 0b04be0c088a which enables
-remote control support for Mantis VP-2040.
-
-The patch is basically an extension of the remote patch for the VP-2033 I
-found on this mailing list.
-
-It's not perfect yet, but it's working without any problems on my system.
+I just added a line to get the bundled IR-remote to work using lirc.
 
 
+--- a/linux/drivers/media/dvb/ttpci/budget-ci.c 2008-06-16 19:58:04.000000000 +0200
++++ b/linux/drivers/media/dvb/ttpci/budget-ci.c 2008-06-08 17:19:39.000000000 +0200
+@@ -237,6 +237,7 @@
+        break;
+    case 0x1010:
+    case 0x1017:
++   case 0x101a:
+        /* for the Technotrend 1500 bundled remote */
+        ir_input_init(input_dev, &budget_ci->ir.state,
+                  IR_TYPE_RC5, ir_codes_tt_1500);
 
-Here's how it works:
 
-1. Download version 0b04be0c088a from http://jusst.de/hg/mantis
-
-2. tar jfx mantis-0b04be0c088a.tar.bz2
-
-3. cd mantis-0b04be0c088a
-
-4. patch -p1 < mantis-patch-0b04be0c088a
-
-5. compile and install it like usually
+Regards
+Martin
 
 
 
-If somebody has any improvements or suggestions, please let me know.
-
-Maybe Manu can add remote control support in future releases?
-
-Best Regards,
-
-Sebastian
-
-------=_Part_1141_10857331.1212672890734
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br>Hello,<br><br>I&#39;m quite new to this mailing list. So maybe somebody posted something similar but I haven&#39;t found it here.<br><br>I have a Terratec Cinergy C PCI. AFAIK this is an clone of Mantis VP-2040.<br><br>
-I&#39;m using the mantis driver from <a href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a>.<br><br>Unfortunately there&#39;s no remote control support for any mantis chip type.<br><br>So I wrote a patch for the mantis driver version 0b04be0c088a which enables remote control support for Mantis VP-2040.<br>
-<br>The patch is basically an extension of the remote patch for the VP-2033 I found on this mailing list.<br><br>It&#39;s not perfect yet, but it&#39;s working without any problems on my system.<br><br><br><br>Here&#39;s how it works:<br>
-<br>1. Download version 0b04be0c088a from <a href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a><br><br>2. tar jfx mantis-0b04be0c088a.tar.bz2<br><br>3. cd mantis-0b04be0c088a<br><br>4. patch -p1 &lt; mantis-patch-0b04be0c088a<br>
-<br>5. compile and install it like usually<br><br>&nbsp;<br><br>If somebody has any improvements or suggestions, please let me know.<br><br>Maybe Manu can add remote control support in future releases?<br><br>Best Regards,<br>
-<br>Sebastian<br>
-
-------=_Part_1141_10857331.1212672890734--
-
-------=_Part_1140_22630503.1212672890733
-Content-Type: application/octet-stream; name=mantis-patch-0b04be0c088a
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fh3e0d0i0
-Content-Disposition: attachment; filename=mantis-patch-0b04be0c088a
-
-ZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21h
-bnRpcy9NYWtlZmlsZSBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2
-Yi9tYW50aXMvTWFrZWZpbGUKLS0tIG1hbnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvbWFudGlzL01ha2VmaWxlCTIwMDgtMDUtMjggMTE6MjU6MjMuMDAwMDAwMDAwICsw
-MjAwCisrKyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50
-aXMvTWFrZWZpbGUJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTEyLDcg
-KzEyLDggQEAKIAkJbWFudGlzX3ZwMTA0MS5vCVwKIAkJbWFudGlzX3ZwMjAzMy5vCVwKIAkJbWFu
-dGlzX3ZwMjA0MC5vCVwKLQkJbWFudGlzX3ZwMzAzMC5vCisJCW1hbnRpc192cDMwMzAubyBcCisg
-ICAgICAgICAgICAgICAgbWFudGlzX3JjLm8KIAogb2JqLSQoQ09ORklHX0RWQl9NQU5USVMpICs9
-IG1hbnRpcy5vCiAKZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvZHZiL21hbnRpcy9tYW50aXNfY29tbW9uLmggbWFudGlzLTIwMDgtMDUtMjgtcmMvbGlu
-dXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19jb21tb24uaAotLS0gbWFudGlzLTBi
-MDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvbW1vbi5o
-CTIwMDgtMDUtMjggMTE6MjU6MjMuMDAwMDAwMDAwICswMjAwCisrKyBtYW50aXMtMjAwOC0wNS0y
-OC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvbW1vbi5oCTIwMDgt
-MDYtMDQgMjM6MjE6MTQuMDAwMDAwMDAwICswMjAwCkBAIC0yNiw2ICsyNiw4IEBACiAjaW5jbHVk
-ZSA8bGludXgva2VybmVsLmg+CiAjaW5jbHVkZSA8bGludXgvcGNpLmg+CiAjaW5jbHVkZSA8bGlu
-dXgvbXV0ZXguaD4KKyNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2luY2x1ZGUgPG1lZGlhL2ly
-LWNvbW1vbi5oPgogCiAjaW5jbHVkZSAiZHZiZGV2LmgiCiAjaW5jbHVkZSAiZHZiX2RlbXV4Lmgi
-CkBAIC03NCw2ICs3NiwyMCBAQAogCWNoYXIJCQkqbW9kZWxfbmFtZTsKIAljaGFyCQkJKmRldl90
-eXBlOwogCXUzMgkJCXRzX3NpemU7CisgICAgICAgIElSX0tFWVRBQl9UWVBFCQkqaXJfY29kZXM7
-Cit9OworCitzdHJ1Y3QgbWFudGlzX2lyIHsKKwlzdHJ1Y3QgaW5wdXRfZGV2CSpyY19kZXY7CisJ
-Y2hhcgkJCXJjX25hbWVbODBdOworCWNoYXIJCQlyY19waHlzWzgwXTsKKyNpZiBMSU5VWF9WRVJT
-SU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLDYsMjApCisJc3RydWN0IHdvcmtfc3RydWN0CXJj
-X3F1ZXJ5X3dvcms7CisjZWxzZQorCXN0cnVjdCBkZWxheWVkX3dvcmsJcmNfcXVlcnlfd29yazsK
-KyNlbmRpZgorCXUzMgkJCWlyX2xhc3RfY29kZTsKKwlzdHJ1Y3QgaXJfaW5wdXRfc3RhdGUJaXI7
-CiB9OwogCiBzdHJ1Y3QgbWFudGlzX3BjaSB7CkBAIC0xNDIsNiArMTU4LDkgQEAKIAl1MzIJCQln
-cGlmX3N0YXR1czsKIAogCXN0cnVjdCBtYW50aXNfY2EJKm1hbnRpc19jYTsKKworCS8qIAlSQwkJ
-CSovCisJc3RydWN0IG1hbnRpc19pcglpcjsKIH07CiAKICNkZWZpbmUgTUFOVElTX0hJRl9TVEFU
-VVMJKG1hbnRpcy0+Z3Bpb19zdGF0dXMgPDwgMTIpCmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBj
-MDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuYyBtYW50aXMt
-MjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUu
-YwotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMv
-bWFudGlzX2NvcmUuYwkyMDA4LTA1LTI4IDExOjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFu
-dGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19j
-b3JlLmMJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTE2NSw2ICsxNjUs
-MTAgQEAKIAkJZHByaW50ayh2ZXJib3NlLCBNQU5USVNfREVCVUcsIDEsICJNYW50aXMgRFZCIGlu
-aXQgZmFpbGVkIik7CiAJCXJldHVybiBlcnI7CiAJfQorCWlmICgoZXJyID0gbWFudGlzX3JjX2lu
-aXQobWFudGlzKSkgPCAwKSB7CisJCWRwcmludGsodmVyYm9zZSwgTUFOVElTX0RFQlVHLCAxLCAi
-bWFudGlzIFJDIGluaXQgZmFpbGVkIik7CisJCXJldHVybiBlcnI7CisJfQogCiAJcmV0dXJuIDA7
-CiB9CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2
-Yi9tYW50aXMvbWFudGlzX2NvcmUuaCBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJz
-L21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuaAotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9s
-aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX2NvcmUuaAkyMDA4LTA1LTI4IDEx
-OjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJp
-dmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19jb3JlLmgJMjAwOC0wNi0wNCAyMzoyMToxNC4w
-MDAwMDAwMDAgKzAyMDAKQEAgLTUzLDUgKzUzLDcgQEAKIGV4dGVybiBpbnQgbWFudGlzX2kyY19l
-eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOwogZXh0ZXJuIGludCBtYW50aXNfY29yZV9p
-bml0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOwogZXh0ZXJuIGludCBtYW50aXNfY29yZV9l
-eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpOworZXh0ZXJuIGludCBtYW50aXNfcmNfaW5p
-dChzdHJ1Y3QgbWFudGlzX3BjaSAqbWFudGlzKTsKK2V4dGVybiBpbnQgbWFudGlzX3JjX2V4aXQo
-c3RydWN0IG1hbnRpc19wY2kgKm1hbnRpcyk7CiAKICNlbmRpZiAvL19fTUFOVElTX0NPUkVfSApk
-aWZmIC1OYXVyIG1hbnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFu
-dGlzL21hbnRpc19wY2kuYyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlh
-L2R2Yi9tYW50aXMvbWFudGlzX3BjaS5jCi0tLSBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2Ry
-aXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcGNpLmMJMjAwOC0wNS0yOCAxMToyNToyMy4w
-MDAwMDAwMDAgKzAyMDAKKysrIG1hbnRpcy0yMDA4LTA1LTI4LXJjL2xpbnV4L2RyaXZlcnMvbWVk
-aWEvZHZiL21hbnRpcy9tYW50aXNfcGNpLmMJMjAwOC0wNi0wNCAyMzoyMToxNC4wMDAwMDAwMDAg
-KzAyMDAKQEAgLTk0LDYgKzk0LDIyIEBACiAJfQogCWlmIChzdGF0ICYgTUFOVElTX0lOVF9JUlEx
-KSB7CiAJCWRwcmludGsodmVyYm9zZSwgTUFOVElTX0RFQlVHLCAwLCAiKiBJTlQgSVJRLTEgKiIp
-OworCisJCS8vYSBuYXN0eSB0cmljayB0byByZWFkIHRoZSBJUiBjb2RlCisgICAgICAgICAgICAg
-ICAgLy9mb3Igc29tZSByZWFzb24gdGhlIG1lbW9yeSBnZXRzIGNvcnJ1cHRlZAorICAgICAgICAg
-ICAgICAgIC8vdGhpcyBpcyBhIHdvcmsgYXJvdW5kIGZvciB0aGlzIHByb2JsZW0JCQorICAgICAg
-ICAgICAgICAgIHUzMiBpID0gMDsKKwkJZm9yKGkgPSAwOyBpIDwgMTAyNDsgKytpKQorCQl7CisJ
-CQl1MzIgdmFsID0gbW1yZWFkKDB4ZTgpOworICAgICAgICAgICAgICAgICAgICAgICAgLy9vbmx5
-IHVzZSB2YWx1ZSBpZiBtZW1vcnkgaXNuJ3QgY29ycnVwdGVkCisJCQlpZiAoKHZhbCAhPSAwKSAm
-JiAodmFsICE9IDB4ODApKQorICAgICAgICAgICAgICAgICAgICAgICAgeworCQkJCW1hbnRpcy0+
-aXIuaXJfbGFzdF9jb2RlID0gdmFsOworICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBi
-cmVhazsgICAgICAgICAgICAgICAgICAgICAgICAKKyAgICAgICAgICAgICAgICAgICAgICAgIH0K
-KwkJCQkKKwkJfSAgICAgICAgICAgICAgIAogCX0KIAlpZiAoc3RhdCAmIE1BTlRJU19JTlRfT0NF
-UlIpIHsKIAkJZHByaW50ayh2ZXJib3NlLCBNQU5USVNfREVCVUcsIDAsICIqIElOVCBPQ0VSUiAq
-Iik7CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2
-Yi9tYW50aXMvbWFudGlzX3JjLmMgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvbWFudGlzL21hbnRpc19yYy5jCi0tLSBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4
-L2RyaXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcmMuYwkxOTcwLTAxLTAxIDAxOjAwOjAw
-LjAwMDAwMDAwMCArMDEwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvbWFudGlzL21hbnRpc19yYy5jCTIwMDgtMDYtMDQgMjM6MjE6MTQuMDAwMDAwMDAw
-ICswMjAwCkBAIC0wLDAgKzEsMjE4IEBACisjaW5jbHVkZSA8bGludXgvYml0b3BzLmg+CisjaW5j
-bHVkZSAibWFudGlzX2NvbW1vbi5oIgorI2luY2x1ZGUgIm1hbnRpc19jb3JlLmgiCisKKyNpbmNs
-dWRlICJkbXhkZXYuaCIKKyNpbmNsdWRlICJkdmJkZXYuaCIKKyNpbmNsdWRlICJkdmJfZGVtdXgu
-aCIKKyNpbmNsdWRlICJkdmJfZnJvbnRlbmQuaCIKKyNpbmNsdWRlICJtYW50aXNfdnAxMDMzLmgi
-CisjaW5jbHVkZSAibWFudGlzX3ZwMTAzNC5oIgorI2luY2x1ZGUgIm1hbnRpc192cDIwMzMuaCIK
-KyNpbmNsdWRlICJtYW50aXNfdnAzMDMwLmgiCisKKyNkZWZpbmUgUE9MTF9GUkVRIChIWi8xMCkK
-KworLyogVHdpbmhhbiBDQUItQ0kgMjAzMyAqLworSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfbWFu
-dGlzX3ZwMjAzM1tJUl9LRVlUQUJfU0laRV0gPSB7CisJWyAweDI5IF0gPSBLRVlfUE9XRVIsCisJ
-WyAweDI4IF0gPSBLRVlfRkFWT1JJVEVTLAorCVsgMHgzMCBdID0gS0VZX1RFWFQsCisJWyAweDE3
-IF0gPSBLRVlfSU5GTywJCS8vIFByZXZpZXcKKwlbIDB4MjMgXSA9IEtFWV9FUEcsCisJWyAweDNi
-IF0gPSBLRVlfRjIyLAkJLy8gUmVjb3JkIExpc3QKKworCVsgMHgzYyBdID0gS0VZXzEsCisJWyAw
-eDNlIF0gPSBLRVlfMiwKKwlbIDB4MzkgXSA9IEtFWV8zLAorCVsgMHgzNiBdID0gS0VZXzQsCisJ
-WyAweDIyIF0gPSBLRVlfNSwKKwlbIDB4MjAgXSA9IEtFWV82LAorCVsgMHgzMiBdID0gS0VZXzcs
-CisJWyAweDI2IF0gPSBLRVlfOCwKKwlbIDB4MjQgXSA9IEtFWV85LAorCVsgMHgyYSBdID0gS0VZ
-XzAsCisKKwlbIDB4MzMgXSA9IEtFWV9DQU5DRUwsCisJWyAweDJjIF0gPSBLRVlfQkFDSywKKwlb
-IDB4MTUgXSA9IEtFWV9DTEVBUiwKKwlbIDB4M2YgXSA9IEtFWV9UQUIsCisJWyAweDEwIF0gPSBL
-RVlfRU5URVIsCisJWyAweDE0IF0gPSBLRVlfVVAsCisJWyAweDBkIF0gPSBLRVlfUklHSFQsCisJ
-WyAweDBlIF0gPSBLRVlfRE9XTiwKKwlbIDB4MTEgXSA9IEtFWV9MRUZULAorCisJWyAweDIxIF0g
-PSBLRVlfVk9MVU1FVVAsCisJWyAweDM1IF0gPSBLRVlfVk9MVU1FRE9XTiwKKwlbIDB4M2QgXSA9
-IEtFWV9DSEFOTkVMRE9XTiwKKwlbIDB4M2EgXSA9IEtFWV9DSEFOTkVMVVAsCisJWyAweDJlIF0g
-PSBLRVlfUkVDT1JELAorCVsgMHgyYiBdID0gS0VZX1BMQVksCisJWyAweDEzIF0gPSBLRVlfUEFV
-U0UsCisJWyAweDI1IF0gPSBLRVlfU1RPUCwKKworCVsgMHgxZiBdID0gS0VZX1JFV0lORCwKKwlb
-IDB4MmQgXSA9IEtFWV9GQVNURk9SV0FSRCwKKwlbIDB4MWUgXSA9IEtFWV9QUkVWSU9VUywJLy8g
-UmVwbGF5IHw8CisJWyAweDFkIF0gPSBLRVlfTkVYVCwJCS8vIFNraXAgICA+fAorCisJWyAweDBi
-IF0gPSBLRVlfQ0FNRVJBLAkJLy8gQ2FwdHVyZQorCVsgMHgwZiBdID0gS0VZX0xBTkdVQUdFLAkv
-LyBTQVAKKwlbIDB4MTggXSA9IEtFWV9NT0RFLAkJLy8gUElQCisJWyAweDEyIF0gPSBLRVlfWk9P
-TSwJCS8vIEZ1bGwgc2NyZWVuLAorCVsgMHgxYyBdID0gS0VZX1NVQlRJVExFLAorCVsgMHgyZiBd
-ID0gS0VZX01VVEUsCisJWyAweDE2IF0gPSBLRVlfRjIwLAkJLy8gTC9SLAorCVsgMHgzOCBdID0g
-S0VZX0YyMSwJCS8vIEhpYmVybmF0ZSwKKworCVsgMHgzNyBdID0gS0VZX1NXSVRDSFZJREVPTU9E
-RSwJLy8gQS9WCisJWyAweDMxIF0gPSBLRVlfQUdBSU4sCQkvLyBSZWNhbGwsCisJWyAweDFhIF0g
-PSBLRVlfS1BQTFVTLAkJLy8gWm9vbSssCisJWyAweDE5IF0gPSBLRVlfS1BNSU5VUywJCS8vIFpv
-b20tLAorCVsgMHgyNyBdID0gS0VZX1JFRCwKKwlbIDB4MEMgXSA9IEtFWV9HUkVFTiwKKwlbIDB4
-MDEgXSA9IEtFWV9ZRUxMT1csCisJWyAweDAwIF0gPSBLRVlfQkxVRSwKK307CisKKy8qIFR3aW5o
-YW4gQ0FCLUNJIDIwNDAgKi8KK0lSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX21hbnRpc192cDIwNDBb
-SVJfS0VZVEFCX1NJWkVdID0geworICAgICAgICBbIDB4MWUgXSA9IEtFWV9IT01FLCAgICAgICAg
-CQorCVsgMHgzZSBdID0gS0VZX1BPV0VSLAkgICAgICAgIAorCVsgMHgxZCBdID0gS0VZX01FTlUs
-ICAgICAgICAJLy8gYWN0dWFsbHkgRFZEIE1FTlUKKwlbIDB4MWMgXSA9IEtFWV9TVUJUSVRMRSwg
-ICAgICAgCS8vIGFjdHVhbGx5IERWRCBTVUJUSVRMRQkKKyAgICAgICAgWyAweDFiIF0gPSBLRVlf
-VEVYVCwJICAgICAgICAvLyBURUxFVEVYVAorCVsgMHgxYSBdID0gS0VZX0RFTEVURSwKKyAgICAg
-ICAgCisJWyAweDM0IF0gPSBLRVlfU1dJVENIVklERU9NT0RFLCAvLyBhY3R1YWxseSBBVgorCVsg
-MHgzMiBdID0gS0VZX0FCLCAgICAgICAgCQorICAgICAgICAKKwlbIDB4M2QgXSA9IEtFWV8xLAkK
-KwlbIDB4M2MgXSA9IEtFWV8yLAkKKwlbIDB4M2IgXSA9IEtFWV8zLAkKKwlbIDB4M2EgXSA9IEtF
-WV80LAorCVsgMHgzOSBdID0gS0VZXzUsCQorCVsgMHgzOCBdID0gS0VZXzYsCisJWyAweDM3IF0g
-PSBLRVlfNywJCisJWyAweDM2IF0gPSBLRVlfOCwKKwlbIDB4MzUgXSA9IEtFWV85LAkKKwlbIDB4
-MzMgXSA9IEtFWV8wLAorCisJWyAweDE5IF0gPSBLRVlfVFYsCQorCVsgMHgxOCBdID0gS0VZX0RW
-RCwKKwlbIDB4MTYgXSA9IEtFWV9WSURFTywJCisJWyAweDE1IF0gPSBLRVlfVFVORVIsICAgICAg
-ICAgICAvL2FjdHVhbGx5IE1VU0lDCQorCVsgMHgxNCBdID0gS0VZX1NDUkVFTiwgICAgICAgICAg
-Ly9hY3R1YWxseSBQSUMKKworCVsgMHgyZCBdID0gS0VZX09LLAkKKwlbIDB4MmYgXSA9IEtFWV9V
-UCwKKwlbIDB4MmIgXSA9IEtFWV9ET1dOLAkKKwlbIDB4MmUgXSA9IEtFWV9MRUZULAorCVsgMHgy
-YyBdID0gS0VZX1JJR0hULAkKKworICAgICAgICBbIDB4MzAgXSA9IEtFWV9FUEcsCQorCVsgMHgy
-OSBdID0gS0VZX0lORk8sCisJWyAweDEyIF0gPSBLRVlfQkFDSywKKyAgICAgICAgCQorCVsgMHgy
-MyBdID0gS0VZX1ZPTFVNRVVQLAorCVsgMHgyMSBdID0gS0VZX1ZPTFVNRURPV04sCisKKwlbIDB4
-MjQgXSA9IEtFWV9DSEFOTkVMVVAsCisJWyAweDIwIF0gPSBLRVlfQ0hBTk5FTERPV04sCisKKwlb
-IDB4MTMgXSA9IEtFWV9QTEFZLAorCVsgMHgyMiBdID0gS0VZX01VVEUsCQorCisJWyAweDI4IF0g
-PSBLRVlfUkVELAorCVsgMHgyNyBdID0gS0VZX0dSRUVOLAkKKwlbIDB4MjYgXSA9IEtFWV9ZRUxM
-T1csCisJWyAweDI1IF0gPSBLRVlfQkxVRSwJCisKKyAgICAgICAgWyAweDA3IF0gPSBLRVlfUkVD
-T1JELAkKKwlbIDB4MTcgXSA9IEtFWV9TVE9QLAorCVsgMHgxRiBdID0gS0VZX1BBVVNFLAorCisg
-ICAgICAgIFsgMHgwQiBdID0gS0VZX0xBU1QsCisJWyAweDExIF0gPSBLRVlfUkVXSU5ELAkKKwlb
-IDB4MTAgXSA9IEtFWV9GQVNURk9SV0FSRCwKKwlbIDB4MDMgXSA9IEtFWV9ORVhULAorCQorfTsK
-Kwordm9pZCBtYW50aXNfcXVlcnlfcmMoc3RydWN0IHdvcmtfc3RydWN0ICp3b3JrKQoreworICAg
-ICAgICBzdHJ1Y3QgbWFudGlzX3BjaSAqbWFudGlzID0KKyAgICAgICAgICAgICAgICBjb250YWlu
-ZXJfb2Yod29yaywgc3RydWN0IG1hbnRpc19wY2ksIGlyLnJjX3F1ZXJ5X3dvcmsud29yayk7Cisg
-ICAgICAgIHN0cnVjdCBpcl9pbnB1dF9zdGF0ZSAqaXIgPSAmbWFudGlzLT5pci5pcjsKKworICAg
-ICAgICB1MzIgbGFzdGtleSA9IG1hbnRpcy0+aXIuaXJfbGFzdF9jb2RlOworCisgICAgICAgIGlm
-IChsYXN0a2V5ICE9IC0xKSB7CisgICAgICAgICAgICAgICAgaXJfaW5wdXRfa2V5ZG93bihtYW50
-aXMtPmlyLnJjX2RldiwgaXIsIGxhc3RrZXksIDApOworICAgICAgICAgICAgICAgIG1hbnRpcy0+
-aXIuaXJfbGFzdF9jb2RlID0gLTE7CisgICAgICAgIH0gZWxzZSB7CisgICAgICAgICAgICAgICAg
-aXJfaW5wdXRfbm9rZXkobWFudGlzLT5pci5yY19kZXYsIGlyKTsKKyAgICAgICAgfQorICAgICAg
-ICBzY2hlZHVsZV9kZWxheWVkX3dvcmsoJm1hbnRpcy0+aXIucmNfcXVlcnlfd29yaywgUE9MTF9G
-UkVRKTsKK30KKworaW50IG1hbnRpc19yY19pbml0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMp
-Cit7CisgICAgICAgIHN0cnVjdCBpbnB1dF9kZXYgKnJjX2RldjsKKyAgICAgICAgc3RydWN0IG1h
-bnRpc19pciAqbWlyID0gJm1hbnRpcy0+aXI7CisgICAgICAgIHN0cnVjdCBpcl9pbnB1dF9zdGF0
-ZSAqaXIgPSAmbWlyLT5pcjsKKyAgICAgICAgaW50IGVycjsKKworICAgICAgICBpZiAoIW1hbnRp
-cy0+aHdjb25maWctPmlyX2NvZGVzKSB7CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3Nl
-LCBNQU5USVNfREVCVUcsIDEsICJObyBSQyBjb2RlcyBhdmFpbGFibGUiKTsKKyAgICAgICAgICAg
-ICAgICByZXR1cm4gMDsKKyAgICAgICAgfQorCisgICAgICAgIG1td3JpdGUobW1yZWFkKE1BTlRJ
-U19JTlRfTUFTSykgfCBNQU5USVNfSU5UX0lSUTEsIE1BTlRJU19JTlRfTUFTSyk7CisKKyAgICAg
-ICAgcmNfZGV2ID0gaW5wdXRfYWxsb2NhdGVfZGV2aWNlKCk7CisgICAgICAgIGlmICghcmNfZGV2
-KSB7CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3NlLCBNQU5USVNfRVJST1IsIDEsICJk
-dmJfcmNfaW5pdCBmYWlsZWQiKTsKKyAgICAgICAgICAgICAgICByZXR1cm4gLUVOT0VOVDsKKyAg
-ICAgICAgfQorCisgICAgICAgIG1pci0+cmNfZGV2ID0gcmNfZGV2OworCisgICAgICAgIHNucHJp
-bnRmKG1pci0+cmNfbmFtZSwgc2l6ZW9mKG1pci0+cmNfbmFtZSksIAorICAgICAgICAgICAgICAg
-ICAiTWFudGlzICVzIElSIFJlY2VpdmVyIiwgbWFudGlzLT5od2NvbmZpZy0+bW9kZWxfbmFtZSk7
-CisgICAgICAgIHNucHJpbnRmKG1pci0+cmNfcGh5cywgc2l6ZW9mKG1pci0+cmNfcGh5cyksIAor
-ICAgICAgICAgICAgICAgICAicGNpLSVzL2lyMCIsIHBjaV9uYW1lKG1hbnRpcy0+cGRldikpOwor
-CisgICAgICAgIHJjX2Rldi0+bmFtZSA9IG1pci0+cmNfbmFtZTsKKyAgICAgICAgcmNfZGV2LT5w
-aHlzID0gbWlyLT5yY19waHlzOworCisgICAgICAgIGlyX2lucHV0X2luaXQocmNfZGV2LCBpciwg
-SVJfVFlQRV9PVEhFUiwgbWFudGlzLT5od2NvbmZpZy0+aXJfY29kZXMpOworCisgICAgICAgIHJj
-X2Rldi0+aWQuYnVzdHlwZSA9IEJVU19QQ0k7CisgICAgICAgIHJjX2Rldi0+aWQudmVuZG9yICA9
-IG1hbnRpcy0+dmVuZG9yX2lkOworICAgICAgICByY19kZXYtPmlkLnByb2R1Y3QgPSBtYW50aXMt
-PmRldmljZV9pZDsKKyAgICAgICAgcmNfZGV2LT5pZC52ZXJzaW9uID0gMTsKKyAgICAgICAgcmNf
-ZGV2LT5jZGV2LmRldiA9ICZtYW50aXMtPnBkZXYtPmRldjsKKworICAgICAgICBJTklUX0RFTEFZ
-RURfV09SSygmbWlyLT5yY19xdWVyeV93b3JrLCBtYW50aXNfcXVlcnlfcmMpOworCisgICAgICAg
-IGVyciA9IGlucHV0X3JlZ2lzdGVyX2RldmljZShyY19kZXYpOworICAgICAgICBpZiAoZXJyKSB7
-CisgICAgICAgICAgICAgICAgZHByaW50ayh2ZXJib3NlLCBNQU5USVNfRVJST1IsIDEsICJyYyBy
-ZWdpc3RlcmluZyBmYWlsZWQiKTsKKyAgICAgICAgICAgICAgICByZXR1cm4gLUVOT0VOVDsKKyAg
-ICAgICAgfQorCisgICAgICAgIHNjaGVkdWxlX2RlbGF5ZWRfd29yaygmbWlyLT5yY19xdWVyeV93
-b3JrLCBQT0xMX0ZSRVEpOworICAgICAgICByZXR1cm4gMDsKK30KKworaW50IG1hbnRpc19yY19l
-eGl0KHN0cnVjdCBtYW50aXNfcGNpICptYW50aXMpCit7CisgICAgICAgIG1td3JpdGUobW1yZWFk
-KE1BTlRJU19JTlRfTUFTSykgJiAofk1BTlRJU19JTlRfSVJRMSksIE1BTlRJU19JTlRfTUFTSyk7
-CisKKyAgICAgICAgY2FuY2VsX2RlbGF5ZWRfd29yaygmbWFudGlzLT5pci5yY19xdWVyeV93b3Jr
-KTsKKyAgICAgICAgaW5wdXRfdW5yZWdpc3Rlcl9kZXZpY2UobWFudGlzLT5pci5yY19kZXYpOwor
-ICAgICAgICBkcHJpbnRrKHZlcmJvc2UsIE1BTlRJU19ERUJVRywgMSwgIlJDIHVucmVnaXN0ZXJl
-ZCIpOworICAgICAgICByZXR1cm4gMDsKK30KZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhh
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21hbnRpcy9tYW50aXNfcmMuaCBtYW50aXMtMjAwOC0w
-NS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3JjLmgKLS0tIG1h
-bnRpcy0wYjA0YmUwYzA4OGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc19y
-Yy5oCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCisrKyBtYW50aXMtMjAwOC0w
-NS0yOC1yYy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3JjLmgJMjAwOC0w
-Ni0wNCAyMzoyMToxNC4wMDAwMDAwMDAgKzAyMDAKQEAgLTAsMCArMSwyIEBACitleHRlcm4gSVJf
-S0VZVEFCX1RZUEUgaXJfY29kZXNfbWFudGlzX3ZwMjAzM1tJUl9LRVlUQUJfU0laRV07CitleHRl
-cm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfbWFudGlzX3ZwMjA0MFtJUl9LRVlUQUJfU0laRV07
-CmRpZmYgLU5hdXIgbWFudGlzLTBiMDRiZTBjMDg4YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9t
-YW50aXMvbWFudGlzX3ZwMjAzMy5jIG1hbnRpcy0yMDA4LTA1LTI4LXJjL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvZHZiL21hbnRpcy9tYW50aXNfdnAyMDMzLmMKLS0tIG1hbnRpcy0wYjA0YmUwYzA4OGEv
-bGludXgvZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwMzMuYwkyMDA4LTA1LTI4
-IDExOjI1OjIzLjAwMDAwMDAwMCArMDIwMAorKysgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgv
-ZHJpdmVycy9tZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwMzMuYwkyMDA4LTA2LTA0IDIzOjIx
-OjE0LjAwMDAwMDAwMCArMDIwMApAQCAtMjAsNiArMjAsNyBAQAogCiAjaW5jbHVkZSAibWFudGlz
-X2NvbW1vbi5oIgogI2luY2x1ZGUgIm1hbnRpc192cDIwMzMuaCIKKyNpbmNsdWRlICJtYW50aXNf
-cmMuaCIKIAogI2RlZmluZSBNQU5USVNfTU9ERUxfTkFNRQkiVlAtMjAzMyIKICNkZWZpbmUgTUFO
-VElTX0RFVl9UWVBFCQkiRFZCLUMiCkBAIC0yOCw2ICsyOSw3IEBACiAJLm1vZGVsX25hbWUJPSBN
-QU5USVNfTU9ERUxfTkFNRSwKIAkuZGV2X3R5cGUJPSBNQU5USVNfREVWX1RZUEUsCiAJLnRzX3Np
-emUJPSBNQU5USVNfVFNfMjA0LAorCS5pcl9jb2Rlcwk9IGlyX2NvZGVzX21hbnRpc192cDIwMzMs
-CiB9OwogCiBzdHJ1Y3QgdGRhMTAwMnhfY29uZmlnIHBoaWxpcHNfY3UxMjE2X2NvbmZpZyA9IHsK
-ZGlmZiAtTmF1ciBtYW50aXMtMGIwNGJlMGMwODhhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL21h
-bnRpcy9tYW50aXNfdnAyMDQwLmMgbWFudGlzLTIwMDgtMDUtMjgtcmMvbGludXgvZHJpdmVycy9t
-ZWRpYS9kdmIvbWFudGlzL21hbnRpc192cDIwNDAuYwotLS0gbWFudGlzLTBiMDRiZTBjMDg4YS9s
-aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3ZwMjA0MC5jCTIwMDgtMDUtMjgg
-MTE6MjU6MjMuMDAwMDAwMDAwICswMjAwCisrKyBtYW50aXMtMjAwOC0wNS0yOC1yYy9saW51eC9k
-cml2ZXJzL21lZGlhL2R2Yi9tYW50aXMvbWFudGlzX3ZwMjA0MC5jCTIwMDgtMDYtMDQgMjM6MjE6
-MTQuMDAwMDAwMDAwICswMjAwCkBAIC0yMCw2ICsyMCw3IEBACiAKICNpbmNsdWRlICJtYW50aXNf
-Y29tbW9uLmgiCiAjaW5jbHVkZSAibWFudGlzX3ZwMjA0MC5oIgorI2luY2x1ZGUgIm1hbnRpc19y
-Yy5oIgogCiAjZGVmaW5lIE1BTlRJU19NT0RFTF9OQU1FCSJWUC0yMDQwIgogI2RlZmluZSBNQU5U
-SVNfREVWX1RZUEUJCSJEVkItQyIKQEAgLTI4LDYgKzI5LDcgQEAKIAkubW9kZWxfbmFtZQk9IE1B
-TlRJU19NT0RFTF9OQU1FLAogCS5kZXZfdHlwZQk9IE1BTlRJU19ERVZfVFlQRSwKIAkudHNfc2l6
-ZQk9IE1BTlRJU19UU18yMDQsCisJLmlyX2NvZGVzCT0gaXJfY29kZXNfbWFudGlzX3ZwMjA0MCwK
-IH07CiAKIHN0cnVjdCB0ZGExMDAyeF9jb25maWcgdGRhMTAwMjNfY3UxMjE2X2NvbmZpZyA9IHsK
-
-------=_Part_1140_22630503.1212672890733
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_1140_22630503.1212672890733--
