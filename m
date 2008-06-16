@@ -1,14 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1K4zUA-0005Zk-Tu
-	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 16:33:39 +0200
-From: Dominik Kuhlen <dkuhlen@gmx.net>
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <acher@acher.org>) id 1K8L2k-0004rd-Bh
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 22:11:11 +0200
+Received: from braindead1.acher.org (91-65-154-251-dynip.superkabel.de
+	[91.65.154.251])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.in.tum.de (Postfix) with ESMTP id DFA96BFD8
+	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 22:11:01 +0200 (CEST)
+Date: Mon, 16 Jun 2008 22:11:01 +0200
+From: Georg Acher <acher@in.tum.de>
 To: linux-dvb@linuxtv.org
-Date: Sat, 7 Jun 2008 16:33:04 +0200
-MIME-Version: 1.0
-Message-Id: <200806071633.04876.dkuhlen@gmx.net>
-Subject: [linux-dvb] Pinnacle PCTV Dual Sat Pro PCI (4000i) update
+Message-ID: <20080616201101.GA3063@braindead1.acher>
+References: <200709032205293433925@sina.com>
+	<200806162217.15035.liplianin@me.by>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <200806162217.15035.liplianin@me.by>
+Subject: Re: [linux-dvb] Driver of STv0288
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,60 +26,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0699170142=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0699170142==
-Content-Type: multipart/signed;
-  boundary="nextPart10556318.paC7Yva4KS";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+On Mon, Jun 16, 2008 at 10:17:14PM +0300, Igor M. Liplianin wrote:
 
---nextPart10556318.paC7Yva4KS
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> Is stv0288 somehow compatible with stv0299?
 
-Hi,
+Not really, they have permuted the registers and a lotof control bits. But
+the heritage is clear and it should be a replacement for the stv0299. The
+stv0288 can also do a blindscan, but needs a lot of driver support for that
+algorithm. 
 
-I have both tuners running on this card. (qemu with pciproxy works well :)
-Next step is DMA setup/transfer. I cannot use qemu for this since the=20
-IRQs get somehow shuffled when attaching to qemu :(
+> Any one who have useful information?
 
-Has anybody ideas how to reverse engineer this?
-Does it work using real win with rr0d or similar?
+The Reel Multimedia SVN has a GPL'ed DVB-API driver for the stv0288. I don't
+know what tweaks are needed for PCI-based cards (if they exist...).
 
-Thanks,
- Dominik
-
---nextPart10556318.paC7Yva4KS
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAkhKnCAACgkQ6OXrfqftMKKS5ACcDTFOn9ZsPk91S3SlJ365Wir1
-OHsAmwXGRP1MKUih8rOG0Ytwt6P0GY05
-=SFJB
------END PGP SIGNATURE-----
-
---nextPart10556318.paC7Yva4KS--
-
-
---===============0699170142==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+         Georg Acher, acher@in.tum.de         
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias          
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0699170142==--
