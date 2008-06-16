@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+a855f27a58eff7e0d835+1771+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KCtO9-0003Sh-2R
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 11:40:05 +0200
-Date: Sun, 29 Jun 2008 06:39:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080629063954.19759b41@gaivota>
-In-Reply-To: <486634A2.1090509@iinet.net.au>
-References: <486634A2.1090509@iinet.net.au>
-Mime-Version: 1.0
+Received: from znsun1.ifh.de ([141.34.1.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <patrick.boettcher@desy.de>) id 1K8IAm-0008JW-4F
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 19:07:18 +0200
+Date: Mon, 16 Jun 2008 19:06:35 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Alexandre Conrad <aconrad.tlv@magic.fr>
+In-Reply-To: <48566EE7.5030101@magic.fr>
+Message-ID: <Pine.LNX.4.64.0806161901150.14117@pub3.ifh.de>
+References: <485646D3.6040201@magic.fr>
+	<Pine.LNX.4.64.0806161501540.14117@pub3.ifh.de>
+	<48566EE7.5030101@magic.fr>
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Avermedia E506 composite
+Subject: Re: [linux-dvb] SkyStar 2 - rev 2.8A
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,17 +27,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Tim,
+Hi,
+On Mon, 16 Jun 2008, Alexandre Conrad wrote:
+>>  http://www.linuxtv.org/pipermail/linux-dvb/2008-May/026179.html
+>
+> So you seem to have working drivers for REV 2.8. Which would save my life. :) 
+> Although, you can't make them public...
 
-Your patch doesn't apply.
+That's the problem. You can say thanks to Conexant (NXP, Philips ?). 
+Technisat is trying hard (and the LinuxTV people as well) to convince the 
+people involved...., without success so far.
 
-> --- saa7134-cards.c    2008-06-28 20:35:22.000000000 +0800
-> +++ a/saa7134-cards.c    2008-06-28 20:44:08.000000000 +0800
+> So I suppose you are working for TechniSat or you have tight relations with 
+> them?
 
-Also, please send it at -p1 format.
+No, my relation is not so tight. I'm just an individual is writing some 
+Linux-drivers for things I want to use.
 
-Cheers,
-Mauro
+> I will contact TechniSat here:
+>
+>  http://www.technisat.com/index5cdb.html?nav=Contact_Hotline,en,34
+>
+> Alternativly, would you have any recommendations on who to contact directly 
+> for better impact (maybe off-list)?
+
+No, not at all. On the contrary I heard that the support of Technisat was 
+not really aware ( 3 weeks ago ), that they are going to release the 
+linux-driver this time.
+
+> We're really under big pressure and the situation is very 
+> urgent/critical to us according to our deployment planning.
+
+I'm sorry to hear that, but in that case maybe you need to switch your 
+supplier.
+
+regards,
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
