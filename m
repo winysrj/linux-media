@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5QG99iY011057
-	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 12:09:09 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5QG8wrH024787
-	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 12:08:58 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so53129fga.7
-	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 09:08:58 -0700 (PDT)
-Message-ID: <30353c3d0806260908u68a3d658u76c15e6649f8b82a@mail.gmail.com>
-Date: Thu, 26 Jun 2008 12:08:58 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: video4linux-list@redhat.com
-In-Reply-To: <20080626101331.GC6707@devserv.devel.redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5GFPVtZ018614
+	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:25:31 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5GFOwrv025930
+	for <video4linux-list@redhat.com>; Mon, 16 Jun 2008 11:24:59 -0400
+Date: Mon, 16 Jun 2008 17:25:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+To: Robert Schwebel <r.schwebel@pengutronix.de>
+In-Reply-To: <20080616151929.GC21869@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0806161724230.13459@axis700.grange>
+References: <48512E08.6020608@teltonika.lt>
+	<Pine.LNX.4.64.0806121748070.18017@axis700.grange>
+	<20080616145511.GB21869@pengutronix.de> <485681DE.4010701@teltonika.lt>
+	<20080616151929.GC21869@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0806251251v6f91a7efy7ceedab39a42f0a6@mail.gmail.com>
-	<20080626101331.GC6707@devserv.devel.redhat.com>
-Subject: Re: Bug in stv680
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: SoC camera crashes when host is not module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,60 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jun 26, 2008 at 6:13 AM, Alan Cox <alan@redhat.com> wrote:
-> On Wed, Jun 25, 2008 at 03:51:33PM -0400, David Ellingsworth wrote:
->>      1. Application 1 opens the device. stv680->user transitions from 0->1
->>      2. Application 2 opens the device. stv680->user transitions from 1->1
->>      3. Application 2 closes the device. stv680->user transitions from 1->0
->>      4. Device is physically disconnected. stv680 is freed.
->>      5. Application 1 closes the device.
->>
->> The crash could happen at step 4 in stv680_read, stv680_mmap, or
->> stv680_do_ioctl, or at step 5 in stv_close depending on how
->> Application 1 is using the device.
->
-> Yes I think you are right
->
->> The apparent fix for this, is that stv680->user should be incremented
->> whenever the device is opened, and decremented when it is closed.
->> Likewise, a lock should be used to guarantee exclusive access to
->> stv680->user to avoid a race condition between stv_open and stv_close.
->> This should correct the case where the structure is freed by
->> stv_disconnect while it is still open and in use.
->
-> Currently open/close use the big kernel lock so the locking part is ok. The
-> 'proper' kernel way to do this is to use krefs which basically implement
-> the locking you describe but using atomic_inc/dec and atomic decrement and
-> compare with zero operations from the various architecture layers.
->
->
-> Something like
->
-> struct stv680 *stv_get(struct stv680 *v)
-> {
->        kref_get(&v->kref);
-> }
->
-> void stv_put(struct stv680 *)
-> {
->        kref_put(&v->kref, stv_free_thingies);
-> }
->
->
-> One camera driver that does use krefs properly (they are fairly new so
-> a lot of drivers don't yet adopt them) is the stk-webcam driver which uses
-> them for open/close as you describe.
->
->
->
-Thanks for clarifying the locking structure. Somehow I missed the
-comment about the BKL being held. None the less, the scenario I
-provided should result in a crash due an invalid internal reference
-count.
+On Mon, 16 Jun 2008, Robert Schwebel wrote:
 
-Regards,
+> On Mon, Jun 16, 2008 at 06:08:14PM +0300, Paulius Zaleckas wrote:
+> > Robert Schwebel wrote:
+> >> On Thu, Jun 12, 2008 at 05:51:42PM +0200, Guennadi Liakhovetski wrote:
+> >>> BTW, I'd love to see at least one of those i.MX CSI drivers I only 
+> >>> get to hear about and never to see one...
+> >>
+> >> We have them in the internal linux-latest series; however, it is based
+> >> on the entire i.MX support, and as long as we don't get this forward
+> >> through alkml, it will be stuck ...
+> >
+> > I have written driver for i.MX1/L... Its not finished yet, but generally
+> > working :) Should we cooperate here?
+> 
+> Our driver is for the i.MX27, so probably a different beast, right?
+> 
+> However, if you send me the patches, we can integrate it into our next
+> i.MX series.
 
-David Ellingsworth
+Please, don't forget, that camera drivers should also be reviewed and 
+acked on the v4l list.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
