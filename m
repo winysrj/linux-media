@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hu-out-0506.google.com ([72.14.214.237])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <drax307@googlemail.com>) id 1K5pvy-0000RR-Sk
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 00:33:55 +0200
-Received: by hu-out-0506.google.com with SMTP id 23so4085775huc.11
-	for <linux-dvb@linuxtv.org>; Mon, 09 Jun 2008 15:33:47 -0700 (PDT)
-Message-ID: <a108ff8e0806091533s1c4ccfv98dcf07c5cd10f65@mail.gmail.com>
-Date: Mon, 9 Jun 2008 23:33:45 +0100
-From: "Daniel Ramsay" <drax307@googlemail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1K8MqR-0002y7-1L
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 00:06:35 +0200
+Received: from pub3.ifh.de (pub3.ifh.de [141.34.15.119])
+	by znsun1.ifh.de (8.12.11.20060614/8.12.11) with ESMTP id
+	m5GM5va4012132
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 00:05:57 +0200 (MEST)
+Received: from localhost (localhost [127.0.0.1])
+	by pub3.ifh.de (Postfix) with ESMTP id A64875AC077
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 00:05:57 +0200 (CEST)
+Date: Tue, 17 Jun 2008 00:05:57 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <alpine.DEB.0.99.0806092051083.5396@dragon>
+Message-ID: <Pine.LNX.4.64.0806170003421.26886@pub3.ifh.de>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_10793_12545173.1213050826762"
-References: <alpine.DEB.0.99.0806092051083.5396@dragon>
-Subject: [linux-dvb] Fwd: WinTV-Nova-S-USB2
+Subject: [linux-dvb] CX24120 DVB-S2 demod driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,141 +23,21 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_10793_12545173.1213050826762
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi all,
 
-Hi,
+is someone working on (or does it maybe already exists, but I'm too stupid 
+to find it) a driver for the Conexant CX24120 DVB-S2 demod?
 
-I recently bought a WinTV Nova-S-USB2, and have obtained a few
-technical details for it.  (I think) this card isn't supported yet.
-I'd be very interested in helping to get this to work.
-
-Opening the case, it appears that it uses
-the CX24123 and CX24109 chips.  Its USB id is:
-
-2040:4700
-
-Attached is the output of lsusb for the device.
-
-I notice that the chips used in the device are very similar to the
-DVB-S portion of the  Hauppauge HVR-3000, only it's a USB device, not
-PCI. I don't know if it will require firmware to work.
-
-If anybody has any suggestions where to start, I'd be most grateful.
-I'm also happy to do builds & testing for the device even if I'm not
-able to actually produce code for it (I know C pretty well, but have
-never done kernel driver development).
-
-Hope this helps,
-
-Daniel.
-
-PS. Apologies if this information has been posted elsewhere, I've only
-just joined the list.  The only other post I saw regarding this device
-was posted in march, regarding the availability of the device.
-
-------=_Part_10793_12545173.1213050826762
-Content-Type: text/plain; name=wintv_nova_s_usb_lsusb.txt
-Content-Transfer-Encoding: base64
-Content-ID: <alpine.DEB.0.99.0806092039190.5396@dragon>
-X-Attachment-Id: 0.1
-Content-Disposition: attachment; filename=wintv_nova_s_usb_lsusb.txt
-
-DQpCdXMgMDA1IERldmljZSAwMDM6IElEIDIwNDA6NDcwMCBIYXVwcGF1Z2UgDQpEZXZpY2UgRGVz
-Y3JpcHRvcjoNCiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOA0KICBiRGVzY3JpcHRvclR5cGUg
-ICAgICAgICAxDQogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDANCiAgYkRldmljZUNsYXNzICAg
-ICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2ZWwpDQogIGJEZXZpY2VTdWJDbGFz
-cyAgICAgICAgIDAgDQogIGJEZXZpY2VQcm90b2NvbCAgICAgICAgIDAgDQogIGJNYXhQYWNrZXRT
-aXplMCAgICAgICAgNjQNCiAgaWRWZW5kb3IgICAgICAgICAgIDB4MjA0MCBIYXVwcGF1Z2UNCiAg
-aWRQcm9kdWN0ICAgICAgICAgIDB4NDcwMCANCiAgYmNkRGV2aWNlICAgICAgICAgICAgMC4wMQ0K
-ICBpTWFudWZhY3R1cmVyICAgICAgICAgIDE2IEhDVw0KICBpUHJvZHVjdCAgICAgICAgICAgICAg
-IDMyIFdpblRWIE1vZGVsIDQ3eHh4DQogIGlTZXJpYWwgICAgICAgICAgICAgICAgNjQgNDAzMTAy
-MDAyOA0KICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxDQogIENvbmZpZ3VyYXRpb24gRGVzY3Jp
-cHRvcjoNCiAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5DQogICAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgMg0KICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAgNzgNCiAgICBiTnVtSW50ZXJm
-YWNlcyAgICAgICAgICAxDQogICAgYkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQ0KICAgIGlDb25m
-aWd1cmF0aW9uICAgICAgICAgNDggDQogICAgYm1BdHRyaWJ1dGVzICAgICAgICAgMHg4MA0KICAg
-ICAgKEJ1cyBQb3dlcmVkKQ0KICAgIE1heFBvd2VyICAgICAgICAgICAgICA1MDBtQQ0KICAgIElu
-dGVyZmFjZSBEZXNjcmlwdG9yOg0KICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQ0KICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNA0KICAgICAgYkludGVyZmFjZU51bWJlciAgICAg
-ICAgMA0KICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgMA0KICAgICAgYk51bUVuZHBvaW50
-cyAgICAgICAgICAgMg0KICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3Bl
-Y2lmaWMgQ2xhc3MNCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgDQogICAgICBiSW50
-ZXJmYWNlUHJvdG9jb2wgICAgMjU1IA0KICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAN
-CiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAg
-ICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9p
-bnRBZGRyZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAg
-ICAgIDENCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMNCiAg
-ICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQ0KICAgICAgICAgIFVzYWdlIFR5
-cGUgICAgICAgICAgICAgICBEYXRhDQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDAg
-IDF4IDAgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQ0KICAgICAgRW5k
-cG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNw0KICAg
-ICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAgICAgIGJFbmRwb2ludEFkZHJlc3Mg
-ICAgIDB4ODIgIEVQIDIgSU4NCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMg0KICAg
-ICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrDQogICAgICAgICAgU3luY2ggVHlw
-ZSAgICAgICAgICAgICAgIE5vbmUNCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAg
-RGF0YQ0KICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMNCiAg
-ICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMA0KICAgIEludGVyZmFjZSBEZXNjcmlwdG9y
-Og0KICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQ0KICAgICAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgNA0KICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMA0KICAgICAgYkFsdGVy
-bmF0ZVNldHRpbmcgICAgICAgMQ0KICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMg0KICAg
-ICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MNCiAgICAg
-IGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgDQogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAg
-MjU1IA0KICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCANCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRl
-c2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgx
-ICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDENCiAgICAgICAgICBU
-cmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMNCiAgICAgICAgICBTeW5jaCBUeXBl
-ICAgICAgICAgICAgICAgTm9uZQ0KICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBE
-YXRhDQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDE0MDAgIDN4IDAgYnl0ZXMNCiAgICAg
-ICAgYkludGVydmFsICAgICAgICAgICAgICAgMQ0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoN
-CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5
-cGUgICAgICAgICA1DQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4N
-CiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMg0KICAgICAgICAgIFRyYW5zZmVyIFR5
-cGUgICAgICAgICAgICBCdWxrDQogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5v
-bmUNCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQ0KICAgICAgICB3TWF4
-UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAg
-ICAgICAgICAgICAgMA0KICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOg0KICAgICAgYkxlbmd0aCAg
-ICAgICAgICAgICAgICAgOQ0KICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNA0KICAgICAg
-YkludGVyZmFjZU51bWJlciAgICAgICAgMA0KICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAg
-Mg0KICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMg0KICAgICAgYkludGVyZmFjZUNsYXNz
-ICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MNCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFz
-cyAgICAgIDAgDQogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IA0KICAgICAgaUludGVy
-ZmFjZSAgICAgICAgICAgICAgMCANCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAg
-IGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
-ICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAg
-IGJtQXR0cmlidXRlcyAgICAgICAgICAgIDENCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
-ICAgICAgSXNvY2hyb25vdXMNCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9u
-ZQ0KICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhDQogICAgICAgIHdNYXhQ
-YWNrZXRTaXplICAgICAweDE0MDAgIDN4IDAgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAg
-ICAgICAgICAgMQ0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAg
-ICAgICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAg
-ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4NCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMg0KICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxr
-DQogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUNCiAgICAgICAgICBVc2Fn
-ZSBUeXBlICAgICAgICAgICAgICAgRGF0YQ0KICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
-MjAwICAxeCA1MTIgYnl0ZXMNCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMA0KRGV2
-aWNlIFF1YWxpZmllciAoZm9yIG90aGVyIGRldmljZSBzcGVlZCk6DQogIGJMZW5ndGggICAgICAg
-ICAgICAgICAgMTANCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNg0KICBiY2RVU0IgICAgICAg
-ICAgICAgICAyLjAwDQogIGJEZXZpY2VDbGFzcyAgICAgICAgICAgIDAgKERlZmluZWQgYXQgSW50
-ZXJmYWNlIGxldmVsKQ0KICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAwIA0KICBiRGV2aWNlUHJv
-dG9jb2wgICAgICAgICAwIA0KICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0DQogIGJOdW1Db25m
-aWd1cmF0aW9ucyAgICAgIDENCkRldmljZSBTdGF0dXM6ICAgICAweDAwMDINCiAgKEJ1cyBQb3dl
-cmVkKQ0KICBSZW1vdGUgV2FrZXVwIEVuYWJsZWQNCg==
-------=_Part_10793_12545173.1213050826762
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+best regards,
+Patrick.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_10793_12545173.1213050826762--
