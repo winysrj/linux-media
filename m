@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1K3C7x-0002Fr-Th
-	for linux-dvb@linuxtv.org; Mon, 02 Jun 2008 17:39:19 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so492953ywj.41
-	for <linux-dvb@linuxtv.org>; Mon, 02 Jun 2008 08:38:55 -0700 (PDT)
-Message-ID: <37219a840806020838u5d46fba0xe5061ebb0f25bd9e@mail.gmail.com>
-Date: Mon, 2 Jun 2008 11:38:55 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Dennis Noordsij" <dennis.noordsij@movial.fi>
-In-Reply-To: <4843B75C.7090505@movial.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <4843B75C.7090505@movial.fi>
+	(envelope-from <stoth@linuxtv.org>) id 1K8Jd9-0006e4-RS
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:40:40 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K2K00MLAJUNBHB0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 16 Jun 2008 14:40:02 -0400 (EDT)
+Date: Mon, 16 Jun 2008 14:39:59 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080615190958.GA6792@opus.istwok.net>
+To: David Engel <david@istwok.net>
+Message-id: <4856B37F.20704@linuxtv.org>
+MIME-version: 1.0
+References: <20080613163914.GA31437@opus.istwok.net>
+	<4852AB58.9010806@linuxtv.org> <20080615190958.GA6792@opus.istwok.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Driver TerraTec Piranha functional,
-	need some advice to finish up
+Subject: Re: [linux-dvb] A couple HVR-1800 questions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,48 +32,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jun 2, 2008 at 5:03 AM, Dennis Noordsij
-<dennis.noordsij@movial.fi> wrote:
-> I am finishing up the last stages of a new driver for the TerraTec
-> Piranha DVB-T adapter (Sanio SMS-100x chipset), and I have some general
-> questions some of the more experienced driver writers could perhaps
-> provide some advice on.
+David Engel wrote:
+> On Fri, Jun 13, 2008 at 01:16:08PM -0400, Steven Toth wrote:
+>> David Engel wrote:
+>>> First, what is the status of the analog capture capability?  My search
+>>> ...
+>> The analog encoder is running with the tree form linuxtv.org. It has  
+>> some cleanup video ioctl2 rework going on by another dev here, but it's  
+>> functional as is. It's usable today.
+> 
+> Thanks for the repsonse, Steven.
+> 
+>>> Second, as far as I can tell, the hardware can perform simultaneous
+>>> analog and digital captures.  Is that correct and, if so, does/will
+>>> the Linux driver support it?
+>> Yes and yes.
+>>
+>> Typically the analog video devices are exposed as /dev/video0 (analog  
+>> preview) /dev/video1 (encoder output) and /dev/dvb/... for the digital 
+>> side.
+> 
+> Excellent.
+> 
+> Regarding the encoder and preview devices, that's different than the
+> ivtv convention of using /dev/video(N) and and /dev/video(N+16).  Is
+> there a reason you did it differently and should it be standardized
+> across drivers?
 
-Dennis,
+Hi david,
 
-I am currently in the process of cleaning up a public GPL'd driver
-released by Siano for the SMS1010 / SMS1150 silicon.
+This is how the cx88 driver model works. Pfft, who needs standards ;)
 
-This driver functions correctly with Siano's reference design hardware.
+- Steve
 
-This is a generic driver that should probably also be backwards
-compatible with the SMS1000 silicon used in your device.
 
-I posted the work-in-progress to the following location:
-
-http://linuxtv.org/hg/~mkrufky/siano
-
-Please note:  This driver has been publicly available on linuxtv.org
-for the past three weeks -- I recommend taking a quick look through
-the individual development repositories before starting to write a
-brand new driver, to prevent double-work efforts.
-
-Please also note:  The driver has only gone through basic testing -- I
-would not be surprised to find bugs in the code, and there is a
-plethora of codingstyle violations.
-
-Please feel free to send me patches against that repository to support
-your device -- I will be happy to integrate them for you, although you
-should be prepared to rebase your tree when I push up the next round
-of updates / cleanups.
-
-It makes more sense for you to add support for your device, rather
-than writing a new driver from scratch, especially considering that
-the driver I have comes directly from Siano, themselves.
-
-Regards,
-
-Mike
 
 _______________________________________________
 linux-dvb mailing list
