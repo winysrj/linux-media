@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
+Received: from [213.161.191.158] (helo=patton.snap.tv)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1K4KVL-0003OY-8R
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 20:48:09 +0200
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org
-Date: Thu, 5 Jun 2008 20:47:29 +0200
-References: <1212610778l.7239l.1l@manu-laptop>
-In-Reply-To: <1212610778l.7239l.1l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806052047.30008.ajurik@quick.cz>
-Subject: Re: [linux-dvb] No lock on a particular transponder with TT S2-3200
-Reply-To: ajurik@quick.cz
+	(envelope-from <sigmund@snap.tv>) id 1K8E10-00089F-33
+	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 14:40:54 +0200
+From: Sigmund Augdal <sigmund@snap.tv>
+To: Arthur Konovalov <artlov@gmail.com>
+In-Reply-To: <4855F6B0.8060507@gmail.com>
+References: <20080615192300.90886244.SiestaGomez@web.de>
+	<4855F6B0.8060507@gmail.com>
+Date: Mon, 16 Jun 2008 14:40:50 +0200
+Message-Id: <1213620050.6543.6.camel@pascal>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,45 +26,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 04 of June 2008, manu wrote:
-> 	Hi all,
-> one more datapoint for the TT 3200 tuning problems. I solved all my
-> locking problems by add 4MHz to the reported frequencies (coming from
-> the stream tables); note that one of the transponders always locked
-> even without this correction (its freq is 11093MHz, the others are :
-> 11555, 11635, 11675MHz), so as you see the others are much higher.
-> Now there is another transponder at 11495MHz but this one I cant lock
-> on it even with my correction. 
+On Mon, 2008-06-16 at 08:14 +0300, Arthur Konovalov wrote:
+> SG wrote:
+> > The patch works quite well and nearly all channels seem to work.
+> > 
+> > But when tuning to some radio channels I'll get this kernel message:
+> > 
+> > saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+> > 
+> > Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
+> > smoothly when using Win32.
+> > 
+> > initial transponder 386000000 6900000 0 3
+> >  >>> tune to: 386:M64:C:6900:
+> > WARNING: >>> tuning failed!!!
+> >  >>> tune to: 386:M64:C:6900: (tuning failed)
+> > WARNING: >>> tuning failed!!!
+> > ERROR: initial tuning failed
+> > dumping lists (0 services)
+> > Done.
+> 
+> Yes, I discovered too that tuning to frequency 386MHz has no lock.
+> VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0
+> 
+> At same time, 394MHz (and others) works.
+Hi.
 
-Hi,
+Both transponders reported to not tune here has different symbolrates
+from what I used for my testing. Maybe this is relevant in some way.
+Could you please compare this with the channels that did tune to see if
+there is a pattern?
 
-I have a little more problems with TT S2-3200 under linux. At DVB-S exists 
-transponders to which is not possible to switch directly (when changing 
-satellite), it is necessary to tune first to another transponder at same 
-position (I'm using diseqc switch). At these transponders changing the 
-frequency is not helpful.
+About the i2c message, I get that every now and then here as well, but I
+have not seen any ill effect from it. I also see that on some other TT
+cards so I think that might be unrelated to the demod/tuner.
 
-At DVB-S2 transponders are some transponders at which is possible to get lock 
-without problems. Also at some transponders it is possible to get lock when 
-changing frequency by 4-5MHz after some minutes (typically 2 min.). But there 
-exists some transponders where is practically impossible to get lock. 
-Interesting is that those problematic transponders were without problems 
-receivable some time ago. The change appeared when transponders were switched 
-from Thor2 to Thor5 (same frequency but only FEC changed from 2/3 to 3/4 and 
-pilot was switched off), also one transponder at HB 13.0E which was 
-receivable two months ago is not receivable any more (don't know if pilot was 
-switched off but other paremeters are the same).
+Regards
 
-So now I'm able to get lock on less then half of DVB-S2 HD programs which I'm 
-able to watch. This is not very funny situation, even if all of these 
-programs are without any problem receivable at the same PC but under Windows. 
-So I'm nearly sure that problem is in driver.
-
-If I could be helpful with debugging and testing I'll glad to cooperate.
-
-BR,
-
-Ales
+Sigmund Augdal
+> 
+> Regards,
+> AK
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 
 _______________________________________________
