@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.188])
+Received: from relay-pt3.poste.it ([62.241.4.129])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1K4KVD-0003Or-7i
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 20:48:01 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so589582fka.1
-	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 11:47:53 -0700 (PDT)
-Message-ID: <854d46170806051147t6917ca8cm70839cda91101e0a@mail.gmail.com>
-Date: Thu, 5 Jun 2008 20:47:53 +0200
-From: "Faruk A" <fa@elwak.com>
-To: "Stuart Morris" <stuart_morris@talk21.com>
-In-Reply-To: <502885.47327.qm@web86703.mail.ukl.yahoo.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1K8bln-0001qw-VC
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 16:02:50 +0200
+Received: from [192.168.0.188] (89.97.249.170) by relay-pt3.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 4856F0B5000074CD for linux-dvb@linuxtv.org;
+	Tue, 17 Jun 2008 16:02:42 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
+To: linux-dvb@linuxtv.org
+Date: Tue, 17 Jun 2008 16:03:27 +0200
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <502885.47327.qm@web86703.mail.ukl.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
+Message-Id: <200806171603.27766.Nicola.Sabbi@poste.it>
+Subject: [linux-dvb] Lifeview Trio remote control: keys being read but even
+	not notified?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,50 +28,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Stuart!
+Hi,
+trying the patch for the remote control of the Lifeview Trio I 
+encountered a curious situation:
+using printk() I can see that the function that reads the keypresses
+actually reads and returns the keys, but running
 
-I'm using the same driver on TT S2-3650 CI and vdr (v. 1.60).
-I don't know if patch to the video.h is necessary but
-this is what i always do, two multiproto sources one patched with
-pctv45e/tt_s2_36xx for drivers only and one unpatched source for compiling
-softwares like vdr...
+$ cat /dev/input/ir 
 
-Faruk
+doesn't print anything at all when I press the buttons.
+Of course lirc doesn't work, either.
 
+cat on all other eventN devices works well.
 
+Is there some other code that needs to be added to that patch?
 
-On Thu, Jun 5, 2008 at 6:34 PM, Stuart Morris <stuart_morris@talk21.com> wrote:
-> Dominik
-> Thanks for your work on the pctv452e/tts23600 driver.
-> I intend to purchase a
-> tt 3600 at some point soon so I have not yet used the
-> driver, but I have a
-> couple of comments.
->
-> I have recently patched multiproto plus with the
-> pctv452e/tts23600 patch set
-> and noticed a problem with VDR 1.7.0.
-> The patch to linux/include/linux/dvb/frontend.h
-> towards the end of
-> patch_multiproto_pctv452e_tts23600.diff causes a
-> compile error with VDR 1.7.0.
-> It's not obvious what this patch is for.
->
-> There is also a patch to
-> linux/include/linux/dvb/video.h. Are the patches to
-> the dvb headers really necessary? Is this intentional?
->
->
->
->      __________________________________________________________
-> Sent from Yahoo! Mail.
-> A Smarter Email http://uk.docs.yahoo.com/nowyoucan.html
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+P.S. Lifeview seems to have closed the doors and its site.
+Does anyone have a link to a recent mirror of their drivers
+and application for windows, please?
+
+Thanks,
+              Nico
 
 _______________________________________________
 linux-dvb mailing list
