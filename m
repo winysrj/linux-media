@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
+Received: from aa013msr.fastwebnet.it ([85.18.95.73])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yoshi314@gmail.com>) id 1KDKvx-0002bE-14
-	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 17:04:49 +0200
-Received: by ug-out-1314.google.com with SMTP id m3so253949uge.20
-	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 08:04:45 -0700 (PDT)
-Date: Mon, 30 Jun 2008 17:04:13 +0200
-From: marcin kowalski <yoshi314@gmail.com>
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Message-ID: <20080630150413.GA7486@watanabe>
-References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
-	<4868A644.5030806@onelan.co.uk>
-	<51029ae90806300304s106305u36be341e80b69b2a@mail.gmail.com>
-	<4868B148.2030300@onelan.co.uk>
-	<51029ae90806300536g734d5d24x84ed8cc84260266a@mail.gmail.com>
+	(envelope-from <ml@punkrockworld.it>) id 1K8cX0-0004I2-R3
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 16:51:40 +0200
+Received: from [192.168.0.12] (37.244.170.61) by aa013msr.fastwebnet.it
+	(8.0.013.8) id 48321BEA037957AA for linux-dvb@linuxtv.org;
+	Tue, 17 Jun 2008 16:50:58 +0200
+Message-ID: <4857CF64.8080201@punkrockworld.it>
+Date: Tue, 17 Jun 2008 16:51:16 +0200
+From: Francesco <ml@punkrockworld.it>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <51029ae90806300536g734d5d24x84ed8cc84260266a@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr-1300 analog audio question
+To: linux-dvb@linuxtv.org
+References: <48565075.6040400@iinet.net.au>	<200806161343.16372.eggert@hugsaser.is>
+	<4856FE3D.6040400@t-online.de>
+In-Reply-To: <4856FE3D.6040400@t-online.de>
+Subject: Re: [linux-dvb] unstable tda1004x firmware loading
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,132 +28,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 14:36 Mon 30 Jun     , yoshi watanabe wrote:
-> sorry, seems that's the way gmail works by default. that was not intended.
-> i'll post results in 3-4 hours time when i'm home.
+> Looks like there currently are many people having problems.
+> Allow me to give some background info:
 > 
-> On Mon, Jun 30, 2008 at 12:11 PM, Simon Farnsworth
-> <simon.farnsworth@onelan.co.uk> wrote:
-> > Please don't drop the cc when replying - I'm passing on my own experiences
-> > with an unrelated card, in the hope that it helps you.
-> >
-> > Someone else on the list may look at this and have an "aha!" moment,
-> > answering your question for you.
-> >
-> > Note that the increased buffering is important for the SAA7134 - it seems to
-> > only be prepared to transfer audio data in blanking time, so if there's not
-> > enough buffering available, it just drops samples.
-> >
-> > yoshi watanabe wrote:
-> >>
-> >> i tried 32000 before when using arecord | aplay combo but the arecord
-> >> insisted on 48000 audio rate. will try again and report later, thanks.
-> >>
-> >> On Mon, Jun 30, 2008 at 11:24 AM, Simon Farnsworth
-> >> <simon.farnsworth@onelan.co.uk> wrote:
-> >>>
-> >>> yoshi watanabe wrote:
-> >>>>
-> >>>> hello.
-> >>>>
-> >>>> i'm using hauppauge hvr-1300 to receive video signal from playstation2
-> >>>> console, pal model. video is just fine, but i'm having strange audio
-> >>>> issues, but judging by some searching i did - that's pretty common
-> >>>> with this card , although people have varied experience with the card.
-> >>>>
-> >>> I've had similar issues with SAA7134 based cards, which were resolved by
-> >>>  changing audio parameters.
-> >>>
-> >>> If your problem is the same as mine was, try:
-> >>> arecord --format=S16 \
-> >>>       --rate=32000 \
-> >>>       --period-size=8192 \
-> >>>       --buffer-size=524288 | aplay
-> >>>
-> >>> This forces 32kHz sampling, and gives the card lots of buffer space to
-> >>> play
-> >>> with.
-> >>> --
-> >>> Simon Farnsworth
-> >>>
-> >>>
-> >>
-> >>
-> >>
-> >
-> >
-> > --
-> > Simon Farnsworth
-> > Software Engineer
-> >
-> > ONELAN Limited
-> > 1st Floor Andersen House
-> > Newtown Road
-> > Henley-on-Thames, OXON
-> > RG9 1HG
-> > United Kingdom
-> >
-> > Tel:    +44(0)1491 411400
-> > Fax:    +44(0)1491 579254
-> > Support:+44(0)1491 845282
-> >
-> > www.onelan.co.uk
-> >
-> >
-i just got white noise on audio. seems like this doesn't do the trick. i'll have to come up with something else. 
+> Something that is not in the datasheet:
+> The tda10046 automatically tries to load the firmware from an eeprom at the
+> second I2C port. This does *not* need to be triggered by the driver. The timeout
+> seems to be very long. In the past, this happened:
+> If the driver tries to access the tuner while the download is not finished, there
+> is a collision on the I2C bus. This can corrupt both, the firmware and the tuner
+> initialization. In the case of the tda8275a, the result can be that it turns off
+> its 16MHz reference output which is used for the tda10046 as well. This blocks the
+> i2c bus and the only way to recover is a complete power cycle.
+> This is why i made the driver try to get the firmware as soon as possible.
+> Otherwise it is not possible to access the tuner - at least on some boards.
+> 
+> Few days ago, a user reported that the firmware download seems to be retriggered
+> in some cases. This might occur if something opens the dvb device while the download
+> is not finished. If it is the case, we need to lock the download.
+> Another dangerous thing is the address mapping of the firmware eeprom: it is
+> controlled by a GPIO pin. If this pin changes while the download is running, we are
+> lost.
+> 
+> Best regards
+>    Hartmut
 
-this message is really confusing :
+I've found a little workaround (not a solution, but...) for this problem 
+for my Asus7131H...
 
-arecord -D hw:1 -c 2 --format=S16 --rate=32000 --period-size=8192 --buffer-size=524288 | aplay -
-
-Recording WAVE 'stdin' : Signed 16 bit Little Endian, Rate 32000 Hz, Stereo
-Warning: rate is not accurate (requested = 32000Hz, got = 48000Hz)
-         please, try the plug plugin
-
-does it mean it didn't work as expected?
-also during playback i get numerous copies of this line in my dmesg (during recording) : 
-
-cx88[0]: irq aud [0x1001] dn_risci1* dn_sync*
-
-what does that mean?
-
-some extra info about my hardware: 
-
-my audio devices : 
-**** List of CAPTURE Hardware Devices ****
-card 0: CK804 [NVidia CK804], device 0: Intel ICH [NVidia CK804]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 0: CK804 [NVidia CK804], device 1: Intel ICH - MIC ADC [NVidia CK804 - MIC ADC]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 1: CX8811 [Conexant CX8811], device 0: CX88 Digital [CX88 Digital]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-**** List of PLAYBACK Hardware Devices ****
-card 0: CK804 [NVidia CK804], device 0: Intel ICH [NVidia CK804]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 0: CK804 [NVidia CK804], device 2: Intel ICH - IEC958 [NVidia CK804 - IEC958]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
+Simply adding "saa7134-dvb" to /etc/modules, make a successful firmware 
+loading on boot.
+(My system is an Ubuntu 7.10)
 
 
-lspci -n shows that the card should work fine with cx88-alsa (which i have loaded).
 
-01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
-01:07.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] (rev 05)
-01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
 
-01:07.0 0400: 14f1:8800 (rev 05)
-01:07.1 0480: 14f1:8811 (rev 05)
-01:07.2 0480: 14f1:8802 (rev 05)
-
-those ids are said to be supported. i have no ideas atm what else to try. trying 48000 sampling rate with bigger buffer 
-also produces noise.
-
-i guess i'll dig the mailing list archive once again. 
-
+Francesco Ferrario
+- Chimera project -
+- www.chimeratv.it -
 
 _______________________________________________
 linux-dvb mailing list
