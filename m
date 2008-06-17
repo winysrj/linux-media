@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from rv-out-0506.google.com ([209.85.198.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1K4cwa-000268-Pp
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 16:29:32 +0200
-Message-ID: <484949C4.8000903@iki.fi>
-Date: Fri, 06 Jun 2008 17:29:24 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Serge Nikitin <sergeniki@googlemail.com>
-References: <71798b430806050447g1570a889ld2ad306a8b14b1f1@mail.gmail.com>	<484941CB.8060805@iki.fi>
-	<9e5406cc0806060725m1224882bu6c18393e56f96596@mail.gmail.com>
-In-Reply-To: <9e5406cc0806060725m1224882bu6c18393e56f96596@mail.gmail.com>
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K8cyd-0006tL-U6
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 17:20:09 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so7104423rvf.41
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 08:20:03 -0700 (PDT)
+Message-Id: <D4F69DB0-447A-42C5-A26F-19DCB73D0339@tvwhere.com>
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: mkrufky@linuxtv.org
+In-Reply-To: <4857CF9F.7050901@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Tue, 17 Jun 2008 11:19:59 -0400
+References: <4857CF9F.7050901@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PEAK DVB-T Digital Dual Tuner PCI - anyone got this
- card working?
+Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,26 +27,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Serge Nikitin wrote:
-> I do have PEAK DVB-T Dual tuner PCI (221544AGPK) and it is reported in lsusb as: 
-> 
-> Bus 2 Device 2: ID 1b80:c160
-> 
-> Moreover, .ini file for win driver provided on CD listed this card as 
-> KWorld PC160 (with USB IDs 1b80:c160 and 1b80:c161) and I've definitely 
-> seen "PC160" printed on card's PCB.
-> 
-> In my case those PEAK and KWorld look like the same card.
 
-Yeah, looks like. Thanks anyhow, I have now added this id to the driver.
+On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
 
-Case clear and closed.
+> Brandon Jenkins wrote:
+> Brandon,
+>
+> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
+> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner  
+> dependency
+> selections.  Please note the description of this option:
+>
+> menuconfig MEDIA_TUNER_CUSTOMIZE
+>        bool "Customize analog and hybrid tuner modules to build"
+>        depends on MEDIA_TUNER
+>        help
+>          This allows the user to deselect tuner drivers unnecessary
+>          for their hardware from the build. Use this option with care
+>          as deselecting tuner drivers which are in fact necessary will
+>          result in V4L/DVB devices which cannot be tuned due to lack  
+> of
+>          driver support
+>
+>          If unsure say N.
+>
+>
+> We allow users to disable certain modules if they think they know
+> better, and choose to compile out drivers that they don't need.  You
+> should not have disabled tuner-simple -- to play it safe, don't enable
+> MEDIA_TUNER_CUSTOMIZE
+>
+> Regards,
+>
+> Mike
+>
+>
+Mike,
 
-> Serge.
+Thank you. I understand the impact my choice makes in that matter.  
+However, all of the other modules required for cx18 to function are  
+marked in the lists as -M- indicating it is a required module/module  
+dependency. I apologize for my ignorance of terminology, etc., but it  
+would seem to me that "Simple tuner support" should automatically have  
+the -M- as a required resource for the tuner to function correctly.
 
-Antti
--- 
-http://palosaari.fi/
+Thank you for your time in responding.
+
+Brandon
 
 _______________________________________________
 linux-dvb mailing list
