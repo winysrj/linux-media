@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dkuhlen@gmx.net>) id 1K4M4Q-0005hV-S9
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 22:28:27 +0200
-From: Dominik Kuhlen <dkuhlen@gmx.net>
+Received: from mu-out-0910.google.com ([209.85.134.188])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <zeno.zoli@gmail.com>) id 1K8iv8-0001PY-LM
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 23:41:10 +0200
+Received: by mu-out-0910.google.com with SMTP id w8so3521291mue.1
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 14:39:54 -0700 (PDT)
+Message-ID: <45e226e50806171439k56fcb996r7a1cf659412bb0e2@mail.gmail.com>
+Date: Tue, 17 Jun 2008 23:39:54 +0200
+From: "Zeno Zoli" <zeno.zoli@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 5 Jun 2008 22:27:52 +0200
-References: <484709F3.7020003@schoeller-soft.net>
-	<854d46170806041505w69a0bebakfa997223cade4381@mail.gmail.com>
-	<484794C8.5090506@okg-computer.de>
-In-Reply-To: <484794C8.5090506@okg-computer.de>
 MIME-Version: 1.0
-Message-Id: <200806052227.52847.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
+Subject: [linux-dvb] TerraTec_Cinergy_S2_PCI_HD_CI Playback flicker or
+	stream issue.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,72 +19,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1117822660=="
+Content-Type: multipart/mixed; boundary="===============0171202524=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1117822660==
-Content-Type: multipart/signed;
-  boundary="nextPart1678304.2FNpoEs3ZI";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+--===============0171202524==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_15688_16089853.1213738794428"
 
---nextPart1678304.2FNpoEs3ZI
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+------=_Part_15688_16089853.1213738794428
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi,
-On Thursday 05 June 2008, Jens Krehbiel-Gr=E4ther wrote:
-> Hi Michael!
->=20
-> Because of the several patches needed to add support for the=20
-> pctv_452e/tt_s2_3600/tt_s2_3650_ci I made a new diff on todays hg tree=20
-> with all the patches applied (I think all the patches were posted by=20
-> Dominik Kuhlen??).
-> I will try to update the wiki in the next days.
->=20
-> Couldn't these patches be inserted into hg-tree (Manu??). The device=20
-> works with them (i am using it a few months now).
->=20
-> I applied ONE patch wich includes all the patches listed here:
-> patch_multiproto_pctv452e_tts23600.diff
-> patch_multiproto_dvbs2_frequency.diff
-> patch_fix_tts2_keymap.diff
-> patch_add_tt_s2_3650_ci.diff
-> patch_add_tt_s2_3600_rc_keymap.diff
->=20
-=2D----snip----
-I had just a brief look at the patch and it seems that pctv452e.c and lnb22=
-=2E* are missing
-afaik hg diff  does not include added files if not specified explicitly.
+So I got my card working, partly.
+Followed this guide, and got some help from here.
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI
+
+My next challenge is to get playback working correctly. This might be caused
+by poor ATI driver support. I've got 8.5 Catalyst installed. Read that 8.3
+had some flicker issue in playback. Anyway I just wanted to sort out if my
+problems might be caused by the dvb-s2 mantis drivers or my ATI drivers. Got
+Radeon 2400 HD. Excuse me if this is a bit off-topic
+
+Tried mplayer (also gmplayer and xine) xine dont work.
+
+mplayer -vo xv /dev/dvb/adapter0/dvr0
+
+Stream flicker, seems like it drops a lot of frames. 2 out of 3, or there is
+problems with the stream from the dvb-s2 card (How could I debug that)
+Testing on "The Poker Channel" mpeg2 SD channel.
+
+AMD 64 3500+ 1GB RAM. (would think that would cover most streams)
+
+Googled around, but haven't found anyone with a similar problem.
+Anyone got a clue, before I head over to a linux video playback forum?
+
+------=_Part_15688_16089853.1213738794428
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+So I got my card working, partly. <br>Followed this guide, and got some help from here.<br><a href="http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI" target="_blank">http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI</a><br>
+<br>My next challenge is to get playback working correctly. This might be caused by poor ATI driver support. I&#39;ve got 8.5 Catalyst installed. Read that 8.3 had some flicker issue in playback. Anyway I just wanted to sort out if my problems might be caused by the dvb-s2 mantis drivers or my ATI drivers. Got Radeon 2400 HD. Excuse me if this is a bit off-topic<br>
+<br>Tried mplayer (also gmplayer and xine) xine dont work. <br><br>mplayer -vo xv /dev/dvb/adapter0/dvr0<br><br>Stream flicker, seems like it drops a lot of frames. 2 out of 3, or there is problems with the stream from the dvb-s2 card (How could I debug that) Testing on &quot;The Poker Channel&quot; mpeg2 SD channel.<br>
+<br>AMD 64 3500+ 1GB RAM. (would think that would cover most streams)<br><br>Googled around, but haven&#39;t found anyone with a similar problem.<br>Anyone got a clue, before I head over to a linux video playback forum? <br>
+<br>
+
+------=_Part_15688_16089853.1213738794428--
 
 
-Dominik
-=20
-
-
-
---nextPart1678304.2FNpoEs3ZI
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAkhITEgACgkQ6OXrfqftMKI0igCfZymT8drB+fTMz6ygERICIfdr
-l2AAnjLOsKAYBGJ/+yfCS1RWHpAgj13z
-=+N4x
------END PGP SIGNATURE-----
-
---nextPart1678304.2FNpoEs3ZI--
-
-
---===============1117822660==
+--===============0171202524==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -95,4 +81,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1117822660==--
+--===============0171202524==--
