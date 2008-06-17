@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.us4.outblaze.com ([205.158.62.78])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <RobertCL@iname.com>) id 1K5hpe-0005O9-ST
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 15:54:48 +0200
-Message-ID: <34063.144.98.76.45.1213019670.squirrel@dragonfly.dnsalias.net>
-In-Reply-To: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
-References: <57eb3fe80806090530o7d1d5684r43047b33b182966a@mail.gmail.com>
-Date: Mon, 9 Jun 2008 14:54:30 +0100 (BST)
-From: "Robert" <RobertCL@iname.com>
+	(envelope-from <o.endriss@gmx.de>) id 1K8iFW-0005dt-UG
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 22:57:59 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
+Date: Tue, 17 Jun 2008 22:56:35 +0200
+References: <485646D3.6040201@magic.fr> <48566EE7.5030101@magic.fr>
+	<48569D96.5050209@magic.fr>
+In-Reply-To: <48569D96.5050209@magic.fr>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] UK Freesat twin tuner USB/PCI/PCI-E
-Reply-To: RobertCL@iname.com
+Content-Disposition: inline
+Message-Id: <200806172256.35351@orion.escape-edv.de>
+Subject: Re: [linux-dvb] SkyStar 2 - rev 2.8A
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +27,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, June 9, 2008 1:30 pm, Mike Beeson wrote:
-> Hi all,
+Alexandre Conrad wrote:
+> In the worst of the cases, I'll have to return the cards to my vendor as 
+> TechniSat might just no longer make 2.6 cards anymore. Then what would 
+> be the recommanded alternative hardware that could work for me? A few 
+> years back, I've was using a budget Hauppauge Nova-S card. But it might 
+> be outdated and/or hard to find in large quantities these days.
 >
-> I've searched high and low, but can't find a product (either USB, PCI or
-> PCI-E) that can allow me to have twin tuners and pick up the UK freesat
-> service (with BBC and ITV HD content). Does such a thing exist?
->
-> I wouldn't mid going with 2 single tuner USB products, but even then I'm
-> not
-> sure what is required.
->
-> The wiki pages don't seem to offer any light and neither does a large
-> amount
-> of googling.
->
+> Any recommendation for cards that would be well supported by the kernel 
+> and are still "comfortably" available? We're doing DVB-IP stuff (no TV 
+> watching).
 
-I've been looking for the same thing for a while, and haven't found
-anything.  I was planning on buying the Technotrend S-1500 (PCI card)
-which appears to be fairly well supported.
+There are tons of well-supported cards. ;-)
 
-I think someone else has said it, but all freesat broadcasts are currently
-DVB-S only.  I can currently get BBCHD and ITVHD using the DVB-S part of
-my HVR-3000 (Analog + DVB-T + DVB-S hybrid card)
+For example: http://www.technotrend.com/2762/PRODUCTS_for_PC.html
+- Budget DVB-S 1401 (w/o CI connector) --> driver: budget
+- Budget DVB-S 1500 (with CI connector) --> driver: budget-ci
+(There is also an experimental driver for the DVB-S2 3200)
 
-I think that DVB-S2 support in Linux is still fairly new, and not
-officially supported by (m)any apps (VDR or MythTv)
+CU
+Oliver
 
-Robert.
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
