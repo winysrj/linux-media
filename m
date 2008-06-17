@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OM52hv000622
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 18:05:02 -0400
-Received: from mailrelay006.isp.belgacom.be (mailrelay006.isp.belgacom.be
-	[195.238.6.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OM4qKR005484
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 18:04:52 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Wed, 25 Jun 2008 00:04:48 +0200
-References: <485F7A42.8020605@vidsoft.de>
-	<200806240033.41145.laurent.pinchart@skynet.be>
-	<20080624183601.235ff1d5@gaivota>
-In-Reply-To: <20080624183601.235ff1d5@gaivota>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5H9dZbK027118
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:39:35 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5H9d5oA015969
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:39:06 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so4039120fga.7
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 02:39:05 -0700 (PDT)
+Message-ID: <a5eaedfa0806170239ye9951acv1cc9361b1d43abbe@mail.gmail.com>
+Date: Tue, 17 Jun 2008 15:09:04 +0530
+From: "Veda N" <veda74@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <20080617092439.GA631@daniel.bse>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Disposition: inline
-Message-Id: <200806250004.48989.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
-Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
+References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
+	<20080617092439.GA631@daniel.bse>
+Content-Transfer-Encoding: 8bit
+Subject: Re: v4l2_pix_format doubts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,35 +30,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 24 June 2008, Mauro Carvalho Chehab wrote:
-> > > Can I enable more logging than setting the trace parameter to 0xfff?
-> >
-> > No without adding more printk's to the driver, which I encourage you to
-> > do.
+Hi Daniel,
+
+  Thank you for your quick response.
+
+
+On Tue, Jun 17, 2008 at 2:54 PM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+> On Tue, Jun 17, 2008 at 02:35:04PM +0530, Veda N wrote:
+>>  My datasheet says the size of each pixel is 12 bits per color channel.
+>>
+>>  Hence for RGB will be 36bits.
+>>
+>>  I wanted to know if the same hold true for YUV data.
 >
-> This would be one advantage of having uvc driver using video_ioctl2. to see
-> ioctl's it is just a matter of using debug=1. If you use debug=3, you'll
-> also view all arguments of the ioctl.
+> Can you tell us for which hardware you want to write a driver?
+>
+> The values to fill in depend on the final layout of the data in memory.
+> As you should not convert to YUV in software, it depends solely on the
+> hardware.
 
-That won't happen. Anyway, the UVC driver already prints out ioctl trace 
-messages to the kernel if you set the trace parameter high enough. Gregor was 
-asking for more debugging output than that.
 
-> PS.: I'm still waiting for uvc patches for its kernel addition.
+  As i understand, my camera has a image processor inside it. what i
+want to say is it is
+  not a plain raw sensor.
 
-I've received all the feedback and review I'll probably get, so I'll send a 
-new patch this week with the latest driver.
+  For every pixel clock a pixel is fetched from the device and is
+placed in memory
+  Once a entire frame is captured. it is returned to the application.
+>From the application
+   i can write this data into LCD or a file to be viewed by a YUV/RGB
+viewer like YUVTOOLS.
 
-I've addressed some of your comments (such as not using enums at userspace 
-interface). What is the rationale behind not having userspace and kernelspace 
-APIs in a single .h file ? If I'm not mistaken kernel headers are stripped 
-from their #ifdef __KERNEL__ sections but distributions anyway. It makes 
-sense to have separate headers when they become big enough, but I don't think 
-that's the case for a single driver like this one.
+  This is same for both RGB and YUV data.
 
-Cheers,
 
-Laurent Pinchart
+  my only concern is i should fill proper values to v4l2_pix_format structure.
+
+  Thank you.
+
+Regards,
+vedan
+
+>
+>  Daniel
+>
 
 --
 video4linux-list mailing list
