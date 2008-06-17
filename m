@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.181])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bvidinli@gmail.com>) id 1K6u0B-0003pg-Cr
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 23:06:38 +0200
-Received: by py-out-1112.google.com with SMTP id a29so1505041pyi.0
-	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 14:06:30 -0700 (PDT)
-Message-ID: <36e8a7020806121406k693e93e2l49048f5d0d15eb5e@mail.gmail.com>
-Date: Fri, 13 Jun 2008 00:06:29 +0300
-From: bvidinli <bvidinli@gmail.com>
-To: "Martin Pitt" <martin.pitt@ubuntu.com>,
-	"Matthias Schwarzott" <zzam@gentoo.org>, linux-dvb@linuxtv.org
-In-Reply-To: <36e8a7020806121403q6295bc86q234e008daf9ebadc@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_27493_25082963.1213304790189"
-References: <36e8a7020806121403q6295bc86q234e008daf9ebadc@mail.gmail.com>
-Subject: Re: [linux-dvb] Failure: Ubuntu users,
-	rejoyce!-Aver hybrid dvb-s+fm A700 - Ubuntu 8.04 - card=141
-	autodetect
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K8di1-00011A-LH
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 18:07:02 +0200
+Received: by ug-out-1314.google.com with SMTP id m3so633132uge.20
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 09:06:58 -0700 (PDT)
+Message-Id: <6CF9A586-AF45-4900-8BA4-3F537C1CB562@tvwhere.com>
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: mkrufky@linuxtv.org
+In-Reply-To: <4857D73D.8080709@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Tue, 17 Jun 2008 12:06:53 -0400
+References: <4857D73D.8080709@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [PATCH]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,201 +21,102 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_27493_25082963.1213304790189
-Content-Type: text/plain; charset=ISO-8859-9
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
 
-aSB1cGRhdGVkIGR2Yl91YnVudHUuc2ggc2NyaXB0IHRvIHJlZmxlY3QgenphbSdzIGxhdGVzdCBw
-YXRjaCBvZgpodHRwOi8vZGV2LmdlbnRvby5vcmcvfnp6YW0vZHZiL2E3MDBfZnVsbF8yMDA4MDYw
-NC5kaWZmCgoKMjAwOC82LzEzIGJ2aWRpbmxpIDxidmlkaW5saUBnbWFpbC5jb20+Ogo+IGFzIGkg
-c3RhdGVkIGJlZm9yZSwKPiBteSBjYXJkIGlzIGF2ZXIgaHlicmlkIGR2Yi1zICsgZm0gQTcwMAo+
-IHdoaWNoIGlzIGF1dG9kZXRlY3RlZCBieSB0aGlzIG5ldyBkcml2ZXIgb2YgdjRsLWR2YiBmb3Ig
-dWJ1bnR1Li4uCj4KPiBhdXRvbG9hZGVkIG1vZHVsZSBpcyBzYWE3MTM0LCBjYXJkIHR5cGU9MTQx
-Cj4gQ3VycmVudGx5IGRtZXNnIG91dHB1dCBpcyBiZWxvdywgYnV0IGkgYW0gdW5hYmxlIHRvIGV2
-ZW4gc2VlIGR2Ygo+IGRldmljZS9vciBkdmIgY2hhbm5lbCBsaXN0IGluIGthZmZlaW5lLCBrYWZm
-ZWluZSBzYXlzIG5vIGR2YiBkZXZpY2UKPiBhdmFpbGFibGUsCj4KPgo+IHByZXZpb3VzbHksIGkg
-aGFkIGJ1aWxkZWQgdjRsLWR2YiBpbiBteSB1YnVudHUgOC4wNCwgdGhlbiBwdXQgKi5rbwo+IGZp
-bGVzIHRvIHJlbGF0ZWQgcGxhY2VzIHdpdGggYSBzbWFsbCBzY3JpcHQgaSBtYWRlLCB3aGljaCBp
-IGF0dGFjaGVkCj4gaW4gdGhpcyBtYWlsLgo+IHdpdGggdGhhdCBzY3JpcHQgb3IgbWV0aG9kLCBp
-IHdhcyBhYmxlIHRvIHNlZSBkdmIgaW4ga2FmZmVpbmUsIGFuZCBpCj4gd2FzIGFibGUgdG8gc2Vl
-IGNoYW5uZWwgbGlzdCwgYnV0IG5vdCBhYmxlIHRvIHdhdGNoIGNoYW5uZWxzLi4uCj4KPiBpIHdv
-dWxkIGJlIGhhcHB5IGlmIHlvdSBmaXggdjRsIGRyaXZlciBpbnN0YWxsL2J1aWxkIG9uIHVidW50
-dSwgb3Igc2F5Cj4gdXMgYSB3YXkgb2YgdXNpbmcgb3VyIGR2YiBkZXZpY2VzLi4uCj4KPiBkbWVz
-ZyByZWxhdGVkIG91dHB1dDoKPiBbICAgNDkuNTUxNTkzXSBzYWE3MTMzWzBdOiBmb3VuZCBhdCAw
-MDAwOjAwOjE0LjAsIHJldjogMjA5LCBpcnE6IDEwLAo+IGxhdGVuY3k6IDMyLCBtbWlvOiAweGRl
-MDAzMDAwCj4gWyAgIDQ5LjU1MTYxMV0gc2FhNzEzM1swXTogc3Vic3lzdGVtOiAxNDYxOmE3YTIs
-IGJvYXJkOiBBdmVybWVkaWEKPiBEVkItUyBIeWJyaWQrRk0gQTcwMCBbY2FyZD0xNDEsYXV0b2Rl
-dGVjdGVkXQo+IFsgICA0OS41NTE2MzFdIHNhYTcxMzNbMF06IGJvYXJkIGluaXQ6IGdwaW8gaXMg
-MmYyMDAKPiBbICAgNDkuNTUxNjQyXSBzYWE3MTMzWzBdOiBBdmVybWVkaWEgRFZCLVMgSHlicmlk
-K0ZNIEE3MDA6IGh5YnJpZAo+IGFuYWxvZy9kdmIgY2FyZAo+IFsgICA0OS41NTE2NDhdIHNhYTcx
-MzNbMF06IFNvcnJ5LCBvbmx5IHRoZSBhbmFsb2cgaW5wdXRzIGFyZSBzdXBwb3J0ZWQgZm9yIG5v
-dy4KPiBbICAgNDkuOTM1OTM3XSBpcmRhX2luaXQoKQo+IFsgICA0OS45MzU5ODddIE5FVDogUmVn
-aXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMjMKPiBbICAgNTAuMjMxNzg3XSBzYWE3MTMzWzBdOiBp
-MmMgZWVwcm9tIDAwOiA2MSAxNCBhMiBhNyBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZm
-IGZmIGZmCj4gWyAgIDUwLjIzMTgxN10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSAxMDogZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE4
-NDBdIHNhYTcxMzNbMF06IGkyYyBlZXByb20gMjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZm
-Cj4gZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMxODY0XSBzYWE3MTMzWzBdOiBpMmMg
-ZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZm
-IGZmCj4gWyAgIDUwLjIzMTg4N10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA0MDogZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE5MDld
-IHNhYTcxMzNbMF06IGkyYyBlZXByb20gNTA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4g
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMxOTMyXSBzYWE3MTMzWzBdOiBpMmMgZWVw
-cm9tIDYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZm
-Cj4gWyAgIDUwLjIzMTk1NV0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSA3MDogZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzE5NzhdIHNh
-YTcxMzNbMF06IGkyYyBlZXByb20gODA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMDAxXSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
-IDkwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4g
-WyAgIDUwLjIzMjAyM10gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBhMDogZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzIwNDZdIHNhYTcx
-MzNbMF06IGkyYyBlZXByb20gYjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMDY5XSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMw
-OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gWyAg
-IDUwLjIzMjA5Ml0gc2FhNzEzM1swXTogaTJjIGVlcHJvbSBkMDogZmYgZmYgZmYgZmYgZmYgZmYg
-ZmYgZmYgZmYKPiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IFsgICA1MC4yMzIxMTRdIHNhYTcxMzNb
-MF06IGkyYyBlZXByb20gZTA6IDAwIDAxIDgxIGFmIGZlIGY2IGZmIGZmIGZmCj4gZmYgZmYgZmYg
-ZmYgZmYgZmYgZmYKPiBbICAgNTAuMjMyMTM3XSBzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGYwOiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgo+IGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gWyAgIDUw
-LjI5NjA2Ml0gc2FhNzEzM1swXTogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIFt2NGwyXQo+IFsg
-ICA1MC4yOTYxNDhdIHNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKPiBbICAgNTAu
-Mjk2Mzc1XSB2aWEtaXJjYzogZG9uZ2xlIHByb2Jpbmcgbm90IHN1cHBvcnRlZCwgcGxlYXNlIHNw
-ZWNpZnkKPiBkb25nbGVfaWQgbW9kdWxlIHBhcmFtZXRlci4KPiBbICAgNTAuMjk3MjY2XSBJckRB
-OiBSZWdpc3RlcmVkIGRldmljZSBpcmRhMCAodmlhLWlyY2MpCj4gWyAgIDUxLjQyODQwOV0gc2Fh
-NzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3MTM0X3R2
-YXVkaW9fc2V0bXV0ZQo+IFsgICA1MS40Mjg0MjhdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1i
-b2wgc2FhNzEzNF90dmF1ZGlvX3NldG11dGUKPiBbICAgNTEuNDI4ODI5XSBzYWE3MTM0X2Fsc2E6
-IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbCBzYWFfZHNwX3dyaXRlbAo+IFsgICA1
-MS40Mjg4MzhdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhX2RzcF93cml0ZWwKPiBb
-ICAgNTEuNDI5MzQ0XSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5
-bWJvbCB2aWRlb2J1Zl9kbWFfZnJlZQo+IFsgICA1MS40MjkzNTJdIHNhYTcxMzRfYWxzYTogVW5r
-bm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2ZyZWUKPiBbICAgNTEuNDI5ODYyXSBzYWE3MTM0X2Fs
-c2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbAo+IHNhYTcxMzRfcGd0YWJsZV9h
-bGxvYwo+IFsgICA1MS40Mjk4NzFdIHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEz
-NF9wZ3RhYmxlX2FsbG9jCj4gWyAgIDUxLjQzMDAxOF0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMg
-YWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3MTM0X3BndGFibGVfYnVpbGQKPiBbICAgNTEu
-NDMwMDI3XSBzYWE3MTM0X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfcGd0YWJsZV9idWls
-ZAo+IFsgICA1MS40MzAxNTRdIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24g
-b2Ygc3ltYm9sCj4gc2FhNzEzNF9wZ3RhYmxlX2ZyZWUKPiBbICAgNTEuNDMwMTYzXSBzYWE3MTM0
-X2Fsc2E6IFVua25vd24gc3ltYm9sIHNhYTcxMzRfcGd0YWJsZV9mcmVlCj4gWyAgIDUxLjQzMDI5
-MV0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wKPiBzYWE3
-MTM0X2RtYXNvdW5kX2luaXQKPiBbICAgNTEuNDMwMzAwXSBzYWE3MTM0X2Fsc2E6IFVua25vd24g
-c3ltYm9sIHNhYTcxMzRfZG1hc291bmRfaW5pdAo+IFsgICA1MS40MzA2NzldIHNhYTcxMzRfYWxz
-YTogZGlzYWdyZWVzIGFib3V0IHZlcnNpb24gb2Ygc3ltYm9sCj4gc2FhNzEzNF9kbWFzb3VuZF9l
-eGl0Cj4gWyAgIDUxLjQzMDY4OF0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0
-X2RtYXNvdW5kX2V4aXQKPiBbICAgNTEuNDMwOTcyXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBh
-Ym91dCB2ZXJzaW9uIG9mIHN5bWJvbCB2aWRlb2J1Zl9kbWFfaW5pdAo+IFsgICA1MS40MzA5ODFd
-IHNhYTcxMzRfYWxzYTogVW5rbm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2luaXQKPiBbICAgNTEu
-NDMxMzkxXSBzYWE3MTM0X2Fsc2E6IGRpc2FncmVlcyBhYm91dCB2ZXJzaW9uIG9mIHN5bWJvbAo+
-IHZpZGVvYnVmX2RtYV9pbml0X2tlcm5lbAo+IFsgICA1MS40MzE0MDFdIHNhYTcxMzRfYWxzYTog
-VW5rbm93biBzeW1ib2wgdmlkZW9idWZfZG1hX2luaXRfa2VybmVsCj4gWyAgIDUxLjQzMTg0OF0g
-c2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9wY2lfZG1hX3VubWFwCj4gWyAg
-IDUxLjQzMjI5MV0gc2FhNzEzNF9hbHNhOiBVbmtub3duIHN5bWJvbCB2aWRlb2J1Zl9wY2lfZG1h
-X21hcAo+IFsgICA1MS40MzI0NThdIHNhYTcxMzRfYWxzYTogZGlzYWdyZWVzIGFib3V0IHZlcnNp
-b24gb2Ygc3ltYm9sCj4gc2FhNzEzNF9zZXRfZG1hYml0cwo+IFsgICA1MS40MzI0NjddIHNhYTcx
-MzRfYWxzYTogVW5rbm93biBzeW1ib2wgc2FhNzEzNF9zZXRfZG1hYml0cwo+Cj4KPiAyMDA4LzYv
-MTEgTWFydGluIFBpdHQgPG1hcnRpbi5waXR0QHVidW50dS5jb20+Ogo+PiBIaSwKPj4KPj4gYnZp
-ZGlubGkgWzIwMDgtMDYtMTEgMTM6NDIgKzAzMDBdOgo+Pj4gWyAgIDQ4LjY1NTU1OV0gc2FhNzEz
-NF9hbHNhOiBVbmtub3duIHN5bWJvbCBzYWE3MTM0X3R2YXVkaW9fc2V0bXV0ZQo+Pj4gWyAgIDQ4
-LjY1NTk1OV0gc2FhNzEzNF9hbHNhOiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wg
-c2FhX2RzcF93cml0ZWwKPj4KPj4gQWgsIEFGQUlLIGxpbnV4LXVidW50dS1tb2R1bGVzIHNoaXBz
-IGEgbmV3ZXIgdmVyc2lvbiBvZiBBTFNBIHRoYW4gdGhlCj4+IGxpbnV4IGtlcm5lbCBpdHNlbGYu
-IFVidW50dSBzaGlwcyB0aGUgaGVhZGVycyBmb3IgdGhvc2UgYXMgd2VsbAo+PiAobGludXgtaGVh
-ZGVycy1sdW0tMi42LjI0LTE5LWdlbmVyaWMsIG9yCj4+IGxpbnV4LWhlYWRlcnMtbHVtLTIuNi4y
-NC0xOC1nZW5lcmljIGlmIHlvdSBkb24ndCBydW4gaGFyZHktcHJvcG9zZWQpLgo+PiBUaHVzIHY0
-bC1kdmIgbmVlZHMgdG8gYmUgYnVpbHQgYWdhaW5zdCB0aG9zZSBoZWFkZXJzLgo+Pgo+PiBIb3dl
-dmVyLCBtZXJlbHkgaW5zdGFsbGluZyB0aGUgcGFja2FnZSB3b24ndCBtYWdpY2FsbHkgbWFrZSB0
-aGVtIHVzZWQKPj4gYnkgdGhlIGJ1aWxkLiBNYXliZSBpdCBoZWxwcyB0byBwYXNzCj4+IEVYVFJB
-X0NGTEFHUz0iLUkgL3Vzci9zcmMvbGludXgtaGVhZGVycy1sdW0tMi42LjI0LTE5LWdlbmVyaWMi
-IChvcgo+PiAtMTgsIHJlc3BlY3RpdmVseSkgdG8gdGhlIE1BS0VbMF0gY29tbWFuZCBpbgo+PiAv
-dXNyL3NyYy92NGwtZHZiLTAuMjAwODA2MTAvZGttcy5jb25mPyBJZiB0aGF0IGhlbHBzLCBJIGNh
-biBnZW5lcmFsaXplCj4+IGl0Lgo+Pgo+PiBBbHNvL0FsdGVybmF0aXZlbHksIGlmIHlvdSBjYW4g
-dGVsbCBtZSB3aGljaCBtb2R1bGUgeW91IHRyaWVkIHRvIGxvYWQKPj4gZm9yIHlvdXIgY2FyZCwg
-dGhlbiBJIGNhbiB0cnkgdG8gcmVwcm9kdWNlIGl0IGxvY2FsbHkuCj4+Cj4+IFRoYW5rcywKPj4K
-Pj4gTWFydGluCj4+Cj4+IC0tCj4+IE1hcnRpbiBQaXR0ICAgICAgICAgICAgICAgICAgICAgICAg
-fCBodHRwOi8vd3d3LnBpd2FyZS5kZQo+PiBVYnVudHUgRGV2ZWxvcGVyICh3d3cudWJ1bnR1LmNv
-bSkgIHwgRGViaWFuIERldmVsb3BlciAgKHd3dy5kZWJpYW4ub3JnKQo+Pgo+Cj4KPgo+IC0tCj4g
-3S5CYWhhdHRpbiBWaWRpbmxpCj4gRWxrLUVsZWt0cm9uaWsgTfxoLgo+IC0tLS0tLS0tLS0tLS0t
-LS0tLS0KPiBpbGV0aXNpbSBiaWxnaWxlcmkgKFRlcmNpaCBzaXJhc2luYSBnb3JlKToKPiBza3lw
-ZTogYnZpZGlubGkgKHNlc2xpIGdvcnVzbWUgaWNpbiwgd3d3LnNreXBlLmNvbSkKPiBtc246IGJ2
-aWRpbmxpQGl5aWJpcmlzaS5jb20KPiB5YWhvbzogYnZpZGlubGkKPgo+ICs5MC41MzIuNzk5MDYw
-Nwo+ICs5MC41MDUuNTY2NzcxMQo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4
-dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8v
-bGludXgtZHZiCj4KCgoKLS0gCt0uQmFoYXR0aW4gVmlkaW5saQpFbGstRWxla3Ryb25payBN/Ggu
-Ci0tLS0tLS0tLS0tLS0tLS0tLS0KaWxldGlzaW0gYmlsZ2lsZXJpIChUZXJjaWggc2lyYXNpbmEg
-Z29yZSk6CnNreXBlOiBidmlkaW5saSAoc2VzbGkgZ29ydXNtZSBpY2luLCB3d3cuc2t5cGUuY29t
-KQptc246IGJ2aWRpbmxpQGl5aWJpcmlzaS5jb20KeWFob286IGJ2aWRpbmxpCgorOTAuNTMyLjc5
-OTA2MDcKKzkwLjUwNS41NjY3NzExCg==
-------=_Part_27493_25082963.1213304790189
-Content-Type: application/x-sh; name=dvb_ubuntu.sh
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fhdubiet1
-Content-Disposition: attachment; filename=dvb_ubuntu.sh
+On Jun 17, 2008, at 11:24 AM, mkrufky@linuxtv.org wrote:
 
-IyEvYmluL2Jhc2gKZWNobyAiaSBtdXN0IHJ1biB0aGlzIGFzIG5vcm1hbCB1c2VyLi4uIHByZXNz
-IGVudGVyIHRvIGNvbnRpbnVlIgpyZWFkCgpjZApybSAtcnZmIHY0bC1kdmIKCiNpbnN0YWxsIG1l
-cmN1cmlhbCwgZ2V0IHY0bCBmaWxlcywgcGF0Y2ggYW5kIGNvbXBpbGUsCnN1ZG8gYXB0LWdldCBp
-bnN0YWxsIG1lcmN1cmlhbCBsaW51eC1oZWFkZXJzLSQodW5hbWUgLXIpIGJ1aWxkLWVzc2VudGlh
-bApoZyBjbG9uZSBodHRwOi8vbGludXh0di5vcmcvaGcvdjRsLWR2Ygp3Z2V0IGh0dHA6Ly9kZXYu
-Z2VudG9vLm9yZy9+enphbS9kdmIvYTcwMF9mdWxsXzIwMDgwNjA0LmRpZmYKY2Qgfi92NGwtZHZi
-LwpwYXRjaCAtcDEgPCAuLi9hNzAwX2Z1bGxfMjAwODA1MTkuZGlmZgptYWtlCgoKIyBmaXJzdCwg
-YmFja3VwIGFsbCBpbiBjYXNlIHdlIG5lZWQgdGhlbS4uLiAKY2QgL2xpYi9tb2R1bGVzL2B1bmFt
-ZSAtcmAva2VybmVsL2RyaXZlcnMvCnN1ZG8gY3AgLXJ2ZiBtZWRpYSAvcm9vdC9iYWNrdXAvbWVk
-aWEuYmNrCgpjZCAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEKc3VkbyBjcCAt
-cnZmIHNhYTcxMzQgL3Jvb3QvYmFja3VwL3NhYTcxMzQuYmNrCgojIGdvdG8gd2hlcmUgeW91IGdv
-dCB5b3VyIHY0bCBmaWxlcyBieSBoZwpjZCB+L3Y0bC1kdmIvdjRsCnN1ZG8gY3AgLWYgaXItY29t
-bW9uLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1v
-bi8Kc3VkbyBjcCAtZiBzYWE3MTQ2LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9k
-cml2ZXJzL21lZGlhL2NvbW1vbi8Kc3VkbyBjcCAtZiBzYWE3MTQ2X3Z2LmtvIC9saWIvbW9kdWxl
-cy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1vbi8KCnN1ZG8gY3AgLWYgZHZi
-LWNvcmUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvZHZi
-L2R2Yi1jb3JlLwoKCnN1ZG8gY3AgLWYgc2FhNjc1MmhzLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
-LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvCnN1ZG8gY3AgLWYgc2FhNzEz
-NC1kdmIua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBzYWE3MTM0LWVtcHJlc3Mua28gL2xpYi9tb2R1bGVzL2B1
-bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBz
-YWE3MTM0LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3Zp
-ZGVvL3NhYTcxMzQvCgpzdWRvIGNwIC1mIGN4MjM4ODUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAt
-cmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS8Kc3VkbyBjcCAtZiBjeDI1ODQw
-LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
-MjU4NDAvCgpzdWRvIGNwIC1mIGN4ODgtYmxhY2tiaXJkLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
-LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvCnN1ZG8gY3AgLWYgY3g4OC1kdmIu
-a28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
-OC8Kc3VkbyBjcCAtZiBjeDg4LXZwMzA1NC1pMmMua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAv
-a2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4eHgua28gL2xp
-Yi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3Vk
-byBjcCAtZiBjeDg4MDAua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4MDIua28gL2xpYi9tb2R1bGVzL2B1bmFt
-ZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8KCiMgcmVtb3ZlIHVidW50dS1z
-cGVjaWZpYyBtb2R1bGVzLCB3aGljaCBhcmUgbG9hZGVkIGJ5IGRlZmF1bHQgYnkgdWJ1bnR1LCAK
-IyBpIGZvdW5kIHRoaXMgaW5mbyBvbiBodHRwczovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUv
-K3NvdXJjZS9saW51eC11YnVudHUtbW9kdWxlcy0yLjYuMjQvK2J1Zy8yMjA4NTcKIyBkaXJlY3Qg
-bGluayB0byBpbmZvIDogaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQvdWJ1bnR1Lytzb3VyY2Uv
-bGludXgtdWJ1bnR1LW1vZHVsZXMtMi42LjI0LytidWcvMjIwODU3L2NvbW1lbnRzLzkKCnN1ZG8g
-cm0gLXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9jeDg4CnN1ZG8gcm0g
-LXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9zYWE3MTM0CgoKCnVuYW1l
-PWB1bmFtZSAtcmAKZWNobyAicmVwbGFjaW5nIGFsbCBmaWxlcyBpbiAvbGliL21vZHVsZXMvJHVu
-YW1lL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvLyoua28gZnJvbSBuZXcgY29tcGlsZWQgb25l
-cy4uLiAiCmZvciBpIGluIGBscyAvbGliL21vZHVsZXMvJHVuYW1lL2tlcm5lbC9kcml2ZXJzL21l
-ZGlhL3ZpZGVvLyoua29gIDsgZG8gaT1gZWNobyAkaSB8IGF3ayAtRiAiLyIgJ3twcmludCAkTkZ9
-J2A7IHN1ZG8gY3AgLXZmICRpIC9saWIvbW9kdWxlcy8kdW5hbWUva2VybmVsL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vIDsgZG9uZQoKIyByZW1vdmUgYW5kIHJlaW5zdGFsbCBtb2R1bGVzCnN1ZG8gcm1t
-b2Qgc2FhNzEzNF9hbHNhIHNhYTcxMzQKc3VkbyBkZXBtb2QgLWEKc3VkbyBtb2Rwcm9iZSBzYWE3
-MTM0IGkyY19zY2FuPTEKCgoKCgo=
-------=_Part_27493_25082963.1213304790189
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Brandon Jenkins wrote:
+>>
+>> On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
+>>
+>>> Brandon Jenkins wrote:
+>>> Brandon,
+>>>
+>>> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
+>>> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner  
+>>> dependency
+>>> selections.  Please note the description of this option:
+>>>
+>>> menuconfig MEDIA_TUNER_CUSTOMIZE
+>>>       bool "Customize analog and hybrid tuner modules to build"
+>>>       depends on MEDIA_TUNER
+>>>       help
+>>>         This allows the user to deselect tuner drivers unnecessary
+>>>         for their hardware from the build. Use this option with care
+>>>         as deselecting tuner drivers which are in fact necessary  
+>>> will
+>>>         result in V4L/DVB devices which cannot be tuned due to  
+>>> lack of
+>>>         driver support
+>>>
+>>>         If unsure say N.
+>>>
+>>>
+>>> We allow users to disable certain modules if they think they know
+>>> better, and choose to compile out drivers that they don't need.  You
+>>> should not have disabled tuner-simple -- to play it safe, don't  
+>>> enable
+>>> MEDIA_TUNER_CUSTOMIZE
+>>>
+>>> Regards,
+>>>
+>>> Mike
+>>>
+>>>
+>> Mike,
+>>
+>> Thank you. I understand the impact my choice makes in that matter.
+>> However, all of the other modules required for cx18 to function are
+>> marked in the lists as -M- indicating it is a required module/module
+>> dependency. I apologize for my ignorance of terminology, etc., but it
+>> would seem to me that "Simple tuner support" should automatically  
+>> have
+>> the -M- as a required resource for the tuner to function correctly.
+>>
+>> Thank you for your time in responding.
+>>
+>> Brandon
+> No -- You are misunderstanding -- The selection of the tuner.ko i2c
+> client module is forced as -M- , since it is selected as a dependency.
+> You then proceeded into a deeper layer of customization, and enabled
+> "MEDIA_TUNER_CUSTOMIZE" -- this option allows you to disable tuner
+> modules that should have otherwise been autoselected for your  
+> hardware.
+> I repeat -- this is an advanced customization option, and you have  
+> been
+> so warned by its Kconfig description.
+>
+> I am pushing up a patch now that disables MEDIA_TUNER_CUSTOMIZE by  
+> default.
+>
+> -Mike
+Mike,
+
+That doesn't solve the problem. I believe the patch below, will.
+
+Brandon
+
+diff -r 50be11af3fdb linux/drivers/media/video/cx18/Kconfig
+--- a/linux/drivers/media/video/cx18/Kconfig	Mon Jun 16 18:04:06 2008  
+-0300
++++ b/linux/drivers/media/video/cx18/Kconfig	Tue Jun 17 12:02:03 2008  
+-0400
+@@ -12,6 +12,7 @@ config VIDEO_CX18
+  	select VIDEO_CS5345
+  	select DVB_S5H1409
+  	select MEDIA_TUNER_MXL5005S
++	select MEDIA_TUNER_SIMPLE
+  	---help---
+  	  This is a video4linux driver for Conexant cx23418 based
+  	  PCI combo video recorder devices.
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_27493_25082963.1213304790189--
