@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.elion.ee ([88.196.160.58] helo=mail1.elion.ee)
+Received: from moscou.magic.fr ([62.210.158.41])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artlov@gmail.com>) id 1K5edP-0007y7-A0
-	for linux-dvb@linuxtv.org; Mon, 09 Jun 2008 12:29:58 +0200
-Message-ID: <484D0601.5070302@gmail.com>
-Date: Mon, 9 Jun 2008 13:29:21 +0300
-From: Arthur Konovalov <artlov@gmail.com>
+	(envelope-from <aconrad.tlv@magic.fr>) id 1K8WmT-0004m4-VW
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 10:43:10 +0200
+Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
+	by moscou.magic.fr (8.13.1/8.13.1) with ESMTP id m5H8h0oK015123
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 10:43:01 +0200
+Message-ID: <4857789F.1090000@magic.fr>
+Date: Tue, 17 Jun 2008 10:41:03 +0200
+From: Alexandre Conrad <aconrad.tlv@magic.fr>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <1212585271.32385.41.camel@pascal>	<1212590233.15236.11.camel@rommel.snap.tv>	<1212657011.32385.53.camel@pascal>	<200806081738.20609@orion.escape-edv.de>
-	<484CBDF3.90806@gmail.com> <1213005656.1043.10.camel@pascal>
-In-Reply-To: <1213005656.1043.10.camel@pascal>
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+To: dvb mailing list <linux-dvb@linuxtv.org>
+References: <485646D3.6040201@magic.fr> <48569D96.5050209@magic.fr>
+	<485773B6.4000700@magic.fr> <200806171033.41567.bumkunjo@gmx.de>
+In-Reply-To: <200806171033.41567.bumkunjo@gmx.de>
+Subject: Re: [linux-dvb] SkyStar 2 - rev 2.8A
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,21 +28,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sigmund Augdal wrote:
+>>I've seen this card and it seems to be supported by the DVB linux
+>>kernel. Any experience with this card?
+>>
+>>http://www.dvbshop.net/product_info.php/info/p179_Technotrend-Budget-PCI-CI
+>>--for-Budget-Nova-Serie---V-1-0A.html
+>>
+>>For reminder, that would be a replacement card for the SkyStar2 2.8A we
+>>have recieved and which doesn't work under linux (yet).
 
-> This i was only to get the patch to apply, because the context had
-> changed slightly (because of the definitions for the s2 cards), right?
-You're right.
-Code not changed, in principle. Changes needed only for compile with multiproto 
-due dvbs2 additions.
+I've been pointed out that this is a CI only - not a DVB card. :)
 
-> This line is, to the best of what I can see not added by my patch,
-> neither in my version, or the version you provided for the multiproto
-> tree.
-You're right again. Sorry for misunderstanding.
+So I guess that would be the appropriate DVB card.
+http://www.dvbshop.net/product_info.php/info/p53_Technotrend-Budget-S-1500-incl--remote.html
 
 Regards,
-AK
+-- 
+Alexandre CONRAD
 
 
 _______________________________________________
