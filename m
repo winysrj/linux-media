@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate02.web.de ([217.72.192.227])
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <SiestaGomez@web.de>) id 1KAOGE-0000XY-8r
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 14:01:35 +0200
-Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
-	by fmmailgate02.web.de (Postfix) with ESMTP id 19BA3E2BD33E
-	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 14:01:01 +0200 (CEST)
-Received: from [88.152.136.212] (helo=midian.waldorf.intern)
-	by smtp06.web.de with asmtp (WEB.DE 4.109 #226) id 1KAOFg-0006Jz-00
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 14:01:00 +0200
-Date: Sun, 22 Jun 2008 14:01:00 +0200
-From: SG <SiestaGomez@web.de>
-To: linux-dvb@linuxtv.org
-Message-Id: <20080622140100.f841c5a2.SiestaGomez@web.de>
-In-Reply-To: <200806221035.50028.l.lacher@abian.de>
-References: <200806220300.51879.l.lacher@abian.de> <485DB191.9090907@to-st.de>
-	<200806221035.50028.l.lacher@abian.de>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p"
-Subject: Re: [linux-dvb] dvb_usb_dib0700 and Remote Control DSR-0112
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K8e5i-000343-6I
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 18:31:33 +0200
+Received: by ug-out-1314.google.com with SMTP id m3so638871uge.20
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 09:31:26 -0700 (PDT)
+Message-Id: <87404417-9637-4DA2-A6CD-4B2469C52D72@tvwhere.com>
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: mkrufky@linuxtv.org
+In-Reply-To: <4857E384.1000200@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Tue, 17 Jun 2008 12:31:22 -0400
+References: <4857E384.1000200@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [PATCH]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,173 +21,169 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
 
---Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+On Jun 17, 2008, at 12:17 PM, mkrufky@linuxtv.org wrote:
 
-Hi,
+> Brandon Jenkins wrote:
+>>
+>> On Jun 17, 2008, at 11:24 AM, mkrufky@linuxtv.org wrote:
+>>
+>>> Brandon Jenkins wrote:
+>>>>
+>>>> On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
+>>>>
+>>>>> Brandon Jenkins wrote:
+>>>>> Brandon,
+>>>>>
+>>>>> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
+>>>>> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner
+>>>>> dependency
+>>>>> selections.  Please note the description of this option:
+>>>>>
+>>>>> menuconfig MEDIA_TUNER_CUSTOMIZE
+>>>>>      bool "Customize analog and hybrid tuner modules to build"
+>>>>>      depends on MEDIA_TUNER
+>>>>>      help
+>>>>>        This allows the user to deselect tuner drivers unnecessary
+>>>>>        for their hardware from the build. Use this option with  
+>>>>> care
+>>>>>        as deselecting tuner drivers which are in fact necessary  
+>>>>> will
+>>>>>        result in V4L/DVB devices which cannot be tuned due to  
+>>>>> lack of
+>>>>>        driver support
+>>>>>
+>>>>>        If unsure say N.
+>>>>>
+>>>>>
+>>>>> We allow users to disable certain modules if they think they know
+>>>>> better, and choose to compile out drivers that they don't need.   
+>>>>> You
+>>>>> should not have disabled tuner-simple -- to play it safe, don't  
+>>>>> enable
+>>>>> MEDIA_TUNER_CUSTOMIZE
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>> Mike
+>>>>>
+>>>>>
+>>>> Mike,
+>>>>
+>>>> Thank you. I understand the impact my choice makes in that matter.
+>>>> However, all of the other modules required for cx18 to function are
+>>>> marked in the lists as -M- indicating it is a required module/ 
+>>>> module
+>>>> dependency. I apologize for my ignorance of terminology, etc.,  
+>>>> but it
+>>>> would seem to me that "Simple tuner support" should automatically  
+>>>> have
+>>>> the -M- as a required resource for the tuner to function correctly.
+>>>>
+>>>> Thank you for your time in responding.
+>>>>
+>>>> Brandon
+>>> No -- You are misunderstanding -- The selection of the tuner.ko i2c
+>>> client module is forced as -M- , since it is selected as a  
+>>> dependency.
+>>> You then proceeded into a deeper layer of customization, and enabled
+>>> "MEDIA_TUNER_CUSTOMIZE" -- this option allows you to disable tuner
+>>> modules that should have otherwise been autoselected for your  
+>>> hardware.
+>>> I repeat -- this is an advanced customization option, and you have  
+>>> been
+>>> so warned by its Kconfig description.
+>>>
+>>> I am pushing up a patch now that disables MEDIA_TUNER_CUSTOMIZE by
+>>> default.
+>>>
+>>> -Mike
+>> Mike,
+>>
+>> That doesn't solve the problem. I believe the patch below, will.
+>>
+>> Brandon
+>>
+>> diff -r 50be11af3fdb linux/drivers/media/video/cx18/Kconfig
+>> --- a/linux/drivers/media/video/cx18/Kconfig    Mon Jun 16 18:04:06
+>> 2008 -0300
+>> +++ b/linux/drivers/media/video/cx18/Kconfig    Tue Jun 17 12:02:03
+>> 2008 -0400
+>> @@ -12,6 +12,7 @@ config VIDEO_CX18
+>>     select VIDEO_CS5345
+>>     select DVB_S5H1409
+>>     select MEDIA_TUNER_MXL5005S
+>> +    select MEDIA_TUNER_SIMPLE
+>>     ---help---
+>>       This is a video4linux driver for Conexant cx23418 based
+>>       PCI combo video recorder devices.
+>>
+> Brandon,
+>
+> Thank you for this, but this patch will not be merged.  I explained in
+> the quoted email, above, that you have invoked a deeper layer of
+> customization that allows us to disable tuner modules, regardless of
+> your actual hardware.
+>
+> This option was designed for the sake of larger drivers, such as  
+> cx88 or
+> saa7134, who may use many different tuners depending on the actual  
+> board
+> present.  In the future, there may eventually be a cx18 board that  
+> does
+> not use tuner-simple.  This option allows users to disable tuner- 
+> simple
+> from building.  The default behavior is to automatically select the
+> tuner driver needed for your hardware, but when you enable
+> MEDIA_TUNER_CUSTOMIZE, this autoselection is turned off.  This is the
+> correct behavior.
+>
+> I repeat again that this Kconfig option provides a warning to the user
+> that this should be enabled at your own risk, only.
+>
+> "Use this option with care as deselecting tuner drivers which are in
+> fact necessary will result in V4L/DVB devices which cannot be tuned  
+> due
+> to lack of driver support."
+>
+> Do not enable MEDIA_TUNER_CUSTOMIZE unless you know what you're doing.
+>
+> End of story.
+>
+> -Mike
+>
+>
+Mike,
 
-its better to always use directly the
-/dev/input/by-path/pci-2-1--event-ir 
-device because the event interface could change the next time you plug it in
-or when using another new input device.
+I don't mean to continue this debate, but if you say this is working  
+as designed I will leave it alone and move on. All other tuner modules  
+(the max linear) which are required by the cx18 to function are still  
+indeed -M- in the menuconfig view. Once I added the patch above Simple  
+tuner also became -M- indicating it was required by a selected board.  
+If Simple tuner is required for the card to function, it should be  
+automatically selected as are all the other tuner modules the card  
+requires.
 
-The get the remote work you need to apply the attached patch.
-Also attached you find a lirc config which works fine here.
+AFAIK - The only way to deselect a required tuner module is to  
+deselect the card it supports.
 
-Best regards,
-Martin
+Your message seems more about the principle of customizing which  
+modules are built, while I am trying to save further troubleshooting  
+by requiring the modules for my particular card to be automatically  
+selected if someone selects the card. I see the two as separate items.  
+If it is not appropriate to use the select TUNER in the Kconfig, whay  
+is the MaxlLinear in there?
 
+Brandon
 
-On Sun, 22 Jun 2008 10:35:49 +0200
-Lutz Lacher <l.lacher@abian.de> wrote:
-
-> Hi Tobias,
-> 
-> > So, sticks IR receiver is reported as /class/input/input21 and you are
-> > trying to use irrecord on /dev/input/event9? Does not fit together, you
-> > should try irrecord on /dev/input/input21 instead! (just my personal
-> > opinion ;)
-> >
-> i don't have an /dev/input/input21, and if i understood the web page 
-> correctly, it's always the same device. It says:
-> 
-> But Linux systems runing recent udev will automatically create non-varying 
-> names, a nicer and automatic way of providing a stable input event name:
-> 
-> ls -l /dev/input/by-path on my system
-> lrwxrwxrwx 1 root root 9 2008-06-22 09:56 pci-2-1--event-ir -> ../event9
-> 
-> which disappears if i plug out the stick and reappears if i plug it in again.
-> eg. now it's reported as:
-> kernel: input: IR-receiver inside an USB DVB receiver as /class/input/input11
-> 
-> Best regards, Lutz
-> 
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
---Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p
-Content-Type: text/x-diff;
- name="dib0700_devices_ir_DSR-0112.diff"
-Content-Disposition: attachment;
- filename="dib0700_devices_ir_DSR-0112.diff"
-Content-Transfer-Encoding: 7bit
-
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-06-15 17:12:38.000000000 +0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-06-08 18:33:22.000000000 +0200
-@@ -601,7 +601,42 @@
- 	{ 0xeb, 0x54, KEY_PREVIOUS },
- 	{ 0xeb, 0x58, KEY_RECORD },
- 	{ 0xeb, 0x5c, KEY_NEXT },
--
-+	/* Key codes for the Haupauge NOVA USB-Stick */
-+	{ 0x1d, 0x1f, KEY_BACK },
-+	{ 0x1d, 0x14, KEY_UP },
-+	{ 0x1d, 0x1c, KEY_RADIO },
-+	{ 0x1d, 0x3b, KEY_HOME },
-+	{ 0x1d, 0x3D, KEY_POWER },
-+	{ 0x1d, 0x16, KEY_LEFT },
-+	{ 0x1d, 0x25, KEY_OK },
-+	{ 0x1d, 0x17, KEY_RIGHT },
-+	{ 0x1d, 0x24, KEY_PREVIOUS },
-+	{ 0x1d, 0x1E, KEY_NEXT },
-+	{ 0x1d, 0x37, KEY_RECORD },
-+	{ 0x1d, 0x15, KEY_DOWN },
-+	{ 0x1d, 0x36, KEY_STOP },
-+	{ 0x1d, 0x30, KEY_PAUSE },
-+	{ 0x1d, 0x35, KEY_PLAY },
-+	{ 0x1d, 0x00, KEY_0 },
-+	{ 0x1d, 0x01, KEY_1 },
-+	{ 0x1d, 0x02, KEY_2 },
-+	{ 0x1d, 0x03, KEY_3 },
-+	{ 0x1d, 0x04, KEY_4 },
-+	{ 0x1d, 0x05, KEY_5 },
-+	{ 0x1d, 0x06, KEY_6 },
-+	{ 0x1d, 0x07, KEY_7 },
-+	{ 0x1d, 0x08, KEY_8 },
-+	{ 0x1d, 0x09, KEY_9 },
-+	{ 0x1d, 0x32, KEY_REWIND },
-+	{ 0x1d, 0x34, KEY_FASTFORWARD },
-+	{ 0x1d, 0x20, KEY_CHANNELUP },
-+	{ 0x1d, 0x21, KEY_CHANNELDOWN },
-+	{ 0x1d, 0x10, KEY_VOLUMEUP },
-+	{ 0x1d, 0x11, KEY_VOLUMEDOWN },
-+	{ 0x1d, 0x0A, KEY_TEXT },
-+	{ 0x1d, 0x0D, KEY_MENU },
-+	{ 0x1d, 0x12, KEY_CHANNEL },
-+	{ 0x1d, 0x0F, KEY_MUTE },
- 	/* Key codes for the Haupauge WinTV Nova-TD, copied from nova-t-usb2.c (Nova-T USB2) */
- 	{ 0x1e, 0x00, KEY_0 },
- 	{ 0x1e, 0x01, KEY_1 },
-
---Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p
-Content-Type: application/octet-stream;
- name="dsr-0112.conf"
-Content-Disposition: attachment;
- filename="dsr-0112.conf"
-Content-Transfer-Encoding: base64
-
-CiMgUGxlYXNlIG1ha2UgdGhpcyBmaWxlIGF2YWlsYWJsZSB0byBvdGhlcnMKIyBieSBzZW5kaW5n
-IGl0IHRvIDxsaXJjQGJhcnRlbG11cy5kZT4KIwojIHRoaXMgY29uZmlnIGZpbGUgd2FzIGF1dG9t
-YXRpY2FsbHkgZ2VuZXJhdGVkCiMgdXNpbmcgbGlyYy0wLjguMihkZXYvaW5wdXQpIG9uIFN1biBK
-dW4gIDggMTg6Mzg6MDEgMjAwOAojCiMgY29udHJpYnV0ZWQgYnkgCiMKIyBicmFuZDogICAgICAg
-ICAgICBoYXVwcGF1Z2Ugbm92YSB1c2Igc3RpY2sgcmVtb3ZlCiMgbW9kZWwgbm8uIG9mIHJlbW90
-ZSBjb250cm9sOiBEU1ItMDExMgojIGRldmljZXMgYmVpbmcgY29udHJvbGxlZCBieSB0aGlzIHJl
-bW90ZToKIwoKYmVnaW4gcmVtb3RlCgogIG5hbWUgIGhhdXBwYXVnZQogYml0cyAgICAgICAgICAg
-MzIKICBlcHMgICAgICAgICAgICAzMAogIGFlcHMgICAgICAgICAgMTAwCgogIG9uZSAgICAgICAg
-ICAgICAwICAgICAwCiAgemVybyAgICAgICAgICAgIDAgICAgIDAKICBnYXAgICAgICAgICAgMjQ5
-ODA4CiAgdG9nZ2xlX2JpdCAgICAgIDEKCiAgICAgIGJlZ2luIGNvZGVzCiAgICAgICAgICBiYWNr
-ICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDA5RQogICAgICAgICAgdXAgICAgICAgICAgICAg
-ICAgICAgICAgIDB4MDAwMTAwNjcKICAgICAgICAgIHR2ICAgICAgICAgICAgICAgICAgICAgICAw
-eDAwMDEwMTgxCiAgICAgICAgICBob21lICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDA2Ngog
-ICAgICAgICAgcG93ZXIgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAwNzQKICAgICAgICAgIGxl
-ZnQgICAgICAgICAgICAgICAgICAgICAweDAwMDEwMDY5CiAgICAgICAgICBvayAgICAgICAgICAg
-ICAgICAgICAgICAgMHgwMDAxMDE2MAogICAgICAgICAgcmlnaHQgICAgICAgICAgICAgICAgICAg
-IDB4MDAwMTAwNkEKICAgICAgICAgIHByZXYgICAgICAgICAgICAgICAgICAgICAweDAwMDEwMTlD
-CiAgICAgICAgICBuZXh0ICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDE5NwogICAgICAgICAg
-cmVjICAgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAwQTcKICAgICAgICAgIGRvd24gICAgICAg
-ICAgICAgICAgICAgICAweDAwMDEwMDZDCiAgICAgICAgICBzdG9wICAgICAgICAgICAgICAgICAg
-ICAgMHgwMDAxMDA4MAogICAgICAgICAgcGF1c2UgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAw
-NzcKICAgICAgICAgIHBsYXkgICAgICAgICAgICAgICAgICAgICAweDAwMDEwMENGCiAgICAgICAg
-ICAxICAgICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDAwMgogICAgICAgICAgMiAgICAgICAg
-ICAgICAgICAgICAgICAgIDB4MDAwMTAwMDMKICAgICAgICAgIDMgICAgICAgICAgICAgICAgICAg
-ICAgICAweDAwMDEwMDA0CiAgICAgICAgICA0ICAgICAgICAgICAgICAgICAgICAgICAgMHgwMDAx
-MDAwNQogICAgICAgICAgNSAgICAgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAwMDYKICAgICAg
-ICAgIDYgICAgICAgICAgICAgICAgICAgICAgICAweDAwMDEwMDA3CiAgICAgICAgICA3ICAgICAg
-ICAgICAgICAgICAgICAgICAgMHgwMDAxMDAwOAogICAgICAgICAgOCAgICAgICAgICAgICAgICAg
-ICAgICAgIDB4MDAwMTAwMDkKICAgICAgICAgIDkgICAgICAgICAgICAgICAgICAgICAgICAweDAw
-MDEwMDBBCiAgICAgICAgICAwICAgICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDAwQgogICAg
-ICAgICAgdHh0ICAgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAxODQKICAgICAgICAgIG1lbnUg
-ICAgICAgICAgICAgICAgICAgICAweDAwMDEwMDhCCiAgICAgICAgICByZXcgICAgICAgICAgICAg
-ICAgICAgICAgMHgwMDAxMDBBOAogICAgICAgICAgZndkICAgICAgICAgICAgICAgICAgICAgIDB4
-MDAwMTAwRDAKICAgICAgICAgIGNoKyAgICAgICAgICAgICAgICAgICAgICAweDAwMDEwMTkyCiAg
-ICAgICAgICBjaC0gICAgICAgICAgICAgICAgICAgICAgMHgwMDAxMDE5MwogICAgICAgICAgdm9s
-KyAgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAwNzMKICAgICAgICAgIHZvbC0gICAgICAgICAg
-ICAgICAgICAgICAweDAwMDEwMDcyCiAgICAgICAgICBjaC1iYWNrICAgICAgICAgICAgICAgICAg
-MHgwMDAxMDE2QgogICAgICAgICAgbXV0ZSAgICAgICAgICAgICAgICAgICAgIDB4MDAwMTAwNzEK
-ICAgICAgZW5kIGNvZGVzCgplbmQgcmVtb3RlCgoK
-
---Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Multipart=_Sun__22_Jun_2008_14_01_00_+0200_RTOje3i5afPg3c9p--
