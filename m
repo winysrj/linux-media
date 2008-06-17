@@ -1,22 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from core.devicen.de ([62.159.186.206])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <l.lacher@abian.de>) id 1KAL49-0002mB-TH
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 10:36:57 +0200
-Received: from [10.71.67.13] ([10.71.67.13])
-	by core.devicen.de (8.13.1/8.13.1/DEVICE/N GmbH 20070903) with ESMTP id
-	m5M8ZsGT011039
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 10:35:55 +0200
-From: Lutz Lacher <l.lacher@abian.de>
-To: linux-dvb@linuxtv.org
-Date: Sun, 22 Jun 2008 10:35:49 +0200
-References: <200806220300.51879.l.lacher@abian.de> <485DB191.9090907@to-st.de>
-In-Reply-To: <485DB191.9090907@to-st.de>
+Message-ID: <4857E384.1000200@linuxtv.org>
+From: mkrufky@linuxtv.org
+To: bcjenkins@tvwhere.com
+Date: Tue, 17 Jun 2008 12:17:08 -0400
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806221035.50028.l.lacher@abian.de>
-Subject: Re: [linux-dvb] dvb_usb_dib0700 and Remote Control DSR-0112
+in-reply-to: <6CF9A586-AF45-4900-8BA4-3F537C1CB562@tvwhere.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [PATCH]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,27 +20,117 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Tobias,
-
-> So, sticks IR receiver is reported as /class/input/input21 and you are
-> trying to use irrecord on /dev/input/event9? Does not fit together, you
-> should try irrecord on /dev/input/input21 instead! (just my personal
-> opinion ;)
+Brandon Jenkins wrote:
 >
-i don't have an /dev/input/input21, and if i understood the web page 
-correctly, it's always the same device. It says:
+> On Jun 17, 2008, at 11:24 AM, mkrufky@linuxtv.org wrote:
+>
+>> Brandon Jenkins wrote:
+>>>
+>>> On Jun 17, 2008, at 10:52 AM, mkrufky@linuxtv.org wrote:
+>>>
+>>>> Brandon Jenkins wrote:
+>>>> Brandon,
+>>>>
+>>>> VIDEO_CX18 selects VIDEO_TUNER , but you chose the option,
+>>>> "MEDIA_TUNER_CUSTOMIZE" , which turns off the automatic tuner 
+>>>> dependency
+>>>> selections.  Please note the description of this option:
+>>>>
+>>>> menuconfig MEDIA_TUNER_CUSTOMIZE
+>>>>       bool "Customize analog and hybrid tuner modules to build"
+>>>>       depends on MEDIA_TUNER
+>>>>       help
+>>>>         This allows the user to deselect tuner drivers unnecessary
+>>>>         for their hardware from the build. Use this option with care
+>>>>         as deselecting tuner drivers which are in fact necessary will
+>>>>         result in V4L/DVB devices which cannot be tuned due to lack of
+>>>>         driver support
+>>>>
+>>>>         If unsure say N.
+>>>>
+>>>>
+>>>> We allow users to disable certain modules if they think they know
+>>>> better, and choose to compile out drivers that they don't need.  You
+>>>> should not have disabled tuner-simple -- to play it safe, don't enable
+>>>> MEDIA_TUNER_CUSTOMIZE
+>>>>
+>>>> Regards,
+>>>>
+>>>> Mike
+>>>>
+>>>>
+>>> Mike,
+>>>
+>>> Thank you. I understand the impact my choice makes in that matter.
+>>> However, all of the other modules required for cx18 to function are
+>>> marked in the lists as -M- indicating it is a required module/module
+>>> dependency. I apologize for my ignorance of terminology, etc., but it
+>>> would seem to me that "Simple tuner support" should automatically have
+>>> the -M- as a required resource for the tuner to function correctly.
+>>>
+>>> Thank you for your time in responding.
+>>>
+>>> Brandon
+>> No -- You are misunderstanding -- The selection of the tuner.ko i2c
+>> client module is forced as -M- , since it is selected as a dependency.
+>> You then proceeded into a deeper layer of customization, and enabled
+>> "MEDIA_TUNER_CUSTOMIZE" -- this option allows you to disable tuner
+>> modules that should have otherwise been autoselected for your hardware.
+>> I repeat -- this is an advanced customization option, and you have been
+>> so warned by its Kconfig description.
+>>
+>> I am pushing up a patch now that disables MEDIA_TUNER_CUSTOMIZE by 
+>> default.
+>>
+>> -Mike
+> Mike,
+>
+> That doesn't solve the problem. I believe the patch below, will.
+>
+> Brandon
+>
+> diff -r 50be11af3fdb linux/drivers/media/video/cx18/Kconfig
+> --- a/linux/drivers/media/video/cx18/Kconfig    Mon Jun 16 18:04:06 
+> 2008 -0300
+> +++ b/linux/drivers/media/video/cx18/Kconfig    Tue Jun 17 12:02:03 
+> 2008 -0400
+> @@ -12,6 +12,7 @@ config VIDEO_CX18
+>      select VIDEO_CS5345
+>      select DVB_S5H1409
+>      select MEDIA_TUNER_MXL5005S
+> +    select MEDIA_TUNER_SIMPLE
+>      ---help---
+>        This is a video4linux driver for Conexant cx23418 based
+>        PCI combo video recorder devices.
+>
+Brandon,
 
-But Linux systems runing recent udev will automatically create non-varying 
-names, a nicer and automatic way of providing a stable input event name:
+Thank you for this, but this patch will not be merged.  I explained in 
+the quoted email, above, that you have invoked a deeper layer of 
+customization that allows us to disable tuner modules, regardless of 
+your actual hardware.
 
-ls -l /dev/input/by-path on my system
-lrwxrwxrwx 1 root root 9 2008-06-22 09:56 pci-2-1--event-ir -> ../event9
+This option was designed for the sake of larger drivers, such as cx88 or 
+saa7134, who may use many different tuners depending on the actual board 
+present.  In the future, there may eventually be a cx18 board that does 
+not use tuner-simple.  This option allows users to disable tuner-simple 
+from building.  The default behavior is to automatically select the 
+tuner driver needed for your hardware, but when you enable 
+MEDIA_TUNER_CUSTOMIZE, this autoselection is turned off.  This is the 
+correct behavior.
 
-which disappears if i plug out the stick and reappears if i plug it in again.
-eg. now it's reported as:
-kernel: input: IR-receiver inside an USB DVB receiver as /class/input/input11
+I repeat again that this Kconfig option provides a warning to the user 
+that this should be enabled at your own risk, only.
 
-Best regards, Lutz
+"Use this option with care as deselecting tuner drivers which are in 
+fact necessary will result in V4L/DVB devices which cannot be tuned due 
+to lack of driver support."
+
+Do not enable MEDIA_TUNER_CUSTOMIZE unless you know what you're doing.
+
+End of story.
+
+-Mike
 
 
 
