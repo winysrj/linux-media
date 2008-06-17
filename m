@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1K81u4-0003vs-4V
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 01:44:57 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-In-Reply-To: <1213567472.3173.50.camel@palomino.walls.org>
-References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
-	<1213567472.3173.50.camel@palomino.walls.org>
-Date: Mon, 16 Jun 2008 01:43:13 +0200
-Message-Id: <1213573393.2683.85.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1K8gIS-0003oY-7p
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 20:52:49 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Tue, 17 Jun 2008 20:51:50 +0200
+References: <1212585271.32385.41.camel@pascal>
+	<1212590233.15236.11.camel@rommel.snap.tv>
+	<1212657011.32385.53.camel@pascal>
+In-Reply-To: <1212657011.32385.53.camel@pascal>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806172051.50308@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,106 +28,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Sigmund Augdal wrote:
+> On Wed, 2008-06-04 at 16:37 +0200, Sigmund Augdal wrote:
+> > ons, 04.06.2008 kl. 16.58 +0300, skrev Antti Palosaari:
+> > > Sigmund Augdal wrote:
+> > > > The following experimental patch adds support for the technotrend budget
+> > > > C-1501 dvb-c card. The parameters used to configure the tda10023 demod
+> > > > chip are largely determined experimentally, but works quite for me in my
+> > > > initial tests.
+> > > 
+> > > You finally found correct values :) I see that it uses same clock 
+> > > settings than Anysee. Also deltaf could be correct because I remember 
+> > > from my tests that it cannot set wrong otherwise it will not work at 
+> > > all. How did you find defltaf?
+> > I guessed the clock settings based on how the same tuner is used by a
+> > different demod. The deltaf value was found by trial and error (helped
+> > by some scripting). deltaf values slightly off will also work, but
+> > tuning will be very slow. I also think the deltaf value will depend on
+> > the bandwidth of the transponder tuned. All transponders I've tested
+> > with are 8MHz, but I think other values are possible, and these will
+> > most likely not work. I submitted the patch anyway in the hope that some
+> > broader testing might help uncover any remaining problems.
+> > > 
+> > > Your patch has at least coding style issues, please run make checkpatch 
+> > > fix errors and resend patch.
+> > I was trying to follow the guidelines, but I guess I wasn't doing that
+> > good enough. Will try to clean that up and resend soon.
+> Here is a new version. This one passes checkpatch without warnings. I
+> removed the read_pwm function, as it always uses the fallback path for
+> my card (and frankly I have no idea wether it is actually relevant at
+> all for this kind of card). Furthermore the tda10023 driver doesn't seem
+> to use this value for anything.
 
-Am Sonntag, den 15.06.2008, 18:04 -0400 schrieb Andy Walls:
-> On Sun, 2008-06-15 at 08:05 -0400, Brandon Jenkins wrote:
-> > I use SageTV and upon launch it initializes the adapters resulting in
-> > the following error messages in dmesg:
-> > 
-> > [   36.371502] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
-> > Unknown cmd fd(13) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
-> > /dev/video1
-> > [   36.373068] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
-> > Unknown cmd fd(13) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
-> > /dev/video1
-> > [   29.311447] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
-> > Unknown cmd fd(18) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
-> > /dev/video0
-> > [   29.312857] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
-> > Unknown cmd fd(18) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
-> > /dev/video0
-> 
-> The general V4L2 function used by cx18:
-> 
-> linux/drivers/media/video/compat_ioctl32.c:v4l_compat_ioctl32()
-> 
-> doesn't support these ioctls.  The absence of support is larger than
-> just for cx18.  The following command roughly shows all the drivers that
-> rely on v4l_compat_ioctl32():
-> 
-> $ grep -Rl v4l_compat_ioctl32 linux/drivers/media/* 
-> 
-> If really needed, I guess one could add the ioctls one needs to the code
-> in compat_ioctl32.c.
-> 
-> 
-> 
-> 
-> > I contacted SageTV about the error and was told they don't affect
-> > anything, but I would like to make sure that is the case.
-> 
-> Only the SageTV authors are in a position to easily tell you if the
-> unimplemented ioctls matter or not for what SageTV is trying to do.
-> 
-> (Of course if they don't affect anything, why are they doing them? ;] )
-> 
-> > Also, I have noticed a new message in dmesg indicating that ir
-> > transmitters may now be accessible? Is there anything I need to do to
-> > make use of them?
-> > 
-> > tveeprom 2-0050: has no radio, has IR receiver, has IR transmitter
-> 
-> The IR on the HVR-1600 (a Zilog Z8F0811 microcontroller) is very much
-> like that of the PVR-150.  From what I can tell, it even appears to be
-> at the same i2c address. 
-> 
-> This previous message also indicates the PVR-150/500 IR is very similar
-> to the HVR-1600:
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-February/023532.html
-> 
-> 
-> Right now the cx18 driver has omitted some code present in ivtv related
-> to explicit reset of the IR microcontroller.  It shouldn't be hard to
-> add back that reset code,  if needed. 
-> 
-> I haven't had a chance to try the IR blaster out yet (it was on my todo
-> list before Feb 2009).  "Mark's brain dump" has a modified lirc package
-> for the PVR-150 IR blaster:
-> 
-> http://www.blushingpenguin.com/mark/blog/?p=24
-> http://charles.hopto.org/blog/?p=24
-> 
-> It's probably a good starting point.  There are likely to be differences
-> though, as the cx23418 has 2 I2C buses where the cx23416 only has 1 I2C
-> bus.
-> 
-> It looks like you're blazing a trail, as I can't find any documentation
-> on the 'net by anyone who has done this with a HVR-1600.  If lirc_i2c,
-> available with the normal lirc distribution for IR receive, can detect
-> the Z8F0811, you've probably got a good start.
-> 
-> Regards,
-> Andy
-> 
-> > Thanks!
-> > 
-> > Brandon
-> 
+Patch applied with minor modifications:
+- error handling: detach frontend if tda827x_attach fails
+- use lower case characters for hex constants
+- make the code more readable (better ignore 'line length warnings'
+  if the resulting code would look too bad)
 
-just a note, have been there already coming from other stuff to it,
-but don't remember the details off hand.
+CU
+Oliver
 
-http://marc.info/?l=linux-video&m=119705840327989&w=2
-
-and following.
-
-I was under the impression we have already duplicate code?
-
-Cheers,
-Hermann
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
