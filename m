@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n25.bullet.mail.ukl.yahoo.com ([87.248.110.142])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1K9smd-00037k-2P
-	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 04:25:02 +0200
-Date: Fri, 20 Jun 2008 22:24:16 -0400
-From: manu <eallaud@yahoo.fr>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Message-Id: <1214015056l.6292l.1l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] How to solve the TT-S2-3200 tuning problems?
+Received: from py-out-1112.google.com ([64.233.166.181])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bcjenkins@tvwhere.com>) id 1K8hD8-0001i0-6j
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 21:51:22 +0200
+Received: by py-out-1112.google.com with SMTP id a29so2114673pyi.0
+	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 12:51:17 -0700 (PDT)
+Message-Id: <2A4C3A00-C39D-4BB7-BFA1-B099F2B1BDBE@tvwhere.com>
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: mkrufky@linuxtv.org
+In-Reply-To: <48580F4F.2010301@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Tue, 17 Jun 2008 15:51:13 -0400
+References: <48580F4F.2010301@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18 or tveeprom - Missing dependency? [SOLVED?]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,22 +27,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-	Hi all,
-there are several threads about TT-3200 not being able to lock on 
-different channels depending on FEC/symbol rate/modulation.
-Now what kind of experimentation could provide enough data to solve 
-them? For example would it be possible that some knowledgeable guy here 
-posts:
--datasheets/programming guide for the tuner/demod if no NDA...
--post the source of a prog that could gather data when tuning to a 
-given transponder.
--or anything else that this/these persons think would improve the 
-understanding of the problems.
-HTH
-Bye
-Manu, who would like to watch the final of the euro cup in HD ;-)
 
+On Jun 17, 2008, at 3:23 PM, mkrufky@linuxtv.org wrote:
 
+> The cx18 driver DOES NOT require tuner-simple.  It is the HVR1600 that
+> requires the tuner-simple module, for analog tuner mode only.  Thus,
+> when a user selects VIDEO_CX18, the default behavior is for  
+> TUNER_SIMPLE
+> to also get selected.
+
+Last one - selecting VIDEO_CX18 does not select TUNER_SIMPLE. That is  
+what I have been asking to be enabled.
+
+Brandon
 
 _______________________________________________
 linux-dvb mailing list
