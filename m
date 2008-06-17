@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 29.a2c-net122.astra2connect.com ([213.169.122.29]
-	helo=undercover.mine.nu) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alexw@undercover.mine.nu>) id 1K4DoZ-00058H-LJ
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 13:39:35 +0200
-Received: from [192.168.200.1] ([212.56.227.241]) (authenticated bits=0)
-	by undercover.mine.nu (8.14.2/8.13.8) with ESMTP id m55BcY2x027224
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Thu, 5 Jun 2008 13:38:44 +0200
-From: Alexw <alexw@undercover.mine.nu>
+Received: from eazy.amigager.de ([213.239.192.238])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tino.keitel@tikei.de>) id 1K8YwX-0001uO-6j
+	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 13:01:42 +0200
+Date: Tue, 17 Jun 2008 13:01:37 +0200
+From: Tino Keitel <tino.keitel@tikei.de>
 To: linux-dvb@linuxtv.org
-Date: Thu, 5 Jun 2008 13:38:33 +0200
+Message-ID: <20080617110137.GA2656@eazy.amigager.de>
+References: <20080617100049.GA6880@dose.home.local>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806051338.34075.alexw@undercover.mine.nu>
-Subject: [linux-dvb] DVB-SNG / STB0899
+In-Reply-To: <20080617100049.GA6880@dose.home.local>
+Subject: Re: [linux-dvb] What source for the CinergyT2-V8.patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,18 +25,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Tue, Jun 17, 2008 at 12:00:49 +0200, Tino Keitel wrote:
+> Hi,
+> 
+> what v4l source should I use for the CinergyT2-V8.patch patch? I tried
+> the current v4l hg tree. The first problem was that the last line of
+> the patch missed a trailing line feed. Then I got this failure:
 
-Does anybody knows if there is some piece of hardware (PCI BUS required) 
-available that can demodulate DVB-SNG in 8PSK? 
+I saw in the hg log that there were recent modifications to the old
+driver. So I tried a revision before that changes at it worked. Sorry
+for the noise.
 
-To whom might know the proper information: Is one of the STB0899 registers 
-able to switch the chip in a pass trough mode to demodulate such modulation 
-or send it over the bus?
+Regards,
+Tino
 
-Best regards,
-
-Alex
 
 _______________________________________________
 linux-dvb mailing list
