@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NNeEqK014459
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:40:14 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NNe12n005546
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:40:01 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so2172794wfc.6
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 16:40:00 -0700 (PDT)
-Date: Mon, 23 Jun 2008 16:39:52 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@infradead.org
-Message-ID: <20080623233952.GA4569@plankton>
-References: <3dbf42455956d17b8aa6.1214002733@localhost>
-	<200806221334.45894.hverkuil@xs4all.nl>
-	<20080623150734.GF18397@plankton.ifup.org>
-	<200806231800.44274.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5HAMn6Q018470
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:22:49 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5HAMQbh008765
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:22:26 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so4047319fga.7
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 03:22:25 -0700 (PDT)
+Message-ID: <a5eaedfa0806170322v382f5b98o22f2b94830585f7c@mail.gmail.com>
+Date: Tue, 17 Jun 2008 15:52:25 +0530
+From: "Veda N" <veda74@gmail.com>
+To: "Veda N" <veda74@gmail.com>, video4linux-list@redhat.com
+In-Reply-To: <20080617094510.GA726@daniel.bse>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Disposition: inline
-In-Reply-To: <200806231800.44274.hverkuil@xs4all.nl>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
-	attribute for?persistent video4linux device nodes
+References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
+	<20080617092439.GA631@daniel.bse>
+	<a5eaedfa0806170239ye9951acv1cc9361b1d43abbe@mail.gmail.com>
+	<20080617094510.GA726@daniel.bse>
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: v4l2_pix_format doubts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,150 +33,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 18:00 Mon 23 Jun 2008, Hans Verkuil wrote:
-> On Monday 23 June 2008 17:07:34 Brandon Philips wrote:
-> There is also no need to use class_for_each_device(): you can also 
-> iterate over the video_device[] array.
-> 
-> So get_index would look something like this:
+I think you got confused by RGB and YUV.
 
-Your code compiles, looks correct and is simpler.  It tested OK on my
-single node device but I don't have any multiple node devices like a
-ivtv.  Testers welcome ;)
+The device is capable of giving RGB and YUV data. This is done by a
+setting in the sensor register.
 
-Mauro had already committed my patch to his branch so I just made the
-change on top of that.
+Once i set the value, For every pixel clock a pixel is fetched from
+the device and is
+placed in memory  Once a entire frame is captured. it is returned to
+the application.
+>From the application   i can write this data into LCD or a file to be
+viewed by a YUV/RGB
+viewer like YUVTOOLS.
 
-Mauro you can pull this patch from here: http://ifup.org/hg/v4l-dvb
 
-Cheers,
+Now, i know what i should set the pix->pixelformat, but what about
+other members of the
+v4l2_pix_format structure.
 
-	Brandon
 
-changeset:   8111:e39be24dd6a0
-tag:         tip
-user:        Brandon Philips <brandon@ifup.org>
-date:        Mon Jun 23 16:33:06 2008 -0700
-files:       linux/drivers/media/video/videodev.c
-description:
-videodev: simplify get_index()
 
-Use Hans Verkuil's suggested method of implementing get_index which doesn't
-depend on class_for_each_device and instead uses the video_device array.  This
-simplifies the code and reduces its memory footprint.
+Regards,
+vedan
 
-Signed-off-by: Brandon Philips <bphilips@suse.de>
-
-diff --git a/linux/drivers/media/video/videodev.c b/linux/drivers/media/video/videodev.c
---- a/linux/drivers/media/video/videodev.c
-+++ b/linux/drivers/media/video/videodev.c
-@@ -1989,26 +1989,8 @@ out:
- }
- EXPORT_SYMBOL(video_ioctl2);
- 
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,25)
--struct index_info {
--	struct device *dev;
--	unsigned int used[VIDEO_NUM_DEVICES];
--};
--
--static int __fill_index_info(struct device *cd, void *data)
--{
--	struct index_info *info = data;
--	struct video_device *vfd = container_of(cd, struct video_device,
--						class_dev);
--
--	if (info->dev == vfd->dev)
--		info->used[vfd->index] = 1;
--
--	return 0;
--}
--
- /**
-- * assign_index - assign stream number based on parent device
-+ * get_index - assign stream number based on parent device
-  * @vdev: video_device to assign index number to, vdev->dev should be assigned
-  * @num: -1 if auto assign, requested number otherwise
-  *
-@@ -2018,46 +2000,35 @@ static int __fill_index_info(struct devi
-  */
- static int get_index(struct video_device *vdev, int num)
- {
--	struct index_info *info;
-+	u32 used = 0;
- 	int i;
--	int ret = 0;
- 
--	if (num >= VIDEO_NUM_DEVICES)
-+	if (num >= 32) {
-+		printk(KERN_ERR "videodev: %s num is too large\n", __func__);
- 		return -EINVAL;
--
--	info = kzalloc(sizeof(*info), GFP_KERNEL);
--	if (!info)
--		return -ENOMEM;
--
--	info->dev = vdev->dev;
--
--	ret = class_for_each_device(&video_class, info,
--					__fill_index_info);
--
--	if (ret < 0)
--		goto out;
--
--	if (num >= 0) {
--		if (!info->used[num])
--			ret = num;
--		else
--			ret = -ENFILE;
--
--		goto out;
- 	}
- 
- 	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
--		if (info->used[i])
--			continue;
--		ret = i;
--		goto out;
-+		if (video_device[i] != NULL &&
-+		    video_device[i] != vdev &&
-+		    video_device[i]->dev == vdev->dev) {
-+			used |= 1 << video_device[i]->index;
-+		}
- 	}
- 
--out:
--	kfree(info);
--	return ret;
-+	if (num >= 0) {
-+		if (used & (1 << num))
-+			return -ENFILE;
-+		return num;
-+	}
-+
-+	for (i = 0; i < 32; i++) {
-+		if (used & (1 << i))
-+			continue;
-+		return i;
-+	}
-+	return -ENFILE;
- }
--#endif
- 
- static const struct file_operations video_fops;
- 
-@@ -2151,11 +2122,7 @@ int video_register_device_index(struct v
- 	video_device[i]=vfd;
- 	vfd->minor=i;
- 
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,25)
- 	ret = get_index(vfd, index);
--#else
--	ret = 0;
--#endif
- 	if (ret < 0) {
- 		printk(KERN_ERR "%s: get_index failed\n",
- 		       __func__);
+On Tue, Jun 17, 2008 at 3:15 PM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+> On Tue, Jun 17, 2008 at 03:09:04PM +0530, Veda N wrote:
+>>   As i understand, my camera has a image processor inside it. what i
+>> want to say is it is
+>>   not a plain raw sensor.
+>
+> So this image processor converts RGB to YUV?
+>
+>>   For every pixel clock a pixel is fetched from the device and is
+>> placed in memory
+>>   Once a entire frame is captured. it is returned to the application.
+>
+> And if you look at this data in memory, what does it look like?
+>
+>  Daniel
+>
 
 --
 video4linux-list mailing list
