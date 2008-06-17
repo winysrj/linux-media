@@ -1,30 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53MSbnB028302
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:28:37 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53MSITT012788
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:28:20 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K3ezF-0007e0-Re
-	for video4linux-list@redhat.com; Tue, 03 Jun 2008 22:28:13 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 22:28:13 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 22:28:13 +0000
-To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Tue, 3 Jun 2008 22:28:06 +0000 (UTC)
-Message-ID: <loom.20080603T222332-642@post.gmane.org>
-References: <c5bea28d26aa1caa1e85da.20080531171359.qnavryt4@webmail.dslextreme.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5H9XcQM024914
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:33:38 -0400
+Received: from smtp2.pixelworks.com (smtp2.pixelworks.com [207.179.28.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5H9XQiw013014
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 05:33:27 -0400
+From: Xuesong Yang <xsyang@pixelworks.com>
+To: Veda N <veda74@gmail.com>
+In-Reply-To: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
+References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
+Date: Tue, 17 Jun 2008 17:33:19 +0800
+Message-Id: <1213695199.6020.3.camel@star-sea>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: Changeset 7990 (was "Re: [PATCH] PowerColor RA330 (Real Angel 330)
-	fixes")
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2_pix_format doubts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,23 +27,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel Gimpelevich <daniel <at> gimpelevich.san-francisco.ca.us> writes:
+=E5=9C=A8 2008-06-17=E4=BA=8C=E7=9A=84 14:35 +0530=EF=BC=8CVeda N=E5=86=99=
+=E9=81=93=EF=BC=9A
 
-> I finally got around to the RA330 patches. Here is hopefully the final
-> fix. Also attached is the revised lircd.conf for its IR receiver. The IR
-> codes are somehow different from what was needed with Markus Rechberger's
-> flavor of the driver.
-> 
-> Next order of business: the KWorld ATSC120
-> I see that initial support has already been added while I was dawdling.
-> The I2C issues shouldn't be too big a hurdle...
->
-> Attachment (patch1.diff): application/octet-stream, 1417 bytes
-> Attachment (sam3507b.lircd.conf): application/octet-stream, 2160 bytes
+> The v4l2_pix_format has the following variables to fill
+>   a) bytesperline
+>   b) width
+>   c) height
+>   4) pixelformat
 
-Thanks for the commit, Mauro. Now I'm curious as to the wisdom of removing the
-full retail name of the card from CARDLIST.cx88 in favor of its model number,
-but I won't press the issue.
+Just a guess
+a  640x12x3/8
+b 640
+c 480
+4 this should be one of the enum type
 
 --
 video4linux-list mailing list
