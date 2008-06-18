@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m52K9TX3017657
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:09:30 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m52K5i8R031327
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:09:13 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so493319ywb.81
-	for <video4linux-list@redhat.com>; Mon, 02 Jun 2008 13:09:13 -0700 (PDT)
-Message-ID: <37219a840806021309x516f204ep8b25d8a730c4f0e0@mail.gmail.com>
-Date: Mon, 2 Jun 2008 16:09:12 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "David Engel" <david@istwok.net>
-In-Reply-To: <20080601205522.GA2793@opus.istwok.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5IC5ZcD027043
+	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 08:05:35 -0400
+Received: from n5a.bullet.mail.ac4.yahoo.com (n5a.bullet.mail.ac4.yahoo.com
+	[76.13.13.68])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5IC5K4q015577
+	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 08:05:20 -0400
+Message-ID: <393A6514A13E499AA058F7B457ADE534@voyager>
+From: "Stephane Marchand" <smarchand291@yahoo.ca>
+To: <video4linux-list@redhat.com>
+References: <20080617160012.0E639619767@hormel.redhat.com>
+Date: Wed, 18 Jun 2008 08:05:51 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
-	<20080530145830.GA7177@opus.istwok.net>
-	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
-	<20080601190328.GA23388@opus.istwok.net>
-	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
-	<20080601205522.GA2793@opus.istwok.net>
-Cc: video4linux-list@redhat.com, Jason Pontious <jpontious@gmail.com>
-Subject: Re: Kworld 115-No Analog Channels
+Subject: Trying to adapt  a javascript with Motion
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,86 +27,101 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jun 1, 2008 at 4:55 PM, David Engel <david@istwok.net> wrote:
-> On Sun, Jun 01, 2008 at 03:10:21PM -0400, Michael Krufky wrote:
->> On Sun, Jun 1, 2008 at 3:03 PM, David Engel <david@istwok.net> wrote:
->> > https://www.redhat.com/mailman/private/video4linux-list/2008-April/msg00221.html
->>
->> This is in the private archives...  Do you have a link from gmane or
->> some other public archive?
->
-> http://lists-archives.org/video4linux/22351-hauppauge-wintv-regreession-from-2-6-24-to-2-6-25.html
->
->> Under 2.6.25, can you confirm whether or not the "tuner" module is
->> actually loaded?  If it is loaded, can you do:
->
-> Yes, the tuner module is loaded with a clean boot of 2.6.25.  The
-> output from "lsmod | grep tuner" is:
->
-> tuner                  34656  0
-> tea5767                 6020  1 tuner
-> tda8290                12292  1 tuner
-> tuner_xc2028           18960  1 tuner
-> firmware_class          7040  3 nxt200x,saa7134_dvb,tuner_xc2028
-> tda9887                 9092  1 tuner
-> tuner_simple            8584  1 tuner
-> mt20xx                 11784  1 tuner
-> tea5761                 4612  1 tuner
-> videodev               30976  2 tuner,saa7134
-> v4l2_common             9856  2 tuner,saa7134
-> i2c_core               18836  18 nvidia,dvb_pll,nxt200x,saa7134_dvb,tuner,tea5767,tda8290,tda827x,tuner_xc2028,tda9887,tuner_simple,mt20xx,tea5761,saa7134,v4l2_common,ir_kbd_i2c,tveeprom,i2c_nforce2
->
->> modprobe -r tuner
->> modprobe -r tuner-simple
->> modprobe tuner-simple debug=1
->> modprobe tuner debug=1
->>
->> ...then test again and show the dmesg logs.
->
-> Here are the logs:
->
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: chip found @ 0x86 (saa7133[0])
-> Jun  1 15:52:36 opus kernel: tda9887 2-0043: tda988[5/6/7] found
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: type set to tda9887
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: tv freq set to 0.00
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: TV freq (0.00) out of range (44-958)
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: saa7133[0] tuner' I2C addr 0x86 with type 74 used for 0x0e
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: Calling set_type_addr for type=68, addr=0xff, mode=0x04, config=0x00
-> Jun  1 15:52:36 opus kernel: tuner' 2-0043: set addr for type 74
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Setting mode_mask to 0x0e
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: chip found @ 0xc2 (saa7133[0])
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tuner 0x61: Tuner type absent
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: Calling set_type_addr for type=68, addr=0xff, mode=0x04, config=0x00
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: set addr for type -1
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: defining GPIO callback
-> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual in)
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: type set to Philips TUV1236D AT
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: tv freq set to 400.00
-> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: IFPCoff = 623: tuner_t_params undefined for tuner 68
-> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv: param 0, range 1
-> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: Freq= 400.00 MHz, V_IF=38.93 MHz, Offset=0.00 MHz, div=7023
-> Jun  1 15:52:36 opus kernel: tuner-simple 2-0061: tv 0x1b 0x6f 0xce 0x02
-> Jun  1 15:52:36 opus kernel: tuner' 2-0061: saa7133[0] tuner' I2C addr 0xc2 with type 68 used for 0x0e
->
-> The tuner is detected this time and analog capture works.
+Hi all
 
-David,
+I know it's not specifically related to V4L but I'm trying to solve a 
+problem with Camserv which is not working
+anymore for me "(V4L) mmap error". Motion is almost doing the job for me but 
+I don't want to use a java applet to display
+my webcam and Motion is a great piece of software. So since Motion is acting 
+as Camserv
+(sending jpeg to the browser http protocol) I hope I can use a javascript to 
+display the picture in a webpage. but no go yet.
 
-The fact that reloading tuner.ko confirms my suspicion --
+I'm still wondering what's the problem with Camserv ? I think it's having a 
+bug that reference to v4l2 instead of v4l...
+It's really not a problem with my bt848 card or even the kernel (2.4 -> 2.6)
 
-In the case of the ATSC110 / ATSC115, we can't attach the tuner client
-module until after the NXT2004 has been initialized with its i2c gate
-left in open state.
+anyone seeing my error in the code below ?
 
-If you unload all v4l/dvb drivers and modprobe saa7134, I believe this
-will work properly, since the demod has already been initialized once,
-with the gate left open by default.
+thanks for any help
 
-So, that's a workaround to your problem.  When I find some spare time,
-I'll investigate into what changed in 2.6.25 that led to this issue.
-This is *not* the same issue that Hermann described in his mail.
 
--Mike
+<?php
+$ip = gethostbyname('my.server.org');
+?>
+<html>
+<head>
+  <title>SMARCH</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta http-equiv="PRAGMA" content="NO-CACHE">
+  <meta http-equiv="Refresh" 
+content="1800;url=http://my.server.org/webcam/sessionoff.html">
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <script LANGUAGE="JavaScript">
+<!-- hide
+// "var speed" is the refresh rate adjustment in seconds.
+var speed = 1;
+var y = 1;
+var x = speed + y;
+var time = x - y;
+var now;
+campicture = new Image();
+function stopClock() {
+	x = "off";
+	document.form0.clock.value = x;
+}
+function startClock() {
+        if (x != "off") {
+	x = x - y;
+	document.form0.clock.value = x;
+	if (x <= 1)
+        {
+          reload()
+        }
+	timerID = setTimeout("startClock()", 1000);
+        }
+}
+function reload() {
+	now = new Date();
+	var camImg = "http://<?php echo $ip;?>:9192/singleframe/" + "?" + 
+now.getTime();
+	document.campicture.src = camImg;
+    x = speed;
+    document.form0.clock.value = x;
+              	  }
+//end hide -->
+
+</script>
+</head>
+<body style="color: rgb(204, 204, 204); background-color: rgb(0, 0, 0);" 
+alink="#33ff33" link="#00cccc" vlink="#ff0000" onload="startClock()" 
+leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+<table border="0" width=100% height=380>
+    <tr>
+      <td valign=top>
+	<FORM action="JSCam.html" name="form0">
+	<center>
+	Boul Universit&eacute;, Rouyn-Noranda, Qu&eacute;bec, Canada<br>
+	<IMG src="webcamstream.jpg" name="campicture" border=1 reload="60" 
+width=400 height=300 alt="soyez patient...chargement">
+	<br>Images intervales: 1 sec, 1 "frame". USB Logitech Quickcam Express - 
+camserv</CENTER>
+	<INPUT type="hidden" name="clock" size="3" value="">
+	</FORM>
+      </td>
+      <td valign=top align=center><br>
+      <a href=top2.php><img src=images/iconcegep.jpg border=0><br>Cam 2</a>
+      </td>
+     </tr>
+</table>
+
+</BODY>
+</HTML>
+
+ 
+
 
 --
 video4linux-list mailing list
