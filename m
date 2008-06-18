@@ -1,24 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SF0LYk012617
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 11:00:21 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SF0AdB029627
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 11:00:11 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so533074fga.7
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 08:00:10 -0700 (PDT)
-Message-ID: <30353c3d0806280800n3d6da97ewc84e1af83852197e@mail.gmail.com>
-Date: Sat, 28 Jun 2008 11:00:10 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: video4linux-list@redhat.com
-In-Reply-To: <20080628140639.GA4089@singular.sob>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5I23MMa005564
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 22:03:22 -0400
+Received: from imo-m12.mail.aol.com (imo-m12.mx.aol.com [64.12.143.100])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5I23BUE016410
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 22:03:11 -0400
+Received: from DrDiettrich1@aol.com
+	by imo-m12.mx.aol.com (mail_out_v38_r9.4.) id e.cf1.36b98ced (37591)
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 22:03:01 -0400 (EDT)
+Message-ID: <48585201.1090005@aol.com>
+Date: Wed, 18 Jun 2008 02:08:33 +0200
+From: Hans-Peter Diettrich <DrDiettrich1@aol.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+References: <485273BB.6040608@aol.com>	
+	<1213387999.2758.65.camel@pc10.localdom.local>
+	<48540B1E.3020908@aol.com>	
+	<1213555148.2683.61.camel@pc10.localdom.local>
+	<4855BC3F.4010806@aol.com>
+	<1213705250.2621.48.camel@pc10.localdom.local>
+In-Reply-To: <1213705250.2621.48.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0806271636k31f1fac7r90d1dccafde99f1b@mail.gmail.com>
-	<20080628140639.GA4089@singular.sob>
-Subject: Re: stk-webcam: [RFT] Fix video_device handling
+Subject: Re: Medion problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,39 +34,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-[snip]
->
-> I recall working around a similar bug in the past, but the workaround
-> don't seem very good now ;), and I haven't touch the driver in a while,
-> so I'm not sure where is the problem. It seems that
-> video_unregister_device cannot be called when the device is open.
->
-> Regards,
-> Jaime
+hermann pitton schrieb:
 
-Thanks for testing, I believe the the error you reported above is
-indeed a result of an issue I reported on list a few days ago.
-According to the API, the video_device struct is not to be freed until
-it is no longer being used, thus the reason for the release callback
-in the video_device struct. Currently, video_unregister_device always
-causes the video_device struct to be freed despite the fact that it
-may still in use. To me, this is a serious bug in the videodev driver,
-since it doesn't behave as expected. The videodev driver should
-reference count the video_device struct and call the release callback
-only once it is no longer being used. I can work on this if no one
-objects.
+>>> Please keep the list in reply.
+>> I already noticed that I had forgotten to "reply all" :-(
+>>
+>> DoDi
+> 
+> It happens to all, don't worry.
 
-You are right, video_{get|set}_drvdata is obsolete as is
-video_device->priv. I will replace all references to
-video_{get|set}_drvdata with usb_{get|set}_drvdata(video_device->dev)
-instead as suggested in v4l2-dev.h
+Other mailing lists have the list as Reply-To, and further addresses in 
+CC, what IMO is a more practical configuration.
 
-I will hold off on this patch until videodev has been corrected to
-call the callback at the appropriate time.
+As you may have noticed already, I added the wrong list address to the 
+recipients in my last mail :-(
 
-Regards,
 
-David Ellingsworth
+> If there are no further surprises, you should be able to have TV sound
+> on a next step.
+
+I'm still very confused and sometimes clueless on the Linux command line :-(
+
+So much for now, more after trying your suggestions...
+
+DoDi
 
 --
 video4linux-list mailing list
