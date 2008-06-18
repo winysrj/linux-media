@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31])
+Received: from mail.krastelcom.ru ([88.151.248.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <n.wagenaar@xs4all.nl>) id 1KANWZ-0005yu-Ih
-	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 13:14:31 +0200
-Received: from webmail.xs4all.nl (dovemail1.xs4all.nl [194.109.26.3])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id m5MBEImn010487
-	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 13:14:18 +0200 (CEST)
-	(envelope-from n.wagenaar@xs4all.nl)
-Message-ID: <9491.82.95.219.165.1214133258.squirrel@webmail.xs4all.nl>
-Date: Sun, 22 Jun 2008 13:14:18 +0200 (CEST)
-From: "Niels Wagenaar" <n.wagenaar@xs4all.nl>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] s2-3200 fec problem?
-Reply-To: n.wagenaar@xs4all.nl
+	(envelope-from <vpr@krastelcom.ru>) id 1K90AD-0001KX-GR
+	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 18:05:38 +0200
+Message-Id: <31CCD0B1-6DF4-4640-BA9D-BB8F5B6ECE1A@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+In-Reply-To: <48593130.4050109@magic.fr>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Wed, 18 Jun 2008 20:05:33 +0400
+References: <48593130.4050109@magic.fr>
+Subject: Re: [linux-dvb] TechnoTrend S-1401 or S-1500 ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,52 +24,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> -- SNIP --
+S-1500 has bugs with high SR for sure! With S-1401 they are fixable.
+
+Regards,
+Vladimir
+
+On Jun 18, 2008, at 8:00 PM, Alexandre Conrad wrote:
+
+> Hi,
 >
-> Can you give me the exact version or date of the revision which you are
-> using?
-> Just to be shure I do my tests on the same version as you
-> are._______________________________________________
-
-I used the current revision (I think it's 7725). The multiproto_plus tree
-hasn't been updated for 2 months. I just did a normal pull of the current
-tree and it worked beautifully with VDR.
-
-Sometimes I do have strange lock problems. But I just switch to an other
-transponder and back and the problem is gone.
-
-BTW, since I have a Maxdata 4/1 DisEQC 2.0 switch, I enabled DISEQC and
-used the following DISEQC config in diseqc.conf:
-
-S19.2E  11700 V  9750  t v W15 [E0 10 38 F0] W15 A W15 t
-S19.2E  99999 V 10600  t v W15 [E0 10 38 F1] W15 A W15 T
-S19.2E  11700 H  9750  t V W15 [E0 10 38 F2] W15 A W15 t
-S19.2E  99999 H 10600  t V W15 [E0 10 38 F3] W15 A W15 T
-
-S13.0E  11700 V  9750  t v W15 [E0 10 38 F4] W15 B W15 t
-S13.0E  99999 V 10600  t v W15 [E0 10 38 F5] W15 B W15 T
-S13.0E  11700 H  9750  t V W15 [E0 10 38 F6] W15 B W15 t
-S13.0E  99999 H 10600  t V W15 [E0 10 38 F7] W15 B W15 T
-
-
-S23.5E  11700 V  9750  t v W15 [E0 10 38 F8] W15 B W15 t
-S23.5E  99999 V 10600  t v W15 [E0 10 38 F9] W15 B W15 T
-S23.5E  11700 H  9750  t V W15 [E0 10 38 FA] W15 B W15 t
-S23.5E  99999 H 10600  t V W15 [E0 10 38 FB] W15 B W15 T
-
-
-S28.2E  11700 V  9750  t v W15 [E0 10 38 FC] W15 B W15 t
-S28.2E  99999 V 10600  t v W15 [E0 10 38 FD] W15 B W15 T
-S28.2E  11700 H  9750  t V W15 [E0 10 38 FE] W15 B W15 t
-S28.2E  99999 H 10600  t V W15 [E0 10 38 FF] W15 B W15 T
-S28.5E  11700 V  9750  t v W15 [E0 10 38 FC] W15 B W15 t
-S28.5E  99999 V 10600  t v W15 [E0 10 38 FD] W15 B W15 T
-S28.5E  11700 H  9750  t V W15 [E0 10 38 FE] W15 B W15 t
-S28.5E  99999 H 10600  t V W15 [E0 10 38 FF] W15 B W15 T
-
-Cheers,
-
-Niels Wagenaar
+> I'm about to buy TechnoTrend cards, S-1500 or S-1401. The TT budget
+> S-1401 is not listed under the linuxtv WIKI, but people
+> seem to have success making it work according to messages on the  
+> mailing
+> list.
+>
+> My supplier states that there are some issues about S1401 - most of  
+> the
+> users state, it works very good, some others have problems with the
+> FEMON-values in Linux, causing a worse receiption sometimes (due to
+> "buggy" driver in CVS).
+>
+> He'd strongly recommend to use the S1500 instead, which is supported
+> since 4 years now under Linux! And it works 100%.
+>
+> There's quite a price difference compared to the S1401 (I must buy a
+> bunch of them) and I don't need CI, which S-1500 seems to provide.
+>
+> Suggestions? Thanks.
+>
+> Regards,
+> -- 
+> Alexandre CONRAD
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
