@@ -1,26 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate01.web.de ([217.72.192.221])
+Received: from fk-out-0910.google.com ([209.85.128.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <SiestaGomez@web.de>) id 1K8JKY-0004s5-Se
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:21:27 +0200
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 71BFAE441F3F
-	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 20:20:53 +0200 (CEST)
-Received: from [88.152.136.212] (helo=midian.waldorf.intern)
-	by smtp07.web.de with asmtp (WEB.DE 4.109 #226) id 1K8JK1-000328-00
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 20:20:53 +0200
-Date: Mon, 16 Jun 2008 20:20:53 +0200
-From: SG <SiestaGomez@web.de>
+	(envelope-from <websdaleandrew@googlemail.com>) id 1K938x-00078U-0K
+	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 21:16:31 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so454906fka.1
+	for <linux-dvb@linuxtv.org>; Wed, 18 Jun 2008 12:16:27 -0700 (PDT)
+Message-ID: <e37d7f810806181216v490362afiace17205e362b227@mail.gmail.com>
+Date: Wed, 18 Jun 2008 20:16:27 +0100
+From: "Andrew Websdale" <websdaleandrew@googlemail.com>
 To: linux-dvb@linuxtv.org
-Message-Id: <20080616202053.f7883c6d.SiestaGomez@web.de>
-In-Reply-To: <20080616194256.cc5f9a55.SiestaGomez@web.de>
-References: <20080615192300.90886244.SiestaGomez@web.de>
-	<4855F6B0.8060507@gmail.com> <1213620050.6543.6.camel@pascal>
-	<20080616142616.75F9C3BC99@waldorfmail.homeip.net>
-	<1213626832.6543.23.camel@pascal>
-	<20080616194256.cc5f9a55.SiestaGomez@web.de>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+In-Reply-To: <e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+MIME-Version: 1.0
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+	<4850566E.8030001@iki.fi>
+	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
+	<4850F597.9030603@iki.fi>
+	<e37d7f810806120619q28bff0d8y8f2d5319187ab6b0@mail.gmail.com>
+	<e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,112 +25,83 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1552189770=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 16 Jun 2008 19:42:56 +0200
-SG <SiestaGomez@web.de> wrote:
+--===============1552189770==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1445_3334227.1213816587274"
 
-> On Mon, 16 Jun 2008 16:33:52 +0200
-> Sigmund Augdal <sigmund@snap.tv> wrote:
-> 
-> > On Mon, 2008-06-16 at 16:26 +0200, siestagomez@web.de wrote:
-> > > Sigmund Augdal schrieb: 
-> > > 
-> > > > On Mon, 2008-06-16 at 08:14 +0300, Arthur Konovalov wrote:
-> > > >> SG wrote:
-> > > >> > The patch works quite well and nearly all channels seem to work.
-> > > >> > 
-> > > >> > But when tuning to some radio channels I'll get this kernel message:
-> > > >> > 
-> > > >> > saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-> > > >> > 
-> > > >> > Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
-> > > >> > smoothly when using Win32.
-> > > >> > 
-> > > >> > initial transponder 386000000 6900000 0 3
-> > > >> >  >>> tune to: 386:M64:C:6900:
-> > > >> > WARNING: >>> tuning failed!!!
-> > > >> >  >>> tune to: 386:M64:C:6900: (tuning failed)
-> > > >> > WARNING: >>> tuning failed!!!
-> > > >> > ERROR: initial tuning failed
-> > > >> > dumping lists (0 services)
-> > > >> > Done. 
-> > > >> 
-> > > >> Yes, I discovered too that tuning to frequency 386MHz has no lock.
-> > > >> VDR channels.conf: TV3:386000:C0M64:C:6875:703:803:0:0:1003:16:1:0 
-> > > >> 
-> > > >> At same time, 394MHz (and others) works.
-> > > > Hi. 
-> > > > 
-> > > > Both transponders reported to not tune here has different symbolrates
-> > > > from what I used for my testing. Maybe this is relevant in some way.
-> > > > Could you please compare this with the channels that did tune to see if
-> > > > there is a pattern? 
-> > > > 
-> > > > About the i2c message, I get that every now and then here as well, but I
-> > > > have not seen any ill effect from it. I also see that on some other TT
-> > > > cards so I think that might be unrelated to the demod/tuner. 
-> > > > 
-> > > > Regards 
-> > > > 
-> > > > Sigmund Augdal
-> > > 
-> > > The symbolrate is the same on all other working channels. 
-> > > 
-> > > Regarding the i2c message when watching video I'll get this only once but 
-> > > when tuning to a radio channel my log gets flooded and it seems to hangup. 
-> > How does radio or not make a difference? As far as I know the card is
-> > DVB only and should not care whether the tuned transponder contains
-> > radio or video or whatever. Could you send a list of transponders that
-> > work (with tuning parameters) and ones that doesn't?
-> > 
-> 
-> Odd today no problem with radio and kernel log.
-> Anyway here are a few entries from transponder.ini which I use for dvbscan:
-> C 362000000 6900000 NONE QAM64		OK
-> C 370000000 6900000 NONE QAM64		OK
-> C 378000000 6900000 NONE QAM64		OK
-> C 386000000 6900000 NONE QAM64		NOT OK
-> C 394000000 6900000 NONE QAM64		OK
-> C 402000000 6900000 NONE QAM256		NOT OK
-> C 410000000 6900000 NONE QAM64		OK
-> C 426000000 6900000 NONE QAM64		OK
-> 
-> I noticed when using Win32 the signal strenght is very poor on the non working transponders for linux-dvb.
-> Perhaps it's enough for Win32 but not for the linux driver.
-> 
-> Regards
-> Martin
-> 
+------=_Part_1445_3334227.1213816587274
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi 
+2008/6/12 Andrew Websdale
 
-I just added a line to get the bundled IR-remote to work using lirc.
+>
+>>
+>> 2008/6/12 Antti Palosaari <crope@iki.fi>:
+>> wrote:
+>>
+>>> OK, then the reason might by tuner. Tuner may be changed to other one or
+>>> tuner i2c-address is changed. I doubt whole tuner is changed. Now we should
+>>> identify which tuner is used. There is some ways how to do that.
+>>>
+>>> 1) Look from Windows driver files
+>>> 2) Open stick and look chips
+>>> 3) Take USB-sniffs and try to identify tuner from there
+>>
+>>
+> I've opened the stick & there's an MT352 (as expected) but the other chip
+> is an MT2060 which is the tuner, I think, as I see that there's an 'mt2060'
+> module in the tuner module directory. Is there some modification I can do to
+> the code so that it gets picked up by the driver? - I know a bit of C++ app
+> programming but I'm very new to C driver code, but would like to learn more.
+> Hopefully I can help some others who have this chipset as well.....
+>
+------x--------
+
+I've had a look at the code & have been attempting to add new code to the
+M920x driver to cope with the mt2060 tuner module, although all I've got to
+go on is the existing code for the qt1010 tuner. I'm not sure of 1 or 2
+magic numbers like the i2c address & so on, and my C abilities are fairly
+limited, so I haven't managed to compile my new code without errors yet. I
+could do with some help ( or even a patch) to be honest
+regards andrew
+
+------=_Part_1445_3334227.1213816587274
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+2008/6/12 Andrew Websdale <br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<br><br><div class="gmail_quote"><div class="Ih2E3d">
+2008/6/12 Antti Palosaari &lt;<a href="mailto:crope@iki.fi" target="_blank">crope@iki.fi</a>&gt;:</div><div class="Ih2E3d"><div><div></div><div>
+wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+OK, then the reason might by tuner. Tuner may be changed to other one or tuner i2c-address is changed. I doubt whole tuner is changed. Now we should identify which tuner is used. There is some ways how to do that.<br>
+<br>
+1) Look from Windows driver files<br>
+2) Open stick and look chips<br>
+3) Take USB-sniffs and try to identify tuner from there</blockquote></div></div></div></div></blockquote><div><br>I&#39;ve opened the stick &amp; there&#39;s an MT352 (as expected) but the other chip is an MT2060 which is the tuner, I think, as I see that there&#39;s an &#39;mt2060&#39; module in the tuner module directory. Is there some modification I can do to the code so that it gets picked up by the driver? - I know a bit of C++ app programming but I&#39;m very new to C driver code, but would like to learn more. Hopefully I can help some others who have this chipset as well.....<br>
+
+</div></div></blockquote><div>------x--------<br><br>I&#39;ve had a look at the code &amp; have been attempting to add new code to the M920x driver to cope with the mt2060 tuner module, although all I&#39;ve got to go on is the existing code for the qt1010 tuner. I&#39;m not sure of 1 or 2 magic numbers like the i2c address &amp; so on, and my C abilities are fairly limited, so I haven&#39;t managed to compile my new code without errors yet. I could do with some help ( or even a patch) to be honest<br>
+regards andrew<br><br>&nbsp;</div></div><br>
+
+------=_Part_1445_3334227.1213816587274--
 
 
---- a/linux/drivers/media/dvb/ttpci/budget-ci.c 2008-06-16 19:58:04.000000000 +0200
-+++ b/linux/drivers/media/dvb/ttpci/budget-ci.c 2008-06-08 17:19:39.000000000 +0200
-@@ -237,6 +237,7 @@
-        break;
-    case 0x1010:
-    case 0x1017:
-+   case 0x101a:
-        /* for the Technotrend 1500 bundled remote */
-        ir_input_init(input_dev, &budget_ci->ir.state,
-                  IR_TYPE_RC5, ir_codes_tt_1500);
-
-
-Regards
-Martin
-
-
-
+--===============1552189770==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1552189770==--
