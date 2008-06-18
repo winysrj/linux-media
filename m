@@ -1,39 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5D6NlBn031486
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 02:23:47 -0400
-Received: from smtp40.hccnet.nl (smtp40.hccnet.nl [62.251.0.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5D6NajJ011489
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 02:23:36 -0400
-Message-ID: <2a93ca18e1d9bc5726b7f1fd60da1852.squirrel@webmail.hccnet.nl>
-In-Reply-To: <20080612194426.0e33d92c@glory.loctelecom.ru>
-References: <20080414114746.3955c089@glory.loctelecom.ru>
-	<20080414172821.3966dfbf@areia>
-	<20080415125059.3e065997@glory.loctelecom.ru>
-	<20080415000611.610af5c6@gaivota>
-	<20080415135455.76d18419@glory.loctelecom.ru>
-	<20080415122524.3455e060@gaivota>
-	<20080422175422.3d7e4448@glory.loctelecom.ru>
-	<20080422130644.7bfe3b2d@gaivota>
-	<20080423124157.1a8eda0a@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
-	<20080423160505.36064bf7@glory.loctelecom.ru>
-	<20080423113739.7f314663@gaivota>
-	<20080424093259.7880795b@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
-	<20080512201114.3bd41ee5@glory.loctelecom.ru>
-	<1210719122.26311.37.camel@pc10.localdom.local>
-	<20080520152426.5540ee7f@glory.loctelecom.ru>
-	<1211331167.4235.26.camel@pc10.localdom.local>
-	<20080612194426.0e33d92c@glory.loctelecom.ru>
-Date: Fri, 13 Jun 2008 08:23:22 +0200 (CEST)
-From: gert.vervoort@hccnet.nl
-To: "Dmitri Belimov" <d.belimov@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5IKVr5P021271
+	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 16:31:53 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5IKVeCE020924
+	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 16:31:41 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so232868ywb.81
+	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 13:31:31 -0700 (PDT)
+Message-ID: <b7b14cbb0806181331o39a038d4q5cd3ad54a2c6ee96@mail.gmail.com>
+Date: Wed, 18 Jun 2008 22:31:30 +0200
+From: "Clinton Lee Taylor" <clintonlee.taylor@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Beholder card M6 with MPEG2 coder
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: EasyCAP DC60 ...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -45,31 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Op Do, 12 juni, 2008 11:44 am schreef Dmitri Belimov:
-> Hi All
->
+Greetings ...
 
-Hi Dmitri,
+ I bought off the net, not really a good buy, now that I have it, but I hope
+that with a little help, we can get Linux support ... Can't seem to get
+WinXP64 to use it ...
 
->
-> I found strange effect. When I start common TV watching with mplayer. I
-> can see TV video. When I start cat /dev/video1 (i try get MPEG stream of
-> TV) on the TV screen I see sometimes
-> big white square. After stopped cat from /dev/video1 this squares no more.
->
->
-> What is it??
->
+ I have an EasyCap USB 2.0 Video Adapter with Audio ...
 
-What video format is being used for the TV video?
-I remember that the SAA7134 can not use a planar video format and TS
-capture at the same time.
-When I added the original TS capture code, I did not deal with this
-situation, but I'm not sure if that is still the case.
+http://www.qbik.ch/usb/devices/showdev.php?id=4224
 
-    Gert
+The device is a USB stick with
 
+ETV_1160
+VER06_1024
+2007-06-16
 
+ on the PCB and three IC's ...
+
+NXP SAA7113H CK4282 03 TPG08042
+
+STK160CLQP B72807G-0741
+
+RealTek ALC655 65142N1 G810H
+
+ ... Did a bit of research and found http://syntekdriver.sourceforge.net,
+with some discussion reguarding usbsnoops ... Have tried to contact the
+authors, but one is a little busy and have not yet heard from the other ...
+
+ So, I'm hoping that somebody else might be able to pick up the work and
+what ever I can do to help ...
+
+Thanks
+Mailed
+LeeT
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
