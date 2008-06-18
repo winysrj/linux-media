@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLXNtd014746
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:33:23 -0400
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLX7Eb020618
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:33:07 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <4860AE9F.80104@anevia.com>
-References: <485FA5A8.9000103@anevia.com>
-	<1214259929.6208.26.camel@pc10.localdom.local>
-	<4860AE9F.80104@anevia.com>
-Content-Type: text/plain; charset=utf-8
-Date: Tue, 24 Jun 2008 23:30:23 +0200
-Message-Id: <1214343023.2636.53.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [HVR 1300] secam bg
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5I2CaWi009677
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 22:12:36 -0400
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au
+	(outbound.icp-qv1-irony-out3.iinet.net.au [203.59.1.148])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5I2COod020916
+	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 22:12:25 -0400
+Message-ID: <48586F09.7020700@iinet.net.au>
+Date: Wed, 18 Jun 2008 10:12:25 +0800
+From: timf <timf@iinet.net.au>
+MIME-Version: 1.0
+To: Allen <lists@iisys.com.au>, linux-dvb@linuxtv.org,
+	video4linux-list@redhat.com, hermann pitton <hermann-pitton@arcor.de>
+References: <1204893775.10536.4.camel@ubuntu> <47D1A65B.3080900@t-online.de>	
+	<1205480517.5913.8.camel@ubuntu> <47DEE11F.6060301@t-online.de>	
+	<1205851252.11231.7.camel@ubuntu>
+	<1213744559.11684.4.camel@asus.lounge>
+In-Reply-To: <1213744559.11684.4.camel@asus.lounge>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: [linux-dvb] Kworld DVB-T 210 - dvb tuning problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,140 +32,247 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Allen wrote:
+> Tim,
+>
+> I was just sorting through some old emails from linuxtv archive, and
+> came across
+>
+>   
+>> PS. I've actually managed to get the remote to work through a very
+>> convoluted approach via the archives (Hermann), using ir-kbd-i2c.c,
+>> saa7134-i2c.c. But it's no use unless we can fix this tuning/scanning
+>> issue.
+>>     
+>
+> I have a kw 220rf which I think might be very similar.  
+>
+> Despite repeated attempts to get the remote working, I have never been
+> able to get it to respond in any fashion.  Could you please describe how
+> you got it to function, and any problems with operation.
+>
+> Thanks,
+>
+> Allen
+>
+>   
+Hi Steve,
+Please cc to these mail lists so others can be helpful to you, as well.
+You will find Hermann has some answers for saa7134 i2c remotes.
+I will paste here my mods, so that others may be able to help get it
+going.
 
-Am Dienstag, den 24.06.2008, 10:21 +0200 schrieb Frederic CAND:
-> hermann pitton a écrit :
-> > Hi Frederic,
-> > 
-> > Am Montag, den 23.06.2008, 15:31 +0200 schrieb Frederic CAND:
-> >> dear all
-> >> I could not make secam b/g work on my hvr 1300
-> >> ioctl returns -1, error "Invalid argument"
-> >> I know my card is able to handle this tv norm since it's working fine
-> >> (video and sound are ok) under windows
-> >> anyone could confirm it isn't working ? any idea why, and how to make it 
-> >> work ?
-> > 
-> > since without reply, I don't claim to have seriously looked at it, but
-> > at least have one question myself.
-> > 
-> > In cx88-core is no define for SECAM B or G.
-> > 
-> > Do you use a signal generator?
-> Indeed, I do.
-> It's a Promax GV-198.
-> http://www.promaxprolink.com/gv198.htm
-> 
-> > 
-> > Hartmut asked once on the saa7134 driver, if there are any known
-> > remaining SECAM_BG users currently and we remained, that it is hard to
-> > get really up to date global analog lists for current broadcasts and I
-> > only could contribute that there was no single request for it during all
-> > these last years.
-> > 
-> > You know countries still using it?
-> 
->  From what I've found on the internet, Cyprus, Greece, Saudi Arabia and 
-> some others. Plus people using a signal modulator (e.g: professionnal use).
-> 
-> > 
-> > Thanks,
-> > Hermann
-> > 
-> > 
-> 
-> Actually, tda9887 Secam BG was broken in (more or less) recent versions 
-> of v4l-dvb (I noticed that thanks to the signal modulator and my knc tv 
-> station saa7134 based). I came up with a "roll back" patch. I guess it 
-> can't be applied directly on the current tree but it can be done 
-> manually before being comited to the tree.
-> 
-> diff -pur1 a/linux/drivers/media/video/tda9887.c 
-> b/linux/drivers/media/video/tda9887.c
-> --- a/linux/drivers/media/video/tda9887.c      2007-07-02 
-> 20:39:57.000000000 +0200
-> +++ b/linux/drivers/media/video/tda9887.c      2008-06-19 
-> 12:21:50.000000000 +0200
-> @@ -172,7 +172,6 @@ static struct tvnorm tvnorms[] = {
->                  .name  = "SECAM-BGH",
-> -               .b     = ( cPositiveAmTV  |
-> +               .b     = ( cNegativeFmTV  |
->                             cQSS           ),
->                  .c     = ( cTopDefault),
-> -               .e     = ( cGating_36     |
-> -                          cAudioIF_5_5   |
-> +               .e     = ( cAudioIF_5_5   |
->                             cVideoIF_38_90 ),
-> 
-> 
-> 
-> For the Hauppauge HVR 1300, I found that adding mentions of SECAM B/G/H 
-> in cx88.h and cx88-core.c helped making it work. Same goes for this one, 
-> I guess it can't be applied on the current tree but it can easily be 
-> manually applied.
-> 
-> diff -pur1 a/linux/drivers/media/video/cx88/cx88-core.c 
-> b/linux/drivers/media/video/cx88/cx88-core.c
-> --- a/linux/drivers/media/video/cx88/cx88-core.c       2007-07-02 
-> 20:39:57.000000000 +0200
-> +++ b/linux/drivers/media/video/cx88/cx88-core.c       2008-06-23 
-> 18:48:21.000000000 +0200
-> @@ -890,2 +890,5 @@ static int set_tvaudio(struct cx88_core
-> 
-> +    } else if ((V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H) 
-> & norm) {
-> +        core->tvaudio = WW_BG;
-> +
->          } else if (V4L2_STD_SECAM_DK & norm) {
-> @@ -979,3 +982,6 @@ int cx88_set_tvnorm(struct cx88_core *co
->                  cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
-> -       cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
-> +    /* Chroma AGC must be disabled if SECAM is used, we enable it
-> +        by default on PAL and NTSC */
-> +    cx_andor(MO_INPUT_FORMAT, 0x40f,
-> +            norm & V4L2_STD_SECAM ? cxiformat : cxiformat | 0x400);
-> 
-> 
-> 
-> diff -pur1 a/linux/drivers/media/video/cx88/cx88.h 
-> b/linux/drivers/media/video/cx88/cx88.h
-> --- a/linux/drivers/media/video/cx88/cx88.h    2008-05-13 
-> 10:21:01.000000000 +0200
-> +++ b/linux/drivers/media/video/cx88/cx88.h    2008-06-23 
-> 17:48:41.000000000 +0200
-> @@ -62,3 +62,4 @@
->          V4L2_STD_PAL_M |  V4L2_STD_PAL_N    |  V4L2_STD_PAL_Nc   | \
-> -       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK )
-> +       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK | \
-> +    V4L2_STD_SECAM_B| V4L2_STD_SECAM_G  |  V4L2_STD_SECAM_H )
-> 
+This code is an adaptation of originally Henry Wong's work,
+and much further work by numerous people across the planet.
+Until recently this modification enabled a working remote control
+for the Kworld 210RF.
+This card has a KS007 remote controller chip.
 
-Secam BG was a weapon during cold war.
+Since that time, the i2c code in v4l-dvb has undergone a
+substantial transition.
 
-It was the composite of the wall on the ground for radio waves in the
-air. It is the most vanishing TV standard in the world.
+Thus this code no longer works, in particular, within ir-kbd-i2c.c
+This is the only success I have ever had in getting an i2c
+remote control to work in saa7134.
 
-For what I seem to know, there is nothing left like such in Europe these
-days. Also old broadcasting equipment in Irak and Afghanistan doesn't
-exist anymore and Saudi Arabia at least has Pal BG too.
+As I have had a few problems with this card working properly,
+I basically lost interest.
 
-For other parts of the world the same might count, but we fore sure
-can't trust on ITU stuff as far back than 2004.
-The fee is unexpectedly moderate, sorry for the noise Daniel. 
+Perhaps others with a Kworld 210RF or a Kworld 220RF card
+can get it working again.
 
-Most of the other potentially remaining candidates are states with huge
-deserts using usually DVB-S.
+***************************************************************
+Mods to /v4l-dvb/linux/include/media/ir-common.h
 
-Since we likely have no easy means to make totally sure it is not used
-anymore or should be still available for professional purposes, I
-suggest to prepare your patches in such a way Mauro can pick them up.
+extern IR_KEYTAB_TYPE ir_codes_kworld_210[IR_KEYTAB_SIZE];
+***************************************************************
+Mods to /v4l-dvb/linux/drivers/media/common/ir-keymaps.c
 
-Cheers,
-Hermann
- 
+IR_KEYTAB_TYPE ir_codes_kworld_210[IR_KEYTAB_SIZE] = {
+    [ 0x00 ] = KEY_1,
+    [ 0x01 ] = KEY_2,
+    [ 0x02 ] = KEY_3,
+    [ 0x03 ] = KEY_4,
+    [ 0x04 ] = KEY_5,
+    [ 0x05 ] = KEY_6,
+    [ 0x06 ] = KEY_7,
+    [ 0x07 ] = KEY_8,
+    [ 0x08 ] = KEY_9,
+    [ 0x09 ] = KEY_BACKSPACE,
+    [ 0x0a ] = KEY_0,
+    [ 0x0b ] = KEY_ENTER,
+    [ 0x0c ] = KEY_POWER,
+    [ 0x0d ] = KEY_SUBTITLE,
+    [ 0x0e ] = KEY_VIDEO,
+    [ 0x0f ] = KEY_CAMERA,
+    [ 0x10 ] = KEY_CHANNELUP,
+    [ 0x11 ] = KEY_CHANNELDOWN,
+    [ 0x12 ] = KEY_VOLUMEDOWN,
+    [ 0x13 ] = KEY_VOLUMEUP,
+    [ 0x14 ] = KEY_MUTE,
+    [ 0x15 ] = KEY_AUDIO,
+    [ 0x16 ] = KEY_TV,
+    [ 0x17 ] = KEY_ZOOM,
+    [ 0x18 ] = KEY_PRINT,
+    [ 0x19 ] = KEY_SETUP,
+    [ 0x1a ] = KEY_STOP,
+    [ 0x1b ] = KEY_RECORD,
+    [ 0x1c ] = KEY_TEXT,
+    [ 0x1d ] = KEY_REWIND,
+    [ 0x1e ] = KEY_FASTFORWARD,
+    [ 0x1f ] = KEY_SHUFFLE,
+    [ 0x45 ] = KEY_STOP,
+    [ 0x44 ] = KEY_PLAY,
+};
+EXPORT_SYMBOL_GPL(ir_codes_kworld_210);
+***************************************************************
+Mods to /v4l-dvb/linux/drivers/media/video/saa7134/saa7134-i2c.c
+...
+    /* Am I an i2c remote control? */
 
+    switch (client->addr) {
+        case 0x7a:
+        case 0x47:
+        case 0x71:
+        case 0x2d:
+        case 0x30: /*for kw210 remote control*/
+        {
+...
 
+static char *i2c_devs[128] = {
+    [ 0x20      ] = "mpeg encoder (saa6752hs)",
+    [ 0xa0 >> 1 ] = "eeprom",
+    [ 0xc0 >> 1 ] = "tuner (analog)",
+    [ 0x86 >> 1 ] = "tda9887",
+    [ 0x5a >> 1 ] = "remote control",
+    [ 0x30      ] = "kw210 remote control",
+};
+...
+***************************************************************
+Mods to /v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c
+...
+
+static int get_key_kworld_210(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+{
+    unsigned char b;
+
+    /* poll IR chip */
+    if (1 != i2c_master_recv(&ir->c,&b,1)) {
+        dprintk(1,"read error\n");
+        return -EIO;
+    }
+
+    /* it seems that 0x80 indicates that a button is still hold
+       down, while 0xff indicates that no button is hold
+       down. 0x80 sequences are sometimes interrupted by 0xFF */
+
+    dprintk(2,"key %02x\n", b);
+
+    if (b == 0xff)
+        return 0;
+
+    if (b == 0x80)
+        /* keep old data */
+        return 1;
+
+    *ir_key = b;
+    *ir_raw = b;
+    return 1;
+}
+...
+/*Unless the timer is modified, you have time to make a cup of tea while 
+waiting
+* for a response after pressing a key
+*/
+static int polling_interval = 100; /* ms */
+...
+static void ir_timer(unsigned long data)
+{
+    struct IR_i2c *ir = (struct IR_i2c*)data;
+    schedule_work(&ir->work);
+}
+...
+static void ir_work(struct work_struct *work)
+#endif
+{
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+    struct IR_i2c *ir = data;
+#else
+    struct IR_i2c *ir = container_of(work, struct IR_i2c, work);
+#endif
+
+    ir_key_poll(ir);
+    /*kw210 improve key-response time*/
+    mod_timer(&ir->timer, jiffies + polling_interval*HZ/1000);
+}
+...
+/*needed to select between cards with same i2c address for remote 
+controller*/
+static int kWorld_210 = 0;
+...
+    case 0x30:
+        ir_type     = IR_TYPE_OTHER;
+/*add kw210 card*/
+        if (kWorld_210 == 1) {
+            name        = "kWoRlD210";
+            ir->get_key = get_key_kworld_210;
+            ir_codes    = ir_codes_kworld_210;
+        } else {
+            name        = "KNC One";
+            ir->get_key = get_key_knc1;
+            ir_codes    = ir_codes_empty;
+        } 
+        break;
+...
+static int ir_probe(struct i2c_adapter *adap)
+{
+...
+
+    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, -1};
+/*add 0x30*/
+    static const int probe_saa7134[] = { 0x7a, 0x47, 0x71, 0x2d, 0x30, -1 };
+...
+    c->adapter = adap;
+    for (i = 0; -1 != probe[i]; i++) {
+        c->addr = probe[i];
+        rc = i2c_master_recv(c, &buf, 0);
+/*mod added here to "wake up" kw210 remote controller chip*/
+        if (adap->id == I2C_HW_SAA7134 && probe[i] == 0x30)
+        {
+            struct i2c_client c2;
+            memset (&c2, 0, sizeof(c2));
+            c2.adapter = adap;   
+            for (c2.addr=127; c2.addr > 0; c2.addr--) {
+                if (0 == i2c_master_recv(&c2,&buf,0)) {
+                    dprintk(1,"Found another device, at addr 0x%02x\n", 
+c2.addr);
+                    break;
+                }
+            }
+
+            /* Now do the probe. The controller does not respond
+               to 0-byte reads, so we use a 1-byte read instead. */
+            rc = i2c_master_recv(c,&buf,1);
+            rc--;
+            kWorld_210 = 1;
+        } else {
+            rc = i2c_master_recv(c,&buf,0);
+        }
+        dprintk(1,"probe 0x%02x @ %s: %s\n",
+            probe[i], adap->name,
+            (0 == rc) ? "yes" : "no");
+        if (0 == rc) {
+            ir_attach(adap, probe[i], 0, 0);
+            break;
+        }
+    }
+    kfree(c);
+    return 0;
+}
+***************************************************************
+
+Regards,
+Timf
 
 --
 video4linux-list mailing list
