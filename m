@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gujs.lists@gmail.com>) id 1K79YQ-0004ep-Ko
-	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 15:42:59 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so2220853ywj.41
-	for <linux-dvb@linuxtv.org>; Fri, 13 Jun 2008 06:42:52 -0700 (PDT)
-Message-ID: <23be820f0806130642n4ccb47cna0e0b404d360d0bb@mail.gmail.com>
-Date: Fri, 13 Jun 2008 15:42:52 +0200
-From: "Gregor Fuis" <gujs.lists@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <crope@iki.fi>) id 1K9OXN-0007Iw-UT
+	for linux-dvb@linuxtv.org; Thu, 19 Jun 2008 20:07:12 +0200
+Message-ID: <9188.212.50.194.254.1213898824.squirrel@webmail.kapsi.fi>
+In-Reply-To: <e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+	<4850566E.8030001@iki.fi>
+	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
+	<4850F597.9030603@iki.fi>
+	<e37d7f810806120619q28bff0d8y8f2d5319187ab6b0@mail.gmail.com>
+	<e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+Date: Thu, 19 Jun 2008 21:07:04 +0300 (EEST)
+From: "Antti Palosaari" <crope@iki.fi>
+To: "Andrew Websdale" <websdaleandrew@googlemail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] new KNC One TV Station
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,145 +24,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1782469204=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1782469204==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_12227_19758917.1213364572370"
+ti 17.6.2008 22:29 Andrew Websdale kirjoitti:
+> 2008/6/12 Andrew Websdale
+>> 2008/6/12 Antti Palosaari <crope@iki.fi>:
+>> wrote:
+>>
+>>> OK, then the reason might by tuner. Tuner may be changed to other one
+>>> or
+>>> tuner i2c-address is changed. I doubt whole tuner is changed. Now we
+>>> should
+>>> identify which tuner is used. There is some ways how to do that.
+>>>
+>>> 1) Look from Windows driver files
+>>> 2) Open stick and look chips
+>>> 3) Take USB-sniffs and try to identify tuner from there
+>>
+>>
+> I've opened the stick & there's an MT352 (as expected) but the other chip
+> is
+> an MT2060 which is the tuner, I think, as I see that there's an 'mt2060'
+> module in the tuner module directory. Is there some modification I can do
+> to
+> the code so that it gets picked up by the driver? - I know a bit of C++
+> app
+> programming but I'm very new to C driver code, but would like to learn
+> more.
+> Hopefully I can help some others who have this chipset as well.....
+> regards Andrew
 
-------=_Part_12227_19758917.1213364572370
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Looks like small changes to m9206 driver is needed. MT2060 tuner needs
+IF1, i2c-address and output clock bit (0/1 if I remeber correctly..).
+Those can be seen from windows sniffs or by guessing / testing. IF1 is
+easy to set default one, 1220, wrong IF1 only decreases performance. If
+there is eeprom used then value is normally read from there, otherwose
+just set default. clock is easy to test. I don=B4t know how many i2c-address
+are supported by chip, but most probably there is not too many. Hopefully
+only 4. You can look from specs or from other drivers what i2c-addresses
+are used for mt2060. I think it will take 2-10 test to find correct values
+by trial and error method.
 
-Hello,
+I am now on holiday trip, but next week - monday or tuesday I can fix that
+driver that if anyone else haven=B4t done already.
 
-I recently bought new KNC One TV Station card with Cineview CI module. When
-I installed it, it was detected and worked with no problems. I just noticed
-that tuner is not that sensitive and has a little problems with signal
-strentgh in some cases (rain, bad weather) where TT 2300S Premium didn't
-have. The problem got bigger when I tried Cineview module. I inserted
-Viaccess CAM module and RTV Slovenija smartcard. When I inserted CAM, card
-at the same moment lost lock of signal and signal was not good enough to
-lock again. When I get CAM out of the CI signal doesn't lock until I restart
-szap.
+regards
+Antti
 
-I think that this card is not supported directly because lspci reports
-Unknown KNC One card. Is someone working on drivers to support this card?
-
-lspci output:
-03:0f.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-        Subsystem: KNC One Unknown device 0016
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-        Latency: 32 (3750ns min, 9500ns max)
-        Interrupt: pin A routed to IRQ 17
-        Region 0: Memory at ff7ff000 (32-bit, non-prefetchable) [size=512]
-
-
-dmesg reports this:
-[   28.572224] Linux video capture interface: v2.00
-[   28.702747] saa7146: register extension 'budget_av'.
-[   28.702815] ACPI: PCI Interrupt 0000:03:0f.0[A] -> GSI 17 (level, low) ->
-IRQ 17
-[   28.702853] saa7146: found saa7146 @ mem f8986000 (revision 1, irq 17)
-(0x1894,0x0016).
-[   28.702862] saa7146 (0): dma buffer size 192512
-[   28.702866] DVB: registering new adapter (KNC TV STAR DVB-S)
-[   28.762680] adapter failed MAC signature check
-[   28.762685] encoded MAC from EEPROM was
-ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-[   29.073159] KNC1-0: MAC addr = 00:09:d6:65:b6:57
-[   29.721965] DVB: registering frontend 0 (ST STV0299 DVB-S)...
-[   29.752958] budget-av: ci interface initialised.
-
-
-Here is my szap test:
-szap -a 0 -c /home/gregor/channels/channels.conf "SLO-TV2"
-reading channels from file '/home/gregor/channels/channels.conf'
-zapping to 2 'SLO-TV2':
-sat 1, frequency = 12303 MHz V, symbolrate 27500000, vpid = 0x00cb, apid =
-0x00cc
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 03 | signal c13b | snr 9609 | ber 0000ff00 | unc 00000000 |
-status 1f | signal c1c1 | snr b0e2 | ber 0000ff03 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c312 | snr aa52 | ber 0000ff12 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c1bb | snr a2e1 | ber 0000ff06 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c2c6 | snr ab2d | ber 0000ff10 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c555 | snr b307 | ber 0000ff00 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c5d5 | snr ba54 | ber 0000ff00 | unc 00000000 |
-FE_HAS_LOCK
-status 1f | signal c440 | snr b748 | ber 0000ff00 | unc 00000000 |
-FE_HAS_LOCK
-<----- CAM inserted
-status 01 | signal 95ee | snr 7f74 | ber 00003383 | unc 00000000 |
-status 01 | signal 90e8 | snr 7f74 | ber 000035a0 | unc 00000000 |
-status 01 | signal 90b6 | snr 7f80 | ber 000032b9 | unc 00000000 |
-status 01 | signal 8715 | snr 8022 | ber 00003487 | unc 00000000 |
-status 01 | signal 8bf2 | snr 7fa7 | ber 00003321 | unc 00000000 |
-status 01 | signal 90f8 | snr 7f62 | ber 0000342c | unc 00000000 |
-
-dmesg when CAM inserted:
-[14494.791667] budget-av: cam inserted B
-[14497.000533] dvb_ca adapter 0: DVB CAM detected and initialised
-successfully
-
-I would realy like to know if card will be fully supported. I can help
-debuging problems and test solutions whithout a problem.
-
-Thanks!
-
-Regards,
-Gregor
-
-------=_Part_12227_19758917.1213364572370
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello,<br><br>I recently bought new KNC One TV Station card with Cineview CI module. When I installed it, it was detected and worked with no problems. I just noticed that tuner is not that sensitive and has a little problems with signal strentgh in some cases (rain, bad weather) where TT 2300S Premium didn&#39;t have. The problem got bigger when I tried Cineview module. I inserted Viaccess CAM module and RTV Slovenija smartcard. When I inserted CAM, card at the same moment lost lock of signal and signal was not good enough to lock again. When I get CAM out of the CI signal doesn&#39;t lock until I restart szap. <br>
-<br>I think that this card is not supported directly because lspci reports Unknown KNC One card. Is someone working on drivers to support this card?<br>
-<br>lspci output:<br>03:0f.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: KNC One Unknown device 0016<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-<br>
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 32 (3750ns min, 9500ns max)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 17<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at ff7ff000 (32-bit, non-prefetchable) [size=512]<br>
-
-<br><br>dmesg reports this:<br>[&nbsp;&nbsp; 28.572224] Linux video capture interface: v2.00<br>[&nbsp;&nbsp; 28.702747] saa7146: register extension &#39;budget_av&#39;.<br>[&nbsp;&nbsp; 28.702815] ACPI: PCI Interrupt 0000:03:0f.0[A] -&gt; GSI 17 (level, low) -&gt; IRQ 17<br>
-
-[&nbsp;&nbsp; 28.702853] saa7146: found saa7146 @ mem f8986000 (revision 1, irq 17) (0x1894,0x0016).<br>[&nbsp;&nbsp; 28.702862] saa7146 (0): dma buffer size 192512<br>[&nbsp;&nbsp; 28.702866] DVB: registering new adapter (KNC TV STAR DVB-S)<br>[&nbsp;&nbsp; 28.762680] adapter failed MAC signature check<br>
-
-[&nbsp;&nbsp; 28.762685] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff<br>[&nbsp;&nbsp; 29.073159] KNC1-0: MAC addr = 00:09:d6:65:b6:57<br>[&nbsp;&nbsp; 29.721965] DVB: registering frontend 0 (ST STV0299 DVB-S)...<br>
-
-[&nbsp;&nbsp; 29.752958] budget-av: ci interface initialised.<br><br><br>Here is my szap test:<br>szap -a 0 -c /home/gregor/channels/channels.conf &quot;SLO-TV2&quot;<br>reading channels from file &#39;/home/gregor/channels/channels.conf&#39;<br>
-zapping to 2 &#39;SLO-TV2&#39;:<br>sat 1, frequency = 12303 MHz V, symbolrate 27500000, vpid = 0x00cb, apid = 0x00cc<br>using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>status 03 | signal c13b | snr 9609 | ber 0000ff00 | unc 00000000 | <br>
-status 1f | signal c1c1 | snr b0e2 | ber 0000ff03 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c312 | snr aa52 | ber 0000ff12 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c1bb | snr a2e1 | ber 0000ff06 | unc 00000000 | FE_HAS_LOCK<br>
-status 1f | signal c2c6 | snr ab2d | ber 0000ff10 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c555 | snr b307 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK<br>status 1f | signal c5d5 | snr ba54 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK<br>
-status 1f | signal c440 | snr b748 | ber 0000ff00 | unc 00000000 | FE_HAS_LOCK&nbsp; <br>&lt;----- CAM inserted<br>status 01 | signal 95ee | snr 7f74 | ber 00003383 | unc 00000000 | <br>status 01 | signal 90e8 | snr 7f74 | ber 000035a0 | unc 00000000 | <br>
-status 01 | signal 90b6 | snr 7f80 | ber 000032b9 | unc 00000000 | <br>status 01 | signal 8715 | snr 8022 | ber 00003487 | unc 00000000 | <br>status 01 | signal 8bf2 | snr 7fa7 | ber 00003321 | unc 00000000 | <br>status 01 | signal 90f8 | snr 7f62 | ber 0000342c | unc 00000000 | <br>
-<br>dmesg when CAM inserted:<br>[14494.791667] budget-av: cam inserted B<br>[14497.000533] dvb_ca adapter 0: DVB CAM detected and initialised successfully<br><br>I would realy like to know if card will be fully supported. I can help debuging problems and test solutions whithout a problem.<br>
-<br>Thanks!<br><br>Regards,<br>Gregor<br><br>
-
-------=_Part_12227_19758917.1213364572370--
-
-
---===============1782469204==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1782469204==--
