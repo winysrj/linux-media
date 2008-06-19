@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1K54HA-0004PA-Gv
-	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 21:40:34 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1077525fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 07 Jun 2008 12:40:29 -0700 (PDT)
-Message-ID: <854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
-Date: Sat, 7 Jun 2008 21:40:28 +0200
-From: "Faruk A" <fa@elwak.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <20080607225006.51805d6f@bk.ru>
+	(envelope-from <crope@iki.fi>) id 1K9QzA-0007YL-36
+	for linux-dvb@linuxtv.org; Thu, 19 Jun 2008 22:44:01 +0200
+Message-ID: <53265.212.50.194.254.1213908236.squirrel@webmail.kapsi.fi>
+In-Reply-To: <1213788359.8904.5.camel@sat>
+References: <1213788359.8904.5.camel@sat>
+Date: Thu, 19 Jun 2008 23:43:56 +0300 (EEST)
+From: "Antti Palosaari" <crope@iki.fi>
+To: "marsupilamies" <marsupilamies@free.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <45e226e50806060327s7e3ecf86wb9141ee394e854d1@mail.gmail.com>
-	<E1K4ZQk-000ARd-00.goga777-bk-ru@f145.mail.ru>
-	<45e226e50806060353o32b215afwc3017e3ab8a2dd10@mail.gmail.com>
-	<854d46170806060550u5c238e26ia003c713ed68095e@mail.gmail.com>
-	<45e226e50806071017y4e09413dl23c119da0910fae2@mail.gmail.com>
-	<854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
-	<20080607225006.51805d6f@bk.ru>
-Subject: Re: [linux-dvb] Terratec Cinergy S2 PCI HD ioctl DVBFE_GET_INFO
-	failed:Operation not supported
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] No frontend when using leadtek dtv dongle gold with
+ last cvs	af9015 branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,81 +20,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SSdtIHVzaW5nIG11bHRpcHJvdG8gYW5kIHRoaXMgd29ya3MgMTAwJSBqdXN0IHRlc3RlZCB3aXRo
-IHR3byBtYWNoaW5lcy4KSSdtIG5vdCBzdXJlIGlmIG11bHRpcHJvdG9fcGx1cyBpcyB1c2luZyBu
-ZXcgQVBJIG9yIHRoZSBvbGQgb25lIGFueXdheQp0aGUgYmVzdCBhZHZpY2UgdGhhdCBpIGNhbiBn
-aXZlIHlvdSBpcyB0byB0cnkgdGhlIG9sZCBzY2FuIHdpdGhvdXQgYW55IHBhdGNoZXMuCgpodHRw
-Oi8vanVzc3QuZGUvbWFudS9zY2FuLnRhci5iejIKCkdvb2QgTHVjawoKRmFydWsKCk9uIFNhdCwg
-SnVuIDcsIDIwMDggYXQgODo1MCBQTSwgR29nYTc3NyA8Z29nYTc3N0Biay5ydT4gd3JvdGU6Cj4g
-8NLJ18XU09TX1cAsIEZhcnVrCj4KPiBJIGhhdmUgZG93bmxvYWRlZCBzY2FuIGZyb20gaHR0cDov
-L3d3dy56c2hhcmUubmV0L2Rvd25sb2FkLzEzMjIwMDYxMThjOWM3MGEvCj4gYW5kIEkgaGF2ZSB0
-aGUgc2FtZSBlcnJvcnMgd2l0aCBteSBodnI0MDAwIChJIHVzZSB0aGUgbGF0ZXN0IG11bHRpcHJv
-dG9fcGx1cyArIGh2cjQwMDAgcGF0Y2ggZnJvbSAyIE1heSApCj4KPiBnb2dhOi91c3Ivc3JjL2R2
-Yi1hcHBzL3V0aWwvc2Nhbl9mYXJ1YyMgZ29nYTovdXNyL3NyYy9kdmItYXBwcy91dGlsL3NjYW5f
-ZmFydWMjIC4vc2NhbiAxM2UKPiBzY2FubmluZyAxM2UKPiB1c2luZyAnL2Rldi9kdmIvYWRhcHRl
-cjAvZnJvbnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKPiBpbml0aWFsIHRy
-YW5zcG9uZGVyIDEyMzk4MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKPiBpbml0aWFsIHRyYW5zcG9u
-ZGVyIDExMjU4MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKPiBpbml0aWFsIHRyYW5zcG9uZGVyIDEx
-NDQ5MDAwIEggMjc1MDAwMDAgMjc1MDAwMDAKPiBpbml0aWFsIHRyYW5zcG9uZGVyIDExOTk2MDAw
-IFYgMjc1MDAwMDAgMjc1MDAwMDAKPiBpbml0aWFsIHRyYW5zcG9uZGVyIDEyMjY1MDAwIFYgMjc1
-MDAwMDAgMjc1MDAwMDAKPgo+Cj4gaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRp
-b24gbm90IHN1cHBvcnRlZAo+IGlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9u
-IG5vdCBzdXBwb3J0ZWQKPiBpb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBu
-b3Qgc3VwcG9ydGVkCj4gaW9jdGwgRFZCRkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90
-IHN1cHBvcnRlZAo+IGlvY3RsIERWQkZFX0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBz
-dXBwb3J0ZWQKPiBpb2N0bCBEVkJGRV9HRVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3Vw
-cG9ydGVkCj4gRVJST1I6IGluaXRpYWwgdHVuaW5nIGZhaWxlZAo+IGR1bXBpbmcgbGlzdHMgKDAg
-c2VydmljZXMpCj4gRG9uZS4KPgo+IGdvZ2E6L3Vzci9zcmMvZHZiLWFwcHMvdXRpbC9zY2FuX2Zh
-cnVjIyBtYWtlIGNsZWFuCj4gY2xlYW5pbmcKPiBnb2dhOi91c3Ivc3JjL2R2Yi1hcHBzL3V0aWwv
-c2Nhbl9mYXJ1YyMgbWFrZQo+IHBlcmwgc2VjdGlvbl9nZW5lcmF0ZS5wbCBhdHNjX3BzaXBfc2Vj
-dGlvbi5wbAo+IENDIHNjYW4ubwo+IHNjYW4uYzo0MTQ6IHdhcm5pbmc6IHVudXNlZCBwYXJhbWV0
-ZXIgJ2J1ZicKPiBzY2FuLmM6NDE1OiB3YXJuaW5nOiB1bnVzZWQgcGFyYW1ldGVyICd0Jwo+IHNj
-YW4uYzo0NDk6IHdhcm5pbmc6IHVudXNlZCBwYXJhbWV0ZXIgJ2J1ZicKPiBzY2FuLmM6NTE4OiB3
-YXJuaW5nOiB1bnVzZWQgcGFyYW1ldGVyICdidWYnCj4gc2Nhbi5jOjUxOTogd2FybmluZzogdW51
-c2VkIHBhcmFtZXRlciAndCcKPiBzY2FuLmM6IEluIGZ1bmN0aW9uICd0dW5lX2luaXRpYWwnOgo+
-IHNjYW4uYzoxODkxOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUgJ2hpZXInCj4gc2Nhbi5jOjE4
-OTE6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSAnZ3VhcmQnCj4gc2Nhbi5jOjE4OTE6IHdhcm5p
-bmc6IHVudXNlZCB2YXJpYWJsZSAnbW9kZScKPiBzY2FuLmM6MTg5MTogd2FybmluZzogdW51c2Vk
-IHZhcmlhYmxlICdmZWMyJwo+IHNjYW4uYzoxODkxOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUg
-J2J3Jwo+IHNjYW4uYzoxODkxOiB3YXJuaW5nOiB1bnVzZWQgdmFyaWFibGUgJ3FhbScKPiBzY2Fu
-LmM6IEF0IHRvcCBsZXZlbDoKPiBzY2FuLmM6MTgwODogd2FybmluZzogJ3N0cjJxYW0nIGRlZmlu
-ZWQgYnV0IG5vdCB1c2VkCj4gc2Nhbi5jOjE4MjU6IHdhcm5pbmc6ICdzdHIyYmFuZHdpZHRoJyBk
-ZWZpbmVkIGJ1dCBub3QgdXNlZAo+IHNjYW4uYzoxODM3OiB3YXJuaW5nOiAnc3RyMm1vZGUnIGRl
-ZmluZWQgYnV0IG5vdCB1c2VkCj4gc2Nhbi5jOjE4NDg6IHdhcm5pbmc6ICdzdHIyZ3VhcmQnIGRl
-ZmluZWQgYnV0IG5vdCB1c2VkCj4gc2Nhbi5jOjE4NjE6IHdhcm5pbmc6ICdzdHIyaGllcicgZGVm
-aW5lZCBidXQgbm90IHVzZWQKPiBzY2FuLmM6MjA4MDogd2FybmluZzogJ3BpZHNfZHVtcF9zZXJ2
-aWNlX3BhcmFtZXRlcl9zZXQnIGRlZmluZWQgYnV0IG5vdCB1c2VkCj4gQ0MgYXRzY19wc2lwX3Nl
-Y3Rpb24ubwo+IENDIGRpc2VxYy5vCj4gQ0MgZHVtcC12ZHIubwo+IENDIGR1bXAtemFwLm8KPiBk
-dW1wLXphcC5jOjY6IHdhcm5pbmc6ICdpbnZfbmFtZScgZGVmaW5lZCBidXQgbm90IHVzZWQKPiBk
-dW1wLXphcC5jOjEyOiB3YXJuaW5nOiAnZmVjX25hbWUnIGRlZmluZWQgYnV0IG5vdCB1c2VkCj4g
-ZHVtcC16YXAuYzoyNjogd2FybmluZzogJ3FhbV9uYW1lJyBkZWZpbmVkIGJ1dCBub3QgdXNlZAo+
-IGR1bXAtemFwLmM6Mzk6IHdhcm5pbmc6ICdid19uYW1lJyBkZWZpbmVkIGJ1dCBub3QgdXNlZAo+
-IGR1bXAtemFwLmM6NDc6IHdhcm5pbmc6ICdtb2RlX25hbWUnIGRlZmluZWQgYnV0IG5vdCB1c2Vk
-Cj4gZHVtcC16YXAuYzo1Mzogd2FybmluZzogJ2d1YXJkX25hbWUnIGRlZmluZWQgYnV0IG5vdCB1
-c2VkCj4gZHVtcC16YXAuYzo2Mjogd2FybmluZzogJ2hpZXJhcmNoeV9uYW1lJyBkZWZpbmVkIGJ1
-dCBub3QgdXNlZAo+IENDIGxuYi5vCj4gQ0Mgc2VjdGlvbi5vCj4gQ0Mgc2Nhbgo+IGdvZ2E6L3Vz
-ci9zcmMvZHZiLWFwcHMvdXRpbC9zY2FuX2ZhcnVjIyAuL3NjYW4gMTNlCj4gc2Nhbm5pbmcgMTNl
-Cj4gdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFw
-dGVyMC9kZW11eDAnCj4gaW5pdGlhbCB0cmFuc3BvbmRlciAxMjM5ODAwMCBIIDI3NTAwMDAwIDI3
-NTAwMDAwCj4gaW5pdGlhbCB0cmFuc3BvbmRlciAxMTI1ODAwMCBIIDI3NTAwMDAwIDI3NTAwMDAw
-Cj4gaW5pdGlhbCB0cmFuc3BvbmRlciAxMTQ0OTAwMCBIIDI3NTAwMDAwIDI3NTAwMDAwCj4gaW5p
-dGlhbCB0cmFuc3BvbmRlciAxMTk5NjAwMCBWIDI3NTAwMDAwIDI3NTAwMDAwCj4gaW5pdGlhbCB0
-cmFuc3BvbmRlciAxMjI2NTAwMCBWIDI3NTAwMDAwIDI3NTAwMDAwCj4KPgo+Cj4gaW9jdGwgRFZC
-RkVfR0VUX0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAo+IGlvY3RsIERWQkZF
-X0dFVF9JTkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0ZWQKPiBpb2N0bCBEVkJGRV9H
-RVRfSU5GTyBmYWlsZWQ6IE9wZXJhdGlvbiBub3Qgc3VwcG9ydGVkCj4gaW9jdGwgRFZCRkVfR0VU
-X0lORk8gZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAo+IGlvY3RsIERWQkZFX0dFVF9J
-TkZPIGZhaWxlZDogT3BlcmF0aW9uIG5vdCBzdXBwb3J0ZWQKPiBFUlJPUjogaW5pdGlhbCB0dW5p
-bmcgZmFpbGVkCj4gZHVtcGluZyBsaXN0cyAoMCBzZXJ2aWNlcykKPiBEb25lLgo+Cj4KPgo+IF9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtZHZi
-IG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGludXh0
-di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0Cmxp
-bnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
-bi9saXN0aW5mby9saW51eC1kdmI=
+ke 18.6.2008 14:25 marsupilamies kirjoitti:
+>         [ 3588.752816] af9013: Unknown symbol __floatsidf
+>         [ 3588.752888] af9013: Unknown symbol __adddf3
+>         [ 3588.752960] af9013: Unknown symbol __fixdfsi
+>         [ 3588.753025] af9013: Unknown symbol __divdf3
+>         [ 3588.753089] af9013: Unknown symbol __muldf3
+>         [ 3588.795881] DVB: Unable to find symbol af9013_attach()
+
+>         I don't know why I've the "af9013: Unknow symbol"
+>         I'm using a 2.6.24-19 kernel on a ubuntu 8.04.
+>
+>         Maybe the issue is related to this kernel ?
+>
+>         Is anybody can help me ?
+
+I have got some reports already :( But I am now on midsummer holiday and
+cannot fix it just now. I have added mistakenly some floating point
+calculations and thats why it goes broken...
+
+You could use older tree
+http://linuxtv.org/hg/~anttip/af9015/rev/9bc22f1c2920
+or
+http://linuxtv.org/hg/~anttip/af9015-t/
+
+Antti
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
