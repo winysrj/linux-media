@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.231])
+Received: from bsmtp.bon.at ([213.33.87.14])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KCBs0-0001Me-T5
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 13:12:02 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so485319rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 04:11:55 -0700 (PDT)
-Message-ID: <d9def9db0806270411tc6bea85i5a72a9b41c10bad0@mail.gmail.com>
-Date: Fri, 27 Jun 2008 13:11:55 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: free_beer_for_all@yahoo.com
-In-Reply-To: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
+	(envelope-from <michael.schoeller@schoeller-soft.net>)
+	id 1K9QSV-0004gN-J4
+	for linux-dvb@linuxtv.org; Thu, 19 Jun 2008 22:10:19 +0200
+Message-ID: <485ABD03.7070602@schoeller-soft.net>
+Date: Thu, 19 Jun 2008 22:09:39 +0200
+From: =?ISO-8859-1?Q?Michael_Sch=F6ller?=
+	<michael.schoeller@schoeller-soft.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
-Cc: mrechberger@empiatech.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Potential Linux support for new TerraTec Cinergy
-	HTC USB XS HD ?
+To: anton repko <trcheton@gmail.com>
+References: <f3acf9620806130531j18a64bbcw92256044a491a26f@mail.gmail.com>	<200806131654.11715.dkuhlen@gmx.net>
+	<f3acf9620806181146q7a61b792hbcc10c4513845173@mail.gmail.com>
+In-Reply-To: <f3acf9620806181146q7a61b792hbcc10c4513845173@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Firmware extraction script for Pinnacle PCTV Sat
+ Pro USB
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,75 +23,222 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0748699562=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Jun 27, 2008 at 11:39 AM, barry bouwsma
-<free_beer_for_all@yahoo.com> wrote:
-> Moin!
->
-> I'm sure it's far too early, but I thought I'd ask just in case
-> someone might know more than I do...
->
-> Sometime Real Soon Now or Right About Now there should be available
-> a new USB device from TerraTec, capable of supporting DVB-C and DVB-T,
-> as well as analog radio/TV, and with a USB2 connection (vital for
-> successful DVB-C viewing, not critical for SDTV over DVB-T).
->
-> Unfortunately, I haven't found detailed hardware info, and what I have
-> found refers to ``USB 2.0 compatible'', which sounds to me that it
-> might really be a USB 1 device with inadequate bandwidth for HDTV
-> or high quality SDTV, like the Cinergy Piranha...
->
+This is a multi-part message in MIME format.
+--===============0748699562==
+Content-Type: multipart/alternative;
+ boundary="------------070007060407060801020108"
 
-it is a full USB 2.0 compatible device, possibly with PID filtering to
-support USB 1.1
+This is a multi-part message in MIME format.
+--------------070007060407060801020108
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Can anyone say if this device could potentially be supported in the
-> future, either by vendor-supplied drivers, or by containing supported/
-> supportable chipsets within?  I suspect it may be some weeks before
-> anyone can.
->
->
-> There's some Vista/XP 32/64-bit drivers available from TerraTec
-> recently for download.  Perhaps there will be come useful info
-> within directory
-> Cinergy HTC USB XS HD/BDA Driver 5.8.430.0/
-> such as
-> ; Cinergy HTC USB XS (EM2883 DVB-T & DVB-C & analog TV/FM & audio)
-> %Cinergy.DeviceDesc% = Cinergy.NTx86,USB\VID_0CCD&PID_008E
-> or
-> ;;;HKR,settings\OEMSettings,TunerID7        ,0x00010001,21     ;CFG7 = SAM9082
->
->
-> I don't have the device; my inquiries about availability have not
-> yet turned up positive so I'm not able to think about ordering one,
-> but if someone has more info or better contacts, and could say
-> something definitive (like, maybe, or no way) then I'd love to hear
-> it.  Searches have turned up heaps of press releases but no obvious
-> technical info.  Of course, it's way early.
->
->
->
-> If I understand correctly, there are no simple DVB-C devices out there
-> that have a true USB2 interface, which are supported under Linux,
-> other than a few significantly more expensive devices, most with
-> CAM/CI support, which doesn't interest me, so this has caught my
-> attention.  Also being a hybrid, though conveniently switching
-> between DVB-T and DVB-C is certainly not practical with one RF input
->
->
+Well I relay brought up my problem with my 452e...
+I just want to ask since 400e and 450e needs firmware...maybe 452e needs 
+firmware too (for whatever reason maybe only on ppc architecture) and 
+thats my problem? Could that be possible? If yes how to I get firmware 
+for 452e and look if that solves my problem?
+Well if I look at dmesg after plug in my 452e the last line was:
 
-It's an Empia based design with the latest available Hardware components.
-There have been discussions about those devices and as far as I can
-write support is planned for it.
+usbcore: registered new interface driver dvb-usb-tt-connect-s2-3600-01.fw
 
-Markus
+looks like some firmware is loading maybe thats a wrong one, since I buyed my 452e last month there could be an little change to the hardware so that dvb-usb-tt-connect-s2-3600-01.fw is not workin anymore.
+However I have no clue how to extract the firmware the right way so if that could do someone for me I would be very thankful
+
+Michael
+
+
+anton repko schrieb:
+> Hi,
+> 2008/6/13 Dominik Kuhlen <dkuhlen@gmx.net <mailto:dkuhlen@gmx.net>>:
+>
+>     Are you sure that the 450e does need a firmware?
+>     I know that the 452e does not.
+>
+> Yes, the 450e uses firmware of the 400e (the hardware seems to be 
+> identical).
+>
+> As the 400e firmware is rather hard to find, I send complete 
+> extraction script for driver found on the Pinnacle site (new version; 
+> firmware is the same):
+>
+> #!/bin/bash
+> wget 
+> "http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP"
+> cat >XP32.md5 <<!hash!
+> ba0bc4d0f84bb9f419e9fbf90ef1ed9f  XP32.ZIP
+> !hash!
+> md5sum -c XP32.md5
+> if [ $? -ne 0 ]; then exit 1; fi
+> unzip -j XP32.ZIP XP/pctv4XXe.sys
+> # dd if=pctv4XXe.sys of=dvb-ttusb2-a.raw bs=8 skip=22703 count=1392
+> # dd if=pctv4XXe.sys of=dvb-ttusb2-b.raw bs=8 skip=24098 count=1408
+> dd if=pctv4XXe.sys of=dvb-usb-pctv-400e-01.raw bs=8 skip=25509 count=1315
+> # dd if=pctv4XXe.sys of=dvb-ttusb2-c.raw bs=8 skip=26827 count=1232
+> # dd if=pctv4XXe.sys of=dvb-ttusb2-d.raw bs=8 skip=28062 count=1326
+> # dd if=pctv4XXe.sys of=dvb-ttusb2-e.raw bs=8 skip=29391 count=1378
+> dd if=pctv4XXe.sys of=dvb-usb-pctv-450e-01.raw bs=8 skip=30772 count=1323
+> # dd if=pctv4XXe.sys of=dvb-usb-pctv-452e-01.raw bs=8 skip=32098 
+> count=1375
+> cat >convert.c <<!conv!
+> #include <stdio.h>
+> int main (int argc, char *argv[])
+> {
+>     FILE *raw, *fw;
+>     unsigned char buf[22];
+>     int n;
+>     raw = fopen (argv[1], "r");
+>     fw = fopen (argv[2], "w");
+>     while (fread (buf, 1, 22, raw) == 22) {
+>         fwrite (buf, 1, 1, fw);
+>         n = buf[0];
+>         buf[n+5] = 0xff;
+>         fwrite (&buf[2], 1, n+4, fw);
+>     }
+>     fclose (raw);
+>     fclose (fw);
+>     return 0;
+> }
+> !conv!
+> gcc convert.c -o convert
+> for i in *.raw; do
+>     j=$(echo $i | sed s/raw/fw/)
+>     ./convert $i $j
+>     rm $i
+> done
+> cp dvb-usb-pctv-400e-01.fw /lib/firmware/
+> #   uncomment next line to use the 450e firmware
+> # cp dvb-usb-pctv-450e-01.fw /lib/firmware/dvb-usb-pctv-400e-01.fw
+>
+> ------------------------------------------------------------------------
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+--------------070007060407060801020108
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Well I relay brought up my problem with my 452e...<br>
+I just want to ask since 400e and 450e needs firmware...maybe 452e
+needs firmware too (for whatever reason maybe only on ppc architecture)
+and thats my problem? Could that be possible? If yes how to I get
+firmware for 452e and look if that solves my problem?<br>
+Well if I look at dmesg after plug in my 452e the last line was: <br>
+<pre wrap="">usbcore: registered new interface driver dvb-usb-tt-connect-s2-3600-01.fw
+
+looks like some firmware is loading maybe thats a wrong one, since I buyed my 452e last month there could be an little change to the hardware so that dvb-usb-tt-connect-s2-3600-01.fw is not workin anymore.
+However I have no clue how to extract the firmware the right way so if that could do someone for me I would be very thankful
+
+Michael
+</pre>
+<br>
+anton repko schrieb:
+<blockquote
+ cite="mid:f3acf9620806181146q7a61b792hbcc10c4513845173@mail.gmail.com"
+ type="cite">Hi,<br>
+  <div class="gmail_quote">2008/6/13 Dominik Kuhlen &lt;<a
+ moz-do-not-send="true" href="mailto:dkuhlen@gmx.net">dkuhlen@gmx.net</a>&gt;:<br>
+  <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Are
+you sure that the 450e does need a firmware?<br>
+I know that the 452e does not.<br>
+  </blockquote>
+  </div>
+Yes, the 450e uses firmware of the 400e (the hardware seems to be
+identical).<br>
+  <br>
+As the 400e firmware is rather hard to find, I send complete extraction
+script for driver found on the Pinnacle site (new version; firmware is
+the same):<br>
+  <br>
+  <span class="HcCDpe"></span>#!/bin/bash<br>
+wget "<a moz-do-not-send="true"
+ href="http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP">http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP</a>"<br>
+cat &gt;XP32.md5 &lt;&lt;!hash!<br>
+ba0bc4d0f84bb9f419e9fbf90ef1ed9f&nbsp; XP32.ZIP<br>
+!hash!<br>
+md5sum -c XP32.md5<br>
+if [ $? -ne 0 ]; then exit 1; fi<br>
+unzip -j XP32.ZIP XP/pctv4XXe.sys<br>
+# dd if=pctv4XXe.sys of=dvb-ttusb2-a.raw bs=8 skip=22703 count=1392<br>
+# dd if=pctv4XXe.sys of=dvb-ttusb2-b.raw bs=8 skip=24098 count=1408<br>
+dd if=pctv4XXe.sys of=dvb-usb-pctv-400e-01.raw bs=8 skip=25509
+count=1315<br>
+# dd if=pctv4XXe.sys of=dvb-ttusb2-c.raw bs=8 skip=26827 count=1232<br>
+# dd if=pctv4XXe.sys of=dvb-ttusb2-d.raw bs=8 skip=28062 count=1326<br>
+# dd if=pctv4XXe.sys of=dvb-ttusb2-e.raw bs=8 skip=29391 count=1378<br>
+dd if=pctv4XXe.sys of=dvb-usb-pctv-450e-01.raw bs=8 skip=30772
+count=1323<br>
+# dd if=pctv4XXe.sys of=dvb-usb-pctv-452e-01.raw bs=8 skip=32098
+count=1375<br>
+cat &gt;convert.c &lt;&lt;!conv!<br>
+#include &lt;stdio.h&gt;<br>
+int main (int argc, char *argv[])<br>
+{<br>
+&nbsp;&nbsp;&nbsp; FILE *raw, *fw;<br>
+&nbsp;&nbsp;&nbsp; unsigned char buf[22];<br>
+&nbsp;&nbsp;&nbsp; int n;<br>
+&nbsp;&nbsp;&nbsp; raw = fopen (argv[1], "r");<br>
+&nbsp;&nbsp;&nbsp; fw = fopen (argv[2], "w");<br>
+&nbsp;&nbsp;&nbsp; while (fread (buf, 1, 22, raw) == 22) {<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fwrite (buf, 1, 1, fw);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; n = buf[0];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; buf[n+5] = 0xff;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fwrite (&amp;buf[2], 1, n+4, fw);<br>
+&nbsp;&nbsp;&nbsp; }<br>
+&nbsp;&nbsp;&nbsp; fclose (raw);<br>
+&nbsp;&nbsp;&nbsp; fclose (fw);<br>
+&nbsp;&nbsp;&nbsp; return 0;<br>
+}<br>
+!conv!<br>
+gcc convert.c -o convert<br>
+for i in *.raw; do<br>
+&nbsp;&nbsp;&nbsp; j=$(echo $i | sed s/raw/fw/)<br>
+&nbsp;&nbsp;&nbsp; ./convert $i $j<br>
+&nbsp;&nbsp;&nbsp; rm $i<br>
+done<br>
+cp dvb-usb-pctv-400e-01.fw /lib/firmware/<br>
+#&nbsp;&nbsp; uncomment next line to use the 450e firmware<br>
+# cp dvb-usb-pctv-450e-01.fw /lib/firmware/dvb-usb-pctv-400e-01.fw<br>
+  <br>
+  <pre wrap="">
+<hr size="4" width="90%">
+_______________________________________________
+linux-dvb mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
+</blockquote>
+<br>
+</body>
+</html>
+
+--------------070007060407060801020108--
+
+
+--===============0748699562==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0748699562==--
