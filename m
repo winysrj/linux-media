@@ -1,33 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UC2oK7025525
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 08:02:50 -0400
-Received: from mail9.dslextreme.com (mail9.dslextreme.com [66.51.199.94])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5UC2c74027037
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 08:02:38 -0400
-Message-ID: <4868CB03.8070103@gimpelevich.san-francisco.ca.us>
-Date: Mon, 30 Jun 2008 05:01:07 -0700
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JElXCZ009102
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 10:47:33 -0400
+Received: from horsea.3ti.be (horsea.3ti.be [62.213.193.164])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JElHq3028155
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 10:47:18 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by horsea.3ti.be (Postfix) with ESMTP id 59C7F2A80A1
+	for <video4linux-list@redhat.com>;
+	Thu, 19 Jun 2008 16:47:17 +0200 (CEST)
+Received: from horsea.3ti.be ([127.0.0.1])
+	by localhost (horsea.3ti.be [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Ax6ioFEFKweQ for <video4linux-list@redhat.com>;
+	Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by horsea.3ti.be (Postfix) with ESMTP id 9939A2A80A1
+	for <video4linux-list@redhat.com>;
+	Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
+Date: Thu, 19 Jun 2008 16:47:16 +0200 (CEST)
+From: Dag Wieers <dag@wieers.com>
+To: video4linux-list@redhat.com
+Message-ID: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
-	<200803161724.20459.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
-	<200803161840.37910.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
-	<1206573402.3912.50.camel@pc08.localdom.local>
-	<653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
-	<loom.20080627T025843-957@post.gmane.org>
-	<1214599398.2640.23.camel@pc10.localdom.local>
-	<486597B6.2010300@gimpelevich.san-francisco.ca.us>
-	<1214778949.8680.18.camel@pc10.localdom.local>
-	<48683B2F.7000407@gimpelevich.san-francisco.ca.us>
-	<1214814527.2633.15.camel@pc10.localdom.local>
-In-Reply-To: <1214814527.2633.15.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mchehab@infradead.org
-Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Subject: Looking for a well suppord TV card with some requirements
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,11 +35,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton wrote:
-> It really has the first generation "hot" tda8275 tuner then and must be
-> already several years old, since out of production.
+Hi,
 
-I believe it was purchased more than three years ago.
+I am looking for a well support TV card with the following feature list:
+
+   - Must have at least one tuner (PAL), preferably two
+   - Must have composite input (for connecting a Nintendo Wii)
+   - Should not have any delay between input signal and output
+   - Works on kernel 2.6.18 (either vanilla, or by adding a driver)
+   - Additionally, DVB-T would be nice
+
+I bought a Hauppauge PVR-150 because I thought it complied to the above, 
+but apparently (because it is an MPEG encoder and not a real TV card) 
+there was a 2 second delay between the image from the Wii and the output 
+on screen which is unacceptable for playing games.
+
+(And the sound didn't work, but I didn't try to look for a solution 
+because of the delay)
+
+I still have an old Hauppauge WinTV card from 2000, based on the bttv 
+driver which works fine, but does not have composite input.
+
+Who can help me find something acceptable ?
+
+-- 
+--   dag wieers,  dag@wieers.com,  http://dag.wieers.com/   --
+[Any errors in spelling, tact or fact are transmission errors]
 
 --
 video4linux-list mailing list
