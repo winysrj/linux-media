@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NNpK4R019056
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:51:20 -0400
-Received: from n0sq.us (mo-65-41-216-18.sta.embarqhsd.net [65.41.216.18])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NNp70W011165
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:51:10 -0400
-Received: from server2.lan (server2 [192.168.1.4])
-	by n0sq.us (Postfix) with ESMTP id 45DF21827FF
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 17:50:56 -0600 (MDT)
-From: engage <engage@n0sq.us>
-To: video4linux-list@redhat.com
-Date: Mon, 23 Jun 2008 17:50:49 -0600
-References: <200806061812.30755.engage@n0sq.us>
-	<1214216844.2263.36.camel@localhost>
-In-Reply-To: <1214216844.2263.36.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JNLtdI005222
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 19:21:55 -0400
+Received: from mailout11.t-online.de (mailout11.t-online.de [194.25.134.85])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JNLdGt025304
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 19:21:39 -0400
+Message-ID: <485AE9FF.5070706@t-online.de>
+Date: Fri, 20 Jun 2008 01:21:35 +0200
+From: Hartmut Hackmann <hartmut.hackmann@t-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: timf <timf@iinet.net.au>
+References: <48565075.6040400@iinet.net.au> <485A20DB.2010201@iinet.net.au>
+In-Reply-To: <485A20DB.2010201@iinet.net.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200806231750.49518.engage@n0sq.us>
-Subject: Re: webcams
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] unstable tda1004x firmware loading
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,30 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 23 June 2008 04:27:24 Jean-Francois Moine wrote:
-> On Fri, 2008-06-06 at 18:12 -0600, engage wrote:
-> > I don't know if I'm OT but I believe that v4l is used with usb webcams. I
-> > just bought an HP webcam but can't get it to work in Mandriva 2008.1 with
-> > amsn or camorama on any PC. lsusb says it's a Pixart Imaging device.
-> >
-> > lsusb output:
-> >
-> > Bus 003 Device 002: ID 093a:2621 Pixart Imaging, Inc.
->
-> 	[snip]
->
-> May you try gspca v2? (get the tarball from my web page)
->
-> Regards.
+Hi, Tim
 
-I tried to build it but got this error message:
+timf schrieb:
+> Hi Mauro, Hartmut
+> 
+> I wonder if this is relevant in the case of saa7134:
+> 
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026816.html
+> 
+> Regards,
+> Timf
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+Thanks a lot for the hint. But for me things currently look like something
+different. See above.
 
-make: depmod: Command not found.
-
-Googling brought up links saying that depmod isn't on my system. But, whereis 
-depmod returns depmod: /sbin/depmod.
-
-How do I fix this problem so that I can install gspca v2?
+Best regards
+   Hartmut
 
 --
 video4linux-list mailing list
