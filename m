@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SA23Jp024789
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 06:02:03 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SA1Zkm004936
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 06:01:35 -0400
-Message-ID: <48660D68.8040506@hhs.nl>
-Date: Sat, 28 Jun 2008 12:07:36 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5JFR638013626
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 11:27:06 -0400
+Received: from horsea.3ti.be (horsea.3ti.be [62.213.193.164])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5JFQqbl024595
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 11:26:52 -0400
+Date: Thu, 19 Jun 2008 17:26:51 +0200 (CEST)
+From: Dag Wieers <dag@wieers.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <23809.62.70.2.252.1213888764.squirrel@webmail.xs4all.nl>
+Message-ID: <alpine.LRH.1.10.0806191722250.24892@horsea.3ti.be>
+References: <23809.62.70.2.252.1213888764.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Announcing libv4l 0.2
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com
+Subject: Re: Looking for a well suppord TV card with some requirements
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,54 +26,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<now with link to the new version included, sorry for the spam>
+On Thu, 19 Jun 2008, Hans Verkuil wrote:
 
-Hi All,
+>> I am looking for a well support TV card with the following feature list:
+>>
+>>    - Must have at least one tuner (PAL), preferably two
+>>    - Must have composite input (for connecting a Nintendo Wii)
+>>    - Should not have any delay between input signal and output
+>>    - Works on kernel 2.6.18 (either vanilla, or by adding a driver)
+>>    - Additionally, DVB-T would be nice
+>>
+>> I bought a Hauppauge PVR-150 because I thought it complied to the above,
+>> but apparently (because it is an MPEG encoder and not a real TV card)
+>> there was a 2 second delay between the image from the Wii and the output
+>> on screen which is unacceptable for playing games.
+>
+> Before you buy something else, read this thread on how to avoid the 2
+> second delay with a PVR-150:
+>
+> http://www.gossamer-threads.com/lists/ivtv/devel/36688
 
-I'm happy to announce version 0.2 of libv4l:
-http://people.atrpms.net/~hdegoede/libv4l-0.2.tar.gz
+Hey Hans,
 
-This release has the following changes (mostly bugfixes):
+I read that thread when looking for a solution but could not make mplayer 
+do what he did. Maybe my mplayer is older or newer.
 
-libv4l-0.2
-----------
-*** API change ***
-* Change v4lconvert api so that the v4lconvert struct always gets allocated
-   by the library, this to make it opaque, so that we can avoid future API
-   and ABI changes
-* Add support for yuv420 -> bgr24 conversion
-* When converting from v4l2 pixelformat to v4l12 palette return
-   VIDEO_PALETTE_YUV420P instead of VIDEO_PALETTE_YUV420 for
-   V4L2_PIX_FMT_YUV420 as that is what most apps seem to expect
-* override kernel v4l1 compat min / max size with our own more accurate values
-* fix v4l1 munmap bug where it didn't recognise the buffer being unmapped was
-   our fake buffer (fixes gstreamer v4l1 support, checked with cheese)
-* add support for reporting the emulated pixelformats with ENUM_FMT, this
-   defaults to off, and can be activated by passing a flag to enable it to
-   v4l2_fd_open. This gets enabled by default the wrappers.
-* v4l2: mmap the real device buffers before doing conversion when DQBUF gets
-   called before the application has called mmap (avoid crash).
+However the fact that the card (or the ivtv driver that worked with 
+2.6.18) only provided an MPEG stream on /dev/video made me uninterested to 
+pursue the path. VLC has a special PVR input mode for that reason, one 
+cannot use tvtime or zapping with this PVR-150 card and the only way to 
+control the tuner is with another commandline tool.
 
+I returned the card immediately for that reason.
 
-The big improvement here is that gstreamer using applications now work as long
-as they use v4l1, you can force this by [re]moving
-/usr/lib[64]/gstreamer-0.10/libgstvideo4linux2.so
-
-Getting gstreamer v4l2 working is planned for 0.3, this requires adding a
-v4l2_dup function (and catching dup() in the wrapper), and probably also making
-things threadsafe.
-
-Regards,
-
-Hans
-
-
-p.s.
-
-Thierry I know you're still working on getting 0.1 into the v4l-dvb no worries,
-I can split the work from 0.1 in a few seperate patches and submit those once
-0.1 is in the v4l1-dvb tree.
-
+-- 
+--   dag wieers,  dag@wieers.com,  http://dag.wieers.com/   --
+[Any errors in spelling, tact or fact are transmission errors]
 
 --
 video4linux-list mailing list
