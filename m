@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23])
+Received: from hond.eatserver.nl ([195.20.9.5])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <n.wagenaar@xs4all.nl>) id 1KA3I3-0001ln-Rx
-	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 15:38:06 +0200
-Received: from webmail.xs4all.nl (dovemail6.xs4all.nl [194.109.26.8])
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id m5LDbtvN039001
-	for <linux-dvb@linuxtv.org>; Sat, 21 Jun 2008 15:38:00 +0200 (CEST)
-	(envelope-from n.wagenaar@xs4all.nl)
-Message-ID: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
-Date: Sat, 21 Jun 2008 15:38:00 +0200 (CEST)
-From: "Niels Wagenaar" <n.wagenaar@xs4all.nl>
+	(envelope-from <joep@groovytunes.nl>) id 1K9RZP-00014i-IL
+	for linux-dvb@linuxtv.org; Thu, 19 Jun 2008 23:21:34 +0200
+Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
+	(authenticated bits=0)
+	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
+	m5JLLNG8010555
+	for <linux-dvb@linuxtv.org>; Thu, 19 Jun 2008 23:21:23 +0200
+From: joep <joep@groovytunes.nl>
 To: linux-dvb@linuxtv.org
+Date: Thu, 19 Jun 2008 23:25:25 +0200
+References: <1213788359.8904.5.camel@sat>
+	<53265.212.50.194.254.1213908236.squirrel@webmail.kapsi.fi>
+In-Reply-To: <53265.212.50.194.254.1213908236.squirrel@webmail.kapsi.fi>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] s2-3200 fec problem?
-Reply-To: n.wagenaar@xs4all.nl
+Content-Disposition: inline
+Message-Id: <200806192325.25370.joep@groovytunes.nl>
+Subject: [linux-dvb] s2-3200 fec problem?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,46 +31,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> -- SNIP --
->
-> Thats great news!
-> I did patch mythtv-0.21 with this patch:
-> http://svn.mythtv.org/trac/ticket/5403
-> I don't have problems with the dvb-s2 channels from astra19,2 with mythtv.
->
+Hello all,
 
-I know the following (Swedish, but we all speak code!) guide seems to work:
+Today I replaced my skystar hd2 with a tt s2-3200.
+Installed the current multiproto drivers and...
+The problems that I had on the skystar still exist on this new card.
+However I did discover that I can tune to other satalites (diseqc) with 
+scan/szap.
+So I moved from mythtv to these tools for testing purposes.
+The main issue that I have at the moment is that I can't watch the dutch hdtv 
+channels.
+astra 23.5, 11778 V 27500 9/10
+After some testing I did notice that I did not get one channel with fec 9/10 
+to lock.
+Has anyone got a working transponder with fec 9/10?
 
-http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854&showtopic=172770&st=30&start=30
-
-> However mythtv and even szap didn't tune to the transponder on astra 23.5
-> I have to go to a festival today so I will try multiproto_plus and vdr on
-> sunday.
-
-If you do, be sure to follow this guide (it's for Ubuntu but you get the
-information on how to get it working)
-
-http://www.kipdola.com/skerit/?language=nl
-
-> Do you know what the differece is betweed the normal multiproto and the
-> plus version?
->
-
-It's a combine of multiproto and the mantis or v4l tree if I've got it
-right. The last revisions of multiproto didn't seem to work for me (a lot
-of lock problems on DVB-S2 transponders with H264 channles). I have to use
-the revisions from March to get it working.
-
-> Thanks for your reply,
-> Joep Admiraal
-
-No problem at all.
-
-Cheers,
-
-Niels Wagenaar
-
-
+Thanks,
+Joep Admiraal
 
 _______________________________________________
 linux-dvb mailing list
