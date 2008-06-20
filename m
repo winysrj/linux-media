@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UHmVo0029475
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 13:48:31 -0400
-Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UHmI2c024062
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 13:48:19 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by smtp.piccio.org (Postfix) with ESMTP id 5E1091FAD
-	for <video4linux-list@redhat.com>;
-	Mon, 30 Jun 2008 19:51:14 +0200 (CEST)
-Message-ID: <48691C57.7000607@piccio.org>
-Date: Mon, 30 Jun 2008 19:48:07 +0200
-From: Massimo Piccioni <alsa@piccio.org>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5K0aMiT002188
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 20:36:22 -0400
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5K0a8Zj030672
+	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 20:36:09 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dag Wieers <dag@wieers.com>
+In-Reply-To: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
+References: <alpine.LRH.1.10.0806191639240.24892@horsea.3ti.be>
+Content-Type: text/plain
+Date: Fri, 20 Jun 2008 02:33:47 +0200
+Message-Id: <1213922027.2655.24.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: [PATCH] saa7134 - add support for AVerMedia M103
+Cc: video4linux-list@redhat.com
+Subject: Re: Looking for a well suppord TV card with some requirements
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,130 +28,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hi Dag, 
 
-the following patch updates saa7134 driver to add support for AVerMedia 
-M103 MiniPCI DVB-T Hybrid card.
-Please apply.
+Am Donnerstag, den 19.06.2008, 16:47 +0200 schrieb Dag Wieers:
+> Hi,
+> 
+> I am looking for a well support TV card with the following feature list:
+> 
+>    - Must have at least one tuner (PAL), preferably two
+>    - Must have composite input (for connecting a Nintendo Wii)
+>    - Should not have any delay between input signal and output
+>    - Works on kernel 2.6.18 (either vanilla, or by adding a driver)
+>    - Additionally, DVB-T would be nice
+> 
+> I bought a Hauppauge PVR-150 because I thought it complied to the above, 
+> but apparently (because it is an MPEG encoder and not a real TV card) 
+> there was a 2 second delay between the image from the Wii and the output 
+> on screen which is unacceptable for playing games.
+> 
+> (And the sound didn't work, but I didn't try to look for a solution 
+> because of the delay)
+> 
+> I still have an old Hauppauge WinTV card from 2000, based on the bttv 
+> driver which works fine, but does not have composite input.
+> 
+> Who can help me find something acceptable ?
+> 
 
-Ciao,
-Massimo
+this is likely still totally underinvestigated for GNU/Linux.
+
+There was a recent newspaper/internet article somewhere about how
+different and delayed the football goals come in depending on the used
+TV reception system :)
+
+This is a fact. Also censorship in the US for realtime broadcast.
+
+Your best friends, sorry to say so, are likely the robotic and military
+guys on it.
+
+>From the surveillance freaks hanging around here, I can say that xawtv
+has a fairly low latency, but it is still noticeable.
+
+As a count of thumb, one likely can say as more physical memory is
+involved, starts with what is on the card for risc operations and
+buffering, the possible delay increases and it has an open end for any
+application to do large buffering to escape real time hickups ...
+
+Gaming is not such harmless as it sounds,
+but it should be allowed ;)
+
+Cheers,
+Hermann
 
 
-Signed-off-by: Massimo Piccioni <alsa piccio org>
 
-
----
-diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c 
-v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-cards.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-06-30 
-16:11:36.000000000 +0200
-+++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-cards.c 
-2008-06-30 17:34:43.000000000 +0200
-@@ -4399,6 +4399,22 @@ struct saa7134_board saa7134_boards[] =
-  		/* no DVB support for now */
-  		/* .mpeg           = SAA7134_MPEG_DVB, */
-  	},
-+	[SAA7134_BOARD_AVERMEDIA_M103] = {
-+		/* Massimo Piccioni <dafastidio@libero.it> */
-+		.name           = "AVerMedia MiniPCI DVB-T Hybrid M103",
-+		.audio_clock    = 0x187de7,
-+		.tuner_type     = TUNER_XC2028,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		 .mpeg           = SAA7134_MPEG_DVB,
-+		 .inputs         = {{
-+			 .name = name_tv,
-+			 .vmux = 1,
-+			 .amux = TV,
-+			 .tv   = 1,
-+		 } },
-+	},
-  };
-
-  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -5415,6 +5431,12 @@ struct pci_device_id saa7134_pci_tbl[] =
-  		.subvendor    = 0x5ace,
-  		.subdevice    = 0x6290,
-  		.driver_data  = SAA7134_BOARD_BEHOLD_H6,
-+	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xf636,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_M103,
-  	}, {
-  		/* --- boards without eeprom + subsystem ID --- */
-  		.vendor       = PCI_VENDOR_ID_PHILIPS,
-@@ -5517,6 +5539,7 @@ static int saa7134_xc2028_callback(struc
-  		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-  		switch (dev->board) {
-  		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		case SAA7134_BOARD_AVERMEDIA_M103:
-  			saa7134_set_gpio(dev, 23, 0);
-  			msleep(10);
-  			saa7134_set_gpio(dev, 23, 1);
-@@ -5750,6 +5773,7 @@ int saa7134_board_init1(struct saa7134_d
-  		msleep(10);
-  		break;
-  	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+	case SAA7134_BOARD_AVERMEDIA_M103:
-  		saa7134_set_gpio(dev, 23, 0);
-  		msleep(10);
-  		saa7134_set_gpio(dev, 23, 1);
-@@ -5877,6 +5901,7 @@ static void saa7134_tuner_setup(struct s
-  		switch (dev->board) {
-  		case SAA7134_BOARD_AVERMEDIA_A16D:
-  		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		case SAA7134_BOARD_AVERMEDIA_M103:
-  			ctl.demod = XC3028_FE_ZARLINK456;
-  			break;
-  		default:
-diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c 
-v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-dvb.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-06-30 
-16:11:36.000000000 +0200
-+++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-dvb.c 
-2008-06-30 17:27:41.000000000 +0200
-@@ -1263,6 +1263,7 @@ static int dvb_init(struct saa7134_dev *
-  						&avermedia_xc3028_mt352_dev,
-  						&dev->i2c_adap);
-  		attach_xc3028 = 1;
-+		break;
-  #if 0
-  	/*FIXME: What frontend does Videomate T750 use? */
-  	case SAA7134_BOARD_VIDEOMATE_T750:
-@@ -1294,6 +1295,15 @@ static int dvb_init(struct saa7134_dev *
-  			fe->ops.enable_high_lnb_voltage = md8800_set_high_voltage;
-  		}
-  		break;
-+	case SAA7134_BOARD_AVERMEDIA_M103:
-+		saa7134_set_gpio(dev, 25, 0);
-+		msleep(10);
-+		saa7134_set_gpio(dev, 25, 1);
-+		dev->dvb.frontend = dvb_attach(mt352_attach,
-+						&avermedia_xc3028_mt352_dev,
-+						&dev->i2c_adap);
-+		attach_xc3028 = 1;
-+		break;
-  	default:
-  		wprintk("Huh? unknown DVB card?\n");
-  		break;
-diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h 
-v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134.h
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h	2008-06-30 
-16:11:36.000000000 +0200
-+++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134.h	2008-06-30 
-17:27:16.000000000 +0200
-@@ -273,6 +273,7 @@ struct saa7134_format {
-  #define SAA7134_BOARD_BEHOLD_H6      142
-  #define SAA7134_BOARD_BEHOLD_M63      143
-  #define SAA7134_BOARD_BEHOLD_M6_EXTRA    144
-+#define SAA7134_BOARD_AVERMEDIA_M103    145
-
-  #define SAA7134_MAXBOARDS 8
-  #define SAA7134_INPUT_MAX 8
 
 --
 video4linux-list mailing list
