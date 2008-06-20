@@ -1,25 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KC3nn-0007lo-Dm
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 04:35:10 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1KC3ni-0007xe-Od
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 02:35:02 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 02:35:02 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 02:35:02 +0000
+	(envelope-from <psofa.psofa@gmail.com>) id 1K9iat-0002ok-41
+	for linux-dvb@linuxtv.org; Fri, 20 Jun 2008 17:32:10 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so595656ywj.41
+	for <linux-dvb@linuxtv.org>; Fri, 20 Jun 2008 08:32:02 -0700 (PDT)
+Message-ID: <8e485a510806200832s2c7a4d55r9ac8c1d871f59b96@mail.gmail.com>
+Date: Fri, 20 Jun 2008 18:32:00 +0300
+From: psofa <psofa.psofa@gmail.com>
 To: linux-dvb@linuxtv.org
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Fri, 27 Jun 2008 02:10:33 +0000 (UTC)
-Message-ID: <loom.20080627T014805-83@post.gmane.org>
-References: <48643f7d.168.28cb.583@internode.on.net>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] DVICO FusionHDTV DVB-T Pro
+In-Reply-To: <loom.20080620T142728-129@post.gmane.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <200805122042.43456.ajurik@quick.cz>
+	<200806162245.22999.ajurik@quick.cz>
+	<loom.20080620T131302-220@post.gmane.org>
+	<200806201547.28906.ajurik@quick.cz>
+	<loom.20080620T142728-129@post.gmane.org>
+Subject: Re: [linux-dvb] Re : Re : Re : No lock possible at some DVB-S2
+	channels with TT S2-3200/linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,49 +32,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Adam <sph3r3 <at> internode.on.net> writes:
+I have a skystar hd (tt 3200 rebranded) and both qpsk and 8psk
+transpoders generally work with mythtv.
+However tuning at many transpoders is rubbish for me.Take for example
+premiere's @ 19e.
+adding +4 mhz works for some transpoders ive tried but for some others
+like the eurosport hd one
+wont help at all.Also even when tuning correctly i see lots of ber
+artifacts even though my previous
+skystar 2 and my dreambox receiver  work flawlessly.
+There is a thread here ->
+http://www.linuxtv.org/pipermail/linux-dvb/2008-February/024080.html
+where one guy reported that after 7200 the successfully tuned
+transpoders are much fewer but it seems
+these changes where never reverted.(i suppose because theres a last
+reply there where another user says its good)
 
-> Hi,
-> 
-> Late last year I got my card working in a Fedora 8/2.6.24
-> system (thanks Chris!).  I've now upgraded to Fedora 9
-> (2.6.25) and am trying to get my card going again as magic
-> didn't seem to happen with Fedora's out-of-the-box drivers.
-> 
-> I've noticed that my card is now listed in cardlist.cx88, so
-> I've downloaded and built the latest v4l-dvb repo (#8110) in
-> preference to the xc-test branch that I used last year. 
-> /dev/dvb0/* is populated and dmesg shows that the card is
-> correctly detected:
-[snip]
-> Any ideas?
-> 
-> Thanks,
-> Adam
 
-Looking at cx88-cards.c, I see that the definition there for your card is 
-quite broken. I'm amazed it ever worked at all with such incomplete support. 
-Fundamental portions of the cx88 driver need to be redone, and for your card, 
-that will mean going back to Windows to see what the vendor's driver is doing 
-with GPIO in response to different inputs, as well as some experimentation. If 
-you're up for things like that, you can start by:
-1) Gathering GPIO register values in Windows with RegSpy from dscaler.org, 
-recording what they are with each card input selected (DVB, analog TV, 
-composite, S-video, FM radio, SCART, etc.), as well as the values after 
-closing all apps related to the card, so that the card is idle.
-2) Applying this patch:
-http://thread.gmane.org/gmane.comp.video.video4linux/38536
-Note that with the card definition as it currently is, this patch will make 
-the card stop working altogether. You will need to redo the card definition to 
-include all the info gathered in #1 above.
-3) Reporting your findings from #1 and #2 above. I will be submitting a patch 
-to the tuner-core that will pave the way for some real fixing of cx88, and 
-info on as many cx88 cards as possible will be a plus during that fixing.
-4) Testing future cutting-edge patches to see how they affect the use of the 
-card, before those patches make it into the tree.
 
-Have fun!
-
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
