@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from bay0-omc2-s5.bay0.hotmail.com ([65.54.246.141])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1K4NFI-0005UK-Ok
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 23:43:45 +0200
-From: Andy Walls <awalls@radix.net>
-To: Mark A Jenks <Mark.Jenks@nsighttel.com>
-In-Reply-To: <E90972B408355145B0D256944398F80516F6@exchange01.nsighttel.com>
-References: <E90972B408355145B0D256944398F80516F6@exchange01.nsighttel.com>
-Date: Thu, 05 Jun 2008 17:42:59 -0400
-Message-Id: <1212702179.3173.8.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Best card right now for Mythtv?
+	(envelope-from <tlli@hotmail.com>) id 1K9UXA-00031R-Sj
+	for linux-dvb@linuxtv.org; Fri, 20 Jun 2008 02:31:22 +0200
+Message-ID: <BAY136-W3BC06C7D46FF4CE28EB5CD2A50@phx.gbl>
+From: Alistair M <tlli@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 20 Jun 2008 10:30:45 +1000
+MIME-Version: 1.0
+Subject: [linux-dvb] Leadtek WinFast DTV Dongle Gold (Ubuntu)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,54 +16,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1691147484=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-06-05 at 06:28 -0500, Mark A Jenks wrote:
-> I am about to build a new Myth box.  It's been about 4 months since I
-> did the last one, and I used the HVR-1250 for it since I don't need
-> analog.
->  
-> The next box I am going to build is going to record HD from
-> Timewarner, and DTV from OTA (usa).  
->  
-> I would like to have a dual tuner in it also if possible.
->  
-> What is everyone out there using?
+--===============1691147484==
+Content-Type: multipart/alternative;
+	boundary="_de583686-b605-4837-b48c-0b60b6f99882_"
 
-I'm using an HVR-1600 for OTA ATSC and OTA NTSC in the US.
-
-With MythTV you set up the analog side of the card as you would a
-CX23415/6 based card (i.e. tell myth it's an ivtv PVR-xx0 MPEG encoder
-card as the cx18 driver is extremely similar).  You set up the digital
-side of the card as you would any other dvb device in MythTV.  You can
-do simultaneous digital and analog capture (e.g. Picture in Picture).
+--_de583686-b605-4837-b48c-0b60b6f99882_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
 
->    Which has the most complete mod support right now?
+Hello,
+I'm trying to get my Leadtek DTV Gold usb tuner with Ubuntu (8.04).
+The card seems to be recognised at boot up, but no /dev/dvb directory is cr=
+eated.
+Linuxtv has identified these devices (under the leadtek wiki)
+    * 0413:6f00
+    * 0413:6f01
+The Gold dongle is identifed as:
+0413:6029dmesg output:
+[  734.780212] input: Leadtek WinFast DTV Dongle Gold as /devices/pci0000:0=
+0/0000:00:1d.7/usb5/5-1/5-1:1.1/input/input12
+[  734.808435] input,hidraw0: USB HID v1.01 Keyboard [Leadtek WinFast DTV D=
+ongle Gold] on usb-0000:00:1d.7-1Any help would be greatly appreciated.
+Thank you,
+Alistair
 
-The cx18 driver is beta quality.  The most annoying problems are:
+_________________________________________________________________
+It's simple! Sell your car for just $30 at CarPoint.com.au
+http://a.ninemsn.com.au/b.aspx?URL=3Dhttp%3A%2F%2Fsecure%2Dau%2Eimrworldwid=
+e%2Ecom%2Fcgi%2Dbin%2Fa%2Fci%5F450304%2Fet%5F2%2Fcg%5F801459%2Fpi%5F1004813=
+%2Fai%5F859641&_t=3D762955845&_r=3Dtig_OCT07&_m=3DEXT=
 
-1. The first analog capture after modprobe doesn't work right.  Stop
-that capture and every subsequent one will be fine.
+--_de583686-b605-4837-b48c-0b60b6f99882_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-2. Mono audio only, at a fairly soft level.
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt;
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+Hello,<br>I'm trying to get my Leadtek DTV Gold usb tuner with Ubuntu (8.04=
+).<br>The card seems to be recognised at boot up, but no /dev/dvb directory=
+ is created.<br><BR>Linuxtv has identified these devices (under the leadtek=
+ wiki)<br>    * 0413:6f00<br>    * 0413:6f01
+The Gold dongle is identifed as:<br>0413:6029<BR>dmesg output:<br>[  734.78=
+0212] input: Leadtek WinFast DTV Dongle Gold as /devices/pci0000:00/0000:00=
+:1d<wbr>.7/usb5/5-1/5-1:1.1/input/input12<br>[  734.808435] input,hidraw0: =
+USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on usb-0000:00:1d.=
+7-1<BR>Any help would be greatly appreciated.<br>Thank you,<br>Alistair<br>=
+<br /><hr />at CarPoint.com.au <a href=3D'http://a.ninemsn.com.au/b.aspx?UR=
+L=3Dhttp%3A%2F%2Fsecure%2Dau%2Eimrworldwide%2Ecom%2Fcgi%2Dbin%2Fa%2Fci%5F45=
+0304%2Fet%5F2%2Fcg%5F801459%2Fpi%5F1004813%2Fai%5F859641&_t=3D762955845&_r=
+=3Dtig_OCT07&_m=3DEXT' target=3D'_new'>It's simple! Sell your car for just =
+$30 </a></body>
+</html>=
 
-3. I2C bus initialization problems which essentially make the card
-useless for some people.
-
-4. No working VBI support yet.
-
-Regards,
-Andy
+--_de583686-b605-4837-b48c-0b60b6f99882_--
 
 
-
+--===============1691147484==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1691147484==--
