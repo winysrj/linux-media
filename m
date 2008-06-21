@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp06.msg.oleane.net ([62.161.4.6])
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1K63Sg-0002DW-9t
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 15:00:32 +0200
-Received: from PCTL ([194.250.18.140]) (authenticated)
-	by smtp06.msg.oleane.net (MTA) with ESMTP id m5AD0O5Q017316
-	for <linux-dvb@linuxtv.org>; Tue, 10 Jun 2008 15:00:24 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 10 Jun 2008 15:00:23 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PMKAAAAQAAAAqIryAWdio0mMXVBpGpDCPQEAAAAA@tv-numeric.com>
+	(envelope-from <ajurik@quick.cz>) id 1KA6lq-00031J-5l
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 19:21:04 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out2.iol.cz (Postfix) with ESMTP id EF0D61BA25E
+	for <linux-dvb@linuxtv.org>; Sat, 21 Jun 2008 19:20:26 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org
+Date: Sat, 21 Jun 2008 19:20:25 +0200
+References: <200805122042.43456.ajurik@quick.cz>
+	<200806211552.41278.ajurik@quick.cz>
+	<200806211840.47025.dkuhlen@gmx.net>
+In-Reply-To: <200806211840.47025.dkuhlen@gmx.net>
 MIME-Version: 1.0
-Subject: [linux-dvb] Nova-T 500 again, receive hangs, no USB disconnect,
-	no i2c failure
+Content-Disposition: inline
+Message-Id: <200806211920.25821.ajurik@quick.cz>
+Subject: Re: [linux-dvb] Re : Re : No lock possible at some DVB-S2 channels
+	with TT S2-3200/linux
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +32,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Saturday 21 of June 2008, Dominik Kuhlen wrote:
+> Well, I tested:
+> 19.2 12522 V 8PSK 22000 2/3
+>   i get 100% (and immediate) lock in the range from: 12512 to 12532
+Hi,
+with this transponder I also don't have problem to get lock.
+>
+...
+>
+> The other 13.0 8PSK (11278V and 11449H) are tougher:  they take a few
+> seconds to lock and sometimes they don't lock at all according to the NIT
+> they use roll-off factor 0.2 (the other channels use 0.35) This is
+> interesting: I'll check why this takes so much longer
 
-Here is another problem with a Hauppauge Nova-T 500 ("DiBcom 3000MC/P"),
-but this is not the classical usb disconnect or i2c failure.
+Yes, these transponders are those I couldn't lock. Other transponders with the 
+same problem are transponders from Thor5 (0.8W) - 11341MHz V, 11421MHz H, 
+11434MHz V, 12015MHz H and 12128MHz H. 
 
-Distro: Fedora 8
-Kernel: 2.6.24.7-92.fc8
-Linux DVB: hg pull http://linuxtv.org/hg/v4l-dvb on June 9
-DIB firmware: dvb-usb-dib0700-1.10.fw
+Changig RollOff to any value didn't get me any result.
 
-Here is the problem:
+BR,
 
-The first tuner stays constantly tuned on the same frequency and is
-receiving a TS: OK.
-
-The second tuner usage is cycling over 5 different frequencies:
-  open + tune + receive TS during a few seconds + close + cycle again.
-
-After a few dozens cycles (not always the same number), a read
-operation on the dvr device hangs (never returns).
-
-If you stop the application on the second tuner and restart it,
-it works again for a few cycles, then hangs again. No message is
-reported with dmesg (specifically, no USB disconnect and no i2c failure).
-
-In the meantime, the application on the first tuner continues
-without problem.
-
-Any idea?
-
-Regards,
--Thierry
-
+Ales
 
 _______________________________________________
 linux-dvb mailing list
