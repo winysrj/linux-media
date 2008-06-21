@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m519tppW032392
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 05:55:51 -0400
-Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m519tWVv032118
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 05:55:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l-dvb-maintainer@linuxtv.org
-Date: Sun, 1 Jun 2008 11:55:14 +0200
-References: <200805311720.51821.tobias.lorenz@gmx.net>
-	<200805312244.54006.hverkuil@xs4all.nl>
-In-Reply-To: <200805312244.54006.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5LIXZmo023894
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 14:33:35 -0400
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5LIXNgF005039
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 14:33:23 -0400
+Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id B018912B6D4
+	for <video4linux-list@redhat.com>;
+	Sat, 21 Jun 2008 20:33:22 +0200 (CEST)
+Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net
+	[81.57.151.96])
+	by smtp2-g19.free.fr (Postfix) with ESMTP id 6E14D12B6BC
+	for <video4linux-list@redhat.com>;
+	Sat, 21 Jun 2008 20:33:22 +0200 (CEST)
+Message-ID: <485D4972.2070801@free.fr>
+Date: Sat, 21 Jun 2008 20:33:22 +0200
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Disposition: inline
-Message-Id: <200806011155.14987.hverkuil@xs4all.nl>
-Content-Transfer-Encoding: 8bit
-Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] [PATCH 6/6] si470x: pri... vid.. controls
+To: Video 4 Linux <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: application hanging with 2.6.25 and bttv
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,62 +33,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 31 May 2008 22:44, Hans Verkuil wrote:
-> Hi Tobias,
->
-> On Saturday 31 May 2008 17:20, Tobias Lorenz wrote:
-> > Hi Mauro,
-> >
-> > I better resend this patch with a scrambled header...
-> > "private video controls" is regarded as suspicious header by the
-> > spam filter of video4linux-list.
-> >
-> > This patch brings the following changes:
-> > - private video controls
-> >   - to control seek behaviour
-> >   - to module parameters
-> >   - corrected access rights of module parameters
-> >   - separate header file to let the user space know about it
->
-> I noticed that the private controls do not use consecutive IDs. This
-> means that an application can not enumerate them properly since the
-> enumeration has to stop when EINVAL is returned by the
-> VIDIOC_QUERYCTRL ioctl.
->
-> Use v4l2-ctl --list-ctrls to test whether all controls can be
-> enumerated properly.
->
-> To be honest I've never been happy with the private controls. For the
-> MPEG API I created the extended controls, which allowed me to group
-> controls into classes (having a class for radio controls is perfectly
-> feasible) and that included having private controls, but ensuring
-> that all private controls have unique IDs and allowing for a more
-> flexible enumeration. You might want to consider using this.
+Hi,
 
-I want to add to this that it is my long-term intention to move all 
-drivers to the extended control model and have video_ioctl2 convert 
-VIDIOC_S/G_CTRL to the corresponding extended control calls 
-automatically. However, this will have to wait until all drivers are 
-converted to video_ioctl2. For new drivers like this it would be much 
-easier to have it use extended controls from the beginning.
+I have got a tv application that doesn't work anymore with 2.6.25 : it 
+hangs.
 
-Regards,
+Strace :
 
-	Hans
+open("/dev/video0", O_RDWR)             = 3
+ioctl(3, EXT2_IOC_GETVERSION or VIDIOCGCAP, 0x8674e80) = 0
+ioctl(3, EXT2_IOC_SETVERSION or SONYPI_IOCGBAT1CAP or VIDIOCGCHAN, 
+0x8674ec0) = 0
+ioctl(3, EXT2_IOC_SETVERSION or SONYPI_IOCGBAT1CAP or VIDIOCGCHAN, 
+0x8674ec0) = 0
+ioctl(3, EXT2_IOC_SETVERSION or SONYPI_IOCGBAT1CAP or VIDIOCGCHAN, 
+0x8674ec0) = 0
+ioctl(3, SONYPI_IOCGBAT1REM or VIDIOCSCHAN, 0x8674ec0) = 0
+ioctl(3, EXT2_IOC_SETVERSION or SONYPI_IOCGBAT1CAP or VIDIOCGCHAN, 
+0x8674ec0) = 0
+ioctl(3, SONYPI_IOCGBAT2CAP or VIDIOCGTUNER, 0x8672fc0) = 0
+ioctl(3, SONYPI_IOCGBAT2REM or VIDIOCSTUNER, 0x8672fc0) = 0
+ioctl(3, SONYPI_IOCGBAT1REM or VIDIOCSCHAN, 0x8674ec0) = 0
+ioctl(3, VIDIOCGPICT, 0x8672f9e)        = 0
+ioctl(3, SONYPI_IOCGBATFLAGS or VIDIOCSPICT, 0x8672f9e) = 0
+ioctl(3, VIDIOCSWIN, 0x8674be0)         = 0
+ioctl(3, VIDIOCGMBUF
+<----- here hang
 
-> Also please ensure that there is decent documentation of the private
-> controls, preferably in the v4l2 spec. The meaning of private
-> controls tends to be lost in time if they are not carefully
-> documented.
->
-> Regards,
->
-> 	Hans
->
-> _______________________________________________
-> v4l-dvb-maintainer mailing list
-> v4l-dvb-maintainer@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
+
+echo w > /proc/sysrq-trigger
+
+[ 3838.478636] SysRq : Show Blocked State
+[ 3838.478636]   task                PC stack   pid father
+[ 3838.478636] mytv         D 00000095     0  9377   9375
+[ 3838.478636]        f7edb930 00200082 f8c92216 00000095 f7edbab0 
+c180b920 00000000 000d0f6e
+[ 3838.478636]        f679fdd4 c180b920 000000ff 00000000 00000000 
+00000000 f7e03010 f7e03018
+[ 3838.478636]        f7e03014 f7edb930 c02b47e9 f7e03018 f7e03018 
+f7edb930 f7e03010 00208000
+[ 3838.478636] Call Trace:
+[ 3838.478636]  [<f8c92216>] i2c_transfer+0x66/0x6d [i2c_core]
+[ 3838.478636]  [<c02b47e9>] __mutex_lock_slowpath+0x50/0x7b
+[ 3838.478636]  [<c02b467f>] mutex_lock+0xa/0xb
+[ 3838.478636]  [<f8cece8d>] videobuf_mmap_setup+0xe/0x2d [videobuf_core]
+[ 3838.478636]  [<f8d97d6b>] vidiocgmbuf+0x24/0x83 [bttv]
+[ 3838.478636]  [<f8d97d47>] vidiocgmbuf+0x0/0x83 [bttv]
+[ 3838.478636]  [<f8d317fd>] __video_do_ioctl+0x93/0x2cca [videodev]
+[ 3838.478636]  [<c011a94d>] __wake_up_common+0x2e/0x58
+[ 3838.478636]  [<c011cbe2>] __wake_up_sync+0x2a/0x3e
+[ 3838.478636]  [<c011b203>] __dequeue_entity+0x1f/0x71
+[ 3838.478636]  [<c0106970>] __switch_to+0xa3/0x12f
+[ 3838.478636]  [<f8d3469d>] video_ioctl2+0x16d/0x233 [videodev]
+[ 3838.478636]  [<c012e847>] ptrace_notify+0x7d/0xa4
+[ 3838.478636]  [<c017f70b>] vfs_ioctl+0x47/0x5d
+[ 3838.478636]  [<c017f966>] do_vfs_ioctl+0x245/0x258
+[ 3838.478636]  [<c017f9ba>] sys_ioctl+0x41/0x5b
+[ 3838.478636]  [<c0107862>] syscall_call+0x7/0xb
+[ 3838.478636]  =======================
 
 --
 video4linux-list mailing list
