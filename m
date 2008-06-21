@@ -1,30 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1K9gVk-0004Hn-An
-	for linux-dvb@linuxtv.org; Fri, 20 Jun 2008 15:18:40 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K9gVa-0004M5-T3
-	for linux-dvb@linuxtv.org; Fri, 20 Jun 2008 13:18:31 +0000
-Received: from h240n2fls32o1121.telia.com ([217.211.84.240])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 20 Jun 2008 13:18:30 +0000
-Received: from dvenion by h240n2fls32o1121.telia.com with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 20 Jun 2008 13:18:30 +0000
+	(envelope-from <ajurik@quick.cz>) id 1K9zBo-0002CZ-IK
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 11:15:22 +0200
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-From: Daniel <dvenion@hotmail.com>
-Date: Fri, 20 Jun 2008 13:18:22 +0000 (UTC)
-Message-ID: <loom.20080620T131302-220@post.gmane.org>
-References: <200805122042.43456.ajurik@quick.cz>
-	<200806161020.05437.ajurik@quick.cz>
-	<200806162114.27912.joep@groovytunes.nl>
-	<200806162245.22999.ajurik@quick.cz>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb]
-	=?utf-8?q?Re_=3A_Re_=3A_Re_=3A_No_lock_possible_at_so?=
-	=?utf-8?q?me_DVB-S2=09channels_with_TT_S2-3200/linux?=
+Date: Sat, 21 Jun 2008 11:14:46 +0200
+References: <1214015056l.6292l.1l@manu-laptop>
+In-Reply-To: <1214015056l.6292l.1l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806211114.46921.ajurik@quick.cz>
+Cc: abraham.manu@gmail.com
+Subject: Re: [linux-dvb] How to solve the TT-S2-3200 tuning problems?
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,35 +27,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ales Jurik <ajurik <at> quick.cz> writes:
+Hi,
 
-> 
-> On Monday 16 of June 2008, joep wrote:
-> >
-> > The most important thing I can't get working is diseqc switching.
-> > Does anyone use Astra23,5 or hotbird13 with the multiproto driver?
-> 
-> I'm using multiproto with TT S2-3200 and 4-way diseqc switch (13.0E, 19.2E, 
-> 23.5 and motor with secondary dish). No problem, but for motor I'm using 
-> patch in vdr (vdr-1.6.0-gotox.diff).
-> 
-> BR,
-> Ales
-> 
+I've tried to see where the problem is for some time. My opinions and results 
+of some debugging work is included.
 
-I have the exact same problem. When Telenor moved the DVB-S2 channels and
-changed FEC from 2/3 to 3/4 and turned pilot off all DVB-S2 channels just
-stopped working for me. Before the changed I had no problems at all with them.
-It have to be somekind of driverproblem since I have done no changes to my
-linuxsetup and when I try the card in windoze it works just fine. 
-I noticed in the pressrelease Telenor published that the netbitrate increased
-from 48.391Mbps to 55.703Mbps along with the FEC change. Could that cause any
-problems? Or could it be problems with the pilothandling in the driver?
+I'm ready to cooperate in debugging of this driver.
 
-Daniel
+BR,
 
+Ales
 
+On Saturday 21 of June 2008, manu wrote:
+> 	Hi all,
+> there are several threads about TT-3200 not being able to lock on
+> different channels depending on FEC/symbol rate/modulation.
+> Now what kind of experimentation could provide enough data to solve
+> them? For example would it be possible that some knowledgeable guy here
+> posts:
+> -datasheets/programming guide for the tuner/demod if no NDA...
 
+Yes, such documents are under NDA, I don't have access to it.
+
+> -post the source of a prog that could gather data when tuning to a
+> given transponder.
+> -or anything else that this/these persons think would improve the
+> understanding of the problems.
+> HTH
+> Bye
+> Manu, who would like to watch the final of the euro cup in HD ;-)
+
+The point from which I've checked the driver is file stb0899_priv.h (enum 
+stb0899_modcod). There are defined values for all possible 
+FEC/modulation combinations. We could see that 8PSK modulations have values 
+from 12 to 17 (for debugging). 
+
+But no initial values are used for 8PSK modulation for registers csm1 to csm4 
+as the stb0899_dvbs2_init_csm is called only for QPSK ( condition is and-ed 
+with INRANGE(STB0899_QPSK_23, modcod, STB0899_QPSK_910) ).
+
+I'm not sure if this is the reason of problems, but I could get lock (very 
+unstable - lock is active for few minutes, than for minute or so disappeared 
+and so long) after few minutes staying tuned on some 8PSK channels. 
+
+Maybe if set some registers (don't know if csm1-csm4 is enough) to initial 
+values depending on FEC/modulation it would be possible to get lock within 
+seconds like it is with QPSK.
+
+In the driver there are also some pieces of code depended to FEC/modulation, 
+but only STB0899_QPSK_XXX is used for such pieces of code. Not possible to 
+find STB0899_8PSK_XXX depending code. Isn't it necessary? Or such code is 
+missing and the casual lock is done by hw automation? 
 
 _______________________________________________
 linux-dvb mailing list
