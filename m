@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
+Received: from www.wohnheimg.uni-frankfurt.de ([141.2.118.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <acher@acher.org>) id 1K8L2k-0004rd-Bh
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 22:11:11 +0200
-Received: from braindead1.acher.org (91-65-154-251-dynip.superkabel.de
-	[91.65.154.251])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.in.tum.de (Postfix) with ESMTP id DFA96BFD8
-	for <linux-dvb@linuxtv.org>; Mon, 16 Jun 2008 22:11:01 +0200 (CEST)
-Date: Mon, 16 Jun 2008 22:11:01 +0200
-From: Georg Acher <acher@in.tum.de>
+	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9sW2-0002Ae-Nh
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 04:07:50 +0200
+Received: from localhost ([127.0.0.1] helo=ssl.verfeiert.org)
+	by www.wohnheimg.uni-frankfurt.de with esmtp (Exim 4.69)
+	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9sVT-0006Qa-2S
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 04:07:43 +0200
+Message-ID: <45786.85.180.168.159.1214014031.squirrel@ssl.verfeiert.org>
+Date: Sat, 21 Jun 2008 04:07:11 +0200 (CEST)
+From: "Sven Eschenberg" <sven@whgl.uni-frankfurt.de>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080616201101.GA3063@braindead1.acher>
-References: <200709032205293433925@sina.com>
-	<200806162217.15035.liplianin@me.by>
-Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <200806162217.15035.liplianin@me.by>
-Subject: Re: [linux-dvb] Driver of STv0288
+MIME-Version: 1.0
+Subject: [linux-dvb] Support for MSI TV @nywhere Satellite [Correction]
+Reply-To: sven@whgl.uni-frankfurt.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,24 +27,100 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jun 16, 2008 at 10:17:14PM +0300, Igor M. Liplianin wrote:
+Hi List,
 
-> Is stv0288 somehow compatible with stv0299?
+I am terribly sorry, the MB86A16 (L) is from Fujitsu ...
 
-Not really, they have permuted the registers and a lotof control bits. But
-the heritage is clear and it should be a replacement for the stv0299. The
-stv0288 can also do a blindscan, but needs a lot of driver support for that
-algorithm. 
+Regards
 
-> Any one who have useful information?
+-Sven
 
-The Reel Multimedia SVN has a GPL'ed DVB-API driver for the stv0288. I don't
-know what tweaks are needed for PCI-based cards (if they exist...).
 
--- 
-         Georg Acher, acher@in.tum.de         
-         http://www.lrr.in.tum.de/~acher
-         "Oh no, not again !" The bowl of petunias          
+Old Mail:
+
+Hi List,
+
+what exactly is needed, to get support for the TV @nywhere Satellite.
+
+Some Info that might be required:
+
+Card has Connectors for Sat, S-Video, AV (RCA JAcket), and IR reciever.
+
+Card is based upon Conexant CX23883-39 and uses a MB86A16 (L)
+Tuner/Demodulator from Fairchild Semiconductors.
+
+There is a sticker on the card saying 1027_V1.2 (Seems there are different
+Versions/Revisions).
+
+Output from lspci:
+
+01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder (rev 05)
+01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [MPEG Port] (rev 05)
+01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [IR Port] (rev 05)
+---
+01:07.0 0400: 14f1:8800 (rev 05)
+01:07.2 0480: 14f1:8802 (rev 05)
+01:07.4 0480: 14f1:8804 (rev 05)
+
+lspci -v:
+01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at eb000000 (32-bit, non-prefetchable) [size=16M]
+
+01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [MPEG Port] (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at ec000000 (32-bit, non-prefetchable) [size=16M]
+
+01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [IR Port] (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at ed000000 (32-bit, non-prefetchable) [size=16M]
+
+Output from dmesg:
+
+[   42.293604] cx88[0]: Your board isn't known (yet) to the driver.  You can
+[   42.293605] cx88[0]: try to pick one of the existing card configs via
+[   42.293607] cx88[0]: card=<n> insmod option.  Updating to the latest
+[   42.293608] cx88[0]: version might help as well.
+[   42.293610] cx88[0]: Here is a list of valid choices for the card=<n>
+insmod option:
+[   42.293612] cx88[0]:    [cardlist cropped]
+[   42.293716] cx88[0]: subsystem: 1822:0023, board: UNKNOWN/GENERIC
+[card=0,autodetected]
+[   42.293718] cx88[0]: TV tuner type -1, Radio tuner type -1
+[   42.439466] cx88[0]/0: found at 0000:01:07.0, rev: 5, irq: 15, latency:
+32, mmio: 0xeb000000
+[   42.614814] cx88[0]/0: registered device video0 [v4l2]
+[   42.614837] cx88[0]/0: registered device vbi0
+
+Any help or recommendations would be appreciated. If further information
+is needed, please don't hesitate to ask.
+
+Regards
+
+-Sven
+
+I just realized, thath the twinhan AD-SP200(1027) board looks exactly the
+same as the MSI TV @nywhere Satellite board, as far as I can compare it
+and it seems it is no coincidence, that the MSI board carries the
+1027_V1.2 Sticker.
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
 
 _______________________________________________
 linux-dvb mailing list
