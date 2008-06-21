@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bsmtp.bon.at ([213.33.87.14])
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.schoeller@schoeller-soft.net>)
-	id 1K40bT-0001e8-8G
-	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 23:33:07 +0200
-Received: from [10.1.2.1] (unknown [80.123.101.150])
-	by bsmtp.bon.at (Postfix) with ESMTP id A0E0BCDF93
-	for <linux-dvb@linuxtv.org>; Wed,  4 Jun 2008 23:32:33 +0200 (CEST)
-Message-ID: <484709F3.7020003@schoeller-soft.net>
-Date: Wed, 04 Jun 2008 23:32:35 +0200
-From: =?ISO-8859-15?Q?Michael_Sch=F6ller?=
-	<michael.schoeller@schoeller-soft.net>
-MIME-Version: 1.0
+	(envelope-from <ajurik@quick.cz>) id 1KA3Wp-0002js-8G
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 15:53:20 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out2.iol.cz (Postfix) with ESMTP id 799D11BA556
+	for <linux-dvb@linuxtv.org>; Sat, 21 Jun 2008 15:52:43 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
+Date: Sat, 21 Jun 2008 15:52:41 +0200
+References: <200805122042.43456.ajurik@quick.cz>
+	<200806151920.30719.ajurik@quick.cz>
+	<200806211436.47765.dkuhlen@gmx.net>
+In-Reply-To: <200806211436.47765.dkuhlen@gmx.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200806211552.41278.ajurik@quick.cz>
+Subject: Re: [linux-dvb] Re : Re : No lock possible at some DVB-S2 channels
+	with TT S2-3200/linux
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,36 +26,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I run into some problems when trying to get my 452e running.
-I followed the infos at 
-http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Sat_HDTV_Pro_USB_%28452e%29 
-
-and compiled multiproto kernel modules.
-The device seems to be detected and working (even if the kernel now is 
-very unstable)
-But I'm not able to do any more.
-I downloaded the newest dvb-apps and compiled it. But scan, szap or 
-szap2 are not working.
-Maybe I need some multiproto patch for dvb-apps but I didn't find 
-anything useful on the Internet.
-
-Can someone gives me an step by step explanation that I can use. Even I 
-ran into errors I could post them and get an solution this way.
-
-My System:
-PS3 running YDL6 (with newest available packaged from the YDL6 
-repositories)
-
-Michael
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgpvbiB0aGUgZnJlcXVlbmN5IHlvdSd2ZSBtZW50aW9uZWQgSSBkaWRuJ3QgaGF2ZSBhbnkg
+cHJvYmxlbSAobmV2ZXIpLiBCdXQgYXQgCmx5bmdzYXQgaXQgaXMgcmVwb3J0ZWQgYXMgMTE5MTRN
+SHouIEkgbmV2ZXIgdXNlZCBmcmVxLiBzaGlmdGluZyAob25seSAKdGVzdGVkKSwgaXQgd2FzIG5v
+dCByZWFzb25hYmxlIGZvciBtZS4KClByb2JsZW1zIEkgaGF2ZSBhcmUgYXQgdHJhbnNwb25kZXJz
+IHdpdGggOFBTSyBtb2R1bGF0aW9uLiAKClRoYW5rcyBhbmQgQmVzdCBSZWdhcmRzLAoKQWxlcwoK
+Ck9uIFNhdHVyZGF5IDIxIG9mIEp1bmUgMjAwOCwgRG9taW5payBLdWhsZW4gd3JvdGU6Cj4gSGkK
+Pgo+IC0tLS0tLXNuaXAtLS0tCj4KPiA+ID4gQ291bGQgeW91IHBsZWFzZSB0cnkgdGhlIGF0dGFj
+aGVkIHBhdGNoIGlmIHRoaXMgZml4ZXMgdGhlIHByb2JsZW0gd2l0aAo+ID4gPiBub21pbmFsIGZy
+ZXF1ZW5jeS9zeW1ib2xyYXRlIHNldHRpbmdzPwo+ID4KPiA+IE1hbnkgdGhhbmtzLCBidXQgSSBk
+b24ndCBzZWUgYW55IGltcHJvdmVtZW50LiBNaW5pbXVtIHRpbWUgYWZ0ZXIgSSd2ZQo+ID4gbG9j
+ayBpcyAxNTBzLgo+Cj4gQ291bGQgeW91IHBsZWFzZSBjaGVjayB3aGV0aGVyIHRoZSByZXBvcnRl
+ZCBmcmVxdWVuY3kgaXMgc2FuZToKPiBFeGFtcGxlOiAxOS4ywrBFIDExOTE1TUh6IEggMjc1MDAg
+RFZCLVMyCj4KPiBUZXN0MTogdXNlIHRoZSBub21pbmFsIGZyZXF1ZW5jeToKPiAgLi9zaW1wbGVk
+dmJ0dW5lIC1mIDExOTE1IC1kIDIKPiBkdmJmZSBzZXRwYXJhbXMgOiAgZGVsc3lzPTQgMTMxNS4w
+MDBNSHogLyBSYXRlIDogMjc1MDBrU1BTCj4gU3RhdHVzOiAxYjogU2lnbmFsIENhcnJpZXIgU3lu
+YyBMb2NrCj4gU05SOiAwIDQ0ICgweDJjKSAoNC40ZEIpCj4gQkVSOiAwIDAgMCAwICgweDApCj4g
+U2lnbmFsOiA1IDE3MCAoMHg1YWEpIDE0NTAgKDE0NS4wZEJtKQo+IEZyb250ZW5kOiBpZj0xMzEz
+LjYyNyBNSHoKPgo+IFRlc3QyOiBzZXQgcG9zaXRpdmUgb2Zmc2V0ICgrM01Ieik6Cj4gLi9zaW1w
+bGVkdmJ0dW5lIC1mIDExOTE4IC1kIDIKPiBkdmJmZSBzZXRwYXJhbXMgOiAgZGVsc3lzPTQgMTMx
+OC4wMDBNSHogLyBSYXRlIDogMjc1MDBrU1BTCj4gRnJvbnRlbmQ6IGlmPTEzMTMuNjYwIE1Iego+
+IFRoZSBmcm9udGVuZCBkb2VzIGF1dG9tYXRpY2FsbHkgbG9ja3Mgb24gdGhlIGNvcnJlY3QgZnJl
+cXVlbmN5Cj4KPiBUZXN0Mzogc2V0IG5lZ2F0aXZlIG9mZnNldCAoLTRNSHopOgo+IC4vc2ltcGxl
+ZHZidHVuZSAtZiAxMTkxMSAtZCAyCj4gZHZiZmUgc2V0cGFyYW1zIDogIGRlbHN5cz00IDEzMTEu
+MDAwTUh6IC8gUmF0ZSA6IDI3NTAwa1NQUwo+IEZyb250ZW5kOiBpZj0xMzEzLjY1MCBNSHoKPgo+
+IEZpbmQgbG93ZXIgbGltaXQ6Cj4gLi9zaW1wbGVkdmJ0dW5lIC1mIDExODk2IC1kIDIgIChkb2Vz
+IG5vdCB3b3JrKQo+IC4vc2ltcGxlZHZidHVuZSAtZiAxMTg5NyAtZCAyICh3b3JrcyAxMDAlKQo+
+IGR2YmZlIHNldHBhcmFtcyA6ICBkZWxzeXM9NCAxMjk3LjAwME1IeiAvIFJhdGUgOiAyNzUwMGtT
+UFMKPiBGcm9udGVuZDogaWY9MTMxMy42NTQgTUh6Cj4KPiBGaW5kIHVwcGVyIGxpbWl0Ogo+IC4v
+c2ltcGxlZHZidHVuZSAtZiAxMTkzMCAtZCAyIChkb2VzIG5vdCB3b3JrKQo+IC4vc2ltcGxlZHZi
+dHVuZSAtZiAxMTkyOSAtZCAyICh3b3JrcyAxMDAlKQo+IGR2YmZlIHNldHBhcmFtcyA6ICBkZWxz
+eXM9NCAxMzI5LjAwME1IeiAvIFJhdGUgOiAyNzUwMGtTUFMKPiBGcm9udGVuZDogaWY9MTMxMy42
+NDUgTUh6Cj4KPiBXaGljaCBtZWFuczoKPiAgLSBJIGNhbiBzcGVjaWZ5IGFueSBmcmVxdWVuY3kg
+ZnJvbSAxMTg5Nk1IeiB0byAxMTkyOU1IeiBhbmQgZ2V0IDEwMCUgbG9jawo+IHN1Y2Nlc3MgLSBh
+bmQgdGhlIEZyb250ZW5kIChhY3R1YWxseSB0aGUgZGVyb3RhdG9yKSByZXBvcnRzIHRoZSByZWFs
+Cj4gZnJlcXVlbmN5IChlLmcuIGZvciBhdXRvIGNvcnJlY3RpbmcgdGhlIGNoYW5uZWxzIGxpc3Qp
+Cj4KPiBDYXJkcyBJIGhhdmUgdGVzdGVkIHNvIGZhcjoKPiAtIHBjdHY0NTJlCj4gLSBtYW50aXMg
+KE11bHRpbWVkaWEgY29udHJvbGxlciBbMDQ4MF06IFR3aW5oYW4gVGVjaG5vbG9neSBDby4gTHRk
+IE1hbnRpcwo+IERUViBQQ0kgQnJpZGdlIENvbnRyb2xsZXIgW1ZlciAxLjBdIFsxODIyOjRlMzVd
+IChyZXYgMDEpIFN1YnN5c3RlbTogVHdpbmhhbgo+IFRlY2hub2xvZ3kgQ28uIEx0ZCBVbmtub3du
+IGRldmljZSBbMTgyMjowMDMxXSkKPgo+IFVuZm9ydHVuYXRlbHkgSSdtIHRyYXBwZWQgYmVoaW5k
+IGEgc2luZ2xlLWNhYmxlIGluc3RhbGxhdGlvbiBhbmQgaGF2ZSBvbmx5Cj4gYWNjZXNzIHRvIDE5
+LjLCsEUgSGlnaGJhbmQgSG9yaXpvbnRhbAo+Cj4KPiBEb21pbmlrCgoKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QK
+bGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
