@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+6c98a8984fcc4e30f0b1+1756+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1K7UQ9-0005I0-IZ
-	for linux-dvb@linuxtv.org; Sat, 14 Jun 2008 13:59:49 +0200
-Date: Sat, 14 Jun 2008 08:58:34 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: timf <timf@iinet.net.au>
-Message-ID: <20080614085834.0d0baf41@gaivota>
-In-Reply-To: <484D20F3.6030004@iinet.net.au>
-References: <48498964.10301@iinet.net.au>
-	<1212785950.16279.17.camel@pc10.localdom.local>
-	<20080606183617.5c2b6398@gaivota> <484A1441.6070400@iinet.net.au>
-	<484A1FC7.6070707@iinet.net.au>
-	<1212886803.25974.44.camel@pc10.localdom.local>
-	<20080608073836.233e801a@gaivota> <484C9E0A.1030909@iinet.net.au>
-	<484D19B5.2060201@iinet.net.au> <484D20F3.6030004@iinet.net.au>
-Mime-Version: 1.0
-Cc: hartmut.hackmann@t-online.de, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem with latest v4l-dvb hg
+Received: from www.wohnheimg.uni-frankfurt.de ([141.2.118.239])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9rYI-0008Br-06
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 03:06:04 +0200
+Received: from localhost ([127.0.0.1] helo=ssl.verfeiert.org)
+	by www.wohnheimg.uni-frankfurt.de with esmtp (Exim 4.69)
+	(envelope-from <sven@whgl.uni-frankfurt.de>) id 1K9rXe-0006JM-VD
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 03:05:56 +0200
+Message-ID: <60602.85.180.168.159.1214010322.squirrel@ssl.verfeiert.org>
+Date: Sat, 21 Jun 2008 03:05:22 +0200 (CEST)
+From: "Sven Eschenberg" <sven@whgl.uni-frankfurt.de>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] Support for MSI TV @nywhere Satellite
+Reply-To: sven@whgl.uni-frankfurt.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,50 +27,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Tim,
+Hi List,
 
-I'm not sure if it is the same bug, but, on a device I have with tda10046, I
-need to slow firmware load, otherwise, it will fail. This happens on an AMD 64
-dual core notebook @1.8GHz. The same board, on an Intel single core @1.1GHz
-works without troubles.
+what exactly is needed, to get support for the TV @nywhere Satellite.
 
-Please test the enclosed patch.
+Some Info that might be required:
 
-On Mon, 09 Jun 2008 20:24:19 +0800
-timf <timf@iinet.net.au> wrote:
+Card has Connectors for Sat, S-Video, AV (RCA JAcket), and IR reciever.
 
-> > [   38.194402] tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-> > [   38.286214] tda829x 2-004b: setting tuner address to 61
-> > [   38.370076] tda829x 2-004b: type set to tda8290+75a
-> > [   42.195417] saa7133[0]: registered device video0 [v4l2]
-> > [   42.195437] saa7133[0]: registered device vbi0
-> > [   42.195461] saa7133[0]: registered device radio0
-> > [   42.355808] DVB: registering new adapter (saa7133[0])
-> > [   42.355815] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-> > [   42.427655] tda1004x: setting up plls for 48MHz sampling clock
-> > [   44.678388] tda1004x: timeout waiting for DSP ready
-> > [   44.718322] tda1004x: found firmware revision 0 -- invalid
-> > [   44.718326] tda1004x: trying to boot from eeprom
+Card is based upon Conexant CX23883-39 and uses a MB86A16 (L)
+Tuner/Demodulator from Fairchild Semiconductors.
+
+There is a sticker on the card saying 1027_V1.2 (Seems there are different
+Versions/Revisions).
+
+Output from lspci:
+
+01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder (rev 05)
+01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [MPEG Port] (rev 05)
+01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [IR Port] (rev 05)
+---
+01:07.0 0400: 14f1:8800 (rev 05)
+01:07.2 0480: 14f1:8802 (rev 05)
+01:07.4 0480: 14f1:8804 (rev 05)
+
+lspci -v:
+01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at eb000000 (32-bit, non-prefetchable) [size=16M]
+
+01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [MPEG Port] (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at ec000000 (32-bit, non-prefetchable) [size=16M]
+
+01:07.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio
+Decoder [IR Port] (rev 05)
+	Subsystem: Twinhan Technology Co. Ltd Unknown device 0023
+	Flags: bus master, medium devsel, latency 32, IRQ 15
+	Memory at ed000000 (32-bit, non-prefetchable) [size=16M]
+
+Output from dmesg:
+
+[   42.293604] cx88[0]: Your board isn't known (yet) to the driver.  You can
+[   42.293605] cx88[0]: try to pick one of the existing card configs via
+[   42.293607] cx88[0]: card=<n> insmod option.  Updating to the latest
+[   42.293608] cx88[0]: version might help as well.
+[   42.293610] cx88[0]: Here is a list of valid choices for the card=<n>
+insmod option:
+[   42.293612] cx88[0]:    [cardlist cropped]
+[   42.293716] cx88[0]: subsystem: 1822:0023, board: UNKNOWN/GENERIC
+[card=0,autodetected]
+[   42.293718] cx88[0]: TV tuner type -1, Radio tuner type -1
+[   42.439466] cx88[0]/0: found at 0000:01:07.0, rev: 5, irq: 15, latency:
+32, mmio: 0xeb000000
+[   42.614814] cx88[0]/0: registered device video0 [v4l2]
+[   42.614837] cx88[0]/0: registered device vbi0
+
+Any help or recommendations would be appreciated. If further information
+is needed, please don't hesitate to ask.
+
+Regards
+
+-Sven
+
+I just realized, thath the twinhan AD-SP200(1027) board looks exactly the
+same as the MSI TV @nywhere Satellite board, as far as I can compare it
+and it seems it is no coincidence, that the MSI board carries the
+1027_V1.2 Sticker.
 
 
-diff -r 000ffc33cb89 linux/drivers/media/dvb/frontends/tda1004x.c
---- a/linux/drivers/media/dvb/frontends/tda1004x.c	Sat Jun 14 08:27:34 2008 -0300
-+++ b/linux/drivers/media/dvb/frontends/tda1004x.c	Sat Jun 14 08:53:01 2008 -0300
-@@ -135,6 +135,9 @@
- 
- 	msg.addr = state->config->demod_address;
- 	ret = i2c_transfer(state->i2c, &msg, 1);
-+
-+	if (state->config->xtal_freq == TDA10046_XTAL_16M)
-+		msleep(1);
- 
- 	if (ret != 1)
- 		dprintk("%s: error reg=0x%x, data=0x%x, ret=%i\n",
-
-
-
-Cheers,
-Mauro
 
 _______________________________________________
 linux-dvb mailing list
