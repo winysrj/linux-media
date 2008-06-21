@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53JDYBY030549
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:13:34 -0400
-Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53JDKxO018169
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 15:13:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 3 Jun 2008 21:13:15 +0200
-References: <48457617.mail5YC1S9Z5F@vesta.asc.rssi.ru>
-	<loom.20080603T165006-806@post.gmane.org>
-	<3192d3cd0806031200k48d63141hefbb3df5d812e903@mail.gmail.com>
-In-Reply-To: <3192d3cd0806031200k48d63141hefbb3df5d812e903@mail.gmail.com>
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m5L91Dnu018406
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 05:01:14 -0400
+Received: from smtp-out3.blueyonder.co.uk (smtp-out3.blueyonder.co.uk
+	[195.188.213.6])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m5L8xtRS032310
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 05:00:16 -0400
+Received: from [172.23.170.141] (helo=anti-virus02-08)
+	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1K9ywR-000282-PI
+	for video4linux-list@redhat.com; Sat, 21 Jun 2008 09:59:27 +0100
+Received: from [82.46.193.134] (helo=[82.46.193.134])
+	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1K9ywR-0002TJ-Bf
+	for video4linux-list@redhat.com; Sat, 21 Jun 2008 09:59:27 +0100
+Message-ID: <485CC2FE.6040005@blueyonder.co.uk>
+Date: Sat, 21 Jun 2008 09:59:42 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Video 4 Linux <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200806032113.15468.hverkuil@xs4all.nl>
-Cc: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Subject: Re: v4l API question: any support for HDTV is possible?
+Subject: Will this work?
+Reply-To: Ian.Davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,54 +34,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 03 June 2008 21:00:28 Christian Gmeiner wrote:
-> 2008/6/3 Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>:
-> > Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
-> >> > Have you not seen this at all? http://dxr3.sf.net
-> >>
-> >> I know that project. The DXR3 boards dont have HDTV capabilities.
-> >
-> > The v4l API is a framework for frame grabbers and hardware
-> > encoders. There exists no unified API for hardware decoders such as
-> > yours. Each hardware decoder driver supplies an API of its own. The
-> > DXR3 project is most similar hardware-wise to what you're coding.
-> > Other projects in that category include:
->
-> I thought v4l2 has support for video output? Have a look at
-> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single
->/v4l2.html#OUTPUT
->
-> Maybe its time to come up with an extension for v4l to support
-> decoders?! As far as I can see
-> the DVB API hase some output stuff, as there exists FF-DVB cards with
-> an mpeg2 decoder
-> on it. But I think that there should be an api for decoding which
-> gets used by dvb cards, dxr3
-> and all other encoder cards.
+I am planning to buy a new system and want to be able to record video 
+(from a camera, using a composite signal).
 
-MPEG decoders ARE supported: ivtv does it for MPEG2, and that includes 
-an framebuffer device and Xorg overlay driver.
+I am considering a Intel Core 2 Duo E8200 processor running Fedora 9 and 
+a KWorld PVR_TV 7131 TV Tuner card.
 
-See the following sections in the V4L2 spec:
+The card has many features that I don't need - (Remote Control, 
+Scheduled recording in the Power off mode, Sleep timer etc.) - but does 
+include Composite Input.   Where can I look to verify that I will (or 
+won't) be able to use this card as I wish.  Is it supported?
 
-- 1.9.5 MPEG Control reference
-- 4.3 Video Output Interface
-- 4.4 Video Output Overlay Interface
+Thanks in Advance
 
-And these sources:
+-- 
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying objective reality. 
+Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. 
+Facts supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
 
-- linux/dvb/video.h for: VIDEO_COMMAND
-- ivtv_decoder_ioctls() in ivtv-ioctl.c
-
-So decoder commands are really handled through DVB ioctls, but they work 
-pretty well.
-
-There is currently no way to set the HDTV-parameters through the V4L2 
-API, so I suggest you make a proposal for this.
-
-Regards,
-
-	Hans
 
 --
 video4linux-list mailing list
