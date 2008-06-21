@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sccmmhc91.asp.att.net ([204.127.203.211])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hwertz@avalon.net>) id 1KDBwB-0000oW-W3
-	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 07:28:28 +0200
-Received: from voltron.homelinux.org (voltron.homelinux.org [192.168.0.1])
-	by voltron.homelinux.org (8.14.2/8.14.2) with ESMTP id m5U5RdOs022939
-	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 00:27:39 -0500
-Date: Mon, 30 Jun 2008 00:27:39 -0500 (CDT)
-From: hwertz@avalon.net
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dkuhlen@gmx.net>) id 1KA2LJ-0005rg-Qj
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 14:37:23 +0200
+From: Dominik Kuhlen <dkuhlen@gmx.net>
 To: linux-dvb@linuxtv.org
-Message-ID: <Pine.LNX.4.64.0806300012100.22453@voltron.homelinux.org>
+Date: Sat, 21 Jun 2008 14:36:47 +0200
+References: <200805122042.43456.ajurik@quick.cz>
+	<200806151147.19451.dkuhlen@gmx.net>
+	<200806151920.30719.ajurik@quick.cz>
+In-Reply-To: <200806151920.30719.ajurik@quick.cz>
 MIME-Version: 1.0
-Subject: [linux-dvb] Pinnacle PCTV 801e SE?
+Message-Id: <200806211436.47765.dkuhlen@gmx.net>
+Subject: Re: [linux-dvb] Re : Re : No lock possible at some DVB-S2 channels
+	with TT S2-3200/linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,43 +21,114 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0946376791=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-      So, I got one of these Pinnacle PCTV 801e SE sticks.  This is USB, 
-receives NTSC+ATSC+QAM.
-      First, two questions:
-      1)I want to know, is anyone working on a driver for  this?  I don't 
-want to start if someone is like 99% finished.
-      2)Anyone working on a DVB-driver-friendly XC5000 code?
+--===============0946376791==
+Content-Type: multipart/signed;
+  boundary="nextPart1294499.4bcz8Uh8XX";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
-      Per a post from months ago (and I confirmed this by cracking mine 
-open) it uses a DiB0700 USB bridge chip, XC5000 tuner, S5H1411 8VSB/QAM 
-demodulator,  CX25843 NTSC decoder, and Cirrus Logic 5340CZZ chip for 
-something (original post speculated FM).
+--nextPart1294499.4bcz8Uh8XX
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-      Also, I've seen Jernej Tonejc's posts from May 3 where he's found i2c 
-items at 0x19, 0x1a, 0x44 and 0x50.  I know not to mess with 0x50, that's 
-the EEPROM (based both on later post on that thread, and on looking 
-through source and seeing 0x50 is pretty common for the ROM.)
+Hi
 
-      So, there's a DVB driver for DiB0700-based sticks.  I see there's 
-quite new code for S5H1411.  I don't see XC5000 support for DVB drivers, 
-but cx88 driver has XC5000 support and XC3028 support (and, the cx88 and 
-DVB drivers both look pretty clean!)  I was going to use DiB0700+XC3028 as 
-a template to basically see what functions go where from the cx88 way of 
-doing things, and then move XC5000 support straight over based on that. 
-The CX2584x code I see in-tree looks like a mess so that'll wait for later 
-(to be clear, I'm not disrespecting the CX2584x driver's code quality, the 
-chip just appears to be one of those ones that needs quite a bit of 
-hand-holding and general kicking to get things done... which I don't feel 
-like unravelling and moving to DVB framework at the moment 8-)
+=2D-----snip----
+> >
+> > Could you please try the attached patch if this fixes the problem with
+> > nominal frequency/symbolrate settings?
+> >
+>=20
+> Many thanks, but I don't see any improvement. Minimum time after I've loc=
+k is=20
+> 150s.=20
+Could you please check whether the reported frequency is sane:
+Example: 19.2=C2=B0E 11915MHz H 27500 DVB-S2
 
+Test1: use the nominal frequency:
+ ./simpledvbtune -f 11915 -d 2
+dvbfe setparams :  delsys=3D4 1315.000MHz / Rate : 27500kSPS
+Status: 1b: Signal Carrier Sync Lock
+SNR: 0 44 (0x2c) (4.4dB)
+BER: 0 0 0 0 (0x0)
+Signal: 5 170 (0x5aa) 1450 (145.0dBm)
+=46rontend: if=3D1313.627 MHz
+
+Test2: set positive offset (+3MHz):
+=2E/simpledvbtune -f 11918 -d 2
+dvbfe setparams :  delsys=3D4 1318.000MHz / Rate : 27500kSPS
+=46rontend: if=3D1313.660 MHz
+The frontend does automatically locks on the correct frequency
+
+Test3: set negative offset (-4MHz):
+=2E/simpledvbtune -f 11911 -d 2
+dvbfe setparams :  delsys=3D4 1311.000MHz / Rate : 27500kSPS
+=46rontend: if=3D1313.650 MHz
+
+=46ind lower limit:
+=2E/simpledvbtune -f 11896 -d 2  (does not work)
+=2E/simpledvbtune -f 11897 -d 2 (works 100%)
+dvbfe setparams :  delsys=3D4 1297.000MHz / Rate : 27500kSPS
+=46rontend: if=3D1313.654 MHz
+
+=46ind upper limit:
+=2E/simpledvbtune -f 11930 -d 2 (does not work)
+=2E/simpledvbtune -f 11929 -d 2 (works 100%)
+dvbfe setparams :  delsys=3D4 1329.000MHz / Rate : 27500kSPS
+=46rontend: if=3D1313.645 MHz
+
+Which means:
+ - I can specify any frequency from 11896MHz to 11929MHz and get 100% lock =
+success
+ - and the Frontend (actually the derotator) reports the real frequency (e.=
+g. for auto correcting the channels list)
+
+Cards I have tested so far:=20
+=2D pctv452e=20
+=2D mantis (Multimedia controller [0480]: Twinhan Technology Co. Ltd Mantis=
+ DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+               Subsystem: Twinhan Technology Co. Ltd Unknown device [1822:0=
+031])
+
+Unfortunately I'm trapped behind a single-cable installation and have only =
+access to 19.2=C2=B0E Highband Horizontal
+
+
+Dominik
+
+
+--nextPart1294499.4bcz8Uh8XX
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAkhc9d8ACgkQ6OXrfqftMKIXswCgu5vV3XLbch91jfKnivSkSDWP
+PxQAoLvnj4uhufgRLtoj7aZjAlhqdy/X
+=SBX2
+-----END PGP SIGNATURE-----
+
+--nextPart1294499.4bcz8Uh8XX--
+
+
+--===============0946376791==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0946376791==--
