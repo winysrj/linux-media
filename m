@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.182])
+Received: from smtp1-g19.free.fr ([212.27.42.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <morgan.torvolt@gmail.com>) id 1K3lx7-00077g-G4
-	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 07:54:33 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so1003514wag.13
-	for <linux-dvb@linuxtv.org>; Tue, 03 Jun 2008 22:54:24 -0700 (PDT)
-Message-ID: <3cc3561f0806032254j263781am59e1ae988fb3151e@mail.gmail.com>
-Date: Wed, 4 Jun 2008 07:54:24 +0200
-From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
-To: "Egor Shibeko" <egor.shibeko@gmail.com>
-In-Reply-To: <20080528205434.dd4fcf9b.egor.shibeko@gmail.com>
+	(envelope-from <thierry.merle@free.fr>) id 1KA4MP-0007xe-Nj
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 16:46:40 +0200
+Message-ID: <485D146C.7090606@free.fr>
+Date: Sat, 21 Jun 2008 16:47:08 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080528205434.dd4fcf9b.egor.shibeko@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB Descrambling
+To: Tomi Orava <tomimo@ncircle.nullnet.fi>
+References: <472A0CC2.8040509@free.fr>
+	<480F9062.6000700@free.fr>	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>	<481B4A78.8090305@free.fr>	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>	<481F66B0.4090302@free.fr>
+	<4821F9A9.6030304@ncircle.nullnet.fi>	<48236E1F.5080300@free.fr>	<60450.192.168.9.10.1210618180.squirrel@ncircle.nullnet.fi>	<Pine.LNX.4.64.0805122100590.7907@pub3.ifh.de>
+	<20080616152430.GA9995@dose.home.local> <485C0886.5070606@free.fr>
+	<485C1E73.7030509@ncircle.nullnet.fi>
+	<485C2C48.7090809@free.fr> <485C34B9.40407@ncircle.nullnet.fi>
+In-Reply-To: <485C34B9.40407@ncircle.nullnet.fi>
+Cc: Tino Keitel <tino.keitel@tikei.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Testers wanted for alternative version of	Terratec
+ Cinergy T2 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,46 +25,139 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VHJ5IG91dCB0aGUgdGVzdCBhcHBsaWNhdGlvbiBmb3IgdGhlIGxpYmVuNTAyMjEgbGlicmFyeS4g
-VGhlIGdudXR2CmRvZXMgbm90IGltcGxlbWVudCB0aGUgY2FsbGJhY2tzIGZvciBzb21lIG9mIHRo
-ZSBjYW0gZnVuY3Rpb25zLiBUaGlzCm1ha2VzIHR3byBjYW1zIG9mIG1pbmUgbm90IHdvcmsgd2l0
-aCBnbnV0diBhdCBsZWFzdC4KCi1Nb3JnYW4tCgpPbiAyOC8wNS8yMDA4LCBFZ29yIFNoaWJla28g
-PGVnb3Iuc2hpYmVrb0BnbWFpbC5jb20+IHdyb3RlOgo+IEhlbGxvLAo+Cj4gIEkgaGF2ZSBwcm9i
-bGVtIHdhdGNoaW5nIHNjcmFtYmxpbmcgY2hhbm5lbHMgKG90aGVyIGNoYW5uZWxzIGFyZSBPSyks
-IGUuZy4gc3RyZWFtaW5nIHRoZW0gdXNpbmcgZ251dHYgYW5kIHRoZW4KPiAgd2F0Y2hpbmcgaXQg
-dXNpbmcgbXBsYXllci4KPiAgVGhlIGZvbGxvd2luZyBpcyB0aGUgaW5mb3JtYXRpb24gYWJvdXQg
-aGFyZHdhcmUgYW5kIHNvbWUgc3RlcHMgKGlmIHRoZXkgYXJlIHdpbGwgYmUgaGVscGZ1bCBmb3Ig
-eW91KS4KPgo+ICBJIGhhdmUgdGhlIGZvbGxvd2luZyBzeXN0ZW0gb3V0cHV0IGZvciBkbWVzZyAo
-J2RtZXNnIHwgZ3JlcCBEVkInKToKPgo+ICBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChL
-TkMgVFYgU1RBUiBEVkItUykuCj4gIERWQjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoU1QgU1RW
-MDI5OSBEVkItUykuLi4KPiAgZHZiX2NhIGFkYXB0ZXIgMDogRFZCIENBTSBkZXRlY3RlZCBhbmQg
-aW5pdGlhbGlzZWQgc3VjY2Vzc2Z1bGx5Cj4gIC4uLgo+Cj4gICdnbnV0diAtY2FtbWVudScgc2Fp
-ZCB0aGUgZm9sbG93aW5nOgo+Cj4gIENBTSBzdXBwb3J0cyB0aGUgZm9sbG93aW5nIGNhIHN5c3Rl
-bSBpZHM6Cj4gICAweDE3MDIKPiAgIDB4MDYwMgo+ICAgMHgwNjA0Cj4gICAweDA2MDYKPiAgIDB4
-MDYwOAo+ICAgMHgxNzIyCj4gICAweDE3NjIKPiAgIDB4NGEyMAo+ICAgMHgwNTAwCj4gICAweDBi
-MDAKPiAgIDB4MGQwMAo+ICAgMHgwZDAzCj4gICAweDBkMDUKPiAgIDB4MGQwYwo+ICAgMHgwZDIy
-Cj4gIENBTSBBcHBsaWNhdGlvbiB0eXBlOiAwMQo+ICBDQU0gQXBwbGljYXRpb24gbWFudWZhY3R1
-cmVyOiA0YTIwCj4gIENBTSBNYW51ZmFjdHVyZXIgY29kZTogNGEyMAo+ICBDQU0gTWVudSBzdHJp
-bmc6IEFscGhhQ3J5cHQKPgo+ICBUaGUgZm9sbG93aW5nIGlzIGZyb20gJ0luZm9ybWF0aW9uJyBt
-ZW51Ogo+Cj4gIJdBbHBoYUNyeXB0IDMuMDkgKGMpIE1hc2NvbSBHbWJICj4gIE1vZHVsZSBJbmZv
-cm1hdGlvbiAgICAoQ1BVOiA3MyUpCj4gIDAuIFF1aXQgbWVudQo+ICAxLiBMb2FkZXIgdmVyc2lv
-bjogRXVyb0Jvb3QgVjIuMDBDCj4gIDIuIEFwcGxpY2F0aW9uIHZlcnNpb246IDMuMDkKPiAgMy4g
-U3VwcG9ydHMgc2F0ZWxsaXRlIHVwZGF0ZTogeWVzCj4gIDQuIENvbXBpbGVkIGF0OiBBdWcgMTQg
-MjAwNiAxMTozODoyNwo+Cj4gIElmIEkgY2hvb3NlICdTbWFydGNhcmQnIG1lbnUgYW5kIHRoZW4g
-J0VudGl0bGVtZW50cycsIGVycm9yIG9jY3VyczoKPiAgZW41MDIyMV9zdGRjYW1fbGxjaV9wb2xs
-OiBFcnJvciByZXBvcnRlZCBieSBzdGFjazotMwo+Cj4gIElmIHlvdSBuZWVkIGFueSBhZGRpdGlv
-bmFsIGluZm9ybWF0aW9uLCBJIHdpbGwgcHJvdmlkZSBpdCB0byB5b3UuIEFuZCB0aGUgbWFpbiBx
-dWVzdGlvbiwKPiAgaG93IHRvIHdhdGNoIHNjcmFtYmxlZCBjaGFubmVscy4KPgo+Cj4gIC0tCj4g
-IEVnb3IgU2hpYmVrbyA8ZWdvci5zaGliZWtvQGdtYWlsLmNvbT4KPgo+ICBfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ICBsaW51eC1kdmIgbWFpbGluZyBs
-aXN0Cj4gIGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+ICBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
-aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
-bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtZHZi
+Tomi Orava a ecrit :
+> Hi,
+> 
+>>>> - possible lirc issue
+>>>>     http://article.gmane.org/gmane.linux.drivers.dvb/37865
+>>>>    But I am not sure this is a problem, just a lack in lirc conf.
+>>> Since that time the "internal" remote control code has been removed
+>>> and the driver now uses the common dvb-usb-rc code.
+>>> This should not be a problem anymore, but needs to be verified.
+>>>
+>> In fact irrecord expects key repeat functionality that is disabled in
+>> this driver (key repeat is too rapid)
+>> Nevertheless I succeeded in making lircd work thanks to:
+>> http://linux.bytesex.org/v4l2/faq.html#lircd (see the last item)
+> 
+> So, does it work for you for good if you change the rc_interval from 50ms
+> into 150ms (ie. DEFAULT_RC_INTERVAL) on line 183 of cinergyT2-core.c ?
+> 
+> Regards,
+> Tomi Orava
+> 
+In fact key repeat feature needed to be implemented.
+I did it with a configurable RC_REPEAT_DELAY defined as 3 queries period so 3*DEFAULT_RC_INTERVAL.
+Putting DEFAULT_RC_INTERVAL to 150 causes the driver to miss some remote commands.
+
+The patch is here: http://linuxtv.org/hg/~tmerle/cinergyT2
+and inlined in this email.
+
+Regards,
+Thierry
+--
+cinergyT2: add remote key repeat feature
+
+From: Thierry MERLE <thierry.merle@free.fr>
+
+Implement key repeat feature for the cinergyT2 remote controller.
+
+Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
+
+diff -r afe409705dd5 -r 65bedec7f7ab linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c
+--- a/linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c	Fri Jun 20 21:26:40 2008 +0200
++++ b/linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c	Sat Jun 21 16:38:01 2008 +0200
+@@ -40,6 +40,9 @@
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
++struct cinergyt2_state {
++	u8 rc_counter;
++};
+ 
+ /* We are missing a release hook with usb_device data */
+ struct dvb_usb_device *cinergyt2_usb_device;
+@@ -122,22 +125,57 @@
+ 	{ 0x04,	0x5c,	KEY_NEXT }
+ };
+ 
++/* Number of keypresses to ignore before detect repeating */
++#define RC_REPEAT_DELAY 3
++
++static int repeatable_keys[] = {
++	KEY_UP,
++	KEY_DOWN,
++	KEY_LEFT,
++	KEY_RIGHT,
++	KEY_VOLUMEUP,
++	KEY_VOLUMEDOWN,
++	KEY_CHANNELUP,
++	KEY_CHANNELDOWN
++};
++
+ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
++	struct cinergyt2_state *st = d->priv;
+ 	u8 key[5] = {0, 0, 0, 0, 0}, cmd = CINERGYT2_EP1_GET_RC_EVENTS;
++	int i;
++
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+ 	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
+-	if (key[4] == 0xff)
++	if (key[4] == 0xff) {
++		/* key repeat */
++		st->rc_counter++;
++		if (st->rc_counter > RC_REPEAT_DELAY) {
++			for (i = 0; i < ARRAY_SIZE(repeatable_keys); i++) {
++				if (d->last_event == repeatable_keys[i]) {
++					*state = REMOTE_KEY_REPEAT;
++					*event = d->last_event;
++					deb_rc("repeat key, event %x\n",
++						   *event);
++					return 0;
++				}
++			}
++			deb_rc("repeated key (non repeatable)\n");
++		}
+ 		return 0;
++	}
+ 
+-	/* hack to pass checksum on the custom field (is set to 0xeb) */
+-	key[2] = ~0x04;
++	/* hack to pass checksum on the custom field */
++	key[2] = ~key[1];
+ 	dvb_usb_nec_rc_key_to_event(d, key, event, state);
+-	if (key[0] != 0)
+-		deb_info("key: %x %x %x %x %x\n",
+-			 key[0], key[1], key[2], key[3], key[4]);
++	if (key[0] != 0) {
++		if (*event != d->last_event)
++			st->rc_counter = 0;
+ 
++		deb_rc("key: %x %x %x %x %x\n",
++		       key[0], key[1], key[2], key[3], key[4]);
++	}
+ 	return 0;
+ }
+ 
+@@ -157,7 +195,7 @@
+ MODULE_DEVICE_TABLE(usb, cinergyt2_usb_table);
+ 
+ static struct dvb_usb_device_properties cinergyt2_properties = {
+-
++	.size_of_priv = sizeof(struct cinergyt2_state),
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
