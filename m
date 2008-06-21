@@ -1,20 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
+Received: from ip-72-55-165-217.static.privatedns.com
+	([72.55.165.217] helo=mail.redgrid.net ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <websdaleandrew@googlemail.com>) id 1KCzbR-0008Tu-MU
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 18:18:16 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so1311284fka.1
-	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 09:18:10 -0700 (PDT)
-Message-ID: <e37d7f810806290918n4b6a95fdjc52dda2086a758de@mail.gmail.com>
-Date: Sun, 29 Jun 2008 17:18:10 +0100
-From: "Andrew Websdale" <websdaleandrew@googlemail.com>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0806290854k43fd66e6ua3eb5ca3730f3f0f@mail.gmail.com>
+	(envelope-from <lew@ldsit.com>) id 1K9sM8-0001Se-HR
+	for linux-dvb@linuxtv.org; Sat, 21 Jun 2008 03:57:34 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by mail.redgrid.net (Postfix) with ESMTP id 1802498319
+	for <linux-dvb@linuxtv.org>; Fri, 20 Jun 2008 21:50:18 -0400 (EDT)
+Received: from mail.redgrid.net ([127.0.0.1])
+	by localhost (mail.redgrid.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 4Z61tuRp-739 for <linux-dvb@linuxtv.org>;
+	Fri, 20 Jun 2008 21:50:11 -0400 (EDT)
+Received: from luigi.lan (c122-108-20-110.eburwd9.vic.optusnet.com.au
+	[122.108.20.110])
+	by mail.redgrid.net (Postfix) with ESMTP id C25309830A
+	for <linux-dvb@linuxtv.org>; Fri, 20 Jun 2008 21:50:10 -0400 (EDT)
+Content-Disposition: inline
+From: Lew <lew@ldsit.com>
+To: linux-dvb@linuxtv.org
+Date: Sat, 21 Jun 2008 11:57:16 +1000
 MIME-Version: 1.0
-References: <e37d7f810806281609o527dfdb6w6d785560b20ee8fa@mail.gmail.com>
-	<d9def9db0806290854k43fd66e6ua3eb5ca3730f3f0f@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Location of parser.pl
+Message-Id: <200806211157.16540.lew@ldsit.com>
+Subject: [linux-dvb] Diff's to add twinhan mini ter variant
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,77 +29,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0477937555=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0477937555==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16198_1672368.1214756290181"
+Hi Guys,
 
-------=_Part_16198_1672368.1214756290181
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I've been siting on this one for a while, but I found a twinhan mini ter dvb 
+card that needed some minor adjustments to be recognised.
 
-2008/6/29 Markus Rechberger <mrechberger@gmail.com>:
+As compared againsttip today...
+In linux/drivers/media/video/bt8xx/linux/drivers/media/video/bt8xx
 
-> 2008/6/29 Andrew Websdale <websdaleandrew@googlemail.com>:
-> > I'm looking for a copy of parser.pl - it seems to have disappeared from
-> the
-> > hg repos, or I might not have looked hard enough.
->
-> I put the scripts and usbreplay together in one repository around 15 months
-> ago.
-> http://mcentral.de/hg/~mrec/usbreplay<http://mcentral.de/hg/%7Emrec/usbreplay>
->
-> -Markus
->
->   I'm  attempting to modify the M920x driver to work with my
-> > Dposh dvb-usb stick, which has a MT2060 tuner , unlike the existing
-> driver
-> > which works with the Q1010 instead & I wanted to generate some firmware
-> for
-> > it.(at the moment blue LED does not light & no result from scanning)
->
+320a321
+> 	{ 0x0001feff, BTTV_BOARD_TWINHAN_DST,   "Twinhan VisionPlus DVB" },
 
 
-Thank you very much Markus, I'll  get to  it right away:)
-regards Andrew
+In /linux/drivers/media/dvb/bt8xx/bt878.c
+404d403
+>	BROOKTREE_878_DEVICE(0xfeff, 0x0001, "Twinhan VisionPlus DVB"),
 
-------=_Part_16198_1672368.1214756290181
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+lspci -vv of the device (pre driver change)....
 
-<br><br><div class="gmail_quote">2008/6/29 Markus Rechberger &lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-2008/6/29 Andrew Websdale &lt;<a href="mailto:websdaleandrew@googlemail.com">websdaleandrew@googlemail.com</a>&gt;:<br>
-<div class="Ih2E3d">&gt; I&#39;m looking for a copy of parser.pl - it seems to have disappeared from the<br>
-&gt; hg repos, or I might not have looked hard enough.<br>
-<br>
-</div>I put the scripts and usbreplay together in one repository around 15 months ago.<br>
-<a href="http://mcentral.de/hg/%7Emrec/usbreplay" target="_blank">http://mcentral.de/hg/~mrec/usbreplay</a><br>
-<br>
--Markus<br>
-<div class="Ih2E3d"><br>&nbsp; I&#39;m &nbsp;attempting to modify the M920x driver to work with my<br>
-&gt; Dposh dvb-usb stick, which has a MT2060 tuner , unlike the existing driver<br>
-&gt; which works with the Q1010 instead &amp; I wanted to generate some firmware for<br>
-&gt; it.(at the moment blue LED does not light &amp; no result from scanning)<br>
-</div></blockquote><div><br><br>Thank you very much Markus, I&#39;ll&nbsp; get to&nbsp; it right away:)<br>regards Andrew <br></div></div><br>
+05:02.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture 
+(rev 11)
+	Subsystem: Unknown device feff:0001
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- 
+SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- 
+<MAbort- >SERR- <PERR-
+	Latency: 32 (4000ns min, 10000ns max)
+	Interrupt: pin A routed to IRQ 18
+	Region 0: Memory at ca102000 (32-bit, prefetchable) [size=4K]
+	Capabilities: [44] Vital Product Data
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
 
-------=_Part_16198_1672368.1214756290181--
+05:02.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 
+11)
+	Subsystem: Unknown device feff:0001
+	Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- 
+SERR- FastB2B-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- 
+<MAbort- >SERR- <PERR-
+	Interrupt: pin A routed to IRQ 18
+	Region 0: Memory at ca103000 (32-bit, prefetchable) [size=4K]
+	Capabilities: [44] Vital Product Data
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
 
+Le me know if you need any more info.
 
---===============0477937555==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Cheers,
+
+-- 
+Lewis Shobbrook
+------------------
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0477937555==--
