@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NMRgPA016825
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:27:43 -0400
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NMRUjO002091
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:27:30 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5M1Gx8R003442
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 21:16:59 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5M1GkdK008450
+	for <video4linux-list@redhat.com>; Sat, 21 Jun 2008 21:16:46 -0400
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <485FA5A8.9000103@anevia.com>
-References: <485FA5A8.9000103@anevia.com>
+To: Ian.Davidson@bigfoot.com
+In-Reply-To: <485CC2FE.6040005@blueyonder.co.uk>
+References: <485CC2FE.6040005@blueyonder.co.uk>
 Content-Type: text/plain
-Date: Tue, 24 Jun 2008 00:25:29 +0200
-Message-Id: <1214259929.6208.26.camel@pc10.localdom.local>
+Date: Sun, 22 Jun 2008 03:14:51 +0200
+Message-Id: <1214097291.4776.22.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [HVR 1300] secam bg
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: Will this work?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,35 +28,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Frederic,
+Hi Ian,
 
-Am Montag, den 23.06.2008, 15:31 +0200 schrieb Frederic CAND:
-> dear all
-> I could not make secam b/g work on my hvr 1300
-> ioctl returns -1, error "Invalid argument"
-> I know my card is able to handle this tv norm since it's working fine
-> (video and sound are ok) under windows
-> anyone could confirm it isn't working ? any idea why, and how to make it 
-> work ?
+Am Samstag, den 21.06.2008, 09:59 +0100 schrieb Ian Davidson:
+> I am planning to buy a new system and want to be able to record video 
+> (from a camera, using a composite signal).
+> 
+> I am considering a Intel Core 2 Duo E8200 processor running Fedora 9 and 
+> a KWorld PVR_TV 7131 TV Tuner card.
+> 
+> The card has many features that I don't need - (Remote Control, 
+> Scheduled recording in the Power off mode, Sleep timer etc.) - but does 
+> include Composite Input.   Where can I look to verify that I will (or 
+> won't) be able to use this card as I wish.  Is it supported?
 
-since without reply, I don't claim to have seriously looked at it, but
-at least have one question myself.
+all manufacturers do some changes to their products during lifetime of
+the major chips involved.
 
-In cx88-core is no define for SECAM B or G.
+So, without further details, you can't say for sure what will happen
+with some latest product revision available, if not in details.
 
-Do you use a signal generator?
+Since composite support is the simplest to add and most often stays
+unchanged during several hardware revisions, _most_ likely it will work
+or is easy to add.
 
-Hartmut asked once on the saa7134 driver, if there are any known
-remaining SECAM_BG users currently and we remained, that it is hard to
-get really up to date global analog lists for current broadcasts and I
-only could contribute that there was no single request for it during all
-these last years.
+On recent Kworld and other cards, a change from a gpio IR remote chip to
+an i2c one with KS chips is the highest known risk for full support up
+to 2.6.24. On later stuff you might discover some tuner to saa713x audio
+decoding problems, caused by not to be able to set the PAL_I subnorm
+currently and auto detection is not always reliable then.
 
-You know countries still using it?
-
-Thanks,
+Cheers,
 Hermann
-
 
 
 
