@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1K6DTJ-0003uI-A9
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 01:41:50 +0200
-From: Andy Walls <awalls@radix.net>
-To: Andreas <linuxdreas@launchnet.com>
-In-Reply-To: <200806101419.09700.linuxdreas@launchnet.com>
-References: <de8cad4d0806101321x659cdec7n77714ba6e69cb563@mail.gmail.com>
-	<484EE2EC.40501@linuxtv.org>
-	<200806101419.09700.linuxdreas@launchnet.com>
-Date: Tue, 10 Jun 2008 19:42:03 -0400
-Message-Id: <1213141323.3196.33.camel@palomino.walls.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <daniel.isenmann@gmx.de>) id 1KAQL8-0000Nn-3o
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 16:14:47 +0200
+Date: Sun, 22 Jun 2008 16:14:11 +0200
+From: Daniel Isenmann <daniel.isenmann@gmx.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080622161411.722de7a7@fuckup-ng.localdomain>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 multiple cards question
+Subject: [linux-dvb] Afatech 9015 problems on i686
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +22,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-06-10 at 14:19 -0700, Andreas wrote:
-> Am Dienstag, 10. Juni 2008 13:24:12 schrieb Steven Toth:
-> > Brandon Jenkins wrote:
-> > > Greetings,
-> > >
-> > > I currently have 3 HVR-1600 cards installed in my system. I am able to
-> > > get analog signal on all 3, but the ATSC scanning does not return any
-> > > data on the third card. I have swapped cables with a known working
-> > > card, but this does not resolve the issue.
-> > >
-> > > 2 of the cards are brand new, dmesg output seems to indicate no
-> > > issues. Does anyone know if there is an issue with 3 HD tuners? Is
-> > > there a method of trouble shooting I should follow?
-> >
-> > Remove the two working cards and test the failing card, report back.
-> 
-> I don't know if it would help in this case, but it is generally a good idea 
-> to change PCI slots as well.
+Hi,
+
+I have some problems to get the module af9015 to run under i686. I
+checked out the afatech9015 development repo from here:
+http://linuxtv.org/hg/~anttip/af9015/
+
+Compiling the source on my x86_64 box, everything runs fine and smooth.
+But under i686 there is following warning, which prevents the module
+from loading:
+----------
+WARNING:
+"__fixdfsi" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+undefined! 
+WARNING:
+"__divdf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+undefined! 
+WARNING:
+"__adddf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+undefined! 
+WARNING:
+"__muldf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+undefined! 
+WARNING:
+"__floatsidf" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+undefined!
+----------
+The compilation runs until the end. But loading the module fails with
+errors, that it can't find the functions listed above. Loading the
+firmware works on both boxes without problems.
+
+GCC: 4.3.1
+Kernel: 2.6.25.6 
+Distribution: ArchLinux
+
+Has anyone a hint or know something more, why the compiler warnings
+appears? Complete build log with V=1 can be found here: 
+http://dev.archlinux.org/~daniel/afatech9015-eee-hg-8102-1-i686.log
+
+Thanks, Daniel
 
 
-
-Change one variable at a time.  Either change PCI slots and retest or
-remove two cards and retest.  Don't do both before retesting, as you
-won't know which action "fixed" the problem, if the symptoms go away.
-
--Andy
 
 
 _______________________________________________
