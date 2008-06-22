@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n45.bullet.mail.ukl.yahoo.com ([87.248.110.178])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KCcwB-00017s-3W
-	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 18:06:10 +0200
-Date: Sat, 28 Jun 2008 11:19:50 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from mail.mbox.com.au ([203.134.146.14])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <redninja83@gmail.com>) id 1KAJbc-0005fl-Sp
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 09:03:22 +0200
+Received: from localhost (nightcrawler.mbox.com.au [127.0.0.1])
+	by mail.mbox.com.au (mBox Mail) with ESMTP id 4F1DD2C8119
+	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 15:05:12 +0800 (WST)
+Received: from mail.mbox.com.au ([127.0.0.1])
+	by localhost (nightcrawler.mbox.com.au [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id tptAWfRZekDI for <linux-dvb@linuxtv.org>;
+	Sun, 22 Jun 2008 15:05:04 +0800 (WST)
+Received: from [10.6.10.64] (203-59-240-91.dyn.iinet.net.au [203.59.240.91])
+	(using TLSv1 with cipher AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by mail.mbox.com.au (mBox Mail) with ESMTP id B0B6C2C80CC
+	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 15:05:04 +0800 (WST)
+Message-Id: <465FEE18-E36D-4EA3-8A1E-D2FBC3A20758@gmail.com>
+From: "R. Goff" <redninja83@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <1214015056l.6292l.1l@manu-laptop>
-	<200806211114.46921.ajurik@quick.cz> <1214657052l.7275l.0l@manu-laptop>
-In-Reply-To: <1214657052l.7275l.0l@manu-laptop> (from eallaud@yahoo.fr on
-	Sat Jun 28 08:44:12 2008)
-Message-Id: <1214666390l.13865l.0l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Re : How to solve the TT-S2-3200 tuning problems?
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Sun, 22 Jun 2008 15:02:33 +0800
+Subject: [linux-dvb] KWorld PlusTV Dual DVB-T PCIe (PE210)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,155 +28,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 28.06.2008 08:44:12, manu a =E9crit=A0:
-> Le 21.06.2008 05:14:46, Ales Jurik a =E9crit=A0:
-> > Hi,
-> > =
+Hi,
 
-> > I've tried to see where the problem is for some time. My opinions
-> and
-> > results =
+I'm trying to get this card working under linux, but cant seem to find  
+much information about it. Does anyone know if the chipset is  
+supported? Perhaps under development drivers?
 
-> > of some debugging work is included.
-> > =
+The windows .INF files suggest that its using the Micronas nGene  
+chipset, but I cant find much information about that, or other cards  
+that might have the same chipset. lspci reports it as:
 
-> > I'm ready to cooperate in debugging of this driver.
-> > =
+04:00.0 Multimedia video controller: Micronas Semiconductor Holding AG  
+Unknown device 0720
 
-> > BR,
-> > =
+Does anyone have any information on the card or chipset? Are there any  
+development drivers I can try?
 
-> > Ales
-> > =
+Cheers,
 
-> > On Saturday 21 of June 2008, manu wrote:
-> > > 	Hi all,
-> > > there are several threads about TT-3200 not being able to lock on
-> > > different channels depending on FEC/symbol rate/modulation.
-> > > Now what kind of experimentation could provide enough data to
-> solve
-> > > them? For example would it be possible that some knowledgeable =
-
-> guy
-> > here
-> > > posts:
-> > > -datasheets/programming guide for the tuner/demod if no NDA...
-> > =
-
-> > Yes, such documents are under NDA, I don't have access to it.
-> > =
-
-> > > -post the source of a prog that could gather data when tuning to =
-
-> a
-> > > given transponder.
-> > > -or anything else that this/these persons think would improve the
-> > > understanding of the problems.
-> > > HTH
-> > > Bye
-> > > Manu, who would like to watch the final of the euro cup in HD ;-)
-> > =
-
-> > The point from which I've checked the driver is file stb0899_priv.h
-> > (enum =
-
-> > stb0899_modcod). There are defined values for all possible =
-
-> > FEC/modulation combinations. We could see that 8PSK modulations =
-
-> have
-> > values =
-
-> > from 12 to 17 (for debugging). =
-
-> > =
-
-> > But no initial values are used for 8PSK modulation for registers
-> csm1
-> > to csm4 =
-
-> > as the stb0899_dvbs2_init_csm is called only for QPSK ( condition =
-
-> is
-> > and-ed =
-
-> > with INRANGE(STB0899_QPSK_23, modcod, STB0899_QPSK_910) ).
-> > =
-
-> > I'm not sure if this is the reason of problems, but I could get =
-
-> lock
-> > (very =
-
-> > unstable - lock is active for few minutes, than for minute or so
-> > disappeared =
-
-> > and so long) after few minutes staying tuned on some 8PSK channels. =
-
-> > =
-
-> > Maybe if set some registers (don't know if csm1-csm4 is enough) to
-> > initial =
-
-> > values depending on FEC/modulation it would be possible to get lock
-> > within =
-
-> > seconds like it is with QPSK.
-> > =
-
-> > In the driver there are also some pieces of code depended to
-> > FEC/modulation, =
-
-> > but only STB0899_QPSK_XXX is used for such pieces of code. Not
-> > possible to =
-
-> > find STB0899_8PSK_XXX depending code. Isn't it necessary? Or such =
-
-> > code
-> > is =
-
-> > missing and the casual lock is done by hw automation? =
-
-> =
-
-> One more datapoint: I have one transponder which has only HD Channels =
-
-> on it; the only difference with the other transponders (which are =
-
-> working great using TT 3200) is the FEC (and the fact that it is
-> MPEG4, =
-
-> but that changes nothing for getting the lock); symbol rate and =
-
-> modulation are the same. But it does not lock. Here is the dmesg of a =
-
-> simpledvbtune session: one with a success on another transponder, and =
-
-> then a failure on this transponder.
-> I'd like to know where to put some printks or tweak the code to be
-> able =
-
-> to debug this, if someone with the know-how could explain a bit. I =
-
-> can
-> =
-
-> definitely do some coding, but without data it is kind of hard.
-> HTH
-> Bye
-
-just to precise a bit more: all transponders are DVB-S with QPSK =
-
-modulation (at least this is what is advertised in the dvb tables).
-BYe
-Manu
-
+--Raal
 
 _______________________________________________
 linux-dvb mailing list
