@@ -1,31 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from eazy.amigager.de ([213.239.192.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1K56jG-00033z-Co
-	for linux-dvb@linuxtv.org; Sun, 08 Jun 2008 00:17:42 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id 8CA9919E6315
-	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 02:17:08 +0400 (MSD)
-Received: from localhost.localdomain (unknown [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id DED4A19E60DB
-	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 02:17:07 +0400 (MSD)
-Date: Sun, 8 Jun 2008 02:21:14 +0400
-From: Goga777 <goga777@bk.ru>
+	(envelope-from <tino@tikei.de>) id 1KATBW-0003v4-8S
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 19:17:04 +0200
+Date: Sun, 22 Jun 2008 19:17:52 +0200
+From: Tino Keitel <tino.keitel@tikei.de>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080608022114.5399c075@bk.ru>
-In-Reply-To: <48499E14.8000905@okg-computer.de>
-References: <484709F3.7020003@schoeller-soft.net>
-	<854d46170806041505w69a0bebakfa997223cade4381@mail.gmail.com>
-	<484794C8.5090506@okg-computer.de>
-	<200806052227.52847.dkuhlen@gmx.net>
-	<4848C6D2.6040805@schoeller-soft.net>
-	<854d46170806060249h1aec73e4s645462a123371c29@mail.gmail.com>
-	<48497340.3050602@schoeller-soft.net>
-	<854d46170806061050t12eee403re359ecfeac9143ec@mail.gmail.com>
-	<48497F86.9020702@schoeller-soft.net>
-	<48499E14.8000905@okg-computer.de>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
+Message-ID: <20080622171752.GA896@dose.home.local>
+References: <480F9062.6000700@free.fr>
+	<16781.192.100.124.220.1209712634.squirrel@ncircle.nullnet.fi>
+	<481B4A78.8090305@free.fr>
+	<30354.192.100.124.220.1209969477.squirrel@ncircle.nullnet.fi>
+	<481F66B0.4090302@free.fr> <4821F9A9.6030304@ncircle.nullnet.fi>
+	<48236E1F.5080300@free.fr>
+	<60450.192.168.9.10.1210618180.squirrel@ncircle.nullnet.fi>
+	<Pine.LNX.4.64.0805122100590.7907@pub3.ifh.de>
+	<20080616152430.GA9995@dose.home.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20080616152430.GA9995@dose.home.local>
+Subject: Re: [linux-dvb] Testers wanted for alternative version of
+	Terratec	Cinergy T2 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,22 +28,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-8NLJ18XU09TX1cAsIEplbnMKCj4gSG0uLi4gdGhhdCBzaG91bGQgd29yayBmb3Igc2Nhbi4uLiA6
-LSgKPiAKPiBGb3Igc3phcCB5b3UgaGF2ZSB0byBkb3dubG9hZAo+IAo+IGh0dHA6Ly9hYnJhaGFt
-Lm1hbnUuZ29vZ2xlcGFnZXMuY29tL3N6YXAuYwo+IHRoZW4gYXBwbGllIHRoZSBhcGktdjMuMyBw
-YXRjaCBhbmQgY29tcGlsZSBpdC4gVGhpcyBzaG91bGQgd29yayB0b28uCj4gCj4gT3IgZG93bmxv
-YWQgdGhlIGhnIHRyZWUgb2YgZHZiLWFwcHMgYW5kIGFwcGx5IHRoZSBhdHRhY2hlZCBwYXRjaCBv
-biB0aGUgd2hvbGUgdHJlZS4gQWZ0ZXIgdGhhdCBnbyB0byB0aGUgc2NhbiBhbmQgc3phcAo+IGRp
-cmVjdG9yeSBhbmQgcnVuICJtYWtlIi4gVGhpcyB3b3JrcyBmb3IgbWUuCgpzaG91bGQgeW91ciBw
-YXRjaCBmb3Igc2Nhbi9zemFwIGZyb20gZHZiLWFwcHMgd29yayB3aXRoIG90aGVycyBkdmItczIg
-Y2FyZHMgLSB0dDMyMDAsIHZwMTA0MSwgaHZyNDAwMCAgYW5kIHRoZSBsYXRlc3QKbXVsdGlwcm90
-by9tdWx0aXByb3RvX3BsdXMgPwoKR29nYTc3NwoKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
-bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtZHZi
+On Mon, Jun 16, 2008 at 17:24:30 +0200, Tino Keitel wrote:
+> On Mon, May 12, 2008 at 21:05:40 +0200, Patrick Boettcher wrote:
+> 
+> [...]
+> 
+> > Trent Piepo was suggesting a solution, but no one ever had time to solve 
+> > this problem. In fast this is only a propblem for developers, not so much 
+> > for the average users as he is not unloading the module usually.
+> 
+> I unload the module at each suspend and reload it at resume. I did this
+> with the old driver, because it was not suspend-proof, and I think I
+> continued to do so because I had suspend/resume problems with the new
+> driver.
+> 
+> I'll re-check if the current driver still causes problems with suspend.
+
+Today my keyboard was broken after a resume: most key presses got
+eaten. I unloaded the cinergy driver, removed the USB cable from the
+CinergyT2 and re-plugged it, which restored the keyboard.
+
+This never happened with module unload at suspend and reload at resume.
+
+Hereis the dmesg output after resume:
+
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in
+warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software
+demuxer.
+DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
+Receiver)
+DVB: registering frontend 0 (TerraTec/qanu USB2.0 Highspeed DVB-T
+Receiver)...
+input: IR-receiver inside an USB DVB receiver as /class/input/input21
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+initialized and connected.
+usb 1-3: New USB device found, idVendor=0ccd, idProduct=0038
+usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 1-3: Product: Cinergy T<B2>
+usb 1-3: Manufacturer: TerraTec GmbH
+usb 5-1: usbfs: USBDEVFS_CONTROL failed cmd hid2hci rqt 64 rq 0 len 0
+ret -84
+usb 5-1: USB disconnect, address 15
+usb 5-1: new full speed USB device using uhci_hcd and address 16
+dvb-usb: recv bulk message failed: -75
+usb 5-1: configuration #1 chosen from 1 choice
+usb 5-1: New USB device found, idVendor=05ac, idProduct=8205
+usb 5-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+dvb-usb: bulk message failed: -110 (9/0)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-110
+
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (9/0)
+
+Regards,
+Tino
+
+
+Regards,
+Tino
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
