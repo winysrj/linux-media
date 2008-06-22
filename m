@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [88.151.248.2] (helo=mail.krastelcom.ru)
+Received: from rouge.crans.org ([138.231.136.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vpr@krastelcom.ru>) id 1KAezY-0007PB-O3
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 07:53:29 +0200
-Message-Id: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
-From: Vladimir Prudnikov <vpr@krastelcom.ru>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Mime-Version: 1.0 (Apple Message framework v924)
-Date: Mon, 23 Jun 2008 09:53:24 +0400
-Subject: [linux-dvb] Express AM2 11044 H 45 MSps
+	(envelope-from <braice@braice.net>) id 1KAMtn-0002QM-Ti
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 12:34:34 +0200
+Message-ID: <485E2AA5.6070108@braice.net>
+Date: Sun, 22 Jun 2008 12:34:13 +0200
+From: Brice DUBOST <braice@braice.net>
+MIME-Version: 1.0
+To: Halim Sahin <halim.sahin@t-online.de>
+References: <20080622092133.GA21319@halim.local>
+In-Reply-To: <20080622092133.GA21319@halim.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvbscan errormessage on astra 19.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,27 +19,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Halim Sahin a =E9crit :
+> Hello,
+> =
 
-I have recently realized that none of the available cards are able to  
-properly lock on Express AM2 11044H 45 MSps . The only one that can is  
-TT-S1401 with buf[5] register corrections.
+> I.ve scanned today astra with the initial list of dvb-apps from hg.
+> It finished with the following message:
+>>>> tune to: 1574:h:S19.2E:22000:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
+> 22 Invali
+> d argument
+>>>> tune to: 1574:h:S19.2E:22000:
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed:
+> 22 Invali
+> d argument
+> =
 
-I have tried:
+> My card is a kncone dvbstar =
 
-TT S-1500
-TT S2-3200
-Skystar 2.6
-TT S-1401 with non-modified drivers.
+> What can be the problem here?
+> =
 
-Regards,
-Vladimir
+
+Hello
+
+try "strace scan ..."
+
+And give us the output
 
 _______________________________________________
 linux-dvb mailing list
