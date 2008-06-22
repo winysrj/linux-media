@@ -1,15 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out.abv.bg ([194.153.145.99])
+Received: from core.devicen.de ([62.159.186.206])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bozhan@abv.bg>) id 1K7p5T-0003Xw-Is
-	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 12:04:07 +0200
-Date: Sun, 15 Jun 2008 13:03:17 +0300 (EEST)
-From: Bozhan Boiadzhiev <bozhan@abv.bg>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <1634623854.65471.1213524197148.JavaMail.apache@mail71.abv.bg>
+	(envelope-from <l.lacher@abian.de>) id 1KAL49-0002mB-TH
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 10:36:57 +0200
+Received: from [10.71.67.13] ([10.71.67.13])
+	by core.devicen.de (8.13.1/8.13.1/DEVICE/N GmbH 20070903) with ESMTP id
+	m5M8ZsGT011039
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 10:35:55 +0200
+From: Lutz Lacher <l.lacher@abian.de>
+To: linux-dvb@linuxtv.org
+Date: Sun, 22 Jun 2008 10:35:49 +0200
+References: <200806220300.51879.l.lacher@abian.de> <485DB191.9090907@to-st.de>
+In-Reply-To: <485DB191.9090907@to-st.de>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
+Content-Disposition: inline
+Message-Id: <200806221035.50028.l.lacher@abian.de>
+Subject: Re: [linux-dvb] dvb_usb_dib0700 and Remote Control DSR-0112
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,84 +24,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CgpvayBpJ2xsIHRlc3QgcGF0Y2ggbGF0ZXIuCnRoYW5rcwo6KQoKID4tLS0tLS0tLSDO8Ojj6O3g
-6+3uIO/o8ezuIC0tLS0tLS0tCiA+zvI6ICBoZXJtYW5uIHBpdHRvbiAKID7O8u3u8e3uOiBSZTog
-W2xpbnV4LWR2Yl0gQVNVUyBNeS1DaW5lbWEgcmVtb3RlIHBhdGNoCiA+xO46IEJvemhhbiBCb2lh
-ZHpoaWV2IAogPsjn7/Dg8uXt7iDt4DogzeXk5ev/LCAyMDA4LCDe7eggMTUgMDQ6NTM6MTQgRUVT
-VAoKID5IaSBCb3poYW4sCiA+CiA+QW0gU2Ftc3RhZywgZGVuIDE0LjA2LjIwMDgsIDIzOjQ0ICsw
-MzAwIHNjaHJpZWIgQm96aGFuIEJvaWFkemhpZXY6IAogPj4gQVNVUyBNeS1DaW5lbWEgcGFja2Fn
-ZSBpbmNsdWRlIHJlbW90ZSAKID4+IGhlcmUgaSBmb3VuZCBwYXRjaCBmb3IgMi42LjIyICBodHRw
-czovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUvK3NvdXJjZS9saW51eC1zb3VyY2UtMi42LjIy
-LytidWcvMTQxNjIyCiA+PiBQbGVhc2UgaW5jbHVkZSBpdCEKID4+IEFsbCBBU1VTIE15LUNpbmVt
-YSBjb21lcyB3aXRoIHJlbW90ZSBjb250cm9sLgogPj4gVGhhbmtzLgogPj4gCiA+CiA+dGhlIHZp
-ZGVvNGxpbnV4LWxpc3QgaXMgdGhlIGJldHRlciBwbGFjZSBmb3IgYW5hbG9nIG9ubHkgY2FyZHMu
-CiA+CiA+VGhlIHByb2JsZW0gaXMga25vd24sIGJ1dCB3ZSBoYWQgbm8gdGVzdGVycy4KID4KID5U
-aGUgb2xkIEFzdXMgVFZGTTM1IGlzIG5vdCBpZGVudGljYWwgdG8geW91ciBjYXJkLgogPgogPkl0
-IHNlZW1zIHRvIGhhdmUgZGlmZmVyZW50IHMtdmlkZW8gYW5kIGNvbXBvc2l0ZSBpbnB1dHMgYW5k
-IGFsc28gY2FtZQogPndpdGggYW4gVVNCIHJlbW90ZS4gQWRkaW5nIGEgbmV3LCBvbiB0aGUgb2xk
-IGNhcmQgbm90IHByZXNlbnQgcmVtb3RlIG5vdwogPnRoZXJlLCBzZWVtcyB0byBiZSBjb25mdXNp
-bmcgZm9yIHRoZSB1c2Vycy4KID4KID5UaGUgbmV3IHR1bmVyIHR5cGUgdGRhODI3NWEgaXMgYXV0
-byBkZXRlY3RlZCwgdGhhdCBtYWtlcyB0aGUgb2xkIGVudHJ5CiA+d29ya2luZyBmb3IgeW91LiBJ
-dCBoYXMgdGhlIHByZXZpb3VzIHRkYTgyNzUgbm90ICJhIi4KID4KID5UaGUgcHJvYmxlbSBpcyB0
-aGUgdW5jaGFuZ2VkIFBDSSBzdWJzeXN0ZW0gb24geW91ciBjYXJkLCB3aGljaCBjYXVzZXMKID50
-aGF0IGl0IGlzIGF1dG9kZXRlY3RlZCBhcyBjYXJkPTUzLgogPgogPlRoZSBmb2xsb3dpbmcgdW50
-ZXN0ZWQgcGF0Y2ggaXMgYSBmaXJzdCB0cnkgdG8gZGV0ZWN0IHlvdXIgY2FyZCBhbmQgYWRkCiA+
-YSBzZXBhcmF0ZSBlbnRyeSBmb3IgaXQuIFdlIGRpc2N1c3NlZCB0aGlzIG9uY2UuCiA+CiA+Q2hl
-ZXJzLAogPkhlcm1hbm4KID4KID5kaWZmIC1yIDJhODk0NDVmM2IyNCBsaW51eC9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCiA+LS0tIGEvbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYyBUdWUgSnVuIDEwIDExOjIyOjAwIDIw
-MDggLTAzMDAKID4rKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEz
-NC1jYXJkcy5jIFN1biBKdW4gMTUgMDE6NTU6MzggMjAwOCArMDIwMAogPkBAIC00NDAxLDYgKzQ0
-MDEsMzkgQEAgc3RydWN0IHNhYTcxMzRfYm9hcmQgc2FhNzEzNF9ib2FyZHNbXSA9CiA+ICAgICAg
-ICAgICAgICAgIH0sCiA+ICAgICAgICAgICAgICAgIC8qIG5vIERWQiBzdXBwb3J0IGZvciBub3cg
-Ki8KID4gICAgICAgICAgICAgICAgLyogLm1wZWcgICAgICAgICAgID0gU0FBNzEzNF9NUEVHX0RW
-QiwgKi8KID4rICAgICAgIH0sCiA+KyAgICAgICBbU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1A3MTMx
-X0FOQUxPR10gPSB7CiA+KyAgICAgICAgICAgICAgIC5uYW1lICAgICAgICAgICA9ICJBU1VTVGVL
-IFA3MTMxIEFuYWxvZyIsCiA+KyAgICAgICAgICAgICAgIC5hdWRpb19jbG9jayAgICA9IDB4MDAx
-ODdkZTcsCiA+KyAgICAgICAgICAgICAgIC50dW5lcl90eXBlICAgICA9IFRVTkVSX1BISUxJUFNf
-VERBODI5MCwKID4rICAgICAgICAgICAgICAgLnJhZGlvX3R5cGUgICAgID0gVU5TRVQsCiA+KyAg
-ICAgICAgICAgICAgIC50dW5lcl9hZGRyICAgICA9IEFERFJfVU5TRVQsCiA+KyAgICAgICAgICAg
-ICAgIC5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiA+KyAgICAgICAgICAgICAgIC5ncGlv
-bWFzayAgICAgICA9IDEgaTJjX2FkYXAsICZtc2csIDEpOwogPiAgICAgICAgICAgICAgICBicmVh
-azsKID4gICAgICAgIH0KID4rICAgICAgIGNhc2UgU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1RWRk03
-MTM1OgogPisgICAgICAgLyogVGhlIGNhcmQgaXMgbWlzZGV0ZWN0ZWQgYXMgY2FyZD01MywgYnV0
-IGlzIGRpZmZlcmVudCAqLwogPisgICAgICAgICAgICAgICBpZihkZXYtPmF1dG9kZXRlY3RlZCAm
-JiAoZGV2LT5lZWRhdGFbMHgyN10gPT0gMHgwMykpIHsKID4rICAgICAgICAgICAgICAgICAgICAg
-ICBkZXYtPmJvYXJkID0gU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1A3MTMxX0FOQUxPRzsKID4rICAg
-ICAgICAgICAgICAgICAgICAgICBwcmludGsoS0VSTl9JTkZPICIlczogUDcxMzEgYW5hbG9nIG9u
-bHkgdXNpbmcgIgogPisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgImVudHJ5IG9mICVzXG4iLAogPisgICAgICAgICAgICAgICAgICAgICAgIGRl
-di0+bmFtZSwgc2FhNzEzNF9ib2FyZHNbZGV2LT5ib2FyZF0ubmFtZSk7CiA+KyAgICAgICAgICAg
-ICAgIH0KID4rICAgICAgICAgICAgICAgYnJlYWs7CiA+ICAgICAgICBjYXNlIFNBQTcxMzRfQk9B
-UkRfSEFVUFBBVUdFX0hWUjExMTA6CiA+ICAgICAgICAgICAgICAgIGhhdXBwYXVnZV9lZXByb20o
-ZGV2LCBkZXYtPmVlZGF0YSsweDgwKTsKID4gICAgICAgICAgICAgICAgLyogYnJlYWsgaW50ZW50
-aW9uYWxseSBvbWl0dGVkICovCiA+ZGlmZiAtciAyYTg5NDQ1ZjNiMjQgbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwogPi0tLSBhL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMgVHVlIEp1biAxMCAxMToyMjowMCAy
-MDA4IC0wMzAwCiA+KysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcx
-MzQtaW5wdXQuYyBTdW4gSnVuIDE1IDAxOjU1OjM4IDIwMDggKzAyMDAKID5AQCAtNDAwLDYgKzQw
-MCw3IEBAIGludCBzYWE3MTM0X2lucHV0X2luaXQxKHN0cnVjdCBzYWE3MTM0X2QKID4gICAgICAg
-ICAgICAgICAgYnJlYWs7CiA+ICAgICAgICBjYXNlIFNBQTcxMzRfQk9BUkRfQVNVU1RlS19QNzEz
-MV9EVUFMOgogPiAgICAgICAgY2FzZSBTQUE3MTM0X0JPQVJEX0FTVVNUZUtfUDcxMzFfSFlCUklE
-X0xOQToKID4rICAgICAgIGNhc2UgU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1A3MTMxX0FOQUxPRzoK
-ID4gICAgICAgICAgICAgICAgaXJfY29kZXMgICAgID0gaXJfY29kZXNfYXN1c19wYzM5OwogPiAg
-ICAgICAgICAgICAgICBtYXNrX2tleWRvd24gPSAweDAwNDAwMDA7CiA+ICAgICAgICAgICAgICAg
-IHJjNV9ncGlvID0gMTsKID5kaWZmIC1yIDJhODk0NDVmM2IyNCBsaW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oCiA+LS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRl
-by9zYWE3MTM0L3NhYTcxMzQuaCAgICAgICBUdWUgSnVuIDEwIDExOjIyOjAwIDIwMDggLTAzMDAK
-ID4rKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oICAgICAg
-IFN1biBKdW4gMTUgMDE6NTU6MzggMjAwOCArMDIwMAogPkBAIC0yNzMsNiArMjczLDcgQEAgc3Ry
-dWN0IHNhYTcxMzRfZm9ybWF0IHsKID4gI2RlZmluZSBTQUE3MTM0X0JPQVJEX0JFSE9MRF9INiAg
-ICAgIDE0MgogPiAjZGVmaW5lIFNBQTcxMzRfQk9BUkRfQkVIT0xEX002MyAgICAgIDE0MwogPiAj
-ZGVmaW5lIFNBQTcxMzRfQk9BUkRfQkVIT0xEX002X0VYVFJBICAgIDE0NAogPisjZGVmaW5lIFNB
-QTcxMzRfQk9BUkRfQVNVU1RlS19QNzEzMV9BTkFMT0cgMTQ1CiA+CiA+ICNkZWZpbmUgU0FBNzEz
-NF9NQVhCT0FSRFMgOAogPiAjZGVmaW5lIFNBQTcxMzRfSU5QVVRfTUFYIDgKID4KID4KID4KCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
-YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hi Tobias,
+
+> So, sticks IR receiver is reported as /class/input/input21 and you are
+> trying to use irrecord on /dev/input/event9? Does not fit together, you
+> should try irrecord on /dev/input/input21 instead! (just my personal
+> opinion ;)
+>
+i don't have an /dev/input/input21, and if i understood the web page 
+correctly, it's always the same device. It says:
+
+But Linux systems runing recent udev will automatically create non-varying 
+names, a nicer and automatic way of providing a stable input event name:
+
+ls -l /dev/input/by-path on my system
+lrwxrwxrwx 1 root root 9 2008-06-22 09:56 pci-2-1--event-ir -> ../event9
+
+which disappears if i plug out the stick and reappears if i plug it in again.
+eg. now it's reported as:
+kernel: input: IR-receiver inside an USB DVB receiver as /class/input/input11
+
+Best regards, Lutz
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
