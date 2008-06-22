@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n40.bullet.mail.ukl.yahoo.com ([87.248.110.173])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1K84Q7-0004SR-JB
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2008 04:26:14 +0200
-Date: Sun, 15 Jun 2008 22:21:45 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from hond.eatserver.nl ([195.20.9.5])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <joep@groovytunes.nl>) id 1KAN7k-0003zg-SO
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 12:48:56 +0200
+Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
+	(authenticated bits=0)
+	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
+	m5MAmeLe017518
+	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 12:48:40 +0200
+From: joep <joep@groovytunes.nl>
 To: linux-dvb@linuxtv.org
-References: <200805122042.43456.ajurik@quick.cz>
-	<200805221013.10246.ajurik@quick.cz>
-	<200806151147.19451.dkuhlen@gmx.net>
-	<200806151920.30719.ajurik@quick.cz>
-In-Reply-To: <200806151920.30719.ajurik@quick.cz> (from ajurik@quick.cz on
-	Sun Jun 15 13:20:30 2008)
-Message-Id: <1213582905l.12580l.1l@manu-laptop>
+Date: Sun, 22 Jun 2008 12:52:47 +0200
+References: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
+In-Reply-To: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Re : Re : No lock possible at some DVB-S2 channels
- with TT S2-3200/linux
+Message-Id: <200806221252.47503.joep@groovytunes.nl>
+Subject: Re: [linux-dvb] s2-3200 fec problem?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,105 +23,107 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0560024332=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 15.06.2008 13:20:30, Ales Jurik a =E9crit=A0:
-> On Sunday 15 of June 2008, Dominik Kuhlen wrote:
-> > Hi,
+--===============0560024332==
+Content-Type: multipart/alternative;
+  boundary="Boundary-01=_/7iXI/gTl4x8dmC"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+--Boundary-01=_/7iXI/gTl4x8dmC
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+Op Saturday 21 June 2008 15:38:00 schreef Niels Wagenaar:
+> > -- SNIP --
 > >
-> > On Thursday 22 May 2008, Ales Jurik wrote:
-> > > Hi,
-> > >
-> > > my friend told me that he is sometimes able to get lock by
-> decreasing
-> > > (not increasing) the frequency. Yesterday I've tested it and it
-> seems to
-> > > me he was right. So I'm able to get (not very stable, for few
-> minutes)
-> > > lock as well as by increasing and by decreasing frequency of the
-> same
-> > > channel (EurosportHD).
-> >
-> > The derotator code in the stb0899 seems to be setting the initial
-> frequency
-> > to the lowest search range and never changes this (as it should
-> increase
-> > steadily to find a lock)
-> >
-> > > It was also detected (not by me, I don't have riser card) that
-> when the
-> > > card is connected not directly into PCI slot but with some riser
-> card,
-> > > the needed difference for getting lock is higher (up to 10MHz). =
+> > Thats great news!
+> > I did patch mythtv-0.21 with this patch:
+> > http://svn.mythtv.org/trac/ticket/5403
+> > I don't have problems with the dvb-s2 channels from astra19,2 with
+> > mythtv.
+>
+> I know the following (Swedish, but we all speak code!) guide seems to work:
+>
+> http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854
+>&showtopic=172770&st=30&start=30
+>
+> > However mythtv and even szap didn't tune to the transponder on astra 23.5
+> > I have to go to a festival today so I will try multiproto_plus and vdr on
+> > sunday.
+>
+> If you do, be sure to follow this guide (it's for Ubuntu but you get the
+> information on how to get it working)
+>
+> http://www.kipdola.com/skerit/?language=nl
+>
+> > Do you know what the differece is betweed the normal multiproto and the
+> > plus version?
+>
+> It's a combine of multiproto and the mantis or v4l tree if I've got it
+> right. The last revisions of multiproto didn't seem to work for me (a lot
+> of lock problems on DVB-S2 transponders with H264 channles). I have to use
+> the revisions from March to get it working.
 
-> So
-> also
-> > > some noise from PC is going into calculations.
-> > >
-> > > I don't think the problem is in computation of frequency but in
-> for
-> > > example not stable signal amplitude at input of demodulator or in
-> not
-> > > fluently changing the gain and bandwith of tuner within the band.
-> As I
-> > > see in the code some parameters are changing in steps and maybe 3
-> steps
-> > > for whole band is not enough? Especially in real conditions (not
-> in lab)?
-> >
-> > Could you please try the attached patch if this fixes the problem
-> with
-> > nominal frequency/symbolrate settings?
-> >
-> =
+Can you give me the exact version or date of the revision which you are using?
+Just to be shure I do my tests on the same version as you are.
+--Boundary-01=_/7iXI/gTl4x8dmC
+Content-Type: text/html;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-> Many thanks, but I don't see any improvement. Minimum time after I've
-> lock is =
-
-> 150s. =
-
-> =
-
-> The only improvement was done 2weeks ago when Manu Abraham fixed some
-> headers =
-
-> with register addresses. From that time it is possible to get lock
-> also at =
-
-> problematic channels but very unstable.
-> =
-
-> But I've found that all channels with lock problems are DVB-S2, 8PSK,
-> FEC 3/4. =
-
-> So all channels broadcasted in QPSK is possible to tune without
-> problems and =
-
-> also channels broadcasted in DVB-S2, 8PSK, FEC 2/3 are possible to
-> tune to =
-
-> without problems. Channels in DVB-S2, 8PSK with different FEC (to 2/3
-> and =
-
-> 3/4) I was not able to test.
-
-For me adding 4MHz solved the lock problems for DVB-S QPSK FEC 3/4, but =
-
-did not solve my problems for a DVB-S QPSK FEC 5/6.
-I will try Dominik's patch to see if it improves things.
-Stay tuned (oh well)
-Bye
-Manu
+<html><head><meta name="qrichtext" content="1" /></head><body style="font-size:10pt;font-family:Sans Serif">
+<p>Op Saturday 21 June 2008 15:38:00 schreef Niels Wagenaar:</p>
+<p><span style="color:#007000">&gt; &gt; -- SNIP --</span></p>
+<p><span style="color:#007000">&gt; &gt;</span></p>
+<p><span style="color:#007000">&gt; &gt; Thats great news!</span></p>
+<p><span style="color:#007000">&gt; &gt; I did patch mythtv-0.21 with this patch:</span></p>
+<p><span style="color:#007000">&gt; &gt; http://svn.mythtv.org/trac/ticket/5403</span></p>
+<p><span style="color:#007000">&gt; &gt; I don't have problems with the dvb-s2 channels from astra19,2 with</span></p>
+<p><span style="color:#007000">&gt; &gt; mythtv.</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#008000">&gt; I know the following (Swedish, but we all speak code!) guide seems to work:</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#008000">&gt; http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854</span></p>
+<p><span style="color:#008000">&gt;&amp;showtopic=172770&amp;st=30&amp;start=30</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#007000">&gt; &gt; However mythtv and even szap didn't tune to the transponder on astra 23.5</span></p>
+<p><span style="color:#007000">&gt; &gt; I have to go to a festival today so I will try multiproto_plus and vdr on</span></p>
+<p><span style="color:#007000">&gt; &gt; sunday.</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#008000">&gt; If you do, be sure to follow this guide (it's for Ubuntu but you get the</span></p>
+<p><span style="color:#008000">&gt; information on how to get it working)</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#008000">&gt; http://www.kipdola.com/skerit/?language=nl</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#007000">&gt; &gt; Do you know what the differece is betweed the normal multiproto and the</span></p>
+<p><span style="color:#007000">&gt; &gt; plus version?</span></p>
+<p><span style="color:#008000">&gt;</span></p>
+<p><span style="color:#008000">&gt; It's a combine of multiproto and the mantis or v4l tree if I've got it</span></p>
+<p><span style="color:#008000">&gt; right. The last revisions of multiproto didn't seem to work for me (a lot</span></p>
+<p><span style="color:#008000">&gt; of lock problems on DVB-S2 transponders with H264 channles). I have to use</span></p>
+<p><span style="color:#008000">&gt; the revisions from March to get it working.</span></p>
+<p></p>
+<p>Can you give me the exact version or date of the revision which you are using?</p>
+<p>Just to be shure I do my tests on the same version as you are.</p>
+</body></html>
+--Boundary-01=_/7iXI/gTl4x8dmC--
 
 
-
-
+--===============0560024332==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0560024332==--
