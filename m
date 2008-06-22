@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.181])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alireza.torabi@gmail.com>) id 1K6jIP-0002Bp-Ny
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 11:40:42 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so2607278wag.13
-	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 02:40:37 -0700 (PDT)
-Message-ID: <cffd8c580806120240n72b7ffb2h179b30dfc5b851b@mail.gmail.com>
-Date: Thu, 12 Jun 2008 10:40:37 +0100
-From: "Alireza Torabi" <alireza.torabi@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <daniel.isenmann@gmx.de>) id 1KARLg-0004hS-GU
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 17:19:25 +0200
+Date: Sun, 22 Jun 2008 17:18:49 +0200
+From: Daniel Isenmann <daniel.isenmann@gmx.de>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
-Subject: [linux-dvb] Fwd: 2.6.x kernels and TechniSat SkyStar2 HD
+Message-ID: <20080622171849.6c7023fe@fuckup-ng.localdomain>
+In-Reply-To: <485E6299.6030002@iki.fi>
+References: <20080622161411.722de7a7@fuckup-ng.localdomain>
+	<485E6299.6030002@iki.fi>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Afatech 9015 problems on i686
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,35 +25,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear All,
+On Sun, 22 Jun 2008 17:32:57 +0300
+Lauri Tischler <lwgt@iki.fi> wrote:
 
-If anyone has a working TechniSat SkyStar HD 2 (Azurewave AD SP400 /
-Twinhan VP-1041) linux 2.6.x kernel driver, Could they please let me
-know what version of kernel and Mantis driver they use?
+> Daniel Isenmann wrote:
+> > Hi,
+> > 
+> > I have some problems to get the module af9015 to run under i686. I
+> > checked out the afatech9015 development repo from here:
+> > http://linuxtv.org/hg/~anttip/af9015/
+> > 
+> > Compiling the source on my x86_64 box, everything runs fine and
+> > smooth. But under i686 there is following warning, which prevents
+> > the module from loading:
+> > ----------
+> > WARNING:
+> > "__fixdfsi" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+> > undefined! 
+> > WARNING:
+> > "__divdf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+> > undefined! 
+> > WARNING:
+> > "__adddf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+> > undefined! 
+> > WARNING:
+> > "__muldf3" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+> > undefined! 
+> > WARNING:
+> > "__floatsidf" [/home/ise/downloads/eee/eee/afatech-eee/src/af9015/v4l/af9013.ko]
+> > undefined!
+> > ----------
+> > The compilation runs until the end. But loading the module fails
+> > with errors, that it can't find the functions listed above. Loading
+> > the firmware works on both boxes without problems.
+> > 
+> > GCC: 4.3.1
+> > Kernel: 2.6.25.6 
+> > Distribution: ArchLinux
+> > 
+> > Has anyone a hint or know something more, why the compiler warnings
+> > appears? Complete build log with V=1 can be found here: 
+> > http://dev.archlinux.org/~daniel/afatech9015-eee-hg-8102-1-i686.log
+> 
+> I had same errors with Mythbuntu 8.04, downloaded older tree
+> http://linuxtv.org/hg/~anttip/af9015-t/
+> that seems to work.
 
-Thanks a lot
-Alireza
+Thanks for posting this. Now it works also on i686 (great...totally
+happy), but that didn't solve the main problem, that the current repo
+doesn't work on i686 (at least for us).
 
----------- Forwarded message ----------
-From: Alireza Torabi <alireza.torabi@gmail.com>
-Date: Jun 12, 2008 9:39 AM
-Subject: 2.6.x kernels and TechniSat SkyStar2 HD
-To: linux-dvb@linuxtv.org
+Let me know if you (developer/maintainer of af9015) needs more
+information for this topic. I will provide as much as I can.
 
-
-Hi All,
-
-For the last 4 days I've been trying all the drivers and patches that
-would allow to use this card: TechniSat SkyStar2 HD. And all failed.
-
-Am I right to assume this project is not active or not as active as it
-should be? I've got a feeling it's the "linuxtv" as a whole not just
-the "mantis" type of drivers specifically.
-
-Please correct me if I am wrong.
-
-Thanks
-Alireza
+Daniel
 
 _______________________________________________
 linux-dvb mailing list
