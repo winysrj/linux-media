@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp6.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1K75Vn-0001jA-JV
-	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 11:24:00 +0200
-Message-ID: <48523C8D.2010807@avalpa.com>
-Date: Fri, 13 Jun 2008 11:23:25 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
+Received: from wf-out-1314.google.com ([209.85.200.168])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <vivichrist@gmail.com>) id 1KAEGp-0005qy-0G
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 03:21:31 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1531327wfd.17
+	for <linux-dvb@linuxtv.org>; Sat, 21 Jun 2008 18:21:26 -0700 (PDT)
+Message-ID: <485DA8FC.8020008@gmail.com>
+Date: Sun, 22 Jun 2008 13:21:00 +1200
+From: vivian stewart <vivichrist@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Re :  LinuxDVB for STi7109
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HVR3000 and suspend/resume
+Reply-To: vivichrist@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,30 +25,9 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-these Sti7109 based decoder are using a linux kernel but they do have
-"proprietary" binary only kernel modules indeed and API for the DVB
-stuff indeed: these so called STAPI libs.
-
-you can find more about it, here:
-
-  http://stlinux.com/docs/manual/
-
-this is the site where ST is publishing lot's of things about the linux
-kernel on their platform (it's SH4 CPU based like good old dreamcast
-console!), in general.
-
-you'll not find so much about the STAPI because its their "legacy" from
-the previous ST20 based chip  generation and so heavily proprietary.
-
-how don't know really how much they are happy with this heritage. maybe
-they could/would ditch the STAPI down the drain as i'm told these are
-not so good from a developer point of view.. just my personal opinion,
-here, of course..
-
-bye
-
-andrea venturi
-
+my HVR3000 no longer survives suspend/resume with the latest ubuntu 
+realtime kernel 2.6.24-19. signal strength flicks between 0 and 99% in 
+mythtv. I use the recommended source tree from linuxtv.org.
 
 
 _______________________________________________
