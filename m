@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hond.eatserver.nl ([195.20.9.5])
+Received: from rv-out-0506.google.com ([209.85.198.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joep@groovytunes.nl>) id 1K6jSZ-00034o-MS
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 11:51:16 +0200
-Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
-	(authenticated bits=0)
-	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
-	m5C9p5oh018398
-	for <linux-dvb@linuxtv.org>; Thu, 12 Jun 2008 11:51:07 +0200
-From: joep <joep@groovytunes.nl>
+	(envelope-from <psofa.psofa@gmail.com>) id 1KAUAC-0008Fo-ET
+	for linux-dvb@linuxtv.org; Sun, 22 Jun 2008 20:19:45 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so9572651rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 22 Jun 2008 11:19:38 -0700 (PDT)
+Message-ID: <8e485a510806221119v65bcc8dei54681a86a5055244@mail.gmail.com>
+Date: Sun, 22 Jun 2008 21:19:37 +0300
+From: psofa <psofa.psofa@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 12 Jun 2008 11:54:43 +0200
-References: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
-In-Reply-To: <cffd8c580806120139tef23881qe1ec6903b25a6447@mail.gmail.com>
+In-Reply-To: <200806211920.25821.ajurik@quick.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806121154.43558.joep@groovytunes.nl>
-Subject: Re: [linux-dvb] 2.6.x kernels and TechniSat SkyStar2 HD
+References: <200805122042.43456.ajurik@quick.cz>
+	<200806211552.41278.ajurik@quick.cz>
+	<200806211840.47025.dkuhlen@gmx.net>
+	<200806211920.25821.ajurik@quick.cz>
+Subject: Re: [linux-dvb] Re : Re : No lock possible at some DVB-S2 channels
+	with TT S2-3200/linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,22 +31,86 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Op Thursday 12 June 2008 10:39:39 schreef Alireza Torabi:
-> Hi All,
+This is with the previous mentioned patch applied
+the freq as reported in kingofsat is
+Astra 1G (19.2E) - 11797.50 H
+
+Mythbox dvb # ./simpledvbtune -f 11801 -a 0 -n 0 -p h -d 1 -s 27500
+using '/dev/dvb/adapter0/frontend0' as frontend
+frontend fd=3: type=0
+ioclt: FE_SET_VOLTAGE : 1
+High band
+tone: 1
+dvbfe setparams :  delsys=1 1201MHz / Rate : 27500kBPS
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 46 (0x2e) (4.6dB)
+BER: 0 0 0 0 (0x0)
+Signal: 0 230 (0xe6) 230 (23.0dBm)
+Frontend: f=1197.538
+
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 48 (0x30) (4.8dB)
+BER: 0 0 0 0 (0x0)
+Signal: 0 231 (0xe7) 231 (23.1dBm)
+Frontend: f=1197.538
+
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 48 (0x30) (4.8dB)
+BER: 0 0 0 0 (0x0)
+Signal: 0 230 (0xe6) 230 (23.0dBm)
+Frontend: f=1197.538
+^C
+Mythbox dvb # ./simpledvbtune -f 11797 -a 0 -n 0 -p h -d 1 -s 27500
+using '/dev/dvb/adapter0/frontend0' as frontend
+frontend fd=3: type=0
+ioclt: FE_SET_VOLTAGE : 1
+High band
+tone: 1
+dvbfe setparams :  delsys=1 1197MHz / Rate : 27500kBPS
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 69 (0x45) (6.9dB)
+BER: 0 0 0 0 (0x0)
+Signal: 222 173 (0xdead) -8531 (5700.5dBm)
+Frontend: f=1197.516
+
+Status: 00:
+SNR: 222 173 (0xdead) (5700.5dB)
+BER: 0 0 0 0 (0x0)
+Signal: 222 173 (0xdead) -8531 (5700.5dBm)
+Frontend: f=1197.516
+
+Status: 00:
+SNR: 222 173 (0xdead) (5700.5dB)
+BER: 0 0 0 0 (0x0)
+Signal: 222 173 (0xdead) -8531 (5700.5dBm)
+Frontend: f=1197.516
+
+Status: 00:
+SNR: 222 173 (0xdead) (5700.5dB)
+BER: 0 0 0 0 (0x0)
+Signal: 222 173 (0xdead) -8531 (5700.5dBm)
+Frontend: f=1197.516
+
+after like 10 mins i pushed <enter>
+
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 52 (0x34) (5.2dB)
+BER: 0 0 0 0 (0x0)
+Signal: 0 231 (0xe7) 231 (23.1dBm)
+Frontend: f=1197.475
+
+Status: 1e: Carrier Viterbi Sync Lock
+SNR: 0 53 (0x35) (5.3dB)
+BER: 0 0 0 0 (0x0)
+Signal: 0 231 (0xe7) 231 (23.1dBm)
+Frontend: f=1197.475
+
+
+
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
-> For the last 4 days I've been trying all the drivers and patches that
-> would allow to use this card: TechniSat SkyStar2 HD. And all failed.
->
-
-Did you follow these instructions? 
-http://www.linuxtv.org/wiki/index.php/Azurewave_AD_SP400_CI_(VP-1041)
-
-I can watch most dvb-s and dvb-s2 channels from mythtv and mplayer.
-However I can't watch the most usefull dvb-s2 channels because diseqc is not 
-working for me right now.
-
-Greetings,
-Joep Admiraal
 
 _______________________________________________
 linux-dvb mailing list
