@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout09.t-online.de ([194.25.134.84])
+Received: from bangui.magic.fr ([195.154.194.245])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <halim.sahin@t-online.de>) id 1K53SX-0001ZF-Ox
-	for linux-dvb@linuxtv.org; Sat, 07 Jun 2008 20:48:14 +0200
-Date: Sat, 7 Jun 2008 20:47:58 +0200
-From: Halim Sahin <halim.sahin@t-online.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080607184758.GA30074@halim.local>
+	(envelope-from <aconrad.tlv@magic.fr>) id 1KAql3-0000pm-0w
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:27:17 +0200
+Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
+	by bangui.magic.fr (8.13.1/8.13.1) with ESMTP id m5NIRCQE018852
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 20:27:12 +0200
+Message-ID: <485FEB01.60809@magic.fr>
+Date: Mon, 23 Jun 2008 20:27:13 +0200
+From: Alexandre Conrad <aconrad.tlv@magic.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] budget_av,  high cpuload with kncone tvstar
+To: dvb mailing list <linux-dvb@linuxtv.org>
+References: <485F8A72.5010305@magic.fr> <485FB15F.8050000@magic.fr>
+In-Reply-To: <485FB15F.8050000@magic.fr>
+Subject: Re: [linux-dvb] S-1401: low signal (szap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,36 +27,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Alexandre Conrad wrote:
+> Alexandre Conrad wrote:
+>>I just recieved a new DVB card TT S-1401 as remplacement for the 
+>>Skystar2 2.8A which no longer works under linux.
+>>
+>>As I was afraid of, I have a low signal strength when I use szap. What 
+>>could be the cause and what's the fix if there's one?
+> 
+> Let me add that the usual signal strenght I get is around "e246" with 
+> the TT S-1500 and I'm getting around "8585" with the TT S-1401.
 
-I have one knc one tvstar.
-After loading budget_av the machine show this:
-uptime
- 20:44:58 up 37 min,  2 users,  load average: 0.71, 0.65, 0.67
+Any clues anyone? I haven't found any obvious ressources anywhere...
 
-When I unload the modules the load is 0.00.
-The machine is a amd athlon x2 1900 mhz.
-running a i686 kenel 2.6.25 from debian.
-Here is dmesg output:
-[ 2044.394304] saa7146: register extension 'budget_av'.
-[ 2044.394345] ACPI: PCI Interrupt 0000:03:02.0[A] -> GSI 22 (level,
-low) -> IRQ
- 22
-[ 2044.394370] saa7146: found saa7146 @ mem f8a64400 (revision 1, irq
-22) (0x189
-4,0x0014).
-[ 2044.394380] saa7146 (0): dma buffer size 192512
-[ 2044.394384] DVB: registering new adapter (KNC TV STAR DVB-S)
-[ 2044.398012] adapter failed MAC signature check
-[ 2044.398020] encoded MAC from EEPROM was
-ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:f
-f:ff:ff:ff:ff:ff:ff:ff
-[ 2044.666029] KNC1-0: MAC addr = 00:09:d6:65:83:60
-[ 2045.017670] DVB: registering frontend 0 (ST STV0299 DVB-S)...
-[ 2045.021319] budget-av: ci interface initialised.
-
-thanks for any help.
-Halim
+Regards,
+-- 
+Alexandre CONRAD
 
 
 _______________________________________________
