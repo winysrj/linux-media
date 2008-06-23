@@ -1,35 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5FKfZgU011397
-	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 16:41:35 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5FKf8YR010509
-	for <video4linux-list@redhat.com>; Sun, 15 Jun 2008 16:41:09 -0400
-Received: from mail-in-09-z2.arcor-online.net (mail-in-09-z2.arcor-online.net
-	[151.189.8.21])
-	by mail-in-17.arcor-online.net (Postfix) with ESMTP id 1E1732BCA2F
-	for <video4linux-list@redhat.com>;
-	Sun, 15 Jun 2008 22:41:08 +0200 (CEST)
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
-	[151.189.21.42])
-	by mail-in-09-z2.arcor-online.net (Postfix) with ESMTP id CB49A28EDDB
-	for <video4linux-list@redhat.com>;
-	Sun, 15 Jun 2008 22:41:07 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-02.arcor-online.net (Postfix) with ESMTP id EB05636E870
-	for <video4linux-list@redhat.com>;
-	Sun, 15 Jun 2008 22:41:06 +0200 (CEST)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <1634623854.65471.1213524197148.JavaMail.apache@mail71.abv.bg>
-References: <1634623854.65471.1213524197148.JavaMail.apache@mail71.abv.bg>
-Content-Type: multipart/mixed; boundary="=-ympWdOqPnCEwZQnMkxa1"
-Date: Sun, 15 Jun 2008 22:40:01 +0200
-Message-Id: <1213562401.2683.80.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5N0oCM9005917
+	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 20:50:13 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5N0nfN6001314
+	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 20:49:41 -0400
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+In-Reply-To: <D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
+References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
+	<1213567472.3173.50.camel@palomino.walls.org>
+	<1213573393.2683.85.camel@pc10.localdom.local>
+	<1213579027.3164.36.camel@palomino.walls.org>
+	<D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
+Content-Type: multipart/mixed; boundary="=-QNAE6KG2FvPjzMGj76s9"
+Date: Sun, 22 Jun 2008 20:45:50 -0400
+Message-Id: <1214181950.15114.27.camel@palomino.walls.org>
 Mime-Version: 1.0
-Subject: Re: Re: [linux-dvb] ASUS My-Cinema remote patch
+Cc: video4linux-list@redhat.com, mark@npsl.co.uk, linux-dvb@linuxtv.org,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,279 +32,115 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
---=-ympWdOqPnCEwZQnMkxa1
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Hi,
-
-Am Sonntag, den 15.06.2008, 13:03 +0300 schrieb Bozhan Boiadzhiev:
-> 
-> ok i'll test patch later.
-> thanks
-> :)
-
-here is an updated version after latest changes by Matthias and Tim on
-saa7134. Should work.
-
-Can't do much more on it. 
-
-Hartmut, Mauro, the eeprom detection is very basic, but should work. I
-sign off so far. Also attached.
-
-Cheers,
-Hermann
-
-saa7134: add a separate entry for the ASUSTeK P7131 analog only
-         and do some eeprom detection to escape from the TVFM35
-         with the same PCI subsystem on auto detection.
-
-Signed-off-by: Hermann Pitton <hermann-pitton@arcor.de>
-
-diff -r 78442352b885 linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134  Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134  Sun Jun 15 22:25:29 2008 +0200
-@@ -143,3 +143,4 @@ 142 -> Beholder BeholdTV H6
- 142 -> Beholder BeholdTV H6                     [5ace:6290]
- 143 -> Beholder BeholdTV M63                    [5ace:6191]
- 144 -> Beholder BeholdTV M6 Extra               [5ace:6193]
-+145 -> ASUSTeK P7131 Analog
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c Sun Jun 15 22:25:29 2008 +0200
-@@ -4394,6 +4394,39 @@ struct saa7134_board saa7134_boards[] =
-                },
-                /* no DVB support for now */
-                /* .mpeg           = SAA7134_MPEG_DVB, */
-+       },
-+       [SAA7134_BOARD_ASUSTeK_P7131_ANALOG] = {
-+               .name           = "ASUSTeK P7131 Analog",
-+               .audio_clock    = 0x00187de7,
-+               .tuner_type     = TUNER_PHILIPS_TDA8290,
-+               .radio_type     = UNSET,
-+               .tuner_addr     = ADDR_UNSET,
-+               .radio_addr     = ADDR_UNSET,
-+               .gpiomask       = 1 << 21,
-+               .inputs         = {{
-+                       .name = name_tv,
-+                       .vmux = 1,
-+                       .amux = TV,
-+                       .tv   = 1,
-+                       .gpio = 0x0000000,
-+               }, {
-+                       .name = name_comp1,
-+                       .vmux = 3,
-+                       .amux = LINE2,
-+               }, {
-+                       .name = name_comp2,
-+                       .vmux = 0,
-+                       .amux = LINE2,
-+               }, {
-+                       .name = name_svideo,
-+                       .vmux = 8,
-+                       .amux = LINE2,
-+               } },
-+               .radio = {
-+                       .name = name_radio,
-+                       .amux = TV,
-+                       .gpio = 0x0200000,
-+               },
-        },
- };
-
-@@ -5671,6 +5704,7 @@ int saa7134_board_init1(struct saa7134_d
-        case SAA7134_BOARD_FLYDVBT_LR301:
-        case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
-        case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
-+       case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
-        case SAA7134_BOARD_FLYDVBTDUO:
-        case SAA7134_BOARD_PROTEUS_2309:
-        case SAA7134_BOARD_AVERMEDIA_A16AR:
-@@ -6009,6 +6043,15 @@ int saa7134_board_init2(struct saa7134_d
-                i2c_transfer(&dev->i2c_adap, &msg, 1);
-                break;
-        }
-+       case SAA7134_BOARD_ASUSTeK_TVFM35:
-+       /* The card below is detected as card=53, but is different */
-+               if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
-+                       dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
-+                       printk(KERN_INFO "%s: P7131 analog only, using "
-+                                                       "entry of %s\n",
-+                       dev->name, saa7134_boards[dev->board].name);
-+               }
-+               break;
-        case SAA7134_BOARD_HAUPPAUGE_HVR1110:
-                hauppauge_eeprom(dev, dev->eedata+0x80);
-                /* break intentionally omitted */
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c Sun Jun 15 22:25:29 2008 +0200
-@@ -409,6 +409,7 @@ int saa7134_input_init1(struct saa7134_d
-                break;
-        case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
-        case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
-+       case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
-                ir_codes     = ir_codes_asus_pc39;
-                mask_keydown = 0x0040000;
-                rc5_gpio = 1;
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h       Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h       Sun Jun 15 22:25:29 2008 +0200
-@@ -273,6 +273,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_BEHOLD_H6      142
- #define SAA7134_BOARD_BEHOLD_M63      143
- #define SAA7134_BOARD_BEHOLD_M6_EXTRA    144
-+#define SAA7134_BOARD_ASUSTeK_P7131_ANALOG 145
-
- #define SAA7134_MAXBOARDS 8
- #define SAA7134_INPUT_MAX 8
-
-
->  >-------- Оригинално писмо --------
->  >От:  hermann pitton 
->  >Относно: Re: [linux-dvb] ASUS My-Cinema remote patch
->  >До: Bozhan Boiadzhiev 
->  >Изпратено на: Неделя, 2008, Юни 15 04:53:14 EEST
-> 
->  >Hi Bozhan,
->  >
->  >Am Samstag, den 14.06.2008, 23:44 +0300 schrieb Bozhan Boiadzhiev: 
->  >> ASUS My-Cinema package include remote 
->  >> here i found patch for 2.6.22  https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.22/+bug/141622
->  >> Please include it!
->  >> All ASUS My-Cinema comes with remote control.
->  >> Thanks.
->  >> 
->  >
->  >the video4linux-list is the better place for analog only cards.
->  >
->  >The problem is known, but we had no testers.
->  >
->  >The old Asus TVFM35 is not identical to your card.
->  >
->  >It seems to have different s-video and composite inputs and also came
->  >with an USB remote. Adding a new, on the old card not present remote now
->  >there, seems to be confusing for the users.
->  >
->  >The new tuner type tda8275a is auto detected, that makes the old entry
->  >working for you. It has the previous tda8275 not "a".
->  >
->  >The problem is the unchanged PCI subsystem on your card, which causes
->  >that it is autodetected as card=53.
->  >
->  >The following untested patch is a first try to detect your card and add
->  >a separate entry for it. We discussed this once.
->  >
->  >Cheers,
->  >Hermann
->  >
-
-
---=-ympWdOqPnCEwZQnMkxa1
-Content-Disposition: attachment; filename=saa7134_asus-p7131-analog_new.patch
-Content-Type: text/x-patch; name=saa7134_asus-p7131-analog_new.patch;
-	charset=UTF-8
+--=-QNAE6KG2FvPjzMGj76s9
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-diff -r 78442352b885 linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134	Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Sun Jun 15 22:08:34 2008 +0200
-@@ -143,3 +143,4 @@ 142 -> Beholder BeholdTV H6             
- 142 -> Beholder BeholdTV H6                     [5ace:6290]
- 143 -> Beholder BeholdTV M63                    [5ace:6191]
- 144 -> Beholder BeholdTV M6 Extra               [5ace:6193]
-+145 -> ASUSTeK P7131 Analog
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Jun 15 22:08:34 2008 +0200
-@@ -4394,6 +4394,39 @@ struct saa7134_board saa7134_boards[] = 
- 		},
- 		/* no DVB support for now */
- 		/* .mpeg           = SAA7134_MPEG_DVB, */
-+	},
-+	[SAA7134_BOARD_ASUSTeK_P7131_ANALOG] = {
-+		.name           = "ASUSTeK P7131 Analog",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.gpiomask	= 1 << 21,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+			.gpio = 0x0000000,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_comp2,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+			.gpio = 0x0200000,
-+		},
- 	},
- };
- 
-@@ -5671,6 +5704,7 @@ int saa7134_board_init1(struct saa7134_d
- 	case SAA7134_BOARD_FLYDVBT_LR301:
- 	case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
- 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
-+	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
- 	case SAA7134_BOARD_FLYDVBTDUO:
- 	case SAA7134_BOARD_PROTEUS_2309:
- 	case SAA7134_BOARD_AVERMEDIA_A16AR:
-@@ -6009,6 +6043,15 @@ int saa7134_board_init2(struct saa7134_d
- 		i2c_transfer(&dev->i2c_adap, &msg, 1);
- 		break;
- 	}
-+	case SAA7134_BOARD_ASUSTeK_TVFM35:
-+	/* The card below is detected as card=53, but is different */
-+		if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
-+			dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
-+			printk(KERN_INFO "%s: P7131 analog only, using "
-+							"entry of %s\n",
-+			dev->name, saa7134_boards[dev->board].name);
-+		}
-+		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
- 		hauppauge_eeprom(dev, dev->eedata+0x80);
- 		/* break intentionally omitted */
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Jun 15 22:08:34 2008 +0200
-@@ -409,6 +409,7 @@ int saa7134_input_init1(struct saa7134_d
- 		break;
- 	case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
- 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
-+	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
- 		ir_codes     = ir_codes_asus_pc39;
- 		mask_keydown = 0x0040000;
- 		rc5_gpio = 1;
-diff -r 78442352b885 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Jun 15 10:33:42 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Sun Jun 15 22:08:34 2008 +0200
-@@ -273,6 +273,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_BEHOLD_H6      142
- #define SAA7134_BOARD_BEHOLD_M63      143
- #define SAA7134_BOARD_BEHOLD_M6_EXTRA    144
-+#define SAA7134_BOARD_ASUSTeK_P7131_ANALOG 145
- 
- #define SAA7134_MAXBOARDS 8
- #define SAA7134_INPUT_MAX 8
+On Tue, 2008-06-17 at 09:17 -0400, Brandon Jenkins wrote:
+> >> Am Sonntag, den 15.06.2008, 18:04 -0400 schrieb Andy Walls:
+> >>> On Sun, 2008-06-15 at 08:05 -0400, Brandon Jenkins wrote:
+> >
+> >>>> Also, I have noticed a new message in dmesg indicating that ir
+> >>>> transmitters may now be accessible? Is there anything I need to  
+> >>>> do to
+> >>>> make use of them?
+> >>>>
 
---=-ympWdOqPnCEwZQnMkxa1
+> >>> I haven't had a chance to try the IR blaster out yet (it was on my  
+> >>> todo
+> >>> list before Feb 2009).  "Mark's brain dump" has a modified lirc  
+> >>> package
+> >>> for the PVR-150 IR blaster:
+> >>>
+> >>> http://www.blushingpenguin.com/mark/blog/?p=24
+> >>> http://charles.hopto.org/blog/?p=24
+> >>>
+
+> Andy,
+> 
+> Thank you for taking an interest. I am not quite sure what you said  
+> above, but if you need someone to test I am willing to do so. While I  
+> was trying to figure out how to make this work; I did find the  
+> lirc_pvr150 code, but got lost when trying to make it work with the  
+> cx18. I do have the firmware downloaded as well.
+> 
+> I can set up a HG clone of which ever branch of yours you'd like me to  
+> use. The only drivers I compile are for the cx18 and for the HD-PVR,  
+> which I can merge into your branch.
+
+Brandon,
+
+I have made changes to the cx18 driver code to add in the IR chip reset
+support for the Z8F0811 IR microcontroller chip on the HVR-1600.  I have
+done no testing aside from making sure that the change didn't break the
+cx18 driver when not using IR.
+
+You can find it as the latest change in this repository:
+
+http://linuxtv.org/hg/~awalls/cx18-i2c/
+
+
+I am also including my best guess at a patch to the lirc_pvr150.c module
+for the HVR-1600.  I have not compiled it; I have not tested it.  It's
+what I think needed to be done, which is not a lot given the HVR-1600's
+similarity to the PVR-150.  Please let me know how testing turns out.
+
+Regards,
+Andy
+
+--=-QNAE6KG2FvPjzMGj76s9
+Content-Disposition: attachment; filename=lirc-pvr150-cx18.diff
+Content-Type: text/x-patch; name=lirc-pvr150-cx18.diff; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- lirc/drivers/lirc_pvr150/lirc_pvr150.c.orig	2008-06-22 20:04:23.000000000 -0400
++++ lirc/drivers/lirc_pvr150/lirc_pvr150.c	2008-06-22 20:25:49.000000000 -0400
+@@ -67,6 +67,7 @@
+ /* We need to be able to reset the crappy IR chip by talking to the ivtv driver */
+ struct ivtv;
+ void ivtv_reset_ir_gpio(struct ivtv *itv);
++void cx18_reset_ir_gpio(void *data);
+ 
+ struct IR 
+ {
+@@ -197,7 +198,12 @@ static int add_to_buf(struct IR *ir)
+ 			printk(KERN_ERR "lirc_pvr150: polling the IR receiver "
+ 			                "chip failed, trying reset\n");
+ 			
+-			ivtv_reset_ir_gpio(i2c_get_adapdata(ir->c_rx.adapter));
++			if (strncmp(ir->c_rx.name, "cx18", 4)) 
++				ivtv_reset_ir_gpio(
++					i2c_get_adapdata(ir->c_rx.adapter));
++			else
++				cx18_reset_ir_gpio(
++					i2c_get_adapdata(ir->c_rx.adapter));
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			schedule_timeout((100 * HZ + 999) / 1000);
+ 			ir->need_boot = 1;
+@@ -983,7 +989,12 @@ static ssize_t write(struct file *filep,
+ 				up(&ir->lock);
+ 				return ret;
+ 			}
+-			ivtv_reset_ir_gpio(i2c_get_adapdata(ir->c_tx.adapter));
++			if (strncmp(ir->c_tx.name, "cx18", 4)) 
++				ivtv_reset_ir_gpio(
++					i2c_get_adapdata(ir->c_tx.adapter));
++			else
++				cx18_reset_ir_gpio(
++					i2c_get_adapdata(ir->c_tx.adapter));
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			schedule_timeout((100 * HZ + 999) / 1000);
+ 			ir->need_boot = 1;
+@@ -1434,6 +1445,7 @@ int init_module(void)
+ {
+ 	init_MUTEX(&tx_data_lock);
+ 	request_module("ivtv");
++	request_module("cx18");
+ 	request_module("firmware_class");
+ 	i2c_add_driver(&driver);
+ 	return 0;
+
+--=-QNAE6KG2FvPjzMGj76s9
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -324,4 +150,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-ympWdOqPnCEwZQnMkxa1--
+--=-QNAE6KG2FvPjzMGj76s9--
