@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailfe13.swipnet.se ([212.247.155.129] helo=swip.net)
+Received: from [88.151.248.2] (helo=mail.krastelcom.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kene@swip.net>) id 1K4MF9-0006v5-Q6
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 22:39:36 +0200
-Received: from [213.112.225.72] (account kene@swip.net HELO [192.168.0.5])
-	by mailfe13.swip.net (CommuniGate Pro SMTP 5.1.13)
-	with ESMTPA id 575461689 for linux-dvb@linuxtv.org;
-	Thu, 05 Jun 2008 22:38:58 +0200
-Message-ID: <48484EE2.7090503@swip.net>
-Date: Thu, 05 Jun 2008 22:38:58 +0200
-From: =?ISO-8859-1?Q?Oscar_Ken=E9?= <kene@swip.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Pinnacle PCTV Dual Hybrid Pro 3010IX
+	(envelope-from <vpr@krastelcom.ru>) id 1KAezY-0007PB-O3
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 07:53:29 +0200
+Message-Id: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Mon, 23 Jun 2008 09:53:24 +0400
+Subject: [linux-dvb] Express AM2 11044 H 45 MSps
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,10 +22,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Any support for this one or maybe anything incoming?
+Hi!
 
-regards
-/Oscar
+I have recently realized that none of the available cards are able to  
+properly lock on Express AM2 11044H 45 MSps . The only one that can is  
+TT-S1401 with buf[5] register corrections.
+
+I have tried:
+
+TT S-1500
+TT S2-3200
+Skystar 2.6
+TT S-1401 with non-modified drivers.
+
+Regards,
+Vladimir
 
 _______________________________________________
 linux-dvb mailing list
