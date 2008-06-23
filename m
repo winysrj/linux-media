@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hu-out-0506.google.com ([72.14.214.225])
+Received: from honiara.magic.fr ([195.154.193.36])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bcjenkins@tvwhere.com>) id 1K7qz4-0002pV-DL
-	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 14:05:23 +0200
-Received: by hu-out-0506.google.com with SMTP id 23so6563920huc.11
-	for <linux-dvb@linuxtv.org>; Sun, 15 Jun 2008 05:05:18 -0700 (PDT)
-Message-ID: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
-Date: Sun, 15 Jun 2008 08:05:17 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <aconrad.tlv@magic.fr>) id 1KAkKM-0001pO-Ck
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 13:35:19 +0200
+Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
+	by honiara.magic.fr (8.13.1/8.13.1) with ESMTP id m5NBZDOi020358
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 13:35:13 +0200
+Message-ID: <485F8A72.5010305@magic.fr>
+Date: Mon, 23 Jun 2008 13:35:14 +0200
+From: Alexandre Conrad <aconrad.tlv@magic.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] cx18 - dmesg errors and ir transmit
+To: dvb mailing list <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] S-1401: low signal (szap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I use SageTV and upon launch it initializes the adapters resulting in
-the following error messages in dmesg:
+Hello,
 
-[   36.371502] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
-Unknown cmd fd(13) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
-/dev/video1
-[   36.373068] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
-Unknown cmd fd(13) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
-/dev/video1
-[   29.311447] compat_ioctl32: VIDIOC_G_EXT_CTRLSioctl32(java:7613):
-Unknown cmd fd(18) cmd(c0185647){t:'V';sz:24} arg(caafeaf0) on
-/dev/video0
-[   29.312857] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:7613):
-Unknown cmd fd(18) cmd(40345622){t:'V';sz:52} arg(caaffbfc) on
-/dev/video0
+I just recieved a new DVB card TT S-1401 as remplacement for the 
+Skystar2 2.8A which no longer works under linux.
 
-I contacted SageTV about the error and was told they don't affect
-anything, but I would like to make sure that is the case.
+As I was afraid of, I have a low signal strength when I use szap. What 
+could be the cause and what's the fix if there's one?
 
-Also, I have noticed a new message in dmesg indicating that ir
-transmitters may now be accessible? Is there anything I need to do to
-make use of them?
+Best regards,
+-- 
+Alexandre CONRAD
 
-tveeprom 2-0050: has no radio, has IR receiver, has IR transmitter
-
-Thanks!
-
-Brandon
 
 _______________________________________________
 linux-dvb mailing list
