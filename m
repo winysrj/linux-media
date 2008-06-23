@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.adfinis.com ([212.103.64.13])
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@0x17.ch>) id 1K4WB8-0000gk-1n
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 09:16:03 +0200
-Received: from mail.adfinis.com (HELO [192.168.42.50])
-	(adfinis.auth:lists@0x17.ch@[212.103.64.15])
-	(envelope-sender <lists@0x17.ch>) by 0 (qmail-ldap-1.03) with SMTP
-	for <linux-dvb@linuxtv.org>; 6 Jun 2008 09:16:17 +0200
-From: Nicolas Christener <lists@0x17.ch>
+	(envelope-from <acher@in.tum.de>) id 1KAozJ-000746-4a
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 18:33:53 +0200
+Date: Mon, 23 Jun 2008 18:35:30 +0200
+From: Georg Acher <acher@in.tum.de>
 To: linux-dvb@linuxtv.org
-Date: Fri, 06 Jun 2008 09:15:55 +0200
-Message-Id: <1212736555.4264.12.camel@oipunk.loozer.local>
-Mime-Version: 1.0
-Subject: [linux-dvb] Terratec Cinergy Piranha
+Message-ID: <20080623163529.GI32218@localhost>
+References: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
+Subject: Re: [linux-dvb] Problem "watching" (not tuning to?) Astra
+	HD	Promo/Anixe HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +26,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello
-according to [1] i should contact this list, because I own a currently
-unsupported DVB-T USB device and want to support development :)
-The device I got is labeled 'Terratec Cinergy Piranha'.
+> I have no problem tuning with
+> http://dev.kewl.org/hauppauge/experimental/szap-meow.tgz 
+>   to any DVB-S or DVB-S2 QPSK/8PSK transponder I have tried. However  
+> there seems to be a problem with the reception of the Astra HD Promo  
+> service at 11914500H on Astra1H. 
 
-output of `dmesg':
-kernel: hub 5-0:1.0: unable to enumerate USB device on port 5
-kernel: usb 3-1: new full speed USB device using uhci_hcd and address 6
-kernel: usb 3-1: configuration #1 chosen from 1 choice
-kernel: usb 3-1: New USB device found, idVendor=187f, idProduct=0010
-kernel: usb 3-1: New USB device strings: Mfr=1, Product=2,
-SerialNumber=0
-kernel: usb 3-1: Product: SMS 1000
-kernel: usb 3-1: Manufacturer: Siano
+The demo loop is crap. It contains errors and PTS problems. Any HD receiver
+displays this "demo" with judder and visible artifacts.
 
-Although I can probably not help to write code for this device I'd be
-happy, if I could help in any other way to get this device supported by
-linux.
-
-[1] http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices
-
-kind regards
-Nicolas
-
+-- 
+         Georg Acher, acher@in.tum.de
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias
 
 _______________________________________________
 linux-dvb mailing list
