@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Sigmund Augdal <sigmund@snap.tv>
-To: Michael Krufky <mkrufky@linuxtv.org>
-In-Reply-To: <48469C7A.1070607@linuxtv.org>
-References: <1212535332.32385.29.camel@pascal>
-	<1212584764.32385.36.camel@pascal>
-	<37219a840806040639q737327c7r9cab46cfdd88eaae@mail.gmail.com>
-	<48469C7A.1070607@linuxtv.org>
-Date: Wed, 04 Jun 2008 15:54:21 +0200
-Message-Id: <1212587661.32385.47.camel@pascal>
-Mime-Version: 1.0
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Re: Ooops in tda827x.c
+Received: from web53206.mail.re2.yahoo.com ([206.190.49.76])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <deloptes@yahoo.com>) id 1KAqGu-0004m3-3t
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 19:56:09 +0200
+Date: Mon, 23 Jun 2008 10:54:43 -0700 (PDT)
+From: Emanoil Kotsev <deloptes@yahoo.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <mailman.65.1214228554.883.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <77331.9483.qm@web53206.mail.re2.yahoo.com>
+Subject: Re: [linux-dvb] Getting Avermedia AverTV E506 DVB-T to work
+Reply-To: deloptes@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,73 +24,73 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-06-04 at 09:45 -0400, Michael Krufky wrote:
-> Michael Krufky wrote:
-> >> On Wed, 2008-06-04 at 01:22 +0200, Sigmund Augdal wrote:
-> >>> changeset 49ba58715fe0 (7393) introduces an ooops in tda827x.c in
-> >>> tda827xa_lna_gain. The initialization of the "msg" variable accesses
-> >>> priv->cfg before the NULL check causing an oops when it is in fact
-> >>> NULL.
-> >>>
-> >>> Best regards
-> >>>
-> >>> Sigmund Augdal
-> > 
-> > 
-> > 2008/6/4 Sigmund Augdal <sigmund@snap.tv>:
-> >> Attached patch fixes the problem.
-> >>
-> >> Best regards
-> >>
-> >> Sigmund Augdal
-> >>
-> > 
-> > 
-> > Sigmund,
-> > 
-> > The driver was only able to get into this function without priv->cfg
-> > being defined, because m920x passes in NULL as cfg.
-> > 
-> > In my opinion, this is flawed by design, and m920x should pass in an
-> > empty structure rather than a NULL pointer, but I understand why
-> > people might disagree with that.
-> > 
-> > With that said, your patch looks good and I see that it fixes the
-> > issue. Please provide a sign-off so that your fix can be integrated
-> > and you will receive credit for your work.
-> > 
-> > Use the form:
-> > 
-> > Signed-off-by: Your Name <email@addre.ss>
-> > 
-> 
-> Sigmund,
-> 
-> Looking at the C-1501 patch that you sent in, here is the cause of your OOPS.
-> 
-> if (dvb_attach(tda827x_attach, budget_ci->budget.dvb_frontend, 0x61,
-> +				       &budget_ci->budget.i2c_adap, 0) == NULL)
-> 
-> You are passing "0" to the config structure of tda827x_attach.  First off, "0" is an illegal value.  This should be a pointer to a "struct tda827x_config"
-> 
-> ...Please take a look at the tda827x_attach calls in saa7134-dvb.c for a better idea on what belongs there.
-The documentation in tda827x.h says that this parameter is optional.
-Furthermore there are other drivers that don't use it  (as you allready
-mentioned), and ever further the module used to work without crashing
-before the above-mentioned changeset. I think that applying a two line
-patch to fix a regression is worthwhile compared to having a number of
-drivers allocate structures to hold no useful information. I do however
-agree that I should have used NULL rather than 0.
 
-Regards
 
-Sigmund
-> 
-> Regards,
-> 
-> Mike
-> 
+> >
+> > I am struggling to enjoy DVB-T on my AverTV E506
+> PCMCIA card. It seams
+> > I'm doing something terribly wrong but I cannot
+> find the solution on my
+> > own. I am grateful for any help provided.
 
+which program are you using for TV (I'm using kplayer that runs mplayer)
+
+> >
+> > What I did so far:
+> >
+> > I'm running Gentoo with a 2.6.24-r8 kernel on my
+> Centrino Laptop. I have
+> > selected "Video for Linux" (nothing else, no
+> cards, no frontends, no
+> > chips..) as a module in my kernel configuration and
+> compiled the
+> > "v4l-dvb" drivers from the mercurial
+> repository. I also have obtained
+> > the (hopefully) correct firmware for my card.
+> >
+> > Well when I plug the PCMCIA device in this is what
+> dmesg shows me:
+
+This one seems to be OK.
+
+> > xc2028 5-0061: creating new instance
+> > xc2028 5-0061: type set to XCeive xc2028/xc3028 tuner
+> > xc2028 5-0061: Loading 80 firmware images from
+> xc3028-v27.fw, type:
+> > xc2028 firmware, ver 2.7
+> > xc2028 5-0061: Loading firmware for type=BASE F8MHZ
+> (3), id
+> > 0000000000000000.
+> > (0), id 00000000000000ff:
+> > xc2028 5-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> > SCODE (20000000), id 0000000100000007:
+> > xc2028 5-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000),
+> > id 0000000800000007.
+> > saa7133[0]: registered device video0 [v4l2]
+> > saa7133[0]: registered device vbi0
+> > saa7133[0]: registered device radio0
+> >
+> > Analog TV works with this setup, but I have no signs
+> of DVB-T. No
+> > /dev/dvb devices are created although the module for
+
+Your DVB device is vbi0
+
+/dev/vbi0
+
+see the last lines from your dmsg
+
+I've tried vlc too it works also very well. You just have to point your tv app to read from vbi0
+
+I think this is your problem
+
+regards
+
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
