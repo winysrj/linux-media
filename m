@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [213.161.191.158] (helo=patton.snap.tv)
+Received: from [88.151.248.2] (helo=mail.krastelcom.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sigmund@snap.tv>) id 1K3sgi-00058U-Dk
-	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 15:06:00 +0200
-From: Sigmund Augdal <sigmund@snap.tv>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1212535332.32385.29.camel@pascal>
-References: <1212535332.32385.29.camel@pascal>
-Content-Type: multipart/mixed; boundary="=-msyejWR+SWg3zrwMfnMX"
-Date: Wed, 04 Jun 2008 15:06:04 +0200
-Message-Id: <1212584764.32385.36.camel@pascal>
-Mime-Version: 1.0
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>
-Subject: [linux-dvb] [PATCH] Re:  Ooops in tda827x.c
+	(envelope-from <vpr@krastelcom.ru>) id 1KAqs1-0001Y1-Op
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:34:30 +0200
+Message-Id: <BBEB9F2F-D000-40BD-95F6-567D29F07331@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: Zeno Zoli <zeno.zoli@gmail.com>
+In-Reply-To: <45e226e50806230633u7a862d0dq9a00049ad330a312@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Mon, 23 Jun 2008 22:34:23 +0400
+References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
+	<45e226e50806230633u7a862d0dq9a00049ad330a312@mail.gmail.com>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,64 +20,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0584259555=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
---=-msyejWR+SWg3zrwMfnMX
-Content-Type: text/plain
+--===============0584259555==
+Content-Type: multipart/alternative; boundary=Apple-Mail-175--284337806
+
+
+--Apple-Mail-175--284337806
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
 Content-Transfer-Encoding: 7bit
 
-Attached patch fixes the problem.
+There's been a detailed thread here. Check the mailing list.
 
-Best regards
+Regards,
+Vladimir
 
-Sigmund Augdal
+On Jun 23, 2008, at 5:33 PM, Zeno Zoli wrote:
 
-On Wed, 2008-06-04 at 01:22 +0200, Sigmund Augdal wrote:
-> changeset 49ba58715fe0 (7393) introduces an ooops in tda827x.c in
-> tda827xa_lna_gain. The initialization of the "msg" variable accesses
-> priv->cfg before the NULL check causing an oops when it is in fact
-> NULL. 
-> 
-> Best regards
-> 
-> Sigmund Augdal
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+> Do you have more information on the buf[5] register corrections.  
+> Patch?
+>
+> On Mon, Jun 23, 2008 at 7:53 AM, Vladimir Prudnikov  
+> <vpr@krastelcom.ru> wrote:
+> Hi!
+>
+> I have recently realized that none of the available cards are able to
+> properly lock on Express AM2 11044H 45 MSps . TThe only one that can  
+> is
+> TT-S1401 with buf[5] register corrections.
+>
 
---=-msyejWR+SWg3zrwMfnMX
-Content-Disposition: attachment; filename=tda827x-oops.patch
-Content-Type: text/x-patch; name=tda827x-oops.patch; charset=utf-8
-Content-Transfer-Encoding: 7bit
 
-diff -r 6541620a09b7 linux/drivers/media/common/tuners/tda827x.c
---- a/linux/drivers/media/common/tuners/tda827x.c	Tue Jun 03 10:32:16 2008 -0300
-+++ b/linux/drivers/media/common/tuners/tda827x.c	Wed Jun 04 15:03:15 2008 +0200
-@@ -419,13 +419,14 @@
- 	unsigned char buf[] = {0x22, 0x01};
- 	int arg;
- 	int gp_func;
--	struct i2c_msg msg = { .addr = priv->cfg->switch_addr, .flags = 0,
-+	struct i2c_msg msg = { .flags = 0,
- 			       .buf = buf, .len = sizeof(buf) };
- 
- 	if (NULL == priv->cfg) {
- 		dprintk("tda827x_config not defined, cannot set LNA gain!\n");
- 		return;
- 	}
-+	msg.addr = priv->cfg->switch_addr;
- 	if (priv->cfg->config) {
- 		if (high)
- 			dprintk("setting LNA to high gain\n");
+--Apple-Mail-175--284337806
+Content-Type: text/html;
+	charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
---=-msyejWR+SWg3zrwMfnMX
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div>There's been a detailed =
+thread here. Check the mailing =
+list.</div><div><br></div><div>Regards,</div><div>Vladimir</div><br><div><=
+div>On Jun 23, 2008, at 5:33 PM, Zeno Zoli wrote:</div><br =
+class=3D"Apple-interchange-newline"><blockquote type=3D"cite">Do you =
+have more information on the buf[5] register corrections. =
+Patch?<br><br><div class=3D"gmail_quote">On Mon, Jun 23, 2008 at 7:53 =
+AM, Vladimir Prudnikov &lt;<a href=3D"mailto:vpr@krastelcom.ru" =
+target=3D"_blank">vpr@krastelcom.ru</a>> wrote:<br> <blockquote =
+class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, =
+204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Hi!<br> <br> I have =
+recently realized that none of the available cards are able to<br> =
+properly lock on Express AM2 11044H 45 MSps . TThe only one that can =
+is<br> TT-S1401 with buf[5] register =
+corrections.<br></blockquote></div><br></blockquote></div><br></body></htm=
+l>=
+
+--Apple-Mail-175--284337806--
+
+
+--===============0584259555==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -87,4 +95,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=-msyejWR+SWg3zrwMfnMX--
+--===============0584259555==--
