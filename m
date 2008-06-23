@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <plr.vincent@gmail.com>) id 1K36Pd-0005VG-LH
-	for linux-dvb@linuxtv.org; Mon, 02 Jun 2008 11:33:10 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so742840fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 02 Jun 2008 02:33:05 -0700 (PDT)
-From: Vincent Pelletier <plr.vincent@gmail.com>
+	(envelope-from <goga777@bk.ru>) id 1KAqYd-0007OT-AC
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:14:28 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 6CF6819E6508
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 22:13:53 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id EBCD619E6359
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 22:13:52 +0400 (MSD)
+Date: Mon, 23 Jun 2008 22:18:51 +0400
+From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-Date: Mon, 2 Jun 2008 11:33:00 +0200
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806021133.01194.plr.vincent@gmail.com>
-Subject: [linux-dvb] [PATCH] WinFast DTV2000 H: add support for missing
-	analog inputs
+Message-ID: <20080623221851.3b0599e9@bk.ru>
+In-Reply-To: <loom.20080623T150749-54@post.gmane.org>
+References: <18643.82.95.219.165.1214055480.squirrel@webmail.xs4all.nl>
+	<loom.20080623T150749-54@post.gmane.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] s2-3200 fec problem?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,62 +31,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-# HG changeset patch
-# User plr.vincent@gmail.com
-# Date 1212398724 -7200
-# Node ID 78a011dfba127b593b6d01ea6a0010fcc29c94ad
-# Parent  398b07fdfe79ff66a8c1bf2874de424ce29b9c78
-WinFast DTV2000 H: add support for missing analog inputs
+I have the hvr4000 card with vdr 170 + multiproto_Plus + hvr4000 patch from Gregoire and I don't have any reception problem
+with dvb-s2 channels on Astar 19.2E  The LOCK on dvb-s2 channels is very fast and stable.
 
-From: Vincent Pelletier <plr.vincent@gmail.com>
+CINE PREMIER HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:160:0;82=fra,83=eng:0:100:9301:1:1110:0
+13EME RUE HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:161:0;86=fra:0:100:9302:1:1110:0
+DISNEY MAGIC HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:162:0;90=fra,91=eng:0:100:9303:1:1110:0
+M6 HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:170:0;122=fra:0:100:9310:1:1110:0
+CANAL+ HI-TECH HD;CSAT:12522:vC23M5O35S1:S19.2E:22000:160:0;82=fra,83=eng:0:100:9201:1:1106:0
+NATIONAL GEO HD;CSAT:12522:vC23M5O35S1:S19.2E:22000:161:0;86=fra:0:100:9202:1:1106:0
+TF1 HD;CSAT:12522:vC23M5O35S1:S19.2E:22000:163:0;94=fra:0:100:9204:1:1106:0
+CANAL HD TEST 3;IMEDIA:12522:vC23M5O35S1:S19.2E:22000:164+163:0;98=fra,99=eng:0:100:9220:1:1106:0
+ORF 1 HD;ORF:10832:HO0S0:S19.2E:22000:1920:1921=deu,1922=eng;1923=deu:1925:D05,1702,1801:61920:1:1057:0
+ASTRA HD+;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1279:0;1283=deu:0:0:131:133:6:0
+PREMIERE HD,PREM HD;PREMIERE:11914:hC910I1M2O35S1:S19.2E:27500:767:0;771=deu,772=eng:32:1830,1833,9C4,1801:129:133:6:0
+DISCOVERY HD,DISC HD;PREMIERE:11914:hC910M2O35S1:S19.2E:27500:1023:0;1027=deu:32:1830,1833,9C4,1801:130:133:6:0
+ANIXE HD;BetaDigital:11914:hC910I1M2O35S1:S19.2E:27500:1535:0;1539=deu:0:0:132:133:6:0
 
-Add support for the following inputs:
- - radio tuner
- - composite 1 & 2 (only 1 is physicaly available, but composite 2 is also
-   advertised by windows driver)
- - svideo
 
-Signed-off-by: Vincent Pelletier <plr.vincent@gmail.com>
+> > I know the following (Swedish, but we all speak code!) guide seems to work:
+> > 
+> >http://www.minhembio.com/forum/index.php?s=344f35e74353fb173446a5c7d3250854&showtopic=172770&st=30&start=30
+> >  
+> > It's a combine of multiproto and the mantis or v4l tree if I've got it
+> > right. The last revisions of multiproto didn't seem to work for me (a lot
+> > of lock problems on DVB-S2 transponders with H264 channles). I have to use
+> > the revisions from March to get it working.
+> > 
+> > 
+> > Niels Wagenaar
+> > 
+> 
+> 
+> I am the one who put those guidelines in swedish together and can report that
+> they don't work at this moment since they changed the fec from 2/3 to 3/4 and
+> turned pilot of on the DVB-S2 channels with 8PSK modulation.
+> Niels, do you have any DVB-S2 channels with 8PSK modulation and fec 3/4 or
+> higher that you could try to get a lock on? Becuse the channels with QPSK
+> modulation all seem to work.
+> 
 
-diff -r 398b07fdfe79 -r 78a011dfba12 linux/drivers/media/video/cx88/cx88-cards.c
---- a/linux/drivers/media/video/cx88/cx88-cards.c       Wed May 28 17:55:13 2008 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-cards.c       Mon Jun 02 11:25:24 2008 +0200
-@@ -1297,7 +1297,35 @@
-                        .gpio1  = 0x00008203,
-                        .gpio2  = 0x00017304,
-                        .gpio3  = 0x02000000,
-+               },{
-+                       .type   = CX88_VMUX_COMPOSITE1,
-+                       .vmux   = 1,
-+                       .gpio0  = 0x0001D701,
-+                       .gpio1  = 0x0000B207,
-+                       .gpio2  = 0x0001D701,
-+                       .gpio3  = 0x02000000,
-+               },{
-+                       .type   = CX88_VMUX_COMPOSITE2,
-+                       .vmux   = 2,
-+                       .gpio0  = 0x0001D503,
-+                       .gpio1  = 0x0000B207,
-+                       .gpio2  = 0x0001D503,
-+                       .gpio3  = 0x02000000,
-+               },{
-+                       .type   = CX88_VMUX_SVIDEO,
-+                       .vmux   = 3,
-+                       .gpio0  = 0x0001D701,
-+                       .gpio1  = 0x0000B207,
-+                       .gpio2  = 0x0001D701,
-+                       .gpio3  = 0x02000000,
-                }},
-+               .radio = {
-+                        .type  = CX88_RADIO,
-+                        .gpio0 = 0x00015702,
-+                        .gpio1 = 0x0000F207,
-+                        .gpio2 = 0x00015702,
-+                        .gpio3 = 0x02000000,
-+               },
-                .mpeg           = CX88_MPEG_DVB,
-        },
-        [CX88_BOARD_GENIATECH_DVBS] = {
 
 _______________________________________________
 linux-dvb mailing list
