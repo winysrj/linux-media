@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73])
+Received: from smtp-3.dlr.de ([195.37.61.187] helo=smtp-2.dlr.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ml@punkrockworld.it>) id 1K8cX0-0004I2-R3
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 16:51:40 +0200
-Received: from [192.168.0.12] (37.244.170.61) by aa013msr.fastwebnet.it
-	(8.0.013.8) id 48321BEA037957AA for linux-dvb@linuxtv.org;
-	Tue, 17 Jun 2008 16:50:58 +0200
-Message-ID: <4857CF64.8080201@punkrockworld.it>
-Date: Tue, 17 Jun 2008 16:51:16 +0200
-From: Francesco <ml@punkrockworld.it>
+	(envelope-from <Lukas.Orlowski@dlr.de>) id 1KAspH-0000Ls-Nh
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 22:39:50 +0200
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48565075.6040400@iinet.net.au>	<200806161343.16372.eggert@hugsaser.is>
-	<4856FE3D.6040400@t-online.de>
-In-Reply-To: <4856FE3D.6040400@t-online.de>
-Subject: Re: [linux-dvb] unstable tda1004x firmware loading
+Date: Mon, 23 Jun 2008 22:38:31 +0200
+Message-ID: <D28FC8DB666FC448B462784151E59C05011039F8@exbe07.intra.dlr.de>
+From: <Lukas.Orlowski@dlr.de>
+To: <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Getting Avermedia AverTV E506 DVB-T to work
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,44 +23,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Looks like there currently are many people having problems.
-> Allow me to give some background info:
-> 
-> Something that is not in the datasheet:
-> The tda10046 automatically tries to load the firmware from an eeprom at the
-> second I2C port. This does *not* need to be triggered by the driver. The timeout
-> seems to be very long. In the past, this happened:
-> If the driver tries to access the tuner while the download is not finished, there
-> is a collision on the I2C bus. This can corrupt both, the firmware and the tuner
-> initialization. In the case of the tda8275a, the result can be that it turns off
-> its 16MHz reference output which is used for the tda10046 as well. This blocks the
-> i2c bus and the only way to recover is a complete power cycle.
-> This is why i made the driver try to get the firmware as soon as possible.
-> Otherwise it is not possible to access the tuner - at least on some boards.
-> 
-> Few days ago, a user reported that the firmware download seems to be retriggered
-> in some cases. This might occur if something opens the dvb device while the download
-> is not finished. If it is the case, we need to lock the download.
-> Another dangerous thing is the address mapping of the firmware eeprom: it is
-> controlled by a GPIO pin. If this pin changes while the download is running, we are
-> lost.
-> 
-> Best regards
->    Hartmut
 
-I've found a little workaround (not a solution, but...) for this problem 
-for my Asus7131H...
+> >
+> > I am struggling to enjoy DVB-T on my AverTV E506
+> PCMCIA card. It seams
+> > I'm doing something terribly wrong but I cannot
+> find the solution on my
+> > own. I am grateful for any help provided.
 
-Simply adding "saa7134-dvb" to /etc/modules, make a successful firmware 
-loading on boot.
-(My system is an Ubuntu 7.10)
+which program are you using for TV (I'm using kplayer that runs mplayer)
 
+> >
+> > What I did so far:
+> >
+> > I'm running Gentoo with a 2.6.24-r8 kernel on my
+> Centrino Laptop. I have
+> > selected "Video for Linux" (nothing else, no
+> cards, no frontends, no
+> > chips..) as a module in my kernel configuration and
+> compiled the
+> > "v4l-dvb" drivers from the mercurial
+> repository. I also have obtained
+> > the (hopefully) correct firmware for my card.
+> >
+> > Well when I plug the PCMCIA device in this is what
+> dmesg shows me:
 
+This one seems to be OK.
 
+> > xc2028 5-0061: creating new instance
+> > xc2028 5-0061: type set to XCeive xc2028/xc3028 tuner
+> > xc2028 5-0061: Loading 80 firmware images from
+> xc3028-v27.fw, type:
+> > xc2028 firmware, ver 2.7
+> > xc2028 5-0061: Loading firmware for type=BASE F8MHZ
+> (3), id
+> > 0000000000000000.
+> > (0), id 00000000000000ff:
+> > xc2028 5-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> > SCODE (20000000), id 0000000100000007:
+> > xc2028 5-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000),
+> > id 0000000800000007.
+> > saa7133[0]: registered device video0 [v4l2]
+> > saa7133[0]: registered device vbi0
+> > saa7133[0]: registered device radio0
+> >
+> > Analog TV works with this setup, but I have no signs
+> of DVB-T. No
+> > /dev/dvb devices are created although the module for
 
-Francesco Ferrario
-- Chimera project -
-- www.chimeratv.it -
+>Your DVB device is vbi0
+
+>/dev/vbi0
+
+>see the last lines from your dmsg
+
+>I've tried vlc too it works also very well. You just have to point your tv app to read from vbi0
+
+>I think this is your problem
+
+>regards
+
+---------------------------------------
+
+Hi 
+
+With respect, I think the /dev/vbi0 device is responsible for teletext (videotext).
+I require the whole /dev/dvb/adapter0/ structure to use dvbscan for channel scanning.
+Currently I'm dissecting the driver source code, adding debug messages to certain section (pretty lame, I know but I'm out of options).
+
+As far as I can tell "mt352_attach" gets called. I'm working on finding the weak spot.
+
+regards
+
+Luke
 
 _______________________________________________
 linux-dvb mailing list
