@@ -1,43 +1,15 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5DKT6FZ014909
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 16:29:06 -0400
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5DKSgd9017583
-	for <video4linux-list@redhat.com>; Fri, 13 Jun 2008 16:28:42 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20080613180516.211a27a9@glory.loctelecom.ru>
-References: <20080414114746.3955c089@glory.loctelecom.ru>
-	<20080414172821.3966dfbf@areia>
-	<20080415125059.3e065997@glory.loctelecom.ru>
-	<20080415000611.610af5c6@gaivota>
-	<20080415135455.76d18419@glory.loctelecom.ru>
-	<20080415122524.3455e060@gaivota>
-	<20080422175422.3d7e4448@glory.loctelecom.ru>
-	<20080422130644.7bfe3b2d@gaivota>
-	<20080423124157.1a8eda0a@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
-	<20080423160505.36064bf7@glory.loctelecom.ru>
-	<20080423113739.7f314663@gaivota>
-	<20080424093259.7880795b@glory.loctelecom.ru>
-	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
-	<20080512201114.3bd41ee5@glory.loctelecom.ru>
-	<1210719122.26311.37.camel@pc10.localdom.local>
-	<20080520152426.5540ee7f@glory.loctelecom.ru>
-	<1211331167.4235.26.camel@pc10.localdom.local>
-	<20080612194426.0e33d92c@glory.loctelecom.ru>
-	<2a93ca18e1d9bc5726b7f1fd60da1852.squirrel@webmail.hccnet.nl>
-	<20080613180516.211a27a9@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Fri, 13 Jun 2008 22:27:48 +0200
-Message-Id: <1213388868.2758.78.camel@pc10.localdom.local>
+Date: Mon, 23 Jun 2008 09:29:30 -0400
+From: Alan Cox <alan@redhat.com>
+To: Gregor Jasny <jasny@vidsoft.de>
+Message-ID: <20080623132930.GA499@devserv.devel.redhat.com>
+References: <485F7A42.8020605@vidsoft.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Beholder card M6 with MPEG2 coder
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <485F7A42.8020605@vidsoft.de>
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
+Subject: Re: Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -49,64 +21,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Mon, Jun 23, 2008 at 12:26:10PM +0200, Gregor Jasny wrote:
+> Can I enable more logging than setting the trace parameter to 0xfff?
+> Have you any idea what went wrong here? Is the V4L2-API designed to be 
+> thread safe?
 
-Am Freitag, den 13.06.2008, 18:05 +1000 schrieb Dmitri Belimov:
-> Ho Gert,
-> 
-> > > I found strange effect. When I start common TV watching with
-> > > mplayer. I can see TV video. When I start cat /dev/video1 (i try
-> > > get MPEG stream of TV) on the TV screen I see sometimes
-> > > big white square. After stopped cat from /dev/video1 this squares
-> > > no more.
-> > >
-> > >
-> > > What is it??
-> > >
-> > 
-> > What video format is being used for the TV video?
-> 
-> modprobe saa7134 alsa=1 secam=d tsbufs=15 ts_nr_packets=312
-> 
-> mplayer tv:// -tv
-> driver=v4l2:fps=25:outfmt=i420:width=720:height=576:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:immediatemode=0:freq=175.0:normid=6
-> -aspect 4:3 -vf kerndeint
-> 
-> > I remember that the SAA7134 can not use a planar video format and TS
-> > capture at the same time.
-> 
-> No. Our programmer of drivers for Windows said it is possible. All of this parts is independent.
-> 
-> > When I added the original TS capture code, I did not deal with this
-> > situation, but I'm not sure if that is still the case.
-> 
-> I think it is problem with buffer working.
-> 
-> Other problem is incorrect work with PAT table.
-> Don`t need touch address of PAT in saa7134 when TS started because this chip sometimes make prefetch. When
-> module change PAT table like now saa7134 can crash if try prefetch (sorry my English). More correct 
-> change entry in PAT table.
-> 
-> With my best regards, Dmitry.
-
-Dmitry, I still can't test anything on my card, since I don't know how
-to switch the default DVB-T on the TS interface to the encoder.
-
-But Gert is right. At least for DVB-T or DVB-S and analog TV at once,
-analog TV can't use planar formats during that due to a restriction of
-the dma engines. Mplayer comes up with planar as default !
-
-We are most gratefully for your fixes after the ioctl2 conversion, but
-remember, Frederic is the only one on the lists currently with a working
-empress encoder with a older snapshot I guessed should work for him.
-
-You might contact him to find a known good starting point if you get
-stuck with the current. He also worked on the empress stuff previously
-and might help to find a solution with latest as well.
-
-Cheers,
-Hermann
-
+It should be yes. Could be someone is taking a semaphore around a sleeping
+ioctl operation and didn't drop it from the sound of the bug report.
 
 --
 video4linux-list mailing list
