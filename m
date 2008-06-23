@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1K8gIS-0003oY-7p
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 20:52:49 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <acher@acher.org>) id 1KAqez-0008P3-5L
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:21:05 +0200
+Received: from braindead1.acher.org (91-65-154-251-dynip.superkabel.de
+	[91.65.154.251])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.in.tum.de (Postfix) with ESMTP id 609FDA71C
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 20:20:57 +0200 (CEST)
+Date: Mon, 23 Jun 2008 20:20:56 +0200
+From: Georg Acher <acher@in.tum.de>
 To: linux-dvb@linuxtv.org
-Date: Tue, 17 Jun 2008 20:51:50 +0200
-References: <1212585271.32385.41.camel@pascal>
-	<1212590233.15236.11.camel@rommel.snap.tv>
-	<1212657011.32385.53.camel@pascal>
-In-Reply-To: <1212657011.32385.53.camel@pascal>
-MIME-Version: 1.0
+Message-ID: <20080623182056.GA18302@braindead1.acher>
+References: <mailman.67.1214243770.883.linux-dvb@linuxtv.org>
+	<2EE521CF-BC7D-4B7D-B37F-9EC5289DA143@admin.grnet.gr>
+Mime-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200806172051.50308@orion.escape-edv.de>
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
-Reply-To: linux-dvb@linuxtv.org
+In-Reply-To: <2EE521CF-BC7D-4B7D-B37F-9EC5289DA143@admin.grnet.gr>
+Subject: Re: [linux-dvb] Problem "watching" (not tuning to?) Astra	HD
+	Promo/Anixe HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,51 +33,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sigmund Augdal wrote:
-> On Wed, 2008-06-04 at 16:37 +0200, Sigmund Augdal wrote:
-> > ons, 04.06.2008 kl. 16.58 +0300, skrev Antti Palosaari:
-> > > Sigmund Augdal wrote:
-> > > > The following experimental patch adds support for the technotrend budget
-> > > > C-1501 dvb-c card. The parameters used to configure the tda10023 demod
-> > > > chip are largely determined experimentally, but works quite for me in my
-> > > > initial tests.
-> > > 
-> > > You finally found correct values :) I see that it uses same clock 
-> > > settings than Anysee. Also deltaf could be correct because I remember 
-> > > from my tests that it cannot set wrong otherwise it will not work at 
-> > > all. How did you find defltaf?
-> > I guessed the clock settings based on how the same tuner is used by a
-> > different demod. The deltaf value was found by trial and error (helped
-> > by some scripting). deltaf values slightly off will also work, but
-> > tuning will be very slow. I also think the deltaf value will depend on
-> > the bandwidth of the transponder tuned. All transponders I've tested
-> > with are 8MHz, but I think other values are possible, and these will
-> > most likely not work. I submitted the patch anyway in the hope that some
-> > broader testing might help uncover any remaining problems.
-> > > 
-> > > Your patch has at least coding style issues, please run make checkpatch 
-> > > fix errors and resend patch.
-> > I was trying to follow the guidelines, but I guess I wasn't doing that
-> > good enough. Will try to clean that up and resend soon.
-> Here is a new version. This one passes checkpatch without warnings. I
-> removed the read_pwm function, as it always uses the fallback path for
-> my card (and frankly I have no idea wether it is actually relevant at
-> all for this kind of card). Furthermore the tda10023 driver doesn't seem
-> to use this value for anything.
+On Mon, Jun 23, 2008 at 09:10:39PM +0300, Zenon Mousmoulas wrote:
+ 
+> Do you have any idea if the same is true for the other FTA service on  
+> that transponder (Anixe HD)?
 
-Patch applied with minor modifications:
-- error handling: detach frontend if tda827x_attach fails
-- use lower case characters for hex constants
-- make the code more readable (better ignore 'line length warnings'
-  if the resulting code would look too bad)
-
-CU
-Oliver
-
+Anixe HD works fine for me. Except that the "sharpest" detail is usually only
+the arc in the logo...
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+         Georg Acher, acher@in.tum.de         
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias          
 
 _______________________________________________
 linux-dvb mailing list
