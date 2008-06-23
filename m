@@ -1,27 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from mail.ftw.at ([213.235.244.131])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KCexk-0008Ch-Iy
-	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 20:16:51 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KCexd-00026e-4Y
-	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 18:15:45 +0000
-Received: from h240n2fls32o1121.telia.com ([217.211.84.240])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 28 Jun 2008 18:15:45 +0000
-Received: from dvenion by h240n2fls32o1121.telia.com with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 28 Jun 2008 18:15:45 +0000
+	(envelope-from <hyytia@ftw.at>) id 1KAjIW-0006HA-4e
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 12:29:20 +0200
+From: Esa Hyytia <esa@ftw.at>
 To: linux-dvb@linuxtv.org
-From: Daniel <dvenion@hotmail.com>
-Date: Sat, 28 Jun 2008 18:15:37 +0000 (UTC)
-Message-ID: <loom.20080628T180915-166@post.gmane.org>
-References: <1214015056l.6292l.1l@manu-laptop>
-	<200806211114.46921.ajurik@quick.cz>
-	<1214657052l.7275l.0l@manu-laptop>
+In-Reply-To: <485F71BB.7020400@interfree.it>
+References: <485F71BB.7020400@interfree.it>
+Date: Mon, 23 Jun 2008 12:29:22 +0200
+Message-Id: <1214216962.17796.11.camel@ceres>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] Re :  How to solve the TT-S2-3200 tuning problems?
+Subject: Re: [linux-dvb] hauppauge HVR 900H
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,31 +24,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-manu <eallaud <at> yahoo.fr> writes:
-
+On Mon, 2008-06-23 at 11:49 +0200, Giulio Paci wrote:
+> Hi to all!
 > 
-> One more datapoint: I have one transponder which has only HD Channels 
-> on it; the only difference with the other transponders (which are 
-> working great using TT 3200) is the FEC (and the fact that it is MPEG4, 
-> but that changes nothing for getting the lock); symbol rate and 
-> modulation are the same. But it does not lock. Here is the dmesg of a 
-> simpledvbtune session: one with a success on another transponder, and 
-> then a failure on this transponder.
-> I'd like to know where to put some printks or tweak the code to be able 
-> to debug this, if someone with the know-how could explain a bit. I can 
-> definitely do some coding, but without data it is kind of hard.
-> HTH
-> Bye
-> Manu
-> 
+>     As some of You've already done I've bought one of these not
+> noticing it's a 'H' version.
 
+The same situation here. Some more details,
 
-What FEC is it on the transponder you can't lock? 
-I have one transponder witch is DVB-S with QPSK mod, FEC 7/8 and SR 28000 that
-has one mpeg4 channel (Eurosport HD) and I get lock on that one all the time,
-could it be becuse there are regular channels on that transponder too?
+ - chip inside is Trident TM601
+ - USB ID is 2040:6600
+ - model code in stick itself is 66009/A6F1
+ - box I bought stated 'Hauppauge HVR-900 SE, Model 280'
 
-//Daniel
+I am also willing to offer my help, but I have no prior experience
+with these devices or V4L drivers.
+
+Esa
+
 
 
 _______________________________________________
