@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from moscou.magic.fr ([62.210.158.41])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1K4GPa-0008QK-J4
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 16:25:55 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so394552fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 07:25:43 -0700 (PDT)
-Message-ID: <4847F74E.3080708@gmail.com>
-Date: Thu, 05 Jun 2008 16:25:18 +0200
+	(envelope-from <aconrad.tlv@magic.fr>) id 1KAmv5-0007NT-DY
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 16:21:24 +0200
+Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
+	by moscou.magic.fr (8.13.1/8.13.1) with ESMTP id m5NEKpND016746
+	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 16:20:51 +0200
+Message-ID: <485FB15F.8050000@magic.fr>
+Date: Mon, 23 Jun 2008 16:21:19 +0200
+From: Alexandre Conrad <aconrad.tlv@magic.fr>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48457545.6060509@gmail.com> <20080603191240.1ece7f28@gaivota>
-In-Reply-To: <20080603191240.1ece7f28@gaivota>
-From: e9hack <e9hack@googlemail.com>
-Subject: Re: [linux-dvb] [BUG] Firmware loading of FF cards is broken
+To: dvb mailing list <linux-dvb@linuxtv.org>
+References: <485F8A72.5010305@magic.fr>
+In-Reply-To: <485F8A72.5010305@magic.fr>
+Subject: Re: [linux-dvb] S-1401: low signal (szap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,14 +27,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mauro Carvalho Chehab schrieb:
-> Argh! cut-and-past error. Sorry. 
+Alexandre Conrad wrote:
+
+> Hello,
 > 
-> I've just commit a fix about this. Please test.
+> I just recieved a new DVB card TT S-1401 as remplacement for the 
+> Skystar2 2.8A which no longer works under linux.
+> 
+> As I was afraid of, I have a low signal strength when I use szap. What 
+> could be the cause and what's the fix if there's one?
 
-The fix works as expected. I've used kernel 2.6.24.7 in 32 and 64 bit mode.
+Let me add that the usual signal strenght I get is around "e246" with 
+the TT S-1500 and I'm getting around "8585" with the TT S-1401.
 
--Hartmut
+Regards,
+-- 
+Alexandre CONRAD
 
 
 _______________________________________________
