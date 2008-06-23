@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5RMBp9o022134
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 18:11:51 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5RMBCmf019838
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 18:11:12 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NM9u9q006500
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:09:56 -0400
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NM9S8q024964
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:09:31 -0400
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-In-Reply-To: <20080627215753.GA2090@daniel.bse>
-References: <8AA5EFF14ED6C44DB31DA963D1E78F0DAF6DCCD1@dlee02.ent.ti.com>
-	<5d5443650806270316u252564e2v8258ddb57c850760@mail.gmail.com>
-	<20080627215753.GA2090@daniel.bse>
-Content-Type: text/plain; charset=utf-8
-Date: Sat, 28 Jun 2008 00:08:40 +0200
-Message-Id: <1214604521.2640.27.camel@pc10.localdom.local>
+To: "Diego V. Martinez" <dvm2810@yahoo.com.ar>
+In-Reply-To: <891346.15759.qm@web51507.mail.re2.yahoo.com>
+References: <891346.15759.qm@web51507.mail.re2.yahoo.com>
+Content-Type: text/plain
+Date: Tue, 24 Jun 2008 00:07:21 +0200
+Message-Id: <1214258841.6208.16.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: omap3 camera driver
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,33 +28,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
+Hi Diego,
 
-Am Freitag, den 27.06.2008, 23:57 +0200 schrieb Daniel Glöckner:
-> On Fri, Jun 27, 2008 at 03:46:41PM +0530, Trilok Soni wrote:
-> > On Fri, Jun 27, 2008 at 4:23 AM, Jalori, Mohit <mjalori@ti.com> wrote:
-> > > All files are available at http://linux.omap.com/pub/patches/rfc/34xxcamisp/omap34xx_camera_files.tar.gz. The files are available for review and will be shared as patches once review is complete.
-> > 
-> > This way of distribution of code doesn't help in review. Please
-> > break-up this code into multiple patches as per the functionality, so
-> > that we can review it.
+Am Montag, den 23.06.2008, 08:52 -0700 schrieb Diego V. Martinez:
+> Hi Hermann,
 > 
-> And by the way, the link doesn't work.
+> I've the Asus MyCinema P7131 Analog TV Card (the one that has the green box in http://www.bttv-gallery.de) and I after I applied the patch "saa7134_asus-p7134-analog-tvfm7135-device-detection-fix.patch" the IR control starts working but the S-Video input still fails (black screen on tvtime as before applying the patch).
 > 
-> Yes, I tried without the dot.
+> My linux distribution is Fedora Core 6.
 > 
->   Daniel
+> My kernel version is 2.6.25.5.
+> 
+> I use "tvtime" to make the tests.
+> 
+> Do you know what could be wrong?
 > 
 
-Maybe like that?
+I'm getting slightly confusing reports on this modest attempt to improve
+it for that card.
 
-http://linux.omap.com/pub/patches/rfc/34xxcamisp
+Did you apply the patch to 2.6.25.5 or recent mercurial v4l-dvb?
+Only since yesterday, after an improvement for enum standard by Hans
+after the ioctl2 conversion, all kind of subnorms are selectable again,
+but this does not necessarily reflect what a driver is internally
+capable to do.
 
-It is .tar.bz.
+To come back to the remote, do you mean the remote is working with that
+patch after auto detection or do you force the new card number?
 
-Greetings,
+For s-video, which kind of s-video you try to use?
 
+IIRC, PAL_N, which you should have on FreeToAir broadcasts, is still not
+supported, but PAL_Nc on cable is known to work since long.
+
+If you force card=78, still no s-video?
+
+Cheers,
 Hermann
+
 
 
 --
