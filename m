@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NFrkIQ010780
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 11:53:46 -0400
-Received: from web51507.mail.re2.yahoo.com (web51507.mail.re2.yahoo.com
-	[206.190.38.199])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5NFqxkr026688
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 11:53:16 -0400
-Date: Mon, 23 Jun 2008 08:52:52 -0700 (PDT)
-From: "Diego V. Martinez" <dvm2810@yahoo.com.ar>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NMXt3P019138
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:33:55 -0400
+Received: from mailrelay001.isp.belgacom.be (mailrelay001.isp.belgacom.be
+	[195.238.6.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NMXiGi005051
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 18:33:44 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: linux-uvc-devel@lists.berlios.de
+Date: Tue, 24 Jun 2008 00:33:40 +0200
+References: <485F7A42.8020605@vidsoft.de>
+In-Reply-To: <485F7A42.8020605@vidsoft.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Message-ID: <891346.15759.qm@web51507.mail.re2.yahoo.com>
-Content-Transfer-Encoding: 8bit
-Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200806240033.41145.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,29 +30,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hermann,
+Hi Gregor,
 
-I've the Asus MyCinema P7131 Analog TV Card (the one that has the green box in http://www.bttv-gallery.de) and I after I applied the patch "saa7134_asus-p7134-analog-tvfm7135-device-detection-fix.patch" the IR control starts working but the S-Video input still fails (black screen on tvtime as before applying the patch).
+On Monday 23 June 2008, Gregor Jasny wrote:
+> Hi,
+>
+> in our video conference application the grabbing (QBUF, DQBUF) is done
+> in a separate thread. The main thread is responsible for the user
+> interface and queries the controls, input and current standard values
+> from time to time.
+>
+> With the latest uvc driver (r217) and vanilla Linux 2.6.25.6 I've
+> noticed the strange behavior that the grabbing thread hangs in the DQBUF
+> ioctl. If I remove the control queries from the gui thread everything is
+> working fine. After the first hang of the driver, even luvcview hangs at
+> the buffer operation.
+>
+> With the bttv driver everything works fine. I'll test vivi and pwc
+> driver later.
+>
+> My systems are a i686 and one amd64 system with one Logitech 9000 and
+> one Microsoft NX-6000. I've tried to create a simple testcase, but
+> suprinsingly this testcase works fine.
+>
+> Can I enable more logging than setting the trace parameter to 0xfff?
 
-My linux distribution is Fedora Core 6.
+No without adding more printk's to the driver, which I encourage you to do.
 
-My kernel version is 2.6.25.5.
+> Have you any idea what went wrong here?
 
-I use "tvtime" to make the tests.
+Not really. The ioctl handler is protected by the big kernel lock, so ioctls 
+are currently not reentrant.
 
-Do you know what could be wrong?
+Could you give more information about the hardware you are using (webcam, SMP 
+system) ? Please report kernel log message printed by the UVC driver as well.
 
+> Is the V4L2-API designed to be thread safe?
 
-Thanks in advance,
-Diego
+There is no mention of thread safety in the V4L2 spec, so one can always argue 
+that thread safety is not required for V4L2 drivers :-)
 
+Most drivers are probably not designed with thread safety in mind, and I'm 
+pretty sure lots of race conditions still lie in the depth of V4L(2) drivers. 
+In the long term all those bugs should be fixed, and drivers should support 
+multi-threaded applications without crashing or misbehaving.
 
-      ____________________________________________________________________________________
-¡Buscá desde tu celular!
+Best regards,
 
-Yahoo! oneSEARCH ahora está en Claro
-
-http://ar.mobile.yahoo.com/onesearch
+Laurent Pinchart
 
 --
 video4linux-list mailing list
