@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m51KmNO3000832
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 16:48:23 -0400
-Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
-	[151.189.21.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m51Kluls027031
-	for <video4linux-list@redhat.com>; Sun, 1 Jun 2008 16:47:57 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Michael Krufky <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
-References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
-	<20080530145830.GA7177@opus.istwok.net>
-	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
-	<20080601190328.GA23388@opus.istwok.net>
-	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 01 Jun 2008 22:46:20 +0200
-Message-Id: <1212353180.3512.13.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NCbP6D015984
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 08:37:25 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NCbA71013282
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 08:37:10 -0400
+Date: Mon, 23 Jun 2008 09:37:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Paulo Cavalcanti" <promac@gmail.com>
+Message-ID: <20080623093701.27071f88@gaivota>
+In-Reply-To: <68720af30806221004g65933501p9eded1f072d0940e@mail.gmail.com>
+References: <68720af30806221004g65933501p9eded1f072d0940e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Jason Pontious <jpontious@gmail.com>,
-	David Engel <david@istwok.net>
-Subject: Re: Kworld 115-No Analog Channels
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux <video4linux-list@redhat.com>
+Subject: Re: bttv driver x mythtv x kernel 2.6.25
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,129 +27,70 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mike,
+On Sun, 22 Jun 2008 14:04:13 -0300
+"Paulo Cavalcanti" <promac@gmail.com> wrote:
 
-Am Sonntag, den 01.06.2008, 15:10 -0400 schrieb Michael Krufky:
-> David,
+> Hi, Mauro
 > 
-> On Sun, Jun 1, 2008 at 3:03 PM, David Engel <david@istwok.net> wrote:
-> > On Sun, Jun 01, 2008 at 03:18:45AM -0400, Michael Krufky wrote:
-> >> On Fri, May 30, 2008 at 10:58 AM, David Engel <david@istwok.net> wrote:
-> >> > I ran into a similar (probably the same) problem last week.  My search
-> >> > of the list archives revealed a known tuner detection regression in
-> >> > 2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
-> >> > because it was simpler to just go back to 2.6.24.x.  I don't know why
-> >> > the fix hasn't made it into 2.6.25.x yet.
-> >>
-> >> Which fix?  What problem does it fix?  More details, please :-)
-> >
-> > When I ran into the problem last week, I went searching and ran across
-> > this thread:
-> >
-> > https://www.redhat.com/mailman/private/video4linux-list/2008-April/msg00221.html
+> I almost got mythtv working again with bttv and kernel 2.6.25
 > 
-> This is in the private archives...  Do you have a link from gmane or
-> some other public archive?
+> http://mythtv.org/pipermail/mythtv-dev/2008-June/062323.html
+> 
+> http://mythtv.org/pipermail/mythtv-dev/2008-June/062325.html
+> 
+> However, I have to run an mplayer (second link above) script before
+> using mythtv with Live TV. Otherwise, I get only a green screen.
+> 
+> Can you give me a clue why the script fix the problem?
 
-it is the first posting from Ian Pickworth there, followed by an reply
-by me, since Ian helped on several cx88 norm setting issues and also
-with the tda9887 radio support, you might not remember anymore, but to
-leave him without reply is beyond my scope.
+Weird. There are some possible reasons for a green screen:
 
-The bug was confirmed then by Gert, who did the initial empress encoder
-support.
+	1) xv troubles. This sometimes happens if you are using a proprietary
+driver, like ati or nvidia. Don't use those drivers, or you'll have troubles
+displaying tv;
 
-However, Mauro fixed the eeprom detection then within all that immense
-traffic and work during the last merge window open.
+	2) Tuner didn't load firmware properly (if you're using xc2028/xc3028
+or xc5000);
 
-Remaining serious issues are, since 2.6.25 the users can't select the
-PAL/SECAM subnorms anymore after the ioctl2 conversion, which is an
-extremely bad idea on saa713x, and further it is more improved on 2.6.26
-now, that they are not even to set the tuner type anymore, without to
-change it in the source, which is another extremely bad idea, as I
-posted several times.
+	3) Some analog tuners only work if you set it first to a high channel.
+Kernel driver already sets freq to 400KHz, so I suspect that this is not the case;
 
-I don't blame anyone, Hartmut and me were also too much focused on the
-outstanding DVB-S stuff that time and did not care much about analog,
-but the driver is in serious troubles now and I'm a little bit grumpy,
-or at least not in the mood to explain again and again were we are ...
+	4) There are some failure at the negotiation process between MythTV and
+your board. Since boards like bttv supports several different formats, maybe a
+bug at MythTV is preventing it to select the proper format. Maybe some API
+non-compliance could prevent MythTV to find the proper format;
+
+	5) a kernel bug ;) Since it is working with other userspace apps, I
+don't think this is the issue.
+
+I've just added a small patch at linuxtv repository that will allow you to
+enable ioctl debug at the driver.
+
+Please try first to use the non-proprietary driver (if you're using).
+
+If still not working, you'll need to retrieve the last version of the driver at:
+	http://linuxtv.org/hg/v4l-dvb
+
+after compiling/installing, you'll need to do:
+	modprobe bttv bttv_debug=3
+
+Please try to run mythtv without using the mplayer command and send us the
+output of "dmesg" command.
+
+> 
+> Thanks, and keep up with the very good work at video4linux.
+
+Anytime.
+
+> PS: Eu também gostaria de convidá-lo para dar uma palestra
+> na UFRJ, se você ainda estiver vivendo no Brasil e tiver
+> algum tempo livre. Obrigado.
+
+Estou à disposição. Tempo livre sempre é um problema ;) escreva-me diretamente
+para conversarmos a respeito.
 
 Cheers,
-Hermann
-
-> > I don't know if any of the posted patches or changes that eventually
-> > went into mercurial fixed my problem or not.  Downgrading to 2.6.24.7
-> > did fix the problem for me.  Since the above thread looked like the
-> > same problem as mine, I figured I'd stick with 2.6.24.x until it got
-> > fixed in 2.6.25.x or 2.6.26 comes out.
-> >
-> > Here are the details concerning my problem.  When running 2.6.25.4,
-> > analog capture on a Kworld ATSC 115 doesn't work with tvtime reporting
-> > no signal.  Here is a snippet of my boot log with 2.6.25.4:
-> >
-> > May 25 12:54:50 opus kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
-> > May 25 12:54:50 opus kernel: ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
-> > May 25 12:54:50 opus kernel: ACPI: PCI Interrupt 0000:01:08.0[A] -> Link [APC1] -> GSI 16 (level, low) -> IRQ 16
-> > May 25 12:54:50 opus kernel: saa7133[0]: found at 0000:01:08.0, rev: 209, irq: 16, latency: 255, mmio: 0xfdeff000
-> > May 25 12:54:50 opus kernel: saa7133[0]: subsystem: 17de:7352, board: Kworld ATSC110/115 [card=90,insmod option]
-> > May 25 12:54:50 opus kernel: saa7133[0]: board init: gpio is 100
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 00: de 17 52 73 ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > May 25 12:54:50 opus kernel: usb 2-9: new low speed USB device using ohci_hcd and address 2
-> > May 25 12:54:50 opus kernel: saa7133[0]: registered device video0 [v4l2]
-> > May 25 12:54:50 opus kernel: saa7133[0]: registered device vbi0
-> > May 25 12:54:50 opus kernel: ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
-> > May 25 12:54:50 opus kernel: ACPI: PCI Interrupt 0000:00:06.1[B] -> Link [AAZA] -> GSI 22 (level, low) -> IRQ 22
-> > May 25 12:54:50 opus kernel: PCI: Setting latency timer of device 0000:00:06.1 to 64
-> > May 25 12:54:50 opus kernel: hda_codec: Unknown model for ALC883, trying auto-probe from BIOS...
-> > May 25 12:54:50 opus kernel: usb 2-9: configuration #1 chosen from 1 choice
-> > May 25 12:54:50 opus kernel: usbcore: registered new interface driver hiddev
-> > May 25 12:54:50 opus kernel: input: Logitech USB Receiver as /devices/pci0000:00/0000:00:02.0/usb2/2-9/2-9:1.0/input/input5
-> > May 25 12:54:50 opus kernel: input: USB HID v1.10 Mouse [Logitech USB Receiver] on usb-0000:00:02.0-9
-> > May 25 12:54:50 opus kernel: usbcore: registered new interface driver usbhid
-> > May 25 12:54:50 opus kernel: drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
-> > May 25 12:54:50 opus kernel: nxt200x: NXT2004 Detected
-> > May 25 12:54:50 opus kernel: DVB: registering new adapter (saa7133[0])
-> > May 25 12:54:50 opus kernel: DVB: registering frontend 0 (Nextwave NXT200X VSB/QAM frontend)...
-> > May 25 12:54:50 opus kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
-> > May 25 12:54:50 opus kernel: nxt2004: Waiting for firmware upload(2)...
-> > May 25 12:54:50 opus kernel: Adding 2000084k swap on /dev/sda2.  Priority:-1 extents:1 across:2000084k
-> > May 25 12:54:50 opus kernel: EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
-> > May 25 12:54:50 opus kernel: EXT3 FS on sda1, internal journal
-> > May 25 12:54:50 opus kernel: nxt2004: Firmware upload complete
-> >
-> > Manually specifying the tuner type when loading the saa7134 module
-> > makes no difference.
-> 
-> Under 2.6.25, can you confirm whether or not the "tuner" module is
-> actually loaded?  If it is loaded, can you do:
-> 
-> modprobe -r tuner
-> modprobe -r tuner-simple
-> modprobe tuner-simple debug=1
-> modprobe tuner debug=1
-> 
-> ...then test again and show the dmesg logs.
-> 
-> Regards,
-> 
-> Mike
-> 
-
+Mauro
 
 --
 video4linux-list mailing list
