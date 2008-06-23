@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate01.web.de ([217.72.192.221])
+Received: from averel.grnet-hq.admin.grnet.gr ([195.251.29.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <SiestaGomez@web.de>) id 1K7vxG-0005vG-Il
-	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 19:23:56 +0200
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate01.web.de (Postfix) with ESMTP id C2ECEE42593E
-	for <linux-dvb@linuxtv.org>; Sun, 15 Jun 2008 19:23:01 +0200 (CEST)
-Received: from [88.152.136.212] (helo=midian.waldorf.intern)
-	by smtp08.web.de with asmtp (WEB.DE 4.109 #226) id 1K7vwS-0000Ir-00
-	for linux-dvb@linuxtv.org; Sun, 15 Jun 2008 19:23:00 +0200
-Date: Sun, 15 Jun 2008 19:23:00 +0200
-From: SG <SiestaGomez@web.de>
+	(envelope-from <zmousm@admin.grnet.gr>) id 1KAowB-0006SG-Re
+	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 18:30:43 +0200
+Message-Id: <DDA4E5EE-7DCC-4EA1-A5A8-622C1A61B945@admin.grnet.gr>
+From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
 To: linux-dvb@linuxtv.org
-Message-Id: <20080615192300.90886244.SiestaGomez@web.de>
-Mime-Version: 1.0
-Subject: [linux-dvb]  [PATCH] experimental support for C-1501
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Mon, 23 Jun 2008 19:30:32 +0300
+Subject: [linux-dvb] Problem "watching" (not tuning to?) Astra HD
+	Promo/Anixe HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,40 +23,95 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The patch works quite well and nearly all channels seem to work.
+Hi,
 
-But when tuning to some radio channels I'll get this kernel message:
+I have a Hauppauge HVR-4000. My system is running the latest Debian  
+testing kernel (2.6.24-7) plus drivers from  http://linuxtv.org/hg/v4l-dvb/rev/127f67dea087 
+  patched with http://dev.kewl.org/hauppauge/experimental/mfe-s2-7285.diff 
+, as per the wiki notes (mostly): http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers
 
-saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
+I have no problem tuning with http://dev.kewl.org/hauppauge/experimental/szap-meow.tgz 
+  to any DVB-S or DVB-S2 QPSK/8PSK transponder I have tried. However  
+there seems to be a problem with the reception of the Astra HD Promo  
+service at 11914500H on Astra1H. I don't know what the problem is  
+exactly, since tuning seems to work:
 
-Also I'm not able to tune to 'transponder 386000000 6900000 0 3' which works
-smoothly when using Win32.
+tvbox2:~# szap-meow -r -p -c diseqc2_Astra-19.2E -m 1 -e 9 -o 2 -w 2  
+ASTRAHDPROMO
+reading channels from file 'diseqc2_Astra-19.2E'
+zapping to 1 'ASTRAHDPROMO':
+sat 1, frequency = 11914 MHz H, symbolrate 27500000, vpid = 0x04ff,  
+apid = 0x0503 sid = 0x0083
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal fd40 | snr 6199 | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal fe80 | snr 64cd | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal fe40 | snr 6333 | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal fd80 | snr 6333 | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal fe40 | snr 6199 | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal fe80 | snr 6000 | ber 00000000 | unc 00000000 |  
+FE_HAS_LOCK
 
-initial transponder 386000000 6900000 0 3
- >>> tune to: 386:M64:C:6900:
-WARNING: >>> tuning failed!!!
- >>> tune to: 386:M64:C:6900: (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+There is an occasional ber > 0 and the snr is not exceptional, but  
+there are other services with much worse snr/ber that have no problem  
+whatsoever.
 
-Any hints ?
+I don't have vdr, mythtv etc. applications installed on the system. I  
+test by redirecting the output of vdr0 to a file, to play back the TS  
+later, or by piping to VLC, to stream on the lan. VLC clearly shows  
+there is a problem because there is always a flood of messages from  
+libdvbpsi on stderr like Bad CRC_32, TS discontinuity, invalid  
+section, PSI section too long etc. I'm not that confident about VLC  
+debugging, but I know for sure this doesn't happen when the service  
+works right.
 
-Thanks and regards.
-Martin
+I've tried tuning to freq 11915 as well as using different values for  
+roll-off (-o) and pilot (-w). It doesn't make any difference (-w 1  
+doesn't work if I remember right).
 
-Sigmund Augdal wrote:
+The same thing happens with the Anixe HD service, also on the same  
+transponder.
 
-> Here is a new version. This one passes checkpatch without warnings. I
-> removed the read_pwm function, as it always uses the fallback path for
-> my card (and frankly I have no idea wether it is actually relevant at
-> all for this kind of card). Furthermore the tda10023 driver doesn't seem
-> to use this value for anything.
->
-> Best regards
->
-> Sigmund Augdal
+I have no problem tuning to other transponders on Astra1H that carry a  
+mix of scrambled+FTA or FTA-only services, like 11875500H or  
+12051000V, but they are DVB-S. I also have no problem tuning to DVB-S2  
+transponders on other LNBs (I have a 4x1 diseqc v1.0 switch with this  
+LNB in position AB), but I could not test any other such transponders  
+with QPSK modulation.
+
+I'm wondering what could be the cause of this problem:
+
+At first I thought the problem could be that the transponder carries  
+scrambled services as well, but that does not seem to be the case.
+Then I thought the problem could be the H.264 video payload of the  
+video ES of these services, confusing VLC, hence the many error  
+messages, but I've been able to stream/play at least one other  
+"similar" service (Luxe TV) with no particular problems.
+
+Finally I reconsidered the "saga" of the HVR-4000 driver, and started  
+thinking that perhaps I should have gone with one of the other  
+implementations in the first place. I had this card setup a few months  
+ago with 2.6.24 and multiproto, but I had to redo the installation and  
+this time I wanted to try to stick with the official linuxtv.org tree.  
+Could this be the reason? If so, however, I suppose tuning wouldn't  
+work at all, right?
+
+Am I missing something here? Any ideas/suggestions you may have are  
+more than welcome...
+
+Thanks,
+Z.
+
+PS: Somewhat off-topic question, but here goes anyway, since I have  
+not found a definitive answer: Is there any device with DVB-S2 *and*  
+CI and driver support for both? I have noticed that TT-budget S2-3200  
++ CI could possibly be the one, but I believe the CI part still  
+doesn't work.
+
 
 _______________________________________________
 linux-dvb mailing list
