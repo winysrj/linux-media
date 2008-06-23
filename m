@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m57EU63L019631
-	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 10:30:06 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m57EThS8015285
-	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 10:29:43 -0400
-Date: Sat, 7 Jun 2008 16:29:23 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Veda N <veda74@gmail.com>
-Message-ID: <20080607142923.GA588@daniel.bse>
-References: <a5eaedfa0806070650x5daabac2ia12cdee022aa9f9f@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a5eaedfa0806070650x5daabac2ia12cdee022aa9f9f@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: pixel sizes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NARXZf031766
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 06:27:33 -0400
+Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NAQDJD030174
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 06:26:16 -0400
+Message-ID: <485F7A42.8020605@vidsoft.de>
+Date: Mon, 23 Jun 2008 12:26:10 +0200
+From: Gregor Jasny <jasny@vidsoft.de>
+MIME-Version: 1.0
+To: linux-uvc-devel@lists.berlios.de, video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,44 +25,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Jun 07, 2008 at 07:20:36PM +0530, Veda N wrote:
->      Are the sizes of each pixels same for all the sensor?
+Hi,
 
-No
+in our video conference application the grabbing (QBUF, DQBUF) is done 
+in a separate thread. The main thread is responsible for the user 
+interface and queries the controls, input and current standard values 
+from time to time.
 
->      Does each sensor
->      have its own size description for each pixel.
+With the latest uvc driver (r217) and vanilla Linux 2.6.25.6 I've 
+noticed the strange behavior that the grabbing thread hangs in the DQBUF 
+ioctl. If I remove the control queries from the gui thread everything is 
+working fine. After the first hang of the driver, even luvcview hangs at 
+the buffer operation.
 
-Yes
-You can find the size of a pixel in the datasheet.
+With the bttv driver everything works fine. I'll test vivi and pwc 
+driver later.
 
->      I guess each LCDs/Display Units have their own pixel sizes.
->      In which case how the captured pixels are displayed on the LCD?
+My systems are a i686 and one amd64 system with one Logitech 9000 and 
+one Microsoft NX-6000. I've tried to create a simple testcase, but 
+suprinsingly this testcase works fine.
 
-Depends on the user. Either 1:1 pixelwise or scaled to fit/fill the screen.
+Can I enable more logging than setting the trace parameter to 0xfff?
+Have you any idea what went wrong here? Is the V4L2-API designed to be 
+thread safe?
 
->      Should the definitions of pixels (sizes & format) of sensor and
->      display unit match?
-
-No.
-Some cameras capture anamorph images to have less data.
-And a pixel that is a few micrometer^2 usually represents a bigger area in
-reality due to the optics.
-
->     Do video applications have their own definition of how much size
->     each pixel should have?
-
-No.
-Video applications don't care about real world dimensions.
-They just want to fill the screen.
-They do care about the aspect ratio of the pixels, though.
-
->    Does the size of the pixel size change if it is RGB or YUV422?
-
-No.
-But in YUV422 there is only one chroma sample for two horizontal pixels.
-
-  Daniel
+Thanks,
+Gregor
 
 --
 video4linux-list mailing list
