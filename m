@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n36.bullet.mail.ukl.yahoo.com ([87.248.110.169])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1K4Lbx-0001eK-IG
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 21:59:04 +0200
-Date: Thu, 05 Jun 2008 15:58:05 -0400
-From: manu <eallaud@yahoo.fr>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-References: <1212610778l.7239l.1l@manu-laptop>
-	<200806052047.30008.ajurik@quick.cz>
-In-Reply-To: <200806052047.30008.ajurik@quick.cz> (from ajurik@quick.cz on
-	Thu Jun  5 14:47:29 2008)
-Message-Id: <1212695886l.9365l.0l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : No lock on a particular transponder with TT S2-3200
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1KBA4p-0003M5-2u
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 17:04:59 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id ED89E19E68C8
+	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 19:04:24 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 9A11419E6881
+	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 19:04:24 +0400 (MSD)
+Date: Tue, 24 Jun 2008 19:09:26 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080624190926.525c8571@bk.ru>
+In-Reply-To: <976C5CAC-6426-456A-9509-B7575CB3C5B0@krastelcom.ru>
+References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
+	<DD6302F4D4084A839650A2FE7D164C76@ua0lnjhome>
+	<976C5CAC-6426-456A-9509-B7575CB3C5B0@krastelcom.ru>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps and hvr4000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,90 +26,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 05.06.2008 14:47:29, Ales Jurik a =E9crit=A0:
-> On Wednesday 04 of June 2008, manu wrote:
-> > 	Hi all,
-> > one more datapoint for the TT 3200 tuning problems. I solved all my
-> > locking problems by add 4MHz to the reported frequencies (coming
-> from
-> > the stream tables); note that one of the transponders always locked
-> > even without this correction (its freq is 11093MHz, the others =
+I have checked this high SR on two Russian satellites - Express AM22 53E and ExpressAM2 80E. No any lock. I have tried to
+increase/decrease SR/FREQ step by step , but it didn't help me.
 
-> are :
-> > 11555, 11635, 11675MHz), so as you see the others are much higher.
-> > Now there is another transponder at 11495MHz but this one I cant
-> lock
-> > on it even with my correction. =
-
-> =
-
-> Hi,
-> =
-
-> I have a little more problems with TT S2-3200 under linux. At DVB-S
-> exists =
-
-> transponders to which is not possible to switch directly (when
-> changing =
-
-> satellite), it is necessary to tune first to another transponder at
-> same =
-
-> position (I'm using diseqc switch). At these transponders changing =
-
-> the
-> =
-
-> frequency is not helpful.
-> =
-
-> At DVB-S2 transponders are some transponders at which is possible to
-> get lock =
-
-> without problems. Also at some transponders it is possible to get =
-
-> lock
-> when =
-
-> changing frequency by 4-5MHz after some minutes (typically 2 min.).
-> But there =
-
-> exists some transponders where is practically impossible to get lock. =
-
-> Interesting is that those problematic transponders were without
-> problems =
-
-> receivable some time ago. The change appeared when transponders were
-> switched =
-
-> from Thor2 to Thor5 (same frequency but only FEC changed from 2/3 to
-> 3/4 and =
-
-> pilot was switched off), also one transponder at HB 13.0E which was =
-
-> receivable two months ago is not receivable any more (don't know if
-> pilot was =
-
-> switched off but other paremeters are the same).
-> =
+11606,V,44948,56
+11044,V,44951,34
 
 
-Well so this would point to a problem involving FEC. But is that a =
 
-problem to get a lock? I mean FEC is just involved after a successful =
 
-tuning, right? So even tuning is a problem IMHO and FEC might be =
-
-another one.
-I hope that someone else can elaborate/confirm or not.
-Bye
-Manu
+> Cool. But TT S-1500 and TT S2-3200 have different tuners. Can you take  
+> a look at those?
+> 
+> Regards,
+> Vladimir
+> 
+> On Jun 24, 2008, at 8:06 AM, ua0lnj wrote:
+> 
+> > I use TT budget S-1102, it have Philips su-1278 tuner.
+> > Locked SR 45 MSps on AM2 80E fine.
+> > But need use my patch for dvb driver, I posted it twice in dvb mail- 
+> > list, but no response from any user...
+> >
+> >
+> > ----- Original Message ----- From: "Vladimir Prudnikov" <vpr@krastelcom.ru 
+> > >
+> > To: "Linux DVB Mailing List" <linux-dvb@linuxtv.org>
+> > Sent: Monday, June 23, 2008 4:53 PM
+> > Subject: [linux-dvb] Express AM2 11044 H 45 MSps
+> >
+> >
+> >> Hi!
+> >>
+> >> I have recently realized that none of the available cards are able to
+> >> properly lock on Express AM2 11044H 45 MSps . The only one that can  
+> >> is
+> >> TT-S1401 with buf[5] register corrections.
+> >>
+> >> I have tried:
+> >>
+> >> TT S-1500
+> >> TT S2-3200
+> >> Skystar 2.6
+> >> TT S-1401 with non-modified drivers.
 
 
 _______________________________________________
