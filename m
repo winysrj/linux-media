@@ -1,31 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m52K57JR013592
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:05:07 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m52K4pBW030377
-	for <video4linux-list@redhat.com>; Mon, 2 Jun 2008 16:04:51 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so493102ywb.81
-	for <video4linux-list@redhat.com>; Mon, 02 Jun 2008 13:04:49 -0700 (PDT)
-Message-ID: <37219a840806021304t605b67e2hed8f3db1a4912955@mail.gmail.com>
-Date: Mon, 2 Jun 2008 16:04:49 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "hermann pitton" <hermann-pitton@arcor.de>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <1212353180.3512.13.camel@pc10.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLaUpF017152
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:36:30 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLaJrG022683
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:36:19 -0400
+Date: Tue, 24 Jun 2008 18:36:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20080624183601.235ff1d5@gaivota>
+In-Reply-To: <200806240033.41145.laurent.pinchart@skynet.be>
+References: <485F7A42.8020605@vidsoft.de>
+	<200806240033.41145.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <f50b38640805291557m38e6555aqe9593a2a42706aa5@mail.gmail.com>
-	<20080530145830.GA7177@opus.istwok.net>
-	<37219a840806010018m342ff1bh394248e62e0a8807@mail.gmail.com>
-	<20080601190328.GA23388@opus.istwok.net>
-	<37219a840806011210h6c7b55b0tc4bcfec1bcf3ad9b@mail.gmail.com>
-	<1212353180.3512.13.camel@pc10.localdom.local>
-Cc: video4linux-list@redhat.com, Jason Pontious <jpontious@gmail.com>,
-	David Engel <david@istwok.net>
-Subject: Re: Kworld 115-No Analog Channels
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
+Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,78 +28,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jun 1, 2008 at 4:46 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Am Sonntag, den 01.06.2008, 15:10 -0400 schrieb Michael Krufky:
->> On Sun, Jun 1, 2008 at 3:03 PM, David Engel <david@istwok.net> wrote:
->> > On Sun, Jun 01, 2008 at 03:18:45AM -0400, Michael Krufky wrote:
->> >> On Fri, May 30, 2008 at 10:58 AM, David Engel <david@istwok.net> wrote:
->> >> > I ran into a similar (probably the same) problem last week.  My search
->> >> > of the list archives revealed a known tuner detection regression in
->> >> > 2.6.25.  It's supposed to be fixed in Mercurial but I didn't test it
->> >> > because it was simpler to just go back to 2.6.24.x.  I don't know why
->> >> > the fix hasn't made it into 2.6.25.x yet.
->> >>
->> >> Which fix?  What problem does it fix?  More details, please :-)
->> >
->> > When I ran into the problem last week, I went searching and ran across
->> > this thread:
->> >
->> > https://www.redhat.com/mailman/private/video4linux-list/2008-April/msg00221.html
->>
->> This is in the private archives...  Do you have a link from gmane or
->> some other public archive?
->
-> it is the first posting from Ian Pickworth there, followed by an reply
-> by me, since Ian helped on several cx88 norm setting issues and also
-> with the tda9887 radio support, you might not remember anymore, but to
-> leave him without reply is beyond my scope.
->
-> The bug was confirmed then by Gert, who did the initial empress encoder
-> support.
->
-> However, Mauro fixed the eeprom detection then within all that immense
-> traffic and work during the last merge window open.
->
-> Remaining serious issues are, since 2.6.25 the users can't select the
-> PAL/SECAM subnorms anymore after the ioctl2 conversion, which is an
-> extremely bad idea on saa713x, and further it is more improved on 2.6.26
-> now, that they are not even to set the tuner type anymore, without to
-> change it in the source, which is another extremely bad idea, as I
-> posted several times.
->
-> I don't blame anyone, Hartmut and me were also too much focused on the
-> outstanding DVB-S stuff that time and did not care much about analog,
-> but the driver is in serious troubles now and I'm a little bit grumpy,
-> or at least not in the mood to explain again and again were we are ...
+> > Can I enable more logging than setting the trace parameter to 0xfff?
+> 
+> No without adding more printk's to the driver, which I encourage you to do.
 
-Hermann,
+This would be one advantage of having uvc driver using video_ioctl2. to see
+ioctl's it is just a matter of using debug=1. If you use debug=3, you'll also
+view all arguments of the ioctl.
 
-Please don't top-post.
+Cheers,
+Mauro
 
-David Engel's problem is unrelated to the issue that you describe -- I
-will address his issue in a separate email.
-
-The issue that you are describing is due to the change in load order
-during initialization.  Mauro made this change very late in the
-2.6.25-rc stages, against my recommendation.
-
-I am staying away from this issue, since I advised against that
-change.  So, I defer to Mauro (cc added).
-
-Mauro, are you aware that this is still an issue?
-
-...some helpful hints:
-
-this will not work unless we do the following, in this order:
-
-#1 bring up the i2c bus
-#2 allow tveeprom.ko client module to attach, so that
-(bridgedriver)_card_setup can read tuner info from tveeprom
-#3 allow tuner.ko client to attach
-
-We must not call SET_TYPE until after all of the above have completed.
-
--Mike
+PS.: I'm still waiting for uvc patches for its kernel addition.
 
 --
 video4linux-list mailing list
