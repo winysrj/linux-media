@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5IKVr5P021271
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 16:31:53 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5IKVeCE020924
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 16:31:41 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so232868ywb.81
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 13:31:31 -0700 (PDT)
-Message-ID: <b7b14cbb0806181331o39a038d4q5cd3ad54a2c6ee96@mail.gmail.com>
-Date: Wed, 18 Jun 2008 22:31:30 +0200
-From: "Clinton Lee Taylor" <clintonlee.taylor@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5O2Dxok015445
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 22:13:59 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5O2DnH2011607
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 22:13:49 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so8895147rvb.51
+	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:13:49 -0700 (PDT)
+Message-ID: <e18c2fef0806231913w2cab7de9yae74a9bdc7d04160@mail.gmail.com>
+Date: Tue, 24 Jun 2008 10:13:48 +0800
+From: "Andrew Chuah" <hachuah@gmail.com>
 To: video4linux-list@redhat.com
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: EasyCAP DC60 ...
+Subject: BTTV autodetection code - need help understanding.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,40 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings ...
+Hi,
 
- I bought off the net, not really a good buy, now that I have it, but I hope
-that with a little help, we can get Linux support ... Can't seem to get
-WinXP64 to use it ...
+I'm trying to add my Geovision GV250 card to the list. It now works,
+but autodetection doesn't. I'm trying to figure out why.
+>From some printk statements, it looks like the problem is here in bttv-cards.c
 
- I have an EasyCap USB 2.0 Video Adapter with Audio ...
+pci_read_config_word(btv->c.pci, PCI_SUBSYSTEM_ID, &tmp);
+btv->cardid = tmp << 16;
+pci_read_config_word(btv->c.pci, PCI_SUBSYSTEM_VENDOR_ID, &tmp);
+btv->cardid |= tmp;
+printk(KERN_INFO "bttv: btv->cardid: %08x\n", btv->cardid);
 
-http://www.qbik.ch/usb/devices/showdev.php?id=4224
+I am getting 0x00000000 for my cardid, which makes it skip the
+autodetection step. Does anyone have any idea why this is happening?
+It shows up on lspci -nn as:
 
-The device is a USB stick with
+03:01.0 Multimedia video controller [0400]: Brooktree Corporation
+Bt878 Video Capture [109e:036e] (rev 11)
+03:01.1 Multimedia controller [0480]: Brooktree Corporation Bt878
+Audio Capture [109e:0878] (rev 11)
 
-ETV_1160
-VER06_1024
-2007-06-16
+thanks,
+andrew
 
- on the PCB and three IC's ...
-
-NXP SAA7113H CK4282 03 TPG08042
-
-STK160CLQP B72807G-0741
-
-RealTek ALC655 65142N1 G810H
-
- ... Did a bit of research and found http://syntekdriver.sourceforge.net,
-with some discussion reguarding usbsnoops ... Have tried to contact the
-authors, but one is a little busy and have not yet heard from the other ...
-
- So, I'm hoping that somebody else might be able to pick up the work and
-what ever I can do to help ...
-
-Thanks
-Mailed
-LeeT
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
