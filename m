@@ -1,16 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UKvqmS008422
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:57:52 -0400
-Received: from mail.laptop.org (lists.laptop.org [18.85.2.145])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UKvduZ018647
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:57:39 -0400
-To: mchehab@infradead.org
-From: Daniel Drake <dsd@laptop.org>
-Message-Id: <20080630205739.74EE1FAA95@dev.laptop.org>
-Date: Mon, 30 Jun 2008 16:57:39 -0400 (EDT)
-Cc: video4linux-list@redhat.com, corbet@lwn.net
-Subject: [PATCH] OV7670: don't reject unsupported settings
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OA1WBk030140
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 06:01:32 -0400
+Received: from mgate0.outbound.cnh.at (postfix@mgate0.outbound.cnh.at
+	[195.149.216.5])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OA10nI009085
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 06:01:00 -0400
+Received: from wuschlbuschl (cnh809212138.pppoe.surfer.cnh.at [80.92.121.38])
+	by mgate0.outbound.cnh.at (Postfix) with SMTP id 6CEECFF15
+	for <video4linux-list@redhat.com>;
+	Tue, 24 Jun 2008 10:46:04 +0200 (CEST)
+Message-ID: <597D1543B3BA4400910B04E46280B6C3@wuschlbuschl>
+From: "B. Moser" <sy@itakka.at>
+To: <video4linux-list@redhat.com>
+Date: Tue, 24 Jun 2008 10:45:48 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Subject: how to get timedelayed pictures of camera on /dev/video0
+Reply-To: "B. Moser" <sy@itakka.at>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,60 +31,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-For VIDIOC_G_FMT/VIDIOC_TRY_FMT, the V4L2 API spec states:
-"Drivers should not return an error code unless the input is ambiguous"
-"Very simple, inflexible devices may even ignore all input and always
-return the default parameters."
-"When the requested buffer type is not supported drivers return an
-EINVAL error code."
-i.e. returning errors for unsupported fields is bad, and it's ok to
-unconditionally overwrite user-requested settings
+I have a small problem - maybe someone out there can help me:
 
-This patch makes ov7670 meet that behaviour, and brings it in line with
-other drivers e.g. stk-webcam. It also fixes compatibility with (unpatched)
-gstreamer.
+I have a camera connected to my compuer ( /dev/video0 ).
+So far it is no problem to watch the pictures from the camera in realtime
+(for example with mplayer or similar programs).
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
+But I want to watch on screen what this camera showed 5 seconds ago.
+So the pictures/video from this camera should go into a buffer - which I
+would like to show on the monitor time-delayed a few seconds later.
 
----
-
-This patch is a bit controversial because the V4L2 API spec is not
-crystal clear and other drivers (e.g. zr364xx) also behave the same way
-(and do not work with gstreamer). I haven't had any responses to my
-request for clarification:
-http://marc.info/?l=linux-video&m=121434022130546&w=2
-
-If this patch is accepted, I have some patches for other drivers that I
-can submit.
-
-diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
-index 2bc6bdc..f201af2 100644
---- a/drivers/media/video/ov7670.c
-+++ b/drivers/media/video/ov7670.c
-@@ -680,17 +680,17 @@ static int ov7670_try_fmt(struct i2c_client *c, struct v4l2_format *fmt,
- 	for (index = 0; index < N_OV7670_FMTS; index++)
- 		if (ov7670_formats[index].pixelformat == pix->pixelformat)
- 			break;
--	if (index >= N_OV7670_FMTS)
--		return -EINVAL;
-+	if (index >= N_OV7670_FMTS) {
-+		/* default to first format */
-+		index = 0;
-+		pix->pixelformat = ov7670_formats[0].pixelformat;
-+	}
- 	if (ret_fmt != NULL)
- 		*ret_fmt = ov7670_formats + index;
- 	/*
- 	 * Fields: the OV devices claim to be progressive.
- 	 */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = V4L2_FIELD_NONE;
--	else if (pix->field != V4L2_FIELD_NONE)
--		return -EINVAL;
-+	pix->field = V4L2_FIELD_NONE;
- 	/*
- 	 * Round requested image size down to the nearest
- 	 * we support, but not below the smallest.
+regards
+Bernhard
 
 --
 video4linux-list mailing list
