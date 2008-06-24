@@ -1,25 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53GNbIb008020
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:23:37 -0400
-Received: from vesta.asc.rssi.ru (vesta.asc.rssi.ru [193.232.12.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53GMomL024418
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 12:22:54 -0400
-Received: from vesta.asc.rssi.ru (localhost [127.0.0.1])
-	by vesta.asc.rssi.ru (8.12.7/8.12.7/SuSE Linux 0.6) with ESMTP id
-	m53GnSlq007725
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 20:49:28 +0400
-Received: (from kostyuk@localhost)
-	by vesta.asc.rssi.ru (8.12.7/8.12.7/Submit) id m53GnSEr007724
-	for video4linux-list@redhat.com; Tue, 3 Jun 2008 20:49:28 +0400
-From: Sergey Kostyuk <kostyuk@vesta.asc.rssi.ru>
-Date: Tue, 03 Jun 2008 20:49:27 +0400
-To: video4linux-list@redhat.com
-Message-ID: <48457617.mail5YC1S9Z5F@vesta.asc.rssi.ru>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5ON0utM026617
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 19:00:56 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OMxvmo002791
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 19:00:43 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so9376391rvb.51
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 15:59:56 -0700 (PDT)
+Date: Tue, 24 Jun 2008 15:59:51 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Trent Piepho <xyzzy@speakeasy.org>, mchehab@infradead.org
+Message-ID: <20080624225951.GF8831@plankton.ifup.org>
+References: <3dbf42455956d17b8aa6.1214002733@localhost>
+	<200806221334.45894.hverkuil@xs4all.nl>
+	<20080623150734.GF18397@plankton.ifup.org>
+	<200806231800.44274.hverkuil@xs4all.nl>
+	<20080623233952.GA4569@plankton>
+	<Pine.LNX.4.58.0806240032081.535@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: Re: v4l API question: any support for HDTV is possible?
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0806240032081.535@shell2.speakeasy.net>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
+	attribute for?persistent video4linux device nodes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,9 +35,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Have you not seen this at all? http://dxr3.sf.net
+On 00:34 Tue 24 Jun 2008, Trent Piepho wrote:
+> On Mon, 23 Jun 2008, Brandon Philips wrote:
+> > +	for (i = 0; i < 32; i++) {
+> > +		if (used & (1 << i))
+> > +			continue;
+> > +		return i;
+> > +	}
+> 
+> 	i = ffz(used);
+> 	return i >= 32 ? -ENFILE : i;
 
-I know that project. The DXR3 boards dont have HDTV capabilities.
+Err. Right :D  Tested and pushed.
+
+Mauro-
+
+Updated http://ifup.org/hg/v4l-dvb to have Trent's improvement.
+
+Cheers,
+
+	Brandon
 
 --
 video4linux-list mailing list
