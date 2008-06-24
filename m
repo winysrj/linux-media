@@ -1,29 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5MHLmCF013822
-	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 13:21:48 -0400
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5MHLaoK031601
-	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 13:21:36 -0400
-Received: from smtp2-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 4ECCD12B6B4
-	for <video4linux-list@redhat.com>;
-	Sun, 22 Jun 2008 19:21:36 +0200 (CEST)
-Received: from [192.168.0.50] (cac94-1-81-57-151-96.fbx.proxad.net
-	[81.57.151.96])
-	by smtp2-g19.free.fr (Postfix) with ESMTP id 244AF12B6B9
-	for <video4linux-list@redhat.com>;
-	Sun, 22 Jun 2008 19:21:36 +0200 (CEST)
-Message-ID: <485E8A2C.5030905@free.fr>
-Date: Sun, 22 Jun 2008 19:21:48 +0200
-From: matthieu castet <castet.matthieu@free.fr>
-MIME-Version: 1.0
-To: Video 4 Linux <video4linux-list@redhat.com>
-References: <485D4972.2070801@free.fr>
-In-Reply-To: <485D4972.2070801@free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLcsUw018880
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:38:54 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLcfCZ023830
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:38:41 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "Diego V. Martinez" <dvm2810@yahoo.com.ar>
+In-Reply-To: <933060.96127.qm@web51510.mail.re2.yahoo.com>
+References: <933060.96127.qm@web51510.mail.re2.yahoo.com>
+Content-Type: text/plain
+Date: Tue, 24 Jun 2008 23:35:58 +0200
+Message-Id: <1214343358.2636.58.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Re: application hanging with 2.6.25 and bttv
+Cc: video4linux-list@redhat.com
+Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,45 +28,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-matthieu castet wrote:
-> Hi,
-> 
-> I have got a tv application that doesn't work anymore with 2.6.25 : it 
-> hangs.
-> 
-using mplayer with v4l backed produce the same lockup :
 
-[ 5702.024629] mplayer       D 00000000     0 16181  16110
-[ 5702.024629]        e76a5910 00200082 e76a5b60 00000000 e76a5a90 
-c180b920 00000000 001368be
-[ 5702.024629]        00318ee4 f77179a4 000000ff 00000000 00000000 
-00000000 e776b810 e776b818
-[ 5702.024629]        e776b814 e76a5910 c02b47e9 e776b818 e776b818 
-e76a5910 e776b810 00208000
-[ 5702.024629] Call Trace:
-[ 5702.024629]  [<c02b47e9>] __mutex_lock_slowpath+0x50/0x7b
-[ 5702.024629]  [<c02b467f>] mutex_lock+0xa/0xb
-[ 5702.024629]  [<f8d26e8d>] videobuf_mmap_setup+0xe/0x2d [videobuf_core]
-[ 5702.024629]  [<f8de3d6b>] vidiocgmbuf+0x24/0x83 [bttv]
-[ 5702.024629]  [<f8de3d47>] vidiocgmbuf+0x0/0x83 [bttv]
-[ 5702.024629]  [<f8d797fd>] __video_do_ioctl+0x93/0x2cca [videodev]
-[ 5702.024629]  [<c0158558>] __lock_page+0x4e/0x54
-[ 5702.024629]  [<c0133a21>] wake_bit_function+0x0/0x3c
-[ 5702.024629]  [<c01586a1>] find_lock_page+0x19/0x7f
-[ 5702.024629]  [<c015a57f>] filemap_fault+0x1ff/0x36d
-[ 5702.024629]  [<c01635f0>] __do_fault+0x34d/0x38e
-[ 5702.024629]  [<f8de217b>] set_tvnorm+0x205/0x20f [bttv]
-[ 5702.024629]  [<f8d7c69d>] video_ioctl2+0x16d/0x233 [videodev]
-[ 5702.024629]  [<c0137c03>] getnstimeofday+0x30/0xb6
-[ 5702.024629]  [<c013659d>] ktime_get_ts+0x16/0x44
-[ 5702.024629]  [<c01365d8>] ktime_get+0xd/0x21
-[ 5702.024629]  [<c011b720>] hrtick_start_fair+0xeb/0x12c
-[ 5702.024629]  [<c0106970>] __switch_to+0xa3/0x12f
-[ 5702.024629]  [<c017f70b>] vfs_ioctl+0x47/0x5d
-[ 5702.024629]  [<c017f966>] do_vfs_ioctl+0x245/0x258
-[ 5702.024629]  [<c017f9ba>] sys_ioctl+0x41/0x5b
-[ 5702.024629]  [<c01077e8>] sysenter_past_esp+0x6d/0xa5
-[ 5702.024629]  =======================
+Hi Diego,
+
+Am Montag, den 23.06.2008, 20:07 -0700 schrieb Diego V. Martinez:
+> Hi Hermann,
+> 
+> Here is my history: I bought the Asus MyCinema P7131/FM/P-ATX/A (analog) some months ago. I was using Fedora Core 6 with kernel 2.6.24.2. This kernel version recognized the TV card as number 53 (ASUS TV-FM 7135).
+> 
+> The TV input was working great (here in Argentina we use PAL-Nc TV norm). S-Video input (audio and video) and IR control were not working. I found in Internet a kernel patch to support the PC-39 remote control that comes with my board (modifying the saa7134-cards.c and saa7134-input.c kernel source files). After that the IR starts working.
+> 
+> Now I'm trying the "saa7134_asus-p7134-analog-tvfm7135-device-detection-fix.patch" that makes the same source code changes to support the IR control that I was doing before plus some code lines to associate a new Asus MyCinema P7131 Analog profile to the Asus MyCinema P7131 Dual (card 78).
+> 
+> Now the kernel autodetects the new P7131 Analog board but the S-Video input stills with no video (I have sound now). I'm making the tests with the S-Video/Composite cable that comes with the board. I plug my NTSC camera and I hear sound but only a black screen appears on the Composite1, Composite2 and S-Video modes of "tvtime". TV mode stills working fine.
+> 
+> Forcing to card 78 (Asus P7131 Dual) has same results for the S-Video input (audio yes, video no). TV mode stills working fine.
+> 
+> What any information should I check and/or collect?
+> 
+
+hm, card=78 doesn't work either.
+
+No idea yet and I don't want to send you around for testing other vmuxes
+or such without any.
+
+Are you sure your camera doesn't output some unusual or proprietary
+stuff? No other such reports yet.
+
+Cheers,
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
