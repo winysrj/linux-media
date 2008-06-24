@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TLEoaR015786
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 17:14:50 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TLEbYd009001
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 17:14:38 -0400
-Message-ID: <4867FCAC.8070607@hhs.nl>
-Date: Sun, 29 Jun 2008 23:20:44 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Antoine Cellerier <dionoea@videolan.org>
-References: <4867F380.1040803@hhs.nl> <20080629210349.GA26587@chewa.net>
-In-Reply-To: <20080629210349.GA26587@chewa.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLXNtd014746
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:33:23 -0400
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLX7Eb020618
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:33:07 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Frederic CAND <frederic.cand@anevia.com>
+In-Reply-To: <4860AE9F.80104@anevia.com>
+References: <485FA5A8.9000103@anevia.com>
+	<1214259929.6208.26.camel@pc10.localdom.local>
+	<4860AE9F.80104@anevia.com>
+Content-Type: text/plain; charset=utf-8
+Date: Tue, 24 Jun 2008 23:30:23 +0200
+Message-Id: <1214343023.2636.53.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
+Subject: Re: [HVR 1300] secam bg
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,29 +30,140 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Antoine Cellerier wrote:
-> On Sun, Jun 29, 2008, Hans de Goede wrote:
->> * Do not return an uninitialized variable as result code for GPICT
->>   (fixes vlc, but see below)
->> * Add a patches directory which includes:
->>   * vlc-0.8.6-libv4l1.patch, modify vlc's v4l1 plugin to directly call into
->>     libv4l1, in the end we want all apps todo this as its better then
->>     LD_PRELOAD tricks, but for vlc this is needed as vlc's plugin system
->>     causes LD_PRELOAD to not work on symbols in the plugins
+Hi,
+
+Am Dienstag, den 24.06.2008, 10:21 +0200 schrieb Frederic CAND:
+> hermann pitton a écrit :
+> > Hi Frederic,
+> > 
+> > Am Montag, den 23.06.2008, 15:31 +0200 schrieb Frederic CAND:
+> >> dear all
+> >> I could not make secam b/g work on my hvr 1300
+> >> ioctl returns -1, error "Invalid argument"
+> >> I know my card is able to handle this tv norm since it's working fine
+> >> (video and sound are ok) under windows
+> >> anyone could confirm it isn't working ? any idea why, and how to make it 
+> >> work ?
+> > 
+> > since without reply, I don't claim to have seriously looked at it, but
+> > at least have one question myself.
+> > 
+> > In cx88-core is no define for SECAM B or G.
+> > 
+> > Do you use a signal generator?
+> Indeed, I do.
+> It's a Promax GV-198.
+> http://www.promaxprolink.com/gv198.htm
 > 
-> You might want to submit those VLC specific patches upstream ...
+> > 
+> > Hartmut asked once on the saa7134 driver, if there are any known
+> > remaining SECAM_BG users currently and we remained, that it is hard to
+> > get really up to date global analog lists for current broadcasts and I
+> > only could contribute that there was no single request for it during all
+> > these last years.
+> > 
+> > You know countries still using it?
+> 
+>  From what I've found on the internet, Cyprus, Greece, Saudi Arabia and 
+> some others. Plus people using a signal modulator (e.g: professionnal use).
+> 
+> > 
+> > Thanks,
+> > Hermann
+> > 
+> > 
+> 
+> Actually, tda9887 Secam BG was broken in (more or less) recent versions 
+> of v4l-dvb (I noticed that thanks to the signal modulator and my knc tv 
+> station saa7134 based). I came up with a "roll back" patch. I guess it 
+> can't be applied directly on the current tree but it can be done 
+> manually before being comited to the tree.
+> 
+> diff -pur1 a/linux/drivers/media/video/tda9887.c 
+> b/linux/drivers/media/video/tda9887.c
+> --- a/linux/drivers/media/video/tda9887.c      2007-07-02 
+> 20:39:57.000000000 +0200
+> +++ b/linux/drivers/media/video/tda9887.c      2008-06-19 
+> 12:21:50.000000000 +0200
+> @@ -172,7 +172,6 @@ static struct tvnorm tvnorms[] = {
+>                  .name  = "SECAM-BGH",
+> -               .b     = ( cPositiveAmTV  |
+> +               .b     = ( cNegativeFmTV  |
+>                             cQSS           ),
+>                  .c     = ( cTopDefault),
+> -               .e     = ( cGating_36     |
+> -                          cAudioIF_5_5   |
+> +               .e     = ( cAudioIF_5_5   |
+>                             cVideoIF_38_90 ),
+> 
+> 
+> 
+> For the Hauppauge HVR 1300, I found that adding mentions of SECAM B/G/H 
+> in cx88.h and cx88-core.c helped making it work. Same goes for this one, 
+> I guess it can't be applied on the current tree but it can easily be 
+> manually applied.
+> 
+> diff -pur1 a/linux/drivers/media/video/cx88/cx88-core.c 
+> b/linux/drivers/media/video/cx88/cx88-core.c
+> --- a/linux/drivers/media/video/cx88/cx88-core.c       2007-07-02 
+> 20:39:57.000000000 +0200
+> +++ b/linux/drivers/media/video/cx88/cx88-core.c       2008-06-23 
+> 18:48:21.000000000 +0200
+> @@ -890,2 +890,5 @@ static int set_tvaudio(struct cx88_core
+> 
+> +    } else if ((V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H) 
+> & norm) {
+> +        core->tvaudio = WW_BG;
+> +
+>          } else if (V4L2_STD_SECAM_DK & norm) {
+> @@ -979,3 +982,6 @@ int cx88_set_tvnorm(struct cx88_core *co
+>                  cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
+> -       cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
+> +    /* Chroma AGC must be disabled if SECAM is used, we enable it
+> +        by default on PAL and NTSC */
+> +    cx_andor(MO_INPUT_FORMAT, 0x40f,
+> +            norm & V4L2_STD_SECAM ? cxiformat : cxiformat | 0x400);
+> 
+> 
+> 
+> diff -pur1 a/linux/drivers/media/video/cx88/cx88.h 
+> b/linux/drivers/media/video/cx88/cx88.h
+> --- a/linux/drivers/media/video/cx88/cx88.h    2008-05-13 
+> 10:21:01.000000000 +0200
+> +++ b/linux/drivers/media/video/cx88/cx88.h    2008-06-23 
+> 17:48:41.000000000 +0200
+> @@ -62,3 +62,4 @@
+>          V4L2_STD_PAL_M |  V4L2_STD_PAL_N    |  V4L2_STD_PAL_Nc   | \
+> -       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK )
+> +       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK | \
+> +    V4L2_STD_SECAM_B| V4L2_STD_SECAM_G  |  V4L2_STD_SECAM_H )
+> 
 
-A very valid point, and I will as soon as libv4l gets something resembling an 
-official release (as port of the v4l-dvb tree). I see that you are from 
-upstream. So what are your thoughts on this, is libv4l proven enough already to 
-submit patches?
+Secam BG was a weapon during cold war.
 
-The patches will probably need a couple of #ifdefs added to allow compilation 
-on systems without libv4l, right?
+It was the composite of the wall on the ground for radio waves in the
+air. It is the most vanishing TV standard in the world.
 
-Regards,
+For what I seem to know, there is nothing left like such in Europe these
+days. Also old broadcasting equipment in Irak and Afghanistan doesn't
+exist anymore and Saudi Arabia at least has Pal BG too.
 
-Hans
+For other parts of the world the same might count, but we fore sure
+can't trust on ITU stuff as far back than 2004.
+The fee is unexpectedly moderate, sorry for the noise Daniel. 
+
+Most of the other potentially remaining candidates are states with huge
+deserts using usually DVB-S.
+
+Since we likely have no easy means to make totally sure it is not used
+anymore or should be still available for professional purposes, I
+suggest to prepare your patches in such a way Mauro can pick them up.
+
+Cheers,
+Hermann
+ 
+
+
 
 --
 video4linux-list mailing list
