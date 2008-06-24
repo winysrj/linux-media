@@ -1,20 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117])
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1KBEXa-0000jF-7k
-	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 21:50:59 +0200
-Received: from saunalahti-vams (vs3-10.mail.saunalahti.fi [62.142.5.94])
-	by emh07-2.mail.saunalahti.fi (Postfix) with SMTP id 53F6C18D356
-	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 22:50:53 +0300 (EEST)
-Received: from kuusi.koti (a88-112-30-40.elisa-laajakaista.fi [88.112.30.40])
-	by emh01.mail.saunalahti.fi (Postfix) with ESMTP id 3E0184BB6B
-	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 22:50:52 +0300 (EEST)
-Message-ID: <4861501B.9050507@kolumbus.fi>
-Date: Tue, 24 Jun 2008 22:50:51 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+	(envelope-from <websdaleandrew@googlemail.com>) id 1KB4hU-0003Vt-8T
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 11:20:37 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so2978167fka.1
+	for <linux-dvb@linuxtv.org>; Tue, 24 Jun 2008 02:20:25 -0700 (PDT)
+Message-ID: <e37d7f810806240220t644e578boc167be8da1308076@mail.gmail.com>
+Date: Tue, 24 Jun 2008 10:20:25 +0100
+From: "Andrew Websdale" <websdaleandrew@googlemail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <9738.212.50.194.254.1214289017.squirrel@webmail.kapsi.fi>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Ticlkess Mantis remote control implementation
+References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+	<e37d7f810806120158g6257b7a9h429dd8b8f885321e@mail.gmail.com>
+	<4850F597.9030603@iki.fi>
+	<e37d7f810806120619q28bff0d8y8f2d5319187ab6b0@mail.gmail.com>
+	<e37d7f810806171229j72aa07cco5f82e4021317ef8f@mail.gmail.com>
+	<9188.212.50.194.254.1213898824.squirrel@webmail.kapsi.fi>
+	<e37d7f810806191119h76ef8162ia3dc14b350fcd22c@mail.gmail.com>
+	<e37d7f810806230414o7b7d589q71bf6ae5d8c9bc4b@mail.gmail.com>
+	<e37d7f810806231158l848f2d3hb160f16db38e71a7@mail.gmail.com>
+	<9738.212.50.194.254.1214289017.squirrel@webmail.kapsi.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,96 +30,116 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0828429199=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0828429199==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_21414_32501053.1214299225187"
 
-Hi,
+------=_Part_21414_32501053.1214299225187
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-I have still my own version of Manu's jusst.de/mantis driver that is 
-based on v4l-dvb-linuxtv main branch,
-mainly because I use so new Linux kernels.
-I have done the following improvement lately:
+MjAwOC82LzI0IEFudHRpIFBhbG9zYWFyaSA8Y3JvcGVAaWtpLmZpPjoKCj4gbWEgMjMuNi4yMDA4
+IDIxOjU4IEFuZHJldyBXZWJzZGFsZSBraXJqb2l0dGk6Cj4gPiAyMDA4LzYvMTkgQW50dGkgUGFs
+b3NhYXJpIDxjcm9wZUBpa2kuZmk+Ogo+ID4+Cj4gPj4gTG9va3MgbGlrZSBzbWFsbCBjaGFuZ2Vz
+IHRvIG05MjA2IGRyaXZlciBpcyBuZWVkZWQuIE1UMjA2MCB0dW5lciBuZWVkcwo+ID4+Pgo+ID4+
+Pj4gSUYxLCBpMmMtYWRkcmVzcyBhbmQgb3V0cHV0IGNsb2NrIGJpdCAoMC8xIGlmIEkgcmVtZWJl
+ciBjb3JyZWN0bHkuLikuCj4gPj4+PiBUaG9zZSBjYW4gYmUgc2VlbiBmcm9tIHdpbmRvd3Mgc25p
+ZmZzIG9yIGJ5IGd1ZXNzaW5nIC8gdGVzdGluZy4gSUYxIGlzCj4gPj4+PiBlYXN5IHRvIHNldCBk
+ZWZhdWx0IG9uZSwgMTIyMCwgd3JvbmcgSUYxIG9ubHkgZGVjcmVhc2VzIHBlcmZvcm1hbmNlLgo+
+ID4+Pj4gSWYKPiA+Pj4+IHRoZXJlIGlzIGVlcHJvbSB1c2VkIHRoZW4gdmFsdWUgaXMgbm9ybWFs
+bHkgcmVhZCBmcm9tIHRoZXJlLCBvdGhlcndvc2UKPiA+Pj4+IGp1c3Qgc2V0IGRlZmF1bHQuIGNs
+b2NrIGlzIGVhc3kgdG8gdGVzdC4gSSBkb27CtHQga25vdyBob3cgbWFueQo+ID4+Pj4gaTJjLWFk
+ZHJlc3MKPiA+Pj4+IGFyZSBzdXBwb3J0ZWQgYnkgY2hpcCwgYnV0IG1vc3QgcHJvYmFibHkgdGhl
+cmUgaXMgbm90IHRvbyBtYW55Lgo+ID4+Pj4gSG9wZWZ1bGx5Cj4gPj4+PiBvbmx5IDQuIFlvdSBj
+YW4gbG9vayBmcm9tIHNwZWNzIG9yIGZyb20gb3RoZXIgZHJpdmVycyB3aGF0Cj4gPj4+PiBpMmMt
+YWRkcmVzc2VzCj4gPj4+PiBhcmUgdXNlZCBmb3IgbXQyMDYwLiBJIHRoaW5rIGl0IHdpbGwgdGFr
+ZSAyLTEwIHRlc3QgdG8gZmluZCBjb3JyZWN0Cj4gPj4+PiB2YWx1ZXMKPiA+Pj4+IGJ5IHRyaWFs
+IGFuZCBlcnJvciBtZXRob2QuCj4gPj4+Pgo+ID4+Pgo+ID4+Cj4gPj4gSSd2ZSB0cmllZCBhZGRp
+bmcgdGhlIG10MjA2MCBjb2RlIC0gaXQgY29tcGlsZXMgT0sgJiBkb2VzIHNlZW0gdG8gYmUKPiA+
+PiBuZWFybHkKPiA+PiByaWdodCx0aGUgdHVuZXIgaXMgYmVpbmcgcmVjb2duaXNlZCwgYnV0IEkg
+dGhpbmsgbG9hZGluZyB0aGUgbW9kdWxlCj4gPj4gY2F1c2VzCj4gPj4gdGhlIEkyYyBiaXQgb2Yg
+dGhlIGtlcm5lbCB0byBPb3BzIC0gd291bGQgYW4gaW5jb3JyZWN0IGkyYyBhZGRyZXNzIGNhdXNl
+Cj4gPj4gdGhpcz8KPiA+Pgo+ID4gSGVyZSdzIG15IGRtZXNnIG91dHB1dDoKPiA+IG05MjB4X210
+MjA2MF90dW5lcl9hdHRhY2gKPiA+IEJVRzogdW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBw
+b2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1YWwgYWRkcmVzcwo+ID4gMDAwMDAwNmMKPgo+IGJl
+Y2F1c2UgeW91IGhhdmUgcGFzc2VkIHR1bmVyIGkyYy1hZGRyZXNzIGFzIHBhcmFtZXRlciB0byB0
+aGUgZHZiX2F0dGFjaCgpCj4KPiBTb3JyeSBpZiBJJ3ZlIG1hZGUgYW4gb2J2aW91cyBlcnJvciwg
+aXRzIHRoZSAxc3QgdGltZSBJJ3ZlIHRyaWVkIHRvIGNoYW5nZQo+IGEgZHJpdmVyLCB3aGF0IHNo
+b3VsZCBJIGJlIHBhc3NpbmcgLSBpcyBpdCAiJmFkYXAtPmRldi0+aTJjX2FkYXAiPyBJIHRyaWVk
+Cj4gdG8gZmluZCBhbiBleGFtcGxlIG9mIG10MjA2MCBiZWluZyBhdHRhY2hlZCwgYnV0IEkgd2Fz
+IGJhcmtpbmcgdXAgdGhlIHdyb25nCj4gdHJlZSA6KS4gSSBkb24ndCB3YW50IHRvIHdhc3RlIHlv
+dXIgKG9yIGFueW9uZSBlbHNlcykgdGltZSwgYnV0IEknZCBsaWtlIHRvCj4gbGVhcm4gc29tZXRo
+aW5nIGFib3V0IGtlcm5lbCBkcml2ZXJzICYgbWF5YmUgbWFrZSBzb21lIGNvbnRyaWJ1dGlvbiBp
+ZiBJCj4gY2FuLgoKY2hlZXJzIEFuZHJldwo=
+------=_Part_21414_32501053.1214299225187
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-I implemented a remote control patch, that doesn't poll the remote 
-control all the time.
-It polls the remote control only if you press the button (a tickless 
-version, you know).
-It surprised me, that the actual implementation was really small, it 
-took very few lines of code.
+PGJyPjxicj48ZGl2IGNsYXNzPSJnbWFpbF9xdW90ZSI+MjAwOC82LzI0IEFudHRpIFBhbG9zYWFy
+aSAmbHQ7PGEgaHJlZj0ibWFpbHRvOmNyb3BlQGlraS5maSIgdGFyZ2V0PSJfYmxhbmsiPmNyb3Bl
+QGlraS5maTwvYT4mZ3Q7Ojxicj48YmxvY2txdW90ZSBjbGFzcz0iZ21haWxfcXVvdGUiIHN0eWxl
+PSJib3JkZXItbGVmdDogMXB4IHNvbGlkIHJnYigyMDQsIDIwNCwgMjA0KTsgbWFyZ2luOiAwcHQg
+MHB0IDBwdCAwLjhleDsgcGFkZGluZy1sZWZ0OiAxZXg7Ij4KCm1hIDIzLjYuMjAwOCAyMTo1OCBB
+bmRyZXcgV2Vic2RhbGUga2lyam9pdHRpOjxicj4KPGRpdj4mZ3Q7IDIwMDgvNi8xOSBBbnR0aSBQ
+YWxvc2FhcmkgJmx0OzxhIGhyZWY9Im1haWx0bzpjcm9wZUBpa2kuZmkiIHRhcmdldD0iX2JsYW5r
+Ij5jcm9wZUBpa2kuZmk8L2E+Jmd0Ozo8YnI+CiZndDsmZ3Q7PGJyPgomZ3Q7Jmd0OyBMb29rcyBs
+aWtlIHNtYWxsIGNoYW5nZXMgdG8gbTkyMDYgZHJpdmVyIGlzIG5lZWRlZC4gTVQyMDYwIHR1bmVy
+IG5lZWRzPGJyPgomZ3Q7Jmd0OyZndDs8YnI+CiZndDsmZ3Q7Jmd0OyZndDsgSUYxLCBpMmMtYWRk
+cmVzcyBhbmQgb3V0cHV0IGNsb2NrIGJpdCAoMC8xIGlmIEkgcmVtZWJlciBjb3JyZWN0bHkuLiku
+PGJyPgomZ3Q7Jmd0OyZndDsmZ3Q7IFRob3NlIGNhbiBiZSBzZWVuIGZyb20gd2luZG93cyBzbmlm
+ZnMgb3IgYnkgZ3Vlc3NpbmcgLyB0ZXN0aW5nLiBJRjEgaXM8YnI+CiZndDsmZ3Q7Jmd0OyZndDsg
+ZWFzeSB0byBzZXQgZGVmYXVsdCBvbmUsIDEyMjAsIHdyb25nIElGMSBvbmx5IGRlY3JlYXNlcyBw
+ZXJmb3JtYW5jZS48YnI+CiZndDsmZ3Q7Jmd0OyZndDsgSWY8YnI+CiZndDsmZ3Q7Jmd0OyZndDsg
+dGhlcmUgaXMgZWVwcm9tIHVzZWQgdGhlbiB2YWx1ZSBpcyBub3JtYWxseSByZWFkIGZyb20gdGhl
+cmUsIG90aGVyd29zZTxicj4KJmd0OyZndDsmZ3Q7Jmd0OyBqdXN0IHNldCBkZWZhdWx0LiBjbG9j
+ayBpcyBlYXN5IHRvIHRlc3QuIEkgZG9uwrR0IGtub3cgaG93IG1hbnk8YnI+CiZndDsmZ3Q7Jmd0
+OyZndDsgaTJjLWFkZHJlc3M8YnI+CiZndDsmZ3Q7Jmd0OyZndDsgYXJlIHN1cHBvcnRlZCBieSBj
+aGlwLCBidXQgbW9zdCBwcm9iYWJseSB0aGVyZSBpcyBub3QgdG9vIG1hbnkuPGJyPgomZ3Q7Jmd0
+OyZndDsmZ3Q7IEhvcGVmdWxseTxicj4KJmd0OyZndDsmZ3Q7Jmd0OyBvbmx5IDQuIFlvdSBjYW4g
+bG9vayBmcm9tIHNwZWNzIG9yIGZyb20gb3RoZXIgZHJpdmVycyB3aGF0PGJyPgomZ3Q7Jmd0OyZn
+dDsmZ3Q7IGkyYy1hZGRyZXNzZXM8YnI+CiZndDsmZ3Q7Jmd0OyZndDsgYXJlIHVzZWQgZm9yIG10
+MjA2MC4gSSB0aGluayBpdCB3aWxsIHRha2UgMi0xMCB0ZXN0IHRvIGZpbmQgY29ycmVjdDxicj4K
+Jmd0OyZndDsmZ3Q7Jmd0OyB2YWx1ZXM8YnI+CiZndDsmZ3Q7Jmd0OyZndDsgYnkgdHJpYWwgYW5k
+IGVycm9yIG1ldGhvZC48YnI+CiZndDsmZ3Q7Jmd0OyZndDs8YnI+CiZndDsmZ3Q7Jmd0Ozxicj4K
+Jmd0OyZndDs8YnI+CiZndDsmZ3Q7IEkmIzM5O3ZlIHRyaWVkIGFkZGluZyB0aGUgbXQyMDYwIGNv
+ZGUgLSBpdCBjb21waWxlcyBPSyAmYW1wOyBkb2VzIHNlZW0gdG8gYmU8YnI+CiZndDsmZ3Q7IG5l
+YXJseTxicj4KJmd0OyZndDsgcmlnaHQsdGhlIHR1bmVyIGlzIGJlaW5nIHJlY29nbmlzZWQsIGJ1
+dCBJIHRoaW5rIGxvYWRpbmcgdGhlIG1vZHVsZTxicj4KJmd0OyZndDsgY2F1c2VzPGJyPgomZ3Q7
+Jmd0OyB0aGUgSTJjIGJpdCBvZiB0aGUga2VybmVsIHRvIE9vcHMgLSB3b3VsZCBhbiBpbmNvcnJl
+Y3QgaTJjIGFkZHJlc3MgY2F1c2U8YnI+CiZndDsmZ3Q7IHRoaXM/PGJyPgomZ3Q7Jmd0Ozxicj4K
+Jmd0OyBIZXJlJiMzOTtzIG15IGRtZXNnIG91dHB1dDo8YnI+CjwvZGl2PjxkaXY+Jmd0OyBtOTIw
+eF9tdDIwNjBfdHVuZXJfYXR0YWNoPGJyPgomZ3Q7IEJVRzogdW5hYmxlIHRvIGhhbmRsZSBrZXJu
+ZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1YWwgYWRkcmVzczxicj4KJmd0OyAw
+MDAwMDA2Yzxicj4KPGJyPgo8L2Rpdj5iZWNhdXNlIHlvdSBoYXZlIHBhc3NlZCB0dW5lciBpMmMt
+YWRkcmVzcyBhcyBwYXJhbWV0ZXIgdG8gdGhlIGR2Yl9hdHRhY2goKTxicj4KPGJyPgo8Zm9udCBj
+b2xvcj0iIzg4ODg4OCI+U29ycnkgaWYgSSYjMzk7dmUgbWFkZSBhbiBvYnZpb3VzIGVycm9yLCBp
+dHMgdGhlIDFzdCB0aW1lIEkmIzM5O3ZlIHRyaWVkIHRvIGNoYW5nZSBhIGRyaXZlciwgd2hhdCBz
+aG91bGQgSSBiZSBwYXNzaW5nIC0gaXMgaXQgJnF1b3Q7JmFtcDthZGFwLSZndDtkZXYtJmd0O2ky
+Y19hZGFwJnF1b3Q7PyBJIHRyaWVkIHRvIGZpbmQgYW4gZXhhbXBsZSBvZiBtdDIwNjAgYmVpbmcg
+YXR0YWNoZWQsIGJ1dCBJIHdhcyBiYXJraW5nIHVwIHRoZSB3cm9uZyB0cmVlIDopLiBJIGRvbiYj
+Mzk7dCB3YW50IHRvIHdhc3RlIHlvdXIgKG9yIGFueW9uZSBlbHNlcykgdGltZSwgYnV0IEkmIzM5
+O2QgbGlrZSB0byBsZWFybiBzb21ldGhpbmcgYWJvdXQga2VybmVsIGRyaXZlcnMgJmFtcDsgbWF5
+YmUgbWFrZSBzb21lIGNvbnRyaWJ1dGlvbiBpZiBJIGNhbi48L2ZvbnQ+PC9ibG9ja3F1b3RlPgo8
+ZGl2PmNoZWVycyBBbmRyZXcgPGJyPjwvZGl2PjwvZGl2Pjxicj4K
+------=_Part_21414_32501053.1214299225187--
 
 
-The idea is, that the remote control informs (thrue irq) 
-mantis_query_rc() to be active.
-mantis_query_rc takes care that it will reactivate itself after 250ms, 
-until remote control
-hasn't sent any "user is still pressing a button" messages.
-
-POLL_FREQ (HZ/4) time (250ms) must be more than the remote control 
-message interval (230ms).
-This way we can ensure that the remote control sends at least one 
-message per POLL_FREQ tick.
-If on the last POLL_FREQ tick no button is pressed (-1), 
-mantis_query_rc() doesn't activate the POLL_FREQ tick
-anymore, just informs via ir_input_nokey() that the remote control user 
-doesn't press any buttons.
-
-So in this way the remote control works with Twinhan 2033 better than 
-ever (the hand experience is good also).
-+ Initial key press is delivered instantly.
-+ No CPU consumption while the remote control isn't used.
-Could possibly be improved with a tasklet, if the instant response 
-experience would be that important.
-Can be used from 1 to 4 key repeats per second (230ms remote control 
-limit is the lower bound, we must be safely above).
-
-Interrupt handler on mantis_pci.c:
-        if (stat & MANTIS_INT_IRQ1) {
-                mantis->ir.ir_last_code = mmread(0xe8);
-                dprintk(verbose, MANTIS_DEBUG, 0, "* INT IRQ-1 *");
-                schedule_delayed_work(&mantis->ir.rc_query_work, 0);
-        }
- 
-
-
-mantis_rc.c:
-#define POLL_FREQ (HZ/4)
-
-void mantis_query_rc(struct work_struct *work)
-{
-        struct mantis_pci *mantis =
-                container_of(work, struct mantis_pci, 
-ir.rc_query_work.work);
-        struct ir_input_state *ir = &mantis->ir.ir;
-
-        u32 lastkey = mantis->ir.ir_last_code;
-
-        ir_input_nokey(mantis->ir.rc_dev, ir);
-
-        if (lastkey != -1) {
-                ir_input_keydown(mantis->ir.rc_dev, ir, lastkey, 0);
-                mantis->ir.ir_last_code = -1;
-                schedule_delayed_work(&mantis->ir.rc_query_work, POLL_FREQ);
-        }
-}
-
-int mantis_rc_init(struct mantis_pci *mantis):
-        mantis->ir.ir_last_code = -1; /* key presses disabled here. */
-        INIT_DELAYED_WORK(&mir->rc_query_work, mantis_query_rc);
-
-int mantis_rc_exit(struct mantis_pci *mantis):
-
-        mmwrite(mmread(MANTIS_INT_MASK) & (~MANTIS_INT_IRQ1), 
-MANTIS_INT_MASK);
-        mantis->ir.ir_last_code = -1; /* key presses disabled here. */
-        cancel_delayed_work_sync(&mantis->ir.rc_query_work); /* not my 
-idea */
-
+--===============0828429199==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0828429199==--
