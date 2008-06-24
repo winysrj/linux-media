@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TL4Z0F012580
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 17:04:35 -0400
-Received: from yop.chewa.net (yop.chewa.net [91.121.105.214])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TL3owL004727
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 17:03:50 -0400
-Date: Sun, 29 Jun 2008 23:03:49 +0200
-From: Antoine Cellerier <dionoea@videolan.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OD3MnH006473
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 09:03:22 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.240])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OD2p6M032148
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 09:02:51 -0400
+Received: by an-out-0708.google.com with SMTP id d31so738031and.124
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 06:02:51 -0700 (PDT)
+Message-ID: <d9def9db0806240602k14759806v40c8484825ecc09e@mail.gmail.com>
+Date: Tue, 24 Jun 2008 09:02:51 -0400
+From: "Markus Rechberger" <mrechberger@gmail.com>
 To: video4linux-list@redhat.com
-Message-ID: <20080629210349.GA26587@chewa.net>
-References: <4867F380.1040803@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <4867F380.1040803@hhs.nl>
-Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
+Subject: ir-kbd-i2c.c bug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,20 +27,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jun 29, 2008, Hans de Goede wrote:
-> * Do not return an uninitialized variable as result code for GPICT
->   (fixes vlc, but see below)
-> * Add a patches directory which includes:
->   * vlc-0.8.6-libv4l1.patch, modify vlc's v4l1 plugin to directly call into
->     libv4l1, in the end we want all apps todo this as its better then
->     LD_PRELOAD tricks, but for vlc this is needed as vlc's plugin system
->     causes LD_PRELOAD to not work on symbols in the plugins
+Hi,
 
-You might want to submit those VLC specific patches upstream ...
+lately I had a closer look at why my box crashed when reloading the
+videomodules.
+I initially took the remote control polling code from ir-kbd-i2c.c and
+noticed that there's a problem with the deinitialization of the timer.
 
--- 
-Antoine Cellerier
-dionoea
+ http://linuxtv.org/hg/v4l-dvb/file/d182c0bbc49d/linux/drivers/media/video/ir-kbd-i2c.c
+
+
+      502 	/* kill outstanding polls */
+      503 	del_timer_sync(&ir->timer);
+      504 	flush_scheduled_work();
+
+Work Struct:
+      307 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+      308 static void ir_work(void *data)
+      309 #else
+      310 static void ir_work(struct work_struct *work)
+      320 	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(100));
+
+So in that case the timer could be deleted before the work has been
+finished, the final result in such a case would be that the kernel
+dies in interrupt mode by accessing the deinitialized timer struct.
+
+best would probably be to use delayed_work here...
+
+It's rather easy reproduceable when using msecs_to_jiffies(5).
+
+I have limited internet access at the moment, so submitting a patch
+could take a while from my side, maybe someone else can fix it? :)
+I guess this constellation can be found in other code too, especially
+hotpluggable devices might trigger such a problem.
+
+Markus
 
 --
 video4linux-list mailing list
