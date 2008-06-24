@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail05.adl2.internode.on.net ([203.16.214.145])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ianwroberts@internode.on.net>) id 1KCnSG-00030v-43
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 05:19:57 +0200
-Message-ID: <4866FF4F.7060804@internode.on.net>
-Date: Sun, 29 Jun 2008 12:49:43 +0930
-From: Ian Roberts <ianwroberts@internode.on.net>
+Received: from olammi.iki.fi ([217.112.242.173])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <olammi@olammi.iki.fi>) id 1KB9nP-0001cI-MW
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 16:47:00 +0200
+Date: Tue, 24 Jun 2008 17:46:53 +0300 (EEST)
+From: Olli Lammi <olammi@olammi.iki.fi>
+To: Robert Schedel <r.schedel@yahoo.de>
+In-Reply-To: <Pine.LNX.4.64.0806241719090.16776@zil.olammi.iki.fi>
+Message-ID: <Pine.LNX.4.64.0806241744120.16776@zil.olammi.iki.fi>
+References: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
+	<484EB8BC.5060604@yahoo.de>
+	<Pine.LNX.4.64.0806241719090.16776@zil.olammi.iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Tuning problems
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] High load with Terratec Cinergy 1200 DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,51 +27,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear Linux-DVBers,
 
-I now own two USB DVB-T receivers (dongles): a Gigabyte U7000-RH and a 
-digitalNow tinyUSB2.
+>> Please see: <http://bugzilla.kernel.org/show_bug.cgi?id=10459>
+>
+> Hello again!
+>
+> I have now first tried the saa7146_sleep-patch as the thread above suggests 
+> adapted to the 2.6.22.14-72.fc6-kernel. There was no change in the load.
+>
+> Today I upgraded the entire server kernel to kernel.org 2.6.28.5-version and 
+> applied the Oliver Endriss saa7147_sleep-patch to it. Still my two Terratec 
+> cards produce approx 1.5 load when system is about idle.
+>
+> Any suggestions how to debug or try to solve the problem?
 
-I use them on my Kubuntu 7.10 workstation.
 
-I've had the digitalNow for a year or so and it has been working fine 
-(and easy to get going) with kaffeine except that I couldn't receive SBS 
-reliably (in Adelaide, Australia) although I was able to tune to it from 
-time to time. With the Tour de France starting next week (coverage 
-broadcast by SBS), I took a punt yesterday and bought a Gigabyte 
-U7000-RH and, yes, it too was easy to get going, and, luckily, receives 
-SBS nicely -but it can't tune to Channel 7 at all!
+To answer myself. After posting I read the thread one more time and I 
+found another patch there. How did I miss that one first time and ended up 
+to the sleep-patch... Applying the Schedel dvb_ca_en50221.c-patch lowered 
+the load to 0.15. This is ok and my problem is solved.
 
-My kaffeine installation now has a channel list that covers all the 
-local terrestrial TV stations. If I connect the digitalNow device, I can 
-watch 2, 9, 7 & 10 and if I connect the Gigabyte device I can watch SBS, 
-2, 9 and 10.
+Thank you
 
-I'm presuming that means that by channel tuning data is OK. I don't know 
-whether it's relevant, but I notice that SBS seems to be the highest 
-frequency local station and Channel Seven seems to be the lowest. There  
-seems to be a problem with both devices at the opposite ends of the 
-frequency range.
+Olli Lammi
 
-Any suggestions? (other the juggling the two devices!)
-
-bye
-
-ian
-
-    # Australia / Adelaide / Mt Lofty
-    # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-    # ABC
-    T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-    # Seven
-    T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
-    # Nine
-    T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-    # Ten
-    T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-    # SBS
-    T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-
+--------------------------------------------------------------------------
+Olli Lammi                    olammi@iki.fi                   040 580 7666
+--------------------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
