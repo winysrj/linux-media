@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TMa7hX011849
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 18:36:07 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TMZukQ007011
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 18:35:56 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so777777fga.7
-	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 15:35:56 -0700 (PDT)
-Message-ID: <30353c3d0806291535q76877c82w1bb431bf1d8d9e7b@mail.gmail.com>
-Date: Sun, 29 Jun 2008 18:35:56 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: video4linux-list@redhat.com,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <30353c3d0806291528qd61f4eey871db12dda64d38b@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OM52hv000622
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 18:05:02 -0400
+Received: from mailrelay006.isp.belgacom.be (mailrelay006.isp.belgacom.be
+	[195.238.6.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OM4qKR005484
+	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 18:04:52 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Wed, 25 Jun 2008 00:04:48 +0200
+References: <485F7A42.8020605@vidsoft.de>
+	<200806240033.41145.laurent.pinchart@skynet.be>
+	<20080624183601.235ff1d5@gaivota>
+In-Reply-To: <20080624183601.235ff1d5@gaivota>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_2092_24054635.1214778956126"
-References: <30353c3d0806281807p7b78dcd2xe2a91d560ae6df12@mail.gmail.com>
-	<30353c3d0806291528qd61f4eey871db12dda64d38b@mail.gmail.com>
-Cc: 
-Subject: Re: [RFC] videodev: properly reference count video_device
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200806250004.48989.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
+Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,122 +32,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_2092_24054635.1214778956126
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On Sun, Jun 29, 2008 at 6:28 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> [RFC v2] This patch should cleanly apply to the v4l-dvb devel branch.
-> The addition of the reference count results in the wrapping of the
-> file_operations release callback. Since open and release both take the
-> videodev_lock, the big kernel lock is no longer necessary to prevent
-> race conditions in sub-drivers.
+On Tuesday 24 June 2008, Mauro Carvalho Chehab wrote:
+> > > Can I enable more logging than setting the trace parameter to 0xfff?
+> >
+> > No without adding more printk's to the driver, which I encourage you to
+> > do.
 >
-Patch attached
+> This would be one advantage of having uvc driver using video_ioctl2. to see
+> ioctl's it is just a matter of using debug=1. If you use debug=3, you'll
+> also view all arguments of the ioctl.
 
-Regards,
+That won't happen. Anyway, the UVC driver already prints out ioctl trace 
+messages to the kernel if you set the trace parameter high enough. Gregor was 
+asking for more debugging output than that.
 
-David Ellingsworth
+> PS.: I'm still waiting for uvc patches for its kernel addition.
 
-------=_Part_2092_24054635.1214778956126
-Content-Type: text/x-diff;
-	name=0001-videodev-add-ref-count-to-video_device.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fi281bzc0
-Content-Disposition: attachment;
-	filename=0001-videodev-add-ref-count-to-video_device.patch
+I've received all the feedback and review I'll probably get, so I'll send a 
+new patch this week with the latest driver.
 
-RnJvbSAyNmQzZmZhODdmMjZlZDIyMjI2YjRlNjBkOWVjNmUzYmUzNjgzY2JkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBTdW4sIDI5IEp1biAyMDA4IDE0OjI3OjQzIC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gdmlkZW9kZXY6IGFkZCByZWYgY291bnQgdG8gdmlkZW9fZGV2aWNlCgoKU2lnbmVkLW9m
-Zi1ieTogRGF2aWQgRWxsaW5nc3dvcnRoIDxkYXZpZEBpZGVudGQuZHluZG5zLm9yZz4KLS0tCiBk
-cml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgfCAgIDcyICsrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrLS0tLS0tLQogaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oICAgICAgIHwgICAg
-MyArKwogMiBmaWxlcyBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspLCAxMyBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgYi9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL3ZpZGVvZGV2LmMKaW5kZXggMGQ1MjgxOS4uYmQ0OGI0YyAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9tZWRpYS92aWRlby92aWRlb2Rldi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
-dmlkZW9kZXYuYwpAQCAtNDA2LDEwICs0MDYsMjAgQEAgdm9pZCB2aWRlb19kZXZpY2VfcmVsZWFz
-ZShzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQpCiB9CiBFWFBPUlRfU1lNQk9MKHZpZGVvX2Rldmlj
-ZV9yZWxlYXNlKTsKIAotc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpj
-ZCkKKy8qCisgKglBY3RpdmUgZGV2aWNlcworICovCisKK3N0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2
-aWNlICp2aWRlb19kZXZpY2VbVklERU9fTlVNX0RFVklDRVNdOworc3RhdGljIERFRklORV9NVVRF
-WCh2aWRlb2Rldl9sb2NrKTsKKworLyogdmlkZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZv
-cmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMgdm9pZCB2aWRlb19mcmVlKHN0cnVjdCBrcmVmICpr
-cmVmKQogewotCXN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCA9IGNvbnRhaW5lcl9vZihjZCwgc3Ry
-dWN0IHZpZGVvX2RldmljZSwKLQkJCQkJCQkJY2xhc3NfZGV2KTsKKwlzdHJ1Y3QgdmlkZW9fZGV2
-aWNlICp2ZmQgPQorCQljb250YWluZXJfb2Yoa3JlZiwgc3RydWN0IHZpZGVvX2RldmljZSwga3Jl
-Zik7CisKKwl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0gPSBOVUxMOwogCiAjaWYgMQogCS8qIG5l
-ZWRlZCB1bnRpbCBhbGwgZHJpdmVycyBhcmUgZml4ZWQgKi8KQEAgLTQxOSw2ICs0MjksMjkgQEAg
-c3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpjZCkKIAl2ZmQtPnJlbGVh
-c2UodmZkKTsKIH0KIAorc3RhdGljIGlubGluZSB2b2lkIHZpZGVvX2tyZWZfZ2V0KHN0cnVjdCB2
-aWRlb19kZXZpY2UgKnZmZCkKK3sKKwlrcmVmX2dldCgmdmZkLT5rcmVmKTsKK30KKworLyogdmlk
-ZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZvcmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMg
-aW5saW5lIHZvaWQgdmlkZW9fa3JlZl9wdXQoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQorewor
-CWtyZWZfcHV0KCZ2ZmQtPmtyZWYsIHZpZGVvX2ZyZWUpOworfQorCisvKgorICogY2FsbGVkIHdp
-dGhpbiB0aGUgY29udGV4dCBvZiB2aWRlb191bnJlZ2lzdGVyX2RldmljZSB3aXRoCisgKiB2aWRl
-b2Rldl9sb2NrIGhlbGQKKyAqLworc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2
-aWNlICpjZCkKK3sKKwlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQgPSBjb250YWluZXJfb2YoY2Qs
-IHN0cnVjdCB2aWRlb19kZXZpY2UsCisJCQkJCQkJCWNsYXNzX2Rldik7CisKKwl2aWRlb19rcmVm
-X3B1dCh2ZmQpOworfQorCiBzdGF0aWMgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgdmlkZW9fZGV2
-aWNlX2F0dHJzW10gPSB7CiAJX19BVFRSKG5hbWUsIFNfSVJVR08sIHNob3dfbmFtZSwgTlVMTCks
-CiAJX19BVFRSKGluZGV4LCBTX0lSVUdPLCBzaG93X2luZGV4LCBOVUxMKSwKQEAgLTQzMSwxOSAr
-NDY0LDI3IEBAIHN0YXRpYyBzdHJ1Y3QgY2xhc3MgdmlkZW9fY2xhc3MgPSB7CiAJLmRldl9yZWxl
-YXNlID0gdmlkZW9fcmVsZWFzZSwKIH07CiAKLS8qCi0gKglBY3RpdmUgZGV2aWNlcwotICovCi0K
-LXN0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2aWRlb19kZXZpY2VbVklERU9fTlVNX0RFVklD
-RVNdOwotc3RhdGljIERFRklORV9NVVRFWCh2aWRlb2Rldl9sb2NrKTsKLQogc3RydWN0IHZpZGVv
-X2RldmljZSogdmlkZW9fZGV2ZGF0YShzdHJ1Y3QgZmlsZSAqZmlsZSkKIHsKIAlyZXR1cm4gdmlk
-ZW9fZGV2aWNlW2ltaW5vcihmaWxlLT5mX3BhdGguZGVudHJ5LT5kX2lub2RlKV07CiB9CiBFWFBP
-UlRfU1lNQk9MKHZpZGVvX2RldmRhdGEpOwogCitzdGF0aWMgaW50IHZpZGVvX2Nsb3NlKHN0cnVj
-dCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmaWxlKQoreworCXVuc2lnbmVkIGludCBtaW5v
-ciA9IGltaW5vcihpbm9kZSk7CisJc3RydWN0IHZpZGVvX2RldmljZSAqdmZsOworCWludCBlcnIg
-PSAwOworCisJbXV0ZXhfbG9jaygmdmlkZW9kZXZfbG9jayk7CisJdmZsID0gdmlkZW9fZGV2aWNl
-W21pbm9yXTsKKwllcnIgPSB2ZmwtPmZvcHMtPnJlbGVhc2UoaW5vZGUsIGZpbGUpOworCXZpZGVv
-X2tyZWZfcHV0KHZmbCk7CisJbXV0ZXhfdW5sb2NrKCZ2aWRlb2Rldl9sb2NrKTsKKworCXJldHVy
-biBlcnI7Cit9CisKIC8qCiAgKglPcGVuIGEgdmlkZW8gZGV2aWNlIC0gRklYTUU6IE9ic29sZXRl
-ZAogICovCkBAIC00NjksMTAgKzUxMCwxMyBAQCBzdGF0aWMgaW50IHZpZGVvX29wZW4oc3RydWN0
-IGlub2RlICppbm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCiAJCX0KIAl9CiAJb2xkX2ZvcHMgPSBm
-aWxlLT5mX29wOwotCWZpbGUtPmZfb3AgPSBmb3BzX2dldCh2ZmwtPmZvcHMpOwotCWlmKGZpbGUt
-PmZfb3AtPm9wZW4pCisJZmlsZS0+Zl9vcCA9IGZvcHNfZ2V0KCZ2ZmwtPnByaXZfZm9wcyk7CisJ
-aWYgKGZpbGUtPmZfb3AtPm9wZW4pIHsKKwkJdmlkZW9fa3JlZl9nZXQodmZsKTsKIAkJZXJyID0g
-ZmlsZS0+Zl9vcC0+b3Blbihpbm9kZSxmaWxlKTsKKwl9CiAJaWYgKGVycikgeworCQl2aWRlb19r
-cmVmX3B1dCh2ZmwpOwogCQlmb3BzX3B1dChmaWxlLT5mX29wKTsKIAkJZmlsZS0+Zl9vcCA9IGZv
-cHNfZ2V0KG9sZF9mb3BzKTsKIAl9CkBAIC0yMTY2LDYgKzIyMTAsOCBAQCBpbnQgdmlkZW9fcmVn
-aXN0ZXJfZGV2aWNlX2luZGV4KHN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCwgaW50IHR5cGUsIGlu
-dCBuciwKIAl9CiAJdmlkZW9fZGV2aWNlW2ldPXZmZDsKIAl2ZmQtPm1pbm9yPWk7CisJdmZkLT5w
-cml2X2ZvcHMgPSAqdmZkLT5mb3BzOworCXZmZC0+cHJpdl9mb3BzLnJlbGVhc2UgPSB2aWRlb19j
-bG9zZTsKIAogCXJldCA9IGdldF9pbmRleCh2ZmQsIGluZGV4KTsKIAlpZiAocmV0IDwgMCkgewpA
-QCAtMjE3OCw2ICsyMjI0LDcgQEAgaW50IHZpZGVvX3JlZ2lzdGVyX2RldmljZV9pbmRleChzdHJ1
-Y3QgdmlkZW9fZGV2aWNlICp2ZmQsIGludCB0eXBlLCBpbnQgbnIsCiAKIAltdXRleF91bmxvY2so
-JnZpZGVvZGV2X2xvY2spOwogCW11dGV4X2luaXQoJnZmZC0+bG9jayk7CisJa3JlZl9pbml0KCZ2
-ZmQtPmtyZWYpOwogCiAJLyogc3lzZnMgY2xhc3MgKi8KIAltZW1zZXQoJnZmZC0+Y2xhc3NfZGV2
-LCAweDAwLCBzaXplb2YodmZkLT5jbGFzc19kZXYpKTsKQEAgLTIyMjUsNyArMjI3Miw2IEBAIHZv
-aWQgdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2Uoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQogCWlm
-KHZpZGVvX2RldmljZVt2ZmQtPm1pbm9yXSE9dmZkKQogCQlwYW5pYygidmlkZW9kZXY6IGJhZCB1
-bnJlZ2lzdGVyIik7CiAKLQl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl09TlVMTDsKIAlkZXZpY2Vf
-dW5yZWdpc3RlcigmdmZkLT5jbGFzc19kZXYpOwogCW11dGV4X3VubG9jaygmdmlkZW9kZXZfbG9j
-ayk7CiB9CmRpZmYgLS1naXQgYS9pbmNsdWRlL21lZGlhL3Y0bDItZGV2LmggYi9pbmNsdWRlL21l
-ZGlhL3Y0bDItZGV2LmgKaW5kZXggM2M5MzQxNC4uN2QyNmIyNSAxMDA2NDQKLS0tIGEvaW5jbHVk
-ZS9tZWRpYS92NGwyLWRldi5oCisrKyBiL2luY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaApAQCAtMzQy
-LDYgKzM0Miw5IEBAIHZvaWQgKnByaXY7CiAJLyogZm9yIHZpZGVvZGV2LmMgaW50ZW5hbCB1c2Fn
-ZSAtLSBwbGVhc2UgZG9uJ3QgdG91Y2ggKi8KIAlpbnQgdXNlcnM7ICAgICAgICAgICAgICAgICAg
-ICAgLyogdmlkZW9fZXhjbHVzaXZlX3tvcGVufGNsb3NlfSAuLi4gKi8KIAlzdHJ1Y3QgbXV0ZXgg
-bG9jazsgICAgICAgICAgICAgLyogLi4uIGhlbHBlciBmdW5jdGlvbiB1c2VzIHRoZXNlICAgKi8K
-KwkvKiBwcml2YXRlIGZpbGUgb3BzIGZvciByZWxlYXNlIGNhbGxiYWNrICovCisJc3RydWN0IGZp
-bGVfb3BlcmF0aW9ucyBwcml2X2ZvcHM7CisJc3RydWN0IGtyZWYga3JlZjsgICAgICAgICAgICAg
-IC8qIGludGVybmFsIHJlZmVyZW5jZSBjb3VudCAqLwogfTsKIAogLyogQ2xhc3MtZGV2IHRvIHZp
-ZGVvLWRldmljZSAqLwotLSAKMS41LjUuMQoK
-------=_Part_2092_24054635.1214778956126
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I've addressed some of your comments (such as not using enums at userspace 
+interface). What is the rationale behind not having userspace and kernelspace 
+APIs in a single .h file ? If I'm not mistaken kernel headers are stripped 
+from their #ifdef __KERNEL__ sections but distributions anyway. It makes 
+sense to have separate headers when they become big enough, but I don't think 
+that's the case for a single driver like this one.
+
+Cheers,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_2092_24054635.1214778956126--
