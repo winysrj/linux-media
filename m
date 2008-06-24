@@ -1,21 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53MpC5e005850
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:51:12 -0400
-Received: from n20.bullet.mail.mud.yahoo.com (n20.bullet.mail.mud.yahoo.com
-	[68.142.206.147])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m53MoVp9024645
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 18:50:31 -0400
-From: Andres Suarez <andrestepeite@yahoo.com.mx>
-To: video4linux-list@redhat.com
-In-Reply-To: <20080603160014.D7A2A8E002E@hormel.redhat.com>
-References: <20080603160014.D7A2A8E002E@hormel.redhat.com>
-Content-Type: text/plain
-Date: Tue, 03 Jun 2008 17:50:24 -0500
-Message-Id: <1212533424.7582.13.camel@pc2008>
+Date: Tue, 24 Jun 2008 09:39:51 -0400
+From: Alan Cox <alan@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20080624133951.GA9910@devserv.devel.redhat.com>
+References: <485F7A42.8020605@vidsoft.de>
+	<200806240033.41145.laurent.pinchart@skynet.be>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Need help choosing a camera.
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200806240033.41145.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
+Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,21 +22,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everybody.
+On Tue, Jun 24, 2008 at 12:33:40AM +0200, Laurent Pinchart wrote:
+> Not really. The ioctl handler is protected by the big kernel lock, so ioctls 
+> are currently not reentrant.
 
-I need to build a machine vision system, I think it would be very useful
-to have a well suported good quality USB camera for that purpose (i.e.
-if I could focus using software it would be great). I would appreciate A
-LOT some advice about the right model to choose.
+Not so - the BKL drops on sleeping so any ioctl that sleeps is re-entrant.
+Any code using locks of its own should be dropping their lock before any long
+sleeps.
 
-Thanks in advance.
+> Most drivers are probably not designed with thread safety in mind, and I'm 
+> pretty sure lots of race conditions still lie in the depth of V4L(2) drivers. 
 
-Andres Suarez
-
-__________________________________________________
-Correo Yahoo!
-Espacio para todos tus mensajes, antivirus y antispam ¡gratis! 
-Regístrate ya - http://correo.yahoo.com.mx/ 
+>From looking at the BKL dropping work that would unfortunately seem to be
+the case for some drivers
 
 --
 video4linux-list mailing list
