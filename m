@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.adfinis.com ([212.103.64.13])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@0x17.ch>) id 1K4d5O-0003J0-Tt
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 16:38:39 +0200
-From: Nicolas Christener <lists@0x17.ch>
-To: Dennis Noordsij <dennis.noordsij@movial.fi>
-In-Reply-To: <4849016A.8050607@movial.fi>
-References: <1212736555.4264.12.camel@oipunk.loozer.local>
-	<4849016A.8050607@movial.fi>
-Date: Fri, 06 Jun 2008 16:38:30 +0200
-Message-Id: <1212763110.14191.12.camel@oipunk.loozer.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Terratec Cinergy Piranha
+Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp3.aruba.it)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1KB4Cz-0001zr-9A
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 10:49:04 +0200
+Message-ID: <4860B4DA.10004@avalpa.com>
+Date: Tue, 24 Jun 2008 10:48:26 +0200
+From: Andrea Venturi <a.venturi@avalpa.com>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] OpenCaster (transport stream modder server) ver 1.0 has
+	been released..
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,102 +23,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello 
-thanks very much for your fast response!
+Hi,
 
-Am Freitag, den 06.06.2008, 11:20 +0200 schrieb Dennis Noordsij:
+I'm Andrea Venturi, i've been working with my colleague Lorenzo Pallara,
+since 2004, on a free DVB TS server software called JustDvb-It. Then
+early this year we have been start-upping a company doing the same stuff.
 
-[...]
+So today, after some more development, we are proud to announce the
+birth of OpenCaster
+<http://www.avalpa.com/the-key-values/15-free-software/33-opencaster>
+version 1.0, the first release after Avalpa start up.
 
-> You're in luck :-) That device works very well.
+http://www.avalpa.com/component/content/article/12-newsflash/35-opencaster-ver10-release-today-2062008
 
-*w00h00* sounds good :)
 
-> The driver is not in the official tree (yet) so if you would like to use
-> it you will need to compile it yourself, 
+OpenCaster is still a free (free as freedom
+<http://www.gnu.org/licenses/gpl-2.0.html>) software for transport
+stream generation and management useful for many purposes: carousel
+server, PSI table generator, datacasting, MPEG2 "poor man" playout system.
 
-[...]
+OpenCaster of course, grows on top of JustDvb-It
+<http://www.cineca.tv/labs/mhplab/JustDVb-It%202.0.html>, the previous
+free software we were carrying on in Cineca (kudos for them to give us
+this great opportunity!)
 
-> You will also need to take the firmware file "SMS100x_Dvbt.inp" (from
-> the installation CD or windows, or download the drivers from
-> terratec.net) and copy it to your \lib\firmware or \lib\firmware\`uname
-> -r` as "dvbt_stellar_usb.inp".
-> 
-> I hope those instructions make sense :-)
+Actually there are three main new features :
 
-thank you very much four your explanation. This is what I get:
+    * *TS conversion (with right PCR) of ffmpeg
+      <http://ffmpeg.mplayerhq.hu/> encoded PS (PCR stamping in ffmpeg
+      TS is someway  broken!)*
+    * *PCR stamping for Transport Stream bitrate change*
+    * *hot multplexing of many SPTS in a single MPTS*
 
-[root@oipunk:/lib/firmware]# uname -a
-Linux oipunk 2.6.25.4-paldo1-x86 #1 SMP PREEMPT Fri May 16 14:52:58 CEST
-2008 i686 GNU/Linux
+Many more smaller ones are well embedded in the software (please read
+all the description files like *Readme* and *CHANGES*)
 
-[root@oipunk:/lib/firmware]# lsmod | grep sms1xxx
-sms1xxx                25560  0 
-dvb_core               80512  1 sms1xxx
-firmware_class         10496  4 sms1xxx,microcode,iwl3945,pcmcia
+We made a manual too, after many requests. It's a 70 page user manual
+and should be useful to ramp up quickly
 
-[root@oipunk:/lib/firmware]# modinfo sms1xxx
-filename:       /lib/modules/2.6.25.4-paldo1-x86/kernel/drivers/media/dvb/siano/sms1xxx.ko
-license:        GPL
-author:         Anatoly Greenblatt,,, (anatolyg@siano-ms.com)
-description:    smscore
-alias:          usb:v187Fp0200d*dc*dsc*dp*ic*isc*ip*
-alias:          usb:v187Fp0100d*dc*dsc*dp*ic*isc*ip*
-alias:          usb:v187Fp0010d*dc*dsc*dp*ic*isc*ip*
-depends:        dvb-core,firmware_class
-vermagic:       2.6.25.4-paldo1-x86 SMP preempt mod_unload PENTIUMIII 
-parm:           adapter_nr:DVB adapter numbers (array of short)
-parm:           default_mode:default firmware id (device mode) (int)
+http://www.avalpa.com/assets/freesoft/opencaster/OpenCasterUserManual-v0.5.pdf
 
-[root@oipunk:/lib/firmware]# ls -la *.inp
--r-xr-xr-x 1 root root 40324 2008-06-06 14:34 dvbh_stellar_usb.inp
--r-xr-xr-x 1 root root 38144 2008-06-06 14:28 dvbt_stellar_usb.inp
 
-[root@oipunk:/var/log]# dmesg
-[...]
-usb 3-1: new full speed USB device using uhci_hcd and address 43
-usb 3-1: configuration #1 chosen from 1 choice
-smsusb_probe 0
-endpoint 0 81 02 64
-endpoint 1 02 02 64
-smscore_register_device allocated 50 buffers
-smscore_register_device device ed48cf00 created
-smsusb1_detectmode: 1 "SMS DVBH Receiver"
-smscore_onresponse no client (00000000) or error (-16), type:698 dstid:0
-DVB: registering new adapter (Siano Digital Receiver)
-DVB: registering frontend 0 (Siano Mobile Digital SMS10xx)...
-smscore_register_client f6972800 693 0
-smsdvb_hotplug success
-smscore_start_device device ed48cf00 started, rc 0
-smsusb_init_device device f6973000 created
-usb 3-1: New USB device found, idVendor=187f, idProduct=0100
-usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 3-1: Product: SMS DVBH Receiver
-usb 3-1: Manufacturer: Siano Mobile Silicon
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-smsusb_onresponse error, urb status -84, 0 bytes
-usb 3-1: USB disconnect, address 43
-smscore_unregister_client f6972800 693
-smscore_unregister_device freed 50 buffers
-smscore_unregister_device device ed48cf00 destroyed
-smsusb_term_device device f6973000 destroyed
+To get this stuff, create an account
+<http://www.avalpa.com/component/user/?task=register> and then go to the
+reserved area <http://www.avalpa.com/reserved-area>. Please, *it could
+take some time* for the registration email to get delivered. Don't
+worry, it works.
 
-Unfortunately I do not get a device within /dev
-Am I doing something wrong? Or is there just something missing in my
-installation?
+Let us know when you find a bug or some unexpected result. Write to
+opencaster-support@avalpa.com
 
-I would very much appreciate any help.
+We are wide open to hear your complaints or success stories!
 
-kind regards
-Nicolas
+Bye
+
+Andrea Venturi
+
+ 
+
+
+
 
 
 _______________________________________________
