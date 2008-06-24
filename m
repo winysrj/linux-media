@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1KBbid-0002cL-RE
-	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 22:35:56 +0200
-Message-ID: <4862AC25.1030507@kolumbus.fi>
-Date: Wed, 25 Jun 2008 23:35:49 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from olammi.iki.fi ([217.112.242.173])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <olammi@olammi.iki.fi>) id 1KB9Pz-00008C-Cf
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 16:22:48 +0200
+Date: Tue, 24 Jun 2008 17:22:42 +0300 (EEST)
+From: Olli Lammi <olammi@olammi.iki.fi>
+To: Robert Schedel <r.schedel@yahoo.de>
+In-Reply-To: <484EB8BC.5060604@yahoo.de>
+Message-ID: <Pine.LNX.4.64.0806241719090.16776@zil.olammi.iki.fi>
+References: <Pine.LNX.4.64.0806101259050.6742@zil.olammi.iki.fi>
+	<484EB8BC.5060604@yahoo.de>
 MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-References: <4861501B.9050507@kolumbus.fi>
-	<d9def9db0806250508s60dcc01cjecb56bdaa9c0abb3@mail.gmail.com>
-In-Reply-To: <d9def9db0806250508s60dcc01cjecb56bdaa9c0abb3@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Ticlkess Mantis remote control implementation
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] High load with Terratec Cinergy 1200 DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,96 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> Hi Marko,
+On Tue, 10 Jun 2008, Robert Schedel wrote:
+
+> Olli Lammi wrote:
+>> Hello!
+>> ------
+>> 
+>> I recently moved to area where only DVB-T is available and changed my
+>> DVB-C-cards to two Terratec Cinergy 1200 DVB-T cards. However adding
+>> one card lifted the load of my server to approx 0.8 and adding the
+>> second card to approx 1.6. No processes are consuming the processor time so 
+>> I think the high load is due to dvb driver or kernel.
 >
-> On 6/24/08, Marko Ristola <marko.ristola@kolumbus.fi> wrote:
->   
->> Hi,
->>
->> I have still my own version of Manu's jusst.de/mantis driver that is
->> based on v4l-dvb-linuxtv main branch,
->> mainly because I use so new Linux kernels.
->> I have done the following improvement lately:
->>
->> I implemented a remote control patch, that doesn't poll the remote
->> control all the time.
->> It polls the remote control only if you press the button (a tickless
->> version, you know).
->> It surprised me, that the actual implementation was really small, it
->> took very few lines of code.
->>     
-
->>
->>
->> mantis_rc.c:
->> #define POLL_FREQ (HZ/4)
->>
->>     
+> Please see: <http://bugzilla.kernel.org/show_bug.cgi?id=10459>
 >
-> maybe msecs_to_jiffies(250) would be easier to understand here?
->   
-Sounds good,
-maybe something like
-
-#define RC_REPEAT_DELAY msecs_to_jiffies(300)
-
-So the increase into 300 is because the initial remote control delay 
-might be about 270ms.
-Further delays might be 220ms.
-This way the delay is safely big enough.
-
-Roland has done another tickless implementation that obeys 270ms and 
-220ms delays exactly.
-It might be even better now for VDR style applications than my 
-implementation.
-
-It is on http://www.linuxtv.org/pipermail/linux-dvb/2008-May/026102.html.
-
-Marko
-> Markus
+>> Is this a known problem and is there a workaround available?. I tried to 
+>> search the net for answers but found none.
 >
->   
->> void mantis_query_rc(struct work_struct *work)
->> {
->>        struct mantis_pci *mantis =
->>                container_of(work, struct mantis_pci,
->> ir.rc_query_work.work);
->>        struct ir_input_state *ir = &mantis->ir.ir;
->>
->>        u32 lastkey = mantis->ir.ir_last_code;
->>
->>        ir_input_nokey(mantis->ir.rc_dev, ir);
->>
->>        if (lastkey != -1) {
->>                ir_input_keydown(mantis->ir.rc_dev, ir, lastkey, 0);
->>                mantis->ir.ir_last_code = -1;
->>                schedule_delayed_work(&mantis->ir.rc_query_work, POLL_FREQ);
->>        }
->> }
->>
->> int mantis_rc_init(struct mantis_pci *mantis):
->>        mantis->ir.ir_last_code = -1; /* key presses disabled here. */
->>        INIT_DELAYED_WORK(&mir->rc_query_work, mantis_query_rc);
->>
->> int mantis_rc_exit(struct mantis_pci *mantis):
->>
->>        mmwrite(mmread(MANTIS_INT_MASK) & (~MANTIS_INT_IRQ1),
->> MANTIS_INT_MASK);
->>        mantis->ir.ir_last_code = -1; /* key presses disabled here. */
->>        cancel_delayed_work_sync(&mantis->ir.rc_query_work); /* not my
->> idea */
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>     
->
->   
+> The last email for this was just three days ago, titled "[linux-dvb] 
+> budget_av,  high cpuload with kncone tvstar".
 
+
+Hello again!
+
+I have now first tried the saa7146_sleep-patch as the thread above 
+suggests adapted to the 2.6.22.14-72.fc6-kernel. There was no change in 
+the load.
+
+Today I upgraded the entire server kernel to kernel.org 2.6.28.5-version 
+and applied the Oliver Endriss saa7147_sleep-patch to it. Still my two 
+Terratec cards produce approx 1.5 load when system is about idle.
+
+Any suggestions how to debug or try to solve the problem?
+
+Olli Lammi
+
+--------------------------------------------------------------------------
+Olli Lammi                    olammi@iki.fi                   040 580 7666
+--------------------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
