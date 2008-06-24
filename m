@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from [88.151.248.2] (helo=mail.krastelcom.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1K6Z89-00051m-Eh
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 00:49:26 +0200
-Message-ID: <4850566E.8030001@iki.fi>
-Date: Thu, 12 Jun 2008 01:49:18 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Andrew Websdale <websdaleandrew@googlemail.com>
-References: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
-In-Reply-To: <e37d7f810806111512w46a508b0h92047728ba38cac8@mail.gmail.com>
+	(envelope-from <vpr@krastelcom.ru>) id 1KBDB3-0005Aj-Bq
+	for linux-dvb@linuxtv.org; Tue, 24 Jun 2008 20:23:37 +0200
+Message-Id: <351B5589-8DC1-4AAF-B337-5CEC210BABD3@krastelcom.ru>
+From: Vladimir Prudnikov <vpr@krastelcom.ru>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20080624190926.525c8571@bk.ru>
+Mime-Version: 1.0 (Apple Message framework v924)
+Date: Tue, 24 Jun 2008 22:23:31 +0400
+References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
+	<DD6302F4D4084A839650A2FE7D164C76@ua0lnjhome>
+	<976C5CAC-6426-456A-9509-B7575CB3C5B0@krastelcom.ru>
+	<20080624190926.525c8571@bk.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dposh DVB-T USB2.0 seems to not work properly
+Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps and hvr4000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,25 +28,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrew Websdale wrote:
-> I got the front end info from dvbsnoop last night & it says its a 
-> Zarlink MT352, but I should try to open the stick anyway to clear up 
-> exactly what chips it uses, although I think its moulded plastics so 
-> I'll have to cut it open. (@work now, will try later)
-> Andrew (sorry if I sent an email to you direct, Antii, I'm not sure how 
-> Gmail handles mailing lists
+TT S-1500 works fine on 11606 V 45MS transponder but fails on 11044 H  
+45MS
+TT S2-3200 doesn't work on both.
 
-If dvbsnoop says that there is Zarlink MT352, then there should be.
+Someone has to review the tuner registers but noone has any interest.  
+I haven't got any specifications for the tuners.
 
-It should be also seen from the log, try to look your message.log again 
-to see if there is mention about Zarlink MT352 demodulator / frontend 
-and Quantek QT1010 tuner.
+Regards,
+Vladimir
 
-It could be also possible that tuner is not working.
+On Jun 24, 2008, at 7:09 PM, Goga777 wrote:
 
-Antti
--- 
-http://palosaari.fi/
+> I have checked this high SR on two Russian satellites - Express AM22  
+> 53E and ExpressAM2 80E. No any lock. I have tried to
+> increase/decrease SR/FREQ step by step , but it didn't help me.
+>
+> 11606,V,44948,56
+> 11044,V,44951,34
+>
+>
+>
+>
+>> Cool. But TT S-1500 and TT S2-3200 have different tuners. Can you  
+>> take
+>> a look at those?
+>>
+>> Regards,
+>> Vladimir
+>>
+>> On Jun 24, 2008, at 8:06 AM, ua0lnj wrote:
+>>
+>>> I use TT budget S-1102, it have Philips su-1278 tuner.
+>>> Locked SR 45 MSps on AM2 80E fine.
+>>> But need use my patch for dvb driver, I posted it twice in dvb mail-
+>>> list, but no response from any user...
+>>>
+>>>
+>>> ----- Original Message ----- From: "Vladimir Prudnikov" <vpr@krastelcom.ru
+>>>>
+>>> To: "Linux DVB Mailing List" <linux-dvb@linuxtv.org>
+>>> Sent: Monday, June 23, 2008 4:53 PM
+>>> Subject: [linux-dvb] Express AM2 11044 H 45 MSps
+>>>
+>>>
+>>>> Hi!
+>>>>
+>>>> I have recently realized that none of the available cards are  
+>>>> able to
+>>>> properly lock on Express AM2 11044H 45 MSps . The only one that can
+>>>> is
+>>>> TT-S1401 with buf[5] register corrections.
+>>>>
+>>>> I have tried:
+>>>>
+>>>> TT S-1500
+>>>> TT S2-3200
+>>>> Skystar 2.6
+>>>> TT S-1401 with non-modified drivers.
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
 
 _______________________________________________
 linux-dvb mailing list
