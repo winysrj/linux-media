@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.okg-computer.de ([85.131.254.125])
+Received: from wx-out-0506.google.com ([66.249.82.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@okg-computer.de>) id 1K5Fsp-0007bM-Gv
-	for linux-dvb@linuxtv.org; Sun, 08 Jun 2008 10:04:12 +0200
-Message-ID: <484B9279.4030600@okg-computer.de>
-Date: Sun, 08 Jun 2008 10:04:09 +0200
-From: =?ISO-8859-15?Q?Jens_Krehbiel-Gr=E4ther?=
- <linux-dvb@okg-computer.de>
+	(envelope-from <mkrufky@gmail.com>) id 1KBXPR-0005NC-2V
+	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 17:59:49 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so1322923wxd.17
+	for <linux-dvb@linuxtv.org>; Wed, 25 Jun 2008 08:59:45 -0700 (PDT)
+Message-ID: <37219a840806250859p38c463a1u90f883c62ee1b726@mail.gmail.com>
+Date: Wed, 25 Jun 2008 11:59:44 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Jos Hoekstra" <joshoekstra@gmx.net>
+In-Reply-To: <4862695A.50407@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, =?ISO-8859-15?Q?Michael_Sch=F6ller?=
-	<michael.schoeller@schoeller-soft.net>
-References: <484709F3.7020003@schoeller-soft.net>	<854d46170806060249h1aec73e4s645462a123371c29@mail.gmail.com>	<48497340.3050602@schoeller-soft.net>	<200806070018.16103.dkuhlen@gmx.net>
-	<484A584B.9010901@schoeller-soft.net>
-In-Reply-To: <484A584B.9010901@schoeller-soft.net>
-Content-Type: multipart/mixed; boundary="------------040008090506070908030602"
-Subject: Re: [linux-dvb] How to get a PCTV Sat HDTC Pro USB (452e) running?
+Content-Disposition: inline
+References: <4862695A.50407@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to get support added?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,86 +22,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------040008090506070908030602
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi!
-
+On Wed, Jun 25, 2008 at 11:50 AM, Jos Hoekstra <joshoekstra@gmx.net> wrote:
+> Hey,
 >
-> Ok I can tell that my problem is Distribution independent 
-> </search?hl=de&sa=X&oi=spell&resnum=0&ct=result&cd=1&q=independent&spell=1>. 
-> On Fedora it's a bit harder to get multiproto running (/dev/dvb 
-> appears) but the error with scan and szap is the same ("ioctl 
-> DVBFE_GET_INFO failed: Invalid Argument").
+> About a week ago I sent a mail to this list describing how to use a
+> Avermedia Volar X DVB-T device, I was somehow hoping this would be
+> picked up by the developer maintaining the repository I used to make it
+> work.
 >
-> This time I tried these steps (based on the hints in previous posts)
-> 1. hg clone http://www.jusst.de/hg/multiproto
-> 2. cd into multiproto and run "patch -p1 < 
-> patch_add_pctv452e_tt_s2_36x0.diff" (the fixed one from Jens Message 
-> at 22:09) -> no errors
-> 3. run "make" and "make install" -> well gives compile errors so I 
-> followed Faruks instructions
-> 3b) cd to multiproto/linux/drivers/media/video
->  and rename the Makefile to like Makefile_
-> after this i won't compile any analog drivers and it will compile dvb
-> and radio drivers.
-> 3c) 3. run "make clean", "make" and "make install" ->works now
-> 4. hg clone http://linuxtv.org/hg/dvb-apps
-> 5. cd into dvb-apps and run "patch -p1 < patch_sca_szap.diff" 
-> (attached in the message) -> no errors
->  6. copy version.h and frontend.h -> Well that one was tricky I found 
-> out that the place where the include files are in 
-> /usr/include/linux/dvb is that correct. However after copy them to 
-> this location make in the scan and szap directory works. And make in 
-> the dvb-apps now gives an error that Fields are already defined. Well 
-> however thats not in the steps so I do..
-> 7. cd into dvb-apps/util/<scan,szap> and run "make" -> well that 
-> works....to compile
-> ioctl DVBFE_GET_INFO failed: Invalid Argument...I'm starting to hate 
-> that words...
+> It didn't :\
+>
+> Is there an official way to get the changes I hinted on added to a
+> driver-repo so that it benefits more people?
 
+The procedure for patch submission is outlines within the
+README.patches file within the mercurial repository.
 
-What error occurs in step 3?? My tip is that you use a 2.6.24 kernel 
-version? If this is true, you have to apply another patch to the hg-tree 
-(attached).
-Then it should compile without errors.
+http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
 
-Jens
+Regards,
 
-
---------------040008090506070908030602
-Content-Type: text/x-patch;
- name="patch_compat_2_6_24.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch_compat_2_6_24.diff"
-
---- a/v4l/compat.h	2008-06-05 08:38:46.000000000 +0200
-+++ b/v4l/compat.h	2008-05-18 18:25:08.000000000 +0200
-@@ -15,7 +15,7 @@
- #endif
- 
- /* To allow alsa code to work */
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 24)
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25)
- #include <sound/driver.h>
- #endif
- 
-
---------------040008090506070908030602
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------040008090506070908030602--
