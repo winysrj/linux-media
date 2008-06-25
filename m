@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m55FV20i029640
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 11:31:02 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m55FUp7l016701
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 11:30:51 -0400
-Message-ID: <4848066B.4020908@linuxtv.org>
-From: mkrufky@linuxtv.org
-To: edubezval@gmail.com
-Date: Thu, 5 Jun 2008 11:29:47 -0400 
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5PJpirt001489
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 15:51:44 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5PJpXaU031212
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 15:51:34 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1705567fga.7
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 12:51:33 -0700 (PDT)
+Message-ID: <30353c3d0806251251v6f91a7efy7ceedab39a42f0a6@mail.gmail.com>
+Date: Wed, 25 Jun 2008 15:51:33 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-in-reply-to: <a0580c510806050824k34e0d965yb871dfe18e9b07c1@mail.gmail.com>
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: tony@atomide.com, eduardo.valentin@indt.org.br, video4linux-list@redhat.com,
-	sakari.ailus@nokia.com, mchehab@infradead.org
-Subject: Re: [PATCH 0/1] Add support for TEA5761 (from linux-omap)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: Bug in stv680
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +27,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Eduardo Valentin wrote:
-> Hi guys,
->
-> About this Tuner API, what is the best way to [s,g]et mute state?
->
-> cheers,
->   
-You would usually have the bridge driver handle mute / unmute 
-operation.  The tuner driver handles the operations of the tuner chip, 
-itself.  Mute is not normally controlled within the tuner silicon.
+I'm currently in the process of developing driver for a currently
+unsupported usb camera. For guidance, I've been referencing the code
+of other usb camera drivers. While reviewing the stv680 code, I've
+come across a bug that looks like it could crash the driver. Since I
+do not have a camera that is supported by this driver, I can only rely
+on my interpretation of the code and how my still underdeveloped
+driver behaves.
 
-For cases where mute IS controlled by the tuner, we tend to call sleep 
-to mute the tuner, and we re-tune to unmute and ensure that we're on the 
-correct channel.
+In stv_open, stv680->user is set to 1. In stv_close, stv680->user is
+set to 0. In stv680_disconnect, the value of stv680->user is used to
+determine if the stv680 struct should be freed. Under the following
+conditions stv680->user will be 0 and the stv680 struct will be freed
+while it is still in use.
+     1. Application 1 opens the device. stv680->user transitions from 0->1
+     2. Application 2 opens the device. stv680->user transitions from 1->1
+     3. Application 2 closes the device. stv680->user transitions from 1->0
+     4. Device is physically disconnected. stv680 is freed.
+     5. Application 1 closes the device.
 
--Mike
+The crash could happen at step 4 in stv680_read, stv680_mmap, or
+stv680_do_ioctl, or at step 5 in stv_close depending on how
+Application 1 is using the device.
+
+The apparent fix for this, is that stv680->user should be incremented
+whenever the device is opened, and decremented when it is closed.
+Likewise, a lock should be used to guarantee exclusive access to
+stv680->user to avoid a race condition between stv_open and stv_close.
+This should correct the case where the structure is freed by
+stv_disconnect while it is still open and in use.
+
+I should note, the v4l2 specs indicate that the device may be opened
+multiple times as in the case above. The reasoning for this is that
+while one application is streaming the video, another may modify
+controls. A valid fix would therefore not be to deny multiple opens to
+the device.
+
+Regards,
+
+David Ellingsworth
 
 --
 video4linux-list mailing list
