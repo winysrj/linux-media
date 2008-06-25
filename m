@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1K7CtM-0002cJ-64
-	for linux-dvb@linuxtv.org; Fri, 13 Jun 2008 19:16:49 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K2E002YRVYXPX60@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 13 Jun 2008 13:16:10 -0400 (EDT)
-Date: Fri, 13 Jun 2008 13:16:08 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080613163914.GA31437@opus.istwok.net>
-To: David Engel <david@istwok.net>
-Message-id: <4852AB58.9010806@linuxtv.org>
-MIME-version: 1.0
-References: <20080613163914.GA31437@opus.istwok.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] A couple HVR-1800 questions
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <joshoekstra@gmx.net>) id 1KBXHS-00048y-19
+	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 17:51:34 +0200
+Message-ID: <4862695A.50407@gmx.net>
+Date: Wed, 25 Jun 2008 17:50:50 +0200
+From: Jos Hoekstra <joshoekstra@gmx.net>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] How to get support added?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,50 +22,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David Engel wrote:
-> Hi,
+Hey,
 
-Hi David,
+About a week ago I sent a mail to this list describing how to use a 
+Avermedia Volar X DVB-T device, I was somehow hoping this would be 
+picked up by the developer maintaining the repository I used to make it 
+work.
 
-> 
-> Due to limited PCI slots, I'm thinking of getting a Hauppauge HVR-1800
-> card when I do some hardware upgrades on my MythTV backend.  I have a
-> couple of questions regarding the 1800 that I hope someone can answer.
+It didn't :\
 
-:)
+Is there an official way to get the changes I hinted on added to a 
+driver-repo so that it benefits more people?
 
-> 
-> First, what is the status of the analog capture capability?  My search
-> of the mailing list archives indicates that it was sort of working but
-> the driver work was not complete.  In addition, from checking the
-> Mercurial logs, it doesn't look like much new development has been
-> done since January.
+Thanks,
 
-The analog encoder is running with the tree form linuxtv.org. It has 
-some cleanup video ioctl2 rework going on by another dev here, but it's 
-functional as is. It's usable today.
-
-> 
-> Second, as far as I can tell, the hardware can perform simultaneous
-> analog and digital captures.  Is that correct and, if so, does/will
-> the Linux driver support it?
-
-Yes and yes.
-
-Typically the analog video devices are exposed as /dev/video0 (analog 
-preview) /dev/video1 (encoder output) and /dev/dvb/... for the digital side.
-
-Trying to view analog preview and the encoder at the same time has some 
-quirks, best to avoid that but other than that you should be good to go. 
-I don't personally use Myth, so if anyone has any MyTh related tips then 
-  they should chime in here.
-
-Firmwares and stuff are generally available from 
-http://steventoth.net/linux/hvr1800
-
-Regards,
-
-- Steve
+Jos Hoekstra
 
 _______________________________________________
 linux-dvb mailing list
