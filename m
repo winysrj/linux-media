@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NNUNpJ010719
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:30:23 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5NNU5wO000800
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 19:30:06 -0400
-Date: Tue, 24 Jun 2008 01:29:32 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080623232931.GA7900@daniel.bse>
-References: <485FA5A8.9000103@anevia.com>
-	<1214259929.6208.26.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5PHhaut013058
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 13:43:36 -0400
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5PHhQOq014123
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 13:43:26 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so594913yxj.81
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 10:43:25 -0700 (PDT)
+Message-ID: <81bfedbf0806251043y3bbdd94s3941e0d75c836185@mail.gmail.com>
+Date: Wed, 25 Jun 2008 14:43:25 -0300
+From: mmw5dot9 <mmw5dot9@gmail.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <1214259929.6208.26.camel@pc10.localdom.local>
-Cc: video4linux-list@redhat.com
-Subject: Re: [HVR 1300] secam bg
+Subject: just want to say Hi
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,23 +27,9 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 24, 2008 at 12:25:29AM +0200, hermann pitton wrote:
-> Hartmut asked once on the saa7134 driver, if there are any known
-> remaining SECAM_BG users currently and we remained, that it is hard to
-> get really up to date global analog lists for current broadcasts and I
-> only could contribute that there was no single request for it during all
-> these last years.
-> 
-> You know countries still using it?
+Hi!
 
-Not really up to date, but ITU-R report BT.2043 might answer this and
-similar questions:
-
-http://www.itu.int/publ/R-REP-BT.2043-2004/en
-
-Unfortunately reports are not covered by the "three for free" rule.
-
-  Daniel
+I am new here!
 
 --
 video4linux-list mailing list
