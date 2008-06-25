@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <acher@acher.org>) id 1KAqez-0008P3-5L
-	for linux-dvb@linuxtv.org; Mon, 23 Jun 2008 20:21:05 +0200
-Received: from braindead1.acher.org (91-65-154-251-dynip.superkabel.de
-	[91.65.154.251])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.in.tum.de (Postfix) with ESMTP id 609FDA71C
-	for <linux-dvb@linuxtv.org>; Mon, 23 Jun 2008 20:20:57 +0200 (CEST)
-Date: Mon, 23 Jun 2008 20:20:56 +0200
-From: Georg Acher <acher@in.tum.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080623182056.GA18302@braindead1.acher>
-References: <mailman.67.1214243770.883.linux-dvb@linuxtv.org>
-	<2EE521CF-BC7D-4B7D-B37F-9EC5289DA143@admin.grnet.gr>
-Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <2EE521CF-BC7D-4B7D-B37F-9EC5289DA143@admin.grnet.gr>
-Subject: Re: [linux-dvb] Problem "watching" (not tuning to?) Astra	HD
-	Promo/Anixe HD
+	(envelope-from <crope@iki.fi>) id 1KBQRw-0002kj-1Y
+	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 10:33:56 +0200
+Message-ID: <486202ED.9020601@iki.fi>
+Date: Wed, 25 Jun 2008 11:33:49 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mailrobot <spam@mrplanlos.de>
+References: <200806250929.28930.spam@mrplanlos.de>
+In-Reply-To: <200806250929.28930.spam@mrplanlos.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fwd: Terratec Cinergy USB XE Rev.2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,17 +25,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jun 23, 2008 at 09:10:39PM +0300, Zenon Mousmoulas wrote:
- 
-> Do you have any idea if the same is true for the other FTA service on  
-> that transponder (Anixe HD)?
+Mailrobot wrote:
+> af9015: af9015_read_config: tuner id:133 not supported, please report!
 
-Anixe HD works fine for me. Except that the "sharpest" detail is usually only
-the arc in the logo...
+It has Freescale MC44S803 tuner which is a little bit problematic due to 
+missing GPL'd driver.
+You an try:
+http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025769.html
+http://git.bocc.de/cgi-bin/gitweb.cgi?p=cinergy.git;a=summary
+
+regards
+Antti
 -- 
-         Georg Acher, acher@in.tum.de         
-         http://www.lrr.in.tum.de/~acher
-         "Oh no, not again !" The bowl of petunias          
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
