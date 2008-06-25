@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1K6Th5-0003X0-BQ
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 19:01:08 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so2259212fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 10:01:03 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 11 Jun 2008 19:01:01 +0200
+	(envelope-from <marko.ristola@kolumbus.fi>) id 1KBbVp-0001cg-71
+	for linux-dvb@linuxtv.org; Wed, 25 Jun 2008 22:22:47 +0200
+Message-ID: <4862A909.6040105@kolumbus.fi>
+Date: Wed, 25 Jun 2008 23:22:33 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_NTAUIk5hTV443YL"
-Message-Id: <200806111901.01239.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: dvb-t scan file Aosta, Italy
+To: Roland Scheidegger <sroland@tungstengraphics.com>
+References: <4861501B.9050507@kolumbus.fi>
+	<48615A7E.2030600@tungstengraphics.com>
+In-Reply-To: <48615A7E.2030600@tungstengraphics.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Ticlkess Mantis remote control implementation
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,74 +20,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_NTAUIk5hTV443YL
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Roland Scheidegger wrote:
+> On 24.06.2008 21:50, Marko Ristola wrote:
+>   
+>> Hi,
+>>
+>> I have still my own version of Manu's jusst.de/mantis driver that is 
+>> based on v4l-dvb-linuxtv main branch,
+>> mainly because I use so new Linux kernels.
+>> I have done the following improvement lately:
+>>
+>> I implemented a remote control patch, that doesn't poll the remote 
+>> control all the time.
+>> It polls the remote control only if you press the button (a tickless 
+>> version, you know).
+>> It surprised me, that the actual implementation was really small, it 
+>> took very few lines of code.
+>>
+>>     
+> You're not the first to think that the constant polling is not
+> necessary, too bad these things always get lost because they aren't
+> integrated in the official driver...
+>
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-May/026102.html
+>   
+Okay, I understood from your patch that you just deliver all key repeats 
+as initial key presses.
+You have disabled the polling altogether, but just deliver the key 
+presses as initial key presses
+and deliver the "key unpressed" instantly after the key press.
+What is the feeling? I think that it might work for my remote control 
+equally.
+Also I noticed that you mentioned that you remote control's initial key 
+repeat comes after 270ms.
+So polling on my code should be done with 300ms intervals for example.
+Maybe it would make my own remote control also more robust.
 
-=46rom a kaffeine user ...
+My version is better only in the sense that some application would be 
+able to
+catch the fact that the user is pressing a button and holding it down a 
+long time. Maybe some programs need that for robustness.
 
-Christoph
+Your version is better in the sense that you repeat 270ms and 220ms 
+rerepeats correctly, as the remote control sends them.
 
+Can we implement a version that has both advantages and is still 
+acceptable to the kernel?
 
-=2D---------  Weitergeleitete Nachricht  ----------
++ no work cancellation needs to be done during normal operation.
++ no current time calculation is done.
 
-Betreff: [kaffeine-user] dvb-t source =3D =3D Aosta, Italy
-Datum: Sonntag 08 Juni 2008
-Von: "Marco Milone" <marco.milone@gmail.com>
-An: kaffeine-user@lists.sf.net
+With both features working, it could be done in the following way:
+Set a work with a timeout of 300ms.
+Deliver all key presses and repeats instantly.
+On key press delivery, cancel the assumed ealier delayed check and setup 
+a new checking work with 300ms delay.
+If a 300ms checking delay will be ever active, it will just inform "no 
+key pressed" and continue.
 
-Hi,
+On my opinion this "final" implementation might be a generic 
+implementation which could be used in more places than on Mantis driver.
 
-I'm giving you a new file to include it in the source list for dvb-t...
-I'm talkin about the source file for Aosta Italy, in attachment.
+One question is, that are these Mantis remote controls at all like RC5 
+remote controls mentioned in ir-common.c/h.
+If yes, the correct way might be to use it's implementation.
 
-we are here: =20
-http://maps.google.it/?ie=3DUTF8&ll=3D45.760817,7.351227&spn=3D0.651497,1.2=
-03003&z=3D10
+Personally I haven't seen a "key unpressed" IRQ with my remote.
+That event seems to be needed, if RC5 code is going to be used.
 
-Thank you for your work mates, very precious.
+It might though be, that the interrupt line for "key unpressed" isn't 
+the same as with "key pressed".
+That might be rather easy to investigate and the implementation for "key 
+unpressed" would be then trivial.
 
-See you,
+So currently using RC5 implementation on ir-common.c doesn't seem to be 
+easy if at all possible.
 
+Marko
+> Roland
+>
+>   
 
-Marco Milone
-
-=2D------------------------------------------------------
-
---Boundary-00=_NTAUIk5hTV443YL
-Content-Type: application/octet-stream;
-  name="it-Aosta"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=it-Aosta
-
-IyBJdGFsaWEgLyBBb3N0YSAoaXQtQW9zdGEpIC0tIG1haWx0bzogTWFyY28gPGxvdmVidXp6QGVt
-YWlsLml0PgojCiMgQSBtZSBmdW56aW9uYSBzb2xvIGlsIE11eCBNZWRpYXNldCAyIG5vbiByaWVz
-Y28gYSBjYXBpcmUgY29tZSBtYWkuLi4KIyAobWFnYXJpIGNvbHBhIGRlbGxhIG1pYSBwaW5uYWNs
-ZSBwY3R2IDMwMWkgc2FhNzEzMykKIyBHbGkgYWx0cmkgTXV4IGluc2VyaXRpIGxpIGhvIGluc2Vy
-aXRpIGNvbWUgZGEgc2l0byBodHRwOi8vd3d3LmRpZ2l0di5pdC4uLgojCiMgQ2hpIGF2ZXNzZSBu
-ZXdzIG8gcml1c2Npc3NlIGEgdmVuaXJuZSBhIGNhcG8gdXNhbmRvIGFuY2hlIGdsaSBhbHRyaSBt
-dXggcG90cmViYmUgc2NyaXZlcm1pCiMgIGludmlhcmUgdW5hIG1haWxhIGthZmZlaW5lLXVzZXJA
-bGlzdHMuc2YubmV0IHBlciBhZ2dpb3JuYXJlL2NvcnJlZ2dlcmUgcXVlc3RvIGZpbGUuLi4KIwoj
-IE1VWC1BIFJBSQpUIDIyNjUwMDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FCiMg
-TVVYIE1FRElBU0VUIDEKVCA0NzQwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIgTk9O
-RQojIE1CT05FClQgNzQ2MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUKIyBN
-VVggREZSRUUKVCA3NjIwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIgTk9ORQojIE1V
-WCBNRURJQVNFVCAyClQgNzcwMDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUK
-IyBUSU1CMQpUIDc4NjAwMDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FCg==
---Boundary-00=_NTAUIk5hTV443YL
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_NTAUIk5hTV443YL--
