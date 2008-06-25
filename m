@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m571YN5a025160
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 21:34:23 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m571YAIs002399
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 21:34:11 -0400
-Date: Sat, 7 Jun 2008 03:33:41 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Michael Schimek <mschimek@gmx.at>
-Message-ID: <20080607013340.GA2011@daniel.bse>
-References: <200805262326.30501.hverkuil@xs4all.nl>
-	<1211850976.3188.83.camel@palomino.walls.org>
-	<200805270853.31287.hverkuil@xs4all.nl>
-	<200805270900.20790.hverkuil@xs4all.nl>
-	<1212791383.17465.742.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5PIrx8k025605
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 14:54:00 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5PIrhav026568
+	for <video4linux-list@redhat.com>; Wed, 25 Jun 2008 14:53:43 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Frederic CAND <frederic.cand@anevia.com>
+In-Reply-To: <4862351E.7040103@anevia.com>
+References: <485FA5A8.9000103@anevia.com>
+	<1214259929.6208.26.camel@pc10.localdom.local>
+	<4860AE9F.80104@anevia.com>
+	<1214343023.2636.53.camel@pc10.localdom.local>
+	<4862351E.7040103@anevia.com>
+Content-Type: text/plain; charset=utf-8
+Date: Wed, 25 Jun 2008 20:51:22 +0200
+Message-Id: <1214419882.3168.59.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1212791383.17465.742.camel@localhost>
 Cc: video4linux-list@redhat.com
-Subject: Re: Need VIDIOC_CROPCAP clarification
+Subject: Re: [HVR 1300] secam bg
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,160 +32,198 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Jun 07, 2008 at 12:29:43AM +0200, Michael Schimek wrote:
-> Well as the spec says, pixelaspect is the aspect ratio (y/x) of pixels
-> sampled by the driver.
-[...]
-> That's what v4l2_crop counts, pixels as sampled by the hardware.
 
-There is no need for the crop values to be related to sampled pixels
-as long as one can calculate the DAR of a crop region.
-The pixelaspect value may define virtual pixels that appear nowhere in
-hard- and software. The region is associated with real pixels when
-the user requests a width and height in VIDIOC_S_FMT.
+Am Mittwoch, den 25.06.2008, 14:07 +0200 schrieb Frederic CAND:
+> hermann pitton a Ã©crit :
+> > Hi,
+> > 
+> > Am Dienstag, den 24.06.2008, 10:21 +0200 schrieb Frederic CAND:
+> >> hermann pitton a Ã©crit :
+> >>> Hi Frederic,
+> >>>
+> >>> Am Montag, den 23.06.2008, 15:31 +0200 schrieb Frederic CAND:
+> >>>> dear all
+> >>>> I could not make secam b/g work on my hvr 1300
+> >>>> ioctl returns -1, error "Invalid argument"
+> >>>> I know my card is able to handle this tv norm since it's working fine
+> >>>> (video and sound are ok) under windows
+> >>>> anyone could confirm it isn't working ? any idea why, and how to make it 
+> >>>> work ?
+> >>> since without reply, I don't claim to have seriously looked at it, but
+> >>> at least have one question myself.
+> >>>
+> >>> In cx88-core is no define for SECAM B or G.
+> >>>
+> >>> Do you use a signal generator?
+> >> Indeed, I do.
+> >> It's a Promax GV-198.
+> >> http://www.promaxprolink.com/gv198.htm
+> >>
+> >>> Hartmut asked once on the saa7134 driver, if there are any known
+> >>> remaining SECAM_BG users currently and we remained, that it is hard to
+> >>> get really up to date global analog lists for current broadcasts and I
+> >>> only could contribute that there was no single request for it during all
+> >>> these last years.
+> >>>
+> >>> You know countries still using it?
+> >>  From what I've found on the internet, Cyprus, Greece, Saudi Arabia and 
+> >> some others. Plus people using a signal modulator (e.g: professionnal use).
+> >>
+> >>> Thanks,
+> >>> Hermann
+> >>>
+> >>>
+> >> Actually, tda9887 Secam BG was broken in (more or less) recent versions 
+> >> of v4l-dvb (I noticed that thanks to the signal modulator and my knc tv 
+> >> station saa7134 based). I came up with a "roll back" patch. I guess it 
+> >> can't be applied directly on the current tree but it can be done 
+> >> manually before being comited to the tree.
+> >>
+> >> diff -pur1 a/linux/drivers/media/video/tda9887.c 
+> >> b/linux/drivers/media/video/tda9887.c
+> >> --- a/linux/drivers/media/video/tda9887.c      2007-07-02 
+> >> 20:39:57.000000000 +0200
+> >> +++ b/linux/drivers/media/video/tda9887.c      2008-06-19 
+> >> 12:21:50.000000000 +0200
+> >> @@ -172,7 +172,6 @@ static struct tvnorm tvnorms[] = {
+> >>                  .name  = "SECAM-BGH",
+> >> -               .b     = ( cPositiveAmTV  |
+> >> +               .b     = ( cNegativeFmTV  |
+> >>                             cQSS           ),
+> >>                  .c     = ( cTopDefault),
+> >> -               .e     = ( cGating_36     |
+> >> -                          cAudioIF_5_5   |
+> >> +               .e     = ( cAudioIF_5_5   |
+> >>                             cVideoIF_38_90 ),
+> >>
+> >>
+> >>
+> >> For the Hauppauge HVR 1300, I found that adding mentions of SECAM B/G/H 
+> >> in cx88.h and cx88-core.c helped making it work. Same goes for this one, 
+> >> I guess it can't be applied on the current tree but it can easily be 
+> >> manually applied.
+> >>
+> >> diff -pur1 a/linux/drivers/media/video/cx88/cx88-core.c 
+> >> b/linux/drivers/media/video/cx88/cx88-core.c
+> >> --- a/linux/drivers/media/video/cx88/cx88-core.c       2007-07-02 
+> >> 20:39:57.000000000 +0200
+> >> +++ b/linux/drivers/media/video/cx88/cx88-core.c       2008-06-23 
+> >> 18:48:21.000000000 +0200
+> >> @@ -890,2 +890,5 @@ static int set_tvaudio(struct cx88_core
+> >>
+> >> +    } else if ((V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H) 
+> >> & norm) {
+> >> +        core->tvaudio = WW_BG;
+> >> +
+> >>          } else if (V4L2_STD_SECAM_DK & norm) {
+> >> @@ -979,3 +982,6 @@ int cx88_set_tvnorm(struct cx88_core *co
+> >>                  cxiformat, cx_read(MO_INPUT_FORMAT) & 0x0f);
+> >> -       cx_andor(MO_INPUT_FORMAT, 0xf, cxiformat);
+> >> +    /* Chroma AGC must be disabled if SECAM is used, we enable it
+> >> +        by default on PAL and NTSC */
+> >> +    cx_andor(MO_INPUT_FORMAT, 0x40f,
+> >> +            norm & V4L2_STD_SECAM ? cxiformat : cxiformat | 0x400);
+> >>
+> >>
+> >>
+> >> diff -pur1 a/linux/drivers/media/video/cx88/cx88.h 
+> >> b/linux/drivers/media/video/cx88/cx88.h
+> >> --- a/linux/drivers/media/video/cx88/cx88.h    2008-05-13 
+> >> 10:21:01.000000000 +0200
+> >> +++ b/linux/drivers/media/video/cx88/cx88.h    2008-06-23 
+> >> 17:48:41.000000000 +0200
+> >> @@ -62,3 +62,4 @@
+> >>          V4L2_STD_PAL_M |  V4L2_STD_PAL_N    |  V4L2_STD_PAL_Nc   | \
+> >> -       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK )
+> >> +       V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK | \
+> >> +    V4L2_STD_SECAM_B| V4L2_STD_SECAM_G  |  V4L2_STD_SECAM_H )
+> >>
+> > 
+> > Secam BG was a weapon during cold war.
+> > 
+> > It was the composite of the wall on the ground for radio waves in the
+> > air. It is the most vanishing TV standard in the world.
+> > 
+> > For what I seem to know, there is nothing left like such in Europe these
+> > days. Also old broadcasting equipment in Irak and Afghanistan doesn't
+> > exist anymore and Saudi Arabia at least has Pal BG too.
+> > 
+> > For other parts of the world the same might count, but we fore sure
+> > can't trust on ITU stuff as far back than 2004.
+> > The fee is unexpectedly moderate, sorry for the noise Daniel. 
+> > 
+> > Most of the other potentially remaining candidates are states with huge
+> > deserts using usually DVB-S.
+> > 
+> > Since we likely have no easy means to make totally sure it is not used
+> > anymore or should be still available for professional purposes, I
+> > suggest to prepare your patches in such a way Mauro can pick them up.
+> > 
+> > Cheers,
+> > Hermann
+> >  
+> > 
+> > 
+> > 
+> > 
+> would you like me to prepare the patches against latest snapshot ? could 
+> you please remind me of a tiny "howto" ?
+> cheers
 
-> As Daniel wrote, another way to view this is that the active portion of
-> the video is about 52 µs wide.
 
-Actually it's defined in BT.1700 to be exactly 52µs.
-For NTSC SMPTE 170M says 52.85555...µs.
+Yes, latest v4l-dvb and separate patches for the tda9887 correction and
+Secam BGH addition to cx88.
 
-> Of course there's no guarantee defrect will cover exactly 52 µs. An
-> older chip may always capture 720 pixels at 13.5 MHz with no support for
-> scaling or cropping whatsoever. But since all video capture drivers are
-> supposed to support VIDIOC_CROPCAP, apps can still determine the pixel
-> aspect and display captured images correctly.
+There are various ways to generate patches.
+I'll try to give some basic hints to something that should work for you.
 
-Drivers may modify the region requested by the user even if it is the
-defrect. So my request to make defrect cover the standardized active
-area makes still sense for chips with a fixed area. Then applications
-know how to clip in software to the active region.
+"yum install mercurial" or what you distribution uses.
+"hg clone http://linuxtv.org/hg/v4l-dvb"
 
-Spec says:
-"The driver first adjusts the requested dimensions against hardware
-limits, i. e. the bounds given by the capture/output window, and it
-rounds to the closest possible values of horizontal and vertical offset,
-width and height."
+Try README.patches there.
 
-> > [cropcap] does not take into account anamorphic 16:9 transmissions.
-> 
-> It's true cropcap assumes the pixel aspect (or sampling rate) will never
-> change. PAL/NTSC/SECAM has a 4:3 picture aspect. Apps must find out by
-> other means, perhaps WSS, if a 16:9 signal is transmitted instead, and
-> ask the driver to scale the images accordingly or do that themselves.
+We need a
 
-Ack!
-SMPTE 170M says 4:3 for NTSC and BT.1700 for NTSC and SECAM.
-No word in BT.1700 about PAL aspect ratio.
+Signed-off-by: your name <your.e-mail.address>
 
-> > The height of defrect should correspond to the active picture area.
-> > In case of 625-line PAL/SECAM it should represent 576 lines.
-> > It follows that
-> > width = defrect.height * 4/3
-> >         * v4l2_cropcap.pixelaspect.numerator
-> >         / v4l2_cropcap.pixelaspect.denominator;
-> > covers 52µs of a 64µs PAL/SECAM line.
-> > 52µs equals 702 BT.601 pixels.
-> 
-> Not quite. Let's say defrect is 720x576 and pixelaspect is 54/59
-> (PAL/SECAM BT.601).
+line from you above your patches.
 
-I wrote "should" because that's what I think drivers would do in a
-perfect world. See my above point about the driver modifying the
-requested area.
 
-> If you want to capture exactly what the driver samples (no scaling) just
-> call VIDIOC_S_FMT width cropcap.defrect as the image size.
+Fix the tda9887.
+"hg diff" has your changes.
+"make checkpatch" searches for errors and coding style stuff.
 
-Nooo! Don't use cropcap values in VIDIOC_S_FMT.
-Spec says:
-"the driver writer is free to choose origin and units of the coordinate
-system in the analog domain."
+If OK,
+"hg diff > tda9887_fix_SECAM-BGH_demodulation.patch"
 
-There is a problem with wanting to capture what is sampled without scaling.
-A capture card may perform scaling by modifying the sampling frequency.
-Then there is no sampling without scaling. A corresponding driver may
-use nanoseconds for horizontal crop coordinates even if it can't capture
-52000 pixels per line.
+"make commit"
 
-The cx88 chips have a Sample Rate Conversion register that allows exactly
-this, although it is supposed to be used only for a handful of sample
-rates because there are only four luma notches/chroma bandpasses to
-choose from.
+Do the cx88 changes and same procedure resulting in your second patch.
 
-VIDIOCGCAP did return the maximum resolution. In v4l2 applications can
-call _S_FMT/_TRY_FMT with huge width and height values and let the
-driver reduce these to the supported maximum.
+(In your case, since the patches are not interdependent concerning the
+modified code and the order in which they have to be applied, you could
+even avoid the "make commit" remove your tda9887 fix with "patch -R -p1
+< tda9887*.patch" and create the cx88 patchset with "hg diff" from here
+too or use a second copy of v4l-dvb.)
 
-> Now the images will be 720 / 54 * 59 = 786 square pixels wide. That's
-> more than 768 because you're still overscanning. What you really need
-> is:
-> 
-> image width = 768;
-> image height = 576;
+This is usually enough to send them per mail as patch 1/2 and 2/2 with
+something like "[PATCH 1/2] tda9887: fix SECAM-BGH demodulation"
+               "[PATCH 2/2] cx88: add support for SECAM-BGH"
+in the subject. You might add a small description and don't forget your
+signed-off-by line. Send also a copy directly to Mauro.
 
-And that's where I wanted defrect to tell us the region of interest and
-not the hardware limitations.
+Mail applications often break patches. If you are not sure about yours,
+send to yourself at first and check or add the patch also as an
+attachment.
 
-> Let's say defrect is 1280x720 and pixelaspect is 1/1 (16:9 camera).
-> Result: It scales images down from 960x720 to 768x576, cutting off 160
-> pixels left and right.
+"hg export changeset-number" is useful in case you start working with
+"make commit" to get them out for mailing, "hg log > hg.log" to get the
+changeset numbers if you like to review something.
 
-In my perfect world applications apply that scaling logic only when
-VIDIOC_G_STD returns a known standard. Webcams that don't conform to a
-tv standard may return whatever is useful for defrect on that hardware.
-Applications can then still compute the display aspect ratio of a crop
-region.
+Thanks,
+Hermann
 
-> > The defrect.left+defrect.width/2 should be the center of the active
-> > picture area.
-> 
-> That's required by the spec, also in the vertical direction. (Well, duh.
-> What else would drivers capture by default.)
 
-Is it? Spec says:
-"this could be for example a 640 × 480 rectangle for NTSC, a 768 × 576
-rectangle for PAL and SECAM centered over the active picture area."
-
-Doesn't sound like a requirement.
-If you want to make it one, I'll vote for you.
-
-> Vertically the bttv and saa7134 driver count frame lines. Field lines
-> would be admissible too, but considering these devices can capture
-> interlaced images it makes sense to return defrect.height 480 and 576.
-
-It makes sense as well to return defrect.height=486 for NTSC.
-
-> An odd cropping height is not possible though.
-
-Why?
-Applications are still allowed to vertically scale the picture, so there
-may be (or is enforced by the driver) an even number of lines in the end.
-
-The spec says the field order could be confused if the vertical offset was
-odd but then who knows which line belongs to which field after scaling?
-If you want odd vertical offsets, ask the driver to interleave the fields.
-
-> The vertical origin is given by counting ITU-R line numbers as in the
-> VBI API, which simplifies things quite a bit. Specifically these drivers
-> count ITU-R line numbers of the first field times two, so bttv's
-> defrect.top is 23 * 2.
-> 
-> It may be nice if other drivers followed this convention, but apps
-> cannot blindly rely on that. (They can check the driver name if exact
-> cropping is important.) The cropping units are undefined by the spec
-> because samples, microseconds or scan lines depend on the video standard
-> and make no sense for a webcam.
-
-Strange, I had the feeling you wanted to pass cropping units to VIDIOC_S_FMT...
-
-Webcams usually have rows of pixels that can be counted.
-Spec could be modified to have vertical units = scan lines for analog tv
-standards and pixel rows for discrete image sensors.
-
-Hopefully nobody invents image sensors with an irregular pixel distribution.
-
-  Daniel
 
 --
 video4linux-list mailing list
