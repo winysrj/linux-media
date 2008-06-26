@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5J7U3pF019814
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 03:30:03 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5J7TphD001683
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 03:29:52 -0400
-Message-ID: <9848.62.70.2.252.1213860571.squirrel@webmail.xs4all.nl>
-Date: Thu, 19 Jun 2008 09:29:31 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Dmitri Belimov" <d.belimov@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5Q8gwOc028527
+	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 04:42:58 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5Q8gEB4028637
+	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 04:42:15 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KBn3V-0005Jr-RT
+	for video4linux-list@redhat.com; Thu, 26 Jun 2008 10:42:13 +0200
+Message-ID: <48635647.9060504@hhs.nl>
+Date: Thu, 26 Jun 2008 10:41:43 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Beholder card M6 with MPEG2 coder
+To: Gregor Jasny <jasny@vidsoft.de>
+References: <4862BF41.9090208@hhs.nl> <20080626083915.GA18818@vidsoft.de>
+In-Reply-To: <20080626083915.GA18818@vidsoft.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Announcing libv4l 0.1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,261 +30,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hi Hans
->
->> > > > I found next problems with empress :)))
->> > > >
->> > > > I can`t get via v4l2-ctl list of external control for control
->> > > > MPEG settings via this tool. --list-ctrls and --list-ctrls-menus
->> > > > In debug log I can see only one call empress_querycap nothink
->> > > > vidioc_g_ext_ctrls/empress_g_ext_ctrls calls. Didn`t work
->> > > > v4l2-ctl --log-status
->> > >
->> > > just a late/early note on this, I'm still without a working
->> > > empress device.
->> > >
->> > > After you have fixed several bugs on the empress ioctl2
->> > > conversion, you are still the first user after years and now hit
->> > > mpeg extended controls, Hans from the ivtv project kindly
->> > > introduced, but he is also without any such device and the stuff
->> > > is completely untested.
->> > >
->> > > As far I know, there are no handlers yet to modify the parameters.
->> >
->> > Does this command work for ivtv cards?? Can somebody show me a
->> > sample command line and output from ivtv (or from another card with
->> > its own MPEG encoder)? I need to get control settings of MPEG.
->> > I don't see how I can test this thing in Beholder.
+Gregor Jasny wrote:
+> Hi,
+> 
+> On Wed, Jun 25, 2008 at 11:57:21PM +0200, Hans de Goede wrote:
+>> As most of you know I've been working on a userspace library which can be 
+>> used to (very) easily add support for all kind of pixelformats to v4l2 
+>> applications.
 >>
->> Hmm, the empress is broken: the required queryctrl ioctls are
->> completely missing.
->
-> Frederic was help me to writing simple programm for configuring MPEG.
->
-> This programm start_mpeg here:
->
-> #include <stdio.h>
-> #include <unistd.h>
-> #include <string.h>
-> #include <sys/types.h>
-> #include <sys/stat.h>
-> #include <sys/ioctl.h>
-> #include <fcntl.h>
-> #include "linux/videodev.h"
->
-> int main(void){
->
-> /* sets mpeg parameters */
->    struct v4l2_ext_controls mc;
->    struct v4l2_ext_control ctrls[32];
->    mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
->    mc.controls = ctrls;
->    int fd=0;
->    char *device="/dev/video1";
->
->    int i;
->
->    int false;
->
->    int m_iVideoBR;
->    int m_iVideoMaxBR;
->    int m_iVideoVBR;
->    int m_iAudioBR;
->    int m_uiAspectRatio;
->
->    if ((fd = open(device, O_RDONLY)) < 0) {
->      printf("Couldn't open video1\n");
-> 		return(-1);
->    }
->
->    /* Test defines start */
->    false  = 0;
->    m_iVideoBR = 7500;
->    m_iVideoMaxBR = 9200;
->    m_iVideoVBR = 0;
->    m_iAudioBR = 256;
->    m_uiAspectRatio = 0;
->    /* Test defines stop */
->    i = 0;
->    mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
->    ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE;
->    ctrls[i++].value = (m_iVideoVBR ? V4L2_MPEG_VIDEO_BITRATE_MODE_VBR :
-> V4L2_MPEG_VIDEO_BITRATE_MODE_CBR);
->    ctrls[i].id = V4L2_CID_MPEG_AUDIO_MUTE;
->    ctrls[i++].value = false;
->    ctrls[i].id = V4L2_CID_MPEG_VIDEO_MUTE;
->    ctrls[i++].value = false;
-> //  ctrls[i].id = V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ;
-> //  ctrls[i++].value = V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000;
->    ctrls[i].id = V4L2_CID_MPEG_AUDIO_ENCODING;
->    ctrls[i++].value = V4L2_MPEG_AUDIO_ENCODING_LAYER_2;
->    ctrls[i].id = V4L2_CID_MPEG_AUDIO_L2_BITRATE;
->    ctrls[i++].value = (m_iAudioBR==256) ?
-> V4L2_MPEG_AUDIO_L2_BITRATE_256K : V4L2_MPEG_AUDIO_L2_BITRATE_384K;
->    ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE;
->    ctrls[i++].value = m_iVideoBR * 1000;
->    ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK;
->    ctrls[i++].value = m_iVideoMaxBR * 1000;
->    ctrls[i].id = V4L2_CID_MPEG_VIDEO_ASPECT;
->    switch (m_uiAspectRatio)
->    {
->      case 0: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_1x1; break;
->      case 2: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_16x9; break;
->      case 3: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_221x100; break;
->      default: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_4x3; break;
->    }
->    mc.count = i;
->    if (ioctl(fd, VIDIOC_S_EXT_CTRLS, &mc) < 0) {
->      printf("Mpeg parameters cannot be set !\n");
->    }
->   close (fd);
->
->   return (0);
-> }
->
-> Start MPEG script here:
->
-> ./v4l2-ctl --set-freq=175.0 -d /dev/video0
-> ./v4l2-ctl --set-input=0 -d /dev/video0
-> ./v4l2-ctl -s=secam-d -d /dev/video0
-> ./start_mpeg
->
-> In debug log I see:
->
-> DEBUG: ts_open() start
-> DEBUG: ts_open() stop
-> DEBUG: empress_s_ext_ctrls() start
-> DEBUG: ts_init_encoder() start
-> DEBUG: ts_reset_encoder() start
-> DEBUG: ts_init_encoder() stop
-> DEBUG: empress_s_ext_ctrls() stop
-> DEBUG: ts_release() start
-> DEBUG: ts_reset_encoder() start
-> DEBUG: ts_reset_encoder() stop
-> DEBUG: ts_release() stop
->
-> But when I try:
-> cat /dev/video1 I get Input/Output error
->
-> In debug log :
->
-> DEBUG: ts_open() start
-> DEBUG: ts_open() stop
-> DEBUG: ts_init_encoder() start
-> DEBUG: ts_reset_encoder() start
-> DEBUG: ts_init_encoder() stop
-> DEBUG: buffer_setup() start
-> DEBUG: buffer_setup() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_prepare() start
-> DEBUG: line = 64
-> DEBUG: size = 12032
-> DEBUG: buffer_prepare() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_activate() start
-> DEBUG: buffer_activate() stop
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: buffer_activate() start
-> DEBUG: buffer_activate() stop
-> DEBUG: buffer_activate() start
-> DEBUG: buffer_activate() stop
-> DEBUG: buffer_queue() start
-> DEBUG: buffer_queue() stop
-> DEBUG: ts_release() start
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: buffer_release() start
-> DEBUG: buffer_release() stop
-> DEBUG: ts_reset_encoder() start
-> DEBUG: ts_reset_encoder() stop
-> DEBUG: ts_release() stop
->
-> I don't understand why stream was stopped.
->
->> The only way to change MPEG settings is to hardcode it in a program,
->> calling VIDIOC_S_EXT_CTRLS directly with the controls that
->> handle_ctrl() in saa6752.c understands.
->
-> Yes, but more better fix v4l2-ctl and empress module.
+>> Just replace open("dev/video0", ...) with v4l2_open("dev/video0", ...), 
+>> ioctl
+>> with v4l2_ioctl, etc. libv4l2 will then do conversion of any known (webcam)
+>> pixelformats to bgr24 or yuv420.
+> 
+> I'll give the conversion and v4l2 userspace library a try during
+> weekend. Is there a public rcs where I can pull updates from?
+> 
 
-v4l2-ctl is fine, it's the empress module that's broken.
+Not yet, chances are this will become part of the v4l-dvb project, if not I'll 
+create a sourceforge project page for it.
+
+For now expect regular updated tarballs to be announced on the list, and you 
+can always check:
+http://people.atrpms.net/~hdegoede/
+
+To see if there is a new tarbal there.
+
+Thanks for the patch.
 
 Regards,
 
-         Hans
-
-> With my best regards, Dmitry.
->
-
+Hans
 
 --
 video4linux-list mailing list
