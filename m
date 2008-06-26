@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5HAkl4a029867
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:46:47 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5HAkZG8022801
-	for <video4linux-list@redhat.com>; Tue, 17 Jun 2008 06:46:36 -0400
-Date: Tue, 17 Jun 2008 12:46:15 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Veda N <veda74@gmail.com>
-Message-ID: <20080617104614.GA781@daniel.bse>
-References: <a5eaedfa0806170205r12eed4edl30e2653a918e4cad@mail.gmail.com>
-	<20080617092439.GA631@daniel.bse>
-	<a5eaedfa0806170239ye9951acv1cc9361b1d43abbe@mail.gmail.com>
-	<20080617094510.GA726@daniel.bse>
-	<a5eaedfa0806170322v382f5b98o22f2b94830585f7c@mail.gmail.com>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5Q8dXnh025748
+	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 04:39:33 -0400
+Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5Q8dH9J026872
+	for <video4linux-list@redhat.com>; Thu, 26 Jun 2008 04:39:17 -0400
+Received: from [87.234.250.194] (helo=orca)
+	by aragorn.vidconference.de with esmtps
+	(TLS-1.0:RSA_AES_256_CBC_SHA1:32) (Exim 4.63)
+	(envelope-from <jasny@vidsoft.de>) id 1KBn0e-0004A6-ST
+	for video4linux-list@redhat.com; Thu, 26 Jun 2008 10:39:16 +0200
+Received: from jasny by orca with local (Exim 4.63)
+	(envelope-from <jasny@vidsoft.de>) id 1KBn0e-0007GN-FB
+	for video4linux-list@redhat.com; Thu, 26 Jun 2008 10:39:16 +0200
+Date: Thu, 26 Jun 2008 10:39:16 +0200
+To: video4linux-list@redhat.com
+Message-ID: <20080626083915.GA18818@vidsoft.de>
+References: <4862BF41.9090208@hhs.nl>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a5eaedfa0806170322v382f5b98o22f2b94830585f7c@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2_pix_format doubts
+In-Reply-To: <4862BF41.9090208@hhs.nl>
+From: Gregor Jasny <jasny@vidsoft.de>
+Subject: Re: Announcing libv4l 0.1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,28 +34,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 17, 2008 at 03:52:25PM +0530, Veda N wrote:
-> I think you got confused by RGB and YUV.
+Hi,
 
-I don't think so
+On Wed, Jun 25, 2008 at 11:57:21PM +0200, Hans de Goede wrote:
+> As most of you know I've been working on a userspace library which can be 
+> used to (very) easily add support for all kind of pixelformats to v4l2 
+> applications.
+> 
+> Just replace open("dev/video0", ...) with v4l2_open("dev/video0", ...), 
+> ioctl
+> with v4l2_ioctl, etc. libv4l2 will then do conversion of any known (webcam)
+> pixelformats to bgr24 or yuv420.
 
-> The device is capable of giving RGB and YUV data. This is done by a
-> setting in the sensor register.
+I'll give the conversion and v4l2 userspace library a try during
+weekend. Is there a public rcs where I can pull updates from?
 
-That's what I wanted to know
+Thanks for your work!
+Gregor
 
-> Now, i know what i should set the pix->pixelformat, but what about
-> other members of the
-> v4l2_pix_format structure.
 
-for 640x480
-width = 640
-height = 480
-
-If you tell me pix->pixelformat, I can tell you the minimum bytesperline.
-It may be larger if your hardware requires padding of lines.
-
-  Daniel
+--- libv4lconvert/spca561-decompress.c.orig	2008-06-26 07:49:43.000000000 +0000
++++ libv4lconvert/spca561-decompress.c	2008-06-26 08:31:32.000000000 +0000
+@@ -31,7 +31,7 @@
+  
+ /*fixme: not reentrant */
+ static unsigned int bit_bucket;
+-static unsigned char *input_ptr;
++static const unsigned char *input_ptr;
+ 
+ static inline void refill(int *bitfill)
+ {
+@@ -300,7 +300,7 @@
+ }
+ 
+ static int internal_spca561_decode(int width, int height,
+-				   unsigned char *inbuf,
++				   const unsigned char *inbuf,
+ 				   unsigned char *outbuf)
+ {
+ 	/* buffers */
 
 --
 video4linux-list mailing list
