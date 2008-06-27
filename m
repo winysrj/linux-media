@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5N0oCM9005917
-	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 20:50:13 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5N0nfN6001314
-	for <video4linux-list@redhat.com>; Sun, 22 Jun 2008 20:49:41 -0400
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-In-Reply-To: <D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
-References: <de8cad4d0806150505k6b865dedq359d278ab467c801@mail.gmail.com>
-	<1213567472.3173.50.camel@palomino.walls.org>
-	<1213573393.2683.85.camel@pc10.localdom.local>
-	<1213579027.3164.36.camel@palomino.walls.org>
-	<D5F1658C-2441-4532-859E-D9ABECA20BA5@tvwhere.com>
-Content-Type: multipart/mixed; boundary="=-QNAE6KG2FvPjzMGj76s9"
-Date: Sun, 22 Jun 2008 20:45:50 -0400
-Message-Id: <1214181950.15114.27.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5RD0n6U032451
+	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 09:00:49 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5RD0ccJ025429
+	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 09:00:38 -0400
+Date: Fri, 27 Jun 2008 10:00:23 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Greg KH <greg@kroah.com>
+Message-ID: <20080627100023.00803c90@gaivota>
+In-Reply-To: <20080626231551.GA20012@kroah.com>
+References: <20080626231551.GA20012@kroah.com>
 Mime-Version: 1.0
-Cc: video4linux-list@redhat.com, mark@npsl.co.uk, linux-dvb@linuxtv.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: [linux-dvb] cx18 - dmesg errors and ir transmit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: v4l-dvb-maintainer@linuxtv.org, linux-usb@vger.kernel.org,
+	dean@sensoray.com, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] add Sensoray 2255 v4l driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,123 +29,127 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Greg and Dean,
 
---=-QNAE6KG2FvPjzMGj76s9
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+On Thu, 26 Jun 2008 16:15:51 -0700
+Greg KH <greg@kroah.com> wrote:
 
-On Tue, 2008-06-17 at 09:17 -0400, Brandon Jenkins wrote:
-> >> Am Sonntag, den 15.06.2008, 18:04 -0400 schrieb Andy Walls:
-> >>> On Sun, 2008-06-15 at 08:05 -0400, Brandon Jenkins wrote:
-> >
-> >>>> Also, I have noticed a new message in dmesg indicating that ir
-> >>>> transmitters may now be accessible? Is there anything I need to  
-> >>>> do to
-> >>>> make use of them?
-> >>>>
+> All of the previous review comments have been addressed in this version.
+> Mauro, can you apply this to your tree if there are no other objections?
 
-> >>> I haven't had a chance to try the IR blaster out yet (it was on my  
-> >>> todo
-> >>> list before Feb 2009).  "Mark's brain dump" has a modified lirc  
-> >>> package
-> >>> for the PVR-150 IR blaster:
-> >>>
-> >>> http://www.blushingpenguin.com/mark/blog/?p=24
-> >>> http://charles.hopto.org/blog/?p=24
-> >>>
+Oliver pointed some issues that seems to fix some bugs at the driver, including
+one race condition (freeing with timers active). I would add a few other ones. 
 
-> Andy,
-> 
-> Thank you for taking an interest. I am not quite sure what you said  
-> above, but if you need someone to test I am willing to do so. While I  
-> was trying to figure out how to make this work; I did find the  
-> lirc_pvr150 code, but got lost when trying to make it work with the  
-> cx18. I do have the firmware downloaded as well.
-> 
-> I can set up a HG clone of which ever branch of yours you'd like me to  
-> use. The only drivers I compile are for the cx18 and for the HD-PVR,  
-> which I can merge into your branch.
+Even with those issues, I think we should commit the driver at my tree.
+Having the code there will allow more people to test and eventually discover
+more issues.
 
-Brandon,
+So, if it is ok for you, I'm committing the current patch. I'll be waiting for
+patches fixing the pointed issues.
 
-I have made changes to the cx18 driver code to add in the IR chip reset
-support for the Z8F0811 IR microcontroller chip on the HVR-1600.  I have
-done no testing aside from making sure that the change didn't break the
-cx18 driver when not using IR.
+Cheers,
+Mauro
 
-You can find it as the latest change in this repository:
+> +config USB_S2255
+> +	tristate "USB Sensoray 2255 video capture device"
+> +	depends on VIDEO_V4L2
+> +	select VIDEOBUF_VMALLOC
 
-http://linuxtv.org/hg/~awalls/cx18-i2c/
+I think you need also to add:
+	select VIDEOBUF_GEN
 
+since select doesn't do recursion, afaik.
 
-I am also including my best guess at a patch to the lirc_pvr150.c module
-for the HVR-1600.  I have not compiled it; I have not tested it.  It's
-what I think needed to be done, which is not a lot given the HVR-1600's
-similarity to the PVR-150.  Please let me know how testing turns out.
+> +#define SYS_FRAMES_MAXSIZE	(720*288*2*2 + 4096)
 
-Regards,
-Andy
+CodingStyle: it should be:
 
---=-QNAE6KG2FvPjzMGj76s9
-Content-Disposition: attachment; filename=lirc-pvr150-cx18.diff
-Content-Type: text/x-patch; name=lirc-pvr150-cx18.diff; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+#define SYS_FRAMES_MAXSIZE	(720 * 288 * 2 * 2 + 4096)
 
---- lirc/drivers/lirc_pvr150/lirc_pvr150.c.orig	2008-06-22 20:04:23.000000000 -0400
-+++ lirc/drivers/lirc_pvr150/lirc_pvr150.c	2008-06-22 20:25:49.000000000 -0400
-@@ -67,6 +67,7 @@
- /* We need to be able to reset the crappy IR chip by talking to the ivtv driver */
- struct ivtv;
- void ivtv_reset_ir_gpio(struct ivtv *itv);
-+void cx18_reset_ir_gpio(void *data);
- 
- struct IR 
- {
-@@ -197,7 +198,12 @@ static int add_to_buf(struct IR *ir)
- 			printk(KERN_ERR "lirc_pvr150: polling the IR receiver "
- 			                "chip failed, trying reset\n");
- 			
--			ivtv_reset_ir_gpio(i2c_get_adapdata(ir->c_rx.adapter));
-+			if (strncmp(ir->c_rx.name, "cx18", 4)) 
-+				ivtv_reset_ir_gpio(
-+					i2c_get_adapdata(ir->c_rx.adapter));
-+			else
-+				cx18_reset_ir_gpio(
-+					i2c_get_adapdata(ir->c_rx.adapter));
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			schedule_timeout((100 * HZ + 999) / 1000);
- 			ir->need_boot = 1;
-@@ -983,7 +989,12 @@ static ssize_t write(struct file *filep,
- 				up(&ir->lock);
- 				return ret;
- 			}
--			ivtv_reset_ir_gpio(i2c_get_adapdata(ir->c_tx.adapter));
-+			if (strncmp(ir->c_tx.name, "cx18", 4)) 
-+				ivtv_reset_ir_gpio(
-+					i2c_get_adapdata(ir->c_tx.adapter));
-+			else
-+				cx18_reset_ir_gpio(
-+					i2c_get_adapdata(ir->c_tx.adapter));
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 			schedule_timeout((100 * HZ + 999) / 1000);
- 			ir->need_boot = 1;
-@@ -1434,6 +1445,7 @@ int init_module(void)
- {
- 	init_MUTEX(&tx_data_lock);
- 	request_module("ivtv");
-+	request_module("cx18");
- 	request_module("firmware_class");
- 	i2c_add_driver(&driver);
- 	return 0;
+> +module_param(debug, int, 0);
+> +module_param(vid_limit, int, 0);
+> +module_param(video_nr, int, 0);
 
---=-QNAE6KG2FvPjzMGj76s9
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Why permissions are 0? IMO, it would be better to use 0x644.
+
+> +/* converts 2255 planar format to yuyv or uyvy */
+> +static void planar422p_to_yuv_packed(const unsigned char *in,
+> +				     unsigned char *out,
+> +				     int width, int height,
+> +				     int fmt)
+> +{
+> +	unsigned char *pY;
+> +	unsigned char *pCb;
+> +	unsigned char *pCr;
+> +	unsigned long size = height * width;
+> +	unsigned int i;
+> +	pY = (unsigned char *)in;
+> +	pCr = (unsigned char *)in + height * width;
+> +	pCb = (unsigned char *)in + height * width + (height * width / 2);
+> +	for (i = 0; i < size * 2; i += 4) {
+> +		out[i] = (fmt == V4L2_PIX_FMT_YUYV) ? *pY++ : *pCr++;
+> +		out[i + 1] = (fmt == V4L2_PIX_FMT_YUYV) ? *pCr++ : *pY++;
+> +		out[i + 2] = (fmt == V4L2_PIX_FMT_YUYV) ? *pY++ : *pCb++;
+> +		out[i + 3] = (fmt == V4L2_PIX_FMT_YUYV) ? *pCb++ : *pY++;
+> +	}
+> +	return;
+> +}
+
+Hmm... still keeping format conversion here? Ok for a first version, provided
+that you move this to firmware on a near version. Btw, we have an userspace
+library to handle such conversions right now. It allows its dynamic usage even
+with applications that don't explicitly call the library (even binary-only can
+use this). It is available at:
+	http://hansdegoede.livejournal.com/3636.html
+
+IMO, the proper way is to remove this conversion (and add at the library if this
+conversion is not there yet).
+
+> +static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
+> +			unsigned int *size)
+> +{
+> +	struct s2255_fh *fh = vq->priv_data;
+> +
+> +	*size = fh->width * fh->height * (fh->fmt->depth >> 3);
+> +
+> +	if (0 == *count)
+> +		*count = S2255_DEF_BUFS;
+> +
+> +	while (*size * *count > vid_limit * 1024 * 1024)
+
+CodingStyle: Better to use *count inside parenthesis.
+
+> +static int s2255_open(struct inode *inode, struct file *file)
+> +{
+	...
+> +	dev->users[cur_channel]++;
+> +	if (dev->users[cur_channel] > S2255_MAX_USERS) {
+> +		dev->users[cur_channel]--;
+> +		mutex_unlock(&dev->open_lock);
+> +		printk(KERN_INFO "s2255drv: too many open handles!\n");
+> +		return -EBUSY;
+> +	}
+
+Hmm... V4L2 API allows multiple opens by device. This is, in fact, used
+sometimes to allow a better control of the video device, like, for example
+using a different  app to change the device controls (for example, qv4l2).
+
+It is preferred to not limit the max users but, instead, to limit the driver to
+server more than one stream at a time.
+
+---
+
+I'm not seen any code for suspend/resume. I doubt that the state of the video
+will return back from S1/S3 with the current code. IMO, you'll need to
+implement explicit handlers for saving the current state and recovering
+video/audio streams after returning back from sleep.
+
+A last word is about the usage of locks at the driver. I suspect you would need
+to lock on almost all ioctl handlers. However, as we're currently protected by
+Kernel big lock, the code is ok. There are some proposed changes to move away
+from KBL. When this happen, we may need to review the locking schema.
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-QNAE6KG2FvPjzMGj76s9--
