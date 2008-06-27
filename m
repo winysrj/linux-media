@@ -1,22 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56NMIHD018778
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 19:22:18 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m56NM66G007877
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 19:22:06 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
-	v4l-dvb-maintainer@linuxtv.org
-Date: Sat, 7 Jun 2008 01:21:58 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5RKkugm009856
+	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 16:46:56 -0400
+Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
+	[151.189.21.48])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5RKkVLX002967
+	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 16:46:32 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>,
+	Peter Missel <peter.missel@onlinehome.de>
+In-Reply-To: <loom.20080627T025843-957@post.gmane.org>
+References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
+	<200803161724.20459.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
+	<200803161840.37910.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
+	<1206573402.3912.50.camel@pc08.localdom.local>
+	<653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
+	<loom.20080627T025843-957@post.gmane.org>
+Content-Type: text/plain
+Date: Fri, 27 Jun 2008 22:43:18 +0200
+Message-Id: <1214599398.2640.23.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200806070121.58990.tobias.lorenz@gmx.net>
-Cc: 
-Subject: [PATCH] si470x: vidioc improvements (spec and driver)
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,350 +38,137 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-I just read the V4L2 specification regarding the behaviour of the get and set vidioc functions.
+Am Freitag, den 27.06.2008, 03:00 +0000 schrieb Daniel Gimpelevich:
+> Daniel Gimpelevich <daniel <at> gimpelevich.san-francisco.ca.us> writes:
+> > On Mar 26, 2008, at 4:16 PM, hermann pitton wrote:
+> > 
+> > > [snip]
+> > 
+> > I have since returned the card to its owner, but I did try the 
+> > composite-over-S setting, and I saw the S-video source when I did that, 
+> > but in monochrome. Therefore, I can only assume that setting works the 
+> > way it's designed, because I did not bother to jury-rig an S-video 
+> > connector that carries a true composite signal. I already had a 
+> > Signed-off-by in what I submitted, and you're welcome to carry that 
+> > forward to changes you make to the patch. As far as I'm concerned, 
+> > 5169/1502 needs to be recognized as card 39, notwithstanding any 
+> > differences from 5168/1502.
+> 
+> Hermann and Peter, I'm curious as to what remaining objections there were to 
+> adding the 5169/1502 subsystem ID to saa7134-cards.c, pointing to card #39. I 
+> can repeat my assurances that that was indeed absolutely the correct card 
+> definition.
+> 
 
-There are some suggestions for the V4L2 specification itself:
-1. There seems to be an inconsistency in VIDIOC_S_FREQUENCY. This is the only such function, where "type" has to be set before calling. In all other cases setting "index" is enough. I suggest to remove "type" from the list of required parameters when calling. It can't be influences anyway.
-2. An improvement for VIDIOC_QUERYCTRL, would be, that if we call with a qc->id < V4L2_CID_BASE and V4L2_CTRL_FLAG_NEXT_CTRL set, it returns the first available control.
-3. Another suggestion for VIDIOC_QUERYCTRL: If a control in the range >= V4L2_CID_BASE and <V4L2_CID_LASTP1 is not available, better don't return -EINVAL, but instead return with the flag set to V4L2_CTRL_FLAG_DISABLED. This is what most radio application expect. With return -EINVAL the applications usually generate a lot of errors.
-4. A description of HW_FREQ_SEEK analogous to S_FREQUENCY is missing. But this is propably my task...
+Daniel I'm fine with it, except what already was said.
 
-I can provide a patch for the documentation, if somebody point me to the latex source code...
+Signed-off by: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+diff -ru v4l-dvb-2e9a92dbe2be/linux/drivers/media/video/saa7134/saa7134-cards.c v4l-dvb-lvtg/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- v4l-dvb-2e9a92dbe2be/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Mar 16 08:14:12 2008
++++ v4l-dvb-lvtg/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Mar 16 08:38:08 2008
+@@ -5141,19 +5141,19 @@
+ 		.subvendor    = 0x4e42,
+ 		.subdevice    = 0x3502,
+ 		.driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x1822, /*Twinhan Technology Co. Ltd*/
+ 		.subdevice    = 0x0022,
+ 		.driver_data  = SAA7134_BOARD_TWINHAN_DTV_DVB_3056,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x16be,
+ 		.subdevice    = 0x0010, /* Medion version CTX953_V.1.4.3 */
+ 		.driver_data  = SAA7134_BOARD_CREATIX_CTX953,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x1462, /* MSI */
+@@ -5165,25 +5165,43 @@
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0xf436,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_CARDBUS_506,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0xf936,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_A16D,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0xa836,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_M115,
+-	}, {
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x185b,
+ 		.subdevice    = 0xc900,
+ 		.driver_data  = SAA7134_BOARD_VIDEOMATE_T750,
+-	}, {
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = 0x5169,
++		.subdevice    = 0x1502, /* possible variant of below */
++		.driver_data  = SAA7134_BOARD_FLYTVPLATINUM_MINI,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x5169,
++		.subdevice    = 0x1502, /* LifeView LifeVideo To-Go */
++		.driver_data  = SAA7134_BOARD_FLYTVPLATINUM_MINI,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
++		.subvendor    = 0x5169,
++		.subdevice    = 0x1502, /* possible variant of above */
++		.driver_data  = SAA7134_BOARD_FLYTVPLATINUM_MINI,
++	},{
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
 
-Anyway I modified the driver to be conform with the V4L2 specification including the suggestions above.
-These are the modifications:
-- unused controls are removed from the list of queryctrls.
-- g_input and s_input is completely removed, as this is not for radio devices, but for video devices.
-- querycap now understands the V4L2_CTRL_FLAG_NEXT_CTRL and acts according to the suggestion 2 and 3 above
-- g_audio now always returns with constant data
-- s_audio is removed, as there isn't anything to set anyway
-- g_tuner and s_tuner don't check for type anymore (wasn't spec conform)
-- g_tuner and s_tuner now support correct indication/setting of mono/stereo (TUNER_CAP, TUNER_SUB, TUNER_MODE)
-- g_frequency, s_frequency and s_hw_freq_seek don't check for type anymore (suggestion 1)
 
-Bye,
+Don't touch the spaces after commas on previous entries, add only
+support for the saa7133 device you really tested on, run "make
+checkpatch" and add spaces after commas ;)
 
-Toby
+Peter had more of the recent LifeView devices.
 
-Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
---- a/drivers/media/radio/radio-si470x.c	2008-06-06 21:18:39.000000000 +0200
-+++ b/drivers/media/radio/radio-si470x.c	2008-06-06 21:36:03.000000000 +0200
-@@ -104,6 +104,7 @@
-  *		- hardware frequency seek support
-  *		- afc indication
-  *		- more safety checks, let si470x_get_freq return errno
-+ *		- vidioc behaviour corrected according to v4l2 spec
-  *
-  * ToDo:
-  * - add firmware download/update support
-@@ -1172,7 +1173,6 @@ static const struct file_operations si47
-  * si470x_v4l2_queryctrl - query control
-  */
- static struct v4l2_queryctrl si470x_v4l2_queryctrl[] = {
--/* HINT: the disabled controls are only here to satify kradio and such apps */
- 	{
- 		.id		= V4L2_CID_AUDIO_VOLUME,
- 		.type		= V4L2_CTRL_TYPE_INTEGER,
-@@ -1183,18 +1183,6 @@ static struct v4l2_queryctrl si470x_v4l2
- 		.default_value	= 15,
- 	},
- 	{
--		.id		= V4L2_CID_AUDIO_BALANCE,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_BASS,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_TREBLE,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
- 		.id		= V4L2_CID_AUDIO_MUTE,
- 		.type		= V4L2_CTRL_TYPE_BOOLEAN,
- 		.name		= "Mute",
-@@ -1203,10 +1191,6 @@ static struct v4l2_queryctrl si470x_v4l2
- 		.step		= 1,
- 		.default_value	= 1,
- 	},
--	{
--		.id		= V4L2_CID_AUDIO_LOUDNESS,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
- };
- 
- 
-@@ -1228,56 +1212,59 @@ static int si470x_vidioc_querycap(struct
- 
- 
- /*
-- * si470x_vidioc_g_input - get input
-- */
--static int si470x_vidioc_g_input(struct file *file, void *priv,
--		unsigned int *i)
--{
--	*i = 0;
--
--	return 0;
--}
--
--
--/*
-- * si470x_vidioc_s_input - set input
-- */
--static int si470x_vidioc_s_input(struct file *file, void *priv, unsigned int i)
--{
--	int retval = 0;
--
--	/* safety checks */
--	if (i != 0)
--		retval = -EINVAL;
--
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": set input failed with %d\n", retval);
--	return retval;
--}
--
--
--/*
-  * si470x_vidioc_queryctrl - enumerate control items
-  */
- static int si470x_vidioc_queryctrl(struct file *file, void *priv,
- 		struct v4l2_queryctrl *qc)
- {
--	unsigned char i;
-+	unsigned char i = 0;
- 	int retval = -EINVAL;
-+	int next = 0;
- 
--	/* safety checks */
--	if (!qc->id)
--		goto done;
-+	/* extract next ctrl flag */
-+	if ((qc->id & V4L2_CTRL_FLAG_NEXT_CTRL) == 1) {
-+		next = 1;
-+		qc->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
-+
-+	}
- 
-+	/* abort if qc->id is below V4L2_CID_BASE */
-+	if (qc->id < V4L2_CID_BASE) {
-+		/* special handling for getting first control */
-+		if (next == 1) {
-+			retval = 0;
-+			goto copy;
-+		} else
-+			goto done;
-+	}
-+
-+	/* search video control */
- 	for (i = 0; i < ARRAY_SIZE(si470x_v4l2_queryctrl); i++) {
- 		if (qc->id == si470x_v4l2_queryctrl[i].id) {
--			memcpy(qc, &(si470x_v4l2_queryctrl[i]), sizeof(*qc));
--			retval = 0;
-+			retval = 0; /* found */
- 			break;
- 		}
- 	}
- 
-+	/* use next control */
-+	if (next == 1) {
-+		i++;
-+		if (i >= ARRAY_SIZE(si470x_v4l2_queryctrl))
-+			retval = -EINVAL; /* not found */
-+	}
-+
-+	/* disable unsupported base controls */
-+	/* to satisfy kradio and such apps */
-+	if ((retval == -EINVAL) && (qc->id < V4L2_CID_LASTP1)) {
-+		qc->flags = V4L2_CTRL_FLAG_DISABLED;
-+		retval = 0;
-+		goto done;
-+	}
-+
-+copy:
-+	/* copy that control */
-+	memcpy(qc, &(si470x_v4l2_queryctrl[i]), sizeof(*qc));
-+
- done:
- 	if (retval < 0)
- 		printk(KERN_WARNING DRIVER_NAME
-@@ -1368,44 +1355,13 @@ done:
- static int si470x_vidioc_g_audio(struct file *file, void *priv,
- 		struct v4l2_audio *audio)
- {
--	int retval = 0;
--
--	/* safety checks */
--	if (audio->index != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
--
-+	/* driver constants */
-+	audio->index = 0;
- 	strcpy(audio->name, "Radio");
- 	audio->capability = V4L2_AUDCAP_STEREO;
-+	audio->mode = 0;
- 
--done:
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": get audio failed with %d\n", retval);
--	return retval;
--}
--
--
--/*
-- * si470x_vidioc_s_audio - set audio attributes
-- */
--static int si470x_vidioc_s_audio(struct file *file, void *priv,
--		struct v4l2_audio *audio)
--{
--	int retval = 0;
--
--	/* safety checks */
--	if (audio->index != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
--
--done:
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": set audio failed with %d\n", retval);
--	return retval;
-+	return 0;
- }
- 
- 
-@@ -1423,7 +1379,7 @@ static int si470x_vidioc_g_tuner(struct 
- 		retval = -EIO;
- 		goto done;
- 	}
--	if ((tuner->index != 0) && (tuner->type != V4L2_TUNER_RADIO)) {
-+	if (tuner->index != 0) {
- 		retval = -EINVAL;
- 		goto done;
- 	}
-@@ -1432,7 +1388,12 @@ static int si470x_vidioc_g_tuner(struct 
- 	if (retval < 0)
- 		goto done;
- 
-+	/* driver constants */
- 	strcpy(tuner->name, "FM");
-+	tuner->type = V4L2_TUNER_RADIO;
-+	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+
-+	/* range limits */
- 	switch (band) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe, default) */
- 	default:
-@@ -1450,14 +1411,18 @@ static int si470x_vidioc_g_tuner(struct 
- 		tuner->rangehigh =  90   * FREQ_MUL;
- 		break;
- 	};
--	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
--	tuner->capability = V4L2_TUNER_CAP_LOW;
- 
--	/* Stereo indicator == Stereo (instead of Mono) */
-+	/* stereo indicator == stereo (instead of mono) */
- 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_ST) == 1)
--		tuner->audmode = V4L2_TUNER_MODE_STEREO;
-+		tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
- 	else
-+		tuner->rxsubchans = V4L2_TUNER_SUB_MONO;
-+
-+	/* mono/stereo selector */
-+	if ((radio->registers[POWERCFG] & POWERCFG_MONO) == 1)
- 		tuner->audmode = V4L2_TUNER_MODE_MONO;
-+	else
-+		tuner->audmode = V4L2_TUNER_MODE_STEREO;
- 
- 	/* min is worst, max is best; signal:0..0xffff; rssi: 0..0xff */
- 	tuner->signal = (radio->registers[STATUSRSSI] & STATUSRSSI_RSSI)
-@@ -1482,22 +1447,27 @@ static int si470x_vidioc_s_tuner(struct 
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_get_drvdata(video_devdata(file));
--	int retval = 0;
-+	int retval = -EINVAL;
- 
- 	/* safety checks */
- 	if (radio->disconnected) {
- 		retval = -EIO;
- 		goto done;
- 	}
--	if ((tuner->index != 0) && (tuner->type != V4L2_TUNER_RADIO)) {
--		retval = -EINVAL;
-+	if (tuner->index != 0)
- 		goto done;
--	}
- 
--	if (tuner->audmode == V4L2_TUNER_MODE_MONO)
-+	/* mono/stereo selector */
-+	switch (tuner->audmode) {
-+	case V4L2_TUNER_MODE_MONO:
- 		radio->registers[POWERCFG] |= POWERCFG_MONO;  /* force mono */
--	else
-+		break;
-+	case V4L2_TUNER_MODE_STEREO:
- 		radio->registers[POWERCFG] &= ~POWERCFG_MONO; /* try stereo */
-+		break;
-+	default:
-+		goto done;
-+	}
- 
- 	retval = si470x_set_register(radio, POWERCFG);
- 
-@@ -1523,11 +1493,12 @@ static int si470x_vidioc_g_frequency(str
- 		retval = -EIO;
- 		goto done;
- 	}
--	if ((freq->tuner != 0) && (freq->type != V4L2_TUNER_RADIO)) {
-+	if (freq->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
- 	}
- 
-+	freq->type = V4L2_TUNER_RADIO;
- 	retval = si470x_get_freq(radio, &freq->frequency);
- 
- done:
-@@ -1552,7 +1523,7 @@ static int si470x_vidioc_s_frequency(str
- 		retval = -EIO;
- 		goto done;
- 	}
--	if ((freq->tuner != 0) && (freq->type != V4L2_TUNER_RADIO)) {
-+	if (freq->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
- 	}
-@@ -1581,7 +1552,7 @@ static int si470x_vidioc_s_hw_freq_seek(
- 		retval = -EIO;
- 		goto done;
- 	}
--	if ((seek->tuner != 0) && (seek->type != V4L2_TUNER_RADIO)) {
-+	if (seek->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
- 	}
-@@ -1606,13 +1577,10 @@ static struct video_device si470x_viddev
- 	.type			= VID_TYPE_TUNER,
- 	.release		= video_device_release,
- 	.vidioc_querycap	= si470x_vidioc_querycap,
--	.vidioc_g_input		= si470x_vidioc_g_input,
--	.vidioc_s_input		= si470x_vidioc_s_input,
- 	.vidioc_queryctrl	= si470x_vidioc_queryctrl,
- 	.vidioc_g_ctrl		= si470x_vidioc_g_ctrl,
- 	.vidioc_s_ctrl		= si470x_vidioc_s_ctrl,
- 	.vidioc_g_audio		= si470x_vidioc_g_audio,
--	.vidioc_s_audio		= si470x_vidioc_s_audio,
- 	.vidioc_g_tuner		= si470x_vidioc_g_tuner,
- 	.vidioc_s_tuner		= si470x_vidioc_s_tuner,
- 	.vidioc_g_frequency	= si470x_vidioc_g_frequency,
+Seems he is pointing to some difference concerning the s-video inputs on
+cardbus and Mini PCI devices I'm not aware of. I'm not sure what he
+likes us to do.
+
+And as said, send at least relevant dmesg output when loading the driver
+and tuner modules, preferably with i2c_scan=1 enabled.
+
+As just seen with an early Compro saa7133, we have no safety, that not
+later on devices appear with the same PCI subsystem, which are in fact
+different, and have no means then to keep the auto detection working
+without such potentially useful information.
+
+That it has no remote and no radio support I likely already asked.
+
+Send a copy directly to Mauro and Hartmut too.
+I'll ack it, if Peter doesn't have objections.
+
+Cheers,
+Hermann
+
+
+
+
+
 
 --
 video4linux-list mailing list
