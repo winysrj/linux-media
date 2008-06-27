@@ -1,30 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from rv-out-0506.google.com ([209.85.198.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1K5QpX-00030w-0r
-	for linux-dvb@linuxtv.org; Sun, 08 Jun 2008 21:45:31 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id BD14E19E64FD
-	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 23:18:41 +0400 (MSD)
-Received: from localhost.localdomain (unknown [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id 7A36419E64F8
-	for <linux-dvb@linuxtv.org>; Sun,  8 Jun 2008 23:18:41 +0400 (MSD)
-Date: Sun, 8 Jun 2008 23:22:46 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080608232246.46ac431b@bk.ru>
-In-Reply-To: <854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
-References: <45e226e50806060327s7e3ecf86wb9141ee394e854d1@mail.gmail.com>
-	<E1K4ZQk-000ARd-00.goga777-bk-ru@f145.mail.ru>
-	<45e226e50806060353o32b215afwc3017e3ab8a2dd10@mail.gmail.com>
-	<854d46170806060550u5c238e26ia003c713ed68095e@mail.gmail.com>
-	<45e226e50806071017y4e09413dl23c119da0910fae2@mail.gmail.com>
-	<854d46170806071111s65b96325mfc8beaa6171259dd@mail.gmail.com>
-	<20080607225006.51805d6f@bk.ru>
-	<854d46170806071240m5f918690t91bd7883f4c1a5e2@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Terratec Cinergy S2 PCI HD ioctl DVBFE_GET_INFO
- failed:Operation not supported
+	(envelope-from <mrechberger@gmail.com>) id 1KCBs0-0001Me-T5
+	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 13:12:02 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so485319rvf.41
+	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 04:11:55 -0700 (PDT)
+Message-ID: <d9def9db0806270411tc6bea85i5a72a9b41c10bad0@mail.gmail.com>
+Date: Fri, 27 Jun 2008 13:11:55 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: free_beer_for_all@yahoo.com
+In-Reply-To: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
+Cc: mrechberger@empiatech.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Potential Linux support for new TerraTec Cinergy
+	HTC USB XS HD ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,20 +29,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I'm using multiproto and this works 100% just tested with two machines.
+On Fri, Jun 27, 2008 at 11:39 AM, barry bouwsma
+<free_beer_for_all@yahoo.com> wrote:
+> Moin!
+>
+> I'm sure it's far too early, but I thought I'd ask just in case
+> someone might know more than I do...
+>
+> Sometime Real Soon Now or Right About Now there should be available
+> a new USB device from TerraTec, capable of supporting DVB-C and DVB-T,
+> as well as analog radio/TV, and with a USB2 connection (vital for
+> successful DVB-C viewing, not critical for SDTV over DVB-T).
+>
+> Unfortunately, I haven't found detailed hardware info, and what I have
+> found refers to ``USB 2.0 compatible'', which sounds to me that it
+> might really be a USB 1 device with inadequate bandwidth for HDTV
+> or high quality SDTV, like the Cinergy Piranha...
+>
 
-can you scan dvb-s2 transponders with patched scan ?
+it is a full USB 2.0 compatible device, possibly with PID filtering to
+support USB 1.1
 
-Goga
+> Can anyone say if this device could potentially be supported in the
+> future, either by vendor-supplied drivers, or by containing supported/
+> supportable chipsets within?  I suspect it may be some weeks before
+> anyone can.
+>
+>
+> There's some Vista/XP 32/64-bit drivers available from TerraTec
+> recently for download.  Perhaps there will be come useful info
+> within directory
+> Cinergy HTC USB XS HD/BDA Driver 5.8.430.0/
+> such as
+> ; Cinergy HTC USB XS (EM2883 DVB-T & DVB-C & analog TV/FM & audio)
+> %Cinergy.DeviceDesc% = Cinergy.NTx86,USB\VID_0CCD&PID_008E
+> or
+> ;;;HKR,settings\OEMSettings,TunerID7        ,0x00010001,21     ;CFG7 = SAM9082
+>
+>
+> I don't have the device; my inquiries about availability have not
+> yet turned up positive so I'm not able to think about ordering one,
+> but if someone has more info or better contacts, and could say
+> something definitive (like, maybe, or no way) then I'd love to hear
+> it.  Searches have turned up heaps of press releases but no obvious
+> technical info.  Of course, it's way early.
+>
+>
+>
+> If I understand correctly, there are no simple DVB-C devices out there
+> that have a true USB2 interface, which are supported under Linux,
+> other than a few significantly more expensive devices, most with
+> CAM/CI support, which doesn't interest me, so this has caught my
+> attention.  Also being a hybrid, though conveniently switching
+> between DVB-T and DVB-C is certainly not practical with one RF input
+>
+>
 
-> I'm not sure if multiproto_plus is using new API or the old one anyway
-> the best advice that i can give you is to try the old scan without any patches.
-> 
-> http://jusst.de/manu/scan.tar.bz2
-> 
-> Good Luck
-> 
+It's an Empia based design with the latest available Hardware components.
+There have been discussions about those devices and as far as I can
+write support is planned for it.
 
+Markus
 
 _______________________________________________
 linux-dvb mailing list
