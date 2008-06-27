@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.225])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <primijos@gmail.com>) id 1K4AFI-0005u5-IZ
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 09:50:55 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so653295rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 05 Jun 2008 00:50:47 -0700 (PDT)
-Message-ID: <aea1a9c0806050050v4db695c6jef6b19421f617c4d@mail.gmail.com>
-Date: Thu, 5 Jun 2008 09:50:47 +0200
-From: "=?ISO-8859-1?Q?Jos=E9_Oliver_Segura?=" <primijos@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
+Received: from n65a.bullet.mail.sp1.yahoo.com ([98.136.45.12])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KCAQd-0005gI-72
+	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 11:39:42 +0200
+Date: Fri, 27 Jun 2008 02:39:04 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] dual tuner, different behaviour/signal strength problem
+Message-ID: <296934.88903.qm@web46102.mail.sp1.yahoo.com>
+Subject: [linux-dvb] Potential Linux support for new TerraTec Cinergy HTC
+	USB XS HD ?
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +24,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+Moin!
 
-I've recently installed a mythbuntu box, with two USB tuners attached,
-a Hauppauge nova-t and a pinnacle dual tuner. There's no problem with
-the hauppauge, it works fine, but the pinnacle shows a strange
-behaviour: it seems like the two tuners inside it are not "exact
-twins", I mean: I have reception problems in one of them (frontend 1,
-results being the one attached to the side antena connector, the
-little one), which is unable to keep UNC to zero (thus, resulting in
-audio/video glitches) depending on which channel is tuned on frontend
-0 (the one attached to the back antenna connector).
+I'm sure it's far too early, but I thought I'd ask just in case
+someone might know more than I do...
 
-They seem to work OK alone, but if I tune some specific channels on
-tuner 0, tuner 1 starts to fail. This only happens for some specific
-combinations (thus, most of the time I can watch/record two shows at
-the same time with these tuners), but the combination that fails is,
-for me, "THE" combination: tuesdays 10pm, tuner 1 recording "House
-M.D." and tuner 0 recording "Prison Break" (the "House M.D." recording
-is unwatchable due to the amount of glitches :-( )
+Sometime Real Soon Now or Right About Now there should be available
+a new USB device from TerraTec, capable of supporting DVB-C and DVB-T,
+as well as analog radio/TV, and with a USB2 connection (vital for
+successful DVB-C viewing, not critical for SDTV over DVB-T).
 
-Has anybody experienced similar behaviours with their tuner setup?
-Does anybody knows a possible fix/workaround? I can provide as much
-information as needed regarding the hardware/software setup.
+Unfortunately, I haven't found detailed hardware info, and what I have
+found refers to ``USB 2.0 compatible'', which sounds to me that it
+might really be a USB 1 device with inadequate bandwidth for HDTV
+or high quality SDTV, like the Cinergy Piranha...
 
-Any help/advice would be welcome.
+Can anyone say if this device could potentially be supported in the
+future, either by vendor-supplied drivers, or by containing supported/
+supportable chipsets within?  I suspect it may be some weeks before
+anyone can.
 
-Best,
-Jose
+
+There's some Vista/XP 32/64-bit drivers available from TerraTec
+recently for download.  Perhaps there will be come useful info
+within directory
+Cinergy HTC USB XS HD/BDA Driver 5.8.430.0/
+such as
+; Cinergy HTC USB XS (EM2883 DVB-T & DVB-C & analog TV/FM & audio)
+%Cinergy.DeviceDesc% = Cinergy.NTx86,USB\VID_0CCD&PID_008E
+or
+;;;HKR,settings\OEMSettings,TunerID7        ,0x00010001,21     ;CFG7 = SAM9082
+
+
+I don't have the device; my inquiries about availability have not
+yet turned up positive so I'm not able to think about ordering one,
+but if someone has more info or better contacts, and could say
+something definitive (like, maybe, or no way) then I'd love to hear
+it.  Searches have turned up heaps of press releases but no obvious
+technical info.  Of course, it's way early.
+
+
+
+If I understand correctly, there are no simple DVB-C devices out there
+that have a true USB2 interface, which are supported under Linux,
+other than a few significantly more expensive devices, most with
+CAM/CI support, which doesn't interest me, so this has caught my
+attention.  Also being a hybrid, though conveniently switching
+between DVB-T and DVB-C is certainly not practical with one RF input
+
+
+thanks
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
