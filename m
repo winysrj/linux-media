@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.179])
+Received: from mail-in-11.arcor-online.net ([151.189.21.51])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bvidinli@gmail.com>) id 1K3qqj-0007Hm-Ff
-	for linux-dvb@linuxtv.org; Wed, 04 Jun 2008 13:08:14 +0200
-Received: by py-out-1112.google.com with SMTP id a29so17773pyi.0
-	for <linux-dvb@linuxtv.org>; Wed, 04 Jun 2008 04:08:09 -0700 (PDT)
-Message-ID: <36e8a7020806040408w4e9fbfadn6b4e2b0326f5a4e9@mail.gmail.com>
-Date: Wed, 4 Jun 2008 14:08:08 +0300
-From: bvidinli <bvidinli@gmail.com>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-In-Reply-To: <617be8890806040359i1669a4d3n2421bd7daea5351c@mail.gmail.com>
+	(envelope-from <debalance@arcor.de>) id 1KCM3N-0002w6-1Z
+	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 00:04:26 +0200
+Message-ID: <486563DE.4070705@arcor.de>
+Date: Sat, 28 Jun 2008 00:04:14 +0200
+From: =?ISO-8859-15?Q?Philipp_H=FCbner?= <debalance@arcor.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <36e8a7020806040347t27206049je7e12b233ababf04@mail.gmail.com>
-	<617be8890806040359i1669a4d3n2421bd7daea5351c@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] About Avermedia DVB-S Hybrid+FM A700
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] TerraTec Cinergy S2 PCI HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,153 +16,121 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-9"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-i can confirm that:
-1- i tried free-to-air, non-encrypted channels, still no sound (i
-mean, som meaningless/strange sounds is heard), and no (meaningless,
-mixed) video, this seems like, a codec problem, or i may mis placed
-some *.ko files... i am not sure, if you know, you may suggest which
-files to place where...
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-2- i also tested freetoair, non-encrypted radio chnnels, but no result.
+Hello all!
 
-i cannot confirm that:
-i dont know if i have a mpeg-2 decoder..  how may i check, and what do
-i need to install ?
+I'm new to this list as I just bought a TerraTec Cinergy S2 PCI HD and
+want to get it working on Debian Lenny/Sid.
 
-agai may i ask:
-1- is make install problem solved  for ubuntu ? it does not work out of box=
-...
+I followed
+"Installing on Debian etch with Multiproto diver (Recommended)"
+on
+http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI
 
-2- is there a schedule for other inputs of fm a700 card ?
+I compiled and installed the kernel-modules as described there.
+After reboot, the device appears under /dev/dvb/adapter0/...
 
-Note:
-i worked for this card to work so much because, i plan to produce a
-set-top-box in my region, and i will produce many of them once i get
-success... any help is welcome... we may also make a business
-agreement with whoever wants, regarding linux/video subjects...
+I did not download and compile scan2, since it is available on Debian
+via the dvb-utils package (available in all Debian versions).
 
-thanks..
-Bahattin,
+Now the following happens:
 
+der_schakal@kuehlschrank:~$ scan
+/usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E > channels.conf
 
-04.06.2008 tarihinde Eduard Huguet <eduardhc@gmail.com> yazm=FD=FE:
-> Hi,
->     If you managed to get a channel list from Kaffeine then the card is
-> mostly working, if I'm not wrong. I mean, if the driver is able to tune to
-> the satellite frequency and get the channel list names, then it should be
-> also capable of receiving the video / audio stream.
->
-> Maybe I'm wrong, but check that you are trying to see FTA (Free to Air,
-> non-encrypted) channels and that you have a valid MPEG-2 decoder installe=
-d.
-> Also try to listen to a non-encripted DVB-S radio channel. If it works, t=
-hen
-> it's possibly a video codec problem.
->
-> Best regards,
->   Eduard Huguet
->
->
->
-> 2008/6/4 bvidinli <bvidinli@gmail.com>:
->
-> > What is last status of driver for Avermedia DVB-S Hybrid+FM A700 ?
-> >
-> > as i last tested 20 days ago,
-> > 1- i build using hg, from linuxtv.org, dvb drivers,
-> > 2- i manually copied *.ko files to lib/modules directory, relevant dirs,
-> > 3- got satellite channels list/names of channels, using kaffeine, but
-> > no image/sound, i think decode fails...
-> >
-> > is there a recent update that i should try, or is there  a new method
-> > to overcome problem of "make install not working, because of unusual
-> > ubuntu directory structure for video modules...". I mean, lastly i run
-> > make install, but it did not solve driver problem, "symbol not found,
-> > disagrees messages on dmesg" this was because of ubuntu's choice for
-> > new directory structure of media modules...
-> >
-> > shortly, is there  a recent update to dvb drivers for avermedia dvb-s
-> > hybrid+fm a700 ?
-> >
-> > thanks..
-> >
-> >
-> >
-> > 2008/6/4, Eduard Huguet <eduardhc@gmail.com>:
-> > > Good point. I think the message is more explicative this way.
-> > >
-> > > Best regards,
-> > >   Eduard
-> > >
-> > >
-> > >
-> > > 2008/6/4 Matthias Schwarzott <zzam@gentoo.org>:
-> > >
-> > >
-> > > >
-> > > > On Samstag, 17. Mai 2008, hermann pitton wrote:
-> > > >
-> > > > > Hello,
-> > > > >
-> > > > > Am Sonntag, den 18.05.2008, 00:23 +0300 schrieb bvidinli:
-> > > > > > Hi,
-> > > > > > thank you for your answer,
-> > > > > >
-> > > > > > may i ask,
-> > > > > >
-> > > > > > what is meant by "analog  input", it is mentioned on logs that:"
-> only
-> > > > > > analog inputs supported yet.." like that..
-> > > > > > is that mean: s-video, composit ?
-> > > > >
-> > > > > yes, only s-video and composite is enabled there.
-> > > > > Better we would have print only external analog inputs.
-> > > > >
-> > > >
-> > > > If there is still interest to improve the printk message, here is a
-> patch.
-> > > >
-> > > > Regards
-> > > > Matthias
-> > > >
-> > >
-> > >
-> >
-> >
-> > --
-> > =DD.Bahattin Vidinli
-> > Elk-Elektronik M=FCh.
-> > -------------------
-> > iletisim bilgileri (Tercih sirasina gore):
-> > skype: bvidinli (sesli gorusme icin, www.skype.com)
-> > msn: bvidinli@iyibirisi.com
-> > yahoo: bvidinli
-> >
-> > +90.532.7990607
-> > +90.505.5667711
-> >
->
->
+scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12551500 V 22000000 5
+>>> tune to: 12551:v:0:22000
+__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid
+argument
+>>> tune to: 12551:v:0:22000
+__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid
+argument
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+
+channels.conf exists but it empty after this process.
+
+I copied /usr/share/doc/dvb-utils/examples/channels.conf-dvbs-astra to
+~/channels.conf and then called szap:
+
+der_schakal@kuehlschrank:~$ szap -r -n 001
+reading channels from file '/home/der_schakal/.szap/channels.conf'
+zapping to 1 'Das Erste':
+sat 0, frequency = 11837 MHz H, symbolrate 27500000, vpid = 0x0065, apid
+= 0x0066
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+FE_READ_STATUS failed: Invalid argument
+status 8048788 | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
+FE_READ_STATUS failed: Invalid argument
+status 8048788 | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
+FE_READ_STATUS failed: Invalid argument
+
+It goes on like this until I press CTRL+C.
+As you can imagine by now, trying to watch DVB with mplayer or kaffeine
+fails.
 
 
--- =
+Any ideas that could help me?
 
-=DD.Bahattin Vidinli
-Elk-Elektronik M=FCh.
--------------------
-iletisim bilgileri (Tercih sirasina gore):
-skype: bvidinli (sesli gorusme icin, www.skype.com)
-msn: bvidinli@iyibirisi.com
-yahoo: bvidinli
+Thanks in advance,
+Philipp
 
-+90.532.7990607
-+90.505.5667711
+
+
+
+PS: I can offer my help for development/testing concerning this card, if
+wanted.
+Some additional information:
+
+der_schakal@kuehlschrank:~$ uname -a
+Linux kuehlschrank 2.6.24-1-686 #1 SMP Thu May 8 02:16:39 UTC 2008 i686
+GNU/Linux
+
+der_schakal@kuehlschrank:~$ lsmod | grep mantis
+mantis                 39876  0
+lnbp21                  2208  1 mantis
+mb86a16                18496  1 mantis
+stb6100                 7492  1 mantis
+tda10021                6116  1 mantis
+tda10023                5924  1 mantis
+stb0899                32800  1 mantis
+stv0299                 9736  1 mantis
+dvb_core               80060  2 mantis,stv0299
+i2c_core               22432  10
+nvidia,mantis,lnbp21,mb86a16,stb6100,tda10021,tda10023,stb0899,stv0299,i2c_i801
+
+der_schakal@kuehlschrank:~$ lspci -vv
+04:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device 1179
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort+ <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 19
+        Region 0: Memory at d5100000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIZWPdFhl05MJZ4OgRAtjSAKDEcUpgsyDg2dw60l2WEGHOpvW51gCfYYmM
+VU2EMpT6GSZOZtzGUwaX0Is=
+=alRm
+-----END PGP SIGNATURE-----
+
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
