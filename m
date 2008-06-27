@@ -1,16 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Pedro Aguilar <paguilar@junkerhq.net>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <4852AA43.2070401@linuxtv.org>
-References: <BLU138-W23877FC9494783EB764EF9B8AD0@phx.gbl>
-	<1213306648l.7615l.1l@manu-laptop>
-	<BLU138-W2192CC104E6C0B94581EF2B8AC0@phx.gbl>
-	<4852AA43.2070401@linuxtv.org>
-Date: Tue, 17 Jun 2008 23:42:19 +0200
-Message-Id: <1213738939.3038.33.camel@uxmal>
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KC3nn-0007lo-Dm
+	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 04:35:10 +0200
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1KC3ni-0007xe-Od
+	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 02:35:02 +0000
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 02:35:02 +0000
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Fri, 27 Jun 2008 02:35:02 +0000
+To: linux-dvb@linuxtv.org
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Date: Fri, 27 Jun 2008 02:10:33 +0000 (UTC)
+Message-ID: <loom.20080627T014805-83@post.gmane.org>
+References: <48643f7d.168.28cb.583@internode.on.net>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re :  LinuxDVB for STi7109
+Subject: Re: [linux-dvb] DVICO FusionHDTV DVB-T Pro
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,63 +33,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Adam <sph3r3 <at> internode.on.net> writes:
 
-In that site you will only find their development framework (compiler
-and friends), rootfs, kernel, u-boot and the few open source drivers
-they support (like the one for DirectFB).
-
-Their proprietary STAPI drivers (more than 20: i2c, frontends, demux,
-display layers, blitter...) are only available to unfortunate customers
-via their FTP site.
-
-In the DVB case, they use a different design architecture (a heritage
-from their OS21 operating system), so their DVB core and drivers are
-different to the Linux DVB.
-
-Regards,
--- 
-Pedro Aguilar
-
-On Fri, 2008-06-13 at 13:11 -0400, Steven Toth wrote:
-> Mark H wrote:
-> >  > Well if they run linux I dont see how they can provide a proprietary
-> >  > implementation... I guess the shortest to get support on linux is to
-> >  > ask them to release the source code!
-> > I know there are many controversial discussions with respect to closed 
-> > source
-> > projects for Linux. The fact is that ST Microelectronics has implemented 
-> > kernel
-> > modules with a proprietary interface (STAPI) for the DVB and is not 
-> > willing to
-> > disclose the interface details to open source projects. On the other 
-> > hand STM
-> > provides STLinux distribution for boards based on STi7109 & Co. This 
-> > distribution
-> > contains open source drivers only the output part of the system (V4Land 
-> > ALSA).
-> > 
-> > A copy of the chip datasheet is available on the web. Though, its 
-> > legality is questionnable.
-> > 
-> > There have been some questions about the API two years ago so I was 
-> > wondering
-> > whether anybody has started working on an implementation.
+> Hi,
 > 
-> Mark,
+> Late last year I got my card working in a Fedora 8/2.6.24
+> system (thanks Chris!).  I've now upgraded to Fedora 9
+> (2.6.25) and am trying to get my card going again as magic
+> didn't seem to happen with Fedora's out-of-the-box drivers.
 > 
-> Do ST have a public site that I can download the STi7109 Linux 
-> toolchain, tree and associated utils from?
+> I've noticed that my card is now listed in cardlist.cx88, so
+> I've downloaded and built the latest v4l-dvb repo (#8110) in
+> preference to the xc-test branch that I used last year. 
+> /dev/dvb0/* is populated and dmesg shows that the card is
+> correctly detected:
+[snip]
+> Any ideas?
 > 
-> Regards,
-> 
-> - Steve
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Thanks,
+> Adam
 
+Looking at cx88-cards.c, I see that the definition there for your card is 
+quite broken. I'm amazed it ever worked at all with such incomplete support. 
+Fundamental portions of the cx88 driver need to be redone, and for your card, 
+that will mean going back to Windows to see what the vendor's driver is doing 
+with GPIO in response to different inputs, as well as some experimentation. If 
+you're up for things like that, you can start by:
+1) Gathering GPIO register values in Windows with RegSpy from dscaler.org, 
+recording what they are with each card input selected (DVB, analog TV, 
+composite, S-video, FM radio, SCART, etc.), as well as the values after 
+closing all apps related to the card, so that the card is idle.
+2) Applying this patch:
+http://thread.gmane.org/gmane.comp.video.video4linux/38536
+Note that with the card definition as it currently is, this patch will make 
+the card stop working altogether. You will need to redo the card definition to 
+include all the info gathered in #1 above.
+3) Reporting your findings from #1 and #2 above. I will be submitting a patch 
+to the tuner-core that will pave the way for some real fixing of cx88, and 
+info on as many cx88 cards as possible will be a plus during that fixing.
+4) Testing future cutting-edge patches to see how they affect the use of the 
+card, before those patches make it into the tree.
+
+Have fun!
 
 
 _______________________________________________
