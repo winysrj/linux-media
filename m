@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m56Mt7lX010023
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 18:55:07 -0400
-Received: from mailrelay002.isp.belgacom.be (mailrelay002.isp.belgacom.be
-	[195.238.6.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m56MsvlG028539
-	for <video4linux-list@redhat.com>; Fri, 6 Jun 2008 18:54:57 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Sat, 7 Jun 2008 00:54:50 +0200
-References: <484934FD.1080401@hhs.nl>
-	<200806061519.50350.laurent.pinchart@skynet.be>
-	<48494770.7060503@hhs.nl>
-In-Reply-To: <48494770.7060503@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SKttC0015601
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 16:55:55 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SKtf2g015183
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 16:55:42 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so577888fga.7
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 13:55:41 -0700 (PDT)
+Message-ID: <30353c3d0806281355p5c88d265ibab48f3f67c69930@mail.gmail.com>
+Date: Sat, 28 Jun 2008 16:55:41 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: video4linux-list@redhat.com, "Jaime Velasco Juan" <jsagarribay@gmail.com>
+In-Reply-To: <30353c3d0806280800n3d6da97ewc84e1af83852197e@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200806070054.51210.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com
-Subject: Re: uvc open/close race (Was Re: v4l1 compat wrapper version 0.3)
+References: <30353c3d0806271636k31f1fac7r90d1dccafde99f1b@mail.gmail.com>
+	<20080628140639.GA4089@singular.sob>
+	<30353c3d0806280800n3d6da97ewc84e1af83852197e@mail.gmail.com>
+Cc: 
+Subject: Re: stk-webcam: [RFT] Fix video_device handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,78 +32,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Sat, Jun 28, 2008 at 11:00 AM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+[snip]
+> According to the API, the video_device struct is not to be freed until
+> it is no longer being used, thus the reason for the release callback
+> in the video_device struct. Currently, video_unregister_device always
+> causes the video_device struct to be freed despite the fact that it
+> may still in use. To me, this is a serious bug in the videodev driver,
+> since it doesn't behave as expected. The videodev driver should
+> reference count the video_device struct and call the release callback
+> only once it is no longer being used. I can work on this if no one
+> objects.
 
-On Friday 06 June 2008, Hans de Goede wrote:
-> Laurent Pinchart wrote:
-> > Hi Hans,
-> >
-> > On Friday 06 June 2008 15:00, Hans de Goede wrote:
-> >> Hi All,
-> >>
-> >> Ok, this one _really_ works with ekiga (and still works fine with
-> >> spcaview) and also works with camorama with selected cams (not working
-> >> on some cams due to a camorama bug).
-> >>
-> >> Changes:
-> >> * Don't allow multiple opens, in theory our code can handle it, but not
-> >> all v4l2 devices like it (ekiga does it and uvc doesn't like it).
-> >
-> > Could you please elaborate ? Have you noticed a bug in the UVC driver ?
-> > It should support multiple opens.
->
-> A good question, which I kinda knew I had coming. So now it has been asked
-> I've spend some time tracking this down. There seems to be an open/close
-> race somewhere in the UVC driver, ekiga does many open/close cycles in
-> quick succession during probing.
->
-> It seems my no multiple opens code slows it down just enough to stop the
-> race, but indeed multiple opens does not seem to be the real problem.
->
-> I've attached a program which reproduces it.
+Upon looking at video_open in videodev.c I noticed that the file_ops
+were being replaced with those provided by modules calling
+video_register_device. Since most modules use a const static
+file_operations structure, it is impossible to overwrite the release
+callback to call one within the videodev module. Thus in it's current
+state, we cannot properly reference count the video_device struct. At
+the moment, I see two possibilities. (1)  return an err in
+__video_do_ioctl when video_devdata returns NULL or (2) implement all
+possible file_operations in the videodev driver which then call the
+associated file_operations in video_device.fops where defined.
 
-Thanks for the test software.
+Option 1 is easier to implement, but does not reference count the
+video_device struct and therefore causes the release callback to occur
+at inappropriate times. Option 2 requires some serious work to be done
+in the videodev driver, but allows proper reference counting of the
+video_device struct. By reference counting the video_device struct,
+the free of the struct and the setting of video_device[minor]=NULL can
+be delayed until the device is no longer in use, which may occur
+during video_unregister_device or in the file_operations release
+callback.
 
-> I've commented out the fork as 
-> that does not seem necessary to reproduce this, just very quickly doing
-> open/some-io/close, open/some-io/close seems to be enough to trigger this,
-> here is the output on my machine:
->
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> TRY_FMT 2: Input/output error
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> TRY_FMT 1: Input/output error
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> TRY_FMT 1: Input/output error
-> [hans@localhost v4l1-compat-0.4]$ ./test
-> TRY_FMT 1: Input/output error
-> [hans@localhost v4l1-compat-0.4]$
->
-> Notice how after the first time it gets the I/O error, it never recovers
-> and from now on every first TRY_FMT fails.
->
-> Some notes:
-> 1) TRY_FMT should really never do I/O (but then I guess the
->     problem would still persists with S_FMT)
+What are your opinions on this matter?
 
-Why not ? The UVC specification defines probe requests to negotiate the 
-streaming format. Unlike for most other devices, the UVC model requires I/O 
-in TRY_FMT.
+Regards,
 
-> 2) I've also seen it fail at TRY_FMT 1 without first failing
->     a TRY_FMT 2, I guess that was just me doing arrow-up -> enter to
-> quickly :)
-
-Could you please tell me what webcam you used, as well as what kernel version 
-you are running ? I would also appreciate if you could check the kernel log 
-for error messages after triggering the problem.
-
-Best regards,
-
-Laurent Pinchart
+David Ellingsworth
 
 --
 video4linux-list mailing list
