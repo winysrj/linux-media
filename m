@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from proxy1.bredband.net ([195.54.101.71])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1K6O7V-0008D7-2d
-	for linux-dvb@linuxtv.org; Wed, 11 Jun 2008 13:04:04 +0200
-Received: from [192.168.1.2] (01-157.155.popsite.net [66.217.131.157])
-	(authenticated bits=0)
-	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m5BB3sA3000897
-	for <linux-dvb@linuxtv.org>; Wed, 11 Jun 2008 07:03:55 -0400 (EDT)
-From: Andy Walls <awalls@radix.net>
+	(envelope-from <erland_i@hotmail.com>) id 1KCSNJ-0004QU-4Q
+	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 06:49:26 +0200
+Received: from ironport2.bredband.com (195.54.101.122) by proxy1.bredband.net
+	(7.3.127) id 4811823A01296D58 for linux-dvb@linuxtv.org;
+	Sat, 28 Jun 2008 06:49:20 +0200
+Message-ID: <4865C2C2.60600@hotmail.com>
+Date: Sat, 28 Jun 2008 06:49:06 +0200
+From: Erland Isaksson <erland_i@hotmail.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: <139261.21368.qm@web55108.mail.re4.yahoo.com>
-References: <139261.21368.qm@web55108.mail.re4.yahoo.com>
-Date: Wed, 11 Jun 2008 07:03:28 -0400
-Message-Id: <1213182208.3158.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] symbol rate and signal level
+Subject: [linux-dvb] Does C-1501 driver support CAM ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,35 +25,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-06-10 at 23:24 -0700, alireza ghahremanian wrote:
-> Dear friends 
-> 
-> What is the relation between symbol rate and signal level, why when decrease the symbol rate the signal level increase ?
-> 
+Hi
 
-S/N = Es/No * Rs/B
+I'm in the process of purchasing an additional DVB-C card besides the 
+Technotrend C-2300 I currently have and I'm wondering which one to get. 
+The C-2300 is a bit too expensive for an additional card and the C-1500 
+is no longer possible to find in Sweden.
 
-S = Received signal power (Watts)
-N = Noise power (Watts)
+At the moment the Technotrend C-1501 looks promising, but does anyone 
+know if the experimental support for C-1501 currently is reasonable 
+stable and supports scrambled channels through a CAM ?
 
-Es = Average energy per symbol (Joules/symbol)
-No = Noise density (Watts/Hz)
-
-Rs = Symbol rate (Symbols/second)
-B  = Bandwidth (Hz)
-
-
-For a particular BER, the receiver will require a certain Es/No.  If S
-goes down, then Rs must go down (or B must go up) as well to maintain
-the same Es/No and hence the same BER.
-
-
-So in the case of lowering Rs and holding S/N the same, you are
-operating at a higher Es/No which means a lower BER.
-
-
--Andy
-
+Regards
+Erland
 
 _______________________________________________
 linux-dvb mailing list
