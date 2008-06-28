@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5T13wB6023001
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:03:58 -0400
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5T13jtW016683
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:03:45 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080628214834.1949bff8@gaivota>
-References: <20080626231551.GA20012@kroah.com>
-	<20080628083154.33d3a93d@gaivota>
-	<1214690914.7722.10.camel@pc10.localdom.local>
-	<20080628214335.40185450@gaivota>  <20080628214834.1949bff8@gaivota>
-Content-Type: text/plain
-Date: Sun, 29 Jun 2008 03:01:09 +0200
-Message-Id: <1214701269.2641.2.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SBLL9K014435
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 07:21:21 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SBKtuM002426
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 07:20:56 -0400
+Message-ID: <48661A6F.3010500@hhs.nl>
+Date: Sat, 28 Jun 2008 13:03:11 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+References: <48660D68.8040506@hhs.nl> <1214651773.1658.6.camel@localhost>
+In-Reply-To: <1214651773.1658.6.camel@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Greg KH <greg@kroah.com>,
-	linux-usb@vger.kernel.org, dean@sensoray.com,
-	linux-kernel@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org
-Subject: Re: [v4l-dvb-maintainer] [PATCH] add Sensoray 2255 v4l driver
+Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org,
+	spca50x-devs@lists.sourceforge.net
+Subject: Re: [Spca50x-devs] Announcing libv4l 0.2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,28 +28,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Am Samstag, den 28.06.2008, 21:48 -0300 schrieb Mauro Carvalho Chehab:
-> On Sat, 28 Jun 2008 21:43:35 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+Jean-Francois Moine wrote:
+> On Sat, 2008-06-28 at 12:07 +0200, Hans de Goede wrote:
+>> I'm happy to announce version 0.2 of libv4l:
+>> http://people.atrpms.net/~hdegoede/libv4l-0.2.tar.gz
+> 	[snip]
 > 
-> 
-> > The code is not backward compatible. It works only with 2.6.27-rc.
-> 							  =========
-> Ops... typo: I mean: 2.6.26-rc8
-> 
-> Cheers,
-> Mauro
+> May you go further with the v4l1 compat, i.e. have only v4l2 ioctl
+> calls? So, the v4l1 compat module could be removed from the kernel...
+>
 
-OK.
+Yes thats definitely a possibility for the near future.
 
-was out all day and just did hit it.
+Regards,
 
-I stop such reports, if wanted ;)
-
-Cheers,
-Hermann
-
+Hans
 
 --
 video4linux-list mailing list
