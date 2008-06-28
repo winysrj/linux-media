@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moscou.magic.fr ([62.210.158.41])
+Received: from smtp1.adl2.internode.on.net ([203.16.214.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aconrad.tlv@magic.fr>) id 1K8WmT-0004m4-VW
-	for linux-dvb@linuxtv.org; Tue, 17 Jun 2008 10:43:10 +0200
-Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
-	by moscou.magic.fr (8.13.1/8.13.1) with ESMTP id m5H8h0oK015123
-	for <linux-dvb@linuxtv.org>; Tue, 17 Jun 2008 10:43:01 +0200
-Message-ID: <4857789F.1090000@magic.fr>
-Date: Tue, 17 Jun 2008 10:41:03 +0200
-From: Alexandre Conrad <aconrad.tlv@magic.fr>
+	(envelope-from <sph3r3@internode.on.net>) id 1KCRDh-0001Cc-37
+	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 05:35:29 +0200
+From: "Adam" <sph3r3@internode.on.net>
+To: linux-dvb@linuxtv.org
+Date: Sat, 28 Jun 2008 13:05:12 +0930
+Message-id: <4865b170.2e5.6a9b.26067@internode.on.net>
 MIME-Version: 1.0
-To: dvb mailing list <linux-dvb@linuxtv.org>
-References: <485646D3.6040201@magic.fr> <48569D96.5050209@magic.fr>
-	<485773B6.4000700@magic.fr> <200806171033.41567.bumkunjo@gmx.de>
-In-Reply-To: <200806171033.41567.bumkunjo@gmx.de>
-Subject: Re: [linux-dvb] SkyStar 2 - rev 2.8A
+Subject: [linux-dvb] DVICO FusionHDTV DVB-T Pro
+Reply-To: sph3r3@internode.on.net
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,24 +23,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>I've seen this card and it seems to be supported by the DVB linux
->>kernel. Any experience with this card?
->>
->>http://www.dvbshop.net/product_info.php/info/p179_Technotrend-Budget-PCI-CI
->>--for-Budget-Nova-Serie---V-1-0A.html
->>
->>For reminder, that would be a replacement card for the SkyStar2 2.8A we
->>have recieved and which doesn't work under linux (yet).
+Daniel Gimpelevich wrote:
 
-I've been pointed out that this is a CI only - not a DVB card. :)
+> Looking at cx88-cards.c, I see that the definition there
+for your
+> card is quite broken. I'm amazed it ever worked at all
+with such
+> incomplete support.
 
-So I guess that would be the appropriate DVB card.
-http://www.dvbshop.net/product_info.php/info/p53_Technotrend-Budget-S-1500-incl--remote.html
+There was some preliminary work in
+http://linuxtv.org/hg/~pascoe/xc-test/ that got DVB-T
+working with this card in 2.6.24.  Analog TV, composite,
+svideo, remote controls, etc didn't work (or at least I was
+told they wouldn't work and I never tried them).  Is that
+what you mean by 'quite broken'?  I'm not familiar enough
+with the linuxtv codebase to make judgements of what you
+mean for myself, but am willing to learn.  All I've really
+done is applied patches that Chris supplied me.
 
-Regards,
--- 
-Alexandre CONRAD
+> Fundamental portions of the cx88 driver need to be redone,
+and for
+> your card, that will mean going back to Windows to see
+what the
+> vendor's driver is doing with GPIO in response to
+different inputs,
+> as well as some experimentation. If you're up for things
+like that,
+> you can start by:
+> 1) Gathering GPIO register values in Windows with RegSpy
+from
+> dscaler.org, recording what they are with each card input
+selected
+> (DVB, analog TV, composite, S-video, FM radio, SCART,
+etc.), as well
+> as the values after closing all apps related to the card,
+so that the
+> card is idle.
 
+Done, at least some preliminary (i.e. non-exhaustive)
+results.  See answer to 3) below.
+
+> 2) Applying this patch:
+> http://thread.gmane.org/gmane.comp.video.video4linux/38536
+> Note that with the card definition as it currently is,
+this patch
+> will make the card stop working altogether. You will need
+to redo the
+> card definition to include all the info gathered in #1
+above.
+
+What revision should I apply this patch to?
+
+> 3) Reporting your findings from #1 and #2 above. I will be
+submitting
+> a patch to the tuner-core that will pave the way for some
+real fixing
+> of cx88, and info on as many cx88 cards as possible will
+be a plus
+> during that fixing.
+
+Where should I report my findings?  On-list or off-list?
+
+> 4) Testing future cutting-edge patches to see how they
+affect the use
+> of the card, before those patches make it into the tree.
+
+Fine by me.
+
+>
+> Have fun!
+
+Thanks,
+Adam
 
 _______________________________________________
 linux-dvb mailing list
