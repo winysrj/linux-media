@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from scing.com ([217.160.110.58])
+Received: from ipmail05.adl2.internode.on.net ([203.16.214.145])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <janne-dvb@grunau.be>) id 1K6ieo-0007ux-7B
-	for linux-dvb@linuxtv.org; Thu, 12 Jun 2008 10:59:49 +0200
-From: Janne Grunau <janne-dvb@grunau.be>
-To: linux-dvb@linuxtv.org
-Date: Thu, 12 Jun 2008 11:00:16 +0200
-References: <de8cad4d0806111911q108d85c3r2f34de5c72979f9b@mail.gmail.com>
-In-Reply-To: <de8cad4d0806111911q108d85c3r2f34de5c72979f9b@mail.gmail.com>
+	(envelope-from <ianwroberts@internode.on.net>) id 1KCnSG-00030v-43
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 05:19:57 +0200
+Message-ID: <4866FF4F.7060804@internode.on.net>
+Date: Sun, 29 Jun 2008 12:49:43 +0930
+From: Ian Roberts <ianwroberts@internode.on.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806121100.16930.janne-dvb@grunau.be>
-Subject: Re: [linux-dvb] HD-PVR Linux Support
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Tuning problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,25 +22,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Dear Linux-DVBers,
 
-On Thursday 12 June 2008 04:11:03 Brandon Jenkins wrote:
->
-> I have recently purchased one of these units and I am looking forward
-> to having this unit working under Linux. Right now I have a Windows
-> box serving the stream to my Linux server. Will there be driver
-> development within this project?
+I now own two USB DVB-T receivers (dongles): a Gigabyte U7000-RH and a 
+digitalNow tinyUSB2.
 
-Not directly in the linuxtv dvb project but for video4linux. The 
-projects are joined but the mailinglists aren't. For the HD PVR 
-http://www.redhat.com/mailman/listinfo/video4linux-list is more 
-appropiate.
+I use them on my Kubuntu 7.10 workstation.
 
-I've released a first tech preview of the driver at 
-http://hg.jannau.net/hdpvr. An announcement will follow shortly on the 
-video4linux ml.
+I've had the digitalNow for a year or so and it has been working fine 
+(and easy to get going) with kaffeine except that I couldn't receive SBS 
+reliably (in Adelaide, Australia) although I was able to tune to it from 
+time to time. With the Tour de France starting next week (coverage 
+broadcast by SBS), I took a punt yesterday and bought a Gigabyte 
+U7000-RH and, yes, it too was easy to get going, and, luckily, receives 
+SBS nicely -but it can't tune to Channel 7 at all!
 
-Janne
+My kaffeine installation now has a channel list that covers all the 
+local terrestrial TV stations. If I connect the digitalNow device, I can 
+watch 2, 9, 7 & 10 and if I connect the Gigabyte device I can watch SBS, 
+2, 9 and 10.
+
+I'm presuming that means that by channel tuning data is OK. I don't know 
+whether it's relevant, but I notice that SBS seems to be the highest 
+frequency local station and Channel Seven seems to be the lowest. There  
+seems to be a problem with both devices at the opposite ends of the 
+frequency range.
+
+Any suggestions? (other the juggling the two devices!)
+
+bye
+
+ian
+
+    # Australia / Adelaide / Mt Lofty
+    # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+    # ABC
+    T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+    # Seven
+    T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
+    # Nine
+    T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+    # Ten
+    T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+    # SBS
+    T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+
 
 _______________________________________________
 linux-dvb mailing list
