@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Alan Cox <alan@redhat.com>
-Date: Tue, 24 Jun 2008 23:34:43 +0200
-References: <485F7A42.8020605@vidsoft.de>
-	<200806240033.41145.laurent.pinchart@skynet.be>
-	<20080624133951.GA9910@devserv.devel.redhat.com>
-In-Reply-To: <20080624133951.GA9910@devserv.devel.redhat.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TMa7hX011849
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 18:36:07 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TMZukQ007011
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 18:35:56 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so777777fga.7
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 15:35:56 -0700 (PDT)
+Message-ID: <30353c3d0806291535q76877c82w1bb431bf1d8d9e7b@mail.gmail.com>
+Date: Sun, 29 Jun 2008 18:35:56 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: video4linux-list@redhat.com,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <30353c3d0806291528qd61f4eey871db12dda64d38b@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200806242334.44102.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de
-Subject: Re: [Linux-uvc-devel] Thread safety of ioctls
+Content-Type: multipart/mixed;
+	boundary="----=_Part_2092_24054635.1214778956126"
+References: <30353c3d0806281807p7b78dcd2xe2a91d560ae6df12@mail.gmail.com>
+	<30353c3d0806291528qd61f4eey871db12dda64d38b@mail.gmail.com>
+Cc: 
+Subject: Re: [RFC] videodev: properly reference count video_device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,71 +31,122 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 24 June 2008, Alan Cox wrote:
-> On Tue, Jun 24, 2008 at 12:33:40AM +0200, Laurent Pinchart wrote:
-> > Not really. The ioctl handler is protected by the big kernel lock, so
-> > ioctls are currently not reentrant.
+------=_Part_2092_24054635.1214778956126
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Sun, Jun 29, 2008 at 6:28 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> [RFC v2] This patch should cleanly apply to the v4l-dvb devel branch.
+> The addition of the reference count results in the wrapping of the
+> file_operations release callback. Since open and release both take the
+> videodev_lock, the big kernel lock is no longer necessary to prevent
+> race conditions in sub-drivers.
 >
-> Not so - the BKL drops on sleeping so any ioctl that sleeps is re-entrant.
+Patch attached
 
-Thanks for the information.
+Regards,
 
-> Any code using locks of its own should be dropping their lock before any
-> long sleeps.
+David Ellingsworth
 
-How long is a long sleep ?
+------=_Part_2092_24054635.1214778956126
+Content-Type: text/x-diff;
+	name=0001-videodev-add-ref-count-to-video_device.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fi281bzc0
+Content-Disposition: attachment;
+	filename=0001-videodev-add-ref-count-to-video_device.patch
 
-The UVC driver uses five mutexes:
-
-- to guard against the open()/disconnect() race
-- to serialize access to the global controls list
-- to serialize access to device controls
-- to serialize streaming format negotiation
-- to serialize access to the video buffers queue
-
-Access to device controls shouldn't take more than 10ms, unless the device is 
-buggy in which case the URB will timeout after 300ms. Likewise, streaming 
-format negotiation shouldn't sleep for more than a few dozens of 
-milliseconds.
-
-The video buffers queue mutex is taken when performing the following 
-operations:
-
-- buffer allocation/deallocation
-- buffer query (VIDIOC_QUERYBUF)
-- buffer enqueuing and dequeuing (VIDIO_QBUF and VIDIOC_DQBUF)
-- buffer queue activation and deactivation (VIDIOC_STREAMON and
-  VIDIOC_STREAMOFF, release(), system resume)
-- poll()
-- mmap()
-- release()
-
-Buffer dequeuing can sleep for a longer time than most other operations, as it 
-waits for a video buffer to be ready. However, no other operation from the 
-above list should be performed while a VIDIOC_DQBUF is in progress.
-
-Does this make sense, or is there a place where I should try to drop a lock 
-before sleeping ?
-
-> > Most drivers are probably not designed with thread safety in mind, and
-> > I'm pretty sure lots of race conditions still lie in the depth of V4L(2)
-> > drivers.
->
-> From looking at the BKL dropping work that would unfortunately seem to be
-> the case for some drivers
-
-Getting locking right is very difficult. I spent a lot of time checking corner 
-cases when developing the driver, and I'm pretty sure a few race conditions 
-still exist, especially when then ioctl code will not be covered by the BKL 
-anymore. I would greatly appreciate anyone reviewing the patch I will post 
-soon to get the UVC driver included in the mainline kernel for race 
-conditions and locking issues.
-
-Best regards,
-
-Laurent Pinchart
+RnJvbSAyNmQzZmZhODdmMjZlZDIyMjI2YjRlNjBkOWVjNmUzYmUzNjgzY2JkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
+bnMub3JnPgpEYXRlOiBTdW4sIDI5IEp1biAyMDA4IDE0OjI3OjQzIC0wNDAwClN1YmplY3Q6IFtQ
+QVRDSF0gdmlkZW9kZXY6IGFkZCByZWYgY291bnQgdG8gdmlkZW9fZGV2aWNlCgoKU2lnbmVkLW9m
+Zi1ieTogRGF2aWQgRWxsaW5nc3dvcnRoIDxkYXZpZEBpZGVudGQuZHluZG5zLm9yZz4KLS0tCiBk
+cml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgfCAgIDcyICsrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrLS0tLS0tLQogaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oICAgICAgIHwgICAg
+MyArKwogMiBmaWxlcyBjaGFuZ2VkLCA2MiBpbnNlcnRpb25zKCspLCAxMyBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgYi9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL3ZpZGVvZGV2LmMKaW5kZXggMGQ1MjgxOS4uYmQ0OGI0YyAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9tZWRpYS92aWRlby92aWRlb2Rldi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+dmlkZW9kZXYuYwpAQCAtNDA2LDEwICs0MDYsMjAgQEAgdm9pZCB2aWRlb19kZXZpY2VfcmVsZWFz
+ZShzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQpCiB9CiBFWFBPUlRfU1lNQk9MKHZpZGVvX2Rldmlj
+ZV9yZWxlYXNlKTsKIAotc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpj
+ZCkKKy8qCisgKglBY3RpdmUgZGV2aWNlcworICovCisKK3N0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2
+aWNlICp2aWRlb19kZXZpY2VbVklERU9fTlVNX0RFVklDRVNdOworc3RhdGljIERFRklORV9NVVRF
+WCh2aWRlb2Rldl9sb2NrKTsKKworLyogdmlkZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZv
+cmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMgdm9pZCB2aWRlb19mcmVlKHN0cnVjdCBrcmVmICpr
+cmVmKQogewotCXN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCA9IGNvbnRhaW5lcl9vZihjZCwgc3Ry
+dWN0IHZpZGVvX2RldmljZSwKLQkJCQkJCQkJY2xhc3NfZGV2KTsKKwlzdHJ1Y3QgdmlkZW9fZGV2
+aWNlICp2ZmQgPQorCQljb250YWluZXJfb2Yoa3JlZiwgc3RydWN0IHZpZGVvX2RldmljZSwga3Jl
+Zik7CisKKwl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0gPSBOVUxMOwogCiAjaWYgMQogCS8qIG5l
+ZWRlZCB1bnRpbCBhbGwgZHJpdmVycyBhcmUgZml4ZWQgKi8KQEAgLTQxOSw2ICs0MjksMjkgQEAg
+c3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpjZCkKIAl2ZmQtPnJlbGVh
+c2UodmZkKTsKIH0KIAorc3RhdGljIGlubGluZSB2b2lkIHZpZGVvX2tyZWZfZ2V0KHN0cnVjdCB2
+aWRlb19kZXZpY2UgKnZmZCkKK3sKKwlrcmVmX2dldCgmdmZkLT5rcmVmKTsKK30KKworLyogdmlk
+ZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZvcmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMg
+aW5saW5lIHZvaWQgdmlkZW9fa3JlZl9wdXQoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQorewor
+CWtyZWZfcHV0KCZ2ZmQtPmtyZWYsIHZpZGVvX2ZyZWUpOworfQorCisvKgorICogY2FsbGVkIHdp
+dGhpbiB0aGUgY29udGV4dCBvZiB2aWRlb191bnJlZ2lzdGVyX2RldmljZSB3aXRoCisgKiB2aWRl
+b2Rldl9sb2NrIGhlbGQKKyAqLworc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2
+aWNlICpjZCkKK3sKKwlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQgPSBjb250YWluZXJfb2YoY2Qs
+IHN0cnVjdCB2aWRlb19kZXZpY2UsCisJCQkJCQkJCWNsYXNzX2Rldik7CisKKwl2aWRlb19rcmVm
+X3B1dCh2ZmQpOworfQorCiBzdGF0aWMgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgdmlkZW9fZGV2
+aWNlX2F0dHJzW10gPSB7CiAJX19BVFRSKG5hbWUsIFNfSVJVR08sIHNob3dfbmFtZSwgTlVMTCks
+CiAJX19BVFRSKGluZGV4LCBTX0lSVUdPLCBzaG93X2luZGV4LCBOVUxMKSwKQEAgLTQzMSwxOSAr
+NDY0LDI3IEBAIHN0YXRpYyBzdHJ1Y3QgY2xhc3MgdmlkZW9fY2xhc3MgPSB7CiAJLmRldl9yZWxl
+YXNlID0gdmlkZW9fcmVsZWFzZSwKIH07CiAKLS8qCi0gKglBY3RpdmUgZGV2aWNlcwotICovCi0K
+LXN0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2aWRlb19kZXZpY2VbVklERU9fTlVNX0RFVklD
+RVNdOwotc3RhdGljIERFRklORV9NVVRFWCh2aWRlb2Rldl9sb2NrKTsKLQogc3RydWN0IHZpZGVv
+X2RldmljZSogdmlkZW9fZGV2ZGF0YShzdHJ1Y3QgZmlsZSAqZmlsZSkKIHsKIAlyZXR1cm4gdmlk
+ZW9fZGV2aWNlW2ltaW5vcihmaWxlLT5mX3BhdGguZGVudHJ5LT5kX2lub2RlKV07CiB9CiBFWFBP
+UlRfU1lNQk9MKHZpZGVvX2RldmRhdGEpOwogCitzdGF0aWMgaW50IHZpZGVvX2Nsb3NlKHN0cnVj
+dCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmaWxlKQoreworCXVuc2lnbmVkIGludCBtaW5v
+ciA9IGltaW5vcihpbm9kZSk7CisJc3RydWN0IHZpZGVvX2RldmljZSAqdmZsOworCWludCBlcnIg
+PSAwOworCisJbXV0ZXhfbG9jaygmdmlkZW9kZXZfbG9jayk7CisJdmZsID0gdmlkZW9fZGV2aWNl
+W21pbm9yXTsKKwllcnIgPSB2ZmwtPmZvcHMtPnJlbGVhc2UoaW5vZGUsIGZpbGUpOworCXZpZGVv
+X2tyZWZfcHV0KHZmbCk7CisJbXV0ZXhfdW5sb2NrKCZ2aWRlb2Rldl9sb2NrKTsKKworCXJldHVy
+biBlcnI7Cit9CisKIC8qCiAgKglPcGVuIGEgdmlkZW8gZGV2aWNlIC0gRklYTUU6IE9ic29sZXRl
+ZAogICovCkBAIC00NjksMTAgKzUxMCwxMyBAQCBzdGF0aWMgaW50IHZpZGVvX29wZW4oc3RydWN0
+IGlub2RlICppbm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCiAJCX0KIAl9CiAJb2xkX2ZvcHMgPSBm
+aWxlLT5mX29wOwotCWZpbGUtPmZfb3AgPSBmb3BzX2dldCh2ZmwtPmZvcHMpOwotCWlmKGZpbGUt
+PmZfb3AtPm9wZW4pCisJZmlsZS0+Zl9vcCA9IGZvcHNfZ2V0KCZ2ZmwtPnByaXZfZm9wcyk7CisJ
+aWYgKGZpbGUtPmZfb3AtPm9wZW4pIHsKKwkJdmlkZW9fa3JlZl9nZXQodmZsKTsKIAkJZXJyID0g
+ZmlsZS0+Zl9vcC0+b3Blbihpbm9kZSxmaWxlKTsKKwl9CiAJaWYgKGVycikgeworCQl2aWRlb19r
+cmVmX3B1dCh2ZmwpOwogCQlmb3BzX3B1dChmaWxlLT5mX29wKTsKIAkJZmlsZS0+Zl9vcCA9IGZv
+cHNfZ2V0KG9sZF9mb3BzKTsKIAl9CkBAIC0yMTY2LDYgKzIyMTAsOCBAQCBpbnQgdmlkZW9fcmVn
+aXN0ZXJfZGV2aWNlX2luZGV4KHN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCwgaW50IHR5cGUsIGlu
+dCBuciwKIAl9CiAJdmlkZW9fZGV2aWNlW2ldPXZmZDsKIAl2ZmQtPm1pbm9yPWk7CisJdmZkLT5w
+cml2X2ZvcHMgPSAqdmZkLT5mb3BzOworCXZmZC0+cHJpdl9mb3BzLnJlbGVhc2UgPSB2aWRlb19j
+bG9zZTsKIAogCXJldCA9IGdldF9pbmRleCh2ZmQsIGluZGV4KTsKIAlpZiAocmV0IDwgMCkgewpA
+QCAtMjE3OCw2ICsyMjI0LDcgQEAgaW50IHZpZGVvX3JlZ2lzdGVyX2RldmljZV9pbmRleChzdHJ1
+Y3QgdmlkZW9fZGV2aWNlICp2ZmQsIGludCB0eXBlLCBpbnQgbnIsCiAKIAltdXRleF91bmxvY2so
+JnZpZGVvZGV2X2xvY2spOwogCW11dGV4X2luaXQoJnZmZC0+bG9jayk7CisJa3JlZl9pbml0KCZ2
+ZmQtPmtyZWYpOwogCiAJLyogc3lzZnMgY2xhc3MgKi8KIAltZW1zZXQoJnZmZC0+Y2xhc3NfZGV2
+LCAweDAwLCBzaXplb2YodmZkLT5jbGFzc19kZXYpKTsKQEAgLTIyMjUsNyArMjI3Miw2IEBAIHZv
+aWQgdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2Uoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQogCWlm
+KHZpZGVvX2RldmljZVt2ZmQtPm1pbm9yXSE9dmZkKQogCQlwYW5pYygidmlkZW9kZXY6IGJhZCB1
+bnJlZ2lzdGVyIik7CiAKLQl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl09TlVMTDsKIAlkZXZpY2Vf
+dW5yZWdpc3RlcigmdmZkLT5jbGFzc19kZXYpOwogCW11dGV4X3VubG9jaygmdmlkZW9kZXZfbG9j
+ayk7CiB9CmRpZmYgLS1naXQgYS9pbmNsdWRlL21lZGlhL3Y0bDItZGV2LmggYi9pbmNsdWRlL21l
+ZGlhL3Y0bDItZGV2LmgKaW5kZXggM2M5MzQxNC4uN2QyNmIyNSAxMDA2NDQKLS0tIGEvaW5jbHVk
+ZS9tZWRpYS92NGwyLWRldi5oCisrKyBiL2luY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaApAQCAtMzQy
+LDYgKzM0Miw5IEBAIHZvaWQgKnByaXY7CiAJLyogZm9yIHZpZGVvZGV2LmMgaW50ZW5hbCB1c2Fn
+ZSAtLSBwbGVhc2UgZG9uJ3QgdG91Y2ggKi8KIAlpbnQgdXNlcnM7ICAgICAgICAgICAgICAgICAg
+ICAgLyogdmlkZW9fZXhjbHVzaXZlX3tvcGVufGNsb3NlfSAuLi4gKi8KIAlzdHJ1Y3QgbXV0ZXgg
+bG9jazsgICAgICAgICAgICAgLyogLi4uIGhlbHBlciBmdW5jdGlvbiB1c2VzIHRoZXNlICAgKi8K
+KwkvKiBwcml2YXRlIGZpbGUgb3BzIGZvciByZWxlYXNlIGNhbGxiYWNrICovCisJc3RydWN0IGZp
+bGVfb3BlcmF0aW9ucyBwcml2X2ZvcHM7CisJc3RydWN0IGtyZWYga3JlZjsgICAgICAgICAgICAg
+IC8qIGludGVybmFsIHJlZmVyZW5jZSBjb3VudCAqLwogfTsKIAogLyogQ2xhc3MtZGV2IHRvIHZp
+ZGVvLWRldmljZSAqLwotLSAKMS41LjUuMQoK
+------=_Part_2092_24054635.1214778956126
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_2092_24054635.1214778956126--
