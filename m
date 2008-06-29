@@ -1,22 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5SBLL9K014435
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 07:21:21 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5SBKtuM002426
-	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 07:20:56 -0400
-Message-ID: <48661A6F.3010500@hhs.nl>
-Date: Sat, 28 Jun 2008 13:03:11 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-References: <48660D68.8040506@hhs.nl> <1214651773.1658.6.camel@localhost>
-In-Reply-To: <1214651773.1658.6.camel@localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TNd5CY030247
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 19:39:05 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TNcqRR028825
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 19:38:52 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+In-Reply-To: <1214778949.8680.18.camel@pc10.localdom.local>
+References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
+	<200803161724.20459.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
+	<200803161840.37910.peter.missel@onlinehome.de>
+	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
+	<1206573402.3912.50.camel@pc08.localdom.local>
+	<653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
+	<loom.20080627T025843-957@post.gmane.org>
+	<1214599398.2640.23.camel@pc10.localdom.local>
+	<486597B6.2010300@gimpelevich.san-francisco.ca.us>
+	<1214778949.8680.18.camel@pc10.localdom.local>
+Content-Type: text/plain
+Date: Mon, 30 Jun 2008 01:35:39 +0200
+Message-Id: <1214782539.8680.33.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org,
-	spca50x-devs@lists.sourceforge.net
-Subject: Re: [Spca50x-devs] Announcing libv4l 0.2
+Cc: video4linux-list@redhat.com, mchehab@infradead.org
+Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,21 +38,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jean-Francois Moine wrote:
-> On Sat, 2008-06-28 at 12:07 +0200, Hans de Goede wrote:
->> I'm happy to announce version 0.2 of libv4l:
->> http://people.atrpms.net/~hdegoede/libv4l-0.2.tar.gz
-> 	[snip]
+
+Am Montag, den 30.06.2008, 00:35 +0200 schrieb hermann pitton:
+> Hi,
 > 
-> May you go further with the v4l1 compat, i.e. have only v4l2 ioctl
-> calls? So, the v4l1 compat module could be removed from the kernel...
->
+> Am Freitag, den 27.06.2008, 18:45 -0700 schrieb Daniel Gimpelevich:
+> > hermann pitton wrote:
 
-Yes thats definitely a possibility for the near future.
+[snip]
+> 
+> > > That it has no remote and no radio support I likely already asked.
+> > 
+> > It has whatever Card 39 has.
 
-Regards,
+Oh, forgot to point at this, since should be clear.
 
-Hans
+You can't say anything about it ...
+
+You just throw back the limited detection capabilities we have on this
+and say _we_ are all fine, but this is a tautolgie.
+
+You/we don't know if it is a saa7133/35 or 7131e bridge.
+
+You/we don't know if it is a tda8275, tda8275c1, tda8275a or tda8275ac1
+tuner.
+
+What about, when it comes to introduce some chip specific audio
+capabilities not yet turned on!
+
+Some will claim soon or later on LKLM, that we have something
+ambigious/fishy here.
+
+To make it short, the patch this way is not acked by me and Mauro can
+look it up then.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
 
 --
 video4linux-list mailing list
