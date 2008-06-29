@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m54MYAAL006181
-	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 18:34:10 -0400
-Received: from web35602.mail.mud.yahoo.com (web35602.mail.mud.yahoo.com
-	[66.163.179.141])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m54MXoTs027125
-	for <video4linux-list@redhat.com>; Wed, 4 Jun 2008 18:33:50 -0400
-Date: Wed, 4 Jun 2008 15:33:45 -0700 (PDT)
-From: Sam Logen <starz909@yahoo.com>
-To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-In-Reply-To: <loom.20080603T211838-212@post.gmane.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TIbquQ031734
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 14:37:52 -0400
+Received: from pne-smtpout2-sn1.fre.skanova.net
+	(pne-smtpout2-sn1.fre.skanova.net [81.228.11.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TIb2oF011218
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 14:37:18 -0400
+Message-ID: <4867D624.5090504@gmail.com>
+Date: Sun, 29 Jun 2008 20:36:20 +0200
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <48674B80.6030107@hhs.nl>
+In-Reply-To: <48674B80.6030107@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Message-ID: <43192.2143.qm@web35602.mail.mud.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Question - Component input via software card
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Subject: Re: Announcing libv4l 0.3 aka "the cheese release"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,41 +30,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Hans and thanks for your hard work!
 
---- Daniel Gimpelevich
-<daniel@gimpelevich.san-francisco.ca.us> wrote:
+Are there any plans on supporting frame resizing within the v4lconvert 
+framework?
 
-> Sam Logen <starz909 <at> yahoo.com> writes:
+Regards,
+Erik Andrén
+
+Hans de Goede wrote:
+> Hi All,
 > 
-> >  Would it be possible to connect component cables
-> from
-> > a high def. video source to the video and audio
-> > composite plugs of the capture card, and have a
-> > program process the three streams together as
-> video
-> > streams instead of video and audio streams, then
-> save
-> > the result in a file?
+> I'm happy to announce version 0.3 of libv4l:
+> http://people.atrpms.net/~hdegoede/libv4l-0.3.tar.gz
 > 
-> That would not be possible with any off-the-shelf
-> composite capture card, but it
-> would be possible to design your own capture
-> hardware that could use the same
-> plugs for either audio or component video. Just
-> getting a Hauppauge HD-PVR would
-> likely be cheaper.
-
-I hadn't heard of that.  I haven't been paying
-attention to latest hardware releases.  But can you
-explan why my suggestion wouldn't be possible?  I've
-no doubt you're right, I'd just like to hear why. 
-That HD-PVR looks the way to go, but adding that thing
-looks like it will up my cabinet temp by 20 degrees.
-
-Sam
-
-
-      
+> This release has the following changes (mostly bugfixes):
+> 
+> libv4l-0.3
+> ----------
+> * add extern "C" magic to public header files for c++ usage (Gregor Jasny)
+> * Make libv4l1 and libv4l2 multithread use safe, see README.multi-threading
+> * Add v4lx_dup() calls (and intercept dup() from the wrappers) this fixes
+>   use with gstreamer's v4l2 plugin (tested with cheese)
+> * Hopefully definitely fix compile errors on systems with a broken 
+> videodev2.h
+> 
+> 
+> The big improvement here is that gstreamer using applications now work 
+> without any caveats.
+> 
+> I also believe / hope that this release fixes the compile problems some 
+> people where having.
+> 
+> Regards,
+> 
+> Hans
+> 
+> -- 
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
