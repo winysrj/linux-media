@@ -1,18 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m577DaY0022196
-	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 03:13:36 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m577D8EL006544
-	for <video4linux-list@redhat.com>; Sat, 7 Jun 2008 03:13:16 -0400
-Message-ID: <484A34DF.2030208@gmx.net>
-Date: Sat, 07 Jun 2008 09:12:31 +0200
-From: r006 <rolf.sader@gmx.net>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
-Subject: Re: Hauppauge HVR-1300 analog troubles
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5T0i9D7017137
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 20:44:09 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5T0hvxp009449
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 20:43:57 -0400
+Date: Sat, 28 Jun 2008 21:43:35 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080628214335.40185450@gaivota>
+In-Reply-To: <1214690914.7722.10.camel@pc10.localdom.local>
+References: <20080626231551.GA20012@kroah.com>
+	<20080628083154.33d3a93d@gaivota>
+	<1214690914.7722.10.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Greg KH <greg@kroah.com>,
+	linux-usb@vger.kernel.org, dean@sensoray.com,
+	linux-kernel@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [v4l-dvb-maintainer] [PATCH] add Sensoray 2255 v4l driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,61 +31,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Subject: Re: Hauppauge HVR-1300 analog troubles
+Hi Hermann,
 
-Date: Saturday 07 June 2008
-
-From: rolf.sader@gmx.net
-
-To: video4linux-list@redhat.com
-
-On Sunday 01 June 2008 14:37:23 Jonatan Åkerlind wrote:
-
-> An update:
-
->
-
-> I booted the system up today and modprobed tuner with debug=1 and cx88xx
-
-> with audio_debug=1 ir_debug=1 and tried to scan for channels and this
-
-> time everything worked just fine. Tried unloading the modules and
-
-> reloading everything without debugging and it still works. I cannot
-
-> really tell what is different this time from all my other attempts at
-
-> this but anyway it seems to be working.
-
->
-
-> Now, is there any possibility to get the mpeg2-encoder working? I'm
-
-> using the cx88-blackbird module but i'm not really sure if or what
-
-> firmware I should be downloading to the card.
-
->
-
-> /Jonatan
-
->
-
-> --
+On Sun, 29 Jun 2008 00:08:34 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
 
-look at http://ivtvdriver.org/index.php/Firmware
+> On an attempt to get recent drivers on a FC8 x86_64 machine to watch
+> Glastonbury music festival on BBC HD DVB-S with the saa714 driver on an
+> recently updated 2.6.25 FC kernel it also fails to compile on some
+> strlcpy attempt. Same with a 2.6.24 on the mail machine here.
+> 
+>   CC [M]  /mnt/xfer/mercurial/v4l-dvb-head/v4l-dvb/v4l/quickcam_messenger.o
+>   CC [M]  /mnt/xfer/mercurial/v4l-dvb-head/v4l-dvb/v4l/s2255drv.o
+> /mnt/xfer/mercurial/v4l-dvb-head/v4l-dvb/v4l/s2255drv.c: In function 'vidioc_querycap':
+> /mnt/xfer/mercurial/v4l-dvb-head/v4l-dvb/v4l/s2255drv.c:809: error: implicit declaration of function 'dev_name'
+> /mnt/xfer/mercurial/v4l-dvb-head/v4l-dvb/v4l/s2255drv.c:809: warning: passing argument 2 of 'strlcpy' makes pointer from integer without a cast
 
-The firmware you need is (v4l-cx2341x-enc.fw). You can get it here:
+The code is not backward compatible. It works only with 2.6.27-rc.
 
-http://dl.ivtvdriver.org/ivtv/firmware/firmware.tar.gz
+I'll add the macro ballow at compat.h to allow its out of tree compilation:
 
+#define dev_name(dev)  ((dev)->bus_id)
 
-regards
+This simple macro worked fine with 2.6.25.6.
 
-Rolf
-
--------------------------------------------------------
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
