@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5J6kaIr001044
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 02:46:36 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.249])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5J6jxgB011013
-	for <video4linux-list@redhat.com>; Thu, 19 Jun 2008 02:45:59 -0400
-Received: by an-out-0708.google.com with SMTP id d31so158247and.124
-	for <video4linux-list@redhat.com>; Wed, 18 Jun 2008 23:45:59 -0700 (PDT)
-Date: Thu, 19 Jun 2008 16:48:33 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20080619164833.645a3953@glory.loctelecom.ru>
-In-Reply-To: <200806190824.15270.hverkuil@xs4all.nl>
-References: <20080414114746.3955c089@glory.loctelecom.ru>
-	<1213842219.2554.16.camel@pc10.localdom.local>
-	<20080619153139.3ee379b4@glory.loctelecom.ru>
-	<200806190824.15270.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5T1eoER002931
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:40:50 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5T1eeYN029152
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:40:40 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so608374fga.7
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 18:40:39 -0700 (PDT)
+Message-ID: <30353c3d0806281840y76796eebh3beae577a24f6049@mail.gmail.com>
+Date: Sat, 28 Jun 2008 21:40:39 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: video4linux-list@redhat.com, "Jaime Velasco Juan" <jsagarribay@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Beholder card M6 with MPEG2 coder
+Content-Disposition: inline
+Cc: 
+Subject: [RFT v2] stk-webcam: Fix video_device handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,253 +28,317 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans
+This patch updates stk-webcam to properly alloc the video_device
+struct using video_device_alloc() and free it using
+video_device_release(). The patch to properly reference count the
+video_device struct should be applied with this one for testing.
 
-> > > > I found next problems with empress :)))
-> > > >
-> > > > I can`t get via v4l2-ctl list of external control for control
-> > > > MPEG settings via this tool. --list-ctrls and --list-ctrls-menus
-> > > > In debug log I can see only one call empress_querycap nothink
-> > > > vidioc_g_ext_ctrls/empress_g_ext_ctrls calls. Didn`t work
-> > > > v4l2-ctl --log-status
-> > >
-> > > just a late/early note on this, I'm still without a working
-> > > empress device.
-> > >
-> > > After you have fixed several bugs on the empress ioctl2
-> > > conversion, you are still the first user after years and now hit
-> > > mpeg extended controls, Hans from the ivtv project kindly
-> > > introduced, but he is also without any such device and the stuff
-> > > is completely untested.
-> > >
-> > > As far I know, there are no handlers yet to modify the parameters.
-> >
-> > Does this command work for ivtv cards?? Can somebody show me a
-> > sample command line and output from ivtv (or from another card with
-> > its own MPEG encoder)? I need to get control settings of MPEG.
-> > I don't see how I can test this thing in Beholder.
-> 
-> Hmm, the empress is broken: the required queryctrl ioctls are
-> completely missing.
+Regards,
 
-Frederic was help me to writing simple programm for configuring MPEG.
+David Ellingsworth
 
-This programm start_mpeg here:
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include "linux/videodev.h"
+---
+ drivers/media/video/stk-webcam.c |  107 ++++++++++++++-----------------------
+ drivers/media/video/stk-webcam.h |    3 +-
+ 2 files changed, 42 insertions(+), 68 deletions(-)
 
-int main(void){
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index b12c60c..1bd295a 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -68,11 +68,6 @@ static void stk_camera_cleanup(struct kref *kref)
+ {
+        struct stk_camera *dev = to_stk_camera(kref);
 
-/* sets mpeg parameters */
-   struct v4l2_ext_controls mc;
-   struct v4l2_ext_control ctrls[32];
-   mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
-   mc.controls = ctrls;
-   int fd=0;
-   char *device="/dev/video1";
-   
-   int i;
+-       STK_INFO("Syntek USB2.0 Camera release resources"
+-               " video device /dev/video%d\n", dev->vdev.minor);
+-       video_unregister_device(&dev->vdev);
+-       dev->vdev.priv = NULL;
+-
+        if (dev->sio_bufs != NULL || dev->isobufs != NULL)
+                STK_ERROR("We are leaking memory\n");
+        usb_put_intf(dev->interface);
+@@ -255,7 +250,7 @@ static ssize_t show_brightness(struct device *class,
+                        struct device_attribute *attr, char *buf)
+ {
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-   int false;
- 
-   int m_iVideoBR;
-   int m_iVideoMaxBR;
-   int m_iVideoVBR;
-   int m_iAudioBR;
-   int m_uiAspectRatio;
+        return sprintf(buf, "%X\n", dev->vsettings.brightness);
+ }
+@@ -268,7 +263,7 @@ static ssize_t store_brightness(struct device *class,
+        int ret;
 
-   if ((fd = open(device, O_RDONLY)) < 0) {
-     printf("Couldn't open video1\n");
-		return(-1);
-   }
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-   /* Test defines start */
-   false  = 0;
-   m_iVideoBR = 7500;
-   m_iVideoMaxBR = 9200;
-   m_iVideoVBR = 0;
-   m_iAudioBR = 256;
-   m_uiAspectRatio = 0;
-   /* Test defines stop */
-   i = 0;
-   mc.ctrl_class = V4L2_CTRL_CLASS_MPEG;
-   ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE;
-   ctrls[i++].value = (m_iVideoVBR ? V4L2_MPEG_VIDEO_BITRATE_MODE_VBR : 
-V4L2_MPEG_VIDEO_BITRATE_MODE_CBR);
-   ctrls[i].id = V4L2_CID_MPEG_AUDIO_MUTE;
-   ctrls[i++].value = false;
-   ctrls[i].id = V4L2_CID_MPEG_VIDEO_MUTE;
-   ctrls[i++].value = false;
-//  ctrls[i].id = V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ;
-//  ctrls[i++].value = V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000;
-   ctrls[i].id = V4L2_CID_MPEG_AUDIO_ENCODING;
-   ctrls[i++].value = V4L2_MPEG_AUDIO_ENCODING_LAYER_2;
-   ctrls[i].id = V4L2_CID_MPEG_AUDIO_L2_BITRATE;
-   ctrls[i++].value = (m_iAudioBR==256) ? 
-V4L2_MPEG_AUDIO_L2_BITRATE_256K : V4L2_MPEG_AUDIO_L2_BITRATE_384K;
-   ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE;
-   ctrls[i++].value = m_iVideoBR * 1000;
-   ctrls[i].id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK;
-   ctrls[i++].value = m_iVideoMaxBR * 1000;
-   ctrls[i].id = V4L2_CID_MPEG_VIDEO_ASPECT;
-   switch (m_uiAspectRatio)
-   {
-     case 0: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_1x1; break;
-     case 2: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_16x9; break;
-     case 3: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_221x100; break;
-     default: ctrls[i++].value = V4L2_MPEG_VIDEO_ASPECT_4x3; break;
-   }
-   mc.count = i;
-   if (ioctl(fd, VIDIOC_S_EXT_CTRLS, &mc) < 0) {
-     printf("Mpeg parameters cannot be set !\n");
-   }
-  close (fd);
+        value = simple_strtoul(buf, &endp, 16);
 
-  return (0);
-}
+@@ -285,7 +280,7 @@ static ssize_t show_hflip(struct device *class,
+                struct device_attribute *attr, char *buf)
+ {
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-Start MPEG script here:
+        return sprintf(buf, "%d\n", dev->vsettings.hflip);
+ }
+@@ -294,7 +289,7 @@ static ssize_t store_hflip(struct device *class,
+                struct device_attribute *attr, const char *buf, size_t count)
+ {
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-./v4l2-ctl --set-freq=175.0 -d /dev/video0 
-./v4l2-ctl --set-input=0 -d /dev/video0
-./v4l2-ctl -s=secam-d -d /dev/video0
-./start_mpeg
+        if (strncmp(buf, "1", 1) == 0)
+                dev->vsettings.hflip = 1;
+@@ -310,7 +305,7 @@ static ssize_t show_vflip(struct device *class,
+                struct device_attribute *attr, char *buf)
+ {
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-In debug log I see:
+        return sprintf(buf, "%d\n", dev->vsettings.vflip);
+ }
+@@ -319,7 +314,7 @@ static ssize_t store_vflip(struct device *class,
+                struct device_attribute *attr, const char *buf, size_t count)
+ {
+        struct video_device *vdev = to_video_device(class);
+-       struct stk_camera *dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = dev_get_drvdata(vdev->dev);
 
-DEBUG: ts_open() start
-DEBUG: ts_open() stop
-DEBUG: empress_s_ext_ctrls() start
-DEBUG: ts_init_encoder() start
-DEBUG: ts_reset_encoder() start
-DEBUG: ts_init_encoder() stop
-DEBUG: empress_s_ext_ctrls() stop
-DEBUG: ts_release() start
-DEBUG: ts_reset_encoder() start
-DEBUG: ts_reset_encoder() stop
-DEBUG: ts_release() stop
+        if (strncmp(buf, "1", 1) == 0)
+                dev->vsettings.vflip = 1;
+@@ -683,11 +678,11 @@ static int v4l_stk_open(struct inode *inode,
+struct file *fp)
+        struct video_device *vdev;
 
-But when I try:
-cat /dev/video1 I get Input/Output error
+        vdev = video_devdata(fp);
+-       dev = vdev_to_camera(vdev);
++       dev = dev_get_drvdata(vdev->dev);
 
-In debug log :
+        if (dev == NULL || !is_present(dev))
+                return -ENXIO;
+-       fp->private_data = vdev;
++       fp->private_data = dev;
+        kref_get(&dev->kref);
+        usb_autopm_get_interface(dev->interface);
 
-DEBUG: ts_open() start
-DEBUG: ts_open() stop
-DEBUG: ts_init_encoder() start
-DEBUG: ts_reset_encoder() start
-DEBUG: ts_init_encoder() stop
-DEBUG: buffer_setup() start
-DEBUG: buffer_setup() stop
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_prepare() start 
-DEBUG: line = 64
-DEBUG: size = 12032
-DEBUG: buffer_prepare() stop 
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_activate() start 
-DEBUG: buffer_activate() stop 
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: buffer_activate() start 
-DEBUG: buffer_activate() stop 
-DEBUG: buffer_activate() start 
-DEBUG: buffer_activate() stop 
-DEBUG: buffer_queue() start
-DEBUG: buffer_queue() stop
-DEBUG: ts_release() start
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: buffer_release() start
-DEBUG: buffer_release() stop
-DEBUG: ts_reset_encoder() start
-DEBUG: ts_reset_encoder() stop
-DEBUG: ts_release() stop
+@@ -696,19 +691,7 @@ static int v4l_stk_open(struct inode *inode,
+struct file *fp)
 
-I don't understand why stream was stopped.
+ static int v4l_stk_release(struct inode *inode, struct file *fp)
+ {
+-       struct stk_camera *dev;
+-       struct video_device *vdev;
+-
+-       vdev = video_devdata(fp);
+-       if (vdev == NULL) {
+-               STK_ERROR("v4l_release called w/o video devdata\n");
+-               return -EFAULT;
+-       }
+-       dev = vdev_to_camera(vdev);
+-       if (dev == NULL) {
+-               STK_ERROR("v4l_release called on removed device\n");
+-               return -ENODEV;
+-       }
++       struct stk_camera *dev = fp->private_data;
 
-> The only way to change MPEG settings is to hardcode it in a program, 
-> calling VIDIOC_S_EXT_CTRLS directly with the controls that 
-> handle_ctrl() in saa6752.c understands.
+        if (dev->owner != fp) {
+                usb_autopm_put_interface(dev->interface);
+@@ -734,14 +717,8 @@ static ssize_t v4l_stk_read(struct file *fp, char
+__user *buf,
+        int i;
+        int ret;
+        unsigned long flags;
+-       struct stk_camera *dev;
+-       struct video_device *vdev;
+        struct stk_sio_buffer *sbuf;
+-
+-       vdev = video_devdata(fp);
+-       if (vdev == NULL)
+-               return -EFAULT;
+-       dev = vdev_to_camera(vdev);
++       struct stk_camera *dev = fp->private_data;
 
-Yes, but more better fix v4l2-ctl and empress module.
+        if (dev == NULL)
+                return -EIO;
+@@ -800,15 +777,8 @@ static ssize_t v4l_stk_read(struct file *fp, char
+__user *buf,
 
-With my best regards, Dmitry.
+ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
+ {
+-       struct stk_camera *dev;
+-       struct video_device *vdev;
+-
+-       vdev = video_devdata(fp);
+-
+-       if (vdev == NULL)
+-               return -EFAULT;
++       struct stk_camera *dev = fp->private_data;
+
+-       dev = vdev_to_camera(vdev);
+        if (dev == NULL)
+                return -ENODEV;
+
+@@ -846,16 +816,12 @@ static int v4l_stk_mmap(struct file *fp, struct
+vm_area_struct *vma)
+        unsigned int i;
+        int ret;
+        unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+-       struct stk_camera *dev;
+-       struct video_device *vdev;
++       struct stk_camera *dev = fp->private_data;
+        struct stk_sio_buffer *sbuf = NULL;
+
+        if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
+                return -EINVAL;
+
+-       vdev = video_devdata(fp);
+-       dev = vdev_to_camera(vdev);
+-
+        for (i = 0; i < dev->n_sbufs; i++) {
+                if (dev->sio_bufs[i].v4lbuf.m.offset == offset) {
+                        sbuf = dev->sio_bufs + i;
+@@ -1327,10 +1293,6 @@ static struct file_operations v4l_stk_fops = {
+        .llseek = no_llseek
+ };
+
+-static void stk_v4l_dev_release(struct video_device *vd)
+-{
+-}
+-
+ static struct video_device stk_v4l_data = {
+        .name = "stkwebcam",
+        .type = VFL_TYPE_GRABBER,
+@@ -1339,7 +1301,7 @@ static struct video_device stk_v4l_data = {
+        .tvnorms = V4L2_STD_UNKNOWN,
+        .current_norm = V4L2_STD_UNKNOWN,
+        .fops = &v4l_stk_fops,
+-       .release = stk_v4l_dev_release,
++       .release = video_device_release,
+
+        .vidioc_querycap = stk_vidioc_querycap,
+        .vidioc_enum_fmt_cap = stk_vidioc_enum_fmt_cap,
+@@ -1367,16 +1329,16 @@ static int stk_register_video_device(struct
+stk_camera *dev)
+ {
+        int err;
+
+-       dev->vdev = stk_v4l_data;
+-       dev->vdev.debug = debug;
+-       dev->vdev.dev = &dev->interface->dev;
+-       dev->vdev.priv = dev;
+-       err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
++       *dev->vdev = stk_v4l_data;
++       dev->vdev->debug = debug;
++       dev->vdev->dev = &dev->interface->dev;
++       dev_set_drvdata(dev->vdev->dev, dev);
++       err = video_register_device(dev->vdev, VFL_TYPE_GRABBER, -1);
+        if (err)
+                STK_ERROR("v4l registration failed\n");
+        else
+                STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+-                       " /dev/video%d\n", dev->vdev.minor);
++                       " /dev/video%d\n", dev->vdev->minor);
+        return err;
+ }
+
+@@ -1387,7 +1349,7 @@ static int stk_camera_probe(struct usb_interface
+*interface,
+                const struct usb_device_id *id)
+ {
+        int i;
+-       int err;
++       int err = 0;
+
+        struct stk_camera *dev = NULL;
+        struct usb_device *udev = interface_to_usbdev(interface);
+@@ -1433,8 +1395,8 @@ static int stk_camera_probe(struct usb_interface
+*interface,
+        }
+        if (!dev->isoc_ep) {
+                STK_ERROR("Could not find isoc-in endpoint");
+-               kref_put(&dev->kref, stk_camera_cleanup);
+-               return -ENODEV;
++               err = -ENODEV;
++               goto error;
+        }
+        dev->vsettings.brightness = 0x7fff;
+        dev->vsettings.palette = V4L2_PIX_FMT_RGB565;
+@@ -1446,16 +1408,24 @@ static int stk_camera_probe(struct
+usb_interface *interface,
+
+        usb_set_intfdata(interface, dev);
+
+-       err = stk_register_video_device(dev);
+-       if (err) {
+-               kref_put(&dev->kref, stk_camera_cleanup);
+-               return err;
++       if((dev->vdev = video_device_alloc()) == NULL) {
++               err = -ENOMEM;
++               goto error;
+        }
+
+-       stk_create_sysfs_files(&dev->vdev);
++       if((err = stk_register_video_device(dev)))
++               goto error_vdev;
++
++       stk_create_sysfs_files(dev->vdev);
+        usb_autopm_enable(dev->interface);
+
+        return 0;
++
++error_vdev:
++       video_device_release(dev->vdev);
++error:
++       kref_put(&dev->kref, stk_camera_cleanup);
++       return err;
+ }
+
+ static void stk_camera_disconnect(struct usb_interface *interface)
+@@ -1466,7 +1436,12 @@ static void stk_camera_disconnect(struct
+usb_interface *interface)
+        unset_present(dev);
+
+        wake_up_interruptible(&dev->wait_frame);
+-       stk_remove_sysfs_files(&dev->vdev);
++       stk_remove_sysfs_files(dev->vdev);
++
++       STK_INFO("Syntek USB2.0 Camera release resources"
++               " video device /dev/video%d\n", dev->vdev->minor);
++
++       video_unregister_device(dev->vdev);
+
+        kref_put(&dev->kref, stk_camera_cleanup);
+ }
+diff --git a/drivers/media/video/stk-webcam.h b/drivers/media/video/stk-webcam.h
+index df4dfef..84257fe 100644
+--- a/drivers/media/video/stk-webcam.h
++++ b/drivers/media/video/stk-webcam.h
+@@ -91,7 +91,7 @@ struct regval {
+ };
+
+ struct stk_camera {
+-       struct video_device vdev;
++       struct video_device *vdev;
+        struct usb_device *udev;
+        struct usb_interface *interface;
+        int webcam_model;
+@@ -122,7 +122,6 @@ struct stk_camera {
+ };
+
+ #define to_stk_camera(d) container_of(d, struct stk_camera, kref)
+-#define vdev_to_camera(d) container_of(d, struct stk_camera, vdev)
+
+ void stk_camera_delete(struct kref *);
+ int stk_camera_write_reg(struct stk_camera *, u16, u8);
+--
+1.5.5.1
 
 --
 video4linux-list mailing list
