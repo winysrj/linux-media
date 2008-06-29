@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-01.sil.at ([78.142.186.24])
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <emmanuel@libera.cc>) id 1K68a5-0007Pe-AN
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 20:28:34 +0200
-Received: from [213.129.227.98] by smtp-01.sil.at with esmtp (Exim 4.63)
-	(envelope-from <emmanuel@libera.cc>) id 1K68Zm-0008Ve-Vt
-	for linux-dvb@linuxtv.org; Tue, 10 Jun 2008 20:28:11 +0200
-Message-ID: <484EC7B1.8030904@libera.cc>
-Date: Tue, 10 Jun 2008 20:28:01 +0200
-From: Emmanuel Kasper <emmanuel@libera.cc>
+	(envelope-from <fabreg@gmail.com>) id 1KD4ag-0004bm-SF
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 23:37:48 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1220234wfd.17
+	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 14:37:42 -0700 (PDT)
+Message-ID: <43d295de0806291437i309164eodfc08c293a3237e1@mail.gmail.com>
+Date: Sun, 29 Jun 2008 23:37:41 +0200
+From: "Fabrizio Regalli" <fabreg@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <4867FE44.2000901@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Vendor support for linux  DVB-T drivers
+Content-Disposition: inline
+References: <43d295de0806291420w4b15c20cj25c05e79617d3371@mail.gmail.com>
+	<4867FE44.2000901@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Conexant Device 8852
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,81 +23,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0661796936=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============0661796936==
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigA62D587E603126521F1D3F83"
+Hi Michael
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA62D587E603126521F1D3F83
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+thanks for your reply.
+Which extacly are the files needed? Maybe
 
-Hello
-With a couple of other french folks, we are building a kind of webshop
-for Linux/FreeBSD compatible hardware. We will reference only devices
-which work with a free driver, so no nvidia binary thingie or atheros HAL=
-=2E
-Based on the information found  on the linuxtv wiki we plan to reference
-the following DVB-T devices:
+http://linuxtv.org/downloads/linuxtv-dvb-1.1.1.tar.bz2
 
-Pinnacle PCTV Hybrid Pro PCI 310i ( which has saa7134 driver )
-Pinnacle - Tuner TV - PCTV nano Stick DVB-T ( which uses
-dvb-usb-dib0700 )
-AVerMedia AVerTV DVB-T Volar "case mix frenzy" ( which uses
-dvb-usb-dib0700 )
-Hauppauge WinTV-Nova T USB2 (which uses dvb-usb-nova-t-usb2 )
+and
 
-We would be also interested to indicate on each product description, if
-the vendor of the product, or the chipset maker for that matters had
-been helpful with developers trying to write a free driver. So for the
-devices mentionned above, was any of the vendor helpful by providing
-programming documentation or sample hardware ?
+http://linuxtv.org/downloads/linuxtv-dvb-apps-1.1.1.tar.bz2
 
-If yes we will mention it on the product description with an extra tag
-like "programmer friendly".
+Thanks again.
+Fab
 
-
-Regards
---=20
-Emmanuel Kasper
-System Administrator
-www.libera.cc
-Find, compare, buy Linux & FreeBSD compatible hardware
-
-
---------------enigA62D587E603126521F1D3F83
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFITse4wfhkdwZoef4RAgDYAJoD9AcLH7YuPzfMScOIRcuONG913ACggz7y
-tCKzkIJUKKHNOuJpE0iYAY8=
-=eo4V
------END PGP SIGNATURE-----
-
---------------enigA62D587E603126521F1D3F83--
-
-
---===============0661796936==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+2008/6/29 Michael Krufky <mkrufky@linuxtv.org>:
+> Fabrizio Regalli wrote:
+>> Hello.
+>>
+>> I've the follow tv card on my linux box:
+>>
+>> 03:00.0 Multimedia video controller: Conexant Device 8852 (rev 02)
+>>       Subsystem: Hauppauge computer works Inc. Device 71d1
+> [snip]
+>>
+>> I try to use cx23885 driver (with card=<1,2,3,4,5,6> option) but doesn't works.
+>> Could someone please help me?
+>
+>
+> Use the cx23885 driver from linuxtv.org master branch -- Hauppauge WinTV-HVR1200 will be supported with the 2.6.26 kernel.
+>
+> Regards,
+>
+> Mike
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0661796936==--
