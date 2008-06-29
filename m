@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <xwang1976@email.it>) id 1KCKPX-0005S6-MO
-	for linux-dvb@linuxtv.org; Fri, 27 Jun 2008 22:19:13 +0200
-Received: from [192.168.0.102] (84.223.126.158) by joe.mail.tiscali.it
-	(8.0.016) id 484CF05000D70E6C for linux-dvb@linuxtv.org;
-	Fri, 27 Jun 2008 22:18:31 +0200
-Message-ID: <48654B16.2090400@email.it>
-Date: Fri, 27 Jun 2008 22:18:30 +0200
-From: xwang1976@email.it
-MIME-Version: 1.0
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KCrlu-0006oR-BV
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 09:56:30 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KCrlp-0001vx-9a
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 07:56:25 +0000
+Received: from h240n2fls32o1121.telia.com ([217.211.84.240])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 07:56:25 +0000
+Received: from dvenion by h240n2fls32o1121.telia.com with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 07:56:25 +0000
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DVB-t and analogue pen not recognized
+From: Daniel <dvenion@hotmail.com>
+Date: Sun, 29 Jun 2008 07:56:17 +0000 (UTC)
+Message-ID: <loom.20080629T074739-993@post.gmane.org>
+References: <loom.20080628T180915-166@post.gmane.org>
+	<1214701520l.6081l.0l@manu-laptop>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Re : Re : How to solve the TT-S2-3200 tuning
+	problems?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,21 +35,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi to all,
-I'm writing from Italy and I've an Empire pen dual tv 
-(http://www.empiremedia.it/site/prodotto.asp?idprodotto=231&tit=Pen%20Dual%20TV%20+%20Hypermedia%20Center&lingua=)
-I suppose it is a rebranded Kworld 310u (it has the same shape and in 
-the bottom part there is the following code : VS-DVBT 310U).
-How can I use it?
-Under windows I can see both digital and analog tv, but with my kubuntu 
-7.10 it is not recognized (my kernel version is 2.6.22-15-generic).
-Can you help me, please?
-Thank you,
-Xwang
+manu <eallaud <at> yahoo.fr> writes:
 
-P.S. in case it is not supported can you suggest me a supported usb 
-device which I can use with my 1.4Ghz centrino laptop to see analogue 
-and digital tv?
+> 
+> AFAIK there are only HD channels on this transponder. FEC is 5/6 
+> instead of the more common 3/4 for all other transponders. And that's 
+> the only difference. I do not understand why this could be a problem 
+> for tuning to the transponder.
+> And I tried to tune to frequencies between 11485 and 11505 MHz, whereas 
+> the freq is advertised as 11495MHz. With no luck: not a single lock.
+> For the other transponders lock is fast and reliabke.
+> One more thing, the symbol rate is the same across all transponders, 
+> 30MBauds.
+> Do you have an idea about solving this, or at least how to get useful 
+> info.
+> Bye
+> Manu
+> 
+
+
+Sad enough I have no clue how to solve this. I have this problem too with with a
+couple of transponders that just holds mpeg4 channels. But they are DVB-S2 with
+8PSK mod, FEC 3/4 and symbolrate 25000 and 30000.
+12128, 12015, 11434 and 11421 on Thor 5 1.0W are the ones that are problematic
+for me.
+
+//Daniel
 
 
 _______________________________________________
