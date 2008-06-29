@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m55Mox2j021880
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 18:50:59 -0400
-Received: from web63015.mail.re1.yahoo.com (web63015.mail.re1.yahoo.com
-	[69.147.96.242])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m55MniFK020325
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 18:49:45 -0400
-Date: Thu, 5 Jun 2008 15:49:39 -0700 (PDT)
-From: Fritz Katz <frtzkatz@yahoo.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <20080605160010.BB443619D1A@hormel.redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <214178.91761.qm@web63015.mail.re1.yahoo.com>
-Subject: Re: Writing first v4l2 driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5T13wB6023001
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:03:58 -0400
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5T13jtW016683
+	for <video4linux-list@redhat.com>; Sat, 28 Jun 2008 21:03:45 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080628214834.1949bff8@gaivota>
+References: <20080626231551.GA20012@kroah.com>
+	<20080628083154.33d3a93d@gaivota>
+	<1214690914.7722.10.camel@pc10.localdom.local>
+	<20080628214335.40185450@gaivota>  <20080628214834.1949bff8@gaivota>
+Content-Type: text/plain
+Date: Sun, 29 Jun 2008 03:01:09 +0200
+Message-Id: <1214701269.2641.2.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Greg KH <greg@kroah.com>,
+	linux-usb@vger.kernel.org, dean@sensoray.com,
+	linux-kernel@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [v4l-dvb-maintainer] [PATCH] add Sensoray 2255 v4l driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,35 +33,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 05 Jun 2008
-Jon Dufresne <jon dufresne infinitevideocorporation com> wrote:
+
+Am Samstag, den 28.06.2008, 21:48 -0300 schrieb Mauro Carvalho Chehab:
+> On Sat, 28 Jun 2008 21:43:35 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 > 
-> I'm in the process of writing my first v4l2 linux driver. 
-> I have written drivers in the past but this is my first time 
-> with a video device. I have read as much documentation as I 
-> could get my hands on.
-> ......
-> Is there a good guide on using video-buf for video dma transfer? I did
-> quite a few google searches but I didn't find anything.
-_________________
+> 
+> > The code is not backward compatible. It works only with 2.6.27-rc.
+> 							  =========
+> Ops... typo: I mean: 2.6.26-rc8
+> 
+> Cheers,
+> Mauro
 
-For a good overview of "Linux Device Drivers" the O'Reilly book is FREE online:
-http://www.xml.com/ldd/chapter/book/
+OK.
 
-Take a look at chapter 16:
-http://www.xml.com/ldd/chapter/book/ch16.html
+was out all day and just did hit it.
 
-There are several paragraphs introducing 'drivers/video' and 'drivers/media'
+I stop such reports, if wanted ;)
 
-I'm in the process of writing my first v4l2 driver too. However, I'm going to create a driver for a TV-tuner that's not in the list of currently supported cards. ( Wish me luck! ) Or, better, point me in the direction of resources for TV-tuner drivers on Linux.
+Cheers,
+Hermann
 
-Regards,
--- Fritz Katz
-Los Angeles, CA
-
-
-
-      
 
 --
 video4linux-list mailing list
