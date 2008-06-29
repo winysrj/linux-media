@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Tue, 3 Jun 2008 18:08:28 -0400
-From: Alan Cox <alan@redhat.com>
-To: Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>
-Message-ID: <20080603220828.GE30842@devserv.devel.redhat.com>
-References: <20080522223700.2f103a14@core>
-	<200805261846.35758.hverkuil@xs4all.nl>
-	<1212287646.20064.21.camel@palomino.walls.org>
-	<200806011215.11489.hverkuil@xs4all.nl>
-	<1212346919.3294.6.camel@palomino.walls.org>
-	<20080603182052.1080408e@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080603182052.1080408e@gaivota>
-Cc: video4linux-list@redhat.com
-Subject: Re: [ivtv-devel] [PATCH] cx18: convert driver to video_ioctl2()
-	(Re: [PATCH] video4linux: Push down the BKL)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5T8dLfm003689
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 04:39:21 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5T8cgPj007132
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 04:38:42 -0400
+Message-ID: <48674B80.6030107@hhs.nl>
+Date: Sun, 29 Jun 2008 10:44:48 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Announcing libv4l 0.3 aka "the cheese release"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,19 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jun 03, 2008 at 06:20:52PM -0300, Mauro Carvalho Chehab wrote:
-> > Yeah, they can go.  I left them in as an aid for double checking that I
-> > didn't forget any callbacks that needed to be implemented.
-> 
-> Please don't do that. All static vars that have a value 0 or NULL shouldn't be
-> initialized, since this will eat some space inside the module.
+Hi All,
 
-The compiler is smarter than that. Besides which 4 bytes will make no difference
-whether it is data or bss given 4K disk block sizes 8)
+I'm happy to announce version 0.3 of libv4l:
+http://people.atrpms.net/~hdegoede/libv4l-0.3.tar.gz
 
-It is coding style not to do it but it isn't a bad idea to leave them in if
-they make something explicitly clear IMHO.
+This release has the following changes (mostly bugfixes):
 
+libv4l-0.3
+----------
+* add extern "C" magic to public header files for c++ usage (Gregor Jasny)
+* Make libv4l1 and libv4l2 multithread use safe, see README.multi-threading
+* Add v4lx_dup() calls (and intercept dup() from the wrappers) this fixes
+   use with gstreamer's v4l2 plugin (tested with cheese)
+* Hopefully definitely fix compile errors on systems with a broken videodev2.h
+
+
+The big improvement here is that gstreamer using applications now work without 
+any caveats.
+
+I also believe / hope that this release fixes the compile problems some people 
+where having.
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
