@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay3.mail.uk.clara.net ([80.168.70.183])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon.farnsworth@onelan.co.uk>) id 1K4HnQ-0005TF-JI
-	for linux-dvb@linuxtv.org; Thu, 05 Jun 2008 17:54:41 +0200
-Message-ID: <48480C33.3060705@onelan.co.uk>
-Date: Thu, 05 Jun 2008 16:54:27 +0100
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Received: from n29.bullet.mail.ukl.yahoo.com ([87.248.110.146])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KClkY-0007Fb-N9
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 03:30:45 +0200
+Date: Sat, 28 Jun 2008 21:24:26 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200806282223.39447.ajurik@quick.cz> (from ajurik@quick.cz on
+	Sat Jun 28 16:23:39 2008)
+Message-Id: <1214702666l.6081l.1l@manu-laptop>
 MIME-Version: 1.0
-To: Simon Kilvington <s.kilvington@eris.qinetiq.com>
-References: <48480A2D.9010507@eris.qinetiq.com>
-In-Reply-To: <48480A2D.9010507@eris.qinetiq.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] UK FreeView logical channel numbers
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Re : Re : How to solve the TT-S2-3200 tuning
+ problems?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,29 +20,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Kilvington wrote:
+Le 28.06.2008 16:23:39, Ales Jurik a =E9crit=A0:
+> On Saturday 28 of June 2008, manu wrote:
+> > Le 28.06.2008 08:44:12, manu a =E9crit=A0:
+> >
+> > just to precise a bit more: all transponders are DVB-S with QPSK
+> > modulation (at least this is what is advertised in the dvb tables).
+> > BYe
+> > Manu
+> >
 > Hi,
-> 
-> 	does anyone know where the logical channel numbers are
-> transmitted in FreeView? - ie BBC1 is 1, BBC News is 80, etc - I've been
-> looking at the PAT and PMTs with dvbsnoop but can't see anything
-> obvious.
-> 
+> =
 
-It's in the NIT, using a private descriptor - scan from dvb-apps 
-(http://linuxtv.org/hg/dvb-apps/file/9311c900f746/util/scan/scan.c) 
-knows about them, and they're fully specced in the DTG 'D-Book' (see 
-http://dtg.org.uk/publications/books.html).
--- 
-HTH,
+> this is interesting - I don't have problem with DVB-S/QPSK channels
+> except for =
 
-Simon Farnsworth
+> some channels I'm not able to tune directly when changing sat (on
+> diseqc =
+
+> switch) - it is necessary to tune first to another transponder and
+> then to =
+
+> this problematic one.
+> =
+
+> Could you be so kind and specify more channels you have problems =
+
+> with?
+
+Thats the thing: every other transponder works great, that is: 11093, =
+
+11555, 11635, 11675 MHz, 30MBauds, DVB-S, QPSK, FEC 3/4.
+The only problematic one: 11495MHz, FEC 5/6 and every other =
+
+characteristics are the same as the working ones. I checked in the dvb =
+
+tables from the transport stream.
+Have you got any idea?
+Thanks
+Manu
+
 
 
 _______________________________________________
