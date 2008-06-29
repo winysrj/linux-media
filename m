@@ -1,28 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5S1k5G9024760
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 21:46:05 -0400
-Received: from mail9.dslextreme.com (mail9.dslextreme.com [66.51.199.94])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5S1jjOp020928
-	for <video4linux-list@redhat.com>; Fri, 27 Jun 2008 21:45:46 -0400
-Message-ID: <486597B6.2010300@gimpelevich.san-francisco.ca.us>
-Date: Fri, 27 Jun 2008 18:45:26 -0700
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
-	<200803161724.20459.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
-	<200803161840.37910.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
-	<1206573402.3912.50.camel@pc08.localdom.local>
-	<653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
-	<loom.20080627T025843-957@post.gmane.org>
-	<1214599398.2640.23.camel@pc10.localdom.local>
-In-Reply-To: <1214599398.2640.23.camel@pc10.localdom.local>
-Content-Type: multipart/mixed; boundary="------------070502050909010407070407"
-Cc: video4linux-list@redhat.com, mchehab@infradead.org
-Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5TABTCx026416
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 06:11:29 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5TABGTT006924
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 06:11:16 -0400
+Date: Sun, 29 Jun 2008 07:11:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080629071104.13d8fa0f@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.26] V4L/DVB fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,84 +26,150 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------070502050909010407070407
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Linus,
 
-hermann pitton wrote:
-> Don't touch the spaces after commas on previous entries, add only
-> support for the saa7133 device you really tested on, run "make
-> checkpatch" and add spaces after commas ;)
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
 
-Done; attached.
+For a number of small fixes on drivers:
 
-> Peter had more of the recent LifeView devices.
-> 
-> Seems he is pointing to some difference concerning the s-video inputs on
-> cardbus and Mini PCI devices I'm not aware of. I'm not sure what he
-> likes us to do.
+   - one Kconfig fix;
+   - Several fixes at the new drivers for 2.6.26 (cx18, gl861, au0828 and 
+     au8522);
+   - Driver fixes on em28xx, saa7134, tda18271, pxa-camera, soc-camera, 
+     umt-010, tda1004x, tda10023, av7110, stv0299 and xc5000;
 
-As I said before, I addressed that and more before I even said anything 
-about it on the list at all.
+And one change at V4L core:
+   - A regression fix at videodev standard enumeration: some userspace apps 
+     like mplayer weren't capable of support certain video standard 
+     variations. We needed to use a different algorithm for std enumeration;
 
-> And as said, send at least relevant dmesg output when loading the driver
-> and tuner modules, preferably with i2c_scan=1 enabled.
+Cheers,
+Mauro.
 
-I would need to borrow the card again to do that, and I'm not sure it 
-would be all that useful for differentiation.
+---
 
-> As just seen with an early Compro saa7133, we have no safety, that not
-> later on devices appear with the same PCI subsystem, which are in fact
-> different, and have no means then to keep the auto detection working
-> without such potentially useful information.
+ Documentation/video4linux/CARDLIST.au0828     |    2 +-
+ drivers/media/common/ir-keymaps.c             |   38 ++++
+ drivers/media/common/tuners/tda18271-common.c |   10 +-
+ drivers/media/common/tuners/tda18271-fe.c     |   53 ++++--
+ drivers/media/common/tuners/xc5000.c          |   30 +++-
+ drivers/media/common/tuners/xc5000_priv.h     |    1 -
+ drivers/media/dvb/dvb-usb/gl861.c             |   27 +--
+ drivers/media/dvb/dvb-usb/umt-010.c           |    2 +-
+ drivers/media/dvb/frontends/au8522.c          |   29 +++-
+ drivers/media/dvb/frontends/stv0299.c         |   15 +-
+ drivers/media/dvb/frontends/tda10023.c        |   20 ++-
+ drivers/media/dvb/frontends/tda1004x.c        |   29 +++-
+ drivers/media/dvb/ttpci/Kconfig               |    1 +
+ drivers/media/dvb/ttpci/av7110_hw.c           |    5 +-
+ drivers/media/video/au0828/au0828-cards.c     |   18 ++
+ drivers/media/video/cx18/Kconfig              |    4 +-
+ drivers/media/video/cx18/cx18-av-core.c       |   73 +++++++-
+ drivers/media/video/cx18/cx18-av-core.h       |   16 ++-
+ drivers/media/video/cx18/cx18-cards.c         |   84 +++++----
+ drivers/media/video/cx18/cx18-cards.h         |   50 +----
+ drivers/media/video/cx18/cx18-dvb.c           |   17 ++-
+ drivers/media/video/cx18/cx18-gpio.c          |   26 +++-
+ drivers/media/video/cx18/cx18-gpio.h          |    1 +
+ drivers/media/video/cx18/cx18-i2c.c           |    2 +
+ drivers/media/video/cx25840/cx25840-core.c    |    2 +-
+ drivers/media/video/cx88/cx88-alsa.c          |    6 +
+ drivers/media/video/em28xx/em28xx-audio.c     |   18 ++
+ drivers/media/video/em28xx/em28xx-cards.c     |    4 +
+ drivers/media/video/em28xx/em28xx-dvb.c       |   10 +
+ drivers/media/video/em28xx/em28xx-reg.h       |    1 +
+ drivers/media/video/em28xx/em28xx-video.c     |   24 +--
+ drivers/media/video/pxa_camera.c              |    4 +-
+ drivers/media/video/saa7134/saa7134-alsa.c    |    8 +-
+ drivers/media/video/saa7134/saa7134-cards.c   |   56 ++++---
+ drivers/media/video/saa7134/saa7134-dvb.c     |   43 ++---
+ drivers/media/video/saa7134/saa7134-empress.c |   37 ++--
+ drivers/media/video/saa7134/saa7134-input.c   |    9 +
+ drivers/media/video/soc_camera.c              |   16 --
+ drivers/media/video/videodev.c                |  245 +++++++------------------
+ drivers/media/video/vivi.c                    |    7 +-
+ include/media/cx25840.h                       |    6 +-
+ include/media/ir-common.h                     |    1 +
+ include/media/v4l2-dev.h                      |    4 +-
+ 43 files changed, 608 insertions(+), 446 deletions(-)
 
-Seems to me that the contents of the tveeprom may be a more reliable 
-mechanism.
+Andy Walls (5):
+      V4L/DVB (8063): cx18: Fix unintended auto configurations in cx18-av-core
+      V4L/DVB (8066): cx18: Fix audio mux input definitions for HVR-1600 Line In 2 and FM radio
+      V4L/DVB (8067): cx18: Fix firmware load for case when digital capture happens first
+      V4L/DVB (8068): cx18: Add I2C slave reset via GPIO upon initialization
+      V4L/DVB (8069): cx18: Fix S-Video and Compsite inputs for the Yuan MPC718 and enable card entry
 
-> That it has no remote and no radio support I likely already asked.
+Antti Palosaari (3):
+      V4L/DVB (8012): gl861: sleep a little to avoid I2C errors
+      V4L/DVB (8013): gl861: remove useless identify_state
+      V4L/DVB (8015): gl861: replace non critical msleep(0) with msleep(1) to be on the safe side
 
-It has whatever Card 39 has.
+Arjan van de Ven (1):
+      V4L/DVB (8108): Fix open/close race in saa7134
 
-> Send a copy directly to Mauro and Hartmut too.
-> I'll ack it, if Peter doesn't have objections.
+Austin Lund (1):
+      V4L/DVB (8042): DVB-USB UMT-010 channel scan oops
 
-Done.
+Devin Heitmueller (4):
+      V4L/DVB (8010): em28xx: Properly register extensions for already attached devices
+      V4L/DVB (8011): em28xx: enable DVB for HVR-900
+      V4L/DVB (8017): Ensure em28xx extensions only get run against devs that support them
+      V4L/DVB (8018): Add em2860 chip ID
 
---------------070502050909010407070407
-Content-Type: text/x-patch;
- name="lifevideo.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="lifevideo.patch"
+Dmitri Belimov (1):
+      V4L/DVB (8020): Fix callbacks functions of saa7134_empress
 
-Signed-off-by: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Guennadi Liakhovetski (2):
+      V4L/DVB (8039): pxa-camera: fix platform_get_irq() error handling.
+      V4L/DVB (8040): soc-camera: remove soc_camera_host_class class
 
-diff -r aef02567c2d9 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 27 16:25:56 2008 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 27 17:54:07 2008 -0700
-@@ -5407,6 +5407,12 @@
- 		.subvendor    = 0x185b,
- 		.subdevice    = 0xc900,
- 		.driver_data  = SAA7134_BOARD_VIDEOMATE_T750,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x5169,
-+		.subdevice    = 0x1502,
-+		.driver_data  = SAA7134_BOARD_FLYTVPLATINUM_MINI,
- 	}, {
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+Hans Verkuil (3):
+      V4L/DVB (8007): cx18/cx25840: the S-Video LUMA input can use all In1-In8 inputs
+      V4L/DVB (8008): cx18: remove duplicate audio and video input enums
+      V4L/DVB (8092): videodev: simplify and fix standard enumeration
 
---------------070502050909010407070407
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Marcin Slusarz (2):
+      V4L/DVB (8022): saa7134: fix race between opening and closing the device
+      V4L/DVB (8100): V4L/vivi: fix possible memory leak in vivi_fillbuff
+
+Matthias Schwarzott (1):
+      V4L/DVB (8027): saa7134: Avermedia A700: only s-video and composite input are working
+
+Mauro Carvalho Chehab (5):
+      V4L/DVB (8004): Fix INPUT dependency at budget-ci
+      V4L/DVB (8005): Fix OOPS if frontend is null
+      V4L/DVB (8026): Avoids an OOPS if dev struct can't be successfully recovered
+      V4L/DVB (8028): Improve error messages for tda1004x attach
+      V4L/DVB (8029): Improve error message at tda1004x_attach
+
+Michael Krufky (7):
+      V4L/DVB (8034): tda18271: fix IF notch frequency handling
+      V4L/DVB (8035): tda18271: dont touch EB14 if rf_cal lookup is out of range
+      V4L/DVB (8036): tda18271: toggle rf agc speed mode on TDA18271HD/C2 only
+      V4L/DVB (8037): tda18271: ensure that the thermometer is off during channel configuration
+      V4L/DVB (8043): au0828: add support for additional USB device id's
+      V4L/DVB (8044): au8522: tuning optimizations
+      V4L/DVB (8061): cx18: only select tuner / frontend modules if !DVB_FE_CUSTOMISE
+
+Oliver Endriss (4):
+      V4L/DVB (8071): tda10023: Fix possible kernel oops during initialisation
+      V4L/DVB (8073): av7110: Catch another type of ARM crash
+      V4L/DVB (8074): av7110: OSD transfers should not be interrupted
+      V4L/DVB (8075): stv0299: Uncorrected block count and bit error rate fixed
+
+Steven Toth (2):
+      V4L/DVB (8096): au8522: prevent false-positive lock status
+      V4L/DVB (8097): xc5000: check device hardware state to determine if firmware download is needed
+
+Tim Farrington (1):
+      V4L/DVB (8048): saa7134: Fix entries for Avermedia A16d and Avermedia E506
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------070502050909010407070407--
