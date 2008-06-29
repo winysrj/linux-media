@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.228])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bvidinli@gmail.com>) id 1K4ap3-00016R-Es
-	for linux-dvb@linuxtv.org; Fri, 06 Jun 2008 14:13:34 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1533803rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 06 Jun 2008 05:13:28 -0700 (PDT)
-Message-ID: <36e8a7020806060513r43f494admc1324102b3a1f491@mail.gmail.com>
-Date: Fri, 6 Jun 2008 15:13:27 +0300
-From: bvidinli <bvidinli@gmail.com>
-To: "victor rajewski" <askvictor@gmail.com>, linux-dvb@linuxtv.org
-In-Reply-To: <8f8b28f10806060505o633a1b27h78f73d9f05b49e73@mail.gmail.com>
+	(envelope-from <mkrufky@linuxtv.org>) id 1KD4ca-0005BG-2M
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 23:39:45 +0200
+Message-ID: <48680114.4030007@linuxtv.org>
+Date: Sun, 29 Jun 2008 17:39:32 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_4757_2671066.1212754407750"
-References: <000101c8bbab$cda34450$68e9ccf0$@shacknet.nu>
-	<8f8b28f10806060505o633a1b27h78f73d9f05b49e73@mail.gmail.com>
-Subject: Re: [linux-dvb] Building v4l-dvb on mythbuntu (kernel
-	2.6.24-16-generic)
+To: Fabrizio Regalli <fabreg@gmail.com>
+References: <43d295de0806291420w4b15c20cj25c05e79617d3371@mail.gmail.com>	
+	<4867FE44.2000901@linuxtv.org>
+	<43d295de0806291437i309164eodfc08c293a3237e1@mail.gmail.com>
+In-Reply-To: <43d295de0806291437i309164eodfc08c293a3237e1@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Conexant Device 8852
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,107 +21,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_4757_2671066.1212754407750
-Content-Type: text/plain; charset=ISO-8859-9
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+2008/6/29 Michael Krufky <mkrufky@linuxtv.org>:
+>> Fabrizio Regalli wrote:
+>>     
+>>> Hello.
+>>>
+>>> I've the follow tv card on my linux box:
+>>>
+>>> 03:00.0 Multimedia video controller: Conexant Device 8852 (rev 02)
+>>>       Subsystem: Hauppauge computer works Inc. Device 71d1
+>>>       
+>> [snip]
+>>     
+>>> I try to use cx23885 driver (with card=<1,2,3,4,5,6> option) but doesn't works.
+>>> Could someone please help me?
+>>>       
+>> Use the cx23885 driver from linuxtv.org master branch -- Hauppauge WinTV-HVR1200 will be supported with the 2.6.26 kernel.
+>>
+>> Regards,
+>>
+>> Mike
+>>
+>>     
 
-aSBhbHNvIHVzZSBteXRoYnVudHUgYW5kIHRyeSAgdG8gaW5zdGFsbCB2NGwtZHZiIGRyaXZlcnMu
-Li4KCmFzIGZhciBhcyBpIGxlYXJuZWQsIHVidW50dSB1c2VzIGEgbm9uLXN0YW5kYXJkIHdheSB0
-byBvcmdhbml6ZQpkaXJlY3RvcmllcyByZWxhdGVkIHRvIG1lZGlhIGFuZCBkdmIsIGluIC9saWIv
-bW9kdWxlcwpteXRoYnVudHUgaXMgYmFzZWQgb24gdWJ1bnR1LCBzbyB0aGUgc2FtZSBzaG91bGQg
-YmUgY29uc2lkZXJlZC4KCnNvLCBpIGhhZCB3cml0dGVuIGEgc21hbGwgc2NyaXB0IHRoYXQgZ2V0
-LCBjb21waWxlLCBpbnN0YWxsIHY0bC1kdmIgb24KdWJ1bnR1IHN5c3RlbXMuCmkgYXR0YWNoZWQg
-aXQsCml0IG1heSBub3QgYmUgZnVuY3Rpb25pbmcgY29ycmVjdCBmdWxseS4uLgoKYnV0LCBpdCBn
-aXZlcyBpZGVhIGFib3V0IHdoYXQgc2hvdWxkIGJlIGRvbmUgb24gdWJ1bnR1LC4uCgoKMjAwOC82
-LzYgdmljdG9yIHJhamV3c2tpIDxhc2t2aWN0b3JAZ21haWwuY29tPjoKPiBPbiBUaHUsIE1heSAy
-MiwgMjAwOCBhdCAxMTozMyBBTSwgQmxhY2t5IDxsaW51eC1kdmJAYmxhY2tkb2cuc2hhY2tuZXQu
-bnU+IHdyb3RlOgo+Pgo+PiBIaSBhbGwKPj4KPj4gSSd2ZSBiZWVuIHVzaW5nIHY0bC1kdmIgYnVp
-bGQgdHJlZSBmb3IgYSB3aGlsZSwgYW5kIHJlY2VudGx5IGluc3RhbGxlZAo+PiBteXRoYnVudHUu
-Cj4+Cj4+IEkgcHVsbGVkIHRoZSBsYXRlc3QgcmVsZWFzZSBmcm9tIHRoZSByZXBvc2l0b3J5LCBh
-bmQgYWZ0ZXIgYnVpbGRpbmcgYW5kCj4+IGluc3RhbGxpbmcKPj4gdGhlIG1vZHVsZXMgSSBnZXQg
-YW4gZXJyb3Igd2hpbGUgYm9vdGluZyAob3Igc3BlY2lmaWNhbGx5LCB3aGlsZSBsb2FkaW5nCj4+
-IG1vZHVsZSB0dW5lcl94YzIwMjgKPj4gZHVyaW5nIHN0YXJ0LXVwKQo+Cj4gQXBwYXJlbnRseSB0
-aGUgZHJpdmVyIGlzIGluY2x1ZGVkIGluIDIuNi4yNS4gSSBoYXZlbid0IHRyaWVkIGl0Cj4gdGhv
-dWdoLiBJZiB5b3Ugd2FudGVkIHlvdSBjb3VsZCBwdWxsIHRoZSBrZXJuZWwgb3V0IG9mIHRoZSBQ
-UEEKPiByZXBvc2l0b3J5LiBCdXQgaWYgeW91J3JlIHVzaW5nIG52aWRpYSBncmFwaGljcywgdGhh
-dCBoYXMgcHJvYmxlbXMKPiB3aXRoIDIuNi4yNSAtIG5lZWRzIGEgcGF0Y2ggdG8gd29yay4KPgo+
-IHZpawo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-PiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KCgoK
-LS0gCt0uQmFoYXR0aW4gVmlkaW5saQpFbGstRWxla3Ryb25payBN/GguCi0tLS0tLS0tLS0tLS0t
-LS0tLS0KaWxldGlzaW0gYmlsZ2lsZXJpIChUZXJjaWggc2lyYXNpbmEgZ29yZSk6CnNreXBlOiBi
-dmlkaW5saSAoc2VzbGkgZ29ydXNtZSBpY2luLCB3d3cuc2t5cGUuY29tKQptc246IGJ2aWRpbmxp
-QGl5aWJpcmlzaS5jb20KeWFob286IGJ2aWRpbmxpCgorOTAuNTMyLjc5OTA2MDcKKzkwLjUwNS41
-NjY3NzExCg==
-------=_Part_4757_2671066.1212754407750
-Content-Type: application/x-sh; name=dvb_ubuntu.sh
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fh4qnnwc0
-Content-Disposition: attachment; filename=dvb_ubuntu.sh
+Fabrizio Regalli wrote:
+> Hi Michael
+>
+> thanks for your reply.
+> Which extacly are the files needed? Maybe
+>
+> http://linuxtv.org/downloads/linuxtv-dvb-1.1.1.tar.bz2
+>
+> and
+>
+> http://linuxtv.org/downloads/linuxtv-dvb-apps-1.1.1.tar.bz2
+>
+> Thanks again.
+> Fab
+>   
 
-IyEvYmluL2Jhc2gKZWNobyAiaSBtdXN0IHJ1biB0aGlzIGFzIG5vcm1hbCB1c2VyLi4uIHByZXNz
-IGVudGVyIHRvIGNvbnRpbnVlIgpyZWFkCgpjZApybSAtcnZmIHY0bC1kdmIKCiNpbnN0YWxsIG1l
-cmN1cmlhbCwgZ2V0IHY0bCBmaWxlcywgcGF0Y2ggYW5kIGNvbXBpbGUsCnN1ZG8gYXB0LWdldCBp
-bnN0YWxsIG1lcmN1cmlhbCBsaW51eC1oZWFkZXJzLSQodW5hbWUgLXIpIGJ1aWxkLWVzc2VudGlh
-bApoZyBjbG9uZSBodHRwOi8vbGludXh0di5vcmcvaGcvdjRsLWR2Ygp3Z2V0IGh0dHA6Ly9kZXYu
-Z2VudG9vLm9yZy9+enphbS9kdmIvYTcwMF9mdWxsXzIwMDgwNTE5LmRpZmYKY2Qgfi92NGwtZHZi
-LwpwYXRjaCAtcDEgPCAuLi9hNzAwX2Z1bGxfMjAwODA1MTkuZGlmZgptYWtlCgoKIyBmaXJzdCwg
-YmFja3VwIGFsbCBpbiBjYXNlIHdlIG5lZWQgdGhlbS4uLiAKY2QgL2xpYi9tb2R1bGVzL2B1bmFt
-ZSAtcmAva2VybmVsL2RyaXZlcnMvCnN1ZG8gY3AgLXJ2ZiBtZWRpYSAvcm9vdC9iYWNrdXAvbWVk
-aWEuYmNrCgpjZCAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEKc3VkbyBjcCAt
-cnZmIHNhYTcxMzQgL3Jvb3QvYmFja3VwL3NhYTcxMzQuYmNrCgojIGdvdG8gd2hlcmUgeW91IGdv
-dCB5b3VyIHY0bCBmaWxlcyBieSBoZwpjZCB+L3Y0bC1kdmIvdjRsCnN1ZG8gY3AgLWYgaXItY29t
-bW9uLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1v
-bi8Kc3VkbyBjcCAtZiBzYWE3MTQ2LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9k
-cml2ZXJzL21lZGlhL2NvbW1vbi8Kc3VkbyBjcCAtZiBzYWE3MTQ2X3Z2LmtvIC9saWIvbW9kdWxl
-cy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL2NvbW1vbi8KCnN1ZG8gY3AgLWYgZHZi
-LWNvcmUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvZHZi
-L2R2Yi1jb3JlLwoKCnN1ZG8gY3AgLWYgc2FhNjc1MmhzLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
-LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvCnN1ZG8gY3AgLWYgc2FhNzEz
-NC1kdmIua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBzYWE3MTM0LWVtcHJlc3Mua28gL2xpYi9tb2R1bGVzL2B1
-bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC8Kc3VkbyBjcCAtZiBz
-YWE3MTM0LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3Zp
-ZGVvL3NhYTcxMzQvCgpzdWRvIGNwIC1mIGN4MjM4ODUua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAt
-cmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS8Kc3VkbyBjcCAtZiBjeDI1ODQw
-LmtvIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
-MjU4NDAvCgpzdWRvIGNwIC1mIGN4ODgtYmxhY2tiaXJkLmtvIC9saWIvbW9kdWxlcy9gdW5hbWUg
-LXJgL2tlcm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvCnN1ZG8gY3AgLWYgY3g4OC1kdmIu
-a28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
-OC8Kc3VkbyBjcCAtZiBjeDg4LXZwMzA1NC1pMmMua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAv
-a2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4eHgua28gL2xp
-Yi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8Kc3Vk
-byBjcCAtZiBjeDg4MDAua28gL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAva2VybmVsL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3g4OC8Kc3VkbyBjcCAtZiBjeDg4MDIua28gL2xpYi9tb2R1bGVzL2B1bmFt
-ZSAtcmAva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC8KCiMgcmVtb3ZlIHVidW50dS1z
-cGVjaWZpYyBtb2R1bGVzLCB3aGljaCBhcmUgbG9hZGVkIGJ5IGRlZmF1bHQgYnkgdWJ1bnR1LCAK
-IyBpIGZvdW5kIHRoaXMgaW5mbyBvbiBodHRwczovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUv
-K3NvdXJjZS9saW51eC11YnVudHUtbW9kdWxlcy0yLjYuMjQvK2J1Zy8yMjA4NTcKIyBkaXJlY3Qg
-bGluayB0byBpbmZvIDogaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQvdWJ1bnR1Lytzb3VyY2Uv
-bGludXgtdWJ1bnR1LW1vZHVsZXMtMi42LjI0LytidWcvMjIwODU3L2NvbW1lbnRzLzkKCnN1ZG8g
-cm0gLXJmIC9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL3VidW50dS9tZWRpYS9jeDg4DQpzdWRvIHJt
-IC1yZiAvbGliL21vZHVsZXMvYHVuYW1lIC1yYC91YnVudHUvbWVkaWEvc2FhNzEzNA0KCgoKdW5h
-bWU9YHVuYW1lIC1yYAplY2hvICJyZXBsYWNpbmcgYWxsIGZpbGVzIGluIC9saWIvbW9kdWxlcy8k
-dW5hbWUva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlkZW8vKi5rbyBmcm9tIG5ldyBjb21waWxlZCBv
-bmVzLi4uICIKZm9yIGkgaW4gYGxzIC9saWIvbW9kdWxlcy8kdW5hbWUva2VybmVsL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vKi5rb2AgOyBkbyBpPWBlY2hvICRpIHwgYXdrIC1GICIvIiAne3ByaW50ICRO
-Rn0nYDsgc3VkbyBjcCAtdmYgJGkgL2xpYi9tb2R1bGVzLyR1bmFtZS9rZXJuZWwvZHJpdmVycy9t
-ZWRpYS92aWRlby8gOyBkb25lCgojIHJlbW92ZSBhbmQgcmVpbnN0YWxsIG1vZHVsZXMKc3VkbyBy
-bW1vZCBzYWE3MTM0X2Fsc2Egc2FhNzEzNApzdWRvIGRlcG1vZCAtYQpzdWRvIG1vZHByb2JlIHNh
-YTcxMzQgaTJjX3NjYW49MQoKCgoKCg==
-------=_Part_4757_2671066.1212754407750
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Follow these instructions:
+
+http://linuxtv.org/repo/#mercurial
+
+Good luck!
+
+-Mike
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_4757_2671066.1212754407750--
