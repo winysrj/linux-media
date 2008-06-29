@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <debalance@arcor.de>) id 1KCM3N-0002w6-1Z
-	for linux-dvb@linuxtv.org; Sat, 28 Jun 2008 00:04:26 +0200
-Message-ID: <486563DE.4070705@arcor.de>
-Date: Sat, 28 Jun 2008 00:04:14 +0200
-From: =?ISO-8859-15?Q?Philipp_H=FCbner?= <debalance@arcor.de>
+	(envelope-from <stev391@email.com>) id 1KCu9K-0006JS-FS
+	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 12:28:51 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	B4CF01800132
+	for <linux-dvb@linuxtv.org>; Sun, 29 Jun 2008 10:28:14 +0000 (GMT)
 MIME-Version: 1.0
+From: stev391@email.com
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TerraTec Cinergy S2 PCI HD
+Date: Sun, 29 Jun 2008 20:28:14 +1000
+Message-Id: <20080629102814.9177D11581F@ws1-7.us4.outblaze.com>
+Subject: Re: [linux-dvb] Tuning problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,122 +21,160 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1291473089=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
 
-Hello all!
+--===============1291473089==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_121473529423232"
 
-I'm new to this list as I just bought a TerraTec Cinergy S2 PCI HD and
-want to get it working on Debian Lenny/Sid.
+This is a multi-part message in MIME format.
 
-I followed
-"Installing on Debian etch with Multiproto diver (Recommended)"
-on
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI
+--_----------=_121473529423232
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-I compiled and installed the kernel-modules as described there.
-After reboot, the device appears under /dev/dvb/adapter0/...
-
-I did not download and compile scan2, since it is available on Debian
-via the dvb-utils package (available in all Debian versions).
-
-Now the following happens:
-
-der_schakal@kuehlschrank:~$ scan
-/usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E > channels.conf
-
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12551500 V 22000000 5
->>> tune to: 12551:v:0:22000
-__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid
-argument
->>> tune to: 12551:v:0:22000
-__tune_to_transponder:1491: ERROR: FE_READ_STATUS failed: 22 Invalid
-argument
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-channels.conf exists but it empty after this process.
-
-I copied /usr/share/doc/dvb-utils/examples/channels.conf-dvbs-astra to
-~/channels.conf and then called szap:
-
-der_schakal@kuehlschrank:~$ szap -r -n 001
-reading channels from file '/home/der_schakal/.szap/channels.conf'
-zapping to 1 'Das Erste':
-sat 0, frequency = 11837 MHz H, symbolrate 27500000, vpid = 0x0065, apid
-= 0x0066
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_READ_STATUS failed: Invalid argument
-status 8048788 | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_READ_STATUS failed: Invalid argument
-status 8048788 | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_READ_STATUS failed: Invalid argument
-
-It goes on like this until I press CTRL+C.
-As you can imagine by now, trying to watch DVB with mplayer or kaffeine
-fails.
-
-
-Any ideas that could help me?
-
-Thanks in advance,
-Philipp
+Ian,
 
 
 
+Try updating to the latest scan file from the dvb-apps mercurial.=20=20
 
-PS: I can offer my help for development/testing concerning this card, if
-wanted.
-Some additional information:
+Channel 7 have changed their parameters in the last year and some tuners au=
+tomatically try other combinations then instructed, that is why it is worki=
+ng with one and not the other.
 
-der_schakal@kuehlschrank:~$ uname -a
-Linux kuehlschrank 2.6.24-1-686 #1 SMP Thu May 8 02:16:39 UTC 2008 i686
-GNU/Linux
+The new Channel 7 parameters are:
+# Seven
+T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
 
-der_schakal@kuehlschrank:~$ lsmod | grep mantis
-mantis                 39876  0
-lnbp21                  2208  1 mantis
-mb86a16                18496  1 mantis
-stb6100                 7492  1 mantis
-tda10021                6116  1 mantis
-tda10023                5924  1 mantis
-stb0899                32800  1 mantis
-stv0299                 9736  1 mantis
-dvb_core               80060  2 mantis,stv0299
-i2c_core               22432  10
-nvidia,mantis,lnbp21,mb86a16,stb6100,tda10021,tda10023,stb0899,stv0299,i2c_i801
+As for the SBS problem it might be just poor reception or the tuner wasn't =
+designed for the Australian frequencies correctly.
 
-der_schakal@kuehlschrank:~$ lspci -vv
-04:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
-Bridge Controller [Ver 1.0] (rev 01)
-        Subsystem: TERRATEC Electronic GmbH Device 1179
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-<TAbort+ <MAbort- >SERR- <PERR- INTx-
-        Latency: 32 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 19
-        Region 0: Memory at d5100000 (32-bit, prefetchable) [size=4K]
-        Kernel driver in use: Mantis
-        Kernel modules: mantis
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Regards,
+Stephen.
 
-iD8DBQFIZWPdFhl05MJZ4OgRAtjSAKDEcUpgsyDg2dw60l2WEGHOpvW51gCfYYmM
-VU2EMpT6GSZOZtzGUwaX0Is=
-=alRm
------END PGP SIGNATURE-----
+
+
+<Original  Message>
+Dear Linux-DVBers,
+
+I now own two USB DVB-T receivers (dongles): a Gigabyte U7000-RH and a
+digitalNow tinyUSB2.
+
+I use them on my Kubuntu 7.10 workstation.
+
+I've had the digitalNow for a year or so and it has been working fine
+(and easy to get going) with kaffeine except that I couldn't receive SBS
+reliably (in Adelaide, Australia) although I was able to tune to it from
+time to time. With the Tour de France starting next week (coverage
+broadcast by SBS), I took a punt yesterday and bought a Gigabyte
+U7000-RH and, yes, it too was easy to get going, and, luckily, receives
+SBS nicely -but it can't tune to Channel 7 at all!
+
+My kaffeine installation now has a channel list that covers all the
+local terrestrial TV stations. If I connect the digitalNow device, I can
+watch 2, 9, 7 & 10 and if I connect the Gigabyte device I can watch SBS,
+2, 9 and 10.
+
+I'm presuming that means that by channel tuning data is OK. I don't know
+whether it's relevant, but I notice that SBS seems to be the highest
+frequency local station and Channel Seven seems to be the lowest. There
+seems to be a problem with both devices at the opposite ends of the
+frequency range.
+
+Any suggestions? (other the juggling the two devices!)
+
+bye
+
+ian
+
+     # Australia / Adelaide / Mt Lofty
+     # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarc=
+hy
+     # ABC
+     T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+     # Seven
+     T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
+     # Nine
+     T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+     # Ten
+     T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+     # SBS
+     T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+--=20
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
+
+--_----------=_121473529423232
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+
+<div>
+<span id=3D"obmessage"><pre>Ian,<br><br>Try updating to the latest scan fil=
+e from the dvb-apps mercurial.  <br><br>Channel 7 have changed their parame=
+ters in the last year and some tuners automatically try other combinations =
+then instructed, that is why it is working with one and not the other.<br><=
+br>The new Channel 7 parameters are:<br># Seven<br>T 177500000 7MHz 3/4 NON=
+E QAM64 8k 1/16 NONE<br><br>As for the SBS problem it might be just poor re=
+ception or the tuner wasn't designed for the Australian frequencies correct=
+ly.<br><br>Regards,<br>Stephen.<br><br><br><br>&lt;Original  Message&gt;<br=
+>Dear Linux-DVBers,<br><br>I now own two USB DVB-T receivers (dongles): a G=
+igabyte U7000-RH and a<br>digitalNow tinyUSB2.<br><br>I use them on my Kubu=
+ntu 7.10 workstation.<br><br>I've had the digitalNow for a year or so and i=
+t has been working fine<br>(and easy to get going) with kaffeine except tha=
+t I couldn't receive SBS<br>reliably (in Adelaide, Australia) although I wa=
+s able to tune to it from<br>time to time. With the Tour de France starting=
+ next week (coverage<br>broadcast by SBS), I took a punt yesterday and boug=
+ht a Gigabyte<br>U7000-RH and, yes, it too was easy to get going, and, luck=
+ily, receives<br>SBS nicely -but it can't tune to Channel 7 at all!<br><br>=
+My kaffeine installation now has a channel list that covers all the<br>loca=
+l terrestrial TV stations. If I connect the digitalNow device, I can<br>wat=
+ch 2, 9, 7 &amp; 10 and if I connect the Gigabyte device I can watch SBS,<b=
+r>2, 9 and 10.<br><br>I'm presuming that means that by channel tuning data =
+is OK. I don't know<br>whether it's relevant, but I notice that SBS seems t=
+o be the highest<br>frequency local station and Channel Seven seems to be t=
+he lowest. There<br>seems to be a problem with both devices at the opposite=
+ ends of the<br>frequency range.<br><br>Any suggestions? (other the jugglin=
+g the two devices!)<br><br>bye<br><br>ian<br><br>     # Australia / Adelaid=
+e / Mt Lofty<br>     # T freq bw fec_hi fec_lo mod transmission-mode guard-=
+interval hierarchy<br>     # ABC<br>     T 226500000 7MHz 3/4 NONE QAM64 8k=
+ 1/16 NONE<br>     # Seven<br>     T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 =
+NONE<br>     # Nine<br>     T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE<br=
+>     # Ten<br>     T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE<br>     # =
+SBS<br>     T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE<br><br><br></pre></=
+span></div>
+<BR>
+
+--=20
+<div> Be Yourself @ mail.com!<br>
+Choose From 200+ Email Addresses<br>
+Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
+arget=3D"_blank">www.mail.com</a>!</div>
+
+--_----------=_121473529423232--
+
+
+
+--===============1291473089==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1291473089==--
