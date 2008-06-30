@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1K8jg7-00059g-6v
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 00:29:28 +0200
-Date: Wed, 18 Jun 2008 01:29:09 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <484F7A8B.1010602@dupondje.be>
-Message-ID: <Pine.LNX.4.64.0806180120550.25378@shogun.pilppa.org>
-References: <484EFB7B.7020505@pilppa.org> <484F7A8B.1010602@dupondje.be>
+Received: from relay4.mail.uk.clara.net ([80.168.70.184])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <simon.farnsworth@onelan.co.uk>) id 1KDGM3-0004sn-K5
+	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 12:11:28 +0200
+Message-ID: <4868B148.2030300@onelan.co.uk>
+Date: Mon, 30 Jun 2008 11:11:20 +0100
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] HVR-1300 problems with new kernels
+To: yoshi watanabe <yoshi314@gmail.com>
+References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>	
+	<4868A644.5030806@onelan.co.uk>
+	<51029ae90806300304s106305u36be341e80b69b2a@mail.gmail.com>
+In-Reply-To: <51029ae90806300304s106305u36be341e80b69b2a@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] hvr-1300 analog audio question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,72 +27,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I would try to fix the Firmware error. U prolly need to copy the firmware 
-> into the firmware dir for the newest kernel. Check what it does if u be able 
-> to make the driver load the firmware correctly.
+Please don't drop the cc when replying - I'm passing on my own 
+experiences with an unrelated card, in the hope that it helps you.
 
-Hi, sorry it took so long to answer as I was away from computer.
+Someone else on the list may look at this and have an "aha!" moment, 
+answering your question for you.
 
-I installed the v4l-cx2341x-enc.fw from ivtv-firmware rpm and the firmware 
-load warning went away.
+Note that the increased buffering is important for the SAA7134 - it 
+seems to only be prepared to transfer audio data in blanking time, so if 
+there's not enough buffering available, it just drops samples.
 
-DVB is however still not working with 2.6.24, 26.25 and 2.6.26-rc4 
-kernels I have tested. But will work if I build and load v4l-dvb drivers.
+yoshi watanabe wrote:
+> i tried 32000 before when using arecord | aplay combo but the arecord
+> insisted on 48000 audio rate. will try again and report later, thanks.
+> 
+> On Mon, Jun 30, 2008 at 11:24 AM, Simon Farnsworth
+> <simon.farnsworth@onelan.co.uk> wrote:
+>> yoshi watanabe wrote:
+>>> hello.
+>>>
+>>> i'm using hauppauge hvr-1300 to receive video signal from playstation2
+>>> console, pal model. video is just fine, but i'm having strange audio
+>>> issues, but judging by some searching i did - that's pretty common
+>>> with this card , although people have varied experience with the card.
+>>>
+>> I've had similar issues with SAA7134 based cards, which were resolved by
+>>  changing audio parameters.
+>>
+>> If your problem is the same as mine was, try:
+>> arecord --format=S16 \
+>>        --rate=32000 \
+>>        --period-size=8192 \
+>>        --buffer-size=524288 | aplay
+>>
+>> This forces 32kHz sampling, and gives the card lots of buffer space to play
+>> with.
+>> --
+>> Simon Farnsworth
+>>
+>>
+> 
+> 
+> 
 
-cx88/dvb related dmesg output looks ok for me and I have things created 
-under /dev/dvb...
 
-cx2388x alsa driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:03:06.1[A] -> GSI 20 (level, low) -> IRQ 20
-cx88[0]: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 DVB-T/Hybrid 
-MPEG Encoder [card=56,autodetected]
-cx88[0]: TV tuner type 63, Radio tuner type -1
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-tuner' 1-0061: chip found @ 0xc2 (cx88[0])
-tuner' 1-0063: chip found @ 0xc6 (cx88[0])
-tveeprom 1-0050: Hauppauge model 96019, rev C6A0, serial# 1230818
-tveeprom 1-0050: MAC address is 00-0D-FE-12-C7-E2
-tveeprom 1-0050: tuner model is Philips FMD1216ME (idx 100, type 63)
-tveeprom 1-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) 
-ATSC/DVB Digital (eeprom 0xf4)
-tveeprom 1-0050: audio processor is CX882 (idx 33)
-tveeprom 1-0050: decoder processor is CX882 (idx 25)
-tveeprom 1-0050: has radio, has IR receiver, has IR transmitter
-cx88[0]: hauppauge eeprom: model=96019
-tuner-simple 1-0061: creating new instance
-tuner-simple 1-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-ACPI: PCI Interrupt 0000:03:06.0[A] -> GSI 20 (level, low) -> IRQ 20
-cx88[0]/0: found at 0000:03:06.0, rev: 5, irq: 20, latency: 32, mmio: 
-0xfa000000
-wm8775' 1-001b: chip found @ 0x36 (cx88[0])
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88[0]/0: registered device radio0
-cx88[0]/2: cx2388x 8802 Driver Manager
-ACPI: PCI Interrupt 0000:03:06.2[A] -> GSI 20 (level, low) -> IRQ 20
-cx88[0]/2: found at 0000:03:06.2, rev: 5, irq: 20, latency: 32, mmio: 
-0xfb000000
-cx88/2: cx2388x dvb driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 
-DVB-T/Hybrid MPEG Encoder [card=56]
-cx88[0]/2: cx2388x based DVB/ATSC card
-tuner-simple 1-0061: attaching existing instance
-tuner-simple 1-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-DVB: registering new adapter (cx88[0])
-DVB: registering frontend 0 (Conexant CX22702 DVB-T)...
-cx2388x blackbird driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: blackbird access: shared
-cx88[0]/2: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 
-DVB-T/Hybrid MPEG Encoder [card=56]
-cx88[0]/2: cx23416 based mpeg encoder (blackbird reference design)
-cx88[0]/2-bb: Firmware and/or mailbox pointer not initialized or corrupted
-firmware: requesting v4l-cx2341x-enc.fw
-cx88[0]/2-bb: Firmware upload successful.
-cx88[0]/2-bb: Firmware version is 0x02060039
-cx88[0]/2: registered device video1 [mpeg]
+-- 
+Simon Farnsworth
+Software Engineer
+
+ONELAN Limited
+1st Floor Andersen House
+Newtown Road
+Henley-on-Thames, OXON
+RG9 1HG
+United Kingdom
+
+Tel:    +44(0)1491 411400
+Fax:    +44(0)1491 579254
+Support:+44(0)1491 845282
+
+www.onelan.co.uk
 
 
 _______________________________________________
