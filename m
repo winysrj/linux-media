@@ -1,29 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m53IG00d021754
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 14:16:00 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m53IFidm013092
-	for <video4linux-list@redhat.com>; Tue, 3 Jun 2008 14:15:45 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1K3b2q-0003C1-UI
-	for video4linux-list@redhat.com; Tue, 03 Jun 2008 18:15:41 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 18:15:40 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 03 Jun 2008 18:15:40 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UM2W4P017116
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 18:02:32 -0400
+Received: from web63003.mail.re1.yahoo.com (web63003.mail.re1.yahoo.com
+	[69.147.96.214])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m5UM2FO9022198
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 18:02:15 -0400
+Date: Mon, 30 Jun 2008 15:02:09 -0700 (PDT)
+From: Fritz Katz <frtzkatz@yahoo.com>
 To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Tue, 3 Jun 2008 18:15:30 +0000 (UTC)
-Message-ID: <loom.20080603T165006-806@post.gmane.org>
-References: <48457617.mail5YC1S9Z5F@vesta.asc.rssi.ru>
-Mime-Version: 1.0
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: Re: v4l API question: any support for HDTV is possible?
+Message-ID: <642127.1103.qm@web63003.mail.re1.yahoo.com>
+Cc: pksings@gmail.com
+Subject: Re: DVICO dual express second tuner?
+Reply-To: frtzkatz@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,26 +26,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sergey Kostyuk <kostyuk <at> vesta.asc.rssi.ru> writes:
+"Paul Kelly" wrote Monday, June 30, 2008: 
+>  
+>  I got the latest tree and firmware and successfully 
+>  brought up a new DVICO dual express and can tune HD cable.
+>  
+>  According to the marketing fluff this card has two 
+>  tuners and can tune either two digital HD streams or one 
+>  analog and one HD stream. 
+>  
+>  Can anyone give me any idea how to make it do that? 
+>  Mythtv only identifies tuner 0. 
+>  
+>  Any information needed will happily be supplied, 
+>  please ask.
+>  
+>  Thanks in advance
+>  
+>  PK
+_________________________
 
-> > Have you not seen this at all? http://dxr3.sf.net
-> 
-> I know that project. The DXR3 boards dont have HDTV capabilities.
+Hello Paul Kelly,
 
-The v4l API is a framework for frame grabbers and hardware encoders. There
-exists no unified API for hardware decoders such as yours. Each hardware decoder
-driver supplies an API of its own. The DXR3 project is most similar
-hardware-wise to what you're coding. Other projects in that category include:
+  I don't own one myself, but I can point you in the direction of the HCL (Linux Hardware Compatability List):
 
-http://sf.net/projects/viaexp/
-http://myhd.sf.net
-https://wiki.ubuntu.com/mobile-hw-decode
+http://www.linuxquestions.org/hcl/showproduct.php/product/4012/cat/196
 
-The video output portion of the v4l API is also inadequate for this:
-http://www.linuxtv.org/docs/dvbapi/DVB_Video_Device.html
+  Maybe info here can help you getting the second tuner working:
+http://www.mythtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Digital_Installation
 
-If you want to output to a digital overlay, you'll likely need an Xorg module,
-too. I wish you luck.
+> The "DViCO FusionHDTV DVB-T Dual Tuner" card has two tuners. 
+> One is PCI, the other is USB. You will either need to connect 
+> an external USB cable to your card, or use the supplied internal 
+> USB cable which connects to your motherboard. This will enable 
+> the second tuner and is needed for the remote to function.
+
+Let me know how it works out.
+
+-----------------------
+Everyone,
+
+I'm considering getting this el-cheapo card that isn't on the HCL list :
+
+"Sabrent Philips7130 PCI TV Tuner/Video Capture Card"
+http://www.geeks.com/details.asp?invtid=TV-PCIRC&cat=VID
+
+Reviewers using Windoze at NewEgg gave it bad reviews. But maybe it works better for Linux-TV?  What's your experience?
+
+I'm looking for a card that does analog PAL/NTSC/SECAM -- that also works for Linux-TV.
+
+Regards,
+-- Fritz Katz
+frtzkatz (at) yahoo.com
+
+
+
+
+
+
+
+
+
+
+      
 
 --
 video4linux-list mailing list
