@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from mail-in-17.arcor-online.net ([151.189.21.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KD4ca-0005BG-2M
-	for linux-dvb@linuxtv.org; Sun, 29 Jun 2008 23:39:45 +0200
-Message-ID: <48680114.4030007@linuxtv.org>
-Date: Sun, 29 Jun 2008 17:39:32 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <debalance@arcor.de>) id 1KDNkl-000208-NY
+	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 20:05:28 +0200
+Message-ID: <48692061.90705@arcor.de>
+Date: Mon, 30 Jun 2008 20:05:21 +0200
+From: =?KOI8-R?Q?Philipp_Hu=22bner?= <debalance@arcor.de>
 MIME-Version: 1.0
-To: Fabrizio Regalli <fabreg@gmail.com>
-References: <43d295de0806291420w4b15c20cj25c05e79617d3371@mail.gmail.com>	
-	<4867FE44.2000901@linuxtv.org>
-	<43d295de0806291437i309164eodfc08c293a3237e1@mail.gmail.com>
-In-Reply-To: <43d295de0806291437i309164eodfc08c293a3237e1@mail.gmail.com>
+To: Goga777 <goga777@bk.ru>, goga777@bk.ru
+References: <48664867.9060507@arcor.de>
+	<E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
+In-Reply-To: <E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Conexant Device 8852
+Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,54 +26,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/6/29 Michael Krufky <mkrufky@linuxtv.org>:
->> Fabrizio Regalli wrote:
->>     
->>> Hello.
->>>
->>> I've the follow tv card on my linux box:
->>>
->>> 03:00.0 Multimedia video controller: Conexant Device 8852 (rev 02)
->>>       Subsystem: Hauppauge computer works Inc. Device 71d1
->>>       
->> [snip]
->>     
->>> I try to use cx23885 driver (with card=<1,2,3,4,5,6> option) but doesn't works.
->>> Could someone please help me?
->>>       
->> Use the cx23885 driver from linuxtv.org master branch -- Hauppauge WinTV-HVR1200 will be supported with the 2.6.26 kernel.
->>
->> Regards,
->>
->> Mike
->>
->>     
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Fabrizio Regalli wrote:
-> Hi Michael
->
-> thanks for your reply.
-> Which extacly are the files needed? Maybe
->
-> http://linuxtv.org/downloads/linuxtv-dvb-1.1.1.tar.bz2
->
-> and
->
-> http://linuxtv.org/downloads/linuxtv-dvb-apps-1.1.1.tar.bz2
->
-> Thanks again.
-> Fab
->   
+hey,
 
-Follow these instructions:
+Goga777 schrieb:
+>> Unfortunately szap seems not to work successfully and I didn't manage to
+>> see any TV yet.
+> 
+> you should use szap2 from test directory of dvb-apps
+> http://linuxtv.org/hg/dvb-apps/file/77e3c7baa1e4/test/szap2.c
 
-http://linuxtv.org/repo/#mercurial
+I compiled that one and tried it out, but it still doesn't work:
 
-Good luck!
+./szap2 -r -n 001
+reading channels from file '/root/.szap/channels.conf'
+zapping to 1 'ASTRA SDT':
+sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid = 0x1fff, apid
+= 0x1fff sid = 0x000c
+Delivery system=DVB-S
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
 
--Mike
+do_tune: API version=3, delivery system = 0
+do_tune: Frequency = 1951000, Srate = 22000000
+do_tune: Frequency = 1951000, Srate = 22000000
 
 
+status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
+status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
+status 00 | signal 32e0 | snr b7f6 | ber 00000000 | unc fffffffe |
+status 1e | signal 0154 | snr 007d | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
+status 1e | signal 0154 | snr 007b | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
+status 1e | signal 0154 | snr 0079 | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
+status 1e | signal 0154 | snr 007a | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
+[..]
+
+Same behaviour for root and a regular user.
+I hate the idea of windows being my only choice.
+
+Best regards,
+Philipp
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIaSBhFhl05MJZ4OgRAp34AKDGuxUFqW+AYJltPhUsAMhpn0IRNgCcC8bs
+yOke07MoeqhLn33kL6kPvyg=
+=uhNh
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
