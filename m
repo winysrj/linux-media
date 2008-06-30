@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hond.eatserver.nl ([195.20.9.5])
+Received: from sccmmhc91.asp.att.net ([204.127.203.211])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joep@groovytunes.nl>) id 1K9RZP-00014i-IL
-	for linux-dvb@linuxtv.org; Thu, 19 Jun 2008 23:21:34 +0200
-Received: from test (82-171-18-31.ip.telfort.nl [82.171.18.31])
-	(authenticated bits=0)
-	by hond.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id
-	m5JLLNG8010555
-	for <linux-dvb@linuxtv.org>; Thu, 19 Jun 2008 23:21:23 +0200
-From: joep <joep@groovytunes.nl>
+	(envelope-from <hwertz@avalon.net>) id 1KDBwB-0000oW-W3
+	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 07:28:28 +0200
+Received: from voltron.homelinux.org (voltron.homelinux.org [192.168.0.1])
+	by voltron.homelinux.org (8.14.2/8.14.2) with ESMTP id m5U5RdOs022939
+	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 00:27:39 -0500
+Date: Mon, 30 Jun 2008 00:27:39 -0500 (CDT)
+From: hwertz@avalon.net
 To: linux-dvb@linuxtv.org
-Date: Thu, 19 Jun 2008 23:25:25 +0200
-References: <1213788359.8904.5.camel@sat>
-	<53265.212.50.194.254.1213908236.squirrel@webmail.kapsi.fi>
-In-Reply-To: <53265.212.50.194.254.1213908236.squirrel@webmail.kapsi.fi>
+Message-ID: <Pine.LNX.4.64.0806300012100.22453@voltron.homelinux.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200806192325.25370.joep@groovytunes.nl>
-Subject: [linux-dvb] s2-3200 fec problem?
+Subject: [linux-dvb] Pinnacle PCTV 801e SE?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,23 +25,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello all,
+      So, I got one of these Pinnacle PCTV 801e SE sticks.  This is USB, 
+receives NTSC+ATSC+QAM.
+      First, two questions:
+      1)I want to know, is anyone working on a driver for  this?  I don't 
+want to start if someone is like 99% finished.
+      2)Anyone working on a DVB-driver-friendly XC5000 code?
 
-Today I replaced my skystar hd2 with a tt s2-3200.
-Installed the current multiproto drivers and...
-The problems that I had on the skystar still exist on this new card.
-However I did discover that I can tune to other satalites (diseqc) with 
-scan/szap.
-So I moved from mythtv to these tools for testing purposes.
-The main issue that I have at the moment is that I can't watch the dutch hdtv 
-channels.
-astra 23.5, 11778 V 27500 9/10
-After some testing I did notice that I did not get one channel with fec 9/10 
-to lock.
-Has anyone got a working transponder with fec 9/10?
+      Per a post from months ago (and I confirmed this by cracking mine 
+open) it uses a DiB0700 USB bridge chip, XC5000 tuner, S5H1411 8VSB/QAM 
+demodulator,  CX25843 NTSC decoder, and Cirrus Logic 5340CZZ chip for 
+something (original post speculated FM).
 
-Thanks,
-Joep Admiraal
+      Also, I've seen Jernej Tonejc's posts from May 3 where he's found i2c 
+items at 0x19, 0x1a, 0x44 and 0x50.  I know not to mess with 0x50, that's 
+the EEPROM (based both on later post on that thread, and on looking 
+through source and seeing 0x50 is pretty common for the ROM.)
+
+      So, there's a DVB driver for DiB0700-based sticks.  I see there's 
+quite new code for S5H1411.  I don't see XC5000 support for DVB drivers, 
+but cx88 driver has XC5000 support and XC3028 support (and, the cx88 and 
+DVB drivers both look pretty clean!)  I was going to use DiB0700+XC3028 as 
+a template to basically see what functions go where from the cx88 way of 
+doing things, and then move XC5000 support straight over based on that. 
+The CX2584x code I see in-tree looks like a mess so that'll wait for later 
+(to be clear, I'm not disrespecting the CX2584x driver's code quality, the 
+chip just appears to be one of those ones that needs quite a bit of 
+hand-holding and general kicking to get things done... which I don't feel 
+like unravelling and moving to DVB framework at the moment 8-)
+
 
 _______________________________________________
 linux-dvb mailing list
