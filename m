@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5OLcsUw018880
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:38:54 -0400
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5OLcfCZ023830
-	for <video4linux-list@redhat.com>; Tue, 24 Jun 2008 17:38:41 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "Diego V. Martinez" <dvm2810@yahoo.com.ar>
-In-Reply-To: <933060.96127.qm@web51510.mail.re2.yahoo.com>
-References: <933060.96127.qm@web51510.mail.re2.yahoo.com>
-Content-Type: text/plain
-Date: Tue, 24 Jun 2008 23:35:58 +0200
-Message-Id: <1214343358.2636.58.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UFKnfF008605
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 11:20:49 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UFKUBB016891
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 11:20:31 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so446362nfc.21
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 08:20:30 -0700 (PDT)
+Message-ID: <4868F9B9.2060300@gmail.com>
+Date: Mon, 30 Jun 2008 18:20:25 +0300
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <486553B5.9070609@gmail.com> <4868CEB0.2020901@gmail.com>
+	<200806301706.28703.laurent.pinchart@skynet.be>
+In-Reply-To: <200806301706.28703.laurent.pinchart@skynet.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	linux-uvc-devel@lists.berlios.de
+Subject: Re: [Linux-uvc-devel] UVCVIDEO for 2.6.27 ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,38 +31,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Hi Diego,
-
-Am Montag, den 23.06.2008, 20:07 -0700 schrieb Diego V. Martinez:
-> Hi Hermann,
+Laurent Pinchart wrote:
+> Hi Maxim,
 > 
-> Here is my history: I bought the Asus MyCinema P7131/FM/P-ATX/A (analog) some months ago. I was using Fedora Core 6 with kernel 2.6.24.2. This kernel version recognized the TV card as number 53 (ASUS TV-FM 7135).
+> On Monday 30 June 2008, Maxim Levitsky wrote:
+>> Maxim Levitsky wrote:
+>>> Hello,
+>>>
+>>> Is UVC driver planned for inclusion in 2.6.27?
+>>>
+>>> As a new user of this driver, I confirm that it works almost perfectly.
+>>>
+>>> cheese/xawtv/kdetv/zapping/ekiga work fine.
+>>> tvtime complains about 'too short video frames'
+>>>
+>>> zapping crashes when trying to see settings dialog - almost for sure
+>>> unrelated bug, this application is not stable.
+>>>
+>>> kdetv hangs on exit, app buggy as well, but maybe it triggers some race
+>>> in videobuf, I have already triggered one race with this app once.
+>>>
+>>> The camera used to hang minutes after launch, but after I installed
+>>> latest svn of
+>>> uvcvideo the bug disappeared.
+>>>
+>>> Oh, almost forgot, I have Acer Crystal eye webcam integrated
+>>> in my new laptop. aspire 5720.
+>>>
+>>> Best regards,
+>>>     Maxim Levitsky
+>> Any news?
 > 
-> The TV input was working great (here in Argentina we use PAL-Nc TV norm). S-Video input (audio and video) and IR control were not working. I found in Internet a kernel patch to support the PC-39 remote control that comes with my board (modifying the saa7134-cards.c and saa7134-input.c kernel source files). After that the IR starts working.
+> I've just submitted the Linux UVC driver to the video4linux and linux-usb 
+> mailing lists. Unless people report blocking issues it should get into 
+> 2.6.27.
 > 
-> Now I'm trying the "saa7134_asus-p7134-analog-tvfm7135-device-detection-fix.patch" that makes the same source code changes to support the IR control that I was doing before plus some code lines to associate a new Asus MyCinema P7131 Analog profile to the Asus MyCinema P7131 Dual (card 78).
+> Best regards,
 > 
-> Now the kernel autodetects the new P7131 Analog board but the S-Video input stills with no video (I have sound now). I'm making the tests with the S-Video/Composite cable that comes with the board. I plug my NTSC camera and I hear sound but only a black screen appears on the Composite1, Composite2 and S-Video modes of "tvtime". TV mode stills working fine.
-> 
-> Forcing to card 78 (Asus P7131 Dual) has same results for the S-Video input (audio yes, video no). TV mode stills working fine.
-> 
-> What any information should I check and/or collect?
-> 
+> Laurent Pinchart
 
-hm, card=78 doesn't work either.
+Thanks a lot for writing this driver,
+it will surly help a lot with webcams, especially integrated ones.
 
-No idea yet and I don't want to send you around for testing other vmuxes
-or such without any.
-
-Are you sure your camera doesn't output some unusual or proprietary
-stuff? No other such reports yet.
-
-Cheers,
-Hermann
-
-
-
+Best regards,
+	Maxim Levitsky
 
 --
 video4linux-list mailing list
