@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.236])
+Received: from ug-out-1314.google.com ([66.249.92.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <trcheton@gmail.com>) id 1K92g3-0004Xt-Jg
-	for linux-dvb@linuxtv.org; Wed, 18 Jun 2008 20:46:42 +0200
-Received: by wr-out-0506.google.com with SMTP id 50so285560wra.13
-	for <linux-dvb@linuxtv.org>; Wed, 18 Jun 2008 11:46:34 -0700 (PDT)
-Message-ID: <f3acf9620806181146q7a61b792hbcc10c4513845173@mail.gmail.com>
-Date: Wed, 18 Jun 2008 20:46:34 +0200
-From: "anton repko" <trcheton@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <200806131654.11715.dkuhlen@gmx.net>
+	(envelope-from <yoshi314@gmail.com>) id 1KDKvx-0002bE-14
+	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 17:04:49 +0200
+Received: by ug-out-1314.google.com with SMTP id m3so253949uge.20
+	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 08:04:45 -0700 (PDT)
+Date: Mon, 30 Jun 2008 17:04:13 +0200
+From: marcin kowalski <yoshi314@gmail.com>
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Message-ID: <20080630150413.GA7486@watanabe>
+References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
+	<4868A644.5030806@onelan.co.uk>
+	<51029ae90806300304s106305u36be341e80b69b2a@mail.gmail.com>
+	<4868B148.2030300@onelan.co.uk>
+	<51029ae90806300536g734d5d24x84ed8cc84260266a@mail.gmail.com>
 MIME-Version: 1.0
-References: <f3acf9620806130531j18a64bbcw92256044a491a26f@mail.gmail.com>
-	<200806131654.11715.dkuhlen@gmx.net>
-Subject: Re: [linux-dvb] Firmware extraction script for Pinnacle PCTV Sat
-	Pro USB
+Content-Disposition: inline
+In-Reply-To: <51029ae90806300536g734d5d24x84ed8cc84260266a@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] hvr-1300 analog audio question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,111 +26,140 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2080496258=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2080496258==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_3373_12579599.1213814794228"
+On 14:36 Mon 30 Jun     , yoshi watanabe wrote:
+> sorry, seems that's the way gmail works by default. that was not intended.
+> i'll post results in 3-4 hours time when i'm home.
+> 
+> On Mon, Jun 30, 2008 at 12:11 PM, Simon Farnsworth
+> <simon.farnsworth@onelan.co.uk> wrote:
+> > Please don't drop the cc when replying - I'm passing on my own experiences
+> > with an unrelated card, in the hope that it helps you.
+> >
+> > Someone else on the list may look at this and have an "aha!" moment,
+> > answering your question for you.
+> >
+> > Note that the increased buffering is important for the SAA7134 - it seems to
+> > only be prepared to transfer audio data in blanking time, so if there's not
+> > enough buffering available, it just drops samples.
+> >
+> > yoshi watanabe wrote:
+> >>
+> >> i tried 32000 before when using arecord | aplay combo but the arecord
+> >> insisted on 48000 audio rate. will try again and report later, thanks.
+> >>
+> >> On Mon, Jun 30, 2008 at 11:24 AM, Simon Farnsworth
+> >> <simon.farnsworth@onelan.co.uk> wrote:
+> >>>
+> >>> yoshi watanabe wrote:
+> >>>>
+> >>>> hello.
+> >>>>
+> >>>> i'm using hauppauge hvr-1300 to receive video signal from playstation2
+> >>>> console, pal model. video is just fine, but i'm having strange audio
+> >>>> issues, but judging by some searching i did - that's pretty common
+> >>>> with this card , although people have varied experience with the card.
+> >>>>
+> >>> I've had similar issues with SAA7134 based cards, which were resolved by
+> >>>  changing audio parameters.
+> >>>
+> >>> If your problem is the same as mine was, try:
+> >>> arecord --format=S16 \
+> >>>       --rate=32000 \
+> >>>       --period-size=8192 \
+> >>>       --buffer-size=524288 | aplay
+> >>>
+> >>> This forces 32kHz sampling, and gives the card lots of buffer space to
+> >>> play
+> >>> with.
+> >>> --
+> >>> Simon Farnsworth
+> >>>
+> >>>
+> >>
+> >>
+> >>
+> >
+> >
+> > --
+> > Simon Farnsworth
+> > Software Engineer
+> >
+> > ONELAN Limited
+> > 1st Floor Andersen House
+> > Newtown Road
+> > Henley-on-Thames, OXON
+> > RG9 1HG
+> > United Kingdom
+> >
+> > Tel:    +44(0)1491 411400
+> > Fax:    +44(0)1491 579254
+> > Support:+44(0)1491 845282
+> >
+> > www.onelan.co.uk
+> >
+> >
+i just got white noise on audio. seems like this doesn't do the trick. i'll have to come up with something else. 
 
-------=_Part_3373_12579599.1213814794228
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+this message is really confusing :
 
-Hi,
-2008/6/13 Dominik Kuhlen <dkuhlen@gmx.net>:
+arecord -D hw:1 -c 2 --format=S16 --rate=32000 --period-size=8192 --buffer-size=524288 | aplay -
 
-> Are you sure that the 450e does need a firmware?
-> I know that the 452e does not.
->
-Yes, the 450e uses firmware of the 400e (the hardware seems to be
-identical).
+Recording WAVE 'stdin' : Signed 16 bit Little Endian, Rate 32000 Hz, Stereo
+Warning: rate is not accurate (requested = 32000Hz, got = 48000Hz)
+         please, try the plug plugin
 
-As the 400e firmware is rather hard to find, I send complete extraction
-script for driver found on the Pinnacle site (new version; firmware is the
-same):
+does it mean it didn't work as expected?
+also during playback i get numerous copies of this line in my dmesg (during recording) : 
 
-#!/bin/bash
-wget "
-http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP
-"
-cat >XP32.md5 <<!hash!
-ba0bc4d0f84bb9f419e9fbf90ef1ed9f  XP32.ZIP
-!hash!
-md5sum -c XP32.md5
-if [ $? -ne 0 ]; then exit 1; fi
-unzip -j XP32.ZIP XP/pctv4XXe.sys
-# dd if=pctv4XXe.sys of=dvb-ttusb2-a.raw bs=8 skip=22703 count=1392
-# dd if=pctv4XXe.sys of=dvb-ttusb2-b.raw bs=8 skip=24098 count=1408
-dd if=pctv4XXe.sys of=dvb-usb-pctv-400e-01.raw bs=8 skip=25509 count=1315
-# dd if=pctv4XXe.sys of=dvb-ttusb2-c.raw bs=8 skip=26827 count=1232
-# dd if=pctv4XXe.sys of=dvb-ttusb2-d.raw bs=8 skip=28062 count=1326
-# dd if=pctv4XXe.sys of=dvb-ttusb2-e.raw bs=8 skip=29391 count=1378
-dd if=pctv4XXe.sys of=dvb-usb-pctv-450e-01.raw bs=8 skip=30772 count=1323
-# dd if=pctv4XXe.sys of=dvb-usb-pctv-452e-01.raw bs=8 skip=32098 count=1375
-cat >convert.c <<!conv!
-#include <stdio.h>
-int main (int argc, char *argv[])
-{
-    FILE *raw, *fw;
-    unsigned char buf[22];
-    int n;
-    raw = fopen (argv[1], "r");
-    fw = fopen (argv[2], "w");
-    while (fread (buf, 1, 22, raw) == 22) {
-        fwrite (buf, 1, 1, fw);
-        n = buf[0];
-        buf[n+5] = 0xff;
-        fwrite (&buf[2], 1, n+4, fw);
-    }
-    fclose (raw);
-    fclose (fw);
-    return 0;
-}
-!conv!
-gcc convert.c -o convert
-for i in *.raw; do
-    j=$(echo $i | sed s/raw/fw/)
-    ./convert $i $j
-    rm $i
-done
-cp dvb-usb-pctv-400e-01.fw /lib/firmware/
-#   uncomment next line to use the 450e firmware
-# cp dvb-usb-pctv-450e-01.fw /lib/firmware/dvb-usb-pctv-400e-01.fw
+cx88[0]: irq aud [0x1001] dn_risci1* dn_sync*
 
-------=_Part_3373_12579599.1213814794228
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+what does that mean?
 
-Hi,<br><div class="gmail_quote">2008/6/13 Dominik Kuhlen &lt;<a href="mailto:dkuhlen@gmx.net">dkuhlen@gmx.net</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Are you sure that the 450e does need a firmware?<br>
-I know that the 452e does not.<br>
-</blockquote></div>Yes, the 450e uses firmware of the 400e (the hardware seems to be identical).<br><br>As the 400e firmware is rather hard to find, I send complete extraction script for driver found on the Pinnacle site (new version; firmware is the same):<br>
-<br><span class="HcCDpe"></span>#!/bin/bash<br>wget &quot;<a href="http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP">http://cdn.pinnaclesys.com/SupportFiles/PCTV%20Drivers/PCTV%20400e,%20450e,%20452e/XP32.ZIP</a>&quot;<br>
-cat &gt;XP32.md5 &lt;&lt;!hash!<br>ba0bc4d0f84bb9f419e9fbf90ef1ed9f&nbsp; XP32.ZIP<br>!hash!<br>md5sum -c XP32.md5<br>if [ $? -ne 0 ]; then exit 1; fi<br>unzip -j XP32.ZIP XP/pctv4XXe.sys<br># dd if=pctv4XXe.sys of=dvb-ttusb2-a.raw bs=8 skip=22703 count=1392<br>
-# dd if=pctv4XXe.sys of=dvb-ttusb2-b.raw bs=8 skip=24098 count=1408<br>dd if=pctv4XXe.sys of=dvb-usb-pctv-400e-01.raw bs=8 skip=25509 count=1315<br># dd if=pctv4XXe.sys of=dvb-ttusb2-c.raw bs=8 skip=26827 count=1232<br># dd if=pctv4XXe.sys of=dvb-ttusb2-d.raw bs=8 skip=28062 count=1326<br>
-# dd if=pctv4XXe.sys of=dvb-ttusb2-e.raw bs=8 skip=29391 count=1378<br>dd if=pctv4XXe.sys of=dvb-usb-pctv-450e-01.raw bs=8 skip=30772 count=1323<br># dd if=pctv4XXe.sys of=dvb-usb-pctv-452e-01.raw bs=8 skip=32098 count=1375<br>
-cat &gt;convert.c &lt;&lt;!conv!<br>#include &lt;stdio.h&gt;<br>int main (int argc, char *argv[])<br>{<br>&nbsp;&nbsp;&nbsp; FILE *raw, *fw;<br>&nbsp;&nbsp;&nbsp; unsigned char buf[22];<br>&nbsp;&nbsp;&nbsp; int n;<br>&nbsp;&nbsp;&nbsp; raw = fopen (argv[1], &quot;r&quot;);<br>&nbsp;&nbsp;&nbsp; fw = fopen (argv[2], &quot;w&quot;);<br>
-&nbsp;&nbsp;&nbsp; while (fread (buf, 1, 22, raw) == 22) {<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fwrite (buf, 1, 1, fw);<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; n = buf[0];<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; buf[n+5] = 0xff;<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fwrite (&amp;buf[2], 1, n+4, fw);<br>&nbsp;&nbsp;&nbsp; }<br>&nbsp;&nbsp;&nbsp; fclose (raw);<br>&nbsp;&nbsp;&nbsp; fclose (fw);<br>
-&nbsp;&nbsp;&nbsp; return 0;<br>}<br>!conv!<br>gcc convert.c -o convert<br>for i in *.raw; do<br>&nbsp;&nbsp;&nbsp; j=$(echo $i | sed s/raw/fw/)<br>&nbsp;&nbsp;&nbsp; ./convert $i $j<br>&nbsp;&nbsp;&nbsp; rm $i<br>done<br>cp dvb-usb-pctv-400e-01.fw /lib/firmware/<br>#&nbsp;&nbsp; uncomment next line to use the 450e firmware<br>
-# cp dvb-usb-pctv-450e-01.fw /lib/firmware/dvb-usb-pctv-400e-01.fw<br><br>
+some extra info about my hardware: 
 
-------=_Part_3373_12579599.1213814794228--
+my audio devices : 
+**** List of CAPTURE Hardware Devices ****
+card 0: CK804 [NVidia CK804], device 0: Intel ICH [NVidia CK804]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 0: CK804 [NVidia CK804], device 1: Intel ICH - MIC ADC [NVidia CK804 - MIC ADC]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: CX8811 [Conexant CX8811], device 0: CX88 Digital [CX88 Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+**** List of PLAYBACK Hardware Devices ****
+card 0: CK804 [NVidia CK804], device 0: Intel ICH [NVidia CK804]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 0: CK804 [NVidia CK804], device 2: Intel ICH - IEC958 [NVidia CK804 - IEC958]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
 
 
---===============2080496258==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+lspci -n shows that the card should work fine with cx88-alsa (which i have loaded).
+
+01:07.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+01:07.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] (rev 05)
+01:07.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
+
+01:07.0 0400: 14f1:8800 (rev 05)
+01:07.1 0480: 14f1:8811 (rev 05)
+01:07.2 0480: 14f1:8802 (rev 05)
+
+those ids are said to be supported. i have no ideas atm what else to try. trying 48000 sampling rate with bigger buffer 
+also produces noise.
+
+i guess i'll dig the mailing list archive once again. 
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2080496258==--
