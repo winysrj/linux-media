@@ -1,33 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5U8WuoJ018368
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 04:32:56 -0400
-Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
-	[151.189.21.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5U8W9Es013174
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 04:32:10 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-In-Reply-To: <48683B2F.7000407@gimpelevich.san-francisco.ca.us>
-References: <20050806200358.12455.qmail@web60322.mail.yahoo.com>
-	<200803161724.20459.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.00.26.941363@gimpelevich.san-francisco.ca.us>
-	<200803161840.37910.peter.missel@onlinehome.de>
-	<pan.2008.03.16.17.49.51.923202@gimpelevich.san-francisco.ca.us>
-	<1206573402.3912.50.camel@pc08.localdom.local>
-	<653f28469c9babb5326973c119fd78db@gimpelevich.san-francisco.ca.us>
-	<loom.20080627T025843-957@post.gmane.org>
-	<1214599398.2640.23.camel@pc10.localdom.local>
-	<486597B6.2010300@gimpelevich.san-francisco.ca.us>
-	<1214778949.8680.18.camel@pc10.localdom.local>
-	<48683B2F.7000407@gimpelevich.san-francisco.ca.us>
-Content-Type: text/plain
-Date: Mon, 30 Jun 2008 10:28:47 +0200
-Message-Id: <1214814527.2633.15.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UChNHT019065
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 08:43:23 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UCguni017492
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 08:42:56 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so923713fga.7
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 05:42:55 -0700 (PDT)
+Message-ID: <30353c3d0806300542r5ba585e3n304c33851051a028@mail.gmail.com>
+Date: Mon, 30 Jun 2008 08:42:55 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <30353c3d0806292203p193ff610i866b938271391f81@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, mchehab@infradead.org
-Subject: Re: [PATCH] Re: LifeVideo To-Go Cardbus, tuner problems
+Content-Disposition: inline
+References: <30353c3d0806281807p7b78dcd2xe2a91d560ae6df12@mail.gmail.com>
+	<200806300315.42610.laurent.pinchart@skynet.be>
+	<30353c3d0806292009r5556afd6s5d5e271d1c7ff575@mail.gmail.com>
+	<30353c3d0806292203p193ff610i866b938271391f81@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] videodev: properly reference count video_device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,157 +33,141 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, Jun 30, 2008 at 1:03 AM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> On Sun, Jun 29, 2008 at 11:09 PM, David Ellingsworth
+> <david@identd.dyndns.org> wrote:
+>> On Sun, Jun 29, 2008 at 9:15 PM, Laurent Pinchart
+>> <laurent.pinchart@skynet.be> wrote:
+>>> Hi David,
+>>>
+>>> On Sunday 29 June 2008, David Ellingsworth wrote:
+>>>> I noticed that the video_device structure wasn't properly being
+>>>> reference counted. Under certain circumstances,
+>>>
+>>> Can you detail those certain circumstances ?
+>>>
+>> Sure.
+>>
+>> For drivers which have to handle unexpected disconnects, I.E. usb and
+>> pci drivers, it's possible for a user to physically remove the device
+>> while it is in use. In the usb/pci disconnect callback, the correct
+>> thing to do is to unregister the device in order to prevent future
+>> opens. When video_unregister_device is called in this context, it sets
+>> video_device[minor number] to NULL and calls device_unregister().
+>> device_unregister() causes the release callback to be called when the
+>> sysfs entry is no longer in use. Under most circumstances, the release
+>> callback occurs right after the call to device_unregister(). This will
+>> cause a crash in __video_do_ioctl(), called from video_ioctl2, when
+>> subsequent ioctls are encountered since the return value of
+>> video_devdata() is NULL
+>>
+>> Current drivers do one of two things to avoid this crash. They either
+>> use a custom ioctl callback and return an error when video_devdata()
+>> is NULL, or they delay the call to video_unregister_device until the
+>> final close occurs. The first solution means that if a usb/pci driver
+>> uses video_devdata() in its ioctl or release callback, it has to check
+>> that the return is not NULL. The second means the drivers must be
+>> prepared to handle opens after the pci/usb disconnect callback has
+>> been called since the video device is still registered.
+>>
+>> This patch prevents the video_device struct from being freed under the
+>> circumstances above, and should not affect the behavior of current
+>> drivers. The reference count is set to 1 during video_register_device,
+>> incremented during video_open, and decremented during video_close and
+>> video_unregister_device. Thus allowing for the following series of
+> The reference count is decremented in the sysfs release callback not
+> video_unregister_device.
+>
+>> calls to occur.
+>>
+>> With patch:
+>> -----------------------------------------------------------
+>> usb/pci_probe -> video_register_device
+>> video_open -> usb/pci_open
+>> usb/pci_disconnect -> video_unregister_device
+>> video_ioctl2
+>> video_close -> usb/pci_close
+>> release_callback
+>>
+>> Without patch:
+>> -----------------------------------------------------------
+>> usb/pci_probe -> video_register_device
+>> video_open -> usb/pci_open
+>> usb/pci_disconnect -> video_unregister_device
+>> release_callback
+>> video_ioctl2 (crash)
+>>
+>> Without patch (crash avoidance #1)
+>> ----------------------------------------------------------
+>> usb/pci_probe -> video_register_device
+>> video_open -> usb/pci_open
+>> usb/pci_disconnect -> video_unregister_device
+>> release_callback
+>> usb/pci_ioctl (return err, video_devdata() is NULL)
+>> usb/pci_close (return err, video_devdata() is NULL)
+>>
+>> Without patch (crash avoidance #2)
+>> ----------------------------------------------------------
+>> usb/pci_probe -> video_register_device
+>> video_open -> usb/pci_open
+>> usb/pci_disconnect
+>> video_ioctl2
+>> usb/pci_close -> video_unregister_device
+>> release_callback
+>>
+>> Regards,
+>>
+>> David Ellingsworth
+>>
+>>>> it is possible that
+>>>> the release callback of the video_device struct is called while the
+>>>> device is still open thus causing a crash. This patch adds the
+>>>> necessary reference counting to the video_device struct in order to
+>>>> avoid freeing the video_device struct while it is still in use.
+>>>>
+>>>> Regards,
+>>>>
+>>>> David Ellingsworth
+>>>>
+>>
+>
+> [RFC v3] videodev: add ref count to video_device
+>
+> Moved mutex_[un]lock(&videodev_lock) calls from
+> video_unregister_device to the sysfs release callback. In v2 a call to
+> close and then video_unregister_device would have resulted in a
+> deadlock. The lock is not needed in video_unregister_device, but is
+> needed in the sysfs callback video_release since it could potentially
+> call video_free. Patch attached.
+>
+> Regards,
+>
+> David Ellingsworth
+>
 
-Am Sonntag, den 29.06.2008, 18:47 -0700 schrieb Daniel Gimpelevich:
-> hermann pitton wrote:
-> >>> And as said, send at least relevant dmesg output when loading the driver
-> >>> and tuner modules, preferably with i2c_scan=1 enabled.
-> >> I would need to borrow the card again to do that, and I'm not sure it 
-> >> would be all that useful for differentiation.
-> > 
-> > OK, but this is exactly what should not happen.
-> 
-> I have requested the card's owner to provide that; it is at the bottom 
-> of this message, both with and without i2c_scan=1.
-> 
-> >>> As just seen with an early Compro saa7133, we have no safety, that not
-> >>> later on devices appear with the same PCI subsystem, which are in fact
-> >>> different, and have no means then to keep the auto detection working
-> >>> without such potentially useful information.
-> >> Seems to me that the contents of the tveeprom may be a more reliable 
-> >> mechanism.
-> > 
-> > How you mean?
-> > 
-> > Having at least "dmesg" with the eeprom dump and gpio init of the card
-> > is the minimum prerequisite to even think about it.
-> > 
-> > Only Hauppauge provides support for what they are encoding in the
-> > eeprom.
-> > 
-> > Philips has a standard for eeprom programming, manufacturers are advised
-> > to go with, but do they?
-> > 
-> > For sure not.
-> > 
-> > Since win98 at least they modified eeprom content at their behalves,
-> > most obviously are the differences for tuner enumeration, but kept the
-> > original Philips driver file names to render each other useless by
-> > overriding the files.
-> > 
-> > Best so far that time was, "please uninstall all other TV cards and
-> > drivers on your system", before you try ours.
-> > 
-> > Since some time you can find something with !!! in the Philips/NXP
-> > drivers there, _not_ to continue to do so.
-> 
-> That's unfortunate, and in my first post on this matter, I wanted to 
-> avoid autodetection altogether.
-> 
-> > You/we don't know if it is a saa7133/35 or 7131e bridge.
-> > 
-> > You/we don't know if it is a tda8275, tda8275c1, tda8275a or tda8275ac1
-> > tuner.
-> 
-> Correct, and I think Mauro should not have overlooked your objection to 
-> committing the patch.
-> 
-> [96653.944000] pccard: CardBus card inserted into slot 0
-> [96653.944000] PCI: Enabling device 0000:03:00.0 (0000 -> 0002)
-> [96653.944000] ACPI: PCI Interrupt 0000:03:00.0[A] -> Link [LNKF] -> GSI
-> 9 (level, low) -> IRQ 9
-> [96653.944000] saa7133[0]: found at 0000:03:00.0, rev: 240, irq: 9,
-> latency: 0, mmio: 0x34000000
-> [96653.944000] PCI: Setting latency timer of device 0000:03:00.0 to 64
-> [96653.944000] saa7133[0]: subsystem: 5169:1502, board: LifeView FlyTV
-> Platinum Mini [card=39,insmod option]
-> [96653.944000] saa7133[0]: board init: gpio is c010000
-> [96654.120000] tuner 0-004b: chip found @ 0x96 (saa7133[0])
-> [96654.168000] tuner 0-004b: setting tuner address to 61
-> [96654.208000] tuner 0-004b: type set to tda8290+75
-> [96655.856000] tuner 0-004b: setting tuner address to 61
-> [96655.896000] tuner 0-004b: type set to tda8290+75
-> [96657.524000] saa7133[0]: i2c eeprom 00: 69 51 02 15 54 20 1c 00 43 43
-> a9 1c 55 d2 b2 92
-> [96657.524000] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff
-> ff ff ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff
-> 01 bb ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 40: ff 14 00 c2 96 ff 00 ff ff ff
-> ff ff ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [96657.524000] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [96657.540000] saa7133[0]: i2c scan: found device @ 0x96  [???]
-> [96657.548000] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-> [96660.632000] saa7133[0]: registered device video0 [v4l2]
-> [96660.632000] saa7133[0]: registered device vbi0
-> [96660.632000] saa7133[0]/alsa: saa7133[0] at 0x34000000 irq 9
-> registered as card -2
-> 
-> 
-> ==============
-> [95421.776000] pccard: CardBus card inserted into slot 0
-> [95422.280000] Linux video capture interface: v2.00
-> [95422.492000] saa7130/34: v4l2 driver version 0.2.14 loaded
-> [95422.492000] PCI: Enabling device 0000:03:00.0 (0000 -> 0002)
-> [95422.492000] ACPI: PCI Interrupt 0000:03:00.0[A] -> Link [LNKF] -> GSI
-> 9 (level, low) -> IRQ 9
-> [95422.492000] saa7133[0]: found at 0000:03:00.0, rev: 240, irq: 9,
-> latency: 0, mmio: 0x34000000
-> [95422.492000] PCI: Setting latency timer of device 0000:03:00.0 to 64
-> [95422.492000] saa7133[0]: subsystem: 5169:1502, board: LifeView FlyTV
-> Platinum Mini [card=39,insmod option]
-> [95422.492000] saa7133[0]: board init: gpio is c010000
-> [95422.628000] saa7133[0]: i2c eeprom 00: 69 51 02 15 54 20 1c 00 43 43
-> a9 1c 55 d2 b2 92
-> [95422.628000] saa7133[0]: i2c eeprom 10: 00 ff 22 0f ff 20 ff ff ff ff
-> ff ff ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff
-> 01 bb ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 40: ff 14 00 c2 96 ff 00 ff ff ff
-> ff ff ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [95422.628000] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff
-> [95423.152000] tuner 0-004b: chip found @ 0x96 (saa7133[0])
-> [95423.200000] tuner 0-004b: setting tuner address to 61
-> [95423.240000] tuner 0-004b: type set to tda8290+75
-> [95425.088000] tuner 0-004b: setting tuner address to 61
-> [95425.132000] tuner 0-004b: type set to tda8290+75
-> [95426.860000] saa7133[0]: registered device video0 [v4l2]
-> [95426.860000] saa7133[0]: registered device vbi0
-> [95427.116000] saa7134 ALSA driver for DMA sound loaded
-> [95427.116000] saa7133[0]/alsa: saa7133[0] at 0x34000000 irq 9
-> registered as card -2
+One could argue that when the sysfs release callback of videodev is
+called, the associated release callback defined by
+video_device.release should be called as well. While I completely
+agree with this argument, the video_device.release callback has been
+advertised as the location where the video_device should be freed. To
+this regard even the article on LWN at http://lwn.net/Articles/203924/
+indicates taking this action. The proper thing for a subdriver to do
+in the video_device.release callback is to decrement the ref count on
+their internal structure. And once that ref count reaches 0 to free
+their structure as well as the video_device structure. The subdriver
+is after all the one that alloced the video_device structure to begin
+with. Given the number of drivers currently calling
+video_device_release from the video_device.release callback, it's
+currently unsafe for this callback to occur during the sysfs release
+callback in videodev unless the video_device structure is no longer in
+use. The patch I've provided currently handles this situation, however
+I think steps should be taken to correct drivers that directly call
+video_device_release via this callback as this is obviously incorrect.
 
-Thanks a lot!
+Regards,
 
-It really has the first generation "hot" tda8275 tuner then and must be
-already several years old, since out of production.
-
-Variants with saa7133 and saa7134 may exist or it is one of the first
-devices with saa7135, in fact its Mini PCI counterpart had the first
-saa7135 ever seen. No fan on that tuner is critical ...
-
-For sure it has no digital video support and everything you have should
-be correct.
-
-Cheers,
-Hermann
-
-
-
+David Ellingsworth
 
 --
 video4linux-list mailing list
