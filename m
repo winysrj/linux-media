@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5CERxM3009011
-	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 10:27:59 -0400
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au
-	(outbound.icp-qv1-irony-out3.iinet.net.au [203.59.1.148])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5CERb9W009991
-	for <video4linux-list@redhat.com>; Thu, 12 Jun 2008 10:27:39 -0400
-Message-ID: <48513259.6030003@iinet.net.au>
-Date: Thu, 12 Jun 2008 22:27:37 +0800
-From: timf <timf@iinet.net.au>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5U53tvO027221
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 01:03:55 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5U53iNU016045
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 01:03:44 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so839817fga.7
+	for <video4linux-list@redhat.com>; Sun, 29 Jun 2008 22:03:43 -0700 (PDT)
+Message-ID: <30353c3d0806292203p193ff610i866b938271391f81@mail.gmail.com>
+Date: Mon, 30 Jun 2008 01:03:43 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <30353c3d0806292009r5556afd6s5d5e271d1c7ff575@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>, video4linux-list@redhat.com,
-	linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------050200030002050206050708"
-Cc: 
-Subject: [PATCH] Avermedia A16d Avermedia E506
+Content-Type: multipart/mixed;
+	boundary="----=_Part_2831_17861832.1214802223686"
+References: <30353c3d0806281807p7b78dcd2xe2a91d560ae6df12@mail.gmail.com>
+	<200806300315.42610.laurent.pinchart@skynet.be>
+	<30353c3d0806292009r5556afd6s5d5e271d1c7ff575@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] videodev: properly reference count video_device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,615 +31,215 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------050200030002050206050708
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+------=_Part_2831_17861832.1214802223686
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+On Sun, Jun 29, 2008 at 11:09 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> On Sun, Jun 29, 2008 at 9:15 PM, Laurent Pinchart
+> <laurent.pinchart@skynet.be> wrote:
+>> Hi David,
+>>
+>> On Sunday 29 June 2008, David Ellingsworth wrote:
+>>> I noticed that the video_device structure wasn't properly being
+>>> reference counted. Under certain circumstances,
+>>
+>> Can you detail those certain circumstances ?
+>>
+> Sure.
+>
+> For drivers which have to handle unexpected disconnects, I.E. usb and
+> pci drivers, it's possible for a user to physically remove the device
+> while it is in use. In the usb/pci disconnect callback, the correct
+> thing to do is to unregister the device in order to prevent future
+> opens. When video_unregister_device is called in this context, it sets
+> video_device[minor number] to NULL and calls device_unregister().
+> device_unregister() causes the release callback to be called when the
+> sysfs entry is no longer in use. Under most circumstances, the release
+> callback occurs right after the call to device_unregister(). This will
+> cause a crash in __video_do_ioctl(), called from video_ioctl2, when
+> subsequent ioctls are encountered since the return value of
+> video_devdata() is NULL
+>
+> Current drivers do one of two things to avoid this crash. They either
+> use a custom ioctl callback and return an error when video_devdata()
+> is NULL, or they delay the call to video_unregister_device until the
+> final close occurs. The first solution means that if a usb/pci driver
+> uses video_devdata() in its ioctl or release callback, it has to check
+> that the return is not NULL. The second means the drivers must be
+> prepared to handle opens after the pci/usb disconnect callback has
+> been called since the video device is still registered.
+>
+> This patch prevents the video_device struct from being freed under the
+> circumstances above, and should not affect the behavior of current
+> drivers. The reference count is set to 1 during video_register_device,
+> incremented during video_open, and decremented during video_close and
+> video_unregister_device. Thus allowing for the following series of
+The reference count is decremented in the sysfs release callback not
+video_unregister_device.
 
-Hi Mauro,
+> calls to occur.
+>
+> With patch:
+> -----------------------------------------------------------
+> usb/pci_probe -> video_register_device
+> video_open -> usb/pci_open
+> usb/pci_disconnect -> video_unregister_device
+> video_ioctl2
+> video_close -> usb/pci_close
+> release_callback
+>
+> Without patch:
+> -----------------------------------------------------------
+> usb/pci_probe -> video_register_device
+> video_open -> usb/pci_open
+> usb/pci_disconnect -> video_unregister_device
+> release_callback
+> video_ioctl2 (crash)
+>
+> Without patch (crash avoidance #1)
+> ----------------------------------------------------------
+> usb/pci_probe -> video_register_device
+> video_open -> usb/pci_open
+> usb/pci_disconnect -> video_unregister_device
+> release_callback
+> usb/pci_ioctl (return err, video_devdata() is NULL)
+> usb/pci_close (return err, video_devdata() is NULL)
+>
+> Without patch (crash avoidance #2)
+> ----------------------------------------------------------
+> usb/pci_probe -> video_register_device
+> video_open -> usb/pci_open
+> usb/pci_disconnect
+> video_ioctl2
+> usb/pci_close -> video_unregister_device
+> release_callback
+>
+> Regards,
+>
+> David Ellingsworth
+>
+>>> it is possible that
+>>> the release callback of the video_device struct is called while the
+>>> device is still open thus causing a crash. This patch adds the
+>>> necessary reference counting to the video_device struct in order to
+>>> avoid freeing the video_device struct while it is still in use.
+>>>
+>>> Regards,
+>>>
+>>> David Ellingsworth
+>>>
+>
 
-OK, Herewith find the patch for the Avermedia A16d, and the Avermedia 
-E506 Cardbus.
-I am using Thunderbird, so as well as pasting it here I shall attach it.
-DVB-T, Analog-TV, FM-Radio - work for both cards.
-Composite, S-Video not tested.
+[RFC v3] videodev: add ref count to video_device
+
+Moved mutex_[un]lock(&videodev_lock) calls from
+video_unregister_device to the sysfs release callback. In v2 a call to
+close and then video_unregister_device would have resulted in a
+deadlock. The lock is not needed in video_unregister_device, but is
+needed in the sysfs callback video_release since it could potentially
+call video_free. Patch attached.
 
 Regards,
-Timf
 
-Signed-off-by: Tim Farrington <timf@iinet.net.au>
+David Ellingsworth
 
-
-diff -upr v4l-dvb/linux/drivers/media/common/ir-keymaps.c 
-v4l-dvb-a16d-e506/linux/drivers/media/common/ir-keymaps.c
---- v4l-dvb/linux/drivers/media/common/ir-keymaps.c    2008-06-12 
-21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/common/ir-keymaps.c   
- 2008-06-12 22:07:15.000000000 +0800
-@@ -2251,3 +2251,43 @@ IR_KEYTAB_TYPE ir_codes_powercolor_real_
-     [0x25] = KEY_POWER,        /* power */
- };
- EXPORT_SYMBOL_GPL(ir_codes_powercolor_real_angel);
-+
-+IR_KEYTAB_TYPE ir_codes_avermedia_a16d[IR_KEYTAB_SIZE] = {
-+    [ 0x20 ] = KEY_LIST,
-+    [ 0x00 ] = KEY_POWER,
-+    [ 0x28 ] = KEY_1,
-+    [ 0x18 ] = KEY_2,
-+    [ 0x38 ] = KEY_3,
-+    [ 0x24 ] = KEY_4,
-+    [ 0x14 ] = KEY_5,
-+    [ 0x34 ] = KEY_6,
-+    [ 0x2c ] = KEY_7,
-+    [ 0x1c ] = KEY_8,
-+    [ 0x3c ] = KEY_9,
-+    [ 0x12 ] = KEY_SUBTITLE,
-+    [ 0x22 ] = KEY_0,
-+    [ 0x32 ] = KEY_REWIND,
-+    [ 0x3a ] = KEY_SHUFFLE,
-+    [ 0x02 ] = KEY_PRINT,
-+    [ 0x11 ] = KEY_CHANNELDOWN,
-+    [ 0x31 ] = KEY_CHANNELUP,
-+    [ 0x0c ] = KEY_ZOOM,
-+    [ 0x1e ] = KEY_VOLUMEDOWN,
-+    [ 0x3e ] = KEY_VOLUMEUP,
-+    [ 0x0a ] = KEY_MUTE,
-+    [ 0x04 ] = KEY_AUDIO,
-+    [ 0x26 ] = KEY_RECORD,
-+    [ 0x06 ] = KEY_PLAY,
-+    [ 0x36 ] = KEY_STOP,
-+    [ 0x16 ] = KEY_PAUSE,
-+    [ 0x2e ] = KEY_REWIND,
-+    [ 0x0e ] = KEY_FASTFORWARD,
-+    [ 0x30 ] = KEY_TEXT,
-+    [ 0x21 ] = KEY_GREEN,
-+    [ 0x01 ] = KEY_BLUE,
-+    [ 0x08 ] = KEY_EPG,
-+    [ 0x2a ] = KEY_MENU,
-+};
-+
-+EXPORT_SYMBOL_GPL(ir_codes_avermedia_a16d);
-+
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c 
-v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-cards.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c   
- 2008-06-12 21:40:29.000000000 +0800
-+++ 
-v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-cards.c   
- 2008-06-12 22:07:15.000000000 +0800
-@@ -4232,11 +4232,7 @@ struct saa7134_board saa7134_boards[] =
-         .radio_type     = UNSET,
-         .tuner_addr    = ADDR_UNSET,
-         .radio_addr    = ADDR_UNSET,
--         /*
--            TODO:
-          .mpeg           = SAA7134_MPEG_DVB,
--         */
--
-          .inputs         = {{
-              .name = name_tv,
-              .vmux = 1,
-@@ -4263,10 +4259,7 @@ struct saa7134_board saa7134_boards[] =
-         .radio_type     = UNSET,
-         .tuner_addr    = ADDR_UNSET,
-         .radio_addr    = ADDR_UNSET,
--#if 0
--        /* Not working yet */
-         .mpeg           = SAA7134_MPEG_DVB,
--#endif
-         .inputs         = {{
-             .name = name_tv,
-             .vmux = 1,
-@@ -4279,7 +4272,7 @@ struct saa7134_board saa7134_boards[] =
-         } },
-         .radio = {
-             .name = name_radio,
--            .amux = LINE1,
-+            .amux = TV,
-         },
-     },
-     [SAA7134_BOARD_AVERMEDIA_M115] = {
-@@ -5510,22 +5503,21 @@ static int saa7134_xc2028_callback(struc
- {
-     switch (command) {
-     case XC2028_TUNER_RESET:
--        saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
--        saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
--        mdelay(250);
--        saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0);
--        saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0);
--        mdelay(250);
--        saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
--        saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
--        mdelay(250);
--        saa_andorl(SAA7133_ANALOG_IO_SELECT >> 2, 0x02, 0x02);
--        saa_andorl(SAA7134_ANALOG_IN_CTRL1 >> 2, 0x81, 0x81);
--        saa_andorl(SAA7134_AUDIO_CLOCK0 >> 2, 0x03187de7, 0x03187de7);
--        saa_andorl(SAA7134_AUDIO_PLL_CTRL >> 2, 0x03, 0x03);
--        saa_andorl(SAA7134_AUDIO_CLOCKS_PER_FIELD0 >> 2,
--               0x0001e000, 0x0001e000);
--        return 0;
-+        saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00000000);
-+        saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-+        switch (dev->board) {
-+        case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+            saa7134_set_gpio(dev, 23, 0);
-+            msleep(10);
-+            saa7134_set_gpio(dev, 23, 1);
-+        break;
-+        case SAA7134_BOARD_AVERMEDIA_A16D:    
-+            saa7134_set_gpio(dev, 21, 0);
-+            msleep(10);
-+            saa7134_set_gpio(dev, 21, 1);
-+        break;
-+        }
-+    return 0;
-     }
-     return -EINVAL;
- }
-@@ -5735,9 +5727,7 @@ int saa7134_board_init1(struct saa7134_d
-         saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08000000, 0x00000000);
-         break;
-     case SAA7134_BOARD_AVERMEDIA_CARDBUS:
--    case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-     case SAA7134_BOARD_AVERMEDIA_M115:
--    case SAA7134_BOARD_AVERMEDIA_A16D:
- #if 1
-         /* power-down tuner chip */
-         saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0xffffffff, 0);
-@@ -5749,6 +5739,18 @@ int saa7134_board_init1(struct saa7134_d
-         saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0xffffffff, 0xffffffff);
-         msleep(10);
-         break;
-+    case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+        saa7134_set_gpio(dev, 23, 0);
-+        msleep(10);
-+        saa7134_set_gpio(dev, 23, 1);
-+        break;
-+    case SAA7134_BOARD_AVERMEDIA_A16D:
-+        saa7134_set_gpio(dev, 21, 0);
-+        msleep(10);
-+        saa7134_set_gpio(dev, 21, 1);
-+        msleep(1);
-+              dev->has_remote = SAA7134_REMOTE_GPIO;        
-+        break;
-     case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
- #if 1
-         /* power-down tuner chip */
-@@ -5863,6 +5865,7 @@ static void saa7134_tuner_setup(struct s
- 
-         switch (dev->board) {
-         case SAA7134_BOARD_AVERMEDIA_A16D:
-+        case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-             ctl.demod = XC3028_FE_ZARLINK456;
-             break;
-         default:
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c 
-v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-dvb.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c   
- 2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-dvb.c   
- 2008-06-12 22:13:22.000000000 +0800
-@@ -153,26 +153,23 @@ static int mt352_aver777_init(struct dvb
-     return 0;
- }
- 
--static int mt352_aver_a16d_init(struct dvb_frontend *fe)
-+static int mt352_avermedia_xc3028_init(struct dvb_frontend *fe)
- {
--    static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x2d };
--    static u8 reset []         = { RESET,      0x80 };
--    static u8 adc_ctl_1_cfg [] = { ADC_CTL_1,  0x40 };
--    static u8 agc_cfg []       = { AGC_TARGET, 0x28, 0xa0 };
-+    static u8 clock_config []  = { CLOCK_CTL, 0x38, 0x2d };
-+    static u8 reset []         = { RESET, 0x80 };
-+    static u8 adc_ctl_1_cfg [] = { ADC_CTL_1, 0x40 };
-+    static u8 agc_cfg []       = { AGC_TARGET, 0xe };
-     static u8 capt_range_cfg[] = { CAPT_RANGE, 0x33 };
--
-+    
-     mt352_write(fe, clock_config,   sizeof(clock_config));
-     udelay(200);
-     mt352_write(fe, reset,          sizeof(reset));
-     mt352_write(fe, adc_ctl_1_cfg,  sizeof(adc_ctl_1_cfg));
-     mt352_write(fe, agc_cfg,        sizeof(agc_cfg));
-     mt352_write(fe, capt_range_cfg, sizeof(capt_range_cfg));
--
-     return 0;
- }
- 
--
--
- static int mt352_pinnacle_tuner_set_params(struct dvb_frontend* fe,
-                        struct dvb_frontend_parameters* params)
- {
-@@ -215,17 +212,10 @@ static struct mt352_config avermedia_777
-     .demod_init    = mt352_aver777_init,
- };
- 
--static struct mt352_config avermedia_16d = {
--    .demod_address = 0xf,
--    .demod_init    = mt352_aver_a16d_init,
--};
--
--static struct mt352_config avermedia_e506r_mt352_dev = {
-+static struct mt352_config avermedia_xc3028_mt352_dev = {
-     .demod_address   = (0x1e >> 1),
--#if 0
--    .input_frequency = 0x31b8,
--#endif
-     .no_tuner        = 1,
-+    .demod_init      = mt352_avermedia_xc3028_init,
- };
- 
- /* ==================================================================
-@@ -978,9 +968,9 @@ static int dvb_init(struct saa7134_dev *
-         }
-         break;
-     case SAA7134_BOARD_AVERMEDIA_A16D:
--        dprintk("avertv A16D dvb setup\n");
--        dev->dvb.frontend = dvb_attach(mt352_attach, &avermedia_16d,
--                           &dev->i2c_adap);
-+        dprintk("AverMedia A16D dvb setup\n");
-+        dev->dvb.frontend = dvb_attach(mt352_attach, 
-&avermedia_xc3028_mt352_dev,
-+                        &dev->i2c_adap);
-         attach_xc3028 = 1;
-         break;
-     case SAA7134_BOARD_MD7134:
-@@ -1263,15 +1253,18 @@ static int dvb_init(struct saa7134_dev *
-             goto dettach_frontend;
-         break;
-     case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+        dprintk("AverMedia E506R dvb setup\n");
-+        saa7134_set_gpio(dev, 25, 0);
-+        msleep(10);
-+        saa7134_set_gpio(dev, 25, 1);
-+        dev->dvb.frontend = 
-dvb_attach(mt352_attach,&avermedia_xc3028_mt352_dev,
-+                        &dev->i2c_adap);
-+        attach_xc3028 = 1;
-+        break;
- #if 0
-     /*FIXME: What frontend does Videomate T750 use? */
-     case SAA7134_BOARD_VIDEOMATE_T750:
- #endif
--        dev->dvb.frontend = dvb_attach(mt352_attach,
--                           &avermedia_e506r_mt352_dev,
--                           &dev->i2c_adap);
--        attach_xc3028 = 1;
--        break;
-     case SAA7134_BOARD_MD7134_BRIDGE_2:
-         dev->dvb.frontend = dvb_attach(tda10086_attach,
-                         &sd1878_4m, &dev->i2c_adap);
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c 
-v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-input.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c   
- 2008-06-12 21:40:29.000000000 +0800
-+++ 
-v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-input.c   
- 2008-06-12 22:07:15.000000000 +0800
-@@ -323,6 +323,15 @@ int saa7134_input_init1(struct saa7134_d
-         saa_setb(SAA7134_GPIO_GPMODE1, 0x1);
-         saa_setb(SAA7134_GPIO_GPSTATUS1, 0x1);
-         break;
-+    case SAA7134_BOARD_AVERMEDIA_A16D:
-+        ir_codes     = ir_codes_avermedia_a16d;
-+        mask_keycode = 0x02F200;
-+        mask_keydown = 0x000400;
-+        polling      = 50; // ms
-+        /* Without this we won't receive key up events */
-+        saa_setb(SAA7134_GPIO_GPMODE1, 0x1);
-+        saa_setb(SAA7134_GPIO_GPSTATUS1, 0x1);
-+        break;
-     case SAA7134_BOARD_KWORLD_TERMINATOR:
-         ir_codes     = ir_codes_pixelview;
-         mask_keycode = 0x00001f;
-diff -upr v4l-dvb/linux/include/media/ir-common.h 
-v4l-dvb-a16d-e506/linux/include/media/ir-common.h
---- v4l-dvb/linux/include/media/ir-common.h    2008-06-12 
-21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/include/media/ir-common.h    2008-06-12 
-22:07:16.000000000 +0800
-@@ -146,6 +146,7 @@ extern IR_KEYTAB_TYPE ir_codes_behold_co
- extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_powercolor_real_angel[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_avermedia_a16d[IR_KEYTAB_SIZE];
- 
- #endif
- 
-
---------------050200030002050206050708
+------=_Part_2831_17861832.1214802223686
 Content-Type: text/x-diff;
- name="v4l-dvb-a16d-e506.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="v4l-dvb-a16d-e506.diff"
+	name=0001-videodev-add-ref-count-to-video_device.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fi2lpnrx0
+Content-Disposition: attachment;
+	filename=0001-videodev-add-ref-count-to-video_device.patch
 
-diff -upr v4l-dvb/linux/drivers/media/common/ir-keymaps.c v4l-dvb-a16d-e506/linux/drivers/media/common/ir-keymaps.c
---- v4l-dvb/linux/drivers/media/common/ir-keymaps.c	2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/common/ir-keymaps.c	2008-06-12 22:07:15.000000000 +0800
-@@ -2251,3 +2251,43 @@ IR_KEYTAB_TYPE ir_codes_powercolor_real_
- 	[0x25] = KEY_POWER,		/* power */
- };
- EXPORT_SYMBOL_GPL(ir_codes_powercolor_real_angel);
-+
-+IR_KEYTAB_TYPE ir_codes_avermedia_a16d[IR_KEYTAB_SIZE] = {
-+	[ 0x20 ] = KEY_LIST,
-+	[ 0x00 ] = KEY_POWER,
-+	[ 0x28 ] = KEY_1,
-+	[ 0x18 ] = KEY_2,
-+	[ 0x38 ] = KEY_3,
-+	[ 0x24 ] = KEY_4,
-+	[ 0x14 ] = KEY_5,
-+	[ 0x34 ] = KEY_6,
-+	[ 0x2c ] = KEY_7,
-+	[ 0x1c ] = KEY_8,
-+	[ 0x3c ] = KEY_9,
-+	[ 0x12 ] = KEY_SUBTITLE,
-+	[ 0x22 ] = KEY_0,
-+	[ 0x32 ] = KEY_REWIND,
-+	[ 0x3a ] = KEY_SHUFFLE,
-+	[ 0x02 ] = KEY_PRINT,
-+	[ 0x11 ] = KEY_CHANNELDOWN,
-+	[ 0x31 ] = KEY_CHANNELUP,
-+	[ 0x0c ] = KEY_ZOOM,
-+	[ 0x1e ] = KEY_VOLUMEDOWN,
-+	[ 0x3e ] = KEY_VOLUMEUP,
-+	[ 0x0a ] = KEY_MUTE,
-+	[ 0x04 ] = KEY_AUDIO,
-+	[ 0x26 ] = KEY_RECORD,
-+	[ 0x06 ] = KEY_PLAY,
-+	[ 0x36 ] = KEY_STOP,
-+	[ 0x16 ] = KEY_PAUSE,
-+	[ 0x2e ] = KEY_REWIND,
-+	[ 0x0e ] = KEY_FASTFORWARD,
-+	[ 0x30 ] = KEY_TEXT,
-+	[ 0x21 ] = KEY_GREEN,
-+	[ 0x01 ] = KEY_BLUE,
-+	[ 0x08 ] = KEY_EPG,
-+	[ 0x2a ] = KEY_MENU,
-+};
-+
-+EXPORT_SYMBOL_GPL(ir_codes_avermedia_a16d);
-+
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-cards.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-06-12 22:07:15.000000000 +0800
-@@ -4232,11 +4232,7 @@ struct saa7134_board saa7134_boards[] = 
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		 /*
--		    TODO:
- 		 .mpeg           = SAA7134_MPEG_DVB,
--		 */
--
- 		 .inputs         = {{
- 			 .name = name_tv,
- 			 .vmux = 1,
-@@ -4263,10 +4259,7 @@ struct saa7134_board saa7134_boards[] = 
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--#if 0
--		/* Not working yet */
- 		.mpeg           = SAA7134_MPEG_DVB,
--#endif
- 		.inputs         = {{
- 			.name = name_tv,
- 			.vmux = 1,
-@@ -4279,7 +4272,7 @@ struct saa7134_board saa7134_boards[] = 
- 		} },
- 		.radio = {
- 			.name = name_radio,
--			.amux = LINE1,
-+			.amux = TV,
- 		},
- 	},
- 	[SAA7134_BOARD_AVERMEDIA_M115] = {
-@@ -5510,22 +5503,21 @@ static int saa7134_xc2028_callback(struc
- {
- 	switch (command) {
- 	case XC2028_TUNER_RESET:
--		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
--		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
--		mdelay(250);
--		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0);
--		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0);
--		mdelay(250);
--		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x06e20000, 0x06e20000);
--		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x06a20000, 0x06a20000);
--		mdelay(250);
--		saa_andorl(SAA7133_ANALOG_IO_SELECT >> 2, 0x02, 0x02);
--		saa_andorl(SAA7134_ANALOG_IN_CTRL1 >> 2, 0x81, 0x81);
--		saa_andorl(SAA7134_AUDIO_CLOCK0 >> 2, 0x03187de7, 0x03187de7);
--		saa_andorl(SAA7134_AUDIO_PLL_CTRL >> 2, 0x03, 0x03);
--		saa_andorl(SAA7134_AUDIO_CLOCKS_PER_FIELD0 >> 2,
--			   0x0001e000, 0x0001e000);
--		return 0;
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00000000);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-+		switch (dev->board) {
-+		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+			saa7134_set_gpio(dev, 23, 0);
-+			msleep(10);
-+			saa7134_set_gpio(dev, 23, 1);
-+		break;
-+		case SAA7134_BOARD_AVERMEDIA_A16D:	
-+			saa7134_set_gpio(dev, 21, 0);
-+			msleep(10);
-+			saa7134_set_gpio(dev, 21, 1);
-+		break;
-+		}
-+	return 0;
- 	}
- 	return -EINVAL;
- }
-@@ -5735,9 +5727,7 @@ int saa7134_board_init1(struct saa7134_d
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08000000, 0x00000000);
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS:
--	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 	case SAA7134_BOARD_AVERMEDIA_M115:
--	case SAA7134_BOARD_AVERMEDIA_A16D:
- #if 1
- 		/* power-down tuner chip */
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0xffffffff, 0);
-@@ -5749,6 +5739,18 @@ int saa7134_board_init1(struct saa7134_d
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0xffffffff, 0xffffffff);
- 		msleep(10);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		saa7134_set_gpio(dev, 23, 0);
-+		msleep(10);
-+		saa7134_set_gpio(dev, 23, 1);
-+		break;
-+	case SAA7134_BOARD_AVERMEDIA_A16D:
-+		saa7134_set_gpio(dev, 21, 0);
-+		msleep(10);
-+		saa7134_set_gpio(dev, 21, 1);
-+		msleep(1);
-+  	        dev->has_remote = SAA7134_REMOTE_GPIO;		
-+		break;
- 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
- #if 1
- 		/* power-down tuner chip */
-@@ -5863,6 +5865,7 @@ static void saa7134_tuner_setup(struct s
- 
- 		switch (dev->board) {
- 		case SAA7134_BOARD_AVERMEDIA_A16D:
-+		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 			ctl.demod = XC3028_FE_ZARLINK456;
- 			break;
- 		default:
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-dvb.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-06-12 22:13:22.000000000 +0800
-@@ -153,26 +153,23 @@ static int mt352_aver777_init(struct dvb
- 	return 0;
- }
- 
--static int mt352_aver_a16d_init(struct dvb_frontend *fe)
-+static int mt352_avermedia_xc3028_init(struct dvb_frontend *fe)
- {
--	static u8 clock_config []  = { CLOCK_CTL,  0x38, 0x2d };
--	static u8 reset []         = { RESET,      0x80 };
--	static u8 adc_ctl_1_cfg [] = { ADC_CTL_1,  0x40 };
--	static u8 agc_cfg []       = { AGC_TARGET, 0x28, 0xa0 };
-+	static u8 clock_config []  = { CLOCK_CTL, 0x38, 0x2d };
-+	static u8 reset []         = { RESET, 0x80 };
-+	static u8 adc_ctl_1_cfg [] = { ADC_CTL_1, 0x40 };
-+	static u8 agc_cfg []       = { AGC_TARGET, 0xe };
- 	static u8 capt_range_cfg[] = { CAPT_RANGE, 0x33 };
--
-+	
- 	mt352_write(fe, clock_config,   sizeof(clock_config));
- 	udelay(200);
- 	mt352_write(fe, reset,          sizeof(reset));
- 	mt352_write(fe, adc_ctl_1_cfg,  sizeof(adc_ctl_1_cfg));
- 	mt352_write(fe, agc_cfg,        sizeof(agc_cfg));
- 	mt352_write(fe, capt_range_cfg, sizeof(capt_range_cfg));
--
- 	return 0;
- }
- 
--
--
- static int mt352_pinnacle_tuner_set_params(struct dvb_frontend* fe,
- 					   struct dvb_frontend_parameters* params)
- {
-@@ -215,17 +212,10 @@ static struct mt352_config avermedia_777
- 	.demod_init    = mt352_aver777_init,
- };
- 
--static struct mt352_config avermedia_16d = {
--	.demod_address = 0xf,
--	.demod_init    = mt352_aver_a16d_init,
--};
--
--static struct mt352_config avermedia_e506r_mt352_dev = {
-+static struct mt352_config avermedia_xc3028_mt352_dev = {
- 	.demod_address   = (0x1e >> 1),
--#if 0
--	.input_frequency = 0x31b8,
--#endif
- 	.no_tuner        = 1,
-+	.demod_init      = mt352_avermedia_xc3028_init,
- };
- 
- /* ==================================================================
-@@ -978,9 +968,9 @@ static int dvb_init(struct saa7134_dev *
- 		}
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_A16D:
--		dprintk("avertv A16D dvb setup\n");
--		dev->dvb.frontend = dvb_attach(mt352_attach, &avermedia_16d,
--					       &dev->i2c_adap);
-+		dprintk("AverMedia A16D dvb setup\n");
-+		dev->dvb.frontend = dvb_attach(mt352_attach, &avermedia_xc3028_mt352_dev,
-+						&dev->i2c_adap);
- 		attach_xc3028 = 1;
- 		break;
- 	case SAA7134_BOARD_MD7134:
-@@ -1263,15 +1253,18 @@ static int dvb_init(struct saa7134_dev *
- 			goto dettach_frontend;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		dprintk("AverMedia E506R dvb setup\n");
-+		saa7134_set_gpio(dev, 25, 0);
-+		msleep(10);
-+		saa7134_set_gpio(dev, 25, 1);
-+		dev->dvb.frontend = dvb_attach(mt352_attach,&avermedia_xc3028_mt352_dev,
-+						&dev->i2c_adap);
-+		attach_xc3028 = 1;
-+		break;
- #if 0
- 	/*FIXME: What frontend does Videomate T750 use? */
- 	case SAA7134_BOARD_VIDEOMATE_T750:
- #endif
--		dev->dvb.frontend = dvb_attach(mt352_attach,
--					       &avermedia_e506r_mt352_dev,
--					       &dev->i2c_adap);
--		attach_xc3028 = 1;
--		break;
- 	case SAA7134_BOARD_MD7134_BRIDGE_2:
- 		dev->dvb.frontend = dvb_attach(tda10086_attach,
- 						&sd1878_4m, &dev->i2c_adap);
-diff -upr v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-input.c
---- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/drivers/media/video/saa7134/saa7134-input.c	2008-06-12 22:07:15.000000000 +0800
-@@ -323,6 +323,15 @@ int saa7134_input_init1(struct saa7134_d
- 		saa_setb(SAA7134_GPIO_GPMODE1, 0x1);
- 		saa_setb(SAA7134_GPIO_GPSTATUS1, 0x1);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A16D:
-+		ir_codes     = ir_codes_avermedia_a16d;
-+		mask_keycode = 0x02F200;
-+		mask_keydown = 0x000400;
-+		polling      = 50; // ms
-+		/* Without this we won't receive key up events */
-+		saa_setb(SAA7134_GPIO_GPMODE1, 0x1);
-+		saa_setb(SAA7134_GPIO_GPSTATUS1, 0x1);
-+		break;
- 	case SAA7134_BOARD_KWORLD_TERMINATOR:
- 		ir_codes     = ir_codes_pixelview;
- 		mask_keycode = 0x00001f;
-diff -upr v4l-dvb/linux/include/media/ir-common.h v4l-dvb-a16d-e506/linux/include/media/ir-common.h
---- v4l-dvb/linux/include/media/ir-common.h	2008-06-12 21:40:29.000000000 +0800
-+++ v4l-dvb-a16d-e506/linux/include/media/ir-common.h	2008-06-12 22:07:16.000000000 +0800
-@@ -146,6 +146,7 @@ extern IR_KEYTAB_TYPE ir_codes_behold_co
- extern IR_KEYTAB_TYPE ir_codes_pinnacle_pctv_hd[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_genius_tvgo_a11mce[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_powercolor_real_angel[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_avermedia_a16d[IR_KEYTAB_SIZE];
- 
- #endif
- 
-
---------------050200030002050206050708
+RnJvbSA4NDAxMWY5YjI5OTBmZTc5YjM4YTZmYzViOGIzYTVmNWFmZWQ0Mzk5IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
+bnMub3JnPgpEYXRlOiBNb24sIDMwIEp1biAyMDA4IDAwOjUzOjEyIC0wNDAwClN1YmplY3Q6IFtQ
+QVRDSF0gdmlkZW9kZXY6IGFkZCByZWYgY291bnQgdG8gdmlkZW9fZGV2aWNlCgoKU2lnbmVkLW9m
+Zi1ieTogRGF2aWQgRWxsaW5nc3dvcnRoIDxkYXZpZEBpZGVudGQuZHluZG5zLm9yZz4KLS0tCiBk
+cml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgfCAgIDc4ICsrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKystLS0tLS0tLQogaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oICAgICAgIHwgICAg
+MyArKwogMiBmaWxlcyBjaGFuZ2VkLCA2NSBpbnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgYi9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL3ZpZGVvZGV2LmMKaW5kZXggMGQ1MjgxOS4uYmI2NDU5ZiAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9tZWRpYS92aWRlby92aWRlb2Rldi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+dmlkZW9kZXYuYwpAQCAtNDA2LDEwICs0MDYsMjAgQEAgdm9pZCB2aWRlb19kZXZpY2VfcmVsZWFz
+ZShzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQpCiB9CiBFWFBPUlRfU1lNQk9MKHZpZGVvX2Rldmlj
+ZV9yZWxlYXNlKTsKIAotc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpj
+ZCkKKy8qCisgKglBY3RpdmUgZGV2aWNlcworICovCisKK3N0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2
+aWNlICp2aWRlb19kZXZpY2VbVklERU9fTlVNX0RFVklDRVNdOworc3RhdGljIERFRklORV9NVVRF
+WCh2aWRlb2Rldl9sb2NrKTsKKworLyogdmlkZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZv
+cmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMgdm9pZCB2aWRlb19mcmVlKHN0cnVjdCBrcmVmICpr
+cmVmKQogewotCXN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCA9IGNvbnRhaW5lcl9vZihjZCwgc3Ry
+dWN0IHZpZGVvX2RldmljZSwKLQkJCQkJCQkJY2xhc3NfZGV2KTsKKwlzdHJ1Y3QgdmlkZW9fZGV2
+aWNlICp2ZmQgPQorCQljb250YWluZXJfb2Yoa3JlZiwgc3RydWN0IHZpZGVvX2RldmljZSwga3Jl
+Zik7CisKKwl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0gPSBOVUxMOwogCiAjaWYgMQogCS8qIG5l
+ZWRlZCB1bnRpbCBhbGwgZHJpdmVycyBhcmUgZml4ZWQgKi8KQEAgLTQxOSw2ICs0MjksMzEgQEAg
+c3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpjZCkKIAl2ZmQtPnJlbGVh
+c2UodmZkKTsKIH0KIAorc3RhdGljIGlubGluZSB2b2lkIHZpZGVvX2tyZWZfZ2V0KHN0cnVjdCB2
+aWRlb19kZXZpY2UgKnZmZCkKK3sKKwlrcmVmX2dldCgmdmZkLT5rcmVmKTsKK30KKworLyogdmlk
+ZW9kZXZfbG9jayBzaG91bGQgYmUgaGVsZCBiZWZvcmUgY2FsbGluZyB0aGlzICovCitzdGF0aWMg
+aW5saW5lIHZvaWQgdmlkZW9fa3JlZl9wdXQoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQorewor
+CWtyZWZfcHV0KCZ2ZmQtPmtyZWYsIHZpZGVvX2ZyZWUpOworfQorCisvKgorICogY2FsbGVkIHdp
+dGhpbiB0aGUgY29udGV4dCBvZiB2aWRlb191bnJlZ2lzdGVyX2RldmljZSB3aXRoCisgKiB2aWRl
+b2Rldl9sb2NrIGhlbGQKKyAqLworc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2
+aWNlICpjZCkKK3sKKwlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQgPSBjb250YWluZXJfb2YoY2Qs
+IHN0cnVjdCB2aWRlb19kZXZpY2UsCisJCQkJCQkJCWNsYXNzX2Rldik7CisKKwltdXRleF9sb2Nr
+KCZ2aWRlb2Rldl9sb2NrKTsKKwl2aWRlb19rcmVmX3B1dCh2ZmQpOworCW11dGV4X3VubG9jaygm
+dmlkZW9kZXZfbG9jayk7Cit9CisKIHN0YXRpYyBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSB2aWRl
+b19kZXZpY2VfYXR0cnNbXSA9IHsKIAlfX0FUVFIobmFtZSwgU19JUlVHTywgc2hvd19uYW1lLCBO
+VUxMKSwKIAlfX0FUVFIoaW5kZXgsIFNfSVJVR08sIHNob3dfaW5kZXgsIE5VTEwpLApAQCAtNDMx
+LDE5ICs0NjYsMjcgQEAgc3RhdGljIHN0cnVjdCBjbGFzcyB2aWRlb19jbGFzcyA9IHsKIAkuZGV2
+X3JlbGVhc2UgPSB2aWRlb19yZWxlYXNlLAogfTsKIAotLyoKLSAqCUFjdGl2ZSBkZXZpY2VzCi0g
+Ki8KLQotc3RhdGljIHN0cnVjdCB2aWRlb19kZXZpY2UgKnZpZGVvX2RldmljZVtWSURFT19OVU1f
+REVWSUNFU107Ci1zdGF0aWMgREVGSU5FX01VVEVYKHZpZGVvZGV2X2xvY2spOwotCiBzdHJ1Y3Qg
+dmlkZW9fZGV2aWNlKiB2aWRlb19kZXZkYXRhKHN0cnVjdCBmaWxlICpmaWxlKQogewogCXJldHVy
+biB2aWRlb19kZXZpY2VbaW1pbm9yKGZpbGUtPmZfcGF0aC5kZW50cnktPmRfaW5vZGUpXTsKIH0K
+IEVYUE9SVF9TWU1CT0wodmlkZW9fZGV2ZGF0YSk7CiAKK3N0YXRpYyBpbnQgdmlkZW9fY2xvc2Uo
+c3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCit7CisJdW5zaWduZWQgaW50
+IG1pbm9yID0gaW1pbm9yKGlub2RlKTsKKwlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2Zmw7CisJaW50
+IGVyciA9IDA7CisKKwltdXRleF9sb2NrKCZ2aWRlb2Rldl9sb2NrKTsKKwl2ZmwgPSB2aWRlb19k
+ZXZpY2VbbWlub3JdOworCWVyciA9IHZmbC0+Zm9wcy0+cmVsZWFzZShpbm9kZSwgZmlsZSk7CisJ
+dmlkZW9fa3JlZl9wdXQodmZsKTsKKwltdXRleF91bmxvY2soJnZpZGVvZGV2X2xvY2spOworCisJ
+cmV0dXJuIGVycjsKK30KKwogLyoKICAqCU9wZW4gYSB2aWRlbyBkZXZpY2UgLSBGSVhNRTogT2Jz
+b2xldGVkCiAgKi8KQEAgLTQ2OSwxMCArNTEyLDEzIEBAIHN0YXRpYyBpbnQgdmlkZW9fb3Blbihz
+dHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkKIAkJfQogCX0KIAlvbGRfZm9w
+cyA9IGZpbGUtPmZfb3A7Ci0JZmlsZS0+Zl9vcCA9IGZvcHNfZ2V0KHZmbC0+Zm9wcyk7Ci0JaWYo
+ZmlsZS0+Zl9vcC0+b3BlbikKKwlmaWxlLT5mX29wID0gZm9wc19nZXQoJnZmbC0+cHJpdl9mb3Bz
+KTsKKwlpZiAoZmlsZS0+Zl9vcC0+b3BlbikgeworCQl2aWRlb19rcmVmX2dldCh2ZmwpOwogCQll
+cnIgPSBmaWxlLT5mX29wLT5vcGVuKGlub2RlLGZpbGUpOworCX0KIAlpZiAoZXJyKSB7CisJCXZp
+ZGVvX2tyZWZfcHV0KHZmbCk7CiAJCWZvcHNfcHV0KGZpbGUtPmZfb3ApOwogCQlmaWxlLT5mX29w
+ID0gZm9wc19nZXQob2xkX2ZvcHMpOwogCX0KQEAgLTIxNjYsNiArMjIxMiw4IEBAIGludCB2aWRl
+b19yZWdpc3Rlcl9kZXZpY2VfaW5kZXgoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkLCBpbnQgdHlw
+ZSwgaW50IG5yLAogCX0KIAl2aWRlb19kZXZpY2VbaV09dmZkOwogCXZmZC0+bWlub3I9aTsKKwl2
+ZmQtPnByaXZfZm9wcyA9ICp2ZmQtPmZvcHM7CisJdmZkLT5wcml2X2ZvcHMucmVsZWFzZSA9IHZp
+ZGVvX2Nsb3NlOwogCiAJcmV0ID0gZ2V0X2luZGV4KHZmZCwgaW5kZXgpOwogCWlmIChyZXQgPCAw
+KSB7CkBAIC0yMTc4LDYgKzIyMjYsNyBAQCBpbnQgdmlkZW9fcmVnaXN0ZXJfZGV2aWNlX2luZGV4
+KHN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCwgaW50IHR5cGUsIGludCBuciwKIAogCW11dGV4X3Vu
+bG9jaygmdmlkZW9kZXZfbG9jayk7CiAJbXV0ZXhfaW5pdCgmdmZkLT5sb2NrKTsKKwlrcmVmX2lu
+aXQoJnZmZC0+a3JlZik7CiAKIAkvKiBzeXNmcyBjbGFzcyAqLwogCW1lbXNldCgmdmZkLT5jbGFz
+c19kZXYsIDB4MDAsIHNpemVvZih2ZmQtPmNsYXNzX2RldikpOwpAQCAtMjIyMSwxMyArMjI3MCwx
+MCBAQCBFWFBPUlRfU1lNQk9MKHZpZGVvX3JlZ2lzdGVyX2RldmljZV9pbmRleCk7CiAKIHZvaWQg
+dmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2Uoc3RydWN0IHZpZGVvX2RldmljZSAqdmZkKQogewotCW11
+dGV4X2xvY2soJnZpZGVvZGV2X2xvY2spOwotCWlmKHZpZGVvX2RldmljZVt2ZmQtPm1pbm9yXSE9
+dmZkKQorCWlmICh2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0gIT0gdmZkKQogCQlwYW5pYygidmlk
+ZW9kZXY6IGJhZCB1bnJlZ2lzdGVyIik7CiAKLQl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl09TlVM
+TDsKIAlkZXZpY2VfdW5yZWdpc3RlcigmdmZkLT5jbGFzc19kZXYpOwotCW11dGV4X3VubG9jaygm
+dmlkZW9kZXZfbG9jayk7CiB9CiBFWFBPUlRfU1lNQk9MKHZpZGVvX3VucmVnaXN0ZXJfZGV2aWNl
+KTsKIApkaWZmIC0tZ2l0IGEvaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oIGIvaW5jbHVkZS9tZWRp
+YS92NGwyLWRldi5oCmluZGV4IDNjOTM0MTQuLjdkMjZiMjUgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUv
+bWVkaWEvdjRsMi1kZXYuaAorKysgYi9pbmNsdWRlL21lZGlhL3Y0bDItZGV2LmgKQEAgLTM0Miw2
+ICszNDIsOSBAQCB2b2lkICpwcml2OwogCS8qIGZvciB2aWRlb2Rldi5jIGludGVuYWwgdXNhZ2Ug
+LS0gcGxlYXNlIGRvbid0IHRvdWNoICovCiAJaW50IHVzZXJzOyAgICAgICAgICAgICAgICAgICAg
+IC8qIHZpZGVvX2V4Y2x1c2l2ZV97b3BlbnxjbG9zZX0gLi4uICovCiAJc3RydWN0IG11dGV4IGxv
+Y2s7ICAgICAgICAgICAgIC8qIC4uLiBoZWxwZXIgZnVuY3Rpb24gdXNlcyB0aGVzZSAgICovCisJ
+LyogcHJpdmF0ZSBmaWxlIG9wcyBmb3IgcmVsZWFzZSBjYWxsYmFjayAqLworCXN0cnVjdCBmaWxl
+X29wZXJhdGlvbnMgcHJpdl9mb3BzOworCXN0cnVjdCBrcmVmIGtyZWY7ICAgICAgICAgICAgICAv
+KiBpbnRlcm5hbCByZWZlcmVuY2UgY291bnQgKi8KIH07CiAKIC8qIENsYXNzLWRldiB0byB2aWRl
+by1kZXZpY2UgKi8KLS0gCjEuNS41LjEKCg==
+------=_Part_2831_17861832.1214802223686
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -644,4 +249,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------050200030002050206050708--
+------=_Part_2831_17861832.1214802223686--
