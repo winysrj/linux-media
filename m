@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5NCbP6D015984
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 08:37:25 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5NCbA71013282
-	for <video4linux-list@redhat.com>; Mon, 23 Jun 2008 08:37:10 -0400
-Date: Mon, 23 Jun 2008 09:37:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Paulo Cavalcanti" <promac@gmail.com>
-Message-ID: <20080623093701.27071f88@gaivota>
-In-Reply-To: <68720af30806221004g65933501p9eded1f072d0940e@mail.gmail.com>
-References: <68720af30806221004g65933501p9eded1f072d0940e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux <video4linux-list@redhat.com>
-Subject: Re: bttv driver x mythtv x kernel 2.6.25
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UHmVo0029475
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 13:48:31 -0400
+Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UHmI2c024062
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 13:48:19 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by smtp.piccio.org (Postfix) with ESMTP id 5E1091FAD
+	for <video4linux-list@redhat.com>;
+	Mon, 30 Jun 2008 19:51:14 +0200 (CEST)
+Message-ID: <48691C57.7000607@piccio.org>
+Date: Mon, 30 Jun 2008 19:48:07 +0200
+From: Massimo Piccioni <alsa@piccio.org>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH] saa7134 - add support for AVerMedia M103
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,70 +28,130 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 22 Jun 2008 14:04:13 -0300
-"Paulo Cavalcanti" <promac@gmail.com> wrote:
+Hi all,
 
-> Hi, Mauro
-> 
-> I almost got mythtv working again with bttv and kernel 2.6.25
-> 
-> http://mythtv.org/pipermail/mythtv-dev/2008-June/062323.html
-> 
-> http://mythtv.org/pipermail/mythtv-dev/2008-June/062325.html
-> 
-> However, I have to run an mplayer (second link above) script before
-> using mythtv with Live TV. Otherwise, I get only a green screen.
-> 
-> Can you give me a clue why the script fix the problem?
+the following patch updates saa7134 driver to add support for AVerMedia 
+M103 MiniPCI DVB-T Hybrid card.
+Please apply.
 
-Weird. There are some possible reasons for a green screen:
+Ciao,
+Massimo
 
-	1) xv troubles. This sometimes happens if you are using a proprietary
-driver, like ati or nvidia. Don't use those drivers, or you'll have troubles
-displaying tv;
 
-	2) Tuner didn't load firmware properly (if you're using xc2028/xc3028
-or xc5000);
+Signed-off-by: Massimo Piccioni <alsa piccio org>
 
-	3) Some analog tuners only work if you set it first to a high channel.
-Kernel driver already sets freq to 400KHz, so I suspect that this is not the case;
 
-	4) There are some failure at the negotiation process between MythTV and
-your board. Since boards like bttv supports several different formats, maybe a
-bug at MythTV is preventing it to select the proper format. Maybe some API
-non-compliance could prevent MythTV to find the proper format;
+---
+diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c 
+v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2008-06-30 
+16:11:36.000000000 +0200
++++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-cards.c 
+2008-06-30 17:34:43.000000000 +0200
+@@ -4399,6 +4399,22 @@ struct saa7134_board saa7134_boards[] =
+  		/* no DVB support for now */
+  		/* .mpeg           = SAA7134_MPEG_DVB, */
+  	},
++	[SAA7134_BOARD_AVERMEDIA_M103] = {
++		/* Massimo Piccioni <dafastidio@libero.it> */
++		.name           = "AVerMedia MiniPCI DVB-T Hybrid M103",
++		.audio_clock    = 0x187de7,
++		.tuner_type     = TUNER_XC2028,
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		 .mpeg           = SAA7134_MPEG_DVB,
++		 .inputs         = {{
++			 .name = name_tv,
++			 .vmux = 1,
++			 .amux = TV,
++			 .tv   = 1,
++		 } },
++	},
+  };
 
-	5) a kernel bug ;) Since it is working with other userspace apps, I
-don't think this is the issue.
+  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -5415,6 +5431,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+  		.subvendor    = 0x5ace,
+  		.subdevice    = 0x6290,
+  		.driver_data  = SAA7134_BOARD_BEHOLD_H6,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xf636,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_M103,
+  	}, {
+  		/* --- boards without eeprom + subsystem ID --- */
+  		.vendor       = PCI_VENDOR_ID_PHILIPS,
+@@ -5517,6 +5539,7 @@ static int saa7134_xc2028_callback(struc
+  		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
+  		switch (dev->board) {
+  		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
++		case SAA7134_BOARD_AVERMEDIA_M103:
+  			saa7134_set_gpio(dev, 23, 0);
+  			msleep(10);
+  			saa7134_set_gpio(dev, 23, 1);
+@@ -5750,6 +5773,7 @@ int saa7134_board_init1(struct saa7134_d
+  		msleep(10);
+  		break;
+  	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
++	case SAA7134_BOARD_AVERMEDIA_M103:
+  		saa7134_set_gpio(dev, 23, 0);
+  		msleep(10);
+  		saa7134_set_gpio(dev, 23, 1);
+@@ -5877,6 +5901,7 @@ static void saa7134_tuner_setup(struct s
+  		switch (dev->board) {
+  		case SAA7134_BOARD_AVERMEDIA_A16D:
+  		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
++		case SAA7134_BOARD_AVERMEDIA_M103:
+  			ctl.demod = XC3028_FE_ZARLINK456;
+  			break;
+  		default:
+diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c 
+v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-06-30 
+16:11:36.000000000 +0200
++++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134-dvb.c 
+2008-06-30 17:27:41.000000000 +0200
+@@ -1263,6 +1263,7 @@ static int dvb_init(struct saa7134_dev *
+  						&avermedia_xc3028_mt352_dev,
+  						&dev->i2c_adap);
+  		attach_xc3028 = 1;
++		break;
+  #if 0
+  	/*FIXME: What frontend does Videomate T750 use? */
+  	case SAA7134_BOARD_VIDEOMATE_T750:
+@@ -1294,6 +1295,15 @@ static int dvb_init(struct saa7134_dev *
+  			fe->ops.enable_high_lnb_voltage = md8800_set_high_voltage;
+  		}
+  		break;
++	case SAA7134_BOARD_AVERMEDIA_M103:
++		saa7134_set_gpio(dev, 25, 0);
++		msleep(10);
++		saa7134_set_gpio(dev, 25, 1);
++		dev->dvb.frontend = dvb_attach(mt352_attach,
++						&avermedia_xc3028_mt352_dev,
++						&dev->i2c_adap);
++		attach_xc3028 = 1;
++		break;
+  	default:
+  		wprintk("Huh? unknown DVB card?\n");
+  		break;
+diff -uprN v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h 
+v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134.h
+--- v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h	2008-06-30 
+16:11:36.000000000 +0200
++++ v4l-dvb-new/linux/drivers/media/video/saa7134/saa7134.h	2008-06-30 
+17:27:16.000000000 +0200
+@@ -273,6 +273,7 @@ struct saa7134_format {
+  #define SAA7134_BOARD_BEHOLD_H6      142
+  #define SAA7134_BOARD_BEHOLD_M63      143
+  #define SAA7134_BOARD_BEHOLD_M6_EXTRA    144
++#define SAA7134_BOARD_AVERMEDIA_M103    145
 
-I've just added a small patch at linuxtv repository that will allow you to
-enable ioctl debug at the driver.
-
-Please try first to use the non-proprietary driver (if you're using).
-
-If still not working, you'll need to retrieve the last version of the driver at:
-	http://linuxtv.org/hg/v4l-dvb
-
-after compiling/installing, you'll need to do:
-	modprobe bttv bttv_debug=3
-
-Please try to run mythtv without using the mplayer command and send us the
-output of "dmesg" command.
-
-> 
-> Thanks, and keep up with the very good work at video4linux.
-
-Anytime.
-
-> PS: Eu também gostaria de convidá-lo para dar uma palestra
-> na UFRJ, se você ainda estiver vivendo no Brasil e tiver
-> algum tempo livre. Obrigado.
-
-Estou à disposição. Tempo livre sempre é um problema ;) escreva-me diretamente
-para conversarmos a respeito.
-
-Cheers,
-Mauro
+  #define SAA7134_MAXBOARDS 8
+  #define SAA7134_INPUT_MAX 8
 
 --
 video4linux-list mailing list
