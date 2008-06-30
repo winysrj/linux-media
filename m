@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m559vsvC008430
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 05:57:54 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m559vh3T012655
-	for <video4linux-list@redhat.com>; Thu, 5 Jun 2008 05:57:43 -0400
-Date: Thu, 5 Jun 2008 06:57:26 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Message-ID: <20080605065726.64ef79f2@gaivota>
-In-Reply-To: <200805311720.51821.tobias.lorenz@gmx.net>
-References: <200805311720.51821.tobias.lorenz@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Keith Mok <ek9852@gmail.com>, video4linux-list@redhat.com,
-	v4l-dvb-maintainer@linuxtv.org
-Subject: Re: [PATCH 6/6] si470x: pri... vid.. controls
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5U9dmj5019643
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 05:39:48 -0400
+Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5U9dPmi013527
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 05:39:25 -0400
+Date: Mon, 30 Jun 2008 11:39:10 +0200
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Message-ID: <20080630093910.GH18818@vidsoft.de>
+References: <4867F380.1040803@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4867F380.1040803@hhs.nl>
+From: Gregor Jasny <jasny@vidsoft.de>
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,41 +29,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Tobias,
+Hi,
 
-I've applied patches 1 to 5. However, I have some comments about patch 6.
+and another patch. The sar instruction allows only an immediate or cl as
+shift width.
 
-On Sat, 31 May 2008 17:20:51 +0200
-Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+Thanks,
+Gregor
 
-> Hi Mauro,
-> 
-> I better resend this patch with a scrambled header...
-> "private video controls" is regarded as suspicious header by the spam filter of video4linux-list.
-> 
-> This patch brings the following changes:
-> - private video controls
->   - to control seek behaviour
->   - to module parameters
->   - corrected access rights of module parameters
->   - separate header file to let the user space know about it
 
-I don't like very much the usage of priv controls. They generally are not
-really board specific, but something that belongs to a certain group of devices.
-
-For example, tea5767 and tea5761 also are capable of doing seek forward/seek
-backward. Also, we're currently lacking a control for de-emphasis. So, maybe
-some of the controls are generic enough to a radio class of controls.
-
-I think that some of the controls you've added already have a non private one
-(for example, AGC).
-
-Also, controls not documented tend to not be implemented at userspace apps. So,
-the better is to discuss a little bit about each control you're proposing, and
-adding they at the API description (even the private ones).
-
-Cheers,
-Mauro
+Index: libv4lconvert/jidctflt.c
+===================================================================
+RCS file: /var/cvs/vidsoft/extern/libv4l/libv4lconvert/jidctflt.c,v
+retrieving revision 1.1
+diff -r1.1 jidctflt.c
+95c95
+<       : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+---
+>       : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
 
 --
 video4linux-list mailing list
