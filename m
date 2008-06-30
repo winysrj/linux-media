@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5E4MCOZ023060
-	for <video4linux-list@redhat.com>; Sat, 14 Jun 2008 00:22:12 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5E4LnXl001630
-	for <video4linux-list@redhat.com>; Sat, 14 Jun 2008 00:21:49 -0400
-From: Andy Walls <awalls@radix.net>
-To: ivtv-devel@ivtvdriver.org, video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Sat, 14 Jun 2008 00:17:46 -0400
-Message-Id: <1213417066.19877.13.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m5UKiTPd030950
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:44:29 -0400
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m5UKhkpB009536
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 16:43:46 -0400
+Received: from smtp4-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp4-g19.free.fr (Postfix) with ESMTP id 090D23EA0F9
+	for <video4linux-list@redhat.com>;
+	Mon, 30 Jun 2008 22:43:45 +0200 (CEST)
+Received: from [192.168.0.13] (lns-bzn-38-82-253-110-254.adsl.proxad.net
+	[82.253.110.254])
+	by smtp4-g19.free.fr (Postfix) with ESMTP id 4EBD33EA0FF
+	for <video4linux-list@redhat.com>;
+	Mon, 30 Jun 2008 22:43:44 +0200 (CEST)
+From: Jean-Francois Moine <moinejf@free.fr>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 30 Jun 2008 22:40:07 +0200
+Message-Id: <1214858407.1677.27.camel@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: cx18: Fix unintended auto configurations in cx18-av-core
+Content-Transfer-Encoding: 8bit
+Subject: [PULL] gspca v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,24 +33,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-At
+Hi Mauro,
 
-http://linuxtv.org/hg/~awalls/v4l-dvb/
+And here it is, the gspca driver, full v4l2!
 
-I have just pushed a change to the cx18-av-core code so that accesses to
-cx23418 av core that cause auto-configuration will be adjusted to
-emulate the auto-configuration behavior of the cx25843. This fixes the
-VBI displayed as rapidly changing B&W video at the top of the frame for
-NTSC and probably other things as well.
+Please pull it from﻿ http://linuxtv.org/hg/~jfrancois/gspca/
+	
+for:
 
+7508:f2c87fe32228    Initial release of gspca with only one driver.
+7509:e1b31878bd59    Subdriver pac207 added and minor changes.
+7510:ee85360b66f5    Fix protection problems in the main driver.
+8014:6f27ca5b89b2    Many bug fixes, zc3xx added.
+8155:915ca96f9b4a    gspca: all subdrivers
+8156:4bc068802c9f    gspca: minor changes
+8157:f7b6cf1bd609    merge...
 
-The strategy I took of saving and restoring registers makes the change
-less invasive to the cx18-av-core.c code.  I wasn't up for a rewrite of
-the entire cx18-av-*c code.  Plus, fixes for the cx25840 module will
-still be relatively easy to apply to the cx18-av-*c code without an
-extensive rewrite.
+Cheers.
 
--Andy
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
