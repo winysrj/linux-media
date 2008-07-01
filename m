@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from bay0-omc2-s18.bay0.hotmail.com ([65.54.246.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oobe.trouble@gmail.com>) id 1KOPZG-0005Ki-Oi
-	for linux-dvb@linuxtv.org; Thu, 31 Jul 2008 06:15:12 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so174772ywj.41
-	for <linux-dvb@linuxtv.org>; Wed, 30 Jul 2008 21:15:06 -0700 (PDT)
-Message-ID: <21aab41d0807302115g8b48997x3522e07c9911dc25@mail.gmail.com>
-Date: Thu, 31 Jul 2008 14:15:06 +1000
-From: "oobe trouble" <oobe.trouble@gmail.com>
-To: "Robert Lowery" <rglowery@exemail.com.au>
-In-Reply-To: <21aab41d0807302026q3db5730fp278d4bf8f970c749@mail.gmail.com>
+	(envelope-from <tlli@hotmail.com>) id 1KDggc-0000Aj-T0
+	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 16:18:30 +0200
+Message-ID: <BAY136-W51AE9A3EF97CBB5CEA6E0ED29E0@phx.gbl>
+From: Alistair M <tlli@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 2 Jul 2008 00:17:50 +1000
 MIME-Version: 1.0
-References: <16121.64.213.30.2.1216781835.squirrel@webmail.exetel.com.au>
-	<21aab41d0807302026q3db5730fp278d4bf8f970c749@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO firmware compatibility between v4l-dvb and
-	in-tree kernel drivers
+Subject: [linux-dvb] Leadtek WinFast DTV Dongle Gold Remote issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,284 +16,256 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1182696646=="
+Content-Type: multipart/mixed; boundary="===============0529748072=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1182696646==
+--===============0529748072==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_63933_25851174.1217477706554"
+	boundary="_6dabda50-ae36-433e-b8da-66e4bb4357f9_"
 
-------=_Part_63933_25851174.1217477706554
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-update i just tested this on 2.6.26 and ubuntu's 2.6.24-19-generic both work
-ok
-
-On Thu, Jul 31, 2008 at 1:26 PM, oobe trouble <oobe.trouble@gmail.com>wrote:
-
-> hi i just tested http://linuxtv.org/hg/~mkrufky/cxusb/<http://linuxtv.org/hg/%7Emkrufky/cxusb/>on
-> 2.6.25.10 havent had a chance to test 2.6.26 but im sure it works thanks
-> for letting me know about this
->
-> and thanks mkrufky
->
-> On Wed, Jul 23, 2008 at 12:57 PM, Robert Lowery <rglowery@exemail.com.au>wrote:
->
->> Hi Folks,
->>
->> I've been successfully using the experimental v4l-dvb tree DVICO Dual
->> Digital 4 drivers for a number of months.  Today I decided to try an use
->> the official 2.6.26 kernel drivers, but they are triggering an OOPS at
->> firmware load time (see below).  Can someone please confirm if the
->> xc3028-dvico-au-01.fw  firmware is still compatible with 2.6.26? or are
->> there any other known issues in this space?
->>
->> Thanks
->>
->> -Rob
->>
->> [  103.974543] xc2028 1-0061: Loading 3 firmware images from
->> xc3028-dvico-au-01.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7
->> [  103.984657] BUG: unable to handle kernel NULL pointer dereference at
->> 00000000
->>
->> [  103.984690] IP: [<c0361a85>]
->> __mutex_lock_interruptible_slowpath+0x35/0xe0
->> [  103.984716] *pde = 00000000
->> [  103.984731] Oops: 0002 [#1] SMP
->> [  103.984742] Modules linked in: nfsd auth_rpcgss exportfs speedstep_lib
->> cpufre
->> q_conservative cpufreq_powersave cpufreq_userspace cpufreq_ondemand
->> cpufreq_stat
->> s freq_table container video output sbs sbshc battery nfs lockd nfs_acl
->> sunrpc i
->> ptable_filter ip_tables x_tables xfs ac lp tuner_xc2028 zl10353
->> dvb_usb_cxusb dv
->> b_usb snd_maestro3 dvb_core snd_ac97_codec serio_raw ac97_bus
->> snd_seq_dummy psmo
->> use snd_seq_oss snd_seq_midi snd_pcsp snd_rawmidi snd_pcm_oss
->> snd_mixer_oss snd_
->> pcm snd_seq_midi_event snd_seq snd_page_alloc snd_timer snd_seq_device snd
->> butto
->> n i2c_viapro soundcore i2c_core shpchp pci_hotplug via686a via_agp
->> parport_pc pa
->> rport agpgart ipv6 evdev ext3 jbd mbcache sg sr_mod cdrom sd_mod pata_acpi
->> flopp
->> y pata_sil680 sym53c8xx ehci_hcd e100 uhci_hcd pata_via ata_generic mii
->> usbcore
->> scsi_transport_spi libata scsi_mod dock thermal processor fan fbcon
->> tileblit fon
->> t bitblit softcursor uvesafb cn fuse
->> [  103.984962]
->> [  103.984971] Pid: 6492, comm: kdvb-fe-0 Not tainted (2.6.26-4-generic
->> #1)
->> [  103.984981] EIP: 0060:[<c0361a85>] EFLAGS: 00010246 CPU: 1
->> [  103.984998] EIP is at __mutex_lock_interruptible_slowpath+0x35/0xe0
->> [  103.985009] EAX: f6783d30 EBX: f7aa0c5c ECX: f7aa0c64 EDX: 00000000
->> [  103.985020] ESI: f670d400 EDI: f7aa0c60 EBP: f6783d90 ESP: f6783d2c
->> [  103.985031]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
->> [  103.985040] Process kdvb-fe-0 (pid: 6492, ti=f6782000 task=f670d400
->> task.ti=f
->> 6782000)
->> [  103.985050] Stack: f7aa0c64 f7aa0c64 00000000 c029e80f f6783d90
->> 00000003 f7aa
->> 0720 f6783d90
->> [  103.985074]        f8b43b79 f6755d55 00000030 f8cbbaa5 f8cbdb14
->> 0001d729 f7aa
->> 0c5c 00000061
->> [  103.985094]        f6783d90 f6783dcf f6783d93 f6783db8 f8b84251
->> f6783dcf 0000
->> 0001 00000000
->> [  103.985114] Call Trace:
->> [  103.985129]  [<c029e80f>] release_firmware+0xf/0x20
->> [  103.985165]  [<f8b43b79>] dvb_usb_generic_rw+0x69/0x190 [dvb_usb]
->> [  103.985202]  [<f8cbbaa5>] load_all_firmwares+0x415/0x740 [tuner_xc2028]
->> [  103.985244]  [<f8b84251>] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]
->> [  103.985296]  [<f8b84737>] cxusb_bluebird_gpio_rw+0x37/0x50
->> [dvb_usb_cxusb]
->> [  103.985321]  [<f8b852a6>] cxusb_bluebird_gpio_pulse+0x56/0x70
->> [dvb_usb_cxusb]
->>
->> [  103.985347]  [<f8b85443>] dvico_bluebird_xc2028_callback+0x13/0x30
->> [dvb_usb_c
->> xusb]
->> [  103.985363]  [<f8cbc058>] check_firmware+0x288/0x880 [tuner_xc2028]
->> [  103.985389]  [<f8b84251>] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]
->> [  103.985440]  [<f8b8449f>] cxusb_i2c_xfer+0x21f/0x3c0 [dvb_usb_cxusb]
->> [  103.985463]  [<f8cbc6b6>] generic_set_freq+0x66/0x500 [tuner_xc2028]
->> [  103.985495]  [<c01049c7>] common_interrupt+0x23/0x28
->> [  103.985526]  [<f89f439f>] i2c_transfer+0x6f/0xa0 [i2c_core]
->> [  103.985572]  [<f8cbce64>] xc2028_set_params+0xf4/0x230 [tuner_xc2028]
->> [  103.985604]  [<f8b06c95>] zl10353_set_parameters+0x505/0x660 [zl10353]
->> [  103.985634]  [<c03610c4>] schedule+0x284/0x520
->> [  103.985698]  [<f8b745b1>] dvb_frontend_swzigzag_autotune+0xc1/0x240
->> [dvb_core
->> ]
->> [  103.985769]  [<c01353b0>] process_timeout+0x0/0x10
->> [  103.985806]  [<f8b74cd9>] dvb_frontend_swzigzag+0x179/0x270 [dvb_core]
->> [  103.985837]  [<f8b755af>] dvb_frontend_thread+0x38f/0x430 [dvb_core]
->> [  103.985862]  [<c011d783>] __wake_up_common+0x43/0x70
->> [  103.985894]  [<c013fe00>] autoremove_wake_function+0x0/0x50
->> [  103.985925]  [<f8b75220>] dvb_frontend_thread+0x0/0x430 [dvb_core]
->> [  103.985941]  [<c013faf9>] kthread+0x39/0x70
->> [  103.985941]  [<c013fac0>] kthread+0x0/0x70
->> [  103.985941]  [<c0104bd3>] kernel_thread_helper+0x7/0x14
->> [  103.985941]  =======================
->> [  103.985941] Code: ec 10 89 f8 64 8b 35 00 80 4d c0 e8 16 0e 00 00 8d 43
->> 08 89
->>  04 24 8d 44 24 04 8b 53 0c 89 43 0c 8b 0c 24 89 54 24 08 89 4c 24 04 <89>
->> 02 ba
->>  ff ff ff ff 89 74 24 0c 89 d0 87 03 83 e8 01 74 5f 87
->> [  103.985941] EIP:
->> [<c0361a85>]__mutex_lock_interruptible_slowpath+0x35/0xe0 SS:ESP
->> 0068:f6783d2c
->> [  103.985941] ---[ end trace 9e886fbc373acdcc ]---
->>
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
->
-
-------=_Part_63933_25851174.1217477706554
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">update i just tested this on 2.6.26 and ubuntu&#39;s 2.6.24-19-generic both work ok <br><br><div class="gmail_quote">On Thu, Jul 31, 2008 at 1:26 PM, oobe trouble <span dir="ltr">&lt;<a href="mailto:oobe.trouble@gmail.com">oobe.trouble@gmail.com</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div dir="ltr">hi i just tested <a href="http://linuxtv.org/hg/%7Emkrufky/cxusb/" target="_blank">http://linuxtv.org/hg/~mkrufky/cxusb/</a> on <a href="http://2.6.25.10" target="_blank">2.6.25.10</a> havent had a chance to test 2.6.26 but im sure it works thanks for letting me know about this <br>
-
-<br>and thanks mkrufky <br><div><div></div><div class="Wj3C7c"><br><div class="gmail_quote">On Wed, Jul 23, 2008 at 12:57 PM, Robert Lowery <span dir="ltr">&lt;<a href="mailto:rglowery@exemail.com.au" target="_blank">rglowery@exemail.com.au</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi Folks,<br>
-<br>
-I&#39;ve been successfully using the experimental v4l-dvb tree DVICO Dual<br>
-Digital 4 drivers for a number of months. &nbsp;Today I decided to try an use<br>
-the official 2.6.26 kernel drivers, but they are triggering an OOPS at<br>
-firmware load time (see below). &nbsp;Can someone please confirm if the<br>
-xc3028-dvico-au-01.fw &nbsp;firmware is still compatible with 2.6.26? or are<br>
-there any other known issues in this space?<br>
-<br>
-Thanks<br>
-<br>
--Rob<br>
-<br>
-[ &nbsp;103.974543] xc2028 1-0061: Loading 3 firmware images from<br>
-xc3028-dvico-au-01.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7<br>
-[ &nbsp;103.984657] BUG: unable to handle kernel NULL pointer dereference at<br>
-00000000<br>
-<br>
-[ &nbsp;103.984690] IP: [&lt;c0361a85&gt;] __mutex_lock_interruptible_slowpath+0x35/0xe0<br>
-[ &nbsp;103.984716] *pde = 00000000<br>
-[ &nbsp;103.984731] Oops: 0002 [#1] SMP<br>
-[ &nbsp;103.984742] Modules linked in: nfsd auth_rpcgss exportfs speedstep_lib<br>
-cpufre<br>
-q_conservative cpufreq_powersave cpufreq_userspace cpufreq_ondemand<br>
-cpufreq_stat<br>
-s freq_table container video output sbs sbshc battery nfs lockd nfs_acl<br>
-sunrpc i<br>
-ptable_filter ip_tables x_tables xfs ac lp tuner_xc2028 zl10353<br>
-dvb_usb_cxusb dv<br>
-b_usb snd_maestro3 dvb_core snd_ac97_codec serio_raw ac97_bus<br>
-snd_seq_dummy psmo<br>
-use snd_seq_oss snd_seq_midi snd_pcsp snd_rawmidi snd_pcm_oss<br>
-snd_mixer_oss snd_<br>
-pcm snd_seq_midi_event snd_seq snd_page_alloc snd_timer snd_seq_device snd<br>
-butto<br>
-n i2c_viapro soundcore i2c_core shpchp pci_hotplug via686a via_agp<br>
-parport_pc pa<br>
-rport agpgart ipv6 evdev ext3 jbd mbcache sg sr_mod cdrom sd_mod pata_acpi<br>
-flopp<br>
-y pata_sil680 sym53c8xx ehci_hcd e100 uhci_hcd pata_via ata_generic mii<br>
-usbcore<br>
-scsi_transport_spi libata scsi_mod dock thermal processor fan fbcon<br>
-tileblit fon<br>
-t bitblit softcursor uvesafb cn fuse<br>
-[ &nbsp;103.984962]<br>
-[ &nbsp;103.984971] Pid: 6492, comm: kdvb-fe-0 Not tainted (2.6.26-4-generic #1)<br>
-[ &nbsp;103.984981] EIP: 0060:[&lt;c0361a85&gt;] EFLAGS: 00010246 CPU: 1<br>
-[ &nbsp;103.984998] EIP is at __mutex_lock_interruptible_slowpath+0x35/0xe0<br>
-[ &nbsp;103.985009] EAX: f6783d30 EBX: f7aa0c5c ECX: f7aa0c64 EDX: 00000000<br>
-[ &nbsp;103.985020] ESI: f670d400 EDI: f7aa0c60 EBP: f6783d90 ESP: f6783d2c<br>
-[ &nbsp;103.985031] &nbsp;DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068<br>
-[ &nbsp;103.985040] Process kdvb-fe-0 (pid: 6492, ti=f6782000 task=f670d400<br>
-task.ti=f<br>
-6782000)<br>
-[ &nbsp;103.985050] Stack: f7aa0c64 f7aa0c64 00000000 c029e80f f6783d90<br>
-00000003 f7aa<br>
-0720 f6783d90<br>
-[ &nbsp;103.985074] &nbsp; &nbsp; &nbsp; &nbsp;f8b43b79 f6755d55 00000030 f8cbbaa5 f8cbdb14<br>
-0001d729 f7aa<br>
-0c5c 00000061<br>
-[ &nbsp;103.985094] &nbsp; &nbsp; &nbsp; &nbsp;f6783d90 f6783dcf f6783d93 f6783db8 f8b84251<br>
-f6783dcf 0000<br>
-0001 00000000<br>
-[ &nbsp;103.985114] Call Trace:<br>
-[ &nbsp;103.985129] &nbsp;[&lt;c029e80f&gt;] release_firmware+0xf/0x20<br>
-[ &nbsp;103.985165] &nbsp;[&lt;f8b43b79&gt;] dvb_usb_generic_rw+0x69/0x190 [dvb_usb]<br>
-[ &nbsp;103.985202] &nbsp;[&lt;f8cbbaa5&gt;] load_all_firmwares+0x415/0x740 [tuner_xc2028]<br>
-[ &nbsp;103.985244] &nbsp;[&lt;f8b84251&gt;] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]<br>
-[ &nbsp;103.985296] &nbsp;[&lt;f8b84737&gt;] cxusb_bluebird_gpio_rw+0x37/0x50 [dvb_usb_cxusb]<br>
-[ &nbsp;103.985321] &nbsp;[&lt;f8b852a6&gt;] cxusb_bluebird_gpio_pulse+0x56/0x70<br>
-[dvb_usb_cxusb]<br>
-<br>
-[ &nbsp;103.985347] &nbsp;[&lt;f8b85443&gt;] dvico_bluebird_xc2028_callback+0x13/0x30<br>
-[dvb_usb_c<br>
-xusb]<br>
-[ &nbsp;103.985363] &nbsp;[&lt;f8cbc058&gt;] check_firmware+0x288/0x880 [tuner_xc2028]<br>
-[ &nbsp;103.985389] &nbsp;[&lt;f8b84251&gt;] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]<br>
-[ &nbsp;103.985440] &nbsp;[&lt;f8b8449f&gt;] cxusb_i2c_xfer+0x21f/0x3c0 [dvb_usb_cxusb]<br>
-[ &nbsp;103.985463] &nbsp;[&lt;f8cbc6b6&gt;] generic_set_freq+0x66/0x500 [tuner_xc2028]<br>
-[ &nbsp;103.985495] &nbsp;[&lt;c01049c7&gt;] common_interrupt+0x23/0x28<br>
-[ &nbsp;103.985526] &nbsp;[&lt;f89f439f&gt;] i2c_transfer+0x6f/0xa0 [i2c_core]<br>
-[ &nbsp;103.985572] &nbsp;[&lt;f8cbce64&gt;] xc2028_set_params+0xf4/0x230 [tuner_xc2028]<br>
-[ &nbsp;103.985604] &nbsp;[&lt;f8b06c95&gt;] zl10353_set_parameters+0x505/0x660 [zl10353]<br>
-[ &nbsp;103.985634] &nbsp;[&lt;c03610c4&gt;] schedule+0x284/0x520<br>
-[ &nbsp;103.985698] &nbsp;[&lt;f8b745b1&gt;] dvb_frontend_swzigzag_autotune+0xc1/0x240<br>
-[dvb_core<br>
-]<br>
-[ &nbsp;103.985769] &nbsp;[&lt;c01353b0&gt;] process_timeout+0x0/0x10<br>
-[ &nbsp;103.985806] &nbsp;[&lt;f8b74cd9&gt;] dvb_frontend_swzigzag+0x179/0x270 [dvb_core]<br>
-[ &nbsp;103.985837] &nbsp;[&lt;f8b755af&gt;] dvb_frontend_thread+0x38f/0x430 [dvb_core]<br>
-[ &nbsp;103.985862] &nbsp;[&lt;c011d783&gt;] __wake_up_common+0x43/0x70<br>
-[ &nbsp;103.985894] &nbsp;[&lt;c013fe00&gt;] autoremove_wake_function+0x0/0x50<br>
-[ &nbsp;103.985925] &nbsp;[&lt;f8b75220&gt;] dvb_frontend_thread+0x0/0x430 [dvb_core]<br>
-[ &nbsp;103.985941] &nbsp;[&lt;c013faf9&gt;] kthread+0x39/0x70<br>
-[ &nbsp;103.985941] &nbsp;[&lt;c013fac0&gt;] kthread+0x0/0x70<br>
-[ &nbsp;103.985941] &nbsp;[&lt;c0104bd3&gt;] kernel_thread_helper+0x7/0x14<br>
-[ &nbsp;103.985941] &nbsp;=======================<br>
-[ &nbsp;103.985941] Code: ec 10 89 f8 64 8b 35 00 80 4d c0 e8 16 0e 00 00 8d 43<br>
-08 89<br>
-&nbsp;04 24 8d 44 24 04 8b 53 0c 89 43 0c 8b 0c 24 89 54 24 08 89 4c 24 04 &lt;89&gt;<br>
-02 ba<br>
-&nbsp;ff ff ff ff 89 74 24 0c 89 d0 87 03 83 e8 01 74 5f 87<br>
-[ &nbsp;103.985941] EIP:<br>
-[&lt;c0361a85&gt;]__mutex_lock_interruptible_slowpath+0x35/0xe0 SS:ESP<br>
-0068:f6783d2c<br>
-[ &nbsp;103.985941] ---[ end trace 9e886fbc373acdcc ]---<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org" target="_blank">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br></div></div></div>
-</blockquote></div><br></div>
-
-------=_Part_63933_25851174.1217477706554--
+--_6dabda50-ae36-433e-b8da-66e4bb4357f9_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
 
---===============1182696646==
+
+
+
+Hi,
+
+I finally got the usb Leadtek DTV dongle gold tuner working using the below=
+ method. The tuner works fine with kaffeine and mythtv, but no luck with th=
+e remote (Y04G0044).
+
+1) hg clone http://linuxtv.org/hg/~anttip/af9015-mxl500x  # to get the driv=
+er working
+then make, make install
+2) copied firmware from=20
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_fi=
+les/4.95.0/
+to /lib/firmware/
+
+- cat /proc/bus/input/devices produces the following:
+
+I: Bus=3D0003 Vendor=3D0413 Product=3D6029 Version=3D0101
+N: Name=3D"Leadtek WinFast DTV Dongle Gold"
+P: Phys=3Dusb-0000:00:1d.7-1/input1
+S: Sysfs=3D/devices/pci0000:00/0000:00:1d.7/usb5/5-1/5-1:1.1/input/input12
+U: Uniq=3D
+H: Handlers=3Dkbd event11=20
+B: EV=3D120013
+B: KEY=3D10000 7 ff9f207a c14057ff febeffdf ffefffff ffffffff fffffffe
+B: MSC=3D10
+B: LED=3D7
+
+When I try 'cat /dev/input/event11' and press the remote buttons nothing wo=
+rks :(
+/var/log/messages has the following in relation to the tuner. Please help, =
+i've tried several sites, but nothing seems to help. I'm assuming i need to=
+ get something out of event11 first, before i even try play with lirc.=20
+
+Thank you in advance.
+Alistair
+
+[  111.337644] usb 5-1: new high speed USB device using ehci_hcd and addres=
+s 3
+[  111.378224] usb 5-1: configuration #1 chosen from 1 choice
+[  111.805274] usbcore: registered new interface driver hiddev
+[  111.809628] input: Leadtek WinFast DTV Dongle Gold as /devices/pci0000:0=
+0/0000:00:1d.7/usb5/5-1/5-1:1.1/input/input11
+[  111.829183] input,hidraw0: USB HID v1.01 Keyboard [Leadtek WinFast DTV D=
+ongle Gold] on usb-0000:00:1d.7-1
+[  111.829225] usbcore: registered new interface driver usbhid
+[  111.829234] /build/buildd/linux-2.6.24/drivers/hid/usbhid/hid-core.c: v2=
+.6:USB HID core driver
+[  111.865039] af9015_usb_probe: interface:0
+[  111.865699] af9015_identify_state: reply:01
+[  111.865708] dvb-usb: found a 'Leadtek WinFast DTV Dongle Gold' in cold s=
+tate, will try to load a firmware
+[  111.878222] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+[  111.878232] af9015_download_firmware:
+[  111.917252] usbcore: registered new interface driver dvb_usb_af9015
+[  111.917941] usb 5-1: USB disconnect, address 3
+[  111.924888] dvb-usb: generic DVB-USB module successfully deinitialized a=
+nd disconnected.
+[   56.173008] usb 5-1: new high speed USB device using ehci_hcd and addres=
+s 4
+[  112.404488] usb 5-1: configuration #1 chosen from 1 choice
+[  112.404938] af9015_usb_probe: interface:0
+[  112.405283] af9015_identify_state: reply:02
+[  112.405292] dvb-usb: found a 'Leadtek WinFast DTV Dongle Gold' in warm s=
+tate.
+[  112.405379] dvb-usb: will pass the complete MPEG2 transport stream to th=
+e software demuxer.
+[  112.406556] DVB: registering new adapter (Leadtek WinFast DTV Dongle Gol=
+d)
+[  112.407103] af9015_eeprom_dump:
+[  112.447578] 00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 02=20
+[  112.472211] 10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 30=20
+[   56.257034] 20: 35 30 35 30 30 30 30 31 ff ff ff ff ff ff ff ff=20
+[   56.281646] 30: 00 00 3a 01 00 08 02 00 cc 10 00 00 9c ff ff ff=20
+[   56.320001] 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff=20
+[   56.350569] 50: ff ff ff ff ff 26 00 00 04 03 09 04 10 03 4c 00=20
+[   56.389906] 60: 65 00 61 00 64 00 74 00 65 00 6b 00 30 03 57 00=20
+[   56.430313] 70: 69 00 6e 00 46 00 61 00 73 00 74 00 20 00 44 00=20
+[   56.455303] 80: 54 00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00=20
+[   56.477328] 90: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00=20
+[   56.490585] a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00=20
+[   56.508418] b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff=20
+[   56.521888] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff=20
+[  113.067764] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff=20
+[  113.081804] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff=20
+[  113.095822] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff=20
+[  113.096818] af9015_read_config: TS mode:0
+[  113.097794] af9015_read_config: xtal:2 set adc_clock:28000
+[  113.099705] af9015_read_config: IF1:4300
+[  113.101596] af9015_read_config: MT2060 IF1:0
+[  113.102558] af9015_read_config: tuner id1:156
+[  113.103571] af9015_read_config: spectral inversion:0
+[  113.200193] af9013: firmware version:4.95.0
+[  113.203394] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
+[  113.203466] af9015_tuner_attach:=20
+[   56.671627] tda18271 0-00c0: creating new instance
+[   56.673893] TDA18271HD/C1 detected @ 0-00c0
+[  113.501809] dvb-usb: will pass the complete MPEG2 transport stream to th=
+e software demuxer.
+[  113.502800] DVB: registering new adapter (Leadtek WinFast DTV Dongle Gol=
+d)
+[  113.503400] dvb-usb: no frontend was attached by 'Leadtek WinFast DTV Do=
+ngle Gold'
+[  113.503411] dvb-usb: Leadtek WinFast DTV Dongle Gold successfully initia=
+lized and connected.
+[  113.503419] af9015_init:
+[  113.503423] af9015_init_endpoint: USB speed:3
+[  113.522752] af9015_download_ir_table:
+[   56.860889] input: Leadtek WinFast DTV Dongle Gold as /devices/pci0000:0=
+0/0000:00:1d.7/usb5/5-1/5-1:1.1/input/input12
+[   56.889700] input,hidraw0: USB HID v1.01 Keyboard [Leadtek WinFast DTV D=
+ongle Gold] on usb-0000:00:1d.7-1
+
+
+
+_________________________________________________________________
+Be part of history. Take part in Australia's first e-mail archive with Emai=
+l Australia.
+http://emailaustralia.ninemsn.com.au=
+
+--_6dabda50-ae36-433e-b8da-66e4bb4357f9_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt;
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+
+
+
+Hi,<br><br>I finally got the usb Leadtek DTV dongle gold tuner working usin=
+g the below method. The tuner works fine with kaffeine and mythtv, but no l=
+uck with the remote (Y04G0044).<br><br>1) hg clone <a class=3D"external" re=
+l=3D"nofollow" target=3D"_blank" href=3D"http://linuxtv.org/hg/%7Eanttip/af=
+9015-mxl500x">http://linuxtv.org/hg/~anttip/af9015-mxl500x</a>  # to get th=
+e driver working<br>then make, make install<br>2) copied firmware from <br>=
+<a class=3D"external" rel=3D"nofollow" target=3D"_blank" href=3D"http://www=
+.otit.fi/%7Ecrope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95=
+.0/">http://www.otit.fi/~crope/v4<wbr>l-dvb/af9015/af9015_firmware<wbr>_cut=
+ter/firmware_files/4.95.0/</a><br>to /lib/firmware/<br><br>- cat /proc/bus/=
+input/devices produces the following:<br><br>I: Bus=3D0003 Vendor=3D0413 Pr=
+oduct=3D6029 Version=3D0101<br>N: Name=3D"Leadtek WinFast DTV Dongle Gold"<=
+br>P: Phys=3Dusb-0000:00:1d.7-1/input1<br>S: Sysfs=3D/devices/pci0000:00/00=
+00:00:1d.7/usb5/5-1/5-1:1.1/input/input12<br>U: Uniq=3D<br>H: Handlers=3Dkb=
+d event11 <br>B: EV=3D120013<br>B: KEY=3D10000 7 ff9f207a c14057ff febeffdf=
+ ffefffff ffffffff fffffffe<br>B: MSC=3D10<br>B: LED=3D7<br><br>When I try =
+'cat /dev/input/event11' and press the remote buttons nothing works :(<br>/=
+var/log/messages has the following in relation to the tuner. Please help, i=
+'ve tried several sites, but nothing seems to help. I'm assuming i need to =
+get something out of event11 first, before i even try play with lirc. <br><=
+br>Thank you in advance.<br>Alistair<br><br>[&nbsp; 111.337644] usb 5-1: ne=
+w high speed USB device using ehci_hcd and address 3<br>[&nbsp; 111.378224]=
+ usb 5-1: configuration #1 chosen from 1 choice<br>[&nbsp; 111.805274] usbc=
+ore: registered new interface driver hiddev<br>[&nbsp; 111.809628] input: L=
+eadtek WinFast DTV Dongle Gold as /devices/pci0000:00/0000:00:1d.7/usb5/5-1=
+/5-1:1.1/input/input11<br>[&nbsp; 111.829183] input,hidraw0: USB HID v1.01 =
+Keyboard [Leadtek WinFast DTV Dongle Gold] on usb-0000:00:1d.7-1<br>[&nbsp;=
+ 111.829225] usbcore: registered new interface driver usbhid<br>[&nbsp; 111=
+.829234] /build/buildd/linux-2.6.24/drivers/hid/usbhid/hid-core.c: v2.6:USB=
+ HID core driver<br>[&nbsp; 111.865039] af9015_usb_probe: interface:0<br>[&=
+nbsp; 111.865699] af9015_identify_state: reply:01<br>[&nbsp; 111.865708] dv=
+b-usb: found a 'Leadtek WinFast DTV Dongle Gold' in cold state, will try to=
+ load a firmware<br>[&nbsp; 111.878222] dvb-usb: downloading firmware from =
+file 'dvb-usb-af9015.fw'<br>[&nbsp; 111.878232] af9015_download_firmware:<b=
+r>[&nbsp; 111.917252] usbcore: registered new interface driver dvb_usb_af90=
+15<br>[&nbsp; 111.917941] usb 5-1: USB disconnect, address 3<br>[&nbsp; 111=
+.924888] dvb-usb: generic DVB-USB module successfully deinitialized and dis=
+connected.<br>[&nbsp;&nbsp; 56.173008] usb 5-1: new high speed USB device u=
+sing ehci_hcd and address 4<br>[&nbsp; 112.404488] usb 5-1: configuration #=
+1 chosen from 1 choice<br>[&nbsp; 112.404938] af9015_usb_probe: interface:0=
+<br>[&nbsp; 112.405283] af9015_identify_state: reply:02<br>[&nbsp; 112.4052=
+92] dvb-usb: found a 'Leadtek WinFast DTV Dongle Gold' in warm state.<br>[&=
+nbsp; 112.405379] dvb-usb: will pass the complete MPEG2 transport stream to=
+ the software demuxer.<br>[&nbsp; 112.406556] DVB: registering new adapter =
+(Leadtek WinFast DTV Dongle Gold)<br>[&nbsp; 112.407103] af9015_eeprom_dump=
+:<br>[&nbsp; 112.447578] 00: 31 c2 bb 0b 00 00 00 00 13 04 29 60 00 02 01 0=
+2 <br>[&nbsp; 112.472211] 10: 00 80 00 fa fa 10 40 ef 01 30 31 30 31 30 32 =
+30 <br>[&nbsp;&nbsp; 56.257034] 20: 35 30 35 30 30 30 30 31 ff ff ff ff ff =
+ff ff ff <br>[&nbsp;&nbsp; 56.281646] 30: 00 00 3a 01 00 08 02 00 cc 10 00 =
+00 9c ff ff ff <br>[&nbsp;&nbsp; 56.320001] 40: ff ff ff ff ff 08 02 00 1d =
+8d c4 04 82 ff ff ff <br>[&nbsp;&nbsp; 56.350569] 50: ff ff ff ff ff 26 00 =
+00 04 03 09 04 10 03 4c 00 <br>[&nbsp;&nbsp; 56.389906] 60: 65 00 61 00 64 =
+00 74 00 65 00 6b 00 30 03 57 00 <br>[&nbsp;&nbsp; 56.430313] 70: 69 00 6e =
+00 46 00 61 00 73 00 74 00 20 00 44 00 <br>[&nbsp;&nbsp; 56.455303] 80: 54 =
+00 56 00 20 00 44 00 6f 00 6e 00 67 00 6c 00 <br>[&nbsp;&nbsp; 56.477328] 9=
+0: 65 00 20 00 47 00 6f 00 6c 00 64 00 20 03 30 00 <br>[&nbsp;&nbsp; 56.490=
+585] a0: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00 <br>[&nbsp;&nbsp; =
+56.508418] b0: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff <br>[&nbsp;&=
+nbsp; 56.521888] c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff <br>[&=
+nbsp; 113.067764] d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff <br>[=
+&nbsp; 113.081804] e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff <br>=
+[&nbsp; 113.095822] f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff <br=
+>[&nbsp; 113.096818] af9015_read_config: TS mode:0<br>[&nbsp; 113.097794] a=
+f9015_read_config: xtal:2 set adc_clock:28000<br>[&nbsp; 113.099705] af9015=
+_read_config: IF1:4300<br>[&nbsp; 113.101596] af9015_read_config: MT2060 IF=
+1:0<br>[&nbsp; 113.102558] af9015_read_config: tuner id1:156<br>[&nbsp; 113=
+.103571] af9015_read_config: spectral inversion:0<br>[&nbsp; 113.200193] af=
+9013: firmware version:4.95.0<br>[&nbsp; 113.203394] DVB: registering front=
+end 0 (Afatech AF9013 DVB-T)...<br>[&nbsp; 113.203466] af9015_tuner_attach:=
+ <br>[&nbsp;&nbsp; 56.671627] tda18271 0-00c0: creating new instance<br>[&n=
+bsp;&nbsp; 56.673893] TDA18271HD/C1 detected @ 0-00c0<br>[&nbsp; 113.501809=
+] dvb-usb: will pass the complete MPEG2 transport stream to the software de=
+muxer.<br>[&nbsp; 113.502800] DVB: registering new adapter (Leadtek WinFast=
+ DTV Dongle Gold)<br>[&nbsp; 113.503400] dvb-usb: no frontend was attached =
+by 'Leadtek WinFast DTV Dongle Gold'<br>[&nbsp; 113.503411] dvb-usb: Leadte=
+k WinFast DTV Dongle Gold successfully initialized and connected.<br>[&nbsp=
+; 113.503419] af9015_init:<br>[&nbsp; 113.503423] af9015_init_endpoint: USB=
+ speed:3<br>[&nbsp; 113.522752] af9015_download_ir_table:<br>[&nbsp;&nbsp; =
+56.860889] input: Leadtek WinFast DTV Dongle Gold as /devices/pci0000:00/00=
+00:00:1d.7/usb5/5-1/5-1:1.1/input/input12<br>[&nbsp;&nbsp; 56.889700] input=
+,hidraw0: USB HID v1.01 Keyboard [Leadtek WinFast DTV Dongle Gold] on usb-0=
+000:00:1d.7-1<br><br><br><br /><hr />Email Australia. <a href=3D'http://ema=
+ilaustralia.ninemsn.com.au' target=3D'_new'>Be part of history. Take part i=
+n Australia's first e-mail archive with </a></body>
+</html>=
+
+--_6dabda50-ae36-433e-b8da-66e4bb4357f9_--
+
+
+--===============0529748072==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -310,4 +275,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1182696646==--
+--===============0529748072==--
