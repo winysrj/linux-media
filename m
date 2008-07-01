@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PB70wq000381
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 07:07:00 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PB6k5d009787
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 07:06:46 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so4113274rvb.51
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 04:06:45 -0700 (PDT)
-Message-ID: <d9def9db0807250406h6e2afeb1u614b8ba2ef8bebd3@mail.gmail.com>
-Date: Fri, 25 Jul 2008 13:06:45 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Alan Knowles" <alan@akbkhome.com>
-In-Reply-To: <d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61JgQlW016479
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 15:42:26 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61JgFTr019265
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 15:42:16 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so17364fga.7
+	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 12:42:15 -0700 (PDT)
+Message-ID: <30353c3d0807011242r559f87ak8c8049b7ca4d2677@mail.gmail.com>
+Date: Tue, 1 Jul 2008 15:42:10 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Jaime Velasco Juan" <jsagarribay@gmail.com>
+In-Reply-To: <20080701171321.GA6159@singular.sob>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <48898289.2070305@akbkhome.com> <4889AA61.8040006@akbkhome.com>
-	<d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
+References: <30353c3d0806281840y76796eebh3beae577a24f6049@mail.gmail.com>
+	<30353c3d0806291534y3b79d27aob9c4955b6d4ecb9c@mail.gmail.com>
+	<20080701171321.GA6159@singular.sob>
 Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
+Subject: Re: [RFT v2] stk-webcam: Fix video_device handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,149 +32,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 25, 2008 at 1:03 PM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> Hi,
+On Tue, Jul 1, 2008 at 1:13 PM, Jaime Velasco Juan
+<jsagarribay@gmail.com> wrote:
+> Hi David,
 >
-> On Fri, Jul 25, 2008 at 12:26 PM, Alan Knowles <alan@akbkhome.com> wrote:
->> Just a small update on this - I suspect ASUS released the wrong tarball for
->> this device - as comparing the output from 'strings dib3000mc.ko' to the
->> source code finds quite a few things missing..
->>
->> Waiting on a response from ASUS now.
->>
+> it seems to work ok now with your other patch, but if the video_device
+> struct is going to be ref. counted, wouldn't it make sense to drop the
+> kref in the driver and free all resources in the release callback? With
+> these changes there are two krefs which are created, get and put at the
+> same time and for the same purpose.
 >
-> after a first look over it the code seems to be a bit "inconsitent"
->
-> eg.:
->
-> +static struct mt2060_config stk3000p_adimtv102_config = {
-> +       (0xC2>>1)
-> +};
->
-> ...
->
-> +       if (dvb_attach(adimtv102_attach, adap->fe, tun_i2c,
-> &stk3000p_adimtv102_config, if1) == NULL) {
-> ----
->
-> whereas:
-> mt2060.h:
->
-> (the size of the struct is the same but the purpose of the elements
-> are probably not)
-> struct mt2060_config {
->        u8 i2c_address;
->        u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
-> };
->
-> adimtv102.h:
->
-> struct adimtv102_config {
->        u8 i2c_address;
->        u8 is_through_asic;
-> };
-> #if defined(CONFIG_DVB_TUNER_ADIMTV102) ||
-> (defined(CONFIG_DVB_TUNER_ADIMTV102_MODULE) && defined(MODULE))
-> extern struct dvb_frontend * adimtv102_attach(struct dvb_frontend *fe,
-> struct i2c_adapter *i2c, struct adimtv102_config *cfg, u16 if1);
-> #else
-> static inline struct dvb_frontend * adimtv102_attach(struct
-> dvb_frontend *fe, struct i2c_adapter *i2c, struct adimtv102_config
-> *cfg, u16 if1)
-> {
->        printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __FUNCTION__);
->        return NULL;
-> }
->
-> within the whole code if1 isn't needed (the adimtv102.h header is just
-> copied from mt2060) some cleanup still seems to be required there but
-> it's already a good start.
->
+I noticed this as well and was actually working on a patch which would
+have removed the kref from the stk_camera since it would no longer
+have been needed.
 
-The lgs8934 implementation should also not depend on the dibcom module
-(which can be seen in your diff).
+> I also like better the video_device struct embedded in the main
+> stk_camera struct (as it is now), but if people prefer having it
+> referenced with a pointer, so be it.
+>
+Agreed. The next patch I submit will keep the video_device struct in
+the stk_camera struct as it really doesn't need to be allocated using
+video_device_alloc().
 
-> Markus
+> Regards,
 >
->> Regards
->> Alan
->>
->> Alan Knowles wrote:
->>>
->>> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
->>>
->>> The source is available directly from ASUS now.
->>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
->>>
->>> I've diffed it to the version they have used, and applied it, and fixed it
->>> against the current source
->>> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
->>>
->>> In addition there are the drivers for the ADI MTV102 silicon tuner driver
->>> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
->>> (all the adimtv* files)
->>>
->>> The source code appears to use a slightly differ usb stick to the one's I
->>> have.
->>> 0x1748  (cold)  / 0x1749 (warm)
->>> where as I've got
->>> 0x1721(cold) /  0x1722 (warm)
->>>
->>> It looks like they hacked up dib3000mc.c, rather than writing a new driver
->>>
->>> I've got to the point where it builds, firmware installs etc. (firmware is
->>> available inside the deb packages)
->>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
->>>
->>> The driver initializes correctly when plugged in.
->>> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
->>> disconnected.
->>> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
->>> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream to
->>> the software demuxer.
->>> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
->>> [302530.670387]  Cannot find LGS8934
->>> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
->>> [302530.670668] adimtv102_readreg 0x00
->>> [302530.676090] adimtv102_readreg 0x01
->>> [302530.681578] adimtv102_readreg 0x02
->>> [302530.687077] adimtv102: successfully identified (ff ff ff)
->>> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
->>> connected.
->>> [302530.688624] usbcore: registered new interface driver dvb_usb_dibusb_mc
->>> [353413.776593] adimtv102_init
->>>
->>> when w_scan is run, it outputs activity...
->>> [353416.533576] lgs8934_SetAutoMode!
->>> [353416.553928] lgs8934_auto_detect!
->>> [353418.285686] lgs8934_auto_detect, lock 0
->>> [353418.285686] adimtv102_set_params freq=184500
->>> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
->>>  MTV10x_REFCLK=16384 !
->>> ......
->>>
->>> however fails to pick up any channels...
->>>
->>> I'm trying to connect to these -
->>> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
->>>
->>> Any ideas welcome..
->>>
->>> Regards
->>> Alan
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
+> Jaime
+
+I'm currently working to correct the kobject reference count in
+videodev which was previously patched by using a kref. The resulting
+behavior should be the same, but the code will be much simpler to
+understand. Once I have this working I will submit a proper patch for
+stk-webcam as well.
+
+Regards,
+
+David Ellingsworth
 
 --
 video4linux-list mailing list
