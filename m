@@ -1,18 +1,37 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m658rQjK023232
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 04:53:26 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m658r2FI009427
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 04:53:03 -0400
-Message-ID: <486F3230.2040501@hhs.nl>
-Date: Sat, 05 Jul 2008 10:34:56 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------080503000801080504080808"
-Cc: video4linux-list@redhat.com
-Subject: PATCH: gspca-default-comp_fac.patch <resend>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6142wMm028800
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:02:58 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6142Lab013066
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:02:21 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6142ANW010261
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:15 -0500
+Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m6142AYE011407
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:10 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
+	[128.247.25.123])
+	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
+	m6142AG19345
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:10 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
+	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
+	m6142ARL025067
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:10 -0500
+Received: (from a0270762@localhost)
+	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6142AVa025042
+	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:02:10 -0500
+Date: Mon, 30 Jun 2008 23:02:10 -0500
+From: Mohit Jalori <mjalori@ti.com>
+To: video4linux-list@redhat.com
+Message-ID: <20080701040210.GA25036@dirac.dal.design.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: [Patch 3/16] OMAP3 camera driver V4L2 Crop
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,80 +43,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------080503000801080504080808
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sameer Venkatraman <sameerv@ti.com>
 
-Jean,
+V4L2: Adding internal IOCTLs for crop.
 
-This patch changes the default gspca comp_fac as 30% sometimes causes 
-issues with the spca561, whose bayer compression does not allways 
-achieve 30%.
+Adding internal IOCTLs for crop.
 
-I notice that you didn't apply this patch with the latest merging of my 
-patches. Note that this patch is _really_ needed for the spca561 to 
-work. Without it it works most of the time, but with some images it 
-doesn't get a high enough compression and fails.
+Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+---
+ v4l2-int-device.h |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-An other solution would be to add a cam specific get_buff_size op to the 
-spca561 driver.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
-
-
---------------080503000801080504080808
-Content-Type: text/plain;
- name="gspca-default-comp_fac.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gspca-default-comp_fac.patch"
-
-This patch changes the default gspca comp_fac as 30% sometimes causes issues
-with the spca561, whose bayer compression does not allways achieve 30%.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 15974504cec1 linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 10:51:37 2008 +0200
-+++ b/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 10:53:35 2008 +0200
-@@ -48,7 +48,9 @@
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -271,6 +271,9 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_queryctrl_num,
+ 	vidioc_int_g_ctrl_num,
+ 	vidioc_int_s_ctrl_num,
++	vidioc_int_cropcap_num,
++	vidioc_int_g_crop_num,
++	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
  
- static int video_nr = -1;
+@@ -367,6 +370,9 @@ V4L2_INT_WRAPPER_1(try_fmt_cap, struct v
+ V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
+ V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
++V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
++V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
++V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
  
--static int comp_fac = 30;	/* Buffer size ratio when compressed in % */
-+static int comp_fac = 40;	/* Buffer size ratio when compressed in %,
-+				   Note 30% is too small for bayer level
-+				   compression like the spca561 */
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- int gspca_debug = D_ERR | D_PROBE;
-
-
---------------080503000801080504080808
-Content-Type: text/plain;
- name="file:///tmp/nsmail-2.tmp"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="file:///tmp/nsmail-2.tmp"
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-
---------------080503000801080504080808
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
---------------080503000801080504080808--
