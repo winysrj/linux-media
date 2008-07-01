@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HHf4xT022481
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:41:04 -0400
-Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HHepI3029881
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:40:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 17 Jul 2008 19:40:38 +0200
-References: <3dbf42455956d17b8aa6.1214002733@localhost>
-	<200807171910.01863.hverkuil@xs4all.nl>
-	<alpine.LFD.1.10.0807171320160.20641@bombadil.infradead.org>
-In-Reply-To: <alpine.LFD.1.10.0807171320160.20641@bombadil.infradead.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m616TDhF026507
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:29:13 -0400
+Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m616SSge015250
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:28:28 -0400
+Message-ID: <14576.62.70.2.252.1214893706.squirrel@webmail.xs4all.nl>
+Date: Tue, 1 Jul 2008 08:28:26 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: dwainegarden@rogers.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807171940.38608.hverkuil@xs4all.nl>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
-	attribute for?persistent video4linux device nodes
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Can we remove saa711x.c?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,118 +26,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro,
+> Sounds good to me.  What about the other saa711().c modules?   Have all
+> the drivers moved over to the saa7115.c?
 
-I'll merge Brandon's patch and add a #define and comments afterwards. 
-It's a bit overkill IMHO but discussing this takes longer than just 
-putting in the code :-)
+saa7111 is still used by zoran and mxb.
+saa7114 is still used by zoran as well.
+
+I can test the zoran with the saa7111 (I'm fairly certain my iomega Buz
+has a saa7111), and I've contacted the mxb maintainer in the hope that he
+has one (it's been unmaintained for two years or so, so it might be
+difficult to find someone with that hardware).
+
+I'm hoping someone might have a zoran device with a saa7114, but if not
+then I wonder whether we shouldn't just replace it and cross our fingers.
 
 Regards,
 
-	Hans
+        Hans
 
-On Thursday 17 July 2008 19:35:55 Mauro Carvalho Chehab wrote:
-> On Thu, 17 Jul 2008, Hans Verkuil wrote:
-> > On Thursday 17 July 2008 18:57:49 Mauro Carvalho Chehab wrote:
-> >> On Thu, 17 Jul 2008, Hans Verkuil wrote:
-> >>> On Thursday 17 July 2008 18:44:23 Hans Verkuil wrote:
-> >>>> On Thursday 17 July 2008 18:40:47 Mauro Carvalho Chehab wrote:
-> >>>>> On Thu, 17 Jul 2008, Hans Verkuil wrote:
-> >>>>>> On Wednesday 25 June 2008 00:59:51 Brandon Philips wrote:
-> >>>>>>> On 00:34 Tue 24 Jun 2008, Trent Piepho wrote:
-> >>>>>>>> On Mon, 23 Jun 2008, Brandon Philips wrote:
-> >>>>>>>>> +	for (i = 0; i < 32; i++) {
-> >>>>>>>>> +		if (used & (1 << i))
-> >>>>>>>>> +			continue;
-> >>>>>>>>> +		return i;
-> >>>>>>>>> +	}
-> >>>>>>>>
-> >>>>>>>> 	i = ffz(used);
-> >>>>>>>> 	return i >= 32 ? -ENFILE : i;
-> >>>>>>>
-> >>>>>>> Err. Right :D  Tested and pushed.
-> >>>>>>>
-> >>>>>>> Mauro-
-> >>>>>>>
-> >>>>>>> Updated http://ifup.org/hg/v4l-dvb to have Trent's
-> >>>>>>> improvement.
-> >>>>>>>
-> >>>>>>> Cheers,
-> >>>>>>>
-> >>>>>>> 	Brandon
-> >>>>>>
-> >>>>>> Hi Mauro,
-> >>>>>>
-> >>>>>> I think you missed this pull request from Brandon. Can you
-> >>>>>> merge this?
-> >>>>>
-> >>>>> Yes, I missed that one.
-> >>>>>
-> >>>>> Yet, I didn't like the usage of "32" magic numbers on those
-> >>>>> parts:
-> >>>>>
-> >>>>> -       if (num >= VIDEO_NUM_DEVICES)
-> >>>>> +
-> >>>>> +       if (num >= 32) {
-> >>>>> +               printk(KERN_ERR "videodev: %s num is too
-> >>>>> large\n", __func__);
-> >>>>>
-> >>>>> +       return i >= 32 ? -ENFILE : i;
-> >>>>>
-> >>>>>
-> >>>>> It seems better to use VIDEO_NUM_DEVICES as the maximum limit
-> >>>>> on both usages of "32".
-> >>>>>
-> >>>>> Brandon,
-> >>>>>
-> >>>>> Could you fix and re-send me a pull request?
-> >>>>
-> >>>> Mauro, Brandon,
-> >>>>
-> >>>> If you do not mind, then I'll do this. I'm working on videodev.c
-> >>>> anyway (making it compatible with kernels <2.6.19) so it's easy
-> >>>> for me to do merge this and make the necessary adjustment. And I
-> >>>> can test it with a 2.6.18 kernel at the same time.
-> >>
-> >> For me, it is OK if you want to touch on it.
-> >>
-> >>> Correction, the 32 refers to the number of bits in an u32, not to
-> >>> VIDEO_NUM_DEVICES. So I think you can just merge this patch as
-> >>> is. It does not conflict with my videodev.c changes (amazingly),
-> >>> so it is no problem if you merge this change.
-> >>
-> >> Hmm... If I understood the patch, if you change VIDEO_NUM_DEVICES
-> >> to a higher number, you'll still be limited on 32 max devices,
-> >> right?
-> >
-> > No. The value of 32 refers to the maximum number of devices
-> > (/dev/vbiX, /dev/videoX, etc) created for ONE driver instance. E.g.
-> > my first ivtv card can create up to 32 devices, my second bttv card
-> > can create up to 32 devices, etc. etc.
 >
-> So, IMO, the better would be to do something like this:
->  	sizeof(u32) * 8
+> ------Original Message------
+> From: Hans Verkuil
+> Sender:
+> To: v4l
+> Cc: Mauro Carvalho Chehab
+> Subject: Can we remove saa711x.c?
+> Sent: Jun 30, 2008 4:51 PM
 >
-> Instead of a magic number. I would also add some comments about this.
+> Hi all,
 >
-> > The maximum currently in use is probably ivtv with 9 devices for a
-> > PVR-350 card. So we are safe with 32.
-> >
-> > VIDEO_NUM_DEVICES refers to the TOTAL number of video4linux devices
-> > created. I have some future plans to enlarge that and possibly also
-> > getting rid of how the minor numbers are allocated. Currently this
-> > is very unfair with a range of 64 for radio devices and an equal
-> > number of video devices, although each ivtv card creates 3 video
-> > devices against one radio device (and 5 for a PVR-350 card!). Much
-> > better to just pick the first free minor number.
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >> If I'm right, then, IMO,  we should use VIDEO_NUM_DEVICES and put
-> >> a notice that increasing this number will require changing some
-> >> static var from u32 to u64.
+> It looks like the saa711x module is unused right now. Unless I'm missing
+> something I propose we remove it before the 2.6.27 window opens.
+>
+> Regards,
+>
+> 	Hans
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
+> Sent from my BlackBerry device on the Rogers Wireless Network
+>
+>
 
 
 --
