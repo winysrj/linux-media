@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m628Ee8A008882
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 04:14:40 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m628ERVM011605
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 04:14:27 -0400
-Received: by fk-out-0910.google.com with SMTP id e30so262710fke.3
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 01:14:26 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61ClN8L005601
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:23 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.235])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61CkY7Q021891
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:11 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2164461rvb.51
+	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 05:47:11 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-Date: Wed, 2 Jul 2008 11:13:27 +0300
-References: <1214858407.1677.27.camel@localhost>
-In-Reply-To: <1214858407.1677.27.camel@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Disposition: inline
-Message-Id: <200807021113.27283.liplianin@me.by>
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PULL] gspca v4l2
+Date: Tue, 01 Jul 2008 21:47:26 +0900
+Message-Id: <20080701124726.30446.19600.sendpatchset@rx1.opensource.se>
+In-Reply-To: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+Cc: linux-sh@vger.kernel.org, akpm@linux-foundation.org, lethal@linux-sh.org,
+	mchehab@infradead.org
+Subject: [PATCH 05/07] soc_camera: Add 16-bit bus width support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,29 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-В сообщении от 30 June 2008 23:40:07 Jean-Francois Moine написал(а):
-> Hi Mauro,
->
-> And here it is, the gspca driver, full v4l2!
->
-> Please pull it fromО╩© http://linuxtv.org/hg/~jfrancois/gspca/
->
-> for:
->
-> 7508:f2c87fe32228    Initial release of gspca with only one driver.
-> 7509:e1b31878bd59    Subdriver pac207 added and minor changes.
-> 7510:ee85360b66f5    Fix protection problems in the main driver.
-> 8014:6f27ca5b89b2    Many bug fixes, zc3xx added.
-> 8155:915ca96f9b4a    gspca: all subdrivers
-> 8156:4bc068802c9f    gspca: minor changes
-> 8157:f7b6cf1bd609    merge...
->
-> Cheers.
+The SuperH Mobile CEU hardware supports 16-bit width bus,
+so extend the soc_camera code with SOCAM_DATAWIDTH_16.
 
-My webcam A4Tech PK130MG finally find the way to kernel :-)
-Since oct. 2007
--- 
-Igor M. Liplianin
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
+
+ include/media/soc_camera.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- 0008/include/media/soc_camera.h
++++ work/include/media/soc_camera.h	2008-07-01 14:38:34.000000000 +0900
+@@ -153,11 +153,12 @@ static inline struct v4l2_queryctrl cons
+ #define SOCAM_DATAWIDTH_8		(1 << 6)
+ #define SOCAM_DATAWIDTH_9		(1 << 7)
+ #define SOCAM_DATAWIDTH_10		(1 << 8)
+-#define SOCAM_PCLK_SAMPLE_RISING	(1 << 9)
+-#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 10)
++#define SOCAM_DATAWIDTH_16		(1 << 9)
++#define SOCAM_PCLK_SAMPLE_RISING	(1 << 10)
++#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 11)
+ 
+ #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_9 | \
+-			      SOCAM_DATAWIDTH_10)
++			      SOCAM_DATAWIDTH_10 | SOCAM_DATAWIDTH_16)
+ 
+ static inline unsigned long soc_camera_bus_param_compatible(
+ 			unsigned long camera_flags, unsigned long bus_flags)
 
 --
 video4linux-list mailing list
