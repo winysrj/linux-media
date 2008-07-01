@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6MBYJFd004739
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 07:34:19 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6MBY5JA022282
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 07:34:06 -0400
-Message-ID: <4885C791.8030908@hhs.nl>
-Date: Tue, 22 Jul 2008 13:42:09 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: [PULL] gspca sonixb improvements (updated!)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61BQMsf010117
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 07:26:22 -0400
+Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61BQAVn004879
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 07:26:11 -0400
+Received: from smtp1-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp1-g19.free.fr (Postfix) with ESMTP id 54E321AB2DC
+	for <video4linux-list@redhat.com>;
+	Tue,  1 Jul 2008 13:26:10 +0200 (CEST)
+Received: from [192.168.0.13] (lns-bzn-57-82-249-4-9.adsl.proxad.net
+	[82.249.4.9])
+	by smtp1-g19.free.fr (Postfix) with ESMTP id 15A681AB2CA
+	for <video4linux-list@redhat.com>;
+	Tue,  1 Jul 2008 13:26:09 +0200 (CEST)
+From: Jean-Francois Moine <moinejf@free.fr>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Tue, 01 Jul 2008 13:21:36 +0200
+Message-Id: <1214911296.1699.18.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: compilation errors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,32 +33,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+Hi all,
 
-As discussed before I've taken over maintainer ship of the sonixb (and spca501
-and spca561) gspca subdrivers.
+There should be something I missed in the linuxtv documents.
 
-Andoni Zubimendi <andoni.zubimendi@gmail.com> is moving very fast today and 
-tested if some special cases for his cam were still needed after the ov7630 
-unification work. Happily they aren't so this pull request contains one more 
-patch which gets rids of some special cases in the sonixb driver for Andoni's cam.
+When I do a simple 'make', in v4l, it generates almost all the .ko files
+of the modules of the first level. But I cannot find, for example, any
+v4l2-common.ko, nor tuner-simple.ko.
 
-Please pull from http://linuxtv.org/hg/~hgoede/v4l-dvb/
-for:
+Then, I linked by hand the tree to my kernel (2.6.26-rc8). I thought
+some links only were needed, so I linked:
+	drivers/media
+	include/media
+	include/linux/videodev2.h
+A 'make' in the kernel tree stops with many warnings and errors, mainly:
+	warning: "LINUX_VERSION_CODE" is not defined
 
-changeset:   8435:902786b1451d
-gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
+Any hint? Thank you.
 
-changeset:   8436:80f6ae943cdf
-gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
-
-changeset:   8437:b1a9e9edc9af
-gspca_sonixb remove some no longer needed sn9c103+ov7630 special cases
-
-
-Regards,
-
-Hans
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
 
 --
