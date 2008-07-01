@@ -1,21 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64BAm7T008824
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:10:48 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64BAars012924
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:10:36 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEjBT-0006QF-LP
-	for video4linux-list@redhat.com; Fri, 04 Jul 2008 13:10:35 +0200
-Message-ID: <486E0507.5050609@hhs.nl>
-Date: Fri, 04 Jul 2008 13:09:59 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-Content-Type: multipart/mixed; boundary="------------070004060105020005060200"
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: PATCH: libv4l-pac207-comments.patch
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6143ai6029122
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:03:36 -0400
+Received: from soda.ext.ti.com (soda.ext.ti.com [198.47.26.145])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6143AwI013622
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:03:10 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61430cP014488
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:03:05 -0500
+Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m61430i1001189
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:03:00 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
+	[128.247.25.123])
+	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
+	m6142xG19464
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:59 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
+	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
+	m6142x85003735
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:59 -0500
+Received: (from a0270762@localhost)
+	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6142xbV003694
+	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:02:59 -0500
+Date: Mon, 30 Jun 2008 23:02:59 -0500
+From: Mohit Jalori <mjalori@ti.com>
+To: video4linux-list@redhat.com
+Message-ID: <20080701040259.GA3677@dirac.dal.design.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: [Patch 4/16] OMAP3 camera driver V4L2 RAW10
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,75 +42,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------070004060105020005060200
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+>From 5059759d433bcdb2a51afeefe8c174e243fd58b1 Mon Sep 17 00:00:00 2001
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Date: Thu, 29 May 2008 13:16:49 +0300
+Subject: [PATCH] Adding 10-bit RAW Bayer format.
 
-<now with attachment (wipes egg from face)>
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+---
+ include/linux/videodev2.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Hi,
-
-Add comments to pac207.c about what todays experiments have teached us about
-the pac207 compression.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
-
---------------070004060105020005060200
-Content-Type: text/plain;
- name="libv4l-pac207-comments.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libv4l-pac207-comments.patch"
-
-Add comments to pac207.c about what todays experiments have teached us about
-the pac207 compression.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/pac207.c
---- a/v4l2-apps/lib/libv4l/libv4lconvert/pac207.c	Fri Jul 04 07:21:55 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4lconvert/pac207.c	Fri Jul 04 13:06:08 2008 +0200
-@@ -170,15 +170,12 @@
- 	    inp += pac_decompress_row(inp, outp, width);
- 	    break;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c141118..29a3e25 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -309,6 +309,7 @@ struct v4l2_pix_format
  
--	default:
-+	case 0x2DD2: /* prefix for "stronger" compressed lines, currently the
-+			kernel driver programs the cam so that we should not
-+			get any of these */
-+
-+	default: /* corrupt frame */
- 	    /* FIXME add error reporting */
--	    /* Notice this seems to happen with high framerates (low exposure
--	       setting due to much light and bad compressible images, so most
--	       likely the usb just cannot keep us and we miss parts of some
--	       frames (sometimes of many frames in a row) messing things up
--	       completely. It might be worth to try changing the compression
--	       balance setting to see if that can compensate for this.
--	       However currently I cannot reproduce this (no daylight) */
- 	    return;
- 	}
- 	outp += width;
-
---------------070004060105020005060200
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+ /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
++#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit raw bayer  */
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
+ 
+ /* compressed formats */
+-- 
+1.5.5.1
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------070004060105020005060200--
