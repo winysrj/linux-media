@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CMugvo025725
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 18:56:42 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CMuUuj004003
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 18:56:30 -0400
-Message-ID: <48793697.3080704@linuxtv.org>
-Date: Sat, 12 Jul 2008 18:56:23 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Peter Schlaf <peter.schlaf@web.de>
-References: <48793439.20700@web.de>
-In-Reply-To: <48793439.20700@web.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61BU88K013257
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 07:30:08 -0400
+Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61BTUTp006618
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 07:29:31 -0400
+Received: from smtp1-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp1-g19.free.fr (Postfix) with ESMTP id 76BFD1AB302
+	for <video4linux-list@redhat.com>;
+	Tue,  1 Jul 2008 13:29:30 +0200 (CEST)
+Received: from [192.168.0.13] (lns-bzn-57-82-249-4-9.adsl.proxad.net
+	[82.249.4.9])
+	by smtp1-g19.free.fr (Postfix) with ESMTP id 2DA581AB2F9
+	for <video4linux-list@redhat.com>;
+	Tue,  1 Jul 2008 13:29:30 +0200 (CEST)
+From: Jean-Francois Moine <moinejf@free.fr>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 01 Jul 2008 13:24:55 +0200
+Message-Id: <1214911495.1699.21.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: [PULL] gspca cleanup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,39 +33,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Peter,
+Hi Mauro,
 
-Peter Schlaf wrote:
-> to workaround this i edited v4l/Makefile.media and commented out
-> 
->   sms1xxx-objs := smscoreapi.o smsusb.o smsdvb.o sms-cards.o
-> 
->   obj-$(CONFIG_DVB_SIANO_SMS1XXX) += sms1xxx.o
-> 
-> 
-> after that, compiling all the other modules ended successfully.
+Please pull from﻿ http://linuxtv.org/hg/~jfrancois/gspca/
+	
+for:
 
+8162:0a2b95002028   Source cleanup - compile error with VIDEO_ADV_DEBUG.
 
-Thank you for posting this error.  Here is a fix:
+Cheers.
 
-diff -r f6b65eef0c94 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Jul 11 20:37:08 2008 -0400
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Sat Jul 12 18:55:02 2008 -0400
-@@ -27,6 +27,7 @@
- #include <linux/list.h>
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
-+#include <linux/types.h>
- #include <asm/page.h>
- 
- #include "dmxdev.h"
-
-
-I'll push this in now.
-
-Regards,
-
-Mike Krufky
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
 
 --
