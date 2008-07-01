@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta-out.inet.fi ([195.156.147.13] helo=kirsi2.rokki.sonera.fi)
+Received: from ptb-relay01.plus.net ([212.159.14.212])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KJuaS-0000Vp-83
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 20:21:49 +0200
-Message-ID: <4880DF35.8040505@iki.fi>
-Date: Fri, 18 Jul 2008 21:21:41 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <linux-dvb@adslpipe.co.uk>) id 1KDk3A-0008I7-KT
+	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 19:53:58 +0200
+Received: from [84.92.25.126] (helo=[192.168.1.100])
+	by ptb-relay01.plus.net with esmtp (Exim) id 1KDk2a-0008D9-Vs
+	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 18:53:21 +0100
+Message-ID: <486A6F0F.7090507@adslpipe.co.uk>
+Date: Tue, 01 Jul 2008 18:53:19 +0100
+From: Andy Burns <linux-dvb@adslpipe.co.uk>
 MIME-Version: 1.0
-To: tom <thomas@ickes-home.de>
-References: <1216403709.10841.20.camel@super-klappi>
-In-Reply-To: <1216403709.10841.20.camel@super-klappi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu 8.04
+To: Linux DVB List <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] saa7134 ioremap() problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,120 +25,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-tom wrote:
-> Hello,
-> since a few days I'm trying hard make this stick running. One basic problem is that I'm not able to find out which chipset is in this
-> stick.
-> I have tried af9015 driver and firmware, but it doesn't work.
+I have been using the saa7134.ko and saa7134_dvb.ko drivers for years as 
+part of my mythtv system, working very nicely.
 
-It looks like AF9015 dual design. I think problem you have is missing 
-device USB-IDs. I will add those in a next few hours and you can test 
-then again.
+Now I am trying to use xen to virtualise my mythtv-backend, with PCI 
+passthrough of the tuner to the virtual machine, everything hasn't gone 
+smoothly, but I believe I have found an issue within the driver which 
+would have gone un-noticed on a bare-metal machine, yet which causes a 
+problem under xen.
 
-> Does anybody have the same problem or even solved it?
-:)
+Here is what lspci -vvv shows for my card
 
-regards
-Antti Palosaari
+08:01.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+Broadcast Decoder (rev 01)
+         Subsystem: Compro Technology, Inc. Videomate DVB-T200
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 64 (21000ns min, 8000ns max)
+         Interrupt: pin A routed to IRQ 17
+         Region 0: Memory at febffc00 (32-bit, non-prefetchable) [size=1K]
+         Capabilities: [40] Power Management version 1
+                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                 Status: D0 PME-Enable- DSel=0 DScale=1 PME-
+         Kernel modules: saa7134
 
-> 
-> dmesg | grep usb:
-> 
-> [19614.849918] usb 3-3: USB disconnect, address 5
-> [19618.108978] usb 3-3: new high speed USB device using ehci_hcd and address 6
-> [19618.244872] usb 3-3: configuration #1 chosen from 1 choice
-> 
-> 
-> lsusb -v :
-> 
-> Bus 003 Device 005: ID 1462:8801 Micro Star International 
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0 
->   bDeviceProtocol         0 
->   bMaxPacketSize0        64
->   idVendor           0x1462 Micro Star International
->   idProduct          0x8801 
->   bcdDevice            2.00
->   iManufacturer           1 Afatech
->   iProduct                2 DVB-T 2
->   iSerial                 0 
->   bNumConfigurations      1
->   Configuration Descriptor:
->     bLength                 9
->     bDescriptorType         2
->     wTotalLength           46
->     bNumInterfaces          1
->     bConfigurationValue     1
->     iConfiguration          0 
->     bmAttributes         0x80
->       (Bus Powered)
->     MaxPower              500mA
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       0
->       bNumEndpoints           4
->       bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass      0 
->       bInterfaceProtocol      0 
->       iInterface              0 
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x02  EP 2 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x84  EP 4 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x85  EP 5 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
-> 
-> Thomas
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Notice the MMIO area is 1K in size, but within the driver, it requests 
+mapping of a 4K area, rather than 1K.
 
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.25.y.git;a=blob;f=drivers/media/video/saa7134/saa7134-core.c;h=58ab163fdbd74e628e60655ea05c5d3bea611599;hb=HEAD#l998
 
--- 
-http://palosaari.fi
+Obviously the kernel will have to round the start/end addresses to the 
+nearest 4K boundaries as this is the granularity of page mapping, but if 
+the request is too large to begin with it attempts to map two pages, 
+straddling the card's physical address range, this works on a physical 
+machine, but fails under xen due to more rigourous checking/enforcement 
+of permissions.
+
+I have rebuilt the driver module using 0x400 instead of 0x1000 for the 
+ioremap() size and the driver then loads, instead of failing (I still 
+have an interrupt problem but will follow that up separately).
+
+If you'd like to follow the discussion I've been having on the xen-devel 
+list, Keir Fraser should be able to answer questions on why this fails 
+under xen far better than I can.
+
+http://lists.xensource.com/archives/html/xen-devel/2008-07/msg00004.html
+
+Could you comment on whether you'd accept a patch for this?
+
 
 _______________________________________________
 linux-dvb mailing list
