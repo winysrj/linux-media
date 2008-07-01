@@ -1,18 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67E7we5014648
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 10:07:58 -0400
-Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67E7jW1005824
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 10:07:45 -0400
-Message-ID: <4872232A.2090109@xnet.com>
-Date: Mon, 07 Jul 2008 09:07:38 -0500
-From: stuart <stuart@xnet.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6145uKL030259
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:05:56 -0400
+Received: from calf.ext.ti.com (calf.ext.ti.com [198.47.26.144])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6145jUu014847
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:05:46 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by calf.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6145Zm3006372
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:05:40 -0500
+Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id m6145ZYT004554
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:05:35 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
+	[128.247.25.123])
+	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
+	m6145ZG19779
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:05:35 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
+	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
+	m6145YHQ010963
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:05:34 -0500
+Received: (from a0270762@localhost)
+	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6145Yxl010960
+	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:05:34 -0500
+Date: Mon, 30 Jun 2008 23:05:34 -0500
+From: Mohit Jalori <mjalori@ti.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Looking for support for KWorld 120 ATSC tuner card (VS-ATSC120)...
+Message-ID: <20080701040534.GA10955@dirac.dal.design.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: [Patch 8/16] OMAP3 camera driver base address
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,33 +42,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+From: Sameer Venkatraman <sameerv@ti.com>
 
-Hi, This the right place to post this?
+ARM: OMAP: OMAP34XXCAM: Camera Base Address.
 
-Looking for support for KWorld 120 ATSC tuner...
+Adding OMAP 3 Camera registers base address.
 
-Anyone try a Kworld PlusTV hd pci 120?
+Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+---
+ include/asm-arm/arch-omap/omap34xx.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-Guess the manufacturer's part number is: VS-ATSC120
-
-Looking around, I see this K-World card is nothing close to
-the ATSC 110 or 115 K-World cards.  Looking at the chips on the board (A
-Conexant CX23880 Bridge Interface and Samsung S5H1409 demodulator) makes
-me think I would have a better chance configuring it like a Pinnacle
-PCTV HD Card (800i).  Note, I checked images of the boards and they are 
-slightly different.
-
-I found the above information here:
-http://www.linuxtv.org/wiki/index.php/ATSC_PCI_Cards
-
-However, I don't know if the Kworld card uses the same tuner chip (I 
-believe it's under a metal can).  Is there a way to tell what tuner chip 
-is on board w/o un-soldering the metal can?
-
-Even if all the chips were the same, how do the drivers work across 
-different boards (i.e. is the addressing the same?)?
-
-...thanks
+--- a/include/asm-arm/arch-omap/omap34xx.h
++++ b/include/asm-arm/arch-omap/omap34xx.h
+@@ -61,6 +61,7 @@
+ #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+ #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+ #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
++#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
+ 
+ #endif
+ 
 
 --
 video4linux-list mailing list
