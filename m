@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G6c1Ck024089
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 02:38:01 -0400
-Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
-	[83.236.181.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6G6biMV005947
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 02:37:49 -0400
-Date: Wed, 16 Jul 2008 08:43:36 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20080716064336.GK6739@pengutronix.de>
-References: <20080715135618.GE6739@pengutronix.de>
-	<20080715140141.GG6739@pengutronix.de>
-	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
-	<20080716054922.GI6739@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20080716054922.GI6739@pengutronix.de>
-Cc: video4linux-list@redhat.com
-Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
-	module parameter
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61ClEXo005477
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:14 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61CjU9p021241
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:02 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2164027rvb.51
+	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 05:47:02 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: video4linux-list@redhat.com
+Date: Tue, 01 Jul 2008 21:47:16 +0900
+Message-Id: <20080701124716.30446.82032.sendpatchset@rx1.opensource.se>
+In-Reply-To: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+Cc: akpm@linux-foundation.org, lethal@linux-sh.org, mchehab@infradead.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 04/07] soc_camera: Remove unused file lock pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,64 +27,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 16, 2008 at 07:49:22AM +0200, Sascha Hauer wrote:
-> On Tue, Jul 15, 2008 at 10:43:53PM +0200, Guennadi Liakhovetski wrote:
-> > On Tue, 15 Jul 2008, Sascha Hauer wrote:
-> > 
-> > > Use a flag in struct soc_camera_link for differentiation between
-> > > a black/white and a colour camera rather than a module parameter.
-> > > This allows for having colour and black/white cameras in the same
-> > > system.
-> > > Note that this one breaks the phytec pcm027 pxa board as it makes it
-> > > impossible to switch between cameras on the command line. I will send
-> > > an updated version of this patch once I know this patch is acceptable
-> > > this way.
-> > 
-> > Yes, we did discuss this on IRC and I did agree to use a platform-provided 
-> > parameter to specify camera properties like colour / monochrome, but now 
-> > as I see it, I think, it might not be a very good idea. Having it as a 
-> > parameter you can just reload the driver with a different parameter to 
-> > test your colour camera in b/w mode. With this change you would need a new 
-> > kernel.
-> 
-> I think it's a more common case to specify the correct camera on a
-> per-board basis than to test a colour camera in b/w mode. Only
-> developers want to do this and they know how to start a new kernel,
-> right? ;)
-> Another thing that came to my mind is that this particular camera has an
-> internal PLL for pixel clock generation. It can use the pxa pixel clock
-> directly or the one from the PLL. At the moment there is no way to
-> specify which clock to use, so we might even want to add a pointer to a
-> camera specific struct to soc_camera_link. This would be the right place
-> to put colour/bw flags aswell.
+This icf->lock pointer is not needed anymore since we now let the
+soc_camera host setup the videobuf queue.
 
-Speaking of which, what's currently in pxa_camera_platform_data is
-camera specific and not board specific (think of two cameras connected
-to the pxa requiring two different clocks). So soc_camera_link should
-look something like:
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
-struct soc_camera_link {
-	/* Camera bus id, used to match a camera and a bus */
-	int bus_id;
-	/* host specific data, i.e. struct pxa_camera_platform_data */
-	void *host_info;
-	/* camera specific info, i.e. struct mt9v022_data */
-	void *camera_info;
-	/* (de-)activate this camera. Can be left empty if only one camera is
-	 * connected to this bus. */
-	void (*activate)(struct soc_camera_link *, int);
-};
+ drivers/media/video/pxa_camera.c |    4 +---
+ drivers/media/video/soc_camera.c |    2 --
+ include/media/soc_camera.h       |    1 -
+ 3 files changed, 1 insertion(+), 6 deletions(-)
 
-I'm lucky, at the moment I have two identical cameras connected to my board
-(besides the colour/bw thing)
-
-Sascha
-
--- 
- Pengutronix - Linux Solutions for Science and Industry
-   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
-     Hannoversche Str. 2, 31134 Hildesheim, Germany
-   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
+--- 0008/drivers/media/video/pxa_camera.c
++++ work/drivers/media/video/pxa_camera.c	2008-06-12 14:36:07.000000000 +0900
+@@ -990,12 +990,10 @@ static int pxa_camera_file_alloc(struct 
+ 		to_soc_camera_host(icf->icd->dev.parent);
+ 	struct pxa_camera_dev *pcdev = ici->priv;
+ 
+-	icf->lock = &pcdev->lock;
+-
+ 	/* We must pass NULL as dev pointer, then all pci_* dma operations
+ 	 * transform to normal dma_* ones. */
+ 	videobuf_queue_sg_init(&icf->vb_vidq, &pxa_videobuf_ops,
+-			       NULL, icf->lock,
++			       NULL, &pcdev->lock,
+ 			       V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+ 			       sizeof(struct pxa_buffer), icf->icd);
+ 	return 0;
+--- 0007/drivers/media/video/soc_camera.c
++++ work/drivers/media/video/soc_camera.c	2008-06-12 14:37:33.000000000 +0900
+@@ -236,7 +236,6 @@ static int soc_camera_open(struct inode 
+ eiciadd:
+ 	if (ici->ops->file_free)
+ 		ici->ops->file_free(icf);
+-	icf->lock = NULL;
+ esla:
+ 	module_put(ici->ops->owner);
+ emgi:
+@@ -260,7 +259,6 @@ static int soc_camera_close(struct inode
+ 		ici->ops->remove(icd);
+ 	if (ici->ops->file_free)
+ 		ici->ops->file_free(icf);
+-	icf->lock = NULL;
+ 	module_put(icd->ops->owner);
+ 	module_put(ici->ops->owner);
+ 	mutex_unlock(&video_lock);
+--- 0008/include/media/soc_camera.h
++++ work/include/media/soc_camera.h	2008-06-12 14:35:21.000000000 +0900
+@@ -48,7 +48,6 @@ struct soc_camera_device {
+ struct soc_camera_file {
+ 	struct soc_camera_device *icd;
+ 	struct videobuf_queue vb_vidq;
+-	spinlock_t *lock;
+ };
+ 
+ struct soc_camera_host {
 
 --
 video4linux-list mailing list
