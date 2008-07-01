@@ -1,28 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G7WtsR014764
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:32:55 -0400
-Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
-	[83.236.181.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6G7WfQI032735
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:32:42 -0400
-Date: Wed, 16 Jul 2008 09:32:17 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20080716073217.GB4319@pengutronix.de>
-References: <20080715135618.GE6739@pengutronix.de>
-	<20080715140141.GG6739@pengutronix.de>
-	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
-	<20080716054922.GI6739@pengutronix.de>
-	<20080716064336.GK6739@pengutronix.de>
-	<Pine.LNX.4.64.0807160845450.11471@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0807160845450.11471@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
-	module parameter
+From: Andy Walls <awalls@radix.net>
+To: Alan Cox <alan@redhat.com>
+In-Reply-To: <20080701080655.GA3602@devserv.devel.redhat.com>
+References: <1214873062.2623.51.camel@pc10.localdom.local>
+	<869807.56113.qm@web63010.mail.re1.yahoo.com>
+	<20080701080655.GA3602@devserv.devel.redhat.com>
+Content-Type: text/plain
+Date: Tue, 01 Jul 2008 06:21:45 -0400
+Message-Id: <1214907705.3216.6.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Fritz Katz <frtzkatz@yahoo.com>
+Subject: Re: Sabrent Philips7130 PCI TV Tuner -&- Yes, the USA is going
+	digital.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,23 +24,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 16, 2008 at 09:19:44AM +0200, Guennadi Liakhovetski wrote:
-> But I can also imagine cases when end-users would benefit from this
-> module parameter: think about a company producing two cameras - one
-> with colour and one with bw sensor. With the module parameter they
-> only have to load drivers / the kernel differently, with platform data
-> they have to maintain two kernel versions.
+On Tue, 2008-07-01 at 04:06 -0400, Alan Cox wrote:
+> On Mon, Jun 30, 2008 at 10:30:18PM -0700, Fritz Katz wrote:
+> >  The US Government is giving everyone with old TVs $40 (about 25 Euros) for each TV in their home to buy ATSC converter boxes:
+> > 
+> >   https://www.dtv2009.gov/
+> 
+> So stockpile second hand junk TVs ?
 
-They can also put the definitions in a separate module and load them
-according to their needs.
+Nope with only two per household you can watch for the flood of
+PVR-150's and PVR-500's that will show up on ebay.com from the US in
+mid-2009 and then again in 2012 when the cable companies move over.
 
-rsc
--- 
- Dipl.-Ing. Robert Schwebel | http://www.pengutronix.de
- Pengutronix - Linux Solutions for Science and Industry
-   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
-     Hannoversche Str. 2, 31134 Hildesheim, Germany
-   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
+Build up cash reserves for the auctions now....
+
+-Andy
 
 --
 video4linux-list mailing list
