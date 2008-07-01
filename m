@@ -1,15 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Wed, 30 Jul 2008 12:07:48 -0400
-From: Alan Cox <alan@redhat.com>
-To: Fritz Katz <frtzkatz@yahoo.com>
-Message-ID: <20080730160748.GA6695@devserv.devel.redhat.com>
-References: <840865.6007.qm@web63010.mail.re1.yahoo.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61Eb15D002855
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 10:37:02 -0400
+Received: from cgi.jachomes.com (cgi.jachomes.com [216.85.69.3])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61EafSS013975
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 10:36:43 -0400
+Date: Tue, 1 Jul 2008 10:36:40 -0400
+From: "Jay R. Ashworth" <jra@baylink.com>
+To: video4linux-list@redhat.com
+Message-ID: <20080701143640.GG19135@cgi.jachomes.com>
+References: <1214873062.2623.51.camel@pc10.localdom.local>
+	<869807.56113.qm@web63010.mail.re1.yahoo.com>
+	<loom.20080701T070523-486@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <840865.6007.qm@web63010.mail.re1.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: What info does V-4-L expect to be in the "Identifier EEprom"?
+In-Reply-To: <loom.20080701T070523-486@post.gmane.org>
+Subject: Re: DTV2009 (was Re: Sabrent Philips7130 PCI TV Tuner -&- Yes,
+	the USA is going digital.)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,24 +29,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 30, 2008 at 08:54:36AM -0700, Fritz Katz wrote:
-> I'm a consultant for a company that wishes to produce a video cards that will run Video-4-Linux applications. The company currently produces tuners and video capture cards for Microsoft Windows.
-> 
-> The company wishes to include an "Identifier EEprom" on the board so V4L will 
-> recognize the card and load appropriate drivers at boot-up.
-> 
-> Please point me in the direction of documentation for the info V4L expects to 
-> be found in the ID eeprom.
+On Tue, Jul 01, 2008 at 07:16:54AM +0000, Daniel Gimpelevich wrote:
+> There will be no analog OTA broadcasts, but analog cable TV will
+> continue until 2012.
 
-This depends on the chipset. The kernel matches drivers generally by using the
-PCI class code, PCI vendor/device and PCI subvendor/device. For some video
-capture devices multiple vendors shipped different devices with no real
-distinguishing features except internal eeprom detail.
+Citation?  I hadn't heard that the FCC had said anything one way or the
+other about whether CATV providers had to continue to provide NTSC
+analog; some have dropped it already so far as I've heard.
 
-Peering into eeproms to tell them apart is generally a last resort and if there
-are unique subvendor/devicd identifiers for your card that should be all you
-need except to add entries to the relevant device driver indicating the relevant
-GPIO pins/tuner etc for board specific stuff.
+Cheers,
+-- jra
+-- 
+Jay R. Ashworth                   Baylink                      jra@baylink.com
+Designer                     The Things I Think                       RFC 2100
+Ashworth & Associates     http://baylink.pitas.com                     '87 e24
+St Petersburg FL USA      http://photo.imageinc.us             +1 727 647 1274
+
+	     Those who cast the vote decide nothing.
+	     Those who count the vote decide everything.
+	       -- (Joseph Stalin)
 
 --
 video4linux-list mailing list
