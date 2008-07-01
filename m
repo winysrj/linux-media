@@ -1,22 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m65DO3tW018528
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 09:24:03 -0400
-Received: from mrqout2.tiscali.it (mrqout2a.tiscali.it [195.130.225.14])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m65DNmPX012159
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 09:23:48 -0400
-Received: from ps10 (10.39.75.80) by mail-10.mail.tiscali.sys (8.0.016)
-	id 481EDCCE0013CF55 for video4linux-list@redhat.com;
-	Sat, 5 Jul 2008 15:23:42 +0200
-Message-ID: <25500277.1215264222465.JavaMail.root@ps10>
-Date: Sat, 5 Jul 2008 15:23:42 +0200 (CEST)
-From: "audetto@tiscali.it" <audetto@tiscali.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6144ZbF029380
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:04:35 -0400
+Received: from soda.ext.ti.com (soda.ext.ti.com [198.47.26.145])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6144M2K014004
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:04:22 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6144Cod015049
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:04:17 -0500
+Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m6144CJf002958
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:04:12 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
+	[128.247.25.123])
+	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
+	m6144CG19594
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:04:12 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
+	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
+	m6144Bs0018632
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:04:11 -0500
+Received: (from a0270762@localhost)
+	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6144BcY018591
+	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:04:11 -0500
+Date: Mon, 30 Jun 2008 23:04:11 -0500
+From: Mohit Jalori <mjalori@ti.com>
 To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_77767_1972019.1215264222464"
-Subject: [PATCH] pwc: do not block in VIDIOC_DQBUF
-Reply-To: "audetto@tiscali.it" <audetto@tiscali.it>
+Message-ID: <20080701040411.GA18576@dirac.dal.design.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: [Patch 6/16] OMAP3 camera driver V4L2 power states
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,58 +42,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_77767_1972019.1215264222464
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+>From e2277399f9a46a2c6dbe7aacf072d0b9a457dbff Mon Sep 17 00:00:00 2001
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Date: Thu, 8 May 2008 19:29:19 +0300
+Subject: [PATCH] V4L: Int if: define new power states
 
-I think the ioctl VIDIOC_DQBUF in pwc does not follow the API spec.
-It should not block if there are no buffers and the device has been=20
-opened with O_NONBLOCK.
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ include/media/v4l2-int-device.h |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-I am not sure the patch is 100% correct, since I do not understand it=20
-completely.
-
-Andrea
-
-
-
-_________________________________________________________________
-Tiscali Family: Adsl e Telefono senza limiti e senza scatto alla risposta. =
-PER TE CON LO SCONTO DEL 25% FINO AL 2010. In pi=C3=B9 il software parental=
- control Magic Desktop Basic =C3=A8 GRATIS! Attiva entro il 03/07/08. http:=
-//abbonati.tiscali.it/promo/tuttoincluso/=20
-
-------=_Part_77767_1972019.1215264222464
-Content-Type: application/octet-stream; name=pwc.diff
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=pwc.diff; size=622
-
-diff -r 87aa6048e718 linux/drivers/media/video/pwc/pwc-v4l.c
---- a/linux/drivers/media/video/pwc/pwc-v4l.c	Wed Jul 02 08:59:38 2008 -0300
-+++ b/linux/drivers/media/video/pwc/pwc-v4l.c	Sat Jul 05 14:14:03 2008 +0100
-@@ -1134,6 +1134,13 @@
- 				     frameq is safe now.
- 			 */
- 			add_wait_queue(&pdev->frameq, &wait);
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index fc14264..6795b32 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -96,6 +96,13 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg);
+  *
+  */
+ 
++enum v4l2_power {
++	V4L2_POWER_OFF = 0,
++	V4L2_POWER_ON,
++	V4L2_POWER_STANDBY,
++	V4L2_POWER_RESUME,
++};
 +
-+			if ((pdev->full_frames == NULL) && (file->f_flags & O_NONBLOCK)) {
-+				remove_wait_queue(&pdev->frameq, &wait);
-+				set_current_state(TASK_RUNNING);
-+				return -EAGAIN;
-+			}
-+
- 			while (pdev->full_frames == NULL) {
- 				if (pdev->error_status) {
- 					remove_wait_queue(&pdev->frameq, &wait);
-
-------=_Part_77767_1972019.1215264222464
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+ /* Slave interface type. */
+ enum v4l2_if_type {
+ 	/*
+@@ -286,7 +293,7 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_dev_init_num = 1000,
+ 	/* Delinitialise the device at slave detach. */
+ 	vidioc_int_dev_exit_num,
+-	/* Set device power state: 0 is off, non-zero is on. */
++	/* Set device power state. */
+ 	vidioc_int_s_power_num,
+ 	/*
+ 	* Get slave private data, e.g. platform-specific slave
+@@ -380,7 +387,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+ 
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+-V4L2_INT_WRAPPER_1(s_power, int, );
++V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
+ V4L2_INT_WRAPPER_1(g_priv, void, *);
+ V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+ V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+-- 
+1.5.5.1
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_77767_1972019.1215264222464--
