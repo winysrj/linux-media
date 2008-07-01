@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ULtM7o031055
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:55:22 -0400
-Received: from mailrelay012.isp.belgacom.be (mailrelay012.isp.belgacom.be
-	[195.238.6.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ULsnI3005970
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:55:02 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61CkaED005056
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:46:36 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61CjU9n021241
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:46:24 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2164027rvb.51
+	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 05:46:24 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-Date: Wed, 30 Jul 2008 23:54:48 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807302354.48232.laurent.pinchart@skynet.be>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] uvcvideo: Add support for two Bison Electronics webcams
+Date: Tue, 01 Jul 2008 21:46:38 +0900
+Message-Id: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+Cc: akpm@linux-foundation.org, lethal@linux-sh.org, mchehab@infradead.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 00/07] soc_camera: SuperH Mobile CEU support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,82 +25,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The Bison Electronics 5986:0300 and 5986:0303 webcams require the
-UVC_QUIRK_PROBE_MINMAX quirk.
+These patches add support for the SuperH Mobile CEU interface.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+[PATCH 01/07] soc_camera: Remove default spinlock operations
+[PATCH 02/07] soc_camera: Let the host select videobuf_queue type
+[PATCH 03/07] soc_camera: Remove vbq_ops and msize
+[PATCH 04/07] soc_camera: Remove unused file lock pointer
+[PATCH 05/07] soc_camera: Add 16-bit bus width support
+[PATCH 06/07] videobuf: Add physically contiguous queue code
+[PATCH 07/07] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver
+
+The patches can be divided in 3 groups:
+ - soc_camera - make videobuf_queue host specific + minor changes
+ - videobuf - add support for physically contiguous memory buffers
+ - new driver - add the SuperH Mobile CEU driver 
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
 ---
- drivers/media/video/uvc/uvc_driver.c |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c 
-b/drivers/media/video/uvc/uvc_driver.c
-index b3c4d75..7e10203 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -1884,7 +1884,7 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
--	/* Packard Bell OEM Webcam */
-+	/* Packard Bell OEM Webcam - Bison Electronics */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
- 	  .idVendor		= 0x5986,
-@@ -1893,7 +1893,7 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
--	/* Acer Crystal Eye webcam */
-+	/* Acer Crystal Eye webcam - Bison Electronics */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
- 	  .idVendor		= 0x5986,
-@@ -1902,7 +1902,7 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
--	/* Medion Akoya Mini E1210 */
-+	/* Medion Akoya Mini E1210 - Bison Electronics */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
- 	  .idVendor		= 0x5986,
-@@ -1911,7 +1911,7 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
--	/* Acer OrbiCam - Unknown vendor */
-+	/* Acer OrbiCam - Bison Electronics */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
- 	  .idVendor		= 0x5986,
-@@ -1920,6 +1920,24 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-+	/* Bison Electronics */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x5986,
-+	  .idProduct		= 0x0300,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-+	/* Clevo M570TU - Bison Electronics */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x5986,
-+	  .idProduct		= 0x0303,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
- 	/* Generic USB Video Class */
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
- 	{}
--- 
-1.5.4.5
+ drivers/media/video/Kconfig                |   16 
+ drivers/media/video/Makefile               |    2 
+ drivers/media/video/pxa_camera.c           |   21 
+ drivers/media/video/sh_mobile_ceu_camera.c |  622 ++++++++++++++++++++++++++++
+ drivers/media/video/soc_camera.c           |   52 --
+ drivers/media/video/videobuf-dma-contig.c  |  413 ++++++++++++++++++
+ include/asm-sh/sh_mobile_ceu.h             |   10 
+ include/media/soc_camera.h                 |   16 
+ include/media/videobuf-dma-contig.h        |   39 +
+ 9 files changed, 1129 insertions(+), 62 deletions(-)
 
 --
 video4linux-list mailing list
