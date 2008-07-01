@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6D9fhe4015017
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 05:41:43 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6D9fXTV008754
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 05:41:33 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so3945873wfc.6
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 02:41:32 -0700 (PDT)
-Message-ID: <ac7667650807130241r74851795ia935cc86d21c81cc@mail.gmail.com>
-Date: Sun, 13 Jul 2008 11:41:32 +0200
-From: "asdffdsa4 asdffdsa4" <asdffdsa4@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m616FVZe021863
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:15:31 -0400
+Received: from smtp105-mob.biz.mail.mud.yahoo.com
+	(smtp105-mob.biz.mail.mud.yahoo.com [68.142.198.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m616ErrI009650
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:14:53 -0400
+Message-ID: <564172403-1214892885-cardhu_decombobulator_blackberry.rim.net-584370868-@bxe169.bisx.prod.on.blackberry>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>, "v4l" <video4linux-list@redhat.com>
+From: dwainegarden@rogers.com
+Date: Tue, 1 Jul 2008 06:14:27 +0000
+Content-Type: text/plain
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Please, help me getting mp1e working
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Can we remove saa711x.c?
+Reply-To: dwainegarden@rogers.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,39 +26,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Don't know if this is the correct list for my problem, if not please
-tell me where to go.
+Sounds good to me.  What about the other saa711().c modules?   Have all the drivers moved over to the saa7115.c?
 
-I'm trying to use the analogtv plugin for VDR, but can't get a mpeg
-software decoder working :(
+------Original Message------
+From: Hans Verkuil
+Sender: 
+To: v4l
+Cc: Mauro Carvalho Chehab
+Subject: Can we remove saa711x.c?
+Sent: Jun 30, 2008 4:51 PM
 
-Have tried several versions of mp1e and one of ffmpeg, the most of the
-versions just hangs as an "uninterruptible sleep" process.
+Hi all,
 
-I got one mp1e version from 2004 (from the analogtv README) which
-doesn't hangs, but when running it:
-(command line copied from what analogtv try to execute, but the -vv)
+It looks like the saa711x module is unused right now. Unless I'm missing 
+something I propose we remove it before the 2.6.27 window opens.
 
-#mp1e -vv -m 3 -g I -p /dev/dsp -c /dev/video0 -x /dev/mixer -a 3 -b
-5000000 -B 80 -r 14,91 -s 352x288 -S 44,1 -F 8 -o ./analogtv.avi
-Using SSE optimized routines.
-Opened OSS PCM device /dev/dsp
-Opened V4L2 (new) /dev/video0 ('BT878 video (AVerMedia TVCaptur')
-Video standard is 'PAL' (25.00 Hz)
-Audio unmuted
-Filter 'YUV 4:2:0 w/vertical decimation'
-Image format 'YU12' 352 x 576 granted
-mp1e:v4l25.c:453: Failed to request capture buffers (2, No such file
-or directory)
+Regards,
+
+	Hans
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 
-Mi analog TV card works fine with some other tv applications. (xawtv
--c /dev/video0 works)
-
-I'm using 2.6.25.4 original kernel:
-- v4l2 compiled in kernel as support for v4l.
-- sound system: alsa, right now in kernel too.
-- bttv as module and working fine
+Sent from my BlackBerry device on the Rogers Wireless Network
 
 --
 video4linux-list mailing list
