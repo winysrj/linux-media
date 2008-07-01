@@ -1,25 +1,37 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G5iAH5003308
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 01:44:10 -0400
-Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
-	[83.236.181.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6G5hV0Q014779
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 01:43:31 -0400
-Date: Wed, 16 Jul 2008 07:49:22 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20080716054922.GI6739@pengutronix.de>
-References: <20080715135618.GE6739@pengutronix.de>
-	<20080715140141.GG6739@pengutronix.de>
-	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6146YON030423
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:06:34 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6146MVw015164
+	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:06:22 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m6146CDW012478
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:06:17 -0500
+Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id m6146BCh013841
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:06:12 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
+	[128.247.25.123])
+	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
+	m6146BG19864
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:06:11 -0500 (CDT)
+Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
+	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
+	m6146BO4020607
+	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:06:11 -0500
+Received: (from a0270762@localhost)
+	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6146BQu020551
+	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:06:11 -0500
+Date: Mon, 30 Jun 2008 23:06:11 -0500
+From: Mohit Jalori <mjalori@ti.com>
+To: video4linux-list@redhat.com
+Message-ID: <20080701040611.GA20533@dirac.dal.design.ti.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0807152224040.6361@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
-	module parameter
+Subject: [Patch 9/16] OMAP3 camera driver platform device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +43,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jul 15, 2008 at 10:43:53PM +0200, Guennadi Liakhovetski wrote:
-> On Tue, 15 Jul 2008, Sascha Hauer wrote:
-> 
-> > Use a flag in struct soc_camera_link for differentiation between
-> > a black/white and a colour camera rather than a module parameter.
-> > This allows for having colour and black/white cameras in the same
-> > system.
-> > Note that this one breaks the phytec pcm027 pxa board as it makes it
-> > impossible to switch between cameras on the command line. I will send
-> > an updated version of this patch once I know this patch is acceptable
-> > this way.
-> 
-> Yes, we did discuss this on IRC and I did agree to use a platform-provided 
-> parameter to specify camera properties like colour / monochrome, but now 
-> as I see it, I think, it might not be a very good idea. Having it as a 
-> parameter you can just reload the driver with a different parameter to 
-> test your colour camera in b/w mode. With this change you would need a new 
-> kernel.
+From: Sameer Venkatraman <sameerv@ti.com>
 
-I think it's a more common case to specify the correct camera on a
-per-board basis than to test a colour camera in b/w mode. Only
-developers want to do this and they know how to start a new kernel,
-right? ;)
-Another thing that came to my mind is that this particular camera has an
-internal PLL for pixel clock generation. It can use the pxa pixel clock
-directly or the one from the PLL. At the moment there is no way to
-specify which clock to use, so we might even want to add a pointer to a
-camera specific struct to soc_camera_link. This would be the right place
-to put colour/bw flags aswell.
+ARM: OMAP: OMAP34XXCAM: Camera Plataform Device.
 
-> What about an array of module parameters? Specifying flags on the 
-> command line is too weird, so, maybe colo(u)r=0,2 where numbers are 
-> camera-IDs? Or even 0:0 with bus-IDs. Yes, you would have to add optional 
-> camera-ID to the link struct.
+Adding OMAP 3 Camera Platform Device.
 
-I don't like module parameters for specifying my hardware. It
-reminds me of the ISA days where you had to specify iobase/irq this way.
+Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+---
+ devices.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+)
 
-Sascha
-
--- 
- Pengutronix - Linux Solutions for Science and Industry
-   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
-     Hannoversche Str. 2, 31134 Hildesheim, Germany
-   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -50,6 +50,32 @@
+ {
+ 	platform_device_register(&omap_cam_device);
+ }
++
++#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++
++static struct resource cam_resources[] = {
++	{
++		.start		= OMAP34XX_CAMERA_BASE,
++		.end		= OMAP34XX_CAMERA_BASE + 0x1B70,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_34XX_CAM_IRQ,
++		.flags		= IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device omap_cam_device = {
++	.name		= "omap34xxcam",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(cam_resources),
++	.resource	= cam_resources,
++};
++
++static inline void omap_init_camera(void)
++{
++	platform_device_register(&omap_cam_device);
++}
+ #else
+ static inline void omap_init_camera(void)
+ {
 
 --
 video4linux-list mailing list
