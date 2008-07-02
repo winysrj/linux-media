@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from zeus.freepage.ro ([86.35.4.2] helo=freepage.ro)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KF9Jx-0001QL-3C
-	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 17:05:05 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K3J008WEGJH4M30@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 05 Jul 2008 11:04:29 -0400 (EDT)
-Date: Sat, 05 Jul 2008 11:04:29 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <7f8709ba0807040617k6219a543yf9263abc1e54d6d9@mail.gmail.com>
-To: Bram van Bunnik <bvbunnik@gmail.com>
-Message-id: <486F8D7D.4070706@linuxtv.org>
-MIME-version: 1.0
-References: <53241.220.233.118.42.1215143805.squirrel@webmail.ilisys.com.au>
-	<7f8709ba0807040617k6219a543yf9263abc1e54d6d9@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HRV-2200 driver
+	(envelope-from <aron@aron.ws>) id 1KDxO5-00035N-3a
+	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 10:08:25 +0200
+Received: from localhost (zeus.freepage.ro [127.0.0.1])
+	by freepage.ro (Postfix) with ESMTP id 870AF794142
+	for <linux-dvb@linuxtv.org>; Wed,  2 Jul 2008 13:10:38 +0300 (EEST)
+Received: from freepage.ro ([127.0.0.1])
+	by localhost (zeus.freepage.ro [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id d4e+uAzMUzS3 for <linux-dvb@linuxtv.org>;
+	Wed,  2 Jul 2008 13:10:32 +0300 (EEST)
+Received: from webmail.aron.ws (aron.ws [195.70.62.6])
+	by freepage.ro (Postfix) with ESMTP id DFC6C794141
+	for <linux-dvb@linuxtv.org>; Wed,  2 Jul 2008 13:10:31 +0300 (EEST)
+MIME-Version: 1.0
+Date: Wed, 02 Jul 2008 10:07:37 +0200
+From: <aron@aron.ws>
+To: linux-dvb@linuxtv.org
+Message-ID: <ebb5820836d39cba9b5b05d4b058d06a@freepage.ro>
+Subject: [linux-dvb] em28xx problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,33 +32,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Bram van Bunnik wrote:
-> If there is anyone out there who knows more, I'm interested too
-> 
-> Kind regards,
-> 
-> Bram
-> 
-> On Fri, Jul 4, 2008 at 5:56 AM, Rimian Perkins <r.perkins@rimian.com.au 
-> <mailto:r.perkins@rimian.com.au>> wrote:
-> 
->     Hi,
-> 
->     I am new to linux tv so please forgive my ignorance.
-> 
->     I have a HVR-2200 card and would like to find out the status of the
->     driver
->     development which I have heard is in development. I probably don't have
->     the skills to help but would be glad to if I could.
-> 
->     Does anyone know where to find this info?
-> 
->     Kind Regards,
->     Rimian
+Hi!
 
-It's under development. I have nothing else to announce yet.
+Sorry if I write to the wrong place.
 
-- Steve
+I have a problem with this driver... I've never used v4l so i don't really
+understand it.
+I want to use a USB 2.0 AV Grabber called GrabBeeX+
+
+It has an s-video, stereo and a composite video input.
+The sound and video are attached trough a saa7113h and EMP202 AC97 chip.
+The USB is attached to the em2800-2 chip.
+
+I tried to load the module, after that I tried to compile it, but i still
+get the same effect.
+
+It does not create a video device file :(.
+
+Dmesg:
+
+Linux video capture interface: v2.00
+em28xx v4l2 driver version 0.0.1 loaded
+usbcore: registered new interface driver em28xx
+ACPI: EC: non-query interrupt received, switching to interrupt mode
+usb 5-5: new high speed USB device using ehci_hcd and address 4
+usb 5-5: configuration #1 chosen from 1 choice
+usbcore: registered new interface driver snd-usb-audio
+
+If you can please help me !
+
+Thanks!
+
 
 _______________________________________________
 linux-dvb mailing list
