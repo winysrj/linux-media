@@ -1,21 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m66E5meN029260
-	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 10:05:48 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m66E5Huc025458
-	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 10:05:17 -0400
-Message-ID: <4870D2A5.4050703@hhs.nl>
-Date: Sun, 06 Jul 2008 16:11:49 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-References: <48706115.5050707@hhs.nl> <4870B694.5010101@free.fr>
-In-Reply-To: <4870B694.5010101@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: Re: PATCH: libv4l-sync-with-0.3.3-release.patch
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Alan Cox <alan@redhat.com>
+In-Reply-To: <20080701080655.GA3602@devserv.devel.redhat.com>
+References: <1214873062.2623.51.camel@pc10.localdom.local>
+	<869807.56113.qm@web63010.mail.re1.yahoo.com>
+	<20080701080655.GA3602@devserv.devel.redhat.com>
+Content-Type: text/plain
+Date: Thu, 03 Jul 2008 01:26:56 +0200
+Message-Id: <1215041216.2638.12.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Fritz Katz <frtzkatz@yahoo.com>
+Subject: Re: Sabrent Philips7130 PCI TV Tuner -&- Yes, the USA is going
+	digital.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +24,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thierry Merle wrote:
-> Hans de Goede a écrit :
->> Hi,
->>
->> This patch syncs mercurial with the 0.3.3 tarbal I've just released.
->> note, please "hg add" all the files under appl-patches, you forgot this
->> the last time, so these files are not in mercurial yet.
->>
->> Let me know if you want this split up in 3 or 4 incremental patches.
->>
-> I would prefer next time since this would help to avoid forgotten things like the appl-patches/ directory.
-> I checked with your own 0.3.2 archive but found no difference so I stated my imports OK. 
+
+Am Dienstag, den 01.07.2008, 04:06 -0400 schrieb Alan Cox:
+> On Mon, Jun 30, 2008 at 10:30:18PM -0700, Fritz Katz wrote:
+> >  The US Government is giving everyone with old TVs $40 (about 25 Euros) for each TV in their home to buy ATSC converter boxes:
+> > 
+> >   https://www.dtv2009.gov/
 > 
-> Do you send these patches to the application maintainers?
+> So stockpile second hand junk TVs ?
+> 
+> Alan
+> 
 
-Once libv4l has proven itself the vlc patch will be sent to vlc (its libvlc 
-specific), as for the other 2 patches, there upstreams are very much dead I'm 
-afraid.
+A second thought was also about the enormous lead warnings within the
+soldering materials which now appear. Decades without any.
 
-Regards,
+I guess someone must be licking on it every day within salty beach
+conditions for years to get in trouble, but for those exposed to the
+soldering fumes on that old chips it is likely a very serious issue.
 
-Hans
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
