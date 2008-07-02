@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GNqOF7002867
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:52:24 -0400
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GNqB2q025985
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:52:12 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Per Baekgaard <baekgaard@b4net.dk>
-In-Reply-To: <487E7238.7030003@b4net.dk>
-References: <487E7238.7030003@b4net.dk>
-Content-Type: text/plain
-Date: Thu, 17 Jul 2008 01:47:51 +0200
-Message-Id: <1216252071.2669.56.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62CInlo022282
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 08:18:49 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62CIauD026143
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 08:18:36 -0400
+Date: Wed, 2 Jul 2008 09:18:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080702091819.031ea3ad@gaivota>
+In-Reply-To: <20080630175605.445b7672@gaivota>
+References: <20080630175605.445b7672@gaivota>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Seeking help for a 713x based card
+Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
+	Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org,
+	linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [GIT PATCH for 2.6.26] V4L/DVB: Addition of UVC driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,64 +29,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Per,
+On Mon, 30 Jun 2008 17:56:05 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-Am Donnerstag, den 17.07.2008, 00:12 +0200 schrieb Per Baekgaard:
-> I have a card of unknown (to me) brand that identifies itself as a 
-> 1131:7133 (chipset) with 1a7f:2004 rev d1 as the subsystem ID/revision.
-
-1131:7133 in .dk means a saa7135 or more likely a recent saa7131e.
-The subvendor 1a7f seems to be seen the first time here, subdevice 2004
-is only known on some Philips reference designs.
-
-> The card is unfortunately glued (!) inside a LCD enclosure, and I am not 
-> able to see any further identifications on it.
-
-;) what to say.
-
-> Google'ing the SVID/SSID hints that it could be a PAL derivative of an 
-> Encore ENLTV-FM card. When asked, Encore basically just said that the 
-> closest match would appear to be ENLTV-FM and that there is no support 
-> for linux and asked me to look at sourceforge.net ;-)
-
-They are likely right to send you out into the deserts.
-
-> I am able to get it partially running by using "options saa7134 card=107 
-> tuner=54" (or card 3), but it appears that changing channel via tvtime 
-> or myth  fails roughly half the time and simply causes it to return an 
-> invalid (or empty) video stream. Indeed, in myth, it sometimes crashes 
-> the application.
-
-If channel change sometimes works it is some tuner=54, but might need
-some card specific calibration or your signal is weak.
-
-Is DVB-T or DVB-S announced too or only analog TV?
-
-> I am also not able to capture any sound from the card, although 
-> saa7134_alsa gets loaded as expected.
-
-Most of the recent cards don't have analog sound output to the sound
-card anymore. The chips do provide it, but manufacturers decide against
-to provide the connector.
-
-The saa7134-alsa must be properly used and does not work automagically,
-also if a gpio switched sound mux chip is on the card, it needs to be
-configured correctly for sound switching. This is not visible in the
-logs.
-
-> How do I debug this, and get the driver to recognise the card properly?
+> Linus,
 > 
-> Or any good hints at what the card may be? Would the i2c reveal any 
-> further hints?
+> Please pull from:
+>         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+> 
+> For USB Video Class (UVC) driver.
+> 
+> I know that we are very late on 2.6.26 cycle. However,
+> 	1) most of modern webcams are based on USB Video Class (UVC). So, this
+> driver is important to suport those cams.
+> 	2) This is a driver-only addition. There aren't any changes at V4L/DVB
+> core. No risk of causing regressions on the already supported devices;
+> 	3) The driver were already reviewed by V4L and USB people;
+> 	4) The driver is already widely used, since it is merged as an
+> out-of-tree driver on several distros. 
+> 
+> So, on my opinion, we should merge it for 2.6.26.
 
-To set up an invisible device is a bit odd,
-but copy and paste "dmesg" output after loading the driver with
-i2c_scan=1 enabled ("modinfo saa7134") might help on some further
-guessing.
+I got a small but relevant bug at uvc Makefile.
+
+If you decide to apply it, please merge those two patches:
+
+   - USB Video Class driver
+   - uvc: Fix compilation breakage for the other drivers, if uvc is selected
+
+So, please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+
+ MAINTAINERS                          |    8 +
+ drivers/media/video/Kconfig          |    8 +
+ drivers/media/video/Makefile         |    2 +
+ drivers/media/video/uvc/Makefile     |    3 +
+ drivers/media/video/uvc/uvc_ctrl.c   | 1256 ++++++++++++++++++++++
+ drivers/media/video/uvc/uvc_driver.c | 1955 ++++++++++++++++++++++++++++++++++
+ drivers/media/video/uvc/uvc_isight.c |  134 +++
+ drivers/media/video/uvc/uvc_queue.c  |  477 +++++++++
+ drivers/media/video/uvc/uvc_status.c |  207 ++++
+ drivers/media/video/uvc/uvc_v4l2.c   | 1105 +++++++++++++++++++
+ drivers/media/video/uvc/uvc_video.c  |  934 ++++++++++++++++
+ drivers/media/video/uvc/uvcvideo.h   |  796 ++++++++++++++
+ 12 files changed, 6885 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/uvc/Makefile
+ create mode 100644 drivers/media/video/uvc/uvc_ctrl.c
+ create mode 100644 drivers/media/video/uvc/uvc_driver.c
+ create mode 100644 drivers/media/video/uvc/uvc_isight.c
+ create mode 100644 drivers/media/video/uvc/uvc_queue.c
+ create mode 100644 drivers/media/video/uvc/uvc_status.c
+ create mode 100644 drivers/media/video/uvc/uvc_v4l2.c
+ create mode 100644 drivers/media/video/uvc/uvc_video.c
+ create mode 100644 drivers/media/video/uvc/uvcvideo.h
+
+Laurent Pinchart (1):
+      V4L/DVB (8145a): USB Video Class driver
+
+Mauro Carvalho Chehab (1):
+      V4L/DVB (8178): uvc: Fix compilation breakage for the other drivers, if uvc is selected
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
+
 
 Cheers,
-Hermann
-
+Mauro
 
 --
 video4linux-list mailing list
