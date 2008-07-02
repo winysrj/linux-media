@@ -1,27 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6SMaTPm027240
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 18:36:29 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6SMZoqv018245
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 18:35:51 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1597233nfc.21
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 15:35:50 -0700 (PDT)
-From: "H. Willstrand" <h.willstrand@gmail.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-In-Reply-To: <488E46BC.10104@gmail.com>
-References: <488721F2.5000509@hhs.nl> <20080728214927.GA21280@vidsoft.de>
-	<488E4090.5020600@gmail.com> <20080728221628.GB21280@vidsoft.de>
-	<488E46BC.10104@gmail.com>
-Content-Type: text/plain
-Date: Tue, 29 Jul 2008 00:35:20 +0200
-Message-Id: <1217284520.3371.2.camel@localhost.localdomain>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62FeVku006449
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 11:40:31 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62FdxB1027352
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 11:40:00 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so209097fga.7
+	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 08:39:59 -0700 (PDT)
+Message-ID: <30353c3d0807020839r6e18978dqc0b38f6c8d9c177@mail.gmail.com>
+Date: Wed, 2 Jul 2008 11:39:58 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>,
-	Brandon Philips <bphilips@suse.de>, SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Subject: Re: [V4l2-library] Messed up syscall return value
+Content-Disposition: inline
+References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
+	<200807012350.53604.laurent.pinchart@skynet.be>
+	<30353c3d0807011528v561d4de8ycb7c3f1d8afc82f9@mail.gmail.com>
+	<200807020104.52122.laurent.pinchart@skynet.be>
+	<30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
+	<30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
+	<30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,39 +36,141 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
-
-I think the memory allocation is wrong, you have NBUFFERS = 2 but
-memset( ... ) only allocates for 1 buffer.
+Fix fail open condition. When the open fails, kobject_put needs to be
+called to ensure the kobject ref count is restored. Did I miss
+anything else?
 
 Regards,
-H.Willstrand
 
-On Tue, 2008-07-29 at 00:22 +0200, Jiri Slaby wrote:
-> On 07/29/2008 12:16 AM, Gregor Jasny wrote:
-> > ioctl(3, VIDIOC_REQBUFS or VT_DISALLOCATE, 0x7fffbfda0060) = 2
-> > 
-> > Huh? Something evils seems to be going on in V4L2 land.
-> > I've spotted the following lines in videobuf-core.c:videobuf_reqbufs
-> > 
-> >         req->count = retval;
-> > 
-> >  done:
-> >         mutex_unlock(&q->vb_lock);
-> >         return retval;
-> > 
-> > That would explain the retval '2'. It seems a retval = 0; statement is missing here for the success case.
-> 
-> Actually positive ioctl retval used to be often considered as OK in the past 
-> (and this approach is still used in few char drivers).
-> 
-> But according to v4l docco, it isn't permitted here. Anyway I wouldn't place it 
-> in videobuf-core.c, but in vivi code; letting this decision on Mauro (CCed) ;).
-> 
-> _______________________________________________
-> V4L2-library mailing list
-> V4L2-library@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l2-library
+David Ellingsworth
+
+[PATCH] videodev: fix kobj ref count
+
+
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/video/videodev.c |   50 +++++++++++++++++++++++++++------------
+ include/media/v4l2-dev.h       |    1 +
+ 2 files changed, 35 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/video/videodev.c b/drivers/media/video/videodev.c
+index 0d52819..9922cd6 100644
+--- a/drivers/media/video/videodev.c
++++ b/drivers/media/video/videodev.c
+@@ -406,17 +406,22 @@ void video_device_release(struct video_device *vfd)
+ }
+ EXPORT_SYMBOL(video_device_release);
+
++/*
++ *	Active devices
++ */
++
++static struct video_device *video_device[VIDEO_NUM_DEVICES];
++static DEFINE_MUTEX(videodev_lock);
++
++/* must be called with videodev_lock held */
+ static void video_release(struct device *cd)
+ {
+ 	struct video_device *vfd = container_of(cd, struct video_device,
+ 								class_dev);
+
+-#if 1
+-	/* needed until all drivers are fixed */
+-	if (!vfd->release)
+-		return;
+-#endif
+-	vfd->release(vfd);
++	if (vfd->release)
++		vfd->release(vfd);
++	video_device[vfd->minor] = NULL;
+ }
+
+ static struct device_attribute video_device_attrs[] = {
+@@ -431,19 +436,30 @@ static struct class video_class = {
+ 	.dev_release = video_release,
+ };
+
+-/*
+- *	Active devices
+- */
+-
+-static struct video_device *video_device[VIDEO_NUM_DEVICES];
+-static DEFINE_MUTEX(videodev_lock);
+-
+ struct video_device* video_devdata(struct file *file)
+ {
+ 	return video_device[iminor(file->f_path.dentry->d_inode)];
+ }
+ EXPORT_SYMBOL(video_devdata);
+
++static int video_close(struct inode *inode, struct file *file)
++{
++	unsigned int minor = iminor(inode);
++	int err = 0;
++	struct video_device *vfl;
++
++	vfl = video_device[minor];
++
++	if (vfl->fops && vfl->fops->release)
++		err = vfl->fops->release(inode, file);
++
++	mutex_lock(&videodev_lock);
++	kobject_put(&vfl->class_dev.kobj);
++	mutex_unlock(&videodev_lock);
++
++	return err;
++}
++
+ /*
+  *	Open a video device - FIXME: Obsoleted
+  */
+@@ -469,10 +485,11 @@ static int video_open(struct inode *inode,
+struct file *file)
+ 		}
+ 	}
+ 	old_fops = file->f_op;
+-	file->f_op = fops_get(vfl->fops);
+-	if(file->f_op->open)
++	file->f_op = fops_get(&vfl->priv_fops);
++	if (file->f_op->open && kobject_get(&vfl->class_dev.kobj))
+ 		err = file->f_op->open(inode,file);
+ 	if (err) {
++		kobject_put(&vfl->class_dev.kobj);
+ 		fops_put(file->f_op);
+ 		file->f_op = fops_get(old_fops);
+ 	}
+@@ -2175,6 +2192,8 @@ int video_register_device_index(struct
+video_device *vfd, int type, int nr,
+ 	}
+
+ 	vfd->index = ret;
++	vfd->priv_fops = *vfd->fops;
++	vfd->priv_fops.release = video_close;
+
+ 	mutex_unlock(&videodev_lock);
+ 	mutex_init(&vfd->lock);
+@@ -2225,7 +2244,6 @@ void video_unregister_device(struct video_device *vfd)
+ 	if(video_device[vfd->minor]!=vfd)
+ 		panic("videodev: bad unregister");
+
+-	video_device[vfd->minor]=NULL;
+ 	device_unregister(&vfd->class_dev);
+ 	mutex_unlock(&videodev_lock);
+ }
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 3c93414..d4fe617 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -342,6 +342,7 @@ void *priv;
+ 	/* for videodev.c intenal usage -- please don't touch */
+ 	int users;                     /* video_exclusive_{open|close} ... */
+ 	struct mutex lock;             /* ... helper function uses these   */
++	struct file_operations priv_fops; /* video_close */
+ };
+
+ /* Class-dev to video-device */
+-- 
+1.5.5.1
 
 --
 video4linux-list mailing list
