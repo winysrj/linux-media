@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23208.mail.ird.yahoo.com ([217.146.189.63])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KNF1h-0000pb-3k
-	for linux-dvb@linuxtv.org; Mon, 28 Jul 2008 00:47:42 +0200
-Date: Sun, 27 Jul 2008 22:46:00 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <BAY102-W517C29F3CDEEDB203A1C38BC800@phx.gbl>
+Received: from rv-out-0506.google.com ([209.85.198.230])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1KE1r2-0002Hh-TJ
+	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 14:54:38 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so480485rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 02 Jul 2008 05:54:31 -0700 (PDT)
+Message-ID: <d9def9db0807020554i5736ee79k114927cf9501b4c3@mail.gmail.com>
+Date: Wed, 2 Jul 2008 14:54:31 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: aron@aron.ws
+In-Reply-To: <ebb5820836d39cba9b5b05d4b058d06a@freepage.ro>
 MIME-Version: 1.0
-Message-ID: <791712.99414.qm@web23208.mail.ird.yahoo.com>
-Subject: Re: [linux-dvb] TT S2-3200 lock question
-Reply-To: newspaperman_germany@yahoo.com
+Content-Disposition: inline
+References: <ebb5820836d39cba9b5b05d4b058d06a@freepage.ro>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] em28xx problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,36 +22,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CgoKLS0tIHRveSBvdGEgPG90YTE5OThAaG90bWFpbC5jb20+IHNjaHJpZWIgYW0gU28sIDI3Ljcu
-MjAwODoKCj4gVm9uOiB0b3kgb3RhIDxvdGExOTk4QGhvdG1haWwuY29tPgo+IEJldHJlZmY6IFts
-aW51eC1kdmJdIFRUIFMyLTMyMDAgbG9jayBxdWVzdGlvbgo+IEFuOiBsaW51eC1kdmJAbGludXh0
-di5vcmcKPiBEYXR1bTogU29ubnRhZywgMjcuIEp1bGkgMjAwOCwgMjA6MTkKPiBIZWxsbywKPiAK
-PiBUaGVyZSBhcmUgb24gQXRsYW50aWNCaXJkMyAyIFRQcyB1c2VkIHRvIGJyb2FkY2FzdCBzaWdu
-YWwKPiB0b3dhcmRzIFROVCBlbWl0dGVycy4gKDIgVE5UcyBtdXggYXJlIHB1dCB0b2dldGhlciBp
-biAxCj4gVFApLgo+IEkgY2FuIGdldCBhIGxvY2sgb24gQUIzIDExNjM2ViBEVkItUyBidXQgbm90
-IG9uIDExMTM5Vgo+IERWQi1TMi4KPiBNeSBxdWVzdGlvbjogY2FyZC9kcml2ZXIgZXhwZWN0IHdo
-YXQgdG8gZGVjbGFyZSB0aGF0IGxvY2sKPiBpcyBhY3F1aXJlZCA/Cj4gRG9lcyBkcml2ZXIgc2F5
-cyAibm8gbG9jayIgaWYgaGUgY2FuJ3QKPiByZWNvZ25pemUgRFZCIGZyYW1lcyA/IERvZXMgYSB2
-YWxpZCBQTVQgb3Igc29tZXRoaW5nIGVsc2UKPiBpcyBleHBlY3RlZCA/Cj4gT3IgaGUgc2F5cyAi
-bG9jayBvayIgd2hlbiBoZSBjYW4gcmVhZCBhIHN0cmVhbSBvZgo+IHVuZm9ybWF0dGVkIGJpdHMg
-Pwo+IEkgd291bGQgbGlrZSB0byBjYXB0dXJlIGJpdHMgZXZlbiBpZiB0aGVyZSBhcmUgbm90IERW
-Qgo+IGNvbXBsaWFudC4KPiAKPiBUaGFua3MuCj4gCj4gUFM6IGl0J3MgYSBzaGFtZSB0aGF0IHRo
-ZXJlIGlzIG5vIGRvYy4gYXZhaWxhYmxlIGFib3V0Cj4gU1RCMDg5OS4gCj4gCj4gCj4gX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KPiBFbXBvcnRleiB2b3MgYW1pcyBldCB2b3MgZW1haWxzIHBhcnRvdXTigKYgQSBsYSBjw7R0
-ZSwgZW4KPiB2aWxsZSBvdSBkYW5zIGxlIGZpbiBmb25kIGRlcyBBcmRlbm5lcyAhCj4gaHR0cDov
-L3dpbmRvd3NsaXZlbW9iaWxlLm1zbi5jb20vP2xhbmc9ZnItQkVfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBs
-aW51eC1kdmJAbGludXh0di5vcmcKPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
-bG1hbi9saXN0aW5mby9saW51eC1kdmIKCgogICAgICBfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkdlc2VuZGV0IHZvbiBZYWhvbyEgTWFp
-bC4KRGVtIHBmaWZmaWdlcmVuIFBvc3RlaW5nYW5nLgpodHRwOi8vZGUub3ZlcnZpZXcubWFpbC55
-YWhvby5jb20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cu
-bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hi Aron,
+
+On Wed, Jul 2, 2008 at 10:07 AM,  <aron@aron.ws> wrote:
+> Hi!
+>
+> Sorry if I write to the wrong place.
+>
+> I have a problem with this driver... I've never used v4l so i don't really
+> understand it.
+> I want to use a USB 2.0 AV Grabber called GrabBeeX+
+>
+> It has an s-video, stereo and a composite video input.
+> The sound and video are attached trough a saa7113h and EMP202 AC97 chip.
+> The USB is attached to the em2800-2 chip.
+>
+
+is it really an em2800 chip? or em2820/em2840?
+
+what does lsusb say?
+
+-Markus
+
+
+> I tried to load the module, after that I tried to compile it, but i still
+> get the same effect.
+>
+> It does not create a video device file :(.
+>
+> Dmesg:
+>
+> Linux video capture interface: v2.00
+> em28xx v4l2 driver version 0.0.1 loaded
+> usbcore: registered new interface driver em28xx
+> ACPI: EC: non-query interrupt received, switching to interrupt mode
+> usb 5-5: new high speed USB device using ehci_hcd and address 4
+> usb 5-5: configuration #1 chosen from 1 choice
+> usbcore: registered new interface driver snd-usb-audio
+>
+> If you can please help me !
+>
+> Thanks!
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
