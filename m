@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ILBVGK013460
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 17:11:31 -0400
-Received: from mailrelay001.isp.belgacom.be (mailrelay001.isp.belgacom.be
-	[195.238.6.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ILBK2t009434
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 17:11:21 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m629hDAh024327
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 05:43:13 -0400
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m629gx5o025999
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 05:42:59 -0400
 From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Fri, 18 Jul 2008 23:11:17 +0200
-References: <200807171237.38433.laurent.pinchart@skynet.be>
-	<200807171303.33026.hverkuil@xs4all.nl>
-In-Reply-To: <200807171303.33026.hverkuil@xs4all.nl>
+Date: Wed, 2 Jul 2008 11:42:52 +0200
+References: <200807020756.53438.hverkuil@xs4all.nl>
+In-Reply-To: <200807020756.53438.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200807182311.17606.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] uvcvideo: Return sensible min and max values when
-	querying a boolean control.
+Message-Id: <200807021142.52818.laurent.pinchart@skynet.be>
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: uvc_driver.c compile error on 2.6.18
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,62 +32,39 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi Hans,
 
-On Thursday 17 July 2008, Hans Verkuil wrote:
-> On Thursday 17 July 2008 12:37:37 Laurent Pinchart wrote:
-> > Although the V4L2 spec states that the minimum and maximum fields may
-> > not be valid for control types other than V4L2_CTRL_TYPE_INTEGER, it
-> > makes sense to set the bounds to 0 and 1 for boolean controls instead
-> > of returning uninitialized values.
->
-> Hi Laurent,
->
-> Are you aware of the control support functions in v4l2-common.c? In my
-> opinion it would be a good idea if you would try to use those. In
-> particular adding the control definitions for the standard camera
-> controls to v4l2-common.c so that every driver that uses those will get
-> the same control strings and data.
+On Wednesday 02 July 2008, Hans Verkuil wrote:
+> Hi all,
+> 
+> The current v4l-dvb doesn't build anymore on 2.6.18:
+> 
+>   CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: In 
+> function 'uvc_parse_control':
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1135: warning: implicit 
+> declaration of function 'usb_endpoint_is_int_in'
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: At top level:
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: error: unknown 
+> field 'supports_autosuspend' specified in initializer
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: missing 
+> braces around initializer
+> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: (near 
+> initialization for 'uvc_driver.driver.dynids')
+> make[3]: *** [/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o] Error 1
+> make[2]: *** [_module_/home/hans/work/src/v4l/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/home/hans/work/src/kernels/linux-2.6.18.8'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/hans/work/src/v4l/v4l-dvb/v4l'
+> make: *** [all] Error 2
 
-I suppose you're referring to the v4l2_ctrl_* functions. I wasn't aware of 
-them.
+Mauro committed the uvcvideo driver to the v4l-dvb tree two days ago. The patch he based his commit on was intended for submission to the main Linux tree, and as such didn't contain any support for older kernels.
 
-Some of them, such as v4l2_ctrl_get_menu() and v4l2_ctrl_query_fill(), are 
-interesting to share control names across drivers, although they could make 
-the kernel larger than necessary when only a single (or very few) V4L2 driver 
-is compiled in.
+The uvcvideo driver supports kernels 2.6.15 upwards. The code can be found in the SVN repository at svn://svn.berlios.de/linux-uvc/linux-uvc/trunk
 
-Most of the other functions don't make much sense for the uvcvideo driver. For 
-instance, the uvcvideo driver needs to associate private data with each menu 
-item, so a static list of names isn't the best solution. Filling control 
-information with standard minimum, maximum, step and default values is also 
-not an option, as that information varies between UVC devices and is reported 
-by the hardware directly.
+Fixing the driver in the hg tree to build with 2.6.18 would be duplicating work. As I explained in a mail to Mauro, I don't want to drop the SVN repository before the driver hits the main kernel tree, as it would confuse users.
 
-> I also do not see any support for the V4L2_CID_CAMERA_CLASS control: it
-> should return a description of the camera control class. It is used in
-> e.g. v4l2-ctl --list-ctrls:
->
-> User Controls
->
->                      brightness (int)  : min=0 max=255 step=1...
->
-> where the string "User Controls" comes from the V4L2_CID_USER_CLASS.
+What would be the best way to solve this issue ?
 
-What's the point of having a control that actually controls nothing ?
-
-> I want to prevent having different driver present different control
-> query results to the user, even though it's the same control.
-
-Names should be standard, but boundaries can vary between devices.
-
-> Testing with v4l2-ctl is a good way to verify that it is all working as
-> it should. Also qv4l2 is a useful tool to see if the controls use the
-> correct GUI elements. Note that this currently only builds for qt3.
-> Mauro made a patch to allow it to build for qt4, but I haven't gotten
-> around to testing that (sorry Mauro).
-
-Thanks for the information, I'll try those applications.
-
-Best regards,
+Regards,
 
 Laurent Pinchart
 
