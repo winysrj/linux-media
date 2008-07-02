@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6MHENPI010347
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 13:14:23 -0400
-Received: from web63007.mail.re1.yahoo.com (web63007.mail.re1.yahoo.com
-	[69.147.96.218])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6MHE6bg032119
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 13:14:06 -0400
-Date: Tue, 22 Jul 2008 10:14:00 -0700 (PDT)
-From: Fritz Katz <frtzkatz@yahoo.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <859073.27528.qm@web63007.mail.re1.yahoo.com>
-Subject: xawtv fails to compile with quicktime
-Reply-To: frtzkatz@yahoo.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62KghTS010327
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 16:42:43 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62KgUjI021727
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 16:42:30 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Burns <linux-dvb@adslpipe.co.uk>
+In-Reply-To: <486BA3AE.1020808@adslpipe.co.uk>
+References: <486A6F0F.7090507@adslpipe.co.uk>
+	<486B9630.1080100@adslpipe.co.uk>	<200807021712.53659.zzam@gentoo.org>
+	<486BA03D.4040904@adslpipe.co.uk>  <486BA3AE.1020808@adslpipe.co.uk>
+Content-Type: text/plain
+Date: Wed, 02 Jul 2008 22:39:35 +0200
+Message-Id: <1215031175.2624.7.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Linux DVB List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] Shrink saa7134 mmio mapped size
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,88 +30,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The V2L application xawtv appears to be broken if compiled with quicktime libraries.
+Hello,
 
-The video4linux-list is mentioned as the proper discussion forum for xawtv at the bottom of the page: http://bytesex.org/xawtv/ 
+Am Mittwoch, den 02.07.2008, 16:50 +0100 schrieb Andy Burns:
+> The saa7134 driver attempts to map a fixed 4K starting from the base 
+> address of its mmio area, regardless of the actual size of the area.
+> Any excessive mapping may extend past the end of a page, which goes 
+> un-noticed on bare-metal, but is detected and denied when the card is 
+> used with pci passthrough to a xen domU. If shared IRQ is used the 
+> "pollirq" kernel option may be required in dom0.
 
-I'm on a FreeBSD-7 system, but the same bug has also been filed against xawtv on Gentoo and Debian. Quicktime changed how colormodels are handled several years ago (~2004?) and I guess xawtv never heard about it. 
+just a note.
 
-It's broken in xawtv-3.95 and the same code is used in the 4.x snapshot.
+We have some recent remotes sampling from IRQs triggered by a gpio pin
+without any additional IR chip.
 
-Unfortunately, the various distros make releases with multiple patches for problems -- but don't send fixes back upstream. FreeBSD-7 has 10 patches on xawtv-3.95. Some of these might be important bugfixes. If someone's interested, I can zip them up and email them to you.
+There are some reports that "pollirq" makes them unusable, since
+sensible timings are lost.
 
-Here's a link to the source of the offending code:
-http://www.cs.fsu.edu/~baker/devices/lxr/http/source/xawtv-3.95/libng/plugins/write-qt.c
+No such reports from xen stuff yet, but the same might happen with
+shared IRQs and "pollirq" there too.
 
-Here's where it fails in my environment:
-# uname -smr
-FreeBSD 7.0-RELEASE i386
-
-  Installed:
-	/usr/ports/multimedia/libquicktime (libquicktime-1.0.2)
-
-  Attempted install:
-	/usr/ports/multimedia/xawtv (xawtv-3.95, with patches, original from http://bytesex.org/xawtv/ )
-
-	libng/plugins/write-qt.c: In function 'video_list':
-	libng/plugins/write-qt.c:351: error: 'lqt_codec_info_t' has no member named 'num_encoding_colormodels'
-	libng/plugins/write-qt.c:353: error: 'lqt_codec_info_t' has no member named 'encoding_colormodels'
-	libng/plugins/write-qt.c:354: error: 'lqt_codec_info_t' has no member named 'encoding_colormodels'
-	libng/plugins/write-qt.c:381: error: 'lqt_codec_info_t' has no member named 'num_encoding_colormodels'
-	libng/plugins/write-qt.c:382: error: 'lqt_codec_info_t' has no member named 'encoding_colormodels'
-
----------------------
-Here's the failure on Debian Linux, 
-
-    http://bugs.debian.org/cgi-bin/bugreport.cgi?msg=9;bug=392576
-
-Debian's 'fix' was to disable libquicktime support:
-
----------------------
-Here's the failure on Gentoo Linux:
-
-    http://bugs.gentoo.org/141429
-
-We're in luck here, someone wrote a patch that looks like it might work. Needs to be verified by someone knowledgeable of Quicktime:
-
----------------------------------
---- xawtv-3.95/libng/plugins/write-qt.c.old     2006-10-16 20:50:45.000000000 +0200 
- +++ xawtv-3.95/libng/plugins/write-qt.c 2006-10-17 19:36:09.000000000 +0200 
- @@ -348,10 +348,10 @@ 
-                     info[i]->name,info[i]->long_name); 
-             for (j = 0; j < info[i]->num_fourccs; j++) 
-                 fprintf(stderr,"   fcc   : %s\n",info[i]->fourccs[j]); 
- -           for (j = 0; j < info[i]->num_encoding_colormodels; j++) 
- +           for (j = 0; j < lqt_num_colormodels(); j++) 
-                 fprintf(stderr,"   cmodel: %d [%s]\n", 
- -                       info[i]->encoding_colormodels[j], 
- -                       lqt_get_colormodel_string(info[i]->encoding_colormodels[j])); 
- +                       lqt_get_colormodel(j), 
- +                       lqt_get_colormodel_string(j)); 
-         } 
- 
-         /* sanity checks */ 
- @@ -378,8 +378,8 @@ 
-         /* pick colormodel */ 
-         fmtid  = VIDEO_NONE; 
-         cmodel = 0; 
- -       for (j = 0; j < info[i]->num_encoding_colormodels; j++) { 
- -           cmodel = info[i]->encoding_colormodels[j]; 
- +       for (j = 0; j < lqt_num_colormodels(); j++) { 
- +           cmodel = lqt_get_colormodel(j); 
-             if (cmodel>= sizeof(cmodels)/sizeof(int)) 
-                 continue; 
-             if (!cmodels[cmodel]) 
----------------------------------
-It's one or two lines off, so it failed to apply on my system. But it's easy enough to just make the changes by hand.
-
-Regards,
--- Fritz_Katz
+Cheers,
+Hermann
 
 
+> Signed-off-by: Andy Burns <andy@burns.net>
+> ---- drivers/media/video/saa7134/saa7134-core.c.orig     2008-07-01 
+> 16:46:49.000000000 +0100
+> +++ drivers/media/video/saa7134/saa7134-core.c  2008-07-02 
+> 16:41:37.000000000 +0100
+> @@ -908,7 +908,8 @@
+>                         dev->name,(unsigned long 
+> long)pci_resource_start(pci_dev,0));
+>                  goto fail1;
+>          }
+> -       dev->lmmio = ioremap(pci_resource_start(pci_dev,0), 0x1000);
+> +       dev->lmmio = ioremap(pci_resource_start(pci_dev,0),
+> +                             pci_resource_len(pci_dev,0));
+>          dev->bmmio = (__u8 __iomem *)dev->lmmio;
+>          if (NULL == dev->lmmio) {
+>                  err = -EIO;
+> 
+> 
 
-
-      
 
 --
 video4linux-list mailing list
