@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m69M9256016696
-	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 18:09:02 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m69M7r5e022605
-	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 18:07:54 -0400
-Message-ID: <48752A4D.7050800@hhs.nl>
-Date: Wed, 09 Jul 2008 23:14:53 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m628Ee8A008882
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 04:14:40 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m628ERVM011605
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 04:14:27 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so262710fke.3
+	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 01:14:26 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: video4linux-list@redhat.com
+Date: Wed, 2 Jul 2008 11:13:27 +0300
+References: <1214858407.1677.27.camel@localhost>
+In-Reply-To: <1214858407.1677.27.camel@localhost>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: PATCH: gspca-sn9c102-sensor-gain.patch
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Disposition: inline
+Message-Id: <200807021113.27283.liplianin@me.by>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PULL] gspca v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,28 +30,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+В сообщении от 30 June 2008 23:40:07 Jean-Francois Moine написал(а):
+> Hi Mauro,
+>
+> And here it is, the gspca driver, full v4l2!
+>
+> Please pull it fromО╩© http://linuxtv.org/hg/~jfrancois/gspca/
+>
+> for:
+>
+> 7508:f2c87fe32228    Initial release of gspca with only one driver.
+> 7509:e1b31878bd59    Subdriver pac207 added and minor changes.
+> 7510:ee85360b66f5    Fix protection problems in the main driver.
+> 8014:6f27ca5b89b2    Many bug fixes, zc3xx added.
+> 8155:915ca96f9b4a    gspca: all subdrivers
+> 8156:4bc068802c9f    gspca: minor changes
+> 8157:f7b6cf1bd609    merge...
+>
+> Cheers.
 
-Currently the sn9c102 gain control, only controls the digital gain in the
-sn9c102, but most sensors have an analog gain in the sensor, allowing for a
-much wider sensitivity range.
-
-This patch adds support for the sensor gain for the tas5110 and ov6650 sensors.
-Note that both gains are controlled with a single v4l2 ctrl, as they are both
-gain. The ctrl now hs a range of 0-511, raising it one step at a time, will
-first raise the sensor gain 1 one its 0-255 scale and then the next step will
-raise the bridge gain on its 0-255 scale. Note that the bridge really has a
-0-15 scale, so it only gets raised once every 32 steps
-(of the full 0-511 scale).
-
-This patch combined with the configurable exposure and autoexposure patch,
-makes my 2 sn9c102 cams work well in a wide variety of lighting conditions.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
+My webcam A4Tech PK130MG finally find the way to kernel :-)
+Since oct. 2007
+-- 
+Igor M. Liplianin
 
 --
 video4linux-list mailing list
