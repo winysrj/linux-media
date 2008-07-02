@@ -1,29 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I8Nhnp001142
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 04:25:55 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6I87KAu007773
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 04:07:20 -0400
-Received: by yx-out-2324.google.com with SMTP id 3so68512yxj.81
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 01:07:20 -0700 (PDT)
-Message-ID: <aec7e5c30807180107g6d2f55fdh917da10963f3df20@mail.gmail.com>
-Date: Fri, 18 Jul 2008 17:07:20 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0807180918160.13569@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m624Fka4002660
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 00:15:46 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m624FZbj002230
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 00:15:35 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so96247fga.7
+	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 21:15:34 -0700 (PDT)
+Message-ID: <30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
+Date: Wed, 2 Jul 2008 00:15:34 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-	<20080714120249.4806.66136.sendpatchset@rx1.opensource.se>
-	<Pine.LNX.4.64.0807180918160.13569@axis700.grange>
-Cc: video4linux-list@redhat.com, paulius.zaleckas@teltonika.lt,
-	linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	lethal@linux-sh.org, akpm@linux-foundation.org
-Subject: Re: [PATCH 05/06] sh_mobile_ceu_camera: Add SuperH Mobile CEU
-	driver V3
+Content-Type: multipart/mixed;
+	boundary="----=_Part_2031_8175071.1214972134700"
+References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
+	<200807012350.53604.laurent.pinchart@skynet.be>
+	<30353c3d0807011528v561d4de8ycb7c3f1d8afc82f9@mail.gmail.com>
+	<200807020104.52122.laurent.pinchart@skynet.be>
+	<30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
+	<30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,85 +34,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi!
+------=_Part_2031_8175071.1214972134700
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, Jul 18, 2008 at 4:39 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Magnus,
->
-> the whole this patch-series has been pulled into the v4l tree now, which
-> means there hasn't been any critical issues left, at least none are
-> known:-)
+Patch attached. Same as above but with the following format issue fixed:
 
-Excellent! Thank you.
+[snip]
+> @@ -469,8 +485,8 @@ static int video_open(struct inode *inode, struct
+> file *file)
+>                }
+>        }
+>        old_fops = file->f_op;
+> -       file->f_op = fops_get(vfl->fops);
+> -       if(file->f_op->open)
+> +       file->f_op = fops_get(&vfl->priv_fops);
+> +       if(file->f_op->open && kobject_get(&vfl->class_dev.kobj))
+             ^^missing space between if and (
 
-> A couple of general notes, that would be nice to address in an incremental
-> patch:
->
-> 1. the driver could benefit from a bit more comments:-) At least for
-> register configuration.
+>                err = file->f_op->open(inode,file);
+>        if (err) {
+>                fops_put(file->f_op);
 
-Yes, I agree with you.
+------=_Part_2031_8175071.1214972134700
+Content-Type: text/x-diff; name=0001-videodev-fix-kobj-ref-count.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fi5f0ojn0
+Content-Disposition: attachment;
+	filename=0001-videodev-fix-kobj-ref-count.patch
 
-> 2. code like
->
->> +     ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & 0x0317f313);
->> +     ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | 1);
->> +
->> +     ceu_write(pcdev, CAPCR, ceu_read(pcdev, CAPCR) & ~0x10000);
->> +
->> +     ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
->
-> specifically the 0x0317f313 constants in it might better be coded with
-> macros, or at least should be commented.
-
-Yeah, sorry about that. The sequence above is pure magic, but it would
-definitely not hurt with a few constants...
-
-> 3. you don't seem to check the interrupt reason nor to handle any error
-> conditions like overflow. I guess, there is something like a status
-> register on the interface, that you can check on an interrupt to see what
-> really was the cause for it.
-
-I've done some stress testing and I've had the camera running over the
-weekend on a sh7723 board without problems, so i guess the driver is
-at least half-ok.
-
-This doesn't mean you're wrong though, there is definitely a need for
-better error handling. There are many bits available for error
-conditions - I guess the biggest question is how to trigger them and
-what to do about it.
-
-> 4. you really managed it to keep the driver platform-neutral!:-) Still, do
-> we need an ack from the SH-maintainer? If you think we do, please, try to
-> obtain one asap - the patches should be ready to go upstream by Sunday.
-
-I'm sure Paul would ack if you guys needed it, but i wonder if there
-is any point in it. Paul knows about this work and he will sign off on
-the platform data part for sure. So I wouldn't worry about it if I
-were you.
-
-> 5. the memory you are binding with dma_declare_coherent_memory - is it
-> some SoC-local SRAM? Is it usably only by the camera interface or also by
-> other devices? You might want to request it first like in
-> drivers/scsi/NCR_Q720.c to make sure noone else is using it.
-
-This memory could on-chip SRAM, but right now it's regular external
-RAM. It's up to the person fixing up the platform data to decide, and
-I think that's a pretty nice and flexible strategy.
-
-I plan on doing something like this for the platform data:
-http://git.kernel.org/?p=linux/kernel/git/lethal/sh-2.6.git;a=commitdiff;h=3ba5b04f107f462ec14994270e15b91c59041ef9
-
-Regarding request_mem_region() - I used to add that here and there,
-but I think the platform driver layer should handle that for us
-automatically these days. I'm not 100% sure though. =)
-
-Thanks for all the help!
-
-/ magnus
+RnJvbSA2NTViY2ViMDlkNGI0ZmQ4YTM1ZTc2OThiNDcyMGE0YWY3NjUwOGU1IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
+bnMub3JnPgpEYXRlOiBXZWQsIDIgSnVsIDIwMDggMDA6MDY6MDMgLTA0MDAKU3ViamVjdDogW1BB
+VENIXSB2aWRlb2RldjogZml4IGtvYmogcmVmIGNvdW50CgoKU2lnbmVkLW9mZi1ieTogRGF2aWQg
+RWxsaW5nc3dvcnRoIDxkYXZpZEBpZGVudGQuZHluZG5zLm9yZz4KLS0tCiBkcml2ZXJzL21lZGlh
+L3ZpZGVvL3ZpZGVvZGV2LmMgfCAgIDQ5ICsrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0t
+LS0tLS0tLS0KIGluY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaCAgICAgICB8ICAgIDEgKwogMiBmaWxl
+cyBjaGFuZ2VkLCAzNCBpbnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL21lZGlhL3ZpZGVvL3ZpZGVvZGV2LmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3Zp
+ZGVvZGV2LmMKaW5kZXggMGQ1MjgxOS4uZTYyNTE2OCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRp
+YS92aWRlby92aWRlb2Rldi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vdmlkZW9kZXYuYwpA
+QCAtNDA2LDE3ICs0MDYsMjIgQEAgdm9pZCB2aWRlb19kZXZpY2VfcmVsZWFzZShzdHJ1Y3Qgdmlk
+ZW9fZGV2aWNlICp2ZmQpCiB9CiBFWFBPUlRfU1lNQk9MKHZpZGVvX2RldmljZV9yZWxlYXNlKTsK
+IAorLyoKKyAqCUFjdGl2ZSBkZXZpY2VzCisgKi8KKworc3RhdGljIHN0cnVjdCB2aWRlb19kZXZp
+Y2UgKnZpZGVvX2RldmljZVtWSURFT19OVU1fREVWSUNFU107CitzdGF0aWMgREVGSU5FX01VVEVY
+KHZpZGVvZGV2X2xvY2spOworCisvKiBtdXN0IGJlIGNhbGxlZCB3aXRoIHZpZGVvZGV2X2xvY2sg
+aGVsZCAqLwogc3RhdGljIHZvaWQgdmlkZW9fcmVsZWFzZShzdHJ1Y3QgZGV2aWNlICpjZCkKIHsK
+IAlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZmQgPSBjb250YWluZXJfb2YoY2QsIHN0cnVjdCB2aWRl
+b19kZXZpY2UsCiAJCQkJCQkJCWNsYXNzX2Rldik7CiAKLSNpZiAxCi0JLyogbmVlZGVkIHVudGls
+IGFsbCBkcml2ZXJzIGFyZSBmaXhlZCAqLwotCWlmICghdmZkLT5yZWxlYXNlKQotCQlyZXR1cm47
+Ci0jZW5kaWYKLQl2ZmQtPnJlbGVhc2UodmZkKTsKKwlpZiAodmZkLT5yZWxlYXNlKQorCQl2ZmQt
+PnJlbGVhc2UodmZkKTsKKwl2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0gPSBOVUxMOwogfQogCiBz
+dGF0aWMgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgdmlkZW9fZGV2aWNlX2F0dHJzW10gPSB7CkBA
+IC00MzEsMTkgKzQzNiwzMCBAQCBzdGF0aWMgc3RydWN0IGNsYXNzIHZpZGVvX2NsYXNzID0gewog
+CS5kZXZfcmVsZWFzZSA9IHZpZGVvX3JlbGVhc2UsCiB9OwogCi0vKgotICoJQWN0aXZlIGRldmlj
+ZXMKLSAqLwotCi1zdGF0aWMgc3RydWN0IHZpZGVvX2RldmljZSAqdmlkZW9fZGV2aWNlW1ZJREVP
+X05VTV9ERVZJQ0VTXTsKLXN0YXRpYyBERUZJTkVfTVVURVgodmlkZW9kZXZfbG9jayk7Ci0KIHN0
+cnVjdCB2aWRlb19kZXZpY2UqIHZpZGVvX2RldmRhdGEoc3RydWN0IGZpbGUgKmZpbGUpCiB7CiAJ
+cmV0dXJuIHZpZGVvX2RldmljZVtpbWlub3IoZmlsZS0+Zl9wYXRoLmRlbnRyeS0+ZF9pbm9kZSld
+OwogfQogRVhQT1JUX1NZTUJPTCh2aWRlb19kZXZkYXRhKTsKIAorc3RhdGljIGludCB2aWRlb19j
+bG9zZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkKK3sKKwl1bnNpZ25l
+ZCBpbnQgbWlub3IgPSBpbWlub3IoaW5vZGUpOworCWludCBlcnIgPSAwOworCXN0cnVjdCB2aWRl
+b19kZXZpY2UgKnZmbDsKKworCXZmbCA9IHZpZGVvX2RldmljZVttaW5vcl07CisKKwlpZiAodmZs
+LT5mb3BzICYmIHZmbC0+Zm9wcy0+cmVsZWFzZSkKKwkJZXJyID0gdmZsLT5mb3BzLT5yZWxlYXNl
+KGlub2RlLCBmaWxlKTsKKworCW11dGV4X2xvY2soJnZpZGVvZGV2X2xvY2spOworCWtvYmplY3Rf
+cHV0KCZ2ZmwtPmNsYXNzX2Rldi5rb2JqKTsKKwltdXRleF91bmxvY2soJnZpZGVvZGV2X2xvY2sp
+OworCisJcmV0dXJuIGVycjsKK30KKwogLyoKICAqCU9wZW4gYSB2aWRlbyBkZXZpY2UgLSBGSVhN
+RTogT2Jzb2xldGVkCiAgKi8KQEAgLTQ2OSw4ICs0ODUsOCBAQCBzdGF0aWMgaW50IHZpZGVvX29w
+ZW4oc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCiAJCX0KIAl9CiAJb2xk
+X2ZvcHMgPSBmaWxlLT5mX29wOwotCWZpbGUtPmZfb3AgPSBmb3BzX2dldCh2ZmwtPmZvcHMpOwot
+CWlmKGZpbGUtPmZfb3AtPm9wZW4pCisJZmlsZS0+Zl9vcCA9IGZvcHNfZ2V0KCZ2ZmwtPnByaXZf
+Zm9wcyk7CisJaWYgKGZpbGUtPmZfb3AtPm9wZW4gJiYga29iamVjdF9nZXQoJnZmbC0+Y2xhc3Nf
+ZGV2LmtvYmopKQogCQllcnIgPSBmaWxlLT5mX29wLT5vcGVuKGlub2RlLGZpbGUpOwogCWlmIChl
+cnIpIHsKIAkJZm9wc19wdXQoZmlsZS0+Zl9vcCk7CkBAIC0yMTc1LDYgKzIxOTEsOCBAQCBpbnQg
+dmlkZW9fcmVnaXN0ZXJfZGV2aWNlX2luZGV4KHN0cnVjdCB2aWRlb19kZXZpY2UgKnZmZCwgaW50
+IHR5cGUsIGludCBuciwKIAl9CiAKIAl2ZmQtPmluZGV4ID0gcmV0OworCXZmZC0+cHJpdl9mb3Bz
+ID0gKnZmZC0+Zm9wczsKKwl2ZmQtPnByaXZfZm9wcy5yZWxlYXNlID0gdmlkZW9fY2xvc2U7CiAK
+IAltdXRleF91bmxvY2soJnZpZGVvZGV2X2xvY2spOwogCW11dGV4X2luaXQoJnZmZC0+bG9jayk7
+CkBAIC0yMjI1LDcgKzIyNDMsNiBAQCB2b2lkIHZpZGVvX3VucmVnaXN0ZXJfZGV2aWNlKHN0cnVj
+dCB2aWRlb19kZXZpY2UgKnZmZCkKIAlpZih2aWRlb19kZXZpY2VbdmZkLT5taW5vcl0hPXZmZCkK
+IAkJcGFuaWMoInZpZGVvZGV2OiBiYWQgdW5yZWdpc3RlciIpOwogCi0JdmlkZW9fZGV2aWNlW3Zm
+ZC0+bWlub3JdPU5VTEw7CiAJZGV2aWNlX3VucmVnaXN0ZXIoJnZmZC0+Y2xhc3NfZGV2KTsKIAlt
+dXRleF91bmxvY2soJnZpZGVvZGV2X2xvY2spOwogfQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9tZWRp
+YS92NGwyLWRldi5oIGIvaW5jbHVkZS9tZWRpYS92NGwyLWRldi5oCmluZGV4IDNjOTM0MTQuLmQ0
+ZmU2MTcgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbWVkaWEvdjRsMi1kZXYuaAorKysgYi9pbmNsdWRl
+L21lZGlhL3Y0bDItZGV2LmgKQEAgLTM0Miw2ICszNDIsNyBAQCB2b2lkICpwcml2OwogCS8qIGZv
+ciB2aWRlb2Rldi5jIGludGVuYWwgdXNhZ2UgLS0gcGxlYXNlIGRvbid0IHRvdWNoICovCiAJaW50
+IHVzZXJzOyAgICAgICAgICAgICAgICAgICAgIC8qIHZpZGVvX2V4Y2x1c2l2ZV97b3BlbnxjbG9z
+ZX0gLi4uICovCiAJc3RydWN0IG11dGV4IGxvY2s7ICAgICAgICAgICAgIC8qIC4uLiBoZWxwZXIg
+ZnVuY3Rpb24gdXNlcyB0aGVzZSAgICovCisJc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBwcml2X2Zv
+cHM7IC8qIHZpZGVvX2Nsb3NlICovCiB9OwogCiAvKiBDbGFzcy1kZXYgdG8gdmlkZW8tZGV2aWNl
+ICovCi0tIAoxLjUuNS4xCgo=
+------=_Part_2031_8175071.1214972134700
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_2031_8175071.1214972134700--
