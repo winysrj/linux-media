@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52])
+Received: from ptb-relay01.plus.net ([212.159.14.212])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KDTIf-0003F3-3U
-	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 02:00:51 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-In-Reply-To: <4868A644.5030806@onelan.co.uk>
-References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
-	<4868A644.5030806@onelan.co.uk>
-Date: Tue, 01 Jul 2008 01:57:51 +0200
-Message-Id: <1214870271.2623.33.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr-1300 analog audio question
+	(envelope-from <linux-dvb@adslpipe.co.uk>) id 1KE4NF-0003eq-Sk
+	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 17:36:02 +0200
+Received: from [84.92.25.126] (helo=[192.168.1.100])
+	by ptb-relay01.plus.net with esmtp (Exim) id 1KE4Mi-0006bk-9A
+	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 16:35:28 +0100
+Message-ID: <486BA03D.4040904@adslpipe.co.uk>
+Date: Wed, 02 Jul 2008 16:35:25 +0100
+From: Andy Burns <linux-dvb@adslpipe.co.uk>
+MIME-Version: 1.0
+To: Linux DVB List <linux-dvb@linuxtv.org>
+References: <486A6F0F.7090507@adslpipe.co.uk> <486B9630.1080100@adslpipe.co.uk>
+	<200807021712.53659.zzam@gentoo.org>
+In-Reply-To: <200807021712.53659.zzam@gentoo.org>
+Subject: Re: [linux-dvb] [PATCH] Shrink saa7134 mmio mapped size
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,37 +28,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On 02/07/2008 16:12, Matthias Schwarzott wrote:
 
-Am Montag, den 30.06.2008, 10:24 +0100 schrieb Simon Farnsworth:
-> yoshi watanabe wrote:
-> > hello.
-> > 
-> > i'm using hauppauge hvr-1300 to receive video signal from playstation2
-> > console, pal model. video is just fine, but i'm having strange audio
-> > issues, but judging by some searching i did - that's pretty common
-> > with this card , although people have varied experience with the card.
-> > 
-> 
-> I've had similar issues with SAA7134 based cards, which were resolved by 
->   changing audio parameters.
-> 
-> If your problem is the same as mine was, try:
-> arecord --format=S16 \
->          --rate=32000 \
->          --period-size=8192 \
->          --buffer-size=524288 | aplay
-> 
-> This forces 32kHz sampling, and gives the card lots of buffer space to 
-> play with.
+> I have no real insight into the saa7134 core, but at least my card does have a 
+> memory region of 2K.
 
-32kHz is true for saa713x TV audio dma sampling, saa7130 has no support
-at all for it.
-
-But 48Khz is default on cx88 stuff.
-
-Cheers,
-Hermann
+Thanks, I only have one type of card, I'll try to investigate the best 
+way to programatically determine the size of the memory region and use 
+that instead of a hard-coded value, then resubmit a new patch.
 
 
 
