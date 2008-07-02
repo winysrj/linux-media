@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nebuchadnezzar.smejdil.cz ([195.122.194.203])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cijoml@compare.cz>) id 1KFsLl-0004tT-3A
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 17:09:57 +0200
-References: <200807061744.31775.hftom@free.fr> <20080707160504.7771bae0@bk.ru>
-	<20080707122656.9EFD2B8D3@nebuchadnezzar.smejdil.cz>
-	<200807071455.09787.hftom@free.fr>
-In-Reply-To: <200807071455.09787.hftom@free.fr>
-From: "CIJOML" <cijoml@volny.cz>
-To: Christophe Thommeret <hftom@free.fr>
-Date: Mon, 07 Jul 2008 17:09:53 +0200
-Mime-Version: 1.0
-Message-Id: <20080707150953.744A1B8D3@nebuchadnezzar.smejdil.cz>
+	(envelope-from <crope@iki.fi>) id 1KE0rn-0006oI-07
+	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 13:51:21 +0200
+Message-ID: <486B6BB2.7060708@iki.fi>
+Date: Wed, 02 Jul 2008 14:51:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Andrew Websdale <websdaleandrew@googlemail.com>
+References: <e37d7f810807020442q13107177n5a90b11faf51194d@mail.gmail.com>
+In-Reply-To: <e37d7f810807020442q13107177n5a90b11faf51194d@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
+Subject: Re: [linux-dvb] Dposh DVB-T USB2.0(ULi M9207) initialising OK but
+ no	response from scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,22 +20,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Q2hyaXN0b3BoZSBUaG9tbWVyZXQgd3JpdGVzOiAKCj4gTGUgTW9uZGF5IDA3IEp1bHkgMjAwOCAx
-NDoyNjo1NiBDSUpPTUwsIHZvdXMgYXZleiDDqWNyaXTCoDoKPj4gQmV0dGVyIHF1ZXN0aW9uIHdo
-ZW4gd2lsbCBiZSBmaW5hbGx5IGZpeGVkIHRoYXQgZGFtbmVkIHNpbGx5IGJ1ZyB3aGVuIEkKPj4g
-d2F0Y2ggY2hhbm5lbCAyIGFuZCBwcmVzcyBidXR0b24gMiBhZ2Fpbiwga2FmZmVpbmUgcmV0dW5l
-cyBzYW1lIGNoYW5uZWwKPj4gaW5zdGVhZCBqdXN0IHNob3dpbmcgaW5mbyB3aXRoIGNoYW5uZWwg
-bmFtZSA7KQo+IAo+IFByb2JhYmx5IGJlY2F1c2UgeW91IGRvdWJsZSBjbGljayA6KQoKSSBkb24n
-dCB1c2UgbW91c2Ugbm9yIHJlbW90ZSAtIGp1c3QgQlQga2V5Ym9hcmQuIFRyeSBpdCBiaW5kIGNo
-YW5uZWwgdG8gCm51bWJlciwgdGhlbiB0dW5lIHRoYXQgY2hhbm5lbCBwcmVzc2luZyBudW1iZXIg
-YW5kIHRoYW4gYWdhaW4gcHJlc3Mga2V5IDopIAoKS2FmZmVpbmUgdHVuZXMgc2FtZSBjaGFubmVs
-IGFnYWluIDspIAoKTWljaGFsIAoKPiAKPiAtLSAKPiBDaHJpc3RvcGhlIFRob21tZXJldCAKPiAK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
-YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5v
-cmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+terve Andrew,
+Andrew Websdale wrote:
+> Hi All,
+> 
+> I've been trying to amend the M920x driver to cope with the MT2060 
+> tuner. My dmesg output looks encouraging :
+> usb 5-1: new high speed USB device using ehci_hcd and address 5
+> usb 5-1: configuration #1 chosen from 1 choice
+> Probing for m920x device at interface 0
+> dvb-usb: found a 'Dposh(mt2060 tuner) DVB-T USB2.0' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software 
+> demuxer.
+> DVB: registering new adapter (Dposh(mt2060 tuner) DVB-T USB2.0)
+> m920x_mt352_frontend_attach
+> DVB: registering frontend 0 (Zarlink MT352 DVB-T)...
+> m920x_mt2060_tuner_attach
+> MT2060: successfully identified (IF1 = 1220)
+> dvb-usb: Dposh(mt2060 tuner) DVB-T USB2.0 successfully initialized and 
+> connected.
+>   
+> but scanning produces no result. I thought it might be the firmware so I 
+> used USBSnoop ( ver 2.0 from here 
+> <http://www.pcausa.com/Utilities/UsbSnoop/SniffUSB-x86-2.0.0006.zip>  , 
+> I think its slightly easier to use than the original) and extracted a 
+> new firmware file (attached) . The firmware loaded without complaint, 
+> but still no scan result. I'm a bit stuck now, anyone got any 
+> suggestions as to how I should proceed?
+
+I have following list to check:
+1) firmware (you tested this one already)
+2) demodulator (it is MT352 I think, but configuration / settings could 
+be wrong)
+3) wrong endpoint used for mpeg ts
+
+I can help if you take sniffs with usbsnoop, but hopefully you will find 
+error yourself.
+http://benoit.papillault.free.fr/usbsnoop/
+
+regards
+Antti
+-- 
+http://palosaari.fi/
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
