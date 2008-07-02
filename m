@@ -1,21 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m647qstk011584
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 03:52:54 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m647qgsX011997
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 03:52:42 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEg5x-00083q-K1
-	for video4linux-list@redhat.com; Fri, 04 Jul 2008 09:52:41 +0200
-Message-ID: <486DD6A6.7020209@hhs.nl>
-Date: Fri, 04 Jul 2008 09:52:06 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------070900010205040601080900"
-Cc: video4linux-list@redhat.com
-Subject: PATCH: gspca-add-driver-get_buf_size-method.patch saved
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m627Rabf013350
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 03:27:36 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m627ROtY019055
+	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 03:27:25 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KDwkI-0003Ul-1y
+	for video4linux-list@redhat.com; Wed, 02 Jul 2008 07:27:18 +0000
+Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 07:27:18 +0000
+Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 07:27:18 +0000
+To: video4linux-list@redhat.com
+From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Date: Wed, 02 Jul 2008 10:27:12 +0300
+Message-ID: <486B2DD0.7060903@teltonika.lt>
+References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
+	<20080701124657.30446.28078.sendpatchset@rx1.opensource.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20080701124657.30446.28078.sendpatchset@rx1.opensource.se>
+Cc: linux-sh@vger.kernel.org
+Subject: Re: [PATCH 02/07] soc_camera: Let the host select videobuf_queue
+ type
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,97 +39,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------070900010205040601080900
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Magnus Damm wrote:
+> This patch makes it possible for hosts (soc_camera drivers for the soc)
+> to select a different videobuf queue than VIDEOBUF_DMA_SG. This is needed
+> by the SuperH Mobile CEU hardware which requires physically contiguous
+> buffers. While at it, rename the spinlock callbacks to file callbacks.
+> 
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> ---
+> 
+>  drivers/media/video/Kconfig      |    4 ++--
+>  drivers/media/video/pxa_camera.c |   15 ++++++++++++---
+>  drivers/media/video/soc_camera.c |   27 +++++++--------------------
+>  include/media/soc_camera.h       |    6 +++---
+>  4 files changed, 24 insertions(+), 28 deletions(-)
+> 
+> --- 0001/drivers/media/video/Kconfig
+> +++ work/drivers/media/video/Kconfig	2008-07-01 13:05:48.000000000 +0900
+> @@ -901,8 +901,7 @@ endif # V4L_USB_DRIVERS
+>  
+>  config SOC_CAMERA
+>  	tristate "SoC camera support"
+> -	depends on VIDEO_V4L2 && HAS_DMA
+> -	select VIDEOBUF_DMA_SG
+> +	depends on VIDEO_V4L2
 
-Hi All,
+Bug here. You won't be able to compile soc_camera without host driver
+or host driver as module. SOC_CAMERA has to select VIDEOBUF_GEN!
 
-This patch adds a get_buff_size op to the driver desc struct, and modifies
-gspca_get_buff_size to call this (if defined) instead of calculating the
-buff_size itself.
-
-This is needed for the pac207 with decoding removed, as the pac207 does
-line by line compression prefixing each line with a header indicating wether
-or not it is compressed, and only does compression when needed to meet
-bandwidth constraints. In half resolution mode, when there are no
-bandwidth constraints, the imagesize is actually larger (due to the line
-headers) then the raw bayer, so in this case gspca_get_buff_size does the
-wrong thing. The best solution in special cases like this is to allow the
-driver to provide its own get_buff_size, overriding gspca_get_buff_size's
-normal calculations.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
-
---------------070900010205040601080900
-Content-Type: text/plain;
- name="gspca-add-driver-get_buf_size-method.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="gspca-add-driver-get_buf_size-method.patch"
-
-This patch adds a get_buff_size op to the driver desc struct, and modifies
-gspca_get_buff_size to call this (if defined) instead of calculating the
-buff_size itself.
-
-This is needed for the pac207 with decoding removed, as the pac207 does
-line by line compression prefixing each line with a header indicating wether
-or not it is compressed, and only does compression when needed to meet
-bandwidth constraints. In half resolution mode, when there are no
-bandwidth constraints, the imagesize is actually larger (due to the line
-headers) then the raw bayer, so in this case gspca_get_buff_size does the
-wrong thing. The best solution in special cases like this is to allow the
-driver to provide its own get_buff_size, overriding gspca_get_buff_size's
-normal calculations.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r b8dc1b84f3c5 linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 09:36:32 2008 +0200
-+++ b/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 09:44:31 2008 +0200
-@@ -400,6 +400,9 @@
- static int gspca_get_buff_size(struct gspca_dev *gspca_dev, int mode)
- {
- 	unsigned int size;
-+
-+	if (gspca_dev->sd_desc->get_buff_size)
-+		return gspca_dev->sd_desc->get_buff_size(gspca_dev, mode);
- 
- 	size =  gspca_dev->cam.cam_mode[mode].width *
- 		gspca_dev->cam.cam_mode[mode].height *
-diff -r b8dc1b84f3c5 linux/drivers/media/video/gspca/gspca.h
---- a/linux/drivers/media/video/gspca/gspca.h	Fri Jul 04 09:36:32 2008 +0200
-+++ b/linux/drivers/media/video/gspca/gspca.h	Fri Jul 04 09:44:31 2008 +0200
-@@ -100,6 +100,7 @@
- 				struct gspca_frame *frame,
- 				__u8 *data,
- 				int len);
-+typedef int (*cam_get_buff_size_op) (struct gspca_dev *gspca_dev, int mode);
- 
- struct ctrl {
- 	struct v4l2_queryctrl qctrl;
-@@ -126,6 +127,7 @@
- 	cam_jpg_op get_jcomp;
- 	cam_jpg_op set_jcomp;
- 	cam_qmnu_op querymenu;
-+	cam_get_buff_size_op get_buff_size; /* optional */
- };
- 
- /* packet types when moving from iso buf to frame buf */
-
---------------070900010205040601080900
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>  	help
+>  	  SoC Camera is a common API to several cameras, not connecting
+>  	  over a bus like PCI or USB. For example some i2c camera connected
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------070900010205040601080900--
