@@ -1,21 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CJV9Cu007131
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:31:09 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CJUtUH009788
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:30:56 -0400
-Message-ID: <4879081F.8030004@hhs.nl>
-Date: Sat, 12 Jul 2008 21:38:07 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63GqxZf031219
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 12:52:59 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63GqcnD014873
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 12:52:38 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so443327fga.7
+	for <video4linux-list@redhat.com>; Thu, 03 Jul 2008 09:52:37 -0700 (PDT)
+Message-ID: <30353c3d0807030952i3152e9acsca530afabbfe5f7a@mail.gmail.com>
+Date: Thu, 3 Jul 2008 12:52:37 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <30353c3d0807020839r6e18978dqc0b38f6c8d9c177@mail.gmail.com>
 MIME-Version: 1.0
-To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Announcing libv4l 0.3.5
+Content-Disposition: inline
+References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
+	<200807012350.53604.laurent.pinchart@skynet.be>
+	<30353c3d0807011528v561d4de8ycb7c3f1d8afc82f9@mail.gmail.com>
+	<200807020104.52122.laurent.pinchart@skynet.be>
+	<30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
+	<30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
+	<30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
+	<30353c3d0807020839r6e18978dqc0b38f6c8d9c177@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,23 +37,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+OK, here's my analysis of the locking situation:
 
-Here is 0.3.5:
-http://people.atrpms.net/~hdegoede/libv4l-0.3.5.tar.gz
+video_open and video_close are both called with the BKL held and are
+therefore non-preemptable. This means that video_open and video_close
+will always run from beginning to end without interruption by any of
+the other functions. Keeping this in mind, lets evaluate the following
+sequences:
 
-This release has the following changes:
+video_register_device (preempted)
+ video_open
 
-libv4l-0.3.5
-------------
-* Make JPEG decoding more robust
+video_register_device (preempted)
+ video_close
 
+video_unregister_device (preempted)
+ video_open
+
+video_unregister_device (preempted)
+ video_close
+
+In all of the above sequences, videodev_lock is obtained by
+video_register_device or video_unregister_device. video_open and
+video_close will then deadlock while waiting to obtain the lock. Since
+video_open and video_close can not be preempted, the lock will never
+be obtained. The first and third above currently exist without this
+patch. The second and fourth are a result of this patch.
+
+Due to the use of the BKL, I cannot currently think of any viable
+solutions to these issues. These issues might be solvable once the BKL
+is removed, but it will also present a whole range of other
+challenges.
 
 Regards,
 
-Hans
-
-
+David Ellingsworth
 
 --
 video4linux-list mailing list
