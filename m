@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KM05h-0001sB-SH
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 14:38:43 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4887B87100003FAE for linux-dvb@linuxtv.org;
-	Thu, 24 Jul 2008 14:38:38 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Thu, 24 Jul 2008 14:38:34 +0200
-References: <488860FE.5020500@iinet.net.au>
-	<200807241326.07492.Nicola.Sabbi@poste.it>
-	<48886F49.8030206@iinet.net.au>
-In-Reply-To: <48886F49.8030206@iinet.net.au>
+	(envelope-from <crope@iki.fi>) id 1KEMie-0005Ja-CY
+	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 13:11:21 +0200
+Message-ID: <486CB3D2.3000702@iki.fi>
+Date: Thu, 03 Jul 2008 14:11:14 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807241438.34330.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] dvb mpeg2?
+To: Alistair M <tlli@hotmail.com>
+References: <BAY136-W51AE9A3EF97CBB5CEA6E0ED29E0@phx.gbl>	<486B3617.3070702@iki.fi>
+	<BAY136-W33BDD7C9C5D3A806143D41D2980@phx.gbl>
+In-Reply-To: <BAY136-W33BDD7C9C5D3A806143D41D2980@phx.gbl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Leadtek WinFast DTV Dongle Gold Remote issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,20 +26,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 24 July 2008 14:02:17 you wrote:
+Alistair M wrote:
+> Hello Antii,
+> 
+> I've attached the usb snoop. I hope I did it correctly.
 
->
-> Hi Nico,
-> I was a huge fan of avidemux until about 2 hours ago when I
-> discovered that editing a file caused all sorts of grief with a/v
-> sync. Its doc's tell me to send the file through Projectx first,
-> etc
+It was correct :)
 
-avidemux is still the way to go: in order to fix the synchrony just
-run mplayer on the file beforehand taking notice of the value of
-"rc" on the status line when the delay between audio and video
-drops to 0, then insert that value in the delay field of avidemux
-(-N)
+I added IR-code table to the driver. Now we should find correct keys for 
+those codes.
+1) install driver from http://linuxtv.org/hg/~anttip/af9015-new/ (make & 
+make install; make rmmod; tail -100f /var/log/messages)
+2) it should print remote codes to the message log when you press remote 
+keys. Write down which key gives which code.
+
+Here is example what it should output to the message-log when key is 
+pressed;
+af9015_rc_query: 00 00 1e 00 00 00 00 00
+af9015_rc_query: 00 00 1f 00 00 00 00 00
+af9015_rc_query: 00 00 20 00 00 00 00 00
+af9015_rc_query: 00 00 21 00 00 00 00 00
+
+report like:
+number 1 = af9015_rc_query: 00 00 1f 00 00 00 00 00
+channel up = af9015_rc_query: 00 00 1f 00 00 00 00 00
+volume down = af9015_rc_query: 00 00 20 00 00 00 00 00
+
+> Thank you so much for this.
+> 
+> Regards,
+> Alistair.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
