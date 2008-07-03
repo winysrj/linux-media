@@ -1,33 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6U8XaBj028552
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 04:33:47 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6U82c3V006024
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 04:03:09 -0400
-Message-ID: <48902011.7020609@hni.uni-paderborn.de>
-Date: Wed, 30 Jul 2008 10:02:25 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6357f6V003618
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 01:07:41 -0400
+Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6357TE7023078
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 01:07:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dwaine Garden <dwainegarden@rogers.com>
+Date: Thu, 3 Jul 2008 07:07:19 +0200
+References: <25283.57206.qm@web88207.mail.re2.yahoo.com>
+In-Reply-To: <25283.57206.qm@web88207.mail.re2.yahoo.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <48030F6F.1040007@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
-	<480477BD.5090900@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>
-	<481ADED1.8050201@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021143250.4920@axis700.grange>
-	<481AF6CA.9030505@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805021314510.4920@axis700.grange>
-	<481AFB30.5070508@hni.uni-paderborn.de>
-	<481B3D2F.80203@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0805022059090.31894@axis700.grange>
-	<481F0BFA.7010306@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0807291909510.17188@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0807291909510.17188@axis700.grange>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Disposition: inline
+Message-Id: <200807030707.19851.hverkuil@xs4all.nl>
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Some suggestions for the soc_camera interface
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Can we remove saa711x.c?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,59 +29,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> Hi Stefan,
+On Thursday 03 July 2008 07:03:07 Dwaine Garden wrote:
+> What about the saa7113?  Have any of those devices moved over to the
+> saa7115.c? It was the best decision for the usbvision driver to use
+> what was packaged in the v4l kernel.
+
+I think we never had a saa7113.c. I can't find it in any case.
+
+Regards,
+
+	Hans
+
 >
-> On Mon, 5 May 2008, Stefan Herbrechtsmeier wrote:
 >
->   
->> Guennadi Liakhovetski schrieb:
->>     
->>> So, I would say, patches 1 and 3 look useful to me. Please fix formatting
->>> issues, add your Signed-off-by and submit in two separate emails.
->>>   
->>>       
->> At the moment I update my system to the 2.6.25 kernel. When everything works
->> fine, I submit the reworked
->> patches the next days.
->>     
+> ----- Original Message ----
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+> To: dwainegarden@rogers.com
+> Cc: v4l <video4linux-list@redhat.com>; Mauro Carvalho Chehab
+> <mchehab@infradead.org> Sent: Tuesday, July 1, 2008 2:28:26 AM
+> Subject: Re: Can we remove saa711x.c?
 >
-> How is this going? Do you have your patches ready? We have a few patches 
-> brewing from sveral people, that touch the same code as yours, so, it 
-> would be good to have your "move .power, .reset to camera-link" patch 
-> applied, then we could move on with the others.
->   
-Sorry for the long delay. I’m waiting for some answer form OmniVision if 
-I’m allowed to publish my current version of the OV9655 driver or 
-whether something violent the NDA.
+> > Sounds good to me.  What about the other saa711().c modules?  Have
+> > all the drivers moved over to the saa7115.c?
+>
+> saa7111 is still used by zoran and mxb.
+> saa7114 is still used by zoran as well.
+>
+> I can test the zoran with the saa7111 (I'm fairly certain my iomega
+> Buz has a saa7111), and I've contacted the mxb maintainer in the hope
+> that he has one (it's been unmaintained for two years or so, so it
+> might be difficult to find someone with that hardware).
+>
+> I'm hoping someone might have a zoran device with a saa7114, but if
+> not then I wonder whether we shouldn't just replace it and cross our
+> fingers.
+>
+> Regards,
+>
+>         Hans
+>
+> > ------Original Message------
+> > From: Hans Verkuil
+> > Sender:
+> > To: v4l
+> > Cc: Mauro Carvalho Chehab
+> > Subject: Can we remove saa711x.c?
+> > Sent: Jun 30, 2008 4:51 PM
+> >
+> > Hi all,
+> >
+> > It looks like the saa711x module is unused right now. Unless I'm
+> > missing something I propose we remove it before the 2.6.27 window
+> > opens.
+> >
+> > Regards,
+> >
+> >     Hans
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe
+> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> >
+> >
+> > Sent from my BlackBerry device on the Rogers Wireless Network
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-Should I resend my "move .power, .reset to camera-link" patch without 
-the driver or waiting until I can send my OV9655 driver? At the moment 
-there is no driver which uses this.
-
-I have also implement some simple timeperframe configuration 
-(vidioc_s_parm) via clock PLL and divider configuration in OV9655 
-driver, but only with a fix mclk_10khz of 2600.
-
-Regards
-Stefan
-
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
-
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
-
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
-
-mailto : hbmeier@hni.upb.de
-
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
 
 
 --
