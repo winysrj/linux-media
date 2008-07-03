@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nskntmtas06p.mx.bigpond.com ([61.9.168.152])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1KMyhD-0007B3-MH
-	for linux-dvb@linuxtv.org; Sun, 27 Jul 2008 07:21:29 +0200
-Received: from nskntotgx01p.mx.bigpond.com ([58.173.115.45])
-	by nskntmtas06p.mx.bigpond.com with ESMTP id
-	<20080727052051.STCL18197.nskntmtas06p.mx.bigpond.com@nskntotgx01p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Sun, 27 Jul 2008 05:20:51 +0000
-Received: from [192.168.0.1] (really [58.173.115.45])
-	by nskntotgx01p.mx.bigpond.com with ESMTP
-	id <20080727052051.BPCF10912.nskntotgx01p.mx.bigpond.com@[192.168.0.1]>
-	for <linux-dvb@linuxtv.org>; Sun, 27 Jul 2008 05:20:51 +0000
-From: Jonathan Hummel <jhhummel@bigpond.com>
-To: linux dvb mailing list <linux-dvb@linuxtv.org>
-Date: Sun, 27 Jul 2008 15:20:51 +1000
-Message-Id: <1217136051.7513.10.camel@mistress>
-Mime-Version: 1.0
-Subject: [linux-dvb] Leadtek Winfast PxDVR 3200 H
+Received: from n66.bullet.mail.sp1.yahoo.com ([98.136.44.50])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KEJAj-0007hv-MY
+	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 09:24:07 +0200
+Date: Thu, 3 Jul 2008 00:23:28 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, Kingsley Turner <krt@krt.com.au>
+In-Reply-To: <486C6ED4.4080502@krt.com.au>
+MIME-Version: 1.0
+Message-ID: <520580.87481.qm@web46107.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,25 +18,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-77u/CiAgICAgICAgSGksCiAgICAgICAgCiAgICAgICAgSSB3YXMgd29uZGVyaW5nIGlmIGFueW9u
-ZSBjb3VsZCBoZWxwIG1lIGdldCB0aGlzIGNhcmQgdXAgYW5kCiAgICAgICAgd29ya2luZyBpbgog
-ICAgICAgIGt1YnVudHUgOC4wNC4gSSd2ZSB0cmllZCBzZXR0aW5nIGl0IHVwIG11Y2ggbGlrZSBh
-IExlYWR0ZWsKICAgICAgICBEVFYyMDAwSCwKICAgICAgICB2ZXJzaW9uIEosIGFzIHBlciBpbnN0
-cnVjdGlvbnMgaGVyZToKICAgICAgICBodHRwOi8vd2lraS5saW51eG1jZS5vcmcvaW5kZXgucGhw
-L0xlYWR0ZWtfRFRWMjAwMEgKICAgICAgICAoSSd2ZSBiZWVuIHVzaW5nIHRoYXQgY2FyZCBmb3Ig
-YSB3aGlsZSBpbiBhbm90aGVyIGJveCkKICAgICAgICAKICAgICAgICBTeXN0ZW06CiAgICAgICAg
-R2liYWd5dGUgbW9oZXIgYm9hcmQgKGFsbCBpbiBvbmUpIEdBLU1BNzhHTS1TMkgKICAgICAgICBB
-TUQgQXRobG9uIFgyIDYwMDAgKDIgY29yZSwgM0dIeikKICAgICAgICA0RyByYW0sIGhlYXBzIG9m
-IGhhcmQgZGlzawogICAgICAgIDY0Yml0IEtERSA0IGt1YnVudHUsIGtlcm5lbDogMi42LjI0LTIw
-IGdlbmVyaWMKICAgICAgICAKICAgICAgICBodHRwOi8vd3d3LmxpbnV4dHYub3JnL3dpa2kvaW5k
-ZXgucGhwL0RWQi1UX1BDSWVfQ2FyZHMKICAgICAgICBzdWdnZXN0ZWQgSSBlbWFpbCB0aGlzIGFk
-ZHJlc3MuCiAgICAgICAgCiAgICAgICAgCiAgICAgICAgY2hlZXJzCiAgICAgICAgCiAgICAgICAg
-Sm9uCiAgICAgICAgCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+--- On Thu, 7/3/08, Kingsley Turner <krt@krt.com.au> wrote:
+
+> I've got some DVB-T channel "channel.conf"
+> data for Europe / Basel 
+> (Switzerland).
+> 
+> sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
+
+You should also be able to receive the Suisse Romande TSR multiplex
+on ch56 -- 754MHz, which can be received with a simple antenna with
+ease near Freiburg im Breisgau (to the North, in Deutschland), at least.
+
+I'm not sure where the signal originates, as in general, throughout
+much of Switzerland, there exists a Single Frequency Network covering
+a larger region -- for the german-speaking regions ch31 is used from
+Basel towards the east, then channel 32 is used from perhaps halfway
+to Zuerich, and by the time you are in the Ostschweiz eastern region,
+ch34 is in use -- both from the higher-power transmitters, as well as
+the lower-power transmitters to fill in areas not covered otherwise.
+
+Basel being one of the border regions where both the german-language
+SF multiplex and the french-language TSR multiplex are receivable (some
+overlap in included stations), to say nothing of foreign broadcasts
+(France from Mulhouse, Germany from Vogtsburg/Freiburg i.B. and
+Bad Saeckingen/Hochrhein) with a minimum of effort.
+
+
+merci,
+barry bouwsma
+
+
+      
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
