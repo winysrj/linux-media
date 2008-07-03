@@ -1,15 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Yusik Kim <yusikk@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Date: Sat, 26 Jul 2008 11:30:39 -0700
-References: <200807260353.23359.yusikk@gmail.com>
-	<488B4524.5070203@linuxtv.org>
-In-Reply-To: <488B4524.5070203@linuxtv.org>
+Received: from bsmtp.bon.at ([213.33.87.14])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michael.schoeller@schoeller-soft.net>)
+	id 1KERya-00025D-Rh
+	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 18:48:13 +0200
+Received: from [10.1.2.1] (unknown [80.123.101.150])
+	by bsmtp.bon.at (Postfix) with ESMTP id B85FA2C4022
+	for <linux-dvb@linuxtv.org>; Thu,  3 Jul 2008 18:47:34 +0200 (CEST)
+Message-ID: <486D02A9.7080508@schoeller-soft.net>
+Date: Thu, 03 Jul 2008 18:47:37 +0200
+From: =?ISO-8859-15?Q?Michael_Sch=F6ller?=
+	<michael.schoeller@schoeller-soft.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807261130.39977.yusikk@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1950 digital part
+To: linux-dvb@linuxtv.org
+References: <200806071627.30907.dkuhlen@gmx.net>	<484C056E.7010002@schoeller-soft.net>	<200806092248.01786.dkuhlen@gmx.net>
+	<48519BEB.3030609@schoeller-soft.net>
+In-Reply-To: <48519BEB.3030609@schoeller-soft.net>
+Subject: [linux-dvb] pctv452e + PS3 + PPC Linux(YDL, Fedora)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,45 +30,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Saturday 26 July 2008 08:39:16 Steven Toth wrote:
-> Yusik Kim wrote:
-> > Hi,
-> >
-> > Has anyone got the digital part of this device to work properly?
-> >
-> > Modules are compiled from the latest (7/26) v4l-dvb snapshot with a
-> > 2.6.25.4 kernel. The modules seem to load properly and the analog part
-> > works in mythtv. The digital part kind of works.
-> > The problems I can observe are:
-> > 1. Can only scan 3 digital channels using both the command line scan and
-> > mythtv. My other PCI TV card scans 36 of them.
-> > 2. Only occasionally locks in to a channel.
-> > 3. Takes 5 minutes to lock in to a channel when it actually does succeed.
-> >
-> > I saw from another mailing list that people were trying to get the remote
-> > control to work so I'm guessing the core of the device functions
-> > properly. If this is the current state of support, I'd be glad to help
-> > testing.
->
-> What steps did you take to prove your hardware is function properly, or
-> your digital cable feed is reliable?
->
-> The drivers works for me, it sounds like you have an environmental issue.
->
-> - Steve
+Well I just want to point out that my hole Problem with the pctv452e 
+still exists.
 
-Thank you for replying Steve.
-I have a windows partition on the same machine and it works perfectly there. 
-So I don't think there is a problem with the cable feed or hardware itself. 
+Maybe after one month there is a solution now?
 
-Not sure if it has any relevance but I noticed in windows, the red LED light 
-in the front is always on whereas in linux, it only turns on right before it 
-tries to lock in to a channel. 
+An exact problem description is found here
+http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026824.html
+and
+http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026495.html
+and
+http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026823.html
 
-I should add that the 3 channels that were successfully scaned do not always 
-get picked up in subsequent attempts. It seems like it has trouble tuning. At 
-least it's good to know it's a problem on my end. Just have to find a way to 
-fix it.
+Michael
 
 _______________________________________________
 linux-dvb mailing list
