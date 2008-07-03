@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m610laPj018414
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 20:47:36 -0400
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m610l1AB031729
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 20:47:01 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: frtzkatz@yahoo.com
-In-Reply-To: <642127.1103.qm@web63003.mail.re1.yahoo.com>
-References: <642127.1103.qm@web63003.mail.re1.yahoo.com>
-Content-Type: text/plain
-Date: Tue, 01 Jul 2008 02:44:22 +0200
-Message-Id: <1214873062.2623.51.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63KWKoT006606
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:32:20 -0400
+Received: from smtp100.biz.mail.re2.yahoo.com (smtp100.biz.mail.re2.yahoo.com
+	[206.190.52.46])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m63KW5Mh005890
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:32:07 -0400
+Message-ID: <486D3754.1090500@embeddedalley.com>
+Date: Fri, 04 Jul 2008 00:32:20 +0400
+From: Vitaly Wool <vital@embeddedalley.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, pksings@gmail.com
-Subject: Re: DVICO dual express second tuner?
+Subject: [PATCH/resend] em28xx: add Compro Video Mate support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,82 +25,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Am Montag, den 30.06.2008, 15:02 -0700 schrieb Fritz Katz:
-> "Paul Kelly" wrote Monday, June 30, 2008: 
-> >  
-> >  I got the latest tree and firmware and successfully 
-> >  brought up a new DVICO dual express and can tune HD cable.
-> >  
-> >  According to the marketing fluff this card has two 
-> >  tuners and can tune either two digital HD streams or one 
-> >  analog and one HD stream. 
-> >  
-> >  Can anyone give me any idea how to make it do that? 
-> >  Mythtv only identifies tuner 0. 
-> >  
-> >  Any information needed will happily be supplied, 
-> >  please ask.
-> >  
-> >  Thanks in advance
-> >  
-> >  PK
-> _________________________
-> 
-> Hello Paul Kelly,
-> 
->   I don't own one myself, but I can point you in the direction of the HCL (Linux Hardware Compatability List):
-> 
-> http://www.linuxquestions.org/hcl/showproduct.php/product/4012/cat/196
-> 
->   Maybe info here can help you getting the second tuner working:
-> http://www.mythtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Digital_Installation
-> 
-> > The "DViCO FusionHDTV DVB-T Dual Tuner" card has two tuners. 
-> > One is PCI, the other is USB. You will either need to connect 
-> > an external USB cable to your card, or use the supplied internal 
-> > USB cable which connects to your motherboard. This will enable 
-> > the second tuner and is needed for the remote to function.
-> 
-> Let me know how it works out.
-> 
-> -----------------------
-> Everyone,
-> 
-> I'm considering getting this el-cheapo card that isn't on the HCL list :
-> 
-> "Sabrent Philips7130 PCI TV Tuner/Video Capture Card"
-> http://www.geeks.com/details.asp?invtid=TV-PCIRC&cat=VID
+Hi guys,
 
-oh my, this is a historical document.
+resending as the original message seems to have gotten lost somewhere...
 
-Are those warnings already valid for all over the US or in California
-only?
+So at some point I got the idea of enabling my good old Compro VideoMate
+For You USB TV box, and below what I've done to make it working, to some
+extent.
 
-> 
-> Reviewers using Windoze at NewEgg gave it bad reviews. But maybe it works better for Linux-TV?  What's your experience?
+The TV tuner is now recognized fine and TV apps work well with it,
+including channels surfing etc., but I can't get the sound working. It's
+not coming off the TV tuner. As far as I understand, the tuner has the
+old 2820 chip with USB audio class but it's not detected b/c of the data
+read from the I2C flash chip.
 
-It will have US and/or European chips taking most of the remaining
-possible profit. But not the newest ones ...
+ drivers/media/video/em28xx/em28xx-cards.c |   19 +++++++++++++++++++
+ drivers/media/video/em28xx/em28xx.h       |    1 +
+ 2 files changed, 20 insertions(+)
 
-> I'm looking for a card that does analog PAL/NTSC/SECAM -- that also works for Linux-TV.
+Index: linux-next/drivers/media/video/em28xx/em28xx-cards.c
+===================================================================
+- --- linux-next.orig/drivers/media/video/em28xx/em28xx-cards.c
++++ linux-next/drivers/media/video/em28xx/em28xx-cards.c
+@@ -439,6 +439,23 @@ struct em28xx_board em28xx_boards[] = {
+ 			.amux     = 0,
+ 		} },
+ 	},
++	[EM2820_BOARD_COMPRO_VIDEO_MATE] = {
++		.name         = "Compro VideoMate ForYou/Stereo",
++		.vchannels    = 2,
++		.tuner_type   = TUNER_LG_PAL_NEW_TAPC,
++		.tda9887_conf = TDA9887_PRESENT,
++		.decoder      = EM28XX_TVP5150,
++		.input          = { {
++			.type     = EM28XX_VMUX_TELEVISION,
++			.vmux     = TVP5150_COMPOSITE0,
++			.amux     = EM28XX_AMUX_LINE_IN,
++		}, {
++			.type     = EM28XX_VMUX_SVIDEO,
++			.vmux     = TVP5150_SVIDEO,
++			.amux     = EM28XX_AMUX_LINE_IN,
++		} },
++	},
++
+ };
+ const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
 
-If you have a good analog cable-tv signal, you might try.
-The tuner will do only NTSC and the TV sound is MONO only.
+@@ -492,6 +509,8 @@ struct usb_device_id em28xx_id_table []
+ 			.driver_info = EM2880_BOARD_TERRATEC_HYBRID_XS },
+ 	{ USB_DEVICE(0x0ccd, 0x0047),
+ 			.driver_info = EM2880_BOARD_TERRATEC_PRODIGY_XS },
++	{ USB_DEVICE(0x185b, 0x2041),
++			.driver_info = EM2820_BOARD_COMPRO_VIDEO_MATE },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+Index: linux-next/drivers/media/video/em28xx/em28xx.h
+===================================================================
+- --- linux-next.orig/drivers/media/video/em28xx/em28xx.h
++++ linux-next/drivers/media/video/em28xx/em28xx.h
+@@ -58,6 +58,7 @@
+ #define EM2880_BOARD_PINNACLE_PCTV_HD_PRO	17
+ #define EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2	18
+ #define EM2860_BOARD_POINTNIX_INTRAORAL_CAMERA  19
++#define EM2820_BOARD_COMPRO_VIDEO_MATE		20
 
-For other inputs are no known restrictions, except you will have to use
-the analog audio loop through to the sound card on that saa7130.
-No analog to digital audio converters on it.
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
 
-Cheers,
-Hermann
+Vitaly
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
 
-> 
-> Regards,
-> -- Fritz Katz
-> frtzkatz (at) yahoo.com
-
+iEYEARECAAYFAkhtN1QACgkQhA9O4GSDNst68QCfRZVmQSSUe5bHLTIG8QwUhWrs
+DKkAniWdpAHnKt8WTYZUmlEPkay5Bp0C
+=kV5h
+-----END PGP SIGNATURE-----
 
 --
 video4linux-list mailing list
