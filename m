@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail4.riotinto.com ([210.8.150.186])
+Received: from tr14.bluewin.ch ([195.186.19.82])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Tom.George@riotinto.com>) id 1KFjdf-0005Fq-S1
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 07:51:55 +0200
-Content-class: urn:content-classes:message
+	(envelope-from <krt@krt.com.au>) id 1KEI8J-0004Dg-61
+	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 08:17:31 +0200
+Received: from [192.168.1.35] (85.0.130.198) by tr14.bluewin.ch (Bluewin
+	7.3.122) (authenticated as kingsley.turner)
+	id 480CA5BE01115231 for linux-dvb@linuxtv.org;
+	Thu, 3 Jul 2008 06:14:04 +0000
+Message-ID: <486C6ED4.4080502@krt.com.au>
+Date: Thu, 03 Jul 2008 08:16:52 +0200
+From: Kingsley Turner <krt@krt.com.au>
 MIME-Version: 1.0
-Date: Mon, 7 Jul 2008 13:51:10 +0800
-Message-ID: <C74607610AB6D64794BA3820A9567DA705AAD625@sbscpex06.corp.riotinto.org>
-In-Reply-To: <1215159877.7545.3.camel@acropora>
-References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org><486D9AE8.1030205@internode.on.net>
-	<1215159877.7545.3.camel@acropora>
-From: "George, Tom \(RTIO\)" <Tom.George@riotinto.com>
-To: "Nicolas Will" <nico@youplala.net>,
-	<linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,53 +26,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thanks Nic,
+Hi,
 
-Moving away from the pre-built binaries that come with ubuntu and using
-the latest tree from linuxtv has solved my problems.
+I've got some DVB-T channel "channel.conf" data for Europe / Basel 
+(Switzerland).
 
-I have noticed however that reception is definitely poorer when running
-using the 2.6.24-19-generic kernel than with the 2.6.24-16-generic
-kernel.... Pretty weird! (I can pick up channel 10 with the -16 and not
-with the -19)
-
-Thanks,
-
-Tom
-
------Original Message-----
-From: linux-dvb-bounces@linuxtv.org
-[mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Nicolas Will
-Sent: Friday, 4 July 2008 4:25 PM
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
-
-On Fri, 2008-07-04 at 13:07 +0930, Ian W Roberts wrote:
-> Just maybe you'll need to re-compile drivers (although maybe not given
-
-> it's working for one channel). I had to on gutsy and heron.
-
-I would still recommend to use a recent tree for such boards, even when
-using 8.04. There has been some nice improvements in the code since
-then.
-
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
-
-If you do not want to have to compile the modules at each kernel change
-introducing an ABI bump, I would use this, as I do with great pleasure:
-
-http://www.youplala.net/linux/home-theater-pc#toc-automatic-drivers-comp
-ilation-of-a-recent-v4l-dvb-tree
-
-Nico
+Do I just post it to this list, or how to I get it incorporated into the 
+repository.
 
 
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
- 
-This email (including all attachments) is the sole property of Rio Tinto Limited and may be confidential.  If you are not the intended recipient, you must not use or forward the information contained in it.  This message may not be reproduced or otherwise republished without the written consent of the sender.  If you have received this message in error, please delete the e-mail and notify the sender.
+cheers,
+-kt
+
+
+sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
+sfzwei:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:163:92:93
+tsr1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:161:84:85
+tsi1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:162:88:89
+
 
 _______________________________________________
 linux-dvb mailing list
