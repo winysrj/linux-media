@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6SIbqxG031796
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 14:37:52 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6SIbRF7002619
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 14:37:27 -0400
-To: Alan Stern <stern@rowland.harvard.edu>
-References: <Pine.LNX.4.44L0.0807271808550.23282-100000@netrider.rowland.org>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 28 Jul 2008 20:37:25 +0200
-In-Reply-To: <Pine.LNX.4.44L0.0807271808550.23282-100000@netrider.rowland.org>
-	(Alan Stern's message of "Sun\,
-	27 Jul 2008 18\:10\:02 -0400 \(EDT\)")
-Message-ID: <87prox97oa.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63K7h1A024821
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:07:43 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63K7UxK025039
+	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:07:30 -0400
+Message-ID: <486D3306.7080009@hhs.nl>
+Date: Thu, 03 Jul 2008 22:13:58 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-pm@lists.linux-foundation.org
-Subject: Re: [linux-pm] [PATCH] Fix suspend/resume of pxa_camera driver
+To: Thierry Merle <thierry.merle@free.fr>
+References: <486D2D60.3070801@hhs.nl> <486D30B9.2050800@free.fr>
+In-Reply-To: <486D30B9.2050800@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
+Subject: Re: PATCH: libv
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,21 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+Thierry Merle wrote:
+> Hans de Goede a écrit :
+>> Hi All,
+>>
+>> This patch adds support to libv4l for the compressed bayer format
+>> emitted by
+>> pac207 based cams.
+>>
+>> Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+>>
+>> Regards,
+>>
+>> Hans
+> Applied on http://www.linuxtv.org/hg/~tmerle/v4l2-library
+> Is it necessary to add the emails about license authorizations in the
+> sources?
 
-> On Sun, 27 Jul 2008, Guennadi Liakhovetski wrote:
->
-> IMO, suspend should be as transparent as possible for userspace.  So if
-> a user program has started an audio or video stream before suspend,
-> then after resume the stream should still be playing.
-Yes, that's what I think too.
+I dunno IANAL, but within Fedora (where I'm a packager) the guy responsible for 
+the legal stuff, in case of license changes always wants a "written" (email is 
+ok) permission notice bundled with the sources, so I followed this example, we 
+could put the permission notices in some other file, but I think its good 
+practice to keep them around bundled with the sources. I deliberately put them 
+at the end so that with normal editing they don't get in the way.
 
-The only little thing that should change will be timeout problem (userspace
-waits on a poll to get a video frame within 1 second for example).
-I'm not sure how well this is handled, I didn't check.
+Actually I'm about to submit a patch to add a permission notice for the sn9c10x 
+decompression algorithm as I didn't write that myself.
 
---
-Robert
+Regards,
+
+Hans
+
+p.s.
+
+Sorry about the semi missing subject last mail.
 
 --
 video4linux-list mailing list
