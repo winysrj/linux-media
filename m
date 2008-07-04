@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PG728A023838
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:07:02 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PG60ex008144
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:06:47 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so4320973rvb.51
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 09:06:47 -0700 (PDT)
-Message-ID: <d9def9db0807250906q4918121awceb6e0f938088e6d@mail.gmail.com>
-Date: Fri, 25 Jul 2008 18:06:47 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Alan Knowles" <alan@akbkhome.com>
-In-Reply-To: <48898289.2070305@akbkhome.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64FLHwK003033
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:21:17 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64FKfI7019591
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:20:42 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEn5U-0007Gr-6N
+	for video4linux-list@redhat.com; Fri, 04 Jul 2008 17:20:40 +0200
+Message-ID: <486E3FA3.3030301@hhs.nl>
+Date: Fri, 04 Jul 2008 17:20:03 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48898289.2070305@akbkhome.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
+Cc: 
+Subject: Announcing libv4l 0.3.2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,77 +30,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 25, 2008 at 9:36 AM, Alan Knowles <alan@akbkhome.com> wrote:
-> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
->
-> The source is available directly from ASUS now.
-> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
->
-> I've diffed it to the version they have used, and applied it, and fixed it
-> against the current source
-> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
->
-> In addition there are the drivers for the ADI MTV102 silicon tuner driver
-> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
-> (all the adimtv* files)
->
-> The source code appears to use a slightly differ usb stick to the one's I
-> have.
-> 0x1748  (cold)  / 0x1749 (warm)
-> where as I've got
-> 0x1721(cold) /  0x1722 (warm)
->
-> It looks like they hacked up dib3000mc.c, rather than writing a new driver
->
-> I've got to the point where it builds, firmware installs etc. (firmware is
-> available inside the deb packages)
-> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
->
-> The driver initializes correctly when plugged in.
-> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
-> disconnected.
-> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
-> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream to
-> the software demuxer.
-> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
-> [302530.670387]  Cannot find LGS8934
+Hi All,
 
-this is basically the problem here.
+I'm happy to announce version 0.3.2 of libv4l:
+http://people.atrpms.net/~hdegoede/libv4l-0.3.2.tar.gz
 
-> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
-> [302530.670668] adimtv102_readreg 0x00
-> [302530.676090] adimtv102_readreg 0x01
-> [302530.681578] adimtv102_readreg 0x02
-> [302530.687077] adimtv102: successfully identified (ff ff ff)
-> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
-> connected.
-> [302530.688624] usbcore: registered new interface driver dvb_usb_dibusb_mc
-> [353413.776593] adimtv102_init
->
-> when w_scan is run, it outputs activity...
-> [353416.533576] lgs8934_SetAutoMode!
-> [353416.553928] lgs8934_auto_detect!
-> [353418.285686] lgs8934_auto_detect, lock 0
-> [353418.285686] adimtv102_set_params freq=184500
-> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
->  MTV10x_REFCLK=16384 !
-> ......
->
-> however fails to pick up any channels...
->
-> I'm trying to connect to these -
-> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
->
-> Any ideas welcome..
->
-> Regards
-> Alan
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+This release has the following changes (baby steps now):
+
+libv4l-0.3.2
+------------
+* Add support for converting from sn9c10x compressed data
+* Add support for converting from pac207 compressed data
+* Add "make install" Makefile target
+
+
+Regards,
+
+Hans
+
+
 
 --
 video4linux-list mailing list
