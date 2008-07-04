@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6KELfhE020312
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:21:41 -0400
-Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6KELULp018499
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:21:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sun, 20 Jul 2008 16:21:23 +0200
-References: <200807181625.12619.hverkuil@xs4all.nl>
-	<200807201447.35659.hverkuil@xs4all.nl>
-	<48834928.6080207@linuxtv.org>
-In-Reply-To: <48834928.6080207@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64F8bpn029318
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:08:37 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64F8OO3012344
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:08:24 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEmtc-0006K3-69
+	for video4linux-list@redhat.com; Fri, 04 Jul 2008 17:08:24 +0200
+Message-ID: <486E3CC4.6090609@hhs.nl>
+Date: Fri, 04 Jul 2008 17:07:48 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Gregor Jasny <jasny@vidsoft.de>
+References: <20080704144036.GJ18818@vidsoft.de>
+In-Reply-To: <20080704144036.GJ18818@vidsoft.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807201621.23323.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: An example for RFC: Add support to query and change connections
-	inside a media device
+Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org
+Subject: Re: PATCH: libv4l-fix-idct-inline-assembly.diff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,26 +30,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sunday 20 July 2008 16:18:16 Michael Krufky wrote:
-> Hans Verkuil wrote:
-> > As usual, comments are welcome.
->
-> Why /dev/v4l/foo and not /dev/media/foo?
->
-> I think "v4l" is a poor choice -- v4l refers to video4linux, but
-> Linux-DVB is it's own subsystem and its own branding.
->
-> If you want to be all-encompassing, then I think that "media" is a
-> much better choice than "v4l".
->
-> -Mike
+Hi,
 
+I was just about to send the same patch :)
 
-Fine by me! I did not dare to be so bold at this stage :-)
+Note that this is already incorperated into the libv4l-0.3.2 tarbal release 
+which I'm about to announce.
 
 Regards,
 
-	Hans
+Hans
+
+
+Gregor Jasny wrote:
+> Hi,
+> 
+> This patch fixes the input constraint for the sar instruction. It allows only an
+> immediate or cl as shift width.
+> 
+> Thanks,
+> Gregor
+> 
+> Signed-off-by: Gregor Jasny <jasny@vidsoft.de>
+> 
+> diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c
+> --- a/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 07:21:55 2008 +0200
+> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 16:24:33 2008 +0200
+> @@ -92,7 +92,7 @@ static inline unsigned char descale_and_
+>        "\tcmpl %4,%1\n"
+>        "\tcmovg %4,%1\n"
+>        : "=r"(x)
+> -      : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+> +      : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+>        );
+>    return x;
+>  }
+> 
+
 
 --
 video4linux-list mailing list
