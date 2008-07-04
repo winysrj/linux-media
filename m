@@ -1,18 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6DJZqPj014864
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 15:35:52 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6DJZdHT009984
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 15:35:40 -0400
-Message-ID: <487A5AC1.7020203@hhs.nl>
-Date: Sun, 13 Jul 2008 21:42:57 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64CCl6b004252
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 08:12:47 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64CCT01012627
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 08:12:30 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEk9N-0008Ex-1w
+	for video4linux-list@redhat.com; Fri, 04 Jul 2008 14:12:29 +0200
+Message-ID: <486E1388.2060602@hhs.nl>
+Date: Fri, 04 Jul 2008 14:11:52 +0200
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------060007000206030805080003"
-Cc: video4linux-list@redhat.com
-Subject: Patch: gspca-sonixb-ov6650-gain.patch
+To: Thierry Merle <thierry.merle@free.fr>
+Content-Type: multipart/mixed; boundary="------------030403000102060805080401"
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
+Subject: PATCH: libv4l-makefile-improvements.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,18 +28,18 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 This is a multi-part message in MIME format.
---------------060007000206030805080003
+--------------030403000102060805080401
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Hi,
 
-This patch contains the following changes:
-1) It turns out that the ov6650 gain only has 5 significant bits, not 8
-    (oops)
-2) Make the auto exposure code slightly less nervous (make deadzone larger,
-    standardize gain and exposure settings to 0-255 range instead of the
-    strange 0-511 I used before)
+Makefile improvements:
+* Split DESTDIR into DESTDIR and PREFIX as used in most makefiles out there
+* Add LIBDIR variable to allow installation in <prefix>/lib64 for example
+* Install the wrappers in <libdir>/libv4l instead of directly under libdir,
+   as they are not libraries meant for linking
+* preserve timestamps of header files when installing them
 
 Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
@@ -45,120 +48,176 @@ Regards,
 Hans
 
 
---------------060007000206030805080003
-Content-Type: text/x-patch;
- name="gspca-sonixb-ov6650-gain.patch"
+
+--------------030403000102060805080401
+Content-Type: text/plain;
+ name="libv4l-makefile-improvements.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="gspca-sonixb-ov6650-gain.patch"
+ filename="libv4l-makefile-improvements.patch"
 
-This patch contains the following changes: 
-1) It turns out that the ov6650 gain only has 5 significant bits, not 8
-   (oops)
-2) Make the auto exposure code slightly less nervous (make deadzone larger,
-   standardize gain and exposure settings to 0-255 range instead of the
-   strange 0-511 I used before)
+Makefile improvements:
+* Split DESTDIR into DESTDIR and PREFIX as used in most makefiles out there
+* Add LIBDIR variable to allow installation in <prefix>/lib64 for example
+* Install the wrappers in <libdir>/libv4l instead of directly under libdir,
+  as they are not libraries meant for linking
+* preserve timestamps of header files when installing them
 
 Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-diff -r 8db437b06853 linux/drivers/media/video/gspca/sonixb.c
---- a/linux/drivers/media/video/gspca/sonixb.c	Thu Jul 10 10:41:35 2008 +0200
-+++ b/linux/drivers/media/video/gspca/sonixb.c	Sun Jul 13 21:38:05 2008 +0200
-@@ -39,8 +39,8 @@
- 					   sensor, so we use a per cam copy */
- 	atomic_t avg_lum;
+diff -r d4e241f9a06c v4l2-apps/lib/libv4l/README
+--- a/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:21:38 2008 +0200
++++ b/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:52:07 2008 +0200
+@@ -59,11 +59,12 @@
+ counterparts.
  
--	unsigned short gain;
--	unsigned short exposure;
-+	unsigned char gain;
-+	unsigned char exposure;
- 	unsigned char brightness;
- 	unsigned char autogain;
- 	unsigned char autogain_ignore_frames;
-@@ -73,7 +73,7 @@
-    ignore atleast the 2 next frames for the new settings to come into effect
-    before doing any other adjustments */
- #define AUTOGAIN_IGNORE_FRAMES 3
--#define AUTOGAIN_DEADZONE 500
-+#define AUTOGAIN_DEADZONE 1000
- #define DESIRED_AVG_LUM 7000
+ The preloadable libv4l1 wrapper which adds v4l2 device compatibility to v4l1
+-applications is called v4l1compat.so. The preloadable libv4l1 wrapper which
+-adds v4l2 device compatibility to v4l1 applications is called v4l2convert.so
++applications is called v4l1compat.so. The preloadable libv4l2 wrapper which
++adds support for various pixelformats to v4l2 applications is called
++v4l2convert.so.
  
- /* V4L2 controls supported by the driver */
-@@ -109,10 +109,10 @@
- 		.type    = V4L2_CTRL_TYPE_INTEGER,
- 		.name    = "Gain",
- 		.minimum = 0,
--		.maximum = 511,
-+		.maximum = 255,
- 		.step    = 1,
--#define GAIN_DEF 255
--#define GAIN_KNEE 400
-+#define GAIN_DEF 127
-+#define GAIN_KNEE 200
- 		.default_value = GAIN_DEF,
- 	    },
- 	    .set = sd_setgain,
-@@ -125,9 +125,9 @@
- 			.type = V4L2_CTRL_TYPE_INTEGER,
- 			.name = "Exposure",
- #define EXPOSURE_DEF 0
--#define EXPOSURE_KNEE 353 /* 10 fps */
-+#define EXPOSURE_KNEE 176 /* 10 fps */
- 			.minimum = 0,
--			.maximum = 511,
-+			.maximum = 255,
- 			.step = 1,
- 			.default_value = EXPOSURE_DEF,
- 			.flags = 0,
-@@ -565,11 +565,6 @@
- static void setsensorgain(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
--	unsigned short gain;
--
--	gain = (sd->gain + 1) >> 1;
--	if (gain > 255)
--		gain = 255;
+ Example usage (after install in default location):
+-$ export LD_PRELOAD=/usr/local/lib/v4l1compat.so
++$ export LD_PRELOAD=/usr/local/lib/libv4l/v4l1compat.so
+ $ camorama
  
- 	switch(sd->sensor) {
  
-@@ -577,14 +572,14 @@
- 		__u8 i2c[] =
- 			{0x30, 0x11, 0x02, 0x20, 0x70, 0x00, 0x00, 0x10};
+@@ -71,9 +72,12 @@
+ -------------------------
  
--		i2c[4] = 255 - gain;
-+		i2c[4] = 255 - sd->gain;
- 		if (i2c_w(gspca_dev->dev, i2c) < 0)
- 			goto err;
- 		break; }
+ Simple type the following commands from the libv4l-x.y.z directory
+-(adjusting DESTDIR as desired):
++(adjusting PREFIX as desired):
+ make
+-make install DESTDIR=/usr/local
++make install PREFIX=/usr/local
++
++Note: make install also supports the DESTDIR=... paramter for installation
++into chroots.
  
- 	case SENSOR_OV6650: {
- 		__u8 i2c[] = {0xa0, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10};
--		i2c[3] = gain;
-+		i2c[3] = sd->gain >> 3;
- 		if (i2c_w(gspca_dev->dev, i2c) < 0)
- 			goto err;
- 		break; }
-@@ -600,7 +595,7 @@
- 	__u8 gain;
- 	__u8 rgb_value;
  
--	gain = sd->gain >> 5;
-+	gain = sd->gain >> 4;
+ FAQ
+diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4l1/Makefile
+--- a/v4l2-apps/lib/libv4l/libv4l1/Makefile	Fri Jul 04 13:21:38 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4l1/Makefile	Fri Jul 04 13:52:07 2008 +0200
+@@ -19,8 +19,12 @@
+ LIB_RELEASE = 0
+ endif
  
- 	/* red and blue gain */
- 	rgb_value = gain << 4 | gain;
-@@ -617,7 +612,7 @@
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	/* translate 0 - 255 to a number of fps in a 30 - 1 scale */
--	int fps = 30 - sd->exposure * 29 / 511;
-+	int fps = 30 - sd->exposure * 29 / 255;
+-ifeq ($(DESTDIR),)
+-DESTDIR = /usr/local
++ifeq ($(PREFIX),)
++PREFIX = /usr/local
++endif
++
++ifeq ($(LIBDIR),)
++LIBDIR = $(PREFIX)/lib
+ endif
  
- 	switch(sd->sensor) {
- 	case SENSOR_TAS5110: {
+ all: $(TARGETS)
+@@ -31,15 +35,14 @@
+ $(V4L1COMPAT): $(V4L1COMPAT_O) $(V4L1_LIB)
+ 
+ install: all
+-	mkdir -p $(DESTDIR)/include
+-	cp $(INCLUDES) $(DESTDIR)/include
+-	mkdir -p $(DESTDIR)/lib
+-	cp $(V4L1_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
+-	cd $(DESTDIR)/lib && \
++	mkdir -p $(DESTDIR)$(PREFIX)/include
++	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
++	mkdir -p $(DESTDIR)$(LIBDIR)/libv4l
++	install -m 755 $(V4L1_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
++	cd $(DESTDIR)$(LIBDIR) && \
+ 	  ln -f -s $(V4L1_LIB).$(LIB_RELEASE) $(V4L1_LIB)
+-	cp $(V4L1COMPAT).$(LIB_RELEASE) $(DESTDIR)/lib
+-	cd $(DESTDIR)/lib && \
+-	  ln -f -s $(V4L1COMPAT).$(LIB_RELEASE) $(V4L1COMPAT)
++	install -m 755 $(V4L1COMPAT).$(LIB_RELEASE) \
++	  $(DESTDIR)$(LIBDIR)/libv4l/$(V4L1COMPAT)
+ 
+ clean::
+ 	rm -f *.so* *.o log *~
+diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4l2/Makefile
+--- a/v4l2-apps/lib/libv4l/libv4l2/Makefile	Fri Jul 04 13:21:38 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4l2/Makefile	Fri Jul 04 13:52:07 2008 +0200
+@@ -19,8 +19,12 @@
+ LIB_RELEASE = 0
+ endif
+ 
+-ifeq ($(DESTDIR),)
+-DESTDIR = /usr/local
++ifeq ($(PREFIX),)
++PREFIX = /usr/local
++endif
++
++ifeq ($(LIBDIR),)
++LIBDIR = $(PREFIX)/lib
+ endif
+ 
+ all: $(TARGETS)
+@@ -30,15 +34,14 @@
+ $(V4L2CONVERT): $(V4L2CONVERT_O) $(V4L2_LIB)
+ 
+ install: all
+-	mkdir -p $(DESTDIR)/include
+-	cp $(INCLUDES) $(DESTDIR)/include
+-	mkdir -p $(DESTDIR)/lib
+-	cp $(V4L2_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
+-	cd $(DESTDIR)/lib && \
++	mkdir -p $(DESTDIR)$(PREFIX)/include
++	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
++	mkdir -p $(DESTDIR)$(LIBDIR)/libv4l
++	install -m 755 $(V4L2_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
++	cd $(DESTDIR)$(LIBDIR) && \
+ 	  ln -f -s $(V4L2_LIB).$(LIB_RELEASE) $(V4L2_LIB)
+-	cp $(V4L2CONVERT).$(LIB_RELEASE) $(DESTDIR)/lib
+-	cd $(DESTDIR)/lib && \
+-	  ln -f -s $(V4L2CONVERT).$(LIB_RELEASE) $(V4L2CONVERT)
++	install -m 755 $(V4L2CONVERT).$(LIB_RELEASE) \
++	  $(DESTDIR)$(LIBDIR)/libv4l/$(V4L2CONVERT)
+ 
+ clean::
+ 	rm -f *.so* *.o log *~
+diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4lconvert/Makefile
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/Makefile	Fri Jul 04 13:21:38 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/Makefile	Fri Jul 04 13:52:07 2008 +0200
+@@ -18,8 +18,12 @@
+ LIB_RELEASE = 0
+ endif
+ 
+-ifeq ($(DESTDIR),)
+-DESTDIR = /usr/local
++ifeq ($(PREFIX),)
++PREFIX = /usr/local
++endif
++
++ifeq ($(LIBDIR),)
++LIBDIR = $(PREFIX)/lib
+ endif
+ 
+ all: $(TARGETS)
+@@ -27,11 +31,11 @@
+ $(CONVERT_LIB): $(CONVERT_OBJS)
+ 
+ install: all
+-	mkdir -p $(DESTDIR)/include
+-	cp $(INCLUDES) $(DESTDIR)/include
+-	mkdir -p $(DESTDIR)/lib
+-	cp $(CONVERT_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
+-	cd $(DESTDIR)/lib && \
++	mkdir -p $(DESTDIR)$(PREFIX)/include
++	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
++	mkdir -p $(DESTDIR)$(LIBDIR)
++	install -m 755 $(CONVERT_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
++	cd $(DESTDIR)$(LIBDIR) && \
+ 	  ln -f -s $(CONVERT_LIB).$(LIB_RELEASE) $(CONVERT_LIB)
+ 
+ clean::
 
---------------060007000206030805080003
+--------------030403000102060805080401
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -168,4 +227,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------060007000206030805080003--
+--------------030403000102060805080401--
