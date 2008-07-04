@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ULm2k9026959
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:48:02 -0400
-Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ULlovL002648
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:47:50 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
-	<878wvnkd8n.fsf@free.fr>
-	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
-	<87tze997uu.fsf@free.fr>
-	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 30 Jul 2008 23:47:48 +0200
-In-Reply-To: <Pine.LNX.4.64.0807291902200.17188@axis700.grange> (Guennadi
-	Liakhovetski's message of "Tue\,
-	29 Jul 2008 19\:16\:24 +0200 \(CEST\)")
-Message-ID: <87iqun2ge3.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64BLS7H013379
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:21:28 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64BLFfY019173
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:21:15 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEjLm-0006ea-IN
+	for video4linux-list@redhat.com; Fri, 04 Jul 2008 13:21:14 +0200
+Message-ID: <486E0786.9050807@hhs.nl>
+Date: Fri, 04 Jul 2008 13:20:38 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
+To: Thierry Merle <thierry.merle@free.fr>
+Content-Type: multipart/mixed; boundary="------------000706090204030503080505"
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
+Subject: PATCH: libv4l-update-documentation.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,45 +27,105 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+This is a multi-part message in MIME format.
+--------------000706090204030503080505
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
->> >> For the camera part, by now, I'm using standard suspend/resume functions of the
->> >> platform driver (mt9m111.c). It does work, but it's not clean ATM. The chaining
->> >> between the driver resume function and the availability of the I2C bus are not
->> >> properly chained. I'm still working on it.
->> >
->> > Yes, we have to clarify this too.
-All right, I have my mind clarified, let's discuss now.
+Hi,
 
->>  - I cook up a clean suspend/resume (unless you did it first of course :)
-Well, let's expose what we're facing here :
- - our video chip driver (ex: mt9m111) is an i2c driver
-  => its resume function is called when i2c bus is resumed, so all is fine here
+Some documentation updates to bring the documentation up2date with the latest
+changes.
 
- - our video chip needs an external clock to work
-  => example: mt9m111 needs a clock from pxa camera interface to have its i2c
-  unit enabled
-  => the mt9m111 driver resume function is unusable, as pxa_camera is resumed
-  _after_ mt9m111, and thus mt9m111's i2c unit is not available at that moment
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
- - a working suspend/resume restores fully the video chip state
-  => restores width/height/bpp
-  => restores autoexposure, brightness, etc ...
-  => all that insures userland is not impacted by suspend/resume
+Regards,
 
-So, the only way I see to have suspend/resume working is :
- - modify soc_camera_ops to add suspend and resume functions
- - add suspend and resume functions in each chip driver (mt9m001, mt9m111, ...)
- - modify soc_camera.c (or pxa_camera.c ?) to call icd->ops->suspend() and
- icd->ops->resume()
- - modify pxa_camera.c (the patch I sent before)
+Hans
 
-Would you find that acceptable, or is there a better way ?
 
---
-Robert
+--------------000706090204030503080505
+Content-Type: text/plain;
+ name="libv4l-update-docs.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="libv4l-update-docs.patch"
+
+Some documentation updates to bring the documentation up2date with the latest
+changes.
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+diff -r 5a184775625e v4l2-apps/lib/libv4l/INSTALL
+--- a/v4l2-apps/lib/libv4l/INSTALL	Fri Jul 04 13:09:05 2008 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,4 +0,0 @@
+-To compile simply type "make" after that you can find the compiled libraries
+-and wrappers under the lib dir, public headers are under the include dir.
+-
+-Sorry no make install target for now.
+diff -r 5a184775625e v4l2-apps/lib/libv4l/README
+--- a/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:09:05 2008 +0200
++++ b/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:18:59 2008 +0200
+@@ -62,10 +62,18 @@
+ applications is called v4l1compat.so. The preloadable libv4l1 wrapper which
+ adds v4l2 device compatibility to v4l1 applications is called v4l2convert.so
+ 
+-Example usage:
+-$ export LD_LIBRARY_PATH=`pwd`/lib
+-$ export LD_PRELOAD=`pwd`/lib/v4l1compat.so
++Example usage (after install in default location):
++$ export LD_PRELOAD=/usr/local/lib/v4l1compat.so
+ $ camorama
++
++
++Installation Instructions
++-------------------------
++
++Simple type the following commands from the libv4l-x.y.z directory
++(adjusting DESTDIR as desired):
++make
++make install DESTDIR=/usr/local
+ 
+ 
+ FAQ
+diff -r 5a184775625e v4l2-apps/lib/libv4l/TODO
+--- a/v4l2-apps/lib/libv4l/TODO	Fri Jul 04 13:09:05 2008 +0200
++++ b/v4l2-apps/lib/libv4l/TODO	Fri Jul 04 13:18:59 2008 +0200
+@@ -1,11 +1,3 @@
+--protect open() against being called from different threads simultaniously,
+- we are then thread safe except for the jpeg decompression under the following
+- assumption:
+- * We assume all device setup (for a single device) is done from a single
+-   thread
+- * We assume that at the time an videodev fd gets closed all other threads
+-   which may have been using it have stopped using it.
+-
+ -add support for setting / getting the number of read buffers
+ 
+ -add code to v4l2_read to not return frames more then say 5 seconds old
+@@ -15,12 +7,6 @@
+  impossible for overlays) can be done, so that it will no longer be
+  necessary to implement CGMBUF in the kernel for each driver.
+ 
+--add (configurable) support for alsa faking enum_fmt to libv4l2 ?
+-
+ -check v4l2_field during conversion
+ 
+--add make install target
+-
+ -add conversion from bgr24 to yuv420
+-
+--add v4l2_dup, make re-entrant safe (for gstreamer v4l2 support)
+
+--------------000706090204030503080505
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------000706090204030503080505--
