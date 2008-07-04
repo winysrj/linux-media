@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6AL4ftj022580
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 17:04:41 -0400
-Received: from vsmtp3.tin.it (vsmtp3.tin.it [212.216.176.223])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6AL4TjK018929
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 17:04:30 -0400
-Received: from [192.168.3.11] (77.103.126.124) by vsmtp3.tin.it (8.0.016.5)
-	(authenticated as aodetti@tin.it)
-	id 4856608C016149CA for video4linux-list@redhat.com;
-	Thu, 10 Jul 2008 23:04:24 +0200
-Message-ID: <487678F6.50609@tiscali.it>
-Date: Thu, 10 Jul 2008 22:02:46 +0100
-From: Andrea <audetto@tiscali.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64AwrvU003196
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 06:58:53 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64AwcP4007373
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 06:58:39 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEizt-00060x-LA
+	for video4linux-list@redhat.com; Fri, 04 Jul 2008 12:58:37 +0200
+Message-ID: <486E023A.6010801@hhs.nl>
+Date: Fri, 04 Jul 2008 12:58:02 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4873CBA9.1090603@tiscali.it> <4873E6D0.8050202@tiscali.it>
-In-Reply-To: <4873E6D0.8050202@tiscali.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: A question about VIDIOC_DQBUF
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: multipart/mixed; boundary="------------000308010809060803060004"
+Cc: video4linux-list@redhat.com
+Subject: PATCH: gspca-pac207-fix-daylight-frame-decode-errors.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,67 +27,92 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Is there anybody who could help my with the followin?
-I would like to know if my interpretation of VIDIOC_DQBUF is correct.
+This is a multi-part message in MIME format.
+--------------000308010809060803060004
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thanks
+Hi,
 
+This patch fixes the frame decoding errors seen when using the pac207 in full
+daylight.
 
-Andrea wrote:
-> Andrea wrote:
->> Hi,
->>
->> I would like to understand better the way VIDIOC_DQBUF works.
->>
-> ...
->> Is the following correct?
->>
->> - First, an application queues a buffer, then it dequeues the buffer.
->> - Then again, a buffer is queued and then dequeued.
->> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
->> opened with O_NONBLOCK).
->> - Trying to dequeue a buffer without queuing it first is an error, and 
->> the ioctl VIDIOC_DQBUF should return -EINVAL.
-> 
-> Moreover:
-> 
-> - One can only VIDIOC_DQBUF after calling STREAMON. Before it should 
-> return -EINVAL? Block?
-> - After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
-> 
->>
->> <- end of question ->
->>
->> Now, about pwc: (if the above is correct).
->>
->> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
->> O_NONBLOCK.
->> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
->> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
->> buffer has been queued before VIDIOC_DQBUF.
->>
->> If I have understood correctly (very unlikely), this is the reason why 
->> mplayer hangs while stopping the stream with pwc:
->>
->>         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
->>
-> 
-> This code is not needed because STREAMOFF flushes the buffer queue. Does 
-> it not?
-> 
->> This code should eventually return -EINVAL, while pwc just blocks 
->> waiting for the next buffer (which never arrives because 
->> VIDIOC_STREAMOFF has been called).
-> 
-> pwc should return -EINVAL to all ioctl calls after STREAMOFF?
-> 
-> Could someone please tell me where I am right and where I am wrong...
-> 
-> What is the reference implementation? vivi? em28xx?
-> 
-> Andrea
+The problem is that in full daylight, the exposure time was set so low, that
+in 352x288 mode the usb bandwidth is not enough and packets get dropped
+resulting in corrupt frames. This patch worksaround this issue by increasing
+the minimum allowed exposure time, reducing the max framerate and thus the max
+needed bandwidth.
+
+The proper fix for this would be to lower the compression balance setting when
+in 352x288 mode. The problem with this is that when the compression balance
+gets lowered below 0x80, the pac207 starts using a different compression
+algorithm for some lines, these lines get prefixed with a 0x2dd2 prefix
+and currently we do not know how to decompress these lines, so for now
+we use a minimum exposure value of 5
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
+
+--------------000308010809060803060004
+Content-Type: text/plain;
+	name="gspca-pac207-fix-daylight-frame-decode-errors.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="gspca-pac207-fix-daylight-frame-decode-errors.patch"
+
+This patch fixes the frame decoding errors seen when using the pac207 in full
+daylight.
+
+The problem is that in full daylight, the exposure time was set so low, that
+in 352x288 mode the usb bandwidth is not enough and packets get dropped
+resulting in corrupt frames. This patch worksaround this issue by increasing
+the minimum allowed exposure time, reducing the max framerate and thus the max
+needed bandwidth.
+
+The proper fix for this would be to lower the compression balance setting when
+in 352x288 mode. The problem with this is that when the compression balance
+gets lowered below 0x80, the pac207 starts using a different compression
+algorithm for some lines, these lines get prefixed with a 0x2dd2 prefix   
+and currently we do not know how to decompress these lines, so for now
+we use a minimum exposure value of 5
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+diff -r 2ce25c86c3a9 linux/drivers/media/video/gspca/pac207.c
+--- a/linux/drivers/media/video/gspca/pac207.c	Fri Jul 04 10:56:40 2008 +0200
++++ b/linux/drivers/media/video/gspca/pac207.c	Fri Jul 04 12:51:09 2008 +0200
+@@ -40,9 +40,17 @@
+ #define PAC207_BRIGHTNESS_MAX		255
+ #define PAC207_BRIGHTNESS_DEFAULT	4 /* power on default: 4 */
+ 
+-#define PAC207_EXPOSURE_MIN		4
++/* An exposure value of 4 also works (3 does not) but then we need to lower
++   the compression balance setting when in 352x288 mode, otherwise the usb
++   bandwidth is not enough and packets get dropped resulting in corrupt
++   frames. The problem with this is that when the compression balance gets
++   lowered below 0x80, the pac207 starts using a different compression
++   algorithm for some lines, these lines get prefixed with a 0x2dd2 prefix
++   and currently we do not know how to decompress these lines, so for now
++   we use a minimum exposure value of 5 */
++#define PAC207_EXPOSURE_MIN		5
+ #define PAC207_EXPOSURE_MAX		26
+-#define PAC207_EXPOSURE_DEFAULT		4 /* power on default: 3 ?? */
++#define PAC207_EXPOSURE_DEFAULT		5 /* power on default: 3 ?? */
+ #define PAC207_EXPOSURE_KNEE		11 /* 4 = 30 fps, 11 = 8, 15 = 6 */
+ 
+ #define PAC207_GAIN_MIN			0
+
+--------------000308010809060803060004
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------000308010809060803060004--
