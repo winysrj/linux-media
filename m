@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KFgr2-0004AC-D0
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 04:53:29 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Mon, 7 Jul 2008 04:52:00 +0200
-References: <1214139259.2994.8.camel@jaswinder.satnam>
-	<48708BBF.9050400@cadsoft.de>
-	<1215343022.10393.945.camel@pmac.infradead.org>
-In-Reply-To: <1215343022.10393.945.camel@pmac.infradead.org>
+Received: from mta-out.inet.fi ([195.156.147.13] helo=kirsi1.rokki.sonera.fi)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <anssi.hannula@gmail.com>) id 1KEeqb-0007SK-Rv
+	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 08:32:46 +0200
+Message-ID: <486DC407.70709@gmail.com>
+Date: Fri, 04 Jul 2008 09:32:39 +0300
+From: Anssi Hannula <anssi.hannula@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807070452.02204@orion.escape-edv.de>
-Cc: kernelnewbies <kernelnewbies@nl.linux.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Jaswinder Singh <jaswinder@infradead.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
+To: linux-dvb@linuxtv.org
+References: <4836DBB6.5040006@gmail.com>
+In-Reply-To: <4836DBB6.5040006@gmail.com>
+Cc: abraham.manu@gmail.com
+Subject: Re: [linux-dvb] [multiproto patch] fix ATSC api conversion
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,57 +25,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David Woodhouse wrote:
-> On Sun, 2008-07-06 at 11:09 +0200, Klaus Schmidinger wrote:
-> > On 07/06/08 03:15, Oliver Endriss wrote:
-> > > Jaswinder Singh wrote:
-> > >> There's no point in this, since the user can use the BUILTIN_FIRMWARE
-> > >> option to include arbitrary firmware files directly in the kernel image.
-> > > 
-> > > NAK! This option allows to compile the firmware into the _driver_,
-> > > which is very useful if you want to test various driver/firmware
-> > > combinations. Having the firmware in the _kernel_ does not help!
-> > 
-> > I strongly support Oliver's request!
-> > Working with various driver versions is much easier with the
-> > firmware compiled into the driver!
-> 
-> That's strange; I've found exactly the opposite to be the case. 
-> 
-> If I want to test permutations of driver and firmware, as I've done for
-> the libertas driver a number of times, I find it _much_ better to
-> preserve the modularity. I can build each version of the driver and can
-> test that against various firmware versions without having to rebuild
-> it, and with much less chance of something going wrong so that I'm not
-> actually testing what I think I'm testing.
-> 
-> Perhaps I'm missing something that would help me work better? Please
-> could you help me understand how you currently work, and I'll attempt to
-> make it easier for you. Can you talk me through an example of a session
-> where you had to do this testing of 'various driver/firmware
-> combinations'?
+(CC'd Manu Abraham, who seems to have made the last commits in multiproto)
 
-Note that the v4ldvb drivers can be configured and compiled outside the
-kernel tree. Basically I have several directory trees, for example
-- v4l-dvb_head
-- v4l-dvb_31dec2007_fw2622
-- v4l-dvb_31dec2007_fwf12623
-- ...
+Anssi Hannula wrote:
+> The attached patch fixes ATSC conversion in olddrv_to_newapi.
 
-Within these directories you can simply use "make menuconfig" to
-configure the driver. If you compile the firmware into the driver,
-you can easily freeze a 'known good' or 'known bad' configuration.
+It has been some 1,5 months since I posted my patches. They haven't yet
+been applied to multiproto tree or commented on by devs, maybe they were
+missed (or I wasn't aware of some procedure)?
 
-Trying a different driver is as easy as changing directories.
-This simplifies testing.
-
-CU
-Oliver
+The patches are in ml archive:
+http://linuxtv.org/pipermail/linux-dvb/2008-May/026242.html
+http://linuxtv.org/pipermail/linux-dvb/2008-May/026243.html
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Anssi Hannula
 
 _______________________________________________
 linux-dvb mailing list
