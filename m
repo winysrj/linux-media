@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server30.ukservers.net ([217.10.138.207])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1KIHFj-0000ni-Py
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 08:09:45 +0200
-Message-ID: <000201c8e578$1c6311b0$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Erland Isaksson" <erland_i@hotmail.com>,
-	<linux-dvb@linuxtv.org>
-References: <4865C2C2.60600@hotmail.com>
-Date: Mon, 14 Jul 2008 14:25:45 +1200
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] Does C-1501 driver support CAM ?
+	(envelope-from <nico@youplala.net>) id 1KEgcI-0005NC-O9
+	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 10:26:09 +0200
+Received: from [134.32.30.103] (milan-ofs-a103.milan.oilfield.slb.com
+	[134.32.30.103])
+	by mail.youplala.net (Postfix) with ESMTP id 1B522D880A7
+	for <linux-dvb@linuxtv.org>; Fri,  4 Jul 2008 10:24:43 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <486D9AE8.1030205@internode.on.net>
+References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
+	<486D9AE8.1030205@internode.on.net>
+Date: Fri, 04 Jul 2008 09:24:37 +0100
+Message-Id: <1215159877.7545.3.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,25 +29,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hi
->
-> I'm in the process of purchasing an additional DVB-C card besides the
-> Technotrend C-2300 I currently have and I'm wondering which one to get.
-> The C-2300 is a bit too expensive for an additional card and the C-1500
-> is no longer possible to find in Sweden.
->
-> At the moment the Technotrend C-1501 looks promising, but does anyone
-> know if the experimental support for C-1501 currently is reasonable
-> stable and supports scrambled channels through a CAM ?
->
-> Regards
-> Erland
+On Fri, 2008-07-04 at 13:07 +0930, Ian W Roberts wrote:
+> Just maybe you'll need to re-compile drivers (although maybe not
+> given 
+> it's working for one channel). I had to on gutsy and heron.
 
-I have one with an Irdeto CAM - although I'm having some issues with some 
-channels not working.
+I would still recommend to use a recent tree for such boards, even when
+using 8.04. There has been some nice improvements in the code since
+then.
 
-Having said that, I also have a couple of C-2300 cards which also have 
-problems with one channel.... 
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
+
+If you do not want to have to compile the modules at each kernel change
+introducing an ABI bump, I would use this, as I do with great pleasure:
+
+http://www.youplala.net/linux/home-theater-pc#toc-automatic-drivers-compilation-of-a-recent-v4l-dvb-tree
+
+Nico
 
 
 _______________________________________________
