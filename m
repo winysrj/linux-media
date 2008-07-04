@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6Q0mWjT029751
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 20:48:32 -0400
-Received: from omta0101.mta.everyone.net (sitemail3.everyone.net
-	[216.200.145.37])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6Q0mM82025027
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 20:48:22 -0400
-From: "John Ortega" <jortega@listpropertiesnow.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-Date: Fri, 25 Jul 2008 20:48:19 -0400
-Message-ID: <EEEHJJMABEBDCNKAINKCGENECHAA.jortega@listpropertiesnow.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64Eeppe016178
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 10:40:51 -0400
+Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64EedHS028945
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 10:40:39 -0400
+Date: Fri, 4 Jul 2008 16:40:37 +0200
+To: thierry.merle@free.fr
+Message-ID: <20080704144036.GJ18818@vidsoft.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-In-Reply-To: <488A081C.1090207@hhs.nl>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: RE: Video Card Linux
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+From: Gregor Jasny <jasny@vidsoft.de>
+Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org
+Subject: PATCH: libv4l-fix-idct-inline-assembly.diff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,36 +25,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+Hi,
 
-Thanks for the advice. When I say non/conflicting I'm referring to devices that work out of the box. I mean I install the card and the v4l library and it begins working, remote included. I don't want to have to spend weeks of banging my head and recompiling source to get it to work. I've seen a lot of wintv and/or Hauppauge cards for sale but I want to be sure that the device works with the remote in Linux.
+This patch fixes the input constraint for the sar instruction. It allows only an
+immediate or cl as shift width.
 
 Thanks,
-John
+Gregor
 
+Signed-off-by: Gregor Jasny <jasny@vidsoft.de>
 
-> Hello everyone,
-> 
-> Does anyone have an idea what is the best non-conflicting video card for Linux that I can buy off of the shelf?
-> 
-
-
-Define non-conflicting, if that means with opensource drivers for 2d and 3d and 
-supported by the vendor, I currently would advice an ati x1950pro, you need a 
-very recent cutting edge distro for this (like Fedora 9 + updates) but then it 
-works well. and 100 % FOSS
-
-Regards,
-
-Hans
-
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-
-
+diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 07:21:55 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 16:24:33 2008 +0200
+@@ -92,7 +92,7 @@ static inline unsigned char descale_and_
+       "\tcmpl %4,%1\n"
+       "\tcmovg %4,%1\n"
+       : "=r"(x)
+-      : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
++      : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+       );
+   return x;
+ }
 
 --
 video4linux-list mailing list
