@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67KFHXf007720
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 16:15:17 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67KF1Sc019074
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 16:15:06 -0400
-Date: Mon, 7 Jul 2008 17:14:44 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Message-ID: <20080707171444.10f0e7a5@gaivota>
-In-Reply-To: <20080707220641.65f7bc08@hyperion.delvare>
-References: <200807072141.03344.hverkuil@xs4all.nl>
-	<20080707220641.65f7bc08@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>, michael@mihu.de
-Subject: Re: Proposed removal of the dpc7146 driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64B92JR007341
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:09:02 -0400
+Received: from rediffmail.com (f5mail-236-233.rediffmail.com [202.137.236.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m64B8hP0011828
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 07:08:44 -0400
+Date: 4 Jul 2008 11:09:38 -0000
+Message-ID: <20080704110938.22191.qmail@f5mail-236-233.rediffmail.com>
+MIME-Version: 1.0
+From: "Sandipan Bhattacharjee" <sandipanait@rediffmail.com>
+To: video4linux-list@redhat.com
+Content-type: text/plain;
+	format=flowed
+Content-Disposition: inline
+Subject: USB-Ethernet query
+Reply-To: Sandipan Bhattacharjee <sandipanait@rediffmail.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,39 +26,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 7 Jul 2008 22:06:41 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
 
-> On Mon, 7 Jul 2008 21:41:03 +0200, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > If no one objects, then I propose to remove this driver in kernel 2.6.28 
-> > and announce its removal by adding the following notice to the 2.6.27 
-> > feature-removal-schedule.txt document:
-> > 
-> > What:   V4L2 dpc7146 driver
-> > When:   September 2008
-> > Why:    Old driver for the dpc7146 demonstration board that is no longer 
-> > relevant. The last time this was tested on actual hardware was probably 
-> > around 2002. Since this is a driver for a demonstration board the 
-> > decision was made to remove it rather than spending a lot of effort 
-> > continually updating this driver to stay in sync with the latest 
-> > internal V4L2 or I2C API.
-> > Who:    Hans Verkuil <hverkuil@xs4all.nl>
-> > 
-> > 
-> > Michael Hunold, the author of this driver, agrees with my assessment 
-> > that this driver is no longer relevant.
-> 
-> +1
-> 
-> (Less i2c-related drivers means less work for me.)
+Dear All,
 
-Seems ok also to me.
+I want to purchase a USB to Ethernet adapter cable which will work 
+with 2.4 kernel of Linux. Eg:RedHat 9.0. I want a cable that has 
+driver support for kernel 2.4. Can anybody please guide me?
 
+Thank You
 
-Cheers,
-Mauro
+Regards
+Sandipan.
 
 --
 video4linux-list mailing list
