@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc2-s25.bay0.hotmail.com ([65.54.246.161])
+Received: from mailguard-send.adelaide.edu.au ([192.43.227.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ota1998@hotmail.com>) id 1KKvMY-00044w-2A
-	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 15:23:39 +0200
-Message-ID: <BAY102-W4202669C08AC67C5BCB7A0BC8A0@phx.gbl>
-From: toy ota <ota1998@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 21 Jul 2008 15:23:03 +0200
+	(envelope-from <ianwroberts@internode.on.net>) id 1KEc7A-0007cg-GM
+	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 05:37:43 +0200
+Message-ID: <486D9AE8.1030205@internode.on.net>
+Date: Fri, 04 Jul 2008 13:07:12 +0930
+From: Ian W Roberts <ianwroberts@internode.on.net>
 MIME-Version: 1.0
-Subject: [linux-dvb]  Latest TT3200 Status
+To: "George, Tom \(RTIO\)" <Tom.George@riotinto.com>
+References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
+In-Reply-To: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,110 +19,360 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0681674382=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0681674382==
-Content-Type: multipart/alternative;
-	boundary="_893a29d0-0bdf-4eba-98c3-5fdcaa27eaf9_"
+Dear George,
 
---_893a29d0-0bdf-4eba-98c3-5fdcaa27eaf9_
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Do not despair (yet)! :-)
+
+I had similar problems with a Gigabyte U7000 -being able to tune all =
+
+channals except Channel Seven (here in Adelaide).
+
+Now, it's not that there's much on 7 that interests me but nevertheless...
+
+I needed to change the initial tuning details for Adelaide =
+
+(au-Adelaide). In my case just the Channel 7 details were incorrect.
+
+Perhaps you need to find up-to-date information for au-Perth station =
+
+tuning information and update =
+
+/usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth -Try google
+
+Just maybe you'll need to re-compile drivers (although maybe not given =
+
+it's working for one channel). I had to on gutsy and heron. These =
+
+instructions (http://waterwave.ch/weblog/detail.php?id=3D324130) worked =
+
+fine for me.
+
+good luck
+
+bye
+
+ian
+
+George, Tom (RTIO) wrote:
+>
+> Hi,
+>
+> Hoping someone can shed some light on this!
+>
+> I have an Asus U3000 mini usb dvb-t tuner and I'm struggling to get it =
+
+> working properly. I have tested the card in windows xp with the same =
+
+> antenna and it works flawlessly, receiving all channels.
+>
+> I am using ubuntu hardy heron with the 2.6.24-19-generic kernel which =
+
+> (should) work out of the box. Device is recognised and the correct =
+
+> dvb_usb_dib0700 module is loaded, with the correct devices created etc =
+
+> etc. Correct firmware is in /lib/firmware/2.6.24-19-generic.
+>
+> Scanning using kaffeine gets me some channels (I'm based in Perth, =
+
+> Western Australia) - I get SBS & SBS HD but no other channels.
+>
+> It appears to me that there is an issue with the tuner changing =
+
+> frequency (check the output of scan...), I'm new to dvb and a little =
+
+> stuck, any help would be massively appreciated!!!
+>
+> Here's some technical output:
+>
+> root@jaws:/home/tom# cat /var/log/dmesg | grep dvb
+> [ 57.721601] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' =
+
+> in cold state, will try to load a firmware
+> [ 57.773379] dvb-usb: downloading firmware from file =
+
+> 'dvb-usb-dib0700-1.10.fw'
+> [ 58.465269] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' =
+
+> in warm state.
+> [ 58.465328] dvb-usb: will pass the complete MPEG2 transport stream to =
+
+> the software demuxer.
+> [ 58.871555] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner =
+
+> successfully initialized and connected.
+> [ 58.871833] usbcore: registered new interface driver dvb_usb_dib0700
+>
+> root@jaws:/home/tom# lsmod | grep dvb
+> dvb_usb_dib0700 26376 0
+> dib7000p 17672 2 dvb_usb_dib0700
+> dib7000m 16516 1 dvb_usb_dib0700
+> dvb_usb 19852 1 dvb_usb_dib0700
+> dvb_core 81404 1 dvb_usb
+> dib3000mc 13960 1 dvb_usb_dib0700
+> dib0070 9092 1 dvb_usb_dib0700
+> i2c_core 24832 8 mt2266,dib7000p,dib7000m,dvb_usb,nvidia,dib3000mc, =
+
+> dibx000_common,dib0070
+> usbcore 146028 9 dvb_usb_dib0700,dvb_usb,hci_usb,usb_storage,usbhid =
+
+> ,libusual,ohci_hcd,ehci_hcd
+>
+>
+> root@jaws:/home/tom# ls -la /dev/dvb/adapter1
+> total 0
+> drwxr-xr-x 2 root root 120 2008-07-04 08:01 .
+> drwxr-xr-x 3 root root 60 2008-07-04 08:01 ..
+> crw-rw----+ 1 root video 212, 68 2008-07-04 08:01 demux0
+> crw-rw----+ 1 root video 212, 69 2008-07-04 08:01 dvr0
+> crw-rw----+ 1 root video 212, 67 2008-07-04 08:01 frontend0
+> crw-rw----+ 1 root video 212, 71 2008-07-04 08:01 net0
+>
+> root@jaws:/home/tom# scan -a 1 =
+
+> /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+> initial transponder 226500000 1 3 9 3 1 1 0
+> initial transponder 177500000 1 2 9 3 1 1 0
+> initial transponder 191625000 1 3 9 3 1 1 0
+> initial transponder 219500000 1 3 9 3 1 1 0
+> initial transponder 536500000 1 2 9 3 1 2 0
+> >>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_16:HIERARCHY_NONE
+> __tune_to_transponder:1483: ERROR: Setting frontend parameters failed: =
+
+> 22 Invalid argument
+> >>> tune to: 536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL _1_8:HIERARCHY_NONE
+> 0x0000 0x0320: pmt_pid 0x0400 SBS -- SBS HD (running)
+> 0x0000 0x0321: pmt_pid 0x0401 SBS -- SBS (running)
+> 0x0000 0x0322: pmt_pid 0x0402 SBS -- SBS NEWS (running)
+> 0x0000 0x0323: pmt_pid 0x0408 SBS -- SBS 2 (running)
+> 0x0000 0x032e: pmt_pid 0x0403 SBS -- SBS RADIO 1 (running)
+> 0x0000 0x032f: pmt_pid 0x0404 SBS -- SBS RADIO 2 (running)
+> Network Name 'SBS NETWORK'
+> >>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE =
+
+> (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE
+> 0x0320 0x0320: pmt_pid 0x0400 SBS -- SBS HD (running)
+> 0x0320 0x0321: pmt_pid 0x0401 SBS -- SBS (running)
+> 0x0320 0x0322: pmt_pid 0x0402 SBS -- SBS NEWS (running)
+> 0x0320 0x0323: pmt_pid 0x0408 SBS -- SBS 2 (running)
+> 0x0320 0x032e: pmt_pid 0x0403 SBS -- SBS RADIO 1 (running)
+> 0x0320 0x032f: pmt_pid 0x0404 SBS -- SBS RADIO 2 (running)
+> Network Name 'SBS NETWORK'
+> >>> tune to: 585625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 585625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE =
+
+> (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE =
+
+> (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 543500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 543500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:F =
+
+> EC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_ 1_8:HIERARCHY_NONE =
+
+> (tuning failed)
+> WARNING: >>> tuning failed!!!
+> dumping lists (12 services)
+> SBS HD:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_ =
+
+> 3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERV =
+
+> AL_1_8:HIERARCHY_NONE:102:103:800
+> SBS:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2 =
+
+> _3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTER =
+
+> VAL_1_8:HIERARCHY_NONE:161:81:801
+> SBS NEWS:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_ =
+
+> 2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTE =
+
+> RVAL_1_8:HIERARCHY_NONE:162:83:802
+> SBS 2:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:161:81:803
+> SBS RADIO 1:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:0:201:814
+> SBS RADIO 2:536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:0:202:815
+> SBS HD:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_ =
+
+> 3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERV =
+
+> AL_1_8:HIERARCHY_NONE:102:103:800
+> SBS:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2 =
+
+> _3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTER =
+
+> VAL_1_8:HIERARCHY_NONE:161:81:801
+> SBS NEWS:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_ =
+
+> 2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTE =
+
+> RVAL_1_8:HIERARCHY_NONE:162:83:802
+> SBS 2:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:161:81:803
+> SBS RADIO 1:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:0:201:814
+> SBS RADIO 2:536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3 =
+
+> :FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVA =
+
+> L_1_8:HIERARCHY_NONE:0:202:815
+> Done.
+>
+> Anyone got an idea what is going on here???????
+>
+> CHeers,
+>
+> Tom
+>
+> Tom George
+>
+> RTIO WA Demand Coordinator =96 Office of the CIO
+>
+> Rio Tinto
+>
+> Central Park, 152 - 158 St Georges Terrace, Perth, 6000, Western Australia
+>
+> T: +61 (9) 8 94247251 M: +61 (0) 417940173 F: +61 (0) 8 9327 2456
+>
+> Tom.george@riotinto.com http://www.riotinto.com
+>
+> This email (including all attachments) is the sole property of Rio =
+
+> Tinto Limited and may be confidential. If you are not the intended =
+
+> recipient, you must not use or forward the information contained in =
+
+> it. This message may not be reproduced or otherwise republished =
+
+> without the written consent of the sender. If you have received this =
+
+> message in error, please delete the e-mail and notify the sender.
+> ------------------------------------------------------------------------
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
-Hello=2C>I need the (patch_sca_szap.diff) fileThis file is still available =
-from this post:http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026423.=
-html
+-- =
 
-I have installed friday Linux Mythbuntu and now my TT-3200 is finally worki=
-ng.=20
-I can lock most dvb-s TP and even some (but not all) dvb-s2 TP (Anixe HD lo=
-cks but decoding is not fast enough without GPU help).
-For dvb-s2 i use szap2. I have followed Goga777 instructions with a mix of =
-others advice (frontend.h=2C compat.h=2C patch -p1 are names familar to me =
-now !).=20
+Ian W Roberts
+157 Sixth Avenue
+ROYSTON PARK 5070
 
-Alain.
+t:    +61 8 8362 1318
+m:    0423 147 044
+e:    ianwroberts@internode.on.net
 
-
-2 screenshots:
-http://img339.imageshack.us/img339/5866/ab311636vto0.png
-
-http://img168.imageshack.us/img168/2205/ab3mux111636vbx9.png
-
-grep "CANAL+"  /opt/ab3.szap
-CANAL+:11636:v:2:30405:0:0:769:0
-/opt/dvb/dvb-apps/util/szap# ./szap  -c /opt/ab3.szap "CANAL+"
-dvbstream  -o 8192 | vlc -  =20
-
-For dvb-s2: szap2 -t2 -c /opt/ab3.szap ANIXEHD
-
--t2 =3D dvb-s2
-
-_________________________________________________________________
-Emportez vos amis et vos emails partout=85 A la c=F4te=2C en ville ou dans =
-le fin fond des Ardennes !
-http://windowslivemobile.msn.com/?lang=3Dfr-BE=
-
---_893a29d0-0bdf-4eba-98c3-5fdcaa27eaf9_
-Content-Type: text/html; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-FONT-SIZE: 10pt=3B
-FONT-FAMILY:Tahoma
-}
-</style>
-</head>
-<body class=3D'hmmessage'>
-<font size=3D"2" face=3D"Arial"><pre>Hello=2C</pre><pre>&gt=3BI need the (p=
-atch_sca_szap.diff) file</pre><pre>This file is still available from this p=
-ost:</pre><pre><a href=3D"http://www.linuxtv.org/pipermail/linux-dvb/2008-J=
-une/026423.html" target=3D"_blank">http://www.linuxtv.org/pipermail/linux-d=
-vb/2008-June/026423.html</a><br><br>I have installed friday Linux Mythbuntu=
- and now my TT-3200 is finally working. <br>I can lock most dvb-s TP and ev=
-en some (but not all) dvb-s2 TP (Anixe HD locks but decoding is not fast en=
-ough without GPU help).<br>For dvb-s2 i use szap2. I have followed Goga777 =
-instructions with a mix of others advice (frontend.h=2C compat.h=2C patch -=
-p1 are names familar to me now !). <br><br>Alain.<br><br><br>2 screenshots:=
-<br><a class=3D"EC_moz-txt-link-freetext" href=3D"http://img339.imageshack.=
-us/img339/5866/ab311636vto0.png" target=3D"_blank">http://img339.imageshack=
-.us/img339/5866/ab311636vto0.png</a><br><br><a class=3D"EC_moz-txt-link-fre=
-etext" href=3D"http://img168.imageshack.us/img168/2205/ab3mux111636vbx9.png=
-" target=3D"_blank">http://img168.imageshack.us/img168/2205/ab3mux111636vbx=
-9.png</a><br><br><font size=3D"2" face=3D"Arial"><pre>grep "CANAL+"  /opt/a=
-b3.szap<br>CANAL+:11636:v:2:30405:0:0:769:0<br>/opt/dvb/dvb-apps/util/szap#=
- ./szap  -c /opt/ab3.szap "CANAL+"<br>dvbstream  -o 8192 | vlc -   <br><br>=
-For dvb-s2: szap2 -t2 -c /opt/ab3.szap ANIXEHD<br><br>-t2 =3D dvb-s2</pre><=
-/font><br></pre></font><br /><hr />Emportez vos amis et vos emails partout=
-=85  <a href=3D'http://windowslivemobile.msn.com/?lang=3Dfr-BE' target=3D'_=
-new'>A la c=F4te=2C en ville ou dans le fin fond des Ardennes !</a></body>
-</html>=
-
---_893a29d0-0bdf-4eba-98c3-5fdcaa27eaf9_--
+This email message is intended only for the addressee(s) and contains infor=
+mation that may be confidential and/or copyright. If you are not the intend=
+ed recipient please notify the sender by reply email and immediately delete=
+ this email. Use, disclosure or reproduction of this email by anyone other =
+than the intended recipient(s) is strictly prohibited. No representation is=
+ made that this email or any attachments are free of viruses. Virus scannin=
+g is recommended and is the responsibility of the recipient. =
 
 
---===============0681674382==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0681674382==--
