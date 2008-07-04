@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m615Ue46000848
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 01:30:40 -0400
-Received: from web63010.mail.re1.yahoo.com (web63010.mail.re1.yahoo.com
-	[69.147.96.221])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m615UO4x020454
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 01:30:24 -0400
-Date: Mon, 30 Jun 2008 22:30:18 -0700 (PDT)
-From: Fritz Katz <frtzkatz@yahoo.com>
-To: hermann-pitton@arcor.de
-In-Reply-To: <1214873062.2623.51.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64HXpit028180
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 13:33:51 -0400
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64HXbMf019305
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 13:33:38 -0400
+Message-ID: <486E5F68.80201@free.fr>
+Date: Fri, 04 Jul 2008 19:35:36 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <869807.56113.qm@web63010.mail.re1.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Sabrent Philips7130 PCI TV Tuner -&- Yes, the USA is going digital.
-Reply-To: frtzkatz@yahoo.com
+To: Gregor Jasny <jasny@vidsoft.de>
+References: <20080704144036.GJ18818@vidsoft.de>
+In-Reply-To: <20080704144036.GJ18818@vidsoft.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org
+Subject: Re: PATCH: libv4l-fix-idct-inline-assembly.diff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,33 +27,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---- On Mon, 6/30/08, hermann pitton <hermann-pitton@arcor.de> wrote:
-> > 
-> > "Sabrent Philips7130 PCI TV Tuner/Video Capture Card"
-> http://www.geeks.com/details.asp?invtid=TV-PCIRC&cat=VID
-> 
-> oh my, this is a historical document.
+Gregor Jasny a écrit :
+> Hi,
+>
+> This patch fixes the input constraint for the sar instruction. It allows only an
+> immediate or cl as shift width.
+>
+> Thanks,
+> Gregor
+>
+> Signed-off-by: Gregor Jasny <jasny@vidsoft.de>
+>
+> diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c
+> --- a/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 07:21:55 2008 +0200
+> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 16:24:33 2008 +0200
+> @@ -92,7 +92,7 @@ static inline unsigned char descale_and_
+>        "\tcmpl %4,%1\n"
+>        "\tcmovg %4,%1\n"
+>        : "=r"(x)
+> -      : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+> +      : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
+>        );
+>    return x;
+>  }
+>
+>   
+Applied on http://www.linuxtv.org/hg/~tmerle/v4l2-library
 
-Found the listing for the card, it does work with Linux-TV (but not well on channel 2):
+Thanks,
 
-  http://linuxtv.org/v4lwiki/index.php/Sabrent_TV-PCIRC
-
-> 
-> Are those warnings already valid for all over the US or in
-> California only?
-
- The entire USA will go digital on Feb. 17, 2009. There will be no analog broadcasts after that. 
-
- The US Government is giving everyone with old TVs $40 (about 25 Euros) for each TV in their home to buy ATSC converter boxes:
-
-  https://www.dtv2009.gov/
-
-Regards,
--- Fritz Katz
-
-
-
-      
+Thierry
 
 --
 video4linux-list mailing list
