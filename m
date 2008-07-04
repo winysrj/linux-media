@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from mail-in-16.arcor-online.net ([151.189.21.56])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KJpbR-00056t-Qe
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 15:02:32 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KJpbJ-0004zG-Sw
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 13:02:21 +0000
-Received: from h30n2fls32o1121.telia.com ([217.211.84.30])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 13:02:21 +0000
-Received: from dvenion by h30n2fls32o1121.telia.com with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 13:02:21 +0000
-To: linux-dvb@linuxtv.org
-From: Daniel =?utf-8?b?SGVsbHN0csO2bQ==?= <dvenion@hotmail.com>
-Date: Fri, 18 Jul 2008 13:02:14 +0000 (UTC)
-Message-ID: <loom.20080718T125917-359@post.gmane.org>
-References: <200807170023.57637.ajurik@quick.cz>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] TT S2-3200 driver
+	(envelope-from <debalance@arcor.de>) id 1KEkmS-0002pO-C4
+	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 14:52:55 +0200
+Message-ID: <486E1D1E.6030403@arcor.de>
+Date: Fri, 04 Jul 2008 14:52:46 +0200
+From: =?KOI8-R?Q?Philipp_Hu=22bner?= <debalance@arcor.de>
+MIME-Version: 1.0
+To: Goga777 <goga777@bk.ru>
+References: <48664867.9060507@arcor.de>
+	<E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
+In-Reply-To: <E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,22 +26,75 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ales Jurik <ajurik <at> quick.cz> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> 
-> Hi,
-> 
-> please try attached patch. With this patch I'm able to get lock on channels 
-> before it was impossible. But not at all problematic channels and the 
-> reception is not without errors. Also it seems to me that channel switching is 
-> quicklier.
+Hey all,
 
-I have tested the transponder with Eurosport now. It has DVB-S2, 8PSK, Fec 3/4
-and 30000 in symbolrate. I get instant lock but no picture. Just black screen.
-All the other transponders locks fast and I get picture.
+Goga777 schrieb:
+> you should use szap2 from test directory of dvb-apps
+> http://linuxtv.org/hg/dvb-apps/file/77e3c7baa1e4/test/szap2.c
+
+scan works now, szap2 works now:
+
+szap2 -rxn 001
+reading channels from file '/home/der_schakal/.szap/channels.conf'
+zapping to 1 'ASTRA SDT':
+sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid = 0x1fff, apid
+= 0x1fff sid = 0x000c
+Delivery system=DVB-S
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+
+do_tune: API version=3, delivery system = 0
+do_tune: Frequency = 1951000, Srate = 22000000
+do_tune: Frequency = 1951000, Srate = 22000000
 
 
+status 00 | signal 22e0 | snr b7fa | ber 00000000 | unc fffffffe |
+status 1e | signal 014f | snr 007b | ber 00000000 | unc fffffffe |
+FE_HAS_LOCK
 
+
+But mplayer /dev/dvb/adapter0/dvr0 doesn't work:
+ls /dev/dvb/adapter0/
+ca0  demux0  dvr0  frontend0  net0
+
+ mplayer /dev/dvb/adapter0/dvr0
+MPlayer dev-SVN-r26940
+CPU: Intel(R) Pentium(R) 4 CPU 3.00GHz (Family: 15, Model: 4, Stepping: 3)
+CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+Compiled with runtime CPU detection.
+Can't open joystick device /dev/input/js0: No such file or directory
+Can't init input joystick
+mplayer: could not open config files /home/der_schakal/.lircrc and
+/etc/lirc//lircrc
+mplayer: No such file or directory
+Failed to read LIRC config file ~/.lircrc.
+
+Playing /dev/dvb/adapter0/dvr0.
+
+[CTRL+C]
+MPlayer interrupted by signal 2 in module: demux_open
+
+[CTRL+C]
+MPlayer interrupted by signal 2 in module: demux_open
+
+
+How can I actually watch some channel?
+
+Furthermore I'd like to use kaffeine, is this possible with this card?
+At the moment kaffeine fails to scan for channels because tuning fails.
+Is there some workaround?
+
+Thanks in advance,
+Philipp
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIbh0eFhl05MJZ4OgRAqN6AJwLO4/rhMpctg6HO85M8lLzjPR5ugCfcAXu
+YGpOeG+PNXJFY+O7ckIJs6Q=
+=Gkr1
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb mailing list
