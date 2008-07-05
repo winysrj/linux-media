@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from m106.maoz.com ([205.167.76.9])
+Received: from mail-in-01.arcor-online.net ([151.189.21.41])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhall@m106.maoz.com>) id 1KDUUb-0005ns-2K
-	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 03:17:14 +0200
-Received: from m106.maoz.com (localhost [127.0.0.1])
-	by m106.maoz.com (8.14.3/8.14.3/Debian-4) with ESMTP id m611H8D8003053
-	for <linux-dvb@linuxtv.org>; Mon, 30 Jun 2008 18:17:08 -0700
-Received: (from jhall@localhost)
-	by m106.maoz.com (8.14.3/8.14.3/Submit) id m611H8t1003052
-	for linux-dvb@linuxtv.org; Mon, 30 Jun 2008 18:17:08 -0700
-Date: Mon, 30 Jun 2008 18:17:08 -0700
-From: jhall@maoz.com
-To: linux-dvb@linuxtv.org
-Message-ID: <20080701011708.GA2994@maoz.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] problems tuning with multiproto
+	(envelope-from <hermann-pitton@arcor.de>) id 1KFGjR-0004z0-P2
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 00:59:55 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: marcin kowalski <yoshi314@gmail.com>
+In-Reply-To: <20080705110322.GA3898@watanabe>
+References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
+	<4868A644.5030806@onelan.co.uk>
+	<1214870271.2623.33.camel@pc10.localdom.local>
+	<20080701052044.GA3846@watanabe>
+	<51029ae90807050218v3c10b69bl261690ac3d9ed680@mail.gmail.com>
+	<20080705110322.GA3898@watanabe>
+Date: Sun, 06 Jul 2008 00:56:43 +0200
+Message-Id: <1215298603.3237.28.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] hvr-1300 analog audio question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,26 +30,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi yoshi/marcin,
 
-today I was watching a transponder with symbol rate 4340 and had rain
-fade.  I was using vdr-1.7.0 and the multiproto driver.  When the
-thunderstorm passed, the multiproto drivers didn't recover.  I killed
-vdr, unloaded and reloaded the modules and restarted vdr.  Still it
-refused to lock to the channel.  I stopped vdr and started an old vdr,
-using the older api.  Instantly the old vdr locked the transponder and
-started transferring good data.  I stopped the old vdr and restarted
-new vdr-1.7.0 using multiproto api.  Again it could not lock the
-signal.  I repeated this several times to no avail.
+Am Samstag, den 05.07.2008, 13:03 +0200 schrieb marcin kowalski:
+> On 11:18 Sat 05 Jul     , yoshi watanabe wrote:
+> > one small update. when i run the arecord | aplay combo with these parameters :
+> > 
+> > arecord -D hw:1,0 -c 2 -f S16 --period-size=8192 --buffer-size=524288 | aplay -
+> > 
+> > or with omitting the --period-size=8192 --buffer-size=524288
+> > 
+> > i hear noise. but when i start tvtime, right after video appears on
+> > screen i usually get 1-2 seconds of clear audio, and then noise comes
+> > in. i might be on to something. when i discard the buffering
+> > parameters sometimes arecord or aplay complain about buffer underrun.
+> > tvtime does not use cx88 mixes by default, by if i specify /
+> > 
+> > also this command
+> >  arecord -D hw:1,0 -c 2 -f S16_LE --period-size=65536
+> > --buffer-size=524288 -r 48000| aplay -r 48000 -
+> > 
+> > gives me very few errors now. noise pick ups when the sounds get
+> > louder though, but feel i'm really close now.
+> > 
+> > this is on a freshly installed system with mpeg encoder module
+> > disabled. i'll do some more testing.
+> > 
+> > 
+> this mail got strangely garbled when i sent it. it certainly didn't look like this when i sent it.
+> 
+> the thing is - i'm pretty close to success. i'll try building cx88 modules from ~rmcc branch to see whether they make a 
+> difference.
 
-oh and are there plans to integrate the multiproto api into the main
-linux-dvb repository?
+garbling always happens, but did not reach me in this case.
 
-Thanks.
+My comment was only meant as a side note.
 
-_J
+Did you try "sox"? For uncompensated audio clocks it usually works
+better.
 
-P.S. the card is an stv0299-based budget card.
+I'm far away from any playstation stuff.
+
+AFAIK, it has noninterlaced output on the RF connector, are you on that
+one?
+
+What about the s-video and composite outputs and audio directly
+connected to the sound card input?
+
+Cheers,
+Hermann
+
+
 
 _______________________________________________
 linux-dvb mailing list
