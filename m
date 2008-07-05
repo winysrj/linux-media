@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.236])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <subhra85@gmail.com>) id 1KIHiM-0002Tf-Jd
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 08:39:17 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so5637826rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 13 Jul 2008 23:39:10 -0700 (PDT)
-Message-ID: <35fa40850807132339o3332d1acja21e37a095cf73de@mail.gmail.com>
-Date: Mon, 14 Jul 2008 12:09:09 +0530
-From: "SUBHRANIL CHOUDHURY" <subhra85@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <35fa40850807130542y6ffb55c6t1f3e93ba8f40b7e7@mail.gmail.com>
+	(envelope-from <yoshi314@gmail.com>) id 1KF5Yi-0007hf-I6
+	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 13:04:05 +0200
+Received: by ug-out-1314.google.com with SMTP id m3so963420uge.20
+	for <linux-dvb@linuxtv.org>; Sat, 05 Jul 2008 04:04:01 -0700 (PDT)
+Date: Sat, 5 Jul 2008 13:03:22 +0200
+From: marcin kowalski <yoshi314@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080705110322.GA3898@watanabe>
+References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
+	<4868A644.5030806@onelan.co.uk>
+	<1214870271.2623.33.camel@pc10.localdom.local>
+	<20080701052044.GA3846@watanabe>
+	<51029ae90807050218v3c10b69bl261690ac3d9ed680@mail.gmail.com>
 MIME-Version: 1.0
-References: <35fa40850807130542y6ffb55c6t1f3e93ba8f40b7e7@mail.gmail.com>
-Subject: [linux-dvb] Scan issues on Pinnacle 2001e DAUL Diversity Stick
+Content-Disposition: inline
+In-Reply-To: <51029ae90807050218v3c10b69bl261690ac3d9ed680@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] hvr-1300 analog audio question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,144 +26,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0105577092=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0105577092==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_35427_16856461.1216017550017"
+On 11:18 Sat 05 Jul     , yoshi watanabe wrote:
+> one small update. when i run the arecord | aplay combo with these parameters :
+> 
+> arecord -D hw:1,0 -c 2 -f S16 --period-size=8192 --buffer-size=524288 | aplay -
+> 
+> or with omitting the --period-size=8192 --buffer-size=524288
+> 
+> i hear noise. but when i start tvtime, right after video appears on
+> screen i usually get 1-2 seconds of clear audio, and then noise comes
+> in. i might be on to something. when i discard the buffering
+> parameters sometimes arecord or aplay complain about buffer underrun.
+> tvtime does not use cx88 mixes by default, by if i specify /
+> 
+> also this command
+>  arecord -D hw:1,0 -c 2 -f S16_LE --period-size=65536
+> --buffer-size=524288 -r 48000| aplay -r 48000 -
+> 
+> gives me very few errors now. noise pick ups when the sounds get
+> louder though, but feel i'm really close now.
+> 
+> this is on a freshly installed system with mpeg encoder module
+> disabled. i'll do some more testing.
+> 
+> 
+this mail got strangely garbled when i sent it. it certainly didn't look like this when i sent it.
 
-------=_Part_35427_16856461.1216017550017
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+the thing is - i'm pretty close to success. i'll try building cx88 modules from ~rmcc branch to see whether they make a 
+difference.
 
-hi,
-
-I am working on DVB-T for the first time. I am using a Pinnacle PCTV 2001e
-USB DVB-T dongle.In that the device dri vers are getting registered and the
-device is getting detected.I am using a 2.6.23.15 kernel.
-
-The dmesg is as follows:
-
-dvb-usb: Pinnacle PCTV Dual DVB-T Diversity Stick successfully deinitialized
-and disconnected.
-usb 1-1.4: new high speed USB device using musb_hdrc and address 4
-usb 1-1.4: Product: PCTV 2001e
-usb 1-1.4: Manufacturer: PINNACLE
-usb 1-1.4: SerialNumber: 12020607
-usb 1-1.4: configuration #1 chosen from 1 choice
-
-dvb-usb: found a 'Pinnacle PCTV Dual DVB-T Diversity Stick' in cold state,
-will try to load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Pinnacle PCTV Dual DVB-T Diversity Stick' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)
-DVB: registering frontend 0 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)
-DVB: registering frontend 1 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: Pinnacle PCTV Dual DVB-T Diversity Stick successfully initialized
-and connected.
-
-But, after that when i am trying to run any scan application , it is showing
-"scan failed".
-
-the dmesg after running scan application is,
-
-APPLN INFO >> Inside scan_network
-APPLN INFO >> Inside tune_initial
-Inside alloc_transponder
-initial transponder 474166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 498166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 522166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 538166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 562166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 586166000 0 3 9 3 1 2 0
-Inside alloc_transponder
-initial transponder 714166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 738166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 754166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 762166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 786166000 0 2 9 3 1 0 0
-Inside alloc_transponder
-initial transponder 810166000 0 2 9 3 1 0 0
-Inside tune_to_next_transponder()
-Inside tune_to_transponder()
-APPLN INFO >> Entered __tune_to_transponder()
->>> tune to:
-474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
-APPLN INFO >> Entered __tune_to_transponder()
->>> tune to:
-474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-(tuning failed)
-WARNING: >>> tuning failed!!!
-Inside tune_to_transponder()
-
-etc, etc.
-
-Can Anyone Please tell me if you have faced a similar problem or what is
-happening ?
-Do i have to add something to the kernel?
-
-Best regards,
-subhro
-
-------=_Part_35427_16856461.1216017550017
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br><br>
-<div class="gmail_quote"><br><br>
-<p>hi, </p>
-<p>I am working on DVB-T for the first time. I am using a Pinnacle PCTV 2001e USB DVB-T dongle.In that the device dri vers are getting registered and the device is getting detected.I am using a <a href="http://2.6.23.15/" target="_blank">2.6.23.15</a> kernel.<br>
-&nbsp;<br>The dmesg is as follows:<br>&nbsp;<br>dvb-usb: Pinnacle PCTV Dual DVB-T Diversity Stick successfully deinitialized and disconnected.<br>usb 1-1.4: new high speed USB device using musb_hdrc and address 4<br>usb 1-1.4: Product: PCTV 2001e<br>
-usb 1-1.4: Manufacturer: PINNACLE<br>usb 1-1.4: SerialNumber: 12020607<br>usb 1-1.4: configuration #1 chosen from 1 choice</p>
-<p>dvb-usb: found a &#39;Pinnacle PCTV Dual DVB-T Diversity Stick&#39; in cold state, will try to load a firmware<br>dvb-usb: downloading firmware from file &#39;dvb-usb-dib0700-1.10.fw&#39;<br>dib0700: firmware started successfully.<br>
-dvb-usb: found a &#39;Pinnacle PCTV Dual DVB-T Diversity Stick&#39; in warm state.<br>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)<br>
-DVB: registering frontend 0 (DiBcom 7000PC)...<br>DiB0070: successfully identified<br>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>DVB: registering new adapter (Pinnacle PCTV Dual DVB-T Diversity Stick)<br>
-DVB: registering frontend 1 (DiBcom 7000PC)...<br>DiB0070: successfully identified<br>dvb-usb: Pinnacle PCTV Dual DVB-T Diversity Stick successfully initialized and connected.<br>&nbsp;<br>But, after that when i am trying to run any scan application , it is showing &quot;scan failed&quot;.<br>
-&nbsp;<br>the dmesg after running scan application is,<br>&nbsp;<br>APPLN INFO &gt;&gt; Inside scan_network<br>APPLN INFO &gt;&gt; Inside tune_initial<br>Inside alloc_transponder<br>initial transponder 474166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>
-initial transponder 498166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 522166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 538166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>
-initial transponder 562166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 586166000 0 3 9 3 1 2 0<br>Inside alloc_transponder<br>initial transponder 714166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>
-initial transponder 738166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 754166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 762166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>
-initial transponder 786166000 0 2 9 3 1 0 0<br>Inside alloc_transponder<br>initial transponder 810166000 0 2 9 3 1 0 0<br>Inside tune_to_next_transponder()<br>Inside tune_to_transponder()<br>APPLN INFO &gt;&gt; Entered __tune_to_transponder()<br>
-&gt;&gt;&gt; tune to: 474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE<br>WARNING: &gt;&gt;&gt; tuning failed!!!<br>APPLN INFO &gt;&gt; Entered __tune_to_transponder()<br>
-&gt;&gt;&gt; tune to: 474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)<br>WARNING: &gt;&gt;&gt; tuning failed!!!<br>Inside tune_to_transponder()</p>
-
-<p>etc, etc.<br>&nbsp;<br>Can Anyone Please tell me if you have faced a similar problem or what is happening ?<br>Do i have to add something to the kernel?<br>&nbsp;<br>Best regards,<br>subhro</p></div><br>
-
-------=_Part_35427_16856461.1216017550017--
-
-
---===============0105577092==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0105577092==--
