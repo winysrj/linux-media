@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail9.dslextreme.com ([66.51.199.94])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <daniel@gimpelevich.san-francisco.ca.us>)
-	id 1KDia8-0004Wd-EA
-	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 18:19:56 +0200
-Message-ID: <486A57A2.8060904@gimpelevich.san-francisco.ca.us>
-Date: Tue, 01 Jul 2008 09:13:22 -0700
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Received: from rv-out-0506.google.com ([209.85.198.232])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <yoshi314@gmail.com>) id 1KF3v4-00029A-4U
+	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 11:19:03 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1962949rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 05 Jul 2008 02:18:57 -0700 (PDT)
+Message-ID: <51029ae90807050218v3c10b69bl261690ac3d9ed680@mail.gmail.com>
+Date: Sat, 5 Jul 2008 11:18:56 +0200
+From: "yoshi watanabe" <yoshi314@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <20080701052044.GA3846@watanabe>
 MIME-Version: 1.0
-To: Adam Burdeniuk <burdeniuk@internode.on.net>
-References: <4865b170.2e5.6a9b.26067@internode.on.net>
-	<486966E8.3050509@internode.on.net>
-In-Reply-To: <486966E8.3050509@internode.on.net>
+Content-Disposition: inline
+References: <51029ae90806300203p2d5fbf6bo7a28391b59553599@mail.gmail.com>
+	<4868A644.5030806@onelan.co.uk>
+	<1214870271.2623.33.camel@pc10.localdom.local>
+	<20080701052044.GA3846@watanabe>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO FusionHDTV DVB-T Pro
+Subject: Re: [linux-dvb] hvr-1300 analog audio question
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,130 +31,77 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Adam Burdeniuk wrote:
-> Daniel,
-> 
-> Please read my comments scattered below.  I had posted this to the 
-> linux-dvb mailing list (albeit in a new thread) but it seems to have got 
-> lost in the noise.
+one small update. when i run the arecord | aplay combo with these parameters :
 
-I am CC'ing the list.
+arecord -D hw:1,0 -c 2 -f S16 --period-size=8192 --buffer-size=524288 | aplay -
 
-> Daniel Gimpelevich wrote:
->>  Looking at cx88-cards.c, I see that the definition there for your
->>  card is quite broken. I'm amazed it ever worked at all with such
->>  incomplete support.
-> 
-> There was some preliminary work in 
-> http://linuxtv.org/hg/~pascoe/xc-test/ that got DVB-T working with this 
-> card in 2.6.24.
+or with omitting the --period-size=8192 --buffer-size=524288
 
-That tree was merged into the main v4l-dvb tree.
+i hear noise. but when i start tvtime, right after video appears on
+screen i usually get 1-2 seconds of clear audio, and then noise comes
+in. i might be on to something. when i discard the buffering
+parameters sometimes arecord or aplay complain about buffer underrun.
+tvtime does not use cx88 mixes by default, by if i specify /
 
-> Analog TV, composite, svideo, remote controls, etc 
-> didn't work (or at least I was told they wouldn't work and I never tried 
-> them).  Is that what you mean by 'quite broken'?  I'm not familiar 
-> enough with the linuxtv codebase to make judgements of what you mean for 
-> myself, but am willing to learn.  All I've really done is applied 
-> patches that Chris supplied me.
+also this command
+ arecord -D hw:1,0 -c 2 -f S16_LE --period-size=65536
+--buffer-size=524288 -r 48000| aplay -r 48000 -
 
-There is that, but also, I bet that any attempt to try them would have 
-made DVB also stop working.
+gives me very few errors now. noise pick ups when the sounds get
+louder though, but feel i'm really close now.
 
->>  Fundamental portions of the cx88 driver need to be redone, and for
->>  your card, that will mean going back to Windows to see what the
->>  vendor's driver is doing with GPIO in response to different inputs,
->>  as well as some experimentation. If you're up for things like that,
->>  you can start by: 1) Gathering GPIO register values in Windows with
->>  RegSpy from dscaler.org, recording what they are with each card input
->>  selected (DVB, analog TV, composite, S-video, FM radio, SCART, etc.),
->>  as well as the values after closing all apps related to the card, so
->>  that the card is idle.
-> 
-> Done, at least some preliminary (i.e. non-exhaustive) results.  See the 
-> attachment for processed results.
+this is on a freshly installed system with mpeg encoder module
+disabled. i'll do some more testing.
 
-Excellent!
 
-> Even when the card is idle it seems to be doing DMA transfers (as the 
-> *DMA* values keep changing).
-
-That is to be expected.
-
-> The one issue that Chris told me about with this card (I don't know if 
-> there were any others that he solved before I came along) was:
-> 
->>  ...There was some code someone else added to the zl10353 driver that
->>  makes it give up control of the I2C bus.  This isn't appropriate for
->>  this board, because the zl10353 provides the bus power.  If it does
->>  this, everything stops responding - including the eeprom - so things
->>  are messed up... I have disabled this functionality for this board
->>  and put a patch in with the right GPIO settings into:
->>  http://linuxtv.org/hg/~pascoe/xc-test/
-
-This would also be addressed in the fundamental changes I mentioned above.
-
->>  2) Applying this patch:
->>  http://thread.gmane.org/gmane.comp.video.video4linux/38536 Note that
->>  with the card definition as it currently is, this patch will make the
->>  card stop working altogether. You will need to redo the card
->>  definition to include all the info gathered in #1 above.
-> 
-> What revision should I apply this patch to?  What information do I put 
-> where?
-
-It would be applied to the current mercurial tip of the main v4l-dvb 
-tree. After doing that, replace the card definition in cx88-cards.c for 
-your card with one based on the data you provided. That would be:
-         [CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO] = {
-                 .name           = "DViCO FusionHDTV DVB-T PRO",
-                 .tuner_type     = TUNER_ABSENT, /* XXX: Has XC3028 */
-                 .radio_type     = UNSET,
-                 .tuner_addr     = ADDR_UNSET,
-                 .radio_addr     = ADDR_UNSET,
-                 .input          = { {
-                         .type   = CX88_VMUX_TELEVISION,
-                         .vmux   = 0,
-                         .gpio0  = 0x00001ef5,
-                 }, {
-                         .type   = CX88_VMUX_COMPOSITE1,
-                         .vmux   = 1,
-                         .gpio0  = 0x00001ef1,
-                 }, {
-                         .type   = CX88_VMUX_SVIDEO,
-                         .vmux   = 2,
-                         .gpio0  = 0x00001ef1,
-                 }, {
-                         .type   = CX88_VMUX_DVB,
-                         .gpio0  = 0x00001ef5,
-                 } },
-                 .off = {
-                         .type   = CX88_OFF,
-                         .gpio0  = 0x00001ef5,
-                 },
-                 .mpeg           = CX88_MPEG_DVB,
-         },
-
->>  3) Reporting your findings from #1 and #2 above. I will be submitting
->>  a patch to the tuner-core that will pave the way for some real fixing
->>  of cx88, and info on as many cx88 cards as possible will be a plus
->>  during that fixing.
->>  4) Testing future cutting-edge patches to see how
->>  they affect the use of the card, before those patches make it into
->>  the tree.
-> 
-> Fine by me.
-> 
->>  Have fun!
-> 
-> Thanks,
-> Adam
-
-OK, after applying the patch and replacing the card definition, please 
-try under Linux everything you did under Windows, so that you may report 
-back any observable differences between the two. While they might not 
-all be taken care of in the short term, a catalog of them now would be a 
-resource for future improvements.
+On 7/1/08, marcin kowalski <yoshi314@gmail.com> wrote:
+> On 01:57 Tue 01 Jul     , hermann pitton wrote:
+>  > Hi,
+>  >
+>  > Am Montag, den 30.06.2008, 10:24 +0100 schrieb Simon Farnsworth:
+>  > > yoshi watanabe wrote:
+>  > > > hello.
+>  > > >
+>  > > > i'm using hauppauge hvr-1300 to receive video signal from playstation2
+>  > > > console, pal model. video is just fine, but i'm having strange audio
+>  > > > issues, but judging by some searching i did - that's pretty common
+>  > > > with this card , although people have varied experience with the card.
+>  > > >
+>  > >
+>  > > I've had similar issues with SAA7134 based cards, which were resolved by
+>  > >   changing audio parameters.
+>  > >
+>  > > If your problem is the same as mine was, try:
+>  > > arecord --format=S16 \
+>  > >          --rate=32000 \
+>  > >          --period-size=8192 \
+>  > >          --buffer-size=524288 | aplay
+>  > >
+>  > > This forces 32kHz sampling, and gives the card lots of buffer space to
+>  > > play with.
+>  >
+>  > 32kHz is true for saa713x TV audio dma sampling, saa7130 has no support
+>  > at all for it.
+>  >
+>  > But 48Khz is default on cx88 stuff.
+>  >
+>  > Cheers,
+>  > Hermann
+>  >
+>
+> i guess that means i'm back to square one. it's pretty strange that noise gets more intense when
+>  there is more movement in the video (more dynamic scenes = much more noise). but that doesn't mean that when there is
+>  static screen displayed it works perfectly. it's more random than that.
+>
+>  i wonder whether mpeg encoder might be interfering with the audio signal (audio in mpeg stream is always perfectly
+>  clear). maybe i should try to disable it (by removing the firmware from /lib/firmware, or the module from the kernel) ?
+>
+>  i guess i'll have to check around the branches, maybe somebody has some interesting patches that didn't make it into
+>  main v4l-dvb tree yet.
+>
+>  anyway, thanks for your help.
+>
+>
 
 _______________________________________________
 linux-dvb mailing list
