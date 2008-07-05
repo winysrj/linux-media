@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.181])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <owen.townend@gmail.com>) id 1KDwfo-0008Mc-4u
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 09:22:41 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so158946wag.13
-	for <linux-dvb@linuxtv.org>; Wed, 02 Jul 2008 00:22:33 -0700 (PDT)
-Message-ID: <bb72339d0807020022n5694d177k7243ec0d0838659c@mail.gmail.com>
-Date: Wed, 2 Jul 2008 17:22:33 +1000
-From: "Owen Townend" <owen.townend@gmail.com>
+Received: from n60.bullet.mail.sp1.yahoo.com ([98.136.44.40])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KF8dI-0007fx-4M
+	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 16:21:03 +0200
+Date: Sat, 5 Jul 2008 07:20:22 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <153722.52467.qm@web46116.mail.sp1.yahoo.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Wiki Entry for AVerMedia AverTV Hybrid+FM PCI A16D
+Message-ID: <577691.27608.qm@web46112.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] UMT-010-like USB DVB-T receivers, that aren't
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,45 +24,93 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hey,
-  I have recently bought an AVerMedia AverTV Hybrid+FM PCI A16D and
-tried a few ways to get it working and ultimately the linuxtv
-mercurial repository[1] combined with the xc3028-v27.fw firmware works
-quite well. Whilst trying the mcentral repository[2] I contributed a
-little to the wiki page[3]. Since settling on the linuxtv repo I was
-looking to see if I could contribute anything and found that the
-linuxtv wiki page[4] has only a link to the mcentral page though I can
-see dev work for this device in the hg logs[5] since the initial
-merge/import of Markus' mcentral code.
+Yo!  What I said!
 
-The wiki entry text is:
-'Projectsite moved to: mcentral.de since it contains code which is
-only available on that server.'
+> I've seen messages from the past years in the archive referring
+> to the UMT-010 code that seems to not work with different
+> devices.  I've got one of them, that's partly supported but
 
-  In using the two diferent repositories the two builds have different
-quirks and ask for different firmware. Does the dev for this device
-still mainly consist of merging Markus' code and hence the wiki page
-should be left as is or should I/we/someone seed the linuxtv wiki page
-with instructions in using the linuxtv repo with this device?
+> The MT352 demodulator is successfully identified.
+> I tried, disconnecting the device results in a panic, which
 
-  I am willing to type up instructions based on my experiences and can
-take my own photos but am unsure whether the information would be
-redundant and/or whether it would be helpful to do so.
+Fixed by the recent patch.
 
-cheers,
-Owen.
 
-P.S.
-Thanks to Markus, Mauro, Tim and Dan for the work getting this working!
-(names from the hg logs)
+> The actual tuner in the stick is the MT2060F.  I'm guessing I
+> The tuner in my stick is definitively not on the expected 0x61,
+> but at 0x60
 
-footnotes:
---
-[1] hg repo: http://linuxtv.org/hg/v4l-dvb
-[2] hg repo: http://mcentral.de/hg/~mrec/v4l-dvb-kernel
-[3] wiki page: http://mcentral.de/wiki/index.php5/AVerMedia_AverTV_Hybrid_FM_PCI_A16D
-[4] wiki page: http://www.linuxtv.org/v4lwiki/index.php/AVerMedia_AverTV_Hybrid%2BFM_PCI_A16D
-[5] hg logs: http://linuxtv.org/hg/v4l-dvb/log?rev=avermedia+A16D
+Successfully probed and identified:
+
+[11881.612826] DVB: registering new adapter (Hanftek UMT-010 DVB-T USB2.0)
+[11881.621216] DVB: registering frontend 2 (Zarlink MT352 DVB-T)...
+[11881.625922] MT2060: successfully identified (IF1 = 1220)
+[11882.201936] dibusb: Found MT2060 at 0x60
+
+However with the warning after loading firmware, Linux/Hanftek:
+[11881.580848] usb 4-2.2: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid maxpacket 64
+[11881.581169] usb 4-2.2: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 64
+[11881.584942] usb 4-2.2: configuration #1 chosen from 1 choice
+
+Similar warning when loaded vendor firmware from cdrom (prod ID 0x25) :
+[11138.581373] usb 4-2.2: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid maxpacket 64
+[11138.581712] usb 4-2.2: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 64
+[11138.581987] usb 4-2.2: config 1 interface 0 altsetting 0 bulk endpoint 0x82 has invalid maxpacket 376
+[11138.584747] usb 4-2.2: configuration #1 chosen from 1 choice
+
+
+In neither case have I yet to receive any signal whatsoever when
+scanning verbosely.  Code is based on 2.6.26-rc8 aged a week for
+smoothness, manually patched and hacked for the MT2060 at 0x60.
+
+
+
+> If there might be an additional PLL chip, that might be what
+> I see mounted on the bottom of the board, next to the MT2060,
+
+Lies, untruths, falsehoods, slander.  Here's a complete inventory
+of significant components on this Clone'o'Hanftek:
+
+working from antenna towards USB connector, upperside of board
+
+label VT6330C1 VER:1.0
+Tuner  MT2060F
+smd bandpass filter (if filter)  EPCOS X7350P on side
+    prob IR RX, no label
+Demod  MT352CG
+serial eeprom  ATMEL630 + 24C02BN
+24MHz xtal
+empty space for one LED next to USB connector
+
+bottom of board
+not a PLL, but 18MHz xtal
+20,48MHz xtal
+EZ-USB uC  CY7C68013A-56LFXC + cyp 606155
+
+
+
+I've just grepped the list archives and reread the messages about
+Hanftek/UMT-010.  None of them (esp.2006-ish) seemed to come to
+a satisfactory conclusion within the list archive.
+
+As this board has the MT2060 tuner, is it appropriate that I try
+to keep it within the umt-010.c framework?  I bet I need to add
+more config info to the tuner attach, which so far has been without
+success.
+
+Or should I be trying to get dibusb to talk to this device, as the
+umt source seems to partly depend on that?  Or something else??
+
+And should I concern myself with the maxpacket messages???
+
+
+You've heard it before, I don't know what I'm doing
+thanks
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
