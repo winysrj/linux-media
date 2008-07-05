@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HFVlNQ023354
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:31:47 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HFVYlK032491
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:31:34 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so6906161rvb.51
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 08:31:34 -0700 (PDT)
-Message-ID: <d9def9db0807170831h4fb42ba2v5a7ff38c762092f5@mail.gmail.com>
-Date: Thu, 17 Jul 2008 17:31:33 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-In-Reply-To: <487A577F.8080300@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m65Mq5ib008049
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 18:52:05 -0400
+Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
+	[151.189.21.53])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m65MpPwB029675
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 18:51:25 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: D <therealisttruest@gmail.com>
+In-Reply-To: <486FF148.2060506@gmail.com>
+References: <486FF148.2060506@gmail.com>
+Content-Type: text/plain
+Date: Sun, 06 Jul 2008 00:48:06 +0200
+Message-Id: <1215298086.3237.19.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <487908CA.8000304@tiscali.it> <48790D29.1010404@hhs.nl>
-	<4879E767.4000103@tiscali.it> <487A577F.8080300@hhs.nl>
-Cc: Andrea <audetto@tiscali.it>, video4linux-list@redhat.com
-Subject: Re: prototype of a USB v4l2 driver? gspca?
+Cc: video4linux-list@redhat.com
+Subject: Re: Help with Chinese card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,75 +28,152 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jul 13, 2008 at 9:29 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> Andrea wrote:
->>
->> Hans de Goede wrote:
->>>
->>> Andrea wrote:
->>>
->>> What kind of device, I think that for webcams you;re best using gspca,
->>> (now merged in mecurial), that handles all the usb specific stuff, buffer
->>> management, etc. In general it makes it easy to write a webcam driver
->>> allowing you to focus on the interaction with the cam, rather then having to
->>> worry about looking, usb specifics, buffer management etc.
->>>
->>
->> I've had a quick look at the structure of gspca, and it seems that any
->> subdriver should just (easier to say that to do) fill one of those
->> structures
->>
->
-> Correct.
->
->> struct sd_desc {
->> /* information */
->>    const char *name;    /* sub-driver name */
->> /* controls */
->>    const struct ctrl *ctrls;
->>    int nctrls;
->> /* operations */
->>    cam_cf_op config;    /* called on probe */
->>    cam_op open;        /* called on open */
->>    cam_v_op start;        /* called on stream on */
->>    cam_v_op stopN;        /* called on stream off - main alt */
->>    cam_v_op stop0;        /* called on stream off - alt 0 */
->>    cam_v_op close;        /* called on close */
->>    cam_pkt_op pkt_scan;
->> /* optional operations */
->>    cam_v_op dq_callback;    /* called when a frame has been dequeued */
->>    cam_jpg_op get_jcomp;
->>    cam_jpg_op set_jcomp;
->>    cam_qmnu_op querymenu;
->> };
->>
->> 1) providing ctrls (+ functions to handle settings)
->> 2) functions to open/stream/close etc...
->>
->> It does not seem too bad.
->>
->
-> It isn't.
->
->> The a natural question that comes to me:
->>
->> Shouldn't many more USB drivers be implemented as subdrivers of gspca?
->
-> Yes that would remove lots of code duplication, but allas they were written
-> before gspca (version 2, as you currently see in mercurial) was around.
->
 
-I guess quite a few drivers have extra features which might be missing
-in other usb based ones. Best is probably to have a look at all
-available ones and cherry pick the best ideas and easiest to
-understand parts.
-I think they are all on a certain level of quality right now.
+Am Samstag, den 05.07.2008, 14:10 -0800 schrieb D:
+> Anyone,
+> 
+> Firstly, let me state I'm not a total noob to Linux, but have only 
+> recompiled a kernel once or twice and then couldn't have done so without 
+> a decent step by step guide. I'm a programmer, but not a good one yet as 
+> I'm still learning a lot. So on to my problem.....
+> 
+> I was working on this for an associate of mine who is across the country 
+> so I have somewhat limited access to the machine with the card on it. I 
+> have tried a couple module recompilations with a possible addition for 
+> this card, but with no real success.
+> 
+> It's a LE-8008A from Shenzhen Rare Numeral Science bought on EBay and it 
+> appears to be an SAA7134 card. Based on a previous posting on the 
+> mailing list, I've made changes to the saa7134-cards.c and saa7134.h 
+> below, but with little success(the previous user  evidently used RegSpy 
+> in Windows, but I don't have access to that)--
+> 
+> [SAA7134_BOARD_AOP_8008A_16_PORT] = {/*added definition*/
+>         .name = "AOPVision AOP-8008A 16CH/240fps Capture Card",
+>         .audio_clock = 0x00187de7,
+>         .tuner_type = TUNER_ABSENT,
 
-* gspca
-* uvcvideo
-* em28xx from mcentral.de
+You only use TUNER_ABSENT, tuner=4, if it is DVB only or only has
+external inputs for surveillance nonsense.
 
-Markus
+Do you have any tuners on that wreckage?
+
+>         .radio_type = UNSET,
+>         .tuner_addr = ADDR_UNSET,
+>         .radio_addr = ADDR_UNSET,
+>         .inputs = {{
+>         .name = name_comp1,
+>         .gpio = 0xe3c00,
+
+The driver uses masked writes for gpio stuff.
+
+If you think there is anything to do on comp audio, you would like to
+have it in the gpio mask set previously.
+
+>         .vmux = 0,
+>         },{
+>         .name = name_comp2,
+>         .gpio = 0xe3c00,
+>         .vmux = 2,
+>         }},
+> 
+> Here's some pertinent info-
+> 
+> lspci
+> 
+> 04:08.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+
+It are some saa7130 only, the detection for these is valid and we have
+countless clones of prior cards floating around.
+
+> 04:09.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0a.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0b.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0d.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0e.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 04:0f.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
+> Broadcast Decoder (rev 01)
+> 
+> 
+> lspci -vn
+> 
+> 04:08.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 21
+>     Memory at febffc00 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:09.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 22
+>     Memory at febff800 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0a.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 17
+>     Memory at febff400 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0b.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 23
+>     Memory at febff000 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0c.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 21
+>     Memory at febfec00 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0d.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 22
+>     Memory at febfe800 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0e.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 17
+>     Memory at febfe400 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+> 
+> 04:0f.0 0480: 1131:7130 (rev 01)
+>     Subsystem: 1131:0000
+>     Flags: bus master, medium devsel, latency 64, IRQ 23
+>     Memory at febfe000 (32-bit, non-prefetchable) [size=1K]
+>     Capabilities: [40] Power Management version 1
+
+So lots of saa7130 chips there, but they don't have the few cents left
+for some eeproms on it ...
+
+> 
+> Any advice on what to do next or any questions for me to help clarify?
+> 
+> Thanks in advance!
+> 
+> Daniel
+> 
+
+Likely already all over the lists and fully ;) working ...
+
+Don't post here, if you don't provide at least, as a absolute minimum,
+"dmesg" on loading the drivers.
+
+Cheers,
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
