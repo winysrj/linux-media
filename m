@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63IsNfA014241
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 14:54:23 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63IsCk3014741
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 14:54:12 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so370502ywb.81
-	for <video4linux-list@redhat.com>; Thu, 03 Jul 2008 11:54:12 -0700 (PDT)
-Date: Thu, 3 Jul 2008 19:53:49 +0100
-From: Jaime Velasco Juan <jsagarribay@gmail.com>
-To: David Ellingsworth <david@identd.dyndns.org>
-Message-ID: <20080703185349.GA6467@singular.sob>
-References: <30353c3d0806281840y76796eebh3beae577a24f6049@mail.gmail.com>
-	<30353c3d0806291534y3b79d27aob9c4955b6d4ecb9c@mail.gmail.com>
-	<20080701171321.GA6159@singular.sob>
-	<30353c3d0807011242r559f87ak8c8049b7ca4d2677@mail.gmail.com>
-	<30353c3d0807012101m5158059ftdb679e9501ec0fde@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m654JZxX022376
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 00:19:35 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m654JJir018204
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 00:19:20 -0400
+Date: Sat, 5 Jul 2008 06:19:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+In-Reply-To: <20080705025345.27137.74420.sendpatchset@rx1.opensource.se>
+Message-ID: <Pine.LNX.4.64.0807050602370.705@axis700.grange>
+References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+	<20080705025345.27137.74420.sendpatchset@rx1.opensource.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <30353c3d0807012101m5158059ftdb679e9501ec0fde@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: [RFT v2] stk-webcam: Fix video_device handling
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, paulius.zaleckas@teltonika.lt,
+	linux-sh@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	lethal@linux-sh.org, akpm@linux-foundation.org
+Subject: Re: [PATCH 01/04] soc_camera: Move spinlocks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,309 +29,200 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-El mié. 02 de jul. de 2008, a las 00:01:20 -0400, David Ellingsworth escribió:
-> On Tue, Jul 1, 2008 at 3:42 PM, David Ellingsworth
-> <david@identd.dyndns.org> wrote:
-> > On Tue, Jul 1, 2008 at 1:13 PM, Jaime Velasco Juan
-> > <jsagarribay@gmail.com> wrote:
-> >> Hi David,
-> >>
-> >> it seems to work ok now with your other patch, but if the video_device
-> >> struct is going to be ref. counted, wouldn't it make sense to drop the
-> >> kref in the driver and free all resources in the release callback? With
-> >> these changes there are two krefs which are created, get and put at the
-> >> same time and for the same purpose.
-> >>
-> > I noticed this as well and was actually working on a patch which would
-> > have removed the kref from the stk_camera since it would no longer
-> > have been needed.
-> >
-> >> I also like better the video_device struct embedded in the main
-> >> stk_camera struct (as it is now), but if people prefer having it
-> >> referenced with a pointer, so be it.
-> >>
-> > Agreed. The next patch I submit will keep the video_device struct in
-> > the stk_camera struct as it really doesn't need to be allocated using
-> > video_device_alloc().
-> >
-> >> Regards,
-> >>
-> >> Jaime
-> >
-> > I'm currently working to correct the kobject reference count in
-> > videodev which was previously patched by using a kref. The resulting
-> > behavior should be the same, but the code will be much simpler to
-> > understand. Once I have this working I will submit a proper patch for
-> > stk-webcam as well.
-> >
-> > Regards,
-> >
-> > David Ellingsworth
-> >
-> 
-> As promised, here's the patch which frees the stk_camera object via
-> the kobject release callback. This patch should be applied along with
-> the latest videodev patch titled "videodev: fix kobj ref count". This
-> patch removes the unnecessary kref object from stk_camera and reduces
-> the size of the driver by 40 lines of code.
-> 
-> Regards,
-> 
-> David Ellingsworth
-> 
-> [PATCH] stk-webcam: release via kobj
-> 
-> 
-> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+On Sat, 5 Jul 2008, Magnus Damm wrote:
 
-Hi David, seems to work fine, I don't have any complaints.
+> This patch moves the spinlock handling from soc_camera.c to the actual
+> camera host driver. The spinlock alloc/free callbacks are replaced with
+> code in init_videobuf().
 
-Acked-by: Jaime Velasco Juan <jsagarribay@gmail.com>
+Does this mean, that you have found a possibility to port your 
+spinlock-removal patch on the top of the "make videobuf independent" patch 
+without any loss of functionality? This looks good on a first glance. I am 
+on a holiday now (:-)), so, I unfortunately cannot review your patches 
+ATM. I'll try to do this in a week, hope, this still will be in time for 
+the 2.6.27 merge window.
 
-Thanks.
+Thanks
+Guennadi
 
-
+> 
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
 > ---
->  drivers/media/video/stk-webcam.c |   84 ++++++++++---------------------------
->  drivers/media/video/stk-webcam.h |    2 -
->  2 files changed, 23 insertions(+), 63 deletions(-)
 > 
-> diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-> index f308c38..acf9a69 100644
-> --- a/drivers/media/video/stk-webcam.c
-> +++ b/drivers/media/video/stk-webcam.c
-> @@ -64,22 +64,6 @@ static struct usb_device_id stkwebcam_table[] = {
+>  drivers/media/video/pxa_camera.c |   17 ++++------------
+>  drivers/media/video/soc_camera.c |   39 --------------------------------------
+>  include/media/soc_camera.h       |    5 ----
+>  3 files changed, 7 insertions(+), 54 deletions(-)
+> 
+> --- 0002/drivers/media/video/pxa_camera.c
+> +++ work/drivers/media/video/pxa_camera.c	2008-07-04 17:24:53.000000000 +0900
+> @@ -583,12 +583,15 @@ static struct videobuf_queue_ops pxa_vid
+>  	.buf_release    = pxa_videobuf_release,
 >  };
->  MODULE_DEVICE_TABLE(usb, stkwebcam_table);
-> 
-> -static void stk_camera_cleanup(struct kref *kref)
+>  
+> -static void pxa_camera_init_videobuf(struct videobuf_queue *q, spinlock_t *lock,
+> +static void pxa_camera_init_videobuf(struct videobuf_queue *q,
+>  			      struct soc_camera_device *icd)
+>  {
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct pxa_camera_dev *pcdev = ici->priv;
+> +
+>  	/* We must pass NULL as dev pointer, then all pci_* dma operations
+>  	 * transform to normal dma_* ones. */
+> -	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, lock,
+> +	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, &pcdev->lock,
+>  				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+>  				sizeof(struct pxa_buffer), icd);
+>  }
+> @@ -994,15 +997,6 @@ static int pxa_camera_querycap(struct so
+>  	return 0;
+>  }
+>  
+> -static spinlock_t *pxa_camera_spinlock_alloc(struct soc_camera_file *icf)
 > -{
-> -	struct stk_camera *dev = to_stk_camera(kref);
+> -	struct soc_camera_host *ici =
+> -		to_soc_camera_host(icf->icd->dev.parent);
+> -	struct pxa_camera_dev *pcdev = ici->priv;
 > -
-> -	STK_INFO("Syntek USB2.0 Camera release resources"
-> -		" video device /dev/video%d\n", dev->vdev.minor);
-> -	video_unregister_device(&dev->vdev);
-> -	dev->vdev.priv = NULL;
-> -
-> -	if (dev->sio_bufs != NULL || dev->isobufs != NULL)
-> -		STK_ERROR("We are leaking memory\n");
-> -	usb_put_intf(dev->interface);
-> -	kfree(dev);
+> -	return &pcdev->lock;
 > -}
 > -
-> -
->  /*
->   * Basic stuff
->   */
-> @@ -687,8 +671,7 @@ static int v4l_stk_open(struct inode *inode,
-> struct file *fp)
-> 
->  	if (dev == NULL || !is_present(dev))
->  		return -ENXIO;
-> -	fp->private_data = vdev;
-> -	kref_get(&dev->kref);
-> +	fp->private_data = dev;
->  	usb_autopm_get_interface(dev->interface);
-> 
->  	return 0;
-> @@ -696,23 +679,10 @@ static int v4l_stk_open(struct inode *inode,
-> struct file *fp)
-> 
->  static int v4l_stk_release(struct inode *inode, struct file *fp)
->  {
-> -	struct stk_camera *dev;
-> -	struct video_device *vdev;
-> -
-> -	vdev = video_devdata(fp);
-> -	if (vdev == NULL) {
-> -		STK_ERROR("v4l_release called w/o video devdata\n");
-> -		return -EFAULT;
-> -	}
-> -	dev = vdev_to_camera(vdev);
-> -	if (dev == NULL) {
-> -		STK_ERROR("v4l_release called on removed device\n");
-> -		return -ENODEV;
-> -	}
-> +	struct stk_camera *dev = fp->private_data;
-> 
->  	if (dev->owner != fp) {
->  		usb_autopm_put_interface(dev->interface);
-> -		kref_put(&dev->kref, stk_camera_cleanup);
->  		return 0;
->  	}
-> 
-> @@ -723,7 +693,6 @@ static int v4l_stk_release(struct inode *inode,
-> struct file *fp)
->  	dev->owner = NULL;
-> 
->  	usb_autopm_put_interface(dev->interface);
-> -	kref_put(&dev->kref, stk_camera_cleanup);
-> 
->  	return 0;
->  }
-> @@ -734,14 +703,8 @@ static ssize_t v4l_stk_read(struct file *fp, char
-> __user *buf,
->  	int i;
->  	int ret;
->  	unsigned long flags;
-> -	struct stk_camera *dev;
-> -	struct video_device *vdev;
->  	struct stk_sio_buffer *sbuf;
-> -
-> -	vdev = video_devdata(fp);
-> -	if (vdev == NULL)
-> -		return -EFAULT;
-> -	dev = vdev_to_camera(vdev);
-> +	struct stk_camera *dev = fp->private_data;
-> 
->  	if (dev == NULL)
->  		return -EIO;
-> @@ -800,15 +763,8 @@ static ssize_t v4l_stk_read(struct file *fp, char
-> __user *buf,
-> 
->  static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
->  {
-> -	struct stk_camera *dev;
-> -	struct video_device *vdev;
-> -
-> -	vdev = video_devdata(fp);
-> -
-> -	if (vdev == NULL)
-> -		return -EFAULT;
-> +	struct stk_camera *dev = fp->private_data;
-> 
-> -	dev = vdev_to_camera(vdev);
->  	if (dev == NULL)
->  		return -ENODEV;
-> 
-> @@ -846,16 +802,12 @@ static int v4l_stk_mmap(struct file *fp, struct
-> vm_area_struct *vma)
->  	unsigned int i;
->  	int ret;
->  	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-> -	struct stk_camera *dev;
-> -	struct video_device *vdev;
-> +	struct stk_camera *dev = fp->private_data;
->  	struct stk_sio_buffer *sbuf = NULL;
-> 
->  	if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
->  		return -EINVAL;
-> 
-> -	vdev = video_devdata(fp);
-> -	dev = vdev_to_camera(vdev);
-> -
->  	for (i = 0; i < dev->n_sbufs; i++) {
->  		if (dev->sio_bufs[i].v4lbuf.m.offset == offset) {
->  			sbuf = dev->sio_bufs + i;
-> @@ -1329,6 +1281,12 @@ static struct file_operations v4l_stk_fops = {
-> 
->  static void stk_v4l_dev_release(struct video_device *vd)
->  {
-> +	struct stk_camera *dev = vdev_to_camera(vd);
-> +
-> +	if (dev->sio_bufs != NULL || dev->isobufs != NULL)
-> +		STK_ERROR("We are leaking memory\n");
-> +	usb_put_intf(dev->interface);
-> +	kfree(dev);
->  }
-> 
->  static struct video_device stk_v4l_data = {
-> @@ -1370,7 +1328,6 @@ static int stk_register_video_device(struct
-> stk_camera *dev)
->  	dev->vdev = stk_v4l_data;
->  	dev->vdev.debug = debug;
->  	dev->vdev.dev = &dev->interface->dev;
-> -	dev->vdev.priv = dev;
->  	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
->  	if (err)
->  		STK_ERROR("v4l registration failed\n");
-> @@ -1387,7 +1344,7 @@ static int stk_camera_probe(struct usb_interface
-> *interface,
->  		const struct usb_device_id *id)
->  {
->  	int i;
-> -	int err;
-> +	int err = 0;
-> 
->  	struct stk_camera *dev = NULL;
->  	struct usb_device *udev = interface_to_usbdev(interface);
-> @@ -1400,7 +1357,6 @@ static int stk_camera_probe(struct usb_interface
-> *interface,
->  		return -ENOMEM;
->  	}
-> 
-> -	kref_init(&dev->kref);
->  	spin_lock_init(&dev->spinlock);
->  	init_waitqueue_head(&dev->wait_frame);
-> 
-> @@ -1433,8 +1389,8 @@ static int stk_camera_probe(struct usb_interface
-> *interface,
->  	}
->  	if (!dev->isoc_ep) {
->  		STK_ERROR("Could not find isoc-in endpoint");
-> -		kref_put(&dev->kref, stk_camera_cleanup);
-> -		return -ENODEV;
-> +		err = -ENODEV;
-> +		goto error;
->  	}
->  	dev->vsettings.brightness = 0x7fff;
->  	dev->vsettings.palette = V4L2_PIX_FMT_RGB565;
-> @@ -1448,14 +1404,17 @@ static int stk_camera_probe(struct
-> usb_interface *interface,
-> 
->  	err = stk_register_video_device(dev);
->  	if (err) {
-> -		kref_put(&dev->kref, stk_camera_cleanup);
-> -		return err;
-> +		goto error;
->  	}
-> 
->  	stk_create_sysfs_files(&dev->vdev);
->  	usb_autopm_enable(dev->interface);
-> 
->  	return 0;
-> +
-> +error:
-> +	kfree(dev);
-> +	return err;
->  }
-> 
->  static void stk_camera_disconnect(struct usb_interface *interface)
-> @@ -1468,7 +1427,10 @@ static void stk_camera_disconnect(struct
-> usb_interface *interface)
->  	wake_up_interruptible(&dev->wait_frame);
->  	stk_remove_sysfs_files(&dev->vdev);
-> 
-> -	kref_put(&dev->kref, stk_camera_cleanup);
-> +	STK_INFO("Syntek USB2.0 Camera release resources"
-> +		" video device /dev/video%d\n", dev->vdev.minor);
-> +
-> +	video_unregister_device(&dev->vdev);
->  }
-> 
->  #ifdef CONFIG_PM
-> diff --git a/drivers/media/video/stk-webcam.h b/drivers/media/video/stk-webcam.h
-> index df4dfef..084a85b 100644
-> --- a/drivers/media/video/stk-webcam.h
-> +++ b/drivers/media/video/stk-webcam.h
-> @@ -99,7 +99,6 @@ struct stk_camera {
-> 
->  	u8 isoc_ep;
-> 
-> -	struct kref kref;
->  	/* Not sure if this is right */
->  	atomic_t urbs_used;
-> 
-> @@ -121,7 +120,6 @@ struct stk_camera {
->  	unsigned sequence;
+>  static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+>  	.owner		= THIS_MODULE,
+>  	.add		= pxa_camera_add_device,
+> @@ -1015,7 +1009,6 @@ static struct soc_camera_host_ops pxa_so
+>  	.querycap	= pxa_camera_querycap,
+>  	.try_bus_param	= pxa_camera_try_bus_param,
+>  	.set_bus_param	= pxa_camera_set_bus_param,
+> -	.spinlock_alloc	= pxa_camera_spinlock_alloc,
 >  };
+>  
+>  /* Should be allocated dynamically too, but we have only one. */
+> --- 0002/drivers/media/video/soc_camera.c
+> +++ work/drivers/media/video/soc_camera.c	2008-07-04 17:24:53.000000000 +0900
+> @@ -183,7 +183,6 @@ static int soc_camera_open(struct inode 
+>  	struct soc_camera_device *icd;
+>  	struct soc_camera_host *ici;
+>  	struct soc_camera_file *icf;
+> -	spinlock_t *lock;
+>  	int ret;
+>  
+>  	icf = vmalloc(sizeof(*icf));
+> @@ -210,13 +209,6 @@ static int soc_camera_open(struct inode 
+>  	}
+>  
+>  	icf->icd = icd;
+> -
+> -	icf->lock = ici->ops->spinlock_alloc(icf);
+> -	if (!icf->lock) {
+> -		ret = -ENOMEM;
+> -		goto esla;
+> -	}
+> -
+>  	icd->use_count++;
+>  
+>  	/* Now we really have to activate the camera */
+> @@ -234,17 +226,12 @@ static int soc_camera_open(struct inode 
+>  	file->private_data = icf;
+>  	dev_dbg(&icd->dev, "camera device open\n");
+>  
+> -	ici->ops->init_videobuf(&icf->vb_vidq, icf->lock, icd);
+> +	ici->ops->init_videobuf(&icf->vb_vidq, icd);
+>  
+>  	return 0;
+>  
+>  	/* All errors are entered with the video_lock held */
+>  eiciadd:
+> -	lock = icf->lock;
+> -	icf->lock = NULL;
+> -	if (ici->ops->spinlock_free)
+> -		ici->ops->spinlock_free(lock);
+> -esla:
+>  	module_put(ici->ops->owner);
+>  emgi:
+>  	module_put(icd->ops->owner);
+> @@ -260,15 +247,11 @@ static int soc_camera_close(struct inode
+>  	struct soc_camera_device *icd = icf->icd;
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+>  	struct video_device *vdev = icd->vdev;
+> -	spinlock_t *lock = icf->lock;
+>  
+>  	mutex_lock(&video_lock);
+>  	icd->use_count--;
+>  	if (!icd->use_count)
+>  		ici->ops->remove(icd);
+> -	icf->lock = NULL;
+> -	if (ici->ops->spinlock_free)
+> -		ici->ops->spinlock_free(lock);
+>  	module_put(icd->ops->owner);
+>  	module_put(ici->ops->owner);
+>  	mutex_unlock(&video_lock);
+> @@ -764,21 +747,6 @@ static void dummy_release(struct device 
+>  {
+>  }
+>  
+> -static spinlock_t *spinlock_alloc(struct soc_camera_file *icf)
+> -{
+> -	spinlock_t *lock = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
+> -
+> -	if (lock)
+> -		spin_lock_init(lock);
+> -
+> -	return lock;
+> -}
+> -
+> -static void spinlock_free(spinlock_t *lock)
+> -{
+> -	kfree(lock);
+> -}
+> -
+>  int soc_camera_host_register(struct soc_camera_host *ici)
+>  {
+>  	int ret;
+> @@ -808,11 +776,6 @@ int soc_camera_host_register(struct soc_
+>  	if (ret)
+>  		goto edevr;
+>  
+> -	if (!ici->ops->spinlock_alloc) {
+> -		ici->ops->spinlock_alloc = spinlock_alloc;
+> -		ici->ops->spinlock_free = spinlock_free;
+> -	}
+> -
+>  	scan_add_host(ici);
+>  
+>  	return 0;
+> --- 0002/include/media/soc_camera.h
+> +++ work/include/media/soc_camera.h	2008-07-04 18:06:00.000000000 +0900
+> @@ -48,7 +48,6 @@ struct soc_camera_device {
+>  struct soc_camera_file {
+>  	struct soc_camera_device *icd;
+>  	struct videobuf_queue vb_vidq;
+> -	spinlock_t *lock;
+>  };
+>  
+>  struct soc_camera_host {
+> @@ -67,15 +66,13 @@ struct soc_camera_host_ops {
+>  	int (*set_fmt_cap)(struct soc_camera_device *, __u32,
+>  			   struct v4l2_rect *);
+>  	int (*try_fmt_cap)(struct soc_camera_device *, struct v4l2_format *);
+> -	void (*init_videobuf)(struct videobuf_queue*, spinlock_t *,
+> +	void (*init_videobuf)(struct videobuf_queue *,
+>  			      struct soc_camera_device *);
+>  	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+>  	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+>  	int (*try_bus_param)(struct soc_camera_device *, __u32);
+>  	int (*set_bus_param)(struct soc_camera_device *, __u32);
+>  	unsigned int (*poll)(struct file *, poll_table *);
+> -	spinlock_t* (*spinlock_alloc)(struct soc_camera_file *);
+> -	void (*spinlock_free)(spinlock_t *);
+>  };
+>  
+>  struct soc_camera_link {
 > 
-> -#define to_stk_camera(d) container_of(d, struct stk_camera, kref)
->  #define vdev_to_camera(d) container_of(d, struct stk_camera, vdev)
-> 
->  void stk_camera_delete(struct kref *);
-> -- 
-> 1.5.5.1
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
