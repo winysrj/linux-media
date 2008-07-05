@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67JfYDB015594
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 15:41:34 -0400
-Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67JfMWv031087
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 15:41:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Mon, 7 Jul 2008 21:41:03 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m65HX4ue024213
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 13:33:04 -0400
+Received: from vsmtp14.tin.it (vsmtp14.tin.it [212.216.176.118])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m65HWqjJ010464
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 13:32:52 -0400
+Received: from [192.168.3.11] (77.103.126.124) by vsmtp14.tin.it (8.0.016.5)
+	(authenticated as aodetti@tin.it)
+	id 486A2AB3003FF8EA for video4linux-list@redhat.com;
+	Sat, 5 Jul 2008 19:32:46 +0200
+Message-ID: <486FAFE9.5090704@tiscali.it>
+Date: Sat, 05 Jul 2008 18:31:21 +0100
+From: Andrea <audetto@tiscali.it>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: video4linux-list@redhat.com
+References: <2302931.1215264015082.JavaMail.root@ps10>
+In-Reply-To: <2302931.1215264015082.JavaMail.root@ps10>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807072141.03344.hverkuil@xs4all.nl>
-Cc: Jean Delvare <khali@linux-fr.org>, michael@mihu.de,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Proposed removal of the dpc7146 driver
+Subject: Re: Cannot post from gmail
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,29 +30,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+audetto@tiscali.it wrote:
+> Hi,
+> 
+> I would like to post from gmail, but I always get the following a 
+> reply with this error
+> 
+> "Message has a suspicious header"
+> 
+> and that the moderator has to approve the message.
+> Is there any trick?
+> 
+> BTW, I can use gmail.com or googlemail.com.
+> 
+> Both seem to fail.
 
-If no one objects, then I propose to remove this driver in kernel 2.6.28 
-and announce its removal by adding the following notice to the 2.6.27 
-feature-removal-schedule.txt document:
-
-What:   V4L2 dpc7146 driver
-When:   September 2008
-Why:    Old driver for the dpc7146 demonstration board that is no longer 
-relevant. The last time this was tested on actual hardware was probably 
-around 2002. Since this is a driver for a demonstration board the 
-decision was made to remove it rather than spending a lot of effort 
-continually updating this driver to stay in sync with the latest 
-internal V4L2 or I2C API.
-Who:    Hans Verkuil <hverkuil@xs4all.nl>
-
-
-Michael Hunold, the author of this driver, agrees with my assessment 
-that this driver is no longer relevant.
-
-Regards,
-
-	Hans
+This is an attempt to use Thunderbird.
 
 --
 video4linux-list mailing list
