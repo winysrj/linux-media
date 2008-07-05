@@ -1,35 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6E9UsdJ020879
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:30:54 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6E9U8Tv007739
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:30:36 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1KIKNf-0006sN-0J
-	for video4linux-list@redhat.com; Mon, 14 Jul 2008 09:30:03 +0000
-Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 09:30:02 +0000
-Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 09:30:02 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m652rtv6001099
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 22:53:55 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m652rOOC024013
+	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 22:53:43 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so1337595wfc.6
+	for <video4linux-list@redhat.com>; Fri, 04 Jul 2008 19:53:43 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Date: Mon, 14 Jul 2008 12:25:29 +0300
-Message-ID: <487B1B89.2030109@teltonika.lt>
-References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>	
-	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>	
-	<48737AA3.3080902@teltonika.lt>	
-	<Pine.LNX.4.64.0807112307570.26439@axis700.grange>
-	<aec7e5c30807132051r16e51d71w177e410063ccefb@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <aec7e5c30807132051r16e51d71w177e410063ccefb@mail.gmail.com>
-Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
+Date: Sat, 05 Jul 2008 11:53:55 +0900
+Message-Id: <20080705025355.27137.84493.sendpatchset@rx1.opensource.se>
+In-Reply-To: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
+	mchehab@infradead.org, lethal@linux-sh.org,
+	akpm@linux-foundation.org, g.liakhovetski@gmx.de
+Subject: [PATCH 02/04] soc_camera: Add 16-bit bus width support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -41,54 +28,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Magnus Damm wrote:
-> On Sat, Jul 12, 2008 at 6:33 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
->> On Tue, 8 Jul 2008, Paulius Zaleckas wrote:
->>
->>> Magnus Damm wrote:
->>>> This is V2 of the physically contiguous videobuf queues patch.
->>>> Useful for hardware such as the SuperH Mobile CEU which doesn't
->>>> support scatter gatter bus mastering.
->> [snip]
->>
->>>> +   /* Try to remap memory */
->>>> +
->>>> +   size = vma->vm_end - vma->vm_start;
->>>> +   size = (size < mem->size) ? size : mem->size;
->>>> +
->>>> +   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->>>> +   retval = remap_pfn_range(vma, vma->vm_start,
->>>> +                            __pa(mem->vaddr) >> PAGE_SHIFT,
->>> __pa(mem->vaddr) doesn't work on ARM architecture... It is a long story
->>> about handling memory allocations and mapping for ARM (there is
->>> dma_mmap_coherent to deal with this), but there is a workaround:
->>>
->>> mem->dma_handle >> PAGE_SHIFT,
->>>
->>> It is safe to do it this way and also saves some CPU instructions :)
->> Paulius, even if the story is so long, could you perhaps point us to some
->> ML-threads or elaborate a bit? I did find one example in
->> drivers/media/video/atmel-isi.c (not in mainline), just would be
->> interesting to find out more.
->>
->> Magnus, have you investigated this further?
-> 
-> Both (__pa(mem->vaddr) >> PAGE_SHIFT) and (mem->dma_handle >>
-> PAGE_SHIFT) work well with the current dma_alloc_coherent()
-> implementation on SuperH. I do however lean towards using
-> __pa(mem->vaddr) over mem->dma_handle, since I suspect that
-> mem->dma_handle doesn't have to be a physical address.
-> 
-> Paul, any thoughts about this? Can we assume that the dma_handle
-> returned from dma_alloc_coherent() is a physical address, or is it
-> better to use __pa() on the virtual address to get the pfn?
+The SuperH Mobile CEU hardware supports 16-bit width bus,
+so extend the soc_camera code with SOCAM_DATAWIDTH_16.
 
-Well dma_alloc_coherent() is supposed to return physically contiguous
-memory physical address in dma_handle... Quick look at LXR didn't show
-any architecture where it shouldn't work... but it showed that ARM and
-possibly FRV(?) won't work with __pa() since these architectures are
-allocating from different memory pool than kmalloc()
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
+
+ include/media/soc_camera.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- 0008/include/media/soc_camera.h
++++ work/include/media/soc_camera.h	2008-07-01 14:38:34.000000000 +0900
+@@ -153,11 +153,12 @@ static inline struct v4l2_queryctrl cons
+ #define SOCAM_DATAWIDTH_8		(1 << 6)
+ #define SOCAM_DATAWIDTH_9		(1 << 7)
+ #define SOCAM_DATAWIDTH_10		(1 << 8)
+-#define SOCAM_PCLK_SAMPLE_RISING	(1 << 9)
+-#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 10)
++#define SOCAM_DATAWIDTH_16		(1 << 9)
++#define SOCAM_PCLK_SAMPLE_RISING	(1 << 10)
++#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 11)
+ 
+ #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_9 | \
+-			      SOCAM_DATAWIDTH_10)
++			      SOCAM_DATAWIDTH_10 | SOCAM_DATAWIDTH_16)
+ 
+ static inline unsigned long soc_camera_bus_param_compatible(
+ 			unsigned long camera_flags, unsigned long bus_flags)
 
 --
 video4linux-list mailing list
