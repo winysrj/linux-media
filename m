@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6FBe68V005727
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 07:40:07 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6FBdSs7006300
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 07:39:28 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so2272730ywb.81
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 04:39:25 -0700 (PDT)
-Message-ID: <461039140807150433v54d4201vdad83252dd8873ce@mail.gmail.com>
-Date: Tue, 15 Jul 2008 12:33:20 +0100
-From: "Jaime Velasco" <jsagarribay@gmail.com>
-To: v4l-dvb-maintainer@linuxtv.org
-In-Reply-To: <1215244229-4946-1-git-send-email-jsagarribay@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m658rQjK023232
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 04:53:26 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m658r2FI009427
+	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 04:53:03 -0400
+Message-ID: <486F3230.2040501@hhs.nl>
+Date: Sat, 05 Jul 2008 10:34:56 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1215244229-4946-1-git-send-email-jsagarribay@gmail.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] stkwebcam: Always reuse last queued buffer
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: multipart/mixed; boundary="------------080503000801080504080808"
+Cc: video4linux-list@redhat.com
+Subject: PATCH: gspca-default-comp_fac.patch <resend>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,63 +24,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, any comments on this patch?
+This is a multi-part message in MIME format.
+--------------080503000801080504080808
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-2008/7/5 Jaime Velasco Juan <jsagarribay@gmail.com>:
-> This change keeps the video stream going on when the application
-> is slow queuing buffers, instead of spamming dmesg and hanging.
->
-> Fixes a problem with aMSN reported by Samed Beyribey <beyribey@gmail.com>
->
-> Signed-off-by: Jaime Velasco Juan <jsagarribay@gmail.com>
-> ---
->
-> Mauro, if it isn't too late, please apply to 2.6.26
->
->  drivers/media/video/stk-webcam.c |   23 ++++++++++++-----------
->  1 files changed, 12 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-> index b12c60c..1eb4d72 100644
-> --- a/drivers/media/video/stk-webcam.c
-> +++ b/drivers/media/video/stk-webcam.c
-> @@ -442,18 +442,19 @@ static void stk_isoc_handler(struct urb *urb)
->                                fb->v4lbuf.bytesused = 0;
->                                fill = fb->buffer;
->                        } else if (fb->v4lbuf.bytesused == dev->frame_size) {
-> -                               list_move_tail(dev->sio_avail.next,
-> -                                       &dev->sio_full);
-> -                               wake_up(&dev->wait_frame);
-> -                               if (list_empty(&dev->sio_avail)) {
-> -                                       (void) (printk_ratelimit() &&
-> -                                       STK_ERROR("No buffer available\n"));
-> -                                       goto resubmit;
-> +                               if (list_is_singular(&dev->sio_avail)) {
-> +                                       /* Always reuse the last buffer */
-> +                                       fb->v4lbuf.bytesused = 0;
-> +                                       fill = fb->buffer;
-> +                               } else {
-> +                                       list_move_tail(dev->sio_avail.next,
-> +                                               &dev->sio_full);
-> +                                       wake_up(&dev->wait_frame);
-> +                                       fb = list_first_entry(&dev->sio_avail,
-> +                                               struct stk_sio_buffer, list);
-> +                                       fb->v4lbuf.bytesused = 0;
-> +                                       fill = fb->buffer;
->                                }
-> -                               fb = list_first_entry(&dev->sio_avail,
-> -                                       struct stk_sio_buffer, list);
-> -                               fb->v4lbuf.bytesused = 0;
-> -                               fill = fb->buffer;
->                        }
->                } else {
->                        framelen -= 4;
-> --
-> 1.5.6
->
->
+Jean,
+
+This patch changes the default gspca comp_fac as 30% sometimes causes 
+issues with the spca561, whose bayer compression does not allways 
+achieve 30%.
+
+I notice that you didn't apply this patch with the latest merging of my 
+patches. Note that this patch is _really_ needed for the spca561 to 
+work. Without it it works most of the time, but with some images it 
+doesn't get a high enough compression and fails.
+
+An other solution would be to add a cam specific get_buff_size op to the 
+spca561 driver.
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
+
+
+--------------080503000801080504080808
+Content-Type: text/plain;
+ name="gspca-default-comp_fac.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gspca-default-comp_fac.patch"
+
+This patch changes the default gspca comp_fac as 30% sometimes causes issues
+with the spca561, whose bayer compression does not allways achieve 30%.
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+diff -r 15974504cec1 linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 10:51:37 2008 +0200
++++ b/linux/drivers/media/video/gspca/gspca.c	Fri Jul 04 10:53:35 2008 +0200
+@@ -48,7 +48,9 @@
+ 
+ static int video_nr = -1;
+ 
+-static int comp_fac = 30;	/* Buffer size ratio when compressed in % */
++static int comp_fac = 40;	/* Buffer size ratio when compressed in %,
++				   Note 30% is too small for bayer level
++				   compression like the spca561 */
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ int gspca_debug = D_ERR | D_PROBE;
+
+
+--------------080503000801080504080808
+Content-Type: text/plain;
+ name="file:///tmp/nsmail-2.tmp"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="file:///tmp/nsmail-2.tmp"
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+
+--------------080503000801080504080808
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------080503000801080504080808--
