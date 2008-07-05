@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.186])
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oberstel@gmail.com>) id 1KI8W7-0004Gn-9i
-	for linux-dvb@linuxtv.org; Sun, 13 Jul 2008 22:50:00 +0200
-Received: by mu-out-0910.google.com with SMTP id w8so1550667mue.1
-	for <linux-dvb@linuxtv.org>; Sun, 13 Jul 2008 13:49:55 -0700 (PDT)
-Message-Id: <4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>
-From: Leif Oberste-Berghaus <leif@oberste-berghaus.de>
+	(envelope-from <christophpfister@gmail.com>) id 1KF9Mu-0001zC-8U
+	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 17:08:09 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so596077fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 05 Jul 2008 08:08:03 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <4879FA31.2080803@kolumbus.fi>
-Mime-Version: 1.0 (Apple Message framework v926)
-Date: Sun, 13 Jul 2008 22:49:51 +0200
-References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>
-	<4879FA31.2080803@kolumbus.fi>
-Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
-	(VP-2040) &	mantis driver
+Date: Sat, 5 Jul 2008 17:08:00 +0200
+References: <486C6ED4.4080502@krt.com.au>
+In-Reply-To: <486C6ED4.4080502@krt.com.au>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200807051708.01041.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +27,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Marko,
+Hi,
 
-thanks for you information.
-
-Could you be so kind to point out how to configure the "aligmnent for  
-DMA tranfers" and how to generate "less IRQs from DMA transfer"?
-
-Regards,
-Leif
-
-Am 13.07.2008 um 14:50 schrieb Marko Ristola:
-
->
+Am Donnerstag 03 Juli 2008 08:16:52 schrieb Kingsley Turner:
 > Hi,
 >
-> I have Twinhan DVB-C 2033.
-> I have had freezes /reboots.
+> I've got some DVB-T channel "channel.conf" data for Europe / Basel
+> (Switzerland).
 >
-> I did following things with the driver to stabilize things (my own  
-> driver version):
-> - Implement both 64byte and 188 byte alignment for DMA transfers.
-> - Generate less IRQs from DMA transfers.
->
-> That has helped: My AMD dualcore don't do hard reset so often and the
-> saved TV programs are now usable (without my changes the dvb stream
-> lost voice and VDR couldn't show them more than a few minutes).
-> My version seems to use less power (Too weak power supply
-> might be part of my problem though).
->
-> I don't know yet though whether Manu or others are interested in my  
-> patches.
-> I use too new kernel version to deliver patches for Manu easilly.
->
-> Regards,
-> Marko Ristola
+> Do I just post it to this list, or how to I get it incorporated into the
+> repository.
+
+There's already a scan file including your transmitter [1].
+
+> cheers,
+> -kt
+
+Christoph
+
+
+> sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSM
+>ISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
+> sfzwei:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRA
+>NSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:163:92:93
+> tsr1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANS
+>MISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:161:84:85
+> tsi1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANS
+>MISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:162:88:89
+
+^ srg ssr says that the fec is 5/6 (except maybe in the mfn areas).
+
+[1] http://linuxtv.org/hg/dvb-apps/file/73b910014d07/util/scan/dvb-t/ch-All
 
 _______________________________________________
 linux-dvb mailing list
