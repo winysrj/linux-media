@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ULOUXg013451
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:24:30 -0400
-Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ULOGha022340
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:24:17 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m66D5WeW014462
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 09:05:32 -0400
+Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m66D5KGp004171
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 09:05:20 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
-Date: Wed, 30 Jul 2008 23:24:15 +0200
+To: Andy Walls <awalls@radix.net>
+Date: Sun, 6 Jul 2008 15:05:02 +0200
+References: <200807032352.54746.hverkuil@xs4all.nl>
+	<1215349114.3184.30.camel@palomino.walls.org>
+In-Reply-To: <1215349114.3184.30.camel@palomino.walls.org>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200807302324.15221.hverkuil@xs4all.nl>
-Cc: 
-Subject: V4L2 & request_module("char-major-...")
+Message-Id: <200807061505.02224.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: [linux-dvb] RFC: remove support from v4l-dvb for kernels <
+	2.6.16
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,58 +32,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Sunday 06 July 2008 14:58:34 Andy Walls wrote:
+> On Thu, 2008-07-03 at 23:52 +0200, Hans Verkuil wrote:
+> > RFC: remove support from v4l-dvb for kernels < 2.6.16
+> >
+> > After spending some time trying to get v4l-dvb to compile on older
+> > kernels I discovered that:
+> >
+> > - it is OK for kernels >= 2.6.19
+> >
+> > - it does not compile at the moment for kernels >= 2.6.16 and <
+> > 2.6.19, but that this can be fixed.
+> >
+> > - that it can be made to compile for kernels >= 2.6.12 and <
+> > 2.6.16, although quite a few drivers had to be disabled and looking
+> > at the type of compile warnings emitted the result would likely
+> > crash, especially the closer one gets to 2.6.12.
+> >
+> > - that I no longer can compile against older kernels since
+> > gcc-4.1.2 no longer accepts some constructions used in those kernel
+> > sources.
+>
+> But a user can have an old kernel version and an old tool chain.  IMO
+> I don't think gcc's version is a valid criterion, as that makes an
+> assumption about what the user is using to build his very old kernel.
 
-I'm in the process of converting v4l2-dev.c (2.6.27, in earlier kernels 
-it was called videodev.c) from using register_chrdev() to using 
-register_chrdev_region() and cdev_add().
+It's not a valid criterium, but the combination with the nasty compile 
+warnings I get when compiling for kernels 2.6.12-2.6.15 does make it an 
+additional consideration. Not to mention the additional effort required 
+to keep it all running.
 
-The problem I have is that register_chrdev provides a file_operations 
-struct. The video_open() function in there performs this piece of code 
-when a video device is opened:
+> I know Fedora 5 used to include a gcc-3.2.3 (in the compat-gcc-32
+> package) for compiling older stuff.  I guess there was a major shift
+> in gcc after that point.  (I use gcc-3.2.3 in building the
+> x86_64-mips cross compiler tool chain for building the linux v2.4.20
+> firmware for my router.)
+>
+> > I did a few scans and of the approximately 932 KERNEL_VERSION
+> > checks only 268 remain if we drop support for anything below
+> > 2.6.26. That's a major cleanup.
+    ^^^^^^
 
-        vfl = video_device[minor];
-        if (vfl == NULL) {
-                mutex_unlock(&videodev_lock);
-                request_module("char-major-%d-%d", VIDEO_MAJOR, minor);
-                mutex_lock(&videodev_lock);
-                vfl = video_device[minor];
-                if (vfl == NULL) {
-                        mutex_unlock(&videodev_lock);
-                        unlock_kernel();
-                        return -ENODEV;
-                }
-        }
+I meant 2.6.16. Sorry, typo.
 
-It checks if a V4L2 driver registered this particular minor, if not then 
-it tries to load the appropriate module with a char-major-x-x alias. If 
-still no luck, then we bail out.
+> >
+> > Since it is now simply broken for anything below 2.6.19 I think it
+> > is a good solution to on the one hand do a major cleanup at the
+> > expense of making it unlikely that we will ever support kernels
+> > below 2.6.16, and on the other hand at least start to support
+> > 2.6.16 and up.
+>
+> Only supporting 2.6.26 onward would prompt a surge of questions
+> regarding compilation problems for users who are only a few kernel
+> versions behind.  I think your suggestion of supporting a few kernels
+> back (2.6.16 or 2.6.19) is preferable.
+>
+> My $0.02
+>
+> -Andy
 
-Now, as I understand it this can only happen if someone used mknod to 
-create device nodes and is not using udev. It's not clear to me however 
-how this can ever work: the char-major alias relies on the fact that 
-someone has to link the minor number with an actual V4L driver, but you 
-do not generally know what minor number will be used by a specific 
-driver (depends on load order, etc). Or am I missing something?
-
-My questions are:
-
-1) is this code still relevant?
-
-2) if so, how can I replace this code when I switch to cdev since in 
-that case there is no longer a video_open() that can be used for this.
-
-3) I also saw after some googling this proposed patch: 
-http://linux.derkeiler.com/Mailing-Lists/Kernel/2003-09/2925.html
-It adds a MODULE_ALIAS_CHARDEV_MAJOR line for videodev.c. Either this 
-patch was never applied or quickly removed in videodev.c since it's not 
-there. I'm not sure how this relates to the request_module in the 
-current code and whether it should be added after all or not.
-
-I had a hard time finding any useful information about this, so I hope 
-someone can shed some light on this. It's the last piece of the puzzle 
-that I need before I can drag the old and venerable v4l2-dev.c formerly 
-known as videodev.c into the 21st century :-)
 
 Regards,
 
