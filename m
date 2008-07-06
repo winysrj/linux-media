@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail9.dslextreme.com ([66.51.199.94])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <daniel@gimpelevich.san-francisco.ca.us>)
-	id 1KDn32-0008RB-CW
-	for linux-dvb@linuxtv.org; Tue, 01 Jul 2008 23:06:01 +0200
-Message-ID: <486A9A81.6080502@gimpelevich.san-francisco.ca.us>
-Date: Tue, 01 Jul 2008 13:58:41 -0700
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-MIME-Version: 1.0
+Received: from nerdig.org ([88.198.12.5] ident=postfix)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jan@codejunky.org>) id 1KFR5F-00083m-Bi
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 12:03:06 +0200
+Received: from nerdig.org (localhost [127.0.0.1])
+	by mx-int.nerdig.org (Postfix) with ESMTP id 82FB3D17B55C
+	for <linux-dvb@linuxtv.org>; Sun,  6 Jul 2008 12:04:17 +0200 (CEST)
+Received: from b14tch (port-254.pppoe.wtnet.de [84.46.0.254])
+	(Authenticated sender: jan@codejunky.org)
+	by mx.nerdig.org (Postfix) with ESMTP id 0837ED17B55B
+	for <linux-dvb@linuxtv.org>; Sun,  6 Jul 2008 12:04:16 +0200 (CEST)
+From: Jan Meier <jan@codejunky.org>
 To: linux-dvb@linuxtv.org
-References: <48625984.9070708@linuxtv.org>
-In-Reply-To: <48625984.9070708@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] Initial support for AVerTVHD Volar
+Date: Sun, 6 Jul 2008 12:01:30 +0200
+References: <200807042146.26204.jan@codejunky.org>
+	<200807060342.04968@orion.escape-edv.de>
+In-Reply-To: <200807060342.04968@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200807061201.30990.jan@codejunky.org>
+Subject: Re: [linux-dvb] Cinergy 1200 DVB-C unsupported device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,27 +33,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-mkrufky@linuxtv.org wrote:
-> Daniel Gimpelevich wrote:
->> Add initial support for these devices. The AGC and tracking filter 
->> settings are known to be wrong, but it generally works.
-> Mauro,
-> 
-> Please be aware that Daniel and I have been working together on this -- 
-> this patch just shows where he is at today -- it's not yet ready for merge.
-> 
-> Him and I are in chat on irc discussing ways to further clean this up.
-> 
-> When ready, I will push this up and ask you to pull.
-> 
-> Regards,
-> 
-> Mike
+Hey Oliver,
 
-In tying up the AGC and tracking filter loose ends, I found that the 
-Linux driver for the MaxLinear tuner always clears bit 5 (0x20) of the 
-tuner's register 167 (0xa7), where the Windows driver always sets it. 
-What does this bit do?
+Am Sonntag, 6. Juli 2008 03:42:04 schrieb Oliver Endriss:
+> Jan Meier wrote:
+> > Hello,
+> >
+> > I have a cinergy 1200 DVB-C card which is not supprted by the current
+> > driver from the mercurial repository. lspci -vnn shows the following:
+> >
+> > Subsystem: TERRATEC Electronic GmbH Unknown device [153b:a156]
+> >
+> > The device with the device string 153b:1156 is supported, so I hacked
+> > around in budget.c/budget-av.c and added a156 instead of 1156, and now
+> > the device is found:
+>
+> The id 153b:a156 looks suspicious.
+>
+> Are you sure that the device is properly seated in the pci slot?
+> If possible, you should also try a different slot.
+
+I tried a different slot but it did not help.
+
+> If this does not help, the subsystem id has very likely been overwritten.
+> You might re-program the correct id 153b:1156 with the tool fix_eeprom:
+> http://www.escape-edv.de/endriss/dvb/fix_eeprom.c
+
+Yeah, fix_eeprom did the trick! Now the card is recognized, thanks a lot!
+
+Kind regards,
+
+jan
 
 _______________________________________________
 linux-dvb mailing list
