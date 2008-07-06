@@ -1,18 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62LKpNN007461
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 17:20:51 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62LKKnX011935
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 17:20:23 -0400
-Message-ID: <486BF294.7060500@hhs.nl>
-Date: Wed, 02 Jul 2008 23:26:44 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m66CCbmE001597
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 08:12:37 -0400
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m66CBVmV019686
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 08:11:47 -0400
+Message-ID: <4870B694.5010101@free.fr>
+Date: Sun, 06 Jul 2008 14:12:04 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------040205070903040908010707"
-Cc: video4linux-list@redhat.com
-Subject: PATCH: gspca-mercurial fix sonixb driver
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <48706115.5050707@hhs.nl>
+In-Reply-To: <48706115.5050707@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
+Subject: Re: PATCH: libv4l-sync-with-0.3.3-release.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,74 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------040205070903040908010707
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hans de Goede a écrit :
+> Hi,
+> 
+> This patch syncs mercurial with the 0.3.3 tarbal I've just released.
+> note, please "hg add" all the files under appl-patches, you forgot this
+> the last time, so these files are not in mercurial yet.
+> 
+> Let me know if you want this split up in 3 or 4 incremental patches.
+> 
+I would prefer next time since this would help to avoid forgotten things like the appl-patches/ directory.
+I checked with your own 0.3.2 archive but found no difference so I stated my imports OK. 
 
-Hi All,
+Do you send these patches to the application maintainers?
+They may correct some annoying bugs that many people can expect to see corrected...
 
-This patch makes the sonixb gspca driver actually work (tested with
-a sweex sn9c102 with tas5110 sensor).
+> Regards,
+> 
+> Hans
+> 
+I took a look at the usbvision driver to extract the decompression stuff into userspace, but it is not so easy.
+I would like to make changes to the w9968cf driver too since I own a webcam based on this driver, in order to take benefit from your userspace decompression lib.
+I will start on documenting your library on the wiki, this will help me to go into the subject.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-Regards,
-
-Hans
-
---------------040205070903040908010707
-Content-Type: text/x-patch;
- name="gspca-fix-sonixb.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gspca-fix-sonixb.patch"
-
-This patch makes the sonixb gspca driver actually work (tested with
-a sweex sn9c102 with tas5110 sensor).
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
---- gspca-2bbb47f61a95/linux/drivers/media/video/gspca/sonixb.c.dbg	2008-07-02 11:14:56.000000000 +0200
-+++ gspca-2bbb47f61a95/linux/drivers/media/video/gspca/sonixb.c	2008-07-02 23:07:41.000000000 +0200
-@@ -344,13 +344,17 @@ static void reg_w(struct usb_device *dev
- 			  const __u8 *buffer,
- 			  __u16 len)
- {
-+	__u8 tmpbuf[0x1f];
-+
-+	memcpy(tmpbuf, buffer, len);
-+
- 	usb_control_msg(dev,
- 			usb_sndctrlpipe(dev, 0),
- 			0x08,			/* request */
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
- 			value,
- 			0,			/* index */
--			(__u8 *) buffer, len,
-+			tmpbuf, len,
- 			500);
- }
- 
-@@ -769,8 +773,8 @@ static void sd_pkt_scan(struct gspca_dev
- 							LAST_PACKET,
- 							frame,
- 							data, 0);
--				data += 12;
--				len -= 12;
-+				data += p + 12;
-+				len -= p + 12;
- 				gspca_frame_add(gspca_dev, FIRST_PACKET,
- 						frame, data, len);
- 				return;
-
---------------040205070903040908010707
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Cheers,
+Thierry
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------040205070903040908010707--
