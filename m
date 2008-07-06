@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n66.bullet.mail.sp1.yahoo.com ([98.136.44.50])
+Received: from n37.bullet.mail.ukl.yahoo.com ([87.248.110.170])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KEJAj-0007hv-MY
-	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 09:24:07 +0200
-Date: Thu, 3 Jul 2008 00:23:28 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Kingsley Turner <krt@krt.com.au>
-In-Reply-To: <486C6ED4.4080502@krt.com.au>
+	(envelope-from <eallaud@yahoo.fr>) id 1KFXBl-0003sY-Pc
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 18:34:16 +0200
+Date: Sun, 06 Jul 2008 12:30:42 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <4870C35D.8060405@server>
+In-Reply-To: <4870C35D.8060405@server> (from laasa@server on Sun Jul  6
+	09:06:37 2008)
+Message-Id: <1215361842l.16980l.0l@manu-laptop>
 MIME-Version: 1.0
-Message-ID: <520580.87481.qm@web46107.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  How to get 2 TT3650-CI working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,44 +20,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Thu, 7/3/08, Kingsley Turner <krt@krt.com.au> wrote:
+Le 06.07.2008 09:06:37, laasa a =E9crit=A0:
+> First of all thanks to Dominik and Manu for the great work.
+> =
 
-> I've got some DVB-T channel "channel.conf"
-> data for Europe / Basel 
-> (Switzerland).
-> 
-> sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
+> I want to get working two connected TT3650-CI. Under WinXP it will be =
 
-You should also be able to receive the Suisse Romande TSR multiplex
-on ch56 -- 754MHz, which can be received with a simple antenna with
-ease near Freiburg im Breisgau (to the North, in Deutschland), at least.
+> running without problems on the same hardware, so the USB-ports =
 
-I'm not sure where the signal originates, as in general, throughout
-much of Switzerland, there exists a Single Frequency Network covering
-a larger region -- for the german-speaking regions ch31 is used from
-Basel towards the east, then channel 32 is used from perhaps halfway
-to Zuerich, and by the time you are in the Ostschweiz eastern region,
-ch34 is in use -- both from the higher-power transmitters, as well as
-the lower-power transmitters to fill in areas not covered otherwise.
+> should
+> =
 
-Basel being one of the border regions where both the german-language
-SF multiplex and the french-language TSR multiplex are receivable (some
-overlap in included stations), to say nothing of foreign broadcasts
-(France from Mulhouse, Germany from Vogtsburg/Freiburg i.B. and
-Bad Saeckingen/Hochrhein) with a minimum of effort.
+> not be the problem.
+> =
 
+> Unter Linux with one connected TT3650 all is working succesfully. But =
 
-merci,
-barry bouwsma
+> with 2 connected TT3650 there are artefakts and dropouts on both =
 
+> cards
+> =
 
-      
+> after some seconds.
+>  I have try it under following conditions:
+> =
+
+>     * Ubuntu 7.10 and Ubuntu 8.04
+>     * actual multiproto-repository: http://jusst.de/hg/multiproto
+>     * patch from dominik:
+>       http://www.linuxtv.org/pipermail/linux-dvb/
+> attachments/20080606/cc54743f/attachment-0001.obj
+>     * special in line 1075 of modul pctv452e.c to get TT3650-CI work
+>       (set num_device_descs *=3D 2*, otherwise only TT3600 works).
+>     * a special patched MythTV 0.21 (wich works with 2 TT3200
+> succesfully)
+
+Talking about the patch from dominik: is it normal that the registers =
+
+settings are different than those from TT-3200 (in budget-ci.c)? I mean =
+
+it is the same chips (stb0899/stb6100), so is it possible to use those =
+
+settings directly with a TT 3200; I have reception problems for some =
+
+transponders, and a lot of other users also, so if those settings are =
+
+OK to try I guess that's something I am ready to do to improve things.
+Also I saw that the patch touches stb0899/6100 files in the frontends =
+
+dir, so my question: are these changes there to improve tuning also or =
+
+just related to the support of the other cards?
+Thx
+Bye
+Manu =
+
 
 
 _______________________________________________
