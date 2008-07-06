@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail01.adl6.internode.on.net ([203.16.214.146])
+Received: from nf-out-0910.google.com ([64.233.182.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ianwroberts@internode.on.net>) id 1KELB5-0004eG-S0
-	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 11:32:40 +0200
-Message-ID: <486C9CA7.4010304@internode.on.net>
-Date: Thu, 03 Jul 2008 19:02:23 +0930
-From: Ian W Roberts <ianwroberts@internode.on.net>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KFVFS-0004vW-Bq
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 16:29:55 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so622209nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 06 Jul 2008 07:29:48 -0700 (PDT)
+Message-ID: <412bdbff0807060729o639f98b1s383d146856feb6da@mail.gmail.com>
+Date: Sun, 6 Jul 2008 10:29:48 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "David Woodhouse" <dwmw2@infradead.org>
+In-Reply-To: <1215343022.10393.945.camel@pmac.infradead.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <20080629102814.9177D11581F@ws1-7.us4.outblaze.com>	<48676F36.8080401@internode.on.net>
-	<486ACEF1.1060200@internode.on.net>
-In-Reply-To: <486ACEF1.1060200@internode.on.net>
-Subject: Re: [linux-dvb] Tuning problems
+Content-Disposition: inline
+References: <1214139259.2994.8.camel@jaswinder.satnam>
+	<200807060315.51736@orion.escape-edv.de> <48708BBF.9050400@cadsoft.de>
+	<1215343022.10393.945.camel@pmac.infradead.org>
+Cc: kernelnewbies <kernelnewbies@nl.linux.org>, linux-dvb@linuxtv.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Jaswinder Singh <jaswinder@infradead.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,256 +34,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear All,
-
-I just hg'ed a new clone from http://linuxtv.org/hg/v4l-dvb this 
-evening; cleaned out the old kernel modules; re compiled and installed 
-and...
-
-It works! :-)
-
-I'm sure I tried exactly the same process a couple of times this week 
-without success but I'm happy now.
-
-Thanks to whoever fixed it.
-
-bye
-
-ian
-
-Ian W Roberts wrote:
-> My Gigabyte U7000-RH was working until last night when I upgraded to a
-> new kernel build -I'm running Ubuntu 8.04 and (now) 2.6.22-15-generic. :-(
->
-> Since then the device can't tune and I don't know how to troubleshoot
-> the problem. :-(
->
-> I've tried re-making and and re-installing the the v4l-dvb. I've tried
-> hg-ing a new clone from http://linuxtv.org/hg/v4l-dvb (and remaking &
-> re-installing). I've tried 'make rminstall' and 'make distclean'
-> followed by 'make; sudo make install'. I've placed a copy of the
-> firmware in /lib/firmware/2.6.22-15-generic/
->
-> When I connect my dvb-t dongle /var/log/messages look fine:
->
-> ------------------------------------------------------------------------
-> Jul 2 08:55:12 squash kernel: [ 491.125748] dvb-usb: found a 'Gigabyte
-> U7000' in cold state, will try to load a firmware
-> Jul 2 08:55:12 squash kernel: [ 491.143173] dvb-usb: downloading
-> firmware from file 'dvb-usb-dib0700-1.10.fw'
-> Jul 2 08:55:12 squash kernel: [ 491.225304] dib0700: firmware started
-> successfully.
-> Jul 2 08:55:13 squash kernel: [ 491.434683] dvb-usb: found a 'Gigabyte
-> U7000' in warm state.
-> Jul 2 08:55:13 squash kernel: [ 491.434729] dvb-usb: will pass the
-> complete MPEG2 transport stream to the software demuxer.
-> Jul 2 08:55:13 squash kernel: [ 491.434822] DVB: registering new adapter
-> (Gigabyte U7000)
-> Jul 2 08:55:13 squash kernel: [ 491.578413] DVB: registering frontend 0
-> (DiBcom 7000PC)...
-> Jul 2 08:55:13 squash kernel: [ 491.601338] input: IR-receiver inside an
-> USB DVB receiver as /class/input/input7
-> Jul 2 08:55:13 squash kernel: [ 491.601358] dvb-usb: schedule remote
-> query interval to 150 msecs.
-> Jul 2 08:55:13 squash kernel: [ 491.601362] dvb-usb: Gigabyte U7000
-> successfully initialized and connected.
-> ------------------------------------------------------------------------
->
-> When I try scanning for stations:
-> ------------------------------------------------------------------------
-> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Adelaide
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 226500000 1 3 9 3 1 1 0
-> initial transponder 177500000 1 3 9 3 1 1 0
-> initial transponder 191625000 1 3 9 3 1 1 0
-> initial transponder 219500000 1 3 9 3 1 1 0
-> initial transponder 564500000 1 2 9 3 1 2 0
->   
->>>> tune to: 
->>>>         
-> 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE 
->
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE 
->
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE 
->
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE 
->
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->   
->>>> tune to: 
->>>>         
-> 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE 
->
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
-> ------------------------------------------------------------------------
->
-> My initial tuning data is:
-> ------------------------------------------------------------------------
-> more /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Adelaide
-> # Australia / Adelaide / Mt Lofty
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> # ABC
-> T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> # Seven
-> T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> # Nine
-> T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> # Ten
-> T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-> # SBS
-> T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-> ------------------------------------------------------------------------
->
-> Any suggestions?
->
-> bye
->
-> ian
->
->
-> Ian W Roberts wrote:
->   
->> stev391@email.com wrote:
->>   
->>     
->>> Ian,
->>>
->>> Try updating to the latest scan file from the dvb-apps mercurial.  
->>>
->>> Channel 7 have changed their parameters in the last year and some tuners automatically try other combinations then instructed, that is why it is working with one and not the other.
->>>
->>> The new Channel 7 parameters are:
->>> # Seven
->>> T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>   
->>>     
->>>       
->> Brilliant, that worked! :-)
+On Sun, Jul 6, 2008 at 7:17 AM, David Woodhouse <dwmw2@infradead.org> wrote:
+> On Sun, 2008-07-06 at 11:09 +0200, Klaus Schmidinger wrote:
+>> On 07/06/08 03:15, Oliver Endriss wrote:
+>> > Jaswinder Singh wrote:
+>> >> There's no point in this, since the user can use the BUILTIN_FIRMWARE
+>> >> option to include arbitrary firmware files directly in the kernel image.
+>> >
+>> > NAK! This option allows to compile the firmware into the _driver_,
+>> > which is very useful if you want to test various driver/firmware
+>> > combinations. Having the firmware in the _kernel_ does not help!
 >>
->> I had tried changing the guard interval to 1/16 which seemed to change 
->> the behaviour subtly but didn't achieve successful tuning. Changing that 
->> 4 parameter (FEC High?) to 3/4 as well means my device works fine now. 
->>
->> Thanks
->>
->> ian
->>   
->>     
->>> As for the SBS problem it might be just poor reception or the tuner wasn't designed for the Australian frequencies correctly.
->>>
->>> Regards,
->>> Stephen.
->>>
->>>
->>>
->>> <Original  Message>
->>> Dear Linux-DVBers,
->>>
->>> I now own two USB DVB-T receivers (dongles): a Gigabyte U7000-RH and a
->>> digitalNow tinyUSB2.
->>>
->>> I use them on my Kubuntu 7.10 workstation.
->>>
->>> I've had the digitalNow for a year or so and it has been working fine
->>> (and easy to get going) with kaffeine except that I couldn't receive SBS
->>> reliably (in Adelaide, Australia) although I was able to tune to it from
->>> time to time. With the Tour de France starting next week (coverage
->>> broadcast by SBS), I took a punt yesterday and bought a Gigabyte
->>> U7000-RH and, yes, it too was easy to get going, and, luckily, receives
->>> SBS nicely -but it can't tune to Channel 7 at all!
->>>
->>> My kaffeine installation now has a channel list that covers all the
->>> local terrestrial TV stations. If I connect the digitalNow device, I can
->>> watch 2, 9, 7 & 10 and if I connect the Gigabyte device I can watch SBS,
->>> 2, 9 and 10.
->>>
->>> I'm presuming that means that by channel tuning data is OK. I don't know
->>> whether it's relevant, but I notice that SBS seems to be the highest
->>> frequency local station and Channel Seven seems to be the lowest. There
->>> seems to be a problem with both devices at the opposite ends of the
->>> frequency range.
->>>
->>> Any suggestions? (other the juggling the two devices!)
->>>
->>> bye
->>>
->>> ian
->>>
->>>      # Australia / Adelaide / Mt Lofty
->>>      # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
->>>      # ABC
->>>      T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>      # Seven
->>>      T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
->>>      # Nine
->>>      T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>      # Ten
->>>      T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
->>>      # SBS
->>>      T 564500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
->>>
->>>
->>>   
->>>
->>> -- 
->>> Be Yourself @ mail.com!
->>> Choose From 200+ Email Addresses
->>> Get a *Free* Account at www.mail.com <http://www.mail.com/Product.aspx>!
->>>     
->>>       
->>   
->>     
+>> I strongly support Oliver's request!
+>> Working with various driver versions is much easier with the
+>> firmware compiled into the driver!
+>
+> That's strange; I've found exactly the opposite to be the case.
+>
+> If I want to test permutations of driver and firmware, as I've done for
+> the libertas driver a number of times, I find it _much_ better to
+> preserve the modularity. I can build each version of the driver and can
+> test that against various firmware versions without having to rebuild
+> it, and with much less chance of something going wrong so that I'm not
+> actually testing what I think I'm testing.
+>
+> Perhaps I'm missing something that would help me work better? Please
+> could you help me understand how you currently work, and I'll attempt to
+> make it easier for you. Can you talk me through an example of a session
+> where you had to do this testing of 'various driver/firmware
+> combinations'?
 >
 >
->   
+> --
+> dwmw2
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
+Correct me if I'm wrong, but doesn't this also affect those
+distributions that consider kernels with binary firmware blobs to not
+be free software?  Those distributions take the stance that the
+firmware must be loadable by userland, in which case the proposed
+patch removes this capability.
 
+Is there some downside to leaving this functionality in there?  Are
+there known bugs or maintainability issues with the code as-is?
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
