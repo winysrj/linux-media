@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Received: from ik-out-1112.google.com ([66.249.90.178])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KGwqV-0008Pp-19
-	for linux-dvb@linuxtv.org; Thu, 10 Jul 2008 16:10:10 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so1937266wag.13
-	for <linux-dvb@linuxtv.org>; Thu, 10 Jul 2008 07:10:00 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Thu, 10 Jul 2008 16:09:23 +0200
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KFY1T-0006mX-6s
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 19:27:40 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so1158360ika.1
+	for <linux-dvb@linuxtv.org>; Sun, 06 Jul 2008 10:27:36 -0700 (PDT)
+Message-ID: <412bdbff0807061027u7d34c834gd3a7e2d4d4ab305d@mail.gmail.com>
+Date: Sun, 6 Jul 2008 13:27:33 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Christophe Thommeret" <hftom@free.fr>
+In-Reply-To: <200807061744.31775.hftom@free.fr>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_TghdIr5GyDBOERx"
-Message-Id: <200807101609.23942.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: Turksat 1C Lists
+Content-Disposition: inline
+References: <200807061744.31775.hftom@free.fr>
+Cc: kaffeine-devel@lists.sourceforge.net, linux-dvb@linuxtv.org,
+	kaffeine-user@lists.sourceforge.net,
+	kaffeine-announce@lists.sourceforge.net, xine-user@lists.sourceforge.net
+Subject: Re: [linux-dvb] [kaffeine-devel] Kaffeine 0.8.7 released
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,89 +24,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_TghdIr5GyDBOERx
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Sun, Jul 6, 2008 at 11:44 AM, Christophe Thommeret <hftom@free.fr> wrote:
+>
+> http://kaffeine.kde.org
+>
+> --
+> Christophe Thommeret
+>
+>
+> -------------------------------------------------------------------------
+> Sponsored by: SourceForge.net Community Choice Awards: VOTE NOW!
+> Studies have shown that voting for your favorite open source project,
+> along with a healthy diet, reduces your potential for chronic lameness
+> and boredom. Vote Now at http://www.sourceforge.net/community/cca08
+> _______________________________________________
+> kaffeine-devel mailing list
+> kaffeine-devel@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/kaffeine-devel
+>
 
-=46rom a kaffeine user ...
+Hello various list members,
 
-Christoph
+I was responsible for the ATSC scanning support provided for this release.
 
-(will be renamed in a way that the orbital position is machine-readable)
+If anyone has any problems, or sees any inconsistency between the
+results reported by Kaffeine's ATSC scanning and the dvb-apps scan
+utility, please feel free to email me and I will be happy to
+investigate.  Since this functionality has had limited testing, its
+possible that there are edge cases that I did not encounter in my
+environment (New York City).
 
+Thanks,
 
-=2D---------  Weitergeleitete Nachricht  ----------
-
-Betreff: [kaffeine-user] Kaffeine Turksat 1C Lists
-Datum: Montag 07 Juli 2008
-Von: orhan evren <orhanevren@hotmail.com>
-An: kaffeine-user@lists.sf.net
-
-
-Hallo
-=20
-I attached Turksat-42.0E-1C Lists
-=20
-Thanks
-
---Boundary-00=_TghdIr5GyDBOERx
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Turksat-42.0E-1C"
-
-IyBUdXJrc2F0IDQyLjBFIDFDCiMgZnJlcSBwb2wgc3IgZmVjClMgMTA3MzcwMDAgViAxMDgwMDAw
-IDUvNgpTIDEwOTYyMDAwIFYgMzY3MDAwMCA1LzYKUyAxMDk2NjAwMCBWIDU4NjAwMDAgNS82ClMg
-MTA5NjgwMDAgViA0NTU3MDAwIDMvNApTIDEwOTgxMDAwIFYgMjE2MDAwMCA1LzYKUyAxMTAwMDAw
-MCBIIDI0MDAwMDAgMy80ClMgMTEwMDcwMDAgViAyOTUwMDAwIDUvNgpTIDExMDI4MDAwIFYgMjQw
-MDAwMCAzLzQKUyAxMTAxODAwMCBWIDIxNTAwMDAgMy80ClMgMTExMjkwMDAgViA0MjY4MDAwIDMv
-NApTIDExMTM1MDAwIFYgNDQ0NDAwMCA1LzYKUyAxMTE1OTAwMCBWIDI1OTYwMDAgMy80ClMgMTE0
-MDAwMDAgSCAyNDAwMDAwIDcvOApTIDExNTE5MDAwIEggNDQ0NDAwMCA1LzYKUyAxMTU1NDAwMCBI
-IDI5MTYwMDAgMi8zClMgMTE2MDcwMDAgSCAzNzYwMDAwIDIvMwpTIDExNjk0MDAwIEggNDQ0NDAw
-MCAzLzQKUyAxMTcxMjAwMCBWIDI5NjMwMDAgMy80ClMgMTE3MTcwMDAgViAyMjIyMDAwIDMvNApT
-IDExNzM0MDAwIEggMzI5MTAwMCAzLzQKUyAxMTczOTAwMCBIIDMxMjUwMDAgMy80ClMgMTE3NDgw
-MDAgSCA0NDQ0MDAwIDUvNgpTIDExNzUzMDAwIEggMzAwMDAwMCA3LzgKUyAxMTc3NjAwMCBIIDIy
-MjIwMDAgMy80ClMgMTE3NzcwMDAgViA0NDQ0MDAwIDMvNApTIDExNzgxMDAwIFYgMjgxNTAwMCA1
-LzYKUyAxMTc4ODAwMCBIIDI4OTMwMDAgMy80ClMgMTE3MjkwMDAgViAxNTU1NTAwIDUvNgpTIDEx
-NzU0MDAwIFYgMzkwMDAwMCA1LzYKUyAxMTc1ODAwMCBWIDI5NjIwMDAgMy80ClMgMTE3NjIwMDAg
-ViAyMTU1MDAwIDMvNApTIDExNzczMDAwIFYgMjQyMDAwMCA1LzYKUyAxMTc5NDAwMCBIIDU2MzIw
-MDAgMy80ClMgMTE4MDQwMDAgViAyNDQ0NDAwIDUvNgpTIDExODMwMDAwIFYgNjY2NjAwMCAzLzQK
-UyAxMTgzOTAwMCBWIDQ0NDQwMDAgMy80ClMgMTE4NDYwMDAgViAzMzMzMDAwIDUvNgpTIDExODUy
-MDAwIFYgNDQ0NDAwMCA1LzYKUyAxMTg1ODAwMCBWIDI0MDAwMDAgNy84ClMgMTE4NjcwMDAgViA0
-NDQ0MDAwIDUvNgpTIDExODc0MDAwIFYgMzQwMDAwMCA3LzgKUyAxMTg4MjAwMCBWIDI5NjUwMDAg
-NS82ClMgMTE4ODcwMDAgViAzMzMzMDAwIDcvOApTIDExODkyMDAwIEggMTI4MDAwMCA1LzYKUyAx
-MTg5NjAwMCBWIDIyMjIwMDAgMy80ClMgMTE5MDUwMDAgSCA2NjY2MDAwIDMvNApTIDExOTEyMDAw
-IEggMzMzMzAwMCA1LzYKUyAxMTkxOTAwMCBWIDI0NDQ0MDAgMy80ClMgMTE5NDAwMDAgViAyNDQ0
-NDAwIDUvNgpTIDExOTYzMDAwIFYgMjMwMDAwMCA1LzYKUyAxMTk3MDAwMCBIIDE3OTAwMDAgNS82
-ClMgMTE5ODQwMDAgSCA0MDAwMDAwIDUvNgpTIDExOTk2MDAwIFYgMjYwMDAwMCA1LzYKUyAxMjAw
-MjAwMCBIIDQ4MDAwMDAgNS82ClMgMTIwMDgwMDAgSCA0NDQ0MDAwIDUvNgpTIDEyMDIyMDAwIEgg
-NTM4MDAwMCA1LzYKUyAxMjAyODAwMCBIIDQ1NTcwMDAgNS82ClMgMTIwMTUwMDAgSCA0ODAwMDAw
-IDUvNgpTIDEyMTI2MDAwIFYgNjY2NjAwMCA1LzYKUyAxMjEzMzAwMCBWIDMzMzMwMDAgMy80ClMg
-MTIxNDAwMDAgViA0NDQ0MDAwIDMvNApTIDEyMzIwMDAwIEggMTc5MDAwMCA1LzYKUyAxMjM3NzAw
-MCBIIDU2MzIwMDAgMy80ClMgMTI0MjEwMDAgViA5MTUwMDAwIDUvNgpTIDEyNTEzMDAwIEggNDQw
-MDAwMCAzLzQKUyAxMTUxODAwMCBIIDMxMjUwMDAgMy80ClMgMTI1MjQwMDAgSCA0MjUwMDAwIDUv
-NgpTIDEyNTMwMDAwIEggNDQ0NDAwMCA1LzYKUyAxMjUzNTAwMCBIIDI5NjIwMDAgMy80ClMgMTI1
-NDAwMDAgSCAzMTI1MDAwIDMvNApTIDEyNTkwMDAwIFYgMzAwMDAwMCA1LzYKUyAxMjU5NTAwMCBW
-IDI1MDAwMDAgMy80ClMgMTI2MDkwMDAgViAzNzAwMDAwIDUvNgpTIDEyNjE0MDAwIFYgMzMzMzAw
-MCA1LzYKUyAxMjYzMzAwMCBWIDQ4MDAwMDAgNS82ClMgMTI2MzgwMDAgViAyMzAwMDAwIDUvNgpT
-IDEyNjUyMDAwIEggMjI1MDAwMCA1LzYKUyAxMjY2MTAwMCBWIDkxNTAwMDAgNS82ClMgMTI2ODAw
-MDAgSCA4ODg4MDAwIDMvNApTIDEyNjg4MDAwIEggMjQwMDAwMCA1LzYKUyAxMjY5OTAwMCBIIDI0
-MDAwMDAgNy84ClMgMTI3MDYwMDAgSCAyNDAwMDAwIDMvNApTIDEyNzE5MDAwIFYgMjk1MDAwMCA3
-LzgKUyAxMjczMTAwMCBWIDMzMzMwMDAgMy80ClMgMTI3NTAwMDAgSCA0NTU3MDAwIDMvNA==
-
---Boundary-00=_TghdIr5GyDBOERx
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_TghdIr5GyDBOERx--
