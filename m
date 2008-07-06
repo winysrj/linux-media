@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <debalance@arcor.de>) id 1KFpPg-0003Yd-Fh
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 14:01:49 +0200
-Message-ID: <487205A0.9060103@arcor.de>
-Date: Mon, 07 Jul 2008 14:01:36 +0200
-From: =?ISO-8859-1?Q?Philipp_H=FCbner?= <debalance@arcor.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KFJ77-0000PC-JD
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 03:32:32 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sun, 6 Jul 2008 03:31:37 +0200
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+In-Reply-To: <1214127575.4974.7.camel@jaswinder.satnam>
 MIME-Version: 1.0
-To: free_beer_for_all@yahoo.com
-References: <892875.74920.qm@web46103.mail.sp1.yahoo.com>
-In-Reply-To: <892875.74920.qm@web46103.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
+Content-Disposition: inline
+Message-Id: <200807060331.37548@orion.escape-edv.de>
+Cc: Jaswinder Singh <jaswinder@infradead.org>,
+	David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+	request_firmware()
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,38 +28,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-barry bouwsma schrieb:
->> zapping to 1 'ASTRA SDT':
->> sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid =
->> 0x1fff, apid
->> = 0x1fff sid = 0x000c
->>
->> But mplayer /dev/dvb/adapter0/dvr0 doesn't work:
-> 
-> You should try tuning to a Real Channel[TM]
-> 
-> There is no audio or video on Astra SDT, as you see above --
-> V+APID == 0x1FFF
-> 
-> I'm sure that later in your .conf file, there are real channels
-> with real video and audio PIDs just waiting to be tuned into
-You're right, I didn't notice.
+Jaswinder Singh wrote:
+> +config DVB_AV7110_BOOTCODE
+> +	bool "Compile AV7110 bootcode into the driver"
+> +	depends on DVB_AV7110
+> +	help
+> +	  This includes firmware for AV7110 bootcode
+> +	  Say 'N' and let it get loaded from userspace on demand 
 
-> versuch's mal mit ZDF, u.A...
-Klappt, danke ;)
+This option does not make any sense.
 
-Regards,
-Philipp
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Nobody needs to replace the bootloader.
+Furthermore, if you load the boot code from userspace, you must provide
+some means to ensure data integrity (file header, crc protection).
+It is a very bad idea to load garbage into the ARM processor...
 
-iD8DBQFIcgWfFhl05MJZ4OgRAk0gAJ4k5mOHnIFLVDCXpJXAZiDGHduzkwCeKSIJ
-dTGXDY8ES19CA9VnaZkD1/U=
-=WY7d
------END PGP SIGNATURE-----
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
