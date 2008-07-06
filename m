@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from neblina.reacciun.ve ([150.188.4.200] helo=mail.reacciun.ve)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joaquinm@cenit.gob.ve>) id 1KISoh-0004Hf-MK
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 20:30:34 +0200
-Received: from joaquin-munoz-lucavechis-macbook-pro.local (unknown
-	[150.188.41.230])
-	by mail.reacciun.ve (Postfix) with ESMTP id 352225C7
-	for <linux-dvb@linuxtv.org>; Mon, 14 Jul 2008 13:42:44 -0430 (VET)
-Message-ID: <487B9B0C.5010503@cenit.gob.ve>
-Date: Mon, 14 Jul 2008 13:59:32 -0430
-From: =?ISO-8859-1?Q?Joaquin_Mu=F1oz_Lucavechi?= <joaquinm@cenit.gob.ve>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [Fwd: Two-way satellite communication system]
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+b62fe65aec208862d7d2+1778+infradead.org+dwmw2@bombadil.srs.infradead.org>)
+	id 1KFSFy-0002FR-Tc
+	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 13:18:15 +0200
+From: David Woodhouse <dwmw2@infradead.org>
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+In-Reply-To: <48708BBF.9050400@cadsoft.de>
+References: <1214139259.2994.8.camel@jaswinder.satnam>
+	<200807060315.51736@orion.escape-edv.de> <48708BBF.9050400@cadsoft.de>
+Date: Sun, 06 Jul 2008 12:17:02 +0100
+Message-Id: <1215343022.10393.945.camel@pmac.infradead.org>
+Mime-Version: 1.0
+Cc: kernelnewbies <kernelnewbies@nl.linux.org>,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Jaswinder Singh <jaswinder@infradead.org>, linux-dvb@linuxtv.org,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,197 +25,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1332456191=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============1332456191==
-Content-Type: multipart/alternative;
- boundary="------------090404000708050008040806"
+On Sun, 2008-07-06 at 11:09 +0200, Klaus Schmidinger wrote:
+> On 07/06/08 03:15, Oliver Endriss wrote:
+> > Jaswinder Singh wrote:
+> >> There's no point in this, since the user can use the BUILTIN_FIRMWARE
+> >> option to include arbitrary firmware files directly in the kernel image.
+> > 
+> > NAK! This option allows to compile the firmware into the _driver_,
+> > which is very useful if you want to test various driver/firmware
+> > combinations. Having the firmware in the _kernel_ does not help!
+> 
+> I strongly support Oliver's request!
+> Working with various driver versions is much easier with the
+> firmware compiled into the driver!
 
-This is a multi-part message in MIME format.
---------------090404000708050008040806
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+That's strange; I've found exactly the opposite to be the case. 
 
-Hi all again,
+If I want to test permutations of driver and firmware, as I've done for
+the libertas driver a number of times, I find it _much_ better to
+preserve the modularity. I can build each version of the driver and can
+test that against various firmware versions without having to rebuild
+it, and with much less chance of something going wrong so that I'm not
+actually testing what I think I'm testing.
 
-
-Does anybody knows any two-way pci satellite modem?
-
-In the worst case, do you know if exists any entity, group, experiences=20
-or solution in this area?
-
-
-We would appreciate your comments.
-
-
-
-Best regards
-
-
-
-
-
-
--------- Original Message --------
-Subject: 	Two-way satellite communication system
-Date: 	Mon, 07 Jul 2008 22:28:17 -0430
-From: 	Joaquin Mu=F1oz Lucavechi <joaquinm@cenit.gob.ve>
-To: 	linux-dvb@linuxtv.org
-
-
-
-Dear partners,
-
-
-I would to ask you if you know a pci card supporting DVB-RCS=20
-(Return-Channel-via-Satellite) technology or any other linux-compatible=20
-hardware that could work on two-way mode, both sending and receiving=20
-data, using VSAT system preferably.
-
-
-We work at innovation center in Venezuela, and we are looking for a free =
-
-software, low-cost and high-scalable solution allowing us to deploy a=20
-communication system based on a standard satellite technology.
-
-
-We would appreciate any information you could share with us.
-
-
-
-
-Best regards
-
-
---=20
------------------------
-Joaquin Munoz Lucavechi
-Centro Nacional de Innovacion Tecnologica, CENIT
-Direccion de Investigacion, Desarrollo e Innovacion
-Unidad de Control de Calidad
-
-
-
-
---=20
------------------------
-Joaquin Munoz Lucavechi
-Centro Nacional de Innovacion Tecnologica, CENIT
-Direccion de Investigacion, Desarrollo e Innovacion
-Unidad de Control de Calidad
-
-
---------------090404000708050008040806
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Hi all again,<br>
-<br>
-<br>
-Does anybody knows any two-way pci satellite modem?<br>
-<br>
-In the worst case, do you know if exists any entity, group, experiences
-or solution in this area?<br>
-<br>
-<br>
-We would appreciate your comments.<br>
-<br>
-<br>
-<br>
-Best regards<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
--------- Original Message --------
-<table class="moz-email-headers-table" border="0" cellpadding="0"
- cellspacing="0">
-  <tbody>
-    <tr>
-      <th align="right" nowrap="nowrap" valign="baseline">Subject: </th>
-      <td>Two-way satellite communication system</td>
-    </tr>
-    <tr>
-      <th align="right" nowrap="nowrap" valign="baseline">Date: </th>
-      <td>Mon, 07 Jul 2008 22:28:17 -0430</td>
-    </tr>
-    <tr>
-      <th align="right" nowrap="nowrap" valign="baseline">From: </th>
-      <td>Joaquin Mu&ntilde;oz Lucavechi <a class="moz-txt-link-rfc2396E" href="mailto:joaquinm@cenit.gob.ve">&lt;joaquinm@cenit.gob.ve&gt;</a></td>
-    </tr>
-    <tr>
-      <th align="right" nowrap="nowrap" valign="baseline">To: </th>
-      <td><a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></td>
-    </tr>
-  </tbody>
-</table>
-<br>
-<br>
-<pre>Dear partners,
-
-
-I would to ask you if you know a pci card supporting DVB-RCS 
-(Return-Channel-via-Satellite) technology or any other linux-compatible 
-hardware that could work on two-way mode, both sending and receiving 
-data, using VSAT system preferably.
-
-
-We work at innovation center in Venezuela, and we are looking for a free 
-software, low-cost and high-scalable solution allowing us to deploy a 
-communication system based on a standard satellite technology.
-
-
-We would appreciate any information you could share with us.
-
-
-
-
-Best regards
+Perhaps I'm missing something that would help me work better? Please
+could you help me understand how you currently work, and I'll attempt to
+make it easier for you. Can you talk me through an example of a session
+where you had to do this testing of 'various driver/firmware
+combinations'?
 
 
 -- 
------------------------
-Joaquin Munoz Lucavechi
-Centro Nacional de Innovacion Tecnologica, CENIT
-Direccion de Investigacion, Desarrollo e Innovacion
-Unidad de Control de Calidad
+dwmw2
 
-
-</pre>
-<br>
-<pre class="moz-signature" cols="72">-- 
------------------------
-Joaquin Munoz Lucavechi
-Centro Nacional de Innovacion Tecnologica, CENIT
-Direccion de Investigacion, Desarrollo e Innovacion
-Unidad de Control de Calidad
-</pre>
-</body>
-</html>
-
---------------090404000708050008040806--
-
-
---===============1332456191==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1332456191==--
