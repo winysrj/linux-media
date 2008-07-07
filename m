@@ -1,25 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.188])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ickes-home.de>) id 1KLOXI-0000ZQ-3x
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 22:32:40 +0200
-From: tom <thomas@ickes-home.de>
-To: Antti Palosaari <crope@iki.fi>
-In-Reply-To: <48863E02.9080803@iki.fi>
-References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
-	<1216750591.6624.3.camel@super-klappi>  <48862536.9070906@iki.fi>
-	<1216752077.6686.4.camel@super-klappi>  <48862B02.1030304@iki.fi>
-	<1216754067.6686.7.camel@super-klappi>  <48863349.3090507@iki.fi>
-	<1216754778.6686.9.camel@super-klappi>  <48863629.8070706@iki.fi>
-	<1216755359.6686.11.camel@super-klappi>
-	<1216756294.6686.16.camel@super-klappi>
-	<1216756855.6686.19.camel@super-klappi>  <48863E02.9080803@iki.fi>
-Date: Tue, 22 Jul 2008 22:31:22 +0200
-Message-Id: <1216758682.14975.3.camel@super-klappi>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WG:  Problems with	MSI	Digivox	Duo	DVB-T	USB,
-	Ubuntu 8.04
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KFgr2-0004AC-D0
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 04:53:29 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Mon, 7 Jul 2008 04:52:00 +0200
+References: <1214139259.2994.8.camel@jaswinder.satnam>
+	<48708BBF.9050400@cadsoft.de>
+	<1215343022.10393.945.camel@pmac.infradead.org>
+In-Reply-To: <1215343022.10393.945.camel@pmac.infradead.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200807070452.02204@orion.escape-edv.de>
+Cc: kernelnewbies <kernelnewbies@nl.linux.org>,
+	David Woodhouse <dwmw2@infradead.org>,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Jaswinder Singh <jaswinder@infradead.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,35 +33,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-yes, problem was old firmware...very stupid :)
-
-I will try out both tuners and let you know. at the moment I'm happy and
-try to tune some channels (puh)
-
-which player do you use?
-
-Thomas
-
-Am Dienstag, den 22.07.2008, 23:07 +0300 schrieb Antti Palosaari:
-> tom wrote:
-> > !!SUCCESS!!
-> :)
+David Woodhouse wrote:
+> On Sun, 2008-07-06 at 11:09 +0200, Klaus Schmidinger wrote:
+> > On 07/06/08 03:15, Oliver Endriss wrote:
+> > > Jaswinder Singh wrote:
+> > >> There's no point in this, since the user can use the BUILTIN_FIRMWARE
+> > >> option to include arbitrary firmware files directly in the kernel image.
+> > > 
+> > > NAK! This option allows to compile the firmware into the _driver_,
+> > > which is very useful if you want to test various driver/firmware
+> > > combinations. Having the firmware in the _kernel_ does not help!
 > > 
-> > Scan has found channels and everything works!
+> > I strongly support Oliver's request!
+> > Working with various driver versions is much easier with the
+> > firmware compiled into the driver!
 > 
-> Problem was coming from too old firmware?
+> That's strange; I've found exactly the opposite to be the case. 
 > 
-> Try both tuners. I have AzureWave which is rather similar and I have 
-> problem that first tuner performance is bad (it goes bad immediately 
-> when second receiver is enabled). Some noise, mosaic pixels, in picture 
-> :o I wonder if you have same problem...
+> If I want to test permutations of driver and firmware, as I've done for
+> the libertas driver a number of times, I find it _much_ better to
+> preserve the modularity. I can build each version of the driver and can
+> test that against various firmware versions without having to rebuild
+> it, and with much less chance of something going wrong so that I'm not
+> actually testing what I think I'm testing.
 > 
-> > Antti, many thanks for your support and especially for your patience!
-> > 
-> > Thomas
-> 
-> Antti
+> Perhaps I'm missing something that would help me work better? Please
+> could you help me understand how you currently work, and I'll attempt to
+> make it easier for you. Can you talk me through an example of a session
+> where you had to do this testing of 'various driver/firmware
+> combinations'?
 
+Note that the v4ldvb drivers can be configured and compiled outside the
+kernel tree. Basically I have several directory trees, for example
+- v4l-dvb_head
+- v4l-dvb_31dec2007_fw2622
+- v4l-dvb_31dec2007_fwf12623
+- ...
+
+Within these directories you can simply use "make menuconfig" to
+configure the driver. If you compile the firmware into the driver,
+you can easily freeze a 'known good' or 'known bad' configuration.
+
+Trying a different driver is as easy as changing directories.
+This simplifies testing.
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
