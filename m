@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.27])
+Received: from anchor-post-34.mail.demon.net ([194.217.242.92])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <javier.galvez.guerrero@gmail.com>)
-	id 1KOZwU-0002yg-UB
-	for linux-dvb@linuxtv.org; Thu, 31 Jul 2008 17:19:52 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so175195qwb.17
-	for <linux-dvb@linuxtv.org>; Thu, 31 Jul 2008 08:19:46 -0700 (PDT)
-Message-ID: <145d4e1a0807310819s7e6b4d7ao81c3a83f1b5de1b2@mail.gmail.com>
-Date: Thu, 31 Jul 2008 17:19:45 +0200
-From: "=?ISO-8859-1?Q?Javier_G=E1lvez_Guerrero?="
-	<javier.galvez.guerrero@gmail.com>
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KFtpr-0002Ei-EP
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 18:45:10 +0200
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-34.mail.demon.net with esmtp (Exim 4.67)
+	id 1KFtpn-000HIU-Dx
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 16:45:03 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KFtpi-0006pt-8X
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 17:45:02 +0100
+Date: Mon, 07 Jul 2008 17:42:58 +0100
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 To: linux-dvb@linuxtv.org
+Message-ID: <4FC0AB9978%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <20080707160504.7771bae0@bk.ru>
+References: <200807061744.31775.hftom@free.fr> <20080707160504.7771bae0@bk.ru>
 MIME-Version: 1.0
-Subject: [linux-dvb] DMB drivers?
+Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,48 +29,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0572542630=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0572542630==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_63378_32025387.1217517585933"
+I demand that Goga777 may or may not have written...
 
-------=_Part_63378_32025387.1217517585933
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> btw
+> when Kaffeine  will support multiproto api  and h.264 ?
 
-Hi,
+We could do with multiproto support in xine-lib... contributions, anybody?
+:-)
 
-Just a little bit offtopic...but, does anybody knows any T-DMB drivers for
-Linux?
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+|   Kill all extremists!
 
-
-Thank you and sorry for the inconvenience,
-Javi
-
-------=_Part_63378_32025387.1217517585933
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Hi,<br><br>Just a little bit offtopic...but, does anybody knows any T-DMB drivers for Linux?<br><br><br>Thank you and sorry for the inconvenience,<br>Javi<br></div>
-
-------=_Part_63378_32025387.1217517585933--
-
-
---===============0572542630==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Are those cookies made with real Girl Scouts?
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0572542630==--
