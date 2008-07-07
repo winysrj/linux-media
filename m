@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IABOO9022763
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:11:24 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IAAfmw014824
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:10:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Fri, 18 Jul 2008 12:10:22 +0200
-References: <4880694A.3060002@iinet.net.au>
-	<200807181201.22000.hverkuil@xs4all.nl> <48806AA6.8050700@hhs.nl>
-In-Reply-To: <48806AA6.8050700@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m671AKFe016125
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 21:10:20 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m671A8wX001846
+	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 21:10:09 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so1879739wfc.6
+	for <video4linux-list@redhat.com>; Sun, 06 Jul 2008 18:10:08 -0700 (PDT)
+Message-ID: <48716CED.6010608@gmail.com>
+Date: Sun, 06 Jul 2008 17:10:05 -0800
+From: D <therealisttruest@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <486FF148.2060506@gmail.com>	
+	<1215298086.3237.19.camel@pc10.localdom.local>
+	<48700079.6000209@gmail.com>	 <48701944.2040200@gmail.com>
+	<1215343839.2852.14.camel@pc10.localdom.local>
+In-Reply-To: <1215343839.2852.14.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807181210.22731.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, mchehab@infradead.org
-Subject: Re: problem with latest v4l-dvb hg - videodev
+Cc: video4linux-list@redhat.com
+Subject: Re: Help with Chinese card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,58 +32,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 18 July 2008 12:04:22 Hans de Goede wrote:
-> Hans Verkuil wrote:
-> > On Friday 18 July 2008 11:58:34 Tim Farrington wrote:
-> >> Hi Mauro, Hans,
-> >>
-> >> I've just attempted a new install of ubuntu, then downloaded via
-> >> hg the current v4l-dvb,
-> >> and installed it.
-> >>
-> >> Upon reboot, the boot stalled just after loading the firmware at
-> >> something about incorrect
-> >> videodev count.
-> >>
-> >> It would not boot any further, and I was unable to save the dmesg
-> >> to a file (read only access)
-> >>
-> >> I've had to reinstall ubuntu to be able to send this message.
-> >>
-> >> Regards,
-> >> Timf
-> >
-> > Hi Tim,
-> >
-> > Yes, I discovered the same. A fix is in my tree
-> > (www.linuxtv.org/hg/~hverkuil/v4l-dvb) waiting for Mauro to merge.
-> >
-> > Regards,
-> >
-> > 	Hans
+
+> "garbled video" can mean lots of different things.
+> Black and white only would be simplest, since indicating some wrong
+> vmux.
 >
-> Erm,
+>   
+When I added card 145, I did have one of the 8 cameras that are set up 
+showing grainy, black and white video with a very bad jitter to it(this 
+was using ntsc, not pal). This was with vmux=2 I believe. I tried 0,1, 
+and 3 as well just to see if it was a bit off, but only ended up with 
+black output. The other videos were black as well, even though there 
+should have been video in at least one or two others.
+>>> [44494.080206] saa7134:   card=145 -> AOPVision AOP-8008A 16CH/240fps 
+>>> Capture
+>>> [44494.080210] saa7130[0]: subsystem: 1131:0000, board: 
+>>> UNKNOWN/GENERIC [card=0,autodetected]
+>>> [44494.080220] saa7130[0]: board init: gpio is c013ef0
+>>>       
+>                                            ^^^^^^^^^^^^^^^
 >
-> It would have been nice if you would have sent an announcement of
-> that fix and/or atleast CC-ed v4l-dvb-maintainer@linuxtv.org, so that
-> other v4l-dvb developers knew about this, I just spend an hour
-> figuring out what was hapening and fixing this.
+> In such a case, this is the only indication if it might have been seen
+> already previously. 
 >
-> Regards,
+> If this is after a boot prior to mess around with other card entries or
+> trying something yourself on gpios, it looks like this device was not
+> seen yet then.
 >
-> Hans
+>   
+>>> [44494.807913] saa7134:   card=145 -> AOPVision AOP-8008A 16CH/240fps 
+>>> Capture
+>>> [44494.807917] saa7130[7]: subsystem: 1131:0000, board: 
+>>> UNKNOWN/GENERIC [card=0,autodetected]
+>>> [44494.807930] saa7130[7]: board init: gpio is 10000
+>>>       
+>                    ^^^^^^^^^^              ^^^^^^^^^^^^^
+> Seems to be still unique here.
+>   
+As far as autodetection goes, when I originally started working on this, 
+it was card number 0, by default. What I did above to get it back to 
+that point was modprobe saa7134, without the 'card=' argument, so that 
+tells me it doesn't autodetect it correctly or recognize it. As I said 
+before card number 145 is my own, but it's not correct either. Do you 
+have any tips on what I can do next. I know this card is not yet 
+supported as is, but would like to get it working and perhaps get 
+support added to it for other users in the future.  My idea was to 
+change the gpio values, but it sounds like that could be a problem 
+unless I can find what the correct values are. Any ideas? I'm willing to 
+do what I can, but I need some guidance on this one.
 
-Well, I did. The pull request on the v4l-dvb-maintainers list was posted 
-2 1/2 hours before yours. But I probably should have made the subject 
-more clear, it was just my normal PULL request subject instead of 
-marking it as especially important.
-
-My apologies for that.
-
-Regards,
-
-	Hans
-
+Thanks much,
+Daniel
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
