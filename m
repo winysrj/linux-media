@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m610AvCi005599
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 20:10:57 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m610Aj6q017654
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 20:10:45 -0400
-Message-ID: <486975F0.7040102@linuxtv.org>
-Date: Mon, 30 Jun 2008 20:10:24 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67LeWHp003846
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:40:32 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67LdeIx005063
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:39:41 -0400
+Message-ID: <48728EB6.10409@hhs.nl>
+Date: Mon, 07 Jul 2008 23:46:30 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Paul Kelly <pksings@gmail.com>
-References: <1214835761.24479.4.camel@phred.pksings.com>
-In-Reply-To: <1214835761.24479.4.camel@phred.pksings.com>
-Content-Type: text/plain; charset=UTF-8
+To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: DVICO dual express second tuner?
+Cc: 
+Subject: Announcing libv4l 0.3.4
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,33 +27,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Paul Kelly wrote:
-> Hello all;
-> 
-> I got the latest tree and firmware and successfully brought up a new
-> DVICO dual express and can tune HD cable.
-> 
-> According to the marketing fluff this card has two tuners and can tune
-> either two digital HD streams or one analog and one HD stream. 
-> 
-> Can anyone give me any idea how to make it do that? Mythtv only
-> identifies tuner 0. 
-> 
-> Any information needed will happily be supplied, please ask.
-> 
-> Thanks in advance
+Hi All,
 
-Paul,
+I'm afraid version 0.3.3 had a nasty bug, so here is 0.3.4:
+http://people.atrpms.net/~hdegoede/libv4l-0.3.4.tar.gz
 
-There is a bug in the cx23885 driver that prevents us from using both Transport buses at the same time.
+This release has the following changes:
 
-stoth is working to fix that bug now -- after the bug is fixed, we'll enable the second transport bus.
 
-I'd expect it to be all fixed within a week or two.
+libv4l-0.3.4 (the brownpaperbag release)
+----------------------------------------
+* The mmap64 support in 0.3.3, has caused a bug in libv4l1 when running on
+   32 bit systems (who uses those now a days?), this bug caused v4l1
+   compatibility to not work at all, this release fixes this
+* Some apps (xawtv, kopete) use an ioctl wrapper internally for various
+   reasons. This wrappers request argument is an int, but the real ioctl's
+   request argument is an unsigned long. Passing the VIDIOC_xxx defines through
+   to the wrapper, and then to the real ioctl, causes the request to get sign
+   extended on 64 bit args. The kernel seems to ignore the upper 32 bits,
+   causing the sign extension to not make a difference. libv4l now also
+   ignores the upper 32 bits of the libv4lx_ioctl request argument on 64 bit
+   archs
+* Add a bugfix patch for kopete in the appl-patches dir, currently it assumes
+   that it got the width and height it asked for when doing a S_FMT, which is a
+   wrong assumption
+
 
 Regards,
 
-Mike
+Hans
+
 
 --
 video4linux-list mailing list
