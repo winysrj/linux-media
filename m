@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EC2Den004059
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:13 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EC1Cmc000717
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:01 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so5595835rvb.51
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:02:01 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Mon, 14 Jul 2008 21:02:13 +0900
-Message-Id: <20080714120213.4806.93867.sendpatchset@rx1.opensource.se>
-In-Reply-To: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
-	mchehab@infradead.org, lethal@linux-sh.org,
-	akpm@linux-foundation.org, g.liakhovetski@gmx.de
-Subject: [PATCH 01/06] soc_camera: Move spinlocks
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67JiuV0017446
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 15:44:56 -0400
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67JiQT0000543
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 15:44:29 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: D <therealisttruest@gmail.com>
+In-Reply-To: <48716CED.6010608@gmail.com>
+References: <486FF148.2060506@gmail.com>
+	<1215298086.3237.19.camel@pc10.localdom.local>
+	<48700079.6000209@gmail.com> <48701944.2040200@gmail.com>
+	<1215343839.2852.14.camel@pc10.localdom.local>
+	<48716CED.6010608@gmail.com>
+Content-Type: text/plain
+Date: Mon, 07 Jul 2008 21:41:07 +0200
+Message-Id: <1215459667.3762.35.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Help with Chinese card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,182 +32,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This patch moves the spinlock handling from soc_camera.c to the actual
-camera host driver. The spinlock alloc/free callbacks are replaced with
-code in init_videobuf().
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+Am Sonntag, den 06.07.2008, 17:10 -0800 schrieb D:
+> 
+> > "garbled video" can mean lots of different things.
+> > Black and white only would be simplest, since indicating some wrong
+> > vmux.
+> > 
+> >   
+> When I added card 145, I did have one of the 8 cameras that are set up
+> showing grainy, black and white video with a very bad jitter to
+> it(this was using ntsc, not pal). This was with vmux=2 I believe. I
+> tried 0,1, and 3 as well just to see if it was a bit off, but only
+> ended up with black output. The other videos were black as well, even
+> though there should have been video in at least one or two others.
+> > > > [44494.080206] saa7134:   card=145 -> AOPVision AOP-8008A 16CH/240fps 
+> > > > Capture
+> > > > [44494.080210] saa7130[0]: subsystem: 1131:0000, board: 
+> > > > UNKNOWN/GENERIC [card=0,autodetected]
+> > > > [44494.080220] saa7130[0]: board init: gpio is c013ef0
+> > > >       
+> > ^^^^^^^^^^^^^^^
+> > 
+> > In such a case, this is the only indication if it might have been seen
+> > already previously. 
+> > 
+> > If this is after a boot prior to mess around with other card entries or
+> > trying something yourself on gpios, it looks like this device was not
+> > seen yet then.
+> > 
+> >   
+> > > > [44494.807913] saa7134:   card=145 -> AOPVision AOP-8008A 16CH/240fps 
+> > > > Capture
+> > > > [44494.807917] saa7130[7]: subsystem: 1131:0000, board: 
+> > > > UNKNOWN/GENERIC [card=0,autodetected]
+> > > > [44494.807930] saa7130[7]: board init: gpio is 10000
+> > > >       
+> > ^^^^^^^^^^              ^^^^^^^^^^^^^
+> > Seems to be still unique here.
+> >   
+> As far as autodetection goes, when I originally started working on
+> this, it was card number 0, by default. What I did above to get it
+> back to that point was modprobe saa7134, without the 'card=' argument,
+> so that tells me it doesn't autodetect it correctly or recognize it.
+> As I said before card number 145 is my own, but it's not correct
+> either. Do you have any tips on what I can do next. I know this card
+> is not yet supported as is, but would like to get it working and
+> perhaps get support added to it for other users in the future.  My
+> idea was to change the gpio values, but it sounds like that could be a
+> problem unless I can find what the correct values are. Any ideas? I'm
+> willing to do what I can, but I need some guidance on this one.
+> 
 
- drivers/media/video/pxa_camera.c |   17 ++++------------
- drivers/media/video/soc_camera.c |   39 --------------------------------------
- include/media/soc_camera.h       |    5 ----
- 3 files changed, 7 insertions(+), 54 deletions(-)
+A valid input for composite video is also vmux = 4 and is used by
+several manufactures. Higher vmux inputs are for s-video.
+For composite over s-video vmux = 0 is usually used.
 
---- 0002/drivers/media/video/pxa_camera.c
-+++ work/drivers/media/video/pxa_camera.c	2008-07-04 17:24:53.000000000 +0900
-@@ -583,12 +583,15 @@ static struct videobuf_queue_ops pxa_vid
- 	.buf_release    = pxa_videobuf_release,
- };
- 
--static void pxa_camera_init_videobuf(struct videobuf_queue *q, spinlock_t *lock,
-+static void pxa_camera_init_videobuf(struct videobuf_queue *q,
- 			      struct soc_camera_device *icd)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+
- 	/* We must pass NULL as dev pointer, then all pci_* dma operations
- 	 * transform to normal dma_* ones. */
--	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, lock,
-+	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
- 				sizeof(struct pxa_buffer), icd);
- }
-@@ -994,15 +997,6 @@ static int pxa_camera_querycap(struct so
- 	return 0;
- }
- 
--static spinlock_t *pxa_camera_spinlock_alloc(struct soc_camera_file *icf)
--{
--	struct soc_camera_host *ici =
--		to_soc_camera_host(icf->icd->dev.parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--
--	return &pcdev->lock;
--}
--
- static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= pxa_camera_add_device,
-@@ -1015,7 +1009,6 @@ static struct soc_camera_host_ops pxa_so
- 	.querycap	= pxa_camera_querycap,
- 	.try_bus_param	= pxa_camera_try_bus_param,
- 	.set_bus_param	= pxa_camera_set_bus_param,
--	.spinlock_alloc	= pxa_camera_spinlock_alloc,
- };
- 
- /* Should be allocated dynamically too, but we have only one. */
---- 0002/drivers/media/video/soc_camera.c
-+++ work/drivers/media/video/soc_camera.c	2008-07-04 17:24:53.000000000 +0900
-@@ -183,7 +183,6 @@ static int soc_camera_open(struct inode 
- 	struct soc_camera_device *icd;
- 	struct soc_camera_host *ici;
- 	struct soc_camera_file *icf;
--	spinlock_t *lock;
- 	int ret;
- 
- 	icf = vmalloc(sizeof(*icf));
-@@ -210,13 +209,6 @@ static int soc_camera_open(struct inode 
- 	}
- 
- 	icf->icd = icd;
--
--	icf->lock = ici->ops->spinlock_alloc(icf);
--	if (!icf->lock) {
--		ret = -ENOMEM;
--		goto esla;
--	}
--
- 	icd->use_count++;
- 
- 	/* Now we really have to activate the camera */
-@@ -234,17 +226,12 @@ static int soc_camera_open(struct inode 
- 	file->private_data = icf;
- 	dev_dbg(&icd->dev, "camera device open\n");
- 
--	ici->ops->init_videobuf(&icf->vb_vidq, icf->lock, icd);
-+	ici->ops->init_videobuf(&icf->vb_vidq, icd);
- 
- 	return 0;
- 
- 	/* All errors are entered with the video_lock held */
- eiciadd:
--	lock = icf->lock;
--	icf->lock = NULL;
--	if (ici->ops->spinlock_free)
--		ici->ops->spinlock_free(lock);
--esla:
- 	module_put(ici->ops->owner);
- emgi:
- 	module_put(icd->ops->owner);
-@@ -260,15 +247,11 @@ static int soc_camera_close(struct inode
- 	struct soc_camera_device *icd = icf->icd;
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	struct video_device *vdev = icd->vdev;
--	spinlock_t *lock = icf->lock;
- 
- 	mutex_lock(&video_lock);
- 	icd->use_count--;
- 	if (!icd->use_count)
- 		ici->ops->remove(icd);
--	icf->lock = NULL;
--	if (ici->ops->spinlock_free)
--		ici->ops->spinlock_free(lock);
- 	module_put(icd->ops->owner);
- 	module_put(ici->ops->owner);
- 	mutex_unlock(&video_lock);
-@@ -764,21 +747,6 @@ static void dummy_release(struct device 
- {
- }
- 
--static spinlock_t *spinlock_alloc(struct soc_camera_file *icf)
--{
--	spinlock_t *lock = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
--
--	if (lock)
--		spin_lock_init(lock);
--
--	return lock;
--}
--
--static void spinlock_free(spinlock_t *lock)
--{
--	kfree(lock);
--}
--
- int soc_camera_host_register(struct soc_camera_host *ici)
- {
- 	int ret;
-@@ -808,11 +776,6 @@ int soc_camera_host_register(struct soc_
- 	if (ret)
- 		goto edevr;
- 
--	if (!ici->ops->spinlock_alloc) {
--		ici->ops->spinlock_alloc = spinlock_alloc;
--		ici->ops->spinlock_free = spinlock_free;
--	}
--
- 	scan_add_host(ici);
- 
- 	return 0;
---- 0002/include/media/soc_camera.h
-+++ work/include/media/soc_camera.h	2008-07-04 18:06:00.000000000 +0900
-@@ -48,7 +48,6 @@ struct soc_camera_device {
- struct soc_camera_file {
- 	struct soc_camera_device *icd;
- 	struct videobuf_queue vb_vidq;
--	spinlock_t *lock;
- };
- 
- struct soc_camera_host {
-@@ -67,15 +66,13 @@ struct soc_camera_host_ops {
- 	int (*set_fmt_cap)(struct soc_camera_device *, __u32,
- 			   struct v4l2_rect *);
- 	int (*try_fmt_cap)(struct soc_camera_device *, struct v4l2_format *);
--	void (*init_videobuf)(struct videobuf_queue*, spinlock_t *,
-+	void (*init_videobuf)(struct videobuf_queue *,
- 			      struct soc_camera_device *);
- 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
- 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
- 	int (*try_bus_param)(struct soc_camera_device *, __u32);
- 	int (*set_bus_param)(struct soc_camera_device *, __u32);
- 	unsigned int (*poll)(struct file *, poll_table *);
--	spinlock_t* (*spinlock_alloc)(struct soc_camera_file *);
--	void (*spinlock_free)(spinlock_t *);
- };
- 
- struct soc_camera_link {
+If you thing gpios are in use for some switching, regspy.exe might be
+your friend (DScaler - deinterlace.sf.net) to investigate the other
+driver and software.
+
+Still don't know which device it exactly is, but they seem to use a PLX
+PCI bridge. Identifying that device and getting the datasheet might give
+you some further hints too.
+http://www.plxtech.com
+
+Good Luck,
+Hermann
+
+
 
 --
 video4linux-list mailing list
