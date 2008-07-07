@@ -1,31 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m617Hndm015300
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 03:17:49 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m617H7Kn006616
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 03:17:08 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KDa6r-0004Br-FK
-	for video4linux-list@redhat.com; Tue, 01 Jul 2008 07:17:06 +0000
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 07:17:05 +0000
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 07:17:05 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67Nfq15000737
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 19:41:52 -0400
+Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
+	[195.238.6.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67NffHP002691
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 19:41:41 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: video4linux-list@redhat.com
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Date: Tue, 1 Jul 2008 07:16:54 +0000 (UTC)
-Message-ID: <loom.20080701T070523-486@post.gmane.org>
-References: <1214873062.2623.51.camel@pc10.localdom.local>
-	<869807.56113.qm@web63010.mail.re1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Subject: DTV2009 (was Re: Sabrent Philips7130 PCI TV Tuner -&- Yes,
-	the USA is going digital.)
+Date: Tue, 8 Jul 2008 01:41:40 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200807080141.40632.laurent.pinchart@skynet.be>
+Cc: Tim Gardner <timg@tpi.com>, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] uvcvideo : Add support for Medion Akoya Mini E1210
+	integrated webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,28 +29,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-One good thread hijacking deserves another:
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+---
+ drivers/media/video/uvc/uvc_driver.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Fritz Katz <frtzkatz <at> yahoo.com> writes:
-
-> 
-> --- On Mon, 6/30/08, hermann pitton <hermann-pitton <at> arcor.de> wrote:
->> > Are those warnings already valid for all over the US or in
-> > California only?
-> 
->  The entire USA will go digital on Feb. 17, 2009. There will be no analog
-> broadcasts after that. 
-
-There will be no analog OTA broadcasts, but analog cable TV will continue until
-2012.
-
->  The US Government is giving everyone with old TVs $40 (about 25 Euros) for
-> each TV in their home to buy ATSC converter boxes:
-> 
->   https://www.dtv2009.gov/
-
-That's only up to two TVs per home, and only on specific models of converter.
-The $40/€25 must be used within 90 days after it is sent.
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 86bb16d..9d954d2 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -1892,6 +1892,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
++	/* Medion Akoya Mini E1210 */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x5986,
++	  .idProduct		= 0x0141,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+ 	/* Acer OrbiCam - Unknown vendor */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+1.5.4.5
 
 --
 video4linux-list mailing list
