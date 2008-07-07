@@ -1,18 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HAj2q4024727
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 06:45:02 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HAinTm013486
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 06:44:50 -0400
-Message-ID: <487F246B.8050407@hhs.nl>
-Date: Thu, 17 Jul 2008 12:52:27 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67L0J7x009824
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:00:19 -0400
+Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67KxuD1015262
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 16:59:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 7 Jul 2008 22:59:47 +0200
+References: <200807072141.03344.hverkuil@xs4all.nl>
+	<200807072217.51487.hverkuil@xs4all.nl>
+	<20080707174759.39fc29aa@gaivota>
+In-Reply-To: <20080707174759.39fc29aa@gaivota>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------060304050008090100010409"
-Cc: video4linux-list@redhat.com
-Subject: Patch: sn9c102-remove-unsupported-usb-ids.patch
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_DPocInS6G7MM+nS"
+Message-Id: <200807072259.47709.hverkuil@xs4all.nl>
+Cc: Jean Delvare <khali@linux-fr.org>, v4l <video4linux-list@redhat.com>,
+	michael@mihu.de
+Subject: Re: Proposed removal of the dpc7146 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,74 +30,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------060304050008090100010409
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--Boundary-00=_DPocInS6G7MM+nS
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi,
+On Monday 07 July 2008 22:47:59 Mauro Carvalho Chehab wrote:
+> On Mon, 7 Jul 2008 22:17:51 +0200
+>
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Monday 07 July 2008 22:14:44 Mauro Carvalho Chehab wrote:
+> > > On Mon, 7 Jul 2008 22:06:41 +0200
+> > >
+> > > Jean Delvare <khali@linux-fr.org> wrote:
+> > > > On Mon, 7 Jul 2008 21:41:03 +0200, Hans Verkuil wrote:
+> > > > > Hi all,
+> > > > >
+> > > > > If no one objects, then I propose to remove this driver in
+> > > > > kernel 2.6.28 and announce its removal by adding the
+> > > > > following notice to the 2.6.27 feature-removal-schedule.txt
+> > > > > document:
+> > > > >
+> > > > > What:   V4L2 dpc7146 driver
+> > > > > When:   September 2008
+> > > > > Why:    Old driver for the dpc7146 demonstration board that
+> > > > > is no longer relevant. The last time this was tested on
+> > > > > actual hardware was probably around 2002. Since this is a
+> > > > > driver for a demonstration board the decision was made to
+> > > > > remove it rather than spending a lot of effort continually
+> > > > > updating this driver to stay in sync with the latest internal
+> > > > > V4L2 or I2C API. Who:    Hans Verkuil <hverkuil@xs4all.nl>
+> > > > >
+> > > > >
+> > > > > Michael Hunold, the author of this driver, agrees with my
+> > > > > assessment that this driver is no longer relevant.
+> > > >
+> > > > +1
+> > > >
+> > > > (Less i2c-related drivers means less work for me.)
+> > >
+> > > Seems ok also to me.
+> > >
+> > >
+> > > Cheers,
+> > > Mauro
+> >
+> > Hi Mauro,
+> >
+> > Great. Can you take care of adding this notice to the feature
+> > removal document? Perhaps it is a good idea to add it to the 2.6.26
+> > kernel before it is released.
+>
+> Please send me the patches. I'll add it on my last queue for 2.6.26.
 
-The sn9c102 driver claims to support usb-ID 0x0c45:0x6011, which is
-a sn9c102 with ov6650 sensor, but the sn9c102 driver does not support the
-ov6650 sensor (tested). Also the sn9c102 driver claims to support usb-ID
-0x0c45:0x603f, which is a sn9c102 with CISVF10 sensor, but the sn9c102
-driver does not support the CISVF10 sensor (not tested).
+Attached.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+	Hans
 
-Regards,
-
-Hans
-
---------------060304050008090100010409
-Content-Type: text/x-patch;
- name="sn9c102-remove-unsupported-usb-ids.patch"
+--Boundary-00=_DPocInS6G7MM+nS
+Content-Type: text/x-diff; charset="iso-8859-1"; name="feature-removal.diff"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="sn9c102-remove-unsupported-usb-ids.patch"
+Content-Disposition: attachment;
+	filename="feature-removal.diff"
 
-The sn9c102 driver claims to support usb-ID 0x0c45:0x6011, which is
-a sn9c102 with ov6650 sensor, but the sn9c102 driver does not support the
-ov6650 sensor (tested). Also the sn9c102 driver claims to support usb-ID
-0x0c45:0x603f, which is a sn9c102 with CISVF10 sensor, but the sn9c102
-driver does not support the CISVF10 sensor (not tested).
+--- linux-2.6.26-rc9/Documentation/feature-removal-schedule.txt.org	2008-07-07 22:56:38.000000000 +0200
++++ linux-2.6.26-rc9/Documentation/feature-removal-schedule.txt	2008-07-07 22:58:52.000000000 +0200
+@@ -6,6 +6,18 @@
+ 
+ ---------------------------
+ 
++What:   V4L2 dpc7146 driver
++When:   September 2008
++Why:    Old driver for the dpc7146 demonstration board that is no longer 
++	relevant. The last time this was tested on actual hardware was
++	probably around 2002. Since this is a driver for a demonstration
++	board the decision was made to remove it rather than spending a
++	lot of effort continually updating this driver to stay in sync
++	with the latest internal V4L2 or I2C API.
++Who:    Hans Verkuil <hverkuil@xs4all.nl>
++
++---------------------------
++
+ What:	dev->power.power_state
+ When:	July 2007
+ Why:	Broken design for runtime control over driver power states, confusing
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 9b5083e51248 linux/drivers/media/video/gspca/sonixb.c
---- a/linux/drivers/media/video/gspca/sonixb.c	Thu Jul 17 11:50:20 2008 +0200
-+++ b/linux/drivers/media/video/gspca/sonixb.c	Thu Jul 17 12:49:00 2008 +0200
-@@ -1277,7 +1277,9 @@
- 	{USB_DEVICE(0x0c45, 0x6007), DVNM("Sonix sn9c101 + Tas5110D")},
- 	{USB_DEVICE(0x0c45, 0x6009), DVNM("spcaCam@120")},
- 	{USB_DEVICE(0x0c45, 0x600d), DVNM("spcaCam@120")},
-+#endif
- 	{USB_DEVICE(0x0c45, 0x6011), DVNM("MAX Webcam Microdia")},
-+#ifndef CONFIG_USB_SN9C102
- 	{USB_DEVICE(0x0c45, 0x6019), DVNM("Generic Sonix OV7630")},
- 	{USB_DEVICE(0x0c45, 0x6024), DVNM("Generic Sonix Tas5130c")},
- 	{USB_DEVICE(0x0c45, 0x6025), DVNM("Xcam Shanga")},
-diff -r 9b5083e51248 linux/drivers/media/video/sn9c102/sn9c102_devtable.h
---- a/linux/drivers/media/video/sn9c102/sn9c102_devtable.h	Thu Jul 17 11:50:20 2008 +0200
-+++ b/linux/drivers/media/video/sn9c102/sn9c102_devtable.h	Thu Jul 17 12:49:00 2008 +0200
-@@ -44,7 +44,6 @@
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6005, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6007, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6009, BRIDGE_SN9C102), },
--	{ SN9C102_USB_DEVICE(0x0c45, 0x6011, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x600d, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6019, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6024, BRIDGE_SN9C102), },
-@@ -57,7 +56,6 @@
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x602d, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x602e, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6030, BRIDGE_SN9C102), },
--	{ SN9C102_USB_DEVICE(0x0c45, 0x603f, BRIDGE_SN9C102), },
- 	/* SN9C103 */
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6080, BRIDGE_SN9C103), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6082, BRIDGE_SN9C103), },
-
---------------060304050008090100010409
+--Boundary-00=_DPocInS6G7MM+nS
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -101,4 +126,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------060304050008090100010409--
+--Boundary-00=_DPocInS6G7MM+nS--
