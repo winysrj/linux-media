@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server42.ukservers.net ([217.10.138.242])
+Received: from mail4.riotinto.com ([210.8.150.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1KJmYm-0001VM-69
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 11:47:32 +0200
-Message-ID: <004701c8e8bb$34fd8f20$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Arthur Konovalov" <artlov@gmail.com>
-References: <20080615192300.90886244.SiestaGomez@web.de>	<4855F6B0.8060507@gmail.com><1213620050.6543.6.camel@pascal>	<20080616142616.75F9C3BC99@waldorfmail.homeip.net><1213626832.6543.23.camel@pascal>	<4856B6FD.1080906@gmail.com>
-	<000301c8e578$1dbcd550$7501010a@ad.sytec.com>
-	<487B8553.3050005@gmail.com>
-Date: Fri, 18 Jul 2008 21:46:50 +1200
+	(envelope-from <Tom.George@riotinto.com>) id 1KFjdf-0005Fq-S1
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 07:51:55 +0200
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+Date: Mon, 7 Jul 2008 13:51:10 +0800
+Message-ID: <C74607610AB6D64794BA3820A9567DA705AAD625@sbscpex06.corp.riotinto.org>
+In-Reply-To: <1215159877.7545.3.camel@acropora>
+References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org><486D9AE8.1030205@internode.on.net>
+	<1215159877.7545.3.camel@acropora>
+From: "George, Tom \(RTIO\)" <Tom.George@riotinto.com>
+To: "Nicolas Will" <nico@youplala.net>,
+	<linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +27,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Are you using multiproto or v4l-dvb?
+Thanks Nic,
 
-any difference??
+Moving away from the pre-built binaries that come with ubuntu and using
+the latest tree from linuxtv has solved my problems.
+
+I have noticed however that reception is definitely poorer when running
+using the 2.6.24-19-generic kernel than with the 2.6.24-16-generic
+kernel.... Pretty weird! (I can pick up channel 10 with the -16 and not
+with the -19)
+
+Thanks,
+
+Tom
+
+-----Original Message-----
+From: linux-dvb-bounces@linuxtv.org
+[mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Nicolas Will
+Sent: Friday, 4 July 2008 4:25 PM
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
+
+On Fri, 2008-07-04 at 13:07 +0930, Ian W Roberts wrote:
+> Just maybe you'll need to re-compile drivers (although maybe not given
+
+> it's working for one channel). I had to on gutsy and heron.
+
+I would still recommend to use a recent tree for such boards, even when
+using 8.04. There has been some nice improvements in the code since
+then.
+
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
+
+If you do not want to have to compile the modules at each kernel change
+introducing an ABI bump, I would use this, as I do with great pleasure:
+
+http://www.youplala.net/linux/home-theater-pc#toc-automatic-drivers-comp
+ilation-of-a-recent-v4l-dvb-tree
+
+Nico
 
 
------ Original Message ----- 
-From: "Arthur Konovalov" <artlov@gmail.com>
-To: "Simon Baxter" <linuxtv@nzbaxters.com>
-Cc: "linux-dvb" <linux-dvb@linuxtv.org>
-Sent: Tuesday, July 15, 2008 4:56 AM
-Subject: Re: [PATCH] experimental support for C-1501
-
-
-> Simon Baxter wrote:
->> Did you have any luck tying this down?
->> 
-> No, 322 and 386 MHz not working.
-> 
-> AK
->
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
+ 
+This email (including all attachments) is the sole property of Rio Tinto Limited and may be confidential.  If you are not the intended recipient, you must not use or forward the information contained in it.  This message may not be reproduced or otherwise republished without the written consent of the sender.  If you have received this message in error, please delete the e-mail and notify the sender.
 
 _______________________________________________
 linux-dvb mailing list
