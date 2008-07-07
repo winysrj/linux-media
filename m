@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.169])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mo.ucina@gmail.com>) id 1KKV8l-0008Or-Uz
-	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 11:23:40 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so592360wfd.17
-	for <linux-dvb@linuxtv.org>; Sun, 20 Jul 2008 02:23:34 -0700 (PDT)
-Message-ID: <48830413.1070906@gmail.com>
-Date: Sun, 20 Jul 2008 19:23:31 +1000
-From: O&M Ugarcina <mo.ucina@gmail.com>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Which is best supported DVB-S HD PCI card in Linux
-Reply-To: mo.ucina@gmail.com
+	(envelope-from <stoth@linuxtv.org>) id 1KFrJf-0001Ve-Mz
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 16:03:46 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K3N00798316F9I0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 07 Jul 2008 10:03:08 -0400 (EDT)
+Date: Mon, 07 Jul 2008 10:03:06 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <2ff0d0e20807070625y10019060h98f4e0974ccb3681@mail.gmail.com>
+To: Moosy Log <moosylog@gmail.com>
+Message-id: <4872221A.1090104@linuxtv.org>
+MIME-version: 1.0
+References: <2ff0d0e20807031250s7fd0386ch9f9551f46ff771d2@mail.gmail.com>
+	<486D5789.7050006@iki.fi>
+	<2ff0d0e20807070625y10019060h98f4e0974ccb3681@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DUTV005 (CE9500B1) DVB-T USB Dongle
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,18 +33,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Guys,
+Moosy Log wrote:
+> I'm collecting all information about the dutv005, including some 
+> snoopypro logfiles on the following page:
+> http://sites.google.com/site/moosyresearch/dutv005
+> 
+> hope someone else will pick up
 
-I am thinking of getting a DVB-S (or for that matter S2) HD card for my 
-fedora based mythtv box . Recently some High Definition channels have 
-started appearing on our Satellites and I would not mind checking them 
-out . So please , which of the HD Sat cards based on the PCI bus have 
-the best linux support at the moment ? All information very welcome .
+You can hope.... or you could try starting the work yourself :)
 
+The support here is good and I'm sure people would offer help and advise 
+as needed.
 
-Best Regards
-
-Milorad
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
