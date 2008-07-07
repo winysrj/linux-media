@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <24484.simon.1216035632@5ec7c279.invalid>
-In-Reply-To: <1216003710.2649.24.camel@pc10.localdom.local>
-References: <4878F314.6090608@simon.arlott.org.uk>
-	<1215919227.2662.3.camel@pc10.localdom.local>
-	<487A4A3D.9040809@simon.arlott.org.uk>
-	<1216003710.2649.24.camel@pc10.localdom.local>
-Date: Mon, 14 Jul 2008 12:40:32 +0100
-From: "Simon Arlott" <simon@fire.lp0.eu>
-To: "hermann pitton" <hermann-pitton@arcor.de>
+Received: from bangui.magic.fr ([195.154.194.245])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <aconrad.tlv@magic.fr>) id 1KFmhj-0003gw-Oz
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 11:08:16 +0200
+Received: from [127.0.0.1] (ppp-76.net11.magic.fr [195.154.129.76])
+	by bangui.magic.fr (8.13.1/8.13.1) with ESMTP id m679889H012325
+	for <linux-dvb@linuxtv.org>; Mon, 7 Jul 2008 11:08:09 +0200
+Message-ID: <4871DCFA.7010202@magic.fr>
+Date: Mon, 07 Jul 2008 11:08:10 +0200
+From: Alexandre Conrad <aconrad.tlv@magic.fr>
 MIME-Version: 1.0
-Cc: v4l-dvb-maintainer@linuxtv.org, Linux DVB <linux-dvb@linuxtv.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
+To: linux-dvb@linuxtv.org
+References: <485F8A72.5010305@magic.fr> <485FB15F.8050000@magic.fr>
+	<485FEB01.60809@magic.fr> <200807060354.53328@orion.escape-edv.de>
+In-Reply-To: <200807060354.53328@orion.escape-edv.de>
+Subject: Re: [linux-dvb] S-1401: low signal (szap)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,86 +28,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, July 14, 2008 03:48, hermann pitton wrote:
->
-> Am Sonntag, den 13.07.2008, 19:32 +0100 schrieb Simon Arlott:
->> >From cde790c56ffe76f3d0bf6f38d89f4e671a5218c6 Mon Sep 17 00:00:00 2001
->> From: Simon Arlott <simon@redrum.invalid>
->> Date: Sun, 13 Jul 2008 19:24:53 +0100
->> Subject: [PATCH] V4L: Link tuner before saa7134
->>
->> If saa7134_init is run before v4l2_i2c_drv_init (tuner),
->> then saa7134_board_init2 will try to set the tuner type
->> for devices that don't exist yet. This moves tuner to
->> before all of the device-specific drivers so that it's
->> loaded early enough on boot.
->>
->> Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
->> ---
->>  drivers/media/video/Makefile |    4 ++--
->>  1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
->> index ecbbfaa..6b0af12 100644
->> --- a/drivers/media/video/Makefile
->> +++ b/drivers/media/video/Makefile
->> @@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
->>    obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
->>  endif
->>
->> +obj-$(CONFIG_VIDEO_TUNER) += tuner.o
->> +
->>  obj-$(CONFIG_VIDEO_BT848) += bt8xx/
->>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
->>  obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
->> @@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
->>  obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
->>  obj-$(CONFIG_TUNER_3036) += tuner-3036.o
->>
->> -obj-$(CONFIG_VIDEO_TUNER) += tuner.o
->> -
->>  obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
->>  obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
->>  obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
->> --
->> 1.5.6.2
->>
->
-> Thanks a lot for working on it!
->
-> I must admit that I have not tested it yet.
->
-> Remaining issues are.
->
-> #1 users can't set the tuner type anymore,
->    but the few cases of tuner detection from eeprom we have should
->    work again for that price.
-There are already module parameters to do that... they can be used
-from the kernel command line too.
+Hi,
 
->
-> #2 We still don't have any sufficient HDTV support in the kernel ;)
->
-DVB-T2? Why is that relevant to this change? My card doesn't even support
-it.
+Oliver Endriss wrote:
+> Alexandre Conrad wrote:
+>>>>I just recieved a new DVB card TT S-1401 as remplacement for the 
+>>>>Skystar2 2.8A which no longer works under linux.
+>>>>
+>>>>As I was afraid of, I have a low signal strength when I use szap. What 
+>>>>could be the cause and what's the fix if there's one?
+>>>
+>>>Let me add that the usual signal strenght I get is around "e246" with 
+>>>the TT S-1500 and I'm getting around "8585" with the TT S-1401.
+>>
+>>Any clues anyone? I haven't found any obvious ressources anywhere...
+> 
+> Do you have any reception problems?
 
-> #0 On 2.6.25, without dedicated TV subnorm selection possible anymore
->    and known auto detection flaws, fixed now, folks should have
->    complained about it.
->
->    Interestingly nothing like that happened.
->
->    What could that mean?
->
-I'm not sure what you're asking, but not many people appear to compile
-v4l/dvb into the kernel. Lots of function calls still work on
-uninitialised modules so ordering problems can easily be missed.
+Well, I haven't had much problem. As I'm only doing DVB-ip reception (no 
+TV) I think it's been ok for now. Although, I'm worried to see signal 
+strenght problems.
 
-> Cheers,
-> Hermann
+> Please note that you must not compare signal strength values from
+> different tuner types. The values reported are very inaccurate.
 
+Is there any accurate way of seeing what's the signal strenght? I'm 
+asking this because we're installing these cards on multiple 
+set-top-boxes around the country. And having the signal strenght value 
+would be a very good point for us as we could easely report the value 
+and check if all is good with the antenna's installation.
+
+If the signal varies between tuners, maybe is there some kind of table 
+referencing, per card, what is a good signal?
+
+Thanks for the info!
+
+Regards,
 -- 
-Simon Arlott
+Alexandre CONRAD
+
 
 _______________________________________________
 linux-dvb mailing list
