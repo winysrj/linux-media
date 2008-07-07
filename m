@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UDwHKR013958
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:58:17 -0400
-Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
-	[195.188.213.8])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6UDw3sL023039
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:58:03 -0400
-Message-ID: <4890737B.9070907@blueyonder.co.uk>
-Date: Wed, 30 Jul 2008 14:58:19 +0100
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67KIInx009718
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 16:18:18 -0400
+Received: from smtp-vbr17.xs4all.nl (smtp-vbr17.xs4all.nl [194.109.24.37])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67KI64B021143
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 16:18:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 7 Jul 2008 22:17:51 +0200
+References: <200807072141.03344.hverkuil@xs4all.nl>
+	<20080707220641.65f7bc08@hyperion.delvare>
+	<20080707171444.10f0e7a5@gaivota>
+In-Reply-To: <20080707171444.10f0e7a5@gaivota>
 MIME-Version: 1.0
-To: Video 4 Linux <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: Cards detected but not functioning under xawtv
-Reply-To: Ian.Davidson@bigfoot.com
+Content-Disposition: inline
+Message-Id: <200807072217.51487.hverkuil@xs4all.nl>
+Cc: Jean Delvare <khali@linux-fr.org>, v4l <video4linux-list@redhat.com>,
+	michael@mihu.de
+Subject: Re: Proposed removal of the dpc7146 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,102 +32,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This message is posted on behalf of George Leonard
+On Monday 07 July 2008 22:14:44 Mauro Carvalho Chehab wrote:
+> On Mon, 7 Jul 2008 22:06:41 +0200
+>
+> Jean Delvare <khali@linux-fr.org> wrote:
+> > On Mon, 7 Jul 2008 21:41:03 +0200, Hans Verkuil wrote:
+> > > Hi all,
+> > >
+> > > If no one objects, then I propose to remove this driver in kernel
+> > > 2.6.28 and announce its removal by adding the following notice to
+> > > the 2.6.27 feature-removal-schedule.txt document:
+> > >
+> > > What:   V4L2 dpc7146 driver
+> > > When:   September 2008
+> > > Why:    Old driver for the dpc7146 demonstration board that is no
+> > > longer relevant. The last time this was tested on actual hardware
+> > > was probably around 2002. Since this is a driver for a
+> > > demonstration board the decision was made to remove it rather
+> > > than spending a lot of effort continually updating this driver to
+> > > stay in sync with the latest internal V4L2 or I2C API.
+> > > Who:    Hans Verkuil <hverkuil@xs4all.nl>
+> > >
+> > >
+> > > Michael Hunold, the author of this driver, agrees with my
+> > > assessment that this driver is no longer relevant.
+> >
+> > +1
+> >
+> > (Less i2c-related drivers means less work for me.)
+>
+> Seems ok also to me.
+>
+>
+> Cheers,
+> Mauro
 
-Hi all
+Hi Mauro,
 
-have made modifications to modprobe.conf
+Great. Can you take care of adding this notice to the feature removal 
+document? Perhaps it is a good idea to add it to the 2.6.26 kernel 
+before it is released.
 
-if i then run xawtv -hwscan i get the below.
+When the 2.6.27 window closes I'll prepare a patch to actually remove it 
+from the v4l-dvb repository.
 
-but when i open xawtv i get a black screen.
+Regards,
 
-opensuse 10.3.
-Linux suse-left 2.6.22.5-31-default #1 SMP 2007/09/21 22:29:00 UTC i686 
-i686 i386 GNU/Linux
-
-Kodicom 4400R
-
-
-
-suse-left:~ # xawtv -hwscan
-This is xawtv-3.95, running on Linux/i686 (2.6.22.5-31-default)
-looking for available devices
-/dev/video0: OK                         [ -device /dev/video0 ]
-    type : v4l2
-    name : BT878 video (Kodicom 4400R (sla
-    flags: overlay capture 
-
-/dev/video1: OK                         [ -device /dev/video1 ]
-    type : v4l2
-    name : BT878 video (Kodicom 4400R (mas
-    flags: overlay capture 
-
-/dev/video2: OK                         [ -device /dev/video2 ]
-    type : v4l2
-    name : BT878 video (Kodicom 4400R (sla
-    flags: overlay capture 
-
-/dev/video3: OK                         [ -device /dev/video3 ]
-    type : v4l2
-    name : BT878 video (Kodicom 4400R (sla
-    flags: overlay capture 
-
-suse-left:~ #
-
-Continue
-
-here is the screen output when i run xawtv
-
-
-suse-left:~ # xawtv
-This is xawtv-3.95, running on Linux/i686 (2.6.22.5-31-default)
-WARNING: Your X-Server has no DGA support.
-WARNING: couldn't find framebuffer base address, try manual
-         configuration ("v4l-conf -a <addr>")
-ioctl: VIDIOC_OVERLAY(int=1): Invalid argument
-
-ioctl: VIDIOC_OVERLAY(int=1): Invalid argument
-
-
-suse-left:~ # cd /dev/
-suse-left:/dev # ls -la video*
-lrwxrwxrwx 1 root root      6 Jul 29 17:41 video -> video0
-crw-rw---- 1 root video 81, 0 Jul 29 17:41 video0
-crw-rw---- 1 root video 81, 1 Jul 29 17:41 video1
-crw-rw---- 1 root video 81, 2 Jul 29 17:41 video2
-crw-rw---- 1 root video 81, 3 Jul 29 17:41 video3
-suse-left:/dev #
-
-
-
- 
-
- 
-
- 
-
-________________________________________
-
-George Leonard  | Senior Sales Consultant -- Core & HA Database 
-Technology Architecture - MRD
-
-Phone + 27.11.319 4304 | FAX +27.11.319 4600 | Mobile +27.82 655 2466
-
-Oracle Technology Sale Consulting
-
-eMail: george.leonard@oracle.com
-
--- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
--- 
-Facts used in this message may or may not reflect an underlying objective reality. 
-Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. 
-Facts supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
+	Hans
 
 --
 video4linux-list mailing list
