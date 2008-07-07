@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GCuDiM032590
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 08:56:13 -0400
-Received: from jem.yoyo.org (jem.yoyo.org [193.110.91.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GCtufN011232
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 08:55:57 -0400
-Received: from anthony by jem.yoyo.org with local (Exim 4.69)
-	(envelope-from <anthony@yoyo.org>) id 1KJ6Y0-0003EU-9Y
-	for video4linux-list@redhat.com; Wed, 16 Jul 2008 13:55:56 +0100
-Date: Wed, 16 Jul 2008 13:55:56 +0100
-From: Anthony Edwards <anthony@yoyo.org>
-To: video4linux-list@redhat.com
-Message-ID: <20080716125556.GA9609@yoyo.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67LrsLc010525
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:53:54 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67LrgTu012609
+	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:53:42 -0400
+Message-ID: <48729200.1090304@hhs.nl>
+Date: Tue, 08 Jul 2008 00:00:32 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+To: Gregor Jasny <jasny@vidsoft.de>
+References: <4867F380.1040803@hhs.nl> <20080703203623.GI18818@vidsoft.de>
+In-Reply-To: <20080703203623.GI18818@vidsoft.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
+Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,25 +27,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This appears to be an issue affecting a number of users, for example:
+Gregor Jasny wrote:
+> Hi,
+> 
+> I've just included libv4l2 in our app. After after a short debugging
+> session I noticed the following:
+> 
+> In the man page the ioctl prototype is defined as
+> int ioctl(int d, int request, ...). To catch the EINTR case I wrote a
+> wrapper function:
+> 
+> int xioctl (int fd, int request, void *arg)
+> 
+> But as long as the request argument is int instead of unsigned long, the
+> request gets sign extended:
+> 
+> xioctl (fd, VIDIOC_TRY_FMT, &fmt)
+> (gdb) p/x request
+> $2 = 0xc0d05640
+> 
+> int v4l2_ioctl (int fd, unsigned long int request, ...);
+> (gdb) p/x request
+> $3 = 0xffffffffc0d05640
+> 
+> Maybe you should mention this "issue" in the FAQ or documentaion.
+> 
 
-http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
+Thanks for reporting this, this has saved me quite some time while debugging 
+issues with xawtv and kopete. I believe that the upper 32 bits added by this 
+(obviously wrong code) get thrown away somewhere down the path to the kernel on 
+64 bit archs, so I've modified libv4l to just ignore the upper 32 bits to match 
+this behavior.
 
-I have experienced it too today after attempting to recompile drivers
-for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
+Regards,
 
-After obtaining the latest source code using hg clone, I have found
-that it will not successfully compile.  I am seeing the same make
-errors as the poster in the posting referenced above.
+Hans
 
-Unfortunately, I lack the necessary programming knowledge to hack the
-source code in order to make it work.
+> PS: Should I submit the sar-constraint patch to Thierry myself?
 
-Is a fix in the pipeline?
-
--- 
-Anthony Edwards
-anthony@yoyo.org
+Nope I was just being slow, just like with answering this. Thanks for the 
+testing and the patches!
 
 --
 video4linux-list mailing list
