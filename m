@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.187])
+Received: from mail.itsystems.ro ([89.35.193.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <guebby@gmail.com>) id 1KO2Ht-0002nS-MR
-	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 05:23:42 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so191511nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 29 Jul 2008 20:23:37 -0700 (PDT)
-From: Jose Osvaldo <guebby@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 30 Jul 2008 05:16:12 +0200
+	(envelope-from <robert@itsystems.ro>) id 1KFtrB-0002iL-Rl
+	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 18:46:34 +0200
+Message-ID: <48724855.9090507@itsystems.ro>
+Date: Mon, 07 Jul 2008 19:46:13 +0300
+From: Robert Grozea <robert@itsystems.ro>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807300516.13142.guebby@gmail.com>
-Subject: [linux-dvb] lower SNR
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] cx24113 - SkyStar2 Rev2.8
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,14 +22,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have an AVerMedia AverTV Hybrid+FM PCI A16D (saa7135h+xc3028+mt352) and it 
-works fine, but with the new driver (kernel 2.6.26) it has lower SNR than 
-with the Markus Rechberger's driver. I have measured it with "dvbtune" and it 
-is not only a number; in fact there are some channels that I could hardly 
-tune but looked ok, which have now some MPEG artifacts. The SNR fall is from 
-29000 dB to 26000 dB approximately in this channel.
+Hi,
 
-Thanks.
+I tried to compile the cx24113.o_shipped driver for SkyStar2 Rev2.8 on 
+Debian but when I try to load module with modprobe cx24113 i get an 
+Undefinded Symbol in module error saying that the functions 
+kmem_cache_zalloc cannot be found.
+Any ideea where I did wrong ?
+
+Best regards,
+
+Robert
 
 _______________________________________________
 linux-dvb mailing list
