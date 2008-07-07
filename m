@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.178])
+Received: from mail-in-03.arcor-online.net ([151.189.21.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KMr1V-000776-RR
-	for linux-dvb@linuxtv.org; Sat, 26 Jul 2008 23:09:54 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so4142056ika.1
-	for <linux-dvb@linuxtv.org>; Sat, 26 Jul 2008 14:09:50 -0700 (PDT)
-Message-ID: <412bdbff0807261409w3e069607h541b84e280e6730a@mail.gmail.com>
-Date: Sat, 26 Jul 2008 17:09:50 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] DIB0700 GPIO pins
+	(envelope-from <hermann-pitton@arcor.de>) id 1KFzRY-000126-N3
+	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 00:44:25 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Darren Salt <linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <4FC0AB9978%linux@youmustbejoking.demon.co.uk>
+References: <200807061744.31775.hftom@free.fr> <20080707160504.7771bae0@bk.ru>
+	<4FC0AB9978%linux@youmustbejoking.demon.co.uk>
+Date: Tue, 08 Jul 2008 00:41:02 +0200
+Message-Id: <1215470462.3762.77.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,19 +26,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Does anybody know where the GPIO pins are on the dib0700?  I would
-like to trace them out on my Pinnacle PCTV HD Pro Stick so I don't
-burn anything out (the actual datasheet would be extremely useful if
-anybody from DiBcom is listening).
 
-Thanks,
+Am Montag, den 07.07.2008, 17:42 +0100 schrieb Darren Salt:
+> I demand that Goga777 may or may not have written...
+> 
+> > btw
+> > when Kaffeine  will support multiproto api  and h.264 ?
+> 
+> We could do with multiproto support in xine-lib... contributions, anybody?
+> :-)
+> 
 
-Devin
+Despite that, seems Manu should have that decision, however,
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+we could also start to collect some statistics about what works already
+for HDTV like BBC HD without S2 and were are confusions/instabilities if
+we go through the apps like kaffeine/xine, mplayer and vlc already
+supporting h.264.
+
+That's for to know how good the decoder already really is
+and to get a better idea were hardware support still is lacking,
+which is difficult to decide within current error scenarios.
+
+Cheers,
+Hermann
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
