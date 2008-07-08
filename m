@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.186])
+Received: from gv-out-0910.google.com ([216.239.58.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mika.batsman@gmail.com>) id 1KNoM3-0000IW-En
-	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 14:31:05 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so3237746nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 29 Jul 2008 05:30:59 -0700 (PDT)
-Message-ID: <488F0D80.7010607@gmail.com>
-Date: Tue, 29 Jul 2008 15:30:56 +0300
-From: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KGIMG-0006m4-VD
+	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 20:56:14 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so527109gve.16
+	for <linux-dvb@linuxtv.org>; Tue, 08 Jul 2008 11:55:48 -0700 (PDT)
+Message-ID: <412bdbff0807081155u6c06e3c0hb3d02b3c55c6f8b0@mail.gmail.com>
+Date: Tue, 8 Jul 2008 14:55:47 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Ronnie Bailey" <purevw@wtxs.net>
+In-Reply-To: <1215541957.4797.21.camel@Opto.Bailey>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
-	<488CAE63.9070204@kolumbus.fi>
-In-Reply-To: <488CAE63.9070204@kolumbus.fi>
+Content-Disposition: inline
+References: <1215541957.4797.21.camel@Opto.Bailey>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
- (VP-2040) &	mantis driver
+Subject: Re: [linux-dvb] Problems with ATI USB Hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,171 +22,127 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0247329045=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0247329045==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hello,
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Hi,
-<br>
-I also tried your patch because I've had freezes since I got these
-cards. Unfortunately it didn't help me. Got a whooping 5min uptime
-before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + vdr
-1.6.
-<br>
-<br>
-I did:
-<br>
-hg clone <a class="moz-txt-link-freetext"
- href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a>
-<br>
-replaced mantis_dma.c with the one you attached, renamed
-MANTIS_GPIF_RDWRN -&gt; MANTIS_GPIF_HIFRDWRN
-<br>
-make &amp;&amp; make install &amp;&amp; reboot
-<br>
-<br>
-Am I missing something? It seemed to compile and install fine.
-<br>
-<br>
-You said that the mantis_dma.c in jusst.de mantis head is not the
-latest version. Where can it be found then?
-<br>
-<br>
-Regards,
-<br>
-Mika B&aring;tsman
-<br>
-<br>
-Marko Ristola wrote:
-<blockquote cite="mid:488CAE63.9070204@kolumbus.fi" type="cite"><br>
-Hi,
-  <br>
-  <br>
-Unfortunately I have been busy.
-  <br>
-  <br>
-The patch you tried was against jusst.de Mantis Mercurial branch head.
-  <br>
-Your version of mantis_dma.c is not the latest version and thus the
-patch didn't
-  <br>
-apply cleanly.
-  <br>
-  <br>
-Here is the version that I use currently. It doesn't compile straight
-against jusst.de/mantis head.
-  <br>
-It might work for you because MANTIS_GPIF_RDWRN is not renamed as
-MANTIS_GPIF_HIFRDWRN.
-  <br>
-  <br>
-If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences into
-MANTIS_GPIF_HIFRDWRN on that file.
-  <br>
-Otherwise the file should work as it is.
-  <br>
-  <br>
-Best regards,
-  <br>
-Marko Ristola
-  <br>
-  <br>
-Leif Oberste-Berghaus kirjoitti:
-  <br>
-  <blockquote type="cite">Hi Marko,
-    <br>
-    <br>
-I tried to patch the driver but I'm getting an error message:
-    <br>
-    <br>
-root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 &lt;
-mantis_dma.c.aligned_dma_trs.patch
-    <br>
-patching file linux/drivers/media/dvb/mantis/mantis_dma.c
-    <br>
-patch: **** malformed patch at line 22: int mantis_dma_exit(struct
-mantis_pci *mantis)
-    <br>
-    <br>
-Any ideas?
-    <br>
-    <br>
-Regards
-    <br>
-Leif
-    <br>
-    <br>
-    <br>
-Am 14.07.2008 um 22:05 schrieb Marko Ristola:
-    <br>
-    <br>
-    <blockquote type="cite">Hi Leif,
-      <br>
-      <br>
-Here is a patch that implements the mentioned DMA transfer
-improvements.
-      <br>
-I hope that these contain also the needed fix for you.
-      <br>
-You can apply it into jusst.de/mantis Mercurial branch.
-      <br>
-It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
-      <br>
-I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
-      <br>
-      <br>
-cd mantis
-      <br>
-patch -p1 &lt; mantis_dma.c.aligned_dma_trs.patch
-      <br>
-      <br>
-Please tell us whether my patch helps you or not: if it helps, some of
-my patch might get into jusst.de as
-      <br>
-a fix for your problem.
-      <br>
-      <br>
-Best Regards,
-      <br>
-Marko
-      <br>
-    </blockquote>
-    <br>
-    <br>
-  </blockquote>
-  <br>
-  <pre wrap=""><pre wrap="">
-<hr size="4" width="90%">
-_______________________________________________
-linux-dvb mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre></pre>
-</blockquote>
-<br>
-</body>
-</html>
+2008/7/8 Ronnie Bailey <purevw@wtxs.net>:
+> Hi All,
+>     I am trying to install an ATI TV Wonder HD 600 USB card and not having
+> any luck. No matter what I try, there is no /dev/video  and also no
+> /dev/dvb.  The module seems to load OK, but the card is not found. Yast sees
+> the card, but only identifies it as a USB device and not a TV card. I'll
+> include what info I have. I would appreciate any help offered. I am trying
+> my best to eliminate Microsoft from my systems. This driver problem is one
+> of the last major headaches. I'm not sure if this matters, but I need to set
+> it up as NTSC-M with us cable. Channel 3 will be the only channel used.
+>
+> Yast Hardware information states:
+>
+>   102: udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
+>   info.subsystem = 'usb_device'
+>   usb_device.vendor = 'Advanced Micro Devices, Inc.'
+>   usb_device.bus_number = 2 (0x2)
+>   linux.subsystem = 'usb'
+>   info.linux.driver = 'usb'
+>   usb_device.product = 'ATI TV Wonder 600 USB 2.0'
+>   info.product = 'ATI TV Wonder 600 USB 2.0'
+>   linux.device_file = '/dev/bus/usb/002/008'
+>   usb_device.linux.sysfs_path =
+> '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
+>   usb_device.device_revision_bcd = 272 (0x110)
+>   info.udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
+>   usb_device.configuration_value = 1 (0x1)
+>   usb_device.max_power = 500 (0x1f4)
+>   usb_device.num_configurations = 1 (0x1)
+>   usb_device.num_ports = 0 (0x0)
+>   usb_device.num_interfaces = 1 (0x1)
+>   usb_device.linux.device_number = 8 (0x8)
+>   usb_device.device_class = 0 (0x0)
+>   usb_device.serial = '660729005035'
+>   linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
+>   usb_device.device_subclass = 0 (0x0)
+>   info.vendor = 'Advanced Micro Devices, Inc.'
+>   usb_device.speed = 480.000
+>   info.parent = '/org/freedesktop/Hal/devices/usb_device_50d_237_noserial'
+>   usb_device.device_protocol = 0 (0x0)
+>   usb_device.version = 2.00000
+>   usb_device.vendor_id = 1080 (0x438)
+>   usb_device.is_self_powered = false
+>   usb_device.product_id = 45058 (0xb002)
+>   usb_device.can_wake_up = false
+>   linux.hotplug_type = 2 (0x2)
+>
+> Pertinent lsmod info:
+>
+> Module                Size            Used By
+> em28xx_dvb           26884          0
+> dvb_core              109348          1 em28xx_dvb
+> em28xx                   81836          1 em28xx_dvb
+> compat_ioctl32        25856          1 em28xx
+> videodev                  55040          2 em28xx,compat_ioctl32
+> v4l1_compat            31620          1 videodev
+> videobuf_vmalloc       25476          1 em28xx
+> videobuf_core          38788          2 em28xx,videobuf_vmalloc
+> ir_common              60932          2 ir_kbd_i2c,em28xx
+> v4l2_common            29824          1 em28xx
+> tveeprom               30724              1 em28xx
+>
+> lsusb gives me this:
+>
+> Bus 002 Device 008: ID 0438:b002 Advanced Micro Devices, Inc.
+>
+> dmesg shows:
+>
+> fuse init (API version 7.9)
+> Linux video capture interface: v2.00
+> em28xx v4l2 driver version 0.1.0 loaded
+> usbcore: registered new interface driver em28xx
+> Em28xx: Initialized (Em28xx dvb Extension) extension
+>
+> Xine posted a couple of warning messages:
+>
+> Jul 8 12:26:44 Opto xinetd[3495]: No such internal service: chargen/raw -
+> DISABLING
+>
+> Jul 8 12:26:45 Opto xinetd[3495]: Port not specified and can't find service:
+> netstat with getservbyname
+>
+> Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: servers/stream -
+> DISABLING
+>
+> Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: services/stream
+> - DISABLING
+>
+> When I open Xine and try to connect to DVB. it simply states:
+>
+> Input plugin failed to open mrl 'Sorry, No DVB input device found
+>
+> Thanks in advance,
+> Ronnie Bailey
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
+I'm wondering why it tried to load the em28xx driver.  Do you have
+some other device in the system that is em28xx based?
 
---===============0247329045==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Could you please provide the output of "lsusb -v" for the device in question.
+
+Thanks,
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0247329045==--
