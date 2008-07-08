@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64F8bpn029318
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:08:37 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64F8OO3012344
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 11:08:24 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEmtc-0006K3-69
-	for video4linux-list@redhat.com; Fri, 04 Jul 2008 17:08:24 +0200
-Message-ID: <486E3CC4.6090609@hhs.nl>
-Date: Fri, 04 Jul 2008 17:07:48 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m68Egr4O011197
+	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 10:42:53 -0400
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m68Egeiu007359
+	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 10:42:41 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Tue, 8 Jul 2008 16:42:33 +0200
+References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
+	<48737AA3.3080902@teltonika.lt>
+In-Reply-To: <48737AA3.3080902@teltonika.lt>
 MIME-Version: 1.0
-To: Gregor Jasny <jasny@vidsoft.de>
-References: <20080704144036.GJ18818@vidsoft.de>
-In-Reply-To: <20080704144036.GJ18818@vidsoft.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org
-Subject: Re: PATCH: libv4l-fix-idct-inline-assembly.diff
+Content-Disposition: inline
+Message-Id: <200807081642.34261.laurent.pinchart@skynet.be>
+Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,43 +32,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-
-I was just about to send the same patch :)
-
-Note that this is already incorperated into the libv4l-0.3.2 tarbal release 
-which I'm about to announce.
-
-Regards,
-
-Hans
-
-
-Gregor Jasny wrote:
-> Hi,
+On Tuesday 08 July 2008, Paulius Zaleckas wrote:
+> Magnus Damm wrote:
+> > This is V2 of the physically contiguous videobuf queues patch.
+> > Useful for hardware such as the SuperH Mobile CEU which doesn't
+> > support scatter gatter bus mastering.
 > 
-> This patch fixes the input constraint for the sar instruction. It allows only an
-> immediate or cl as shift width.
-> 
-> Thanks,
-> Gregor
-> 
-> Signed-off-by: Gregor Jasny <jasny@vidsoft.de>
-> 
-> diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c
-> --- a/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 07:21:55 2008 +0200
-> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 16:24:33 2008 +0200
-> @@ -92,7 +92,7 @@ static inline unsigned char descale_and_
->        "\tcmpl %4,%1\n"
->        "\tcmovg %4,%1\n"
->        : "=r"(x)
-> -      : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
-> +      : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
->        );
->    return x;
->  }
-> 
+> spelling gatther :)
 
+gather would be even better :-)
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
