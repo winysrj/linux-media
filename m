@@ -1,20 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m65MAnrZ030112
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 18:10:49 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m65MAROR016333
-	for <video4linux-list@redhat.com>; Sat, 5 Jul 2008 18:10:27 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2168301rvb.51
-	for <video4linux-list@redhat.com>; Sat, 05 Jul 2008 15:10:26 -0700 (PDT)
-Message-ID: <486FF148.2060506@gmail.com>
-Date: Sat, 05 Jul 2008 14:10:16 -0800
-From: D <therealisttruest@gmail.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m68EZJud003726
+	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 10:35:20 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m68EZ7bf000577
+	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 10:35:08 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1KGEHW-0002NM-VW
+	for video4linux-list@redhat.com; Tue, 08 Jul 2008 14:35:02 +0000
+Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 08 Jul 2008 14:35:02 +0000
+Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 08 Jul 2008 14:35:02 +0000
 To: video4linux-list@redhat.com
+From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Date: Tue, 08 Jul 2008 17:33:07 +0300
+Message-ID: <48737AA3.3080902@teltonika.lt>
+References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Help with Chinese card
+In-Reply-To: <20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
+Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,119 +38,111 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Anyone,
+Magnus Damm wrote:
+> This is V2 of the physically contiguous videobuf queues patch.
+> Useful for hardware such as the SuperH Mobile CEU which doesn't
+> support scatter gatter bus mastering.
 
-Firstly, let me state I'm not a total noob to Linux, but have only 
-recompiled a kernel once or twice and then couldn't have done so without 
-a decent step by step guide. I'm a programmer, but not a good one yet as 
-I'm still learning a lot. So on to my problem.....
+spelling gatther :)
 
-I was working on this for an associate of mine who is across the country 
-so I have somewhat limited access to the machine with the card on it. I 
-have tried a couple module recompilations with a possible addition for 
-this card, but with no real success.
+> +static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+> +				  struct vm_area_struct *vma)
+> +{
+> +	struct videobuf_dma_contig_memory *mem;
+> +	struct videobuf_mapping *map;
+> +	unsigned int first;
+> +	int retval;
+> +	unsigned long size, offset = vma->vm_pgoff << PAGE_SHIFT;
+> +
+> +	dev_dbg(q->dev, "%s\n", __func__);
+> +	if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
+> +		return -EINVAL;
+> +
+> +	/* look for first buffer to map */
+> +	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+> +		if (!q->bufs[first])
+> +			continue;
+> +
+> +		if (V4L2_MEMORY_MMAP != q->bufs[first]->memory)
+> +			continue;
+> +		if (q->bufs[first]->boff == offset)
+> +			break;
+> +	}
+> +	if (VIDEO_MAX_FRAME == first) {
+> +		dev_dbg(q->dev, "invalid user space offset [offset=0x%lx]\n",
+> +			offset);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* create mapping + update buffer list */
+> +	map = kzalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
+> +	if (!map)
+> +		return -ENOMEM;
+> +
+> +	q->bufs[first]->map = map;
+> +	map->start = vma->vm_start;
+> +	map->end = vma->vm_end;
+> +	map->q = q;
+> +
+> +	q->bufs[first]->baddr = vma->vm_start;
+> +
+> +	mem = q->bufs[first]->priv;
+> +	BUG_ON(!mem);
+> +	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+> +
+> +	mem->size = PAGE_ALIGN(q->bufs[first]->bsize);
+> +	mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
+> +					&mem->dma_handle, GFP_KERNEL);
+> +	if (!mem->vaddr) {
+> +		dev_err(q->dev, "dma_alloc_coherent size %ld failed\n",
+> +			mem->size);
+> +		goto error;
+> +	}
+> +	dev_dbg(q->dev, "dma_alloc_coherent data is at addr %p (size %ld)\n",
+> +		mem->vaddr, mem->size);
+> +
+> +	/* Try to remap memory */
+> +
+> +	size = vma->vm_end - vma->vm_start;
+> +	size = (size < mem->size) ? size : mem->size;
+> +
+> +	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> +	retval = remap_pfn_range(vma, vma->vm_start,
+> +				 __pa(mem->vaddr) >> PAGE_SHIFT,
 
-It's a LE-8008A from Shenzhen Rare Numeral Science bought on EBay and it 
-appears to be an SAA7134 card. Based on a previous posting on the 
-mailing list, I've made changes to the saa7134-cards.c and saa7134.h 
-below, but with little success(the previous user  evidently used RegSpy 
-in Windows, but I don't have access to that)--
+__pa(mem->vaddr) doesn't work on ARM architecture... It is a long story
+about handling memory allocations and mapping for ARM (there is
+dma_mmap_coherent to deal with this), but there is a workaround:
 
-[SAA7134_BOARD_AOP_8008A_16_PORT] = {/*added definition*/
-        .name = "AOPVision AOP-8008A 16CH/240fps Capture Card",
-        .audio_clock = 0x00187de7,
-        .tuner_type = TUNER_ABSENT,
-        .radio_type = UNSET,
-        .tuner_addr = ADDR_UNSET,
-        .radio_addr = ADDR_UNSET,
-        .inputs = {{
-        .name = name_comp1,
-        .gpio = 0xe3c00,
-        .vmux = 0,
-        },{
-        .name = name_comp2,
-        .gpio = 0xe3c00,
-        .vmux = 2,
-        }},
+mem->dma_handle >> PAGE_SHIFT,
 
-Here's some pertinent info-
+It is safe to do it this way and also saves some CPU instructions :)
 
-lspci
-
-04:08.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:09.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0a.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0b.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0d.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0e.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-04:0f.0 Multimedia controller: Philips Semiconductors SAA7130 Video 
-Broadcast Decoder (rev 01)
-
-
-lspci -vn
-
-04:08.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 21
-    Memory at febffc00 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:09.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 22
-    Memory at febff800 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0a.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 17
-    Memory at febff400 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0b.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 23
-    Memory at febff000 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0c.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 21
-    Memory at febfec00 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0d.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 22
-    Memory at febfe800 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0e.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 17
-    Memory at febfe400 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-04:0f.0 0480: 1131:7130 (rev 01)
-    Subsystem: 1131:0000
-    Flags: bus master, medium devsel, latency 64, IRQ 23
-    Memory at febfe000 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-
-
-Any advice on what to do next or any questions for me to help clarify?
-
-Thanks in advance!
-
-Daniel
+> +				 size, vma->vm_page_prot);
+> +	if (retval) {
+> +		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
+> +		dma_free_coherent(q->dev, mem->size,
+> +				  mem->vaddr, mem->dma_handle);
+> +		goto error;
+> +	}
+> +
+> +	vma->vm_ops          = &videobuf_vm_ops;
+> +	vma->vm_flags       |= VM_DONTEXPAND;
+> +	vma->vm_private_data = map;
+> +
+> +	dev_dbg(q->dev, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
+> +		map, q, vma->vm_start, vma->vm_end,
+> +		(long int) q->bufs[first]->bsize,
+> +		vma->vm_pgoff, first);
+> +
+> +	videobuf_vm_open(vma);
+> +
+> +	return 0;
+> +
+> +error:
+> +	kfree(map);
+> +	return -ENOMEM;
+> +}
 
 --
 video4linux-list mailing list
