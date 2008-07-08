@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.226])
+Received: from fk-out-0910.google.com ([209.85.128.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KFqPU-0007CL-72
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 15:05:41 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so2753721rvf.41
-	for <linux-dvb@linuxtv.org>; Mon, 07 Jul 2008 06:05:35 -0700 (PDT)
-Message-ID: <d9def9db0807070605w67ff1731ubfd1cbb34c6faec7@mail.gmail.com>
-Date: Mon, 7 Jul 2008 15:05:34 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Christophe Thommeret" <hftom@free.fr>
-In-Reply-To: <200807071455.09787.hftom@free.fr>
+	(envelope-from <liplianin@me.by>) id 1KGAe4-00014m-Rw
+	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 12:42:05 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so1637847fka.1
+	for <linux-dvb@linuxtv.org>; Tue, 08 Jul 2008 03:42:01 -0700 (PDT)
+To: linux-dvb@linuxtv.org
+Date: Tue, 8 Jul 2008 13:40:42 +0300
+References: <48724855.9090507@itsystems.ro>
+In-Reply-To: <48724855.9090507@itsystems.ro>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <200807061744.31775.hftom@free.fr> <20080707160504.7771bae0@bk.ru>
-	<20080707122656.9EFD2B8D3@nebuchadnezzar.smejdil.cz>
-	<200807071455.09787.hftom@free.fr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
+Message-Id: <200807081340.42677.igor@liplianin.net>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Robert Grozea <robert@itsystems.ro>
+Subject: Re: [linux-dvb] cx24113 - SkyStar2 Rev2.8
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,30 +22,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Christophe,
-
-On Mon, Jul 7, 2008 at 2:55 PM, Christophe Thommeret <hftom@free.fr> wrote:
-> Le Monday 07 July 2008 14:26:56 CIJOML, vous avez =E9crit :
->> Better question when will be finally fixed that damned silly bug when I
->> watch channel 2 and press button 2 again, kaffeine retunes same channel
->> instead just showing info with channel name ;)
->
-> Probably because you double click :)
->
-
-* DVB: added 7MHz autoscan.
-
-7 MHz or 6MHz?
-
--Markus
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgNyBKdWx5IDIwMDggMTk6NDY6MTMgUm9iZXJ0IEdyb3plYSDOwdDJ08HM
+KMEpOgo+IEhpLAo+Cj4gSSB0cmllZCB0byBjb21waWxlIHRoZSBjeDI0MTEzLm9fc2hpcHBlZCBk
+cml2ZXIgZm9yIFNreVN0YXIyIFJldjIuOCBvbgo+IERlYmlhbiBidXQgd2hlbiBJIHRyeSB0byBs
+b2FkIG1vZHVsZSB3aXRoIG1vZHByb2JlIGN4MjQxMTMgaSBnZXQgYW4KPiBVbmRlZmluZGVkIFN5
+bWJvbCBpbiBtb2R1bGUgZXJyb3Igc2F5aW5nIHRoYXQgdGhlIGZ1bmN0aW9ucwo+IGttZW1fY2Fj
+aGVfemFsbG9jIGNhbm5vdCBiZSBmb3VuZC4KPiBBbnkgaWRlZWEgd2hlcmUgSSBkaWQgd3Jvbmcg
+Pwo+Cj4gQmVzdCByZWdhcmRzLAo+Cj4gUm9iZXJ0Cj4KPiBfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51
+eC1kdmJAbGludXh0di5vcmcKPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
+bi9saXN0aW5mby9saW51eC1kdmIKTWF5IGJlIHRoYXQgbGluZSBnaXZlcyBpZGVhLgoKI2luY2x1
+ZGUgPGxpbnV4L3NsYWIuaD4gICAgICAgICAvKiBrbWFsbG9jKCksIGtmcmVlKCkgKi8KIApJZ29y
+IE0uIExpcGxpYW5pbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
+L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
