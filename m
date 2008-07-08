@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f185.mail.ru ([194.67.57.147])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KF2hp-0006lT-89
-	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 10:01:19 +0200
-From: Goga777 <goga777@bk.ru>
-To: Philipp Huebner <philipp.huebner@credativ.de>
-Mime-Version: 1.0
-Date: Sat, 05 Jul 2008 12:00:42 +0400
-References: <486E1CF7.9040402@credativ.de>
-In-Reply-To: <486E1CF7.9040402@credativ.de>
-Message-Id: <E1KF2hG-0001jz-00.goga777-bk-ru@f185.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] =?koi8-r?b?VGVycmFUZWMgQ2luZXJneSBTMiBQQ0kgSEQ=?=
-Reply-To: Goga777 <goga777@bk.ru>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <derblubber@gmx.net>) id 1KGKKj-0005Lh-FL
+	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 23:02:46 +0200
+Message-Id: <D827E716-B375-4AAC-977F-A4BDD2EE1776@gmx.net>
+From: derblubber <derblubber@gmx.net>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0 (Apple Message framework v926)
+Date: Tue, 8 Jul 2008 23:02:11 +0200
+Subject: [linux-dvb] supported dvb-s2 usb device
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +22,11 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Goga777 schrieb:
-> > you should use szap2 from test directory of dvb-apps
-> > http://linuxtv.org/hg/dvb-apps/file/77e3c7baa1e4/test/szap2.c
-> 
-> scan works now, szap2 works now:
+Are there any dvb-s2 usb devices that i could buy today and use with  
+linux and vdr? Assuming the usage of latest linuxtv-dvb of course.  
+Thanks for reply.
 
-fine :)
-
-> How can I actually watch some channel?
-> 
-> Furthermore I'd like to use kaffeine, is this possible with this card?
-> At the moment kaffeine fails to scan for channels because tuning fails.
-> Is there some workaround?
-
-I recommend to you to use the VDR 170 
-http://www.vdr-wiki.de/wiki/index.php/OpenSUSE_VDR_DVB-S2_-_xine
-
-
+derblubber
 
 _______________________________________________
 linux-dvb mailing list
