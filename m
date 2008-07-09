@@ -1,14 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55107.mail.re4.yahoo.com ([206.190.58.156])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <mat2ag@yahoo.com>) id 1KGB8p-0002dJ-KX
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 13:13:53 +0200
-Date: Tue, 8 Jul 2008 04:13:12 -0700 (PDT)
-From: alireza ghahremanian <mat2ag@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from nschwmtas06p.mx.bigpond.com ([61.9.189.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mickhowe@bigpond.net.au>) id 1KGOBo-0000Mb-LZ
+	for linux-dvb@linuxtv.org; Wed, 09 Jul 2008 03:09:53 +0200
+Received: from nschwotgx03p.mx.bigpond.com ([121.223.37.61])
+	by nschwmtas06p.mx.bigpond.com with ESMTP id
+	<20080709010909.ZAWU20306.nschwmtas06p.mx.bigpond.com@nschwotgx03p.mx.bigpond.com>
+	for <linux-dvb@linuxtv.org>; Wed, 9 Jul 2008 01:09:09 +0000
+Received: from fini.bareclan ([121.223.37.61])
+	by nschwotgx03p.mx.bigpond.com with ESMTP
+	id <20080709010908.TTVE26538.nschwotgx03p.mx.bigpond.com@fini.bareclan>
+	for <linux-dvb@linuxtv.org>; Wed, 9 Jul 2008 01:09:08 +0000
+From: mick <mickhowe@bigpond.net.au>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Wed, 9 Jul 2008 11:09:07 +1000
 MIME-Version: 1.0
-Message-ID: <99074.69235.qm@web55107.mail.re4.yahoo.com>
-Subject: [linux-dvb] Fw:  cx24113 - SkyStar2 Rev2.8
+Content-Disposition: inline
+Message-Id: <200807091109.07963.mickhowe@bigpond.net.au>
+Subject: [linux-dvb] Leadtek DTV2000H rev J
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,38 +31,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All 
-Where is this driver? how we can test it?
+I have been struggling to get my Leadtek DTV2000H rev J card working under 
+kubuntu 8.04 for many weeks with mixed success for a couple of months.
 
+At 1 point I managed to get picture without sound on digital tv and at another 
+time I had picture only on analog using various patches but have been unable 
+to reproduce these results at will.
 
+I've been watching the list through this period but have seen no references 
+that stood out as being the answer I need.
 
------ Forwarded Message ----
-From: Robert Grozea <robert@itsystems.ro>
-To: linux-dvb@linuxtv.org
-Sent: Tuesday, July 8, 2008 12:03:53 PM
-Subject: [linux-dvb] cx24113 - SkyStar2 Rev2.8
+Where can I turn next? Is there anything I can do to assist?
 
-Hi All,
-
-I managed to make the binary driver work. The whole ideea is that the 
-only distribution which fitted was Fedora.
-It seems that the driver has been written in Fedora and it includes some 
-function calls which are only available in Fedora.
-Since I do not appreciate this kind of proprietary thinking I still wait 
-for a new version of driver which will work on other distros.
-
-Best regards,
-
-Robert
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
-      
+Mick
 
 _______________________________________________
 linux-dvb mailing list
