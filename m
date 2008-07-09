@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PGNZ2K006937
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:23:35 -0400
-Received: from omta0103.mta.everyone.net (sitemail3.everyone.net
-	[216.200.145.37])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PGNMiB019545
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:23:23 -0400
-Received: from dm23.mta.everyone.net (sj1-slb03-gw2 [172.16.1.96])
-	by omta0103.mta.everyone.net (Postfix) with ESMTP id 140193C798B
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 09:21:48 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m69M9256016696
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 18:09:02 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m69M7r5e022605
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 18:07:54 -0400
+Message-ID: <48752A4D.7050800@hhs.nl>
+Date: Wed, 09 Jul 2008 23:14:53 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Message-Id: <20080725092147.4D3D3776@resin17.mta.everyone.net>
-Date: Fri, 25 Jul 2008 09:21:47 -0700
-From: <jortega@listpropertiesnow.com>
-To: <video4linux-list@redhat.com>
-Subject: Video Card Linux
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: PATCH: gspca-sn9c102-sensor-gain.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,9 +25,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello everyone,
+Hi,
 
-Does anyone have an idea what is the best non-conflicting video card for Linux that I can buy off of the shelf?
+Currently the sn9c102 gain control, only controls the digital gain in the
+sn9c102, but most sensors have an analog gain in the sensor, allowing for a
+much wider sensitivity range.
+
+This patch adds support for the sensor gain for the tas5110 and ov6650 sensors.
+Note that both gains are controlled with a single v4l2 ctrl, as they are both
+gain. The ctrl now hs a range of 0-511, raising it one step at a time, will
+first raise the sensor gain 1 one its 0-255 scale and then the next step will
+raise the bridge gain on its 0-255 scale. Note that the bridge really has a
+0-15 scale, so it only gets raised once every 32 steps
+(of the full 0-511 scale).
+
+This patch combined with the configurable exposure and autoexposure patch,
+makes my 2 sn9c102 cams work well in a wide variety of lighting conditions.
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
