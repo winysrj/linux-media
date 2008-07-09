@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HFeKvt030594
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:40:20 -0400
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HFeAlC009338
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:40:10 -0400
-Received: by rn-out-0910.google.com with SMTP id k32so2329002rnd.7
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 08:40:05 -0700 (PDT)
-Message-ID: <f56b605d0807170840x3d6a0116hc817caff4760c5ec@mail.gmail.com>
-Date: Thu, 17 Jul 2008 18:40:04 +0300
-From: "Carlos Bessa" <carlos.bessa@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m69LWxvt018610
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 17:33:04 -0400
+Received: from mailrelay006.isp.belgacom.be (mailrelay006.isp.belgacom.be
+	[195.238.6.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m69LRxgK013019
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 17:28:00 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "David Ellingsworth" <david@identd.dyndns.org>
+Date: Wed, 9 Jul 2008 23:27:58 +0200
+References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
+	<200807092135.38250.laurent.pinchart@skynet.be>
+	<30353c3d0807091315j2bcfe355hfc2c4a6445f9be9a@mail.gmail.com>
+In-Reply-To: <30353c3d0807091315j2bcfe355hfc2c4a6445f9be9a@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: TV card Lifeview DVB-T Hybrid (saa7134) not working. Wrong tuner.
+Message-Id: <200807092327.59152.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,127 +32,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This was tested on openSuSE 11 (64bit).
-The card in question is a DVB-T card from Targa, that came with my laptop (also
-from Targa). It is the same as the LifeView DVB-T Hybrid Cardbus. The problem
-is that is mis-identifies it self as being a LifeView DVB-T Dual Cardbus so i
-have to configure it manually.
+Hi David,
 
-When using openSuSE 10.3 i could do that through cli, by specifing the
-correct card and tuner:
-rmmod saa7134_dvb
-rmmod saa7134
-modprobe saa7134 card=94 tuner=54
+On Wednesday 09 July 2008, David Ellingsworth wrote:
+> On Wed, Jul 9, 2008 at 3:35 PM, Laurent Pinchart
+>
+> <laurent.pinchart@skynet.be> wrote:
+> > On Wednesday 02 July 2008, David Ellingsworth wrote:
+> >> On Tue, Jul 1, 2008 at 7:49 PM, David Ellingsworth
+> >>
+> >> I think I found a solution to the above issue. I removed the lock from
+> >> video_release and the main portion of video_close and wrapped the two
+> >> calls to kobject_put by the videodev_lock. Since video_close is called
+> >> when the BKL is held the lock is not required around the main portion
+> >> of video_close. Acquiring the lock around the calls to kobject_put
+> >> insures video_release is always called while the lock is being held.
+> >> This should fix the above race condition between device_unregister and
+> >> video_open as well. Here is the corrected patch.
+> >
+> > The kernel is moving away from the BKL. We might not want to rely on it
+> > in new code. Any opinion on this ?
+>
+> To address this issue I think we should seriously consider converting
+> videodev to use char_dev. Char_dev already exhibits the behavior
+> provided by this patch and has already been rewritten with the
+> elimination of the BKL in mind.
 
-Start up kaffeine/dvb-t and it would work perfectly. In openSuSE 11
-that does not
-work anymore. The autodetection is still wrong unfortunately:
+That seems a good idea to me. I'll have to check the char_dev API in details.
 
-#dmesg
-pccard: CardBus card inserted into slot 1
-saa7130/34: v4l2 driver version 0.2.14 loaded
-PCI: Enabling device 0000:04:00.0 (0000 -> 0002)
-ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 20 (level, low) -> IRQ 20
-saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 0, mmio:
-0x98000000
-PCI: Setting latency timer of device 0000:04:00.0 to 64
-saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo
-Cardbus [card=60,autodetected]
-saa7133[0]: board init: gpio is 210000
-saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-tuner' 1-004b: chip found @ 0x96 (saa7133[0])
-tda8290 1-004b: setting tuner address to 61
-tda8290 1-004b: type set to tda8290+75
-saa7133[0]: registered device video1 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[0]: registered device radio0
-DVB: registering new adapter (saa7133[0])
-DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision ff -- invalid
-tda1004x: trying to boot from eeprom
-tda1004x: found firmware revision ff -- invalid
-tda1004x: waiting for firmware upload...
-tda1004x: no firmware upload (timeout or file not found?)
-tda1004x: firmware upload failed
-tda827x_probe_version: could not read from tuner at addr: 0xc0
+> In the mean time, this patch should 
+> allow developers to reap the benefits of kobject release callback
+> ocuring at the proper time and prepare their drivers for the
+> conversion of videodev. Once converted, we should be able to remove
+> video_open and video_close entirely. However, unless we can remove
+> video_ioctl2's use of the internal video_device array, we must
+> continue to intercept the kobject release callback in order to update
+> the video_device array appropriately.
 
+Do you mean video_devdata() ? As long as we provide a way to map from a struct 
+file * to a struct video_dev * we shouldn't have any issue. This doesn't 
+necessarily require a global video_device array.
 
-But loading the saa7134 module with the correct card and tuner parameters does
-not work either:
+If I'm not mistaken, converting to char_dev means we can use inode->i_cdev to 
+store a pointer to a struct video_dev *, provided struct video_dev contains a 
+struct cdev instance.
 
-#dmesg
-saa7130/34: v4l2 driver version 0.2.14 loaded
-saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 64, mmio:
-0x98000000
-saa7133[0]: subsystem: 5168:0502, board: LifeView FlyDVB-T Hybrid Cardbus/MSI
-TV @nywhere A/D NB [card=94,insmod option]
-saa7133[0]: board init: gpio is 10000
-tuner' 1-004b: chip found @ 0x96 (saa7133[0])
-tda8290 1-004b: setting tuner address to 61
-tda8290 1-004b: type set to tda8290+75
-saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video1 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[0]: registered device radio0
-DVB: registering new adapter (saa7133[0])
-DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision ff -- invalid
-tda1004x: trying to boot from eeprom
-tda1004x: found firmware revision ff -- invalid
-tda1004x: waiting for firmware upload...
-tda1004x: no firmware upload (timeout or file not found?)
-tda1004x: firmware upload failed
-tda827x_probe_version: could not read from tuner at addr: 0xc2
+For the open(), release() and ioctl() handler we could then map from struct 
+inode * to struct video_dev * instead. For other operations we might need to 
+use file->private_data, but that field is currently used by driver to store 
+per-instance file information.
 
+Best regards,
 
-The problem seems to be that even though i specify the correct tuner parameter
-(54) another is used (61). The card is correct though (94).
-
-I tested this with the 32bit version of openSuSE 11 (kernel 2.6.25)
-and 32bit version of
-Kubuntu 8.04 (kernel 2.6.24), using live cds, and it also does not work.
-Re-tested on openSuSE 10.3 32/64bit (kernel 2.6.22.5) and Kubuntu 7.10
-(kernel 2.6.22-14), also using live cds, and
-it works perfectly. So i guess something changed in the saa7134 driver(?) in
-the newer kernel versions(?) ?
-
-Thanks for any help!
-I'll be happy to provide any other info, or test any solution.
-
-regards,
-Carlos Bessa
+Laurent Pinchart
 
 --
 video4linux-list mailing list
